@@ -38,16 +38,16 @@
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
-# |                       Playbook for SAP SCS Install                         |
+# |                       Playbook for Post installation                       |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
 
-- hosts:                               "{{ sap_sid | upper }}_SCS"
+- hosts:                               "{{ sap_sid | upper }}_SCS :
+                                        {{ sap_sid | upper }}_DB"
   name:                                Post Installation
   remote_user:                         "{{ orchestration_ansible_user }}"
   become:                              true
-  become_user:                         root
   gather_facts:                        true
   vars_files:
     - vars/ansible-input-api.yaml                                               # API Input template with defaults

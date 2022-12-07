@@ -22,7 +22,7 @@ nwUsers.sidAdmUID                                                    = {{ sidadm
 
 NW_Delete_Sapinst_Users.removeUsers                                  = true
 NW_GetMasterPassword.masterPwd                                       = {{ main_password }}
-NW_GetSidNoProfiles.sid                                              = {{ sap_sid| upper }}
+NW_GetSidNoProfiles.sid                                              = {{ sap_sid | upper }}
 
 NW_SCS_Instance.ascsInstallGateway                                   = true
 NW_SCS_Instance.ascsInstallWebDispatcher                             = false
@@ -39,16 +39,16 @@ NW_HDB_DB.abapSchemaName                                              = {{ hana_
 NW_HDB_DB.abapSchemaPassword                                          = {{ main_password }}
 NW_HDB_DBClient.clientPathStrategy                                    = SAPCPE
 NW_HDB_getDBInfo.dbhost                                               = {{ sap_db_hostname }}
-NW_HDB_getDBInfo.dbsid                                                = {{ db_sid| upper }}
-NW_HDB_getDBInfo.instanceNumber                                       = {{ hdb_instance_number }}
+NW_HDB_getDBInfo.dbsid                                                = {{ db_sid | upper }}
+NW_HDB_getDBInfo.instanceNumber                                       = {{ db_instance_number }}
 NW_HDB_getDBInfo.systemDbPassword                                     = {{ main_password }}
 NW_HDB_getDBInfo.systemPassword                                       = {{ main_password }}
-NW_HDB_getDBInfo.systemid                                             = {{ db_sid| upper }}
+NW_HDB_getDBInfo.systemid                                             = {{ db_sid | upper }}
 NW_HDB_getDBInfo.usingSSL                                             = true
 
-NW_Recovery_Install_HDB.extractLocation                               = /usr/sap/{{ db_sid| upper }}/{{ db_sid| upper }}{{ hdb_instance_number }}/backup/data/DB_HDB
+NW_Recovery_Install_HDB.extractLocation                               = /usr/sap/{{ db_sid | upper }}/{{ db_sid | upper }}{{ db_instance_number }}/backup/data/DB_HDB
 NW_Recovery_Install_HDB.extractParallelJobs                           = 24
-NW_Recovery_Install_HDB.sidAdmName                                    = {{ db_sid|lower }}adm
+NW_Recovery_Install_HDB.sidAdmName                                    = {{ db_sid | lower }}adm
 NW_Recovery_Install_HDB.sidAdmPassword                                = {{ main_password }}
 
 NW_checkMsgServer.abapMSPort                                          = 36{{ scs_instance_number }}
@@ -67,7 +67,7 @@ NW_System.installSAPHostAgent                                         = {{ sap_i
 NW_WPConfiguration.ciDialogWPNumber                                   = {{ sap_ciDialogWPNumber}}
 NW_WPConfiguration.ciBtcWPNumber                                      = {{ sap_ciBtcWPNumber }}
 
-storageBasedCopy.hdb.instanceNumber                                   = {{ hdb_instance_number }}
+storageBasedCopy.hdb.instanceNumber                                   = {{ db_instance_number }}
 storageBasedCopy.hdb.systemPassword                                   = {{ main_password }}
 
 # Database hostnames that will be set directly in hdbuserstore without resolving them in HANA. Comma separated. Example (host1,host2)

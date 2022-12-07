@@ -1,6 +1,6 @@
 ---
 
-# Dynamicallu determine list of unique disk types associated with
+# Dynamically determine list of unique disk types associated with
 # current node.
 disktypes: >-
   {{ disks | selectattr('host', 'defined') |

@@ -21,12 +21,12 @@ nwUsers.sidadmPassword                                                = {{ main_
 
 NW_Delete_Sapinst_Users.removeUsers                                   = true
 NW_GetMasterPassword.masterPwd                                        = {{ main_password }}
- 
+
 NW_adaptProfile.skipSecurityProfileSettings                           = true
 NW_getFQDN.FQDN                                                       = {{ sap_fqdn }}
 
 NW_GetSidNoProfiles.sid                                               = {{ web_sid| upper }}
-NW_webdispatcher_Instance.backEndSID                                  = {{ sap_sid| upper }}
+NW_webdispatcher_Instance.backEndSID                                  = {{ sap_sid | upper }}
 
 NW_Webdispatcher_Instance.wdInstanceNumber                            = {{ web_instance_number }}
 NW_webdispatcher_Instance.activateICF                                 = false

@@ -49,7 +49,6 @@
         tier:                          fencing
       tags:
         - kv-secrets
-      when:                            platform != "ORACLE"
 
     - name:                            "SCS Installation Playbook: - Read storage account details"
       ansible.builtin.include_role:
@@ -70,7 +69,6 @@
   name:                                SAP Generic OS Groups and User Creation
   remote_user:                         "{{ orchestration_ansible_user }}"
   become:                              true
-  become_user:                         "{{ become_user_name }}"
   gather_facts:                        true                                    # Important to collect hostvars information
   any_errors_fatal:                    true
   vars_files:
@@ -125,7 +123,6 @@
   name:                                "SCS Installation Playbook: - SCS"
   remote_user:                         "{{ orchestration_ansible_user }}"
   become:                              true
-  become_user:                         "{{ become_user_name }}"
   gather_facts:                        true                                    # Important to collect hostvars information
   vars_files:
     - vars/ansible-input-api.yaml                                              # API Input template with defaults
@@ -159,15 +156,15 @@
             - name:                    "SCS Installation Playbook: - Print Instance Numbers"
               ansible.builtin.debug:
                 msg:
-                  - "hdb_instance_number: {{ hdb_instance_number }}"
+                  - "db_instance_number: {{ db_instance_number }}"
                   - "scs_instance_number: {{ scs_instance_number }}"
                 verbosity:             2
 
             - name:                    "SCS Installation Playbook: - SCS Assertions"
               ansible.builtin.assert:
                 that:
-                  - "scs_instance_number != hdb_instance_number"
-                fail_msg:              "Please ensure that the scs_instance_number is different from the hdb_instance_number"
+                  - "scs_instance_number != db_instance_number"
+                fail_msg:              "Please ensure that the scs_instance_number is different from the db_instance_number"
           when:                        (ansible_play_hosts_all | length) == 1
 
         - name:                        "SCS Installation Playbook: - Set 'scs' tier facts"
@@ -192,7 +189,7 @@
               ansible.builtin.include_role:
                 name:                  roles-sap/5.0.0-scs-install
               vars:
-                scs_instance_number: "{{ sid_to_be_deployed.ascs_inst_no }}"
+                scs_instance_number:   "{{ sid_to_be_deployed.ascs_inst_no }}"
               loop:                    "{{ all_sids }}"
               loop_control:
                 loop_var:              sid_to_be_deployed
@@ -223,8 +220,12 @@
               vars:
                 suffix:                "_SCS"
                 prefix:                "{{ bom.product_ids.scs.replace('.', '/').replace('/ABAP', '').split(':')[1] }}"
-                path:                  '/INSTALL/DISTRIBUTED/ABAP/ASCS'
+                path:                  'INSTALL/DISTRIBUTED/ABAP/ASCS'
                 tier:                  'scs'
+                this_sid:              "{{ sid_to_be_deployed.sid | upper }}"
+              loop:                    "{{ all_sids }}"
+              loop_control:
+                loop_var:              sid_to_be_deployed
 
             - name:                    "SCS Installation Playbook: - Show errors from HANA installation"
               ansible.builtin.debug:
@@ -234,8 +235,6 @@
 
           tags:
             - 5.0.0-scs-install
-          vars:
-            tier:                      "{{ tier }}"
       when:
         - not scs_high_availability
         - "'scs' in supported_tiers"
@@ -252,7 +251,6 @@
   name:                                "SCS HA Install and Pacemaker Resources"
   remote_user:                         "{{ orchestration_ansible_user }}"
   become:                              true
-  become_user:                         "{{ become_user_name }}"
   gather_facts:                        true                                    # Important to collect hostvars information
   vars_files:
     - vars/ansible-input-api.yaml                                              # API Input template with defaults
@@ -386,8 +384,9 @@
               vars:
                 suffix:                "_SCS"
                 prefix:                "{{ scs_bom_id.replace('.', '/').replace('/ABAPHA', '').split(':')[1] }}"
-                path:                  '/INSTALL/HA/ABAP/ASCS'
+                path:                  'INSTALL/HA/ABAP/ASCS'
                 tier:                  'scs'
+                this_sid:              "{{ sap_sid | upper }}"
               when:
                 - scs_bom_id is defined
                 - node_tier == 'scs'
@@ -398,8 +397,9 @@
               vars:
                 suffix:                "_ERS"
                 prefix:                "{{ ers_bom_id.replace('.', '/').replace('/ABAPHA', '').split(':')[1] }}"
-                path:                  '/INSTALL/HA/ABAP/ERS'
+                path:                  'INSTALL/HA/ABAP/ERS'
                 tier:                  'ers'
+                this_sid:              "{{ sap_sid | upper }}"
               when:
                 - ers_bom_id is defined
                 - node_tier == 'ers'

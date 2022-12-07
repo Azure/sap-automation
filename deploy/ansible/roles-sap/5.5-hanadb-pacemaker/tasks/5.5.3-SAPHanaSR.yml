@@ -26,7 +26,8 @@
     #     - (ansible_facts.packages['SAPHanaSR'][0].version | float) < 0.153
 
     - name:                            Check if "myHooks" file exists in /hana/shared directory
-      ansible.builtin.stat:            path=/hana/shared/myHooks
+      ansible.builtin.stat:
+        path:                          /hana/shared/myHooks
       register:                        my_hooks_stat
 
     - name:                            copy SAPHanaSR.py (SUSE)
@@ -62,7 +63,7 @@
         group:                         sapsys
 
     - name:                            Stop HANA Database
-      import_tasks:                    ../../../roles-misc/0.4-helpers/tasks/04.02-stop_hana.yml
+      ansible.builtin.import_tasks:    ../../../roles-misc/0.4-helpers/tasks/04.02-stop_hana.yml
 
     - name:                            Adjust global.ini on each cluster node
       ansible.builtin.blockinfile:
@@ -77,7 +78,7 @@
 
 
     - name:                           Start HANA Database
-      import_tasks:                   ../../../roles-misc/0.4-helpers/tasks/04.01-start_hana.yml
+      ansible.builtin.import_tasks:   ../../../roles-misc/0.4-helpers/tasks/04.01-start_hana.yml
 
 
 # End of configuration for SAPHanaSR python hook

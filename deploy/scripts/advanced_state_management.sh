@@ -179,7 +179,7 @@ else
     exit 2
 fi
 
-automation_config_directory=~/.sap_deployment_automation/
+automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation/
 system_config_information="${automation_config_directory}""${environment}""${region_code}"
 
 subscription_with_resource=$(echo "$resourceID" | cut -d / -f3)

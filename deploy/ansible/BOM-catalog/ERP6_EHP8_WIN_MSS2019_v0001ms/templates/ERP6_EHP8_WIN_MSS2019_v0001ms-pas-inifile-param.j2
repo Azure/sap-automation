@@ -4,6 +4,11 @@
 #                                                                                                                                                                                  #
 ####################################################################################################################################################################################
 
+# Location of download_basket\CD_EXPORT CD
+SAPINST.CD.PACKAGE.CD1                                                = {{ download_directory_windows }}\CD_EXPORT\DATA_UNITS\EXP1
+SAPINST.CD.PACKAGE.CD2                                                = {{ download_directory_windows }}\CD_EXPORT\DATA_UNITS\EXP2
+SAPINST.CD.PACKAGE.CD3                                                = {{ download_directory_windows }}\CD_EXPORT\DATA_UNITS\EXP3
+
 # Master password
 NW_GetMasterPassword.masterPwd                                        = {{ main_password }}
 
@@ -12,11 +17,13 @@ NW_GetSidNoProfiles.sapdrive                                          = {{ sap_d
 # Unix only: The SAP mount directory path. Default value is '/sapmnt'.
 # NW_GetSidNoProfiles.sapmnt = /sapmnt
 
+NW_getUnicode.isUnicode                                               = true
+
 # The SAP system ID <SAPSID> of the system to be installed
 NW_GetSidNoProfiles.sid                                               = {{ sap_sid | upper }}
 
 # Provide  'profile' directory of SAP Netweaver-based system.
-NW_readProfileDir.profileDir                                          = \\{{ sap_scs_hostname }}\sapmnt\{{ sap_sid | upper }}\SYS\profile
+NW_readProfileDir.profileDir                                          = {{ sap_profile_dir }}
 
 # The instance number of the (A)SCS instance.  Leave this value empty if you want to use the default instance number or if you want to specify two different numbers for ASCS and SCS instance.
 NW_SCS_Instance.instanceNumber                                        = {{ scs_instance_number }}
@@ -58,10 +65,10 @@ NW_getFQDN.FQDN                                                       = {{ sap_f
 # OS4.DestinationASP =
 
 # The folder containing all archives that have been downloaded from http://support.sap.com/swdc and are supposed to be used in this procedure
-archives.downloadBasket                                               = {{ target_media_location }}\download_basket
+archives.downloadBasket                                               = {{ download_directory_windows }}\download_basket
 
 # Password of the sidadm user.
-db2.sidAdmPassword                                                    = {{ main_password }}
+db2.sidAdmPassword                                                    = {{ ansible_password }}
 
 # Windows only: The domain of the SAP Host Agent user
 # hostAgent.domain =
@@ -71,9 +78,9 @@ hostAgent.sapAdmPassword                                              = {{ main_
 
 
 # Windows only: The password of the 'SAPServiceSID' user
-nwUsers.sapServiceSIDPassword                                         = {{ main_password }}
+nwUsers.sapServiceSIDPassword                                         = {{ sid_service_password }}
 # The password of the '<sapsid>adm' user
-nwUsers.sidadmPassword                                                = {{ main_password }}
+nwUsers.sidadmPassword                                                = {{ domain_user_password }}
 
 # The load type chosen by the user. Valid values are: 'SAP', 'STD', 'OBR', 'HCP', 'FLASHCOPY', 'MDA', 'HBR', 'SBR'
 NW_getLoadType.loadType                                               = SAP
@@ -89,7 +96,7 @@ MSS.Database.Action = USE
 
 # Database host
 NW_MSS_DBINFO.dbhost                                                  = {{ sap_db_hostname }}
-NW_MSS_DBINFO.dbsid                                                   = {{ db_sid| upper }}
+NW_MSS_DBINFO.dbsid                                                   = {{ db_sid | upper }}
 
 ...
 

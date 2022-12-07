@@ -19,6 +19,15 @@
       map(attribute='type') | sort | unique |
       list | length }}"
 
+- name:                                "2.6 SAP Mounts: - Check if the backup disk exists"
+  ansible.builtin.set_fact:
+    backupdisks_count:                 "{{ disks | selectattr('host', 'defined') |
+      selectattr('host', 'equalto', inventory_hostname) |
+      selectattr('type', 'equalto', 'backup') |
+      map(attribute='type') | sort | unique |
+      list | length | int }}"
+
+
 - name:                                "2.6 SAP Mounts: - choose the shared disk"
   ansible.builtin.set_fact:
     sharedpath:                        "{% if shareddisk == '1' %}/dev/vg_hana_shared/lv_hana_shared\
@@ -47,43 +56,48 @@
     verbosity:                         2
 
 # Mount Filesystems
+
+- name:                                "2.6 SAP Mounts: - Check if the 'sap' disk exists"
+  ansible.builtin.set_fact:
+    sap_disk_exists:                   "{{ disks | selectattr('host', 'defined') |
+      selectattr('host', 'equalto', inventory_hostname) |
+      selectattr('type', 'equalto', 'sap') |
+      map(attribute='type') | sort | unique |
+      list | length }}"
+
 - name:                                "2.6 SAP Mounts: - Mount local sap file systems"
   ansible.posix.mount:
-    src:                               "{{ item.src }}"
-    path:                              "{{ item.path }}"
-    fstype:                            "{{ item.type }}"
+    src:                               '/dev/vg_sap/lv_usrsap'
+    path:                              '/usr/sap'
+    fstype:                            'xfs'
     opts:                              defaults
     state:                             mounted
-  loop:
-    - { node_tier: 'all',  type: 'xfs', src: '/dev/vg_sap/lv_usrsap', path: '/usr/sap' }
   when:
-    - (item.node_tier == "all" or item.node_tier == node_tier)
+    - sap_disk_exists == '1'
     - node_tier != 'observer'
     - ((node_tier == 'app' and usr_sap_mountpoint is undefined) or node_tier != 'app')
 
 - name:                                "2.6 SAP Mounts: - Mount local file systems (shared)"
   ansible.posix.mount:
-    src:                               "{{ item.src }}"
-    path:                              "{{ item.path }}"
-    fstype:                            "{{ item.type }}"
+    src:                               "{{ sharedpath }}"
+    path:                              '/hana/shared'
+    fstype:                            'xfs'
     opts:                              defaults
     state:                             mounted
-  loop:
-    - { node_tier: 'hana', type: 'xfs', src: "{{ sharedpath }}",                   path: '/hana/shared' }
   when:
     - node_tier == 'hana'
     - hana_shared_mountpoint is undefined
 
 - name:                                "2.6 SAP Mounts: - Mount local file systems (backup)"
   ansible.posix.mount:
-    src:                               "{{ item.src }}"
-    path:                              "{{ item.path }}"
-    fstype:                            "{{ item.type }}"
+    src:                               '/dev/vg_hana_backup/lv_hana_backup'
+    path:                              '/hana/backup'
+    fstype:                            'xfs'
     opts:                              defaults
     state:                             mounted
-  loop:
-    - { node_tier: 'hana', type: 'xfs', src: '/dev/vg_hana_backup/lv_hana_backup', path: '/hana/backup' }
-  when:         (item.node_tier == "all" or item.node_tier == node_tier)
+  when:
+    - node_tier == 'hana'
+    - (backupdisks_count | int) > 0
 
 - name:                                "2.6 SAP Mounts: - Mount local file systems (hana data)"
   ansible.posix.mount:
@@ -109,11 +123,9 @@
 
 - name:                                "Exports: Create SAP Trans MSIDs"
   ansible.builtin.file:
-    path:                              "{{ item.path }}"
+    path:                              '/usr/sap/trans'
     state:                             directory
     mode:                              0755
-  loop:
-    - { path: '/usr/sap/trans' }
   when:
     - node_tier == 'scs'
     - MULTI_SIDS is defined
@@ -121,32 +133,29 @@
 
 - name:                                "2.6 SAP Mounts: - Mount local install file system on SCS (when not using AFS)"
   ansible.posix.mount:
-    src:                               "{{ item.src }}"
-    path:                              "{{ item.path }}"
-    fstype:                            "{{ item.type }}"
+    src:                               '/dev/vg_sap/lv_usrsapinstall'
+    path:                              '{{ target_media_location }}'
+    fstype:                            'xfs'
     opts:                              defaults
     state:                             mounted
-  loop:
-    - { node_tier: 'scs',  type: 'xfs',   src: '/dev/vg_sap/lv_usrsapinstall',          path: '{{ target_media_location }}' }
   when:
-    - item.node_tier in supported_tiers
+    - "'scs' in supported_tiers"
     - usr_sap_install_mountpoint is undefined
 
 # Mount Filesystems
 - name:                                "2.6 SAP Mounts: - Mount local sapmnt on (scs) {{ ansible_hostname }}"
   ansible.posix.mount:
-    src:                               "{{ item.src }}"
-    path:                              "{{ item.path }}"
-    fstype:                            "{{ item.type }}"
+    src:                               '/dev/vg_sap/lv_sapmnt'
+    path:                              '/sapmnt/{{ sap_sid | upper }}'
+    fstype:                            'xfs'
     opts:                              defaults
     state:                             mounted
-  loop:
-    - { type: 'xfs',  src: '/dev/vg_sap/lv_sapmnt',  path: '/sapmnt/{{ sap_sid | upper }}' }
   when:
     - tier == 'sapos'
     - sap_mnt is undefined
     - node_tier == 'scs'
     - MULTI_SIDS is undefined
+    - sap_disk_exists == '1'
     - "'scs' in supported_tiers"
 
 - name:                                "2.6 SAP Mounts: - Create SAP Directories (sapmnt)"
@@ -162,16 +171,14 @@
   block:
     - name:                            "2.6 SAP Mounts: - Mount sapmnt file system when not using external NFS (all app tier)"
       ansible.posix.mount:
-        src:                           "{{ item.src }}"
-        path:                          "{{ item.path }}"
-        fstype:                        "{{ item.type }}"
+        src:                           '{{ nfs_server }}:/sapmnt/{{ sap_sid | upper }}'
+        path:                          '/sapmnt/{{ sap_sid | upper }}'
+        fstype:                        'nfs4'
         opts:                          defaults
         state:                         mounted
-      loop:
-        - { type: 'nfs4',  src: '{{ nfs_server }}:/sapmnt/{{ sap_sid | upper }}',  path: '/sapmnt/{{ sap_sid | upper }}' }
       when:
         - tier == 'sapos'
-        - node_tier in ['pas', 'app', 'ers', 'oracle']
+        - node_tier in ['pas', 'app', 'ers', 'oracle', 'db2']
         - sap_mnt is undefined
         - MULTI_SIDS is undefined
         - nfs_server !=  ansible_hostname
@@ -181,32 +188,29 @@
         msg:                           "Trying to remount sap_mnt"
     - name:                            "2.6 SAP Mounts: - Mount sapmnt file system when not using external NFS (all app tier)"
       ansible.posix.mount:
-        src:                           "{{ item.src }}"
-        path:                          "{{ item.path }}"
-        fstype:                        "{{ item.type }}"
+        src:                           '{{ nfs_server }}:/sapmnt/{{ sap_sid | upper }}'
+        path:                          '/sapmnt/{{ sap_sid | upper }}'
+        fstype:                        'nfs4'
         opts:                          defaults
         state:                         remounted
-      loop:
-        - { type: 'nfs4',  src: '{{ nfs_server }}:/sapmnt/{{ sap_sid | upper }}',  path: '/sapmnt/{{ sap_sid | upper }}' }
       when:
         - tier == 'sapos'
-        - node_tier in ['pas', 'app', 'ers', 'oracle']
+        - node_tier in ['pas', 'app', 'ers', 'oracle', 'db2']
         - sap_mnt is undefined
         - MULTI_SIDS is undefined
         - nfs_server !=  ansible_hostname
 
 - name:                                "2.6 SAP Mounts: - Mount Install folder when not using AFS"
   ansible.posix.mount:
-    src:                               "{{ item.src }}"
-    path:                              "{{ item.path }}"
-    fstype:                            "{{ item.type }}"
+    src:                               '{{ usr_sap_install_mount_point }}'
+    path:                              '{{ target_media_location }}'
+    fstype:                            'nfs4'
     opts:                              defaults
     state:                             mounted
-  loop:
-    - { type: 'nfs4', src: '{{ usr_sap_install_mount_point }}', path: '{{ target_media_location }}' }
   when:
     - tier == 'sapos'
     - node_tier != 'scs'
+    - "'scs' not in supported_tiers"
     - usr_sap_install_mountpoint is not defined
 
 # Mount File systems for SCS server in Multi-SID installations
@@ -259,14 +263,22 @@
     - sap_mnt is undefined
 
 # Import this task only if the tier is ora.
-- import_tasks:                        "oracle.yaml"
+- name:                                "2.6 SAP Mounts: - Import Oracle tasks"
+  ansible.builtin.import_tasks:        "oracle.yaml"
   when:
     - node_tier == "oracle"
 
-- import_tasks:                        "oracle-multi-sid.yaml"
+- name:                                "2.6 SAP Mounts: - Import Oracle multi sid tasks"
+  ansible.builtin.import_tasks:        "oracle-multi-sid.yaml"
   when:
     - node_tier == "oracle-multi-sid"
     - node_tier != "oracle-asm"
+
+# Import this task only if the node_tier is db2.
+- name:                                "2.6 SAP Mounts: - Import DB2 tasks"
+  ansible.builtin.import_tasks:        "2.6.4-db2-mounts.yaml"
+  when:
+    - node_tier == "db2"
 
 # Import this task only if the sap_mnt is defined, i.e. AFS is used
 - name:                                "2.6 SAP Mounts: - Import AFS tasks"

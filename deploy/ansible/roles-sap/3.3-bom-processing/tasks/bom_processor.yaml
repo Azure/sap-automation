@@ -138,13 +138,16 @@
   register:                            result
   until:                               result is succeeded
   retries:                             2
-  delay:                               5
   loop:                                "{{ bom.materials.media | flatten(levels=1) }}"
-  vars:
-    ansible_python_interpreter:        "{{ python_version }}"
   when:
     - item.download is undefined or item.download
+    - item.archive is defined
+    - item.archive | trim | length > 1
     - distribution_id in ['suse15', 'redhat8', 'sles_sap15' ]
+  delay:                               5
+  vars:
+    ansible_python_interpreter:        "{{ python_version }}"
+
 
 - name:                                "3.3 BoM Processing: - Download Files on {{ distribution_id }}"
   ansible.builtin.get_url:
@@ -196,8 +199,10 @@
   when:
     - item.extract is not undefined
     - item.extract
-    - ( item.filename is undefined and (item.archive | regex_search('[^.]+(?=\\.*$)') | upper=="RAR") ) or
-      ( item.filename is defined   and (item.filename | regex_search('[^.]+(?=\\.*$)') | upper=="RAR") )
+    - ( item.filename is undefined and (item.archive |regex_search('[^.]+(?=\\.*$)')|upper=="RAR") ) or
+      ( item.filename is defined   and (item.filename|regex_search('[^.]+(?=\\.*$)')|upper=="RAR") ) or
+      ( item.filename is undefined and (item.archive |regex_search('[^.]+(?=\\.*$)')|upper=="EXE") ) or
+      ( item.filename is defined   and (item.filename|regex_search('[^.]+(?=\\.*$)')|upper=="EXE") )
 
 
 #   07) Extract files - UNZIP
@@ -215,6 +220,22 @@
     - item.extract
     - ( item.filename is undefined and (item.archive | regex_search('[^.]+(?=\\.*$)') | upper=="ZIP") ) or
       ( item.filename is defined   and (item.filename | regex_search('[^.]+(?=\\.*$)') | upper=="ZIP") )
+
+#   07) Extract files - EXE
+# - name:                                "3.3 BoM Processing: - Extract File, UNRAR"
+#   ansible.builtin.command:             unrar x "{{ target_media_location }}/{% if item.path is undefined %}downloads{% else %}{{ item.path }}{% endif %}/\
+#                                        {% if item.filename is undefined %}{{ item.archive }}{% else %}{{ item.filename }}{% endif %}"
+#   args:
+#     chdir:                             "{{ target_media_location }}/{{ item.extractDir }}"
+#     creates:                           "{{ target_media_location }}/{{ item.extractDir }}/\
+#                                         {% if item.creates is defined %}{{ item.creates }}{% else %}NOT_DEFINED{% endif %}"
+#   loop:                                "{{ bom.materials.media|flatten(levels=1) }}"
+#   when:
+#     - item.extract is not undefined
+#     - item.extract
+#     - ( item.filename is undefined and (item.archive |regex_search('[^.]+(?=\\.*$)')|upper=="EXE") ) or
+#       ( item.filename is defined   and (item.filename|regex_search('[^.]+(?=\\.*$)')|upper=="EXE") )
+
 
 # -------------------------------------+---------------------------------------8
 #

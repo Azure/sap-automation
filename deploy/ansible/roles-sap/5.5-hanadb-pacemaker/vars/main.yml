@@ -37,7 +37,7 @@ cluster_name:                          db{{ sid | lower }}
 # target: "{{ iscsi_object }}.{{ cluster_name }}.local:{{ cluster_name }}"
 
 # HANA utility commands
-sapcontrol_command:                    "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/sapcontrol -nr {{ hdb_instance_number }}"
+sapcontrol_command:                    "/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe/sapcontrol -nr {{ db_instance_number }}"
 storage_object: sbd{{ cluster_name }}
 target: "{{ iscsi_object }}.{{ cluster_name }}.local:{{ cluster_name }}"
 

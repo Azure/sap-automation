@@ -24,7 +24,7 @@ resource "azurerm_network_interface" "scs" {
       name      = pub.value.name
       subnet_id = pub.value.subnet_id
       private_ip_address = try(pub.value.nic_ips[count.index],
-        var.application.use_DHCP ? (
+        var.application_tier.use_DHCP ? (
           null) : (
           cidrhost(local.application_subnet_exists ?
             data.azurerm_subnet.subnet_sap_app[0].address_prefixes[0] :
@@ -67,7 +67,7 @@ resource "azurerm_network_interface_application_security_group_association" "scs
 
 resource "azurerm_network_interface" "scs_admin" {
   provider = azurerm.main
-  count = local.enable_deployment && var.application.dual_nics && length(try(var.admin_subnet.id, "")) > 0 ? (
+  count = local.enable_deployment && var.application_tier.dual_nics && length(try(var.admin_subnet.id, "")) > 0 ? (
     local.scs_server_count) : (
     0
   )
@@ -85,7 +85,7 @@ resource "azurerm_network_interface" "scs_admin" {
   ip_configuration {
     name      = "IPConfig1"
     subnet_id = var.admin_subnet.id
-    private_ip_address = try(local.scs_admin_nic_ips[count.index], var.application.use_DHCP ? (
+    private_ip_address = try(local.scs_admin_nic_ips[count.index], var.application_tier.use_DHCP ? (
       null) : (
       cidrhost(
         var.admin_subnet.address_prefixes[0],
@@ -112,7 +112,7 @@ resource "azurerm_network_interface_backend_address_pool_association" "scs" {
 # Create the SCS Linux VM(s)
 resource "azurerm_linux_virtual_machine" "scs" {
   provider = azurerm.main
-  count = local.enable_deployment && upper(local.scs_ostype) == "LINUX" ? (
+  count = local.enable_deployment && upper(var.application_tier.scs_os.os_type) == "LINUX" ? (
     local.scs_server_count) : (
     0
   )
@@ -141,7 +141,7 @@ resource "azurerm_linux_virtual_machine" "scs" {
 
   //If length of zones > 1 distribute servers evenly across zones
   zone = local.use_scs_avset ? null : try(local.scs_zones[count.index % max(local.scs_zone_count, 1)], null)
-  network_interface_ids = var.application.dual_nics ? (
+  network_interface_ids = var.application_tier.dual_nics ? (
     var.options.legacy_nic_order ? (
       [
         azurerm_network_interface.scs_admin[count.index].id,
@@ -204,37 +204,36 @@ resource "azurerm_linux_virtual_machine" "scs" {
     }
   }
 
-  source_image_id = local.scs_custom_image ? local.scs_os.source_image_id : null
+  source_image_id = var.application_tier.scs_os.type == "custom" ? var.application_tier.scs_os.source_image_id : null
 
   dynamic "source_image_reference" {
-    for_each = range(local.scs_custom_image ? 0 : 1)
+    for_each = range(var.application_tier.scs_os.type == "marketplace" ? 1 : 0)
     content {
-      publisher = local.scs_os.publisher
-      offer     = local.scs_os.offer
-      sku       = local.scs_os.sku
-      version   = local.scs_os.version
+      publisher = var.application_tier.scs_os.publisher
+      offer     = var.application_tier.scs_os.offer
+      sku       = var.application_tier.scs_os.sku
+      version   = var.application_tier.scs_os.version
     }
   }
 
   dynamic "plan" {
-    for_each = range(local.scs_custom_image ? 1 : 0)
+    for_each = range(var.application_tier.scs_os.type == "marketplace_with_plan" ? 1 : 0)
     content {
-      name      = local.scs_os.offer
-      publisher = local.scs_os.publisher
-      product   = local.scs_os.sku
+      name      = var.application_tier.scs_os.offer
+      publisher = var.application_tier.scs_os.publisher
+      product   = var.application_tier.scs_os.sku
     }
   }
-
   boot_diagnostics {
     storage_account_uri = var.storage_bootdiag_endpoint
   }
 
   license_type = length(var.license_type) > 0 ? var.license_type : null
 
-  tags = try(var.application.scs_tags, {})
+  tags = try(var.application_tier.scs_tags, {})
 
   dynamic "identity" {
-    for_each = range(var.use_msi_for_clusters && var.application.scs_high_availability ? 1 : 0)
+    for_each = range(var.use_msi_for_clusters && var.application_tier.scs_high_availability ? 1 : 0)
     content {
       type = "SystemAssigned"
     }
@@ -250,7 +249,7 @@ resource "azurerm_role_assignment" "scs" {
   count = (
     var.use_msi_for_clusters &&
     local.enable_deployment &&
-    upper(local.scs_ostype) == "LINUX" &&
+    upper(var.application_tier.scs_os.os_type) == "LINUX" &&
     length(var.fencing_role_name) > 0 &&
     local.scs_server_count > 1
     ) ? (
@@ -267,7 +266,7 @@ resource "azurerm_role_assignment" "scs" {
 # Create the SCS Windows VM(s)
 resource "azurerm_windows_virtual_machine" "scs" {
   provider = azurerm.main
-  count = local.enable_deployment && upper(local.scs_ostype) == "WINDOWS" ? (
+  count = local.enable_deployment && upper(var.application_tier.scs_os.os_type) == "WINDOWS" ? (
     local.scs_server_count) : (
     0
   )
@@ -300,7 +299,7 @@ resource "azurerm_windows_virtual_machine" "scs" {
     try(local.scs_zones[count.index % max(local.scs_zone_count, 1)], null)
   )
 
-  network_interface_ids = var.application.dual_nics ? (
+  network_interface_ids = var.application_tier.dual_nics ? (
     var.options.legacy_nic_order ? (
       [
         azurerm_network_interface.scs_admin[count.index].id,
@@ -355,24 +354,24 @@ resource "azurerm_windows_virtual_machine" "scs" {
     }
   }
 
-  source_image_id = local.scs_custom_image ? local.scs_os.source_image_id : null
+  source_image_id = var.application_tier.scs_os.type == "custom" ? var.application_tier.scs_os.source_image_id : null
 
   dynamic "source_image_reference" {
-    for_each = range(local.scs_custom_image ? 0 : 1)
+    for_each = range(var.application_tier.scs_os.type == "marketplace" ? 1 : 0)
     content {
-      publisher = local.scs_os.publisher
-      offer     = local.scs_os.offer
-      sku       = local.scs_os.sku
-      version   = local.scs_os.version
+      publisher = var.application_tier.scs_os.publisher
+      offer     = var.application_tier.scs_os.offer
+      sku       = var.application_tier.scs_os.sku
+      version   = var.application_tier.scs_os.version
     }
   }
 
   dynamic "plan" {
-    for_each = range(local.scs_custom_image ? 1 : 0)
+    for_each = range(var.application_tier.scs_os.type == "marketplace_with_plan" ? 1 : 0)
     content {
-      name      = local.scs_os.offer
-      publisher = local.scs_os.publisher
-      product   = local.scs_os.sku
+      name      = var.application_tier.scs_os.offer
+      publisher = var.application_tier.scs_os.publisher
+      product   = var.application_tier.scs_os.sku
     }
   }
 
@@ -383,7 +382,7 @@ resource "azurerm_windows_virtual_machine" "scs" {
   #ToDo: Remove once feature is GA  patch_mode = "Manual"
   license_type = length(var.license_type) > 0 ? var.license_type : null
 
-  tags = try(var.application.scs_tags, {})
+  tags = try(var.application_tier.scs_tags, {})
 }
 
 # Creates managed data disk
@@ -405,7 +404,7 @@ resource "azurerm_managed_disk" "scs" {
   disk_encryption_set_id = try(var.options.disk_encryption_set_id, null)
 
   zone = !local.use_scs_avset ? (
-    upper(local.scs_ostype) == "LINUX" ? (
+    upper(var.application_tier.scs_os.os_type) == "LINUX" ? (
       azurerm_linux_virtual_machine.scs[local.scs_data_disks[count.index].vm_index].zone) : (
       azurerm_windows_virtual_machine.scs[local.scs_data_disks[count.index].vm_index].zone
     )) : (
@@ -421,7 +420,7 @@ resource "azurerm_virtual_machine_data_disk_attachment" "scs" {
   provider        = azurerm.main
   count           = local.enable_deployment ? length(local.scs_data_disks) : 0
   managed_disk_id = azurerm_managed_disk.scs[count.index].id
-  virtual_machine_id = upper(local.scs_ostype) == "LINUX" ? (
+  virtual_machine_id = upper(var.application_tier.scs_os.os_type) == "LINUX" ? (
     azurerm_linux_virtual_machine.scs[local.scs_data_disks[count.index].vm_index].id) : (
     azurerm_windows_virtual_machine.scs[local.scs_data_disks[count.index].vm_index].id
   )
@@ -432,7 +431,7 @@ resource "azurerm_virtual_machine_data_disk_attachment" "scs" {
 
 resource "azurerm_virtual_machine_extension" "scs_lnx_aem_extension" {
   provider = azurerm.main
-  count = local.enable_deployment && upper(local.scs_ostype) == "LINUX" ? (
+  count = local.enable_deployment && upper(var.application_tier.scs_os.os_type) == "LINUX" ? (
     local.scs_server_count) : (
     0
   )
@@ -455,7 +454,7 @@ SETTINGS
 
 resource "azurerm_virtual_machine_extension" "scs_win_aem_extension" {
   provider = azurerm.main
-  count = local.enable_deployment && upper(local.scs_ostype) == "WINDOWS" ? (
+  count = local.enable_deployment && upper(var.application_tier.scs_os.os_type) == "WINDOWS" ? (
     local.scs_server_count) : (
     0
   )
@@ -474,7 +473,7 @@ SETTINGS
 resource "azurerm_virtual_machine_extension" "configure_ansible_scs" {
 
   provider = azurerm.main
-  count = local.enable_deployment && upper(local.scs_ostype) == "WINDOWS" ? (
+  count = local.enable_deployment && upper(var.application_tier.scs_os.os_type) == "WINDOWS" ? (
     local.scs_server_count) : (
     0
   )

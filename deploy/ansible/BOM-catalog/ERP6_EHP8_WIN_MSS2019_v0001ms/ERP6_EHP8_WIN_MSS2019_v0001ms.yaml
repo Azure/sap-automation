@@ -1,29 +1,31 @@
 ---
 
-name:                                  "ERP6 EHP8 WIN MSS2019"
-filename:                              "ERP6_EHP8_WIN_MSS2019_v0001ms"
-target:                                "SAP NETWEAVER 7.5"
-version:                               "1"
-platform:                              "SQLSERVER"
+name:                           "ERP6 EHP8 WIN MSS2019"
+filename:                       "ERP6_EHP8_WIN_MSS2019_v0001ms"
+target:                         "SAP NETWEAVER 7.5"
+version:                        "1"
+platform:                       "SQLSERVER"
 
 defaults:
   target_location: "{{ target_media_location }}/download_basket"
 
 product_ids:
-  scs:                           NW_ABAP_ASCS:NW750.MSS.ABAP
-  scs_ha:                        NW_FirstClusterNode_ABAP:NW750.MSS.ABAPHA
-  dbl:                       
-  pas:                           NW_ABAP_CI:NW750.MSS.ABAP
-  pas_ha:                       
-  app:                           
-  app_ha:                       
-  web:                       
-  ers:                       
-  ers_ha:                        NW_SecondClusterNode:NW750.MSS.ABAPHA
+  scs:                          NW_ABAP_ASCS:NW750.MSS.ABAP
+  scs_ha:                       NW_FirstClusterNode_ABAP:NW750.MSS.ABAPHA
+  dbl:                          NW_ABAP_DB:NW750.MSS.ABAP
+  pas:                          NW_ABAP_CI:NW750.MSS.ABAP
+  pas_ha:
+  app:
+  app_ha:
+  web:
+  ers:
+  ers_ha:                       NW_SecondClusterNode:NW750.MSS.ABAPHA
 
 materials:
   dependencies:
     - name:                     "MSSQLSRV_2019_v0001ms"
+    - name:                     "SUM20SP14_win_latest"
+    - name:                     "SWPM10SP36_win_latest"
 
   media:
 
@@ -50,19 +52,6 @@ materials:
       url:                      https://softwaredownloads.sap.com/file/0020000001542832021
       path:                     download_basket
 
-    - name:                     "Patch 3 for SOFTWARE UPDATE MANAGER 2.0 SP14"
-      archive:                  SUM20SP14_3-80002458.SAR
-      url:                      https://softwaredownloads.sap.com/file/0020000000957402022
-      path:                     download_basket
-
-    - name:                     "SWPM 1.0 SP35 for NW higher than 7.0x"
-      archive:                  SWPM10SP35_3-20009707.SAR
-      override_target_filename: "SWPM.SAR"
-      extract:                  true
-      extractDir:               SWPM
-      url:                      https://softwaredownloads.sap.com/file/0020000000900832022
-      path:                     download_basket
-
     - name:                     "Installation for SAP IGS integrated in SAP Kernel"
       archive:                  igsexe_13-80003241.sar
       url:                      https://softwaredownloads.sap.com/file/0020000001223862021
@@ -72,6 +61,25 @@ materials:
       archive:                  igshelper_17-10010245.sar
       url:                      https://softwaredownloads.sap.com/file/0020000000703122018
       path:                     download_basket
+
+    - name:                     "NW 7.5 Installation Export"
+      archive:                  51050829_3.ZIP
+      checksum:                 06c3a3cd5d1ad266f61ca202552468501d94cfdc7641ffdadf0a9abad82b648a
+      extract:                  true
+      extractDir:               CD_EXPORT
+      creates:                  CDLABEL.ASC
+      url:                      https://softwaredownloads.sap.com/file/0030000000635092016
+
+    # Languages
+    - name:                     "NW 7.5 Language 1/2"
+      archive:                  51050829_LNG1_part1.exe
+      checksum:                 4fb96950412547ea3a49e9f1488f7fea7fd6c651143113b70b32543f9b166c71
+      url:                      https://softwaredownloads.sap.com/file/0030000000635132016
+
+    - name:                     "NW 7.5 Language 2/2"
+      archive:                  51050829_LNG1_part2.rar
+      checksum:                 9fc3fa5a22c120df9d3b6aa04eff39c924dffd8bd633607116f446b46d3b5dd7
+      url:                      https://softwaredownloads.sap.com/file/0030000000635142016
 
     # other components
 

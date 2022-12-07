@@ -1,0 +1,22 @@
+#--------------------------------------+---------------------------------------8
+#                                                                              |
+# Defines the parameters and variables for the SAP Software Install            |
+#                                                                              |
+#--------------------------------------+---------------------------------------8
+
+parameters:
+  environment: ""
+
+variables:
+  - group:                             "SDAF-General"
+
+  - group:                             SDAF-${{ parameters.environment }}
+
+  - name:                              agent_name
+    value:                             $[coalesce(variables['POOL'], variables['Agent'])]
+
+  - name:                              this_agent
+    value:                             $[lower(coalesce(variables['POOL'], variables['Agent']))]
+
+  - name:                              variable_group
+    value:                             SDAF-${{ parameters.environment }}

@@ -1,0 +1,22 @@
+# SAP System ${sid}
+
+| ---------------- | ------------------------------- |
+| SID              | ${sid}                          |
+| Database         | ${platform}                     |
+| DB SID           | ${db_sid}                       |
+| SCS Server IP    | ${scs_lb_ip}                    |
+
+## Servers
+| Database                    | ${db_servers}          |
+| Central Services            | ${scs_servers}         |
+| Primary Application Server  | ${pas_server}          |
+| Application                 | ${application_servers} |
+| Web Dispatchers             | ${webdisp_servers}     |
+
+
+## Access credentials
+
+| Setting          | Value                           |
+| ---------------- | ------------------------------- |
+| Keyvault         | ${kv_name}                      |
+| Secret           | ${kv_pwd_secret}                |

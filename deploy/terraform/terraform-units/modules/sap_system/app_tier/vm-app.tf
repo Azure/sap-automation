@@ -25,7 +25,7 @@ resource "azurerm_network_interface" "app" {
       name      = pub.value.name
       subnet_id = pub.value.subnet_id
       private_ip_address = try(pub.value.nic_ips[count.index],
-        var.application.use_DHCP ? (
+        var.application_tier.use_DHCP ? (
           null) : (
           cidrhost(local.application_subnet_exists ?
             data.azurerm_subnet.subnet_sap_app[0].address_prefixes[0] :
@@ -68,7 +68,7 @@ resource "azurerm_network_interface_application_security_group_association" "app
 
 resource "azurerm_network_interface" "app_admin" {
   provider = azurerm.main
-  count = local.enable_deployment && var.application.dual_nics && length(try(var.admin_subnet.id, "")) > 0 ? (
+  count = local.enable_deployment && var.application_tier.dual_nics && length(try(var.admin_subnet.id, "")) > 0 ? (
     local.application_server_count) : (
     0
   )
@@ -86,7 +86,7 @@ resource "azurerm_network_interface" "app_admin" {
   ip_configuration {
     name      = "IPConfig1"
     subnet_id = var.admin_subnet.id
-    private_ip_address = try(local.app_admin_nic_ips[count.index], var.application.use_DHCP ? (
+    private_ip_address = try(local.app_admin_nic_ips[count.index], var.application_tier.use_DHCP ? (
       null) : (
       cidrhost(
         var.admin_subnet.address_prefixes[0],
@@ -105,7 +105,7 @@ resource "azurerm_network_interface" "app_admin" {
 # Create the Linux Application VM(s)
 resource "azurerm_linux_virtual_machine" "app" {
   provider = azurerm.main
-  count = local.enable_deployment && upper(local.app_ostype) == "LINUX" ? (
+  count = local.enable_deployment && upper(var.application_tier.app_os.os_type) == "LINUX" ? (
     local.application_server_count) : (
     0
   )
@@ -128,8 +128,8 @@ resource "azurerm_linux_virtual_machine" "app" {
 
   //If more than one servers are deployed into a single zone put them in an availability set and not a zone
   availability_set_id = local.use_app_avset ? (
-    length(var.application.avset_arm_ids) > 0 ? (
-      var.application.avset_arm_ids[count.index % max(local.app_zone_count, 1)]) : (
+    length(var.application_tier.avset_arm_ids) > 0 ? (
+      var.application_tier.avset_arm_ids[count.index % max(local.app_zone_count, 1)]) : (
       azurerm_availability_set.app[count.index % max(local.app_zone_count, 1)].id
     )) : (
     null
@@ -138,7 +138,7 @@ resource "azurerm_linux_virtual_machine" "app" {
   //If length of zones > 1 distribute servers evenly across zones
   zone = local.use_app_avset ? null : try(local.app_zones[count.index % max(local.app_zone_count, 1)], null)
 
-  network_interface_ids = var.application.dual_nics ? (
+  network_interface_ids = var.application_tier.dual_nics ? (
     var.options.legacy_nic_order ? (
       [
         azurerm_network_interface.app_admin[count.index].id,
@@ -201,24 +201,24 @@ resource "azurerm_linux_virtual_machine" "app" {
     }
   }
 
-  source_image_id = local.app_custom_image ? local.app_os.source_image_id : null
+  source_image_id = var.application_tier.app_os.type == "custom" ? var.application_tier.app_os.source_image_id : null
 
   dynamic "source_image_reference" {
-    for_each = range(local.app_custom_image ? 0 : 1)
+    for_each = range(var.application_tier.app_os.type == "marketplace" ? 1 : 0)
     content {
-      publisher = local.app_os.publisher
-      offer     = local.app_os.offer
-      sku       = local.app_os.sku
-      version   = local.app_os.version
+      publisher = var.application_tier.app_os.publisher
+      offer     = var.application_tier.app_os.offer
+      sku       = var.application_tier.app_os.sku
+      version   = var.application_tier.app_os.version
     }
   }
 
   dynamic "plan" {
-    for_each = range(local.app_custom_image ? 1 : 0)
+    for_each = range(var.application_tier.app_os.type == "marketplace_with_plan" ? 1 : 0)
     content {
-      name      = local.app_os.offer
-      publisher = local.app_os.publisher
-      product   = local.app_os.sku
+      name      = var.application_tier.app_os.offer
+      publisher = var.application_tier.app_os.publisher
+      product   = var.application_tier.app_os.sku
     }
   }
 
@@ -228,7 +228,7 @@ resource "azurerm_linux_virtual_machine" "app" {
 
   license_type = length(var.license_type) > 0 ? var.license_type : null
 
-  tags = try(var.application.app_tags, {})
+  tags = try(var.application_tier.app_tags, {})
 
   lifecycle {
     ignore_changes = [tags]
@@ -238,7 +238,7 @@ resource "azurerm_linux_virtual_machine" "app" {
 # Create the Windows Application VM(s)
 resource "azurerm_windows_virtual_machine" "app" {
   provider = azurerm.main
-  count = local.enable_deployment && upper(local.app_ostype) == "WINDOWS" ? (
+  count = local.enable_deployment && upper(var.application_tier.app_os.os_type) == "WINDOWS" ? (
     local.application_server_count) : (
     0
   )
@@ -261,8 +261,8 @@ resource "azurerm_windows_virtual_machine" "app" {
 
   //If more than one servers are deployed into a single zone put them in an availability set and not a zone
   availability_set_id = local.use_app_avset ? (
-    length(var.application.avset_arm_ids) > 0 ? (
-      var.application.avset_arm_ids[count.index % max(local.app_zone_count, 1)]) : (
+    length(var.application_tier.avset_arm_ids) > 0 ? (
+      var.application_tier.avset_arm_ids[count.index % max(local.app_zone_count, 1)]) : (
       azurerm_availability_set.app[count.index % max(local.app_zone_count, 1)].id
     )) : (
     null
@@ -270,7 +270,7 @@ resource "azurerm_windows_virtual_machine" "app" {
   //If length of zones > 1 distribute servers evenly across zones
   zone = local.use_app_avset ? null : try(local.app_zones[count.index % max(local.app_zone_count, 1)], null)
 
-  network_interface_ids = var.application.dual_nics ? (
+  network_interface_ids = var.application_tier.dual_nics ? (
     var.options.legacy_nic_order ? (
       [azurerm_network_interface.app_admin[count.index].id, azurerm_network_interface.app[count.index].id]) : (
       [azurerm_network_interface.app[count.index].id, azurerm_network_interface.app_admin[count.index].id]
@@ -310,23 +310,24 @@ resource "azurerm_windows_virtual_machine" "app" {
     }
   }
 
-  source_image_id = local.app_custom_image ? local.app_os.source_image_id : null
+  source_image_id = var.application_tier.app_os.type == "custom" ? var.application_tier.app_os.source_image_id : null
 
   dynamic "source_image_reference" {
-    for_each = range(local.app_custom_image ? 0 : 1)
+    for_each = range(var.application_tier.app_os.type == "marketplace" ? 1 : 0)
     content {
-      publisher = local.app_os.publisher
-      offer     = local.app_os.offer
-      sku       = local.app_os.sku
-      version   = local.app_os.version
+      publisher = var.application_tier.app_os.publisher
+      offer     = var.application_tier.app_os.offer
+      sku       = var.application_tier.app_os.sku
+      version   = var.application_tier.app_os.version
     }
   }
+
   dynamic "plan" {
-    for_each = range(local.app_custom_image ? 1 : 0)
+    for_each = range(var.application_tier.app_os.type == "marketplace_with_plan" ? 1 : 0)
     content {
-      name      = local.app_os.offer
-      publisher = local.app_os.publisher
-      product   = local.app_os.sku
+      name      = var.application_tier.app_os.offer
+      publisher = var.application_tier.app_os.publisher
+      product   = var.application_tier.app_os.sku
     }
   }
 
@@ -337,7 +338,7 @@ resource "azurerm_windows_virtual_machine" "app" {
   #ToDo: Remove once feature is GA  patch_mode = "Manual"
   license_type = length(var.license_type) > 0 ? var.license_type : null
 
-  tags = try(var.application.app_tags, {})
+  tags = try(var.application_tier.app_tags, {})
 
   lifecycle {
     ignore_changes = [tags]
@@ -363,7 +364,7 @@ resource "azurerm_managed_disk" "app" {
   disk_encryption_set_id = try(var.options.disk_encryption_set_id, null)
 
   zone = local.use_app_avset ? null : (
-    upper(local.app_ostype) == "LINUX" ? (
+    upper(var.application_tier.app_os.os_type) == "LINUX" ? (
       azurerm_linux_virtual_machine.app[local.app_data_disks[count.index].vm_index].zone) : (
       azurerm_windows_virtual_machine.app[local.app_data_disks[count.index].vm_index].zone
     )
@@ -377,7 +378,7 @@ resource "azurerm_virtual_machine_data_disk_attachment" "app" {
   provider        = azurerm.main
   count           = local.enable_deployment ? length(local.app_data_disks) : 0
   managed_disk_id = azurerm_managed_disk.app[count.index].id
-  virtual_machine_id = upper(local.app_ostype) == "LINUX" ? (
+  virtual_machine_id = upper(var.application_tier.app_os.os_type) == "LINUX" ? (
     azurerm_linux_virtual_machine.app[local.app_data_disks[count.index].vm_index].id) : (
     azurerm_windows_virtual_machine.app[local.app_data_disks[count.index].vm_index].id
   )
@@ -390,7 +391,7 @@ resource "azurerm_virtual_machine_data_disk_attachment" "app" {
 # VM Extension
 resource "azurerm_virtual_machine_extension" "app_lnx_aem_extension" {
   provider = azurerm.main
-  count = local.enable_deployment && upper(local.app_ostype) == "LINUX" ? (
+  count = local.enable_deployment && upper(var.application_tier.app_os.os_type) == "LINUX" ? (
     local.application_server_count) : (
     0
   )
@@ -413,7 +414,7 @@ SETTINGS
 
 resource "azurerm_virtual_machine_extension" "app_win_aem_extension" {
   provider = azurerm.main
-  count = local.enable_deployment && upper(local.app_ostype) == "WINDOWS" ? (
+  count = local.enable_deployment && upper(var.application_tier.app_os.os_type) == "WINDOWS" ? (
     local.application_server_count) : (
     0
   )
@@ -432,7 +433,7 @@ SETTINGS
 resource "azurerm_virtual_machine_extension" "configure_ansible_app" {
 
   provider = azurerm.main
-  count = local.enable_deployment && upper(local.app_ostype) == "WINDOWS" ? (
+  count = local.enable_deployment && upper(var.application_tier.app_os.os_type) == "WINDOWS" ? (
     local.application_server_count) : (
     0
   )

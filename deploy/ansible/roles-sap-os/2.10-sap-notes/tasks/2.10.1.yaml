@@ -50,15 +50,6 @@
   ansible.builtin.command:             echo never > /sys/kernel/mm/transparent_hugepage/enabled
   changed_when:                        false
 
-- name:                                "2.10.1 sap-notes: - Disable SELinux"
-  selinux:
-    state:                             disabled
-  notify:                              "2.10-sap-notes: Reboot after the selinux is configured"
-  tags: ansible_skip_lint
-
-- name:                                "2.10.1 - Force all notified handlers to run now"
-  ansible.builtin.meta:                flush_handlers
-
 - name:                                "2.10.1 sap-notes: - Disable core file creation"
   ansible.builtin.lineinfile:
     path:                              /etc/security/limits.d/99-sap.conf

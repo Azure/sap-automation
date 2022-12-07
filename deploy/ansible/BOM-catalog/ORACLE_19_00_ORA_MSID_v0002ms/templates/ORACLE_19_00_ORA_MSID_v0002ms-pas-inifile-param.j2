@@ -46,7 +46,7 @@ storageBasedCopy.ora.serverVersion                                   = 19
 storageBasedCopy.ora.ABAPSchema                                      = SAPSR3
 storageBasedCopy.ora.listenerName                                    = LISTENER
 storageBasedCopy.ora.listenerPort                                    = 1521
-#NW_readProfileDir.profileDir                                        = /sapmnt/{{ sap_sid| upper }}/profile
+#NW_readProfileDir.profileDir                                        = /sapmnt/{{ sap_sid | upper }}/profile
 
 NW_CI_Instance.ascsVirtualHostname                                    = {{ sap_scs_hostname }}
 NW_CI_Instance.ciInstanceNumber                                       = {{ sid_to_be_deployed.ascs_inst_no }}

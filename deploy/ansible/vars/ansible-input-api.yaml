@@ -1,108 +1,126 @@
 ---
-
 # API Input template with defaults
 
+become_user_name: root
 
-become_user_name:             "root"
+# ------------------- Begin - OS Config Settings variables -------------------8
+chrony_pool: ""
+chrony_servers: []
+timezone: "Etc/GMT"
+# -------------------- End - OS Config Settings variables --------------------8
 
-# OS Config Settings variables
-chrony_pool:                  ""
-chrony_servers:               []
-timezone:                     "Etc/GMT"
+# --------------------- Begin - BOM Processing variables ---------------------8
+# Default BoM Processing variables
+sapbits_bom_files: "sapfiles"
+target_media_location: "/usr/sap/install"
+download_directory: "/mnt/downloads"
+check_storage_account: true
+bom_processing_become: true # BOM processing as root user
 
-# BoM Processing variables
-sapbits_bom_files:            "sapfiles"                                                # Default
-target_media_location:        "/usr/sap/install"                                        # Default
-download_directory:           "/mnt/downloads"
-check_storage_account:        true
-bom_processing_become:        true                                                      # BOM processing as root user
+BOM_directory: "{{ playbook_dir }}/BOM-catalog"
 
 always_upload_jinja_templates: true
 
 # SAP Configuration for templates and install
-aas_hostname:                 ""
-aas_instance_number:          ""
-sap_sid:                      ""                                                        # REQUIRED - SAP Install
-download_basket_dir:          "{{ target_media_location }}/download_basket"
-hdb_hostname:                 ""
-db_sid:                       "XDB"                                                     # Default
-hdb_instance_number:          "00"                                                      # Default
-hana_schema:                  "SAPHANADB"
-pas_hostname:                 ""
-pas_instance_number:          "00"
-web_instance_number:          "00"
-password_hana_system:         ""
-main_password:                ""                                                        # SAP Install
-sap_fqdn:                     ""                                                        # SAP Install
-sapadm_uid:                   2100
-sapinst_gid:                  2001
-sapsys_gid:                   2000
-drop_schema:                  false
+aas_hostname: ""
+aas_instance_number: ""
+sap_sid: "" # REQUIRED - SAP Install
+download_basket_dir: "{{ target_media_location }}/download_basket"
+hdb_hostname: ""
+db_sid: "XDB" # Default
+db_instance_number: "00" # Default
+hana_schema: "SAPHANADB"
+pas_hostname: ""
+pas_instance_number: "00"
+web_instance_number: "00"
+password_hana_system: ""
+main_password: "" # SAP Install
+sap_fqdn: "" # SAP Install
+sapadm_uid: 2100
+sapinst_gid: 2001
+sapsys_gid: 2000
+drop_schema: false
 
-use_msi_for_clusters:         false
+sap_trans_permissions: 775
 
-hana_components:              "all"
+use_msi_for_clusters: false
 
-tmp_directory:                "/tmp"
-url_internet:                 "http://www.github.com"                                   # URL to use for internet access checks"
-check_outbound:               false
+hana_components: "all"
+
+# DB2 specific parameters
+# db2_sid:                     "DB6"
+db2sysadm_gid:   3000
+db2sysctrl_gid:  3001
+db2sysmaint_gid: 3002
+db2sysmon_gid:   3003
+db2sidadm_uid:   3004
+db2sapsid_uid:   3005
+db2hadr_port1:   51012
+db2hadr_port2:   51013
+
+tmp_directory: "/var/tmp"
+url_internet: "http://www.github.com" # URL to use for internet access checks"
+check_outbound: false
 
 # Oracle specific parameters
-ora_sid:                      "ORA"
-dba_gid:                      3000
-oper_gid:                     3001
-asmoper_gid:                  3002
-asmadmin_gid:                 3003
-asmdba_gid:                   3004
-oinstall_gid:                 3005
-orasid_uid:                   3000
-oracle_uid:                   3001
-hdbshm_gid:                   2002
-observer_uid:                 4000
-scs_hostname:                 ""
-scs_instance_number:          "00"                                                      # SAP Install
-ers_instance_number:          "02"
-app_instance_number:          "00"
-sidadm_uid:                   2000
-hdbadm_uid:                   2200
-scs_lb_ip:                    ""                                                        # SAP HA
-db_lb_ip:                     ""                                                        # SAP HA
-reinstall:                    false                                                     # Provide a way to override the idempotency flags for SAP tasks
-ora_release:                  19
-ora_version:                  19.0.0
-ora_compatible:               19.0.0.0.0
-orchestration_ansible_user:   azureadm
-PLATFORM:                     ""
-platform:                     ""
+ora_sid: "ORA"
+dba_gid: 3000
+oper_gid: 3001
+asmoper_gid: 3002
+asmadmin_gid: 3003
+asmdba_gid: 3004
+oinstall_gid: 3005
+orasid_uid: 3000
+oracle_uid: 3001
+hdbshm_gid: 2002
+observer_uid: 4000
+scs_hostname: ""
+scs_instance_number: "00" # SAP Install
+ers_instance_number: "02"
+app_instance_number: "00"
+sidadm_uid: 2003
+hdbadm_uid: 2200
+scs_lb_ip: "" # SAP HA
+db_lb_ip: "" # SAP HA
+reinstall: false # Provide a way to override the idempotency flags for SAP tasks
 
-password_cockpit_admin:       ""
-password_db_systemdb:         ""
-password_ha_db_cluster:       ""
-password_os_sapadm:           ""
-password_os_sidadm:           ""
-password_db_xsa_admin:        ""
+ora_release: 19
+ora_version: 19.0.0
+ora_supported_version: 19
+ora_compatible: 19.0.0.0.0
+orchestration_ansible_user: azureadm
+PLATFORM: ""
+platform: ""
 
-download_templates:           false
-prometheus:                   false                                                      # Install Prometheus Monitoring Agent
+password_cockpit_admin: ""
+password_db_systemdb: ""
+password_ha_db_cluster: ""
+password_os_sapadm: ""
+password_os_sidadm: ""
+password_db_xsa_admin: ""
+
+download_templates: false
+prometheus: false # Install Prometheus Monitoring Agent
 
 # Keyvault
-deployer_kv_name_secret:      "deployer-kv-name"                                         # Name of secret containing the deployer keyvault name in the workload zone keyvault
-sapbits_location_secret:      "sapbits-location-base-path"                               # Name of secret containing the SAP Binaries storage account container URL
-sapbits_sas_token_secret:     "sapbits-sas-token"                                        # Name of secret containing the SAP Binaries storage account SAS token
+deployer_kv_name_secret: "deployer-kv-name" # Name of secret containing the deployer keyvault name in the workload zone keyvault
+sapbits_location_secret: "sapbits-location-base-path" # Name of secret containing the SAP Binaries storage account container URL
+sapbits_sas_token_secret: "sapbits-sas-token" # Name of secret containing the SAP Binaries storage account SAS token
 
 # NFS
-NFS_provider:                 "NONE"
+NFS_provider: "NONE"
 
+# ------------------- Begin - SAP SWAP settings variables --------------------8
 sap_swap:
-  - { tier: 'scs',  swap_size_mb: '4096' }
-  - { tier: 'ers',  swap_size_mb: '4096' }
-  - { tier: 'pas',  swap_size_mb: '20480' }
-  - { tier: 'app',  swap_size_mb: '20480' }
-  - { tier: 'web',  swap_size_mb: '4096' }
-  - { tier: 'hana', swap_size_mb: '2048' }
-  - { tier: 'oracle', swap_size_mb: '20480' }
-  - { tier: 'oracle-asm', swap_size_mb: '20480' }
-  - { tier: 'oracle-multi-sid', swap_size_mb: '20480' }
-  - { tier: 'observer', swap_size_mb: '2048' }
-
-...
+  - { tier: "scs", swap_size_mb: "4096" }
+  - { tier: "ers", swap_size_mb: "4096" }
+  - { tier: "pas", swap_size_mb: "20480" }
+  - { tier: "app", swap_size_mb: "20480" }
+  - { tier: "web", swap_size_mb: "4096" }
+  - { tier: "hana", swap_size_mb: "2048" }
+  - { tier: "db2", swap_size_mb: "20480" }
+  - { tier: "oracle", swap_size_mb: "20480" }
+  - { tier: "oracle-asm", swap_size_mb: "20480" }
+  - { tier: "oracle-multi-sid", swap_size_mb: "20480" }
+  - { tier: "observer", swap_size_mb: "2048" }
+  # --------------------- End - SAP SWAP settings variables --------------------8

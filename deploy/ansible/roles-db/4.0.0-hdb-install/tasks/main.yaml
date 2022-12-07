@@ -10,48 +10,51 @@
 
 ---
 
-- name:                                "SAP HANA: Create run flag directory"
+# +------------------------------------4--------------------------------------*/
+- name:                                "SAP HANA: Set BOM facts"
+  ansible.builtin.set_fact:
+    sap_inifile:                       "hdbserver_{{ ansible_hostname }}_{{ sap_sid }}_install.rsp"
+    sap_inifile_template:              "HANA_2_00_install.rsp.j2"
+    hana_host:                         "{% if db_high_availability %}{{ ansible_hostname }}{% else %}{{ virtual_host }}{% endif %}"
+    dir_params:                        "{{ tmp_directory }}/.params"
+
+#   0x) Create hidden directory for parameter files
+- name:                                "SAP HANA: Create directories"
   ansible.builtin.file:
-    path:                              /etc/sap_deployment_automation
+    path:                              "{{ item.path }}"
     state:                             directory
-    mode:                              0755
+    mode:                              '{{ item.mode }}'
+  loop:
+    - { mode: '0755', path: '{{ dir_params }}' }
+    - { mode: '0755', path: '{{ tmp_directory }}/{{ db_sid | upper }}' }
+    - { mode: '0755', path: '/etc/sap_deployment_automation/{{ db_sid | upper }}' }
+
 
 - name:                                "SAP HANA: Install reset"
   ansible.builtin.file:
-    path:                              /etc/sap_deployment_automation/sap_deployment_hdb.txt
+    path:                              "/etc/sap_deployment_automation/{{ db_sid | upper }}/sap_deployment_hdb.txt"
     state:                             absent
   when: reinstall
 
 - name:                                "SAP HANA: check if installed"
   ansible.builtin.stat:
-    path:                              /etc/sap_deployment_automation/sap_deployment_hdb.txt
+    path:                              "/etc/sap_deployment_automation/{{ db_sid | upper }}/sap_deployment_hdb.txt"
   register:                            hana_installed
+
+- name:                                "SAP HANA: check media exists"
+  ansible.builtin.stat:
+    path:                              "{{ target_media_location }}/CD_HDBSERVER/SAP_HANA_DATABASE/hdblcm"
+  register:                            hdblcm_found
+
+- name:                                "ErrorHandling"
+  ansible.builtin.fail:
+    msg:                               "INSTALL:0001:Unable to find hdblcm, please check that the installation media is mounted"
+  when: not hdblcm_found.stat.exists
 
 - name:                                "HANA Install"
   block:
 
-# +------------------------------------4--------------------------------------*/
-    - name:                            "SAP HANA: Set dir_params fact"
-      ansible.builtin.set_fact:
-        dir_params:                    "{{ tmp_directory }}/.params"
-
-#   0x) Create hidden directory for parameter files
-    - name:                            "SAP HANA: Create hidden directory"
-      ansible.builtin.file:
-        path:                          "{{ item.path }}"
-        state:                         directory
-        mode:                          '{{ item.mode }}'
-      loop:
-        - { state: 'directory', mode: '0755', path: '{{ dir_params }}' }
-
-
-    - name:                            "SAP HANA: Set BOM facts"
-      ansible.builtin.set_fact:
-        sap_inifile:                   "hdbserver_{{ ansible_hostname }}_{{ sap_sid }}_install.rsp"
-        sap_inifile_template:          "HANA_2_00_install.rsp.j2"
-        hana_host:                     "{% if db_high_availability %}{{ ansible_hostname }}{% else %}{{ virtual_host }}{% endif %}"
-
-    - name:                            "SAP HANA: remove install response file"
+    - name:                            "SAP HANA: remove install response file if exists"
       ansible.builtin.file:
         path:                          "{{ dir_params }}/{{ sap_inifile }}"
         state:                         absent
@@ -70,7 +73,7 @@
         _rsp_sapmnt:                   "/hana/shared"                              # Default Value
         _rsp_hostname:                 "{{ hana_host }}"
         _rsp_sid:                      "{{ db_sid | upper }}"
-        _rsp_number:                   "{{ hdb_instance_number }}"
+        _rsp_number:                   "{{ db_instance_number }}"
         _rsp_system_usage:             "custom"
         param_directory:               "{{ dir_params }}"
 
@@ -81,10 +84,13 @@
     - name:                            "SAP HANA: Execute hdblcm on {{ (hana_host) }}"
       ansible.builtin.shell: |
                                        umask {{ custom_umask | default('022') }};
+                                       chmod 755 /usr/sap;
                                        ./hdblcm --batch --action=install --hostname {{ hana_host }} --configfile='{{ dir_params }}/{{ sap_inifile }}'
       args:
         chdir:                         "{{ target_media_location }}/CD_HDBSERVER/SAP_HANA_DATABASE"
-        creates:                       /etc/sap_deployment_automation/sap_deployment_hdb.txt
+        creates:                       "/etc/sap_deployment_automation/{{ db_sid | upper }}/sap_deployment_hdb.txt"
+      environment:
+        TMPDIR:                        "{{ tmp_directory }}/{{ db_sid | upper }}"
       register:                        hana_installation
       failed_when:                     hana_installation.rc > 0
 
@@ -93,6 +99,13 @@
         msg:
           - "HANA Installation failed"
           - "HDBLCM output: {{ hana_installation }}"
+      when:
+        - hana_installation.rc is defined
+        - hana_installation.rc > 0
+
+    - name:                            "Errorhandling: SAP HANA"
+      ansible.builtin.debug:
+        msg:                           "INSTALL:{{ hana_installation }}"
       when:
         - hana_installation.rc is defined
         - hana_installation.rc > 0
@@ -119,9 +132,12 @@
 
     - name:                            "SAP HANA: HANA Install: flag"
       ansible.builtin.file:
-        path:                          /etc/sap_deployment_automation/sap_deployment_hdb.txt
+        path:                          "/etc/sap_deployment_automation/{{ db_sid | upper }}/sap_deployment_hdb.txt"
         state:                         touch
         mode:                          0755
+      when:
+        - hana_installation.rc is defined
+        - hana_installation.rc == 0
 
   when:
     - not hana_installed.stat.exists

@@ -9,6 +9,16 @@
   ansible.builtin.set_fact:
     nfs_service:                       "{% if distribution_id == 'redhat8' %}nfs-server{% else %}{% if distribution_id == 'redhat7' %}nfs{% else %}nfsserver{% endif %}{% endif %}"
 
+- name:                                "ANF Mount: Set the NFSmount options"
+  ansible.builtin.set_fact:
+    mnt_options:                       "'rw,vers=4,minorversion=1,hard,timeo=600,rsize=262144,wsize=262144,intr,noatime,lock,_netdev,sec=sys'"
+  when: distribution_full_id not in ['redhat8.4', 'redhat8.6', 'sles_sap15.2', 'sles_sap15.3']
+
+- name:                                "ANF Mount: Set the NFSmount options"
+  ansible.builtin.set_fact:
+    mnt_options:                       "'rw,vers=4,minorversion=1,hard,timeo=600,rsize=262144,wsize=262144,intr,noatime,lock,_netdev,sec=sys,nconnect=8'"
+  when: distribution_full_id in ['redhat8.4', 'redhat8.6', 'sles_sap15.2', 'sles_sap15.3']
+
 - name:                                "AFS Mount: Define this SID"
   ansible.builtin.set_fact:
     this_sid:
@@ -130,7 +140,7 @@
     - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
 
 - name:                                "ANF Mount: usr/sap"
-  ansible.builtin.include_tasks:       2.6.1.1-nfs-mount.yaml
+  ansible.builtin.include_tasks:       2.6.1.1-anf-mount.yaml
   loop:
     - {
       'type':              'usrsap',
@@ -391,7 +401,7 @@
     - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
 
 - name:                                "ANF Mount: sap_trans"
-  ansible.builtin.include_tasks:       2.6.1.1-nfs-mount.yaml
+  ansible.builtin.include_tasks:       2.6.1.1-anf-mount.yaml
   loop:
     - {
       'type':              'trans',
@@ -399,6 +409,7 @@
       'mount':             '{{ sap_trans }}',
       'opts':              'rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp',
       'path':              '/usr/sap/trans',
+      'permissions':       '0775',
       'set_chattr_on_dir': false,
       'target_nodes':      ['app','pas', 'ers', 'scs'],
       'create_temp_folders': false
@@ -409,7 +420,7 @@
     - tier == 'sapos'
 
 - name:                                "ANF Mount: install"
-  ansible.builtin.include_tasks:       2.6.1.1-nfs-mount.yaml
+  ansible.builtin.include_tasks:       2.6.1.1-anf-mount.yaml
   loop:
     - {
       'type':              'install',
@@ -418,6 +429,7 @@
       'mount':             '{{ usr_sap_install_mountpoint }}',
       'opts':              'rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp',
       'path':              '/usr/sap/install',
+      'permissions':       '0775',
       'set_chattr_on_dir': false,
       'target_nodes':      ['all'],
       'create_temp_folders': true
@@ -439,7 +451,7 @@
   block:
     - name:                             "ANF Mount: Create configuration file for the NetApp configuration settings"
       ansible.builtin.blockinfile:
-        path:                            /etc/sysctl.d/netapp-hana.conf
+        path:                            /etc/sysctl.d/91-NetApp-HANA.conf
         backup:                          true
         create:                          true
         mode:                            0644
@@ -450,8 +462,8 @@
           net.core.rmem_default = 16777216
           net.core.wmem_default = 16777216
           net.core.optmem_max = 16777216
-          net.ipv4.tcp_rmem = 65536 16777216 16777216
-          net.ipv4.tcp_wmem = 65536 16777216 16777216
+          net.ipv4.tcp_rmem = 4096 131072 16777216
+          net.ipv4.tcp_wmem = 4096 16384 16777216
           net.core.netdev_max_backlog = 300000
           net.ipv4.tcp_slow_start_after_idle=0
           net.ipv4.tcp_no_metrics_save = 1
@@ -509,15 +521,40 @@
     - node_tier == 'hana'
 
 - name:                                "ANF Mount: HANA data"
-  ansible.builtin.include_tasks:       2.6.1.1-nfs-mount.yaml
+  ansible.builtin.include_tasks:       2.6.1.1-anf-mount.yaml
   loop:
     - {
       'type':              'data',
       'temppath':          'hanadata',
       'folder':            'hanadata',
       'mount':             '{{ hana_data_mountpoint[0] }}',
-      'opts':              'rw,vers=4,minorversion=1,hard,timeo=600,rsize=262144,wsize=262144,intr,noatime,lock,_netdev,sec=sys',
+      'opts':              '{{ mnt_options }}',
       'path':              '/hana/data',
+      'permissions':       '0755',
+      'set_chattr_on_dir': false,
+      'target_nodes' :     ['hana'],
+      'create_temp_folders': true
+    }
+  vars:
+    primary_host:                     "{{ db_hosts[0] }}"
+  when:
+    - tier == 'sapos'
+    - node_tier == 'hana'
+    - hana_data_mountpoint is defined
+    - hana_data_mountpoint | length > 0
+    - ansible_hostname == db_hosts[0]
+
+- name:                                "ANF Mount: HANA data"
+  ansible.builtin.include_tasks:       2.6.1.1-anf-mount.yaml
+  loop:
+    - {
+      'type':              'data',
+      'temppath':          'hanadata',
+      'folder':            'hanadata',
+      'mount':             '{{ hana_data_mountpoint[0] }}',
+      'opts':              '{{ mnt_options }}',
+      'path':              '/hana/data',
+      'permissions':       '0755',
       'set_chattr_on_dir': false,
       'target_nodes' :     ['hana'],
       'create_temp_folders': true
@@ -532,15 +569,16 @@
     - ansible_hostname == db_hosts[0]
 
 - name:                                "ANF Mount: HANA log"
-  ansible.builtin.include_tasks:       2.6.1.1-nfs-mount.yaml
+  ansible.builtin.include_tasks:       2.6.1.1-anf-mount.yaml
   loop:
     - {
       'type':                'log',
       'temppath':            'hanalog',
       'folder':              'hanalog',
       'mount' :              '{{ hana_log_mountpoint[0] }}',
-      'opts':                'rw,vers=4,minorversion=1,hard,timeo=600,rsize=262144,wsize=262144,intr,noatime,lock,_netdev,sec=sys',
+      'opts':                '{{ mnt_options }}',
       'path' :               '/hana/log',
+      'permissions':         '0755',
       'set_chattr_on_dir':   false,
       'target_nodes':        ['hana'],
       'create_temp_folders': true
@@ -555,15 +593,16 @@
     - ansible_hostname == db_hosts[0]
 
 - name:                                "ANF Mount: HANA data (secondary)"
-  ansible.builtin.include_tasks:       2.6.1.1-nfs-mount.yaml
+  ansible.builtin.include_tasks:       2.6.1.1-anf-mount.yaml
   loop:
     - {
       'type':              'data',
       'temppath':          'hanadata',
       'folder':            'hanadata',
       'mount':             '{{ hana_data_mountpoint[1] }}',
-      'opts':              'rw,vers=4,minorversion=1,hard,timeo=600,rsize=262144,wsize=262144,intr,noatime,lock,_netdev,sec=sys',
+      'opts':              '{{ mnt_options }}',
       'path':              '/hana/data',
+      'permissions':       '0755',
       'set_chattr_on_dir': false,
       'target_nodes' :     ['hana'],
       'create_temp_folders': true
@@ -575,18 +614,20 @@
     - node_tier == 'hana'
     - hana_data_mountpoint is defined
     - hana_data_mountpoint | length > 1
+    - db_hosts | length > 1
     - ansible_hostname == db_hosts[1]
 
 - name:                                "ANF Mount: HANA log (secondary)"
-  ansible.builtin.include_tasks:       2.6.1.1-nfs-mount.yaml
+  ansible.builtin.include_tasks:       2.6.1.1-anf-mount.yaml
   loop:
     - {
       'type':                'log',
       'temppath':            'hanalog',
       'folder':              'hanalog',
       'mount' :              '{{ hana_log_mountpoint[1] }}',
-      'opts':                'rw,vers=4,minorversion=1,hard,timeo=600,rsize=262144,wsize=262144,intr,noatime,lock,_netdev,sec=sys',
+      'opts':                '{{ mnt_options }}',
       'path' :               '/hana/log',
+      'permissions':         '0755',
       'set_chattr_on_dir':   false,
       'target_nodes':        ['hana'],
       'create_temp_folders': true
@@ -598,18 +639,20 @@
     - node_tier == 'hana'
     - hana_log_mountpoint is defined
     - hana_log_mountpoint | length > 1
+    - db_hosts | length > 1
     - ansible_hostname == db_hosts[1]
 
 - name:                                "ANF Mount: HANA shared"
-  ansible.builtin.include_tasks:       2.6.1.1-nfs-mount.yaml
+  ansible.builtin.include_tasks:       2.6.1.1-anf-mount.yaml
   loop:
     - {
       'type':              'data',
       'temppath':          'hanashared',
       'folder':            'hanashared',
       'mount':             '{{ hana_shared_mountpoint[0] }}',
-      'opts':              'rw,vers=4,minorversion=1,hard,timeo=600,rsize=262144,wsize=262144,intr,noatime,lock,_netdev,sec=sys',
+      'opts':              '{{ mnt_options }}',
       'path':              '/hana/shared',
+      'permissions':       '0775',
       'set_chattr_on_dir': false,
       'target_nodes' :     ['hana'],
       'create_temp_folders': true
@@ -624,15 +667,16 @@
     - ansible_hostname == db_hosts[0]
 
 - name:                                "ANF Mount: HANA shared (secondary)"
-  ansible.builtin.include_tasks:       2.6.1.1-nfs-mount.yaml
+  ansible.builtin.include_tasks:       2.6.1.1-anf-mount.yaml
   loop:
     - {
       'type':              'data',
       'temppath':          'hanashared',
       'folder':            'hanashared',
       'mount':             '{{ hana_shared_mountpoint[1] }}',
-      'opts':              'rw,vers=4,minorversion=1,hard,timeo=600,rsize=262144,wsize=262144,intr,noatime,lock,_netdev,sec=sys',
+      'opts':              '{{ mnt_options }}',
       'path':              '/hana/shared',
+      'permissions':       '0775',
       'set_chattr_on_dir': false,
       'target_nodes' :     ['hana'],
       'create_temp_folders': true
@@ -644,6 +688,7 @@
     - node_tier == 'hana'
     - hana_shared_mountpoint is defined
     - hana_shared_mountpoint | length > 1
+    - db_hosts | length > 1
     - ansible_hostname == db_hosts[1]
 
 - name:                                "ANF Mount: Set Permissons on HANA Directories ({{ item.path }})"

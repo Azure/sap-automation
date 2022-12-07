@@ -48,7 +48,7 @@ function showhelp {
     echo "#########################################################################################"
 }
 
-INPUT_ARGUMENTS=$(getopt -n set_secrets -o e:r:v:s:c:p:t:hw --longoptions environment:,region:,vault:,subscription:,spn_id:,spn_secret:,tenant_id:,workload,help -- "$@")
+INPUT_ARGUMENTS=$(getopt -n set_secrets -o e:r:v:s:c:p:t:b:hw --longoptions environment:,region:,vault:,subscription:,spn_id:,spn_secret:,tenant_id:,keyvault_subscription:,workload,help -- "$@")
 VALID_ARGUMENTS=$?
 
 if [ "$VALID_ARGUMENTS" != "0" ]; then
@@ -84,6 +84,10 @@ while :; do
         ;;
     -t | --tenant_id)
         tenant_id="$2"
+        shift 2
+        ;;
+    -b | --keyvault_subscription)
+        STATE_SUBSCRIPTION="$2"
         shift 2
         ;;
     -w | --workload)
@@ -127,7 +131,7 @@ fi
 #    exit 65	#/* data format error */
 # fi
 
-automation_config_directory=~/.sap_deployment_automation
+automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation
 environment_config_information="${automation_config_directory}"/"${environment}""${region_code}"
 return_code=0
 
@@ -203,7 +207,7 @@ fi
 
 if [ -z "${tenant_id}" ]; then
     load_config_vars "${environment_config_information}" "tenant_id"
-    if [ ! -n "${tenant_id}" ]; then
+    if [ -z "${tenant_id}" ]; then
         read -r -p "SPN Tenant ID: " tenant_id
     fi
 else
@@ -293,128 +297,129 @@ save_config_vars "${environment_config_information}" \
 
 secretname="${environment}"-subscription-id
 
-# az keyvault secret show --name "${secretname}" --vault-name "${keyvault}" >stdout.az 2>&1
+# az keyvault secret show --name "${secretname}" --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" >stdout.az 2>&1
 # result=$(grep "ERROR: The user, group or application" stdout.az)
 
 # if [ -n "${result}" ]; then
-#     upn=$(az account show | grep name | grep @ | cut -d: -f2 | cut -d, -f1 | tr -d \" | xargs)
+#     upn=$(az account show | grep name | grep @ | cut -d: -f2 | cut -d, -f1 -o tsv | xargs)
 #     az keyvault set-policy -n "${keyvault}" --secret-permissions get list recover restore set --upn "${upn}"
 # fi
 
-deleted=$(az keyvault secret list-deleted --vault-name "${keyvault}" --query "[].{Name:name} | [? contains(Name,'${secretname}')] | [0]" | tr -d \")
+deleted=$(az keyvault secret list-deleted --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --query "[].{Name:name} | [? contains(Name,'${secretname}')] | [0]" -o tsv)
 if [ "${deleted}" == "${secretname}"  ]; then
     echo -e "\t $cyan Recovering secret ${secretname} in keyvault ${keyvault} $resetformatting \n"
-    az keyvault secret recover --name "${secretname}" --vault-name "${keyvault}"
+    az keyvault secret recover --name "${secretname}" --vault-name "${keyvault}" --subscription $STATE_SUBSCRIPTION
     sleep 10
-    v=$(az keyvault secret list --vault-name "${keyvault}" --query [].name | tee grep "${secretname}")
+    v=$(az keyvault secret list --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --query [].name | tee grep "${secretname}")
 
     if [ "${v}" != "${subscription}" ] ; then
-        az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --value "${subscription}" --only-show-errors --output none
+        az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --value "${subscription}" --only-show-errors --output none
     fi
 else
-    exists=$(az keyvault secret list --vault-name "${keyvault}" --query "[].{Name:name} | [? contains(Name,'${secretname}')] | [0]" | tr -d \")
+    exists=$(az keyvault secret list --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --query "[].{Name:name} | [? contains(Name,'${secretname}')] | [0]" -o tsv)
     if [ "${exists}" == "${secretname}"  ]; then
-      v=$(az keyvault secret show --name "${secretname}" --vault-name "${keyvault}" --query value | tr -d \")
+      v=$(az keyvault secret show --name "${secretname}" --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --query value -o tsv)
       if [ "${v}" != "${subscription}" ] ; then
           echo -e "\t $cyan Setting secret ${secretname} in keyvault ${keyvault} $resetformatting \n"
-          az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --value "${subscription}" >stdout.az 2>&1
+          az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --value "${subscription}" >stdout.az 2>&1
       fi
     else
-      az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --value "${subscription}" >stdout.az 2>&1
+      az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --value "${subscription}" >stdout.az 2>&1
     fi
 fi
 
-result=$(grep "ERROR: The user, group or application" stdout.az)
+if [ -f stdout.az ]; then
+  result=$(grep "ERROR: The user, group or application" stdout.az)
 
-if [ -n "${result}" ]; then
-    printf -v val "%-20.20s" "$keyvault"
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo -e "#          No access to add the secrets in the$boldred" "${val}" "$resetformatting keyvault           #"
-    echo "#            Please add an access policy for the account you use                        #"
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
-    echo ""
-    rm stdout.az
-    echo "No access to add the secrets in the " "${val}" "keyvault" > secret.err
-    return_code=77
-    exit $return_code
+  if [ -n "${result}" ]; then
+      printf -v val "%-20.20s" "$keyvault"
+      echo "#########################################################################################"
+      echo "#                                                                                       #"
+      echo -e "#          No access to add the secrets in the$boldred" "${val}" "$resetformatting keyvault           #"
+      echo "#            Please add an access policy for the account you use                        #"
+      echo "#                                                                                       #"
+      echo "#########################################################################################"
+      echo ""
+      rm stdout.az
+      echo "No access to add the secrets in the " "${val}" "keyvault" > secret.err
+      return_code=77
+      exit $return_code
+  fi
+
+  result=$(grep "The Vault may not exist" stdout.az)
+  if [ -n "${result}" ]; then
+      printf -v val "%-20.20s could not be found!" "$keyvault"
+      echo "#########################################################################################"
+      echo "#                                                                                       #"
+      echo -e "#                     $boldred Keyvault" "${val}" "$resetformatting               #"
+      echo "#                                                                                       #"
+      echo "#########################################################################################"
+      echo ""
+      rm stdout.az
+      return_code=65 #/* name unknown */
+      echo "Keyvault" "${val}"  > secret.err
+      exit $return_code
+
+  fi
 fi
-
-result=$(grep "The Vault may not exist" stdout.az)
-if [ -n "${result}" ]; then
-    printf -v val "%-20.20s could not be found!" "$keyvault"
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo -e "#                     $boldred Keyvault" "${val}" "$resetformatting               #"
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
-    echo ""
-    rm stdout.az
-    return_code=65 #/* name unknown */
-    echo "Keyvault" "${val}"  > secret.err
-    exit $return_code
-
-fi
-
 #turn off output, we do not want to show the details being uploaded to keyvault
 secretname="${environment}"-client-id
-deleted=$(az keyvault secret list-deleted --vault-name "${keyvault}" --query "[].{Name:name} | [? contains(Name,'${secretname}')] | [0]" | tr -d \")
+deleted=$(az keyvault secret list-deleted --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --query "[].{Name:name} | [? contains(Name,'${secretname}')] | [0]" -o tsv)
 if [ "${deleted}" == "${secretname}"  ]; then
     echo -e "\t $cyan Recovering secret ${secretname} in keyvault ${keyvault} $resetformatting \n"
-    az keyvault secret recover --name "${secretname}" --vault-name "${keyvault}"
+    az keyvault secret recover --name "${secretname}" --vault-name "${keyvault}" --subscription $STATE_SUBSCRIPTION
     sleep 10
 fi
 
 v=""
-secret=$(az keyvault secret list --vault-name "${keyvault}" --query "[].{Name:name} | [? contains(Name,'${secretname}')] | [0]" | tr -d \")
+secret=$(az keyvault secret list --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --query "[].{Name:name} | [? contains(Name,'${secretname}')] | [0]" -o tsv)
 if [ "${secret}" == "${secretname}"  ];
 then
-    v=$(az keyvault secret show --name "${secretname}" --vault-name "${keyvault}" --query value | tr -d \")
+    v=$(az keyvault secret show --name "${secretname}" --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --query value -o tsv)
     if [ "${v}" != "${client_id}" ] ; then
-        az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --value "${client_id}" --only-show-errors --output none
+        az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --value "${client_id}" --only-show-errors --output none
     fi
 else
-    az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --value "${client_id}" --only-show-errors --output none
+    az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --value "${client_id}" --only-show-errors --output none
 fi
 
 secretname="${environment}"-tenant-id
-deleted=$(az keyvault secret list-deleted --vault-name "${keyvault}" --query "[].{Name:name} | [? contains(Name,'${secretname}')] | [0]" | tr -d \")
+deleted=$(az keyvault secret list-deleted --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --query "[].{Name:name} | [? contains(Name,'${secretname}')] | [0]" -o tsv)
 if [ "${deleted}" == "${secretname}"  ]; then
     echo -e "\t $cyan Recovering secret ${secretname} in keyvault ${keyvault} $resetformatting \n"
-    az keyvault secret recover --name "${secretname}" --vault-name "${keyvault}"
+    az keyvault secret recover --name "${secretname}" --vault-name "${keyvault}" --subscription $STATE_SUBSCRIPTION
     sleep 10
 fi
 v=""
-secret=$(az keyvault secret list --vault-name "${keyvault}" --query "[].{Name:name} | [? contains(Name,'${secretname}')] | [0]" | tr -d \")
+secret=$(az keyvault secret list --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --query "[].{Name:name} | [? contains(Name,'${secretname}')] | [0]" -o tsv)
 if [ "${secret}" == "${secretname}"  ];
 then
-    v=$(az keyvault secret show --name "${secretname}" --vault-name "${keyvault}" --query value | tr -d \")
+    v=$(az keyvault secret show --name "${secretname}" --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --query value -o tsv)
     if [ "${v}" != "${tenant_id}" ] ; then
-        az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --value "${tenant_id}" --only-show-errors --output none
+        az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --value "${tenant_id}" --only-show-errors --output none
     fi
 else
-    az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --value "${tenant_id}" --only-show-errors --output none
+    az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --value "${tenant_id}" --only-show-errors --output none
 fi
 
 secretname="${environment}"-client-secret
-deleted=$(az keyvault secret list-deleted --vault-name "${keyvault}" --query "[].{Name:name} | [? contains(Name,'${secretname}')] | [0]" | tr -d \")
+deleted=$(az keyvault secret list-deleted --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --query "[].{Name:name} | [? contains(Name,'${secretname}')] | [0]" -o tsv)
 if [ "${deleted}" == "${secretname}"  ]; then
     echo -e "\t $cyan Recovering secret ${secretname} in keyvault ${keyvault} $resetformatting \n"
-    az keyvault secret recover --name "${secretname}" --vault-name "${keyvault}"
+    az keyvault secret recover --name "${secretname}" --vault-name "${keyvault}" --subscription $STATE_SUBSCRIPTION
     sleep 10
 fi
 
 v=""
-secret=$(az keyvault secret list --vault-name "${keyvault}" --query "[].{Name:name} | [? contains(Name,'${secretname}')] | [0]"  | tr -d \")
+secret=$(az keyvault secret list --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --query "[].{Name:name} | [? contains(Name,'${secretname}')] | [0]"  -o tsv)
 if [ "${secret}" == "${secretname}"  ];
 then
-    v=$(az keyvault secret show --name "${secretname}" --vault-name "${keyvault}" --query value | tr -d \")
+    v=$(az keyvault secret show --name "${secretname}" --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --query value -o tsv)
     if [ "${v}" != "${client_secret}" ] ; then
-        az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --value "${client_secret}" --only-show-errors --output none
+        az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --value="${client_secret}" --only-show-errors --output none
     fi
 else
-    az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --value "${client_secret}" --only-show-errors --output none
+    az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --value="${client_secret}" --only-show-errors --output none
 fi
 
 exit $return_code

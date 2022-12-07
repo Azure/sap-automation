@@ -134,7 +134,7 @@ if [ 0 != $return_code ]; then
     exit $return_code
 fi
 
-terraform_module_directory="${DEPLOYMENT_REPO_PATH}"/deploy/terraform/bootstrap/"${deployment_system}"/
+terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/"${deployment_system}"/
 
 echo $terraform_module_directory
 export TF_DATA_DIR="${param_dirname}"/.terraform
@@ -148,26 +148,7 @@ fi
 
 dir=$(pwd)
 
-if [ ! -d ./.terraform/ ]; then
-    terraform -chdir="${terraform_module_directory}" init -backend-config "path=${dir}/terraform.tfstate"
-else
-    if [ -f ./.terraform/terraform.tfstate ]; then
-        if grep "azurerm" ./.terraform/terraform.tfstate ; then
-            echo "#########################################################################################"
-            echo "#                                                                                       #"
-            echo "#                     The state is already migrated to Azure!!!                         #"
-            echo "#                                                                                       #"
-            echo "#########################################################################################"
-            terraform -chdir="${terraform_module_directory}" init -upgrade=true -migrate-state -force-copy
-        else
-            terraform -chdir="${terraform_module_directory}" init -upgrade=true -backend-config "path=${dir}/terraform.tfstate"
-        fi
-    else
-        terraform -chdir="${terraform_module_directory}" init -upgrade=true -backend-config "path=${dir}/terraform.tfstate"
-    fi
-fi
-
-terraform -chdir="${terraform_module_directory}" state list
+terraform -chdir="${terraform_module_directory}" init -backend-config "path=${dir}/terraform.tfstate"
 extra_vars=""
 
 if [ -f terraform.tfvars ]; then

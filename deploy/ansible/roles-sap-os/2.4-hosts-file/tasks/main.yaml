@@ -10,7 +10,8 @@
 #
 # Description:  Validation for Prerequisites
 #
-- import_tasks:     pre_checks.yaml
+- name:                                "2.4 Hosts: - import pre_checks"
+  ansible.builtin.import_tasks:        pre_checks.yaml
 # -------------------------------------+---------------------------------------8
 
 #   OS: hosts file, Entries - /etc/hosts
@@ -38,7 +39,7 @@
   ansible.builtin.set_fact:
     scs_virtual_hostname:              "{{ sap_sid | lower }}scs{{ scs_instance_number }}cl1"
     ers_virtual_hostname:              "{{ sap_sid | lower }}ers{{ ers_instance_number }}cl2"
-    db_virtual_hostname:               "{{ sap_sid | lower }}{{ db_sid | lower }}db{{ hdb_instance_number }}cl"
+    db_virtual_hostname:               "{{ sap_sid | lower }}{{ db_sid | lower }}db{{ db_instance_number }}cl"
   when:
     - scs_high_availability or db_high_availability
 
@@ -75,5 +76,18 @@
   when:
     - db_high_availability
     - platform == 'HANA'
+
+- name:                                "2.4 Hosts: - Setup Virtual host name resolution - DB"
+  ansible.builtin.blockinfile:
+    path:                              /etc/hosts
+    mode:                              0644
+    create:                            true
+    state:                             present
+    block: |
+      {{ '%-19s' | format(db_lb_ip) }} {{ '%-50s' | format(db_virtual_hostname + '.' + sap_fqdn) }} {{ '%-21s' | format(db_virtual_hostname) }}
+    marker:                            "# {mark} DB Entries {{ db_virtual_hostname }}"
+  when:
+    - db_high_availability
+    - platform == 'DB2'
 
 ...

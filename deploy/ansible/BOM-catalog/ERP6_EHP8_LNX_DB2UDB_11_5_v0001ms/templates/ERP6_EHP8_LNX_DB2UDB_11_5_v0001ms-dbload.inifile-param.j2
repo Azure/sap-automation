@@ -1,0 +1,60 @@
+########################################################################################################################################################################################################################################################
+#                                                                                                                                                                                                                                                      #
+# Installation service 'SAP Business Suite 7i 2016 > EHP8 for SAP ERP 6.0 ABAP > IBM Db2 for Linux, UNIX, and Windows > Installation > Application Server ABAP > Distributed System > Database Instance', product id 'NW_ABAP_DB:BS2016.ERP608.DB6.PD' #
+#                                                                                                                                                                                                                                                      #
+########################################################################################################################################################################################################################################################
+
+NW_Unpack.sapExeDbSar                                                = {{ db2_cd_package_kernel }}/SAPEXEDB_900-80002603.SAR
+NW_Unpack.sapExeSar                                                  = {{ db2_cd_package_kernel }}/SAPEXE_900-80002573.SAR
+archives.downloadBasket                                              = {{ db2_archive_path }}
+SAPINST.CD.PACKAGE.CD1                                               = {{ db2_cd_package_exportcd }}
+
+NW_ABAP_Import_Dialog.dbCodepage                                     = 4103
+NW_ABAP_Import_Dialog.migmonJobNum                                   = 20
+NW_ABAP_Import_Dialog.migmonLoadArgs                                 = -stop_on_error -loadprocedure fast LOAD:COMPRESS_ALL:DEF_CRT
+
+NW_DB6_DB.db6.abap.connect.user                                      = sap{{ sap_sid| lower }}
+NW_DB6_DB.db6.abap.schema                                            = sap{{ sap_sid| lower }}
+
+
+NW_GetMasterPassword.masterPwd                                       = {{ main_password }}
+NW_GetSidNoProfiles.sapdrive                                         = undefined
+NW_GetSidNoProfiles.sid                                              = {{ sap_sid | upper }}
+
+NW_getDBInfoGeneric.dbhost                                           = {{ sap_db_hostname }}
+NW_getDBInfoGeneric.dbsid                                            = {{ db_sid | upper }}
+
+NW_getFQDN.FQDN                                                      = {{ sap_fqdn }}
+NW_getLoadType.loadType                                              = SAP
+
+NW_readProfileDir.profilesAvailable                                  = false
+
+db6.DB2SoftwarePath                                                  = /db2/db2{{ db_sid | lower }}/db2_software
+# Calaculate the memory it should be 80% of total avaialble memory
+db6.DatabaseMemory                                                   = 42980
+db6.TablespacePoolSizes                                              = SAPSID#DATA{20}
+db6.UseStandardTablespacePool                                        = true
+db6.cluster.ClusterType                                              = HADR (High Availability Disaster Recovery)
+db6.createTablespacesUsingSapinst                                    = true
+db6.gid_sysadm                                                       = {{ db2sysadm_gid }}
+db6.gid_sysctrl                                                      = {{ db2sysctrl_gid }}
+db6.gid_sysmaint                                                     = {{ db2sysmaint_gid }}
+db6.gid_sysmon                                                       = {{ db2sysmon_gid }}
+db6.minimizeDatabaseSizeCompression                                  = true
+db6.numPathsForSapdatas                                              = 4
+db6.numPathsForSaptmps                                               = 4
+db6.useAutoStorage                                                   = true
+db6.useExtraSapdataSaptmpDirLayout                                   = false
+nwUsers.db6.db2sidPassword                                           = {{ main_password }}
+nwUsers.db6.db2sidUid                                                = {{ db2sidadm_uid }}
+nwUsers.db6.sapsidPassword                                           = {{ main_password }}
+nwUsers.db6.sapsidUid                                                = {{ db2sapsid_uid }}
+
+nwUsers.sapadmUID                                                    = {{ sapadm_uid }}
+nwUsers.sapsysGID                                                    = {{ sapsys_gid }}
+nwUsers.sidAdmUID                                                    = {{ sidadm_uid }}
+nwUsers.sidadmPassword                                               = {{ main_password }}
+
+storageBasedCopy.db6.CommunicationPortNumber                         = 63518
+storageBasedCopy.db6.PortRangeEnd                                    = 63525
+storageBasedCopy.db6.PortRangeStart                                  = 63519

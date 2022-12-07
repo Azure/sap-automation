@@ -9,7 +9,7 @@
 ########################################################################################################################################################################################################
 
 
-NW_Users_Create.dbsid                                                 = {{ sap_sid| upper }}
+NW_Users_Create.dbsid                                                 = {{ sap_sid | upper }}
 
 # Specify whether you are preparing for an SAP sytem based on AS ABAP.
 NW_Users_Create.hasABAP                                               = true
@@ -18,7 +18,7 @@ NW_Users_Create.hasABAP                                               = true
 NW_Users_Create.installDBUsers                                        = false
 
 # SAP system ID
-NW_Users_Create.sid                                                   = {{ sap_sid| upper }}
+NW_Users_Create.sid                                                   = {{ sap_sid | upper }}
 
 nwUsers.sapadmUID                                                     = {{ sapadm_uid }}
 nwUsers.sapsysGID                                                     = {{ sapsys_gid }}

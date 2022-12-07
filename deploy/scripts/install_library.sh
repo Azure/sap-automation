@@ -25,10 +25,10 @@ function showhelp {
     echo "#   The script experts the following exports:                                           #"
     echo "#                                                                                       #"
     echo "#     ARM_SUBSCRIPTION_ID to specify which subscription to deploy to                    #"
-    echo "#     DEPLOYMENT_REPO_PATH the path to the folder containing the cloned sap-automation        #"
+    echo "#     SAP_AUTOMATION_REPO_PATH the path to the folder containing the cloned sap-automation        #"
     echo "#                                                                                       #"
     echo "#   The script will persist the parameters needed between the executions in the         #"
-    echo "#   ~/.sap_deployment_automation folder                                                 #"
+    echo "#   [CONFIG_REPO_PATH]/.sap_deployment_automation folder                                                 #"
     echo "#                                                                                       #"
     echo "#                                                                                       #"
     echo "#   Usage: install_deployer.sh                                                          #"
@@ -160,7 +160,7 @@ then
 fi
 
 #Persisting the parameters across executions
-automation_config_directory=~/.sap_deployment_automation/
+automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation/
 generic_config_information="${automation_config_directory}"config
 library_config_information="${automation_config_directory}""${environment}""${region_code}"
 
@@ -183,14 +183,14 @@ init "${automation_config_directory}" "${generic_config_information}" "${library
 export TF_DATA_DIR="${param_dirname}"/.terraform
 var_file="${param_dirname}"/"${parameterfile}"
 
-if [ ! -n "${DEPLOYMENT_REPO_PATH}" ]; then
+if [ ! -n "${SAP_AUTOMATION_REPO_PATH}" ]; then
     echo ""
     echo "#########################################################################################"
     echo "#                                                                                       #"
-    echo "#   Missing environment variables (DEPLOYMENT_REPO_PATH)!!!                             #"
+    echo "#   Missing environment variables (SAP_AUTOMATION_REPO_PATH)!!!                             #"
     echo "#                                                                                       #"
     echo "#   Please export the folloing variables:                                               #"
-    echo "#      DEPLOYMENT_REPO_PATH (path to the repo folder (sap-automation))                        #"
+    echo "#      SAP_AUTOMATION_REPO_PATH (path to the repo folder (sap-automation))                        #"
     echo "#      ARM_SUBSCRIPTION_ID (subscription containing the state file storage account)     #"
     echo "#                                                                                       #"
     echo "#########################################################################################"
@@ -212,7 +212,7 @@ if [ ! -n "$ARM_SUBSCRIPTION_ID" ]; then
     echo "#   Missing environment variables (ARM_SUBSCRIPTION_ID)!!!                              #"
     echo "#                                                                                       #"
     echo "#   Please export the folloing variables:                                               #"
-    echo "#      DEPLOYMENT_REPO_PATH (path to the repo folder (sap-automation))                        #"
+    echo "#      SAP_AUTOMATION_REPO_PATH (path to the repo folder (sap-automation))                        #"
     echo "#      ARM_SUBSCRIPTION_ID (subscription containing the state file storage account)     #"
     echo "#                                                                                       #"
     echo "#########################################################################################"
@@ -220,7 +220,7 @@ if [ ! -n "$ARM_SUBSCRIPTION_ID" ]; then
     exit 3
 fi
 
-terraform_module_directory="${DEPLOYMENT_REPO_PATH}"/deploy/terraform/bootstrap/"${deployment_system}"/
+terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/"${deployment_system}"/
 
 if [ ! -d ${terraform_module_directory} ]
 then
@@ -473,6 +473,60 @@ if [ $rerun_apply == 1 ] ; then
         terraform -chdir="${terraform_module_directory}" apply -var-file="${var_file}" -auto-approve -json | tee -a  apply_output.json
     fi
     return_value=$?
+fi
+
+if [ -f apply_output.json ]
+then
+    errors_occurred=$(jq 'select(."@level" == "error") | length' apply_output.json)
+    if [[ -n $errors_occurred ]]
+    then
+      echo ""
+      echo "#########################################################################################"
+      echo "#                                                                                       #"
+      echo -e "#                          $boldreduscore!Errors during the apply phase!$resetformatting                              #"
+
+      return_value=2
+      all_errors=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary, detail: .diagnostic.detail}' apply_output.json)
+      if [[ -n ${all_errors} ]]
+      then
+          readarray -t errors_strings < <(echo ${all_errors} | jq -c '.' )
+          for errors_string in "${errors_strings[@]}"; do
+              string_to_report=$(jq -c -r '.detail '  <<< "$errors_string" )
+              if [[ -z ${string_to_report} ]]
+              then
+                  string_to_report=$(jq -c -r '.summary '  <<< "$errors_string" )
+              fi
+
+              echo -e "#                          $boldreduscore  $string_to_report $resetformatting"
+              echo "##vso[task.logissue type=error]${string_to_report}"
+
+          done
+
+      fi
+      echo "#                                                                                       #"
+      echo "#########################################################################################"
+      echo ""
+
+      # Check for resource that can be imported
+
+      existing=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary}  | select(.summary | startswith("A resource with the ID"))' apply_output.json)
+      if [[ -n ${existing} ]]
+      then
+        readarray -t existing_resources < <(echo ${existing} | jq -c '.' )
+        for item in "${existing_resources[@]}"; do
+            moduleID=$(jq -c -r '.address '  <<< "$item")
+            resourceID=$(jq -c -r '.summary' <<< "$item" | awk -F'\"' '{print $2}')
+            echo "Trying to import" $resourceID "into" $moduleID
+
+            echo terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" $moduleID $resourceID
+            terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" $moduleID $resourceID
+        done
+        terraform -chdir="${terraform_module_directory}"  apply ${approve} -var-file="${var_file}"  -json | tee -a  apply_output.json
+        return_value=$?
+      fi
+    fi
+else
+  return_value=0
 fi
 
 if [ 1 == $return_value ] ; then

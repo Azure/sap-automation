@@ -1,0 +1,66 @@
+﻿@model AutomationForm.Models.FormViewModel<SystemModel>
+
+@{
+    ViewBag.Title = "Deploy system";
+    ViewData["environment"] = Model.SapObject.environment;
+    IEnumerable<SelectListItem> environments = ViewBag.Environments;
+}
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script type="text/javascript">
+
+    window.onload = function () {
+        $(".js-example-placeholder-single").select2({
+            placeholder: "Search...",
+            allowClear: true,
+            tags: true
+        });
+
+        toggleNullParameters();
+
+        toggleDisableViaNInputs(['environment'], 'confirm-deploy-system-checkbox') // in the case that it is already set
+    }
+
+</script>
+
+<fluent-breadcrumb>
+    <fluent-breadcrumb-item href="@Url.Action("Index", "Home")">Home</fluent-breadcrumb-item>
+    <fluent-breadcrumb-item href="@Url.Action("Index", "System")">Systems</fluent-breadcrumb-item>
+    <fluent-breadcrumb-item href="#">Deploy</fluent-breadcrumb-item>
+</fluent-breadcrumb>
+
+<div class="text-center">
+    <h2>Deploy a system</h2>
+</div>
+
+<h4>Are you sure you want to deploy @Model.SapObject.Id?</h4>
+<div>
+    @await Html.PartialAsync("_DetailsPartial", Model)
+
+    @using (Html.BeginForm())
+    {
+        @Html.AntiForgeryToken()
+
+        <div class="ms-TextField">
+            <div class="left-input">
+                @Html.Label("environment", "Workload Environment", new { @class = $"ms-Label required" })
+                <p>Please specify the workload environment to deploy to (DEV, QA, PRD, ...)</p>
+            </div>
+
+            <div class="right-input">
+                @Html.DropDownList("environment", environments, new { @class = "js-example-placeholder-single", @style = "width: 100%;", @onchange = $"toggleDisableViaNInputs(['environment'], 'confirm-deploy-system-checkbox')" })
+            </div>
+        </div>
+
+        <fluent-checkbox id="confirm-deploy-system-checkbox" onchange="toggleDisableViaCheckbox(this, 'deploy-system-button')" disabled>I confirm that I wish to deploy this system</fluent-checkbox><br />
+
+        <fluent-button id="deploy-system-button" appearance="accent" value="Deploy" type="submit" disabled>
+            <i class="ms-Icon ms-Icon--Send" aria-hidden="true"></i> Deploy
+        </fluent-button>
+
+        <fluent-anchor href="@Url.Action("Index", "System")">
+            Cancel
+        </fluent-anchor>
+
+    }
+</div>

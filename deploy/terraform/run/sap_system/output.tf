@@ -1,8 +1,8 @@
 
 ###############################################################################
-#                                                                             # 
-#                             Environment settings                            # 
-#                                                                             # 
+#                                                                             #
+#                             Environment settings                            #
+#                                                                             #
 ###############################################################################
 
 output "region" {
@@ -17,9 +17,9 @@ output "environment" {
 
 
 ###############################################################################
-#                                                                             # 
-#                             Automation version                              # 
-#                                                                             # 
+#                                                                             #
+#                             Automation version                              #
+#                                                                             #
 ###############################################################################
 
 output "automation_version" {
@@ -135,7 +135,7 @@ output "anydb_vm_ids" {
 }
 
 output "sid" {
-  value = local.application.sid
+  value = local.application_tier.sid
 }
 
 
