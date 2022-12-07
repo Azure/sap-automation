@@ -33,7 +33,8 @@
         mode:                          '{{ item.mode }}'
       loop:
         - { mode: '0755', path: '{{ dir_params }}' }
-        - { mode: '0755', path: '{{ tmp_directory }}/{{ sap_sid | upper }}' }
+        - { mode: '1777', path: '{{ tmp_directory }}/{{ sap_sid | upper }}' }
+        - { mode: '1777', path: '{{ tmp_directory }}/{{ db_sid | upper }}' }
         - { mode: '0755', path: '/etc/sap_deployment_automation/{{ sap_sid | upper }}' }
 
     - name:                            "SAP DB2: Install reset"
@@ -110,15 +111,15 @@
           - "{{ bom.product_ids.dblha }}"
         verbosity:                     2
 
-    - name:                            "SAP DB2 Install: progress"
-      ansible.builtin.debug:
-        msg:                           "Starting SAP DB2 Install. Please wait"
-
     - name:                            "Create temp directory for sid"
       ansible.builtin.file:
         path:                          "{{ tmp_directory }}/{{ sap_sid | upper }}"
         state:                         directory
-        mode:                          0755
+        mode:                          0777
+
+    - name:                            "SAP DB2 Install: progress"
+      ansible.builtin.debug:
+        msg:                           "Starting SAP DB2 Install. Please wait"
 
     - name:                            "SAP DB2 Install"
       ansible.builtin.shell: |
@@ -161,7 +162,6 @@
       register:                        db2_lock_escalation
       environment:
         PATH:                          "{{ ansible_env.PATH }}:/db2/db2{{ db_sid | lower }}/sqllib/gskit/bin"
-        TMPDIR:                        "{{ tmp_directory }}/{{ sap_sid | upper }}"
 
     - name:                            "DB2 Install - Create lock escalation run flag"
       ansible.builtin.file:

@@ -39,8 +39,8 @@
   tags:
     - skip_ansible_lint
   environment:
+    ANSIBLE_REMOTE_TEMP:               "{{ tmp_directory }}/{{ db_sid | upper }}"
     TEMPDIR:                           "{{ tmp_directory }}/{{ db_sid | upper }}"
-    ANSIBLE_TEMP_DIR:                  "{{ tmp_directory }}/{{ db_sid | upper }}"
 
 - name:                                "HANA HSR: - Show replication status"
   ansible.builtin.debug:

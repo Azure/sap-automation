@@ -125,15 +125,16 @@
 # 2230669 - System Provisioning Using a Parameter Input File
 #
 # *====================================4=======================================8
-    - name:                            "ERS HA Installation"
-      ansible.builtin.debug:
-        msg:                           "Starting sapinst for {{ sap_sid | upper }}. Please wait"
 
     - name:                            "Create temp directory for sid"
       ansible.builtin.file:
         path:                          "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
         state:                         directory
         mode:                          0755
+
+    - name:                            "ERS HA Installation"
+      ansible.builtin.debug:
+        msg:                           "Starting sapinst for {{ sap_sid | upper }}. Please wait"
 
     - name:                            "ERS HA Installation"
       block:

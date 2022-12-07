@@ -119,15 +119,23 @@
 # |  SAP SCS: Install                                                          |
 # | 2230669 - System Provisioning Using a Parameter Input File                 |
 # *====================================4=======================================8
-    - name:                            "SCS Install: Progress"
-      ansible.builtin.debug:
-        msg:                           "Start SCS Installation"
 
     - name:                            "Create temp directory for sid"
       ansible.builtin.file:
         path:                          "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
         state:                         directory
         mode:                          0755
+
+    - name:                            "SCS Install: Progress"
+      ansible.builtin.debug:
+        msg:                           "Start SCS Installation"
+
+    - name:                            "SCS Install: - comment out required message server prots in /etc/services"
+      ansible.builtin.replace:
+        path:                          /etc/services
+        regexp:                        '^([a-z\-]+\s+36{{ scs_instance_number }}/.*)$'
+        replace:                       '# \1'
+        backup:                        true
 
     - name:                            "SCS Install: SAP SCS Install on {{ ansible_hostname }}"
       ansible.builtin.shell: |
