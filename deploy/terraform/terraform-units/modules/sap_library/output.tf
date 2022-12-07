@@ -88,7 +88,7 @@ output "remote_state_storage_account_name" {
 output "tfstate_resource_id" {
   value = local.sa_tfstate_exists ? (
     data.azurerm_storage_account.storage_tfstate[0].id) : (
-    azurerm_storage_account.storage_tfstate[0].id
+    try(azurerm_storage_account.storage_tfstate[0].id, "")
   )
 }
 
@@ -97,7 +97,7 @@ output "sa_connection_string" {
   sensitive   = true
   value = local.sa_tfstate_exists ? (
     data.azurerm_storage_account.storage_tfstate[0].primary_connection_string) : (
-    azurerm_storage_account.storage_tfstate[0].primary_connection_string
+    try(azurerm_storage_account.storage_tfstate[0].primary_connection_string, "")
   )
 
 }
