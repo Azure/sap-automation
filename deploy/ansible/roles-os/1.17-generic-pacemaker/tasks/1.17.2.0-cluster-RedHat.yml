@@ -18,7 +18,7 @@
     password:                         "{{ password_ha_db_cluster | password_hash('sha512', 65534 | random(seed=inventory_hostname) | string) }}"
 
 - name:                                "1.17 Generic Pacemaker - Ensure the firewall service is configured to allow High Availability traffic"
-  ansible.builtin.firewalld:
+  ansible.posix.firewalld:
     service:                          high-availability
     state:                            enabled
     permanent:                        true
@@ -64,6 +64,10 @@
       ansible.builtin.command:         pcs cluster start --all
       changed_when:                    false
 
+    - name:                            "1.17 Generic Pacemaker - Enable cluster to auto-start after reboot"
+      ansible.builtin.command:         pcs cluster enable --all
+      changed_when:                    false
+
     - name:                            "1.17 Generic Pacemaker - Allow Concurrent Fencing"
       ansible.builtin.command:         pcs property set concurrent-fencing=true
       changed_when:                    false
@@ -89,10 +93,10 @@
       tags:
         - skip_ansible_lint
 
-    - name:                                "1.17 Generic Pacemaker - Ensure the expected quorum votes is set for the cluster"
-      ansible.builtin.command:             pcs quorum expected-votes "{{ cluster_quorum.expected_votes }}"
-      register:                            quorum
-      changed_when:                        quorum.rc == 0
+    - name:                            "1.17 Generic Pacemaker - Ensure the expected quorum votes is set for the cluster"
+      ansible.builtin.command:         pcs quorum expected-votes "{{ cluster_quorum.expected_votes }}"
+      register:                        quorum
+      changed_when:                    quorum.rc == 0
 
   when:                                ansible_hostname == primary_instance_name
 
@@ -117,8 +121,6 @@
                                          pcmk_action_limit=3
                                          pcmk_delay_max=15
                                          pcmk_host_map="{{ primary_instance_name }}:{{ hostvars[primary_instance_name]['primary_vm_name'] }};{{ secondary_instance_name }}:{{ hostvars[secondary_instance_name]['secondary_vm_name'] }}"
-                                         pcmk_host_list="{{ hostvars[primary_instance_name]['primary_vm_name'] }} {{ hostvars[secondary_instance_name]['secondary_vm_name'] }}"
-
       when:
         - ansible_distribution_major_version == "7"
         - not use_msi_for_clusters
@@ -137,8 +139,6 @@
                                          pcmk_action_limit=3
                                          pcmk_delay_max=15
                                          pcmk_host_map="{{ primary_instance_name }}:{{ hostvars[primary_instance_name]['primary_vm_name'] }};{{ secondary_instance_name }}:{{ hostvars[secondary_instance_name]['secondary_vm_name'] }}"
-                                         pcmk_host_list="{{ hostvars[primary_instance_name]['primary_vm_name'] }} {{ hostvars[secondary_instance_name]['secondary_vm_name'] }}"
-
       when:
         - ansible_distribution_major_version == "7"
         - use_msi_for_clusters
@@ -158,7 +158,6 @@
                                          pcmk_action_limit=3
                                          pcmk_delay_max=15
                                          pcmk_host_map="{{ primary_instance_name }}:{{ hostvars[primary_instance_name]['primary_vm_name'] }};{{ secondary_instance_name }}:{{ hostvars[secondary_instance_name]['secondary_vm_name'] }}"
-                                         pcmk_host_list="{{ hostvars[primary_instance_name]['primary_vm_name'] }} {{ hostvars[secondary_instance_name]['secondary_vm_name'] }}"
       when:
         - ansible_distribution_major_version == "8"
         - not use_msi_for_clusters
@@ -176,7 +175,6 @@
                                          pcmk_action_limit=3
                                          pcmk_delay_max=15
                                          pcmk_host_map="{{ primary_instance_name }}:{{ hostvars[primary_instance_name]['primary_vm_name'] }};{{ secondary_instance_name }}:{{ hostvars[secondary_instance_name]['secondary_vm_name'] }}"
-                                         pcmk_host_list="{{ hostvars[primary_instance_name]['primary_vm_name'] }} {{ hostvars[secondary_instance_name]['secondary_vm_name'] }}"
       when:
         - ansible_distribution_major_version == "8"
         - use_msi_for_clusters

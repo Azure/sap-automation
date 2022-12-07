@@ -28,6 +28,9 @@ resource "azurerm_storage_account" "storage_bootdiag" {
   min_tls_version                 = "TLS1_2"
   allow_nested_items_to_be_public = false
 
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 resource "azurerm_private_dns_a_record" "storage_bootdiag" {
@@ -88,6 +91,10 @@ resource "azurerm_private_endpoint" "storage_bootdiag" {
     create = "10m"
     delete = "30m"
   }
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 ################################################################################
@@ -119,6 +126,9 @@ resource "azurerm_storage_account" "witness_storage" {
   min_tls_version                 = "TLS1_2"
   allow_nested_items_to_be_public = false
 
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 resource "azurerm_storage_account_network_rules" "witness" {
@@ -129,8 +139,8 @@ resource "azurerm_storage_account_network_rules" "witness" {
   bypass             = ["AzureServices", "Logging", "Metrics"]
 
   ip_rules = compact([
-      length(local.deployer_public_ip_address) > 0 ? local.deployer_public_ip_address : ""
-    ])
+    length(local.deployer_public_ip_address) > 0 ? local.deployer_public_ip_address : ""
+  ])
   virtual_network_subnet_ids = [
     local.database_subnet_defined ? (
       local.database_subnet_existing ? local.database_subnet_arm_id : azurerm_subnet.db[0].id) : (
@@ -201,6 +211,10 @@ resource "azurerm_private_endpoint" "witness_storage" {
     create = "10m"
     delete = "30m"
   }
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 ################################################################################
@@ -249,8 +263,8 @@ resource "azurerm_storage_account_network_rules" "transport" {
   default_action     = "Deny"
 
   ip_rules = compact([
-      length(local.deployer_public_ip_address) > 0 ? local.deployer_public_ip_address : ""
-    ])
+    length(local.deployer_public_ip_address) > 0 ? local.deployer_public_ip_address : ""
+  ])
   bypass = ["AzureServices", "Logging", "Metrics"]
   virtual_network_subnet_ids = compact(
     [
@@ -429,8 +443,8 @@ resource "azurerm_storage_account_network_rules" "install" {
   default_action     = "Deny"
 
   ip_rules = compact([
-      length(local.deployer_public_ip_address) > 0 ? local.deployer_public_ip_address : ""
-    ])
+    length(local.deployer_public_ip_address) > 0 ? local.deployer_public_ip_address : ""
+  ])
   bypass = ["AzureServices", "Logging", "Metrics"]
   virtual_network_subnet_ids = compact(
     [

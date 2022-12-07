@@ -1,0 +1,12 @@
+---
+- name: "5.7 DB2 Pacemaker - set_runtime_facts"
+  ansible.builtin.import_tasks: 5.7.1-set_runtime_facts.yml
+
+- name: "5.7 DB2 Pacemaker - pre_checks"
+  ansible.builtin.import_tasks: 5.7.2-pre_checks.yml
+
+- name: "5.7 DB2 Pacemaker - provision"
+  ansible.builtin.import_tasks: 5.7.3-provision.yml
+  when: not db2_cluster_existence_check
+
+# - ansible.builtin.import_tasks: 5.7.4-post_provision_report.yml  ##This playbook is pending

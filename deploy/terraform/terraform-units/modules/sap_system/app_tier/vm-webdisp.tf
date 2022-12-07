@@ -25,7 +25,7 @@ resource "azurerm_network_interface" "web" {
       subnet_id = pub.value.subnet_id
 
       private_ip_address = try(pub.value.nic_ips[count.index],
-        var.application.use_DHCP ? (
+        var.application_tier.use_DHCP ? (
           null) : (
           local.web_subnet_defined ?
           cidrhost(
@@ -71,7 +71,7 @@ resource "azurerm_network_interface_application_security_group_association" "web
 
 resource "azurerm_network_interface" "web_admin" {
   provider = azurerm.main
-  count = local.enable_deployment && var.application.dual_nics && length(try(var.admin_subnet.id, "")) > 0 ? (
+  count = local.enable_deployment && var.application_tier.dual_nics && length(try(var.admin_subnet.id, "")) > 0 ? (
     local.webdispatcher_count) : (
     0
   )
@@ -89,7 +89,7 @@ resource "azurerm_network_interface" "web_admin" {
   ip_configuration {
     name      = "IPConfig1"
     subnet_id = var.admin_subnet.id
-    private_ip_address = try(local.web_admin_nic_ips[count.index], var.application.use_DHCP ? (
+    private_ip_address = try(local.web_admin_nic_ips[count.index], var.application_tier.use_DHCP ? (
       null) : (
       cidrhost(
         var.admin_subnet.address_prefixes[0],
@@ -107,7 +107,7 @@ resource "azurerm_network_interface" "web_admin" {
 # Create the Linux Web dispatcher VM(s)
 resource "azurerm_linux_virtual_machine" "web" {
   provider = azurerm.main
-  count = local.enable_deployment && upper(local.web_ostype) == "LINUX" ? (
+  count = local.enable_deployment && upper(var.application_tier.web_os.os_type) == "LINUX" ? (
     local.webdispatcher_count) : (
     0
   )
@@ -140,7 +140,7 @@ resource "azurerm_linux_virtual_machine" "web" {
   //If length of zones > 1 distribute servers evenly across zones
   zone = local.use_web_avset ? null : try(local.web_zones[count.index % max(local.web_zone_count, 1)], null)
 
-  network_interface_ids = var.application.dual_nics ? (
+  network_interface_ids = var.application_tier.dual_nics ? (
     var.options.legacy_nic_order ? (
       [
         azurerm_network_interface.scs_admin[count.index].id,
@@ -206,23 +206,23 @@ resource "azurerm_linux_virtual_machine" "web" {
     }
   }
 
-  source_image_id = local.web_custom_image ? local.web_os.source_image_id : null
+  source_image_id = var.application_tier.web_os.type == "custom" ? var.application_tier.web_os.source_image_id : null
 
   dynamic "source_image_reference" {
-    for_each = range(local.web_custom_image ? 0 : 1)
+    for_each = range(var.application_tier.web_os.type == "marketplace" ? 1 : 0)
     content {
-      publisher = local.web_os.publisher
-      offer     = local.web_os.offer
-      sku       = local.web_os.sku
-      version   = local.web_os.version
+      publisher = var.application_tier.web_os.publisher
+      offer     = var.application_tier.web_os.offer
+      sku       = var.application_tier.web_os.sku
+      version   = var.application_tier.web_os.version
     }
   }
   dynamic "plan" {
-    for_each = range(local.web_custom_image ? 1 : 0)
+    for_each = range(var.application_tier.web_os.type == "marketplace_with_plan" ? 1 : 0)
     content {
-      name      = local.web_os.offer
-      publisher = local.web_os.publisher
-      product   = local.web_os.sku
+      name      = var.application_tier.web_os.offer
+      publisher = var.application_tier.web_os.publisher
+      product   = var.application_tier.web_os.sku
     }
   }
 
@@ -232,7 +232,7 @@ resource "azurerm_linux_virtual_machine" "web" {
 
   license_type = length(var.license_type) > 0 ? var.license_type : null
 
-  tags = try(var.application.web_tags, {})
+  tags = try(var.application_tier.web_tags, {})
 
   lifecycle {
     ignore_changes = [tags]
@@ -242,7 +242,7 @@ resource "azurerm_linux_virtual_machine" "web" {
 # Create the Windows Web dispatcher VM(s)
 resource "azurerm_windows_virtual_machine" "web" {
   provider = azurerm.main
-  count = local.enable_deployment && upper(local.web_ostype) == "WINDOWS" ? (
+  count = local.enable_deployment && upper(var.application_tier.web_os.os_type) == "WINDOWS" ? (
     local.webdispatcher_count) : (
     0
   )
@@ -278,7 +278,7 @@ resource "azurerm_windows_virtual_machine" "web" {
     try(local.web_zones[count.index % max(local.web_zone_count, 1)], null)
   )
 
-  network_interface_ids = var.application.dual_nics ? (
+  network_interface_ids = var.application_tier.dual_nics ? (
     var.options.legacy_nic_order ? (
       [
         azurerm_network_interface.web_admin[count.index].id,
@@ -325,28 +325,28 @@ resource "azurerm_windows_virtual_machine" "web" {
       )
       caching                = disk.value.caching
       storage_account_type   = disk.value.disk_type
-      disk_size_gb           = storage_type.size_gb < 128 ? 128 : storage_type.size_gb
+      disk_size_gb           = disk.value.size_gb
       disk_encryption_set_id = try(var.options.disk_encryption_set_id, null)
     }
   }
 
-  source_image_id = local.web_custom_image ? local.web_os.source_image_id : null
+  source_image_id = var.application_tier.web_os.type == "custom" ? var.application_tier.web_os.source_image_id : null
 
   dynamic "source_image_reference" {
-    for_each = range(local.web_custom_image ? 0 : 1)
+    for_each = range(var.application_tier.web_os.type == "marketplace" ? 1 : 0)
     content {
-      publisher = local.web_os.publisher
-      offer     = local.web_os.offer
-      sku       = local.web_os.sku
-      version   = local.web_os.version
+      publisher = var.application_tier.web_os.publisher
+      offer     = var.application_tier.web_os.offer
+      sku       = var.application_tier.web_os.sku
+      version   = var.application_tier.web_os.version
     }
   }
   dynamic "plan" {
-    for_each = range(local.web_custom_image ? 1 : 0)
+    for_each = range(var.application_tier.web_os.type == "marketplace_with_plan" ? 1 : 0)
     content {
-      name      = local.web_os.offer
-      publisher = local.web_os.publisher
-      product   = local.web_os.sku
+      name      = var.application_tier.web_os.offer
+      publisher = var.application_tier.web_os.publisher
+      product   = var.application_tier.web_os.sku
     }
   }
 
@@ -358,7 +358,7 @@ resource "azurerm_windows_virtual_machine" "web" {
   #ToDo: Remove once feature is GA  patch_mode = "Manual"
   license_type = length(var.license_type) > 0 ? var.license_type : null
 
-  tags = try(var.application.web_tags, {})
+  tags = try(var.application_tier.web_tags, {})
 }
 
 # Creates managed data disk
@@ -380,7 +380,7 @@ resource "azurerm_managed_disk" "web" {
   disk_encryption_set_id = try(var.options.disk_encryption_set_id, null)
 
   zone = !local.use_web_avset ? (
-    upper(local.web_ostype) == "LINUX" ? (
+    upper(var.application_tier.web_os.os_type) == "LINUX" ? (
       azurerm_linux_virtual_machine.web[local.web_data_disks[count.index].vm_index].zone) : (
       azurerm_windows_virtual_machine.web[local.web_data_disks[count.index].vm_index].zone
     )) : (
@@ -396,7 +396,7 @@ resource "azurerm_virtual_machine_data_disk_attachment" "web" {
   provider        = azurerm.main
   count           = local.enable_deployment ? length(local.web_data_disks) : 0
   managed_disk_id = azurerm_managed_disk.web[count.index].id
-  virtual_machine_id = upper(local.web_ostype) == "LINUX" ? (
+  virtual_machine_id = upper(var.application_tier.web_os.os_type) == "LINUX" ? (
     azurerm_linux_virtual_machine.web[local.web_data_disks[count.index].vm_index].id) : (
     azurerm_windows_virtual_machine.web[local.web_data_disks[count.index].vm_index].id
   )
@@ -407,7 +407,7 @@ resource "azurerm_virtual_machine_data_disk_attachment" "web" {
 
 resource "azurerm_virtual_machine_extension" "web_lnx_aem_extension" {
   provider = azurerm.main
-  count = local.enable_deployment && upper(local.web_ostype) == "LINUX" ? (
+  count = local.enable_deployment && upper(var.application_tier.web_os.os_type) == "LINUX" ? (
     local.webdispatcher_count) : (
     0
   )
@@ -430,7 +430,7 @@ SETTINGS
 
 resource "azurerm_virtual_machine_extension" "web_win_aem_extension" {
   provider = azurerm.main
-  count = local.enable_deployment && upper(local.web_ostype) == "WINDOWS" ? (
+  count = local.enable_deployment && upper(var.application_tier.web_os.os_type) == "WINDOWS" ? (
     local.webdispatcher_count) : (
     0
   )
@@ -449,7 +449,7 @@ SETTINGS
 resource "azurerm_virtual_machine_extension" "configure_ansible_web" {
 
   provider = azurerm.main
-  count = local.enable_deployment && upper(local.web_ostype) == "WINDOWS" ? (
+  count = local.enable_deployment && upper(var.application_tier.web_os.os_type) == "WINDOWS" ? (
     local.webdispatcher_count) : (
     0
   )

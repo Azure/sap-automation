@@ -1,0 +1,29 @@
+##########################################################################################################################################################################################################
+#                                                                                                                                                                                                        #
+# Installation service 'SAP S/4HANA Server 2021 > SAP HANA Database > Installation > Application Server ABAP > Distributed System > Database Instance', product id 'NW_ABAP_DB:S4HANA2021.CORE.HDB.ABAP' #
+#                                                                                                                                                                                                        #
+##########################################################################################################################################################################################################
+
+HDB_Schema_Check_Dialogs.schemaName = SAPHANADB
+HDB_Schema_Check_Dialogs.schemaPassword = 
+NW_Delete_Sapinst_Users.removeUsers = true
+NW_GetMasterPassword.masterPwd = 
+NW_HDB_DB.abapSchemaName = SAPHANADB
+NW_HDB_DB.abapSchemaPassword = 
+NW_HDB_DB.dbacockpitPassword = 
+NW_HDB_getDBInfo.dbhost = x00dhdb00l001
+NW_HDB_getDBInfo.dbsid = HDB
+NW_HDB_getDBInfo.instanceNumber = 00
+NW_HDB_getDBInfo.systemDbPassword = 
+NW_HDB_getDBInfo.systemPassword = 
+NW_HDB_getDBInfo.systemid = HDB
+NW_HDB_getDBInfo.usingSSL = true
+NW_Recovery_Install_HDB.extractLocation = /usr/sap/HDB/HDB00/backup/data/DB_HDB
+NW_Recovery_Install_HDB.extractParallelJobs = 14
+NW_Recovery_Install_HDB.sidAdmName = hdbadm
+NW_Recovery_Install_HDB.sidAdmPassword = 
+NW_getLoadType.loadType = SAP
+NW_readProfileDir.profileDir = /sapmnt/X00/profile
+archives.downloadBasket = /usr/sap/install/CD_HDBCLIENT
+nwUsers.sapsysGID = 2000
+nwUsers.sidAdmUID = 2000

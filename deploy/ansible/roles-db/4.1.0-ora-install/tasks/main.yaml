@@ -75,6 +75,19 @@
 # +------------------------------------4--------------------------------------*/
 - name:                                "ORACLE: Installation"
   block:
+    - name:                            "ORACLE Installation: check media exists"
+      ansible.builtin.stat:
+        path:                          "{{ target_media_location }}/oraserver/LINUX_X86_64/db_home/SAP"
+      register:                        orainst_found
+
+    - name:                            "ErrorHandling"
+      ansible.builtin.fail:
+        msg:                           "INSTALL:0012:Unable to find Oracle installation media, please check that the installation media is mounted"
+      when: not orainst_found.stat.exists
+
+    - name:                            "ORACLE: Execute RUNINSTALLER PreCheck - progress"
+      ansible.builtin.debug:
+        msg:                           "Running the installation pre-check , please wait"
 
     - name:                            "ORACLE: Execute RUNINSTALLER PreCheck"
       become:                          true
@@ -84,8 +97,10 @@
       failed_when:                     oraprecheck_results.rc > 3
       # changed_when:                    oraprecheck_results.rc < 3
       environment:
-        DB_SID:                        "{{ db_sid }}"
+        DB_SID:                        "{{ db_sid | upper }}"
         CV_ASSUME_DISTID:              OL7
+        TMPDIR:                        "{{ tmp_directory }}/{{ sap_sid | upper }}"
+
       args:
         chdir:                         "{{ target_media_location }}/oraserver/LINUX_X86_64/db_home/SAP"
         creates:                       "/etc/sap_deployment_automation/{{ sap_sid | upper }}/oracle_pre_check_install.txt"
@@ -121,6 +136,10 @@
 # | Step 2 run the installation check                                          |
 # +------------------------------------4--------------------------------------*/
 
+    - name:                            "ORACLE: ORACLE: Execute RUNINSTALLER - progress"
+      ansible.builtin.debug:
+        msg:                           "Running the installation, please wait"
+
     - name:                            "ORACLE: Execute RUNINSTALLER"
       become:                          true
       become_user:                     "oracle"
@@ -130,6 +149,7 @@
       environment:
         DB_SID:                        "{{ db_sid }}"
         CV_ASSUME_DISTID:              OL7
+        TMPDIR:                        "{{ tmp_directory }}/{{ sap_sid | upper }}"
       args:
         executable:                    /bin/csh
         chdir:                         "{{ target_media_location }}/oraserver/LINUX_X86_64/db_home/SAP"
@@ -172,6 +192,10 @@
       args:
         creates:                       "/etc/sap_deployment_automation/{{ sap_sid | upper }}/orainstRoot_executed.txt"
         executable:                    /bin/csh
+      environment:
+        DB_SID:                        "{{ db_sid }}"
+        CV_ASSUME_DISTID:              OL7
+        TMPDIR:                        "{{ tmp_directory }}/{{ sap_sid | upper }}"
       tags:
         - skip_ansible_lint
 
@@ -201,6 +225,10 @@
       args:
         creates:                       "/etc/sap_deployment_automation/{{ sap_sid | upper }}/rootscripts_executed.txt"
         executable:                    /bin/csh
+      environment:
+        DB_SID:                        "{{ db_sid }}"
+        CV_ASSUME_DISTID:              OL7
+        TMPDIR:                        "{{ tmp_directory }}/{{ sap_sid | upper }}"
       tags:
         - skip_ansible_lint
 
@@ -298,6 +326,10 @@
         owner:                         oracle
         group:                         oinstall
 
+    - name:                            "ORACLE: Post Processing - SBP Patching - progress"
+      ansible.builtin.debug:
+        msg:                           "Running the installation, please wait"
+
     - name:                            "ORACLE: Post Processing - SBP Patching"
       become:                          true
       become_user:                     "oracle"
@@ -308,6 +340,7 @@
         IHRDBMS:                       /oracle/{{ db_sid | upper }}/{{ ora_version }}
         ORACLE_HOME:                   /oracle/{{ db_sid | upper }}/{{ ora_version }}
         RDBMS:                         /oracle/{{ db_sid | upper }}/{{ ora_version }}
+        TMPDIR:                        "{{ tmp_directory }}/{{ sap_sid | upper }}"
       register:                        sbpscript_results
       failed_when:                     sbpscript_results.rc >= 2
       args:

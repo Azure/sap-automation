@@ -12,6 +12,10 @@
     - vars/ansible-input-api.yaml                               # API Input template with defaults
 
   tasks:
+    - name:                            "OS configuration playbook: - Ensure jmespath is installed in the playbook python"
+      ansible.builtin.pip:
+        name:                          jmespath
+        state:                         present
 
     - name:                            "OS configuration playbook: - Create Progress folder"
       ansible.builtin.file:
@@ -42,7 +46,6 @@
   name:                                OS - Base Configuration
   remote_user:                         "{{ orchestration_ansible_user }}"
   become:                              true
-  become_user:                         "{{ become_user_name }}"
   gather_facts:                        true                                    # Important to collect hostvars information
   any_errors_fatal:                    true
   vars_files:

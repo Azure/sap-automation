@@ -65,7 +65,6 @@
   serial:                              1
   remote_user:                         "{{ orchestration_ansible_user }}"
   become:                              true
-  become_user:                         "{{ become_user_name }}"
   gather_facts:                        true                                    # Important to collect hostvars information
   vars_files:
     - vars/ansible-input-api.yaml                                              # API Input template with defaults
@@ -119,7 +118,6 @@
   name:                                "PAS Installation Playbook"
   remote_user:                         "{{ orchestration_ansible_user }}"
   become:                              true
-  become_user:                         "{{ become_user_name }}"
   gather_facts:                        true                                    # Important to collect hostvars information
   vars_files:
     - vars/ansible-input-api.yaml                                              # API Input template with defaults
@@ -137,7 +135,7 @@
         main_password:                 "{{ hostvars.localhost.sap_password }}"
         sapbits_location_base_path:    "{{ hostvars.localhost.sapbits_location_base_path }}"
         sapbits_sas_token:             "{{ hostvars.localhost.sapbits_sas_token }}"
-        pas_file_path:                 /INSTALL/DISTRIBUTED/ABAP/APP1
+        pas_file_path:                 INSTALL/DISTRIBUTED/ABAP/APP1
         always_upload_jinja_templates: false
       tags:
         - always
@@ -219,8 +217,12 @@
               vars:
                 suffix:                "_PAS"
                 prefix:                "{{ bom.product_ids.pas.replace('.', '/').replace('/ABAP', '').split(':')[1] }}"
-                path:                  "{{ pas_file_path }}"
+                path:                  "{{ pas_file_path.replace('//', '/') }}"
                 tier:                  'pas'
+                this_sid:              "{{ sid_to_be_deployed.sid | upper }}"
+              loop:                    "{{ all_sids }}"
+              loop_control:
+                loop_var:              sid_to_be_deployed
 
             - name:                    "PAS Installation Playbook: - Show errors from PAS installation"
               ansible.builtin.debug:
@@ -234,6 +236,40 @@
       when:
         - "'pas' in supported_tiers"
 
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                       Playbook for Reseting the DB2 parameters             |
+# |  2570458 - DB6: Depooling report RUTPOADAPT fails with SQL -912            |
+# +------------------------------------4--------------------------------------*/
+- hosts:                               "{{ sap_sid | upper }}_DB"
+
+  name:                                "Restting the DB2 LOCK escalationparameters"
+  serial:                              1
+  become:                              true
+  become_user:                         root
+  gather_facts:                        true
+  vars_files:
+    - vars/ansible-input-api.yaml                               # API Input template with defaults
+
+  tasks:
+    # 2570458 - DB6: Depooling report RUTPOADAPT fails with SQL -912
+    - name:                            "Check if LOCK variable is set for PAS"
+      ansible.builtin.stat:
+        path:                          /etc/sap_deployment_automation/lock_escalation_false.txt
+      register:                        db2_lock_escalation
+      when:
+        - platform == "DB2"
+
+    # 2570458 - DB6: Depooling report RUTPOADAPT fails with SQL -912
+    - name:                            "Set LOCK variable for PAS"
+      become:                          true
+      become_user:                     db2{{ db_sid | lower }}
+      ansible.builtin.shell:           db2set DB2_AVOID_LOCK_ESCALATION=
+      args:
+        executable:                    /bin/csh
+      when:
+        - platform == "DB2"
+        - db2_lock_escalation.stat.exists
 
 ...
 # /*---------------------------------------------------------------------------8

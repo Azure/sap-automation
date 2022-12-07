@@ -14,6 +14,9 @@ skip_list:
   # Ignored because there is no easier way to do
   - no-handler
 
+  # Refactor needed
+  - key-order[task]
+
   # Following are ignored because of readability:
   - name[casing]
   - no-changed-when
@@ -23,6 +26,7 @@ skip_list:
   - yaml[colons]
   - yaml[commas]
   - yaml[line-length]
+  - name[template]
 
   # csh is not supported in command
   - command-instead-of-shell

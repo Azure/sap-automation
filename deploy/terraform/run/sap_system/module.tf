@@ -14,24 +14,24 @@ module "sap_namegenerator" {
   sap_vnet_name    = local.vnet_logical_name
   sap_sid          = local.sap_sid
   db_sid           = local.db_sid
-  app_ostype       = upper(try(local.application.app_os.os_type, "LINUX"))
+  app_ostype       = upper(try(local.application_tier.app_os.os_type, "LINUX"))
   anchor_ostype    = upper(try(local.anchor_vms.os.os_type, "LINUX"))
   db_ostype        = upper(try(local.database.os.os_type, "LINUX"))
   db_server_count  = var.database_server_count
-  app_server_count = try(local.application.application_server_count, 0)
-  web_server_count = try(local.application.webdispatcher_count, 0)
-  scs_server_count = local.application.scs_high_availability ? (
-    2 * local.application.scs_server_count) : (
-    local.application.scs_server_count
+  app_server_count = try(local.application_tier.application_server_count, 0)
+  web_server_count = try(local.application_tier.webdispatcher_count, 0)
+  scs_server_count = local.application_tier.scs_high_availability ? (
+    2 * local.application_tier.scs_server_count) : (
+    local.application_tier.scs_server_count
   )
   app_zones                  = []
-  scs_zones                  = try(local.application.scs_zones, [])
-  web_zones                  = try(local.application.web_zones, [])
+  scs_zones                  = try(local.application_tier.scs_zones, [])
+  web_zones                  = try(local.application_tier.web_zones, [])
   db_zones                   = try(local.database.zones, [])
   resource_offset            = try(var.options.resource_offset, 0)
   custom_prefix              = var.custom_prefix
   database_high_availability = local.database.high_availability
-  scs_high_availability      = local.application.scs_high_availability
+  scs_high_availability      = local.application_tier.scs_high_availability
   use_zonal_markers          = var.use_zonal_markers
 }
 
@@ -49,7 +49,7 @@ module "common_infrastructure" {
     azurerm.dnsmanagement = azurerm.dnsmanagement
   }
   is_single_node_hana                = "true"
-  application                        = local.application
+  application_tier                   = local.application_tier
   database                           = local.database
   infrastructure                     = local.infrastructure
   options                            = local.options
@@ -68,16 +68,16 @@ module "common_infrastructure" {
   NFS_provider                       = var.NFS_provider
   custom_prefix                      = var.use_prefix ? var.custom_prefix : " "
   ha_validator = format("%d%d-%s",
-    local.application.scs_high_availability ? 1 : 0,
+    local.application_tier.scs_high_availability ? 1 : 0,
     local.database.high_availability ? 1 : 0,
     var.NFS_provider
   )
   Agent_IP             = var.Agent_IP
   use_private_endpoint = var.use_private_endpoint
 
-  use_custom_dns_a_registration     = data.terraform_remote_state.landscape.outputs.use_custom_dns_a_registration
+  use_custom_dns_a_registration     = try(data.terraform_remote_state.landscape.outputs.use_custom_dns_a_registration, false)
   management_dns_subscription_id    = try(data.terraform_remote_state.landscape.outputs.management_dns_subscription_id, null)
-  management_dns_resourcegroup_name = data.terraform_remote_state.landscape.outputs.management_dns_resourcegroup_name
+  management_dns_resourcegroup_name = try(data.terraform_remote_state.landscape.outputs.management_dns_resourcegroup_name, local.saplib_resource_group_name)
 
   database_dual_nics                 = var.database_dual_nics
   azure_files_sapmnt_id              = var.azure_files_sapmnt_id
@@ -97,13 +97,13 @@ module "common_infrastructure" {
 module "hdb_node" {
   source = "../../terraform-units/modules/sap_system/hdb_node"
   providers = {
-    azurerm.main     = azurerm
-    azurerm.deployer = azurerm.deployer
+    azurerm.main          = azurerm
+    azurerm.deployer      = azurerm.deployer
     azurerm.dnsmanagement = azurerm.dnsmanagement
   }
   depends_on = [module.common_infrastructure]
   order_deployment = local.enable_db_deployment ? (
-    local.db_zonal_deployment && local.application.enable_deployment ? (
+    local.db_zonal_deployment && local.application_tier.enable_deployment ? (
       module.app_tier.scs_vm_ids[0]
     ) : (null)
   ) : (null)
@@ -149,6 +149,10 @@ module "hdb_node" {
   deploy_application_security_groups = var.deploy_application_security_groups
   use_msi_for_clusters               = var.use_msi_for_clusters
   fencing_role_name                  = var.fencing_role_name
+
+  use_custom_dns_a_registration     = data.terraform_remote_state.landscape.outputs.use_custom_dns_a_registration
+  management_dns_subscription_id    = try(data.terraform_remote_state.landscape.outputs.management_dns_subscription_id, null)
+  management_dns_resourcegroup_name = data.terraform_remote_state.landscape.outputs.management_dns_resourcegroup_name
 }
 
 
@@ -161,13 +165,14 @@ module "hdb_node" {
 module "app_tier" {
   source = "../../terraform-units/modules/sap_system/app_tier"
   providers = {
-    azurerm.main     = azurerm
-    azurerm.deployer = azurerm.deployer
+    azurerm.main          = azurerm
+    azurerm.deployer      = azurerm.deployer
     azurerm.dnsmanagement = azurerm.dnsmanagement
   }
   depends_on = [module.common_infrastructure]
   order_deployment = null
-  application                                  = local.application
+
+  application_tier                             = local.application_tier
   infrastructure                               = local.infrastructure
   options                                      = local.options
   resource_group                               = module.common_infrastructure.resource_group
@@ -196,6 +201,10 @@ module "app_tier" {
   deploy_application_security_groups           = var.deploy_application_security_groups
   use_msi_for_clusters                         = var.use_msi_for_clusters
   fencing_role_name                            = var.fencing_role_name
+  use_custom_dns_a_registration                = data.terraform_remote_state.landscape.outputs.use_custom_dns_a_registration
+  management_dns_subscription_id               = try(data.terraform_remote_state.landscape.outputs.management_dns_subscription_id, null)
+  management_dns_resourcegroup_name            = data.terraform_remote_state.landscape.outputs.management_dns_resourcegroup_name
+
 }
 
 #########################################################################################
@@ -207,13 +216,13 @@ module "app_tier" {
 module "anydb_node" {
   source = "../../terraform-units/modules/sap_system/anydb_node"
   providers = {
-    azurerm.main     = azurerm
-    azurerm.deployer = azurerm.deployer
+    azurerm.main          = azurerm
+    azurerm.deployer      = azurerm.deployer
     azurerm.dnsmanagement = azurerm.dnsmanagement
   }
   depends_on = [module.common_infrastructure]
   order_deployment = local.enable_db_deployment ? (
-    local.db_zonal_deployment && local.application.enable_deployment ? (
+    local.db_zonal_deployment && local.application_tier.enable_deployment ? (
       module.app_tier.scs_vm_ids[0]
     ) : (null)
   ) : (null)
@@ -252,6 +261,10 @@ module "anydb_node" {
   deploy_application_security_groups = var.deploy_application_security_groups
   use_msi_for_clusters               = var.use_msi_for_clusters
   fencing_role_name                  = var.fencing_role_name
+  use_custom_dns_a_registration      = data.terraform_remote_state.landscape.outputs.use_custom_dns_a_registration
+  management_dns_subscription_id     = try(data.terraform_remote_state.landscape.outputs.management_dns_subscription_id, null)
+  management_dns_resourcegroup_name  = data.terraform_remote_state.landscape.outputs.management_dns_resourcegroup_name
+
 }
 
 #########################################################################################
@@ -269,7 +282,7 @@ module "output_files" {
   database            = local.database
   infrastructure      = local.infrastructure
   authentication      = local.authentication
-  authentication_type = try(local.application.authentication.type, "key")
+  authentication_type = try(local.application_tier.authentication.type, "key")
   nics_dbnodes_admin  = module.hdb_node.nics_dbnodes_admin
   nics_dbnodes_db     = module.hdb_node.nics_dbnodes_db
   loadbalancers       = module.hdb_node.loadbalancers

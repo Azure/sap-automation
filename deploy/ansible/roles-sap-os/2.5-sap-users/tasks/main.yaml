@@ -37,9 +37,8 @@
     gid:                               "{{ item.gid }}"
     state:                             present
   loop:
-    - { group: 'sapsys',    gid: '{{ sapsys_gid }}'  }
-    - { group: 'sapinst',   gid: '{{ sapinst_gid }}' }
-
+    - { group: 'sapsys',  gid: '{{ sapsys_gid }}' }
+    - { group: 'sapinst', gid: '{{ sapinst_gid }}' }
 
 # *=====================================4=======================================8
 #
@@ -69,8 +68,9 @@
     create_home:                       true
     home:                              "{{ item.home }}"
   loop:
-    - { tier: 'sapos',        user: 'sapadm',                   uid: '{{ sapadm_uid }}', group: 'sapsys', home: '/home/sapadm',                 comment: 'SAP Host Agent' }
+    - { tier: 'sapos', user: 'sapadm', uid: '{{ sapadm_uid }}', group: 'sapsys', home: '/home/sapadm', comment: 'SAP Host Agent' }
     # TODO: add user for WebDisp Functionality
-    # - { tier: 'WEB',         user: 'webadm',                   uid: '32002',            group: 'sapsys', home: '/home/webadm',                 comment: 'SAP WebDisp Admin' }
-  when:     item.tier == "all" or
-            item.tier == tier
+    # - { tier: 'WEB', user: 'webadm', uid: '32002', group: 'sapsys', home: '/home/webadm', comment: 'SAP WebDisp Admin' }
+  when:
+    - item.tier == "all" or item.tier == tier
+    - node_tier != "observer"

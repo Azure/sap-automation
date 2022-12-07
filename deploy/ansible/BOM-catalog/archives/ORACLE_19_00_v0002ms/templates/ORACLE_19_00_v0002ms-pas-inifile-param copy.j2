@@ -25,7 +25,7 @@ nwUsers.sidadmPassword                                               = {{ main_p
 
 NW_Delete_Sapinst_Users.removeUsers                                  = true
 NW_GetMasterPassword.masterPwd                                       = {{ main_password }}
-NW_GetSidNoProfiles.sid                                              = {{ sap_sid| upper }}
+NW_GetSidNoProfiles.sid                                              = {{ sap_sid | upper }}
 
 NW_SCS_Instance.ascsInstallGateway                                   = true
 NW_SCS_Instance.ascsInstallWebDispatcher                             = false
@@ -45,7 +45,7 @@ NW_checkMsgServer.abapMSPort                                         = 36{{ scs_
 NW_getDBInfoGeneric.dbhost                                           = {{ sap_db_hostname }}
 NW_getDBInfoGeneric.dbsid                                            = {{ db_sid }}
 NW_getLoadType.loadType                                              = SAP
-NW_readProfileDir.profileDir                                         = /sapmnt/{{ db_sid| upper }}/profile
+NW_readProfileDir.profileDir                                         = /sapmnt/{{ db_sid | upper }}/profile
 ora.multitenant.pdbsid                                               = {{ db_sid }}
 ora.whatInstallation                                                 = isSingle
 # ora.whatIsASM                                                      = false

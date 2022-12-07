@@ -34,7 +34,7 @@
 - name:                                "3.3 BoM Processing: - Set Python version {{ distribution_id }}"
   ansible.builtin.set_fact:
     python_version:                    'python3'
-  when:                                distribution_id in ['suse15', 'redhat8']
+  when:                                distribution_id in ['suse15', 'redhat8', 'sles_sap15']
 
 - name:                                "3.3.1 BoM Processing: {{ bom_name }} Download: {{ bom_name }} from the storage account"
   ansible.builtin.get_url:
@@ -49,7 +49,7 @@
   vars:
     ansible_python_interpreter:        "{{ python_version }}"
   when:
-    - distribution_id in ['suse15', 'redhat8']
+    - distribution_id in ['suse15', 'redhat8', 'sles_sap15']
     - not always_upload_jinja_templates
 
 - name:                                "3.3.1 BoM Processing: {{ bom_name }} Download: {{ bom_name }} from the storage account"
@@ -60,10 +60,12 @@
     mode:                              0644
   delegate_to:                         localhost
   become:                              "{{ bom_processing_become }}"
+  become_user:                         root
   register:                            result
   ignore_errors:                       true
   when:
     - distribution_id != 'suse15'
+    - distribution_id != 'sles_sap15'
     - distribution_id != 'redhat8'
     - not always_upload_jinja_templates
 
@@ -95,16 +97,15 @@
   block:
     - name:                            "{{ task_prefix }} Check for Microsoft Supplied BOM ({{ bom_name }})"
       ansible.builtin.stat:
-        path:                          "{{ playbook_dir }}/BOM-catalog/{{ bom_name }}/{{ bom_name }}.yaml"
+        path:                          "{{ BOM_directory }}/{{ bom_name }}/{{ bom_name }}.yaml"
       register:                        microsoft_supplied_bom
       delegate_to:                     localhost
 
     - name:                            "{{ task_prefix }} Show Microsoft Supplied BOM ({{ bom_base_name }}) result"
       ansible.builtin.debug:
         msg:
-          - "BOM PATH:   BOM-catalog/{{ bom_name }}/{{ bom_name }}.yaml"
+          - "BOM PATH:   {{ BOM_directory }}/{{ bom_name }}/{{ bom_name }}.yaml"
           - "BOM Exists: {{ microsoft_supplied_bom.stat.exists }}"
-        verbosity:                     2
 
     - name:                            "{{ task_prefix }} Register Microsoft Supplied BOM {{ bom_name }}"
       ansible.builtin.include_vars:
@@ -122,7 +123,7 @@
 
         - name:                        "{{ task_prefix }} Check for Microsoft Supplied BOM ({{ bom_name }}) in archives"
           ansible.builtin.stat:
-            path:                      "{{ playbook_dir }}/BOM-catalog/archives/{{ bom_name }}/{{ bom_name }}.yaml"
+            path:                      "{{ BOM_directory }}/archives/{{ bom_name }}/{{ bom_name }}.yaml"
           register:                    microsoft_supplied_bom_archive
           delegate_to:                 localhost
 

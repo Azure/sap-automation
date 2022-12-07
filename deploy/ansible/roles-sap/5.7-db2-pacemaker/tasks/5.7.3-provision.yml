@@ -1,0 +1,12 @@
+---
+
+###########################################################################################
+# This file calls the OS specific tasks to configure DB2 specific clustering resources  #8
+###########################################################################################
+
+
+# Clustering commands are based on the Host OS
+- name:                                "Cluster based on OS in VM"
+  ansible.builtin.include_tasks:       "5.7.3.0-cluster-{{ ansible_os_family }}.yml"
+
+...

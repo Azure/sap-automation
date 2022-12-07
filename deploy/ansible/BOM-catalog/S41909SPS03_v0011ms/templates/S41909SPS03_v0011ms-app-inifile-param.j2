@@ -31,7 +31,7 @@ NW_AS.instanceNumber                                                  = {{ app_i
 NW_DI_Instance.virtualHostname                                        = {{ sap_appVirtualHostname }}
 
 NW_HDB_getDBInfo.dbhost                                               = {{ sap_db_hostname }}
-NW_HDB_getDBInfo.dbsid                                                = {{ db_sid| upper }}
+NW_HDB_getDBInfo.dbsid                                                = {{ db_sid | upper }}
 
 NW_Delete_Sapinst_Users.removeUsers                                   = true
 NW_GetMasterPassword.masterPwd                                        = {{ main_password }}
@@ -43,7 +43,7 @@ HDB_Schema_Check_Dialogs.schemaName                                   = {{ hana_
 HDB_Schema_Check_Dialogs.schemaPassword                               = {{ main_password }}
 
 NW_HDB_DBClient.clientPathStrategy                                    = SAPCPE
-NW_HDB_getDBInfo.instanceNumber                                       = {{ hdb_instance_number }}
+NW_HDB_getDBInfo.instanceNumber                                       = {{ db_instance_number }}
 
 NW_checkMsgServer.abapMSPort                                          = 36{{ scs_instance_number }}
 NW_getLoadType.loadType                                               = SAP

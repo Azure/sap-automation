@@ -21,7 +21,7 @@
 
     - name:                            "HANA HSR: - Ensure keystore entry exists"
       ansible.builtin.shell: |
-                                       hdbuserstore SET hdbhaloc localhost:3{{ hdb_instance_number }}15 {{ hana_1_hsr_user }} {{ hana_1_hsr_password }}
+                                       hdbuserstore SET hdbhaloc localhost:3{{ db_instance_number }}15 {{ hana_1_hsr_user }} {{ hana_1_hsr_password }}
       changed_when:                    false
   vars:
     ansible_python_interpreter:        python3
@@ -77,7 +77,10 @@
       changed_when:                    false
       failed_when:                     hana_replication_status.rc != 0
       args:
-        executable: /bin/sh
+        executable:                    /bin/sh
+      environment:
+        TEMPDIR:                       "{{ tmp_directory }}/{{ db_sid | upper }}"
+        ANSIBLE_TEMP_DIR:              "{{ tmp_directory }}/{{ db_sid | upper }}"
 
     - name:                            "HANA HSR: - Debug replication status"
       ansible.builtin.debug:
@@ -115,16 +118,16 @@
   when:                                ansible_hostname == primary_instance_name
 
 - name:                                "HANA HSR: - Set INI File values"
-  import_tasks:                        4.0.1.5.0-set_global_ini_values.yml
+  ansible.builtin.import_tasks:                        4.0.1.5.0-set_global_ini_values.yml
 
 - name:                                "HANA HSR: - Restart HANA"
   become_user:                         "{{ db_sid_admin_user }}"
   block:
     - name:                            "HANA HSR: - Stop HANA on {{ ansible_hostname }}"
-      import_tasks:                   ../../../roles-misc/0.4-helpers/tasks/04.02-stop_hana.yml
+      ansible.builtin.import_tasks:                   ../../../roles-misc/0.4-helpers/tasks/04.02-stop_hana.yml
 
     - name:                            "HANA HSR: - Start HANA on {{ ansible_hostname }}"
-      import_tasks:                    ../../../roles-misc/0.4-helpers/tasks/04.01-start_hana.yml
+      ansible.builtin.import_tasks:                    ../../../roles-misc/0.4-helpers/tasks/04.01-start_hana.yml
   vars:
     ansible_python_interpreter:        python3
   environment:
@@ -144,7 +147,7 @@
 
 - name:                                "HANA HSR: - Ensure System Replication is configured command on secondary"
   ansible.builtin.debug:
-    msg:                               "{{ hdbnsutil_command }} -sr_register --remoteHost={{ primary_instance_name }} --remoteInstance={{ hdb_instance_number }}
+    msg:                               "{{ hdbnsutil_command }} -sr_register --remoteHost={{ primary_instance_name }} --remoteInstance={{ db_instance_number }}
                                         --replicationMode={{ hana_replication_mode }} --operationMode={{ hana_operation_mode }} --name=SITEB"
     verbosity:                         4
 
@@ -152,14 +155,14 @@
   block:
 
     - name:                            "HANA HSR: - Stop HANA on {{ ansible_hostname }}"
-      import_tasks:                   ../../../roles-misc/0.4-helpers/tasks/04.02-stop_hana.yml
+      ansible.builtin.import_tasks:                   ../../../roles-misc/0.4-helpers/tasks/04.02-stop_hana.yml
 
     - name:                            "HANA HSR: - Ensure Secondary node is registered as secondary in replication"
       become_user:                     "{{ db_sid_admin_user }}"
       become:                          true
       ansible.builtin.shell: >
         {{ hdbnsutil_command }} -sr_register --remoteHost={{ primary_instance_name }}
-        --remoteInstance={{ hdb_instance_number }} --replicationMode={{ hana_replication_mode }}
+        --remoteInstance={{ db_instance_number }} --replicationMode={{ hana_replication_mode }}
         --operationMode={{ hana_operation_mode }} --name=SITEB
       register:                        hsr_secondary_registration
       changed_when:                    "'adding site' in hsr_secondary_registration.stdout"
@@ -169,7 +172,7 @@
         executable: /bin/bash
 
     - name:                            "HANA HSR: - Start HANA on {{ ansible_hostname }}"
-      import_tasks:                    ../../../roles-misc/0.4-helpers/tasks/04.01-start_hana.yml
+      ansible.builtin.import_tasks:                    ../../../roles-misc/0.4-helpers/tasks/04.01-start_hana.yml
   vars:
     ansible_python_interpreter:        python3
   environment:

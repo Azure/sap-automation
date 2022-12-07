@@ -43,7 +43,6 @@
   name:                                               BOM Processing
   remote_user:                                        "{{ orchestration_ansible_user }}"
   become:                                             true
-  become_user:                                        "{{ become_user_name }}"
   gather_facts:                                       true
   vars_files:
     - vars/ansible-input-api.yaml                     # API Input template with defaults
@@ -55,6 +54,8 @@
 #
 # -------------------------------------+---------------------------------------8
     - name:                                           "Perform BoM processing"
+      when:
+        - "'scs' in supported_tiers"
       block:
 
         - name:                                       Set facts
@@ -92,9 +93,6 @@
                 path:                                 "{{ _workspace_directory }}/.progress/bom-processing"
                 state:                                touch
                 mode:                                 0755
-
-      when:
-        - "'scs' in supported_tiers"
 
 ...
 # /*---------------------------------------------------------------------------8

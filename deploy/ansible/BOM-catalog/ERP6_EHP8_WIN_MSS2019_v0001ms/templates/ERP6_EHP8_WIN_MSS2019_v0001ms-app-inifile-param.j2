@@ -55,9 +55,9 @@ hostAgent.sapAdmPassword                                              = {{ main_
 
 
 # Windows only: The password of the 'SAPServiceSID' user
-nwUsers.sapServiceSIDPassword                                         = {{ main_password }}
+nwUsers.sapServiceSIDPassword                                         = {{ sid_service_password }}
 
 # The password of the '<sapsid>adm' user
-nwUsers.sidadmPassword                                                = {{ main_password }}
+nwUsers.sidadmPassword                                                = {{ domain_user_password }}
 
 ...

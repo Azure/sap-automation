@@ -4,9 +4,12 @@ ${sid}_DB:
     ${dbnodes[idx]}:
       ansible_host        : ${ips_dbnode}
       ansible_user        : ${ansible_user}
-      ansible_connection  : ${db_connection} 
+      ansible_connection  : ${db_connection}
       connection_type     : ${db_connectiontype}
-      virtual_host        : ${virt_dbnodes[idx]} 
+      virtual_host        : ${virt_dbnodes[idx]}
+      become_user         : ${db_become_user}
+      ${ansible_winrm_server_cert_validation}
+
 
 %{~ endfor }
   vars:
@@ -19,9 +22,11 @@ ${sid}_SCS:
     ${scs_servers[idx]}:
       ansible_host        : ${ip_scs}
       ansible_user        : ${ansible_user}
-      ansible_connection  : ${scs_connection} 
-      connection_type     : ${scs_connectiontype} 
-      virtual_host        : ${virt_scs_servers[idx]} 
+      ansible_connection  : ${scs_connection}
+      connection_type     : ${scs_connectiontype}
+      virtual_host        : ${virt_scs_servers[idx]}
+      become_user         : ${scs_become_user}
+      ${ansible_winrm_server_cert_validation}
 
 %{~ endfor }
   vars:
@@ -34,9 +39,11 @@ ${sid}_ERS:
     ${ers_servers[idx]}:
       ansible_host        : ${ip_ers}
       ansible_user        : ${ansible_user}
-      ansible_connection  : ${ers_connection} 
-      connection_type     : ${ers_connectiontype} 
-      virtual_host        : ${virt_ers_servers[idx]} 
+      ansible_connection  : ${ers_connection}
+      connection_type     : ${ers_connectiontype}
+      virtual_host        : ${virt_ers_servers[idx]}
+      become_user         : ${scs_become_user}
+      ${ansible_winrm_server_cert_validation}
 
 %{~ endfor }
   vars:
@@ -50,9 +57,11 @@ ${sid}_PAS:
     ${pas_servers[idx]}:
       ansible_host        : ${ip_pas}
       ansible_user        : ${ansible_user}
-      ansible_connection  : ${scs_connection} 
-      connection_type     : ${scs_connectiontype} 
-      virtual_host        : ${virt_pas_servers[idx]} 
+      ansible_connection  : ${scs_connection}
+      connection_type     : ${scs_connectiontype}
+      virtual_host        : ${virt_pas_servers[idx]}
+      become_user         : ${app_become_user}
+      ${ansible_winrm_server_cert_validation}
 
 %{~ endfor }
   vars:
@@ -65,9 +74,11 @@ ${sid}_APP:
     ${app_servers[idx]}:
       ansible_host        : ${ip_app}
       ansible_user        : ${ansible_user}
-      ansible_connection  : ${app_connection} 
-      connection_type     : ${app_connectiontype} 
-      virtual_host        : ${virt_app_servers[idx]} 
+      ansible_connection  : ${app_connection}
+      connection_type     : ${app_connectiontype}
+      virtual_host        : ${virt_app_servers[idx]}
+      become_user         : ${app_become_user}
+      ${ansible_winrm_server_cert_validation}
 
 %{~ endfor }
   vars:
@@ -80,9 +91,11 @@ ${sid}_WEB:
     ${web_servers[idx]}:
       ansible_host        : ${ip_web}
       ansible_user        : ${ansible_user}
-      ansible_connection  : ${web_connection} 
-      connection_type     : ${web_connectiontype} 
-      virtual_host        : ${virt_web_servers[idx]} 
+      ansible_connection  : ${web_connection}
+      connection_type     : ${web_connectiontype}
+      virtual_host        : ${virt_web_servers[idx]}
+      become_user         : ${web_become_user}
+      ${ansible_winrm_server_cert_validation}
 
 %{~ endfor }
   vars:
@@ -95,8 +108,10 @@ ${sid}_OBSERVER_DB:
     ${observers[idx]}:
       ansible_host        : ${ip_observer}
       ansible_user        : ${ansible_user}
-      ansible_connection  : ${db_connection} 
-      connection_type     : ${db_connectiontype} 
+      ansible_connection  : ${db_connection}
+      connection_type     : ${db_connectiontype}
+      become_user         : ${db_become_user}
+      ${ansible_winrm_server_cert_validation}
 
 %{~ endfor }
   vars:

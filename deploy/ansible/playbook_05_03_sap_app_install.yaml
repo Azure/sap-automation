@@ -61,7 +61,6 @@
   serial:                              1
   remote_user:                         "{{ orchestration_ansible_user }}"
   become:                              true
-  become_user:                         "{{ become_user_name }}"
   gather_facts:                        true                                    # Important to collect hostvars information
   vars_files:
     - vars/ansible-input-api.yaml                                              # API Input template with defaults
@@ -115,7 +114,6 @@
   serial:                              1                                        # Cause App Servers to install sequentially
   remote_user:                         "{{ orchestration_ansible_user }}"
   become:                              true
-  become_user:                         "{{ become_user_name }}"
   gather_facts:                        true                                    # Important to collect hostvars information
   vars_files:
     - vars/ansible-input-api.yaml                                              # API Input template with defaults
@@ -201,6 +199,10 @@
             prefix:                    "{{ app_bom_id.replace('.', '/').replace('/PD', '').split(':')[1] }}"
             path:                      "{{ app_file_path }}"
             tier:                      'app'
+            this_sid:                  "{{ sid_to_be_deployed.sid | upper }}"
+          loop:                        "{{ all_sids }}"
+          loop_control:
+            loop_var:                  sid_to_be_deployed
 
         - name:                        "APP Playbook - Install: Errors from APP installation"
           ansible.builtin.debug:
@@ -224,7 +226,6 @@
   serial:                              1                                        # Cause App Servers to install sequentially
   remote_user:                         "{{ orchestration_ansible_user }}"
   become:                              true
-  become_user:                         root
   gather_facts:                        true
   vars_files:
     - vars/ansible-input-api.yaml                                               # API Input template with defaults

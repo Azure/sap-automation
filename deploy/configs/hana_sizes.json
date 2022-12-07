@@ -68,7 +68,7 @@
                     "name"                       : "os",
                     "count"                      : 1,
                     "disk_type"                  : "StandardSSD_LRS",
-                    "size_gb"                    : 64,
+                    "size_gb"                    : 128,
                     "caching"                    : "ReadWrite"
                 },
                 {
@@ -120,7 +120,7 @@
         },
         "S4Demo": {
             "compute": {
-                "vm_size"                        : "Standard_E16ds_v4",
+                "vm_size"                        : "Standard_E32ds_v4",
                 "accelerated_networking"         : false
             },
             "storage": [
@@ -188,7 +188,7 @@
                     "name"                       : "os",
                     "count"                      : 1,
                     "disk_type"                  : "Premium_LRS",
-                    "size_gb"                    : 64,
+                    "size_gb"                    : 128,
                     "caching"                    : "ReadWrite"
                 },
                 {
@@ -224,7 +224,7 @@
                     "name"                       : "sap",
                     "count"                      : 1,
                     "disk_type"                  : "Premium_LRS",
-                    "size_gb"                    : 64,
+                    "size_gb"                    : 128,
                     "caching"                    : "ReadOnly",
                     "write_accelerator"          : false,
                     "lun_start"                  : 14
@@ -249,7 +249,7 @@
                     "name"                       : "os",
                     "count"                      : 1,
                     "disk_type"                  : "Premium_LRS",
-                    "size_gb"                    : 64,
+                    "size_gb"                    : 128,
                     "caching"                    : "ReadWrite"
                 },
                 {
@@ -285,7 +285,7 @@
                     "name"                       : "sap",
                     "count"                      : 1,
                     "disk_type"                  : "Premium_LRS",
-                    "size_gb"                    : 64,
+                    "size_gb"                    : 128,
                     "caching"                    : "ReadOnly",
                     "write_accelerator"          : false,
                     "lun_start"                  : 14
@@ -310,7 +310,7 @@
                     "name"                       : "os",
                     "count"                      : 1,
                     "disk_type"                  : "Premium_LRS",
-                    "size_gb"                    : 64,
+                    "size_gb"                    : 128,
                     "caching"                    : "ReadWrite"
                 },
                 {
@@ -346,7 +346,7 @@
                     "name"                       : "sap",
                     "count"                      : 1,
                     "disk_type"                  : "Premium_LRS",
-                    "size_gb"                    : 64,
+                    "size_gb"                    : 128,
                     "caching"                    : "ReadOnly",
                     "write_accelerator"          : false,
                     "lun_start"                  : 14
@@ -371,7 +371,7 @@
                     "name"                       : "os",
                     "count"                      : 1,
                     "disk_type"                  : "Premium_LRS",
-                    "size_gb"                    : 64,
+                    "size_gb"                    : 128,
                     "caching"                    : "ReadWrite"
                 },
                 {
@@ -407,7 +407,7 @@
                     "name"                       : "sap",
                     "count"                      : 1,
                     "disk_type"                  : "Premium_LRS",
-                    "size_gb"                    : 64,
+                    "size_gb"                    : 128,
                     "caching"                    : "ReadOnly",
                     "write_accelerator"          : false,
                     "lun_start"                  : 14
@@ -432,7 +432,7 @@
                     "name"                       : "os",
                     "count"                      : 1,
                     "disk_type"                  : "Premium_LRS",
-                    "size_gb"                    : 64,
+                    "size_gb"                    : 128,
                     "caching"                    : "ReadWrite"
                 },
                 {
@@ -468,7 +468,7 @@
                     "name"                       : "sap",
                     "count"                      : 1,
                     "disk_type"                  : "Premium_LRS",
-                    "size_gb"                    : 64,
+                    "size_gb"                    : 128,
                     "caching"                    : "ReadOnly",
                     "write_accelerator"          : false,
                     "lun_start"                  : 14
@@ -493,7 +493,7 @@
                     "name"                       : "os",
                     "count"                      : 1,
                     "disk_type"                  : "Premium_LRS",
-                    "size_gb"                    : 64,
+                    "size_gb"                    : 128,
                     "caching"                    : "ReadWrite"
                 },
                 {
@@ -529,7 +529,7 @@
                     "name"                       : "sap",
                     "count"                      : 1,
                     "disk_type"                  : "Premium_LRS",
-                    "size_gb"                    : 64,
+                    "size_gb"                    : 128,
                     "caching"                    : "ReadOnly",
                     "write_accelerator"          : false,
                     "lun_start"                  : 14
@@ -554,7 +554,7 @@
                     "name"                       : "os",
                     "count"                      : 1,
                     "disk_type"                  : "Premium_LRS",
-                    "size_gb"                    : 64,
+                    "size_gb"                    : 128,
                     "caching"                    : "ReadWrite"
                 },
                 {
@@ -590,7 +590,7 @@
                     "name"                       : "sap",
                     "count"                      : 1,
                     "disk_type"                  : "Premium_LRS",
-                    "size_gb"                    : 64,
+                    "size_gb"                    : 128,
                     "caching"                    : "ReadOnly",
                     "write_accelerator"          : false,
                     "lun_start"                  : 14
@@ -615,7 +615,7 @@
                     "name"                       : "os",
                     "count"                      : 1,
                     "disk_type"                  : "Premium_LRS",
-                    "size_gb"                    : 64,
+                    "size_gb"                    : 128,
                     "caching"                    : "ReadWrite"
                 },
                 {
@@ -651,7 +651,7 @@
                     "name"                       : "sap",
                     "count"                      : 1,
                     "disk_type"                  : "Premium_LRS",
-                    "size_gb"                    : 64,
+                    "size_gb"                    : 128,
                     "caching"                    : "ReadOnly",
                     "write_accelerator"          : false,
                     "lun_start"                  : 14
@@ -676,7 +676,7 @@
                     "name"                       : "os",
                     "count"                      : 1,
                     "disk_type"                  : "Premium_LRS",
-                    "size_gb"                    : 64,
+                    "size_gb"                    : 128,
                     "caching"                    : "ReadWrite"
                 },
                 {
@@ -712,7 +712,7 @@
                     "name"                       : "sap",
                     "count"                      : 1,
                     "disk_type"                  : "Premium_LRS",
-                    "size_gb"                    : 64,
+                    "size_gb"                    : 128,
                     "caching"                    : "ReadOnly",
                     "write_accelerator"          : false,
                     "lun_start"                  : 14
@@ -737,7 +737,7 @@
                     "name"                       : "os",
                     "count"                      : 1,
                     "disk_type"                  : "Premium_LRS",
-                    "size_gb"                    : 64,
+                    "size_gb"                    : 128,
                     "caching"                    : "ReadWrite"
                 },
                 {
@@ -773,7 +773,7 @@
                     "name"                       : "sap",
                     "count"                      : 1,
                     "disk_type"                  : "Premium_LRS",
-                    "size_gb"                    : 64,
+                    "size_gb"                    : 128,
                     "caching"                    : "ReadOnly",
                     "write_accelerator"          : false,
                     "lun_start"                  : 14
@@ -798,7 +798,7 @@
                     "name"                       : "os",
                     "count"                      : 1,
                     "disk_type"                  : "Premium_LRS",
-                    "size_gb"                    : 64,
+                    "size_gb"                    : 128,
                     "caching"                    : "ReadWrite"
                 },
                 {
@@ -832,7 +832,7 @@
                     "name"                       : "sap",
                     "count"                      : 1,
                     "disk_type"                  : "Premium_LRS",
-                    "size_gb"                    : 64,
+                    "size_gb"                    : 128,
                     "caching"                    : "ReadOnly",
                     "write_accelerator"          : false,
                     "lun_start"                  : 14
@@ -858,7 +858,7 @@
                     "name"                       : "os",
                     "count"                      : 1,
                     "disk_type"                  : "Premium_LRS",
-                    "size_gb"                    : 64,
+                    "size_gb"                    : 128,
                     "caching"                    : "ReadWrite"
                 },
                 {
@@ -892,7 +892,7 @@
                     "name"                       : "sap",
                     "count"                      : 1,
                     "disk_type"                  : "Premium_LRS",
-                    "size_gb"                    : 64,
+                    "size_gb"                    : 128,
                     "caching"                    : "ReadOnly",
                     "write_accelerator"          : false,
                     "lun_start"                  : 14
@@ -918,7 +918,7 @@
                     "name"                       : "os",
                     "count"                      : 1,
                     "disk_type"                  : "Premium_LRS",
-                    "size_gb"                    : 64,
+                    "size_gb"                    : 128,
                     "caching"                    : "ReadWrite"
                 },
                 {
@@ -952,7 +952,7 @@
                     "name"                       : "sap",
                     "count"                      : 1,
                     "disk_type"                  : "Premium_LRS",
-                    "size_gb"                    : 64,
+                    "size_gb"                    : 128,
                     "caching"                    : "ReadOnly",
                     "write_accelerator"          : false,
                     "lun_start"                  : 14
@@ -1011,7 +1011,7 @@
                     "name"                       : "sap",
                     "count"                      : 1,
                     "disk_type"                  : "Premium_LRS",
-                    "size_gb"                    : 64,
+                    "size_gb"                    : 128,
                     "caching"                    : "ReadOnly",
                     "write_accelerator"          : false,
                     "lun_start"                  : 14
@@ -1036,7 +1036,7 @@
                     "name"                       : "os",
                     "count"                      : 1,
                     "disk_type"                  : "Premium_LRS",
-                    "size_gb"                    : 64,
+                    "size_gb"                    : 128,
                     "caching"                    : "ReadWrite"
                 },
                 {
@@ -1070,7 +1070,7 @@
                     "name"                       : "sap",
                     "count"                      : 1,
                     "disk_type"                  : "Premium_LRS",
-                    "size_gb"                    : 64,
+                    "size_gb"                    : 128,
                     "caching"                    : "ReadOnly",
                     "write_accelerator"          : false,
                     "lun_start"                  : 14
@@ -1129,7 +1129,7 @@
                     "name"                       : "sap",
                     "count"                      : 1,
                     "disk_type"                  : "Premium_LRS",
-                    "size_gb"                    : 64,
+                    "size_gb"                    : 128,
                     "caching"                    : "ReadOnly",
                     "write_accelerator"          : false,
                     "lun_start"                  : 14
@@ -1188,7 +1188,7 @@
                     "name"                       : "sap",
                     "count"                      : 1,
                     "disk_type"                  : "Premium_LRS",
-                    "size_gb"                    : 64,
+                    "size_gb"                    : 128,
                     "caching"                    : "ReadOnly",
                     "write_accelerator"          : false,
                     "lun_start"                  : 14
@@ -1247,7 +1247,7 @@
                     "name"                       : "sap",
                     "count"                      : 1,
                     "disk_type"                  : "Premium_LRS",
-                    "size_gb"                    : 64,
+                    "size_gb"                    : 128,
                     "caching"                    : "ReadOnly",
                     "write_accelerator"          : false,
                     "lun_start"                  : 14
@@ -1306,7 +1306,7 @@
                     "name"                       : "sap",
                     "count"                      : 1,
                     "disk_type"                  : "Premium_LRS",
-                    "size_gb"                    : 64,
+                    "size_gb"                    : 128,
                     "caching"                    : "ReadOnly",
                     "write_accelerator"          : false,
                     "lun_start"                  : 14
@@ -1366,7 +1366,7 @@
                     "name"                       : "sap",
                     "count"                      : 1,
                     "disk_type"                  : "Premium_LRS",
-                    "size_gb"                    : 64,
+                    "size_gb"                    : 128,
                     "caching"                    : "ReadOnly",
                     "write_accelerator"          : false,
                     "lun_start"                  : 14
@@ -1427,7 +1427,7 @@
                     "name"                       : "sap",
                     "count"                      : 1,
                     "disk_type"                  : "Premium_LRS",
-                    "size_gb"                    : 64,
+                    "size_gb"                    : 128,
                     "caching"                    : "ReadOnly",
                     "write_accelerator"          : false,
                     "lun_start"                  : 14

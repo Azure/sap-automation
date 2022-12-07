@@ -19,78 +19,153 @@
 #
 # See the definition of 'distribution_id' to determine what to use when creating
 # an entry for a new distribution.
+#
+# For DB2 installations on Azure we referenced the following link:
+# https://www.ibm.com/docs/en/db2/11.5?topic=unix-kernel-parameter-requirements-linux
+# We are not setting some of the parameters listed there as they can be adjusted
+# by database manager.
 
 parameters:
   common:
-    - { tier: 'os', name: 'fs.suid_dumpable',                              value: '0',                        state: 'present' }
-    - { tier: 'os', name: 'kernel.core_uses_pid',                          value: '1',                        state: 'present' }
-    - { tier: 'os', name: 'kernel.ctrl-alt-del',                           value: '0',                        state: 'present' }
-    - { tier: 'os', name: 'kernel.dmesg_restrict',                         value: '1',                        state: 'present' }
-    - { tier: 'os', name: 'kernel.kptr_restrict',                          value: '1',                        state: 'present' }
-    - { tier: 'os', name: 'kernel.perf_event_paranoid',                    value: '2',                        state: 'present' }
-    - { tier: 'os', name: 'kernel.randomize_va_space',                     value: '2',                        state: 'present' }
-    - { tier: 'os', name: 'kernel.sysrq',                                  value: '0',                        state: 'present' }
-    - { tier: 'os', name: 'net.ipv4.conf.all.accept_redirects',            value: '0',                        state: 'present' }
-    - { tier: 'os', name: 'net.ipv4.conf.all.accept_source_route',         value: '0',                        state: 'present' }
-    - { tier: 'os', name: 'net.ipv4.conf.all.bootp_relay',                 value: '0',                        state: 'present' }
-    - { tier: 'os', name: 'net.ipv4.conf.all.forwarding',                  value: '0',                        state: 'present' }
-    - { tier: 'os', name: 'net.ipv4.conf.all.log_martians',                value: '1',                        state: 'present' }
-    - { tier: 'os', name: 'net.ipv4.conf.all.proxy_arp',                   value: '0',                        state: 'present' }
-    - { tier: 'os', name: 'net.ipv4.conf.all.send_redirects',              value: '0',                        state: 'present' }
-    - { tier: 'os', name: 'net.ipv4.conf.default.accept_redirects',        value: '0',                        state: 'present' }
-    - { tier: 'os', name: 'net.ipv4.conf.default.accept_source_route',     value: '0',                        state: 'present' }
-    - { tier: 'os', name: 'net.ipv4.conf.default.log_martians',            value: '1',                        state: 'present' }
-    - { tier: 'os', name: 'net.ipv4.icmp_echo_ignore_broadcasts',          value: '1',                        state: 'present' }
-    - { tier: 'os', name: 'net.ipv4.icmp_ignore_bogus_error_responses',    value: '1',                        state: 'present' }
-    - { tier: 'os', name: 'net.ipv4.tcp_syncookies',                       value: '1',                        state: 'present' }
-    - { tier: 'os', name: 'net.ipv4.tcp_timestamps',                       value: '0',                        state: 'present' } # we are always behing a loadbalancer
+    - { tier: 'os',    node_tier: 'all', name: 'fs.suid_dumpable',                           value: '0',                    state: 'present' }
+    - { tier: 'os',    node_tier: 'all', name: 'kernel.core_uses_pid',                       value: '1',                    state: 'present' }
+    - { tier: 'os',    node_tier: 'all', name: 'kernel.ctrl-alt-del',                        value: '0',                    state: 'present' }
+    - { tier: 'os',    node_tier: 'all', name: 'kernel.dmesg_restrict',                      value: '1',                    state: 'present' }
+    - { tier: 'os',    node_tier: 'all', name: 'kernel.kptr_restrict',                       value: '1',                    state: 'present' }
+    - { tier: 'os',    node_tier: 'all', name: 'kernel.perf_event_paranoid',                 value: '2',                    state: 'present' }
+    - { tier: 'os',    node_tier: 'all', name: 'kernel.randomize_va_space',                  value: '2',                    state: 'present' } # 2 - full randomization. Need to disable for db2.
+    - { tier: 'os',    node_tier: 'all', name: 'kernel.sysrq',                               value: '0',                    state: 'present' }
+    - { tier: 'os',    node_tier: 'all', name: 'net.ipv4.conf.all.accept_redirects',         value: '0',                    state: 'present' }
+    - { tier: 'os',    node_tier: 'all', name: 'net.ipv4.conf.all.accept_source_route',      value: '0',                    state: 'present' }
+    - { tier: 'os',    node_tier: 'all', name: 'net.ipv4.conf.all.bootp_relay',              value: '0',                    state: 'present' }
+    - { tier: 'os',    node_tier: 'all', name: 'net.ipv4.conf.all.forwarding',               value: '0',                    state: 'present' }
+    - { tier: 'os',    node_tier: 'all', name: 'net.ipv4.conf.all.log_martians',             value: '1',                    state: 'present' }
+    - { tier: 'os',    node_tier: 'all', name: 'net.ipv4.conf.all.proxy_arp',                value: '0',                    state: 'present' }
+    - { tier: 'os',    node_tier: 'all', name: 'net.ipv4.conf.all.send_redirects',           value: '0',                    state: 'present' }
+    - { tier: 'os',    node_tier: 'all', name: 'net.ipv4.conf.default.accept_redirects',     value: '0',                    state: 'present' }
+    - { tier: 'os',    node_tier: 'all', name: 'net.ipv4.conf.default.accept_source_route',  value: '0',                    state: 'present' }
+    - { tier: 'os',    node_tier: 'all', name: 'net.ipv4.conf.default.log_martians',         value: '1',                    state: 'present' }
+    - { tier: 'os',    node_tier: 'all', name: 'net.ipv4.icmp_echo_ignore_broadcasts',       value: '1',                    state: 'present' }
+    - { tier: 'os',    node_tier: 'all', name: 'net.ipv4.icmp_ignore_bogus_error_responses', value: '1',                    state: 'present' }
+    - { tier: 'os',    node_tier: 'all', name: 'net.ipv4.tcp_syncookies',                    value: '1',                    state: 'present' }
+    - { tier: 'os',    node_tier: 'all', name: 'net.ipv4.tcp_timestamps',                    value: '0',                    state: 'present' } # we are always behind a load balancer
     # this is not required in newer kernels as per 2382421
     # - { tier: 'os', name: 'net.ipv4.tcp_tw_recycle',                       value: '0',                      state: 'present' }
-    - { tier: 'os', name: 'net.ipv4.tcp_tw_reuse',                         value: '0',                        state: 'present' }
-    - { tier: 'os', name: 'net.ipv6.conf.all.accept_redirects',            value: '0',                        state: 'present' }
-    - { tier: 'os', name: 'net.ipv6.conf.all.accept_source_route',         value: '0',                        state: 'present' }
-    - { tier: 'os', name: 'net.ipv6.conf.default.accept_redirects',        value: '0',                        state: 'present' }
-    - { tier: 'os', name: 'net.ipv6.conf.default.accept_source_route',     value: '0',                        state: 'present' }
-    - { tier: 'os', name: 'kernel.sem',                                    value: '250 32000 32 4096',        state: 'present' }
+    - { tier: 'os',    node_tier: 'all', name: 'net.ipv4.tcp_tw_reuse',                      value: '0',                    state: 'present' }
+    - { tier: 'os',    node_tier: 'all', name: 'net.ipv6.conf.all.accept_redirects',         value: '0',                    state: 'present' }
+    - { tier: 'os',    node_tier: 'all', name: 'net.ipv6.conf.all.accept_source_route',      value: '0',                    state: 'present' }
+    - { tier: 'os',    node_tier: 'all', name: 'net.ipv6.conf.default.accept_redirects',     value: '0',                    state: 'present' }
+    - { tier: 'os',    node_tier: 'all', name: 'net.ipv6.conf.default.accept_source_route',  value: '0',                    state: 'present' }
 
   suse15:
-    - { tier: 'os',    name: 'fs.protected_hardlinks',                        value: '1',                     state: 'present' }
-    - { tier: 'os',    name: 'fs.protected_fifos',                            value: '2',                     state: 'present' }
-    - { tier: 'os',    name: 'fs.protected_regular',                          value: '2',                     state: 'present' }
-    - { tier: 'os',    name: 'fs.protected_symlinks',                         value: '1',                     state: 'present' }
-    - { tier: 'os',    name: 'kernel.suid_dumpable',                          value: '0',                     state: 'present' }
-    - { tier: 'os',    name: 'kernel.unprivileged_bpf_disabled',              value: '1',                     state: 'present' }
-    - { tier: 'os',    name: 'net.core.bpf_jit_harden',                       value: '2',                     state: 'present' }
-    - { tier: 'sapos', name: 'fs.nfs.idmap_cache_timer',                      value: '60',                    state: 'present' }
-    - { tier: 'ha',    name: 'vm.dirty_bytes',                                value: '629145600',             state: 'present' }
-    - { tier: 'ha',    name: 'vm.dirty_background_bytes',                     value: '314572800',             state: 'present' }
-    - { tier: 'ha',    name: 'net.ipv4.tcp_keepalive_time',                   value: '300',                   state: 'present' }
+    - { tier: 'os',    node_tier: 'all', name: 'fs.protected_hardlinks',                     value: '1',                    state: 'present' }
+    - { tier: 'os',    node_tier: 'all', name: 'fs.protected_fifos',                         value: '2',                    state: 'present' }
+    - { tier: 'os',    node_tier: 'all', name: 'fs.protected_regular',                       value: '2',                    state: 'present' }
+    - { tier: 'os',    node_tier: 'all', name: 'fs.protected_symlinks',                      value: '1',                    state: 'present' }
+    - { tier: 'os',    node_tier: 'all', name: 'kernel.suid_dumpable',                       value: '0',                    state: 'present' }
+    - { tier: 'os',    node_tier: 'all', name: 'kernel.unprivileged_bpf_disabled',           value: '1',                    state: 'present' }
+    - { tier: 'os',    node_tier: 'all', name: 'kernel.sem',                                 value: '250 32000 32 4096',    state: 'present' }
+    - { tier: 'os',    node_tier: 'all', name: 'net.core.bpf_jit_harden',                    value: '2',                    state: 'present' }
+    - { tier: 'sapos', node_tier: 'all', name: 'fs.nfs.idmap_cache_timer',                   value: '60',                   state: 'present' }
+    - { tier: 'sapos', node_tier: 'db2', name: 'vm.swappiness',                              value: '5',                    state: 'present' }
+    - { tier: 'sapos', node_tier: 'db2', name: 'vm.overcommit_memory',                       value: '0',                    state: 'present' }
+    - { tier: 'sapos', node_tier: 'db2', name: 'kernel.msgmax',                              value: '65536',                state: 'present' }
+    - { tier: 'sapos', node_tier: 'db2', name: 'kernel.msgmnb',                              value: '65536',                state: 'present' }
+    - { tier: 'sapos', node_tier: 'db2', name: 'vm.max_map_count',                           value: '2147483647',           state: 'present' }
+    # Need to disable ASLR for db2: https://www.ibm.com/support/pages/various-db2-failures-may-occur-linux-address-space-layout-randomization-aslr
+    # 2781247 - Db2 reports an address space conflict while executing command 'db2gcf'
+    - { tier: 'sapos', node_tier: 'db2', name: 'kernel.randomize_va_space',                  value: '0',                    state: 'present' }
+    - { tier: 'sapos', node_tier: 'hana',name: 'vm.memory_failure_early_kill',               value: '1',                    state: 'present' }
+    - { tier: 'sapos', node_tier: 'hana',name: 'vm.max_map_count',                           value: '2147483647',           state: 'present' }
+    - { tier: 'sapos', node_tier: 'hana',name: 'kernel.shmmax',                              value: '1073741824',           state: 'present' }
+    - { tier: 'sapos', node_tier: 'hana',name: 'kernel.shmmni',                              value: '32768',                state: 'present' }
+    # This needs to be a calculated parameter: https://help.sap.com/viewer/2c1988d620e04368aa4103bf26f17727/2.0.04/en-US/82e4575eec664846a9918e9ed1d90d41.html
+    # - { tier: 'sapos', node_tier: 'hana',name: 'kernel.shmall',                              value: '32768',                state: 'present' }
+    - { tier: 'sapos', node_tier: 'hana',name: 'fs.file-max',                                value: '20000000',             state: 'present' }
+    - { tier: 'sapos', node_tier: 'hana',name: 'fs.aio-max-nr',                              value: '18446744073709551615', state: 'present' }
+    - { tier: 'ha',    node_tier: 'all', name: 'vm.dirty_bytes',                             value: '629145600',            state: 'present' }
+    - { tier: 'ha',    node_tier: 'all', name: 'vm.dirty_background_bytes',                  value: '314572800',            state: 'present' }
+    - { tier: 'ha',    node_tier: 'all', name: 'net.ipv4.tcp_keepalive_time',                value: '300',                  state: 'present' }
 
   suse12:
-    - { tier: 'os',    name: 'fs.protected_hardlinks',                        value: '1',                     state: 'present' }
-    - { tier: 'os',    name: 'fs.protected_fifos',                            value: '2',                     state: 'present' }
-    - { tier: 'os',    name: 'fs.protected_regular',                          value: '2',                     state: 'present' }
-    - { tier: 'os',    name: 'fs.protected_symlinks',                         value: '1',                     state: 'present' }
-    - { tier: 'os',    name: 'kernel.suid_dumpable',                          value: '0',                     state: 'present' }
-    - { tier: 'os',    name: 'kernel.unprivileged_bpf_disabled',              value: '1',                     state: 'present' }
-    - { tier: 'sapos', name: 'fs.nfs.idmap_cache_timer',                      value: '60',                    state: 'present' }
-    - { tier: 'ha',    name: 'vm.dirty_bytes',                                value: '629145600',             state: 'present' }
-    - { tier: 'ha',    name: 'vm.dirty_background_bytes',                     value: '314572800',             state: 'present' }
-    - { tier: 'ha',    name: 'net.ipv4.tcp_keepalive_time',                   value: '300',        state: 'present' }
+    - { tier: 'os',    node_tier: 'all', name: 'fs.protected_hardlinks',                     value: '1',                    state: 'present' }
+    - { tier: 'os',    node_tier: 'all', name: 'fs.protected_fifos',                         value: '2',                    state: 'present' }
+    - { tier: 'os',    node_tier: 'all', name: 'fs.protected_regular',                       value: '2',                    state: 'present' }
+    - { tier: 'os',    node_tier: 'all', name: 'fs.protected_symlinks',                      value: '1',                    state: 'present' }
+    - { tier: 'os',    node_tier: 'all', name: 'kernel.suid_dumpable',                       value: '0',                    state: 'present' }
+    - { tier: 'os',    node_tier: 'all', name: 'kernel.unprivileged_bpf_disabled',           value: '1',                    state: 'present' }
+    - { tier: 'os',    node_tier: 'all', name: 'kernel.sem',                                 value: '250 32000 32 4096',    state: 'present' }
+    - { tier: 'sapos', node_tier: 'all', name: 'fs.nfs.idmap_cache_timer',                   value: '60',                   state: 'present' }
+    - { tier: 'sapos', node_tier: 'db2', name: 'vm.swappiness',                              value: '5',                    state: 'present' }
+    - { tier: 'sapos', node_tier: 'db2', name: 'vm.overcommit_memory',                       value: '0',                    state: 'present' }
+    - { tier: 'sapos', node_tier: 'db2', name: 'kernel.msgmax',                              value: '65536',                state: 'present' }
+    - { tier: 'sapos', node_tier: 'db2', name: 'kernel.msgmnb',                              value: '65536',                state: 'present' }
+    - { tier: 'sapos', node_tier: 'db2', name: 'vm.max_map_count',                           value: '2147483647',           state: 'present' }
+    # Need to disable ASLR for db2: https://www.ibm.com/support/pages/various-db2-failures-may-occur-linux-address-space-layout-randomization-aslr
+    # 2781247 - Db2 reports an address space conflict while executing command 'db2gcf'
+    - { tier: 'sapos', node_tier: 'db2', name: 'kernel.randomize_va_space',                  value: '0',                    state: 'present' }
+    - { tier: 'sapos', node_tier: 'hana',name: 'vm.memory_failure_early_kill',               value: '1',                    state: 'present' }
+    - { tier: 'sapos', node_tier: 'hana',name: 'vm.max_map_count',                           value: '2147483647',           state: 'present' }
+    - { tier: 'sapos', node_tier: 'hana',name: 'kernel.shmmax',                              value: '1073741824',           state: 'present' }
+    - { tier: 'sapos', node_tier: 'hana',name: 'kernel.shmmni',                              value: '32768',                state: 'present' }
+    # This needs to be a calculated parameter: https://help.sap.com/viewer/2c1988d620e04368aa4103bf26f17727/2.0.04/en-US/82e4575eec664846a9918e9ed1d90d41.html
+    # - { tier: 'sapos', node_tier: 'hana',name: 'kernel.shmall',                              value: '32768',                state: 'present' }
+    - { tier: 'sapos', node_tier: 'hana',name: 'fs.file-max',                                value: '20000000',             state: 'present' }
+    - { tier: 'sapos', node_tier: 'hana',name: 'fs.aio-max-nr',                              value: '18446744073709551615', state: 'present' }
+    - { tier: 'ha',    node_tier: 'all', name: 'vm.dirty_bytes',                             value: '629145600',            state: 'present' }
+    - { tier: 'ha',    node_tier: 'all', name: 'vm.dirty_background_bytes',                  value: '314572800',            state: 'present' }
+    - { tier: 'ha',    node_tier: 'all', name: 'net.ipv4.tcp_keepalive_time',                value: '300',                  state: 'present' }
 
   redhat7:
-    - { tier: 'os', name: 'kernel.yama.ptrace_scope',                      value: '1',                        state: 'present' }
-    - { tier: 'os', name: 'net.core.bpf_jit_harden',                       value: '2',                        state: 'present' }
-    - { tier: 'ha', name: 'net.ipv4.tcp_keepalive_time',                   value: '300',                      state: 'present' }
+    - { tier: 'os',    node_tier: 'all', name: 'kernel.yama.ptrace_scope',                   value: '1',                    state: 'present' }
+    - { tier: 'os',    node_tier: 'all', name: 'net.core.bpf_jit_harden',                    value: '2',                    state: 'present' }
+    - { tier: 'os',    node_tier: 'all', name: 'kernel.sem',                                 value: '250 32000 32 4096',    state: 'present' }
+    - { tier: 'ha',    node_tier: 'all', name: 'net.ipv4.tcp_keepalive_time',                value: '300',                  state: 'present' }
+    - { tier: 'sapos', node_tier: 'all', name: 'kernel.pid_max',                             value: '4194304',              state: 'present' }
+    - { tier: 'sapos', node_tier: 'all', name: 'vm.max_map_count',                           value: '2147483647',           state: 'present' }
+    - { tier: 'sapos', node_tier: 'db2', name: 'vm.swappiness',                              value: '5',                    state: 'present' }
+    - { tier: 'sapos', node_tier: 'db2', name: 'vm.overcommit_memory',                       value: '0',                    state: 'present' }
+    - { tier: 'sapos', node_tier: 'db2', name: 'kernel.msgmax',                              value: '65536',                state: 'present' }
+    - { tier: 'sapos', node_tier: 'db2', name: 'kernel.msgmnb',                              value: '65536',                state: 'present' }
+    # Need to disable ASLR for db2: https://www.ibm.com/support/pages/various-db2-failures-may-occur-linux-address-space-layout-randomization-aslr
+    # 2781247 - Db2 reports an address space conflict while executing command 'db2gcf'
+    - { tier: 'sapos', node_tier: 'db2', name: 'kernel.randomize_va_space',                  value: '0',                    state: 'present' }
+    - { tier: 'sapos', node_tier: 'hana',name: 'vm.memory_failure_early_kill',               value: '1',                    state: 'present' }
+    - { tier: 'sapos', node_tier: 'hana',name: 'vm.max_map_count',                           value: '2147483647',           state: 'present' }
+    - { tier: 'sapos', node_tier: 'hana',name: 'kernel.shmmax',                              value: '1073741824',           state: 'present' }
+    - { tier: 'sapos', node_tier: 'hana',name: 'kernel.shmmni',                              value: '32768',                state: 'present' }
+    # This needs to be a calculated parameter: https://help.sap.com/viewer/2c1988d620e04368aa4103bf26f17727/2.0.04/en-US/82e4575eec664846a9918e9ed1d90d41.html
+    #  - { tier: 'sapos', node_tier: 'hana',name: 'kernel.shmall',                              value: '32768',                state: 'present' }
+    - { tier: 'sapos', node_tier: 'hana',name: 'fs.file-max',                                value: '20000000',             state: 'present' }
+    - { tier: 'sapos', node_tier: 'hana',name: 'fs.aio-max-nr',                              value: '18446744073709551615', state: 'present' }
+    - { tier: 'ha',    node_tier: 'all', name: 'net.ipv4.tcp_keepalive_time',                value: '300',                  state: 'present' }
 
   redhat8:
-    - { tier: 'os', name: 'fs.protected_fifos',                            value: '2',                        state: 'present' }
-    - { tier: 'os', name: 'fs.protected_regular',                          value: '2',                        state: 'present' }
-    - { tier: 'os', name: 'kernel.yama.ptrace_scope',                      value: '1',                        state: 'present' }
-    - { tier: 'os', name: 'net.core.bpf_jit_harden',                       value: '2',                        state: 'present' }
-    - { tier: 'ha', name: 'net.ipv4.tcp_keepalive_time',                   value: '300',                      state: 'present' }
+    - { tier: 'os',    node_tier: 'all', name: 'fs.protected_fifos',                         value: '2',                    state: 'present' }
+    - { tier: 'os',    node_tier: 'all', name: 'fs.protected_regular',                       value: '2',                    state: 'present' }
+    - { tier: 'os',    node_tier: 'all', name: 'kernel.yama.ptrace_scope',                   value: '1',                    state: 'present' }
+    - { tier: 'os',    node_tier: 'all', name: 'net.core.bpf_jit_harden',                    value: '2',                    state: 'present' }
+    - { tier: 'sapos', node_tier: 'all', name: 'kernel.pid_max',                             value: '4194304',              state: 'present' }
+    - { tier: 'sapos', node_tier: 'all', name: 'vm.max_map_count',                           value: '2147483647',           state: 'present' }
+    - { tier: 'sapos', node_tier: 'db2', name: 'vm.swappiness',                              value: '5',                    state: 'present' }
+    - { tier: 'sapos', node_tier: 'db2', name: 'vm.overcommit_memory',                       value: '0',                    state: 'present' }
+    - { tier: 'sapos', node_tier: 'db2', name: 'kernel.msgmax',                              value: '65536',                state: 'present' }
+    - { tier: 'sapos', node_tier: 'db2', name: 'kernel.msgmnb',                              value: '65536',                state: 'present' }
+    # Need to disable ASLR for db2: https://www.ibm.com/support/pages/various-db2-failures-may-occur-linux-address-space-layout-randomization-aslr
+    # 2781247 - Db2 reports an address space conflict while executing command 'db2gcf'
+    - { tier: 'sapos', node_tier: 'db2', name: 'kernel.randomize_va_space',                  value: '0',                    state: 'present' }
+    - { tier: 'sapos', node_tier: 'hana',name: 'vm.memory_failure_early_kill',               value: '1',                    state: 'present' }
+    - { tier: 'sapos', node_tier: 'hana',name: 'vm.max_map_count',                           value: '2147483647',           state: 'present' }
+    - { tier: 'sapos', node_tier: 'hana',name: 'kernel.shmmax',                              value: '1073741824',           state: 'present' }
+    - { tier: 'sapos', node_tier: 'hana',name: 'kernel.shmmni',                              value: '32768',                state: 'present' }
+    # This needs to be a calculated parameter: https://help.sap.com/viewer/2c1988d620e04368aa4103bf26f17727/2.0.04/en-US/82e4575eec664846a9918e9ed1d90d41.html
+    # - { tier: 'sapos', node_tier: 'hana',name: 'kernel.shmall',                              value: '32768',                state: 'present' }
+    - { tier: 'sapos', node_tier: 'hana',name: 'fs.file-max',                                value: '20000000',             state: 'present' }
+    - { tier: 'sapos', node_tier: 'hana',name: 'fs.aio-max-nr',                              value: '18446744073709551615', state: 'present' }
+    - { tier: 'ha',    node_tier: 'all', name: 'net.ipv4.tcp_keepalive_time',                value: '300',                  state: 'present' }
 
   oracle-linux8:
-    - { tier: 'os', name: 'kernel.sem',                                     value: '1250 256000 100 1024',          state: 'present' }
-    - { tier: 'os', name: 'vm.max_map_count',                               value: '2000000',                       state: 'present' }
+    - { tier: 'os',    node_tier: 'all', name: 'kernel.sem',                                 value: '1250 256000 100 1024', state: 'present' }
+    - { tier: 'os',    node_tier: 'all', name: 'vm.max_map_count',                           value: '2000000',              state: 'present' }
+
 ...

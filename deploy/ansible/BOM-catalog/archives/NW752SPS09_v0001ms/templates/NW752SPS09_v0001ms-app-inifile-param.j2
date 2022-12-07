@@ -36,11 +36,11 @@ NW_CI_Instance.scsVirtualHostname                                     = {{ sap_s
 NW_CI_Instance_ABAP_Reports.executeReportsForDepooling                = true
 
 NW_DDIC_Password.needDDICPasswords                                    = false
-NW_HDB_getDBInfo.instanceNumber                                       = {{ hdb_instance_number }}
+NW_HDB_getDBInfo.instanceNumber                                       = {{ db_instance_number }}
 
 NW_checkMsgServer.abapMSPort                                          = 36{{ scs_instance_number }}
 NW_getLoadType.loadType                                               = SAP
 NW_readProfileDir.profileDir                                          = {{ sap_profile_dir }}
 
-storageBasedCopy.hdb.instanceNumber                                   = {{ hdb_instance_number }}
+storageBasedCopy.hdb.instanceNumber                                   = {{ db_instance_number }}
 storageBasedCopy.hdb.systemPassword                                   = {{ main_password }}

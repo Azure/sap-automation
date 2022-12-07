@@ -204,6 +204,7 @@ variable "deployer_image" {
     "offer"           = "0001-com-ubuntu-server-focal"
     "sku"             = "20_04-lts-gen2"
     "version"         = "latest"
+    "type"            = "marketplace"
   }
 }
 
@@ -417,4 +418,9 @@ variable "enable_firewall_for_keyvaults_and_storage" {
   description = "Boolean value indicating if firewall should be enabled for key vaults and storage"
   default     = false
   type        = bool
+}
+
+variable "Agent_IP" {
+  description = "IP address of the agent"
+  default     = ""
 }

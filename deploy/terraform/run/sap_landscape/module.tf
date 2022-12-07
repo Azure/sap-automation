@@ -8,6 +8,7 @@ module "sap_landscape" {
     azurerm.main          = azurerm
     azurerm.deployer      = azurerm.deployer
     azurerm.dnsmanagement = azurerm.dnsmanagement
+    azurerm.peering       = azurerm.peering
   }
   source         = "../../terraform-units/modules/sap_landscape"
   infrastructure = local.infrastructure
@@ -37,7 +38,7 @@ module "sap_landscape" {
   use_custom_dns_a_registration  = var.use_custom_dns_a_registration
   management_dns_subscription_id = try(var.management_dns_subscription_id, length(local.deployer_subscription_id) > 0 ? local.deployer_subscription_id : null)
   management_dns_resourcegroup_name = var.management_dns_resourcegroup_name
-  
+
   Agent_IP = var.Agent_IP
 
   NFS_provider = var.NFS_provider

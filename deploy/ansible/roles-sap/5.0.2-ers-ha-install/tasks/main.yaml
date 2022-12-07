@@ -14,19 +14,15 @@
     dir_params:                        "{{ tmp_directory }}/.{{ sap_sid | lower }}-params"
 
 #   0x) Create hidden directory for parameter files
-- name:                                "ERS Install: Create hidden directory"
+- name:                                "ERS Install: Create directories"
   ansible.builtin.file:
     path:                              "{{ item.path }}"
     state:                             directory
     mode:                              '{{ item.mode }}'
   loop:
-    - { state: 'directory', mode: '0755', path: '{{ dir_params }}' }
-
-- name:                                "ERS Install: Create run flag directory"
-  ansible.builtin.file:
-    path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}"
-    state:                             directory
-    mode:                              0755
+    - { mode: '0755', path: '{{ dir_params }}' }
+    - { mode: '0755', path: '{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}' }
+    - { mode: '0755', path: '/etc/sap_deployment_automation/{{ sap_sid | upper }}' }
 
 - name:                                "ERS Install: reset"
   ansible.builtin.file:
@@ -39,6 +35,16 @@
     path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_ers.txt"
   register:                            ers_installed
   when: node_tier == 'ers'
+
+- name:                                "SCS Install: check media exists"
+  ansible.builtin.stat:
+    path:                              "{{ target_media_location }}/SWPM/sapinst"
+  register:                            sapinst_found
+
+- name:                                "ErrorHandling"
+  ansible.builtin.fail:
+    msg:                               "INSTALL:0004:Unable to find sapinst, please check that the installation media is mounted"
+  when: not sapinst_found.stat.exists
 
 # Returns bom object
 - name:                                "ERS Install: Register BoM"
@@ -75,6 +81,7 @@
     sap_appVirtualHostname:
     sap_scs_hostname:                  "{{ sap_sid | lower }}scs{{ scs_instance_number }}cl1"
     param_directory:                   "{{ dir_params }}"
+    hdb_instance_number:               "{{ db_instance_number }}"
   tags:
     - skip_ansible_lint
 
@@ -118,6 +125,13 @@
 # 2230669 - System Provisioning Using a Parameter Input File
 #
 # *====================================4=======================================8
+
+    - name:                            "Create temp directory for sid"
+      ansible.builtin.file:
+        path:                          "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
+        state:                         directory
+        mode:                          0755
+
     - name:                            "ERS HA Installation"
       ansible.builtin.debug:
         msg:                           "Starting sapinst for {{ sap_sid | upper }}. Please wait"
@@ -126,7 +140,6 @@
       block:
         - name:                        "ERS Install: SAPInst"
           ansible.builtin.shell: |
-                                       export SAPSYSTEMNAME={{ sap_sid | upper }};
                                        umask {{ custom_umask | default('022') }};
                                        ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }}     \
                                                  SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.ers_ha }}             \
@@ -165,9 +178,14 @@
         # Add IS_HOST_LOCAL_USING_STRING_COMPARE=true to fix The host with the
         # name <host> is not a valid virtual host on the local host
         # SAP Note# 2279110
+        - name:                            "Create temp directory for sid"
+          ansible.builtin.file:
+            path:                          "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
+            state:                         directory
+            mode:                          0755
+
         - name:                        "RESCUE - ERS Install: SAPInst"
           ansible.builtin.shell: |
-                                       export SAPSYSTEMNAME={{ sap_sid | upper }};
                                        ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }}     \
                                                  SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.ers_ha }}             \
                                                  SAPINST_SKIP_DIALOGS=true                                           \

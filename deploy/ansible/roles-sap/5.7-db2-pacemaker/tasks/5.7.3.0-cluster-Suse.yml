@@ -1,0 +1,108 @@
+---
+
+# SLES Clustering - Deploy DB2 clustering Resources
+# Ref: https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/dbms-guide-ha-ibm
+
+- name:                                "DB2 - Find if the databases are active"
+  become:                              true
+  become_user:                         db2{{ db_sid | lower }}
+  ansible.builtin.shell:               db2 list active databases
+  args:
+    executable: /bin/csh
+  environment:
+    PATH: "{{ ansible_env.PATH }}:/db2/db2{{ db_sid | lower }}/sqllib/gskit/bin"
+  register:                            db2_list_active_databases
+  failed_when:                         db2_list_active_databases.rc not in [0,4]
+
+- name:                                "DB2 - Stop the DB only if it is active"
+  become:                              true
+  become_user:                         db2{{ db_sid | lower }}
+  ansible.builtin.shell:               db2stop force
+  args:
+    executable: /bin/csh
+  environment:
+    PATH: "{{ ansible_env.PATH }}:/db2/db2{{ db_sid | lower }}/sqllib/gskit/bin"
+  when:                                db2_list_active_databases.rc == 0
+
+- name:                                "Change to ksh Shell"
+  ansible.builtin.user:
+    name:                              db2{{ db_sid | lower }}
+    shell:                             /bin/ksh
+
+- name:                                "Configure DB2 Cluster Resources"
+  block:
+    - name:                            "DB2 HA - SUSE - Ensure maintenance mode is enabled"
+      ansible.builtin.command:         crm configure property maintenance-mode=true
+
+    - name:                            "DB2 HA - SUSE - Configure resource defaults - resource stickiness"
+      ansible.builtin.command:         "crm configure rsc_defaults resource-stickiness=1000"
+
+    - name:                            "DB2 HA - SUSE - Configure resource defaults - migration-threshold"
+      ansible.builtin.command:         "crm configure rsc_defaults migration-threshold=5000"
+
+    - name:                            "DB2 HA - SUSE - Ensure SAP DB2 primitive resource is configured"
+      ansible.builtin.command: >-
+                                       crm configure primitive rsc_Db2_db2{{ db_sid | lower }}_{{ db_sid | upper }} db2
+                                       params instance="db2{{ db_sid | lower }}" dblist="{{ db_sid | upper }}"
+                                       op start interval="0" timeout="130"
+                                       op stop interval="0" timeout="120"
+                                       op promote interval="0" timeout="120"
+                                       op demote interval="0" timeout="120"
+                                       op monitor interval="30" timeout="60"
+                                       op monitor interval="31" role="Master" timeout="60"
+      register:                        sap_db2_topology_rsc
+      failed_when:                     sap_db2_topology_rsc.rc > 1
+
+    - name:                            "DB2 HA - SUSE - Ensure SAP DB2 Virtual IP resource is configured"
+      ansible.builtin.command: >-
+                                       crm configure primitive rsc_ip_db2{{ db_sid | lower }}_{{ db_sid | upper }} IPaddr2
+                                       op monitor interval="10s" timeout="20s"
+                                       params ip="{{ db_lb_ip }}"
+      register:                        sap_db2_rsc_ip
+      failed_when:                     sap_db2_rsc_ip.rc > 1
+
+    # socat is recommended in place of netcat on Azure: https://www.suse.com/support/kb/doc/?id=000019536
+    # Currently we recommend using azure-lb resource agent, which is part of package resource-agents
+    # https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/dbms-guide-ha-ibm
+    # @TODO: ensure that we have the probe port set as it is configured on the LB
+    - name:                            "DB2 HA - SUSE - Ensure DB2 azure-lb resource agent is configured - probe port for Azure load Balancer"
+      ansible.builtin.command: >-
+                                       crm configure primitive rsc_nc_db2{{ db_sid | lower }}_{{ db_sid | upper }} azure-lb port=625{{ db_instance_number }}
+      register:                        sap_db2_nc_ip
+      failed_when:                     sap_db2_nc_ip.rc > 1
+
+    - name:                            "DB2 HA - SUSE - Ensure Group IP Address resource is configured"
+      ansible.builtin.command: >-
+                                       crm configure group g_ip_db2{{ db_sid | lower }}_{{ db_sid | upper }}
+                                       rsc_ip_db2{{ db_sid | lower }}_{{ db_sid | upper }}
+                                       rsc_nc_db2{{ db_sid | lower }}_{{ db_sid | upper }}
+      register:                        sap_db2_g_ip
+      failed_when:                     sap_db2_g_ip.rc > 1
+
+    - name:                            "DB2 HA - SUSE - Ensure Master resource is created"
+      ansible.builtin.command: >-
+                                       crm configure ms msl_Db2_db2{{ db_sid | lower }}_{{ db_sid | upper }} rsc_Db2_db2{{ db_sid | lower }}_{{ db_sid | upper }}
+                                       meta target-role="Started" notify="true"
+      register:                        sap_db2_msl
+      failed_when:                     sap_db2_msl.rc > 1
+
+    - name:                            "DB2 HA - SUSE - Ensure Co-Location constraint is configured"
+      ansible.builtin.command: >-
+                                       crm configure colocation col_db2_db2{{ db_sid | lower }}_{{ db_sid | upper }} inf: g_ip_db2{{ db_sid | lower }}_{{ db_sid | upper }}:Started
+                                       msl_Db2_db2{{ db_sid | lower }}_{{ db_sid | upper }}:Master
+      register:                        sap_db2_g_col_ip
+      failed_when:                     sap_db2_g_col_ip.rc > 1
+
+    - name:                            "DB2 HA - SUSE - Ensure Resource order is configured"
+      ansible.builtin.command: >-
+                                       crm configure order ord_db2_ip_db2{{ db_sid | lower }}_{{ db_sid | upper }} inf: msl_Db2_db2{{ db_sid | lower }}_{{ db_sid | upper }}:promote
+                                       g_ip_db2{{ db_sid | lower }}_{{ db_sid | upper }}:start
+      register:                        sap_db2_ord_ip
+      failed_when:                     sap_db2_ord_ip.rc > 1
+
+    - name:                            "DB2 HA - SUSE - Ensure maintenance mode is disabled"
+      ansible.builtin.command:         crm configure property maintenance-mode=false
+
+  when:                                ansible_hostname == primary_instance_name
+
+...

@@ -52,10 +52,10 @@ provider "azurerm" {
   features {}
   subscription_id = length(local.deployer_subscription_id) > 0 ? local.deployer_subscription_id : null
   use_msi         = false
-  client_id       = null
-  client_secret   = null
-  tenant_id       = null
-  alias           = "fencing"
+  client_id       = var.use_spn ? local.cp_spn.client_id : null
+  client_secret   = var.use_spn ? local.cp_spn.client_secret : null
+  tenant_id       = var.use_spn ? local.cp_spn.tenant_id : null
+  alias           = "peering"
 }
 
 
@@ -87,7 +87,7 @@ terraform {
     }
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "~> 3.2"
+      version = "~> 3.3"
     }
     tls = {
       source = "hashicorp/tls"
