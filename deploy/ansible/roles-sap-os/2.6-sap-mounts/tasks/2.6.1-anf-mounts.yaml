@@ -614,6 +614,7 @@
     - node_tier == 'hana'
     - hana_data_mountpoint is defined
     - hana_data_mountpoint | length > 1
+    - db_hosts | length > 1
     - ansible_hostname == db_hosts[1]
 
 - name:                                "ANF Mount: HANA log (secondary)"
@@ -638,6 +639,7 @@
     - node_tier == 'hana'
     - hana_log_mountpoint is defined
     - hana_log_mountpoint | length > 1
+    - db_hosts | length > 1
     - ansible_hostname == db_hosts[1]
 
 - name:                                "ANF Mount: HANA shared"
@@ -686,6 +688,7 @@
     - node_tier == 'hana'
     - hana_shared_mountpoint is defined
     - hana_shared_mountpoint | length > 1
+    - db_hosts | length > 1
     - ansible_hostname == db_hosts[1]
 
 - name:                                "ANF Mount: Set Permissons on HANA Directories ({{ item.path }})"
