@@ -286,6 +286,19 @@ packages:
   oraclelinux8.3:
 
   oraclelinux8.4:
+    - { tier: 'os',    package: 'binutils',                  node_tier: 'all',     state: 'present' }
+    - { tier: 'os',    package: 'libX11-xcb',                node_tier: 'all',     state: 'present' }
+    - { tier: 'os',    package: 'libXcomposite',             node_tier: 'all',     state: 'present' }
+    - { tier: 'os',    package: 'libXinerama',               node_tier: 'all',     state: 'present' }
+    - { tier: 'os',    package: 'libXrandr',                 node_tier: 'all',     state: 'present' }
+    - { tier: 'os',    package: 'libXv',                     node_tier: 'all',     state: 'present' }
+    - { tier: 'os',    package: 'libXxf86dga',               node_tier: 'all',     state: 'present' }
+    - { tier: 'os',    package: 'libXxf86misc',              node_tier: 'all',     state: 'present' }
+    - { tier: 'os',    package: 'libXxf86vm',                node_tier: 'all',     state: 'present' }
+    - { tier: 'os',    package: 'libdmx',                    node_tier: 'all',     state: 'present' }
+    - { tier: 'os',    package: 'libxcrypt-devel',           node_tier: 'all',     state: 'present' }
+    - { tier: 'os',    package: 'lm_sensors-libs',           node_tier: 'all',     state: 'present' }
+
   oraclelinux8.5:
     - { tier: 'os',    package: 'oracle-database-preinstall-19c',               node_tier: 'all',     state: 'present' }
   
