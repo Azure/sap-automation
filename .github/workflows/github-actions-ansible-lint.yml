@@ -7,4 +7,3 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: ansible/ansible-lint-action@v6.8.2
-

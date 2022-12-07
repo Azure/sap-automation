@@ -125,7 +125,7 @@
                                          --account-name {{ sapbits_location_base_path.rpartition('//')[2].split('.')[0] }} \
                                          --expiry {{ expiry.stdout }} \
                                          --permissions crwl \
-                                         --services bfqt \
+                                         --services b \
                                          --resource-types sco \
                                          --account-key {{ sapbits_access_key }} \
                                          --out tsv
