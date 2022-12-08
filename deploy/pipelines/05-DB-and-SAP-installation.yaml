@@ -21,22 +21,6 @@ parameters:
   - name:                              bom_base_name
     displayName:                       Bill of Materials name
     type:                              string
-    values:
-      - S4HANA_2021_ISS_v0001ms
-      - S42020SPS04_v0001ms
-      - S41909SPS03_v0011ms
-      - BW4HANA2021SPS01_v0003ms
-      - HANA_2_00_063_v0001ms
-      - HANA_2_00_061_v0001ms
-      - HANA_2_00_059_v0003ms
-      - HANA_2_00_055_v0006ms
-      - NW750SPS20_v0004ms
-      - NW752SPS09_v0001ms
-      - NW750SPS20_DB2_v0001ms
-      - ORACLE_19_00_v0003ms
-      - DB2_UDB_11_5_v0001ms
-      - ORACLE_19_00_ORA_MSID_v0002ms
-      - HCMT_v0002ms
 
   - name:                              extra_params
     displayName:                       Extra Parameters
