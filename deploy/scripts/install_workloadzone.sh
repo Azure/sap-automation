@@ -827,7 +827,7 @@ if [ 1 == $ok_to_proceed ]; then
     return_value=$?
 
 fi
-
+rerun_apply=0
 if [ -f apply_output.json ]
 then
     errors_occurred=$(jq 'select(."@level" == "error") | length' apply_output.json)
@@ -878,7 +878,11 @@ then
             terraform -chdir="${terraform_module_directory}" import -allow-missing-config  $allParamsforImport $moduleID $resourceID
         done
 
-        echo "##vso[task.logissue type=error]Resources imported into Terraform state file. Please re-run the pipeline."
+        retryable=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary}  | select(.summary | startswith("Code=\"RetryableError\""))' apply_output.json)
+        if [[ -n ${retryable} ]]
+        then
+            rerun_apply=1
+        fi
     fi
     # resources_with_timeout=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary}  | select(.summary | startswith("waiting for creation of Private Endpoint"))' apply_output.json)
     # if [[ -n ${resources_with_timeout} ]]
@@ -887,6 +891,90 @@ then
     fi
 
 fi
+
+if [ $rerun_apply == 1 ] ; then
+    echo ""
+    echo ""
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo -e "#                          $cyan Re running Terraform apply$resetformatting                                  #"
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
+    echo ""
+    echo ""
+    if [ 1 == $called_from_ado ] ; then
+        terraform -chdir="${terraform_module_directory}" apply ${approve} -parallelism="${parallelism}" -no-color -var-file=${var_file} $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter -json  | tee -a  apply_output.json
+    else
+        terraform -chdir="${terraform_module_directory}" apply ${approve} -parallelism="${parallelism}" -var-file=${var_file} $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter -json  | tee -a  apply_output.json
+    fi
+    return_value=$?
+fi
+
+rerun_apply=0
+if [ -f apply_output.json ]
+then
+    errors_occurred=$(jq 'select(."@level" == "error") | length' apply_output.json)
+
+    if [[ -n $errors_occurred ]]
+    then
+    echo ""
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo -e "#                          $boldreduscore!Errors during the apply phase!$resetformatting                              #"
+
+    return_value=2
+    all_errors=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary, detail: .diagnostic.detail}' apply_output.json)
+    if [[ -n ${all_errors} ]]
+    then
+        readarray -t errors_strings < <(echo ${all_errors} | jq -c '.' )
+        for errors_string in "${errors_strings[@]}"; do
+            string_to_report=$(jq -c -r '.detail '  <<< "$errors_string" )
+            if [[ -z ${string_to_report} ]]
+            then
+                string_to_report=$(jq -c -r '.summary '  <<< "$errors_string" )
+            fi
+
+            echo -e "#                          $boldreduscore  $string_to_report $resetformatting"
+            if [ 1 == $called_from_ado ] ; then
+                echo "##vso[task.logissue type=error]${string_to_report}"
+            fi
+
+        done
+
+    fi
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
+    echo ""
+
+    # Check for resource that can be imported
+    existing=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary}  | select(.summary | startswith("A resource with the ID"))' apply_output.json)
+    if [[ -n ${existing} ]]
+    then
+
+        readarray -t existing_resources < <(echo ${existing} | jq -c '.' )
+        for item in "${existing_resources[@]}"; do
+            moduleID=$(jq -c -r '.address '  <<< "$item")
+            resourceID=$(jq -c -r '.summary' <<< "$item" | awk -F'\"' '{print $2}')
+            echo "Trying to import" $resourceID "into" $moduleID
+            allParamsforImport=$(printf " -var-file=%s %s %s %s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter} " )
+            echo terraform -chdir="${terraform_module_directory}" import -allow-missing-config  $allParamsforImport $moduleID $resourceID
+            terraform -chdir="${terraform_module_directory}" import -allow-missing-config  $allParamsforImport $moduleID $resourceID
+        done
+
+        retryable=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary}  | select(.summary | startswith("Code=\"RetryableError\""))' apply_output.json)
+        if [[ -n ${retryable} ]]
+        then
+            rerun_apply=1
+        fi
+    fi
+    # resources_with_timeout=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary}  | select(.summary | startswith("waiting for creation of Private Endpoint"))' apply_output.json)
+    # if [[ -n ${resources_with_timeout} ]]
+    # then
+
+    fi
+
+fi
+
 
 workload_zone_prefix=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw workload_zone_prefix | tr -d \")
 save_config_var "workload_zone_prefix" "${workload_config_information}"
