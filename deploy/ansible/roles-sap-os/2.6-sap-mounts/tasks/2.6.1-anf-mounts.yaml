@@ -592,56 +592,6 @@
     - hana_log_mountpoint | length > 0
     - ansible_hostname == db_hosts[0]
 
-- name:                                "ANF Mount: HANA data (secondary)"
-  ansible.builtin.include_tasks:       2.6.1.1-anf-mount.yaml
-  loop:
-    - {
-      'type':              'data',
-      'temppath':          'hanadata',
-      'folder':            'hanadata',
-      'mount':             '{{ hana_data_mountpoint[1] }}',
-      'opts':              '{{ mnt_options }}',
-      'path':              '/hana/data',
-      'permissions':       '0755',
-      'set_chattr_on_dir': false,
-      'target_nodes' :     ['hana'],
-      'create_temp_folders': true
-    }
-  vars:
-    primary_host:                     "{{ db_hosts[1] }}"
-  when:
-    - tier == 'sapos'
-    - node_tier == 'hana'
-    - hana_data_mountpoint is defined
-    - hana_data_mountpoint | length > 1
-    - db_hosts | length > 1
-    - ansible_hostname == db_hosts[1]
-
-- name:                                "ANF Mount: HANA log (secondary)"
-  ansible.builtin.include_tasks:       2.6.1.1-anf-mount.yaml
-  loop:
-    - {
-      'type':                'log',
-      'temppath':            'hanalog',
-      'folder':              'hanalog',
-      'mount' :              '{{ hana_log_mountpoint[1] }}',
-      'opts':                '{{ mnt_options }}',
-      'path' :               '/hana/log',
-      'permissions':         '0755',
-      'set_chattr_on_dir':   false,
-      'target_nodes':        ['hana'],
-      'create_temp_folders': true
-    }
-  vars:
-    primary_host:                     "{{ db_hosts[1] }}"
-  when:
-    - tier == 'sapos'
-    - node_tier == 'hana'
-    - hana_log_mountpoint is defined
-    - hana_log_mountpoint | length > 1
-    - db_hosts | length > 1
-    - ansible_hostname == db_hosts[1]
-
 - name:                                "ANF Mount: HANA shared"
   ansible.builtin.include_tasks:       2.6.1.1-anf-mount.yaml
   loop:
@@ -666,6 +616,54 @@
     - hana_shared_mountpoint | length > 0
     - ansible_hostname == db_hosts[0]
 
+- name:                                "ANF Mount: HANA data (secondary)"
+  ansible.builtin.include_tasks:       2.6.1.1-anf-mount.yaml
+  loop:
+    - {
+      'type':              'data',
+      'temppath':          'hanadata',
+      'folder':            'hanadata',
+      'mount':             '{{ hana_data_mountpoint[1] }}',
+      'opts':              '{{ mnt_options }}',
+      'path':              '/hana/data',
+      'permissions':       '0755',
+      'set_chattr_on_dir': false,
+      'target_nodes' :     ['hana'],
+      'create_temp_folders': true
+    }
+  vars:
+    primary_host:                     "{{ db_hosts[1] }}"
+  when:
+    - tier == 'sapos'
+    - node_tier == 'hana'
+    - hana_data_mountpoint is defined
+    - hana_data_mountpoint | length > 1
+    - db_hosts | length == 2
+
+- name:                                "ANF Mount: HANA log (secondary)"
+  ansible.builtin.include_tasks:       2.6.1.1-anf-mount.yaml
+  loop:
+    - {
+      'type':                'log',
+      'temppath':            'hanalog',
+      'folder':              'hanalog',
+      'mount' :              '{{ hana_log_mountpoint[1] }}',
+      'opts':                '{{ mnt_options }}',
+      'path' :               '/hana/log',
+      'permissions':         '0755',
+      'set_chattr_on_dir':   false,
+      'target_nodes':        ['hana'],
+      'create_temp_folders': true
+    }
+  vars:
+    primary_host:                     "{{ db_hosts[1] }}"
+  when:
+    - tier == 'sapos'
+    - node_tier == 'hana'
+    - hana_log_mountpoint is defined
+    - hana_log_mountpoint | length > 1
+    - db_hosts | length ==2
+
 - name:                                "ANF Mount: HANA shared (secondary)"
   ansible.builtin.include_tasks:       2.6.1.1-anf-mount.yaml
   loop:
@@ -688,8 +686,7 @@
     - node_tier == 'hana'
     - hana_shared_mountpoint is defined
     - hana_shared_mountpoint | length > 1
-    - db_hosts | length > 1
-    - ansible_hostname == db_hosts[1]
+    - db_hosts | length == 2
 
 - name:                                "ANF Mount: Set Permissons on HANA Directories ({{ item.path }})"
   ansible.builtin.file:

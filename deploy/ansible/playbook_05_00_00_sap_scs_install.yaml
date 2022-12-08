@@ -41,6 +41,15 @@
       tags:
         - 0.1-passwords
 
+    - name:                            "OS configuration playbook: - Read password"
+      ansible.builtin.include_role:
+        name:                          roles-misc/0.1-passwords
+        tasks_from:                    windows.yaml
+        public:                        true
+      when: ansible_os_family == "Windows"
+      tags:
+        - 0.1-win-passwords
+
     - name:                            "SCS Installation Playbook: - Read/Create key vault secrets"
       ansible.builtin.include_role:
         name:                          roles-misc/0.2-kv-secrets
@@ -106,7 +115,9 @@
       loop:                            "{{ all_sids }}"
       loop_control:
         loop_var:                      sid_to_be_deployed
-      when:                            platform != "ORACLE"
+      when:
+        - platform != "ORACLE"
+        - ansible_os_family != "Windows"
       tags:
         - 2.5-sap-users
 
@@ -183,58 +194,122 @@
             msg:                       "{{ hostvars.localhost.sap_password }}"
             verbosity:                 4
 
-        - name:                        Run the SCS Installation Playbook
+        - name:                        "Run the SCS Installation on Linux"
           block:
-            - name:                    "SCS Installation Playbook: - Install SAPInst"
-              ansible.builtin.include_role:
-                name:                  roles-sap/5.0.0-scs-install
-              vars:
-                scs_instance_number:   "{{ sid_to_be_deployed.ascs_inst_no }}"
-              loop:                    "{{ all_sids }}"
-              loop_control:
-                loop_var:              sid_to_be_deployed
+            - name:                    "SCS Installation - Linux based systems"
+              block:
+                - name:                    "SCS Installation Playbook: - Install SAPInst"
+                  ansible.builtin.include_role:
+                    name:                  roles-sap/5.0.0-scs-install
+                  vars:
+                    scs_instance_number:   "{{ sid_to_be_deployed.ascs_inst_no }}"
+                  loop:                    "{{ all_sids }}"
+                  loop_control:
+                    loop_var:              sid_to_be_deployed
 
-            - name:                    "SCS Installation Playbook: - Ensure scs-install-done flag exists"
-              delegate_to:             localhost
-              become:                  false
-              ansible.builtin.file:
-                path:                  "{{ _workspace_directory }}/.progress/scs-install-done"
-                state:                 touch
-                mode:                  0755
-              when:
-                - scs_already_installed is defined or (scs_installation.rc is defined and scs_installation.rc == 0)
+                - name:                    "SCS Installation Playbook: - Ensure scs-install-done flag exists"
+                  delegate_to:             localhost
+                  become:                  false
+                  ansible.builtin.file:
+                    path:                  "{{ _workspace_directory }}/.progress/scs-install-done"
+                    state:                 touch
+                    mode:                  0755
+                  when:
+                    - scs_already_installed is defined or (scs_installation.rc is defined and scs_installation.rc == 0)
 
-          always:
-            - name:                    "SCS Installation Playbook: - Get the Error lines from installation output"
-              ansible.builtin.set_fact:
-                error_lines:           "{{ error_lines | default([]) + [item] }}"
-              with_items:              "{{ scs_installation.stdout_lines }}"
-              when:
-                - scs_installation.stdout_lines is defined
-                - '"ERROR" in item'
-                - scs_installation.rc > 0
+              always:
+                - name:                    "SCS Installation Playbook: - Get the Error lines from installation output"
+                  ansible.builtin.set_fact:
+                    error_lines:           "{{ error_lines | default([]) + [item] }}"
+                  with_items:              "{{ scs_installation.stdout_lines }}"
+                  when:
+                    - scs_installation.stdout_lines is defined
+                    - '"ERROR" in item'
+                    - scs_installation.rc > 0
 
-            - name:                    "SCS Installation Playbook: - Run post installation routines"
-              ansible.builtin.include_role:
-                name:                  roles-sap/7.0.0-post-install
-              vars:
-                suffix:                "_SCS"
-                prefix:                "{{ bom.product_ids.scs.replace('.', '/').replace('/ABAP', '').split(':')[1] }}"
-                path:                  'INSTALL/DISTRIBUTED/ABAP/ASCS'
-                tier:                  'scs'
-                this_sid:              "{{ sid_to_be_deployed.sid | upper }}"
-              loop:                    "{{ all_sids }}"
-              loop_control:
-                loop_var:              sid_to_be_deployed
+                - name:                    "SCS Installation Playbook: - Run post installation routines"
+                  ansible.builtin.include_role:
+                    name:                  roles-sap/7.0.0-post-install
+                  vars:
+                    suffix:                "_SCS"
+                    prefix:                "{{ bom.product_ids.scs.replace('.', '/').replace('/ABAP', '').split(':')[1] }}"
+                    path:                  'INSTALL/DISTRIBUTED/ABAP/ASCS'
+                    tier:                  'scs'
+                    this_sid:              "{{ sid_to_be_deployed.sid | upper }}"
+                  loop:                    "{{ all_sids }}"
+                  loop_control:
+                    loop_var:              sid_to_be_deployed
 
-            - name:                    "SCS Installation Playbook: - Show errors from HANA installation"
-              ansible.builtin.debug:
-                msg:                   "{{ error_lines }}"
-              when:
-                - error_lines is defined
+                - name:                    "SCS Installation Playbook: - Show errors from HANA installation"
+                  ansible.builtin.debug:
+                    msg:                   "{{ error_lines }}"
+                  when:
+                    - error_lines is defined
 
-          tags:
-            - 5.0.0-scs-install
+              tags:
+                - 5.0.0-scs-install
+          when: ansible_os_family != "Windows"
+
+        - name:                        "Run the SCS Installation on Windows"
+          block:
+            - name:                    "SCS Installation - Windows based systems"
+              block:
+                - name:                "SCS Installation Playbook: - Install SAPInst"
+                  ansible.builtin.include_role:
+                    name:              roles-sap/windows/5.0.0-scs-install
+                  vars:
+                    scs_instance_number:   "{{ sid_to_be_deployed.ascs_inst_no }}"
+                    domain_user_password:  "{{ hostvars.localhost.winadm_password }}"
+                    svc_password:          "{{ hostvars.localhost.svcadm_password }}"
+                  loop:                    "{{ all_sids }}"
+                  loop_control:
+                    loop_var:              sid_to_be_deployed
+
+                - name:                "SCS Installation Playbook: - Ensure scs-install-done flag exists"
+                  delegate_to:         localhost
+                  become:              false
+                  ansible.builtin.file:
+                    path:              "{{ _workspace_directory }}/.progress/scs-install-done"
+                    state:             touch
+                    mode:              0755
+                  when:
+                    - scs_already_installed is defined or (scs_installation.rc is defined and scs_installation.rc == 0)
+
+              always:
+                - name:                "SCS Installation Playbook: - Get the Error lines from installation output"
+                  ansible.builtin.set_fact:
+                    error_lines:       "{{ error_lines | default([]) + [item] }}"
+                  with_items:          "{{ scs_installation.stdout_lines }}"
+                  when:
+                    - scs_installation.stdout_lines is defined
+                    - '"ERROR" or "html" in item'
+                    - scs_installation.rc > 0
+
+                - name:                "SCS Installation Playbook: - Run post installation routines"
+                  ansible.builtin.include_role:
+                    name:              roles-sap/windows/7.0.0-post-install
+                  vars:
+                    suffix:            "_SCS"
+                    tier:              'scs'
+
+                - name:                "SCS Installation Playbook: - Show errors from the installation"
+                  ansible.builtin.debug:
+                    msg:               "{{ error_lines }}"
+                  when:
+                    - error_lines is defined
+
+                - name:                "SCS Install: Rename sapinst_logs Folder with TimeStamp"
+                  win_shell: |
+                                       Rename-Item -Path .\sapinst_logs -NewName "sapinst_logs_$(get-date -f yyyy_MM_dd_HH_mm_ss)"
+                  args:
+                    chdir:             '{{ log_dir_windows }}'
+                    removes:           '{{ log_dir_windows }}\sapinst_logs'
+                  register:            sapinst_log_name
+                  failed_when:         sapinst_log_name.rc > 0
+              tags:
+                - 5.0.0-scs-install
+
+          when: ansible_os_family == "Windows"
       when:
         - not scs_high_availability
         - "'scs' in supported_tiers"
@@ -441,6 +516,7 @@
         - scs_high_availability
         - "'scs' in supported_tiers or 'ers' in supported_tiers "
         - MULTI_SIDS is undefined
+        - ansible_os_family != "Windows"
 
 ...
 

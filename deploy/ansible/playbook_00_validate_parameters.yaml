@@ -50,6 +50,14 @@
       tags:
         - kv-secrets
 
+    - name:                            "0.0 Validations - Retrieve the domain passwords"
+      ansible.builtin.include_role:
+        name:                          roles-misc/0.1-passwords
+        tasks_from:                    windows.yaml
+        public:                        true
+      tags:
+        - 0.1-win-passwords
+
     - name:                            "0.0 Validations - Retrieve the storage account details"
       ansible.builtin.include_role:
         name:                          roles-misc/0.3.sap-installation-media-storage-details
@@ -219,6 +227,36 @@
 
       when:
         - platform == 'ORACLE'
+
+    - name:                            "0.0 Validations - Validate SQL Server parameters"
+      ansible.builtin.assert:
+        that:
+          - domain is defined                    # Has the variable been defined
+          - domain | type_debug != 'NoneType'    # Does it have a value
+          - domain | trim | length > 1
+        fail_msg:                      'SQL Server deployments require that domain is specified'
+      when:
+        - platform == 'SQLSERVER'
+
+    - name:                            "0.0 Validations - Validate SQL Server parameters"
+      ansible.builtin.assert:
+        that:
+          - domain_name is defined                    # Has the variable been defined
+          - domain_name | type_debug != 'NoneType'    # Does it have a value
+          - domain_name | trim | length > 1
+        fail_msg:                      'SQL Server deployments require that domain_name is specified'
+      when:
+        - platform == 'SQLSERVER'
+
+    - name:                            "0.0 Validations - Validate SQL Server parameters"
+      ansible.builtin.assert:
+        that:
+          - domain_user is defined                    # Has the variable been defined
+          - domain_user | type_debug != 'NoneType'    # Does it have a value
+          - domain_user | trim | length > 1
+        fail_msg:                      'SQL Server deployments require that domain_user is specified'
+      when:
+        - platform == 'SQLSERVER'
 
     - name:                            "0.0 Validations - Get Access Token"
       ansible.builtin.command: >-

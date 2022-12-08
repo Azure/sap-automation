@@ -1,0 +1,19 @@
+- name:                                     "WIN: Joining the domain {{ domain_name }}"
+  ansible.builtin.debug:
+    msg:
+    - "Domain:                              {{ domain_name }}"
+    - "domain_svc_account:                  {{ domain_service_account }}"
+    - "domain_svc_password:                 {{ domain_service_password }}"
+    - "hostname:                            {{ ansible_hostname }}"
+
+- name:                                     "WIN: Joining the domain {{ domain_name }}"
+  win_domain_membership:
+    dns_domain_name:                        "{{ domain_name }}"
+    domain_admin_user:                      "{{ domain_service_account }}"
+    domain_admin_password:                  "{{ domain_service_password }}"
+    hostname:                               "{{ ansible_hostname }}"
+    state:                                  domain
+  register:                                 domain_state
+
+- win_reboot:
+  when: domain_state.reboot_required

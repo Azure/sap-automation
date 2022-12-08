@@ -36,6 +36,15 @@
       tags:
         - 0.1-passwords
 
+    - name:                            "OS configuration playbook: - Read password"
+      ansible.builtin.include_role:
+        name:                          roles-misc/0.1-passwords
+        tasks_from:                    windows.yaml
+        public:                        true
+      when: ansible_os_family == "Windows"
+      tags:
+        - 0.1-win-passwords
+
     - name:                            "APP Playbook: Initialize tier"
       ansible.builtin.set_fact:
         tier:                          app
@@ -98,7 +107,9 @@
         loop_var:                    sid_to_be_deployed
       tags:
         - 2.5-sap-users
-      when:                            platform != 'ORACLE'
+      when:
+        - platform != 'ORACLE'
+        - ansible_os_family != "Windows"
 
 
 # /*---------------------------------------------------------------------------8
@@ -157,6 +168,7 @@
             name:                      roles-sap-os/2.6-sap-mounts
       tags:
         - 2.6-sap-mounts
+      when: ansible_os_family != "Windows"
 
     - name:                            Run the APP installation Playbook
       block:
@@ -209,9 +221,123 @@
             msg:                       "{{ error_lines }}"
           when:
             - error_lines is defined
-
+      when: ansible_os_family != "Windows"
       tags:
         - 5.3-app-install
+
+# -------------------------------------+---------------------------------------8
+# Role: 5.3-APP Installation
+#
+# Description:
+#
+# -------------------------------------+---------------------------------------8
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |               Playbook for SAP APP Install for Windows                     |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+- hosts:                               "{{ sap_sid | upper }}_APP"
+
+  name:                                "APP Installation Playbook for Windows"
+  remote_user:                         "{{ orchestration_ansible_user }}"
+  become:                              true
+  become_user:                         "{{ become_user_name }}"
+  gather_facts:                        true                                    # Important to collect hostvars information
+  vars_files:
+    - vars/ansible-input-api.yaml                                              # API Input template with defaults
+# -------------------------------------+---------------------------------------8
+#
+# Build the list of tasks to be executed in order here.
+#
+# -------------------------------------+---------------------------------------8
+  tasks:
+    - name:                            "APP Installation Playbook: - Run APP Installation on Windows"
+      block:
+
+        - name:                        "APP Installation Playbook: - Set 'app' tier facts"
+          ansible.builtin.set_fact:
+            tier:                          app
+            main_password:                 "{{ hostvars.localhost.sap_password }}"
+            sapbits_location_base_path:    "{{ hostvars.localhost.sapbits_location_base_path }}"
+            sapbits_sas_token:             "{{ hostvars.localhost.sapbits_sas_token }}"
+            always_upload_jinja_templates: false
+          tags:
+            - always
+
+        - name:                        "APP Installation Playbook: Define this SID"
+          ansible.builtin.set_fact:
+            this_sid:
+              {
+                'sid': '{{ sap_sid | upper }}',
+                'dbsid_uid': '{{ hdbadm_uid }}',
+                'sidadm_uid': '{{ sidadm_uid }}',
+                'ascs_inst_no': '{{ scs_instance_number }}',
+                'pas_inst_no': '{{ pas_instance_number }}',
+                'app_inst_no': '{{ app_instance_number }}'
+              }
+
+        - name:                        "APP Installation Playbook: Define list of SIDs"
+          ansible.builtin.set_fact:
+            all_sids:                  "{% if MULTI_SIDS is defined %}{{ MULTI_SIDS }}{% else %}{{ all_sids | default([]) + [ this_sid ] }}{% endif %}"
+
+        - name:                        "APP Installation Playbook: - Ensure Sharing Data Folder"
+          ansible.builtin.include_role:
+            name:                      roles-sap-os/windows/2.3-sap-exports
+
+        - name:                        Run the APP installation Playbook
+          block:
+            - name:                    "APP Installation Playbook: - Install SAPInst"
+              ansible.builtin.include_role:
+                name:                  roles-sap/windows/5.3-app-install
+              vars:
+                scs_instance_number:   "{{ sid_to_be_deployed.ascs_inst_no }}"
+                instance_number:       "{{ sid_to_be_deployed.app_inst_no }}"
+                domain_user_password:  "{{ hostvars.localhost.winadm_password }}"
+                svc_password:          "{{ hostvars.localhost.svcadm_password }}"
+              loop:                    "{{ all_sids }}"
+              loop_control:
+                loop_var:              sid_to_be_deployed
+
+          always:
+            - name:                    "APP Installation Playbook: - Get the Error lines from installation output"
+              ansible.builtin.set_fact:
+                error_lines:           "{{ error_lines | default([]) + [item] }}"
+              with_items:              "{{ app_installation.stdout_lines }}"
+              when:
+                - app_installation.stdout_lines is defined
+                - '"ERROR" in item'
+                - app_installation.rc > 0
+
+            - name:                    "APP Installation Playbook: - Run post installation routines"
+              ansible.builtin.include_role:
+                name:                  roles-sap/windows/7.0.0-post-install
+              vars:
+                suffix:                "_APP"
+                tier:                  'app'
+
+            - name:                    "APP Installation Playbook: - Show errors from APP installation"
+              ansible.builtin.debug:
+                msg:                   "{{ error_lines }}"
+              when:
+                - error_lines is defined
+
+            - name:                    "APP Install: Rename sapinst_logs Folder with TimeStamp"
+              win_shell: |
+                                        Rename-Item -Path .\sapinst_logs -NewName "sapinst_logs_$(get-date -f yyyy_MM_dd_HH_mm_ss)"
+              args:
+                chdir:                 '{{ log_dir_windows }}'
+                removes:               '{{ log_dir_windows }}\sapinst_logs'
+              register:                sapinst_log_name
+              failed_when:             sapinst_log_name.rc > 0
+
+          tags:
+            - 5.3-app-win-install
+
+      when:
+        - "'app' in supported_tiers"
+        - ansible_os_family == "Windows"
+
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
