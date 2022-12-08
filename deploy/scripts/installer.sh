@@ -615,6 +615,7 @@ if [ 0 == $return_value ] ; then
                       az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_ID --value $webapp_id --output none --only-show-errors
                   fi
                 fi
+                fi
 
         fi
 
