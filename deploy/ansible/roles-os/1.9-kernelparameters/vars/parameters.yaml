@@ -85,7 +85,10 @@ parameters:
     - { tier: 'sapos', node_tier: 'hana',name: 'fs.aio-max-nr',                              value: '18446744073709551615', state: 'present' }
     - { tier: 'ha',    node_tier: 'all', name: 'vm.dirty_bytes',                             value: '629145600',            state: 'present' }
     - { tier: 'ha',    node_tier: 'all', name: 'vm.dirty_background_bytes',                  value: '314572800',            state: 'present' }
+    # SAP note: 1410736 - TCP/IP: setting keepalive interval
     - { tier: 'ha',    node_tier: 'all', name: 'net.ipv4.tcp_keepalive_time',                value: '300',                  state: 'present' }
+    - { tier: 'ha',    node_tier: 'all', name: 'net.ipv4.tcp_keepalive_intvl',               value: '75',                   state: 'present' }
+    - { tier: 'ha',    node_tier: 'all', name: 'net.ipv4.tcp_keepalive_probes',              value: '9',                    state: 'present' }
     - { tier: 'ha',    node_tier: 'all', name: 'net.ipv4.tcp_timestamps',                    value: '0',                    state: 'present' }
     # this is not required in newer kernels as per 2382421
     # - { tier: 'os', name: 'net.ipv4.tcp_tw_recycle',                       value: '0',                      state: 'present' }
@@ -118,7 +121,10 @@ parameters:
     - { tier: 'sapos', node_tier: 'hana',name: 'fs.aio-max-nr',                              value: '18446744073709551615', state: 'present' }
     - { tier: 'ha',    node_tier: 'all', name: 'vm.dirty_bytes',                             value: '629145600',            state: 'present' }
     - { tier: 'ha',    node_tier: 'all', name: 'vm.dirty_background_bytes',                  value: '314572800',            state: 'present' }
+    # SAP note: 1410736 - TCP/IP: setting keepalive interval
     - { tier: 'ha',    node_tier: 'all', name: 'net.ipv4.tcp_keepalive_time',                value: '300',                  state: 'present' }
+    - { tier: 'ha',    node_tier: 'all', name: 'net.ipv4.tcp_keepalive_intvl',               value: '75',                   state: 'present' }
+    - { tier: 'ha',    node_tier: 'all', name: 'net.ipv4.tcp_keepalive_probes',              value: '9',                    state: 'present' }
     - { tier: 'ha',    node_tier: 'all', name: 'net.ipv4.tcp_timestamps',                    value: '0',                    state: 'present' }
     # this is not required in newer kernels as per 2382421
     # - { tier: 'os', name: 'net.ipv4.tcp_tw_recycle',                       value: '0',                      state: 'present' }
@@ -146,7 +152,10 @@ parameters:
     #  - { tier: 'sapos', node_tier: 'hana',name: 'kernel.shmall',                              value: '32768',                state: 'present' }
     - { tier: 'sapos', node_tier: 'hana',name: 'fs.file-max',                                value: '20000000',             state: 'present' }
     - { tier: 'sapos', node_tier: 'hana',name: 'fs.aio-max-nr',                              value: '18446744073709551615', state: 'present' }
+    # SAP note: 1410736 - TCP/IP: setting keepalive interval
     - { tier: 'ha',    node_tier: 'all', name: 'net.ipv4.tcp_keepalive_time',                value: '300',                  state: 'present' }
+    - { tier: 'ha',    node_tier: 'all', name: 'net.ipv4.tcp_keepalive_intvl',               value: '75',                   state: 'present' }
+    - { tier: 'ha',    node_tier: 'all', name: 'net.ipv4.tcp_keepalive_probes',              value: '9',                    state: 'present' }
     - { tier: 'ha',    node_tier: 'all', name: 'net.ipv4.tcp_timestamps',                    value: '0',                    state: 'present' }
     # this is not required in newer kernels as per 2382421
     # - { tier: 'os', name: 'net.ipv4.tcp_tw_recycle',                       value: '0',                      state: 'present' }
@@ -174,7 +183,10 @@ parameters:
     # - { tier: 'sapos', node_tier: 'hana',name: 'kernel.shmall',                              value: '32768',                state: 'present' }
     - { tier: 'sapos', node_tier: 'hana',name: 'fs.file-max',                                value: '20000000',             state: 'present' }
     - { tier: 'sapos', node_tier: 'hana',name: 'fs.aio-max-nr',                              value: '18446744073709551615', state: 'present' }
+    # SAP note: 1410736 - TCP/IP: setting keepalive interval
     - { tier: 'ha',    node_tier: 'all', name: 'net.ipv4.tcp_keepalive_time',                value: '300',                  state: 'present' }
+    - { tier: 'ha',    node_tier: 'all', name: 'net.ipv4.tcp_keepalive_intvl',               value: '75',                   state: 'present' }
+    - { tier: 'ha',    node_tier: 'all', name: 'net.ipv4.tcp_keepalive_probes',              value: '9',                    state: 'present' }
     - { tier: 'ha',    node_tier: 'all', name: 'net.ipv4.tcp_timestamps',                    value: '0',                    state: 'present' }
     # this is not required in newer kernels as per 2382421
     # - { tier: 'os', name: 'net.ipv4.tcp_tw_recycle',                       value: '0',                      state: 'present' }
