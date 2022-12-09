@@ -46,7 +46,7 @@
         name:                          roles-misc/0.1-passwords
         tasks_from:                    windows.yaml
         public:                        true
-      when: ansible_os_family == "Windows"
+      when: Platform == "SQLSERVER"
       tags:
         - 0.1-win-passwords
 
