@@ -101,8 +101,8 @@
   ansible.builtin.fail:
     msg:                               "No {{ svcsidadm_password_id }} secret found"
   when:
-   - not svc_secret_exists
-   - platform == 'SQLSERVER'
+    - not svc_secret_exists
+    - platform == 'SQLSERVER'
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |

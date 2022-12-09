@@ -33,7 +33,7 @@
       ansible.windows.win_copy:
         src:                                        "{{ item.path }}"
         dest:                                       '{{ tmp_directory_windows }}\{{ sap_sid | upper }}'
-        remote_src:                                 yes
+        remote_src:                                 true
       with_items: "{{ sapinst_log_files.files }}"
 
     - name:                                         "Post Installation: Compress the installation log files"

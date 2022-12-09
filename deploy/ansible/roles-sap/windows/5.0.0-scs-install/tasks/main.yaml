@@ -70,12 +70,12 @@
     state:                             directory
 
 - name:                                "Install Microsoft Visual C++ Redistributable package"
-  win_package:
+  ansible.win.win_package:
     path:                              https://aka.ms/vs/17/release/vc_redist.x64.exe
     product_id:                        '{CF2BEA3C-26EA-32F8-AA9B-331F7E34BA97}'
     arguments:
-    - /install
-    - /passive
+      - /install
+      - /passive
 # #   2x) Install vcredist package then reboot.
 # - name:                                "Install SAP vcredist package"
 #   win_package:
@@ -104,7 +104,7 @@
   register:                            vcredist_output
 
 - name:                                "Reboot after package installation"
-  win_reboot:
+  ansible.windows.win_reboot:
     reboot_timeout:                    600
     post_reboot_delay:                 120
   when: vcredist_output.reboot_required
@@ -187,7 +187,7 @@
         msg:                           "Start SCS Installation"
 
     - name:                            "SCS Install: sapinst Extraction"
-      win_shell: |
+      ansible.windows.win_shell: |
                                        {{ download_directory_windows }}\SWPM\sapinst.exe -extract
       args:
         chdir:                         '{{ download_directory_windows }}\sap_extract'
