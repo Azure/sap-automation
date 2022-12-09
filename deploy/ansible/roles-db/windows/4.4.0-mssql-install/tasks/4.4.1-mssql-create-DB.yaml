@@ -22,7 +22,7 @@
   ansible.builtin.debug:
     msg:                                "WIN-SQL: DB is already existing"
   when:
-    -  db_creation.stat.exists
+    - db_creation.stat.exists
 
 - name:                                 "WIN-SQL: Create a new DB on {{ ansible_hostname }}"
   ansible.windows.win_shell: |
