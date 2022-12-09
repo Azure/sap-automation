@@ -70,7 +70,7 @@
     state:                             directory
 
 - name:                                "Install Microsoft Visual C++ Redistributable package"
-  ansible.win.win_package:
+  ansible.windows.win_package:
     path:                              https://aka.ms/vs/17/release/vc_redist.x64.exe
     product_id:                        '{CF2BEA3C-26EA-32F8-AA9B-331F7E34BA97}'
     arguments:
