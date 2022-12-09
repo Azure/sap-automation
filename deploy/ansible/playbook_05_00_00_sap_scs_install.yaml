@@ -250,10 +250,11 @@
           when: ansible_os_family != "Windows"
 
         - name:                        "Run the SCS Installation on Windows"
+          become:                      false
           block:
             - name:                    "SCS Installation - Windows based systems"
               block:
-                - name:                "SCS Installation Playbook: - Install SAPInst"
+                - name:                "SCS Installation Playbook: - Install using sapinst"
                   ansible.builtin.include_role:
                     name:              roles-sap/windows/5.0.0-scs-install
                   vars:
