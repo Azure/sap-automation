@@ -393,6 +393,7 @@
         - (ansible_distribution | lower ~ ansible_distribution_major_version) != 'suse15'
         - (ansible_distribution | lower ~ ansible_distribution_major_version) != 'sles_sap15'
         - (ansible_distribution | lower ~ ansible_distribution_major_version) != 'redhat8'
+        - ansible_os_family != "Windows"
       tags:
         - 0.0-internet
 
@@ -439,6 +440,8 @@
       failed_when: false
       tags:
         - 0.0-mounts
+      when:
+        - ansible_os_family != "Windows"
 
     - name:                            "0.0 Validations - Show Mounts"
       ansible.builtin.debug:
@@ -450,6 +453,8 @@
       register: hosts
       tags:
         - 0.0-hosts
+      when:
+        - ansible_os_family != "Windows"
 
     - name:                            "0.0 Validations - Show Hosts"
       ansible.builtin.debug:
