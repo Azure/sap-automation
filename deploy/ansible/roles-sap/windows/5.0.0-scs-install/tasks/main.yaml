@@ -70,7 +70,7 @@
     state:                             directory
 
 - name:                                "Install SAP vcredist package"
-  win_package:
+  ansible.windows.win_package:
     path:                              '{{ download_directory_windows }}\SWPM\NTPATCH\VCREDIST2013\vcredist_x64.exe'
     product_id:                        '{CF2BEA3C-26EA-32F8-AA9B-331F7E34BA97}'
     state:                             present
