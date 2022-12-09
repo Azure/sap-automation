@@ -10,7 +10,7 @@
 - name:                                "WIN: Joining the domain {{ domain }}"
   ansible.windows.win_domain_membership:
     dns_domain_name:                   "{{ domain }}"
-    domain_admin_user:                 "{{ domain_service_account }}"
+    domain_admin_user:                 "{{ domain_service_account }}@{{ domain }}"
     domain_admin_password:             "{{ domain_service_password }}"
     hostname:                          "{{ ansible_hostname }}"
     state:                             domain
