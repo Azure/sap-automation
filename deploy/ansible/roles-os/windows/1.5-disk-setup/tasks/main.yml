@@ -28,7 +28,7 @@
 #
 
 - name: get disk facts
-  win_disk_facts:
+  ansible.windows.win_disk_facts:
 
 - name:                                "1.5 Disk setup - Show disk info"
   ansible.builtin.debug:
@@ -48,7 +48,7 @@
     #verbosity:                         2
 
 - name:                                "1.5 Disk setup - Initialize the disks"
-  win_dsc:
+  ansible.windows.win_dsc:
     resource_name:                     "WaitForDisk"
     DiskId:                            "{{ item.osdisk_id }}"
     DiskIdType:                        'UniqueId'
@@ -57,7 +57,7 @@
   loop:                                "{{ volume_groups }}"
 
 - name:                                "1.5 Disk setup - Initialize the disks"
-  win_dsc:
+  ansible.windows.win_dsc:
     resource_name:                     "Disk"
     DiskId:                            "{{ item.osdisk_id }}"
     DiskIdType:                        'UniqueId'

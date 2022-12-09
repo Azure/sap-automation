@@ -11,7 +11,7 @@
 # -------------------------------------+---------------------------------------8
 
 - name:                                     "WIN-OS: Set Paging file location and size in MB"
-  win_dsc:
+  ansible.windows.win_dsc:
     resource_name:                          VirtualMemory
     Type:                                   CustomSize
     Drive:                                  "{{ item.drive }}"

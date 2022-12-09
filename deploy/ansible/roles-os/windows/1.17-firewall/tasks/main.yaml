@@ -9,13 +9,13 @@
 
 # Disable the Firewall
 - name:                                     Disable domain Firewall
-  win_dsc:
+  ansible.windows.win_dsc:
     resource_name:                          FirewallProfile
     Enabled:                                false
     Name:                                   Domain
 
 - name:                                     Disable public Firewall
-  win_dsc:
+  ansible.windows.win_dsc:
     resource_name:                          FirewallProfile
     Enabled:                                false
     Name:                                   Public
