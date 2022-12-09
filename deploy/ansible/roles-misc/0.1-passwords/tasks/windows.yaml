@@ -58,8 +58,8 @@
   ansible.builtin.fail:
     msg:                               "No {{ winsidadm_password_id }} secret found"
   when:
-   - not win_secret_exists
-   - platform == 'SQLSERVER'
+    - not win_secret_exists
+    - platform == 'SQLSERVER'
 
 
 # /*---------------------------------------------------------------------------8
@@ -98,8 +98,8 @@
   ansible.builtin.fail:
     msg:                               "No {{ svcsidadm_password_id }} secret found"
   when:
-   - not svc_secret_exists
-   - platform == 'SQLSERVER'
+    - not svc_secret_exists
+    - platform == 'SQLSERVER'
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
@@ -132,15 +132,15 @@
         var:                           adsvc_password
         verbosity:                     4
   when:
-   - not adsvc_secret_exists
-   - platform == 'SQLSERVER'
+    - not adsvc_secret_exists
+    - platform == 'SQLSERVER'
 
 - name:                                "No Service Account password secret found"
   ansible.builtin.fail:
     msg:                               "No {{ adsvcadm_password_id }} secret found"
   when:
-   - not adsvc_secret_exists
-   - platform == 'SQLSERVER'
+    - not adsvc_secret_exists
+    - platform == 'SQLSERVER'
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
@@ -177,7 +177,7 @@
   ansible.builtin.fail:
     msg:                               "No {{ adsvcadm_account_id }} secret found"
   when:
-   - not adsvc_account_secret_exists
-   - platform == 'SQLSERVER'
+    - not adsvc_account_secret_exists
+    - platform == 'SQLSERVER'
 
 ...

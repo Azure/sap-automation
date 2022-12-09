@@ -30,7 +30,7 @@
   register:                             nuget_installed
 
 - name:                                "Install Nuget on {{ ansible_hostname }}"
-  win_shell: |
+  ansible.windows.win_shell: |
                                        [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
                                        Install-PackageProvider -Name NuGet -Force
   when:
@@ -62,7 +62,7 @@
   community.windows.win_psmodule:
     name:                              "{{ item }}"
     state:                             present
-    accept_license:                    yes
+    accept_license:                    true
   loop:
     - StorageDsc
     - NetworkingDsc
@@ -80,4 +80,4 @@
   notify:                                   reboot
 
 - name:                                     "Force all notified handlers to run now"
-  meta:                                     flush_handlers
+  ansible.builtin.meta:                     flush_handlers

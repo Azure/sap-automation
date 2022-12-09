@@ -7,18 +7,17 @@
 # +------------------------------------4--------------------------------------*/
 
 # Mount Filesystems
-- name:                            "2.6 SAP Mounts: - Create a Mapped Drive under Z"
-  win_mapped_drive:
-    letter:                        Z
-    path:                          "{{ item.path }}"
-    state:                         present
+- name:                                "2.6 SAP Mounts: - Create a Mapped Drive under {{ win_mapped_drive }}"
+  community.windows.win_mapped_drive:
+    letter:                            "{{ win_mapped_drive }}"
+    path:                              "{{ item.path }}"
+    state:                             present
   vars:
-    ansible_become:                true
-    ansible_become_method:         runas
-    ansible_become_user:           '{{ domain }}\{{ sap_sid }}adm'
-    ansible_become_password:       "{{ domain_user_password }}"
+    ansible_become:                    true
+    ansible_become_method:             runas
+    ansible_become_user:               '{{ domain }}\{{ sap_sid }}adm'
+    ansible_become_password:           "{{ domain_user_password }}"
   loop:
     - { node_tier: 'all', path: '\\{{ scs_server }}\SAP' }
-  ignore_errors: yes
 
 # ...

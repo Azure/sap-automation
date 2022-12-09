@@ -23,9 +23,9 @@
   vars:
     swap_size_mb:                           "{{ (sap_swap | selectattr('tier', 'search', node_tier) | list | first).swap_size_mb }}"
   notify:
-   - reboot
+    - reboot
 
 - name:                                     "Force all notified handlers to run now"
-  meta:                                     flush_handlers
+  ansible.builtin.meta:                     flush_handlers
 
 ...
