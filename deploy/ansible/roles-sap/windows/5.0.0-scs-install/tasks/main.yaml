@@ -69,6 +69,13 @@
     path:                              '{{ log_dir_windows }}\sapinst_logs'
     state:                             directory
 
+- name:                                "Install SAP vcredist package"
+  win_package:
+    path:                              '{{ download_directory_windows }}\SWPM\NTPATCH\VCREDIST2013\vcredist_x64.exe'
+    product_id:                        '{CF2BEA3C-26EA-32F8-AA9B-331F7E34BA97}'
+    state:                             present
+    arguments:                         '/norestart /log vcredist_x64.log /quiet'
+
 - name:                                "Install Microsoft Visual C++ Redistributable package"
   ansible.windows.win_package:
     path:                              https://aka.ms/vs/17/release/vc_redist.x64.exe
@@ -76,26 +83,6 @@
     arguments:
       - /install
       - /passive
-# #   2x) Install vcredist package then reboot.
-# - name:                                "Install SAP vcredist package"
-#   win_package:
-#     path:                              '{{ download_directory_windows }}\SWPM\NTPATCH\VCREDIST2017\VC_redist.x64.exe'
-#     product_id:                        '{CF2BEA3C-26EA-32F8-AA9B-331F7E34BA97}'
-#     state:                             present
-#     arguments:                         '/norestart /log vcredist_x64.log /quiet'
-#   vars:
-#     ansible_become:                    true
-#     ansible_become_method:             runas
-#     ansible_become_user:               '{{ domain }}\{{ sap_sid }}adm'
-#     ansible_become_password:           "{{ ansible_password }}"
-#   register:                            vcredist2017_output
-
-# - name:                                "Install SAP vcredist package"
-#   win_package:
-#     path:                              '{{ download_directory_windows }}\SWPM\NTPATCH\VCREDIST2013\vcredist_x64.exe'
-#     product_id:                        '{CF2BEA3C-26EA-32F8-AA9B-331F7E34BA97}'
-#     state:                             present
-#     arguments:                         '/norestart /log vcredist_x64.log /quiet'
   vars:
     ansible_become:                    true
     ansible_become_method:             runas
@@ -115,7 +102,7 @@
     tasks_from:                        bom-register
   vars:
     bom_name:                          "{{ bom_base_name }}"
-    tier:                              "{{ tier }}"
+    tier:                              "scs"
     task_prefix:                       "SCS Install: "
 
 - name:                                "SCS Install: Include roles-sap/windows/3.3.1-bom-utility role"
@@ -194,6 +181,9 @@
         creates:                       '{{ download_directory_windows }}\sap_extract\sapinst.exe'
       become:                          true
       become_method:                   runas
+      become_user:                     '{{ domain }}\{{ sap_sid }}adm'
+      vars:
+        ansible_become_password:       "{{ domain_user_password }}"
       register:                        scs_extraction
       failed_when:                     scs_extraction.rc > 0
 
@@ -204,7 +194,10 @@
     - name:                            "SCS Installation"
       block:
         - name:                        "SCS Install: SAP SCS Install on {{ ansible_hostname }}"
-          win_shell: |
+          become:                      true
+          become_method:               runas
+          become_user:                 '{{ domain }}\{{ sap_sid }}adm'
+          ansible.windows.win_shell: |
                                        {{ download_directory_windows }}\sap_extract\sapinst.exe SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}\{{ sap_inifile }}   `
                                                                                                  SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.scs }}             `
                                                                                                  SAPINST_SKIP_DIALOGS=true                                        `
@@ -215,9 +208,6 @@
             chdir:                     '{{ log_dir_windows }}\sapinst_logs'
             creates:                   '{{ sap_deployment_automation }}\{{ sid_to_be_deployed.sid | upper }}\sap_deployment_scs.txt'
           vars:
-            ansible_become:            true
-            ansible_become_method:     runas
-            ansible_become_user:       '{{ domain }}\{{ sap_sid }}adm'
             ansible_become_password:   "{{ domain_user_password }}"
           register:                    scs_installation
           failed_when:                 scs_installation.rc > 0
