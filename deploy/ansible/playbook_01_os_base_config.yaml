@@ -176,6 +176,10 @@
 
     - name:                            OS Configuration - Windows based systems
       block:
+        - name:                        "OS configuration playbook: - Debug"
+          ansible.builtin.debug:
+            var:                       hostvars.localhost
+
         - name:                        "OS configuration playbook: - Add Needed packages"
           ansible.builtin.include_role:
             name:                      roles-os/windows/1.4-packages
