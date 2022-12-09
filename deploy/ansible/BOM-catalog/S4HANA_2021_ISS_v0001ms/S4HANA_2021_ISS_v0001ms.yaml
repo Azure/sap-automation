@@ -283,7 +283,7 @@ materials:
 
     - name:                            "Attribute Change Package 22 for GBX01HR5 605"
       archive:                         GBX01HR5605.SAR
-      checksum:                        739bc35d266c9d53d08efba15956dcada2d276254ff7d68d8a88c7378100dba2
+      checksum:                        19d06ed87c3fc1b9390fafa94d9a2d25ddabd3c0e61777a693e6155f113fa167
       url:                             https://softwaredownloads.sap.com/file/0010000000033172015
       download:                        false
 
@@ -535,7 +535,7 @@ materials:
 
     - name:                            "Attribute Change Package 45 for ST-PI 740"
       archive:                         ST-PI740.SAR
-      checksum:                        8406c3d057afd459406b3d2fa500a1050eb8ac3c81be165d19af6e5834725328
+      checksum:                        2b87eb02fa26dd8279a37eaa4c1ee64adab8bccbaca668f1e32ff421bdfbf9c8
       url:                             https://softwaredownloads.sap.com/file/0010000000297212015
       download:                        false
 
