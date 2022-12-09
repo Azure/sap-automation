@@ -72,9 +72,10 @@
   # Specify the active tier for this playbook run
     - name:                            "OS Configuration - Linux based systems"
       block:
+      when: ansible_os_family != "Windows"
       become:                          true
       become_user:                     root
-      when: ansible_os_family != "Windows"
+
         - name:                        "OS configuration playbook: - Set os fact"
           ansible.builtin.set_fact:
             tier:                      os
