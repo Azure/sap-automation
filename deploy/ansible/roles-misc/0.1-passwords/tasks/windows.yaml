@@ -57,7 +57,10 @@
 - name:                                "No winadm secret found"
   ansible.builtin.fail:
     msg:                               "No {{ winsidadm_password_id }} secret found"
-  when:                                not win_secret_exists
+  when:
+   - not win_secret_exists
+   - platform == 'SQLSERVER'
+
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
@@ -94,7 +97,9 @@
 - name:                                "No sidsvc secret found"
   ansible.builtin.fail:
     msg:                               "No {{ svcsidadm_password_id }} secret found"
-  when:                                not svc_secret_exists
+  when:
+   - not svc_secret_exists
+   - platform == 'SQLSERVER'
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
@@ -126,12 +131,16 @@
       ansible.builtin.debug:
         var:                           adsvc_password
         verbosity:                     4
-  when:                                adsvc_secret_exists
+  when:
+   - not adsvc_secret_exists
+   - platform == 'SQLSERVER'
 
 - name:                                "No Service Account password secret found"
   ansible.builtin.fail:
     msg:                               "No {{ adsvcadm_password_id }} secret found"
-  when:                                not adsvc_secret_exists
+  when:
+   - not adsvc_secret_exists
+   - platform == 'SQLSERVER'
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
@@ -167,6 +176,8 @@
 - name:                                "No Service Account secret found"
   ansible.builtin.fail:
     msg:                               "No {{ adsvcadm_account_id }} secret found"
-  when:                                not adsvc_account_secret_exists
+  when:
+   - not adsvc_account_secret_exists
+   - platform == 'SQLSERVER'
 
 ...
