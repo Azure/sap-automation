@@ -33,16 +33,18 @@
     - name:                            "0.2 Key Vault: - Get Deployer key vault name from workload zone key vault"
       ansible.builtin.command: >-
                                        az keyvault secret show
-                                         --vault-name {{ kv_name }}
-                                         --name {{ deployer_kv_name_secret }}
+                                        --vault-name {{ kv_name }}
+                                        --name {{ deployer_kv_name_secret }}
+                                        --query value
+                                        --output tsv
       changed_when:                    false
       register:                        deployer_kv_name_secret
       when:                            bom_processing is not defined
 
     - name:                            "0.2 Key Vault: - Save Deployer key vault name"
       ansible.builtin.set_fact:
-        deployer_kv_name: >-
-                                       {{ (deployer_kv_name_secret.stdout | from_json).value }}
+        deployer_kv_name:              "{{ deployer_kv_name_secret.stdout }}"
+        cacheable:                     true
   rescue:
     - name:                            "0.2 Key Vault: - Rescue - perform az login"
       ansible.builtin.command: >-
@@ -52,16 +54,19 @@
     - name:                            "0.2 Key Vault: - Get Deployer key vault name from workload zone key vault"
       ansible.builtin.command: >-
                                        az keyvault secret show
-                                         --vault-name {{ kv_name }}
-                                         --name {{ deployer_kv_name_secret }}
+                                          --vault-name {{ kv_name }}
+                                          --name {{ deployer_kv_name_secret }}
+                                          --query value
+                                          --output tsv
       changed_when:                    false
       register:                        deployer_kv_name_secret
       when:                            bom_processing is not defined
 
     - name:                            "0.2 Key Vault: - Save Deployer key vault name"
       ansible.builtin.set_fact:
-        deployer_kv_name: >-
-                                       {{ (deployer_kv_name_secret.stdout | from_json).value }}
+        deployer_kv_name:              "{{ deployer_kv_name_secret.stdout }}"
+        cacheable:                     true
+
 
   when: deployer_kv_name is not defined
 

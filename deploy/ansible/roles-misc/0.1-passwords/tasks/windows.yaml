@@ -39,14 +39,15 @@
         az keyvault secret show
           --vault-name {{ kv_name }}
           --name {{ winsidadm_password_id }}
+          --query value
+          --output tsv
       changed_when:                    false
-      register:                        win_keyvault_secret_show_sap_password_id
+      register:                        win_keyvault_secret_show_sap_password_value
       no_log:                          true
 
     - name:                            "0.1 Password: - Extract winadm password"
       ansible.builtin.set_fact:
-        winadm_password: >-
-                                       {{ (win_keyvault_secret_show_sap_password_id.stdout | from_json).value }}
+        winadm_password:              "{{ win_keyvault_secret_show_sap_password_value.stdout }}"
 
     - name:                            "0.1 Password: - Show sidadm Password"
       ansible.builtin.debug:
@@ -79,14 +80,16 @@
         az keyvault secret show
           --vault-name {{ kv_name }}
           --name {{ svcsidadm_password_id }}
+          --query value
+          --output tsv
       changed_when:                    false
-      register:                        svc_keyvault_secret_show_sap_password_id
+      register:                        svc_keyvault_secret_show_sap_password_value
       no_log:                          true
 
     - name:                            "0.1 Password: - Extract svc password"
       ansible.builtin.set_fact:
-        svcadm_password: >-
-                                       {{ (svc_keyvault_secret_show_sap_password_id.stdout | from_json).value }}
+        svcadm_password:               "{{ svc_keyvault_secret_show_sap_password_value.stdout }}"
+        cacheable:                     true
 
     - name:                            "0.1 Password: - Show sidsvc Password"
       ansible.builtin.debug:
@@ -118,14 +121,17 @@
         az keyvault secret show
           --vault-name {{ kv_name }}
           --name {{ adsvcadm_password_id }}
+          --query value
+          --output tsv
+
       changed_when:                    false
-      register:                        adsvc_keyvault_secret_show_sap_password_id
+      register:                        adsvc_keyvault_secret_show_sap_password_value
       no_log:                          true
 
     - name:                            "0.1 Password: - Extract Service Account password"
       ansible.builtin.set_fact:
-        adsvc_password: >-
-                                       {{ (adsvc_keyvault_secret_show_sap_password_id.stdout | from_json).value }}
+        adsvc_password:                "{{ adsvc_keyvault_secret_show_sap_password_value.stdout }}"
+        cacheable:                     true
 
     - name:                            "0.1 Password: - Show Service Account Password"
       ansible.builtin.debug:
@@ -159,14 +165,17 @@
         az keyvault secret show
           --vault-name {{ kv_name }}
           --name {{ adsvcadm_account_id }}
+          --query value
+          --output tsv
       changed_when:                    false
-      register:                        adsvc_keyvault_secret_show_sap_account_id
+      register:                        adsvc_keyvault_secret_show_sap_account_value
       no_log:                          true
 
     - name:                            "0.1 Password: - Extract Service Account secret"
       ansible.builtin.set_fact:
-        adsvc_account: >-
-                                       {{ (adsvc_keyvault_secret_show_sap_account_id.stdout | from_json).value }}
+        adsvc_account:                 "{{ adsvc_keyvault_secret_show_sap_account_value.stdout }}"
+        cacheable:                     true
+
     - name:                            "0.1 Password: - Show Service Account"
       ansible.builtin.debug:
         var:                           adsvc_account

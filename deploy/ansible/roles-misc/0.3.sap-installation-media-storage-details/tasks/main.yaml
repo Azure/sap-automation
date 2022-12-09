@@ -22,14 +22,16 @@
                                        az keyvault secret show
                                          --vault-name {{ kv_name }}
                                          --name {{ deployer_kv_name_secret }}
+                                         --query value
+                                         --output tsv
       changed_when:                    false
       register:                        deployer_kv_name_secret
       when:                            bom_processing is not defined
 
     - name:                            "0.4 Installation Media: - Save Deployer key vault name"
       ansible.builtin.set_fact:
-        deployer_kv_name: >-
-                                       {{ (deployer_kv_name_secret.stdout | from_json).value }}
+        deployer_kv_name:              "{{ deployer_kv_name_secret.stdout }}"
+        cacheable:                     true
   when: deployer_kv_name is not defined
 
 - name:                                "0.4 Installation Media: - Extract SAP Binaries Storage Account secrets"
@@ -39,14 +41,16 @@
                                        az keyvault secret show
                                          --vault-name {{ deployer_kv_name }}
                                          --name {{ sapbits_location_secret }}
+                                         --query value
+                                         --output tsv
       changed_when:                    false
       register:                        sapbits_location_base_path_secret
       no_log:                          false
 
     - name:                            "0.4 Installation Media: - Save SAP Binaries Storage Account information"
       ansible.builtin.set_fact:
-        sapbits_location_base_path: >-
-                                       {{ (sapbits_location_base_path_secret.stdout | from_json).value }}
+        sapbits_location_base_path:    "{{ sapbits_location_base_path_secret.stdout }}"
+        cacheable:                     true
   when:                                sapbits_location_base_path is not defined
 
 - name:                                "0.4 Installation Media: - Retrieve Access Key secret"
@@ -65,6 +69,8 @@
         az keyvault secret show
           --vault-name {{ deployer_kv_name }}
           --name "sapbits-access-key"
+          --query value
+          --output tsv
       changed_when:                    false
       no_log:                          true
       register:                        keyvault_secret_show_accesskey
@@ -72,7 +78,8 @@
 
     - name:                            "0.4 Installation Media: - Extract Access Key details"
       ansible.builtin.set_fact:
-        sapbits_access_key: "{{ (keyvault_secret_show_accesskey.stdout | from_json).value }}"
+        sapbits_access_key:            "{{ keyvault_secret_show_accesskey.stdout }}"
+        cacheable:                     true
       when:
         - keyvault_secrets.stdout | length > 0
         - keyvault_secret_show_accesskey is defined
@@ -95,6 +102,8 @@
         az keyvault secret show
           --vault-name {{ deployer_kv_name }}
           --name "sapbits-sas-token"
+          --query value
+          --output tsv
       changed_when:                    false
       no_log:                          true
       register:                        keyvault_secret_show_sas_token
@@ -102,8 +111,8 @@
 
     - name:                            "0.4 Installation Media: - Extract SAS token"
       ansible.builtin.set_fact:
-        sapbits_sas_token: >-
-          {{ (keyvault_secret_show_sas_token.stdout | from_json).value }}
+        sapbits_sas_token:             "{{ (keyvault_secret_show_sas_token.stdout }}"
+        cacheable:                     true
 
       no_log:                          true
       when: keyvault_secret_show_sas_token is defined

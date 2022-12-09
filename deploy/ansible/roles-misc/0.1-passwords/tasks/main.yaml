@@ -40,14 +40,17 @@
         az keyvault secret show
           --vault-name {{ kv_name }}
           --name {{ sap_password_id }}
+          --query value
+          --output tsv
       changed_when:                    false
-      register:                        keyvault_secret_show_sap_password_id
+      register:                        keyvault_secret_show_sap_password_value
       no_log:                          true
 
     - name:                            "0.1 Password: - Extract SAP password"
       ansible.builtin.set_fact:
-        sap_password: >-
-                                       {{ (keyvault_secret_show_sap_password_id.stdout | from_json).value }}
+        sap_password:                  "{{ keyvault_secret_show_sap_password_value.stdout }}"
+        cacheable:                     true
+
   when:                                secret_exists
 
 - name:                                "0.1 Password: - Set SAP system password"
