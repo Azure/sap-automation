@@ -238,25 +238,6 @@
       when:
         - platform == 'SQLSERVER'
 
-    - name:                            "0.0 Validations - Validate SQL Server parameters"
-      ansible.builtin.assert:
-        that:
-          - domain_name is defined                    # Has the variable been defined
-          - domain_name | type_debug != 'NoneType'    # Does it have a value
-          - domain_name | trim | length > 1
-        fail_msg:                      'SQL Server deployments require that domain_name is specified'
-      when:
-        - platform == 'SQLSERVER'
-
-    - name:                            "0.0 Validations - Validate SQL Server parameters"
-      ansible.builtin.assert:
-        that:
-          - domain_user is defined                    # Has the variable been defined
-          - domain_user | type_debug != 'NoneType'    # Does it have a value
-          - domain_user | trim | length > 1
-        fail_msg:                      'SQL Server deployments require that domain_user is specified'
-      when:
-        - platform == 'SQLSERVER'
 
     - name:                            "0.0 Validations - Get Access Token"
       ansible.builtin.command: >-

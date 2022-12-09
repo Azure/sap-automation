@@ -27,7 +27,7 @@
     description:                      Share Installation Files Accross Servers
     path:                             "{{ target_media_location_windows }}"
     list:                             true
-    full:                             '{{ orchestration_ansible_user }},{{ domain_user }},SAP_{{ sap_sid | upper }}_LocalAdmin,{{ domain }}\SAP_{{ sap_sid | upper }}_GlobalAdmin'
+    full:                             '{{ orchestration_ansible_user }},SAP_{{ sap_sid | upper }}_LocalAdmin,{{ domain }}\SAP_{{ sap_sid | upper }}_GlobalAdmin'
     state:                            present
   when:
     - node_tier == 'scs'
