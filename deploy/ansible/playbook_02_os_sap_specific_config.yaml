@@ -69,6 +69,9 @@
       block:
       become:                          true
       become_user:                     root
+      when:
+        - ansible_os_family != "Windows"
+
         - name:                        "SAP OS configuration playbook: - Set sapos fact"
           ansible.builtin.set_fact:
             tier:                      sapos                                     # Actions for HANA DB Serve
@@ -157,7 +160,6 @@
           tags:
             - 2.10-sap-notes
 
-      when: ansible_os_family != "Windows"
 
     - name:                            "SAP OS configuration - Windows based systems"
       block:
