@@ -77,7 +77,6 @@
   serial:                              1
   name:                                SAP Generic OS Groups and User Creation
   remote_user:                         "{{ orchestration_ansible_user }}"
-  become:                              true
   gather_facts:                        true                                    # Important to collect hostvars information
   any_errors_fatal:                    true
   vars_files:
@@ -145,6 +144,7 @@
 #
 # -------------------------------------+---------------------------------------8
     - name:                            "SCS Installation Playbook: - Standalone SCS Setup"
+      become:                          true
       block:
         - name:                        "SCS Installation Playbook: Define this SID"
           ansible.builtin.set_fact:
