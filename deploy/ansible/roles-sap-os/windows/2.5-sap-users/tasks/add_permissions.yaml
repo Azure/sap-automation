@@ -1,11 +1,11 @@
 # Install the DSC modules
 - name:                                     "Ensure DSC modules are installed"
-  win_psmodule:
+  community.windows.win_psmodule:
     name:                                   SecurityPolicyDsc
     state:                                  present
 
 - name:                                     "Assign Local Security Policies for {{ sap_sid }}adm"
-  win_dsc:
+  ansible.windows.win_dsc:
     resource_name:                          UserRightsAssignment
     Policy:                                 "{{ item }}"
     Identity:                               '{{ domain }}\{{ sap_sid }}adm'
@@ -19,7 +19,7 @@
   notify:                                   reboot
 
 - name:                                     "Assign Local Security Policies for sap_services_sid"
-  win_dsc:
+  ansible.windows.win_dsc:
     resource_name:                          UserRightsAssignment
     Policy:                                 "{{ item }}"
     Identity:                               '{{ domain }}\SAPService{{ sap_sid | upper }}'

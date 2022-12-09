@@ -59,7 +59,7 @@
 
 # Install the DSC modules
 - name:                                "Ensure DSC modules are installed"
-  ansible.windows.win_psmodule:
+  community.windows.win_psmodule:
     name:                              "{{ item }}"
     state:                             present
     accept_license:                    yes
