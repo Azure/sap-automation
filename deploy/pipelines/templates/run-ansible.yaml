@@ -63,9 +63,8 @@ steps:
     echo "##[group]- output"
     eval $command
     return_code=$?
+    echo "##[section]Ansible playbook execution completed with exit code [$return_code]"
     echo "##[endgroup]"
-
-    rm -f $tmp_file
 
     exit $return_code
 
