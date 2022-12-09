@@ -50,7 +50,7 @@
         sql4sap_already_installed:     true
 
   when:
-    -  sql_installed.stat.exists
+    - sql_installed.stat.exists
 
 
 - name:                                     "WIN-SQL: Install from Microsoft bits"
@@ -60,7 +60,7 @@
         msg:                                "Start SQL4SAP Installation"
 
     - name:                                 "WIN-SQL: Install SQL4SAP on {{ ansible_hostname }}"
-      win_shell: |
+      ansible.windows.win_shell: |
                                             {{ download_directory_windows }}\{{ mssserver_version }}\SQL4SAP.bat -d
       args:
         creates:                            '{{ sap_deployment_automation }}\{{ sap_sid | upper }}\sap_deployment_sqldb.txt'
@@ -84,7 +84,7 @@
       notify:                               "WIN-SQL: Restart SQL Server VM"
 
     - name:                                 "Force all notified handlers to run now"
-      meta:                                 flush_handlers
+      ansible.builtin.meta:                                 flush_handlers
 
     - name:                                 "WIN-SQL: Installation results"
       ansible.builtin.debug:
@@ -98,7 +98,7 @@
       notify:                               "WIN-SQL: Restart SQL Server VM"
 
     - name:                                 "Force all notified handlers to run now"
-      meta:                                 flush_handlers
+      ansible.builtin.meta:                                 flush_handlers
 
     - name:                                 "WIN-SQL: Installation results"
       ansible.builtin.debug:
@@ -127,7 +127,7 @@
   block:
 
     - name:                                 "WIN-SQL: Install SQL4SAP on {{ ansible_hostname }}"
-      win_shell: |
+      ansible.windows.win_shell: |
                                             {{ download_directory_windows }}\{{ mssserver_version }}\SQL4SAP.bat -d
       args:
         creates:                            '{{ sap_deployment_automation }}\{{ sap_sid | upper }}\sap_deployment_sqldb.txt'
@@ -151,7 +151,7 @@
       notify:                               "WIN-SQL: Restart SQL Server VM"
 
     - name:                                 "Force all notified handlers to run now"
-      meta:                                 flush_handlers
+      ansible.builtin.meta:                                 flush_handlers
 
     - name:                                 "WIN-SQL: Installation results"
       ansible.builtin.debug:
@@ -165,7 +165,7 @@
       notify:                               "WIN-SQL: Restart SQL Server VM"
 
     - name:                                 "Force all notified handlers to run now"
-      meta:                                 flush_handlers
+      ansible.builtin.meta:                                 flush_handlers
 
     - name:                                 "WIN-SQL: Installation results"
       ansible.builtin.debug:

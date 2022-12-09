@@ -84,7 +84,7 @@
         - keyvault_secrets.stdout | length > 0
         - keyvault_secret_show_accesskey is defined
 
-- name:                                "0.4 Installation Media: - Retrieve SAS token secret details "
+- name:                                "0.4 Installation Media: - Retrieve SAS token secret details"
   when:
     - sapbits_access_key is not defined
     - sapbits_sas_token is not defined or (sapbits_sas_token | string | length == 0)
@@ -111,7 +111,7 @@
 
     - name:                            "0.4 Installation Media: - Extract SAS token"
       ansible.builtin.set_fact:
-        sapbits_sas_token:             "{{ (keyvault_secret_show_sas_token.stdout }}"
+        sapbits_sas_token:             "{{ keyvault_secret_show_sas_token.stdout }}"
         cacheable:                     true
 
       no_log:                          true

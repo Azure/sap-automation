@@ -36,7 +36,7 @@
 #     #Identity:                               '"contoso\TestUser1", "contoso\TestUser2"'
 
 # add users to local admin group
-#- name:                                     "WIN-SQL: Add users to local admin group"
+# -  name:                                     "WIN-SQL: Add users to local admin group"
 #  win_dsc:
 #    resource_name:                          UserRightsAssignment
 #    Policy:                                 Local_admin_group
@@ -44,14 +44,14 @@
 
 # Should add , {{ domain\sidadm }}" as well
 - name:                                "WIN-SQL: Assign Local Security Policies"
-  win_dsc:
+  ansible.windows.win_dsc:
     resource_name:                     UserRightsAssignment
     Policy:                            "{{ item }}"
     Identity:                          '"{{ orchestration_ansible_user }}", "{{ domain }}\{{ sap_sid }}adm"'
   loop:
     - Act_as_part_of_the_operating_system
     - Adjust_memory_quotas_for_a_process
-    #- Local_admin_group
+    # - Local_admin_group
     - Lock_pages_in_memory
     - Log_on_as_a_service
     - Perform_volume_maintenance_tasks
@@ -77,8 +77,8 @@
 - name:                                "WIN-SQL: Disable Guest account"
   ansible.windows.win_user:
     name:                              Guest
-    account_disabled:                  yes
-    #state:                                  absent
+    account_disabled:                  true
+    # state:                                  absent
 
 # Reference: https://docs.microsoft.com/en-us/sql/sql-server/install/hardware-and-software-requirements-for-installing-sql-server-ver15?view=sql-server-ver15
 - name:                                "WIN-SQL: Ensure .NET Framework 4.5 Core is present"
@@ -115,7 +115,6 @@
     msg:                               "Starting Windows Update. Please wait"
 
 
-
 # set a check that the customer can select if it can be done or not. [make it an option]
 - name:                                "WIN-SQL: Ensure Installing the latest windows patches"
   ansible.windows.win_updates:
@@ -126,7 +125,7 @@
   notify:                              "WIN-SQL: Restart SQL Server VM"
 
 - name:                                "Force all notified handlers to run now"
-  meta:                                flush_handlers
+  ansible.builtin.meta:                flush_handlers
 
 # - name:                                     "WIN-SQL: Add inbound Firewall rule for SAP ports"
 #   win_dsc:
@@ -149,7 +148,7 @@
 #     ExclusionPath:                          "{{ win_defender_exclusion_path }}"
 
 
-#collation to use for SAP: SQL_Latin1_General_CP850_BIN2
+# collation to use for SAP: SQL_Latin1_General_CP850_BIN2
 ...
 
 # /*---------------------------------------------------------------------------8

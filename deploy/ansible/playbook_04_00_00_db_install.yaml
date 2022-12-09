@@ -37,9 +37,17 @@
       ansible.builtin.include_role:
         name:                          roles-misc/0.1-passwords
         public:                        true
-
       tags:
         - 0.1-passwords
+
+    - name:                            "Database Installation Playbook: - Read password"
+      ansible.builtin.include_role:
+        name:                          roles-misc/0.1-passwords
+        tasks_from:                    windows.yaml
+        public:                        true
+      when: platform == "SQLSERVER"
+      tags:
+        - 0.1-win-passwords
 
     - name:                            "Database Installation Playbook: - Read/Create key vault secrets"
       ansible.builtin.include_role:
