@@ -42,7 +42,6 @@
 
   name:                                               BOM Processing
   remote_user:                                        "{{ orchestration_ansible_user }}"
-  become:                                             true
   gather_facts:                                       true
   vars_files:
     - vars/ansible-input-api.yaml                     # API Input template with defaults
