@@ -179,6 +179,7 @@
         - name:                        "OS configuration playbook: - Debug"
           ansible.builtin.debug:
             var:                       hostvars.localhost
+            verbosity:                 4
 
         - name:                        "OS configuration playbook: - Add Needed packages"
           ansible.builtin.include_role:
