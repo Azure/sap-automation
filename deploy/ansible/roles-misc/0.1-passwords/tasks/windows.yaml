@@ -138,7 +138,7 @@
         var:                           adsvc_password
         verbosity:                     4
   when:
-    - not adsvc_secret_exists
+    - adsvc_secret_exists
     - platform == 'SQLSERVER'
 
 - name:                                "No Service Account password secret found"
