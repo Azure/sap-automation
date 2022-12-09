@@ -9,7 +9,7 @@
 ---
 # Install the DSC modules
 - name:                                "WIN-SQL: Ensure DSC modules are installed"
-  win_psmodule:
+  community.windows.win_psmodule:
     name:                              "{{ item }}"
     state:                             present
   loop:
