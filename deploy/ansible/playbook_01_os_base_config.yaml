@@ -7,7 +7,7 @@
 
 - hosts:                               localhost
   name:                                "OS configuration playbook: - Initialization"
-  gather_facts:                        false
+  gather_facts:                        true
   vars_files:
     - vars/ansible-input-api.yaml                               # API Input template with defaults
 

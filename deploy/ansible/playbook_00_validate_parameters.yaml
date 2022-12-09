@@ -476,6 +476,8 @@
           - "CIDR:    {{ ((hostvars[ansible_hostname]['ansible_default_ipv4']['address'] | string) + '/' +
             (hostvars[ansible_hostname]['ansible_default_ipv4']['netmask'] | string)) | ansible.utils.ipaddr('prefix') }}"
           - "IPV4:    {{ hostvars[ansible_hostname]['ansible_default_ipv4']['address'] }}"
+      when:
+        - ansible_os_family != "Windows"
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
@@ -484,10 +486,10 @@
 # +------------------------------------4--------------------------------------*/
 
 
-- hosts:               "{{ sap_sid | upper }}_DB"
+- hosts:                               "{{ sap_sid | upper }}_DB"
 
-  name: "0.0 Validations - Validate SAP-Parameters for Oracle"
-  gather_facts: true
+  name:                                "0.0 Validations - Validate SAP-Parameters for Oracle"
+  gather_facts:                        true
   vars_files:
     - vars/ansible-input-api.yaml # API Input template with defaults
   tasks:
@@ -499,10 +501,10 @@
         fail_msg: "Please specify MULTI_SIDS if you are deploying a shared home installation"
       when: node_tier == 'oracle-multi-sid'
 
-- hosts:               "{{ sap_sid | upper }}_WEB"
+- hosts:                               "{{ sap_sid | upper }}_WEB"
 
-  name: "0.0 Validations - Validate SAP-Parameters for Web Dispatchers"
-  gather_facts: true
+  name:                                "0.0 Validations - Validate SAP-Parameters for Web Dispatchers"
+  gather_facts:                        true
   vars_files:
     - vars/ansible-input-api.yaml # API Input template with defaults
   tasks:
