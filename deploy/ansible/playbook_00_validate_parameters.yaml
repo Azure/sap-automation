@@ -5,9 +5,9 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-- hosts: localhost
-  name: "0.0 Validations"
-  gather_facts: false
+- hosts:                               localhost
+  name:                                "0.0 Validations"
+  gather_facts:                        true
   vars_files:
     - vars/ansible-input-api.yaml # API Input template with defaults
 
