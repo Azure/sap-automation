@@ -29,11 +29,11 @@
     path:                              '{{ sap_deployment_automation }}\{{ sid_to_be_deployed.sid | upper }}'
     state:                             directory
 
-# - name:                                "SCS Install: reset"
-#   ansible.windows.win_file:
-#     path:                              '{{ sap_deployment_automation }}\{{ sid_to_be_deployed.sid | upper }}\sap_deployment_scs.txt'
-#     state:                             absent
-#   when:                                reinstall
+- name:                                "SCS Install: reset"
+  ansible.windows.win_file:
+    path:                              '{{ sap_deployment_automation }}\{{ sid_to_be_deployed.sid | upper }}\sap_deployment_scs.txt'
+    state:                             absent
+  when:                                reinstall
 
 - name:                                "SCS Install: check if {{ sid_to_be_deployed.sid | upper }} is installed"
   ansible.windows.win_stat:
