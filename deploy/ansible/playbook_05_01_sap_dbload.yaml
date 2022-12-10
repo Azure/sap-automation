@@ -65,7 +65,6 @@
 
   name:                                DB Load
   remote_user:                         "{{ orchestration_ansible_user }}"
-  become:                              true
   gather_facts:                        true                                    # Important to collect hostvars information
   vars_files:
     - vars/ansible-input-api.yaml                                              # API Input template with defaults
@@ -77,6 +76,8 @@
 #
 # -------------------------------------+---------------------------------------8
     - name:                            "DBLoad Playbook: - Perform DB Load on HANA"
+      become:                          true
+      become_user:                     root
       block:
         - name:                        "DBLoad Playbook: - Setting the dbload facts"
           ansible.builtin.set_fact:
@@ -175,8 +176,6 @@
 
   name:                                DB Installation - ORACLE
   remote_user:                         "{{ orchestration_ansible_user }}"
-  become:                              true
-  become_user:                         root
   gather_facts:                        true
   vars_files:
     - vars/ansible-input-api.yaml                               # API Input template with defaults
@@ -188,6 +187,8 @@
 #
 # -------------------------------------+---------------------------------------8
     - name:                            "DBLoad Playbook: - Perform DB Load on ORACLE"
+      become:                          true
+      become_user:                     root
       block:
         - name:                        "DBLoad Playbook: - Setting the dbload facts"
           ansible.builtin.set_fact:
@@ -278,8 +279,6 @@
 
   name:                                DB Load
   remote_user:                         "{{ orchestration_ansible_user }}"
-  become:                              true
-  become_user:                         "{{ become_user_name }}"
   gather_facts:                        true                                    # Important to collect hostvars information
   vars_files:
     - vars/ansible-input-api.yaml                                              # API Input template with defaults
@@ -323,7 +322,7 @@
 
         - name:                        "DBLoad Playbook: Define list of SIDs"
           ansible.builtin.set_fact:
-            all_sids:                  "{% if MULTI_SIDS is defined %}{{ MULTI_SIDS }}{% else %}{{ all_sids | default([]) + [ this_sid ] }}{% endif %}"
+            all_sids:                  "{% if MULTI_SIDS is defined %}{{ MULTI_SIDS }}{% else %}{{ all_sids | default([]) + [this_sid] }}{% endif %}"
 
         - name:                        Run the DBLoad Playbook
           block:
@@ -374,7 +373,7 @@
                 - error_lines is defined
 
             - name:                    "DBLoad Playbook: Rename sapinst_logs Folder with TimeStamp"
-              win_shell: |
+              ansible.windows.win_shell: |
                                         Rename-Item -Path .\sapinst_logs -NewName "sapinst_logs_$(get-date -f yyyy_MM_dd_HH_mm_ss)"
               args:
                 chdir:                 '{{ log_dir_windows }}'

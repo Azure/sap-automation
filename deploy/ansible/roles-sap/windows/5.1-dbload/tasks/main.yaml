@@ -41,7 +41,7 @@
   ansible.builtin.set_fact:
     sap_inifile:                       "{{ bom_base_name }}-dbload-{{ sid_to_be_deployed.sid | lower }}-{{ ansible_hostname }}.params"
     sap_inifile_template:              "{{ bom_base_name }}-dbload-inifile-param.j2"
-    scs_server:                        "{% if scs_high_availability %}{{ sid_to_be_deployed.sid | lower }}scs{{ scs_instance_number }}cl1{% else %}{{ hostvars[ scs_server_temp | first]['virtual_host'] }}{% endif %}"
+    scs_server:                        "{% if scs_high_availability %}{{ sid_to_be_deployed.sid | lower }}scs{{ scs_instance_number }}cl1{% else %}{{ hostvars[scs_server_temp | first]['virtual_host'] }}{% endif %}"
     db_virtual_host:                   "{{ hostvars[db_server_temp | first]['virtual_host'] }}"
     dir_params:                        '{{ tmp_directory_windows }}\params'
     product_catalog:                   '{{ download_directory_windows }}\SWPM\product.catalog'
@@ -75,7 +75,7 @@
 
 #   2x) Install vcredist package then reboot.
 - name:                                "Install SAP vcredist package"
-  win_package:
+  ansible.windows.win_package:
     path:                              '{{ download_directory_windows }}\SWPM\NTPATCH\VCREDIST2017\VC_redist.x64.exe'
     product_id:                        '{CF2BEA3C-26EA-32F8-AA9B-331F7E34BA97}'
     state:                             present
@@ -88,7 +88,7 @@
   register:                            vcredist2017_output
 
 - name:                                "Install SAP vcredist package"
-  win_package:
+  ansible.windows.win_package:
     path:                              '{{ download_directory_windows }}\SWPM\NTPATCH\VCREDIST2013\vcredist_x64.exe'
     product_id:                        '{CF2BEA3C-26EA-32F8-AA9B-331F7E34BA97}'
     state:                             present
@@ -101,7 +101,7 @@
   register:                            vcredist2013_output
 
 - name:                                "Reboot after package installation"
-  win_reboot:
+  ansible.windows.win_reboot:
     reboot_timeout:                    600
     post_reboot_delay:                 120
   when: vcredist2017_output.reboot_required or vcredist2013_output.reboot_required
@@ -112,7 +112,7 @@
     tasks_from:                        bom-register
   vars:
     bom_name:                          "{{ bom_base_name }}"
-    tier:                              "{{ tier }}"
+    tier:                              dbload
     task_prefix:                       "DBLoad: "
 
 - name:                                "SQL Disks"
@@ -197,7 +197,7 @@
         msg:                           "Starting DBLoad for {{ sid_to_be_deployed.sid | upper }}. Please wait"
 
     - name:                            "DBLoad: sapinst Extraction"
-      win_shell: |
+      ansible.windows.win_shell: |
                                        {{ download_directory_windows }}\SWPM\sapinst.exe -extract
       args:
         chdir:                         '{{ download_directory_windows }}\sap_extract'
