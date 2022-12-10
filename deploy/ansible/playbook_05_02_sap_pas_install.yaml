@@ -72,7 +72,6 @@
   name:                                SAP Generic OS Groups and User Creation
   serial:                              1
   remote_user:                         "{{ orchestration_ansible_user }}"
-  become:                              true
   gather_facts:                        true                                    # Important to collect hostvars information
   vars_files:
     - vars/ansible-input-api.yaml                                              # API Input template with defaults
@@ -127,7 +126,6 @@
 
   name:                                "PAS Installation Playbook"
   remote_user:                         "{{ orchestration_ansible_user }}"
-  become:                              true
   gather_facts:                        true                                    # Important to collect hostvars information
   vars_files:
     - vars/ansible-input-api.yaml                                              # API Input template with defaults
@@ -174,6 +172,7 @@
 # -------------------------------------+---------------------------------------8
 
     - name:                            "PAS Installation Playbook: - Run PAS Installation"
+      become:                              true
       block:
 
         - name:                        "PAS Installation Playbook: - Assertions"
@@ -256,8 +255,6 @@
 
   name:                                "Restting the DB2 LOCK escalationparameters"
   serial:                              1
-  become:                              true
-  become_user:                         root
   gather_facts:                        true
   vars_files:
     - vars/ansible-input-api.yaml                               # API Input template with defaults
@@ -293,8 +290,6 @@
 
   name:                                "PAS Installation Playbook"
   remote_user:                         "{{ orchestration_ansible_user }}"
-  become:                              true
-  become_user:                         "{{ become_user_name }}"
   gather_facts:                        true                                    # Important to collect hostvars information
   vars_files:
     - vars/ansible-input-api.yaml                                              # API Input template with defaults
@@ -331,7 +326,7 @@
 
     - name:                            "PAS Installation Playbook: Define list of SIDs"
       ansible.builtin.set_fact:
-        all_sids:                      "{% if MULTI_SIDS is defined %}{{ MULTI_SIDS }}{% else %}{{ all_sids | default([]) + [ this_sid ] }}{% endif %}"
+        all_sids:                      "{% if MULTI_SIDS is defined %}{{ MULTI_SIDS }}{% else %}{{ all_sids | default([]) + [this_sid] }}{% endif %}"
 
 # -------------------------------------+---------------------------------------8
 # Role: 5.2-PAS Installation
@@ -411,7 +406,7 @@
                 - error_lines is defined
 
             - name:                    "SCS Install: Rename sapinst_logs Folder with TimeStamp"
-              win_shell: |
+              ansible.windows.win_shell: |
                                         Rename-Item -Path .\sapinst_logs -NewName "sapinst_logs_$(get-date -f yyyy_MM_dd_HH_mm_ss)"
               args:
                 chdir:                 '{{ log_dir_windows }}'

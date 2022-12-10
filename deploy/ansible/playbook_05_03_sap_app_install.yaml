@@ -69,7 +69,6 @@
   name:                                SAP Generic OS Groups and User Creation
   serial:                              1
   remote_user:                         "{{ orchestration_ansible_user }}"
-  become:                              true
   gather_facts:                        true                                    # Important to collect hostvars information
   vars_files:
     - vars/ansible-input-api.yaml                                              # API Input template with defaults
@@ -124,7 +123,6 @@
   name:                                SAP Installation - APP
   serial:                              1                                        # Cause App Servers to install sequentially
   remote_user:                         "{{ orchestration_ansible_user }}"
-  become:                              true
   gather_facts:                        true                                    # Important to collect hostvars information
   vars_files:
     - vars/ansible-input-api.yaml                                              # API Input template with defaults
@@ -171,6 +169,8 @@
       when: ansible_os_family != "Windows"
 
     - name:                            Run the APP installation Playbook
+      become:                          true
+      when: ansible_os_family != "Windows"
       block:
         - name:                        "APP Playbook - Install: Include 5.3-app-install"
           ansible.builtin.include_role:
@@ -221,7 +221,6 @@
             msg:                       "{{ error_lines }}"
           when:
             - error_lines is defined
-      when: ansible_os_family != "Windows"
       tags:
         - 5.3-app-install
 
@@ -241,8 +240,6 @@
 
   name:                                "APP Installation Playbook for Windows"
   remote_user:                         "{{ orchestration_ansible_user }}"
-  become:                              true
-  become_user:                         "{{ become_user_name }}"
   gather_facts:                        true                                    # Important to collect hostvars information
   vars_files:
     - vars/ansible-input-api.yaml                                              # API Input template with defaults
@@ -253,6 +250,10 @@
 # -------------------------------------+---------------------------------------8
   tasks:
     - name:                            "APP Installation Playbook: - Run APP Installation on Windows"
+      become:                          true
+      when:
+        - "'app' in supported_tiers"
+        - ansible_os_family == "Windows"
       block:
 
         - name:                        "APP Installation Playbook: - Set 'app' tier facts"
@@ -279,7 +280,7 @@
 
         - name:                        "APP Installation Playbook: Define list of SIDs"
           ansible.builtin.set_fact:
-            all_sids:                  "{% if MULTI_SIDS is defined %}{{ MULTI_SIDS }}{% else %}{{ all_sids | default([]) + [ this_sid ] }}{% endif %}"
+            all_sids:                  "{% if MULTI_SIDS is defined %}{{ MULTI_SIDS }}{% else %}{{ all_sids | default([]) + [this_sid] }}{% endif %}"
 
         - name:                        "APP Installation Playbook: - Ensure Sharing Data Folder"
           ansible.builtin.include_role:
@@ -323,7 +324,7 @@
                 - error_lines is defined
 
             - name:                    "APP Install: Rename sapinst_logs Folder with TimeStamp"
-              win_shell: |
+              ansible.windows.win_shell: |
                                         Rename-Item -Path .\sapinst_logs -NewName "sapinst_logs_$(get-date -f yyyy_MM_dd_HH_mm_ss)"
               args:
                 chdir:                 '{{ log_dir_windows }}'
@@ -334,9 +335,6 @@
           tags:
             - 5.3-app-win-install
 
-      when:
-        - "'app' in supported_tiers"
-        - ansible_os_family == "Windows"
 
 
 # /*---------------------------------------------------------------------------8

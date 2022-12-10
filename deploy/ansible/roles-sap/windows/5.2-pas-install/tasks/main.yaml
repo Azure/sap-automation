@@ -47,8 +47,8 @@
     path:                              https://aka.ms/vs/17/release/vc_redist.x64.exe
     product_id:                        '{CF2BEA3C-26EA-32F8-AA9B-331F7E34BA97}'
     arguments:
-    - /install
-    - /passive
+      - /install
+      - /passive
   vars:
     ansible_become:                    true
     ansible_become_method:             runas
@@ -57,20 +57,20 @@
   register:                            vcredist_output
 
 - name:                                "Reboot after package installation"
-  win_reboot:
+  ansible.windows.win_reboot:
     reboot_timeout:                    600
     post_reboot_delay:                 120
   when: vcredist_output.reboot_required
 
 #   3x) download SQL server ODBC 17 on windows.
 - name:                                "Download SQL Server ODBC Driver 17"
-  win_get_url:
+  ansible.windows.win_get_url:
     url:                               https://download.microsoft.com/download/6/f/f/6ffefc73-39ab-4cc0-bb7c-4093d64c2669/en-US/17.10.1.1/x64/msodbcsql.msi
     dest:                              "{{ tmp_directory_windows }}"
     validate_certs:                    true
 
 - name:                                "Install SQL Server ODBC Driver 17"
-  win_shell: |
+  ansible.windows.win_shell: |
                                        MsiExec.exe /i {{ tmp_directory_windows }}\msodbcsql.msi IACCEPTMSODBCSQLLICENSETERMS=YES /qn
   vars:
     ansible_become:                    true
@@ -109,9 +109,9 @@
 
 - name:                                "PAS Install: Set the SCS Server name"
   ansible.builtin.set_fact:
-    scs_server:                        "{% if scs_high_availability %}{{ sid_to_be_deployed.sid | lower }}scs{{ scs_instance_number }}cl1{% else %}{{ hostvars[ scs_server_temp | first]['virtual_host'] }}{% endif %}"
+    scs_server:                        "{% if scs_high_availability %}{{ sid_to_be_deployed.sid | lower }}scs{{ scs_instance_number }}cl1{% else %}{{ hostvars[scs_server_temp | first]['virtual_host'] }}{% endif %}"
     db_virtual_host:                   "{{ hostvars[db_server_temp | first]['virtual_host'] }}"
-    instance_number:                   "{% if node_tier=='pas' %}'00'{% else %}'01'{% endif %}"
+    instance_number:                   "{% if node_tier == 'pas' %}'00'{% else %}'01'{% endif %}"
     file_path:                         "{% if scs_high_availability %}INSTALL/HA/ABAP/APP1{% else %}INSTALL/DISTRIBUTED/ABAP/APP1{% endif %}"
     DB:                                "{% if MULTI_SIDS is defined %}{{ sid_to_be_deployed.sid | upper }}/HDB{{ hdb_instance_number }}{% else %}{{ db_sid | upper }}/HDB{{ hdb_instance_number }}{% endif %}"
     db_lb_virtual_host:                "{% if db_high_availability %}{{ sid_to_be_deployed.sid | lower }}{{ db_sid | lower }}db{{ hdb_instance_number }}cl{% else %}{{ hostvars[db_server_temp | first]['virtual_host'] }}{% endif %}"
@@ -122,7 +122,7 @@
     tasks_from:                        bom-register
   vars:
     bom_name:                          "{{ bom_base_name }}"
-    tier:                              "{{ tier }}"
+    tier:                              "pas"
     task_prefix:                       "PAS Install: "
 
 - name:                                "PAS Install: Include roles-sap/windows/3.3.1-bom-utility role"
@@ -200,8 +200,8 @@
       ansible.builtin.debug:
         msg:                           "Starting PAS installation ({{ sid_to_be_deployed.sid | upper }})"
 
-    - name:                            "PAS Install: sapinst Extraction"
-      win_shell: |
+    - name:                            "PAS Install: sapinst extraction"
+      ansible.windows.win_shell: |
                                        {{ download_directory_windows }}\SWPM\sapinst.exe -extract
       args:
         chdir:                         '{{ download_directory_windows }}\sap_extract'

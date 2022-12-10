@@ -46,8 +46,8 @@
     path:                              https://aka.ms/vs/17/release/vc_redist.x64.exe
     product_id:                        '{CF2BEA3C-26EA-32F8-AA9B-331F7E34BA97}'
     arguments:
-    - /install
-    - /passive
+      - /install
+      - /passive
   vars:
     ansible_become:                    true
     ansible_become_method:             runas
@@ -56,20 +56,20 @@
   register:                            vcredist2017_output
 
 - name:                                "Reboot after package installation"
-  win_reboot:
+  ansible.windows.win_reboot:
     reboot_timeout:                    600
     post_reboot_delay:                 120
   when: vcredist2017_output.reboot_required
 
 #   3x) download SQL server ODBC 17 on windows.
 - name:                                "Download SQL Server ODBC Driver 17"
-  win_get_url:
+  ansible.windows.win_get_url:
     url:                               https://download.microsoft.com/download/6/f/f/6ffefc73-39ab-4cc0-bb7c-4093d64c2669/en-US/17.10.1.1/x64/msodbcsql.msi
     dest:                              "{{ tmp_directory_windows }}"
     validate_certs:                    true
 
 - name:                                "Install SQL Server ODBC Driver 17"
-  win_shell: |
+  ansible.windows.win_shell: |
                                        MsiExec.exe /i {{ tmp_directory_windows }}\msodbcsql.msi IACCEPTMSODBCSQLLICENSETERMS=YES /qn
   vars:
     ansible_become:                    true
@@ -91,7 +91,7 @@
 - name:                                "APP Install: check if {{ sid_to_be_deployed.sid | upper }} is installed"
   ansible.windows.win_stat:
     path:                              '{{ sap_deployment_automation }}\{{ sid_to_be_deployed.sid | upper }}\sap_deployment_pas.txt'
-  register:                            pas_installed
+  register:                            app_installed
 
 - name:                                "APP Install: Set the SCS Server name list"
   ansible.builtin.set_fact:
@@ -108,7 +108,7 @@
 
 - name:                                "APP Install: Set the SCS Server name"
   ansible.builtin.set_fact:
-    scs_server:                        "{% if scs_high_availability %}{{ sid_to_be_deployed.sid | lower }}scs{{ scs_instance_number }}cl1{% else %}{{ hostvars[ scs_server_temp | first]['virtual_host'] }}{% endif %}"
+    scs_server:                        "{% if scs_high_availability %}{{ sid_to_be_deployed.sid | lower }}scs{{ scs_instance_number }}cl1{% else %}{{ hostvars[scs_server_temp | first]['virtual_host'] }}{% endif %}"
     db_virtual_host:                   "{{ hostvars[db_server_temp | first]['virtual_host'] }}"
     file_path:                         "{% if scs_high_availability %}INSTALL/HA/ABAP/APP1{% else %}INSTALL/DISTRIBUTED/ABAP/APP1{% endif %}"
     DB:                                "{% if MULTI_SIDS is defined %}{{ sid_to_be_deployed.sid | upper }}/HDB{{ hdb_instance_number }}{% else %}{{ db_sid | upper }}/HDB{{ hdb_instance_number }}{% endif %}"
@@ -120,7 +120,7 @@
     tasks_from:                        bom-register
   vars:
     bom_name:                          "{{ bom_base_name }}"
-    tier:                              "{{ tier }}"
+    tier:                              "app"
     task_prefix:                       "APP Install: "
 
 - name:                                "APP Install: Include roles-sap/windows/3.3.1-bom-utility role"
@@ -164,7 +164,7 @@
 - name:                                "APP Install: install variables"
   ansible.builtin.debug:
     msg:
-      - "INSTALLED:  {{ pas_installed.stat.exists }}"
+      - "INSTALLED:  {{ app_installed.stat.exists }}"
       - "INIFILE:    {{ sap_inifile }}"
       - "PRODUCT ID: {{ app_bom_id }}"
       - "INSTANCE:   {{ instance_number }}"
@@ -183,7 +183,7 @@
       ansible.builtin.set_fact:
         pas_already_installed:         true
   when:
-    - pas_installed.stat.exists
+    - app_installed.stat.exists
 
 - name:                                "APP Install"
   block:
@@ -199,7 +199,7 @@
         msg:                           "Starting APP installation ({{ sid_to_be_deployed.sid | upper }})"
 
     - name:                            "APP Install: sapinst Extraction"
-      win_shell: |
+      ansible.windows.win_shell: |
                                        {{ download_directory_windows }}\SWPM\sapinst.exe -extract
       args:
         chdir:                         '{{ download_directory_windows }}\sap_extract'
@@ -225,7 +225,7 @@
     #     ansible_become_password:       "{{ domain_user_password }}"
 
     - name:                            "APP Install"
-      win_shell: |
+      ansible.windows.win_shell: |
                                        {{ download_directory_windows }}\sap_extract\sapinst.exe SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}\{{ sap_inifile }}  `
                                                                                                 SAPINST_EXECUTE_PRODUCT_ID={{ app_bom_id }}                      `
                                                                                                 SAPINST_SKIP_DIALOGS=true                                        `
@@ -240,20 +240,20 @@
         ansible_become_method:         runas
         ansible_become_user:           '{{ domain }}\{{ sap_sid }}adm'
         ansible_become_password:       "{{ domain_user_password }}"
-      register:                        pas_installation
-      failed_when:                     pas_installation.rc > 0
+      register:                        app_installation
+      failed_when:                     app_installation.rc > 0
       tags:
         - skip_ansible_lint
 
     - name:                            "APP Install: Installation results"
       ansible.builtin.debug:
-        var:                           pas_installation
-      when:                            pas_installation.rc > 0
+        var:                           app_installation
+      when:                            app_installation.rc > 0
 
     - name:                            "APP Install: Installation results"
       ansible.builtin.debug:
         msg:                           "APP Installation succeeded"
-      when:                            pas_installation.rc == 0
+      when:                            app_installation.rc == 0
 
     - name:                            "APP Install: Cleanup ini file {{ ansible_hostname }}"
       ansible.windows.win_file:
@@ -266,19 +266,19 @@
         file_type:                     file
         patterns:                      'installationSuccesfullyFinished.dat'
         recurse:                       true
-      register:                        pas_installed_according_to_sapinst
+      register:                        app_installed_according_to_sapinst
 
     - name:                            "APP Install: flag"
       ansible.windows.win_file:
         path:                          '{{ sap_deployment_automation }}\{{ sid_to_be_deployed.sid | upper }}\sap_deployment_pas.txt'
         state:                         touch
       when:
-        - pas_installation.rc == 0
-        - pas_installed_according_to_sapinst is defined
-        - pas_installed_according_to_sapinst.matched > 0
+        - app_installation.rc == 0
+        - app_installed_according_to_sapinst is defined
+        - app_installed_according_to_sapinst.matched > 0
 
   when:
-    - not pas_installed.stat.exists
+    - not app_installed.stat.exists
 
 ...
 # /*---------------------------------------------------------------------------8
