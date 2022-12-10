@@ -44,7 +44,7 @@
     - name:                                         "Post Installation: Copy installation logs to the controller machine"
       ansible.builtin.fetch:
         src:                                        '{{ tmp_directory_windows }}\{{ sap_sid | upper }}.zip'
-        dest:                                       "{{ _workspace_directory }}/logs/{{ ansible_hostname }}_{{ sap_sid }}{{ suffix }}"
+        dest:                                       "{{ _workspace_directory }}/logs/{{ ansible_hostname }}_{{ sap_sid }}{{ suffix }}.zip"
         flat:                                       true
   when:
     - sapinst_log_files.files is defined

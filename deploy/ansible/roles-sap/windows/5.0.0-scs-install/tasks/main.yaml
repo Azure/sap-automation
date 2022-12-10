@@ -171,7 +171,7 @@
 # *====================================4=======================================8
     - name:                            "SCS Install: Progress"
       ansible.builtin.debug:
-        msg:                           "Start SCS Installation"
+        msg:                           "Start SCS Installation media extraction"
 
     - name:                            "SCS Install: sapinst Extraction"
       ansible.windows.win_shell: |
