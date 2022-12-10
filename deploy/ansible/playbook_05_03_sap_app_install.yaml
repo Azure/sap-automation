@@ -282,49 +282,18 @@
               register:                sapinst_log_name
               failed_when:             sapinst_log_name.rc > 0
 
+            - name:                    "APP Playbook - Install: - Create app-install-done flag"
+              delegate_to:             localhost
+              become:                  false
+              ansible.builtin.file:
+                path:                  "{{ _workspace_directory }}/.progress/app/app-install-done{{ ansible_hostname }}"
+                state:                 touch
+                mode:                  0755
+              when:
+                - app_already_installed is defined or (app_installation.rc is defined and app_installation.rc == 0)
+
           tags:
             - 5.3-app-win-install
-
-
-# /*---------------------------------------------------------------------------8
-# |                                                                            |
-# |                  Playbook for Validating SAP APP Install                   |
-# |                                                                            |
-# +------------------------------------4--------------------------------------*/
-
-
-- hosts:                               "{{ sap_sid | upper }}_APP"
-
-  name:                                SAP Post Installation - APP
-  serial:                              1                                        # Cause App Servers to install sequentially
-  remote_user:                         "{{ orchestration_ansible_user }}"
-  become:                              true
-  gather_facts:                        true
-  vars_files:
-    - vars/ansible-input-api.yaml                                               # API Input template with defaults
-
-  tasks:
-# -------------------------------------+---------------------------------------8
-#
-# Build the list of tasks to be executed in order here.
-#
-# -------------------------------------+---------------------------------------8
-    - name:                            "APP Playbook - Post Install: Check for files in progress folder"
-      ansible.builtin.find:
-        path:                          "{{ _workspace_directory }}/.progress/app"
-        patterns:                      "*"
-      register:                        find_progress_files
-      delegate_to:                     localhost
-      become:                          false
-
-    - name:                            "APP Playbook - Post Install: - Create app-install-done flag"
-      delegate_to:                     localhost
-      become:                          false
-      ansible.builtin.file:
-        path:                          "{{ _workspace_directory }}/.progress/app-install-done"
-        state:                         touch
-        mode:                          0755
-      when:                            find_progress_files.matched == (ansible_play_hosts | length)
 
 ...
 # /*---------------------------------------------------------------------------8
