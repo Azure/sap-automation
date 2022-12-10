@@ -628,7 +628,7 @@ then
         echo ""
 
         workloadkeyvault=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw workloadzone_kv_name | tr -d \")
-        if valid_kv_name "$keyvault" ; then
+        if valid_kv_name "$workloadkeyvault" ; then
             save_config_var "workloadkeyvault" "${workload_config_information}"
         fi
 
@@ -761,7 +761,7 @@ if [ 0 == $return_value ] ; then
     fi
 
     workloadkeyvault=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw workloadzone_kv_name | tr -d \")
-    if valid_kv_name "$keyvault" ; then
+    if valid_kv_name "$workloadkeyvault" ; then
         save_config_var "workloadkeyvault" "${workload_config_information}"
     fi
     save_config_vars "landscape_tfstate_key" "${workload_config_information}"
