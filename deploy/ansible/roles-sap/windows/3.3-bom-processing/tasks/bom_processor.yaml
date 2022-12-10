@@ -84,7 +84,7 @@
     DestinationPath:                   '{{ target_media_location_windows }}\{{ item.extractDir }}'
     Type:                              Directory
     Ensure:                            Present
-  loop:                                "{{ bom.materials.media|flatten(levels=1) }}"
+  loop:                                "{{ bom.materials.media | flatten(levels=1) }}"
   when:                                not ( (item.extractDir is undefined) or (item.extractDir == '') )
 
 
@@ -98,7 +98,7 @@
       - "DEST: {{ target_media_location }}/{% if item.filename is undefined %}{{ item.archive }}{% else %}{{ item.filename }}{% endif %}"
       - "MODE: {% if item.permissions is undefined %}0644{% else %}{{ item.permissions }}{% endif %}"
     verbosity:                         2
-  loop:       "{{ bom.materials.media|flatten(levels=1) }}"
+  loop:       "{{ bom.materials.media | flatten(levels=1) }}"
   when:
     - item.download is undefined or item.download
 # ------------------</DEBUGGING>------------------
@@ -121,7 +121,7 @@
   until:                               result is succeeded
   retries:                             2
   delay:                               5
-  loop:                                "{{ bom.materials.media|flatten(levels=1) }}"
+  loop:                                "{{ bom.materials.media | flatten(levels=1) }}"
   when:
     - item.download is undefined or item.download
 
@@ -131,7 +131,7 @@
   args:
     chdir:                             '{{ target_media_location_windows }}\{{ item.extractDir }}'
     creates:                           '{ target_media_location_windows }}\{{ item.extractDir }}\{% if item.creates is defined %}{{ item.creates }}{% else %}NOT_DEFINED{% endif %}'
-  loop:                                "{{ bom.materials.media|flatten(levels=1) }}"
+  loop:                                "{{ bom.materials.media | flatten(levels=1) }}"
   when:
     - item.extract is not undefined
     - item.extract
@@ -147,7 +147,7 @@
 #     chdir:                             "{{ target_media_location }}/{{ item.extractDir }}"
 #     creates:                           "{{ target_media_location }}/{{ item.extractDir }}/\
 #                                         {% if item.creates is defined %}{{ item.creates }}{% else %}NOT_DEFINED{% endif %}"
-#   loop:                                "{{ bom.materials.media|flatten(levels=1) }}"
+#   loop:                                "{{ bom.materials.media | flatten(levels=1) }}"
 #   when:
 #     - item.extract is not undefined
 #     - item.extract
@@ -162,7 +162,7 @@
     Ensure: Present
     Path:                              '{{ target_media_location_windows }}\{% if item.path is undefined %}downloads{% else %}{{ item.path }}{% endif %}\{% if item.filename is undefined %}{{ item.archive }}{% else %}{{ item.filename }}{% endif %}'
     Destination:                       '{{ target_media_location_windows }}\{{ item.extractDir }}'
-  loop:                                "{{ bom.materials.media|flatten(levels=1) }}"
+  loop:                                "{{ bom.materials.media | flatten(levels=1) }}"
   when:
     - item.extract is not undefined
     - item.extract
@@ -173,7 +173,7 @@
 
 - name:                                "3.3 BoM Processing: - Extract File, EXE"
   ansible.builtin.include_tasks:       "process_exe_archives.yaml"
-  loop:                                "{{ bom.materials.media|flatten(levels=1) }}"
+  loop:                                "{{ bom.materials.media | flatten(levels=1) }}"
   when:
     - item.extract is defined
     - item.extract
