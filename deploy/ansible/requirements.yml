@@ -1,0 +1,6 @@
+collections:
+- name: ansible.windows
+- name: ansible.posix
+- name: ansible.netcommon
+- name: community.windows
+- name: community.general
