@@ -37,4 +37,6 @@
 - name:                                "Show Share Output"
   ansible.builtin.debug:
     var:                               win_share_info
+  when:
+    - node_tier == 'scs'
 ...
