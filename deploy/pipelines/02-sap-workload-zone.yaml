@@ -388,7 +388,7 @@ stages:
 
                 if [ -f ${workload_environment_file_name} ]; then
                   export    workload_key_vault=$(cat ${workload_environment_file_name}  | grep workloadkeyvault      | awk -F'=' '{print $2}' | xargs) ; echo 'Workload Key Vault'       ${workload_key_vault}
-                  export       workload_prefix=$(cat ${workload_environment_file_name}  | grep workload_zone_prefix  | awk -F'=' '{print $2}' | xargs) ; echo 'Workload Prefix'          ${workloadprefix}
+                  export       workload_prefix=$(cat ${workload_environment_file_name}  | grep workload_zone_prefix  | awk -F'=' '{print $2}' | xargs) ; echo 'Workload Prefix'          ${workload_prefix}
                   export landscape_tfstate_key=$(cat ${workload_environment_file_name}  | grep landscape_tfstate_key | awk -F'=' '{print $2}' | xargs) ; echo 'Workload Zone State File' $landscape_tfstate_key
                 fi
 
