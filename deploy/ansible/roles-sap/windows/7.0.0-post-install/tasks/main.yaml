@@ -11,7 +11,7 @@
   become_user:                                      "{{ become_user_name }}"
   become:                                           true
   ansible.builtin.file:
-    path:                                           "{{ _workspace_directory }}/logs/{{ ansible_hostname }}/{{ sap_sid }}{{ suffix }}"
+    path:                                           "{{ _workspace_directory }}/logs/{{ ansible_hostname }}_{{ sap_sid }}{{ suffix }}"
     state:                                          directory
     mode:                                           0755
 
