@@ -125,7 +125,7 @@
     sap_ciBtcWPNumber:
     sap_installSAPHostAgent:
     sap_profile_dir:
-    sap_scs_hostname:                  "{{ virtual_host }}.{{ domain }}"
+    sap_scs_hostname:                  "{{ virtual_host }}"
     sap_db_hostname:
     sap_ciVirtualHostname:
     sap_appVirtualHostname:
