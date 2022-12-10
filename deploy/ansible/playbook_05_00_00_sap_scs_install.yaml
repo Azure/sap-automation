@@ -143,9 +143,6 @@
 #
 # -------------------------------------+---------------------------------------8
     - name:                            "SCS Installation Playbook: - Standalone SCS Setup"
-      become:                      true
-      become_method:               runas
-      become_user:                 '{{ sap_sid }}adm@{{ domain }}'
       block:
         - name:                        "SCS Installation Playbook: Define this SID"
           ansible.builtin.set_fact:
