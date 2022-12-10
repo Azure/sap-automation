@@ -470,6 +470,17 @@ if ($provideSUser -eq 'y') {
   $SPassword = Read-Host "Enter your S user password"
 }
 
+
+Write-Host "Creating the variable group SDAF-General" -ForegroundColor Green
+
+$general_group_id = (az pipelines variable-group list --query "[?name=='SDAF-General'].id | [0]" --only-show-errors)
+if ($general_group_id.Length -eq 0) {
+  az pipelines variable-group create --name SDAF-General --variables ANSIBLE_HOST_KEY_CHECKING=false Deployment_Configuration_Path=WORKSPACES Branch=main tf_version="1.3.4" ansible_core_version="2.13" S-Username=$SUserName S-Password=$SPassword --output yaml --authorize true --output none
+  $general_group_id = (az pipelines variable-group list --query "[?name=='SDAF-General'].id | [0]" --only-show-errors)
+  az pipelines variable-group variable update --group-id $general_group_id --name "S-Password" --value $SPassword --secret true --output none --only-show-errors
+
+}
+
 #region Create pipelines
 Write-Host "Creating the pipelines in repo: " $repo_name "(" $repo_id ")" -foregroundColor Green
 
@@ -641,14 +652,6 @@ if ($import_code) {
 
 #endregion
 
-Write-Host "Creating the variable group SDAF-General" -ForegroundColor Green
-
-$general_group_id = (az pipelines variable-group list --query "[?name=='SDAF-General'].id | [0]" --only-show-errors)
-if ($general_group_id.Length -eq 0) {
-  az pipelines variable-group create --name SDAF-General --variables ANSIBLE_HOST_KEY_CHECKING=false Deployment_Configuration_Path=WORKSPACES Branch=main S-Username=$SUserName S-Password=$SPassword tf_version="1.3.4" ansible_core_version="2.13" --output yaml --authorize true --output none
-  $general_group_id = (az pipelines variable-group list --query "[?name=='SDAF-General'].id | [0]" --only-show-errors)
-}
-
 Add-Content -Path $fname -Value ""
 Add-Content -Path $fname -Value "### Variable Groups"
 Add-Content -Path $fname -Value ""
@@ -783,14 +786,6 @@ else {
 
 az pipelines variable-group variable update --group-id $Control_plane_groupID --name "WEB_APP_CLIENT_SECRET" --value $WEB_APP_CLIENT_SECRET --secret true --output none --only-show-errors
 
-if ( $provideSUser ) {
-  if ($SPassword.Length -eq 0) {
-    az pipelines variable-group variable update --group-id $general_group_id --name "S-Password" --value $SPassword --secret true --output none --only-show-errors
-  }
-  if ($SUserName.Length -eq 0) {
-    az pipelines variable-group variable update --group-id $general_group_id --name "S-Username" --value $SUserName --output none --only-show-errors
-  }
-}
 
 
 #endregion
