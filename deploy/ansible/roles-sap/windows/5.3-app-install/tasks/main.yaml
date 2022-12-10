@@ -111,8 +111,7 @@
     scs_server:                        "{% if scs_high_availability %}{{ sid_to_be_deployed.sid | lower }}scs{{ scs_instance_number }}cl1{% else %}{{ hostvars[scs_server_temp | first]['virtual_host'] }}{% endif %}"
     db_virtual_host:                   "{{ hostvars[db_server_temp | first]['virtual_host'] }}"
     file_path:                         "{% if scs_high_availability %}INSTALL/HA/ABAP/APP1{% else %}INSTALL/DISTRIBUTED/ABAP/APP1{% endif %}"
-    DB:                                "{% if MULTI_SIDS is defined %}{{ sid_to_be_deployed.sid | upper }}/HDB{{ hdb_instance_number }}{% else %}{{ db_sid | upper }}/HDB{{ hdb_instance_number }}{% endif %}"
-    db_lb_virtual_host:                "{% if db_high_availability %}{{ sid_to_be_deployed.sid | lower }}{{ db_sid | lower }}db{{ hdb_instance_number }}cl{% else %}{{ hostvars[db_server_temp | first]['virtual_host'] }}{% endif %}"
+    db_lb_virtual_host:                "{% if db_high_availability %}{{ sid_to_be_deployed.sid | lower }}{{ db_sid | lower }}db{{ db_instance_number }}cl{% else %}{{ hostvars[db_server_temp | first]['virtual_host'] }}{% endif %}"
 
 - name:                                "APP Install: Include 3.3.1-bom-utility role"
   ansible.builtin.include_role:
