@@ -58,6 +58,8 @@ steps:
       -e ansible_ssh_pass="${password_secret}"                                       \
        $ANSIBLE_FILE_PATH"
 
+    echo $command
+
     redacted_command="ansible-playbook -i $INVENTORY -e @$SAP_PARAMS $EXTRA_PARAMS $ANSIBLE_FILE_PATH"
 
     echo "##[section]Executing [$redacted_command]..."
