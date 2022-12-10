@@ -290,6 +290,7 @@
                   vars:
                     suffix:            "_SCS"
                     tier:              'scs'
+                    domain_user_password:  "{{ hostvars.localhost.winadm_password }}"
 
                 - name:                "SCS Installation Playbook: - Show errors from the installation"
                   ansible.builtin.debug:
@@ -309,8 +310,6 @@
                 - 5.0.0-scs-install
 
           when: ansible_os_family == "Windows"
-          vars:
-            ansible_become_password:   "{{ domain_user_password }}"
       when:
         - not scs_high_availability
         - "'scs' in supported_tiers"
