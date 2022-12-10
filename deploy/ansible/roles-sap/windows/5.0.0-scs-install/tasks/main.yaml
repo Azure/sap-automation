@@ -203,8 +203,7 @@
                                                                                                  SAPINST_SKIP_DIALOGS=true                                        `
                                                                                                  SAPINST_START_GUI=false                                          `
                                                                                                  SAPINST_CONTROL_URL={{ product_catalog }}                        `
-                                                                                                 SAPINST_START_GUISERVER=false                                    `
-                                                                                                 SAPINST_USE_HOSTNAME={{ virtual_host }}
+                                                                                                 SAPINST_START_GUISERVER=false
           args:
             chdir:                     '{{ log_dir_windows }}\sapinst_logs'
             creates:                   '{{ sap_deployment_automation }}\{{ sid_to_be_deployed.sid | upper }}\sap_deployment_scs.txt'
