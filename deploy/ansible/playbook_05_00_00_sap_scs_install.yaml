@@ -143,7 +143,9 @@
 #
 # -------------------------------------+---------------------------------------8
     - name:                            "SCS Installation Playbook: - Standalone SCS Setup"
-      become:                          true
+      become:                      true
+      become_method:               runas
+      become_user:                 '{{ sap_sid }}adm@{{ domain }}'
       block:
         - name:                        "SCS Installation Playbook: Define this SID"
           ansible.builtin.set_fact:
@@ -310,6 +312,8 @@
                 - 5.0.0-scs-install
 
           when: ansible_os_family == "Windows"
+          vars:
+            ansible_become_password:   "{{ domain_user_password }}"
       when:
         - not scs_high_availability
         - "'scs' in supported_tiers"
