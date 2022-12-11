@@ -67,14 +67,6 @@ disk_type_to_name_map:
 #
 logical_volumes:
   # --------------------- Begin - disks required for usrsap -------------------8
-  - tier:       'sapos'
-    node_tier:  ['scs', 'ers', 'hana', 'pas', 'app', 'oracle', 'db2']
-    vg:         'vg_sap'
-    lv:         'lv_usrsap'
-    size:       "{% if sap_mnt is defined %}100%FREE{% else %}32g{% endif %}"
-    fstype:     'xfs'
-  # ---------------------- End - disks required for usrsap --------------------8
-
   # ---------------------- Begin - disks required for WD  ---------------------8
   - tier:       'sapos'
     node_tier:  'web'
@@ -83,6 +75,14 @@ logical_volumes:
     size:       '1g'
     fstype:     'xfs'
   # ----------------------- End - disks required for WD  ----------------------8
+
+  - tier:       'sapos'
+    node_tier:  'all'
+    vg:         'vg_sap'
+    lv:         'lv_usrsap'
+    size:       "{% if sap_mnt is defined %}100%FREE{% else %}32g{% endif %}"
+    fstype:     'xfs'
+  # ---------------------- End - disks required for usrsap --------------------8
 
   # --------------------- Begin - disks required for HANA ---------------------8
   - tier:       'sapos'
