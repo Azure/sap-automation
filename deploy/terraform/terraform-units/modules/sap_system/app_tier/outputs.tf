@@ -255,7 +255,7 @@ output "dns_info_loadbalancers" {
 
 
 output "app_tier_os_types" {
-  value = zipmap(["app", "scs", "web"], [var.application_tier.app_os.type, var.application_tier.scs_os.type, var.application_tier.web_os.type])
+  value = zipmap(["app", "scs", "web"], [var.application_tier.app_os.os_type, var.application_tier.scs_os.os_type, var.application_tier.web_os.os_type])
 }
 
 

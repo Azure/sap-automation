@@ -1,0 +1,83 @@
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                         OS Base Disk Configuration                         |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+---
+# -------------------------------------+---------------------------------------8
+#
+# Task: 1.4     packages
+#
+# -------------------------------------+---------------------------------------8
+
+# -------------------------------------+---------------------------------------8
+#
+# <Comment Header>
+#
+# -------------------------------------+---------------------------------------8
+
+# ----------------------------------------
+# BEGIN
+
+- name:                                 "Run Flag Directory is Existing"
+  ansible.windows.win_file:
+    path:                               '{{ sap_deployment_automation }}\{{ sap_sid | upper }}'
+    state:                              directory
+
+- name:                                 "Check if Nuget is already installed"
+  ansible.windows.win_stat:
+    path:                               '{{ sap_deployment_automation }}\{{ sap_sid | upper }}\nuget.txt'
+  register:                             nuget_installed
+
+- name:                                "Install Nuget on {{ ansible_hostname }}"
+  ansible.windows.win_shell: |
+                                       [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
+                                       Install-PackageProvider -Name NuGet -Force
+  when:
+    - not nuget_installed.stat.exists
+
+- name:                                "Nuget || Flag File"
+  ansible.windows.win_file:
+    path:                              '{{ sap_deployment_automation }}\{{ sap_sid | upper }}\nuget.txt'
+    state:                             touch
+
+- name:                                 "Check if PowerShellGet is already installed"
+  ansible.windows.win_stat:
+    path:                               '{{ sap_deployment_automation }}\{{ sap_sid | upper }}\PowerShellGet.txt'
+  register:                             powershell_get_installed
+
+- name:                                "Install PowerShellGet on {{ ansible_hostname }}"
+  ansible.windows.win_shell:           Install-Module PowerShellGet -AllowClobber -Force
+  when:
+    - not powershell_get_installed.stat.exists
+
+- name:                                "PowerShellGet || Flag File"
+  ansible.windows.win_file:
+    path:                              '{{ sap_deployment_automation }}\{{ sap_sid | upper }}\PowerShellGet.txt'
+    state:                             touch
+
+
+# Install the DSC modules
+- name:                                "Ensure DSC modules are installed"
+  community.windows.win_psmodule:
+    name:                              "{{ item }}"
+    state:                             present
+    accept_license:                    true
+  loop:
+    - StorageDsc
+    - NetworkingDsc
+    - ComputerManagementDsc
+    - PSDesiredStateConfiguration
+    - WindowsDefender
+    - ServerManager
+    - SecurityPolicyDsc
+
+- name:                                     "Disable UAC for admin accounts"
+  ansible.windows.win_dsc:
+    resource_name:                          UserAccountControl
+    IsSingleInstance:                       "Yes"
+    NotificationLevel:                      "NeverNotify"
+  notify:                                   reboot
+
+- name:                                     "Force all notified handlers to run now"
+  ansible.builtin.meta:                     flush_handlers

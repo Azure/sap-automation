@@ -1,0 +1,20 @@
+# -------------------------------------+---------------------------------------8
+#
+# Description:  Add domain members to local groups
+#
+- name:                                     "Add domain users to a local group"
+  ansible.windows.win_group_membership:
+    name:                                   "SAP_{{ sap_sid | upper }}_LocalAdmin"
+    members:
+      - '{{ domain }}\{{ win_sap_admin }}'
+      - '{{ domain }}\{{ sap_sid }}adm'
+    state:                                  present
+  notify:                                   reboot
+
+- name:                                     "Add {{ sap_sid }} to local group"
+  ansible.windows.win_group_membership:
+    name:                                   "Administrators"
+    members:
+      - '{{ domain }}\{{ sap_sid }}adm'
+    state:                                  present
+  notify:                                   reboot

@@ -52,7 +52,7 @@
 
 - name:                                "1.5 Disk setup - Append 'sapmnt' if neeeded"
   ansible.builtin.set_fact:
-    logical_volumes:                   "{{ logical_volumes + logical_volumes_sapmnt }}"
+    logical_volumes:                   "{{ logical_volumes_sapmnt + logical_volumes }}"
   when: sap_mnt is not defined
 
 - name:                                "1.5 Disk setup - Append 'install' if needed"

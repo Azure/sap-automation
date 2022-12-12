@@ -1,0 +1,31 @@
+# /*----------------------------------------------------------------------------8
+# |                                                                            |
+# |            Role for ensuring the swap space is configured correctly         |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+---
+# -------------------------------------+---------------------------------------8
+#
+# Task: 1.1     - swap space setup
+#
+# -------------------------------------+---------------------------------------8
+
+- name:                                     "WIN-OS: Set Paging file location and size in MB"
+  ansible.windows.win_dsc:
+    resource_name:                          VirtualMemory
+    Type:                                   CustomSize
+    Drive:                                  "{{ item.drive }}"
+    InitialSize:                            "{{ item.virtual_memory_size_MB }}"
+    MaximumSize:                            "{{ item.virtual_memory_size_MB }}"
+  loop:
+    - { drive: 'C',  virtual_memory_size_MB: '2048'                               }
+    - { drive: 'D',  virtual_memory_size_MB: '{{ swap_size_mb | default(2048) }}' }
+  vars:
+    swap_size_mb:                           "{{ (sap_swap | selectattr('tier', 'search', node_tier) | list | first).swap_size_mb }}"
+  notify:
+    - reboot
+
+- name:                                     "Force all notified handlers to run now"
+  ansible.builtin.meta:                     flush_handlers
+
+...

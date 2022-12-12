@@ -1,0 +1,21 @@
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                         Disable Firewall                                   |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+---
+# ----------------------------------------
+# BEGIN
+
+# Disable the Firewall
+- name:                                     Disable domain Firewall
+  ansible.windows.win_dsc:
+    resource_name:                          FirewallProfile
+    Enabled:                                false
+    Name:                                   Domain
+
+- name:                                     Disable public Firewall
+  ansible.windows.win_dsc:
+    resource_name:                          FirewallProfile
+    Enabled:                                false
+    Name:                                   Public

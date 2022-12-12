@@ -5,9 +5,9 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-- hosts: localhost
-  name: "0.0 Validations"
-  gather_facts: false
+- hosts:                               localhost
+  name:                                "0.0 Validations"
+  gather_facts:                        true
   vars_files:
     - vars/ansible-input-api.yaml # API Input template with defaults
 
@@ -49,6 +49,14 @@
       when:                            platform != "ORACLE"
       tags:
         - kv-secrets
+
+    - name:                            "0.0 Validations - Retrieve the domain passwords"
+      ansible.builtin.include_role:
+        name:                          roles-misc/0.1-passwords
+        tasks_from:                    windows.yaml
+        public:                        true
+      tags:
+        - 0.1-win-passwords
 
     - name:                            "0.0 Validations - Retrieve the storage account details"
       ansible.builtin.include_role:
@@ -220,6 +228,17 @@
       when:
         - platform == 'ORACLE'
 
+    - name:                            "0.0 Validations - Validate SQL Server parameters"
+      ansible.builtin.assert:
+        that:
+          - domain is defined                    # Has the variable been defined
+          - domain | type_debug != 'NoneType'    # Does it have a value
+          - domain | trim | length > 1
+        fail_msg:                      'SQL Server deployments require that domain is specified'
+      when:
+        - platform == 'SQLSERVER'
+
+
     - name:                            "0.0 Validations - Get Access Token"
       ansible.builtin.command: >-
         az account get-access-token --query accessToken -o tsv
@@ -374,6 +393,7 @@
         - (ansible_distribution | lower ~ ansible_distribution_major_version) != 'suse15'
         - (ansible_distribution | lower ~ ansible_distribution_major_version) != 'sles_sap15'
         - (ansible_distribution | lower ~ ansible_distribution_major_version) != 'redhat8'
+        - ansible_os_family != "Windows"
       tags:
         - 0.0-internet
 
@@ -420,6 +440,8 @@
       failed_when: false
       tags:
         - 0.0-mounts
+      when:
+        - ansible_os_family != "Windows"
 
     - name:                            "0.0 Validations - Show Mounts"
       ansible.builtin.debug:
@@ -431,6 +453,8 @@
       register: hosts
       tags:
         - 0.0-hosts
+      when:
+        - ansible_os_family != "Windows"
 
     - name:                            "0.0 Validations - Show Hosts"
       ansible.builtin.debug:
@@ -452,6 +476,8 @@
           - "CIDR:    {{ ((hostvars[ansible_hostname]['ansible_default_ipv4']['address'] | string) + '/' +
             (hostvars[ansible_hostname]['ansible_default_ipv4']['netmask'] | string)) | ansible.utils.ipaddr('prefix') }}"
           - "IPV4:    {{ hostvars[ansible_hostname]['ansible_default_ipv4']['address'] }}"
+      when:
+        - ansible_os_family != "Windows"
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
@@ -460,10 +486,10 @@
 # +------------------------------------4--------------------------------------*/
 
 
-- hosts:               "{{ sap_sid | upper }}_DB"
+- hosts:                               "{{ sap_sid | upper }}_DB"
 
-  name: "0.0 Validations - Validate SAP-Parameters for Oracle"
-  gather_facts: true
+  name:                                "0.0 Validations - Validate SAP-Parameters for Oracle"
+  gather_facts:                        true
   vars_files:
     - vars/ansible-input-api.yaml # API Input template with defaults
   tasks:
@@ -475,10 +501,10 @@
         fail_msg: "Please specify MULTI_SIDS if you are deploying a shared home installation"
       when: node_tier == 'oracle-multi-sid'
 
-- hosts:               "{{ sap_sid | upper }}_WEB"
+- hosts:                               "{{ sap_sid | upper }}_WEB"
 
-  name: "0.0 Validations - Validate SAP-Parameters for Web Dispatchers"
-  gather_facts: true
+  name:                                "0.0 Validations - Validate SAP-Parameters for Web Dispatchers"
+  gather_facts:                        true
   vars_files:
     - vars/ansible-input-api.yaml # API Input template with defaults
   tasks:

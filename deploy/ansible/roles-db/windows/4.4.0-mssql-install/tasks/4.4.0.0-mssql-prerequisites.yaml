@@ -1,0 +1,156 @@
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |          Perform pre-requisites for MSSQL DB Instance installation         |
+# |                  Generic: Install from Microsoft bits                      |
+# |                  SAP4SQL: Install from SAP provided bits                   |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+---
+# Install the DSC modules
+- name:                                "WIN-SQL: Ensure DSC modules are installed"
+  community.windows.win_psmodule:
+    name:                              "{{ item }}"
+    state:                             present
+  loop:
+    - NetworkingDsc
+    - ComputerManagementDsc
+    - PSDesiredStateConfiguration
+    - WindowsDefender
+    - ServerManager
+    - SecurityPolicyDsc
+    - StorageDsc
+
+# Examples for Assign Local Security
+# Reference: https://github.com/dsccommunity/SecurityPolicyDsc/blob/master/source/Examples/Resources/UserRightsAssignment/1-UserRightsAssignment_Basic_Config.ps1
+# - name:                                     "WIN-SQL: Assign Act_as_part_of_the_operating_system Policy"
+#   win_dsc:
+#     resource_name:                          UserRightsAssignment
+#     Policy:                                 Act_as_part_of_the_operating_system
+#     #Identity:                               "Builtin\Administrators"
+
+# - name:                                     "WIN-SQL: Assign Adjust_memory_quotas_for_a_process Policy"
+#   win_dsc:
+#     resource_name:                          UserRightsAssignment
+#     Policy:                                 Adjust_memory_quotas_for_a_process
+#     #Identity:                               '"contoso\TestUser1", "contoso\TestUser2"'
+
+# add users to local admin group
+# -  name:                                     "WIN-SQL: Add users to local admin group"
+#  win_dsc:
+#    resource_name:                          UserRightsAssignment
+#    Policy:                                 Local_admin_group
+#    #Identity:                               '"contoso\TestUser1", "contoso\TestUser2"'
+
+# Should add , {{ domain\sidadm }}" as well
+- name:                                "WIN-SQL: Assign Local Security Policies"
+  ansible.windows.win_dsc:
+    resource_name:                     UserRightsAssignment
+    Policy:                            "{{ item }}"
+    Identity:                          '"{{ orchestration_ansible_user }}", "{{ domain }}\{{ sap_sid }}adm"'
+  loop:
+    - Act_as_part_of_the_operating_system
+    - Adjust_memory_quotas_for_a_process
+    # - Local_admin_group
+    - Lock_pages_in_memory
+    - Log_on_as_a_service
+    - Perform_volume_maintenance_tasks
+    - Replace_a_process_level_token
+  notify:                              "WIN-SQL: Restart SQL Server VM"
+
+# Disable UAC for admin accounts (https://launchpad.support.sap.com/#/notes/2729848)
+# Need to investigate this further. The two options which fit our needs are:
+# NeverNotifyAndDisableAll - Disable UAC for all users
+# NeverNotify              - Disable UAC for all users except for the admin accounts
+# - name:                                     "WIN-SQL: Disable UAC for admin accounts"
+#   win_dsc:
+#     resource_name:                          UserAccountControl
+#     IsSingleInstance:                       "Yes"
+#     NotificationLevel:                      "NeverNotify"
+
+# Disable Guest account
+# - name:                                     "WIN-SQL: Disable Guest account"
+#   win_dsc:
+#     resource_name:                          User
+#     Ensure:                                 "Absent"
+#     UserName:                               "Guest"
+- name:                                "WIN-SQL: Disable Guest account"
+  ansible.windows.win_user:
+    name:                              Guest
+    account_disabled:                  true
+    # state:                                  absent
+
+# Reference: https://docs.microsoft.com/en-us/sql/sql-server/install/hardware-and-software-requirements-for-installing-sql-server-ver15?view=sql-server-ver15
+- name:                                "WIN-SQL: Ensure .NET Framework 4.5 Core is present"
+  ansible.windows.win_feature:
+    name:                              NET-Framework-45-Core
+    state:                             present
+    include_sub_features:              true
+
+# If we want to support older versions then we can add the following:
+# - name:                                "WIN-SQL: Additional .NET Framework components"
+# - block:
+#   - name:                              "WIN-SQL: Ensure .NET Framework Core is present"
+#     win_feature:
+#       name:                            NET-Framework-Core
+#       state:                           present
+#       include_sub_features:            True
+#
+#  - name:                              "WIN-SQL: Ensure .NET Framework features are present"
+#    win_feature:
+#      name:                            NET-Framework-Features
+#      state:                           present
+#  mssql_version_name<- this needs to get set in the ansible_input_api file
+#  when:                                mssql_version_name <= '2014'
+
+# - name:                                     "WIN-SQL: Validate if a reboot is required"
+#   debug:
+#     msg:                                    "Pending reboot detected"
+#   changed_when:                             true
+#   when:                                     ansible_reboot_pending
+#   notify:                                   "WIN-SQL: Restart SQL Server VM"
+
+- name:                                "WIN-SQL:progress"
+  ansible.builtin.debug:
+    msg:                               "Starting Windows Update. Please wait"
+
+
+# set a check that the customer can select if it can be done or not. [make it an option]
+- name:                                "WIN-SQL: Ensure Installing the latest windows patches"
+  ansible.windows.win_updates:
+    category_names:
+      - SecurityUpdates
+      - CriticalUpdates
+      - UpdateRollups
+  notify:                              "WIN-SQL: Restart SQL Server VM"
+
+- name:                                "Force all notified handlers to run now"
+  ansible.builtin.meta:                flush_handlers
+
+# - name:                                     "WIN-SQL: Add inbound Firewall rule for SAP ports"
+#   win_dsc:
+#     resource_name:                          Firewall
+#     Name:                                   SAPFirewallRule
+#     DisplayName:                            SAP Inbound Firewall Rule
+#     Group:                                  SAP Firewall Rule Group
+#     Ensure:                                 Present
+#     Enabled:                                true
+#     Profile:                                ('Domain', 'Private','Public')
+#     Direction:                              Inbound
+#     LocalPort:                              ('3200-3299','8000-8099','44300-44399','30000-30099','50000-50020','1128','1129','4237','4239','3300-3399','3600-3699','15','30013-30049','50200-50205','8100-8105','44300-44305','8000-8005','50010-50015','30010-30015','8010-8015','50110-50115','30100-30115','443','3300-3310','3600-3610','3900-3910')
+#     Protocol:                               TCP
+#     Description:                            SAP Inbound Firewall Rule
+
+# - name:                                     "WIN-SQL: Configure Windows Defender"
+#   win_dsc:
+#     resource_name:                          WindowsDefender
+#     IsSingleInstance:                       "Yes"
+#     ExclusionPath:                          "{{ win_defender_exclusion_path }}"
+
+
+# collation to use for SAP: SQL_Latin1_General_CP850_BIN2
+...
+
+# /*---------------------------------------------------------------------------8
+# |                                   END                                      |
+# +------------------------------------4--------------------------------------*/

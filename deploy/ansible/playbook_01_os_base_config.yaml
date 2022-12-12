@@ -1,15 +1,14 @@
+---
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
 # |       Preparation for performing general baseline OS configuration tasks   |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
----
-
 - hosts:                               localhost
   name:                                "OS configuration playbook: - Initialization"
-  gather_facts:                        false
+  gather_facts:                        true
   vars_files:
-    - vars/ansible-input-api.yaml                               # API Input template with defaults
+    - vars/ansible-input-api.yaml # API Input template with defaults
 
   tasks:
     - name:                            "OS configuration playbook: - Ensure jmespath is installed in the playbook python"
@@ -19,14 +18,24 @@
 
     - name:                            "OS configuration playbook: - Create Progress folder"
       ansible.builtin.file:
-        path:                          "{{ _workspace_directory }}/.progress"
-        state:                         directory
-        mode:                          0755
+        path: "{{ _workspace_directory }}/.progress"
+        state: directory
+        mode: 0755
 
     - name:                            "OS configuration playbook: - Remove os-install-done flag"
       ansible.builtin.file:
         path:                          "{{ _workspace_directory }}/.progress/os-configuration-done"
         state:                          absent
+
+    - name:                            "OS configuration playbook: - Read password"
+      ansible.builtin.include_role:
+        name:                          roles-misc/0.1-passwords
+        tasks_from:                    windows.yaml
+        public:                        true
+      when:
+        - platform == "SQLSERVER"
+      tags:
+        - 0.1-win-passwords
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
@@ -34,144 +43,194 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-- hosts:              "{{ sap_sid | upper }}_DB  :
-                       {{ sap_sid | upper }}_SCS :
-                       {{ sap_sid | upper }}_ERS :
-                       {{ sap_sid | upper }}_PAS :
-                       {{ sap_sid | upper }}_ERS :
-                       {{ sap_sid | upper }}_APP :
-                       {{ sap_sid | upper }}_WEB :
-                       {{ sap_sid | upper }}_OBSERVER_DB"
+- hosts: "{{ sap_sid | upper }}_DB  :
+    {{ sap_sid | upper }}_SCS :
+    {{ sap_sid | upper }}_ERS :
+    {{ sap_sid | upper }}_PAS :
+    {{ sap_sid | upper }}_ERS :
+    {{ sap_sid | upper }}_APP :
+    {{ sap_sid | upper }}_WEB :
+    {{ sap_sid | upper }}_OBSERVER_DB"
 
-  name:                                OS - Base Configuration
+  name:                                "OS - Base Configuration"
   remote_user:                         "{{ orchestration_ansible_user }}"
-  become:                              true
-  gather_facts:                        true                                    # Important to collect hostvars information
+  gather_facts:                        true # Important to collect hostvars information
   any_errors_fatal:                    true
   vars_files:
-    - vars/ansible-input-api.yaml                                              # API Input template with defaults
+    - vars/ansible-input-api.yaml # API Input template with defaults
+
+  # -----------------------------------+---------------------------------------8
+  #
+  # Build the list of tasks to be executed in order here.
+  #
+  # -----------------------------------+---------------------------------------8
 
 
   tasks:
-# -------------------------------------+---------------------------------------8
-#
-# Build the list of tasks to be executed in order here.
-#
-# -------------------------------------+---------------------------------------8
+    - name:                            "OS Configuration - Linux based systems"
+      become:                          true
+      become_user:                     "root"
+      block:
 
-  # Specify the active tier for this playbook run
+        - name:                        "OS configuration playbook: - Set os fact"
+          ansible.builtin.set_fact:
+            tier: os
 
+        - name:                        "OS configuration playbook: - Set sudoers"
+          ansible.builtin.include_role:
+            name:                      roles-os/1.0-sudoers
+          tags:
+            - 1.0-sudoers
 
-    - name:                            "OS configuration playbook: - Set os fact"
-      ansible.builtin.set_fact:
-        tier:                          os
+        - name:                        "OS configuration playbook: - Set swap"
+          ansible.builtin.include_role:
+            name:                      roles-os/1.1-swap
+          tags:
+            - 1.1-swap
 
-    - name:                            "OS configuration playbook: - Set sudoers"
-      ansible.builtin.include_role:
-        name:                          roles-os/1.0-sudoers
-      tags:
-        - 1.0-sudoers
+        - name:                        "OS configuration playbook: - Set hostname"
+          ansible.builtin.include_role:
+            name:                      roles-os/1.2-hostname
+          tags:
+            - 1.2-hostname
 
-    - name:                            "OS configuration playbook: - Set swap"
-      ansible.builtin.include_role:
-        name:                          roles-os/1.1-swap
-      tags:
-        - 1.1-swap
+        - name:                        "OS configuration playbook: - Ensure the repositories are registered"
+          ansible.builtin.include_role:
+            name:                      roles-os/1.3-repository
+          tags:
+            - 1.3-repository
 
-    - name:                            "OS configuration playbook: - Set hostname"
-      ansible.builtin.include_role:
-        name:                          roles-os/1.2-hostname
-      tags:
-        - 1.2-hostname
+        - name:                        "OS configuration playbook: - Ensure the packages are registered"
+          ansible.builtin.include_role:
+            name:                      roles-os/1.4-packages
+          tags:
+            - 1.4-packages
 
-    - name:                            "OS configuration playbook: - Ensure the repositories are registered"
-      ansible.builtin.include_role:
-        name:                          roles-os/1.3-repository
-      tags:
-        - 1.3-repository
+        - name:                        "OS configuration playbook: - Configure volume groups and logical volumes"
+          ansible.builtin.include_role:
+            name:                      roles-os/1.5-disk-setup
+          tags:
+            - 1.5-disk-setup
 
-    - name:                            "OS configuration playbook: - Ensure the packages are registered"
-      ansible.builtin.include_role:
-        name:                          roles-os/1.4-packages
-      tags:
-        - 1.4-packages
+        - name:                        "OS configuration playbook: - Configure volume groups and logical volumes (sharedHome)"
+          ansible.builtin.include_role:
+            name:                      roles-os/1.5.2-disk-setup-ora-multi-sid
+          when: node_tier == "oracle-multi-sid"
+          tags:
+            - 1.5.2-disk-setup-ora-multi-sid
 
-    - name:                            "OS configuration playbook: - Configure volume groups and logical volumes"
-      ansible.builtin.include_role:
-        name:                          roles-os/1.5-disk-setup
-      tags:
-        - 1.5-disk-setup
+        - name:                        "OS configuration playbook: - Chrony role"
+          ansible.builtin.include_role:
+            name:                      roles-os/1.7-chrony
+          tags:
+            - 1.7-chrony
 
-    - name:                            "OS configuration playbook: - Configure volume groups and logical volumes (sharedHome)"
-      ansible.builtin.include_role:
-        name:                          roles-os/1.5.2-disk-setup-ora-multi-sid
-      when:                            node_tier == "oracle-multi-sid"
-      tags:
-        - 1.5.2-disk-setup-ora-multi-sid
+        - name:                        "OS configuration playbook: - Ensure the kernel parameters are set"
+          ansible.builtin.include_role:
+            name:                      roles-os/1.9-kernelparameters
+          tags:
+            - 1.9-kernelparameters
 
-    - name:                            "OS configuration playbook: - Chrony role"
-      ansible.builtin.include_role:
-        name:                          roles-os/1.7-chrony
-      tags:
-        - 1.7-chrony
+        - name:                        "OS configuration playbook: - Configure networking"
+          ansible.builtin.include_role:
+            name:                      roles-os/1.10-networking
+          when: ansible_os_family | upper == "REDHAT"
+          tags:
+            - 1.10-networking
 
-    - name:                            "OS configuration playbook: - Ensure the kernel parameters are set"
-      ansible.builtin.include_role:
-        name:                          roles-os/1.9-kernelparameters
-      tags:
-        - 1.9-kernelparameters
+        - name:                        "OS configuration playbook: - Configure accounts"
+          ansible.builtin.include_role:
+            name:                      roles-os/1.11-accounts
+          tags:
+            - 1.11-accounts
 
-    - name:                            "OS configuration playbook: - Configure networking"
-      ansible.builtin.include_role:
-        name:                          roles-os/1.10-networking
-      when:                            ansible_os_family | upper == "REDHAT"
-      tags:
-        - 1.10-networking
+        - name:                        "OS configuration playbook: - Configure accounts (Oracle)"
+          ansible.builtin.include_role:
+            name:                      roles-os/1.11-accounts
+          vars:
+            tier: ora
+          when: node_tier == "oracle"
 
-    - name:                            "OS configuration playbook: - Configure accounts"
-      ansible.builtin.include_role:
-        name:                          roles-os/1.11-accounts
-      tags:
-        - 1.11-accounts
+        - name:                        "OS configuration playbook: - Configure MOTD"
+          ansible.builtin.include_role:
+            name:                      roles-os/1.13-MOTD
+          tags:
+            - 1.13-MOTD
 
-    - name:                            "OS configuration playbook: - Configure accounts (Oracle)"
-      ansible.builtin.include_role:
-        name:                          roles-os/1.11-accounts
-      vars:
-        tier:                          ora
-      when:                            node_tier == "oracle"
+        - name:                        "OS configuration playbook: - Ensure the needed services are started"
+          ansible.builtin.include_role:
+            name:                      roles-os/1.16-services
+          tags:
+            - 1.16-services
 
-    - name:                            "OS configuration playbook: - Configure MOTD"
-      ansible.builtin.include_role:
-        name:                          roles-os/1.13-MOTD
-      tags:
-        - 1.13-MOTD
-
-    - name:                            "OS configuration playbook: - Ensure the needed services are started"
-      ansible.builtin.include_role:
-        name:                          roles-os/1.16-services
-      tags:
-        - 1.16-services
-
-    - name:                            "OS configuration playbook: - Configure Prometheus"
-      ansible.builtin.include_role:
-        name:                          roles-os/1.20-prometheus
+        - name:                        "OS configuration playbook: - Configure Prometheus"
+          ansible.builtin.include_role:
+            name:                      roles-os/1.20-prometheus
+          when:
+            - prometheus
+            - ansible_os_family | upper == "SUSE"
+          tags:
+            - 1.20-prometheus
       when:
-        - prometheus
-        - ansible_os_family | upper == "SUSE"
-        - ((ansible_distribution_major_version == '12'
-            and ansible_distribution_release is search('[3-5]'))
-          or (ansible_distribution_major_version == '15'))
-      tags:
-        - 1.20-prometheus
+        - ansible_os_family != "Windows"
 
+    - name:                            OS Configuration - Windows based systems
+      block:
+        - name:                        "OS configuration playbook: - Debug"
+          ansible.builtin.debug:
+            var:                       hostvars.localhost
+            verbosity:                 4
+
+        - name:                        "OS configuration playbook: - Add Needed packages"
+          ansible.builtin.include_role:
+            name:                      roles-os/windows/1.4-packages
+          tags:
+            - 1.4-packages
+
+        - name:                        "OS configuration playbook: - Set swap"
+          ansible.builtin.include_role:
+            name:                      roles-os/windows/1.1-swap
+          tags:
+            - 1.1-swap
+
+        - name:                        "OS configuration playbook: - Configure Disks"
+          ansible.builtin.include_role:
+            name:                      roles-os/windows/1.5-disk-setup
+          tags:
+            - 1.5-disk-setup
+
+        - name:                        "OS configuration playbook: - Disable the Firewall"
+          ansible.builtin.include_role:
+            name:                      roles-os/windows/1.17-firewall
+          tags:
+            - 1.17-firewall
+
+        - name:                        "OS configuration playbook: - Join Domain"
+          ansible.builtin.include_role:
+            name: roles-sap-os/windows/2.4-sap-domain-join
+          vars:
+            winadm_password:           "{{ hostvars.localhost.winadm_password }}"
+            domain_service_password:   "{{ hostvars.localhost.adsvc_password }}"
+            domain_service_account:    "{{ hostvars.localhost.adsvc_account }}"
+
+          tags:
+            - 2.4-sap-domain-join
+      when:
+        - ansible_os_family == "Windows"
+
+- hosts:                               localhost
+  name:                                "OS configuration playbook: - Initialization"
+  gather_facts:                        true
+  vars_files:
+    - vars/ansible-input-api.yaml # API Input template with defaults
+
+  tasks:
     - name:                            "OS configuration playbook: - Create os-configuration-done flag"
-      delegate_to:                     localhost
-      become:                          false
+      become: true
       ansible.builtin.file:
-        path:                          "{{ _workspace_directory }}/.progress/os-configuration-done"
-        state:                         touch
-        mode:                          0755
+        path: "{{ _workspace_directory }}/.progress/os-configuration-done"
+        state: touch
+        mode: 0755
 
 ...
 # /*----------------------------------------------------------------------------8

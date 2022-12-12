@@ -7,7 +7,7 @@
 
 - hosts:                               localhost
   name:                                "Database Installation Playbook: - Initialization"
-  gather_facts:                        false
+  gather_facts:                        true
   vars_files:
     - vars/ansible-input-api.yaml                               # API Input template with defaults
 
@@ -37,9 +37,17 @@
       ansible.builtin.include_role:
         name:                          roles-misc/0.1-passwords
         public:                        true
-
       tags:
         - 0.1-passwords
+
+    - name:                            "Database Installation Playbook: - Read password"
+      ansible.builtin.include_role:
+        name:                          roles-misc/0.1-passwords
+        tasks_from:                    windows.yaml
+        public:                        true
+      when: platform == "SQLSERVER"
+      tags:
+        - 0.1-win-passwords
 
     - name:                            "Database Installation Playbook: - Read/Create key vault secrets"
       ansible.builtin.include_role:
@@ -69,7 +77,6 @@
 - hosts:                               "{{ sap_sid | upper }}_DB"
   name:                                DB Installation - HANA
   remote_user:                         "{{ orchestration_ansible_user }}"
-  become:                              true
   gather_facts:                        true                                    # Important to collect hostvars information
   any_errors_fatal:                    true
   vars_files:
@@ -83,6 +90,7 @@
 # -------------------------------------+---------------------------------------8
 
     - name:                            "Database Installation Playbook: - Install HANA"
+      become:                          true
       when: node_tier == 'hana'
       block:
         - name:                        "Database Installation Playbook: - Setting the DB facts"
@@ -142,6 +150,7 @@
             - 4.0.0-hdb-install
 
     - name:                            "Database Installation Playbook: - Install Pacemaker (base)"
+      become:                          true
       when:
         - db_high_availability
         - node_tier == 'hana'
@@ -214,8 +223,6 @@
 - hosts:                               "{{ sap_sid | upper }}_DB"
   name:                                DB Installation - Oracle
   remote_user:                         "{{ orchestration_ansible_user }}"
-  become:                              true
-  become_user:                         "root"
   gather_facts:                        false
   vars_files:
     - vars/ansible-input-api.yaml                               # API Input template with defaults
@@ -228,6 +235,8 @@
 # -------------------------------------+---------------------------------------8
 
     - name:                            "Database Installation Playbook: - Install Oracle"
+      become:                          true
+      become_user:                     root
       when:
         - node_tier == 'oracle-multi-sid'
         - platform == 'ORACLE'
@@ -255,8 +264,6 @@
 - hosts:                               "{{ sap_sid | upper }}_DB"
   name:                                DB Installation - Oracle
   remote_user:                         "{{ orchestration_ansible_user }}"
-  become:                              true
-  become_user:                         "root"
   gather_facts:                        false
   vars_files:
     - vars/ansible-input-api.yaml                               # API Input template with defaults
@@ -269,6 +276,8 @@
 # -------------------------------------+---------------------------------------8
 
     - name:                            "Database Installation Playbook: - Install Oracle"
+      become:                          true
+      become_user:                     root
       when:
         - platform == 'ORACLE'
         - node_tier == 'oracle'
@@ -349,8 +358,6 @@
 - hosts:                               "{{ sap_sid| upper }}_DB[0]"
   name:                                "DB Installation - SAP DB2"
   remote_user:                         "{{ orchestration_ansible_user }}"
-  # become_user:                         "{{ become_user_name }}"
-  become:                              true
   gather_facts:                        false
   vars_files:
     - vars/ansible-input-api.yaml                               # API Input template with defaults
@@ -362,6 +369,8 @@
 #
 # -------------------------------------+---------------------------------------8
     - name:                            "Install SAP DB2"
+      become:                          true
+      become_user:                     root
       when:
         - platform == 'DB2'
         - not db_high_availability
@@ -408,8 +417,6 @@
 - hosts:                               "{{ sap_sid| upper }}_DB"
   name:                                "DB Installation - SAP DB2 HA"
   remote_user:                         "{{ orchestration_ansible_user }}"
-  # become_user:                         "{{ become_user_name }}"
-  become:                              true
   gather_facts:                        false
   vars_files:
     - vars/ansible-input-api.yaml                               # API Input template with defaults
@@ -421,6 +428,8 @@
 #
 # -------------------------------------+---------------------------------------8
     - name:                            "Install SAP DB2"
+      become:                          true
+      become_user:                     root
       block:
 
         - name:                        Setting the DB facts
@@ -462,7 +471,58 @@
         - db_high_availability
         - (ansible_play_hosts_all | length) >= 2
 
+# /*----------------------------------------------------------------------------8
+# |                                                                            |
+# |                      Playbook for SQL Server Install on Windows            |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
 
+- hosts:                               "{{ sap_sid | upper }}_DB"
+  name:                                DB Installation - Oracle
+  remote_user:                         "{{ orchestration_ansible_user }}"
+  gather_facts:                        false
+  vars_files:
+    - vars/ansible-input-api.yaml                               # API Input template with defaults
+
+  tasks:
+# -------------------------------------+---------------------------------------8
+#
+# Build the list of tasks to be executed in order here.
+#
+# -------------------------------------+---------------------------------------8
+
+    - name:                            "Database Installation Playbook: - Install SQL Server on Windows"
+      when:
+        - platform == 'SQLSERVER'
+        - node_tier == 'sqlserver'
+      block:
+
+        - name:                        "Database Installation Playbook: - Setting the DB facts"
+          ansible.builtin.set_fact:
+            tier:                      sqlserver                               # Actions for sql Servers
+            main_password:             "{{ hostvars.localhost.sap_password }}"
+          tags:
+            - always
+
+        - name:                        "DBLoad Playbook: - Ensure Sharing Data Folder"
+          ansible.builtin.include_role:
+            name:                      roles-sap-os/windows/2.3-sap-exports
+
+        - name:                        "Database Installation Playbook: - Run SQL Server Installation"
+          ansible.builtin.include_role:
+            name:                      roles-db/windows/4.4.0-mssql-install
+          vars:
+            domain_user_password:      "{{ hostvars.localhost.winadm_password }}"
+
+        - name:                        "Database Installation Playbook: - Create db-install-done flag"
+          delegate_to:                 localhost
+          become:                      false
+          ansible.builtin.file:
+            path:                      "{{ _workspace_directory }}/.progress/db/db-install-done{{ ansible_hostname }}"
+            state:                     touch
+            mode:                      0755
+      vars:
+        become_user:                   "{{ become_user_name }}"
 # add platform in sap-parameters.yaml to execute tasks for DB2, ORACLE, MSSQL, SYBASE
 
 # /*----------------------------------------------------------------------------8
@@ -483,8 +543,6 @@
 
   name:                                SAP Post Installation - DB
   remote_user:                         "{{ orchestration_ansible_user }}"
-  become:                              true
-  become_user:                         root
   gather_facts:                        true
   vars_files:
     - vars/ansible-input-api.yaml                                               # API Input template with defaults

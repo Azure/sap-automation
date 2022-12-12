@@ -1,0 +1,294 @@
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                SAP: Register BOM                                           |
+# |         SAP DBLOAD: deploy DBLOAD Parameter file install template          |
+# |         SAP DBLOAD: Install                                                |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+---
+
+- name:                                "DBLoad: -  Create run flag directory"
+  ansible.windows.win_file:
+    path:                              '{{ sap_deployment_automation }}\{{ sid_to_be_deployed.sid | upper }}'
+    state:                             directory
+
+# - name:                                "DBLoad: -  reset"
+#   ansible.windows.win_file:
+#     path:                              '{{ sap_deployment_automation }}\{{ sid_to_be_deployed.sid | upper }}\sap_deployment_dbload.txt'
+#     state:                             absent
+#   when:                                reinstall
+
+- name:                                "DBLoad: - check if {{ sid_to_be_deployed.sid | upper }} is installed"
+  ansible.windows.win_stat:
+    path:                              '{{ sap_deployment_automation }}\{{ sid_to_be_deployed.sid | upper }}\sap_deployment_dbload.txt'
+  register:                            dbload_installed
+
+- name:                                "DBLoad: -  Set the SCS Server name list"
+  ansible.builtin.set_fact:
+    scs_server_temp:                   "{{ scs_server_temp | default([]) + [item] }}"
+  with_items:
+    - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') }}"
+    - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
+
+- name:                                "DBLoad: -  Set the DB Server name list"
+  ansible.builtin.set_fact:
+    db_server_temp:                    "{{ db_server_temp | default([]) + [item] }}"
+  with_items:
+    - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
+
+- name:                                "DBLoad: - Set dbload facts"
+  ansible.builtin.set_fact:
+    sap_inifile:                       "{{ bom_base_name }}-dbload-{{ sid_to_be_deployed.sid | lower }}-{{ ansible_hostname }}.params"
+    sap_inifile_template:              "{{ bom_base_name }}-dbload-inifile-param.j2"
+    scs_server:                        "{% if scs_high_availability %}{{ sid_to_be_deployed.sid | lower }}scs{{ scs_instance_number }}cl1{% else %}{{ hostvars[scs_server_temp | first]['virtual_host'] }}{% endif %}"
+    db_virtual_host:                   "{{ hostvars[db_server_temp | first]['virtual_host'] }}"
+    dir_params:                        '{{ tmp_directory_windows }}\params'
+    product_catalog:                   '{{ download_directory_windows }}\SWPM\product.catalog'
+
+#   0x) Create directory for parameter files
+- name:                                "DBLoad: Create a directory"
+  ansible.windows.win_file:
+    path:                              "{{ dir_params }}"
+    state:                             directory
+
+- name:                                "DBLoad: Create temp directory for sid"
+  ansible.windows.win_file:
+    path:                              '{{ tmp_directory_windows }}\{{ sid_to_be_deployed.sid | upper }}'
+    state:                             directory
+
+#   1x) Create directories for sapinst_extraction if not existing.
+- name:                                "DBLoad: Create sapinst Extraction Directory"
+  ansible.windows.win_file:
+    path:                              '{{ download_directory_windows }}\sap_extract'
+    state:                             directory
+  vars:
+    ansible_become:                    true
+    ansible_become_method:             runas
+    ansible_become_user:               '{{ domain }}\{{ sap_sid }}adm'
+    ansible_become_password:           "{{ domain_user_password }}"
+
+- name:                                "DBLoad: Create log Directory"
+  ansible.windows.win_file:
+    path:                              '{{ log_dir_windows }}\sapinst_logs'
+    state:                             directory
+
+#   2x) Install vcredist package then reboot.
+- name:                                "Install SAP vcredist package"
+  ansible.windows.win_package:
+    path:                              '{{ download_directory_windows }}\SWPM\NTPATCH\VCREDIST2017\VC_redist.x64.exe'
+    product_id:                        '{CF2BEA3C-26EA-32F8-AA9B-331F7E34BA97}'
+    state:                             present
+    arguments:                         '/norestart /log vcredist_x64.log /quiet'
+  vars:
+    ansible_become:                    true
+    ansible_become_method:             runas
+    ansible_become_user:               '{{ domain }}\{{ sap_sid }}adm'
+    ansible_become_password:           "{{ domain_user_password }}"
+  register:                            vcredist2017_output
+
+- name:                                "Install SAP vcredist package"
+  ansible.windows.win_package:
+    path:                              '{{ download_directory_windows }}\SWPM\NTPATCH\VCREDIST2013\vcredist_x64.exe'
+    product_id:                        '{CF2BEA3C-26EA-32F8-AA9B-331F7E34BA97}'
+    state:                             present
+    arguments:                         '/norestart /log vcredist_x64.log /quiet'
+  vars:
+    ansible_become:                    true
+    ansible_become_method:             runas
+    ansible_become_user:               '{{ domain }}\{{ sap_sid }}adm'
+    ansible_become_password:           "{{ domain_user_password }}"
+  register:                            vcredist2013_output
+
+- name:                                "Reboot after package installation"
+  ansible.windows.win_reboot:
+    reboot_timeout:                    600
+    post_reboot_delay:                 120
+  when: vcredist2017_output.reboot_required or vcredist2013_output.reboot_required
+
+- name:                                "DBLoad: - Include 3.3.1-bom-utility role"
+  ansible.builtin.include_role:
+    name:                              roles-sap/windows/3.3.1-bom-utility
+    tasks_from:                        bom-register
+  vars:
+    bom_name:                          "{{ bom_base_name }}"
+    tier:                              dbload
+    task_prefix:                       "DBLoad: "
+
+- name:                                "SQL Disks"
+  ansible.builtin.set_fact:
+    vm_data_disks: '{{ sql_disk_list[0] | join(",") }}'
+    vm_log_disks: '{{ sql_disk_list[1] | join(",") }}'
+  vars:
+    sql_disk_list: "{{ lookup('template', 'sql_disks.j2') }}"
+
+- name:                                "DBLoad: - Include roles-sap/3.3.1-bom-utility role"
+  ansible.builtin.include_role:
+    name:                              roles-sap/windows/3.3.1-bom-utility
+    tasks_from:                        bom-template
+  vars:
+    task_prefix:                       "DBLoad: "
+    always_upload_jinja_templates:     false
+    bom_name:                          "{{ bom_base_name }}"
+    # sap_cd_package_hdbclient:          '{{ download_directory_windows }}\CD_HDBCLIENT\SAP_HANA_CLIENT'
+    # sap_cd_package_cd1:                '{{ download_directory_windows }}\CD_EXPORT'
+    sap_cd_package_cd2:
+    sap_cd_package_cd3:
+    sap_cd_package_cd4:
+    sap_cd_package_cd5:
+    sap_ciInstanceNumber:
+    app_instance_number:
+    sap_ciDialogWPNumber:
+    sap_ciBtcWPNumber:
+    sap_installSAPHostAgent:
+    sap_profile_dir:                   '\\{{ scs_server }}\sapmnt\{{ sid_to_be_deployed.sid | upper }}\SYS\profile'
+    sap_scs_hostname:                  "{{ scs_server }}"
+    sap_db_hostname:                   "{{ db_virtual_host }}"
+    sap_ciVirtualHostname:
+    sap_appVirtualHostname:
+    tier:                              "{{ tier }}"
+    param_directory:                   "{{ dir_params }}"
+    sap_sid:                           "{{ sid_to_be_deployed.sid }}"
+    sidadm_uid:                        "{{ sid_to_be_deployed.sidadm_uid }}"
+    data_disks:                        "{{ vm_data_disks }}"
+    log_disks:                         "{{ vm_log_disks }}"
+  tags:
+    - skip_ansible_lint
+
+- name:                                "DBLoad: install variables"
+  ansible.builtin.debug:
+    msg:
+      - "INSTALLED:  {{ dbload_installed.stat.exists }}"
+      - "INIFILE:    {{ sap_inifile }}"
+      - "PRODUCT ID: {{ bom.product_ids.dbl }}"
+      - "SCSHOST:    {{ scs_server }}"
+      - "DBHOST:     {{ db_virtual_host }}"
+      - "SID:        {{ sid_to_be_deployed.sid | upper }}"
+
+- name:                                "DBLoad: - status"
+  block:
+
+    - name:                            "DBLoad: - status"
+      ansible.builtin.debug:
+        msg:                           "DBLoad is already performed ({{ sid_to_be_deployed.sid | upper }})"
+
+    - name:                            "DBLoad: - return value"
+      ansible.builtin.set_fact:
+        dbload_already_performed:      true
+  when:
+    - dbload_installed.stat.exists
+
+# - name:                                "DBLoad: - Include 4.4.1-mssql-create-DB task"
+#   ansible.builtin.include_role:
+#     name:                              roles-db/windows/4.4.0-mssql-install
+#     tasks_from:                        4.4.1-mssql-create-DB
+
+- name:                                "DBLoad: - Install"
+  block:
+
+# *====================================4=======================================8
+#   SAP DBLOAD: Install
+# 2230669 - System Provisioning Using a Parameter Input File
+#
+# *====================================4=======================================8
+    - name:                            "DBLoad: progress"
+      ansible.builtin.debug:
+        msg:                           "Starting DBLoad for {{ sid_to_be_deployed.sid | upper }}. Please wait"
+
+    - name:                            "DBLoad: sapinst Extraction"
+      ansible.windows.win_shell: |
+                                       {{ download_directory_windows }}\SWPM\sapinst.exe -extract
+      args:
+        chdir:                         '{{ download_directory_windows }}\sap_extract'
+        creates:                       '{{ download_directory_windows }}\sap_extract\sapinst.exe'
+      vars:
+        ansible_become:                true
+        ansible_become_method:         runas
+        ansible_become_user:           '{{ domain }}\{{ sap_sid }}adm'
+        ansible_become_password:       "{{ domain_user_password }}"
+      register:                        scs_extraction
+      failed_when:                     scs_extraction.rc > 0
+
+    - name:                            "DBLoad: - run SAPInst"
+      win_shell: |
+                                       {{ download_directory_windows }}\sap_extract\sapinst.exe SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}\{{ sap_inifile }}  `
+                                                                                                SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.dbl }}             `
+                                                                                                SAPINST_SKIP_DIALOGS=true                                        `
+                                                                                                SAPINST_START_GUI=false                                          `
+                                                                                                SAPINST_CONTROL_URL={{ product_catalog }}                        `
+                                                                                                SAPINST_START_GUISERVER=false
+      args:
+        chdir:                         '{{ log_dir_windows }}\sapinst_logs'
+        creates:                       '{{ sap_deployment_automation }}\{{ sid_to_be_deployed.sid | upper }}\sap_deployment_dbload.txt'
+      vars:
+        ansible_become:                true
+        ansible_become_method:         runas
+        ansible_become_user:           '{{ domain }}\{{ sap_sid }}adm'
+        ansible_become_password:       "{{ domain_user_password }}"
+      register:                        dbload_results
+      failed_when:                     dbload_results.rc > 0
+      tags:
+        - skip_ansible_lint
+      # async:                           7200
+      # poll:                            0
+
+    # - name:                            "DBLoad Install -Wait for asynchronous job to end"
+    #   ansible.builtin.async_status:
+    #     jid:                           "{{ dbload_results.ansible_job_id }}"
+    #   register:                        job_result
+    #   until:                           job_result.finished
+    #   retries:                         120
+    #   delay:                           60
+    #   when:                            dbload_results.ansible_job_id is defined
+
+    # - name:                            "DBLoad: Installation results"
+    #   ansible.builtin.debug:
+    #     msg:
+    #       - "DBLoad : {{ dbload_results }}"
+    #       #- "Job result: {{ job_result }}"
+
+    - name:                            "DBLoad: Installation results"
+      ansible.builtin.debug:
+        var:                           dbload_results
+      when:
+        - dbload_results is defined
+        - dbload_results.rc > 0
+
+    - name:                            "DBLoad Install: Cleanup ini file {{ ansible_hostname }}"
+      ansible.windows.win_file:
+        path:                          '{{ dir_params }}\{{ sap_inifile }}'
+        state:                         absent
+
+    - name:                            "DBLoad Install: Installation results"
+      ansible.builtin.debug:
+        msg:                           "DBLoad Installation succeeded"
+      when:
+        - dbload_results.rc is defined
+        - dbload_results.rc == 0
+
+    - name:                            "DBLoad: Find the installationSuccesfullyFinished.dat (SAPINST)"
+      ansible.windows.win_find:
+        paths:                         '{{ log_dir_windows }}\sapinst_logs'
+        file_type:                     file
+        patterns:                      'installationSuccesfullyFinished.dat'
+        recurse:                       true
+      register:                        dbload_installed_according_to_sapinst
+
+    - name:                            "DBLoad: - set completion flag"
+      ansible.windows.win_file:
+        path:                          '{{ sap_deployment_automation }}\{{ sid_to_be_deployed.sid | upper }}\sap_deployment_dbload.txt'
+        state:                         touch
+      when:
+        - dbload_results is defined
+        - dbload_results.rc == 0
+        - dbload_installed_according_to_sapinst is defined
+        - dbload_installed_according_to_sapinst.matched > 0
+
+
+  when:
+    - not dbload_installed.stat.exists
+
+...
+# /*---------------------------------------------------------------------------8
+# |                                   END                                      |
+# +------------------------------------4--------------------------------------*/

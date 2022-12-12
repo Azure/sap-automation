@@ -14,11 +14,6 @@ parameters:
     displayName:                       Control Plane Environment
     default:                           MGMT
 
-  - name:                              extra_params
-    displayName:                       Extra Parameters
-    type:                              string
-    default:                           ""
-
   - name:                              region
     displayName:                       Control Plane (SAP Library) location code
     type:                              string
