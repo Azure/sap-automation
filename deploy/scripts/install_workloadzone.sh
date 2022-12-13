@@ -1063,7 +1063,7 @@ subnet_id=$(terraform -chdir="${terraform_module_directory}"  output -no-color -
 if [ -n "${subnet_id}" ]; then
   echo "Adding the app subnet"
   az storage account network-rule add --resource-group "${REMOTE_STATE_RG}" --account-name "${REMOTE_STATE_SA}" --subscription "${STATE_SUBSCRIPTION}" --subnet $subnet_id --output none
-  if [ -n $SAPBITS ] ; then
+  if [ -n "$SAPBITS" ] ; then
     az storage account network-rule add --resource-group "${REMOTE_STATE_RG}" --account-name $SAPBITS --subscription "${STATE_SUBSCRIPTION}" --subnet $subnet_id --output none
   fi
 fi
