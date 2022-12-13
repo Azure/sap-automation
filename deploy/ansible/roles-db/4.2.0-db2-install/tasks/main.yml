@@ -89,6 +89,12 @@
           - "PRODUCT ID: {{ bom.product_ids.dbl }}"
           - "MEDIA:      {{ target_media_location }}"
 
+    - name:                            "Create temp directory for sid"
+      ansible.builtin.file:
+        path:                          "{{ tmp_directory }}/{{ sap_sid | upper }}"
+        state:                         directory
+        mode:                          0755
+
     - name:                            "DB2 Install: Progress"
       ansible.builtin.debug:
         msg:                           "Start DB2 Installation"
@@ -97,12 +103,6 @@
     #   SAP DB2: Install
     #   2230669 - System Provisioning Using a Parameter Input File
     #
-
-    - name:                            "Create temp directory for sid"
-      ansible.builtin.file:
-        path:                          "{{ tmp_directory }}/{{ sap_sid | upper }}"
-        state:                         directory
-        mode:                          0755
 
     - name:                            "DB2 Install - SAPINST DB2 Install"
       ansible.builtin.shell: |
@@ -140,10 +140,10 @@
         mode:                          0755
       when:                            db2_lock_escalation.rc == 0
 
-    # - name:                            "DB2 Install: Cleanup ini file {{ ansible_hostname }}"
-    #   ansible.builtin.file:
-    #     path:                          "{{ dir_params }}/{{ sap_inifile }}"
-    #     state:                         absent
+    - name:                            "DB2 Install: Cleanup ini file {{ ansible_hostname }}"
+      ansible.builtin.file:
+        path:                          "{{ dir_params }}/{{ sap_inifile }}"
+        state:                         absent
 
     - name:                            "DB2 Install - flag"
       ansible.builtin.file:
