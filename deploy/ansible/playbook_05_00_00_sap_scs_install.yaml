@@ -193,6 +193,7 @@
             verbosity:                 4
 
         - name:                        "Run the SCS Installation on Linux"
+          become:                      true
           block:
             - name:                    "SCS Installation - Linux based systems"
               block:
