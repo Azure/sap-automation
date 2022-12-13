@@ -79,39 +79,39 @@
 
 # Huge pages for Oracle Database VMs
 # SAP Note 1672954 : Usage of hugepages on a Linux system that runs an Oracle database.
-- name:                               "Oracle Specific Parameters"
+- name:                                "Oracle Specific Parameters"
   block:
-    - name:                                "Calculate the Huge Pages when RAM  < 4TB"
-      ansible.builtin.set_fact:             
-        huge_pages:                       "{{ ((ansible_memory_mb.real.total*0.85*1024*1024)/(2*1024*1024)) |round |int }}"
-      when:                                 ansible_memory_mb.real.total < 4194304 
-    
-    - name:                                "Calculate the Huge Pages when RAM > 4TB "
-      ansible.builtin.set_fact:             
-        huge_pages:                       "{{ ((ansible_memory_mb.real.total*0.95*1024*1024)/(2*1024*1024)) |round |int }}"
-      when:                                 ansible_memory_mb.real.total > 4194304
-    
+    - name:                            "Calculate the Huge Pages when RAM  < 4TB"
+      ansible.builtin.set_fact:
+        huge_pages:                    "{{ ((ansible_memory_mb.real.total * 0.95 * 1024 * 1024) / (2 * 1024 * 1024)) | round | int }}"
+      when:                            ansible_memory_mb.real.total < 4194304
+
+    - name:                            "Calculate the Huge Pages when RAM > 4TB "
+      ansible.builtin.set_fact:
+        huge_pages:                    "{{ ((ansible_memory_mb.real.total * 0.95 * 1024 * 1024) / (2 * 1024 * 1024)) | round | int }}"
+      when:                            ansible_memory_mb.real.total > 4194304
+
     # print only when -vv, otherwise you will have terminal nausea
-    - name:                                "Display Huge pages value"
+    - name:                            "Display Huge pages value"
       ansible.builtin.debug:
-        var:                               huge_pages
-        verbosity:                         2
-    
-    - name:                                "Set Hugepages parameters"
-      become:                              true
+        var:                           huge_pages
+        verbosity:                     2
+
+    - name:                            "Set Huge pages parameters"
+      become:                          true
       ansible.posix.sysctl:
-        name:                              "vm.nr_hugepages"
-        value:                             "{{ huge_pages }}"
-        state:                             "present"
-        sysctl_set:                        true
-        reload:                            true
-        ignoreerrors:                      true
-    
-    - name:                                "Set limits"
+        name:                          "vm.nr_hugepages"
+        value:                         "{{ huge_pages }}"
+        state:                         "present"
+        sysctl_set:                    true
+        reload:                        true
+        ignoreerrors:                  true
+
+    - name:                            "Set limits"
       ansible.builtin.blockinfile:
-        path:                              /etc/security/limits.conf
-        insertafter:                       '#@student        -       maxlogins       4'
-        state:                              present
+        path:                          /etc/security/limits.conf
+        insertafter:                   '#@student        -       maxlogins       4'
+        state:                         present
         block: |
                 oracle soft memlock unlimited
                 oracle hard memlock unlimited
@@ -121,7 +121,7 @@
                 @dba       soft    nproc    unlimited
   when:
     - node_tier in ["oracle","oracle-asm","oracle-multi-sid"]
-     
+
 - name:                                "Set limits for DB2"
   ansible.builtin.blockinfile:
     path:                              /etc/security/limits.conf
@@ -130,11 +130,11 @@
     block: |
                 @sapsys    hard    nproc    unlimited
                 @sapsys    soft    nproc    unlimited
-                @db2{{ db_sid| lower }}adm      hard    nproc    unlimited
+                @db2{{ db_sid | lower }}adm      hard    nproc    unlimited
                 @db{{ db_sid | lower }}adm       soft    nproc    unlimited
   when:
-   - node_tier == 'db2'
-  
+    - node_tier == 'db2'
+
 - name:                                "Set limits for HANA"
   ansible.builtin.blockinfile:
     path:                              /etc/security/limits.conf
@@ -146,7 +146,7 @@
                 @dba       hard    nproc    unlimited
                 @dba       soft    nproc    unlimited
   when:
-   - node_tier == 'hana'
+    - node_tier == 'hana'
 
 # ----------------------------------------
 # END

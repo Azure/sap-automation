@@ -20,25 +20,28 @@
     - Restart waagent
 
 # Check the current swap size
-- name:                             "check swap size"
-  ansible.builtin.shell:          cat /proc/meminfo |grep SwapTotal
-  register:                         swapspace
+- name:                                "check swap size"
+  ansible.builtin.shell:               set -o pipefail && cat /proc/meminfo | grep SwapTotal
+  register:                            swap_space
 
 - name:                               "SWAP space"
   ansible.builtin.debug:
-        msg:                           "{{swapspace}}"
+    msg:                              "{{ swap_space }}"
+    verbosity:                        2
 
-- name:                             "Trim Swap space"
-  set_fact:                         
-    swap_value:                     "{{ swapspace.stdout_lines[0] | regex_search('([0-9]+)') }}"
 
-- name:                             "Swap space in Integer"
-  set_fact:                         
-    swap_size:                     "{{swap_value | int }}"
+- name:                                "Trim Swap space"
+  ansible.builtin.set_fact:
+    swap_value:                        "{{ swap_space.stdout_lines[0] | regex_search('([0-9]+)') }}"
 
-- name:                               "SWAP Enabled"
+- name:                                "Swap space in Integer"
+  ansible.builtin.set_fact:
+    swap_size:                         "{{ swap_value | int }}"
+
+- name:                                "SWAP Enabled"
   ansible.builtin.debug:
-        msg:                           "{{swap_size}}"
+    msg:                               "{{ swap_size }}"
+    verbosity:                         2
 
 - name:                                "1.1 Swap: - Ensure waagent file is configured with proper parameters"
   ansible.builtin.lineinfile:
@@ -61,12 +64,12 @@
     - { state: 'present',  regexp: 'Provisioning.Agent=',       line: 'Provisioning.Agent=waagent'                                 }
   vars:
     swap_size_mb:                      "{{ (sap_swap | selectattr('tier', 'search', node_tier) | list | first).swap_size_mb }}"
-  when:           
-     - swap_size == '0'
-                           
+  when:
+    - swap_size == '0'
+
 - name:                                "Swap reboot"
   ansible.builtin.reboot:
-  when:           
+  when:
     - swap_size == '0'
 
 # - name:                               "Get SWAP Size"
@@ -80,18 +83,18 @@
 # # Check the current swap size
 # - name:                             "check swap size"
 #   ansible.builtin.shell:          cat /proc/meminfo |grep SwapTotal
-#   register:                         swapspace
+#   register:                         swap_space
 
 # - name:                               "SWAP space"
 #   ansible.builtin.debug:
-#         msg:                           "{{swapspace}}"
+#         msg:                           "{{swap_space}}"
 
 # - name:                             "Trim Swap space"
-#   set_fact:                         
-#     swap_value:                     "{{ swapspace.stdout_lines[0] | regex_search('([0-9]+)') }}"
+#   set_fact:
+#     swap_value:                     "{{ swap_space.stdout_lines[0] | regex_search('([0-9]+)') }}"
 
 # - name:                             "Swap space in Integer"
-#   set_fact:                         
+#   set_fact:
 #     swap_size:                     "{{swap_value | int }}"
 
 # # - fail:
@@ -109,13 +112,13 @@
 #     dest:                             "/var/lib/cloud/scripts/per-boot/create_swapfile.sh"
 #     mode:                             '0755'
 #     force:                            true
-#   when:           
+#   when:
 #     - swap_size == '0'
- 
+
 
 # - name:                                "Swap reboot"
 #   ansible.builtin.reboot:
-#   when:           
+#   when:
 #     - swap_size == '0'
 
 ...

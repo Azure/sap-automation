@@ -271,7 +271,7 @@ packages:
     - { tier: 'db2',   package: 'system-user-bin',                              node_tier: 'db2',     state: 'present' }
     # Adding packages for Oracle linux 8.4 to start with, copied the list from RHEL.
     # Adding additional Oracle linux packages as per SAP Note 2069760 - Oracle Linux 7.x SAP Installation and Upgrade. Need to add the groupinstall command.
-  
+
   oraclelinux8:
     - { tier: 'os',    package: 'sudo',                                         node_tier: 'all',     state: 'present' }
     - { tier: 'os',    package: 'tcsh',                                         node_tier: 'all',     state: 'present' }
@@ -324,7 +324,7 @@ packages:
     - { tier: 'os',    package: 'libICE-devel',                                 node_tier: 'all',     state: 'present' }
     - { tier: 'os',    package: 'tuned-profiles-oracle.noarch',                 node_tier: 'all',     state: 'present' }
 
-    
+
   oraclelinux8.1:
 
   oraclelinux8.2:
@@ -347,19 +347,18 @@ packages:
 
   oraclelinux8.5:
     - { tier: 'os',    package: 'oracle-database-preinstall-19c',               node_tier: 'all',     state: 'present' }
-  
+
   oraclelinux8.6:
     - { tier: 'os',    package: 'oracle-database-preinstall-19c',               node_tier: 'all',            state: 'present' }
     - { tier: 'os',    package: 'oracleasm-support',                            node_tier: 'oracle-asm',     state: 'present' }
     - { tier: 'os',    package: 'gdisk',                                        node_tier: 'all',            state: 'present' }
-  
+
   oraclelinux8.7:
     - { tier: 'os',    package: 'oracle-database-preinstall-19c',               node_tier: 'all',            state: 'present' }
     - { tier: 'os',    package: 'oracleasm-support',                            node_tier: 'oracle-asm',     state: 'present' }
     - { tier: 'os',    package: 'gdisk',                                        node_tier: 'all',            state: 'present' }
-  
-  oraclelinux8.8:  
+
+  oraclelinux8.8:
     - { tier: 'os',    package: 'oracle-database-preinstall-19c',               node_tier: 'all',            state: 'present' }
     - { tier: 'os',    package: 'oracleasm-support',                            node_tier: 'oracle-asm',     state: 'present' }
     - { tier: 'os',    package: 'gdisk',                                        node_tier: 'all',            state: 'present' }
-
