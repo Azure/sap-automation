@@ -1,0 +1,103 @@
+name:    'ORACLE_19_00_v0003ms'
+target:  'Oracle 19c'
+version: "3"
+platform: "ORACLE"
+
+product_ids:
+  scs:     NW_ABAP_ASCS:NW750.ORA.ABAP
+  scs_ha:  NW_ABAP_ASCS:NW750.ORA.ABAPHA
+  ers:     NW_ERS:NW750.ORA.ABAPHA
+  ers_ha:  NW_ERS:NW750.ORA.ABAPHA
+  dbl:     NW_ABAP_DB:NW750.ORA.ABAP
+  pas:     NW_ABAP_CI:NW750.ORA.ABAP
+  app:     NW_DI:NW750.ORA.PD
+  generic: NW_Users_Create:GENERIC.ORA.PD
+  web:
+
+materials:
+  dependencies:
+    - name:     Oracle19_v0004ms
+    - name:     SWPM10SP36_latest
+
+  media:
+    # SAPCAR 7.22
+    - name:         "SAPCAR 7.22; OS: Linux on x86_64 64bit"
+      archive:      SAPCAR_1115-70006178.EXE
+      checksum:     765412436934362cc5497e3d659fbb78be91093a091c11ec4fbe84dfb415a0e5
+      filename:     SAPCAR
+      permissions:  '0755'
+      url:          https://softwaredownloads.sap.com/file/0020000000098642022
+
+# SAP Oracle executables, SWMP and Installation exports
+
+    - name:         "DB Independent Kernel Files"
+      archive:      SAPEXE_801-80002573.SAR
+      checksum:     c1efbbd12cb16134720b251fd18cab4fdbc8a0a3ee93b54c2ee41671bc3048fc
+      extract:      false
+      # download:     true
+      path:         download_basket
+      # creates:     SIGNATURE.SMF
+      url:          https://softwaredownloads.sap.com/file/0020000000937192021
+
+    - name:         "Oracle DB specific kernel files"
+      archive:      SAPEXEDB_801-80002605.SAR
+      checksum:     3682acc6bbc9b5a122af422835217875e01cecd372b04649ef0659fcade3163e
+      extract:      false
+      # download:     true
+      path:         download_basket
+      # creates:     SIGNATURE.SMF
+      url:          https://softwaredownloads.sap.com/file/0020000000937422021
+
+    - name:         "Oracle DBATOOLS"
+      archive:      DBATL740O11_48-80002605.SAR
+      checksum:     ff8dd3a33d4c9f044b073e2d9591a0f204469e5e568f3e3dc136c33931cd4eed
+      extract:      false
+      # download:     true
+      path:         download_basket
+      # creates:     SIGNATURE.SMF
+      url:          https://softwaredownloads.sap.com/file/0020000001371372022
+
+    #   # SWPM
+    # - name:         "SWPM20SP09 OS: Linux on x86_64 64bit"
+    #   archive:      SWPM10SP32_5-20009701.SAR
+    #   checksum:     48c479550d76354ba28f8765c1171d4795d82fea185e150ec1035a7fcfb90f29
+    #   extract:      true
+    #   extractDir:   SWPM
+    #   creates:      SIGNATURE.SMF
+    #   url:          https://softwaredownloads.sap.com/file/0020000001253802021
+
+
+    - name:       "Oracle installation dump"
+      archive:     51050829_3.ZIP
+      checksum:    06c3a3cd5d1ad266f61ca202552468501d94cfdc7641ffdadf0a9abad82b648a
+      extract:     true
+      download:    true
+      extractDir:  EXPORT
+      path:        download_basket
+      # creates:    SIGNATURE.SMF
+      url:         https://softwaredownloads.sap.com/file/0030000000635092016
+
+    - name:         "SAP Host Agent"
+      archive:      SAPHOSTAGENT53_53-80004822.SAR
+      checksum:     a8d8df83417bf15b4d822ccce5aef7f19917cafc0784457a0aa5946a4252aadf
+      extract:      false
+      download:     true
+      path:         download_basket
+      url:          https://softwaredownloads.sap.com/file/0020000001179602021
+
+    - name:         "SAP IGS"
+      archive:      igsexe_13-80003187.sar
+      checksum:     b508b1ff97ec0e3b7f4dd8f57e3840eb547b6326434df677927b8cfd6b4faa12
+      extract:      false
+      download:     true
+      path:         download_basket
+      url:          https://softwaredownloads.sap.com/file/0020000000534572021
+
+
+    - name:         "SAP IGSHELPER"
+      archive:      igshelper_17-10010245.sar
+      checksum:     bc405afc4f8221aa1a10a8bc448f8afd9e4e00111100c5544097240c57c99732
+      extract:      false
+      download:     true
+      path:         download_basket
+      url:          https://softwaredownloads.sap.com/file/0020000000703122018

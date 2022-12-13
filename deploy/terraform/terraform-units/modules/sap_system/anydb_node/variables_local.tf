@@ -278,6 +278,7 @@ locals {
           caching                   = storage_type.caching,
           write_accelerator_enabled = try(storage_type.write_accelerator, false)
           type                      = storage_type.name
+          tier                      = try(storage_type.tier, null)
           lun                       = storage_type.lun_start + idx
         }
         if !try(storage_type.append, false)
@@ -298,6 +299,7 @@ locals {
           disk_size_gb              = storage_type.size_gb
           disk_iops_read_write      = try(storage_type.disk-iops-read-write, null)
           disk_mbps_read_write      = try(storage_type.disk-mbps-read-write, null)
+          tier                      = try(storage_type.tier, null)
           caching                   = storage_type.caching
           write_accelerator_enabled = try(storage_type.write_accelerator, false)
           type                      = storage_type.name
@@ -339,6 +341,7 @@ locals {
         disk_mbps_read_write      = datadisk.disk_mbps_read_write
         lun                       = datadisk.lun
         type                      = datadisk.type
+        tier                      = datadisk.tier
       }
     ]
   ])

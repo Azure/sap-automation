@@ -1,9 +1,9 @@
+---
 # /*----------------------------------------------------------------------------8
 # |                                                                            |
 # |                      Playbook for HANA DB HSR                          |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
----
 
 - hosts:                               localhost
   name:                                Get SAP Password from KeyVault
@@ -59,9 +59,9 @@
 # -------------------------------------+---------------------------------------8
     - name:                            "HANA HA Setup"
       block:
-        - name:                            "Install HANA System Replication"
+        - name:                        "Install HANA System Replication"
           block:
-            - name:                        Initialize facts
+            - name:                    Initialize facts
               ansible.builtin.set_fact:
                 tier:                      hdb                                      # Actions for HANA DB Servers
                 primary_instance_name :    "{{ ansible_play_hosts_all[0] }}"        # Setting up Primary Instance Name
@@ -76,9 +76,9 @@
               tags:
                 - 4.0.1-hdb-hsr
 
-        - name:                            "Install HANA Pacemaker resources"
+        - name:                        "Install HANA Pacemaker resources"
           block:
-            - name:                        Initialize facts
+            - name:                    Initialize facts
               ansible.builtin.set_fact:
                 tier:                      ha
                 password_ha_db_cluster:    "{{ hostvars.localhost.db_cluster_password }}"
@@ -122,7 +122,6 @@
   # serial:                               1
   name:                                DB Data Guard setup - Oracle
   remote_user:                         "{{ orchestration_ansible_user }}"
-  become:                              true
   gather_facts:                        true
   vars_files:
     - vars/ansible-input-api.yaml                               # API Input template with defaults
@@ -130,6 +129,10 @@
   tasks:
 
     - name:                            "Oracle Data Guard Setup"
+      when:
+        - db_high_availability
+        - platform == 'ORACLE'
+      become:                          true
       block:
         - name:                        Setting the DB facts
           ansible.builtin.set_fact:
@@ -144,14 +147,10 @@
             name:                      roles-db/4.1.3-ora-dg
           tags:
             - 4.1.3-ora-dg
-      when:
-        - db_high_availability
-        - platform == 'ORACLE'
 
 - hosts:                               "{{ sap_sid | upper }}_DB"
   name:                                DB Dataguard setup - Oracle
   remote_user:                         "{{ orchestration_ansible_user }}"
-  become:                              true
   gather_facts:                        true
   vars_files:
     - vars/ansible-input-api.yaml                               # API Input template with defaults
@@ -159,6 +158,10 @@
   tasks:
 
     - name:                            "Oracle Data Guard Setup"
+      when:
+        - db_high_availability
+        - platform == 'ORACLE'
+      become:                          true
       block:
         - name:                        Setting the DB facts
           ansible.builtin.set_fact:
@@ -180,14 +183,10 @@
           vars:
             suffix:                   "_DC_ACTION_1"
             tier:                     'oracle'
-      when:
-        - db_high_availability
-        - platform == 'ORACLE'
 
 - hosts:                               "{{ sap_sid | upper }}_DB[0]"
   name:                                DB Dataguard setup - Oracle
-  remote_user:                         "{{ orchestration_ansible_user }}"
-  become:                              true
+  remote_user:                         "root"
   gather_facts:                        true
   vars_files:
     - vars/ansible-input-api.yaml                               # API Input template with defaults
@@ -195,6 +194,10 @@
   tasks:
 
     - name:                            "Oracle Data Guard Setup"
+      when:
+        - db_high_availability
+        - platform == 'ORACLE'
+      become:                          true
       block:
         - name:                        Setting the DB facts
           ansible.builtin.set_fact:
@@ -216,13 +219,10 @@
           vars:
             suffix:                   "_DC_ACTION_2"
             tier:                     'oracle'
-      when:
-        - db_high_availability
-        - platform == 'ORACLE'
 
 # /*----------------------------------------------------------------------------8
 # |                                                                            |
-# |                         PLAYBOOK FOR Observer Node setup                       |
+# |                         PLAY FOR Observer Node setup                       |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
@@ -251,17 +251,24 @@
         tier:                          os
       tags:
         - always
+    
+    - name:                            "Observer Play"
+      become:                          true
+      block:
+        - name:                        "Observer Playbook: Check if the mounts place"
+          ansible.builtin.include_role:
+            name:                      roles-sap-os/2.6-sap-mounts
 
-    - name:                            "Observer Playbook: Oracle Observer setup"
-      ansible.builtin.include_role:
-        name:                          roles-db/4.1.3-ora-dg
+        - name:                        "Observer Playbook: Oracle Observer setup"
+          ansible.builtin.include_role:
+            name:                      roles-db/4.1.3-ora-dg
 
-    - name:                            "Observer Playbook: - Run post installation routines"
-      ansible.builtin.include_role:
-        name:                          roles-sap/7.0.0-post-install
-      vars:
-        suffix:                        "_OBSERVER"
-        tier:                          'oracle'
+        - name:                        "Observer Playbook: - Run post installation routines"
+          ansible.builtin.include_role:
+            name:                      roles-sap/7.0.0-post-install
+          vars:
+            suffix:                    "_OBSERVER"
+            tier:                      'oracle'
 
 # # /*-------------------------------------------------------------------------8
 # # |                                                                          |
@@ -285,8 +292,6 @@
 - hosts:                               "{{ sap_sid| upper }}_DB"
   name:                                "DB HA Installation - SAP DB2"
   remote_user:                         "{{ orchestration_ansible_user }}"
-  become:                              true
-  become_user:                         root
   gather_facts:                        false
   vars_files:
     - vars/ansible-input-api.yaml             # API Input template with defaults
@@ -298,25 +303,30 @@
   # -----------------------------------+---------------------------------------8
   tasks:
 
-    - name:                              "DB2 HA - Install SAP DB2 on both nodes"
+    - name:                            "DB2 HA - Install SAP DB2 on both nodes"
+      become:                          true
+      become_user:                     root
       block:
-        - name:                          "DB2 HA - Setting the DB facts"
+        - name:                        "DB2 HA - Setting the DB facts"
           ansible.builtin.set_fact:
-            tier:                        db2             # Actions for DB2 Servers
-            primary_instance_name :      "{{ ansible_play_hosts_all[0] }}"
-            primary_instance_ip_db:      "{{ hostvars[ansible_play_hosts_all[0]]['ansible_eth0']['ipv4']['address'] }}"
-            secondary_instance_name:     "{{ ansible_play_hosts_all[1] }}"
-            secondary_instance_ip_db:    "{{ hostvars[ansible_play_hosts_all[1]]['ansible_eth0']['ipv4']['address'] }}"
-            main_password:               "{{ hostvars.localhost.sap_password }}"
+            tier:                      db2             # Actions for DB2 Servers
+            primary_instance_name :    "{{ ansible_play_hosts_all[0] }}"
+            primary_instance_ip_db:    "{{ hostvars[ansible_play_hosts_all[0]]['ansible_eth0']['ipv4']['address'] }}"
+            secondary_instance_name:   "{{ ansible_play_hosts_all[1] }}"
+            secondary_instance_ip_db:  "{{ hostvars[ansible_play_hosts_all[1]]['ansible_eth0']['ipv4']['address'] }}"
+            main_password:             "{{ hostvars.localhost.sap_password }}"
           tags:
             - always
 
-        - name:                          "DB2 HA - Install Pacemaker (base)"
+        - name:                        "DB2 HA - Install Pacemaker (base)"
+          when:
+            - db_high_availability
+            - node_tier == 'db2'
           block:
 
-            - name:                      "DB2 HA - Setting the facts"
+            - name:                    "DB2 HA - Setting the facts"
               ansible.builtin.set_fact:
-                tier:                      ha
+                tier:                  ha
                 main_password:             "{{ hostvars.localhost.sap_password }}"
                 password_ha_db_cluster:    "{{ hostvars.localhost.db_cluster_password }}"
                 primary_instance_name:     "{{ ansible_play_hosts_all[0] }}"         # Setting up Primary Instance Name
@@ -379,10 +389,6 @@
                 path:                  "{{ _workspace_directory }}/.progress/pacemaker-install-done"
                 state:                 touch
                 mode:                  0755
-
-          when:
-            - db_high_availability
-            - node_tier == 'db2'
 
         - name:                        "DB2 HA - Install DB2 Pacemaker resources"
           block:

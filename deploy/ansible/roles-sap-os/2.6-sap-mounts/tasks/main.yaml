@@ -1,5 +1,4 @@
 ---
-
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
 # |                Perform the Disk system mounts                              |
@@ -159,6 +158,8 @@
     - "'scs' in supported_tiers"
 
 - name:                                "2.6 SAP Mounts: - Create SAP Directories (sapmnt)"
+  become:                               true
+  become_user:                          root
   ansible.builtin.file:
     owner:                             '{{ sidadm_uid }}'
     group:                             sapsys
@@ -166,6 +167,8 @@
     path:                              "/sapmnt/{{ sap_sid | upper }}"
     state:                             directory
     recurse:                           true
+  when:
+    - node_tier != "oracle-asm"
 
 - name:                                "2.6 SAP Mounts: - sapmnt"
   block:
@@ -268,8 +271,23 @@
   when:
     - node_tier == "oracle"
 
-- name:                                "2.6 SAP Mounts: - Import Oracle multi sid tasks"
-  ansible.builtin.import_tasks:        "oracle-multi-sid.yaml"
+# Import this task only if the tier is ora for oracle-asm.
+- import_tasks:                        "oracle-asm-prereq.yaml"
+  when:
+    - node_tier == "oracle-asm"
+
+# Import this task only if the tier is ora for oracle-asm.
+- import_tasks:                        "oracle-asm.yaml"
+  when:
+    - node_tier == "oracle-asm"
+    - tier == "ora"
+
+- import_tasks:                        "oracle-observer.yaml"
+  when:
+    - node_tier == "observer"
+
+
+- import_tasks:                        "oracle-multi-sid.yaml"
   when:
     - node_tier == "oracle-multi-sid"
     - node_tier != "oracle-asm"
@@ -287,12 +305,19 @@
     - sap_mnt is defined or sap_trans is defined
     - NFS_provider == 'AFS'
 
+
+
 # Import this task only if the sap_mnt is defined, i.e. ANF is used
 - name:                                "2.6 SAP Mounts: - Import ANF tasks"
   ansible.builtin.import_tasks:        2.6.1-anf-mounts.yaml
   when:
     - sap_mnt is defined or sap_trans is defined
     - NFS_provider == 'ANF'
+
+# Import NFS mounts and permissions changes for oracle and oracle-asm installation.
+- import_tasks:                        "oracle-nfs-mounts.yaml"
+  when:
+    - node_tier in ['oracle','oracle-asm','observer']
 
 
 ...
