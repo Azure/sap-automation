@@ -73,7 +73,7 @@
         db2_sslencryption_label:       "sap_db2{{ db_sid }}_{{ sap_db_hostname }}_ssl_comm_000"
         sap_scs_hostname:              "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') | first }}"
         sap_profile_dir:               "/sapmnt/{{ sap_sid | upper }}/profile"
-        tier:                          "db2"
+        tier:                          "db2S"
         db2_memory:                    "{{ mem_size | int }}"
         param_directory:               "{{ dir_params }}"
       tags:
@@ -106,7 +106,7 @@
 
     - name:                            "DB2 Install - SAPINST DB2 Install"
       ansible.builtin.shell: |
-                                       ./sapinst SAPINST_INPUT_fPARAMETERS_URL={{ dir_params }}/{{ sap_inifile }}     \
+                                       ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }}     \
                                                  SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.dbl }}                \
                                                  SAPINST_SKIP_DIALOGS=true                                           \
                                                  SAPINST_START_GUISERVER=false
