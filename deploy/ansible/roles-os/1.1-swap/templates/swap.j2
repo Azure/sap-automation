@@ -1,0 +1,6 @@
+#!/bin/sh
+dd if=/dev/zero of=/mnt/swapfile bs=1M count={{ swap_size_mb }}
+chmod 600 /mnt/swapfile
+mkswap /mnt/swapfile
+swapon /mnt/swapfile
+swapon -a 

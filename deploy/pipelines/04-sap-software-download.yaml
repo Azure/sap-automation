@@ -8,7 +8,8 @@ parameters:
   - name:                              bom_base_name
     displayName:                       Name of Bill of Materials (BoM)
     type:                              string
-    default:                           ""
+    default:
+    values:
 
   - name:                              environment
     displayName:                       Control Plane Environment

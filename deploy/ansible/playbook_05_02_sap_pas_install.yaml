@@ -1,9 +1,10 @@
+---
+
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
 # |                       Prepare for SAP PAS Install                          |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
----
 
 - hosts:                               localhost
   name:                                "PAS Installation Playbook: - Initialization"
@@ -196,6 +197,13 @@
 
         - name:                        Run the PAS installation Playbook
           block:
+            
+            - name:                        "APP Playbook - Install: Include 2.6-sap-mounts role"
+              ansible.builtin.include_role:
+                name:                      roles-sap-os/2.6-sap-mounts
+              tags:
+                - 2.6-sap-mounts
+            
             - name:                    "PAS Installation Playbook: - Install SAPInst"
               ansible.builtin.include_role:
                 name:                  roles-sap/5.2-pas-install

@@ -399,7 +399,7 @@
   vars:
     primary_host:                     "{{ first_server_temp | first }}"
   when:
-    - tier == 'sapos'
+    - tier == 'sapos' or node_tier in ['oracle','oracle-asm','observer']
     - usr_sap_install_mountpoint is defined
 
 - name:                                "AFS Mount: sap_trans"
