@@ -73,7 +73,7 @@
         db2_sslencryption_label:       "sap_db2{{ db_sid }}_{{ sap_db_hostname }}_ssl_comm_000"
         sap_scs_hostname:              "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') | first }}"
         sap_profile_dir:               "/sapmnt/{{ sap_sid | upper }}/profile"
-        tier:                          "{{ tier }}"
+        tier:                          "db2"
         db2_memory:                    "{{ mem_size | int }}"
         param_directory:               "{{ dir_params }}"
       tags:
@@ -85,7 +85,7 @@
       ansible.builtin.debug:
         msg:
           - "INSTALLED:  {{ db2_installed.stat.exists }}"
-          - "INIFILE:    {{ sap_inifile }}"
+          - "INIFILE:    {{ dir_params }}/{{ sap_inifile }}"
           - "PRODUCT ID: {{ bom.product_ids.dbl }}"
           - "MEDIA:      {{ target_media_location }}"
 
@@ -140,10 +140,10 @@
         mode:                          0755
       when:                            db2_lock_escalation.rc == 0
 
-    - name:                            "DB2 Install: Cleanup ini file {{ ansible_hostname }}"
-      ansible.builtin.file:
-        path:                          "{{ dir_params }}/{{ sap_inifile }}"
-        state:                         absent
+    # - name:                            "DB2 Install: Cleanup ini file {{ ansible_hostname }}"
+    #   ansible.builtin.file:
+    #     path:                          "{{ dir_params }}/{{ sap_inifile }}"
+    #     state:                         absent
 
     - name:                            "DB2 Install - flag"
       ansible.builtin.file:
