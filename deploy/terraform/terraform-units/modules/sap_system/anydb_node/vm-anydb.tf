@@ -190,24 +190,23 @@ resource "azurerm_linux_virtual_machine" "dbserver" {
 
   size = local.anydb_sku
 
-  source_image_id = local.anydb_custom_image ? local.anydb_os.source_image_id : null
+  source_image_id = var.database.os.type == "custom" ? var.database.os.source_image_id : null
 
   dynamic "source_image_reference" {
-    for_each = range(local.anydb_custom_image ? 0 : 1)
+    for_each = range(var.database.os.type == "marketplace" ? 1 : 0)
     content {
-      publisher = local.anydb_os.publisher
-      offer     = local.anydb_os.offer
-      sku       = local.anydb_os.sku
-      version   = local.anydb_os.version
+      publisher = var.database.os.publisher
+      offer     = var.database.os.offer
+      sku       = var.database.os.sku
+      version   = var.database.os.version
     }
   }
-
   dynamic "plan" {
-    for_each = range(local.anydb_custom_image ? 1 : 0)
+    for_each = range(var.database.os.type == "marketplace_with_plan" ? 1 : 0)
     content {
-      name      = local.anydb_os.offer
-      publisher = local.anydb_os.publisher
-      product   = local.anydb_os.sku
+      name      = var.database.os.offer
+      publisher = var.database.os.publisher
+      product   = var.database.os.sku
     }
   }
 
@@ -312,24 +311,23 @@ resource "azurerm_windows_virtual_machine" "dbserver" {
 
   size = local.anydb_sku
 
-  source_image_id = local.anydb_custom_image ? local.anydb_os.source_image_id : null
+  source_image_id = var.database.os.type == "custom" ? var.database.os.source_image_id : null
 
   dynamic "source_image_reference" {
-    for_each = range(local.anydb_custom_image ? 0 : 1)
+    for_each = range(var.database.os.type == "marketplace" ? 1 : 0)
     content {
-      publisher = local.anydb_os.publisher
-      offer     = local.anydb_os.offer
-      sku       = local.anydb_os.sku
-      version   = local.anydb_os.version
+      publisher = var.database.os.publisher
+      offer     = var.database.os.offer
+      sku       = var.database.os.sku
+      version   = var.database.os.version
     }
   }
-
   dynamic "plan" {
-    for_each = range(local.anydb_custom_image ? 1 : 0)
+    for_each = range(var.database.os.type == "marketplace_with_plan" ? 1 : 0)
     content {
-      name      = local.anydb_os.offer
-      publisher = local.anydb_os.publisher
-      product   = local.anydb_os.sku
+      name      = var.database.os.offer
+      publisher = var.database.os.publisher
+      product   = var.database.os.sku
     }
   }
 

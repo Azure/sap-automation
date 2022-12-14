@@ -46,14 +46,14 @@ output "ers_lb_ip" {
 }
 
 output "cluster_lb_ip" {
-  value = local.enable_scs_lb_deployment && (local.scs_high_availability && upper(local.scs_ostype) == "WINDOWS") ? (
+  value = local.enable_scs_lb_deployment && (local.scs_high_availability && upper(var.application_tier.scs_os.os_type) == "WINDOWS") ? (
     try(azurerm_lb.scs[0].frontend_ip_configuration[2].private_ip_address, "")) : (
     ""
   )
 }
 
 output "fileshare_lb_ip" {
-  value = local.enable_scs_lb_deployment && (local.scs_high_availability && upper(local.scs_ostype) == "WINDOWS") ? (
+  value = local.enable_scs_lb_deployment && (local.scs_high_availability && upper(var.application_tier.scs_os.os_type) == "WINDOWS") ? (
     try(azurerm_lb.scs[0].frontend_ip_configuration[3].private_ip_address, "")) : (
     ""
   )
@@ -167,7 +167,7 @@ output "web_vm_ids" {
 output "dns_info_vms" {
   description = "DNS information for the application tier"
   value = local.enable_deployment ? (
-    var.application.dual_nics ? (
+    var.application_tier.dual_nics ? (
       zipmap(
         compact(concat(
           slice(local.full_appserver_names, 0, local.application_server_count),
@@ -255,7 +255,7 @@ output "dns_info_loadbalancers" {
 
 
 output "app_tier_os_types" {
-  value = zipmap(["app", "scs", "web"], [local.app_ostype, local.scs_ostype, local.web_ostype])
+  value = zipmap(["app", "scs", "web"], [var.application_tier.app_os.os_type, var.application_tier.scs_os.os_type, var.application_tier.web_os.os_type])
 }
 
 

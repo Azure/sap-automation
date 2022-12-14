@@ -1,0 +1,21 @@
+# -------------------------------------+---------------------------------------8
+#
+# Description:  Run SQL Server for Prerequisites
+#
+
+- name:                                "WIN-SQL: Run SQL Server Prerequisites"
+  ansible.builtin.import_tasks:        4.4.0.0-mssql-prerequisites.yaml
+
+# -------------------------------------+---------------------------------------8
+#
+# Description:  Run SQL Server Installation
+#
+# -------------------------------------+---------------------------------------8
+
+- name:                                "WIN-SQL: Run SQL Server Installation"
+  ansible.builtin.import_tasks:        4.4.0.1-mssql-main.yaml
+
+...
+# /*---------------------------------------------------------------------------8
+# |                                   END                                      |
+# +------------------------------------4--------------------------------------*/

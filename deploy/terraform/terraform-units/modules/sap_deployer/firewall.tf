@@ -86,7 +86,7 @@ resource "azurerm_route_table" "rt" {
 }
 
 resource "azurerm_route" "admin" {
-  count = var.firewall_deployment ? 1 : 0
+  count = var.firewall_deployment && !local.firewall_subnet_exists ? 1 : 0
   name = format("%s%s%s%s",
     var.naming.resource_prefixes.fw_route,
     local.prefix,

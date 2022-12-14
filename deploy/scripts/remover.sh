@@ -29,13 +29,13 @@ function showhelp {
     echo "#   This file contains the logic to remove the different systems                        #"
     echo "#   The script expects the following exports:                                           #"
     echo "#                                                                                       #"
-    echo "#      DEPLOYMENT_REPO_PATH (path to the repo folder (sap-automation))                  #"
+    echo "#      SAP_AUTOMATION_REPO_PATH (path to the repo folder (sap-automation))                  #"
     echo "#      ARM_SUBSCRIPTION_ID (subscription containing the state file storage account)     #"
     echo "#      REMOTE_STATE_RG (resource group name for storage account containing state files) #"
     echo "#      REMOTE_STATE_SA (storage account for state file)                                 #"
     echo "#                                                                                       #"
     echo "#   The script will persist the parameters needed between the executions in the         #"
-    echo "#   ~/.sap_deployment_automation folder.                                                #"
+    echo "#   [CONFIG_REPO_PATH]/.sap_deployment_automation folder.                                                #"
     echo "#                                                                                       #"
     echo "#                                                                                       #"
     echo "#   Usage: remover.sh                                                                   #"
@@ -71,7 +71,7 @@ function missing {
     echo "#   Missing environment variables: ${option}!!!              #"
     echo "#                                                                                       #"
     echo "#   Please export the folloing variables:                                               #"
-    echo "#      DEPLOYMENT_REPO_PATH (path to the repo folder (sap-automation))                  #"
+    echo "#      SAP_AUTOMATION_REPO_PATH (path to the repo folder (sap-automation))                  #"
     echo "#      ARM_SUBSCRIPTION_ID (subscription containing the state file storage account)     #"
     echo "#                                                                                       #"
     echo "#########################################################################################"
@@ -162,7 +162,7 @@ if [ -z "${deployment_system}" ]; then
     exit 64 #script usage wrong
 fi
 
-# Check that the exports ARM_SUBSCRIPTION_ID and DEPLOYMENT_REPO_PATH are defined
+# Check that the exports ARM_SUBSCRIPTION_ID and SAP_AUTOMATION_REPO_PATH are defined
 validate_exports
 return_code=$?
 if [ 0 != $return_code ]; then
@@ -199,7 +199,7 @@ this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
 export TF_VAR_Agent_IP=$this_ip
 echo "Agent IP: $this_ip"
 
-automation_config_directory=~/.sap_deployment_automation
+automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation
 generic_config_information="${automation_config_directory}"/config
 
 system_config_information="${automation_config_directory}"/"${environment}""${region_code}"
@@ -271,7 +271,7 @@ fi
 
 export TF_DATA_DIR="${parameterfile_dirname}"/.terraform
 
-terraform_module_directory="${DEPLOYMENT_REPO_PATH}"/deploy/terraform/run/"${deployment_system}"/
+terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/run/"${deployment_system}"/
 
 if [ ! -d "${terraform_module_directory}" ]; then
     printf -v val %-40.40s "$deployment_system"
@@ -349,7 +349,7 @@ then
         elif [ "$deployment_system" == "sap_library" ]; then
         echo -e "#$cyan processing $deployment_system removal as defined in $parameterfile_name $resetformatting"
 
-        terraform_bootstrap_directory="${DEPLOYMENT_REPO_PATH}/deploy/terraform/bootstrap/${deployment_system}/"
+        terraform_bootstrap_directory="${SAP_AUTOMATION_REPO_PATH}/deploy/terraform/bootstrap/${deployment_system}/"
         if [ ! -d "${terraform_bootstrap_directory}" ]; then
             printf -v val %-40.40s "$terraform_bootstrap_directory"
             echo "#########################################################################################"

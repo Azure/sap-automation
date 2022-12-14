@@ -1,0 +1,465 @@
+---
+
+name:                                  "NW750SPS20_DB2_v0001ms"
+target:                                "SAP NW750 SPS20 DB2"
+platform:                              "DB2"
+version: 1
+defaults:
+  target_location:                     "{{ target_media_location }}/download_basket"
+
+product_ids:
+  dbl:                                 NW_ABAP_DB:NW750.DB6.ABAP
+  dblha:                               NW_ABAP_DB:NW750.DB6.ABAP
+  dblsby:                              NW_ABAP_DB:NW750.DB6.CP
+  scs:                                 NW_ABAP_ASCS:NW750.DB6.ABAP
+  scs_ha:                              NW_ABAP_ASCS:NW750.DB6.ABAPHA
+  pas:                                 NW_ABAP_CI:NW750.DB6.ABAP
+  pas_ha:                              NW_ABAP_CI:NW750.DB6.ABAPHA
+  app:                                 NW_DI:NW750.DB6.PD
+  app_ha:                              NW_DI:NW750.DB6.ABAPHA
+  web:                                 NW_Webdispatcher:NW750.IND.PD
+  ers:                                 NW_ERS:NW750.DB6.ABAP
+  ers_ha:                              NW_ERS:NW750.DB6.ABAPHA
+  generic:                             NW_Users_Create:GENERIC.HDB.PD
+
+materials:
+  dependencies:
+    - name:                            DB2_UDB_11_5_v0001ms
+    - name:                            SWPM10SP36_latest
+    - name:                            SUM20SP15_latest
+
+  media:
+
+
+    # SAPCAR 7.22
+    - name:                            "SAPCAR 7.22; OS: Linux on x86_64 64bit"
+      archive:                         SAPCAR_1115-70006178.EXE
+      checksum:                        765412436934362cc5497e3d659fbb78be91093a091c11ec4fbe84dfb415a0e5
+      filename:                        SAPCAR
+      permissions:                     '0755'
+      url:                             https://softwaredownloads.sap.com/file/0020000000098642022
+
+    # kernel components
+
+    - name:                            "Kernel Part II (753)"
+      archive:                         SAPEXEDB_900-80002603.SAR
+      url:                             https://softwaredownloads.sap.com/file/0020000001557492021
+      path:                            download_basket
+
+    - name:                            "Kernel Part I (753)"
+      archive:                         SAPEXE_900-80002573.SAR
+      url:                             https://softwaredownloads.sap.com/file/0020000001557032021
+      path:                            download_basket
+
+    - name:                            "SAP HOST AGENT 7.22 SP55"
+      archive:                         SAPHOSTAGENT55_55-80004822.SAR
+      url:                             https://softwaredownloads.sap.com/file/0020000000239812022
+      path:                            download_basket
+
+    - name:                            "SAP HOST AGENT 7.22 SP54"
+      archive:                         SAPHOSTAGENT54_54-80004822.SAR
+      checksum:                        5899a0934bd8d37a887d0d67de6ac0520f907a66ff7c3bc79176fff99171a878
+      url:                             https://softwaredownloads.sap.com/file/0020000001542872021
+      path:                            download_basket
+
+    - name:                            "Installation for SAP IGS integrated in SAP Kernel"
+      archive:                         igsexe_13-80003187.sar
+      checksum:                        b508b1ff97ec0e3b7f4dd8f57e3840eb547b6326434df677927b8cfd6b4faa12
+      url:                             https://softwaredownloads.sap.com/file/0020000000534572021
+      path:                            download_basket
+
+    - name:                            "SAP IGS Fonts and Textures"
+      archive:                         igshelper_17-10010245.sar
+      checksum:                        bc405afc4f8221aa1a10a8bc448f8afd9e4e00111100c5544097240c57c99732
+      url:                             https://softwaredownloads.sap.com/file/0020000000703122018
+      path:                            download_basket
+
+
+# DB Export
+    - name:                            "NW 7.5 Installation Export"
+      archive:                         51050829_3.ZIP
+      checksum:                        06c3a3cd5d1ad266f61ca202552468501d94cfdc7641ffdadf0a9abad82b648a
+      extract:                         true
+      extractDir:                      CD_EXPORT
+      creates:                         CDLABEL.ASC
+      url:                             https://softwaredownloads.sap.com/file/0030000000635092016
+
+    # Languages
+    - name:                            "NW 7.5 Language 1/2"
+      archive:                         51050829_LNG1_part1.exe
+      checksum:                        4fb96950412547ea3a49e9f1488f7fea7fd6c651143113b70b32543f9b166c71
+      url:                             https://softwaredownloads.sap.com/file/0030000000635132016
+
+    - name:                            "NW 7.5 Language 2/2"
+      archive:                         51050829_LNG1_part2.rar
+      checksum:                        9fc3fa5a22c120df9d3b6aa04eff39c924dffd8bd633607116f446b46d3b5dd7
+      url:                             https://softwaredownloads.sap.com/file/0030000000635142016
+
+
+    # other components
+
+    - name:         "ST-PI 740: SP 0007"
+      archive:      K-74007INSTPI.SAR
+      checksum:     a56d4f0a78c9b2cc4893523b9f1ecdcfa9a958254a9841948a857f5d7bd70e40
+      url:          https://softwaredownloads.sap.com/file/0010000019616252017
+      download:     false
+
+    - name:         "ST-PI 740: SP 0008"
+      archive:      K-74008INSTPI.SAR
+      checksum:     ebb16c56e0103036fb2e4e6e6c9a18a55e9562557e929c6163bfde568febe0ac
+      url:          https://softwaredownloads.sap.com/file/0010000000623832018
+      download:     false
+
+    - name:         "ST-PI 740: SP 0009"
+      archive:      K-74009INSTPI.SAR
+      checksum:     77e1cf3db89da6db87bd4af5f625d82454d25ba483dce0c450d9b260f313526d
+      url:          https://softwaredownloads.sap.com/file/0010000002257102018
+      download:     false
+
+    - name:         "ST-PI 740: SP 0010"
+      archive:      K-74010INSTPI.SAR
+      checksum:     ffccb6ea79f034dc39aff3d66ea69b75d468d81002ece6ed98ca9a9419d68d2e
+      url:          https://softwaredownloads.sap.com/file/0010000000161692019
+      download:     false
+
+    - name:         "ST-PI 740: SP 0011"
+      archive:      K-74011INSTPI.SAR
+      checksum:     22712d84ee8e098e27941510567bdc00829f40997daae66fdb80c1c5cb720e79
+      url:          https://softwaredownloads.sap.com/file/0010000001051532019
+      download:     false
+
+    - name:         "ST-PI 740: SP 0012"
+      archive:      K-74012INSTPI.SAR
+      checksum:     0f385ce50d6119fca8457aaaea49f7337b5315993d930a16403e04db713f083b
+      url:          https://softwaredownloads.sap.com/file/0010000002162182019
+      download:     false
+
+    - name:         "ST-PI 740: SP 0013"
+      archive:      K-74013INSTPI.SAR
+      checksum:     e1270d366de17b67ab2f971195da4fa944509274eea778e664b8050b078d0c45
+      url:          https://softwaredownloads.sap.com/file/0010000000660652020
+      download:     false
+
+    - name:         "ST-PI 740: SP 0014"
+      archive:      K-74014INSTPI.SAR
+      checksum:     f1a9058c623360d576469c51a74e5e649b7055bcac200c5b0f8165801a189048
+      url:          https://softwaredownloads.sap.com/file/0010000001984822020
+      download:     false
+
+    - name:         "ST-PI 740: SP 0015"
+      archive:      K-74015INSTPI.SAR
+      checksum:     d877446c5d3c41af8d10dda15b11a61d9ac36b795fe6ace9b7f99654576278af
+      url:          https://softwaredownloads.sap.com/file/0010000000853222021
+      download:     false
+
+    - name:         "ST-PI 740: SP 0016"
+      archive:      K-74016INSTPI.SAR
+      checksum:     0d5a3c74f813dad48345023c7acd146dc9ef84c121c6d854292cb534006c40a5
+      url:          https://softwaredownloads.sap.com/file/0010000001454472021
+      download:     false
+
+    - name:         "SAP_ABA 752: SP 0001"
+      archive:      K-75201INSAPABA.SAR
+      checksum:     2c9781483259eaf3ca064968641b603c96e27e764e89344658bfb5e86b98eee5
+      url:          https://softwaredownloads.sap.com/file/0010000020411162017
+      download:     false
+
+    - name:         "SAP_BASIS 752: SP 0001"
+      archive:      K-75201INSAPBASIS.SAR
+      checksum:     0aac83737da0f4f2dc00f3c97617a49e86e4eec2692ad4de3fadbf165ed1d0cd
+      url:          https://softwaredownloads.sap.com/file/0010000020520812017
+      download:     false
+
+    - name:         "SAP_BW 752: SP 0001"
+      archive:      K-75201INSAPBW.SAR
+      checksum:     5c705a10b447799fa5eecbc19b533e33310a339ffc313c2987f05ab3a91452ed
+      url:          https://softwaredownloads.sap.com/file/0010000020411682017
+      download:     false
+
+    - name:         "SAP_GWFND 752: SP 0001"
+      archive:      K-75201INSAPGWFND.SAR
+      checksum:     66529d44c5e9b7a17338ae27ef749e6f5022a717485aa308cc7244ff5bc6c674
+      url:          https://softwaredownloads.sap.com/file/0010000020411692017
+      download:     false
+
+    - name:         "SAP_ABA 752: SP 0002"
+      archive:      K-75202INSAPABA.SAR
+      checksum:     469b8cc76ca47445dbddb4de459aad36e5ed931600eac024452c8c50dcda9c39
+      url:          https://softwaredownloads.sap.com/file/0010000000570142018
+      download:     false
+
+    - name:         "SAP_BASIS 752: SP 0002"
+      archive:      K-75202INSAPBASIS.SAR
+      checksum:     804b4d15e27a1cc8d15d67b65da4e087992823cfc668616d55af718c58ac33d7
+      url:          https://softwaredownloads.sap.com/file/0010000000570162018
+      download:     false
+
+    - name:         "SAP_BW 752: SP 0002"
+      archive:      K-75202INSAPBW.SAR
+      checksum:     6d4dcab41d4572aba7b5f439953ca96f45f1522871d86f918d4c11ba43f5bf9c
+      url:          https://softwaredownloads.sap.com/file/0010000000570192018
+      download:     false
+
+    - name:         "SAP_GWFND 752: SP 0002"
+      archive:      K-75202INSAPGWFND.SAR
+      checksum:     ad8d53c13c58317e49cbdabcf9ec3b0a5195397a5a2671afac0a61b44caea0db
+      url:          https://softwaredownloads.sap.com/file/0010000000570202018
+      download:     false
+
+    - name:         "SAP_ABA 752: SP 0003"
+      archive:      K-75203INSAPABA.SAR
+      checksum:     d062f0e05b07202c7c7dd4dfbf4a6f977db6d33ed9906548123e4b35dfd213d5
+      url:          https://softwaredownloads.sap.com/file/0010000001867212018
+      download:     false
+
+    - name:         "SAP_BASIS 752: SP 0003"
+      archive:      K-75203INSAPBASIS.SAR
+      checksum:     559c44b265b6880f852f63a99e9455b1238816f0ebefef6d22dc608af4d3aca3
+      url:          https://softwaredownloads.sap.com/file/0010000001749472018
+      download:     false
+
+    - name:         "SAP_BW 752: SP 0003"
+      archive:      K-75203INSAPBW.SAR
+      checksum:     a90bcd6276363e985959274ad891e08fc6e0c19375e899ae302fd7b81a3708cf
+      url:          https://softwaredownloads.sap.com/file/0010000001600592018
+      download:     false
+
+    - name:         "SAP_GWFND 752: SP 0003"
+      archive:      K-75203INSAPGWFND.SAR
+      checksum:     e119d636099f3df6df2a153ad671340e84be27b98e227187b74f59ece662d0d6
+      url:          https://softwaredownloads.sap.com/file/0010000001600602018
+      download:     false
+
+    - name:         "SAP_ABA 752: SP 0004"
+      archive:      K-75204INSAPABA.SAR
+      checksum:     733020febb3a888e0cef2065aff3a9f7f3ff2fd27ea8653318cddadb73659bdd
+      url:          https://softwaredownloads.sap.com/file/0010000000438422019
+      download:     false
+
+    - name:         "SAP_BASIS 752: SP 0004"
+      archive:      K-75204INSAPBASIS.SAR
+      checksum:     c791205329d211e3713ced4502002ba081bc451c4dad9f85814ed8b3576624c6
+      url:          https://softwaredownloads.sap.com/file/0010000000438482019
+      download:     false
+
+    - name:         "SAP_BW 752: SP 0004"
+      archive:      K-75204INSAPBW.SAR
+      checksum:     4c75f504ae3a8ed154f0acc88bf46f0f7a963df22e41ef8d48ee16c6665cc88d
+      url:          https://softwaredownloads.sap.com/file/0010000000438542019
+      download:     false
+
+    - name:         "SAP_GWFND 752: SP 0004"
+      archive:      K-75204INSAPGWFND.SAR
+      checksum:     30e125e164ad38232ec6c5d850d2e897ec5d21e3d61587c28f00028e346da787
+      url:          https://softwaredownloads.sap.com/file/0010000000438552019
+      download:     false
+
+    - name:         "SAP_ABA 752: SP 0005"
+      archive:      K-75205INSAPABA.SAR
+      checksum:     c86c4d57f94ded65a609ceba49919ba66413d5001252d595b847e1222539d5e1
+      url:          https://softwaredownloads.sap.com/file/0010000001667222019
+      download:     false
+
+    - name:         "SAP_BASIS 752: SP 0005"
+      archive:      K-75205INSAPBASIS.SAR
+      checksum:     01a939b94e99eed65a54d82a231b7d2f1fbdb2c15d4a3df654c3ffb600a95bc1
+      url:          https://softwaredownloads.sap.com/file/0010000001667272019
+      download:     false
+
+    - name:         "SAP_BW 752: SP 0005"
+      archive:      K-75205INSAPBW.SAR
+      checksum:     4f26816202e4e2204ca4435b4dfefaf371b53fc1215a92845b4fbc41551a4240
+      url:          https://softwaredownloads.sap.com/file/0010000001667302019
+      download:     false
+
+    - name:         "SAP_GWFND 752: SP 0005"
+      archive:      K-75205INSAPGWFND.SAR
+      checksum:     0ca0d111bcc0595436ac493b0920f2c86def514f9d10f42e9ac22065404f11fc
+      url:          https://softwaredownloads.sap.com/file/0010000001667312019
+      download:     false
+
+    - name:         "SAP_ABA 752: SP 0006"
+      archive:      K-75206INSAPABA.SAR
+      checksum:     84b07f9a2ecc7926daedec9d11423b9da9800272cc6e5e17a4d9767a66ee9614
+      url:          https://softwaredownloads.sap.com/file/0010000000241522020
+      download:     false
+
+    - name:         "SAP_BASIS 752: SP 0006"
+      archive:      K-75206INSAPBASIS.SAR
+      checksum:     34af0fd986d17664cc589c052402b4517998d0d2fe6aaef09ca0f0eeb69b6637
+      url:          https://softwaredownloads.sap.com/file/0010000000241542020
+      download:     false
+
+    - name:         "SAP_BW 752: SP 0006"
+      archive:      K-75206INSAPBW.SAR
+      checksum:     4db645d02828ecff9d9dccdc55e6f5982f505d8bf22f6b39c2fc9df33010bab3
+      url:          https://softwaredownloads.sap.com/file/0010000000241562020
+      download:     false
+
+    - name:         "SAP_GWFND 752: SP 0006"
+      archive:      K-75206INSAPGWFND.SAR
+      checksum:     968772e83faa8ccb91739c526963033957dfff413b3081437835798a2e8f4af1
+      url:          https://softwaredownloads.sap.com/file/0010000000241572020
+      download:     false
+
+    - name:         "SAP_ABA 752: SP 0007"
+      archive:      K-75207INSAPABA.SAR
+      checksum:     c8eb973485bb47fcde2b792c36a51a3dcff62eeaca479beafdaeef0c67d5ca0c
+      url:          https://softwaredownloads.sap.com/file/0010000001435862020
+      download:     false
+
+    - name:         "SAP_BASIS 752: SP 0007"
+      archive:      K-75207INSAPBASIS.SAR
+      checksum:     752a92ef778c956f724d16e163be64e937df9f05b55559a1d90d66d9281c1e08
+      url:          https://softwaredownloads.sap.com/file/0010000001597432020
+      download:     false
+
+    - name:         "SAP_BW 752: SP 0007"
+      archive:      K-75207INSAPBW.SAR
+      checksum:     c1a7ddb70d5dd1f59dc185acdd0bcbce8376a182392a58f0d96c69dca3455a6c
+      url:          https://softwaredownloads.sap.com/file/0010000001435922020
+      download:     false
+
+    - name:         "SAP_GWFND 752: SP 0007"
+      archive:      K-75207INSAPGWFND.SAR
+      checksum:     34fb80b286c7421b0791b1742ba4441bb9c91b52205cf480845215f6fe7eab92
+      url:          https://softwaredownloads.sap.com/file/0010000001435932020
+      download:     false
+
+    - name:         "SAP_ABA 752: SP 0008"
+      archive:      K-75208INSAPABA.SAR
+      checksum:     40972f09a85dc8b9d7eeba646cd62fc702aadc9f7ca6b7d9c8f48a5a2568b769
+      url:          https://softwaredownloads.sap.com/file/0010000000265652021
+      download:     false
+
+    - name:         "SAP_BASIS 752: SP 0008"
+      archive:      K-75208INSAPBASIS.SAR
+      checksum:     9594c7098431dc28268a0c9bcb91127ea7cace54288cfacf1921bbd88108b889
+      url:          https://softwaredownloads.sap.com/file/0010000000265682021
+      download:     false
+
+    - name:         "SAP_BW 752: SP 0008"
+      archive:      K-75208INSAPBW.SAR
+      checksum:     dcd6aaf6a68a87b547da2b7b555bcb78a835630a0f390f5370f97e31cbb306cb
+      url:          https://softwaredownloads.sap.com/file/0010000000265722021
+      download:     false
+
+    - name:         "SAP_GWFND 752: SP 0008"
+      archive:      K-75208INSAPGWFND.SAR
+      checksum:     de2f3db8a15a7fabc6cf299aa7aa45601218cb952a8c8ae59c486ecde5553a79
+      url:          https://softwaredownloads.sap.com/file/0010000000265732021
+      download:     false
+
+    - name:         "SAP_ABA 752: SP 0009"
+      archive:      K-75209INSAPABA.SAR
+      checksum:     b45e68c9b6ac10d04e9ceba688da2c3bb290b6b92c1639906587c95daa7f6b2c
+      url:          https://softwaredownloads.sap.com/file/0010000001192192021
+      download:     false
+
+    - name:         "SAP_BASIS 752: SP 0009"
+      archive:      K-75209INSAPBASIS.SAR
+      checksum:     cbaca400554002c97d8a06e10f988e5120415a98215449c0074e5a53ce4c3051
+      url:          https://softwaredownloads.sap.com/file/0010000001209602021
+      download:     false
+
+    - name:         "SAP_BW 752: SP 0009"
+      archive:      K-75209INSAPBW.SAR
+      checksum:     62d1189438314050f38f90cc75d1bfcebc56ea6d1418ba7db82119eaf234de78
+      url:          https://softwaredownloads.sap.com/file/0010000001192232021
+      download:     false
+
+    - name:         "SAP_GWFND 752: SP 0009"
+      archive:      K-75209INSAPGWFND.SAR
+      checksum:     844cdd651fb1732efe21817ab787bb7306593e952b27dd4be5f862a06dade2c8
+      url:          https://softwaredownloads.sap.com/file/0010000001192262021
+      download:     false
+
+    - name:         "SAP_UI 754: SP 0001"
+      archive:      K-75401INSAPUI.SAR
+      checksum:     212fc7d928ced7bd9a9c1e587f65457a6e40bb2bb49527ea88834e4f32b3639e
+      url:          https://softwaredownloads.sap.com/file/0010000001661402019
+      download:     false
+
+    - name:         "SAP_UI 754: SP 0002"
+      archive:      K-75402INSAPUI.SAR
+      checksum:     3a4bcfd61b3015083e5e28a6db294c9c09277778b49d0259debebbf63443996d
+      url:          https://softwaredownloads.sap.com/file/0010000002197612019
+      download:     false
+
+    - name:         "SAP_UI 754: SP 0003"
+      archive:      K-75403INSAPUI.SAR
+      checksum:     0a7640a5a2174b0dee45810466473932265f67bf6b0aa6e355930315513379c3
+      url:          https://softwaredownloads.sap.com/file/0010000000380882020
+      download:     false
+
+    - name:         "SAP_UI 754: SP 0004"
+      archive:      K-75404INSAPUI.SAR
+      checksum:     260318324bf29dff72a59cac8ce4d607803ba27abfcfd30e999b9b0bc373bb9c
+      url:          https://softwaredownloads.sap.com/file/0010000000876572020
+      download:     false
+
+    - name:         "SAP_UI 754: SP 0005"
+      archive:      K-75405INSAPUI.SAR
+      checksum:     a493ff19b33d555960d10e53657f5803a21bdf1c7ca3b91345da24afa5671e6e
+      url:          https://softwaredownloads.sap.com/file/0010000001523772020
+      download:     false
+
+    - name:         "SAP_UI 754: SP 0006"
+      archive:      K-75406INSAPUI.SAR
+      checksum:     9ebca229381c5b56aef1641351d0dddde7e8ca547a71ff6efc787fa3f0180c1b
+      url:          https://softwaredownloads.sap.com/file/0010000000325802021
+      download:     false
+
+    - name:         "SAP_UI 754: SP 0007"
+      archive:      K-75407INSAPUI.SAR
+      checksum:     029ae0aab2aefca59da36cf8d9bbc30bc693bca810c7c361c2f07d1028b9cfdb
+      url:          https://softwaredownloads.sap.com/file/0010000000771642021
+      download:     false
+
+    - name:         "SAP_UI 754: SP 0008"
+      archive:      K-75408INSAPUI.SAR
+      checksum:     4d990a8c4136d2b0d3af2d78f8f8239957c8d8def649e8453e06f1161c7870dd
+      url:          https://softwaredownloads.sap.com/file/0010000001264832021
+      download:     false
+
+    - name:         "SAP_UI 754 Update: Meta-Commandfile"
+      archive:      K-754BHINSAPUI.SAR
+      checksum:     21c5ef4f4e7583a2a917dc66429590d31cdcf4b9a26cb8b3f4b6ad25a7041c7d
+      url:          https://softwaredownloads.sap.com/file/0010000000183702019
+      download:     false
+
+    - name:         "SPAM/SAINT Update - Version 752/0079"
+      archive:      KD75279.SAR
+      checksum:     3b5817e4f430cfbb10e48960d029513eddff2cea8bfb963d47c082fcb7700ce6
+      url:          https://softwaredownloads.sap.com/file/0010000001440222021
+      download:     false
+
+    - name:         "Attribute Change Package 13 for SAP_BASIS 752"
+      archive:      SAP_BASIS752.SAR
+      checksum:     07de3c9e4450cd534ecd0302ecf2345e29e97d9aa4d499a4659c09f3595d1432
+      url:          https://softwaredownloads.sap.com/file/0010000020115572017
+      download:     false
+
+    - name:         "Attribute Change Package 06 for SAP_UI 754"
+      archive:      SAP_UI754.SAR
+      checksum:     9bbf3de543c5efbbd91e930a606704b2353edda3bb3661b47dee2edca8f3cf80
+      url:          https://softwaredownloads.sap.com/file/0010000000031692020
+      download:     false
+
+    - name:         "Attribute Change Package 45 for ST-PI 740"
+      archive:      ST-PI740.SAR
+      checksum:     8406c3d057afd459406b3d2fa500a1050eb8ac3c81be165d19af6e5834725328
+      url:          https://softwaredownloads.sap.com/file/0010000000297212015
+      download:     false
+
+    # other components
+
+    - name:         "SAPCAR"
+      archive:      SAPCAR_1115-70006178.EXE
+      checksum:     765412436934362cc5497e3d659fbb78be91093a091c11ec4fbe84dfb415a0e5
+      override_target_filename: "SAPCAR.EXE"
+      url:          https://softwaredownloads.sap.com/file/0020000000098642022
+      path:         download_basket
+
+
+...

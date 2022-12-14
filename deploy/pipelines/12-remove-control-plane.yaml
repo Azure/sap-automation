@@ -5,11 +5,7 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-
-name: Removal
-
 parameters:
-
   - name:                              deployer
     displayName:                       "Deployer configuration name, use this format: ENV-LOCA-VNET-INFRASTRUCTURE"
     type:                              string
@@ -20,7 +16,7 @@ parameters:
     type:                              string
     default:                           MGMT-WEEU-SAP_LIBRARY
 
-  - name:                              deployer_environment_parameter
+  - name:                              deployer_environment
     displayName:                       Deployer Environment name (MGMT, DEV, QA, PRD, ...)
     type:                              string
     default:                           MGMT
@@ -30,79 +26,49 @@ parameters:
     type:                              boolean
     default:                           false
 
+  - name:                              sap_automation_repo_path
+    displayName:                       The local path on the agent where the sap_automation repo can be found
+    type:                              string
 
-trigger:                               none
-
-pool:
-  name:                                $[coalesce(variables['run_on'], variables['Agent'])]
-
-variables:
-  - group:                             "SDAF-General"
-  - group:                             SDAF-${{ parameters.deployer_environment_parameter }}
-
-  - name:                              parent_variable_group
-    value:                             SDAF-${{ parameters.deployer_environment_parameter }}
-
-  - name:                              run_on
-    value:                             $[replace(replace('True',eq(${{ parameters.use_deployer }}, 'True'), variables['POOL']),'True',variables['Agent'])]
-
-  - name:                              deployer_folder
-    value:                             ${{ parameters.deployer }}
-
-  - name:                              deployer_configuration_file
-    value:                             ${{ parameters.deployer }}.tfvars
-
-  - name:                              library_folder
-    value:                             ${{ parameters.library }}
-
-  - name:                              library_configuration_file
-    value:                             ${{ parameters.library }}.tfvars
-
-  - name:                              tf_url
-    value:                             https://releases.hashicorp.com/terraform/$(tf_version)/terraform_$(tf_version)_linux_amd64.zip
-
-  - name:                              run_on
-    value:                             $[replace(replace('True',eq(${{ parameters.use_deployer }}, 'True'), variables['POOL']),'True',variables['Agent'])]
-
-  - name:                              this_agent
-    value:                             $[lower(variables['run_on'])]
-
+  - name:                              config_repo_path
+    displayName:                       The local path on the agent where the config repo can be found
+    type:                              string
 
 stages:
-  - stage:                             Remove_control_plane_remote
-    displayName:                       "Control plane removal (on agent)"
+  - stage: Remove_control_plane_remote
+    condition: and(not(failed()), not(canceled()))
+    displayName: "Control plane removal (on agent)"
+    variables:
+      - template:                      variables/12-remove-control-plane-variables.yaml
+        parameters:
+          deployer:                    ${{ parameters.deployer }}
+          deployer_environment:        ${{ parameters.deployer_environment }}
+          library:                     ${{ parameters.library }}
+          use_deployer:                ${{ parameters.use_deployer }}
     pool:
       name:                            $(POOL)
     jobs:
       - job:                           Remove_control_plane_remote
         displayName:                   "Start control plane removal"
         variables:
-          - group:                     SDAF-${{ parameters.deployer_environment_parameter }}
+          - group:                     SDAF-${{ parameters.deployer_environment }}
         workspace:
           clean:                       all
         steps:
+          - template:                  templates\download.yaml
           - task:                      PostBuildCleanup@3
-          - checkout:                  self
-            persistCredentials:        true
-            submodules:                true
           - bash: |
               #!/bin/bash
+              # Treat unset variables as an error when substituting.
+              set -u
+
               echo "##vso[build.updatebuildnumber]Removing the control plane defined in $(deployer_folder) $(library_folder)"
               green="\e[1;32m" ; reset="\e[0m"
 
-              echo -e "$green--- Checkout $(Build.SourceBranchName) ---$reset"
-                git fetch -q --all
-                git checkout -q $(Build.SourceBranchName)
+              # echo -e "$green--- Checkout $(Build.SourceBranchName) ---$reset"
+              #   git fetch -q --all
+              #   git checkout -q $(Build.SourceBranchName)
 
-              echo -e "$green--- Install Terraform ---$reset"
-                wget -q $(tf_url)
-                return_code=$?
-                if [ 0 != $return_code ]; then
-                  echo "##vso[task.logissue type=error]Unable to download Terraform version $(tf_version)."
-                  exit 2
-                fi
-                unzip -qq terraform_$(tf_version)_linux_amd64.zip ; sudo mv terraform /bin/
-                rm -f terraform_$(tf_version)_linux_amd64.zip
               echo -e "$green--- Update .sap_deployment_automation/config as DEPLOYMENT_REPO_PATH can change on devops agent ---$reset"
                 DEPLOYMENT_REPO_PATH=$(Build.Repository.LocalPath)
                 export HOME=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)
@@ -110,21 +76,17 @@ stages:
                 echo DEPLOYMENT_REPO_PATH=$DEPLOYMENT_REPO_PATH > .sap_deployment_automation/config
 
               echo -e "$green--- Configure devops CLI extension ---$reset"
-                devops_extension_installed=$(az extension list --query [].path | grep azure-devops)
-                if [ -z "$devops_extension_installed" ]; then
-                  az extension add --name azure-devops --output none
-                fi
+                az config set extension.use_dynamic_install=yes_without_prompt
+
+                az devops configure --defaults organization=$(System.CollectionUri) project='$(System.TeamProject)' --output none
                 if [ -n $(PAT) ]; then
                   export AZURE_DEVOPS_EXT_PAT=$(PAT)
                 else
                   export AZURE_DEVOPS_EXT_PAT=$(System.AccessToken)
                 fi
 
-                az devops configure -d organization=$(System.CollectionUri)
-                az devops configure -d project=$(System.TeamProject)
-
                 export VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(parent_variable_group)'].id | [0]")
-                echo '$(variable_group) id: ' $VARIABLE_GROUP_ID
+                echo '$(parent_variable_group) id: ' $VARIABLE_GROUP_ID
                 if [ -z ${VARIABLE_GROUP_ID} ]; then
                     echo "##vso[task.logissue type=error]Variable group $(parent_variable_group) could not be found."
                     exit 2
@@ -147,8 +109,8 @@ stages:
                 fi
 
               echo -e "$green--- Convert config files to UX format ---$reset"
-                dos2unix -q DEPLOYER/$(deployer_folder)/$(deployer_configuration_file) 2> /dev/null
-                dos2unix -q LIBRARY/$(library_folder)/$(library_configuration_file)    2> /dev/null
+                dos2unix -q $CONFIG_REPO_PATH/DEPLOYER/$(deployer_folder)/$(deployer_configuration_file) 2> /dev/null
+                dos2unix -q $CONFIG_REPO_PATH/LIBRARY/$(library_folder)/$(library_configuration_file)    2> /dev/null
 
               echo -e "$green--- Running the remove region script that destroys deployer VM and SAP library ---$reset"
                 ENVIRONMENT=$(echo $(deployer_folder) | awk -F'-' '{print $1}' | xargs) ; echo Environment $ENVIRONMENT
@@ -179,16 +141,16 @@ stages:
                   REMOTE_STATE_RG=$(cat ${deployer_environment_file_name}  | grep REMOTE_STATE_RG      | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file resource group' $REMOTE_STATE_RG
                 fi
 
-                export STATE_SUBSCRIPTION=$(ARM_SUBSCRIPTION_ID) ; echo 'Terraform state file subscription' $STATE_SUBSCRIPTION
+                export STATE_SUBSCRIPTION=$ARM_SUBSCRIPTION_ID ; echo 'Terraform state file subscription' $STATE_SUBSCRIPTION
 
               echo -e "$green--- az login ---$reset"
 
-                if [ -z $(ARM_SUBSCRIPTION_ID) ]; then
+                if [ -z $ARM_SUBSCRIPTION_ID ]; then
                   echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined."
                   exit 2
                 fi
 
-                if [ -z $(ARM_CLIENT_ID) ]; then
+                if [ -z $ARM_CLIENT_ID ]; then
                   echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined."
                   exit 2
                 fi
@@ -198,38 +160,27 @@ stages:
                   exit 2
                 fi
 
-                if [ -z $(ARM_TENANT_ID) ]; then
+                if [ -z $ARM_TENANT_ID ]; then
                   echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined."
                   exit 2
                 fi
 
-                az login --service-principal --username $(ARM_CLIENT_ID) --password $ARM_CLIENT_SECRET --tenant $(ARM_TENANT_ID) --output none
+                az login --service-principal --username $ARM_CLIENT_ID --password=$ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID --output none
                 return_code=$?
                 if [ 0 != $return_code ]; then
                   echo -e "$boldred--- Login failed ---$reset"
                   echo "##vso[task.logissue type=error]az login failed."
                   exit $return_code
                 fi
-                az account set --subscription $(ARM_SUBSCRIPTION_ID)
 
               echo -e "$green--- Running the remove region script that destroys deployer VM and SAP library ---$reset"
 
                 ip_added=0
                 az account set --subscription ${STATE_SUBSCRIPTION}
 
-                if [ "azure pipelines" = "$(this_agent)" ]; then
-                  echo -e "$green--- Set IP ---$reset"
-                  this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
-                  az storage account network-rule add -g "${REMOTE_STATE_RG}" --account-name "${REMOTE_STATE_SA}" --ip-address ${this_ip} --output none
-                  if [[ ${#key_vault} -gt 0 ]]; then
-                    az keyvault network-rule add --name ${key_vault} --ip-address ${this_ip} --no-wait
-                    ip_added=1
-                  fi
-                fi
-
-                $DEPLOYMENT_REPO_PATH/deploy/scripts/remove_controlplane.sh                            \
-                  --deployer_parameter_file DEPLOYER/$(deployer_folder)/$(deployer_configuration_file) \
-                  --library_parameter_file LIBRARY/$(library_folder)/$(library_configuration_file)     \
+                $SAP_AUTOMATION_REPO_PATH/deploy/scripts/remove_controlplane.sh                            \
+                  --deployer_parameter_file $CONFIG_REPO_PATH/DEPLOYER/$(deployer_folder)/$(deployer_configuration_file) \
+                  --library_parameter_file $CONFIG_REPO_PATH/LIBRARY/$(library_folder)/$(library_configuration_file)     \
                   --storage_account $REMOTE_STATE_SA                                                   \
                   --subscription ${STATE_SUBSCRIPTION}                                                 \
                   --resource_group $REMOTE_STATE_RG                                                    \
@@ -240,78 +191,110 @@ stages:
                 echo "Return code from remove_controlplane $return_code."
 
               echo -e "$green--- Remove Control Plane Part 1 ---$reset"
-                cd $HOME;
+                cd $CONFIG_REPO_PATH
+                git checkout -q $(Build.SourceBranchName)
 
                 changed=0
-
-                if [ -f DEPLOYER/$(deployer_folder)/.terraform/terraform.tfstate ]; then
-                    git add -f DEPLOYER/$(deployer_folder)/.terraform/terraform.tfstate
-                    changed=1
-                fi
-
-                if [ -f LIBRARY/$(library_folder)/.terraform/terraform.tfstate ]; then
-                    git add -f LIBRARY/$(library_folder)/.terraform/terraform.tfstate
+                if [ -f .sap_deployment_automation/${ENVIRONMENT}${LOCATION} ]; then
+                    git add .sap_deployment_automation/${ENVIRONMENT}${LOCATION}
                     changed=1
                 fi
 
                 if [ -f DEPLOYER/$(deployer_folder)/terraform.tfstate ]; then
+                    echo "Compressing the state file."
                     sudo apt install zip
-                    zip -P $ARM_CLIENT_SECRET DEPLOYER/$(deployer_folder)/state DEPLOYER/$(deployer_folder)/terraform.tfstate
+                    pass=$(echo $ARM_CLIENT_SECRET | sed 's/-//g')
+                    zip -j -P "${pass}" DEPLOYER/$(deployer_folder)/state DEPLOYER/$(deployer_folder)/terraform.tfstate
                     git add -f DEPLOYER/$(deployer_folder)/state.zip
                     changed=1
                 fi
 
-                if [ -f  $(Deployment_Configuration_Path)/LIBRARY/$(library_folder)/backend-config.tfvars ]; then
-                    git rm -q -f $(Deployment_Configuration_Path)/LIBRARY/$(library_folder)/backend-config.tfvars
+                if [ -d "DEPLOYER/$(deployer_folder)/.terraform" ]; then
+                  git rm -q -f -r --ignore-unmatch "DEPLOYER/$(deployer_folder)/.terraform"
+                  changed=1
+                fi
+
+                if [ -f  "LIBRARY/$(library_folder)/backend-config.tfvars ]; then
+                    git rm -q -f LIBRARY/$(library_folder)/backend-config.tfvars
                     changed=1
+                fi
+
+                if [ -f "LIBRARY/$(library_folder)/state.zip ]; then
+                  echo "Removing the compressed state file."
+                  git rm -q  --ignore-unmatch LIBRARY/$(library_folder)/state.zip
+                  changed=1
+                fi
+
+                if [ -f "LIBRARY/$(library_folder)/terraform.tfstate" ]; then
+                  echo "Removing the state file."
+                  git rm -q -f --ignore-unmatch "LIBRARY/$(library_folder)/terraform.tfstate"
+                  changed=1
+                fi
+
+                if [ -d "LIBRARY/$(library_folder)/.terraform" ]; then
+                  git rm -q -f -r --ignore-unmatch "LIBRARY/$(library_folder)/.terraform/terraform.tfstate"
+                  changed=1
                 fi
 
                 if [ 1 == $changed ]; then
                     git config --global user.email "$(Build.RequestedForEmail)"
                     git config --global user.name "$(Build.RequestedFor)"
-                    git commit -m "Control Plane ${deployer_folder} removal[skip ci]"
+                    git commit -m "Control Plane $(deployer_folder) removal[skip ci]"
                     git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --set-upstream origin $(Build.SourceBranchName)
+                    return_code=$?
                 fi
 
               exit $return_code
             displayName:               Remove control plane
             env:
-              SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
-              ARM_SUBSCRIPTION_ID:     $(ARM_SUBSCRIPTION_ID)
-              ARM_CLIENT_ID:           $(ARM_CLIENT_ID)
-              ARM_CLIENT_SECRET:       $(ARM_CLIENT_SECRET)
-              ARM_TENANT_ID:           $(ARM_TENANT_ID)
-              DEPLOYMENT_REPO_PATH:    $(Build.Repository.LocalPath)
-              key_vault:               $(Deployer_Key_Vault)
-            failOnStderr:              false
+              SYSTEM_ACCESSTOKEN:       $(System.AccessToken)
+              ARM_SUBSCRIPTION_ID:      $(CP_ARM_SUBSCRIPTION_ID)
+              ARM_CLIENT_ID:            $(CP_ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:        $(CP_ARM_CLIENT_SECRET)
+              ARM_TENANT_ID:            $(CP_ARM_TENANT_ID)
+              SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
+              CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
+              key_vault:                $(Deployer_Key_Vault)
+              TF_IN_AUTOMATION:         true
+              TF_LOG:                   $(TF_LOG)
+            failOnStderr: false
 
-  - stage:                             Remove_control_plane
-    displayName:                       "Finalize control plane removal"
+  - stage:                              Remove_control_plane
+    displayName:                        "Finalize control plane removal"
+    variables:
+      - template:                       variables/12-remove-control-plane-variables.yaml
+        parameters:
+          deployer:                     ${{ parameters.deployer }}
+          deployer_environment:         ${{ parameters.deployer_environment }}
+          library:                      ${{ parameters.library }}
+          use_deployer:                 ${{ parameters.use_deployer }}
     pool:
-      name:                            $(Agent)
+      name:                             $(Agent)
     dependsOn:
       - Remove_control_plane_remote
-    condition:  eq(dependencies.Remove_control_plane_remote.result, 'Succeeded')
+    condition:                          eq(dependencies.Remove_control_plane_remote.result, 'Succeeded')
     jobs:
-      - job:                           Remove_control_plane
-        displayName:                   "Finalize control plane removal"
+      - job:                            Remove_control_plane
+        displayName:                    "Finalize control plane removal"
         variables:
-          - group:                     SDAF-${{ parameters.deployer_environment_parameter }}
+          - group:                     SDAF-${{ parameters.deployer_environment }}
         workspace:
           clean:                       all
         steps:
+          - template:                  templates\download.yaml
+            parameters:
+              getLatestFromBranch:     true
           - task:                      PostBuildCleanup@3
-          - checkout:                  self
-            persistCredentials:        true
-            submodules:                true
           - bash: |
               #!/bin/bash
               echo "##vso[build.updatebuildnumber]Removing the control plane defined in $(deployer_folder) $(library_folder)"
               green="\e[1;32m" ; reset="\e[0m"
+              # Treat unset variables as an error when substituting.
+                set -ue
 
-              echo -e "$green--- Checkout $(Build.SourceBranchName) ---$reset"
-                git fetch -q --all
-                git checkout -q $(Build.SourceBranchName)
+              # echo -e "$green--- Checkout $(Build.SourceBranchName) ---$reset"
+              #  git fetch -q --all
+              #  git checkout -q $(Build.SourceBranchName)
 
                 # Check if running on deployer
                 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
@@ -338,18 +321,14 @@ stages:
                 cd $HOME; mkdir -p .sap_deployment_automation
 
               echo -e "$green--- Configure devops CLI extension ---$reset"
-                devops_extension_installed=$(az extension list --query [].path | grep azure-devops)
-                if [ -z "$devops_extension_installed" ]; then
-                  az extension add --name azure-devops --output none
-                fi
+                az config set extension.use_dynamic_install=yes_without_prompt
+
+                az devops configure --defaults organization=$(System.CollectionUri) project='$(System.TeamProject)' --output none
                 if [ -n $(PAT) ]; then
                   export AZURE_DEVOPS_EXT_PAT=$(PAT)
                 else
                   export AZURE_DEVOPS_EXT_PAT=$(System.AccessToken)
                 fi
-
-                az devops configure -d organization=$(System.CollectionUri)
-                az devops configure -d project=$(System.TeamProject)
 
                 export VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(parent_variable_group)'].id | [0]")
                 echo '$(variable_group) id: ' $VARIABLE_GROUP_ID
@@ -359,7 +338,7 @@ stages:
                 fi
 
               echo -e "$green--- Convert config files to UX format ---$reset"
-                dos2unix -q DEPLOYER/$(deployer_folder)/$(deployer_configuration_file) 2> /dev/null
+                dos2unix -q $CONFIG_REPO_PATH/DEPLOYER/$(deployer_folder)/$(deployer_configuration_file) 2> /dev/null
 
               echo -e "$green--- Running the remove region script that destroys deployer VM and SAP library ---$reset"
                 ENVIRONMENT=$(echo $(deployer_folder) | awk -F'-' '{print $1}' | xargs) ; echo Environment $ENVIRONMENT
@@ -369,11 +348,11 @@ stages:
 
               echo -e "$green--- az login ---$reset"
 
-                if [ -z $(ARM_SUBSCRIPTION_ID) ]; then
+                if [ -z $ARM_SUBSCRIPTION_ID ]; then
                   echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined."
                   exit 2
                 fi
-                if [ -z $(ARM_CLIENT_ID) ]; then
+                if [ -z $ARM_CLIENT_ID ]; then
                   echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined."
                   exit 2
                 fi
@@ -381,29 +360,30 @@ stages:
                   echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined."
                   exit 2
                 fi
-                if [ -z $(ARM_TENANT_ID) ]; then
+                if [ -z $ARM_TENANT_ID ]; then
                   echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined."
                   exit 2
                 fi
-                az login --service-principal --username $(ARM_CLIENT_ID) --password $ARM_CLIENT_SECRET --tenant $(ARM_TENANT_ID) --output none
+                az login --service-principal --username $ARM_CLIENT_ID --password=$ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID --output none
                 return_code=$?
                 if [ 0 != $return_code ]; then
                   echo -e "$boldred--- Login failed ---$reset"
                   echo "##vso[task.logissue type=error]az login failed."
                   exit $return_code
                 fi
-                az account set --subscription $(ARM_SUBSCRIPTION_ID)
+                az account set --subscription $ARM_SUBSCRIPTION_ID
 
               echo -e "$green--- Running the remove_deployer script that destroys deployer VM ---$reset"
-                if [ -f DEPLOYER/$(deployer_folder)/state.zip ]; then
+                if [ -f $CONFIG_REPO_PATH/DEPLOYER/$(deployer_folder)/state.zip ]; then
                     echo "Unzipping state.zip"
-                    unzip -qq -o -P $ARM_CLIENT_SECRET DEPLOYER/$(deployer_folder)/state.zip
+                    pass=$(echo $ARM_CLIENT_SECRET | sed 's/-//g')
+                    unzip -qq -o -P "${pass}" $CONFIG_REPO_PATH/DEPLOYER/$(deployer_folder)/state.zip -d ${CONFIG_REPO_PATH}/DEPLOYER/$(deployer_folder)
                 fi
 
-                sudo chmod +x $DEPLOYMENT_REPO_PATH/deploy/scripts/remove_deployer.sh
-                cd DEPLOYER/$(deployer_folder)
+                sudo chmod +x $SAP_AUTOMATION_REPO_PATH/deploy/scripts/remove_deployer.sh
+                cd $CONFIG_REPO_PATH/DEPLOYER/$(deployer_folder)
 
-                $DEPLOYMENT_REPO_PATH/deploy/scripts/remove_deployer.sh --auto-approve                 \
+                $SAP_AUTOMATION_REPO_PATH/deploy/scripts/remove_deployer.sh --auto-approve                 \
                   --parameterfile $(deployer_configuration_file)
 
                 return_code=$?
@@ -413,120 +393,116 @@ stages:
                   echo "##vso[task.logissue type=error]Return code from remove_deployer $return_code."
                 fi
 
-              echo -e "$green--- Removing deployer Terraform state files from devops repository ---$reset"
-                cd $(Build.Repository.LocalPath)
 
-                if [ 0 == $return_code ]; then
+              echo -e "$green--- Removing deployment automation configuration from devops repository ---$reset"
+                export  ENVIRONMENT=$(echo $(deployer_folder) | awk -F'-' '{print $1}' | xargs) ; echo Environment $ENVIRONMENT
+                export LOCATION=$(echo $(deployer_folder) | awk -F'-' '{print $2}' | xargs) ; echo Location    $LOCATION
 
+                if [ 0 == $return_code ] ; then
+                  cd $CONFIG_REPO_PATH
                   changed=0
-
-                  if [ -d "$(Deployment_Configuration_Path)/DEPLOYER/$(deployer_folder)/.terraform" ]; then
-                    git rm -q -f -r --ignore-unmatch "$(Deployment_Configuration_Path)/DEPLOYER/$(deployer_folder)/.terraform/terraform.tfstate"
-                    changed=1
-                  fi
-
-                  if [ -f "$(Deployment_Configuration_Path)/DEPLOYER/$(deployer_folder)/terraform.tfstate" ]; then
-                    git rm -q -f --ignore-unmatch "$(Deployment_Configuration_Path)/DEPLOYER/$(deployer_folder)/terraform.tfstate"
-                    changed=1
-                  fi
-
-                  if [ -f "$(Deployment_Configuration_Path)/DEPLOYER/$(deployer_folder)/state.zip" ]; then
-                    git rm -q  --ignore-unmatch $(Deployment_Configuration_Path)/DEPLOYER/$(deployer_folder)/state.zip
-                    changed=1
-                  fi
-
-                  if [ -f $(Deployment_Configuration_Path)/LIBRARY/$(library_folder)/state.zip ]; then
-                    git rm -q  --ignore-unmatch $(Deployment_Configuration_Path)/LIBRARY/$(library_folder)/state.zip
-                    changed=1
-                  fi
-
-                  if [ -f "$(Deployment_Configuration_Path)/LIBRARY/$(library_folder)/terraform.tfstate" ]; then
-                    git rm -q -f --ignore-unmatch "$(Deployment_Configuration_Path)/LIBRARY/$(library_folder)/terraform.tfstate"
-                    changed=1
-                  fi
-
-                  if [ -d "$(Deployment_Configuration_Path)/LIBRARY/$(library_folder)/.terraform" ]; then
-                    git rm -q -f -r --ignore-unmatch "$(Deployment_Configuration_Path)/LIBRARY/$(library_folder)/.terraform/terraform.tfstate"
-                    changed=1
-                  fi
-
-                  if [ -f  ${deployer_environment_file_name} ]; then
-                    git rm -q -f  ${deployer_environment_file_name}
-                    changed=1
-                  fi
-
-                  if [ -f  ${deployer_environment_file_name}.md ]; then
-                    git rm -q -f ${deployer_environment_file_name}.md
-                    changed=1
-                  fi
-
-                  if [ 1 == $changed ] ; then
-                    git config --global user.email "$(Build.RequestedForEmail)"
-                    git config --global user.name "$(Build.RequestedFor)"
-                    git commit -m "Control Plane ${deployer_folder} removal[skip ci]"
-                    git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --set-upstream origin $(Build.SourceBranchName)
-                  fi
-                echo -e "$green--- Delete variables ---$reset"
-                  az logout
-
-                  if [ -n $VARIABLE_GROUP_ID ]; then
-                    echo "Deleting variables"
-                    variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Account_Name.value" )
-
-                    if [ -n "${variable_value}" ]; then
-                      az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Terraform_Remote_Storage_Account_Name --yes --only-show-errors
+                  echo "##vso[build.updatebuildnumber]Removing control plane $(deployer_folder) $(library_folder)"
+                    if [ -d "DEPLOYER/$(deployer_folder)/.terraform" ]; then
+                      git rm -q -r  --ignore-unmatch DEPLOYER/$(deployer_folder)/.terraform
+                      changed=1
                     fi
 
-                    variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Subscription.value" )
-                    if [ -n "${variable_value}" ]; then
-                      az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Terraform_Remote_Storage_Subscription --yes --only-show-errors
+                    if [ -f "DEPLOYER/$(deployer_folder)/state.zip" ]; then
+                      git rm -q  --ignore-unmatch DEPLOYER/$(deployer_folder)/state.zip
+                      changed=1
                     fi
 
-                    variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Resource_Group_Name.value" )
-                    if [ -n "${variable_value}" ]; then
-                      az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Terraform_Remote_Storage_Resource_Group_Name --yes --only-show-errors
+                    if [ -d LIBRARY/$(library_folder)/.terraform ]; then
+                      git rm -q -r  --ignore-unmatch LIBRARY/$(library_folder)/.terraform
+                      changed=1
                     fi
 
-                    variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Deployer_State_FileName.value" )
-                    if [ -n "${variable_value}" ]; then
-                      az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Deployer_State_FileName               --yes --only-show-errors
+                    if [ -f LIBRARY/$(library_folder)/state.zip ]; then
+                      git rm -q  --ignore-unmatch LIBRARY/$(library_folder)/state.zip
+                      changed=1
                     fi
 
-                    variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Deployer_Key_Vault.value" )
-
-                    if [ -n "${variable_value}" ]; then
-                      az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Deployer_Key_Vault                    --yes --only-show-errors
+                    if [ -f  .sap_deployment_automation/${ENVIRONMENT}${LOCATION} ]; then
+                      rm .sap_deployment_automation/${ENVIRONMENT}${LOCATION}
+                      git rm -q   --ignore-unmatch  .sap_deployment_automation/${ENVIRONMENT}${LOCATION}
+                      changed=1
+                    fi
+                    if [ -f  .sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md ]; then
+                      rm .sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md
+                      git rm -q   --ignore-unmatch  .sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md
+                      changed=1
                     fi
 
-                    variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "WEBAPP_URL_BASE.value" )
-
-                    if [ -n "${variable_value}" ]; then
-                      az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_URL_BASE                       --yes --only-show-errors
+                    if [ -f  LIBRARY/$(library_folder)/backend-config.tfvars ]; then
+                      git rm -q   --ignore-unmatch  LIBRARY/$(library_folder)/backend-config.tfvars
+                      changed=1
                     fi
 
-                    variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "WEBAPP_IDENTITY.value" )
-                    if [ -n "${variable_value}" ]; then
-                      az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_IDENTITY                       --yes --only-show-errors
+                    if [ 1 == $changed ] ; then
+                      git config --global user.email "$(Build.RequestedForEmail)"
+                      git config --global user.name "$(Build.RequestedFor)"
+                      git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"
+                      git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push
+                    fi
+                  echo -e "$green--- Deleting variables ---$reset"
+                    if [ ${#VARIABLE_GROUP_ID} != 0 ]; then
+                      echo "Deleting variables"
+
+                      variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Account_Name.value" )
+                      if [ ${#variable_value} != 0 ]; then
+                        az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Terraform_Remote_Storage_Account_Name --yes --only-show-errors
+                      fi
+
+                      variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Resource_Group_Name.value" )
+                      if [ ${#variable_value} != 0 ]; then
+                        az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Terraform_Remote_Storage_Resource_Group_Name --yes --only-show-errors
+                      fi
+
+                      variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Subscription.value" )
+                      if [ ${#variable_value} != 0 ]; then
+                        az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Terraform_Remote_Storage_Subscription --yes --only-show-errors
+                      fi
+
+                      variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Deployer_State_FileName.value" )
+                      if [ ${#variable_value} != 0 ]; then
+                        az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Deployer_State_FileName               --yes --only-show-errors
+                      fi
+
+                      variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Deployer_Key_Vault.value" )
+                      if [ ${#variable_value} != 0 ]; then
+                        az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Deployer_Key_Vault                    --yes --only-show-errors
+                      fi
+
+                      variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "WEBAPP_URL_BASE.value" )
+                      if [ ${#variable_value} != 0 ]; then
+                        az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_URL_BASE                       --yes --only-show-errors
+                      fi
+
+                      variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "WEBAPP_IDENTITY.value" )
+                      if [ ${#variable_value} != 0 ]; then
+                        az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_IDENTITY                       --yes --only-show-errors
+                      fi
+
+                      variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "WEBAPP_ID.value" )
+                      if [ ${#variable_value} != 0 ]; then
+                        az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_ID                            --yes --only-show-errors
+                      fi
+
                     fi
 
-                    variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "WEBAPP_ID.value" )
-                    if [ -n "${variable_value}" ]; then
-                      az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_ID                            --yes --only-show-errors
-                    fi
-
-                  fi
                 fi
 
               exit $return_code
             displayName:               Remove control plane
             env:
-              SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
-              ARM_SUBSCRIPTION_ID:     $(ARM_SUBSCRIPTION_ID)
-              ARM_CLIENT_ID:           $(ARM_CLIENT_ID)
-              ARM_CLIENT_SECRET:       $(ARM_CLIENT_SECRET)
-              ARM_TENANT_ID:           $(ARM_TENANT_ID)
-              DEPLOYMENT_REPO_PATH:    $(Build.Repository.LocalPath)
-              key_vault:               $(Deployer_Key_Vault)
-            failOnStderr:              false
-
-...
+              SYSTEM_ACCESSTOKEN:       $(System.AccessToken)
+              ARM_SUBSCRIPTION_ID:      $(CP_ARM_SUBSCRIPTION_ID)
+              ARM_CLIENT_ID:            $(CP_ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:        $(CP_ARM_CLIENT_SECRET)
+              ARM_TENANT_ID:            $(CP_ARM_TENANT_ID)
+              SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
+              CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
+              key_vault:                $(Deployer_Key_Vault)
+              TF_IN_AUTOMATION:         true
+              TF_LOG:                   $(TF_LOG)
+            failOnStderr:               false

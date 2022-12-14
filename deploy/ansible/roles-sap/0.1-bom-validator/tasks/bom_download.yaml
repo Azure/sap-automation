@@ -60,7 +60,7 @@
       rescue:
         - name:                        "BOM: Ensure URL is correct"
           ansible.builtin.set_fact:
-            file_url:                  "{{ item.url | lower | urlsplit('scheme') }}://{{ item.url | lower | urlsplit('hostname') }}/{{ item.url | lower | urlsplit('path') | replace('\"', '') }}"
+            file_url:                  "{{ item.url | lower | urlsplit('scheme') }}://{{ item.url | lower | urlsplit('hostname') }}{{ item.url | lower | urlsplit('path') | replace('\"', '') }}"
 
         - name:                        "BOM: Ensure URL is correct"
           ansible.builtin.debug:
@@ -80,13 +80,28 @@
           become:                      true
           become_user:                 root
           register:                    result
-          until:                       result is succeeded or not result.changed
           no_log:                      false
+          failed_when:                 false
 
-    - name:                            "BOM: {{ bom_name }} Download File {{ item.archive }}"
-      ansible.builtin.debug:
-        var:                           result
-        verbosity:                     2
+        - name:                        "BOM: {{ bom_name }} Download File {{ item.archive }}"
+          ansible.builtin.debug:
+            var:                       result
+            verbosity:                 2
+
+        - name:                        "ErrorHandling"
+          ansible.builtin.fail:
+            msg:                       "DOWNLOAD:0001:Download failed, please check the URL ({{ item.url }})"
+          when:                        result.status_code == 400
+
+        - name:                        "ErrorHandling"
+          ansible.builtin.fail:
+            msg:                       "DOWNLOAD:0002:Download failed, please check the S-user credentials"
+          when:                        result.status_code == 401
+
+        - name:                        "ErrorHandling"
+          ansible.builtin.fail:
+            msg:                       "DOWNLOAD:0003:Download from SAP failed, URL ({{ item.url }})"
+          when:                        result.status_code != 200
 
     - name:                            "BOM: Create checksums"
       block:

@@ -1,7 +1,7 @@
 
 locals {
 
-  enable_app_tier_deployment = var.enable_app_tier_deployment && try(var.application.enable_deployment, true)
+  enable_app_tier_deployment = var.enable_app_tier_deployment && try(var.application_tier.enable_deployment, true)
 
   temp_infrastructure = {
     environment = coalesce(var.environment, try(var.infrastructure.environment, ""))
@@ -96,11 +96,12 @@ locals {
       upper(var.database_vm_image.publisher) == "MICROSOFTWINDOWSSERVER") ? "WINDOWS" : try(var.database_vm_image.os_type, "LINUX)") : (
       length(var.database_vm_image.os_type) == 0 ? "LINUX" : var.database_vm_image.os_type
     )
-    source_image_id = var.database_vm_image.source_image_id
-    publisher       = var.database_vm_image.publisher
-    offer           = var.database_vm_image.offer
-    sku             = var.database_vm_image.sku
-    version         = var.database_vm_image.version
+    source_image_id = try(var.database_vm_image.source_image_id, "")
+    publisher       = try(var.database_vm_image.publisher, "")
+    offer           = try(var.database_vm_image.offer, "")
+    sku             = try(var.database_vm_image.sku, "")
+    version         = try(var.database_vm_image.version, "")
+    type            = try(var.database_vm_image.type, "marketplace")
   }
 
   db_os_specified = (length(local.db_os.source_image_id) + length(local.db_os.publisher)) > 0
@@ -119,69 +120,69 @@ locals {
     instance_number = upper(local.databases_temp.platform) == "HANA" ? (
       coalesce(var.database_instance_number, try(var.databases[0].instance_number, "00"))
       ) : (
-      ""
+      "00"
     )
   }
 
   app_authentication = {
-    type     = try(coalesce(var.app_tier_authentication_type, try(var.application.authentication.type, "")), "")
-    username = try(coalesce(var.automation_username, try(var.application.authentication.username, "")), "")
+    type     = try(coalesce(var.app_tier_authentication_type, try(var.application_tier.authentication.type, "")), "")
+    username = try(coalesce(var.automation_username, try(var.application_tier.authentication.username, "")), "")
   }
   app_authentication_defined = (length(local.app_authentication.type) + length(local.app_authentication.username)) > 3
 
   application_temp = {
-    sid = try(coalesce(var.sid, try(var.application.sid, "")), "")
+    sid = try(coalesce(var.sid, try(var.application_tier.sid, "")), "")
 
     enable_deployment        = local.enable_app_tier_deployment
-    use_DHCP                 = var.app_tier_use_DHCP || try(var.application.use_DHCP, false)
-    dual_nics                = var.app_tier_dual_nics || try(var.application.dual_nics, false)
-    vm_sizing_dictionary_key = try(coalesce(var.app_tier_sizing_dictionary_key, var.app_tier_vm_sizing, try(var.application.vm_sizing, "")), "Optimized")
+    use_DHCP                 = var.app_tier_use_DHCP || try(var.application_tier.use_DHCP, false)
+    dual_nics                = var.app_tier_dual_nics || try(var.application_tier.dual_nics, false)
+    vm_sizing_dictionary_key = try(coalesce(var.app_tier_sizing_dictionary_key, var.app_tier_vm_sizing, try(var.application_tier.vm_sizing, "")), "Optimized")
 
     application_server_count = local.enable_app_tier_deployment ? (
-      max(var.application_server_count, try(var.application.application_server_count, 0))
+      max(var.application_server_count, try(var.application_tier.application_server_count, 0))
       ) : (
       0
     )
-    app_sku       = try(coalesce(var.application_server_sku, var.application.app_sku), "")
-    app_no_ppg    = var.application_server_no_ppg || try(var.application.app_no_ppg, false)
-    app_no_avset  = var.application_server_no_avset || try(var.application.app_no_avset, false)
+    app_sku       = try(coalesce(var.application_server_sku, var.application_tier.app_sku), "")
+    app_no_ppg    = var.application_server_no_ppg || try(var.application_tier.app_no_ppg, false)
+    app_no_avset  = var.application_server_no_avset || try(var.application_tier.app_no_avset, false)
     avset_arm_ids = var.application_server_vm_avset_arm_ids
 
     scs_server_count = local.enable_app_tier_deployment ? (
-      max(var.scs_server_count, try(var.application.scs_server_count, 0))
+      max(var.scs_server_count, try(var.application_tier.scs_server_count, 0))
       ) : (
       0
     )
     scs_high_availability = local.enable_app_tier_deployment ? (
-      var.scs_high_availability || try(var.application.scs_high_availability, false)
+      var.scs_high_availability || try(var.application_tier.scs_high_availability, false)
       ) : (
       false
     )
-    scs_instance_number = coalesce(var.scs_instance_number, try(var.application.scs_instance_number, "00"))
-    ers_instance_number = coalesce(var.ers_instance_number, try(var.application.ers_instance_number, "02"))
+    scs_instance_number = coalesce(var.scs_instance_number, try(var.application_tier.scs_instance_number, "00"))
+    ers_instance_number = coalesce(var.ers_instance_number, try(var.application_tier.ers_instance_number, "02"))
 
-    scs_sku      = try(coalesce(var.scs_server_sku, var.application.scs_sku), "")
-    scs_no_ppg   = var.scs_server_no_ppg || try(var.application.scs_no_ppg, false)
-    scs_no_avset = var.scs_server_no_avset || try(var.application.scs_no_avset, false)
+    scs_sku      = try(coalesce(var.scs_server_sku, var.application_tier.scs_sku), "")
+    scs_no_ppg   = var.scs_server_no_ppg || try(var.application_tier.scs_no_ppg, false)
+    scs_no_avset = var.scs_server_no_avset || try(var.application_tier.scs_no_avset, false)
 
     webdispatcher_count = local.enable_app_tier_deployment ? (
-      max(var.webdispatcher_server_count, try(var.application.webdispatcher_count, 0))
+      max(var.webdispatcher_server_count, try(var.application_tier.webdispatcher_count, 0))
       ) : (
       0
     )
-    web_sku      = try(coalesce(var.webdispatcher_server_sku, var.application.web_sku), "")
-    web_no_ppg   = var.webdispatcher_server_no_ppg || try(var.application.web_no_ppg, false)
-    web_no_avset = var.webdispatcher_server_no_avset || try(var.application.web_no_avset, false)
+    web_sku      = try(coalesce(var.webdispatcher_server_sku, var.application_tier.web_sku), "")
+    web_no_ppg   = var.webdispatcher_server_no_ppg || try(var.application_tier.web_no_ppg, false)
+    web_no_avset = var.webdispatcher_server_no_avset || try(var.application_tier.web_no_avset, false)
 
   }
 
-  app_zones_temp = distinct(concat(var.application_server_zones, try(var.application.app_zones, [])))
-  scs_zones_temp = distinct(concat(var.scs_server_zones, try(var.application.scs_zones, [])))
-  web_zones_temp = distinct(concat(var.webdispatcher_server_zones, try(var.application.web_zones, [])))
+  app_zones_temp = distinct(concat(var.application_server_zones, try(var.application_tier.app_zones, [])))
+  scs_zones_temp = distinct(concat(var.scs_server_zones, try(var.application_tier.scs_zones, [])))
+  web_zones_temp = distinct(concat(var.webdispatcher_server_zones, try(var.application_tier.web_zones, [])))
 
-  app_tags = try(coalesce(var.application_server_tags, try(var.application.app_tags, {})), {})
-  scs_tags = try(coalesce(var.scs_server_tags, try(var.application.scs_tags, {})), {})
-  web_tags = try(coalesce(var.webdispatcher_server_tags, try(var.application.web_tags, {})), {})
+  app_tags = try(coalesce(var.application_server_tags, try(var.application_tier.app_tags, {})), {})
+  scs_tags = try(coalesce(var.scs_server_tags, try(var.application_tier.scs_tags, {})), {})
+  web_tags = try(coalesce(var.webdispatcher_server_tags, try(var.application_tier.web_tags, {})), {})
 
   app_os = {
     os_type = length(var.application_server_image.source_image_id) == 0 ? (
@@ -189,31 +190,34 @@ locals {
       length(var.application_server_image.os_type) == 0 ? "LINUX" : var.application_server_image.os_type
     )
     source_image_id = try(var.application_server_image.source_image_id, "")
-    publisher       = var.application_server_image.publisher
-    offer           = var.application_server_image.offer
-    sku             = var.application_server_image.sku
-    version         = var.application_server_image.version
+    publisher       = try(var.application_server_image.publisher, "SUSE")
+    offer           = try(var.application_server_image.offer, "sles-sap-15-sp3")
+    sku             = try(var.application_server_image.sku, "gen2")
+    version         = try(var.application_server_image.version, "latest")
+    type            = try(var.database_vm_image.type, "marketplace")
   }
 
   app_os_specified = (length(local.app_os.source_image_id) + length(local.app_os.publisher)) > 0
 
   scs_os = {
     os_type         = try(coalesce(var.scs_server_image.os_type, var.application_server_image.os_type, "LINUX"), "LINUX")
-    source_image_id = try(coalesce(var.scs_server_image.source_image_id, try(var.application.scs_os.source_image_id, "")), "")
-    publisher       = try(coalesce(var.scs_server_image.publisher, try(var.application.scs_os.publisher, "")), "")
-    offer           = try(coalesce(var.scs_server_image.offer, try(var.application.scs_os.offer, "")), "")
-    sku             = try(coalesce(var.scs_server_image.sku, try(var.application.scs_os.sku, "")), "")
-    version         = try(coalesce(var.scs_server_image.version, try(var.application.scs_os.version, "")), "")
+    source_image_id = try(coalesce(var.scs_server_image.source_image_id, try(var.application_tier.scs_os.source_image_id, "")), "")
+    publisher       = try(coalesce(var.scs_server_image.publisher, try(var.application_tier.scs_os.publisher, "SUSE")), "SUSE")
+    offer           = try(coalesce(var.scs_server_image.offer, try(var.application_tier.scs_os.offer, "sles-sap-15-sp3")), "sles-sap-15-sp3")
+    sku             = try(coalesce(var.scs_server_image.sku, try(var.application_tier.scs_os.sku, "gen2")), "gen2")
+    version         = try(coalesce(var.scs_server_image.version, try(var.application_tier.scs_os.version, "latest")), "latest")
+    type            = try(var.database_vm_image.type, "marketplace")
   }
   scs_os_specified = (length(local.scs_os.source_image_id) + length(local.scs_os.publisher)) > 0
 
   web_os = {
     os_type         = try(coalesce(var.webdispatcher_server_image.os_type, var.application_server_image.os_type, "LINUX"), "LINUX")
-    source_image_id = try(coalesce(var.webdispatcher_server_image.source_image_id, try(var.application.web_os.source_image_id, "")), "")
-    publisher       = try(coalesce(var.webdispatcher_server_image.publisher, try(var.application.web_os.publisher, "")), "")
-    offer           = try(coalesce(var.webdispatcher_server_image.offer, try(var.application.web_os.offer, "")), "")
-    sku             = try(coalesce(var.webdispatcher_server_image.sku, try(var.application.web_os.sku, "")), "")
-    version         = try(coalesce(var.webdispatcher_server_image.version, try(var.application.web_os.version, "")), "")
+    source_image_id = try(coalesce(var.webdispatcher_server_image.source_image_id, try(var.application_tier.web_os.source_image_id, "")), "")
+    publisher       = try(coalesce(var.webdispatcher_server_image.publisher, try(var.application_tier.web_os.publisher, "SUSE")), "SUSE")
+    offer           = try(coalesce(var.webdispatcher_server_image.offer, try(var.application_tier.web_os.offer, "sles-sap-15-sp3")), "sles-sap-15-sp3")
+    sku             = try(coalesce(var.webdispatcher_server_image.sku, try(var.application_tier.web_os.sku, "gen2")), "gen2")
+    version         = try(coalesce(var.webdispatcher_server_image.version, try(var.application_tier.web_os.version, "latest")), "latest")
+    type            = try(var.database_vm_image.type, "marketplace")
   }
   web_os_specified = (length(local.web_os.source_image_id) + length(local.web_os.publisher)) > 0
 
@@ -300,17 +304,17 @@ locals {
     length(try(var.infrastructure.vnets.sap.subnet_web.nsg.arm_id, ""))
   ) > 0
 
-  app_nic_ips           = distinct(concat(var.application_server_app_nic_ips, try(var.application.app_nic_ips, [])))
+  app_nic_ips           = distinct(concat(var.application_server_app_nic_ips, try(var.application_tier.app_nic_ips, [])))
   app_nic_secondary_ips = distinct(var.application_server_app_nic_ips)
-  app_admin_nic_ips     = distinct(concat(var.application_server_admin_nic_ips, try(var.application.app_admin_nic_ips, [])))
+  app_admin_nic_ips     = distinct(concat(var.application_server_admin_nic_ips, try(var.application_tier.app_admin_nic_ips, [])))
 
-  scs_nic_ips       = distinct(concat(var.scs_server_app_nic_ips, try(var.application.scs_nic_ips, [])))
-  scs_admin_nic_ips = distinct(concat(var.scs_server_admin_nic_ips, try(var.application.scs_admin_nic_ips, [])))
-  scs_lb_ips        = distinct(concat(var.scs_server_loadbalancer_ips, try(var.application.scs_lb_ips, [])))
+  scs_nic_ips       = distinct(concat(var.scs_server_app_nic_ips, try(var.application_tier.scs_nic_ips, [])))
+  scs_admin_nic_ips = distinct(concat(var.scs_server_admin_nic_ips, try(var.application_tier.scs_admin_nic_ips, [])))
+  scs_lb_ips        = distinct(concat(var.scs_server_loadbalancer_ips, try(var.application_tier.scs_lb_ips, [])))
 
-  web_nic_ips       = distinct(concat(var.webdispatcher_server_app_nic_ips, try(var.application.web_nic_ips, [])))
-  web_admin_nic_ips = distinct(concat(var.webdispatcher_server_admin_nic_ips, try(var.application.web_admin_nic_ips, [])))
-  web_lb_ips        = distinct(concat(var.webdispatcher_server_loadbalancer_ips, try(var.application.web_lb_ips, [])))
+  web_nic_ips       = distinct(concat(var.webdispatcher_server_app_nic_ips, try(var.application_tier.web_nic_ips, [])))
+  web_admin_nic_ips = distinct(concat(var.webdispatcher_server_admin_nic_ips, try(var.application_tier.web_admin_nic_ips, [])))
+  web_lb_ips        = distinct(concat(var.webdispatcher_server_loadbalancer_ips, try(var.application_tier.web_lb_ips, [])))
 
   subnet_admin = merge((
     {
@@ -494,7 +498,7 @@ locals {
     { vnets = local.temp_vnet }
   )
 
-  application = merge(local.application_temp, (
+  application_tier = merge(local.application_temp, (
     local.app_authentication_defined ? { authentication = local.app_authentication } : null), (
     local.app_os_specified ? { app_os = local.app_os } : null), (
     local.scs_os_specified ? { scs_os = local.scs_os } : (local.app_os_specified ? { scs_os = local.app_os } : null)), (

@@ -145,6 +145,7 @@ locals {
       )
     }
     os = {
+      os_type = "LINUX"
       source_image_id = try(coalesce(
         var.deployer_image.source_image_id,
         try(var.deployers[0].os.source_image_id, "")
@@ -167,6 +168,7 @@ locals {
         var.deployer_image.version,
         try(var.deployers[0].sku, "")
       ), "")
+      type = "marketplace"
     }
 
     plan = var.plan
@@ -180,47 +182,19 @@ locals {
   }
 
   authentication = {
-    username = coalesce(var.deployer_authentication_username,
-      try(var.authentication.username, "")
-    )
-    password = try(
-      coalesce(
-        var.deployer_authentication_password,
-        try(var.authentication.password, "")
-      ),
-      ""
-    )
-    path_to_public_key = try(coalesce(
-      var.deployer_authentication_path_to_public_key,
-      try(var.authentication.path_to_public_key, "")
-    ), "")
-    path_to_private_key = try(coalesce(
-      var.deployer_authentication_path_to_private_key,
-      try(var.authentication.path_to_private_key, "")
-    ), "")
+    username            = var.deployer_authentication_username
+    password            = var.deployer_authentication_password
+    path_to_public_key  = var.deployer_authentication_path_to_public_key
+    path_to_private_key = var.deployer_authentication_path_to_private_key
 
   }
   key_vault = {
-    kv_user_id = try(coalesce(
-      var.user_keyvault_id,
-      try(var.key_vault.kv_user_id, "")
-    ), "")
-    kv_sshkey_prvt = try(coalesce(
-      var.deployer_private_key_secret_name,
-      try(var.key_vault.kv_sshkey_prvt, "")
-    ), "")
-    kv_sshkey_pub = try(coalesce(
-      var.deployer_public_key_secret_name,
-      try(var.key_vault.kv_sshkey_pub, "")
-    ), "")
-    kv_username = try(coalesce(
-      var.deployer_username_secret_name,
-      try(var.key_vault.kv_username, "")
-    ), "")
-    kv_pwd = try(coalesce(
-      var.deployer_password_secret_name,
-      try(var.key_vault.kv_pwd, "")
-    ), "")
+    kv_user_id     = var.user_keyvault_id
+    kv_exists      = length(var.user_keyvault_id) > 0 ? true : false
+    kv_sshkey_prvt = var.deployer_private_key_secret_name
+    kv_sshkey_pub  = var.deployer_public_key_secret_name
+    kv_username    = var.deployer_username_secret_name
+    kv_pwd         = var.deployer_password_secret_name
 
   }
 

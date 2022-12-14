@@ -18,8 +18,8 @@
 # - name: Check configurations on HANA VMs
 #   any_errors_fatal: true
 #   block:
-#     - import_tasks: hostname_validation.yml
-#     - import_tasks: repo_validation.yml
+#     - ansible.builtin.import_tasks: hostname_validation.yml
+#     - ansible.builtin.import_tasks: repo_validation.yml
 
 # ----------------------------------------
 # END - OLD CODE
@@ -201,7 +201,7 @@
 
 # Add repositories
 - name:                                "1.3 Repos: Add the repositories {{ ansible_os_family }}"
-  zypper_repository:
+  community.general.zypper_repository:
     repo:                              "{{ item.repo }}"
     state:                             "{{ item.state }}"
     overwrite_multiple:                true

@@ -83,7 +83,6 @@
   when: inventory_hostname == primary_instance_name
 
 # [1] Create a virtual IP resource and health-probe for the ERS instance
-
 - name:                                "5.6 SCSERS - RHEL - ERS - Cluster Configuration before Install "
   throttle:                            1
   block:
@@ -167,7 +166,7 @@
 
 # [A] Add firewall rules for ASCS and ERS on both nodes Add the firewall rules for ASCS and ERS on both nodes.
 - name:                                 "5.6 SCSERS - RHEL - Add firewall rules for ASCS and ERS on both nodes"
-  ansible.builtin.firewalld:
+  ansible.posix.firewalld:
     zone:                               public
     port:                               "{{ item.port }}/tcp"
     permanent:                          true

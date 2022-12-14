@@ -1,0 +1,291 @@
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |             SAP: Register BOM                                              |
+# |         SAP SCS: deploy SCS Parameter file install template                |
+# |         SAP SCS: Install                                                   |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+---
+
+- name:                                "SCS Install"
+  ansible.builtin.debug:
+    msg:
+      - "SID:        {{ sid_to_be_deployed.sid | upper }}"
+
+- name:                                "SCS Install: Set the SCS Server name"
+  ansible.builtin.set_fact:
+    scs_server:                        "{{ virtual_host }}"
+
+- name:                                "SCS Install: Set BOM facts"
+  ansible.builtin.set_fact:
+    sap_inifile:                       "{{ bom_base_name }}-scs-{{ sid_to_be_deployed.sid | lower }}-{{ ansible_hostname }}.params"
+    sap_inifile_template:              "{{ bom_base_name }}-scs-inifile-param.j2"
+    dir_params:                        '{{ tmp_directory_windows }}\{{ sid_to_be_deployed.sid | lower }}-params'
+    product_catalog:                   '{{ download_directory_windows }}\SWPM\product.catalog'
+
+- name:                                "SCS Install: Create run flag directory"
+  ansible.windows.win_file:
+    path:                              '{{ sap_deployment_automation }}\{{ sid_to_be_deployed.sid | upper }}'
+    state:                             directory
+
+- name:                                "SCS Install: reset"
+  ansible.windows.win_file:
+    path:                              '{{ sap_deployment_automation }}\{{ sid_to_be_deployed.sid | upper }}\sap_deployment_scs.txt'
+    state:                             absent
+  when:                                reinstall
+
+- name:                                "SCS Install: check if {{ sid_to_be_deployed.sid | upper }} is installed"
+  ansible.windows.win_stat:
+    path:                              '{{ sap_deployment_automation }}\{{ sid_to_be_deployed.sid | upper }}\sap_deployment_scs.txt'
+  register:                            scs_installed
+  when:                                "'scs' in supported_tiers"
+
+- name:                                "SCS Install: check if installed"
+  ansible.builtin.debug:
+    var:                               scs_installed
+    verbosity:                         2
+
+
+#   0x) Create directory for parameter files
+- name:                                "SCS Install: Create params directory"
+  ansible.windows.win_file:
+    path:                              "{{ dir_params }}"
+    state:                             directory
+
+- name:                                "SCS Install: Create temp directory for sid"
+  ansible.windows.win_file:
+    path:                              '{{ tmp_directory_windows }}\{{ sid_to_be_deployed.sid | upper }}'
+    state:                             directory
+
+#   1x) Create directories for sapinst_extraction and logs
+- name:                                "SCS Install: Create sapinst Extraction Directory"
+  ansible.windows.win_file:
+    path:                              '{{ download_directory_windows }}\sap_extract'
+    state:                             directory
+
+- name:                                "SCS Install: Create log Directory"
+  ansible.windows.win_file:
+    path:                              '{{ log_dir_windows }}\sapinst_logs'
+    state:                             directory
+
+- name:                                "Install SAP vcredist package"
+  ansible.windows.win_package:
+    path:                              '{{ download_directory_windows }}\SWPM\NTPATCH\VCREDIST2013\vcredist_x64.exe'
+    product_id:                        '{CF2BEA3C-26EA-32F8-AA9B-331F7E34BA97}'
+    state:                             present
+    arguments:                         '/norestart /log vcredist_x64.log /quiet'
+
+- name:                                "Install Microsoft Visual C++ Redistributable package"
+  ansible.windows.win_package:
+    path:                              https://aka.ms/vs/17/release/vc_redist.x64.exe
+    product_id:                        '{CF2BEA3C-26EA-32F8-AA9B-331F7E34BA97}'
+    arguments:
+      - /install
+      - /passive
+  vars:
+    ansible_become:                    true
+    ansible_become_method:             runas
+    ansible_become_user:               '{{ domain }}\{{ sap_sid }}adm'
+    ansible_become_password:           "{{ domain_user_password }}"
+  register:                            vcredist_output
+
+- name:                                "Reboot after package installation"
+  ansible.windows.win_reboot:
+    reboot_timeout:                    600
+    post_reboot_delay:                 120
+  when: vcredist_output.reboot_required
+
+- name:                                "SCS Install: Include 3.3.1-bom-utility role"
+  ansible.builtin.include_role:
+    name:                              roles-sap/windows/3.3.1-bom-utility
+    tasks_from:                        bom-register
+  vars:
+    bom_name:                          "{{ bom_base_name }}"
+    tier:                              "scs"
+    task_prefix:                       "SCS Install: "
+
+- name:                                "SCS Install: Include roles-sap/windows/3.3.1-bom-utility role"
+  ansible.builtin.include_role:
+    name:                              roles-sap/windows/3.3.1-bom-utility
+    tasks_from:                        bom-template
+  vars:
+    task_prefix:                       "SCS Install: "
+    always_upload_jinja_templates:     false
+    bom_name:                          "{{ bom_base_name }}"
+    sap_cd_package_cd1:
+    sap_cd_package_cd2:
+    sap_cd_package_cd3:
+    sap_cd_package_cd4:
+    sap_cd_package_cd5:
+    sap_cd_package_hdbclient:
+    sap_ciInstanceNumber:
+    app_instance_number:
+    sap_ciDialogWPNumber:
+    sap_ciBtcWPNumber:
+    sap_installSAPHostAgent:
+    sap_profile_dir:
+    sap_scs_hostname:                  "{{ virtual_host }}"
+    sap_db_hostname:
+    sap_ciVirtualHostname:
+    sap_appVirtualHostname:
+    tier:                              "{{ tier }}"
+    param_directory:                   "{{ dir_params }}"
+    sap_sid:                           "{{ sid_to_be_deployed.sid }}"
+    scs_instance_number:               "{{ sid_to_be_deployed.ascs_inst_no }}"
+    sidadm_uid:                        "{{ sid_to_be_deployed.sidadm_uid }}"
+  tags:
+    - skip_ansible_lint
+
+- name:                                "SCS Install: install variables"
+  ansible.builtin.debug:
+    msg:
+      - "INSTALLED:  {{ scs_installed.stat.exists }}"
+      - "INIFILE:    {{ sap_inifile }}"
+      - "PRODUCT ID: {{ bom.product_ids.scs }}"
+      - "INSTANCE:   {{ sid_to_be_deployed.ascs_inst_no }}"
+      - "MEDIA:      {{ sap_drive }}"
+      - "HOST:       {{ virtual_host }}"
+      - "SID:        {{ sid_to_be_deployed.sid | upper }}"
+
+
+- name:                                "SCS Install status"
+  block:
+
+    - name:                            "SCS Install status"
+      ansible.builtin.debug:
+        msg:                           "SCS is already installed"
+
+    - name:                            "SCS: - return value"
+      ansible.builtin.set_fact:
+        scs_already_installed:         true
+  when:
+    - scs_installed.stat.exists
+
+- name:                                "SCS Install"
+  block:
+
+# *====================================4=======================================8
+# |  SAP SCS: Install                                                          |
+# | 2230669 - System Provisioning Using a Parameter Input File                 |
+# *====================================4=======================================8
+    - name:                            "SCS Install: Progress"
+      ansible.builtin.debug:
+        msg:                           "Start SCS Installation media extraction"
+
+    - name:                            "SCS Install: sapinst Extraction"
+      ansible.windows.win_shell: |
+                                       {{ download_directory_windows }}\SWPM\sapinst.exe -extract
+      args:
+        chdir:                         '{{ download_directory_windows }}\sap_extract'
+        creates:                       '{{ download_directory_windows }}\sap_extract\sapinst.exe'
+      become:                          true
+      become_method:                   runas
+      become_user:                     '{{ domain }}\{{ sap_sid }}adm'
+      vars:
+        ansible_become_password:       "{{ domain_user_password }}"
+      register:                        scs_extraction
+      failed_when:                     scs_extraction.rc > 0
+
+    - name:                            "SCS Install: progress"
+      ansible.builtin.debug:
+        msg:                           "Starting SCS Installation for {{ sid_to_be_deployed.sid | upper }}. Please wait"
+
+    - name:                            "SCS Installation"
+      block:
+        - name:                        "SCS Install: SAP SCS Install on {{ ansible_hostname }}"
+          become:                      true
+          become_method:               runas
+          become_user:                 '{{ domain }}\{{ sap_sid }}adm'
+          ansible.windows.win_shell: |
+                                       {{ download_directory_windows }}\sap_extract\sapinst.exe SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}\{{ sap_inifile }}   `
+                                                                                                 SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.scs }}             `
+                                                                                                 SAPINST_SKIP_DIALOGS=true                                        `
+                                                                                                 SAPINST_START_GUI=false                                          `
+                                                                                                 SAPINST_CONTROL_URL={{ product_catalog }}                        `
+                                                                                                 SAPINST_START_GUISERVER=false
+          args:
+            chdir:                     '{{ log_dir_windows }}\sapinst_logs'
+            creates:                   '{{ sap_deployment_automation }}\{{ sid_to_be_deployed.sid | upper }}\sap_deployment_scs.txt'
+          vars:
+            ansible_become_password:   "{{ domain_user_password }}"
+          register:                    scs_installation
+          failed_when:                 scs_installation.rc > 0
+          tags:
+            - skip_ansible_lint
+      rescue:
+        - name:                        'RESCUE - SCS Install: Check {{ sap_drive }}\usr\sap\{{ sap_sid | upper }}\SYS\exe\uc\NTAMD64 exists'
+          ansible.windows.win_stat:
+            path:                      '{{ sap_drive }}\usr\sap\{{ sap_sid | upper }}\SYS\exe\uc\NTAMD64'
+          register:                    stat_sys_exe_uc
+          when:                        node_tier == 'scs'
+
+        - name:                        'RESCUE - SCS Install: Check Check {{ sap_drive }}\usr\sap\{{ sap_sid | upper }}\SYS\exe\uc\NTAMD64 is empty'
+          ansible.windows.win_find:
+            paths:                     '{{ sap_drive }}\usr\sap\{{ sap_sid | upper }}\SYS\exe\uc\NTAMD64'
+            patterns:                  "*"
+            file_type:                 directory
+          register:                    find_sys_exe_uc_result
+          when:
+            - node_tier == 'scs'
+            - stat_sys_exe_uc.stat.exists
+
+        - name:                        "RESCUE - SCS Install: Show installation result"
+          ansible.builtin.debug:
+            var:                       scs_installation
+          when:                        scs_installation is defined
+
+        - name:                        'RESCUE - SCS Install: Cleanup {{ sap_drive }}\usr\sap\{{ sap_sid | upper }}\SYS\exe\uc\NTAMD64'
+          ansible.windows.win_file:
+            path:                      '{{ sap_drive }}\usr\sap\{{ sap_sid | upper }}\SYS\exe\uc\NTAMD64'
+            state:                     absent
+          when:
+            - node_tier == 'scs'
+            - find_sys_exe_uc_result is defined
+            - find_sys_exe_uc_result | length > 0
+
+    - name:                            "SCS Install: Cleanup ini file {{ ansible_hostname }}"
+      ansible.windows.win_file:
+        path:                          '{{ dir_params }}\{{ sap_inifile }}'
+        state:                         absent
+
+    - name:                            "SCS Install: Installation Failed"
+      ansible.builtin.debug:
+        var:                           scs_installation
+      when:                            scs_installation.rc > 0
+
+    - name:                            Find the installationSuccesfullyFinished.dat (SAPINST)
+      ansible.windows.win_find:
+        paths:                         '{{ log_dir_windows }}\sapinst_logs'
+        file_type:                     file
+        patterns:                      'installationSuccesfullyFinished.dat'
+        recurse:                       true
+      register:                        scs_installed_according_to_sapinst
+
+    - name:                            "SCS Install: Installation results"
+      ansible.builtin.debug:
+        msg:                           "SCS Installation succeeded"
+      when:
+        - scs_installation.rc == 0
+        - scs_installed_according_to_sapinst.matched > 0
+
+    - name:                            "SCS Install: show"
+      ansible.builtin.debug:
+        var:                           scs_installed_according_to_sapinst
+
+    - name:                            "SCS Install: flag"
+      ansible.windows.win_file:
+        path:                          '{{ sap_deployment_automation }}\{{ sid_to_be_deployed.sid | upper }}\sap_deployment_scs.txt'
+        state:                         touch
+      when:
+        - scs_installation.rc == 0
+        - scs_installed_according_to_sapinst is defined
+        - scs_installed_according_to_sapinst.matched > 0
+
+  when:
+    - "'scs' in supported_tiers"
+    - not scs_installed.stat.exists
+...
+# /*---------------------------------------------------------------------------8
+# |                                   END                                      |
+# +------------------------------------4--------------------------------------*/

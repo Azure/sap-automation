@@ -1,0 +1,179 @@
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                 Perform the DB2 Instance installation                      |
+# |                  SAP: Register BOM                                         |
+# |                  SAP DB2 :  create .params directory                       |
+# |                  Export  environment variables for DB2 Installation        |
+# |                  Run SWPM to Install DB2                                   |
+# |                   TODO; Mention any OSS notes here                         |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+# TODO: Considerations
+
+---
+
+# Set BOM facts for SAP DB2 Install - Refer to sap-automation/deploy/ansible/BOM-catalog/ERP6_EHP8_LNX_DB2UDB_11_5_v0001ms
+- name:                                "SAP DB2 Install Secondary: Preparation"
+  block:
+    - name:                            "SAP DB2 Install Secondary: Set BOM facts"
+      ansible.builtin.set_fact:
+        sap_inifile:                   "{{ bom_base_name }}-dbloadstandby-{{ ansible_hostname }}.params"
+        sap_inifile_template:          "{{ bom_base_name }}-dbloadstandby-inifile-param.j2"
+        dir_params:                    "{{ tmp_directory }}/.{{ sap_sid | upper }}-params"
+        mem_size:                      "{{ ansible_facts.memory_mb.real.total | int * 0.8 }}"
+
+    - name:                            "SAP DB2: Create directories"
+      ansible.builtin.file:
+        path:                          "{{ item.path }}"
+        state:                         directory
+        mode:                          '{{ item.mode }}'
+      loop:
+        - { mode: '0755', path: '{{ dir_params }}' }
+        - { mode: '1777', path: '{{ tmp_directory }}/{{ sap_sid | upper }}' }
+        - { mode: '1777', path: '{{ tmp_directory }}/{{ db_sid | upper }}' }
+        - { mode: '0755', path: '/etc/sap_deployment_automation/{{ sap_sid | upper }}' }
+
+    - name:                            "SAP DB2 Secondary: Install reset"
+      ansible.builtin.file:
+        path:                          "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_db2.txt"
+        state:                         absent
+      when:                            reinstall
+
+    - name:                            "SAP DB2 Secodary: check if installed"
+      ansible.builtin.stat:
+        path:                          "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_db2.txt"
+      register:                        db2_installed
+      when:                            node_tier == 'db2'
+
+    - name:                            "SAP DB2: check media exists"
+      ansible.builtin.stat:
+        path:                          "{{ target_media_location }}/SWPM/sapinst"
+      register:                        sapinst_found
+
+    - name:                            "ErrorHandling"
+      ansible.builtin.fail:
+        msg:                           "INSTALL:0011:Unable to find sapinst, please check that the installation media is mounted"
+      when: not sapinst_found.stat.exists
+
+  when:                              ansible_hostname == secondary_instance_name
+
+- name:                                "DB2 Install - Secondary DB"
+  block:
+    - name:                            "DB2 Install Secondary DB: Include 3.3.1-bom-utility role"
+      ansible.builtin.include_role:
+        name:                          roles-sap/3.3.1-bom-utility
+        tasks_from:                    bom-register
+      vars:
+        bom_name:                      "{{ bom_base_name }}"
+
+    - name:                            "DB2 Install secondary DB: Include roles-sap/3.3.1-bom-utility role"
+      ansible.builtin.include_role:
+        name:                          roles-sap/3.3.1-bom-utility
+        tasks_from:                    bom-template
+      vars:
+        db2_archive_path:              "{{ target_media_location }}/sapdb2_software"
+        db2_cd_package_exportcd:       "{{ target_media_location }}/CD_EXPORT/DATA_UNITS"
+        db2_cd_package_db2client:      "{{ db2_archive_path }}/db2client"
+        db2_cd_package_software:       "{{ db2_archive_path }}/db2server/LINUXX86_64"
+        db2_cd_package_kernel:         "{{ target_media_location }}/download_basket/"
+        sap_db_hostname:               "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') | first }}"
+        db2_encryption_algo_type:      "AES"
+        db2_ase_encryption_length:     "256"
+        db2_encryption_keystore_dir:   /db2/db2{{ db_sid }}/keystore
+        db2_sslencryption_label:       "sap_db2{{ db_sid }}_{{ sap_db_hostname }}_ssl_comm_000"
+        sap_scs_hostname:               "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') | first }}"
+        sap_profile_dir:               "/sapmnt/{{ sap_sid | upper }}/profile"
+        tier:                          "{{ tier }}"
+        param_directory:               "{{ dir_params }}"
+        db2_memory:                    "{{ mem_size | int }}"
+        always_upload_jinja_templates: false
+
+      tags:
+        - skip_ansible_lint
+# +------------------------------------4--------------------------------------*/
+
+    - name:                            "SAP DB2 install Secondary: variables"
+      ansible.builtin.debug:
+        msg:
+          - "{{ sap_inifile }}"
+          - "{{ bom.product_ids.dblsby }}"
+        verbosity:                     2
+# *====================================4=======================================8
+#   SAP DB2: Install
+#   2230669 - System Provisioning Using a Parameter Input File
+#
+
+    - name:                            "SAP DB2 Install: progress"
+      ansible.builtin.debug:
+        msg:                           "Starting SAP DB2 Install - Secondary DB. Please wait"
+
+    - name:                            "SAP DB2 Install - Secondary DB"
+      ansible.builtin.shell: |
+                                       ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }}     \
+                                                 SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.dblsby }}             \
+                                                 SAPINST_SKIP_DIALOGS=true                                           \
+                                                 SAPINST_START_GUISERVER=false                                       \
+                                                 SAPINST_CONTROL_URL={{ target_media_location }}/SWPM/product.catalog
+      args:
+        chdir:                         "{{ target_media_location }}/SWPM"
+        creates:                       "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_db2.txt"
+      environment:
+        TMPDIR:                        "{{ tmp_directory }}/{{ sap_sid | upper }}"
+      register:                        db2_installation
+      failed_when:                     db2_installation.rc > 0
+      tags:
+        - skip_ansible_lint
+
+    - name:                            "SAP DB2 Install: progress"
+      ansible.builtin.debug:
+        msg:                           "SAP DB2 Installation succeeded."
+
+    - name:                            "DB2 Install Secondary: flag"
+      ansible.builtin.file:
+        path:                          "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_db2.txt"
+        state:                         touch
+        mode:                          0755
+
+    # 2570458 - DB6: Depooling report RUTPOADAPT fails with SQL -912
+    - name:                            "DB2 Install - Set LOCK variable for PAS"
+      become:                          true
+      become_user:                     db2{{ db_sid | lower }}
+      ansible.builtin.shell:           db2set DB2_AVOID_LOCK_ESCALATION=FALSE
+      args:
+        creates:                       "/etc/sap_deployment_automation/{{ sap_sid | upper }}/lock_escalation_false.txt"
+        executable:                    /bin/csh
+      register:                        db2_lock_escalation
+      environment:
+        PATH:                          "{{ ansible_env.PATH }}:/db2/db2{{ db_sid | lower }}/sqllib/gskit/bin"
+        TMPDIR:                        "{{ tmp_directory }}/{{ sap_sid | upper }}"
+
+    - name:                            "DB2 Install - Create lock escalation run flag"
+      ansible.builtin.file:
+        path:                          "/etc/sap_deployment_automation/{{ sap_sid | upper }}/lock_escalation_false.txt"
+        state:                         touch
+        mode:                          0755
+      when:                            db2_lock_escalation.rc == 0
+
+  when:
+    - not db2_installed.stat.exists
+    - ansible_hostname == secondary_instance_name
+
+- name:                                "SAP DB2 Install: Install DB2"
+  block:
+
+    - name:                            "SAP DB2 Install: progress"
+      ansible.builtin.debug:
+        msg:                           "SAP DB2 Already installed."
+
+  when:
+    - db2_installed.stat.exists
+    - ansible_hostname == primary_instance_name
+
+# *====================================4=======================================8
+
+...
+
+# /*---------------------------------------------------------------------------8
+# |                                   END                                      |
+# +------------------------------------4--------------------------------------*/

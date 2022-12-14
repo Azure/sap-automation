@@ -39,10 +39,10 @@
     - tier == 'os'
 
 - name:                                "1.4 Packages: - Update Python: {{ distribution_full_id }}"  # noqa package-latest
-  zypper:
+  community.general.zypper:
     name:                              'python-xml'
     state:                             latest
-  when:                                distribution_id == "suse15"
+  when:                                distribution_id in ['suse15', 'sles_sap15']
   tags:
     - skip_ansible_lint
 
@@ -222,7 +222,7 @@
         - { state: 'absent' }   # Then remove packages that we don't want
 
 - name:                                "1.4 Packages: - Upgrade all: {{ distribution_full_id }}"  # noqa package-latest
-  zypper:
+  community.general.zypper:
     name:                              '*'
     state:                             latest
   when:

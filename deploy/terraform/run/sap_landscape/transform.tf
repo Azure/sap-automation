@@ -144,15 +144,9 @@ locals {
   key_vault_temp = {
   }
 
-  user_keyvault_specified = (
-    length(var.user_keyvault_id) +
-    length(try(var.key_vault.kv_user_id, ""))
-  ) > 0
-  user_keyvault = local.user_keyvault_specified ? (
-    try(var.key_vault.kv_user_id, var.user_keyvault_id)
-    ) : (
-    ""
-  )
+  user_keyvault_specified = length(var.user_keyvault_id) > 0
+
+  user_keyvault = var.user_keyvault_id
 
   spn_keyvault_specified = (
     length(var.spn_keyvault_id) +

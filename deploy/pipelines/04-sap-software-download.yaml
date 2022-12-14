@@ -10,26 +10,6 @@ parameters:
     type:                              string
     default:
     values:
-      - S4HANA_2021_ISS_v0001ms
-      - S42020SPS04_v0001ms
-      - S41909SPS03_v0011ms
-      - HCMT_v0002ms
-      - BW4HANA2021SPS01_v0003ms
-      - HANA_2_00_063_v0001ms
-      - HANA_2_00_061_v0001ms
-      - HANA_2_00_059_v0003ms
-      - HANA_2_00_055_v0006ms
-      - NW750SPS20_v0004ms
-      - NW752SPS09_v0001ms
-      - ⁠NW750SPS20_DB2_v0001ms
-      - ORACLE_19_00_v0002ms
-      - ORACLE_19_00_v0003ms
-      - ORACLE_19_00_ASM_v0001ms
-      - NW750SPS20_DB2_v0001ms
-      - DB2_UDB_11_5_v0001ms
-      - ORACLE_19_00_ORA_MSID_v0001ms
-      - ORACLE_19_00_ORA_MSID_v0002ms
-      - ERP6_EHP8_WIN_MSS2019_v0001ms
 
   - name:                              environment
     displayName:                       Control Plane Environment
@@ -55,6 +35,10 @@ parameters:
 
   - name:                              sample_repo_path
     displayName:                       The local path on the agent where the config repo can be found
+    type:                              string
+
+  - name:                              ExtraParams
+    displayName:                       Extra parameters to pass to Ansible
     type:                              string
 
 stages:
@@ -228,7 +212,7 @@ stages:
                   exit 2
                 fi
 
-                az login --service-principal --username $ARM_CLIENT_ID --password=$ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID
+                az login --service-principal --username $ARM_CLIENT_ID --password=$ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID --output none
                 return_code=$?
                 if [ 0 != $return_code ]; then
                   echo -e "$boldred--- Login failed ---$reset"
@@ -236,12 +220,14 @@ stages:
                   exit $return_code
                 fi
 
-                command="ansible-playbook '-e "BOM_directory=${sample_path}" -e "bom_base_name=$(BOM_NAME)" -e "deployer_kv_name=$(KV_NAME)" -e "check_storage_account=$(check_storage_account)" ' ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_bom_downloader.yaml"
+                command="ansible-playbook '-e "BOM_directory=${sample_path}" -e "bom_base_name=$(BOM_NAME)" -e "deployer_kv_name=$(KV_NAME)" -e "check_storage_account=$(check_storage_account)" ' $ExtraParams ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_bom_downloader.yaml"
 
                 echo "##[section]Executing [$command]..."
                 echo "##[group]- output"
                 eval $command
+                return_code=$?
                 echo "##[endgroup]"
+                exit $return_code
             displayName:               Download
             name:                      download
             env:
@@ -252,5 +238,6 @@ stages:
               SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
               SAMPLE_REPO_PATH:         ${{ parameters.sample_repo_path }}
               CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
-              ExtraParams:              $(ExtraParams)
+              ExtraParams:              ${{ parameters.ExtraParams }}
             failOnStderr:               false
+

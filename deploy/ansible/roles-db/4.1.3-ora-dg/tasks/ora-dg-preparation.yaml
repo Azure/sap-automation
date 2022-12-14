@@ -20,7 +20,7 @@
 #         export ORACLE_BASE=/oracle
 #         export LD_LIBRARY_PATH=$ORACLE_HOME/lib
 #         export TNS_ADMIN=$ORACLE_HOME/network/admin
-#         export DB_SID={{ db_sid}}
+#         export DB_SID={{ db_sid }}
 
 - name:                                "Oracle Data Guard - Preparation: Create sap_deployment_automation folder"
   become:                              true

@@ -33,14 +33,16 @@
         az keyvault secret show
           --vault-name {{ kv_name }}
           --name {{ fencing_spn_client_id }}
+          --query value
+          --output tsv
       changed_when:                    false
-      register:                        keyvault_secret_show_fencing_spn_client_id
+      register:                        keyvault_secret_show_fencing_spn_client_value
       no_log:                          false
 
     - name:                            "0.2 Key Vault - Fencing: - Extract Fencing agent SPN Client ID"
       ansible.builtin.set_fact:
-        sap_fencing_spn_client_id: >-
-          {{ (keyvault_secret_show_fencing_spn_client_id.stdout | from_json).value }}
+        sap_fencing_spn_client_id:     "{{ keyvault_secret_show_fencing_spn_client_value.stdout }}"
+        cacheable:                     true
       no_log:                          false
 
     - name:                            "0.2 Key Vault - Fencing: - Retrieve Fencing agent SPN password details"
@@ -48,14 +50,16 @@
         az keyvault secret show
           --vault-name {{ kv_name }}
           --name {{ fencing_spn_pwd }}
+          --query value
+          --output tsv
       changed_when:                    false
       register:                        keyvault_secret_show_fencing_spn_pwd
       no_log:                          true
 
     - name:                            "0.2 Key Vault - Fencing: - Extract Fencing agent SPN password"
       ansible.builtin.set_fact:
-        sap_fencing_spn_pwd: >-
-          {{ (keyvault_secret_show_fencing_spn_pwd.stdout | from_json).value }}
+        sap_fencing_spn_pwd:           "{{ keyvault_secret_show_fencing_spn_pwd.stdout }}"
+        cacheable:                     true
       no_log:                          true
 
     - name:                            "0.2 Key Vault - Fencing: - Retrieve Fencing agent SPN Tenant details"
@@ -63,14 +67,16 @@
         az keyvault secret show
           --vault-name {{ kv_name }}
           --name {{ fencing_spn_tenant_id }}
+          --query value
+          --output tsv
       changed_when:                    false
       register:                        keyvault_secret_show_fencing_spn_tenant_id
       no_log:                          true
 
     - name:                            "BoM Secrets: Extract Fencing agent SPN Tenant"
       ansible.builtin.set_fact:
-        sap_fencing_spn_tenant_id: >-
-          {{ (keyvault_secret_show_fencing_spn_tenant_id.stdout | from_json).value }}
+        sap_fencing_spn_tenant_id:     "{{ keyvault_secret_show_fencing_spn_tenant_id.stdout }}"
+        cacheable:                     true
       no_log:                          true
 
     - name:                            "0.2 Key Vault - Fencing: - Show fencing agent SPN Details"

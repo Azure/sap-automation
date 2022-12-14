@@ -11,46 +11,65 @@ parameters:
     parametersFolder: ''
     extraParams: ''
     sapParams: ''
+    passwordSecretName: ''
+    userNameSecretName: ''
+
 steps:
 - script: |
+    #!/bin/bash
+    # Exit immediately if a command exits with a non-zero status.
+    # Treat unset variables as an error when substituting.
+
     #Stage could be executed on a different machine by default, need to login again for ansible
     #If the deployer_file exists we run on a deployer configured by the framework instead of a azdo hosted one
 
-    deployer_file=/etc/profile.d/deploy_server.sh
-    if [ -f "$deployer_file" ]; then
-      az login --identity --allow-no-subscriptions --output none
-      noAccess=$( az account show --query name | grep  "N/A(tenant level account)")
+    # deployer_file=/etc/profile.d/deploy_server.sh
+    # if [ -f "$deployer_file" ]; then
+    #   echo "##[section]Running on a deployer..."
+    #   az login --identity --allow-no-subscriptions --output none
+    #   noAccess=$( az account show --query name | grep  "N/A(tenant level account)")
 
-      if [ -z "$noAccess" ]; then
-        az account set --subscription $AZURE_SUBSCRIPTION_ID --output none
-      fi
-    else
-      az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID --output none
-      az account set --subscription $AZURE_SUBSCRIPTION_ID --output none
+    #   if [ -z "$noAccess" ]; then
+    #     az account set --subscription $AZURE_SUBSCRIPTION_ID --output none
+    #   fi
+    # else
+    #   echo "##[section]Running on an Azure DevOps agent..."
+    #   az login --service-principal -u $AZURE_CLIENT_ID -p=$AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID --output none
+    #   az account set --subscription $AZURE_SUBSCRIPTION_ID --output none
 
-    fi
+    # fi
+
+    az login --service-principal -u $AZURE_CLIENT_ID -p=$AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID --output none
+    az account set --subscription $AZURE_SUBSCRIPTION_ID --output none
+    set -eu
 
     if [ ! -f $PARAMETERS_FOLDER/sshkey ]; then
+      echo "##[section]Retrieving sshkey..."
       az keyvault secret show --name $SSH_KEY_NAME --vault-name $VAULT_NAME --query value -o tsv > $PARAMETERS_FOLDER/sshkey
       sudo chmod 600 $PARAMETERS_FOLDER/sshkey
     fi
 
-    if [ $EXTRA_PARAMS == '$(ExtraParams)' ]; then
-      ansible-playbook -i $INVENTORY \
-                      --private-key $PARAMETERS_FOLDER/sshkey \
-                      -e $SAP_PARAMS \
-                      -e "_workspace_directory=$PARAMETERS_FOLDER" \
-                      $ANSIBLE_FILE_PATH
+    password_secret=$(az keyvault secret show --name $PASSWORD_KEY_NAME --vault-name $VAULT_NAME --query value -o tsv)
 
-    else
-      ansible-playbook -i $INVENTORY \
-                      --private-key $PARAMETERS_FOLDER/sshkey \
-                      -e $SAP_PARAMS \
-                      -e "_workspace_directory=$PARAMETERS_FOLDER" \
-                      $EXTRA_PARAMS \
-                      $ANSIBLE_FILE_PATH
-    fi
+    echo "Extra parameters passed: " $EXTRA_PARAMS
 
+    command="ansible-playbook -i $INVENTORY --private-key $PARAMETERS_FOLDER/sshkey  \
+      -e @$SAP_PARAMS -e "_workspace_directory=$PARAMETERS_FOLDER" $EXTRA_PARAMS     \
+      -e ansible_ssh_pass='${password_secret}'                                       \
+       $ANSIBLE_FILE_PATH"
+
+    echo $command
+
+    redacted_command="ansible-playbook -i $INVENTORY -e @$SAP_PARAMS $EXTRA_PARAMS $ANSIBLE_FILE_PATH"
+
+    echo "##[section]Executing [$redacted_command]..."
+    echo "##[group]- output"
+    eval $command
+    return_code=$?
+    echo "##[section]Ansible playbook execution completed with exit code [$return_code]"
+    echo "##[endgroup]"
+
+    exit $return_code
 
   displayName:                      ${{ parameters.displayName }}
   env:
@@ -66,8 +85,8 @@ steps:
     PARAMETERS_FOLDER:              ${{ parameters.parametersFolder }}
     EXTRA_PARAMS:                   ${{ parameters.extraParams }}
     SAP_PARAMS:                     ${{ parameters.sapParams }}
-    INVENTORY:                      $(Pipeline.Workspace)/ansible_data/${{ parameters.sidHosts }}
+    INVENTORY:                      ${{ parameters.parametersFolder }}/${{ parameters.sidHosts }}
     SSH_KEY_NAME:                   ${{ parameters.secretName }}
     VAULT_NAME:                     ${{ parameters.vaultName }}
-
-  continueOnError:           false
+    PASSWORD_KEY_NAME:              ${{ parameters.passwordSecretName }}
+    USERNAME_KEY_NAME:              ${{ parameters.userNameSecretName }}

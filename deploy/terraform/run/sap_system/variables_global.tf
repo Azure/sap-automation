@@ -1,4 +1,4 @@
-variable "application" {
+variable "application_tier" {
   description = "Details of the Application layer"
   default = {
     enable_deployment        = true

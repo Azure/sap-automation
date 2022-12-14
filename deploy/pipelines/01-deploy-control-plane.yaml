@@ -325,7 +325,7 @@ stages:
                     getLatestFromBranch: true
                 - bash: |
                       #!/bin/bash
-                      set -ue
+                      set -u
 
                       echo "##vso[build.updatebuildnumber]Deploying the control plane defined in $(deployerfolder) $(libraryfolder)"
                           green="\e[1;32m"
@@ -585,8 +585,6 @@ stages:
                              fi
                           fi
 
-                          az account set --subscription $ARM_SUBSCRIPTION_ID
-
                           echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
                           added=0
                           cd ${CONFIG_REPO_PATH}
@@ -836,3 +834,4 @@ stages:
                       WEBAPP_URL_BASE:         $(WEBAPP_URL_BASE)
                       WEBAPP_ID:               $(WEBAPP_ID)
                       WEBAPP_IDENTITY:         $(WEBAPP_IDENTITY)
+

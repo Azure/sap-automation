@@ -48,11 +48,11 @@
     state:                             present
   loop:
     - { group: 'asmoper',    gid: '{{ asmoper_gid }}'  }
-    - { group: 'asmadmin',   gid: '{{ asmadmin_gid }}' }  
+    - { group: 'asmadmin',   gid: '{{ asmadmin_gid }}' }
     - { group: 'asmdba',     gid: '{{ asmdba_gid }}'  }
   when:
-    -  node_tier == "oracle-asm"
-  
+    - node_tier == "oracle-asm"
+
 
 # *=====================================4=======================================8
 #
@@ -82,10 +82,10 @@
     create_home:                       true
     home:                              "{{ item.home }}"
   loop:
-    - { tier: 'sapos',        user: 'sapadm',                   uid: '{{ sapadm_uid }}', group: 'sapsys', home: '/home/sapadm',                 comment: 'SAP Host Agent' }
+    - { tier: 'sapos', user: 'sapadm', uid: '{{ sapadm_uid }}', group: 'sapsys', home: '/home/sapadm', comment: 'SAP Host Agent' }
     # TODO: add user for WebDisp Functionality
     # - { tier: 'WEB',         user: 'webadm',                   uid: '32002',            group: 'sapsys', home: '/home/webadm',                 comment: 'SAP WebDisp Admin' }
-  when:     
+  when:
     - item.tier == "all"
     - item.tier != "observer"
 
@@ -96,7 +96,7 @@
     name:                              "oracle"
     group:                             "oinstall"
     groups:                            asmoper,asmadmin,asmdba,dba,oper,backupdba,dgdba,kmdba,racdba
-    append:                            yes
+    append:                            true
     shell:                             /bin/csh
     # create_home:                       true
     # home:                              "{{ item.home }}"
@@ -106,6 +106,5 @@
   #   - { user: 'oracle',                   uid: '{{ asmdba_gid }}',   group: 'oinstall', home: '/home/oracle',                 comment: 'ASM Oper Group assignment' }
   #   # TODO: add user for WebDisp Functionality
     # - { tier: 'WEB',         user: 'webadm',                   uid: '32002',            group: 'sapsys', home: '/home/webadm',                 comment: 'SAP WebDisp Admin' }
-  when:     
+  when:
     - node_tier == "oracle-asm" or node_tier == "observer"
-  

@@ -96,7 +96,7 @@ then
     exit 3
 fi
 
-# Check that the exports ARM_SUBSCRIPTION_ID and DEPLOYMENT_REPO_PATH are defined
+# Check that the exports ARM_SUBSCRIPTION_ID and SAP_AUTOMATION_REPO_PATH are defined
 validate_exports
 return_code=$?
 if [ 0 != $return_code ]; then
@@ -145,7 +145,7 @@ echo "Keyvault: $keyvault"
 
 #Persisting the parameters across executions
 
-automation_config_directory=~/.sap_deployment_automation
+automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation
 generic_config_information="${automation_config_directory}"/config
 
 if [ $deployer_environment != $environment ]; then
@@ -426,7 +426,7 @@ then
 
             echo $allParams
 
-            "${DEPLOYMENT_REPO_PATH}"/deploy/scripts/set_secrets.sh $allParams
+            "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/set_secrets.sh $allParams
 
             if [ -f secret.err ]; then
                 error_message=$(cat secret.err)
@@ -440,7 +440,7 @@ then
             if [ $answer == 'Y' ]; then
                 allParams=$(printf " --workload --environment %s --region %s --vault %s --subscription %s  --spn_id %s " "${environment}" "${region_code}" "${keyvault}" "${subscription}" "${client_id}" )
 
-                "${DEPLOYMENT_REPO_PATH}"/deploy/scripts/set_secrets.sh ${allParams}
+                "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/set_secrets.sh ${allParams}
                 if [ $? -eq 255 ]
                 then
                     exit $?
@@ -464,7 +464,7 @@ then
     load_config_vars "${workload_config_information}" "deployer_tfstate_key"
     if [ -n "${deployer_tfstate_key}" ]
     then
-        # Deployer state was specified in ~/.sap_deployment_automation library config
+        # Deployer state was specified in $CONFIG_REPO_PATH/.sap_deployment_automation library config
         deployer_tfstate_key_parameter=" -var deployer_tfstate_key=${deployer_tfstate_key}"
     fi
 else
@@ -515,7 +515,7 @@ else
     tfstate_parameter=" -var tfstate_resource_id=${tfstate_resource_id}"
 fi
 
-terraform_module_directory="$(realpath "${DEPLOYMENT_REPO_PATH}"/deploy/terraform/run/"${deployment_system}" )"
+terraform_module_directory="$(realpath "${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/run/"${deployment_system}" )"
 
 if [ ! -d "${terraform_module_directory}" ]
 then
@@ -628,7 +628,7 @@ then
         echo ""
 
         workloadkeyvault=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw workloadzone_kv_name | tr -d \")
-        if valid_kv_name "$keyvault" ; then
+        if valid_kv_name "$workloadkeyvault" ; then
             save_config_var "workloadkeyvault" "${workload_config_information}"
         fi
 
@@ -761,7 +761,7 @@ if [ 0 == $return_value ] ; then
     fi
 
     workloadkeyvault=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw workloadzone_kv_name | tr -d \")
-    if valid_kv_name "$keyvault" ; then
+    if valid_kv_name "$workloadkeyvault" ; then
         save_config_var "workloadkeyvault" "${workload_config_information}"
     fi
     save_config_vars "landscape_tfstate_key" "${workload_config_information}"
@@ -827,7 +827,7 @@ if [ 1 == $ok_to_proceed ]; then
     return_value=$?
 
 fi
-
+rerun_apply=0
 if [ -f apply_output.json ]
 then
     errors_occurred=$(jq 'select(."@level" == "error") | length' apply_output.json)
@@ -878,7 +878,11 @@ then
             terraform -chdir="${terraform_module_directory}" import -allow-missing-config  $allParamsforImport $moduleID $resourceID
         done
 
-        echo "##vso[task.logissue type=error]Resources imported into Terraform state file. Please re-run the pipeline."
+        retryable=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary}  | select(.summary | startswith("Code=\"RetryableError\""))' apply_output.json)
+        if [[ -n ${retryable} ]]
+        then
+            rerun_apply=1
+        fi
     fi
     # resources_with_timeout=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary}  | select(.summary | startswith("waiting for creation of Private Endpoint"))' apply_output.json)
     # if [[ -n ${resources_with_timeout} ]]
@@ -887,6 +891,90 @@ then
     fi
 
 fi
+
+if [ $rerun_apply == 1 ] ; then
+    echo ""
+    echo ""
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo -e "#                          $cyan Re running Terraform apply$resetformatting                                  #"
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
+    echo ""
+    echo ""
+    if [ 1 == $called_from_ado ] ; then
+        terraform -chdir="${terraform_module_directory}" apply ${approve} -parallelism="${parallelism}" -no-color -var-file=${var_file} $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter -json  | tee -a  apply_output.json
+    else
+        terraform -chdir="${terraform_module_directory}" apply ${approve} -parallelism="${parallelism}" -var-file=${var_file} $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter -json  | tee -a  apply_output.json
+    fi
+    return_value=$?
+fi
+
+rerun_apply=0
+if [ -f apply_output.json ]
+then
+    errors_occurred=$(jq 'select(."@level" == "error") | length' apply_output.json)
+
+    if [[ -n $errors_occurred ]]
+    then
+    echo ""
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo -e "#                          $boldreduscore!Errors during the apply phase!$resetformatting                              #"
+
+    return_value=2
+    all_errors=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary, detail: .diagnostic.detail}' apply_output.json)
+    if [[ -n ${all_errors} ]]
+    then
+        readarray -t errors_strings < <(echo ${all_errors} | jq -c '.' )
+        for errors_string in "${errors_strings[@]}"; do
+            string_to_report=$(jq -c -r '.detail '  <<< "$errors_string" )
+            if [[ -z ${string_to_report} ]]
+            then
+                string_to_report=$(jq -c -r '.summary '  <<< "$errors_string" )
+            fi
+
+            echo -e "#                          $boldreduscore  $string_to_report $resetformatting"
+            if [ 1 == $called_from_ado ] ; then
+                echo "##vso[task.logissue type=error]${string_to_report}"
+            fi
+
+        done
+
+    fi
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
+    echo ""
+
+    # Check for resource that can be imported
+    existing=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary}  | select(.summary | startswith("A resource with the ID"))' apply_output.json)
+    if [[ -n ${existing} ]]
+    then
+
+        readarray -t existing_resources < <(echo ${existing} | jq -c '.' )
+        for item in "${existing_resources[@]}"; do
+            moduleID=$(jq -c -r '.address '  <<< "$item")
+            resourceID=$(jq -c -r '.summary' <<< "$item" | awk -F'\"' '{print $2}')
+            echo "Trying to import" $resourceID "into" $moduleID
+            allParamsforImport=$(printf " -var-file=%s %s %s %s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter} " )
+            echo terraform -chdir="${terraform_module_directory}" import -allow-missing-config  $allParamsforImport $moduleID $resourceID
+            terraform -chdir="${terraform_module_directory}" import -allow-missing-config  $allParamsforImport $moduleID $resourceID
+        done
+
+        retryable=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary}  | select(.summary | startswith("Code=\"RetryableError\""))' apply_output.json)
+        if [[ -n ${retryable} ]]
+        then
+            rerun_apply=1
+        fi
+    fi
+    # resources_with_timeout=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary}  | select(.summary | startswith("waiting for creation of Private Endpoint"))' apply_output.json)
+    # if [[ -n ${resources_with_timeout} ]]
+    # then
+
+    fi
+
+fi
+
 
 workload_zone_prefix=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw workload_zone_prefix | tr -d \")
 save_config_var "workload_zone_prefix" "${workload_config_information}"
@@ -940,7 +1028,7 @@ echo "##########################################################################
 echo ""
 
 rg_name=$(terraform -chdir="${terraform_module_directory}"  output -no-color -raw created_resource_group_name | tr -d \")
-az deployment group create --resource-group ${rg_name} --name "SAP-WORKLOAD-ZONE_${rg_name}" --subscription  ${subscription} --template-file "${script_directory}/templates/empty-deployment.json" --output none
+az deployment group create --resource-group "${rg_name}" --name "SAP-WORKLOAD-ZONE_${rg_name}" --subscription  ${subscription} --template-file "${script_directory}/templates/empty-deployment.json" --output none
 
 now=$(date)
 cat <<EOF > "${workload_config_information}".md
@@ -973,15 +1061,19 @@ echo ""
 subnet_id=$(terraform -chdir="${terraform_module_directory}"  output -no-color -raw app_subnet_id | tr -d \")
 
 if [ -n "${subnet_id}" ]; then
+  echo "Adding the app subnet"
   az storage account network-rule add --resource-group "${REMOTE_STATE_RG}" --account-name "${REMOTE_STATE_SA}" --subscription "${STATE_SUBSCRIPTION}" --subnet $subnet_id --output none
+  if [ -n "$SAPBITS" ] ; then
+    az storage account network-rule add --resource-group "${REMOTE_STATE_RG}" --account-name $SAPBITS --subscription "${STATE_SUBSCRIPTION}" --subnet $subnet_id --output none
+  fi
 fi
 
 subnet_id=$(terraform -chdir="${terraform_module_directory}"  output -no-color -raw db_subnet_id | tr -d \")
 
 if [ -n "${subnet_id}" ]; then
+  echo "Adding the db subnet"
   az storage account network-rule add --resource-group "${REMOTE_STATE_RG}" --account-name "${REMOTE_STATE_SA}" --subscription "${STATE_SUBSCRIPTION}" --subnet $subnet_id --output none
 fi
-
 
 unset TF_DATA_DIR
 

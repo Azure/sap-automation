@@ -21,27 +21,6 @@ parameters:
   - name:                              bom_base_name
     displayName:                       Bill of Materials name
     type:                              string
-    values:
-      - S4HANA_2021_ISS_v0001ms
-      - S42020SPS04_v0001ms
-      - S41909SPS03_v0011ms
-      - HCMT_v0002ms
-      - BW4HANA2021SPS01_v0003ms
-      - HANA_2_00_063_v0001ms
-      - HANA_2_00_061_v0001ms
-      - HANA_2_00_059_v0003ms
-      - HANA_2_00_055_v0006ms
-      - NW750SPS20_v0004ms
-      - NW752SPS09_v0001ms
-      - ⁠NW750SPS20_DB2_v0001ms
-      - ORACLE_19_00_v0002ms
-      - ORACLE_19_00_v0003ms
-      - NW750SPS20_DB2_v0001ms
-      - ORACLE_19_00_ASM_v0001ms
-      - DB2_UDB_11_5_v0001ms
-      - ORACLE_19_00_ORA_MSID_v0001ms
-      - ORACLE_19_00_ORA_MSID_v0002ms
-      - ERP6_EHP8_WIN_MSS2019_v0001ms
 
   - name:                              extra_params
     displayName:                       Extra Parameters
@@ -97,28 +76,6 @@ parameters:
     displayName:                       WebDispatcher Installation
     type:                              boolean
     default:                           false
-
-  # 20220929 MKD - ACSS Registration <BEGIN>
-  - name:                             acss_registration
-    displayName:                      Register System in ACSS
-    type:                             boolean
-    default:                          true
-
-  - name:                             acss_environment
-    displayName:                      ACSS Prod/NonProd
-    type:                             string
-    values:
-      - NonProd
-      - Prod
-
-  - name:                              acss_sap_product
-    displayName:                       System Type
-    type:                              string
-    values:
-      - S4HANA
-      - ECC
-      - Other
-  # 20220929 MKD - ACSS Registration <END>
 
   - name:                              sap_automation_repo_path
     displayName:                       The local path on the agent where the sap_automation repo can be found
@@ -292,7 +249,7 @@ stages:
               parametersFolder:              $(Preparation.FOLDER)
               sapParams:                     "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
               sidHosts:                      $(Preparation.HOSTS)
-              extraParams:                   $(ExtraParams)
+              extraParams:                   ${{ parameters.extra_params }}
               azureClientId:                 $(ARM_CLIENT_ID)
               azureClientSecret:             $(ARM_CLIENT_SECRET)
               azureTenantId:                 $(ARM_TENANT_ID)
@@ -309,7 +266,7 @@ stages:
                   parametersFolder:          $(Preparation.FOLDER)
                   sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
                   sidHosts:                  $(Preparation.HOSTS)
-                  extraParams:               $(ExtraParams)
+                  extraParams:               ${{ parameters.extra_params }}
                   azureClientId:             $(ARM_CLIENT_ID)
                   azureClientSecret:         $(ARM_CLIENT_SECRET)
                   azureTenantId:             $(ARM_TENANT_ID)
@@ -326,7 +283,7 @@ stages:
                   parametersFolder:          $(Preparation.FOLDER)
                   sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
                   sidHosts:                  $(Preparation.HOSTS)
-                  extraParams:               $(ExtraParams)
+                  extraParams:               ${{ parameters.extra_params }}
                   azureClientId:             $(ARM_CLIENT_ID)
                   azureClientSecret:         $(ARM_CLIENT_SECRET)
                   azureTenantId:             $(ARM_TENANT_ID)
@@ -343,7 +300,7 @@ stages:
                   parametersFolder:          $(Preparation.FOLDER)
                   sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
                   sidHosts:                  $(Preparation.HOSTS)
-                  extraParams:               $(ExtraParams)
+                  extraParams:               ${{ parameters.extra_params }}
                   azureClientId:             $(ARM_CLIENT_ID)
                   azureClientSecret:         $(ARM_CLIENT_SECRET)
                   azureTenantId:             $(ARM_TENANT_ID)
@@ -360,7 +317,7 @@ stages:
                   parametersFolder:          $(Preparation.FOLDER)
                   sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
                   sidHosts:                  $(Preparation.HOSTS)
-                  extraParams:               $(ExtraParams)
+                  extraParams:               ${{ parameters.extra_params }}
                   azureClientId:             $(ARM_CLIENT_ID)
                   azureClientSecret:         $(ARM_CLIENT_SECRET)
                   azureTenantId:             $(ARM_TENANT_ID)
@@ -377,7 +334,7 @@ stages:
                   parametersFolder:          $(Preparation.FOLDER)
                   sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
                   sidHosts:                  $(Preparation.HOSTS)
-                  extraParams:               $(ExtraParams)
+                  extraParams:               ${{ parameters.extra_params }}
                   azureClientId:             $(ARM_CLIENT_ID)
                   azureClientSecret:         $(ARM_CLIENT_SECRET)
                   azureTenantId:             $(ARM_TENANT_ID)
@@ -394,7 +351,7 @@ stages:
                   parametersFolder:          $(Preparation.FOLDER)
                   sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
                   sidHosts:                  $(Preparation.HOSTS)
-                  extraParams:               $(ExtraParams)
+                  extraParams:               ${{ parameters.extra_params }}
                   azureClientId:             $(ARM_CLIENT_ID)
                   azureClientSecret:         $(ARM_CLIENT_SECRET)
                   azureTenantId:             $(ARM_TENANT_ID)
@@ -411,7 +368,7 @@ stages:
                   parametersFolder:          $(Preparation.FOLDER)
                   sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
                   sidHosts:                  $(Preparation.HOSTS)
-                  extraParams:               $(ExtraParams)
+                  extraParams:               ${{ parameters.extra_params }}
                   azureClientId:             $(ARM_CLIENT_ID)
                   azureClientSecret:         $(ARM_CLIENT_SECRET)
                   azureTenantId:             $(ARM_TENANT_ID)
@@ -428,7 +385,7 @@ stages:
                   parametersFolder:          $(Preparation.FOLDER)
                   sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
                   sidHosts:                  $(Preparation.HOSTS)
-                  extraParams:               $(ExtraParams)
+                  extraParams:               ${{ parameters.extra_params }}
                   azureClientId:             $(ARM_CLIENT_ID)
                   azureClientSecret:         $(ARM_CLIENT_SECRET)
                   azureTenantId:             $(ARM_TENANT_ID)
@@ -445,7 +402,7 @@ stages:
                   parametersFolder:          $(Preparation.FOLDER)
                   sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
                   sidHosts:                  $(Preparation.HOSTS)
-                  extraParams:               $(ExtraParams)
+                  extraParams:               ${{ parameters.extra_params }}
                   azureClientId:             $(ARM_CLIENT_ID)
                   azureClientSecret:         $(ARM_CLIENT_SECRET)
                   azureTenantId:             $(ARM_TENANT_ID)
@@ -462,23 +419,12 @@ stages:
                   parametersFolder:          $(Preparation.FOLDER)
                   sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
                   sidHosts:                  $(Preparation.HOSTS)
-                  extraParams:               $(ExtraParams)
+                  extraParams:               ${{ parameters.extra_params }}
                   azureClientId:             $(ARM_CLIENT_ID)
                   azureClientSecret:         $(ARM_CLIENT_SECRET)
                   azureTenantId:             $(ARM_TENANT_ID)
                   azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
-          - ${{ if eq(parameters.acss_registration, true) }}:
-              - template:                    templates\acss-registration.yaml
-                parameters:
-                  displayName:                 "ACSS Registration"
-                  scriptPath:                  ${{ parameters.sap_automation_repo_path }}/deploy/pipelines/templates
-                  azureClientId:               $(ARM_CLIENT_ID)
-                  azureClientSecret:           $(ARM_CLIENT_SECRET)
-                  azureTenantId:               $(ARM_TENANT_ID)
-                  azureSubscriptionId:         $(ARM_SUBSCRIPTION_ID)
-                  acssEnvironment:             ${{ parameters.acss_environment }}
-                  acssSapProduct:              ${{ parameters.acss_sap_product }}
-                  sapSystemConfigurationName:  ${{ parameters.sap_system_configuration_name }}
+
           - template:                          templates\collect-log-files.yaml
             parameters:
               logPath:                         ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/logs

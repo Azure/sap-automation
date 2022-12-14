@@ -129,7 +129,7 @@ resource "azurerm_linux_virtual_machine" "deployer" {
   source_image_id = var.deployer.os.source_image_id != "" ? var.deployer.os.source_image_id : null
 
   dynamic "source_image_reference" {
-    for_each = range(var.deployer.os.source_image_id == "" ? 1 : 0)
+    for_each = range(var.deployer.os.type == "marketplace" ? 1 : 0)
     content {
       publisher = var.deployer.os.publisher
       offer     = var.deployer.os.offer
@@ -139,13 +139,14 @@ resource "azurerm_linux_virtual_machine" "deployer" {
   }
 
   dynamic "plan" {
-    for_each = range(var.deployer.plan.use ? 1 : 0)
+    for_each = range(var.deployer.os.type == "marketplace_with_plan" ? 1 : 0)
     content {
-      name      = var.deployer.plan.name
-      product   = var.deployer.plan.product
-      publisher = var.deployer.plan.publisher
+      name      = var.deployer.os.offer
+      publisher = var.deployer.os.publisher
+      product   = var.deployer.os.sku
     }
   }
+
   identity {
     type         = "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.deployer.id]
@@ -186,28 +187,28 @@ resource "azurerm_virtual_machine_extension" "configure" {
   publisher            = "Microsoft.Azure.Extensions"
   type                 = "CustomScript"
   type_handler_version = "2.1"
-  settings = <<SETTINGS
+  settings = jsonencode(
     {
-        "script": "${base64encode(
-  templatefile(
-    format(
-    "%s/templates/configure_deployer.sh.tmpl", path.module),
-    {
-      tfversion            = var.tf_version,
-      rg_name              = local.rg_name,
-      client_id            = azurerm_user_assigned_identity.deployer.client_id,
-      subscription_id      = data.azurerm_subscription.primary.subscription_id,
-      tenant_id            = data.azurerm_subscription.primary.tenant_id,
-      local_user           = local.username
-      pool                 = var.agent_pool
-      pat                  = var.agent_pat
-      ado_repo             = var.agent_ado_url
-      use_webapp           = var.use_webapp
-      ansible_core_version = var.ansible_core_version
+      "script" = base64encode(
+        templatefile(
+          format(
+          "%s/templates/configure_deployer.sh.tmpl", path.module),
+          {
+            tfversion            = var.tf_version,
+            rg_name              = local.rg_name,
+            client_id            = azurerm_user_assigned_identity.deployer.client_id,
+            subscription_id      = data.azurerm_subscription.primary.subscription_id,
+            tenant_id            = data.azurerm_subscription.primary.tenant_id,
+            local_user           = local.username
+            pool                 = var.agent_pool
+            pat                  = var.agent_pat
+            ado_repo             = var.agent_ado_url
+            use_webapp           = var.use_webapp
+            ansible_core_version = var.ansible_core_version
+          }
+        )
+      )
     }
   )
-)
-}"
-    }
-SETTINGS
+
 }

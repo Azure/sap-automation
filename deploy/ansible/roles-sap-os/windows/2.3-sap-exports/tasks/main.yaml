@@ -1,0 +1,42 @@
+---
+- name:                                Get the SCS Server name list
+  ansible.builtin.set_fact:
+    scs_server_temp: "{{ scs_server_temp | default([]) + [item] }}"
+
+  with_items:
+    - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') }}"
+    - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
+
+- name:                                "Set the SCS Server name"
+  ansible.builtin.set_fact:
+    scs_server: "{{ hostvars[scs_server_temp | first]['virtual_host'] }}"
+
+- name:                                "Exports: Create SAP Directories"
+  ansible.windows.win_dsc:
+    resource_name:                     File
+    DestinationPath:                   "{{ item.path }}"
+    Type:                              Directory
+    Ensure:                            Present
+  loop:
+    - { path: "{{ target_media_location_windows }}" }
+  when:
+    - node_tier == 'scs'
+
+- name:                                "2.3 SAP Exports: - Enable Folder Sharing"
+  ansible.windows.win_share:
+    name:                              SAP
+    description:                       Share Installation Files Accross Servers
+    path:                              "{{ target_media_location_windows }}"
+    list:                              true
+    full:                              '{{ orchestration_ansible_user }},SAP_{{ sap_sid | upper }}_LocalAdmin,SAP_{{ sap_sid | upper }}_GlobalAdmin@{{ domain }}'
+    state:                             present
+  register:                            win_share_info
+  when:
+    - node_tier == 'scs'
+
+- name:                                "Show Share Output"
+  ansible.builtin.debug:
+    var:                               win_share_info
+  when:
+    - node_tier == 'scs'
+...

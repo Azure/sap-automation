@@ -1,0 +1,38 @@
+#   2482103 - Installation with SWPM in unattended mode using parameter input file fails
+#   2393060 - SAPinst Framework 749 Central Note
+
+
+###############################################################################################################################################################################################################################
+#                                                                                                                                                                                                                             #
+# Installation service 'SAP NetWeaver 7.5 > IBM Db2 for Linux, UNIX, and Windows > Installation > Application Server ABAP > Distributed System > Primary Application Server Instance', product id 'NW_ABAP_CI:NW750.DB6.ABAP' #
+#                                                                                                                                                                                                                             #
+###############################################################################################################################################################################################################################
+
+# Location of Export CD
+SAPINST.CD.PACKAGE.LOAD                                                                     = {{ target_media_location }}/CD_EXPORT
+SAPINST.CD.PACKAGE.CLIENT                                                                   = {{ target_media_location }}/sapdb2_software/db2client
+SAPINST.CD.PACKAGE.RDBMS                                                                    = {{ target_media_location }}/sapdb2_software/db2server/LINUXX86_64
+NW_Unpack.sapExeDbSar                                                                       = {{ target_media_location }}/download_basket
+NW_Unpack.sapExeSar                                                                         = {{ target_media_location }}/download_basket
+archives.downloadBasket                                                                     = {{ target_media_location }}/download_basket
+
+NW_CI_Instance.ascsVirtualHostname                                                          = {{ sap_scs_hostname }}
+NW_CI_Instance.ciInstanceNumber                                                             = {{ sap_ciInstanceNumber }}
+NW_CI_Instance.ciVirtualHostname                                                            = {{ sap_ciVirtualHostname }}
+NW_CI_Instance.scsVirtualHostname                                                           = {{ sap_scs_hostname }}
+NW_CI_Instance_ABAP_Reports.executeReportsForDepooling                                      = true
+NW_DB6_DB.db6.abap.connect.user                                                             = sap{{ db_sid | lower }}
+NW_DB6_DB.db6.abap.schema                                                                   = sap{{ db_sid | lower }}
+NW_DDIC_Password.needDDICPasswords                                                          = false
+NW_GetMasterPassword.masterPwd                                                              = {{ main_password }}
+NW_readProfileDir.profileDir                                                                = {{ sap_profile_dir }}
+
+NW_checkMsgServer.abapMSPort                                                                = 36{{ scs_instance_number }}
+NW_getLoadType.loadType                                                                     = SAP
+NW_getUnicode.isUnicode                                                                     = true
+
+nwUsers.sapadmUID                                                                           = {{ sapadm_uid }}
+nwUsers.sapsysGID                                                                           = {{ sapsys_gid }}
+nwUsers.sidAdmUID                                                                           = {{ sidadm_uid }}
+NW_getDBInfoGeneric.dbhost                                                                  = {{ sap_db_hostname }}
+NW_getDBInfoGeneric.dbsid                                                                   = {{ db_sid | upper }}

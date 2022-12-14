@@ -128,11 +128,6 @@ stages:
                 az login --identity --output none
               fi
 
-              echo -e "$green--- Configure devops CLI extension ---$reset"
-                az config set extension.use_dynamic_install=yes_without_prompt --output none
-
-                az devops configure --defaults organization=$(System.CollectionUri) project='$(System.TeamProject)' --output none
-
               echo -e "$green--- Convert config file to UX format ---$reset"
 
                 dos2unix -q SYSTEM/$(sap_system_folder)/$(sap_system_configuration)
@@ -167,6 +162,14 @@ stages:
                 echo -e "$green--- Pull the latest content from DevOps ---$reset"
                   git pull
 
+              echo -e "$green--- Configure devops CLI extension ---$reset"
+
+                az logout
+                az config set extension.use_dynamic_install=yes_without_prompt --output none
+
+                az devops configure --defaults organization=$(System.CollectionUri) project='$(System.TeamProject)' --output none
+
+
               echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
 
                 added=0
@@ -191,6 +194,11 @@ stages:
                   added=1
                 fi
 
+                if [ -f ${SID}_inventory.md ]; then
+                  git add    ${SID}_inventory.md
+                  added=1
+                fi
+
                 if [ -f ${SID}_resource_names.json ]; then
                   git add    ${SID}_resource_names.json
                   added=1
@@ -212,6 +220,24 @@ stages:
                 if [ -f ${SID}.md ]; then
                   echo "##vso[task.uploadsummary]$HOME_CONFIG/SYSTEM/$(sap_system_folder)/${SID}.md"
                 fi
+
+                file_name=${SID}_inventory.md
+                if [ -f ${SID}_inventory.md ]; then
+                  az devops configure --defaults organization=$(System.CollectionUri) project='$(System.TeamProject)' --output none
+
+                  # ToDo: Fix this later
+                  # WIKI_NAME_FOUND=$(az devops wiki list --query "[?name=='SDAF'].name | [0]")
+                  # echo "${WIKI_NAME_FOUND}"
+                  # if [ -n "${WIKI_NAME_FOUND}" ]; then
+                  #   eTag=$(az devops wiki page show --path "${file_name}" --wiki SDAF --query eTag )
+                  #   if [ -n "$eTag" ]; then
+                  #     az devops wiki page update --path "${file_name}" --wiki SDAF --file-path ./"${file_name}" --only-show-errors --version $eTag --output none
+                  #   else
+                  #     az devops wiki page create --path "${file_name}" --wiki SDAF --file-path ./"${file_name}" --output none --only-show-errors
+                  #   fi
+                  # fi
+                fi
+
               exit $return_code
 
             displayName:               Deploy_SAP_infrastructure
@@ -223,6 +249,6 @@ stages:
               SYSTEM_ACCESSTOKEN:       $(System.AccessToken)
               SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
               CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}
-              AZURE_DEVOPS_EXT_PAT:     $(System.AccessToken)
+              AZURE_DEVOPS_EXT_PAT:     $(WZ_PAT)
 
             failOnStderr:               false

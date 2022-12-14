@@ -8,12 +8,21 @@
 
 ---
 
-- name:                                "DBLoad: -  Create run flag directory"
+- name:                                "DBLoad: - Set dbload facts"
+  ansible.builtin.set_fact:
+    sap_inifile:                       "{{ bom_base_name }}-dbload-{{ sid_to_be_deployed.sid | lower }}-{{ ansible_hostname }}.params"
+    sap_inifile_template:              "{{ bom_base_name }}-dbload-inifile-param.j2"
+    dir_params:                        "{{ tmp_directory }}/.params"
+
+- name:                                "DBLoad: -  Create directories"
   ansible.builtin.file:
-    path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}"
+    path:                              "{{ item.path }}"
     state:                             directory
-    mode:                              0755
-  when:                                node_tier != "oracle"
+    mode:                              '{{ item.mode }}'
+  loop:
+    - { mode: '0755', path: '{{ dir_params }}' }
+    - { mode: '0755', path: '{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}' }
+    - { mode: '0755', path: '/etc/sap_deployment_automation/{{ sap_sid | upper }}' }
 
 - name:                                "DBLoad: -  reset"
   ansible.builtin.file:
@@ -39,26 +48,20 @@
   with_items:
     - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
 
-- name:                                "DBLoad: - Set dbload facts"
+- name:                                "DBLoad: -  Set the server facts"
   ansible.builtin.set_fact:
-    sap_inifile:                       "{{ bom_base_name }}-dbload-{{ sid_to_be_deployed.sid | lower }}-{{ ansible_hostname }}.params"
-    sap_inifile_template:              "{{ bom_base_name }}-dbload-inifile-param.j2"
     scs_server:                        "{% if scs_high_availability %}{{ sid_to_be_deployed.sid | lower }}scs{{ scs_instance_number }}cl1{% else %}{{ hostvars[scs_server_temp | first]['virtual_host'] }}{% endif %}"
     db_virtual_host:                   "{{ hostvars[db_server_temp | first]['virtual_host'] }}"
-    dir_params:                        "{{ tmp_directory }}/.params"
 
-#   0x) Create hidden directory for parameter files
-- name:                                "DBLoad: Create hidden directory"
-  ansible.builtin.file:
-    path:                              "{{ dir_params }}"
-    state:                             directory
-    mode:                              0755
+- name:                                "SCS Install: check media exists"
+  ansible.builtin.stat:
+    path:                              "{{ target_media_location }}/SWPM/sapinst"
+  register:                            sapinst_found
 
-- name:                                "DBLoad: Create temp directory for sid"
-  ansible.builtin.file:
-    path:                              "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
-    state:                             directory
-    mode:                              0755
+- name:                                "ErrorHandling"
+  ansible.builtin.fail:
+    msg:                               "INSTALL:0005:Unable to find sapinst, please check that the installation media is mounted"
+  when: not sapinst_found.stat.exists
 
 - name:                                "DBLoad: - Include 3.3.1-bom-utility role"
   ansible.builtin.include_role:
@@ -66,7 +69,6 @@
     tasks_from:                        bom-register
   vars:
     bom_name:                          "{{ bom_base_name }}"
-    tier:                              "{{ tier }}"
     task_prefix:                       "DBLoad: "
 
 - name:                                "DBLoad: - Include roles-sap/3.3.1-bom-utility role"
@@ -93,10 +95,12 @@
     sap_db_hostname:                   "{{ db_virtual_host }}"
     sap_ciVirtualHostname:
     sap_appVirtualHostname:
-    tier:                              "{{ tier }}"
     param_directory:                   "{{ dir_params }}"
     sap_sid:                           "{{ sid_to_be_deployed.sid }}"
     sidadm_uid:                        "{{ sid_to_be_deployed.sidadm_uid }}"
+    # support older dbload inifile templates where hdb_instance_number was used
+    hdb_instance_number:               "{{ db_instance_number }}"
+    db_instance_number:                "{{ db_instance_number }}"
   tags:
     - skip_ansible_lint
 
@@ -106,7 +110,7 @@
       - "INSTALLED:  {{ dbload_installed.stat.exists }}"
       - "INIFILE:    {{ sap_inifile }}"
       - "PRODUCT ID: {{ bom.product_ids.dbl }}"
-      - "INSTANCE:   {{ hdb_instance_number }}"
+      - "INSTANCE:   {{ db_instance_number }}"
       - "SCSHOST:    {{ scs_server }}"
       - "DBHOST:     {{ db_virtual_host }}"
       - "SID:        {{ sid_to_be_deployed.sid | upper }}"
@@ -120,9 +124,16 @@
 #
 # *====================================4=======================================8
     # Import this task only if the tier is ora.
-    - import_tasks:                    "oracle.yaml"
+    - name:                            "DBLoad: import oracle tasks"
+      ansible.builtin.import_tasks:    oracle.yaml
       when:
         - node_tier == "oracle-multi-sid"
+
+    - name:                            "Create temp directory for sid"
+      ansible.builtin.file:
+        path:                          "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
+        state:                         directory
+        mode:                          0755
 
     - name:                            "DBLoad: progress"
       ansible.builtin.debug:
@@ -205,8 +216,8 @@
     - node_tier in ["oracle","oracle-asm"]
 
 - name:                                "DBLoad: - status"
+  when: dbload_installed.stat.exists
   block:
-
     - name:                            "DBLoad: - status"
       ansible.builtin.debug:
         msg:                           "DBLoad is already performed ({{ sid_to_be_deployed.sid | upper }})"
@@ -214,10 +225,6 @@
     - name:                            "DBLoad: - return value"
       ansible.builtin.set_fact:
         dbload_already_performed:      true
-  when:
-    - dbload_installed.stat.exists
-
-
 ...
 # /*---------------------------------------------------------------------------8
 # |                                   END                                      |

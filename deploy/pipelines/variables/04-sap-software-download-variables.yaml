@@ -1,0 +1,38 @@
+#--------------------------------------+---------------------------------------8
+#                                                                              |
+# Defines the parameters and variables for the SAP software download           |
+#                                                                              |
+#--------------------------------------+---------------------------------------8
+
+parameters:
+  bom_base_name:                       ""
+  environment:                         ""
+  re_download:                         false
+  region:                              ""
+  ExtraParams:                         ""
+
+variables:
+  - group:                             "SDAF-General"
+
+  - group:                             SDAF-${{ parameters.environment }}
+
+  - name:                              bom
+    value:                             $[coalesce(variables['BoM_OverRide'], '${{ parameters.bom_base_name }}','foo')]
+
+  - name:                              variable_group
+    value:                             SDAF-${{ parameters.environment }}
+
+  - name:                              environment_code
+    value:                             ${{ parameters.environment }}
+
+  - name:                              location_code
+    value:                             ${{ parameters.region }}
+
+  - name:                              check_storage_account
+    value:                             $[not( ${{ parameters.re_download }} )]
+
+  - name:                              this_agent
+    value:                             $[lower(coalesce(variables['POOL'], variables['Agent']))]
+
+  - name:                              key_vault
+    value:                             $[variables['Deployer_Key_Vault']]

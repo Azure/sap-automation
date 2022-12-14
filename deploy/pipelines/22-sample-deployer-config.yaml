@@ -69,10 +69,10 @@ variables:
     value:                             ${{ parameters.deployer_region_parameter }}
 
   - name:                              deployer_folder
-    value:                             ${{ format('{0}-{1}-DEP00-INFRASTRUCTURE', parameters.deployer_environment_parameter, parameters.deployer_region_parameter) }}
+    value:                             ${{ format('{0}-{1}-DEP01-INFRASTRUCTURE', parameters.deployer_environment_parameter, parameters.deployer_region_parameter) }}
 
   - name:                              deployer_file
-    value:                             ${{ format('{0}-{1}-DEP00-INFRASTRUCTURE.tfvars', parameters.deployer_environment_parameter, parameters.deployer_region_parameter) }}
+    value:                             ${{ format('{0}-{1}-DEP01-INFRASTRUCTURE.tfvars', parameters.deployer_environment_parameter, parameters.deployer_region_parameter) }}
 
   - name:                              library_folder
     value:                             ${{ format('{0}-{1}-SAP_LIBRARY', parameters.deployer_environment_parameter, parameters.deployer_region_parameter) }}
@@ -93,7 +93,7 @@ stages:
           - checkout:                  self
             persistCredentials:        true
           - task:                      PowerShell@2
-            displayName:               "Create Sample"
+            displayName:               "Create Sample configuration for the control plane"
             inputs:
               targetType:              "inline"
 
@@ -166,7 +166,7 @@ stages:
                             Add-Content $(deployer_file) "environment = ""$(deployer_environment)"""
                             Add-Content $(deployer_file) "location = ""$region"""
                             Add-Content $(deployer_file) ""
-                            Add-Content $(deployer_file) "management_network_logical_name = ""DEP00"""
+                            Add-Content $(deployer_file) "management_network_logical_name = ""DEP01"""
                             Add-Content $(deployer_file) "management_network_address_space = ""10.170.20.0/24"""
                             Add-Content $(deployer_file) "management_subnet_address_prefix = ""10.170.20.64/28"""
 

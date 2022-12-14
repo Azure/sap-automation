@@ -1,7 +1,6 @@
 ---
-
-- name: Gather Logical volumes created in 1.5.1
-  ansible.builtin.include_vars: disks_config_asm.yml
+- name:                                Gather Logical volumes created in 1.5.1
+  ansible.builtin.include_vars:        disks_config_asm.yml
 
 - name:                                Set the NFS Server name list
   ansible.builtin.set_fact:
@@ -31,7 +30,7 @@
   loop:
     - { type: 'xfs',   src: '/dev/vg_sap/lv_usrsap',                             path: '/usr/sap' }
     - { type: 'xfs',   src: '/dev/vg_oracle/lv_oracle',                          path: '/oracle' }
-  when:                                
+  when:
     - NFS_provider != "NONE"
 
 - name:                                Print oravgstat
@@ -127,4 +126,3 @@
   ansible.builtin.debug:
     var:                               oracle_filesystem_mounts
     verbosity:                         2
-

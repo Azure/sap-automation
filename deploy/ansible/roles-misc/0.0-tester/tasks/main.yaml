@@ -1,124 +1,31 @@
 ---
 
-# - name:                                WhoamI
+- name:                                "Load the disk configuration settings"
+  ansible.builtin.include_vars:        disks_config.yml
+
+# - name:                                "SQL"
 #   ansible.builtin.debug:
-#     msg:                       {{ db_sid | lower }}adm"
+#     var: disks
 
-# - name:                                Run WhoamI
-#   become_user:                 {{ db_sid | lower }}adm"
-#   become:                              true
-#   ansible.builtin.shell: >
-#                                        whoami
-#   register:                            who
-
-# - name:                                who debug
-#   ansible.builtin.debug:
-#     var:                               who
-
-- name:                                Run Printenv
-  become_user:                         "{{ db_sid | lower }}adm"
-  become:                              true
-  ansible.builtin.command:             printenv
-  args:
-    executable:                        /usr/bin/bash
-  register:                            printenv
-  changed_when:                        false
-
-- name:                                Printenv debug
+- name:                                "SQL"
   ansible.builtin.debug:
-    var:                               printenv
-
-- name:                                Which sapcontrol
-  become:                              true
-  ansible.builtin.command:             /usr/sap/XDB/HDB00/exe/sapcontrol -nr 00 -function GetProcessList
-  register:                            gpl
-  ignore_errors:                       true
-  changed_when:                        false
-
-
-- name:                                GetProcessList
-  ansible.builtin.debug:
-    msg:                               "{{ gpl }}"
-
-- name:                                Ensure HSR
-  become_user:                         "{{ db_sid | lower }}adm"
-  ansible.builtin.command:             hdbnsutil -sr_state
-  changed_when:                        false
-  register: sr_state
-  args:
-    executable:                        /bin/bash
+    msg:
+      - "Data {{ sql_disk_list[0] }}"
+      - "Log {{ sql_disk_list[1] }}"
   vars:
-    ansible_python_interpreter:        python3
-  environment:
-    HOME:                              "/usr/sap/{{ db_sid | upper }}/home"
-    PYTHONHOME:                        "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/Python3"
-    DIR_EXECUTABLE:                    "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe"
-    SAP_RETRIEVAL_PATH:                "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/{{ ansible_hostname }}"
-    DIR_SYSEXE:                        "/usr/sap/{{ db_sid | upper }}/SYS/exe/hdb"
-    SAPSYSTEMNAME:                     "{{ db_sid | upper }}"
-    SECUDIR:                           "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/{{ ansible_hostname }}/sec"
-    DAT_BIN_DIR:                       "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/dat_bin_dir"
-    DIR_INSTANCE:                      "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}"
-    PYTHONPATH:                        "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/Py3:/usr/sap/XDB/SYS/global/hdb/custom/python_support:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/python_support:/usr/sap/XDB/HDB{{ hdb_instance_number }}/rh8dxdb00l192:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/testscripts:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/Python3/lib/python3.7"
-    PATH:                              "/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/krb5/bin:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/krb5/sbin:/usr/sap/XDB/HDB{{ hdb_instance_number }}/{{ ansible_hostname }}:/usr/sap/XDB/HDB{{ hdb_instance_number }}:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/mdc:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/Python3/bin:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/dat_bin_dir:/usr/sap/XDB/home:/sbin:/bin:/usr/sbin:/usr/bin"
-    LD_LIBRARY_PATH:                   "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/krb5/lib/krb5/plugins/preauth:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/krb5/lib:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe:\
-                                       /usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/Python3/lib:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/Py3:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/filter:\
-                                        /usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/dat_bin_dir:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/plugins/afl:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/plugins/lcapps:\
-                                        /usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/plugins/repository:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/plugins/epmmds:\
-                                        /usr/sap/HDB/SYS/global/hdb/federation:/usr/sap/HDB/SYS/global/hdb/plugins/3rd_party_libs:\
-                                        /usr/sap/HDB/SYS/global/hdb/plugins/1st_party_libs"
-    # OMP_NUM_THREADS: 1
-    # LANG: C.UTF-8
-    # TINSTANCE: 00
-    # SUDO_UID: 1000
-    # SHELL: /bin/sh
-    # SHLVL: 2
-    # LD_BIND_NOW: 1
-    # LOGNAME: xdbadm
+    sql_disk_list: "{{ lookup('template', 'sql_disks.j2') }}"
 
+- name:                                "SQL"
+  ansible.builtin.set_fact:
+    data_disks: '{{ sql_disk_list[0] | join(",") }}'
+    log_disks: '{{ sql_disk_list[1] | join(",") }}'
+  vars:
+    sql_disk_list: "{{ lookup('template', 'sql_disks.j2') }}"
 
-- name:                                Show new Env
+- name:                                "SQL"
   ansible.builtin.debug:
-    var:                               sr_state
+    msg:
+      - "Data {{ data_disks }}"
+      - "Log {{ log_disks }}"
 
-
-#   when:                                hana_running.rc !:  3
-
-
-    # HOME: /usr/sap/{{ db_sid | upper }}/home
-    # PYTHONHOME: /usr/sap/{{ db_sid | upper }}/HDB00/exe/Python3
-    # DIR_EXECUTABLE: /usr/sap/{{ db_sid | upper }}/HDB00/exe
-    # LANG: C.UTF-8
-    # SUDO_GID: 1000
-    # OLDPWD: /usr/sap/{{ db_sid | upper }}/HDB00
-    # TINSTANCE: 00
-    # SAP_RETRIEVAL_PATH: /usr/sap/{{ db_sid | upper }}/HDB00/rh8dxdb00l192
-    # USER: xdbadm
-    # ASAN_SYMBOLIZER_PATH: /usr/sap/{{ db_sid | upper }}/HDB00/exe/llvm-symbolizer
-    # ASAN_OPTIONS: "alloc_dealloc_mismatch: 0:log_path: /usr/sap/{{ db_sid | upper }}/HDB00/rh8dxdb00l192/trace/AddressSanitizer_Crashdump:handle_segv: 0:allow_user_segv_handler: 1:abort_on_error: 1:check_initialization_order: 1:detect_leaks: 0:detect_odr_violation: 0:use_sigaltstack: 0:allocator_may_return_null: 1"
-    # PWD: /usr/sap/{{ db_sid | upper }}/HDB00
-    # DIR_SYSEXE: /usr/sap/XDB/SYS/exe/hdb
-    # SUDO_USER: azureadm
-    # SAPSYSTEMNAME: {{ db_sid | upper }}
-    # SECUDIR: /usr/sap/{{ db_sid | upper }}/HDB00/rh8dxdb00l192/sec
-    # TSAN_OPTIONS: "exitcode: 0:log_path: /usr/sap/{{ db_sid | upper }}/HDB00/rh8dxdb00l192/trace/ThreadSanitizer_Report"
-    # SUDO_UID: 1000
-    # DAT_BIN_DIR: /usr/sap/{{ db_sid | upper }}/HDB00/exe/dat_bin_dir
-    # MAIL: /var/mail/xdbadm
-    # TERM: xterm-256color
-    # SHELL: /bin/sh
-    # SHLVL: 2
-    # DIR_INSTANCE: /usr/sap/{{ db_sid | upper }}/HDB00
-    # PYTHONPATH: "/usr/sap/{{ db_sid | upper }}/HDB00/exe/Py3:/usr/sap/XDB/SYS/global/hdb/custom/python_support:/usr/sap/XDB/HDB00/exe/python_support:/usr/sap/XDB/HDB00/rh8dxdb00l192:/usr/sap/XDB/HDB00/exe:/usr/sap/XDB/HDB00/exe/testscripts:/usr/sap/XDB/HDB00/exe/Python3/lib/python3.7"
-    # LD_BIND_NOW: 1
-    # LOGNAME: xdbadm
-    # PATH: "/usr/sap/XDB/HDB00/exe/krb5/bin:/usr/sap/XDB/HDB00/exe/krb5/sbin:/usr/sap/XDB/HDB00/rh8dxdb00l192:/usr/sap/XDB/HDB00:/usr/sap/XDB/HDB00/exe:/usr/sap/XDB/HDB00/exe/mdc:/usr/sap/XDB/HDB00/exe/Python3/bin:/usr/sap/XDB/HDB00/exe/dat_bin_dir:/usr/sap/XDB/home:/sbin:/bin:/usr/sbin:/usr/bin"
-    # PS1: "xdbadm@rh8dxdb00l192:$PWD> "
-    # OMP_NUM_THREADS: 1
-    # LD_LIBRARY_PATH:                   "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/krb5/lib/krb5/plugins/preauth:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/krb5/lib:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe:\
-    #                                    /usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/Python3/lib:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/Py3:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/filter:\
-    #                                     /usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/dat_bin_dir:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/plugins/afl:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/plugins/lcapps:\
-    #                                     /usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/plugins/repository:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/plugins/epmmds:\
-    #                                     /usr/sap/HDB/SYS/global/hdb/federation:/usr/sap/HDB/SYS/global/hdb/plugins/3rd_party_libs:\
-    #                                     /usr/sap/HDB/SYS/global/hdb/plugins/1st_party_libs"
 ...

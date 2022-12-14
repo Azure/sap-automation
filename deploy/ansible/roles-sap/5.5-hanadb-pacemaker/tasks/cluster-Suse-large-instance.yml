@@ -88,7 +88,7 @@
         msg: "{{ sbd_report.stdout }}"
 
     - name: Ensure maintenance mode is enabled
-      ansible.builtin.command: "crm configure property maintenance-mode=true"
+      ansible.builtin.command: crm configure property maintenance-mode=true
 
     - name: Ensure CIB Bootstrap Options are set
       ansible.builtin.shell: >
@@ -189,4 +189,4 @@
       ansible.builtin.command: "crm resource cleanup rsc_SAPHana_{{ sid | upper }}_HDB{{ instance_number }}"
 
     - name: Ensure maintenance mode is disabled
-      ansible.builtin.command: "crm configure property maintenance-mode=false"
+      ansible.builtin.command: crm configure property maintenance-mode=false

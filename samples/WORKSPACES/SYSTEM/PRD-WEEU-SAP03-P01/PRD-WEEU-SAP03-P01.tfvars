@@ -161,6 +161,7 @@ database_vm_use_DHCP = true
 #  offer           = "Oracle-Linux",
 #  sku             = "82-gen2",
 #  version         = "latest"
+#  type = "source_image" # [custom, marketplace, source_image]
 #}
 
 #SUSE 15 SP3
@@ -171,6 +172,7 @@ database_vm_use_DHCP = true
 #  offer           = "sles-sap-15-sp3"
 #  sku             = "gen2"
 #  version         = "latest"
+#  type = "source_image" # [custom, marketplace, source_image]
 #}
 
 #RedHat
@@ -181,6 +183,7 @@ database_vm_use_DHCP = true
 #  offer           = "RHEL-SAP-HA"
 #  sku             = "8_4"
 #  version         = "latest"
+#  type = "source_image" # [custom, marketplace, source_image]
 #}
 
 # The vm_image defines the Virtual machine image to use, 
@@ -194,6 +197,7 @@ database_vm_image = {
   offer           = "sles-sap-15-sp3",
   sku             = "gen2",
   version         = "latest"
+  type            = "source_image" # [custom, marketplace, source_image]
 }
 
 # database_vm_zones is an optional list defining the availability zones to deploy the database servers
@@ -267,6 +271,7 @@ scs_server_image = {
   offer           = "sles-sap-15-sp3",
   sku             = "gen2",
   version         = "latest"
+  type            = "source_image" # [custom, marketplace, source_image]
 }
 
 # scs_server_no_ppg defines the that the SCS virtual machines will not be placed in a proximity placement group
@@ -349,6 +354,7 @@ application_server_image = {
   offer           = "sles-sap-15-sp3",
   sku             = "gen2",
   version         = "latest"
+  type            = "source_image" # [custom, marketplace, source_image]
 }
 
 #application_server_vm_avset_arm_ids = []

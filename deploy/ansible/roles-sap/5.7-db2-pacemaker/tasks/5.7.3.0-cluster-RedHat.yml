@@ -1,0 +1,147 @@
+---
+
+# RHEL Clustering - Deploy DB2 cluster resources
+# Azure ref: https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-rhel-ibm-db2-luw
+
+# @TODO Subscribe to subscriptions/repos if required
+# This code assumes the deployment is using RHEL SAP image
+# +------------------------------------4--------------------------------------*/
+# check is db2 is started before we stopped
+# if it is started, then we need to stop it
+# if it is not started, then we do not need to stop it
+# +------------------------------------4--------------------------------------*/
+
+- name:                                "DB2 - Find if the databases are active"
+  become:                              true
+  become_user:                         db2{{ db_sid | lower }}
+  ansible.builtin.shell:               db2 list active databases
+  args:
+    executable: /bin/csh
+  environment:
+    PATH: "{{ ansible_env.PATH }}:/db2/db2{{ db_sid | lower }}/sqllib/gskit/bin"
+  register:                            db2_list_active_databases
+  failed_when:                         db2_list_active_databases.rc not in [0,4]
+
+- name:                                " DB2 - Stop the primary DB"
+  become:                              true
+  become_user:                         db2{{ db_sid | lower }}
+  ansible.builtin.shell:               db2stop force
+  args:
+    executable: /bin/csh
+  environment:
+    PATH: "{{ ansible_env.PATH }}:/db2/db2{{ db_sid | lower }}/sqllib/gskit/bin"
+  when:                                db2_list_active_databases.rc == 0
+
+
+- name:                                "Change to ksh Shell"
+  ansible.builtin.user:
+    user:                              db2{{ db_sid | lower }}
+    shell:                             /bin/ksh
+
+- name:                                "Optimise the Pacemaker cluster for SAP DB2"
+  block:
+    - name:                            "Enable Maintenance mode for the cluster"
+      ansible.builtin.command:         pcs property set maintenance-mode=true
+
+    - name:                            "Ensure SAP DB2 resource is created"
+      ansible.builtin.shell: >
+                                       pcs resource create Db2_HADR_{{ db_sid | upper }} db2 instance='db2{{ db_sid | lower }}' dblist='{{ db_sid | upper }}'
+                                       master meta notify=true resource-stickiness=5000
+      register:                        sap_db2
+      failed_when:                     sap_db2.rc > 1
+      when:                            ansible_distribution_major_version == "7"
+
+    - name:                            "Ensure SAP DB2  DB2 resource is created"
+      ansible.builtin.shell: >
+                                       pcs resource create Db2_HADR_{{ db_sid | upper }} db2 instance='db2{{ db_sid | lower }}' dblist='{{ db_sid | upper }}'
+                                       meta resource-stickiness=5000 promotable notify=true
+      register:                        sap_db2
+      failed_when:                     sap_db2.rc > 1
+      when:                            ansible_distribution_major_version == "8"
+
+    - name:                            "Ensure the Virtual IP resource for the Load Balancer Front End IP is created"
+      ansible.builtin.command:         pcs resource create vip_db2{{ db_sid | lower }}_{{ db_sid | upper }} IPaddr2 ip='{{ db_lb_ip }}'
+      register:                        vip
+      failed_when:                     vip.rc > 1
+
+    - name:                            "Ensure the netcat resource for the Load Balancer Healthprobe is created - Probe port for Azure Load Balacer"
+      ansible.builtin.command:         pcs resource create nc_db2{{ db_sid | lower }}_{{ db_sid | upper }} azure-lb port=625{{ db_instance_number }}
+      register:                        netcat
+      failed_when:                     netcat.rc > 1
+
+    - name:                            "Ensure a group for ip and Azure loadbalancer probe port is created"
+      ansible.builtin.command:         pcs resource group add g_ipnc_db2{{ db_sid | lower }}_{{ db_sid | upper }} vip_db2{{ db_sid | lower }}_{{ db_sid | upper }} nc_db2{{ db_sid | lower }}_{{ db_sid | upper }}
+      register:                        vip_g
+      failed_when:                     vip_g.rc > 1
+
+    - name:                            "Create colocation constraints - keep Db2 HADR Master and Group on same node - Rhel 7"
+      ansible.builtin.command:         pcs constraint colocation add g_ipnc_db2{{ db_sid | lower }}_{{ db_sid | upper }} with master Db2_HADR_{{ db_sid | upper }}-master
+      register:                        constraint
+      failed_when:                     constraint.rc > 1
+      when:                            ansible_distribution_major_version == "7"
+
+    - name:                            "Create colocation constraints - keep Db2 HADR Master and Group on same node - Rhel 8"
+      ansible.builtin.command:         pcs constraint colocation add g_ipnc_db2{{ db_sid | lower }}_{{ db_sid | upper }} with master Db2_HADR_{{ db_sid | upper }}-clone
+      register:                        constraint
+      failed_when:                     constraint.rc > 1
+      when:                            ansible_distribution_major_version == "8"
+
+    - name:                            "Ensure the order constraint for the SAP DB2 is configured - Rhel - 7"
+      ansible.builtin.command:         pcs constraint order promote Db2_HADR_{{ db_sid | upper }}-master then g_ipnc_db2{{ db_sid | lower }}_{{ db_sid | upper }}
+      register:                        constraint
+      failed_when:                     constraint.rc > 1
+      when:                            ansible_distribution_major_version == "7"
+
+    - name:                            "Ensure the order constraint for the SAP DB2 is configured - Rhel - 8"
+      ansible.builtin.command:         pcs constraint order promote Db2_HADR_{{ db_sid | upper }}-clone then g_ipnc_db2{{ db_sid | lower }}_{{ db_sid | upper }}
+      register:                        constraint
+      failed_when:                     constraint.rc > 1
+      when:                            ansible_distribution_major_version == "8"
+
+    - name:                            "Disable Maintenance mode for the cluster"
+      ansible.builtin.command:         pcs property set maintenance-mode=false
+
+    - name:                            "Wait until cluster has stabilized"
+      ansible.builtin.shell:           pcs status | grep '^Online:'
+      register:                        cluster_stable_check
+      retries:                         12
+      delay:                           10
+      until:                           "'{{ primary_instance_name }} {{ secondary_instance_name }}' in cluster_stable_check.stdout or '{{ secondary_instance_name }} {{ primary_instance_name }}' in cluster_stable_check.stdout"
+      when:                            ansible_distribution_major_version != "8"
+      tags:
+        - skip_ansible_lint
+
+    # '*' is a special character in regexp and needs to be escaped for literal matching
+    # if we are worried about character spacing across distros we can match for '\* Online:'
+    - name:                            "Wait until cluster has stabilized - RHEL 8.x"
+      ansible.builtin.shell:           pcs status | grep '^  \* Online:'
+      register:                        cluster_stable_check
+      retries:                         12
+      delay:                           10
+      until:                           "'{{ primary_instance_name }} {{ secondary_instance_name }}' in cluster_stable_check.stdout or '{{ secondary_instance_name }} {{ primary_instance_name }}' in cluster_stable_check.stdout"
+      when:                            ansible_distribution_major_version == "8"
+      tags:
+        - skip_ansible_lint
+
+    - name:                            "Ensure Cluster resources are started"
+      ansible.builtin.shell:           pcs resource show | grep '    Started:'
+      register:                        db2_cluster_resource_check
+      retries:                         12
+      delay:                           10
+      until:                           "'{{ primary_instance_name }} {{ secondary_instance_name }}' in db2_cluster_resource_check.stdout or '{{ secondary_instance_name }} {{ primary_instance_name }}' in db2_cluster_resource_check.stdout"
+      when:                            ansible_distribution_major_version != "8"
+      tags:
+        - skip_ansible_lint
+
+    - name:                            "Ensure Cluster resources are started - RHEL 8.x"
+      ansible.builtin.shell:           pcs resource status | grep 'Started'
+      register:                        db2_cluster_resource_check
+      retries:                         12
+      delay:                           10
+      until:                           "'{{ primary_instance_name }}' in db2_cluster_resource_check.stdout or '{{ secondary_instance_name }}' in db2_cluster_resource_check.stdout"
+      when:                            ansible_distribution_major_version == "8"
+      tags:
+        - skip_ansible_lint
+  when: ansible_hostname == primary_instance_name
+
+# End of DB2 clustering resources

@@ -1,6 +1,6 @@
 ---
 
-# Dynamicallu determine list of unique disk types associated with
+# Dynamically determine list of unique disk types associated with
 # current node.
 disktypes: >-
   {{ disks | selectattr('host', 'defined') |
@@ -98,7 +98,7 @@ logical_volume_groups: "{{ lookup('template', 'logical_volume_group.j2') }}"
 #     size:       '100%FREE'
 #     fstype:     'xfs'
 
-# #Adding Tier and disk types for Oracle multi-sid installation non-ASM.
+# # Adding Tier and disk types for Oracle multi-sid installation non-ASM.
 #   - tier:       'sapos'
 #     node_tier:  'oracle-multi-sid'
 #     vg:         vg_'{{ ora_sid1| lower }}'_sapdata1
