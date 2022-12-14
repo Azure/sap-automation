@@ -120,7 +120,7 @@ locals {
     instance_number = upper(local.databases_temp.platform) == "HANA" ? (
       coalesce(var.database_instance_number, try(var.databases[0].instance_number, "00"))
       ) : (
-      ""
+      "00"
     )
   }
 

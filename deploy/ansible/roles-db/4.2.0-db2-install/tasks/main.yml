@@ -72,7 +72,8 @@
         db2_encryption_keystore_dir:   /db2/db2{{ db_sid }}/keystore
         db2_sslencryption_label:       "sap_db2{{ db_sid }}_{{ sap_db_hostname }}_ssl_comm_000"
         sap_scs_hostname:              "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') | first }}"
-        tier:                          "{{ tier }}"
+        sap_profile_dir:               "/sapmnt/{{ sap_sid | upper }}/profile"
+        tier:                          "db2S"
         db2_memory:                    "{{ mem_size | int }}"
         param_directory:               "{{ dir_params }}"
       tags:
@@ -84,9 +85,15 @@
       ansible.builtin.debug:
         msg:
           - "INSTALLED:  {{ db2_installed.stat.exists }}"
-          - "INIFILE:    {{ sap_inifile }}"
+          - "INIFILE:    {{ dir_params }}/{{ sap_inifile }}"
           - "PRODUCT ID: {{ bom.product_ids.dbl }}"
           - "MEDIA:      {{ target_media_location }}"
+
+    - name:                            "Create temp directory for sid"
+      ansible.builtin.file:
+        path:                          "{{ tmp_directory }}/{{ sap_sid | upper }}"
+        state:                         directory
+        mode:                          0755
 
     - name:                            "DB2 Install: Progress"
       ansible.builtin.debug:
@@ -97,15 +104,9 @@
     #   2230669 - System Provisioning Using a Parameter Input File
     #
 
-    - name:                            "Create temp directory for sid"
-      ansible.builtin.file:
-        path:                          "{{ tmp_directory }}/{{ sap_sid | upper }}"
-        state:                         directory
-        mode:                          0755
-
     - name:                            "DB2 Install - SAPINST DB2 Install"
       ansible.builtin.shell: |
-                                       ./sapinst SAPINST_INPUT_fPARAMETERS_URL={{ dir_params }}/{{ sap_inifile }}     \
+                                       ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }}     \
                                                  SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.dbl }}                \
                                                  SAPINST_SKIP_DIALOGS=true                                           \
                                                  SAPINST_START_GUISERVER=false

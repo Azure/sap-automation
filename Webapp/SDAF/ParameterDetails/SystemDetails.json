@@ -662,10 +662,22 @@
           {
             "Text": "",
             "Value": ""
+          },
+          {
+            "Text": "1",
+            "Value": "1"
+          },
+          {
+            "Text": "2",
+            "Value": "2"
+          },
+          {
+            "Text": "3",
+            "Value": "3"
           }
         ],
         "Overrules": "",
-        "Display": 2
+        "Display": 1
       },
       {
         "Name": "scs_server_sku",
@@ -806,10 +818,22 @@
           {
             "Text": "",
             "Value": ""
+          },
+          {
+            "Text": "1",
+            "Value": "1"
+          },
+          {
+            "Text": "2",
+            "Value": "2"
+          },
+          {
+            "Text": "3",
+            "Value": "3"
           }
         ],
         "Overrules": "",
-        "Display": 2
+        "Display": 1
       },
       {
         "Name": "application_server_sku",
@@ -950,10 +974,22 @@
           {
             "Text": "",
             "Value": ""
+          },
+          {
+            "Text": "1",
+            "Value": "1"
+          },
+          {
+            "Text": "2",
+            "Value": "2"
+          },
+          {
+            "Text": "3",
+            "Value": "3"
           }
         ],
         "Overrules": "",
-        "Display": 2
+        "Display": 1
       },
       {
         "Name": "webdispatcher_server_sku",
@@ -970,7 +1006,7 @@
         "Description": "Define the virtual machine image for the web dispatchers.",
         "Type": "image_dropdown",
         "Options": [],
-        "Overrules": "web_server_image",
+        "Overrules": "webdispatcher_server_image",
         "Display": 1
       },
       {

@@ -83,6 +83,7 @@
         db2_encryption_keystore_dir:   /db2/db2{{ db_sid }}/keystore
         db2_sslencryption_label:       "sap_db2{{ db_sid }}_{{ sap_db_hostname }}_ssl_comm_000"
         sap_scs_hostname:               "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') | first }}"
+        sap_profile_dir:               "/sapmnt/{{ sap_sid | upper }}/profile"
         tier:                          "{{ tier }}"
         param_directory:               "{{ dir_params }}"
         db2_memory:                    "{{ mem_size | int }}"
