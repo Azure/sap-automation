@@ -1,3 +1,4 @@
+---
 # /*----------------------------------------------------------------------------8
 # |                                                                            |
 # |                         PREPARATION FOR BOM PROCESSING                     |
@@ -5,7 +6,6 @@
 # |                         RESET LOGGING                                      |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
----
 
 - hosts:                                              localhost
   name:                                               Get Storage account details from KeyVault
@@ -63,21 +63,13 @@
             sapbits_location_base_path:               "{{ hostvars.localhost.sapbits_location_base_path }}"
             sapbits_sas_token:                        "{{ hostvars.localhost.sapbits_sas_token }}"
 
-        - name:                                       3.3-bom-processing role
+        - name:                                       3.3-bom-processing role for Linux
+          become:                                     true
+          when:                                       ansible_os_family != "Windows"
           block:
-            - name:                                   "Set the Path for Linux distros"
-              ansible.builtin.set_fact:
-                path:                                 "roles-sap"
-              when:                                   ansible_os_family != "Windows"
-
-            - name:                                   "Check if the OS is Windows"
-              ansible.builtin.set_fact:
-                path:                                 "roles-sap/windows"
-              when:                                   ansible_os_family == "Windows"
-
             - name:                                   Include the 3.3-bom-processing role
               ansible.builtin.include_role:
-                name:                                 "{{ path }}/3.3-bom-processing"
+                name:                                 "roles-sap/3.3-bom-processing"
               vars:
                 tier:                  bom_download
                 always_upload_jinja_templates: false
@@ -85,13 +77,26 @@
               tags:
                 - 3.3-bom-processing
 
-            - name:                    Create bom-processing flag
-              delegate_to:             localhost
-              become:                  false
-              ansible.builtin.file:
-                path:                                 "{{ _workspace_directory }}/.progress/bom-processing"
-                state:                                touch
-                mode:                                 0755
+        - name:                                       3.3-bom-processing role for Windows
+          when:                                       ansible_os_family == "Windows"
+          block:
+            - name:                                   Include the 3.3-bom-processing role
+              ansible.builtin.include_role:
+                name:                                 "roles-sap/windows/3.3-bom-processing"
+              vars:
+                tier:                  bom_download
+                always_upload_jinja_templates: false
+                primary_instance_name: ansible_play_hosts[0]
+              tags:
+                - 3.3-bom-processing
+
+        - name:                    Create bom-processing flag
+          delegate_to:             localhost
+          become:                  false
+          ansible.builtin.file:
+            path:                                 "{{ _workspace_directory }}/.progress/bom-processing"
+            state:                                touch
+            mode:                                 0755
 
 ...
 # /*---------------------------------------------------------------------------8

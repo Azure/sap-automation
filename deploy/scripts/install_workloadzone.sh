@@ -628,7 +628,7 @@ then
         echo ""
 
         workloadkeyvault=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw workloadzone_kv_name | tr -d \")
-        if valid_kv_name "$keyvault" ; then
+        if valid_kv_name "$workloadkeyvault" ; then
             save_config_var "workloadkeyvault" "${workload_config_information}"
         fi
 
@@ -761,7 +761,7 @@ if [ 0 == $return_value ] ; then
     fi
 
     workloadkeyvault=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw workloadzone_kv_name | tr -d \")
-    if valid_kv_name "$keyvault" ; then
+    if valid_kv_name "$workloadkeyvault" ; then
         save_config_var "workloadkeyvault" "${workload_config_information}"
     fi
     save_config_vars "landscape_tfstate_key" "${workload_config_information}"
@@ -1063,7 +1063,7 @@ subnet_id=$(terraform -chdir="${terraform_module_directory}"  output -no-color -
 if [ -n "${subnet_id}" ]; then
   echo "Adding the app subnet"
   az storage account network-rule add --resource-group "${REMOTE_STATE_RG}" --account-name "${REMOTE_STATE_SA}" --subscription "${STATE_SUBSCRIPTION}" --subnet $subnet_id --output none
-  if [ -n $SAPBITS ] ; then
+  if [ -n "$SAPBITS" ] ; then
     az storage account network-rule add --resource-group "${REMOTE_STATE_RG}" --account-name $SAPBITS --subscription "${STATE_SUBSCRIPTION}" --subnet $subnet_id --output none
   fi
 fi

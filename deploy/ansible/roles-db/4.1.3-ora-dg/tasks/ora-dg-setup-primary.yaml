@@ -48,7 +48,7 @@
   ansible.builtin.copy:
     dest:                              /etc/sap_deployment_automation/dgscripts/enable_archive.log
     content:                           "{{ enable_archive_log_results.stdout }}"
-    mode:                              0777
+    mode:                              '0777'
   when:                                enable_archive_log_results.stdout is defined
 
 - name:                                "Oracle Data Guard - Setup Primary: Create archive_enabled_on_primary.txt"
@@ -57,7 +57,7 @@
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation/dgscripts/archive_enabled_on_primary.txt
     state:                             touch
-    mode:                              0755
+    mode:                              '0755'
   when:
     - current_host == ora_primary
     - enable_archive_log_results.rc < 2
@@ -95,7 +95,7 @@
   ansible.builtin.copy:
     dest:                              /etc/sap_deployment_automation/dgscripts/switch_archive.log
     content:                           "{{ enable_force_logging_results.stdout }}"
-    mode:                              0777
+    mode:                              '0777'
   when:                                enable_force_logging_results.stdout is defined
 
 - name:                                "Oracle Data Guard - Setup Primary: Create enable_force_login.txt"
@@ -104,7 +104,7 @@
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation/dgscripts/enable_force_login.txt
     state:                             touch
-    mode:                              0755
+    mode:                              '0755'
   when:
     - current_host == ora_primary
     - enable_archive_log_results.rc < 2
@@ -112,7 +112,7 @@
 - name:                                "Oracle Data Guard - Setup Primary: Create oracle standbylog directory"
   ansible.builtin.file:
     path:                              /oracle/{{ db_sid | upper }}/oraarch/standbylog
-    mode:                              0755
+    mode:                              '0755'
     state:                             directory
     owner:                             oracle
     group:                             oinstall
@@ -141,7 +141,7 @@
   ansible.builtin.copy:
     dest:                              /etc/sap_deployment_automation/dgscripts/standby_logs.log
     content:                           "{{ standby_redo_log_results.stdout }}"
-    mode:                              0777
+    mode:                              '0777'
   when:                                standby_redo_log_results.stdout is defined
 
 - name:                                "Oracle Data Guard - Setup Primary: Create standby_redo_logs.txt"
@@ -150,7 +150,7 @@
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation/dgscripts/standby_redo_logs.txt
     state:                             touch
-    mode:                              0755
+    mode:                              '0755'
   when:
     - current_host == ora_primary
     - standby_redo_log_results.rc < 2
@@ -178,7 +178,7 @@
   ansible.builtin.copy:
     dest:                              /etc/sap_deployment_automation/dgscripts/turn_on_flashback.log
     content:                           "{{ turn_on_flashback_results.stdout }}"
-    mode:                              0777
+    mode:                              '0777'
   when:                                turn_on_flashback_results.stdout is defined
 
 - name:                                "Oracle Data Guard - Setup Primary: Create turn_on_flashback.txt"
@@ -187,7 +187,7 @@
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation/dgscripts/turn_on_flashback.txt
     state:                             touch
-    mode:                              0755
+    mode:                              '0755'
   when:
     - current_host == ora_primary
     - turn_on_flashback_results.rc == 0

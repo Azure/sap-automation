@@ -1,9 +1,10 @@
+---
+
 # /*---------------------------------------------------------------------------------------------------8
 # |                                                                                                    |
 # |                      Playbook for SAP SCS HA Install and Pacemaker configuration                   |
 # |                                                                                                    |
 # +------------------------------------4--------------------------------------------------------------*/
----
 
 - hosts:                               localhost
   name:                                "SCS Installation Playbook: - Initialization"
@@ -100,27 +101,54 @@
         all_sids:                      "{% if MULTI_SIDS is defined %}{{ MULTI_SIDS }}{% else %}{{ all_sids | default([]) + [this_sid] }}{% endif %}"
 
     - name:                            Generic Users and Groups for SAP Installation
-      ansible.builtin.include_role:
-        name:                          roles-sap-os/2.5-sap-users
-        tasks_from:                    user_nw.yaml
-      vars:
-        sap_sid:                      "{{ sid_to_be_deployed.sid }}"
-        scs_instance_number:          "{{ sid_to_be_deployed.ascs_inst_no }}"
-        sidadm_uid:                   "{{ sid_to_be_deployed.sidadm_uid }}"
-        tier:                          generic
-        main_password:                 "{{ hostvars.localhost.sap_password }}"
-        sapbits_location_base_path:    "{{ hostvars.localhost.sapbits_location_base_path }}"
-        sapbits_sas_token:             "{{ hostvars.localhost.sapbits_sas_token }}"
-      loop:                            "{{ all_sids }}"
-      loop_control:
-        loop_var:                      sid_to_be_deployed
+      become:                          true
       when:
         - platform != "ORACLE"
         - ansible_os_family != "Windows"
-      tags:
-        - 2.5-sap-users
+      block:
 
+        - name:                        Generic Users and Groups for SAP Installation
+          ansible.builtin.include_role:
+            name:                      roles-sap-os/2.5-sap-users
+            tasks_from:                user_nw.yaml
+          vars:
+            sap_sid:                   "{{ sid_to_be_deployed.sid }}"
+            scs_instance_number:       "{{ sid_to_be_deployed.ascs_inst_no }}"
+            sidadm_uid:                "{{ sid_to_be_deployed.sidadm_uid }}"
+            tier:                       generic
+            main_password:              "{{ hostvars.localhost.sap_password }}"
+            sapbits_location_base_path: "{{ hostvars.localhost.sapbits_location_base_path }}"
+            sapbits_sas_token:          "{{ hostvars.localhost.sapbits_sas_token }}"
+          loop:                         "{{ all_sids }}"
+          loop_control:
+            loop_var:                  sid_to_be_deployed
+          tags:
+            - 2.5-sap-users
 
+    - name:                            Generic Users and Groups for SAP Installation for Oracle SCS High availability
+      become:                          true
+      when:
+        - platform == "ORACLE"
+        - scs_high_availability
+      block:
+        - name:                        Generic Users and Groups for SAP Installation for Oracle SCS High availability
+          when:                            
+          ansible.builtin.include_role:
+            name:                      roles-sap-os/2.5-sap-users
+            tasks_from:                user_nw.yaml
+          vars:
+            sap_sid:                  "{{ sid_to_be_deployed.sid }}"
+            scs_instance_number:      "{{ sid_to_be_deployed.ascs_inst_no }}"
+            sidadm_uid:               "{{ sid_to_be_deployed.sidadm_uid }}"
+            tier:                      generic
+            main_password:             "{{ hostvars.localhost.sap_password }}"
+            sapbits_location_base_path:    "{{ hostvars.localhost.sapbits_location_base_path }}"
+            sapbits_sas_token:         "{{ hostvars.localhost.sapbits_sas_token }}"
+          loop:                        "{{ all_sids }}"
+          loop_control:
+            loop_var:                  sid_to_be_deployed
+          tags:
+            - 2.5-sap-users
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
 # |                       Playbook for SAP SCS Install                         |
@@ -193,6 +221,7 @@
             verbosity:                 4
 
         - name:                        "Run the SCS Installation on Linux"
+          become:                      true
           block:
             - name:                    "SCS Installation - Linux based systems"
               block:
@@ -250,6 +279,7 @@
 
         - name:                        "Run the SCS Installation on Windows"
           become:                      false
+          when: ansible_os_family == "Windows"
           block:
             - name:                    "SCS Installation - Windows based systems"
               block:
@@ -309,7 +339,6 @@
               tags:
                 - 5.0.0-scs-install
 
-          when: ansible_os_family == "Windows"
       when:
         - not scs_high_availability
         - "'scs' in supported_tiers"
@@ -337,6 +366,9 @@
 # -------------------------------------+---------------------------------------8
     - name:                            "SCS HA Installation Playbook: - HA SCS Setup"
       become:                          true
+      when:
+        - scs_high_availability
+        - "'scs' in supported_tiers or 'ers' in supported_tiers "
       block:
         - name:                        "SCS HA Installation Playbook: - Assertion"
           ansible.builtin.assert:
@@ -344,6 +376,7 @@
               - sap_mnt is defined
             fail_msg:                  A highly available SCS deployment requires a shared sap_mnt
 
+            
         - name:                        "SCS HA Installation Playbook: - Initialize facts"
           ansible.builtin.set_fact:
             tier:                       ha
@@ -397,11 +430,13 @@
             name:                  roles-sap-os/2.6-sap-mounts
           tags:
             - 2.6-sap-mounts
+
+    - name:                            "SCS HA Installation Playbook: - HA SCS Setup"
       when:
         - scs_high_availability
         - "'scs' in supported_tiers or 'ers' in supported_tiers "
-
-    - name:                            "SCS HA Installation Playbook: - HA SCS Setup"
+        - MULTI_SIDS is undefined
+        - ansible_os_family != "Windows"
       block:
         - name:                        "SCS Installation Playbook: Define this SID"
           ansible.builtin.set_fact:
@@ -512,11 +547,6 @@
 
           tags:
             - 5.6-scsers-pacemaker
-      when:
-        - scs_high_availability
-        - "'scs' in supported_tiers or 'ers' in supported_tiers "
-        - MULTI_SIDS is undefined
-        - ansible_os_family != "Windows"
 
 ...
 

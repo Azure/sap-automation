@@ -67,14 +67,6 @@ disk_type_to_name_map:
 #
 logical_volumes:
   # --------------------- Begin - disks required for usrsap -------------------8
-  - tier:       'sapos'
-    node_tier:  'all'
-    vg:         'vg_sap'
-    lv:         'lv_usrsap'
-    size:       "{% if sap_mnt is defined %}100%FREE{% else %}32g{% endif %}"
-    fstype:     'xfs'
-  # ---------------------- End - disks required for usrsap --------------------8
-
   # ---------------------- Begin - disks required for WD  ---------------------8
   - tier:       'sapos'
     node_tier:  'web'
@@ -83,6 +75,14 @@ logical_volumes:
     size:       '1g'
     fstype:     'xfs'
   # ----------------------- End - disks required for WD  ----------------------8
+
+  - tier:       'sapos'
+    node_tier:  'all'
+    vg:         'vg_sap'
+    lv:         'lv_usrsap'
+    size:       "{% if sap_mnt is defined %}100%FREE{% else %}32g{% endif %}"
+    fstype:     'xfs'
+  # ---------------------- End - disks required for usrsap --------------------8
 
   # --------------------- Begin - disks required for HANA ---------------------8
   - tier:       'sapos'
@@ -193,7 +193,7 @@ logical_volumes:
     node_tier:  'oracle'
     vg:         'vg_oracle'
     lv:         'lv_oracle'
-    size:       '64g'
+    size:       '100%FREE'
     fstype:     'xfs'
 
   - tier:       'sapos'
@@ -270,6 +270,21 @@ logical_volumes:
   # ----------------------- End - disks required for DB2 ----------------------8
 
   # ---------------------- Begin - disks required for SCS ---------------------8
+
+  - tier:       'sapos'
+    node_tier:  'oracle-asm'
+    vg:         'vg_oracle'
+    lv:         'lv_oracle'
+    size:       '100%FREE'
+    fstype:     'xfs'
+  
+  - tier:       'sapos'
+    node_tier:  'oracle-asm'
+    vg:         'vg_sap'
+    lv:         'lv_usrsap'
+    size:       '100%FREE'
+    fstype:     'xfs'
+
 logical_volumes_sapmnt:
   - tier:       'sapos'
     node_tier:  'scs'
@@ -285,7 +300,9 @@ logical_volumes_install:
     lv:         'lv_usrsapinstall'
     size:       '100%FREE'
     fstype:     'xfs'
-  # ----------------------- End - disks required for SCS ----------------------8
+
+# Adding Tier and disk types for Oracle installation ASM.
+
 
 # Define a dynamic expression based upon the 'item' fact that can
 # only be used within a loop, that determines the number of PVs

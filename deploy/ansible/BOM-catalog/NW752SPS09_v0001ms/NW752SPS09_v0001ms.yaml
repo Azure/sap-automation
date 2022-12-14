@@ -29,11 +29,11 @@ materials:
 
     # kernel components
 
-    - name:                            "Kernel Part II (753)"
-      archive:                         SAPEXEDB_900-80002572.SAR
-      checksum:                        83eb0450e30e7cefb09aa3def0a3f7f0bdbf5b2ee1ccbe481443084f50f98e37
-      url:                             https://softwaredownloads.sap.com/file/0020000001557752021
-      path:                            download_basket
+    # - name:                            "Kernel Part II (753)"
+    #   archive:                         SAPEXEDB_900-80002572.SAR
+    #   checksum:                        83eb0450e30e7cefb09aa3def0a3f7f0bdbf5b2ee1ccbe481443084f50f98e37
+    #   url:                             https://softwaredownloads.sap.com/file/0020000001557752021
+    #   path:                            download_basket
 
     - name:                            "Kernel Part I (753)"
       archive:                         SAPEXE_900-80002573.SAR
@@ -71,6 +71,7 @@ materials:
       checksum:                        399228ad1ede56ea97a4676e5cfd9ff2ebccded55b8128718029188bc704682e
       extract:                         true
       extractDir:                      CD_EXPORT
+      #override_target_filename:        51051806_part1.exe
       creates:                         CDLABEL.ASC
       url:                             https://softwaredownloads.sap.com/file/0030000019659142017
 
@@ -79,6 +80,7 @@ materials:
       checksum:                        d968835cadfea8514a552ec977421043649bbb59140629a9dd897a7f0c47480b
       extract:                         true
       extractDir:                      CD_EXPORT
+      #override_target_filename:        51051806_part2.RAR
       creates:                         CDLABEL.ASC
       url:                             https://softwaredownloads.sap.com/file/0030000019659152017
 
@@ -489,8 +491,8 @@ materials:
     - name:                            "SAPCAR"
       archive:                         SAPCAR_1115-70006178.EXE
       checksum:                        765412436934362cc5497e3d659fbb78be91093a091c11ec4fbe84dfb415a0e5
-      override_target_filename:        "SAPCAR.EXE"
+      override_target_filename:        "SAPCAR"
       url:                             https://softwaredownloads.sap.com/file/0020000000098642022
-      path:                            download_basket
+      path:                            downloads
 
 ...

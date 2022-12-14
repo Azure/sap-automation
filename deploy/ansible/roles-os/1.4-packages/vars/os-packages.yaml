@@ -271,8 +271,8 @@ packages:
     - { tier: 'db2',   package: 'system-user-bin',                              node_tier: 'db2',     state: 'present' }
     # Adding packages for Oracle linux 8.4 to start with, copied the list from RHEL.
     # Adding additional Oracle linux packages as per SAP Note 2069760 - Oracle Linux 7.x SAP Installation and Upgrade. Need to add the groupinstall command.
+
   oraclelinux8:
-    - { tier: 'os',    package: 'oracle-database-preinstall-19c',               node_tier: 'all',     state: 'present' }
     - { tier: 'os',    package: 'sudo',                                         node_tier: 'all',     state: 'present' }
     - { tier: 'os',    package: 'tcsh',                                         node_tier: 'all',     state: 'present' }
     - { tier: 'os',    package: 'nfs-utils',                                    node_tier: 'all',     state: 'present' }
@@ -282,7 +282,6 @@ packages:
     - { tier: 'os',    package: 'net-tools',                                    node_tier: 'all',     state: 'present' }
     - { tier: 'os',    package: 'bind-utils',                                   node_tier: 'all',     state: 'present' }
     - { tier: 'os',    package: 'xfsprogs',                                     node_tier: 'all',     state: 'present' }
-    - { tier: 'os',    package: 'gdisk',                                        node_tier: 'all',     state: 'present' }
     - { tier: 'os',    package: 'lvm2',                                         node_tier: 'all',     state: 'present' }
     - { tier: 'os',    package: 'cifs-utils',                                   node_tier: 'all',     state: 'present' }
     - { tier: 'os',    package: 'uuidd',                                        node_tier: 'all',     state: 'present' }
@@ -290,6 +289,41 @@ packages:
     - { tier: 'ha',    package: 'jq',                                           node_tier: 'all',     state: 'present' }
     - { tier: 'os',    package: 'unzip',                                        node_tier: 'all',     state: 'present' }
     - { tier: 'os',    package: 'oracleasm',                                    node_tier: 'all',     state: 'present' }
+    - { tier: 'os',    package: 'elfutils-libelf',                              node_tier: 'all',     state: 'present' }
+    - { tier: 'os',    package: 'elfutils-libelf-devel',                        node_tier: 'all',     state: 'present' }
+    - { tier: 'os',    package: 'fontconfig-devel',                             node_tier: 'all',     state: 'present' }
+    - { tier: 'os',    package: 'glibc',                                        node_tier: 'all',     state: 'present' }
+    - { tier: 'os',    package: 'glibc-devel',                                  node_tier: 'all',     state: 'present' }
+    - { tier: 'os',    package: 'ksh',                                          node_tier: 'all',     state: 'present' }
+    - { tier: 'os',    package: 'libaio',                                       node_tier: 'all',     state: 'present' }
+    - { tier: 'os',    package: 'libaio-devel',                                 node_tier: 'all',     state: 'present' }
+    - { tier: 'os',    package: 'libXrender',                                   node_tier: 'all',     state: 'present' }
+    - { tier: 'os',    package: 'libXrender-devel',                             node_tier: 'all',     state: 'present' }
+    - { tier: 'os',    package: 'libX11',                                       node_tier: 'all',     state: 'present' }
+    - { tier: 'os',    package: 'libXau',                                       node_tier: 'all',     state: 'present' }
+    - { tier: 'os',    package: 'libXi',                                        node_tier: 'all',     state: 'present' }
+    - { tier: 'os',    package: 'libXtst',                                      node_tier: 'all',     state: 'present' }
+    - { tier: 'os',    package: 'libgcc',                                       node_tier: 'all',     state: 'present' }
+    - { tier: 'os',    package: 'libstdc++',                                    node_tier: 'all',     state: 'present' }
+    - { tier: 'os',    package: 'libstdc++-devel',                              node_tier: 'all',     state: 'present' }
+    - { tier: 'os',    package: 'unixODBC',                                     node_tier: 'all',     state: 'present' }
+    - { tier: 'os',    package: 'libnsl2',                                      node_tier: 'all',     state: 'present' }
+    - { tier: 'os',    package: 'libnsl',                                       node_tier: 'all',     state: 'present' }
+    - { tier: 'os',    package: 'make',                                         node_tier: 'all',     state: 'present' }
+    - { tier: 'os',    package: 'targetcli',                                    node_tier: 'all',     state: 'present' }
+    - { tier: 'os',    package: 'smartmontools',                                node_tier: 'all',     state: 'present' }
+    - { tier: 'os',    package: 'sysstat',                                      node_tier: 'all',     state: 'present' }
+    - { tier: 'os',    package: 'xorg-x11-server-Xorg',                         node_tier: 'all',     state: 'present' }
+    - { tier: 'os',    package: 'libXaw.x86_64',                                node_tier: 'all',     state: 'present' }
+    - { tier: 'os',    package: 'xorg-x11-fonts-misc',                          node_tier: 'all',     state: 'present' }
+    - { tier: 'os',    package: 'motif',                                        node_tier: 'all',     state: 'present' }
+    - { tier: 'os',    package: 'libXtst-devel',                                node_tier: 'all',     state: 'present' }
+    - { tier: 'os',    package: 'libXp-devel',                                  node_tier: 'all',     state: 'present' }
+    - { tier: 'os',    package: 'libX11-devel',                                 node_tier: 'all',     state: 'present' }
+    - { tier: 'os',    package: 'libSM-devel',                                  node_tier: 'all',     state: 'present' }
+    - { tier: 'os',    package: 'libICE-devel',                                 node_tier: 'all',     state: 'present' }
+    - { tier: 'os',    package: 'tuned-profiles-oracle.noarch',                 node_tier: 'all',     state: 'present' }
+
 
   oraclelinux8.1:
 
@@ -298,3 +332,33 @@ packages:
   oraclelinux8.3:
 
   oraclelinux8.4:
+    - { tier: 'os',    package: 'binutils',                  node_tier: 'all',     state: 'present' }
+    - { tier: 'os',    package: 'libX11-xcb',                node_tier: 'all',     state: 'present' }
+    - { tier: 'os',    package: 'libXcomposite',             node_tier: 'all',     state: 'present' }
+    - { tier: 'os',    package: 'libXinerama',               node_tier: 'all',     state: 'present' }
+    - { tier: 'os',    package: 'libXrandr',                 node_tier: 'all',     state: 'present' }
+    - { tier: 'os',    package: 'libXv',                     node_tier: 'all',     state: 'present' }
+    - { tier: 'os',    package: 'libXxf86dga',               node_tier: 'all',     state: 'present' }
+    - { tier: 'os',    package: 'libXxf86misc',              node_tier: 'all',     state: 'present' }
+    - { tier: 'os',    package: 'libXxf86vm',                node_tier: 'all',     state: 'present' }
+    - { tier: 'os',    package: 'libdmx',                    node_tier: 'all',     state: 'present' }
+    - { tier: 'os',    package: 'libxcrypt-devel',           node_tier: 'all',     state: 'present' }
+    - { tier: 'os',    package: 'lm_sensors-libs',           node_tier: 'all',     state: 'present' }
+
+  oraclelinux8.5:
+    - { tier: 'os',    package: 'oracle-database-preinstall-19c',               node_tier: 'all',     state: 'present' }
+
+  oraclelinux8.6:
+    - { tier: 'os',    package: 'oracle-database-preinstall-19c',               node_tier: 'all',            state: 'present' }
+    - { tier: 'os',    package: 'oracleasm-support',                            node_tier: 'oracle-asm',     state: 'present' }
+    - { tier: 'os',    package: 'gdisk',                                        node_tier: 'all',            state: 'present' }
+
+  oraclelinux8.7:
+    - { tier: 'os',    package: 'oracle-database-preinstall-19c',               node_tier: 'all',            state: 'present' }
+    - { tier: 'os',    package: 'oracleasm-support',                            node_tier: 'oracle-asm',     state: 'present' }
+    - { tier: 'os',    package: 'gdisk',                                        node_tier: 'all',            state: 'present' }
+
+  oraclelinux8.8:
+    - { tier: 'os',    package: 'oracle-database-preinstall-19c',               node_tier: 'all',            state: 'present' }
+    - { tier: 'os',    package: 'oracleasm-support',                            node_tier: 'oracle-asm',     state: 'present' }
+    - { tier: 'os',    package: 'gdisk',                                        node_tier: 'all',            state: 'present' }

@@ -388,7 +388,7 @@ stages:
 
                 if [ -f ${workload_environment_file_name} ]; then
                   export    workload_key_vault=$(cat ${workload_environment_file_name}  | grep workloadkeyvault      | awk -F'=' '{print $2}' | xargs) ; echo 'Workload Key Vault'       ${workload_key_vault}
-                  export       workload_prefix=$(cat ${workload_environment_file_name}  | grep workload_zone_prefix  | awk -F'=' '{print $2}' | xargs) ; echo 'Workload Prefix'          ${workloadprefix}
+                  export       workload_prefix=$(cat ${workload_environment_file_name}  | grep workload_zone_prefix  | awk -F'=' '{print $2}' | xargs) ; echo 'Workload Prefix'          ${workload_prefix}
                   export landscape_tfstate_key=$(cat ${workload_environment_file_name}  | grep landscape_tfstate_key | awk -F'=' '{print $2}' | xargs) ; echo 'Workload Zone State File' $landscape_tfstate_key
                 fi
 
@@ -466,12 +466,10 @@ stages:
                   fi
 
                   az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "${NETWORK}"Workload_Key_Vault.value --output table)
-                  if [ -n "${workload_key_vault}"]; then
-                    if [ -z ${az_var} ]; then
-                      az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name "${NETWORK}"Workload_Key_Vault --value $workload_key_vault --output none --only-show-errors
-                    else
-                      az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name "${NETWORK}"Workload_Key_Vault --value $workload_key_vault --output none --only-show-errors
-                    fi
+                  if [ -z ${az_var} ]; then
+                    az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name "${NETWORK}"Workload_Key_Vault --value $workload_key_vault --output none --only-show-errors
+                  else
+                    az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name "${NETWORK}"Workload_Key_Vault --value $workload_key_vault --output none --only-show-errors
                   fi
 
                   az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "${NETWORK}"Workload_Zone_State_FileName.value --output table)
@@ -482,10 +480,10 @@ stages:
                   fi
 
                   az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query WZ_PAT.value --output table)
-                  if [ -n "${az_var}" ]; then
-                    az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name WZ_PAT --value $AZURE_DEVOPS_EXT_PAT --output none --only-show-errors --secret true
-                  else
+                  if [ -z ${az_var} ]; then
                     az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name WZ_PAT --value $AZURE_DEVOPS_EXT_PAT --output none --only-show-errors --secret true
+                  else
+                    az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name WZ_PAT --value $AZURE_DEVOPS_EXT_PAT --output none --only-show-errors --secret true
                   fi
 
                 fi

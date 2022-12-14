@@ -1,0 +1,156 @@
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                         OS Base Disk Configuration                         |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+---
+# -------------------------------------+---------------------------------------8
+#
+# Task: 1.5     - os-disk-setup
+#
+# -------------------------------------+---------------------------------------8
+
+# -------------------------------------+---------------------------------------8
+#
+# <Comment Header>
+#
+# -------------------------------------+---------------------------------------8
+
+# ----------------------------------------
+# BEGIN
+# ----------------------------------------
+
+# ----------------------------------------
+# END
+# ----------------------------------------
+
+# -------------------------------------+---------------------------------------8
+#
+
+- name:                                "1.5 Disk setup - Load the disk configuration settings"
+  ansible.builtin.include_vars:        disks_config_asm.yml
+
+
+- name:                                "1.5 Disk setup - Check if the shared disk exists"
+  ansible.builtin.set_fact:
+    shareddisk:                        "{{ disks | selectattr('host', 'defined') |
+      selectattr('host', 'equalto', inventory_hostname) |
+      selectattr('type', 'equalto', 'shared') |
+      map(attribute='type') | sort | unique |
+      list | length }}"
+
+- name:                                "1.5 Disk setup - Append 'sapmnt' if neeeded"
+  ansible.builtin.set_fact:
+    logical_volumes:                   "{{ logical_volumes + logical_volumes_sapmnt }}"
+  when: sap_mnt is not defined
+
+- name:                                "1.5 Disk setup - Append 'install' if needed"
+  ansible.builtin.set_fact:
+    logical_volumes:                   "{{ logical_volumes + logical_volumes_install }}"
+  when: usr_sap_install_mountpoint is not defined
+
+- name:                                "1.5 Disk setup - Show disk info"
+  ansible.builtin.debug:
+    msg:
+      - "Unique disks:    {{ disktypes }} "
+      - "Volume groups:   {{ volume_groups }} "
+      - "Logical volumes: {{ logical_volumes }} "
+    verbosity:                         2
+
+# CREATE VOLUME GROUPS BASED ON sap-parameters.yaml
+# -------------------------------------+---------------------------------------8
+#
+- name:                                "1.5 Disk setup - Volume Group creation"
+  community.general.lvg:
+    vg:                                "{{ item.vg }}"
+    pvs:                               "{{ item.pvs }}"
+    pesize:                            4M
+    state:                             present
+  loop:                                "{{ volume_groups }}"
+  register:                            vgscreated
+  when:
+    - tier == "sapos"
+    - node_tier == "oracle-asm"
+
+- name:                                "1.5 Disk setup - Print vgcreated details"
+  ansible.builtin.debug:
+    msg:                               "VOLUME GROUPS: {{ vgscreated | json_query('results[*].item') }}"
+    verbosity:                         2
+  when:
+    - tier == "sapos"
+    - vgscreated is defined
+
+- name:                                "1.5 Disk setup - Filter the volume group names from vgscreated results"
+  ansible.builtin.set_fact:
+    vgcreatedlist:                     "{{ vgscreated | json_query('results[*].item.vg') }}"
+  when:
+    - tier == "sapos"
+
+
+# CREATE LOGICAL VOLUMES BASED ON VGCREATEDLIST
+# -------------------------------------+---------------------------------------8
+#
+- name:                                "1.5 Disk setup - Logical Volume creation"
+  community.general.lvol:
+    lv:                                "{{ item.lv }}"
+    vg:                                "{{ item.vg }}"
+    size:                              "{{ item.size }}"
+    opts:                              "{{ lvol_opts_from_lv_item }}"
+    active:                            true
+    state:                             present
+    shrink:                            false
+    resizefs:                          false
+  loop:                                "{{ logical_volumes }}"
+  register:                            lvscreated
+  when:
+    - tier == "sapos"
+    - item.node_tier | intersect([ 'all', supported_tiers ] | flatten(levels=1)) or
+      item.node_tier in [ 'all', supported_tiers ] | flatten(levels=1)
+    - item.vg in vgcreatedlist
+
+- name:                                "1.5 Disk setup - Filter the logical volumes created results"
+  ansible.builtin.set_fact:
+    lvcreatedlist_tmp:                 "{{ lvscreated.results | rejectattr('skipped', 'defined') | list }}"
+  when:
+    - tier == "sapos"
+
+- name:                                "1.5 Disk setup - Get the logical volumes from the list"
+  ansible.builtin.set_fact:
+    lvcreatedlist:                     "{{ lvcreatedlist_tmp | map(attribute='item.lv') | list }}"
+  when:
+    - tier == "sapos"
+
+- name:                                "1.5 Disk setup - Filesystem creation"
+  community.general.filesystem:
+    dev:                               "{{ dev_path_from_lv_item }}"
+    fstype:                            "{{ item.fstype }}"
+    opts:                              "{{ item.fsopts | default('') }}"
+  loop:                                "{{ logical_volumes }}"
+  register :                           filesystemscreated
+  when:
+    - item.tier in ["all", tier ]
+    - item.node_tier | intersect([ 'all', supported_tiers ] | flatten(levels=1)) or
+      item.node_tier in [ 'all', supported_tiers ] | flatten(levels=1)
+    - item.fstype is defined
+    - item.lv in lvcreatedlist
+
+- name:                                "1.5 Disk setup - Filter the filesystem created results"
+  ansible.builtin.set_fact:
+    fscreatedlist_tmp:                 "{{ filesystemscreated.results | rejectattr('skipped', 'defined') | list }}"
+  when:
+    - tier == "sapos"
+
+- name:                                "1.5 Disk setup - Debug disk information"
+  ansible.builtin.debug:
+    msg:
+      - "Created Volume Groups:    {{ vgcreatedlist }} "
+      - "Created Logical Volumes:  {{ lvcreatedlist }} "
+      - "Created Filesystems:      {{ fscreatedlist_tmp }} "
+    verbosity:                         2
+  when:
+    - tier == "sapos"
+
+...
+# /*---------------------------------------------------------------------------8
+# |                                   END                                      |
+# +------------------------------------4--------------------------------------*/

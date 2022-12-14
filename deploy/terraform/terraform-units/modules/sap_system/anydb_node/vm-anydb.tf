@@ -368,6 +368,7 @@ resource "azurerm_managed_disk" "disks" {
   create_option          = "Empty"
   storage_account_type   = local.anydb_disks[count.index].storage_account_type
   disk_size_gb           = local.anydb_disks[count.index].disk_size_gb
+  tier                   = local.anydb_disks[count.index].tier
   disk_encryption_set_id = try(var.options.disk_encryption_set_id, null)
   disk_iops_read_write = "UltraSSD_LRS" == local.anydb_disks[count.index].storage_account_type ? (
     local.anydb_disks[count.index].disk_iops_read_write) : (
@@ -398,6 +399,7 @@ resource "azurerm_virtual_machine_data_disk_attachment" "vm_disks" {
   caching                   = local.anydb_disks[count.index].caching
   write_accelerator_enabled = local.anydb_disks[count.index].write_accelerator_enabled
   lun                       = local.anydb_disks[count.index].lun
+  # tier                      = local.anydb_disks[count.index].tier
 }
 
 

@@ -100,6 +100,7 @@
     sidadm_uid:                        "{{ sid_to_be_deployed.sidadm_uid }}"
     # support older dbload inifile templates where hdb_instance_number was used
     hdb_instance_number:               "{{ db_instance_number }}"
+    db_instance_number:                "{{ db_instance_number }}"
   tags:
     - skip_ansible_lint
 
@@ -200,8 +201,19 @@
         - job_result.rc is defined
         - job_result.rc == 0
 
+    # # Import this task only if the tier is ora.
+    # - import_tasks:                    "oracle-postprocessing.yaml"
+    #   when:
+    #     - node_tier in ["oracle","oracle-asm"]
+
+
   when:
     - not dbload_installed.stat.exists
+
+# Import this task only if the tier is ora.
+- import_tasks:                    "oracle-postprocessing.yaml"
+  when:
+    - node_tier in ["oracle","oracle-asm"]
 
 - name:                                "DBLoad: - status"
   when: dbload_installed.stat.exists

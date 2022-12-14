@@ -338,9 +338,9 @@
         that:
           - "sap_sid != db_sid"
         fail_msg:                      "Please ensure that the sap_sid is different from the db_sid when performing a standalone installation"
-      when:                            (ansible_play_hosts_all | length) == 1
-      tags:
-        - 0.0-scs-db-single
+      when:
+        - (ansible_play_hosts_all | length) == 1
+        - platform != "ORACLE"
 
     - name: Validate SCS and PAS instance numbers
       ansible.builtin.assert:
