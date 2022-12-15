@@ -57,6 +57,8 @@
         public:                        true
       tags:
         - 0.1-win-passwords
+      when:
+       - platform == "SQLSERVER"
 
     - name:                            "0.0 Validations - Retrieve the storage account details"
       ansible.builtin.include_role:
