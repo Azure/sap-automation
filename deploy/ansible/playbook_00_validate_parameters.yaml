@@ -331,7 +331,9 @@
         that:
           - "scs_instance_number != db_instance_number"
         fail_msg:                      "Please ensure that the scs_instance_number is different from the db_instance_number when performing a standalone installation"
-      when:                            (ansible_play_hosts_all | length) == 1
+      when:                            
+       - (ansible_play_hosts_all | length) == 1
+       - platform == "HANA"
       tags:
         - 0.0-scs-db-instance-single
 
