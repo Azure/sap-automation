@@ -324,6 +324,7 @@ locals {
         disk_mbps_read_write      = datadisk.disk_mbps_read_write
         lun                       = datadisk.lun
         type                      = datadisk.type
+        tier                      = datadisk.tier
       }
     ]
   ])
