@@ -51,6 +51,8 @@
 
 - name:                                Create sudoers file for {{ sudoers_user }} with
                                        role {{ sudoers_role }} if required
+  become:                               true
+  become_user:                          root
   ansible.builtin.template:
     src:                               "sudoers_{{ sudoers_role }}.j2"
     dest:                              "{{ sudoers_path }}/{{ sudoers_user }}"
