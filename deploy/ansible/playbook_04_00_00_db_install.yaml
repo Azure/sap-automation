@@ -281,7 +281,7 @@
       become_user:                     root
       when:
         - platform == 'ORACLE'
-        - node_tier == 'oracle'
+        - node_tier in ['oracle','oracle-asm']
       block:
 
         - name:                        "Database Installation Playbook: - Setting the DB facts"
