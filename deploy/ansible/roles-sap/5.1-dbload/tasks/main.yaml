@@ -99,7 +99,7 @@
     sap_sid:                           "{{ sid_to_be_deployed.sid }}"
     sidadm_uid:                        "{{ sid_to_be_deployed.sidadm_uid }}"
     # support older dbload inifile templates where hdb_instance_number was used
-    #hdb_instance_number:               "{{ db_instance_number }}"
+    hdb_instance_number:               "{{ db_instance_number }}"
     db_instance_number:                "{{ db_instance_number }}"
   tags:
     - skip_ansible_lint
