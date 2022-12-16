@@ -74,6 +74,8 @@
 # the way to handle this.
 - name:                                "1.11 Accounts - Manage associated per-user /etc/sudoers.d/ files for
                                        given sudoers role"
+  become:                               true
+  become_user:                          root
   ansible.builtin.include_tasks:       setup_user_sudoers.yml
   vars:
     sudoers_user:                      "{{ item.name }}"
@@ -90,6 +92,8 @@
 # Remove groups after user action has removed the users that may have
 # referenced them
 - name:                                "1.11 Accounts - Remove specified admin groups"
+  become:                               true
+  become_user:                          root
   ansible.builtin.group:
     name:                              "{{ item.name }}"
     state:                             "{{ item.state | default('present') }}"
