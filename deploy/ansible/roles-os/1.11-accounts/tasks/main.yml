@@ -25,6 +25,8 @@
 # Need to create groups first, if they are going to be referenced
 # by the following user actions
 - name:                                "1.11 Accounts - Create specified admin groups if needed tier: {{ tier }}"
+  become:                               true
+  become_user:                          root
   ansible.builtin.group:
     name:                              "{{ item.name }}"
     gid:                               "{{ item.gid }}"
@@ -40,6 +42,8 @@
 
 # Create or delete users as needed
 - name:                                "1.11 Accounts - Manage specified admin users"
+  become:                               true
+  become_user:                          root
   ansible.builtin.user:
     name:                              "{{ item.name }}"
     comment:                           "{{ item.comment | default('') }}"
