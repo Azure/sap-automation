@@ -86,7 +86,6 @@
     - usr_sap_install_mountpoint is not defined
 
 
-
 - name:                                "AFS Mount: Mount Install"
   block:
 
@@ -119,8 +118,3 @@
       when:
         - node_tier == 'observer'
         - use_AFS
-
-
-
-
-

@@ -40,7 +40,7 @@
     mode:                              0755
     path:                              "/sapmnt/{{ sap_sid | upper }}"
     state:                             directory
-  when: 
+  when:
     - node_tier == "oracle-asm"
 
 - name:     "Mount SAP Filesystems on Database for usrsap and oracle"
@@ -53,9 +53,9 @@
   loop:
     - { type: 'xfs',   src: '/dev/vg_sap/lv_usrsap',                             path: '/usr/sap' }
     - { type: 'xfs',   src: '/dev/vg_oracle/lv_oracle',                          path: '/oracle'  }
-  when:                                
+  when:
     - node_tier == "oracle-asm"
-    
+
 
 # Mount Filesystems when AFS is not used.
 - name:     "Mount SAP Filesystems on Database for installation when using NFS Cluster"
@@ -66,9 +66,9 @@
     opts:   defaults
     state:  mounted
   loop:
-    - { type: 'nfs4',    src: '{{ nfs_server }}:{{ target_media_location }}',      path: '{{ target_media_location }}'  }  
+    - { type: 'nfs4',    src: '{{ nfs_server }}:{{ target_media_location }}',      path: '{{ target_media_location }}'  }
     - { type: 'nfs4',    src: '{{ nfs_server }}:/sapmnt/{{ db_sid | upper }}',     path: '/sapmnt/{{ db_sid | upper }}' }
-  when:                                
+  when:
     - NFS_provider == "NONE"
 
 - name:                                "ORACLE: Create sap_deployment_automation folder"
@@ -80,4 +80,3 @@
     state:                             directory
     owner:                             oracle
     group:                             oinstall
-
