@@ -113,6 +113,15 @@
       ansible.builtin.debug:
         msg:                           "Start user creation"
 
+    - name:                            "User Creation: SAP OS USERS and Group Creation Ini file {{ sid_to_be_deployed.sid | upper }}"
+      ansible.builtin.shell: |
+                                       cat {{ dir_params }}/{{ sap_inifile }}
+      register:                        generic_user_creation_ini
+
+    - name:                            "User Creation: Progress"
+      ansible.builtin.debug:
+        var:                           generic_user_creation_ini
+
     - name:                            "User Creation: SAP OS USERS and Group Creation {{ sid_to_be_deployed.sid | upper }}"
       ansible.builtin.shell: |
                                        ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }} \
