@@ -113,11 +113,11 @@
       ansible.builtin.debug:
         msg:                           "Start user creation"
 
-    - name:                            "User Creation: SAP OS USERS and Group Creation {{ sid_to_be_deployed }}"
+    - name:                            "User Creation: SAP OS USERS and Group Creation {{ sid_to_be_deployed.sid | upper }}"
       ansible.builtin.shell: |
                                        ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }} \
-                                                 SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.generic }}                             \
-                                                 SAPINST_SKIP_DIALOGS=true                                                            \
+                                                 SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.generic }}        \
+                                                 SAPINST_SKIP_DIALOGS=true                                       \
                                                  SAPINST_START_GUISERVER=false
       args:
         chdir:                         "{{ target_media_location }}/SWPM"
