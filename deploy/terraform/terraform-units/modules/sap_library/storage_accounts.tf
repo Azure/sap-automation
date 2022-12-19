@@ -177,6 +177,14 @@ resource "azurerm_private_endpoint" "storage_tfstate" {
     ]
   }
 
+  dynamic "private_dns_zone_group" {
+    for_each = range(var.use_private_endpoint && var.use_custom_dns_a_registration ? 1 : 0)
+    content {
+      name                 = "privatelink.blob.core.windows.net"
+      private_dns_zone_ids = [data.azurerm_private_dns_zone.storage[0].id]
+    }
+  }
+
   lifecycle {
     ignore_changes = [tags]
   }
@@ -300,6 +308,15 @@ resource "azurerm_private_endpoint" "storage_sapbits" {
     ]
   }
 
+  dynamic "private_dns_zone_group" {
+    for_each = range(var.use_private_endpoint && var.use_custom_dns_a_registration ? 1 : 0)
+    content {
+      name                 = "privatelink.blob.core.windows.net"
+      private_dns_zone_ids = [data.azurerm_private_dns_zone.storage[0].id]
+    }
+
+  }
+
   lifecycle {
     ignore_changes = [tags]
   }
@@ -369,4 +386,11 @@ resource "azurerm_key_vault_secret" "sapbits_location_base_path" {
     azurerm_storage_container.storagecontainer_sapbits[0].id
   )
   key_vault_id = var.key_vault.kv_spn_id
+}
+
+data "azurerm_private_dns_zone" "storage" {
+  count               = var.use_private_endpoint && var.use_custom_dns_a_registration ? 1 : 0
+  name                = "privatelink.blob.core.windows.net"
+  resource_group_name = var.management_dns_resourcegroup_name
+
 }
