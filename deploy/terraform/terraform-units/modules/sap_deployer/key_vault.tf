@@ -51,11 +51,11 @@ resource "azurerm_key_vault" "kv_user" {
 
 resource "azurerm_private_dns_a_record" "kv_user" {
   count               = var.use_private_endpoint && var.use_custom_dns_a_registration ? 1 : 0
-  name                = split(".", azurerm_private_endpoint.kv_user[count.index].custom_dns_configs[count.index].fqdn)[0]
+  name                = local.keyvault_names.user_access
   zone_name           = "privatelink.vaultcore.azure.net"
   resource_group_name = var.management_dns_resourcegroup_name
   ttl                 = 3600
-  records             = azurerm_private_endpoint.kv_user[count.index].custom_dns_configs[count.index].ip_addresses
+  records             = azurerm_private_endpoint.kv_user[count.index].private_service_connection.private_ip_address
 
   provider = azurerm.dnsmanagement
 
