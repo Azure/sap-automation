@@ -4,13 +4,13 @@
     ViewBag.Title = "Install SAP";
     ViewData["environment"] = Model.SapObject.environment;
     IEnumerable<SelectListItem> environments = ViewBag.Environments;
-    IEnumerable<SelectListItem> acssEnvs = new List<SelectListItem> 
+    IEnumerable<SelectListItem> acssEnvs = new List<SelectListItem>
     {
         new SelectListItem { Text = "", Value = "" },
         new SelectListItem { Text = "NonProd", Value = "NonProd" },
         new SelectListItem { Text = "Prod", Value = "Prod" }
     };
-    IEnumerable<SelectListItem> acssSystems = new List<SelectListItem> 
+    IEnumerable<SelectListItem> acssSystems = new List<SelectListItem>
     {
         new SelectListItem { Text = "", Value = "" },
         new SelectListItem { Text = "ECC", Value = "ECC" },
@@ -113,9 +113,6 @@
         @Html.EditorForModel("Checkbox", new { ParameterName = "application_server_installation", DisplayName = "APP Installation", IsChecked = true })
 
         @Html.EditorForModel("Checkbox", new { ParameterName = "webdispatcher_installation", DisplayName = "WebDispatcher Installation", IsChecked = false })
-
-        @Html.EditorForModel("Checkbox", new { ParameterName = "acss_registration", DisplayName = "Register System in ACSS", IsChecked = true })
-
 
         <fluent-checkbox id="confirm-install-system-checkbox" onchange="toggleDisableViaCheckbox(this, 'install-system-button')" disabled>I confirm that I wish to install SAP on this system</fluent-checkbox><br />
 
