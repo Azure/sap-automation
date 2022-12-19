@@ -323,7 +323,7 @@ resource "azurerm_private_endpoint" "kv_user" {
     for_each = range(var.use_private_endpoint && var.use_custom_dns_a_registration ? 1 : 0)
     content {
       name                 = "privatelink.vaultcore.azure.net"
-      private_dns_zone_ids = [data.azurerm_private_dns_zone.keyvault.id]
+      private_dns_zone_ids = [data.azurerm_private_dns_zone.keyvault[0].id]
     }
 
   }
