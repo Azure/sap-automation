@@ -147,21 +147,24 @@
       when:                            generic_user_creation.rc > 0
 
     - name:                            "User Creation: Installation results"
-      ansible.builtin.debug:
-        msg:                           "User Creation succeeded"
+      become:                          true
+      become_user:                     root
       when:                            generic_user_creation.rc == 0
+      block:
+        - name:                        "User Creation: Installation results"
+          ansible.builtin.debug:
+            msg:                       "User Creation succeeded"
+
+        - name:                        "User Creation: flag"
+          ansible.builtin.file:
+            path:                      "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/user_created.txt"
+            state:                     touch
+            mode:                      0755
 
     - name:                            "User Creation: Cleanup ini file {{ ansible_hostname }}"
       ansible.builtin.file:
         path:                          "{{ dir_params }}/{{ sap_inifile }}"
         state:                         absent
-
-    - name:                            "User Creation: flag"
-      ansible.builtin.file:
-        path:                          "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/user_created.txt"
-        state:                         touch
-        mode:                          0755
-      when:                            generic_user_creation.rc == 0
 
   when:
     - not users_created.stat.exists
