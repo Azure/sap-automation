@@ -258,7 +258,7 @@ resource "azurerm_private_dns_a_record" "storage_sapbits_pep_a_record_registry" 
     )
   )
   ttl     = 3600
-  records = azurerm_private_endpoint.sapbits[count.index].private_service_connection.private_ip_address 
+  records = azurerm_private_endpoint.storage_sapbits[count.index].private_service_connection.private_ip_address 
 
   provider = azurerm.dnsmanagement
 
