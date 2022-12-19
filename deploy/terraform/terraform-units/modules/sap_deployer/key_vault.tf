@@ -51,7 +51,7 @@ resource "azurerm_key_vault" "kv_user" {
 
 resource "azurerm_private_dns_a_record" "kv_user" {
   count               = var.use_private_endpoint && var.use_custom_dns_a_registration ? 1 : 0
-  name                = local.keyvault_names.user_access
+  name                = lower(local.keyvault_names.user_access)
   zone_name           = "privatelink.vaultcore.azure.net"
   resource_group_name = var.management_dns_resourcegroup_name
   ttl                 = 3600
