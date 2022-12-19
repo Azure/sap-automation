@@ -48,6 +48,7 @@ resource "azurerm_key_vault" "kv_user" {
   }
 
 }
+
 resource "azurerm_private_dns_a_record" "kv_user" {
   count               = var.use_private_endpoint && var.use_custom_dns_a_registration ? 1 : 0
   name                = split(".", azurerm_private_endpoint.kv_user[count.index].custom_dns_configs[count.index].fqdn)[0]
@@ -317,6 +318,22 @@ resource "azurerm_private_endpoint" "kv_user" {
       "Vault"
     ]
   }
+
+  dynamic "private_dns_zone_group" {
+    for_each = range(var.use_private_endpoint && var.use_custom_dns_a_registration ? 1 : 0)
+    content {
+      name                 = "privatelink.vaultcore.azure.net"
+      private_dns_zone_ids = [data.azurerm_private_dns_zone.keyvault.id]
+    }
+
+  }
+}
+
+data "azurerm_private_dns_zone" "keyvault" {
+  count               = var.use_private_endpoint && var.use_custom_dns_a_registration ? 1 : 0
+  name                = "privatelink.vaultcore.azure.net"
+  resource_group_name = var.management_dns_resourcegroup_name
+
 }
 
 
