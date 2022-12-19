@@ -73,7 +73,7 @@ resource "azurerm_private_dns_a_record" "storage_tfstate_pep_a_record_registry" 
     azurerm_private_dns_zone.blob
   ]
   count     = length(var.dns_label) > 0 && var.use_private_endpoint && !local.sa_tfstate_exists ? 1 : 0
-  name      = azurerm_storage_account.storage_tfstate[0].name
+  name      = lower(azurerm_storage_account.storage_tfstate[0].name)
   zone_name = "privatelink.blob.core.windows.net"
   resource_group_name = coalesce(
     var.management_dns_resourcegroup_name,
@@ -247,7 +247,7 @@ resource "azurerm_private_dns_a_record" "storage_sapbits_pep_a_record_registry" 
   ]
 
   count     = length(var.dns_label) > 0 && var.use_private_endpoint && !local.sa_sapbits_exists ? 1 : 0
-  name      = azurerm_storage_account.sapbits[0].name
+  name      = lower(azurerm_storage_account.sapbits[0].name)
   zone_name = "privatelink.blob.core.windows.net"
   resource_group_name = coalesce(
     var.management_dns_resourcegroup_name,
