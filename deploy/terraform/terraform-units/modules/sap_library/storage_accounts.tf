@@ -84,7 +84,7 @@ resource "azurerm_private_dns_a_record" "storage_tfstate_pep_a_record_registry" 
     )
   )
   ttl     = 3600
-  records = azurerm_private_endpoint.storage_tfstate[count.index].private_service_connection.private_ip_address 
+  records = [data.azurerm_network_interface.storage_tfstate[count.index].ip_configuration[0].private_ip_address]
 
   provider = azurerm.dnsmanagement
 
@@ -258,7 +258,7 @@ resource "azurerm_private_dns_a_record" "storage_sapbits_pep_a_record_registry" 
     )
   )
   ttl     = 3600
-  records = azurerm_private_endpoint.storage_sapbits[count.index].private_service_connection.private_ip_address 
+  records = [data.azurerm_network_interface.storage_sapbits[count.index].ip_configuration[0].private_ip_address]
 
   provider = azurerm.dnsmanagement
 
@@ -393,4 +393,16 @@ data "azurerm_private_dns_zone" "storage" {
   name                = "privatelink.blob.core.windows.net"
   resource_group_name = var.management_dns_resourcegroup_name
 
+}
+
+data "azurerm_network_interface" "storage_tfstate" {
+  count               = var.use_private_endpoint && !local.sa_tfstate_exists ? 1 : 0
+  name                = azurerm_private_endpoint.storage_tfstate[count.index].network_interface[0].name
+  resource_group_name = split("/", azurerm_private_endpoint.storage_tfstate[count.index].network_interface[0].id)[4]
+}
+
+data "azurerm_network_interface" "storage_sapbits" {
+  count               = var.use_private_endpoint && !local.sa_sapbits_exists ? 1 : 0
+  name                = azurerm_private_endpoint.storage_sapbits[count.index].network_interface[0].name
+  resource_group_name = split("/", azurerm_private_endpoint.storage_sapbits[count.index].network_interface[0].id)[4]
 }
