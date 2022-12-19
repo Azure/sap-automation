@@ -35,12 +35,6 @@ resource "azurerm_storage_account" "sapmnt" {
   min_tls_version                 = "TLS1_2"
   allow_nested_items_to_be_public = false
 
-  routing {
-    publish_microsoft_endpoints = true
-    choice                      = "MicrosoftRouting"
-  }
-
-
 }
 resource "azurerm_storage_account_network_rules" "sapmnt" {
   count = var.NFS_provider == "AFS" ? (

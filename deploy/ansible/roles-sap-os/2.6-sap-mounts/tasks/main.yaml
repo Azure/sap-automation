@@ -90,7 +90,7 @@
 - name:                                "2.6 SAP Mounts: - Mount local file systems (backup)"
   ansible.posix.mount:
     src:                               '/dev/vg_hana_backup/lv_hana_backup'
-    path:                              '/hana/backup'
+    path:                              '{{ hana_backup_path }}'
     fstype:                            'xfs'
     opts:                              defaults
     state:                             mounted
