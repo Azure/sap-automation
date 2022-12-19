@@ -55,7 +55,7 @@ resource "azurerm_private_dns_a_record" "kv_user" {
   zone_name           = "privatelink.vaultcore.azure.net"
   resource_group_name = var.management_dns_resourcegroup_name
   ttl                 = 3600
-  records             = azurerm_private_endpoint.kv_user[count.index].private_service_connection.private_ip_address
+  records             = azurerm_private_endpoint.kv_user[count.index].private_service_connection[0].private_ip_address
 
   provider = azurerm.dnsmanagement
 
