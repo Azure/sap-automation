@@ -157,6 +157,7 @@
         state:                         absent
 
     - name:                            "User Creation: flag"
+      become:                          true
       become_user:                     root
       ansible.builtin.file:
         path:                          "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/user_created.txt"
