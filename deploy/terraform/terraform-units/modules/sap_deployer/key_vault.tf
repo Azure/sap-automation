@@ -55,8 +55,7 @@ resource "azurerm_private_dns_a_record" "kv_user" {
   zone_name           = "privatelink.vaultcore.azure.net"
   resource_group_name = var.management_dns_resourcegroup_name
   ttl                 = 3600
-  records             = azurerm_private_endpoint.kv_user[count.index].private_service_connection[0].private_ip_address
-
+  records             = data.azurerm_network_interface.keyvault[0].ip_configuration.private_ip_address
   provider = azurerm.dnsmanagement
 
   lifecycle {
@@ -379,3 +378,9 @@ resource "azurerm_key_vault_access_policy" "webapp" {
 
 }
 
+data "azurerm_network_interface" "keyvault" {
+  count               = var.use_private_endpoint && !var.key_vault.kv_exists ? 1 : 0
+  name                = azurerm_private_endpoint.kv_user[count.index].network_interface.name
+  
+  resource_group_name = split("/", azurerm_private_endpoint.kv_user[count.index].network_interface.id)[4]
+}
