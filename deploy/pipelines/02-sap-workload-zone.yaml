@@ -331,7 +331,7 @@ stages:
                   az role assignment create --assignee-object-id $ARM_OBJECT_ID  --assignee-principal-type ServicePrincipal --role "Reader" --scope "/subscriptions/${STATE_SUBSCRIPTION}" --output none
                 fi
 
-                perms=$(az role assignment list --subscription ${STATE_SUBSCRIPTION} --role "Storage Account Contributor" --only-show-errors --scope "${tfstate_resource_id}" --query "[?principalId=='$ARM_CLIENT_ID'].principalId | [0]"  -o tsv  --only-show-errors)
+                perms=$(az role assignment list --subscription ${STATE_SUBSCRIPTION} --role "Storage Account Contributor" --only-show-errors --scope "${tfstate_resource_id}" --query "[].principalName | [0]" --assignee $ARM_OBJECT_ID -o tsv  --only-show-errors)
                 if [ -z "$perms" ]; then
                   echo "Assigning Storage Account Contributor permissions for $ARM_OBJECT_ID to ${tfstate_resource_id}"
                   az role assignment create --assignee-object-id $ARM_OBJECT_ID  --assignee-principal-type ServicePrincipal --role "Storage Account Contributor" --scope "${tfstate_resource_id}" --output none
@@ -356,7 +356,7 @@ stages:
 
                   vnet_resource_id=$(az resource list --resource-group "${resource_group_name}" --subscription ${STATE_SUBSCRIPTION} --resource-type Microsoft.Network/virtualNetworks -o tsv --query "[].id | [0]")
                   if [ -n "${vnet_resource_id}" ]; then
-                    perms=$(az role assignment list --subscription ${STATE_SUBSCRIPTION} --role "Network Contributor"  --scope $vnet_resource_id --only-show-errors --query "[?principalId=='$ARM_CLIENT_ID'].principalId | [0]" -o tsv  --only-show-errors)
+                    perms=$(az role assignment list --subscription ${STATE_SUBSCRIPTION} --role "Network Contributor"  --scope $vnet_resource_id --only-show-errors --query "[].principalId | [0]"  --assignee $ARM_OBJECT_ID -o tsv --only-show-errors)
                     
                     if [ -z "$perms" ]; then
                       echo "Assigning Network Contributor rights for $ARM_OBJECT_ID to ${vnet_resource_id}"
