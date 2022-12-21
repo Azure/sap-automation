@@ -414,6 +414,7 @@ data "azurerm_private_dns_zone" "keyvault" {
   count               = var.use_private_endpoint && var.use_custom_dns_a_registration ? 1 : 0
   name                = "privatelink.vaultcore.azure.net"
   resource_group_name = var.management_dns_resourcegroup_name
+  provider = azurerm.dnsmanagement
 
 }
 
