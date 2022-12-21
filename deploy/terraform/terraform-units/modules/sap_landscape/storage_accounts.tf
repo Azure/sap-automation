@@ -668,13 +668,13 @@ data "azurerm_network_interface" "witness_storage" {
 }
 
 data "azurerm_network_interface" "install" {
-  count               = var.use_private_endpoint && length(var.install_storage_account_id.arm_id) == 0   && var.NFS_provider == "AFS" ? 1 : 0
+  count               = var.use_private_endpoint && length(var.install_storage_account_id) == 0   && var.NFS_provider == "AFS" ? 1 : 0
   name                = azurerm_private_endpoint.install[count.index].network_interface[0].name
   resource_group_name = split("/", azurerm_private_endpoint.install[count.index].network_interface[0].id)[4]
 }
 
 data "azurerm_network_interface" "transport" {
-  count               = var.use_private_endpoint && length(var.transport_storage_account_id.arm_id) == 0  && var.NFS_provider == "AFS" ? 1 : 0
+  count               = var.use_private_endpoint && length(var.transport_storage_account_id) == 0  && var.NFS_provider == "AFS" ? 1 : 0
   name                = azurerm_private_endpoint.transport[count.index].network_interface[0].name
   resource_group_name = split("/", azurerm_private_endpoint.transport[count.index].network_interface[0].id)[4]
 }
