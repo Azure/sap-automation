@@ -209,11 +209,6 @@
   when:
     - not dbload_installed.stat.exists
 
-# Import this task only if the tier is ora.
-- import_tasks:                    "oracle-postprocessing.yaml"
-  when:
-    - node_tier in ["oracle","oracle-asm"]
-
 - name:                                "DBLoad: - status"
   when: dbload_installed.stat.exists
   block:
