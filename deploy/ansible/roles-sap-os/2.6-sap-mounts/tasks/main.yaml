@@ -302,7 +302,7 @@
     - node_tier == "hana"
   block:
     ansible.builtin.file:
-      owner:                             "{{ db_sid | adm | upper }}"
+      owner:                             "{{ db_sid | lower }}adm"
       group:                             sapsys
       state:                             directory
       recurse:                           true
