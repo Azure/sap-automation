@@ -1180,6 +1180,6 @@ stages:
               ARM_CLIENT_ID:           $(ARM_CLIENT_ID)
               ARM_CLIENT_SECRET:       $(ARM_CLIENT_SECRET)
               ARM_TENANT_ID:           $(ARM_TENANT_ID)
-# 20220929 MKD - ACSS Registration <BEND>
+# 20220929 MKD - ACSS Registration <END>
 
 ...
