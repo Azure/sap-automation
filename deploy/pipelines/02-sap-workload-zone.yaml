@@ -323,7 +323,7 @@ stages:
 
               tfstate_resource_id=$(az resource list --name "${REMOTE_STATE_SA}" --subscription ${STATE_SUBSCRIPTION} --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
 
-              if [ -n "${isUserAccessAdmin}"]; then
+              if [ -n "${isUserAccessAdmin}" ]; then
 
                 perms=$(az role assignment list --subscription ${STATE_SUBSCRIPTION} --role "Reader" --only-show-errors --query "[?principalId=='$ARM_CLIENT_ID'].principalId | [0]  -o tsv  --only-show-errors")
                 if [ -z "$perms" ]; then
