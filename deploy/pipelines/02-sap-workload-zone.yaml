@@ -444,10 +444,10 @@ stages:
                 az logout
                 if [ -n $VARIABLE_GROUP_ID ]; then
                   az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query Terraform_Remote_Storage_Account_Name.value --output table)
-                  if [ -z ${az_var} ]; then
-                    az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name Terraform_Remote_Storage_Account_Name --value "${REMOTE_STATE_SA}" --output none --only-show-errors
-                  else
+                  if [ -n "${az_var}" ]; then
                     az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name Terraform_Remote_Storage_Account_Name --value "${REMOTE_STATE_SA}" --output none --only-show-errors
+                  else
+                    az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name Terraform_Remote_Storage_Account_Name --value "${REMOTE_STATE_SA}" --output none --only-show-errors
                   fi
 
                   az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query Terraform_Remote_Storage_Subscription.value --output table)
