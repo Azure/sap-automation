@@ -169,7 +169,6 @@ resource "azurerm_private_dns_a_record" "witness_storage" {
   zone_name           = "privatelink.file.core.windows.net"
   resource_group_name = var.management_dns_resourcegroup_name
   ttl                 = 3600
-  records             = azurerm_private_endpoint.witness_storage[count.index].custom_dns_configs[count.index].ip_addresses
   records             = [data.azurerm_network_interface.witness_storage[count.index].ip_configuration[0].private_ip_address]
 
   provider = azurerm.dnsmanagement
