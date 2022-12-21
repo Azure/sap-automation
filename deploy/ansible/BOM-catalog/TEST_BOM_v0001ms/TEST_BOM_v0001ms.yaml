@@ -1,0 +1,112 @@
+---
+# Download time:  70 Minutes (Full - 63GB)
+# Download time:  43 Minutes (Partial - 38GB)
+#
+name:      "SAP S/4HANA 1909 SPS 03"
+filename:  'TEST_BOM_v0001ms'
+target:    'S/4 HANA 1909 SPS 03'
+version:   11
+platform:  "HANA"
+
+product_ids:
+  dbl:       NW_ABAP_DB:S4HANA1909.CORE.HDB.ABAP
+  scs:       NW_ABAP_ASCS:S4HANA1909.CORE.HDB.ABAP
+  scs_ha:    NW_ABAP_ASCS:S4HANA1909.CORE.HDB.ABAPHA
+  pas:       NW_ABAP_CI:S4HANA1909.CORE.HDB.ABAP
+  pas_ha:    NW_ABAP_CI:S4HANA1909.CORE.HDB.ABAPHA
+  app:       NW_DI:S4HANA1909.CORE.HDB.PD
+  app_ha:    NW_DI:S4HANA1909.CORE.HDB.ABAPHA
+  web:       NW_Webdispatcher:NW750.IND.PD
+  ers:       NW_ERS:S4HANA1909.CORE.HDB.ABAP
+  ers_ha:    NW_ERS:S4HANA1909.CORE.HDB.ABAPHA
+  generic:   NW_Users_Create:GENERIC.HDB.PD
+
+materials:
+  # dependencies:
+  #   - name:     HANA_2_00_059_v0003ms
+  #   - name:     SWPM20SP12_latest
+  #   - name:     SUM20SP14_latest
+
+  media:
+
+    # SAPCAR 7.22
+    - name:         "SAPCAR 7.22; OS: Linux on x86_64 64bit"
+      archive:      SAPCAR_1115-70006178.EXE
+      checksum:     765412436934362cc5497e3d659fbb78be91093a091c11ec4fbe84dfb415a0e5
+      filename:     SAPCAR
+      permissions:  '0755'
+      url:          https://softwaredownloads.sap.com/file/0020000000098642022
+
+    # SWPM
+    - name:         "swpm20"
+      dynamic:      true
+      platform:     LNX
+      extract:      true
+      extractDir:   SWPM
+      creates:      SIGNATURE.SMF
+
+    # SUM
+    - name:         "sum20"
+      dynamic:      true
+      platform:     LNX
+      download:     false
+
+
+    # # SWPM
+    # - name:         "SWPM 2.0 SP12 ; OS: Linux on x86_64 64bit"
+    #   archive:      SWPM20SP12_6-80003424.SAR
+    #   checksum:     e26094764d6a6615f9e3a2c12d6f2932bef751f76886241c21f5a4c9b5dfc53f
+    #   extract:      true
+    #   extractDir:   SWPM
+    #   creates:      SIGNATURE.SMF
+    #   url:          https://softwaredownloads.sap.com/file/0020000001093732022
+      
+
+    # # SUM
+    # - name:         "Patch 7 for SOFTWARE UPDATE MANAGER 2.0 SP14"
+    #   archive:      SUM20SP14_7-80002456.SAR
+    #   checksum:     b207e0c1b832e50603a46b6e678d1f2eea63750acee49d7cdc9403f29257278c
+    #   download:     false
+    #   url:          https://softwaredownloads.sap.com/file/0020000001246852022
+
+    # - name:         "Patch 7 for SOFTWARE UPDATE MANAGER 2.0 SP14 (Windows)"
+    #   archive:      SUM20SP14_7-80002458.SAR
+    #   checksum:     73c72687e291992f4f0b605c6ee6111e4d0d667d50c310fb6816aaadff700612
+    #   download:     false
+    #   url:          https://softwaredownloads.sap.com/file/0020000001246872022
+
+    # Kernel
+    # - name:         "Kernel Part I ; OS: Linux on x86_64 64bit ; DB: Database independent"
+    #   archive:      SAPEXE_300-80004393.SAR
+    #   checksum:     f2b5d237664c3f4affa27eee72b3e34fe6daf1beeba386f67ac06be188b48fb5
+    #   path:         download_basket
+    #   url:          https://softwaredownloads.sap.com/file/0020000001809672020
+
+    # - name:         "Kernel Part II (777) ; OS: Linux on x86_64 64bit ; DB: SAP HANA database"
+    #   archive:      SAPEXEDB_300-80004392.SAR
+    #   checksum:     5080371029f927bb0f5ea3f9f34a38a8df31ea992498140fcafe033ec0280725
+    #   path:         download_basket
+    #   url:          https://softwaredownloads.sap.com/file/0020000001809622020
+
+    # SAP Host Agent
+    # - name:         "SAP HOST AGENT 7.21 SP51 ; OS: Linux on x86_64 64bit"
+    #   archive:      SAPHOSTAGENT51_51-20009394.SAR
+    #   checksum:     7a4dac4d1d57510b8a94d26a442b164f2b8580d01d8429e2427d1f613cd080a5
+    #   path:         download_basket
+    #   url:          https://softwaredownloads.sap.com/file/0020000000363342021
+
+    # IGS
+    # - name:         "Installation for SAP IGS integrated in SAP Kernel ; OS: Linux on x86_64"
+    #   archive:      igsexe_12-80003187.sar
+    #   checksum:     414ab4e14e3985e03dfbc1fcc8fdfe66b0972cfcbbacf80fc4b46c93f20a557e
+    #   path:         download_basket
+    #   url:          https://softwaredownloads.sap.com/file/0020000001632902020
+
+    # - name:         "SAP IGS Fonts and Textures"
+    #   archive:      igshelper_17-10010245.sar
+    #   checksum:     bc405afc4f8221aa1a10a8bc448f8afd9e4e00111100c5544097240c57c99732
+    #   path:         download_basket
+    #   url:          https://softwaredownloads.sap.com/file/0020000000703122018
+
+
+...
