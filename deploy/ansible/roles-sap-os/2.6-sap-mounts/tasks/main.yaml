@@ -295,12 +295,13 @@
     - NFS_provider == 'ANF'
 
 
-- name:                                "2.6 SAP Mounts: - Set permissions on hana folders"
+- name:                                "2.6 SAP Mounts: - Set permissions"
   become:                               true
   become_user:                          root
   when:
     - node_tier == "hana"
   block:
+  - name:                                "2.6 SAP Mounts: - Set permissions on hana folders"
     ansible.builtin.file:
       owner:                             "{{ db_sid | lower }}adm"
       group:                             sapsys
@@ -313,6 +314,7 @@
       - { mode: '0755', path: '/hana/log' }
       - { mode: '0755', path: '/hana/shared' }
   rescue:
+  - name:                                "2.6 SAP Mounts: - Set permissions on hana folders"
     ansible.builtin.file:
       owner:                             '{{ hdbadm_uid }}'
       group:                             sapsys
@@ -324,6 +326,5 @@
       - { mode: '0755', path: '/hana/data' }
       - { mode: '0755', path: '/hana/log' }
       - { mode: '0755', path: '/hana/shared' }
-
 
 ...
