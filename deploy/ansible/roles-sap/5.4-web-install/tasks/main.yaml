@@ -160,8 +160,6 @@
       when:                            web_installation.rc == 0
 
     - name:                            "Web Install: flag"
-      become:                          true
-      become_user:                     root
       ansible.builtin.file:
         path:                          "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_web.txt"
         state:                         touch
