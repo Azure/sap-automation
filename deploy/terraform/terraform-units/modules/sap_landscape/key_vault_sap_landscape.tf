@@ -57,17 +57,24 @@ resource "azurerm_key_vault" "kv_user" {
 
 resource "azurerm_private_dns_a_record" "kv_user" {
   count               = var.use_private_endpoint && var.use_custom_dns_a_registration ? 1 : 0
-  name                = split(".", azurerm_private_endpoint.kv_user[count.index].custom_dns_configs[count.index].fqdn)[0]
+  name                = lower(local.user_keyvault_name)
   zone_name           = "privatelink.vaultcore.azure.net"
   resource_group_name = var.management_dns_resourcegroup_name
   ttl                 = 3600
-  records             = azurerm_private_endpoint.kv_user[count.index].custom_dns_configs[count.index].ip_addresses
-
+  records             = [data.azurerm_network_interface.keyvault[0].ip_configuration[0].private_ip_address]
+  
   provider = azurerm.dnsmanagement
 
   lifecycle {
     ignore_changes = [tags]
   }
+}
+
+data "azurerm_network_interface" "keyvault" {
+  count               = var.use_private_endpoint && var.use_custom_dns_a_registration ? 1 : 0
+  name                = azurerm_private_endpoint.kv_user[count.index].network_interface[0].name
+  
+  resource_group_name = split("/", azurerm_private_endpoint.kv_user[count.index].network_interface[0].id)[4]
 }
 
 #Errors can occure when the dns record has not properly been activated, add a wait timer to give
@@ -392,6 +399,23 @@ resource "azurerm_private_endpoint" "kv_user" {
   lifecycle {
     ignore_changes = [tags]
   }
+
+  dynamic "private_dns_zone_group" {
+    for_each = range(var.use_private_endpoint && var.use_custom_dns_a_registration ? 1 : 0)
+    content {
+      name                 = "privatelink.vaultcore.azure.net"
+      private_dns_zone_ids = [data.azurerm_private_dns_zone.keyvault[0].id]
+    }
+
+  }
+}
+
+data "azurerm_private_dns_zone" "keyvault" {
+  count               = var.use_private_endpoint && var.use_custom_dns_a_registration ? 1 : 0
+  name                = "privatelink.vaultcore.azure.net"
+  resource_group_name = var.management_dns_resourcegroup_name
+  provider = azurerm.dnsmanagement
+
 }
 
 
