@@ -36,3 +36,5 @@ override.tf.json
 Webapp/.vs/SDAF
 Webapp/SDAF/bin
 Webapp/SDAF/Properties/PublishProfiles
+Webapp/.vs/ProjectEvaluation
+Webapp/SDAF/Properties/ServiceDependencies
