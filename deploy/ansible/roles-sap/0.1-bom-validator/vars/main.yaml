@@ -25,6 +25,22 @@ sap_platform_map:
     - { number: '80002456',     platform: 'LNX',      description: 'Linux on x86_64 64bit'    }
     - { number: '80002457',     platform: 'LNXBE',    description: 'Linux on Power BE 64bit'  }
     - { number: '80002470',     platform: 'LNXLE',    description: 'Linux on Power LE 64bit'  }
+  sapcar:
+    - { number: '70006233',     platform: 'AIX',      description: 'AIX 64bit'                }
+    - { number: '70006173',     platform: 'HPUX',     description: 'HP-UX on IA64 64bit'      }
+    - { number: '70006174',     platform: 'HPUXRISC', description: 'HP-UX on PA-RISC 64bit'   }
+    - { number: '70006234',     platform: 'LNXZ',     description: 'Linux on zSeries 64bit'   }
+    - { number: '70006232',     platform: 'ZOS',      description: 'Linux on ZOS 64bit'       }
+    - { number: '70006237',     platform: 'OS400',    description: 'OS/400'                   }
+    - { number: '70006236',     platform: 'SPARC',    description: 'Solaris on SPARC 64bit'   }
+    - { number: '70006235',     platform: 'SOL',      description: 'Solaris on x86_64 64bit'  }
+    - { number: '70006231',     platform: 'WIN',      description: 'Windows on x64 64bit'     }
+    - { number: '70006178',     platform: 'LNX',      description: 'Linux on x86_64 64bit'    }
+    - { number: '70006177',     platform: 'LNXIA',    description: 'Linux on IA64 64bit'      }
+    - { number: '70006175',     platform: 'LNXBE',    description: 'Linux on Power BE 64bit'  }
+    - { number: '70006238',     platform: 'LNXLE',    description: 'Linux on Power LE 64bit'  }
+    - { number: '70006239',     platform: 'MACOSX',   description: 'MacOS X 64bit'            }
+    - { number: '70006240',     platform: 'MACOSX',   description: 'MacOS X 32bit'            }
 # ------------------------- End   - SAP Platform Map --------------------------8
 
 # ------------------------- Begin - SAP SSO Map -------------------------------8
