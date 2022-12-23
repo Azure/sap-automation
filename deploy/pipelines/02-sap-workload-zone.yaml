@@ -319,48 +319,54 @@ stages:
 
               az login --service-principal --username $CP_ARM_CLIENT_ID --password=$CP_ARM_CLIENT_SECRET --tenant $CP_ARM_TENANT_ID --output none
 
-              perms=$(az role assignment list --subscription ${STATE_SUBSCRIPTION} --role "Reader" --assignee $ARM_OBJECT_ID --query "[].principalName | [0]" -o tsv  --only-show-errors)
-              if [ -z "$perms" ]; then
-                echo -e "$green --- Assign subscription permissions to $perms ---$reset"
-                az role assignment create --assignee-object-id $ARM_OBJECT_ID  --assignee-principal-type ServicePrincipal --role "Reader" --scope "/subscriptions/${STATE_SUBSCRIPTION}" --output none
-              fi
+              isUserAccessAdmin=$(az role assignment list --role "User Access Administrator" --subscription $STATE_SUBSCRIPTION  --query "[?principalType=='ServicePrincipal'].principalId | [0] " --assignee $CP_ARM_CLIENT_ID)
 
               tfstate_resource_id=$(az resource list --name "${REMOTE_STATE_SA}" --subscription ${STATE_SUBSCRIPTION} --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
 
-              perms=$(az role assignment list --subscription ${STATE_SUBSCRIPTION} --role "Storage Account Contributor" --scope "${tfstate_resource_id}" --assignee $ARM_OBJECT_ID --query "[].principalName | [0]" -o tsv  --only-show-errors)
-              if [ -z "$perms" ]; then
-                echo "Assigning Storage Account Contributor permissions for $ARM_OBJECT_ID to ${tfstate_resource_id}"
-                az role assignment create --assignee-object-id $ARM_OBJECT_ID  --assignee-principal-type ServicePrincipal --role "Storage Account Contributor" --scope "${tfstate_resource_id}" --output none
-              fi
+              if [ -n "${isUserAccessAdmin}" ]; then
 
-              resource_group_name=$(az resource show --id "${tfstate_resource_id}" --query resourceGroup -o tsv)
+                perms=$(az role assignment list --subscription ${STATE_SUBSCRIPTION} --role "Reader" --only-show-errors --query "[?principalId=='$ARM_CLIENT_ID'].principalId | [0]"  -o tsv  --only-show-errors)
+                if [ -z "$perms" ]; then
+                  echo -e "$green --- Assign subscription permissions to $perms ---$reset"
+                  az role assignment create --assignee-object-id $ARM_OBJECT_ID  --assignee-principal-type ServicePrincipal --role "Reader" --scope "/subscriptions/${STATE_SUBSCRIPTION}" --output none
+                fi
 
-              if [ -n ${resource_group_name} ]; then
+                perms=$(az role assignment list --subscription ${STATE_SUBSCRIPTION} --role "Storage Account Contributor" --only-show-errors --scope "${tfstate_resource_id}" --query "[].principalName | [0]" --assignee $ARM_OBJECT_ID -o tsv  --only-show-errors)
+                if [ -z "$perms" ]; then
+                  echo "Assigning Storage Account Contributor permissions for $ARM_OBJECT_ID to ${tfstate_resource_id}"
+                  az role assignment create --assignee-object-id $ARM_OBJECT_ID  --assignee-principal-type ServicePrincipal --role "Storage Account Contributor" --scope "${tfstate_resource_id}" --output none
+                fi
 
-                for scope in $(az resource list --resource-group "${resource_group_name}" --subscription ${STATE_SUBSCRIPTION} --resource-type Microsoft.Network/privateDnsZones --query "[].id" --output tsv); do
-                  perms=$(az role assignment list --subscription ${STATE_SUBSCRIPTION} --role "Private DNS Zone Contributor" --scope $scope --assignee $ARM_OBJECT_ID --query "[].principalName | [0]" -o tsv  --only-show-errors)
-                  if [ -z "$perms" ]; then
-                    echo "Assigning DNS Zone Contributor permissions for $ARM_OBJECT_ID to ${scope}"
-                    az role assignment create --assignee-object-id $ARM_OBJECT_ID  --assignee-principal-type ServicePrincipal --role "Private DNS Zone Contributor" --scope $scope --output none
-                  fi
-                done
-              fi
+                resource_group_name=$(az resource show --id "${tfstate_resource_id}" --query resourceGroup -o tsv)
 
-              resource_group_name=$(az keyvault show --name "${key_vault}" --query resourceGroup --subscription ${STATE_SUBSCRIPTION} -o tsv)
+                if [ -n ${resource_group_name} ]; then
+                  for scope in $(az resource list --resource-group "${resource_group_name}" --subscription ${STATE_SUBSCRIPTION} --resource-type Microsoft.Network/privateDnsZones --query "[].id" --output tsv); do
+                    perms=$(az role assignment list --subscription ${STATE_SUBSCRIPTION} --role "Private DNS Zone Contributor" --only-show-errors --scope $scope --query "[?principalId=='$ARM_CLIENT_ID'].principalId | [0]" -o tsv  --only-show-errors)
+                    if [ -z "$perms" ]; then
+                      echo "Assigning DNS Zone Contributor permissions for $ARM_OBJECT_ID to ${scope}"
+                      az role assignment create --assignee-object-id $ARM_OBJECT_ID  --assignee-principal-type ServicePrincipal --role "Private DNS Zone Contributor" --scope $scope --output none
+                    fi
+                  done
+                fi
 
-              if [ -n ${resource_group_name} ]; then
-                resource_group_id=$(az group show --name ${resource_group_name} --subscription ${STATE_SUBSCRIPTION} --query id -o tsv)
+                resource_group_name=$(az keyvault show --name "${key_vault}" --query resourceGroup --subscription ${STATE_SUBSCRIPTION} -o tsv)
 
-                vnet_resource_id=$(az resource list --resource-group "${resource_group_name}" --subscription ${STATE_SUBSCRIPTION} --resource-type Microsoft.Network/virtualNetworks -o tsv --query "[].id | [0]")
-                if [ -n "${vnet_resource_id}" ]; then
-                  perms=$(az role assignment list --subscription ${STATE_SUBSCRIPTION} --role "Network Contributor" --scope $vnet_resource_id --assignee $ARM_OBJECT_ID --query "[].principalName | [0]" -o tsv  --only-show-errors)
-                  if [ -z "$perms" ]; then
-                    echo "Assigning Network Contributor rights for $ARM_OBJECT_ID to ${vnet_resource_id}"
-                    az role assignment create --assignee-object-id $ARM_OBJECT_ID  --assignee-principal-type ServicePrincipal --role "Network Contributor"  --scope $vnet_resource_id --output none
+                if [ -n ${resource_group_name} ]; then
+                  resource_group_id=$(az group show --name ${resource_group_name} --subscription ${STATE_SUBSCRIPTION} --query id -o tsv)
+
+                  vnet_resource_id=$(az resource list --resource-group "${resource_group_name}" --subscription ${STATE_SUBSCRIPTION} --resource-type Microsoft.Network/virtualNetworks -o tsv --query "[].id | [0]")
+                  if [ -n "${vnet_resource_id}" ]; then
+                    perms=$(az role assignment list --subscription ${STATE_SUBSCRIPTION} --role "Network Contributor"  --scope $vnet_resource_id --only-show-errors --query "[].principalId | [0]"  --assignee $ARM_OBJECT_ID -o tsv --only-show-errors)
+
+                    if [ -z "$perms" ]; then
+                      echo "Assigning Network Contributor rights for $ARM_OBJECT_ID to ${vnet_resource_id}"
+                      az role assignment create --assignee-object-id $ARM_OBJECT_ID  --assignee-principal-type ServicePrincipal --role "Network Contributor"  --scope $vnet_resource_id --output none
+                    fi
                   fi
                 fi
+              else
+                echo "##vso[task.logissue type=warning]Service Principal $CP_ARM_CLIENT_ID does not have 'User Access Administrator' permissions. Please ensure that the service principal $ARM_CLIENT_ID has permissions on the Terrafrom state storage account and if needed on the Private DNS zone and the source management network resource"
               fi
-
 
               echo -e "$green--- Deploy the workload zone ---$reset"
                 cd $CONFIG_REPO_PATH/LANDSCAPE/$(workload_zone_folder)
@@ -438,52 +444,59 @@ stages:
                 az logout
                 if [ -n $VARIABLE_GROUP_ID ]; then
                   az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query Terraform_Remote_Storage_Account_Name.value --output table)
-                  if [ -z ${az_var} ]; then
-                    az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name Terraform_Remote_Storage_Account_Name --value $REMOTE_STATE_SA --output none --only-show-errors
+                  if [ -n "${az_var}" ]; then
+                    az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name Terraform_Remote_Storage_Account_Name --value "${REMOTE_STATE_SA}" --output none --only-show-errors
                   else
-                    az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name Terraform_Remote_Storage_Account_Name --value $REMOTE_STATE_SA --output none --only-show-errors
+                    az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name Terraform_Remote_Storage_Account_Name --value "${REMOTE_STATE_SA}" --output none --only-show-errors
                   fi
 
                   az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query Terraform_Remote_Storage_Subscription.value --output table)
-                  if [ -z ${az_var} ]; then
-                    az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name Terraform_Remote_Storage_Subscription --value "${STATE_SUBSCRIPTION}" --output none --only-show-errors
-                  else
+                  if [ -n "${az_var}" ]; then
                     az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name Terraform_Remote_Storage_Subscription --value "${STATE_SUBSCRIPTION}" --output none --only-show-errors
+                  else
+                    az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name Terraform_Remote_Storage_Subscription --value "${STATE_SUBSCRIPTION}" --output none --only-show-errors
                   fi
 
                   az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query Deployer_State_FileName.value --output table)
-                  if [ -z ${az_var} ]; then
-                    az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name Deployer_State_FileName --value $deployer_tfstate_key --output none --only-show-errors
+                  if [ -n "${az_var}" ]; then
+                    az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name Deployer_State_FileName --value "${deployer_tfstate_key}" --output none --only-show-errors
                   else
-                    az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name Deployer_State_FileName --value $deployer_tfstate_key --output none --only-show-errors
+                    az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name Deployer_State_FileName --value "${deployer_tfstate_key}" --output none --only-show-errors
                   fi
 
                   az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query Deployer_Key_Vault.value --output table)
-                  if [ -z ${az_var} ]; then
-                    az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name Deployer_Key_Vault --value ${key_vault} --output none --only-show-errors
-                  else
+                  if [ -n "${az_var}" ]; then
                     az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name Deployer_Key_Vault --value ${key_vault} --output none --only-show-errors
+                  else
+                    az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name Deployer_Key_Vault --value ${key_vault} --output none --only-show-errors
                   fi
 
                   az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "${NETWORK}"Workload_Key_Vault.value --output table)
-                  if [ -z ${az_var} ]; then
-                    az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name "${NETWORK}"Workload_Key_Vault --value $workload_key_vault --output none --only-show-errors
-                  else
+                  if [ -n "${az_var}" ]; then
                     az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name "${NETWORK}"Workload_Key_Vault --value $workload_key_vault --output none --only-show-errors
+                  else
+                    az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name "${NETWORK}"Workload_Key_Vault --value $workload_key_vault --output none --only-show-errors
+                  fi
+
+                  az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "${NETWORK}"Workload_Secret_Prefix.value --output table)
+                  if [ -n "${az_var}" ]; then
+                    az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name "${NETWORK}"Workload_Secret_Prefix --value "${workload_prefix}" --output none --only-show-errors
+                  else
+                    az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name "${NETWORK}"Workload_Secret_Prefix --value "${workload_prefix}" --output none --only-show-errors
                   fi
 
                   az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "${NETWORK}"Workload_Zone_State_FileName.value --output table)
-                  if [ -z ${az_var} ]; then
-                    az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name "${NETWORK}"Workload_Zone_State_FileName --value $landscape_tfstate_key --output none --only-show-errors
+                  if [ -n "${az_var}" ]; then
+                    az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name "${NETWORK}"Workload_Zone_State_FileName --value "${landscape_tfstate_key}" --output none --only-show-errors
                   else
-                    az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name "${NETWORK}"Workload_Zone_State_FileName --value $landscape_tfstate_key --output none --only-show-errors
+                    az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name "${NETWORK}"Workload_Zone_State_FileName --value "${landscape_tfstate_key}" --output none --only-show-errors
                   fi
 
                   az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query WZ_PAT.value --output table)
-                  if [ -z ${az_var} ]; then
-                    az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name WZ_PAT --value $AZURE_DEVOPS_EXT_PAT --output none --only-show-errors --secret true
-                  else
+                  if [ -n "${az_var}" ]; then
                     az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name WZ_PAT --value $AZURE_DEVOPS_EXT_PAT --output none --only-show-errors --secret true
+                  else
+                    az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name WZ_PAT --value $AZURE_DEVOPS_EXT_PAT --output none --only-show-errors --secret true
                   fi
 
                 fi

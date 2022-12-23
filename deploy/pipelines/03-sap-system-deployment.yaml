@@ -100,6 +100,16 @@ stages:
                   exit 2
                 fi
 
+              echo -e "$green--- Define variables ---$reset"
+                cd $HOME_CONFIG/SYSTEM/$(sap_system_folder)
+
+                export REMOTE_STATE_SA=$(cat ${environment_file_name}      | grep REMOTE_STATE_SA      | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file storage account' $REMOTE_STATE_SA
+                export STATE_SUBSCRIPTION=$(cat ${environment_file_name}   | grep STATE_SUBSCRIPTION   | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file subscription' $STATE_SUBSCRIPTION
+                export deployer_tfstate_key=$(cat ${environment_file_name} | grep deployer_tfstate_key | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer State File' $deployer_tfstate_key
+                export key_vault=$(cat ${environment_file_name}            | grep keyvault=            | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer Key Vault' ${key_vault}
+                export landscape_tfstate_key=$(cat "${environment_file_name}"  | grep landscape_tfstate_key | awk -F'=' '{print $2}' | xargs) ; echo 'landscape_tfstate_key' $landscape_tfstate_key
+                export workload_key_vault=$(cat "${environment_file_name}"  | grep workloadkeyvault      | awk -F'=' '{print $2}' | xargs) ; echo 'Workload Key Vault' ${workload_key_vault}
+
               # Check if running on deployer
               if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
                 echo -e "$green --- Install dos2unix ---$reset"
@@ -126,26 +136,31 @@ stages:
               else
                 echo -e "$green --- Running on deployer ---$reset"
                 az login --identity --output none
+                
+                tfstate_resource_id=$(az resource list --name "${REMOTE_STATE_SA}" --subscription ${STATE_SUBSCRIPTION} --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
+                if [ -z $tfstate_resource_id ]; then
+                  az login --service-principal --username $(ARM_CLIENT_ID) --password=$ARM_CLIENT_SECRET --tenant $(ARM_TENANT_ID)  --output none
+                  return_code=$?
+                  if [ 0 != $return_code ]; then
+                    echo -e "$boldred--- Login failed ---$reset"
+                    echo "##vso[task.logissue type=error]az login failed."
+                    exit $return_code
+                  fi
+
+                fi
+
+
               fi
 
               echo -e "$green--- Convert config file to UX format ---$reset"
 
                 dos2unix -q SYSTEM/$(sap_system_folder)/$(sap_system_configuration)
 
-              echo -e "$green--- Define variables ---$reset"
-                cd $HOME_CONFIG/SYSTEM/$(sap_system_folder)
-
-                export REMOTE_STATE_SA=$(cat ${environment_file_name}      | grep REMOTE_STATE_SA      | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file storage account' $REMOTE_STATE_SA
-                export STATE_SUBSCRIPTION=$(cat ${environment_file_name}   | grep STATE_SUBSCRIPTION   | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file subscription' $STATE_SUBSCRIPTION
-                export deployer_tfstate_key=$(cat ${environment_file_name} | grep deployer_tfstate_key | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer State File' $deployer_tfstate_key
-                export key_vault=$(cat ${environment_file_name}            | grep keyvault=            | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer Key Vault' ${key_vault}
-                export landscape_tfstate_key=$(cat "${environment_file_name}"  | grep landscape_tfstate_key | awk -F'=' '{print $2}' | xargs) ; echo 'landscape_tfstate_key' $landscape_tfstate_key
-                export workload_key_vault=$(cat "${environment_file_name}"  | grep workloadkeyvault      | awk -F'=' '{print $2}' | xargs) ; echo 'Workload Key Vault' ${workload_key_vault}
 
               echo -e "$green--- Run the installer script that deploys the SAP System ---$reset"
                 $SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer.sh --parameterfile $(sap_system_configuration) --type sap_system \
-                 --state_subscription ${STATE_SUBSCRIPTION} --storageaccountname ${REMOTE_STATE_SA}                               \
-                 --deployer_tfstate_key ${deployer_tfstate_key} --landscape_tfstate_key ${landscape_tfstate_key}                  \
+                 --state_subscription ${STATE_SUBSCRIPTION} --storageaccountname ${REMOTE_STATE_SA}                                 \
+                 --deployer_tfstate_key ${deployer_tfstate_key} --landscape_tfstate_key ${landscape_tfstate_key}                    \
                  --ado --auto-approve
 
                 return_code=$?

@@ -65,11 +65,20 @@ resource "azurerm_private_dns_a_record" "sapmnt" {
     azurerm_private_endpoint.sapmnt
   ]
   count               = var.use_private_endpoint && var.use_custom_dns_a_registration ? 1 : 0
-  name                = split(".", azurerm_private_endpoint.sapmnt[count.index].custom_dns_configs[count.index].fqdn)[0]
+  name = replace(
+    lower(
+      format("%s%s",
+        local.prefix,
+        local.resource_suffixes.sapmnt
+      )
+    ),
+    "/[^a-z0-9]/",
+    ""
+  )
   zone_name           = "privatelink.file.core.windows.net"
   resource_group_name = var.management_dns_resourcegroup_name
   ttl                 = 3600
-  records             = azurerm_private_endpoint.sapmnt[count.index].custom_dns_configs[count.index].ip_addresses
+  records             = [data.azurerm_network_interface.sapmnt[count.index].ip_configuration[0].private_ip_address]
 
   provider = azurerm.dnsmanagement
 
@@ -136,6 +145,14 @@ resource "azurerm_private_endpoint" "sapmnt" {
     subresource_names = [
       "File"
     ]
+  }
+
+  dynamic "private_dns_zone_group" {
+    for_each = range(var.use_private_endpoint && var.use_custom_dns_a_registration ? 1 : 0)
+    content {
+      name                 = "privatelink.blob.core.windows.net"
+      private_dns_zone_ids = [data.azurerm_private_dns_zone.storage[0].id]
+    }
   }
 
   lifecycle {
@@ -206,4 +223,19 @@ resource "azurerm_storage_share" "sapmnt_smb" {
   enabled_protocol     = "SMB"
 
   quota = var.sapmnt_volume_size
+}
+
+
+data "azurerm_private_dns_zone" "storage" {
+  count               = var.use_private_endpoint && var.use_custom_dns_a_registration ? 1 : 0
+  name                = "privatelink.blob.core.windows.net"
+  resource_group_name = var.management_dns_resourcegroup_name
+  provider = azurerm.dnsmanagement
+
+}
+
+data "azurerm_network_interface" "sapmnt" {
+  count               = var.use_private_endpoint && length(var.azure_files_sapmnt_id) == 0  ? 1 : 0
+  name                = azurerm_private_endpoint.sapmnt[count.index].network_interface[0].name
+  resource_group_name = split("/", azurerm_private_endpoint.sapmnt[count.index].network_interface[0].id)[4]
 }

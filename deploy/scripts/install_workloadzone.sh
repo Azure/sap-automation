@@ -892,6 +892,12 @@ then
 
 fi
 
+if [ -f apply_output.json ]
+then
+     rm apply_output.json
+fi
+
+
 if [ $rerun_apply == 1 ] ; then
     echo ""
     echo ""

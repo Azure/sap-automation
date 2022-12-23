@@ -36,6 +36,8 @@ override.tf.json
 Webapp/.vs/SDAF
 Webapp/SDAF/bin
 Webapp/SDAF/Properties/PublishProfiles
+Webapp/.vs/ProjectEvaluation
+Webapp/SDAF/Properties/ServiceDependencies
 
 # Ignore OS files         - MKD 20221221
 **/.DS_Store
