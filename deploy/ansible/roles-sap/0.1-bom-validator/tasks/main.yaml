@@ -101,7 +101,7 @@
 # Description:  Validation for Prerequisites
 #
 - name:                                 "Execute Pre-checks Task"
-  import_tasks:                         pre_checks.yaml
+  ansible.builtin.import_tasks:         pre_checks.yaml
 # Step: 02 - END
 # -------------------------------------+---------------------------------------8
 

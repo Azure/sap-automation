@@ -278,6 +278,7 @@ locals {
           caching                   = storage_type.caching,
           write_accelerator_enabled = try(storage_type.write_accelerator, false)
           type                      = storage_type.name
+          tier                      = try(storage_type.tier, null)
           lun                       = storage_type.lun_start + idx
         }
         if !try(storage_type.append, false)
@@ -292,12 +293,13 @@ locals {
         for idx, disk_count in range(storage_type.count) : {
           suffix = format("-%s%02d",
             storage_type.name,
-            storage_type.lun_start + disk_count + var.options.resource_offset
+            storage_type.name_offset + disk_count + var.options.resource_offset
           )
           storage_account_type      = storage_type.disk_type
           disk_size_gb              = storage_type.size_gb
           disk_iops_read_write      = try(storage_type.disk-iops-read-write, null)
           disk_mbps_read_write      = try(storage_type.disk-mbps-read-write, null)
+          tier                      = try(storage_type.tier, null)
           caching                   = storage_type.caching
           write_accelerator_enabled = try(storage_type.write_accelerator, false)
           type                      = storage_type.name
@@ -309,15 +311,9 @@ locals {
     ]
   ) : []
 
-  all_data_disk_per_dbnode = distinct(
-    concat(
-      local.data_disk_per_dbnode, local.append_data_disk_per_dbnode
-    )
-  )
-
-  anydb_disks = flatten([
+  base_anydb_disks = flatten([
     for vm_counter in range(var.database_server_count) : [
-      for datadisk in local.all_data_disk_per_dbnode : {
+      for datadisk in local.data_disk_per_dbnode : {
         suffix                    = datadisk.suffix
         vm_index                  = vm_counter
         caching                   = datadisk.caching
@@ -331,6 +327,26 @@ locals {
       }
     ]
   ])
+
+  append_anydb_disks = flatten([
+    for vm_counter in range(var.database_server_count) : [
+      for datadisk in local.append_data_disk_per_dbnode : {
+        suffix                    = datadisk.suffix
+        vm_index                  = vm_counter
+        caching                   = datadisk.caching
+        storage_account_type      = datadisk.storage_account_type
+        disk_size_gb              = datadisk.disk_size_gb
+        write_accelerator_enabled = datadisk.write_accelerator_enabled
+        disk_iops_read_write      = datadisk.disk_iops_read_write
+        disk_mbps_read_write      = datadisk.disk_mbps_read_write
+        lun                       = datadisk.lun
+        type                      = datadisk.type
+        tier                      = datadisk.tier
+      }
+    ]
+  ])
+
+  anydb_disks = distinct(concat(local.base_anydb_disks, local.append_anydb_disks))
 
   //Disks for Ansible
   // host: xxx, LUN: #, type: sapusr, size: #

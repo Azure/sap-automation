@@ -312,12 +312,12 @@ variable "database_high_availability" {
 
 variable "use_msi_for_clusters" {
   description = "If true, the Pacemaker cluser will use a managed identity"
-  default     = true
+  default     = false
 }
 
 variable "fencing_role_name" {
-  description = "If specified the role name to use for the fencing"
-  default     = "Reader"
+  description = "If specified the role name to use for the fencing agent"
+  default     = "Virtual Machine Contributor"
 }
 
 
@@ -350,6 +350,7 @@ variable "database_vm_image" {
     "offer"           = ""
     "sku"             = ""
     "version"         = ""
+    "type"            = "custom"
   }
 }
 

@@ -1,7 +1,7 @@
-variable "application" {
+variable "application_tier" {
   validation {
     condition = (
-      length(trimspace(try(var.application.sid, ""))) != 0
+      length(trimspace(try(var.application_tier.sid, ""))) != 0
     )
     error_message = "The sid must be specified in the application.sid field."
   }

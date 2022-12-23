@@ -1,0 +1,20 @@
+---
+name:    'SUM20SP14'
+target:  'SUM20SP14'
+version: 008
+
+materials:
+
+  media:
+    # SUM
+    - name:         "Patch 8 for SOFTWARE UPDATE MANAGER 2.0 SP14"
+      archive:      SUM20SP14_8-80002456.SAR
+      checksum:     d747a0ed9417934cac71921c6a3422c86027592460b98be4b26b39800c5c9ec5
+      download:     false
+      url:          https://softwaredownloads.sap.com/file/0020000001466812022
+
+    - name:         "Patch 8 for SOFTWARE UPDATE MANAGER 2.0 SP14 (Windows)"
+      archive:      SUM20SP14_8-80002458.SAR
+      checksum:     90340748a207199a724f762e9990703c591ec42e659f62797482381e2d84a229
+      download:     false
+      url:          https://softwaredownloads.sap.com/file/0020000001466772022

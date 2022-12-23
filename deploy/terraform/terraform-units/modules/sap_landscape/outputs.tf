@@ -1,7 +1,7 @@
 ###############################################################################
-#                                                                             # 
-#                             Resource Group                                  # 
-#                                                                             # 
+#                                                                             #
+#                             Resource Group                                  #
+#                                                                             #
 ###############################################################################
 
 output "created_resource_group_id" {
@@ -31,9 +31,9 @@ output "created_resource_group_subscription_id" {
 
 
 ###############################################################################
-#                                                                             # 
-#                            Network                                          # 
-#                                                                             # 
+#                                                                             #
+#                            Network                                          #
+#                                                                             #
 ###############################################################################
 
 output "vnet_sap_id" {
@@ -129,14 +129,14 @@ output "subnet_mgmt_id" {
 
 
 ###############################################################################
-#                                                                             # 
-#                            Key Vault                                        # 
-#                                                                             # 
+#                                                                             #
+#                            Key Vault                                        #
+#                                                                             #
 ###############################################################################
 
 output "kv_user" {
   description = "Azure resource identifier for the user credential keyvault"
-  value       = try(local.user_keyvault_exist ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id, "")
+  value       = local.user_keyvault_exist ? try(data.azurerm_key_vault.kv_user[0].id, "") : try(azurerm_key_vault.kv_user[0].id, "")
 }
 
 # TODO Add this back when we separate the usage
@@ -165,9 +165,9 @@ output "workload_zone_prefix" {
 
 
 ###############################################################################
-#                                                                             # 
-#                            Storage accounts                                 # 
-#                                                                             # 
+#                                                                             #
+#                            Storage accounts                                 #
+#                                                                             #
 ###############################################################################
 
 output "storageaccount_name" {
@@ -219,9 +219,9 @@ output "transport_storage_account_id" {
 }
 
 ###############################################################################
-#                                                                             # 
-#                            DNS                                              # 
-#                                                                             # 
+#                                                                             #
+#                            DNS                                              #
+#                                                                             #
 ###############################################################################
 output "dns_info_vms" {
   value = local.iscsi_count > 0 ? (
@@ -231,9 +231,9 @@ output "dns_info_vms" {
 }
 
 ###############################################################################
-#                                                                             # 
-#                   Azure NetApp Files output                                 # 
-#                                                                             # 
+#                                                                             #
+#                   Azure NetApp Files output                                 #
+#                                                                             #
 ###############################################################################
 
 output "ANF_pool_settings" {
@@ -279,9 +279,9 @@ output "ANF_pool_settings" {
 }
 
 ###############################################################################
-#                                                                             # 
-#                       Mount info                                            # 
-#                                                                             # 
+#                                                                             #
+#                       Mount info                                            #
+#                                                                             #
 ###############################################################################
 
 output "saptransport_path" {
@@ -354,9 +354,9 @@ output "install_path" {
 }
 
 ###############################################################################
-#                                                                             # 
-#                            iSCSI                                            # 
-#                                                                             # 
+#                                                                             #
+#                            iSCSI                                            #
+#                                                                             #
 ###############################################################################
 
 output "iscsi_authentication_type" {

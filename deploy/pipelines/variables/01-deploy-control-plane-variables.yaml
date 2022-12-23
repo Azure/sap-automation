@@ -1,0 +1,75 @@
+#--------------------------------------+---------------------------------------8
+#                                                                              |
+# Defines the parameters and variables for the Control Plane                   |
+#                                                                              |
+#--------------------------------------+---------------------------------------8
+
+parameters:
+  - name:                              deployer
+    displayName:                       "Deployer configuration name, use the following syntax: ENV-LOCA-VNET-INFRASTRUCTURE"
+    type:                              string
+    default:                           MGMT-WEEU-DEP00-INFRASTRUCTURE
+
+  - name:                              library
+    displayName:                       "SAP Library configuration name, use the following syntax: ENV-LOCA-SAP_LIBRARY"
+    type:                              string
+    default:                           MGMT-WEEU-SAP_LIBRARY
+
+  - name:                              environment
+    displayName:                       "Environment name, MGMT, DEV, QA, etc"
+    type:                              string
+    default:                           MGMT
+
+  - name:                              use_webapp_param
+    displayName:                       "Deploy the configuration web application"
+    type:                              boolean
+    default:                           true
+
+  - name:                              use_deployer
+    displayName:                       Run on self hosted agent
+    type:                              boolean
+    default:                           false
+
+  - name:                              connection_name
+    displayName:                       Service Connection Name
+    type:                              string
+    default:                           Control_Plane_Service_Connection
+
+variables:
+  - group:                             "SDAF-General"
+
+  - group:                             SDAF-${{ parameters.environment }}
+
+  - name:                              run_on
+    value:                             $[replace(replace('True',eq(${{ parameters.use_deployer }}, 'True'), variables['POOL']),'True',variables['Agent'])]
+
+  - name:                              variable_group
+    value:                             SDAF-${{ parameters.environment }}
+
+  - name:                              use_webapp
+    value:                             ${{ lower(parameters.use_webapp_param) }}
+
+  - name:                              deployerfolder
+    value:                             ${{ parameters.deployer }}
+
+  - name:                              deployerconfig
+    value:                             ${{ parameters.deployer }}.tfvars
+
+  - name:                              libraryfolder
+    value:                             ${{ parameters.library }}
+
+  - name:                              libraryconfig
+    value:                             ${{ parameters.library }}.tfvars
+
+  - name:                              log
+    value:                             logfile_$(Build.BuildId)
+
+  - name:                              tf_url
+    value:                             https://releases.hashicorp.com/terraform/$(tf_version)/terraform_$(tf_version)_linux_amd64.zip
+
+  - name:                              this_agent
+    value:                             $[upper(coalesce(variables['POOL'], variables['Agent']))]
+
+  - name:                              connection_name
+    value:                             ${{ parameters.connection_name }}
+

@@ -18,23 +18,15 @@
     sap_inifile_template:              "{{ bom_base_name }}-web-inifile-param.j2"
     dir_params:                        "{{ tmp_directory }}/.{{ sid_to_be_deployed.sid | lower }}-params"
 
-- name:                                "Web Install: Create hidden directory"
+- name:                                "Web Install: Create directories"
   ansible.builtin.file:
-    path:                              "{{ dir_params }}"
+    path:                              "{{ item.path }}"
     state:                             directory
-    mode:                              0755
-
-- name:                                "Web Install: Create temp directory for sid"
-  ansible.builtin.file:
-    path:                              "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
-    state:                             directory
-    mode:                              0755
-
-- name:                                "Web Install: Create run flag directory"
-  ansible.builtin.file:
-    path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}"
-    state:                             directory
-    mode:                              0755
+    mode:                              '{{ item.mode }}'
+  loop:
+    - { mode: '0755', path: '{{ dir_params }}' }
+    - { mode: '0755', path: '{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}' }
+    - { mode: '0755', path: '/etc/sap_deployment_automation/{{ sap_sid | upper }}' }
 
 - name:                                "Web Install: reset"
   ansible.builtin.file:
@@ -58,6 +50,15 @@
   ansible.builtin.set_fact:
     scs_server:                         "{% if scs_high_availability %}{{ sap_sid | lower }}scs{{ scs_instance_number }}cl1{% else %}{{ scs_server_temp | first }}{% endif %}"
 
+- name:                                "SCS Install: check media exists"
+  ansible.builtin.stat:
+    path:                              "{{ target_media_location }}/SWPM/sapinst"
+  register:                            sapinst_found
+
+- name:                                "ErrorHandling"
+  ansible.builtin.fail:
+    msg:                               "INSTALL:0008:Unable to find sapinst, please check that the installation media is mounted"
+  when: not sapinst_found.stat.exists
 
 # Returns bom object
 
@@ -90,6 +91,7 @@
     sap_scs_hostname:                  "{{ scs_server }}"
     sap_webVirtualHostname:            "{{ inventory_hostname }}"
     sap_installSAPHostAgent:           false
+    hdb_instance_number:               "{{ db_instance_number }}"
 
   tags:
     - skip_ansible_lint
@@ -122,6 +124,12 @@
       ansible.builtin.debug:
         msg:                           "Starting Web Install ({{ sid_to_be_deployed.sid | upper }})"
 
+    - name:                            "Create temp directory for sid"
+      ansible.builtin.file:
+        path:                          "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
+        state:                         directory
+        mode:                          0755
+
     - name:                            "SAP Web Dispatcher Install"
       ansible.builtin.command: |
                                        ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }} \
@@ -133,7 +141,7 @@
         chdir:                         "{{ target_media_location }}/SWPM"
         creates:                       "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_web.txt"
       environment:
-        SAPSYSTEMNAME:                 "{{ db_sid | upper }}"
+        SAPSYSTEMNAME:                 "{{ sid_to_be_deployed.sid | upper }}"
         TMPDIR:                        "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
       register:                        web_installation
       failed_when:                     web_installation.rc > 0

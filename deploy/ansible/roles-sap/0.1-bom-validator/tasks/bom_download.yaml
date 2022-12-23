@@ -172,8 +172,30 @@
           # become:                      true
           # become_user:                 root
           register:                    result
-          until:                       result is succeeded or not result.changed
           no_log:                      false
+          # failed_when:                 false
+
+# INCOMMING attempt attempt error handling - Collision with dynamic BOM - Unresolved
+        # - name:                        "BOM: {{ bom_name }} Download File {{ item.archive }}"
+        #   ansible.builtin.debug:
+        #     var:                       result
+        #     verbosity:                 2
+
+        # - name:                        "ErrorHandling"
+        #   ansible.builtin.fail:
+        #     msg:                       "DOWNLOAD:0001:Download failed, please check the URL ({{ item.url }})"
+        #   when:                        result.status_code == 400
+
+        # - name:                        "ErrorHandling"
+        #   ansible.builtin.fail:
+        #     msg:                       "DOWNLOAD:0002:Download failed, please check the S-user credentials"
+        #   when:                        result.status_code == 401
+
+        # - name:                        "ErrorHandling"
+        #   ansible.builtin.fail:
+        #     msg:                       "DOWNLOAD:0003:Download from SAP failed, URL ({{ item.url }})"
+        #   when:                        result.status_code != 200
+
 # Step: 05-01-01-on-failure-02 - END
 # -------------------------------------+---------------------------------------8
 
@@ -182,6 +204,8 @@
 
 # Step: 05-01 - END
 # -------------------------------------+---------------------------------------8
+
+
 
 # -------------------------------------+---------------------------------------8
 # Step: 05-02

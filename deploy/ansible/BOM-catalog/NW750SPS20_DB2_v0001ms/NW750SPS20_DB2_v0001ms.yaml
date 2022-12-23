@@ -9,8 +9,8 @@ defaults:
 
 product_ids:
   dbl:                                 NW_ABAP_DB:NW750.DB6.ABAP
-  dblha:                            NW_ABAP_DB:NW750.DB6.ABAPHA
-  dblsby:                            NW_ABAP_DB:NW750.DB6.CP
+  dblha:                               NW_ABAP_DB:NW750.DB6.ABAP
+  dblsby:                              NW_ABAP_DB:NW750.DB6.CP
   scs:                                 NW_ABAP_ASCS:NW750.DB6.ABAP
   scs_ha:                              NW_ABAP_ASCS:NW750.DB6.ABAPHA
   pas:                                 NW_ABAP_CI:NW750.DB6.ABAP
@@ -25,8 +25,8 @@ product_ids:
 materials:
   dependencies:
     - name:                            DB2_UDB_11_5_v0001ms
-    - name:                            SWPM10SP35_latest
-    - name:                            SUM20SP14_latest
+    - name:                            SWPM10SP36_latest
+    - name:                            SUM20SP15_latest
 
   media:
 

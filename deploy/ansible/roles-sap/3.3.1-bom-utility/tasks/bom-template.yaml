@@ -51,7 +51,7 @@
 - name:                                "3.3.1 BoM Template processing: - Set Python version {{ distribution_id }}"
   ansible.builtin.set_fact:
     python_version:                    'python3'
-  when:                                distribution_id in ['suse15', 'redhat8']
+  when:                                distribution_id in ['suse15', 'redhat8', 'sles_sap15']
 
 #   0x) Create hidden directory for parameter files
 - name:                                "3.3.1 BoM Template processing: Create hidden directory"
@@ -80,7 +80,7 @@
   vars:
     ansible_python_interpreter:        "{{ python_version }}"
   when:
-    - distribution_id in ['suse15', 'redhat8']
+    - distribution_id in ['suse15', 'redhat8', 'sles_sap15']
     - not always_upload_jinja_templates
 
 - name:                                "3.3.1 BoM Template processing: {{ bom_name }} Download: {{ sap_inifile_template }} from the storage account"
@@ -95,8 +95,14 @@
   register:                            result
   when:
     - distribution_id != 'suse15'
+    - distribution_id != 'sles_sap15'
     - distribution_id != 'redhat8'
     - not always_upload_jinja_templates
+
+- name:                                "3.3.1 BoM Template processing: Remove ini file {{ sap_inifile }}"
+  ansible.builtin.file:
+    path:                              "{{ param_directory }}/{{ sap_inifile }}"
+    state:                             absent
 
 - name:                                "3.3.1 BoM Template processing: Create ini files ({{ bom_base_name }})"
   block:
@@ -112,6 +118,11 @@
   when:
     - result is succeeded or result is skipped
 
+- name:                                "ErrorHandling"
+  ansible.builtin.fail:
+    msg:                               "TEMPLATE:0001:Unable to find {{ sap_inifile_template }} in the storage account"
+  when: result is failed
+
 # -------------------------------------+---------------------------------------8
 #
 # Look for template on disk if not found in storage account
@@ -122,7 +133,7 @@
   block:
     - name:                            "{{ task_prefix }} Check for Microsoft Supplied BOM ({{ bom_base_name }}) template"
       ansible.builtin.stat:
-        path:                          "{{ playbook_dir }}/BOM-catalog/{{ bom_base_name }}/templates/{{ sap_inifile_template }}"
+        path:                          "{{ BOM_directory }}/{{ bom_base_name }}/templates/{{ sap_inifile_template }}"
       register:                        microsoft_supplied_bom_template
       delegate_to:                     localhost
       become:                          "{{ bom_processing_become }}"
@@ -146,7 +157,7 @@
 
         - name:                        "{{ task_prefix }} Check for Microsoft Supplied BOM ({{ bom_base_name }}) ini file in archive"
           ansible.builtin.stat:
-            path:                      "{{ playbook_dir }}/BOM-catalog/archives/{{ bom_base_name }}/templates/{{ sap_inifile_template }}"
+            path:                      "{{ BOM_directory }}/archives/{{ bom_base_name }}/templates/{{ sap_inifile_template }}"
           register:                    microsoft_supplied_bom_template_archive
           delegate_to:                 localhost
           become:                      "{{ bom_processing_become }}"

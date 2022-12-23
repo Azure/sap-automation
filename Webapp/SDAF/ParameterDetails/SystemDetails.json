@@ -1,0 +1,1947 @@
+[
+  {
+    "Section": "Set as default",
+    "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-SYSTEM?branch=main",
+    "Parameters": [
+      {
+        "Name": "IsDefault",
+        "Required": false,
+        "Description": "Controls if this system will be set as the default. If true, missing required parameters will be allowed.",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": ""
+      }
+    ]
+  },
+  {
+    "Section": "Subscription *",
+    "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main",
+    "Parameters": [
+      {
+        "Name": "subscription",
+        "Required": false,
+        "Description": "IMPORTANT: please provide a subscription id to enable dropdown functionality for various Azure resource ID parameters, such as resourcegroup_arm_id, network_arm_id, etc.",
+        "Type": "lookup",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "",
+        "Display": 3
+      }
+    ]
+  },
+  {
+    "Section": "Workload zone",
+    "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-deploy-workload-zone?branch=main&tabs=linux%2Cdevops",
+    "Parameters": [
+      {
+        "Name": "workload_zone",
+        "Required": false,
+        "Description": "An existing workload zone for which the system will be deployed in. The workload zone provides the Azure Virtual Network and the Azure key vault for the system credentials.See <a href='https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-deployment-framework#about-the-sap-workload' target='_blank' rel='noopener noreferrer'>workload zone</a>'.",
+        "Type": "lookup",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": ""
+      }
+    ]
+  },
+  {
+    "Section": "Environment settings",
+    "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system#environment-parameters",
+    "Parameters": [
+      {
+        "Name": "environment",
+        "Required": true,
+        "Description": "Identifier for the workload zone, used for partitioning the environments. For example 'DEV', 'QA', 'PROD', 'TEST', etc.",
+        "Type": "lookup",
+        "Options": [
+          {
+            "Text": "Select an environment...",
+            "Value": ""
+          },
+          {
+            "Text": "Development",
+            "Value": "DEV"
+          },
+          {
+            "Text": "Sandbox",
+            "Value": "SND"
+          },
+          {
+            "Text": "Prototype",
+            "Value": "PROTO"
+          },
+          {
+            "Text": "Non Production",
+            "Value": "NP"
+          },
+          {
+            "Text": "Production",
+            "Value": "PROD"
+          }
+        ],
+        "Overrules": "",
+        "Display": 1
+      },
+      {
+        "Name": "location",
+        "Required": true,
+        "Description": "The Azure region in which to deploy.",
+        "Type": "lookup",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "",
+        "Display": 1
+      },
+      {
+        "Name": "network_logical_name",
+        "Required": true,
+        "Description": "Used in the naming convention and should map to the workload virtual network logical name.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 1
+      },
+      {
+        "Name": "network_arm_id",
+        "Required": false,
+        "Description": "Specifies Azure resource identifier for the existing virtual network.",
+        "Type": "lookup",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "use_secondary_ips",
+        "Required": false,
+        "Description": "Controls if the virtual machines should be deployed with two IP addresses. Required for SAP Virtual Hostname support",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "save_naming_information",
+        "Required": false,
+        "Description": "If defined, will create a naming information json file for the resources, see <a href='https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-naming-module#provide-name-overrides-using-a-json-file' target='_blank' rel='noopener noreferrer'>custom naming</a>.",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "name_override_file",
+        "Required": false,
+        "Description": "If provided,defines a json formatted file defining the name overrides, see <a href='https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-naming-module#provide-name-overrides-using-a-json-file' target='_blank' rel='noopener noreferrer'>custom naming</a>.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "custom_disk_sizes_filename",
+        "Required": false,
+        "Description": "If provided,defines a json formatted file defining the custom disk sizes. See <a href='https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-extra-disks' target='_blank' rel='noopener noreferrer'>custom disk sizing</a>.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "resourcegroup_name",
+        "Required": false,
+        "Description": "Overrides the name of the resource group that will be provisioned.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "resourcegroup_arm_id",
+        "Required": false,
+        "Description": "Azure resource identifier for existing resource group.",
+        "Type": "lookup",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "resourcegroup_name",
+        "Display": 3
+      },
+      {
+        "Name": "use_prefix",
+        "Required": false,
+        "Description": "Defines if a prefix will be added to the resource names. See <a href='https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-naming' target='_blank' rel='noopener noreferrer'>automation naming</a>",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "use_zonal_markers",
+        "Required": false,
+        "Description": "Defines if a zonal indicators will be added to the resource names. See <a href='https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-naming' target='_blank' rel='noopener noreferrer'>automation naming</a>",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "custom_prefix",
+        "Required": false,
+        "Description": "If provided, defines the name of the custom prefix to be prepended to resources. See <a href='https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-naming' target='_blank' rel='noopener noreferrer'>automation naming</a>",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "use_msi_for_clusters",
+        "Required": false,
+        "Description": "If provided, defines the that fencing agent uses a managed identity</a>",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "fencing_role_name",
+        "Required": false,
+        "Description": "If provided, the role to assign to the managed identities</a>",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      }
+      
+      
+      
+    ]
+  },
+  {
+    "Section": "Database tier",
+    "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#database-tier-parameters",
+    "Parameters": [
+      {
+        "Name": "database_platform",
+        "Required": true,
+        "Description": "The type of database backend. Valid choices are 'HANA', 'DB2', 'ORACLE', 'SQLSERVER','ASE'",
+        "Type": "lookup",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          },
+          {
+            "Text": "HANA",
+            "Value": "HANA"
+          },
+          {
+            "Text": "DB2",
+            "Value": "DB2"
+          },
+          {
+            "Text": "ORACLE",
+            "Value": "ORACLE"
+          },
+          {
+            "Text": "ASE",
+            "Value": "ASE"
+          },
+          {
+            "Text": "SQL SERVER",
+            "Value": "SQLSERVER"
+          },
+          {
+            "Text": "NONE",
+            "Value": "NONE"
+          }
+        ],
+        "Overrules": "",
+        "Display": 1
+      },
+      {
+        "Name": "database_high_availability",
+        "Required": false,
+        "Description": "Defines if the database tier is deployed highly available. When set two database servers are deployed.",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 1
+      },
+      {
+        "Name": "database_sid",
+        "Required": false,
+        "Description": "Defines the database SID.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "database_server_count",
+        "Required": false,
+        "Description": "Defines the number of database servers.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 1
+      },
+      {
+        "Name": "database_vm_image_offering",
+        "Required": false,
+        "Description": "Defines the virtual machine image to use for the database servers.",
+        "Type": "image_dropdown",
+        "Options": [],
+        "Overrules": "database_vm_image",
+        "Display": 1
+      },
+      {
+        "Name": "database_vm_image",
+        "Required": false,
+        "Description": "Defines the virtual machine image details for the database servers.",
+        "Type": "image",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "database_size",
+        "Required": false,
+        "Description": "If using a custom disk sizing populate with the node name for 'db' section you have used in the file custom_disk_sizes_filename. See <a href='https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-extra-disks' target='_blank' rel='noopener noreferrer'>custom disk sizing</a>.",
+        "Type": "lookup",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "",
+        "Display": 1
+      },
+      {
+        "Name": "database_vm_zones",
+        "Required": false,
+        "Description": "Defines the availability zones in which the database servers are deployed.",
+        "Type": "list",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          },
+          {
+            "Text": "1",
+            "Value": "1"
+          },
+          {
+            "Text": "2",
+            "Value": "2"
+          },
+          {
+            "Text": "3",
+            "Value": "3"
+          }
+        ],
+        "Overrules": "",
+        "Display": 1
+      },
+      {
+        "Name": "database_instance_number",
+        "Required": false,
+        "Description": "Defines the database instance number. Default is 00.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "database_dual_nics",
+        "Required": false,
+        "Description": "Defines if the database servers will have two network interfaces.",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "database_vm_use_DHCP",
+        "Required": false,
+        "Description": "Defines if Azure subnet provided IP addresses should be used for the database servers.",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+     
+      {
+        "Name": "database_vm_db_nic_ips",
+        "Required": false,
+        "Description": "If provided, the database virtual machines will be configured with the specified IP addresses.",
+        "Type": "list",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "database_vm_db_nic_secondary_ips",
+        "Required": false,
+        "Description": "If provided, the database virtual machines will be configured with the specified IP addresses as their secondary IP addresses. Needed for SAP Virtual Host support.",
+        "Type": "list",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "database_vm_admin_nic_ips",
+        "Required": false,
+        "Description": "If provided, the database virtual machines will be configured with the specified IP addresses for the admin network interfaces.",
+        "Type": "list",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "database_vm_storage_nic_ips",
+        "Required": false,
+        "Description": "If provided, the database tier will be configured with the specified IPs (storage subnet).",
+        "Type": "list",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "database_loadbalancer_ips",
+        "Required": false,
+        "Description": "If provided, the load balancer IP addresses for the database tier's load balancer.",
+        "Type": "list",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "database_HANA_use_ANF_scaleout_scenario",
+        "Required": false,
+        "Description": "Not implemented yet.",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "database_vm_authentication_type",
+        "Required": false,
+        "Description": "Defines the authentication for the Database Virtual Machines. Valid options are 'Key' or 'Password'.",
+        "Type": "lookup",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          },
+          {
+            "Text": "Key",
+            "Value": "key"
+          },
+          {
+            "Text": "Password",
+            "Value": "password"
+          }
+        ],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "database_vm_avset_arm_ids",
+        "Required": false,
+        "Description": "Defines a list of Azure resource identifiers for the availability sets in which to place the database virtual machines. Needed for ANF pinning scenarios.",
+        "Type": "list",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "database_no_ppg",
+        "Required": false,
+        "Description": "Defines that the database virtual machines will not be placed in a proximity placement group.",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "database_no_avset",
+        "Required": false,
+        "Description": "Defines that the database virtual machines will not be placed in an availability set.",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "database_tags",
+        "Required": false,
+        "Description": "Defines a list of tags to be applied to the database server(s)",
+        "Type": "tag",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      }
+    ]
+  },
+  {
+    "Section": "Application tier",
+    "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#common-application-tier-parameters",
+    "Parameters": [
+      {
+        "Name": "sid",
+        "Required": true,
+        "Description": "Defines the SAP Application System ID.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 1
+      },
+      {
+        "Name": "enable_app_tier_deployment",
+        "Required": false,
+        "Description": "Controls if the application tier should be deployed.",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 1
+      },
+      {
+        "Name": "app_tier_sizing_dictionary_key",
+        "Required": true,
+        "Description": "Defines the VM SKU and the disk layout for the application tier servers. Use 'Optimized' unless you have your own sizing file. See <a href='https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-extra-disks?branch=main' target='_blank' rel='noopener noreferrer'>custom disk sizing</a>",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 1
+      },
+      {
+        "Name": "app_tier_authentication_type",
+        "Required": false,
+        "Description": "Defines the authentication type for the Application tier VMs (key/password).",
+        "Type": "lookup",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          },
+          {
+            "Text": "Key",
+            "Value": "key"
+          },
+          {
+            "Text": "Password",
+            "Value": "password"
+          }
+        ],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "app_tier_use_DHCP",
+        "Required": false,
+        "Description": "Defines if Azure subnet provided IP addresses should be used.",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "app_tier_dual_nics",
+        "Required": false,
+        "Description": "Defines if the application tier servers should have two network cards.",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "use_loadbalancers_for_standalone_deployments",
+        "Required": false,
+        "Description": "Used to control if standalone deployments (non HA) will be deployed with load balancers.",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "use_msi_for_clusters",
+        "Required": false,
+        "Description": "Used to control if managed identities should be used for clustering.",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      }
+    ]
+  },
+  {
+    "Section": "SAP Central Services",
+    "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#sap-central-services-parameters",
+    "Parameters": [
+      {
+        "Name": "scs_server_count",
+        "Required": false,
+        "Description": "Defines how many SAP Central Services servers to deploy.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "scs_high_availability",
+        "Required": false,
+        "Description": "Defines if SAP Central services are deployed highly available.",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 1
+      },
+      {
+        "Name": "scs_server_zones",
+        "Required": false,
+        "Description": "Defines the availability zones in which deploy the SAP Central Services servers.",
+        "Type": "list",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          },
+          {
+            "Text": "1",
+            "Value": "1"
+          },
+          {
+            "Text": "2",
+            "Value": "2"
+          },
+          {
+            "Text": "3",
+            "Value": "3"
+          }
+        ],
+        "Overrules": "",
+        "Display": 1
+      },
+      {
+        "Name": "scs_server_sku",
+        "Required": false,
+        "Description": "Defines the virtual machine SKU to use for the SAP Central Services servers.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "scs_server_image_offering",
+        "Required": false,
+        "Description": "Defines the virtual machine image to use for the SAP Central Services servers.",
+        "Type": "image_dropdown",
+        "Options": [],
+        "Overrules": "scs_server_image",
+        "Display": 1
+      },
+      {
+        "Name": "scs_server_image",
+        "Required": false,
+        "Description": "Defines the virtual machine image to use for the SAP Central Services servers.",
+        "Type": "image",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "scs_server_app_nic_ips",
+        "Required": false,
+        "Description": "Provides the static IP addresses for the SAP Central Services servers.",
+        "Type": "list",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "scs_server_nic_secondary_ips",
+        "Required": false,
+        "Description": "If provided, the secondary static IP addresses for the SAP Central Services servers. Required for SAP Virtual Hostname support.",
+        "Type": "list",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "scs_server_admin_nic_ips",
+        "Required": false,
+        "Description": "Provides the static IP addresses for the SAP Central Services servers secondary network interfaces.",
+        "Type": "list",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "scs_server_loadbalancer_ips",
+        "Required": false,
+        "Description": "Provides the static IP addresses for the SAP Central Services load balancer.",
+        "Type": "list",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "scs_server_no_avset",
+        "Required": false,
+        "Description": "Defines if the SAP Central Services tier will not use an availability set.",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "scs_server_no_ppg",
+        "Required": false,
+        "Description": "Defines if the Central Services will not be placed in a proximity placement group.",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "scs_server_tags",
+        "Required": false,
+        "Description": "Provides the tags to be associated to the SAP Central Services servers",
+        "Type": "tag",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      }
+    ]
+  },
+  {
+    "Section": "Application servers",
+    "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#application-server-parameters",
+    "Parameters": [
+      {
+        "Name": "application_server_count",
+        "Required": false,
+        "Description": "Defines how many application servers to deploy.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 1
+      },
+      {
+        "Name": "application_server_zones",
+        "Required": false,
+        "Description": "Defines the availability zones to which deploy the application servers.",
+        "Type": "list",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          },
+          {
+            "Text": "1",
+            "Value": "1"
+          },
+          {
+            "Text": "2",
+            "Value": "2"
+          },
+          {
+            "Text": "3",
+            "Value": "3"
+          }
+        ],
+        "Overrules": "",
+        "Display": 1
+      },
+      {
+        "Name": "application_server_sku",
+        "Required": false,
+        "Description": "Provides the virtual machine SKU to use for the application servers.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "application_server_image_offering",
+        "Required": false,
+        "Description": "Define the virtual machine image for the application servers.",
+        "Type": "image_dropdown",
+        "Options": [],
+        "Overrules": "application_server_image",
+        "Display": 1
+      },
+      {
+        "Name": "application_server_image",
+        "Required": false,
+        "Description": "Define the virtual machine image for the application servers.",
+        "Type": "image",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "application_server_app_nic_ips",
+        "Required": false,
+        "Description": "Provides the static IP addresses for the application servers.",
+        "Type": "list",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "application_server_nic_secondary_ips",
+        "Required": false,
+        "Description": "If provided, the secondary static IP addresses for the application servers. Required for SAP Virtual Hostname support.",
+        "Type": "list",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "application_server_admin_nic_ips",
+        "Required": false,
+        "Description": "Provides the static IP addresses for the SAP Application server's secondary network interfaces.",
+        "Type": "list",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "application_server_no_avset",
+        "Required": false,
+        "Description": "If defined, the application servers will not use an availability set",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "application_server_vm_avset_arm_ids",
+        "Required": false,
+        "Description": "If provided, Azure resource ids for the availability sets to use for the application servers",
+        "Type": "list",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "application_server_no_ppg",
+        "Required": false,
+        "Description": "If defined, the application servers will not be placed in a proximity placement group.",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "application_server_tags",
+        "Required": false,
+        "Description": "Provides the tags to be associated to the application servers",
+        "Type": "tag",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      }
+    ]
+  },
+  {
+    "Section": "Web dispatchers",
+    "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#web-dispatcher-parameters",
+    "Parameters": [
+      {
+        "Name": "webdispatcher_server_count",
+        "Required": false,
+        "Description": "Defines how many web dispatchers to deploy",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 1
+      },
+      {
+        "Name": "webdispatcher_server_zones",
+        "Required": false,
+        "Description": "Defines the availability zones to which deploy the web dispatchers",
+        "Type": "list",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          },
+          {
+            "Text": "1",
+            "Value": "1"
+          },
+          {
+            "Text": "2",
+            "Value": "2"
+          },
+          {
+            "Text": "3",
+            "Value": "3"
+          }
+        ],
+        "Overrules": "",
+        "Display": 1
+      },
+      {
+        "Name": "webdispatcher_server_sku",
+        "Required": false,
+        "Description": "Provides the virtual machine SKU to use for the web dispatchers.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "web_server_image_offering",
+        "Required": false,
+        "Description": "Define the virtual machine image for the web dispatchers.",
+        "Type": "image_dropdown",
+        "Options": [],
+        "Overrules": "webdispatcher_server_image",
+        "Display": 1
+      },
+      {
+        "Name": "webdispatcher_server_image",
+        "Required": false,
+        "Description": "Define the virtual machine image for the web dispatchers.",
+        "Type": "image",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "webdispatcher_server_app_nic_ips",
+        "Required": false,
+        "Description": "Provides the static IP addresses for the web dispatchers.",
+        "Type": "list",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "webdispatcher_server_nic_secondary_ips",
+        "Required": false,
+        "Description": "If provided, the secondary static IP addresses for the web dispatchers. Required for SAP Virtual Hostname support.",
+        "Type": "list",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "webdispatcher_server_admin_nic_ips",
+        "Required": false,
+        "Description": "Provides the static IP addresses for the web dispatcher's secondary network interfaces.",
+        "Type": "list",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "webdispatcher_server_loadbalancer_ips",
+        "Required": false,
+        "Description": "Provides the static IP addresses for the web dispatcher load balancer.",
+        "Type": "list",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "webdispatcher_server_no_avset",
+        "Required": false,
+        "Description": "If defined, the Web Dispatcher tier will not use an availability set",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "webdispatcher_server_no_ppg",
+        "Required": false,
+        "Description": "If defined, the web dispatchers will not be placed in a proximity placement group",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "webdispatcher_server_tags",
+        "Required": false,
+        "Description": "Provides the tags to be associated to the webdispatcher servers",
+        "Type": "tag",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      }
+    ]
+  },
+  {
+    "Section": "Admin subnet",
+    "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#network-parameters",
+    "Parameters": [
+      {
+        "Name": "admin_subnet_name",
+        "Required": false,
+        "Description": "<i>Use only if the SID requires unique subnets</i>. Defines the admin subnet name, should only be used if the default naming is not acceptable.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "admin_subnet_address_prefix",
+        "Required": false,
+        "Description": "<i>Use only if the SID requires unique subnets</i>. Defines the admin subnet address range. Mandatory if the subnets are not defined in the workload zone, or if existing subnets are not used.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "admin_subnet_arm_id",
+        "Required": false,
+        "Description": "<i>Use only if the SID requires unique subnets</i>. Specifies Azure resource identifier for the existing subnet to use as the admin subnet.",
+        "Type": "lookup",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "admin_subnet_address_prefix",
+        "Display": 3
+      },
+      {
+        "Name": "admin_subnet_nsg_name",
+        "Required": false,
+        "Description": "<i>Use only if the SID requires unique subnets</i>. Should only be used if the default admin network security group name is not acceptable.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "admin_subnet_nsg_arm_id",
+        "Required": false,
+        "Description": "<i>Use only if the SID requires unique subnets</i>. Specifies Azure resource identifier for the existing network security group to use.",
+        "Type": "lookup",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "admin_subnet_nsg_name",
+        "Display": 3
+      }
+    ]
+  },
+  {
+    "Section": "Database subnet",
+    "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#network-parameters",
+    "Parameters": [
+      {
+        "Name": "db_subnet_name",
+        "Required": false,
+        "Description": "<i>Use only if the SID requires unique subnets</i>. Should only be used if the default naming is not acceptable",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "db_subnet_address_prefix",
+        "Required": false,
+        "Description": "<i>Use only if the SID requires unique subnets</i>. Mandatory parameter if the subnets are not defined in the workload zone, or if existing subnets are not used.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "db_subnet_arm_id",
+        "Required": false,
+        "Description": "<i>Use only if the SID requires unique subnets</i>. Specifies Azure resource identifier for the existing subnet to use for the database subnet.",
+        "Type": "lookup",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "db_subnet_address_prefix",
+        "Display": 3
+      },
+      {
+        "Name": "db_subnet_nsg_name",
+        "Required": false,
+        "Description": "<i>Use only if the SID requires unique subnets</i>. Should only be used if the default database network security group name is not acceptable",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "db_subnet_nsg_arm_id",
+        "Required": false,
+        "Description": "<i>Use only if the SID requires unique subnets</i>. Specifies Azure resource identifier for the existing network security group to use.",
+        "Type": "lookup",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "db_subnet_nsg_name",
+        "Display": 3
+      }
+    ]
+  },
+  {
+    "Section": "Application subnet",
+    "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#network-parameters",
+    "Parameters": [
+      {
+        "Name": "app_subnet_name",
+        "Required": false,
+        "Description": "<i>Use only if the SID requires unique subnets</i>. Should only be used if the default naming is not acceptable.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "app_subnet_address_prefix",
+        "Required": false,
+        "Description": "<i>Use only if the SID requires unique subnets</i>. Mandatory parameter if the subnets are not defined in the workload zone, or if existing subnets are not used.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "app_subnet_arm_id",
+        "Required": false,
+        "Description": "<i>Use only if the SID requires unique subnets</i>. Specifies Azure resource identifier for the existing subnet to use for the application subnet.",
+        "Type": "lookup",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "app_subnet_address_prefix",
+        "Display": 3
+      },
+      {
+        "Name": "app_subnet_nsg_name",
+        "Required": false,
+        "Description": "<i>Use only if the SID requires unique subnets</i>. Should only be used if the default application network security group name is not acceptable.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "app_subnet_nsg_arm_id",
+        "Required": false,
+        "Description": "<i>Use only if the SID requires unique subnets</i>. Specifies Azure resource identifier for the existing network security group to use.",
+        "Type": "lookup",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "app_subnet_nsg_name",
+        "Display": 3
+      }
+    ]
+  },
+  {
+    "Section": "Web subnet",
+    "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#network-parameters",
+    "Parameters": [
+      {
+        "Name": "web_subnet_name",
+        "Required": false,
+        "Description": "<i>Use only if the SID requires unique subnets</i>. Should only be used if the default naming is not acceptable",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "web_subnet_address_prefix",
+        "Required": false,
+        "Description": "<i>Use only if the SID requires unique subnets</i>. Mandatory parameter if the subnets are not defined in the workload zone, or if existing subnets are not used.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "web_subnet_arm_id",
+        "Required": false,
+        "Description": "<i>Use only if the SID requires unique subnets</i>. Specifies Azure resource identifier for the existing subnet to use for the web subnet.",
+        "Type": "lookup",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "web_subnet_address_prefix",
+        "Display": 3
+      },
+      {
+        "Name": "web_subnet_nsg_name",
+        "Required": false,
+        "Description": "<i>Use only if the SID requires unique subnets</i>. Should only be used if the default web network security group name is not acceptable.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "web_subnet_nsg_arm_id",
+        "Required": false,
+        "Description": "<i>Use only if the SID requires unique subnets</i>. Specifies Azure resource identifier for the existing network security group to use",
+        "Type": "lookup",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "web_subnet_nsg_name",
+        "Display": 3
+      }
+    ]
+  },
+  {
+    "Section": "Authentication",
+    "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#authentication-parameters",
+    "Parameters": [
+      {
+        "Name": "automation_username",
+        "Required": false,
+        "Description": "<i>Use only if the SID requires an unique administrator credentials</i>. Defines the user account used by the automation, usually this is defined in the workload zone.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "automation_password",
+        "Required": false,
+        "Description": "<i>Use only if the SID requires an unique administrator credentials</i>. Provides a password for the automation user, usually this is defined in the workload zone. If empty Terraform will create the ssh key and persist it in keyvault",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "automation_path_to_public_key",
+        "Required": false,
+        "Description": "<i>Use only if the SID requires an unique administrator credentials</i>. Provides a path to an existing ssh public key file, usually this is defined in the workload zone. If empty Terraform will create the ssh key and persist it in keyvault",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "automation_path_to_private_key",
+        "Required": false,
+        "Description": "<i>Use only if the SID requires an unique administrator credentials</i>. Provides a path to an existing ssh private key file, usually this is defined in the workload zone. If empty Terraform will create the ssh key and persist it in keyvault",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      }
+    ]
+  },
+  {
+    "Section": "Keyvault",
+    "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#key-vault-parameters",
+    "Parameters": [
+      {
+        "Name": "user_keyvault_id",
+        "Required": false,
+        "Description": "If provided, the Azure resource identifier of the credentials Azure key vault, usually this is defined in the workload zone.",
+        "Type": "lookup",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "spn_keyvault_id",
+        "Required": false,
+        "Description": "If provided, the Azure resource identifier of the deployment credential Azure key vault, usually this is defined in the workload zone.",
+        "Type": "lookup",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "enable_purge_control_for_keyvaults",
+        "Required": false,
+        "Description": "Disables the purge protection for Azure key vaults.",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      }
+    ]
+  },
+  {
+    "Section": "NFS and Shared Files Settings",
+    "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#nfs-support",
+    "Parameters": [
+      {
+        "Name": "NFS_provider",
+        "Required": false,
+        "Description": "Defines how NFS services are provided to the SAP systems: AFS (Azure Files for NFS), ANF (Azure NetApp Files), NFS (custom solution)",
+        "Type": "lookup",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          },
+          {
+            "Text": "AFS",
+            "Value": "AFS"
+          },
+          {
+            "Text": "ANF",
+            "Value": "ANF"
+          },
+          {
+            "Text": "NFS",
+            "Value": "NFS"
+          },
+          {
+            "Text": "NONE",
+            "Value": "NONE"
+          }
+        ],
+        "Overrules": "",
+        "Display": 1
+      },
+      {
+        "Name": "use_private_endpoint",
+        "Required": false,
+        "Description": "Use private endpoint for the storage accounts and the key vaults in the deployment.",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "sapmnt_volume_size",
+        "Required": false,
+        "Description": "The volume in GB of the sapmnt file share.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "azure_files_sapmnt_id",
+        "Required": false,
+        "Description": "Azure resource identifier for an existing storage account used for sapmnt.",
+        "Type": "lookup",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "sapmnt_private_endpoint_id",
+        "Required": false,
+        "Description": "Azure Resource Identifier for an private endpoint connection for the sapmnt storage account",
+        "Type": "lookup",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "",
+        "Display": 3
+      }
+    ]
+  },
+  {
+    "Section": "ANF HANA Data",
+    "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#azure-netapp-files-support",
+    "Parameters": [
+      {
+        "Name": "ANF_HANA_data",
+        "Required": false,
+        "Description": "If defined, will create Azure NetApp Files volume(s) for HANA data.",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "ANF_HANA_data_volume_size",
+        "Required": false,
+        "Description": "If defined, provides the size of the HANA data volume(s) in GB.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "ANF_HANA_data_volume_throughput",
+        "Required": false,
+        "Description": "If defined, provides the throughput of the HANA data volume(s) in MB/s.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "ANF_HANA_data_use_existing_volume",
+        "Required": false,
+        "Description": "Use existing Azure NetApp volumes for HANA data.",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "ANF_HANA_data_volume_name",
+        "Required": false,
+        "Description": "Azure NetApp volumes name(s) for existing HANA data volume(s)",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      }
+    ]
+  },
+  {
+    "Section": "ANF HANA Log",
+    "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#azure-netapp-files-support",
+    "Parameters": [
+      {
+        "Name": "ANF_HANA_log",
+        "Required": false,
+        "Description": "If defined, will create Azure NetApp Files volume(s) for HANA log.",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "ANF_HANA_log_volume_size",
+        "Required": false,
+        "Description": "If defined, provides the size of the HANA log volume(s) in GB.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "ANF_HANA_log_volume_throughput",
+        "Required": false,
+        "Description": "If defined, provides the throughput of the HANA log volume(s) in MB/s.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "ANF_HANA_log_use_existing",
+        "Required": false,
+        "Description": "Use existing Azure NetApp volumes for HANA log.",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "ANF_HANA_log_volume_name",
+        "Required": false,
+        "Description": "Azure NetApp volumes name(s) for existing HANA log volume(s)",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      }
+    ]
+  },
+  {
+    "Section": "ANF HANA shared",
+    "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#azure-netapp-files-support",
+    "Parameters": [
+      {
+        "Name": "ANF_HANA_shared",
+        "Required": false,
+        "Description": "If defined, will create Azure NetApp Files volume(s) for HANA shared.",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "ANF_HANA_shared_volume_size",
+        "Required": false,
+        "Description": "If defined, provides the size of the HANA shared volume(s) in GB.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "ANF_HANA_shared_volume_throughput",
+        "Required": false,
+        "Description": "If defined, provides the throughput of the HANA shared volume(s) in MB/s.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "ANF_HANA_shared_use_existing",
+        "Required": false,
+        "Description": "Use existing Azure NetApp volumes for HANA shared.",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "ANF_HANA_shared_volume_name",
+        "Required": false,
+        "Description": "Azure NetApp volumes name(s) for existing HANA shared volume(s)",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      }
+    ]
+  },
+  {
+    "Section": "ANF HANA /usr/sap",
+    "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#azure-netapp-files-support",
+    "Parameters": [
+      {
+        "Name": "ANF_usr_sap",
+        "Required": false,
+        "Description": "If defined, will create Azure NetApp Files volume(s) for /usr/sap",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "ANF_usr_sap_volume_size",
+        "Required": false,
+        "Description": "If defined, provides the size for the /usr/sap volume in GB",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "ANF_usr_sap_throughput",
+        "Required": false,
+        "Description": "If defined provides the throughput of the /usr/sap volume in MB/s.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "ANF_usr_sap_use_existing",
+        "Required": false,
+        "Description": "Use existing  /usr/sap volume",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "ANF_usr_sap_volume_name",
+        "Required": false,
+        "Description": "Azure NetApp volumes name(s) for existing /usr/sap volume(s)",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      }
+    ]
+  },
+  {
+    "Section": "ANF /sapmnt",
+    "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#azure-netapp-files-support",
+    "Parameters": [
+      {
+        "Name": "ANF_sapmnt_volume_size",
+        "Required": false,
+        "Description": "If defined, provides the size for the sapmnt volume in GB.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "ANF_sapmnt_volume_throughput",
+        "Required": false,
+        "Description": "If defined, provides the throughput for the sapmnt volume in MB/s.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "ANF_sapmnt",
+        "Required": false,
+        "Description": "Use existing sapmnt volume",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "ANF_sapmnt_volume_name",
+        "Required": false,
+        "Description": "Azure NetApp volumes name(s) for existing HANA /sapmnt volume(s)",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      }
+    ]
+  },
+  {
+    "Section": "Anchor Virtual Machine",
+    "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#anchor-virtual-machine-parameters",
+    "Parameters": [
+      {
+        "Name": "deploy_anchor_vm",
+        "Required": false,
+        "Description": "Controls if an anchor Virtual Machine should be deployed",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "anchor_vm_sku",
+        "Required": false,
+        "Description": "Defines the virtual machine SKU for the Anchor Virtual Machine",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "anchor_vm_authentication_username",
+        "Required": false,
+        "Description": "Defines the username for the Anchor Virtual Machine",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "anchor_vm_authentication_type",
+        "Required": false,
+        "Description": "Defines the authentication type for the Anchor Virtual Machine",
+        "Type": "lookup",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          },
+          {
+            "Text": "Key",
+            "Value": "key"
+          },
+          {
+            "Text": "Password",
+            "Value": "password"
+          }
+        ],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "anchor_vm_accelerated_networking",
+        "Required": false,
+        "Description": "Defines if the anchor Virtual Machine should use accelerated networking.",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "anchor_vm_image_offering",
+        "Required": false,
+        "Description": "Virtual machine image for the anchor virtual machine.",
+        "Type": "image_dropdown",
+        "Options": [],
+        "Overrules": "anchor_vm_image",
+        "Display": 2
+      },
+      {
+        "Name": "anchor_vm_image",
+        "Required": false,
+        "Description": "Virtual machine image for the anchor virtual machine.",
+        "Type": "image",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "anchor_vm_nic_ips",
+        "Required": false,
+        "Description": "Provide the IP address for the the Anchor Virtual Machines",
+        "Type": "list",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "anchor_vm_use_DHCP",
+        "Required": false,
+        "Description": "Defines if Azure subnet provided IP addresses should be used.",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      }
+    ]
+  },
+  {
+    "Section": "Other Parameters",
+    "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#other-parameters",
+    "Parameters": [
+      {
+        "Name": "resource_offset",
+        "Required": false,
+        "Description": "Provides an offset for resource naming.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "bom_name",
+        "Required": false,
+        "Description": "This is the Bill of Materials name for the SAP Application to be deployed.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "nsg_asg_with_vnet",
+        "Required": false,
+        "Description": "Controls where the Application Security Groups are created.",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "deploy_application_security_groups",
+        "Required": false,
+        "Description": "Defines if application security groups will be created.",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "vm_disk_encryption_set_id",
+        "Required": false,
+        "Description": "Azure resource identifier for custom encryption key to use for disk encryption.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "proximityplacementgroup_names",
+        "Required": false,
+        "Description": "Defines the names of the proximity placement groups. Only use this if the default naming is not suitable.",
+        "Type": "list",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "proximityplacementgroup_arm_ids",
+        "Required": false,
+        "Description": "A list of Azure resource identifiers specifying existing proximity placement groups.",
+        "Type": "list",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      }
+    ]
+  }
+]

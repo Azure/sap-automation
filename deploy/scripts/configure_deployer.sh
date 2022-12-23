@@ -55,7 +55,7 @@ set -o pipefail
 #
 
 if [ -z "${TF_VERSION}" ]; then
-  TF_VERSION="1.2.6"
+  TF_VERSION="1.3.4"
 fi
 
 
@@ -69,7 +69,7 @@ tfversion=$TF_VERSION
 #
 # Ansible Version settings
 #
-ansible_version="${ansible_version:-2.11}"
+ansible_version="${ansible_version:-2.13}"
 ansible_major="${ansible_version%%.*}"
 ansible_minor=$(echo "${ansible_version}." | cut -d . -f 2)
 
@@ -222,7 +222,9 @@ ansible_pip3=${ansible_venv_bin}/pip3
 asad_home="${HOME}/Azure_SAP_Automated_Deployment"
 asad_ws="${asad_home}/WORKSPACES"
 asad_repo="https://github.com/Azure/sap-automation.git"
+asad_sample_repo="https://github.com/Azure/sap-automation-samples.git"
 asad_dir="${asad_home}/$(basename ${asad_repo} .git)"
+asad_sample_dir="${asad_home}/$(basename ${asad_sample_repo} .git)"
 
 # Terraform installation directories
 tf_base=/opt/terraform
@@ -266,7 +268,7 @@ else
         curl
         apt-transport-https
         lsb-release
-        gnupg
+        gnupgno
         sshpass
         dos2unix
     )
@@ -321,10 +323,17 @@ else
         ${asad_ws}/DEPLOYER
 
     #
-    # Clone Azure SAP Automated Deployment project repository
+    # Clone Azure SAP Automated Deployment code repository
     #
     if [[ ! -d "${asad_dir}" ]]; then
         git clone "${asad_repo}" "${asad_dir}"
+    fi
+
+    #
+    # Clone Azure SAP Automated Deployment sample repository
+    #
+    if [[ ! -d "${asad_sample_dir}" ]]; then
+        git clone "${asad_sample_repo}" "${asad_sample_dir}"
     fi
 
     chown -R "${USER}" "${asad_home}"
@@ -516,6 +525,7 @@ else
     # Set env for ansible
     echo "export ANSIBLE_HOST_KEY_CHECKING=False" | tee -a /tmp/deploy_server.sh
     echo "export ANSIBLE_COLLECTIONS_PATHS=${ansible_collections}" | tee -a /tmp/deploy_server.sh
+    echo "export BOM_CATALOG=${asad_sample_dir}/SAP" | tee -a /tmp/deploy_server.sh
 
     # Set env for MSI
     echo "export ARM_USE_MSI=true" | tee -a /tmp/deploy_server.sh

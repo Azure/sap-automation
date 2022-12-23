@@ -7,7 +7,7 @@
 #############################################################################
 
 # sap_fqdn defines the fully qualified domain name for the systems
-sap_fqdn:                      ${dns}                      
+sap_fqdn:                      ${dns}
 
 #############################################################################
 #                                                                           #
@@ -25,8 +25,8 @@ sap_sid:                       ${sid}
 web_sid:                       ${web_sid}
 
 
-# scs_high_availability is a boolean flag indicating 
-# if the SAP Central Services are deployed using high availability 
+# scs_high_availability is a boolean flag indicating
+# if the SAP Central Services are deployed using high availability
 scs_high_availability:         ${scs_ha}
 
 # SCS Instance Number
@@ -40,7 +40,7 @@ scs_lb_ip:                     ${scs_lb_ip}
 ers_instance_number:           "${ers_instance_number}"
 
 # ecs_lb_ip is the ERS IP address of the load balancer for
-# the SAP Central Services virtual machines 
+# the SAP Central Services virtual machines
 ers_lb_ip:                     ${ers_lb_ip}
 
 # PAS Instance Number
@@ -54,6 +54,7 @@ pas_instance_number:           "${pas_instance_number}"
 
 # sap_sid is the database SID
 db_sid:                        ${db_sid}
+db_instance_number:            "${db_instance_number}"
 
 # platform defines the database platform
 # valid values are:
@@ -66,7 +67,7 @@ db_sid:                        ${db_sid}
 platform:                      ${platform}
 ${oracle}
 
-# db_high_availability is a boolean flag indicating if the 
+# db_high_availability is a boolean flag indicating if the
 # SAP database servers are deployed using high availability
 db_high_availability:          ${db_ha}
 
@@ -101,11 +102,12 @@ kv_name:                       ${kv_name}
 secret_prefix:                 ${secret_prefix}
 
 # Set to true to instruct Ansible to update all the packages on the virtual machines
-upgrade_packages:              false 
+upgrade_packages:              false
 
 # Set to true to instruct Ansible to configure Pacemaker clusters using an managed identity
 use_msi_for_clusters:          ${use_msi_for_clusters}
 
+${domain}
 
 #############################################################################
 #                                                                           #
@@ -114,12 +116,12 @@ use_msi_for_clusters:          ${use_msi_for_clusters}
 #############################################################################
 
 # This dictionary lists the deployed disks and their types
-# Each "type" will create a volume group 
+# Each "type" will create a volume group
 # If there are multiple disks of the same type they will be placed in an LVM
 
-disks: 
+disks:
 %{~ for disk in disks }
-  - ${disk} 
+  - ${disk}
 %{~ endfor }
 
 ...

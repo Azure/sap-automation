@@ -26,10 +26,10 @@ parameters:
   - name:                              workload_zone_deployment_pipeline
     displayName:                       "Workload zone pipeline name"
     type:                              string
-    default:                           SAP workload zone deployment
+    default:                           SAP Workload Zone deployment
 
   - name:                              system_deployment_pipeline
-    displayName:                       "SAP system deployment pipeline name"
+    displayName:                       "SAP SID Infrastructure deployment"
     type:                              string
     default:                           SAP system deployment (infrastructure)
 
@@ -83,8 +83,8 @@ stages:
             persistCredentials:        true
           - bash: |
               #!/bin/bash
-              az extension add --name azure-devops
-              az devops configure --defaults organization=$(System.CollectionUri) project=$(System.TeamProject)
+              az config set extension.use_dynamic_install=yes_without_prompt  --output none
+              az devops configure --defaults organization=$(System.CollectionUri) project='$(System.TeamProject)'
               export AZURE_DEVOPS_EXT_PAT=$(System.AccessToken)
 
               WORKLOADZONE_PIPELINE_ID=$(az pipelines list --query "[?name=='$(workload_zone_deployment_pipeline_name)'].id | [0]")

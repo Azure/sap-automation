@@ -12,7 +12,27 @@
   become_user:                         "root"
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation/dgscripts
-    mode:                              0755
+    mode:                              '0755'
+    state:                             directory
+    owner:                             oracle
+    group:                             oinstall
+
+- name:                                "Oracle Data Guard - Create Folder for Comms: "
+  become:                              true
+  become_user:                         "root"
+  ansible.builtin.file:
+    path:                              "{{ target_media_location }}/downloads/{{ db_sid| upper }}"
+    mode:                              '0755'
+    state:                             directory
+    owner:                             oracle
+    group:                             oinstall
+
+- name:                                "Oracle Data Guard - Create Folder for dbs folder copy from primary to secondary: "
+  become:                              true
+  become_user:                         "root"
+  ansible.builtin.file:
+    path:                              "{{ target_media_location }}/downloads/{{ db_sid| upper }}/dbs"
+    mode:                              '0755'
     state:                             directory
     owner:                             oracle
     group:                             oinstall
@@ -27,8 +47,8 @@
     marker_end:                        "-- END"
     block: |
          CREATE PFILE FROM SPFILE;
-         exit
-    mode:                              0755
+         exit;
+    mode:                              '0755'
 
 
 - name:                                "Oracle Data Guard - Preparation (Secondary): Create PFILE on Primary DB to COPY it on SECONDARY"
@@ -51,7 +71,9 @@
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation/dgscripts/createpfile.txt
     state:                             touch
-    mode:                              0755
+    mode:                              '0755'
+  when:
+    - createpfile_results.rc >= 2
   # when:  current_host == ora_primary
 
 # Copy the initSID.ora from primary to secondary
@@ -61,10 +83,11 @@
   become_user:                         "root"
   ansible.builtin.copy:
     src:                               /oracle/{{ db_sid | upper }}/{{ ora_release }}/dbs/init{{ db_sid | upper }}.ora
-    dest:                              "{{ target_media_location }}/downloads/init{{ db_sid | upper }}.ora"
+    dest:                              "{{ target_media_location }}/downloads/{{ db_sid | upper }}/init{{ db_sid | upper }}.ora"
     remote_src:                        true
     owner:                             oracle
     group:                             oinstall
+    force:                             true
     mode:                              "{{ '0777' | int - (custom_umask | default('022') | int) }}"
   # when: current_host == ora_primary
   tags:
@@ -75,8 +98,9 @@
   become_user:                         "root"
   ansible.builtin.copy:
     src:                               /oracle/{{ db_sid | upper }}/{{ ora_release }}/dbs/orapw{{ db_sid | upper }}
-    dest:                              "{{ target_media_location }}/downloads/orapw{{ db_sid | upper }}"
+    dest:                              "{{ target_media_location }}/downloads/{{ db_sid | upper }}/orapw{{ db_sid | upper }}"
     remote_src:                        true
+    force:                             true
     owner:                             oracle
     group:                             dba
     mode:                              "{{ '0777' | int - (custom_umask | default('022') | int) }}"
@@ -84,19 +108,40 @@
   tags:
     - skip_ansible_lint
 
+# - name:                                "Oracle Data Guard - Preparation (Secondary)Copy dbs folder to templocation"
+#   become:                              true
+#   become_user:                         root
+#   ansible.builtin.shell:               cp -rpf * {{ target_media_location }}/downloads/{{ db_sid | upper }}/dbs/.
+#   register:                            dbs_folder_copied_results
+#   failed_when:                         dbs_folder_copied_results.rc != 0
+#   args:
+#     creates:                           /etc/sap_deployment_automation/dgscripts/dbscopied.txt
+#     chdir:                             /oracle/{{ db_sid | upper }}/{{ ora_release }}/dbs
+#     executable:                        /bin/csh
+#   tags:
+#     - skip_ansible_lint
+
 - name:                                "Oracle Data Guard - Preparation (Secondary)Copy dbs folder to templocation"
   become:                              true
-  become_user:                         root
-  ansible.builtin.shell:               cp -rp * {{ target_media_location }}/downloads/dbs/.
-  register:                            dbs_folder_copied_results
-  failed_when:                         dbs_folder_copied_results.rc >= 2
-  args:
-    creates:                           /etc/sap_deployment_automation/dgscripts/dbscopied.txt
-    chdir:                             /etc/sap_deployment_automation/dgscripts
-    executable:                        /bin/csh
-  tags:
-    - skip_ansible_lint
+  become_user:                         "root"
+  ansible.builtin.copy:
+    src:                               /oracle/{{ db_sid | upper }}/{{ ora_release }}/dbs
+    dest:                              "{{ target_media_location }}/downloads/{{ db_sid | upper }}/dbs"
+    remote_src:                        true
+    owner:                             oracle
+    group:                             oinstall
+    force:                             true
+    mode:                              "{{ '0777' | int - (custom_umask | default('022') | int) }}"
+  
 
+
+- name:                                "Oracle Data Guard - Preparation (Secondary): Create dbscopied.txt"
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.file:
+    path:                              /etc/sap_deployment_automation/dgscripts/dbscopied.txt
+    state:                             touch
+    mode:                              '0755'
 ...
 # /*---------------------------------------------------------------------------8
 # |                                   END                                      |

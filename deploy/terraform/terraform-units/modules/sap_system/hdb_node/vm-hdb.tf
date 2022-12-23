@@ -252,24 +252,23 @@ resource "azurerm_linux_virtual_machine" "vm_dbnode" {
     }
   }
 
-  source_image_id = local.hdb_custom_image ? local.hdb_os.source_image_id : null
+  source_image_id = var.database.os.type == "custom" ? local.hdb_os.source_image_id : null
 
-  # If source_image_id is not defined, deploy with source_image_reference
   dynamic "source_image_reference" {
-    for_each = range(local.hdb_custom_image ? 0 : 1)
+    for_each = range(var.database.os.type == "marketplace" ? 1 : 0)
     content {
-      publisher = local.hdb_os.publisher
-      offer     = local.hdb_os.offer
-      sku       = local.hdb_os.sku
-      version   = local.hdb_os.version
+      publisher = var.database.os.publisher
+      offer     = var.database.os.offer
+      sku       = var.database.os.sku
+      version   = var.database.os.version
     }
   }
   dynamic "plan" {
-    for_each = range(local.hdb_custom_image ? 1 : 0)
+    for_each = range(var.database.os.type == "marketplace_with_plan" ? 1 : 0)
     content {
-      name      = local.hdb_os.offer
-      publisher = local.hdb_os.publisher
-      product   = local.hdb_os.sku
+      name      = var.database.os.offer
+      publisher = var.database.os.publisher
+      product   = var.database.os.sku
     }
   }
 
@@ -361,7 +360,7 @@ resource "azurerm_virtual_machine_data_disk_attachment" "vm_dbnode_data_disk" {
   lun                       = local.data_disk_list[count.index].lun
 }
 
-# VM Extension 
+# VM Extension
 resource "azurerm_virtual_machine_extension" "hdb_linux_extension" {
   provider             = azurerm.main
   count                = local.enable_deployment ? var.database_server_count : 0

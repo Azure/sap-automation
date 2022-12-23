@@ -68,14 +68,6 @@
     mode:                              0755
     state:                             directory
 
-- name:                                "DB2: Create filepermission.txt"
-  become:                              true
-  become_user:                         root
-  ansible.builtin.file:
-    path:                              /etc/sap_deployment_automation/filepermission.txt
-    mode:                              0644
-    state:                             touch
-
 # Debug - Fail
 # - name:                                "DB2: fail here"
 #   ansible.builtin.fail:
@@ -87,8 +79,7 @@
     path:                              /etc/sap_deployment_automation/filepermission.txt
   register:                            db2_permissions_set
 
-- name:                                "DB2: Make db2sid:dba as owners for DB2
-                                        directories"
+- name:                                "DB2: Make db2sid:dba as owners for DB2 directories"
   ansible.builtin.file:
     path:                              "{{ item.path }}"
     state:                             directory
@@ -96,7 +87,7 @@
     group:                             "{{ item.group }}"
     recurse:                           true
   loop:
-    - { path: '/db2',       group: 'db2install',   owner: 'db2{{ db_sid | lower }}'}
+    - { path: '/db2', group: '{{ db2sysadm_gid }}', owner: '{{ db2sidadm_uid }}' }
   when:
     - not db2_permissions_set.stat.exists
 
@@ -118,16 +109,24 @@
 - name:                                "DB2: Set NFS Server variable"
   ansible.builtin.set_fact:
     sapmnt_nfs_mount: >-
-                                        {% if (NFS_provider == 'AFS' or NFS_provider == 'ANF') and (sap_mnt is defined) %}{{ sap_mnt }}/sapmnt{{ sap_sid | upper }}{% else %}{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') | first }}:/sapmnt/{{ sap_sid | upper }}{% endif %}
+                                        {% if (NFS_provider == 'AFS' or NFS_provider == 'ANF') and (sap_mnt is defined) %}{{ sap_mnt }}{% else %}{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') | first }}:/sapmnt/{{ sap_sid | upper }}{% endif %}
+
+- name:                                "DB2: Set NFS Server variable"
+  ansible.builtin.debug:
+    var:  sapmnt_nfs_mount
 
 - name:                                "DB2: Set NFS Server options"
   ansible.builtin.set_fact:
     sapmnt_nfs_opts: >-
                                         {% if (NFS_provider == 'AFS' or NFS_provider == 'ANF') and (sap_mnt is defined) %}rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp{% else %}defaults{% endif %}
 
+- name:                                "DB2: Set NFS Server options"
+  ansible.builtin.debug:
+    var:  sapmnt_nfs_opts
+
 # Mount Filesystems
 - name:                                "Mount SAP Filesystems on Database for installation"
-  mount:
+  ansible.posix.mount:
     src:                               "{{ item.src }}"
     path:                              "{{ item.path }}"
     fstype:                            "{{ item.type }}"
@@ -142,6 +141,7 @@
     }
   when:
     - item.tier == "db2"
+    - sap_mnt is undefined
 
 # Debug for testing
 - name:                                "DB2: Print filesystems"

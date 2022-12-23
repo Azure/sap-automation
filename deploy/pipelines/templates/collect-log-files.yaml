@@ -1,0 +1,82 @@
+parameters:
+  logPath: ""
+steps:
+  - script: |
+      #!/bin/bash
+      # Exit immediately if a command exits with a non-zero status.
+      # Treat unset variables as an error when substituting.
+      set -eu
+
+      echo "Collecting log files from ${{ parameters.logPath }}"
+
+      if [ -d ${LOG_PATH} ] && [ $(ls ${LOG_PATH}/*.zip | wc -l ) -gt 0 ]; then
+        echo "Found log files in ${LOG_PATH}"
+
+        cd ${LOG_PATH}
+        ls -ltr
+
+        git config --global user.email "${USER_EMAIL}"
+        git config --global user.name "${USER_NAME}"
+
+        echo "Checking out ${SOURCE_BRANCH} branch..."
+        git checkout -q ${SOURCE_BRANCH}
+        echo "Pulling last changes..."
+        git pull
+
+        echo "Adding new logs..."
+        git add --ignore-errors *.zip
+        if [ $(git diff --name-only --cached | wc -l) -gt 0 ]; then
+            echo "Committing changes..."
+            git commit -m "Adding new logs"
+            echo "Pushing changes..."
+            git push
+        else
+            echo "No changes to commit"
+        fi
+      else
+        echo No logs found in "${LOG_PATH}"
+      fi
+    displayName: Store log files in repository
+    enabled: true
+    env:
+      USER_EMAIL: $(Build.RequestedForEmail)
+      USER_NAME: $(Build.RequestedFor)
+      SOURCE_BRANCH: $(Build.SourceBranchName)
+      SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+      LOG_PATH: ${{ parameters.logPath }}
+
+  - script: |
+      #!/bin/bash
+      # Exit immediately if a command exits with a non-zero status.
+      # Treat unset variables as an error when substituting.
+      set -u
+
+      timestamp=$(date -u +"%Y-%m-%dT%H:%M:%S%:z")
+
+      if [ -d ${LOG_PATH} ] && [ $(ls ${LOG_PATH}/*.zip | wc -l ) -gt 0 ]; then
+        echo "##[section]Found log files in ${LOG_PATH}"
+        cd ${LOG_PATH}
+        for zip in *.zip; do
+          echo "##[section]Extracting $zip"
+          unzip -d "${zip%.*}" "$zip"
+
+          cd ${LOG_PATH}/${zip%.*}
+
+          echo "##[section]Files of $PWD..."
+          echo "##vso[artifact.upload containerfolder=logs;artifactname=logs_${timestamp}_${zip%.*}]$PWD"
+          logfiles=$(find $PWD -type f -name "*")
+
+          for logfile in $logfiles; do
+            echo "##[group]- $logfile"
+            # cat $logfile
+            echo "##vso[task.uploadfile]${logfile}"
+            echo "##[endgroup]"
+          done
+        done
+      else
+        echo 'No logs found in ${LOG_PATH}'
+      fi
+    displayName: Collect log files
+    condition: always()
+    env:
+      LOG_PATH: ${{ parameters.logPath }}

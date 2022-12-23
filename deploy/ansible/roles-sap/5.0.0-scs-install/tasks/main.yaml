@@ -23,11 +23,15 @@
     sap_inifile_template:              "{{ bom_base_name }}-scs-inifile-param.j2"
     dir_params:                        "{{ tmp_directory }}/.{{ sid_to_be_deployed.sid | lower }}-params"
 
-- name:                                "SCS Install: Create run flag directory"
+- name:                                "SCS Install: -  Create directories"
   ansible.builtin.file:
-    path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}"
+    path:                              "{{ item.path }}"
     state:                             directory
-    mode:                              0755
+    mode:                              '{{ item.mode }}'
+  loop:
+    - { mode: '0755', path: '{{ dir_params }}' }
+    - { mode: '0755', path: '{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}' }
+    - { mode: '0755', path: '/etc/sap_deployment_automation/{{ sap_sid | upper }}' }
 
 - name:                                "SCS Install: reset"
   ansible.builtin.file:
@@ -46,19 +50,15 @@
     var:                               scs_installed
     verbosity:                         2
 
+- name:                                "SCS Install: check media exists"
+  ansible.builtin.stat:
+    path:                              "{{ target_media_location }}/SWPM/sapinst"
+  register:                            sapinst_found
 
-#   0x) Create hidden directory for parameter files
-- name:                                "SCS Install: Create hidden directory"
-  ansible.builtin.file:
-    path:                              "{{ dir_params }}"
-    state:                             directory
-    mode:                              0755
-
-- name:                                "SCS Install: Create temp directory for sid"
-  ansible.builtin.file:
-    path:                              "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
-    state:                             directory
-    mode:                              0755
+- name:                                "ErrorHandling"
+  ansible.builtin.fail:
+    msg:                               "INSTALL:0002:Unable to find sapinst, please check that the installation media is mounted"
+  when: not sapinst_found.stat.exists
 
 - name:                                "SCS Install: Include 3.3.1-bom-utility role"
   ansible.builtin.include_role:
@@ -66,7 +66,6 @@
     tasks_from:                        bom-register
   vars:
     bom_name:                          "{{ bom_base_name }}"
-    tier:                              "{{ tier }}"
     task_prefix:                       "SCS Install: "
 
 - name:                                "SCS Install: Include roles-sap/3.3.1-bom-utility role"
@@ -98,6 +97,7 @@
     sap_sid:                           "{{ sid_to_be_deployed.sid }}"
     scs_instance_number:               "{{ sid_to_be_deployed.ascs_inst_no }}"
     sidadm_uid:                        "{{ sid_to_be_deployed.sidadm_uid }}"
+    hdb_instance_number:               "{{ db_instance_number }}"
   tags:
     - skip_ansible_lint
 
@@ -119,14 +119,27 @@
 # |  SAP SCS: Install                                                          |
 # | 2230669 - System Provisioning Using a Parameter Input File                 |
 # *====================================4=======================================8
+
+    - name:                            "Create temp directory for sid"
+      ansible.builtin.file:
+        path:                          "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
+        state:                         directory
+        mode:                          0755
+
     - name:                            "SCS Install: Progress"
       ansible.builtin.debug:
         msg:                           "Start SCS Installation"
 
+    - name:                            "SCS Install: - comment out required message server prots in /etc/services"
+      ansible.builtin.replace:
+        path:                          /etc/services
+        regexp:                        '^([a-z\-]+\s+36{{ scs_instance_number }}/.*)$'
+        replace:                       '# \1'
+        backup:                        true
+
     - name:                            "SCS Install: SAP SCS Install on {{ ansible_hostname }}"
       ansible.builtin.shell: |
                                        umask {{ custom_umask | default('022') }};
-                                       export SAPSYSTEMNAME={{ sid_to_be_deployed.sid | upper }};
                                        ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }}  \
                                                  SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.scs }}             \
                                                  SAPINST_SKIP_DIALOGS=true                                        \
@@ -160,7 +173,7 @@
 
     - name:                            Find the installationSuccesfullyFinished.dat (SAPINST)
       ansible.builtin.find:
-        paths:                         "{{ tmp_directory }}/sapinst_instdir/{{ bom.product_ids.scs.replace('.', '/').replace('/ABAP', '').split(':')[1] }}/INSTALL/DISTRIBUTED/ABAP/ASCS"
+        paths:                         "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}/sapinst_instdir/{{ bom.product_ids.scs.replace('.', '/').replace('/ABAP', '').split(':')[1] }}/INSTALL/DISTRIBUTED/ABAP/ASCS"
         file_type:                     file
         patterns:                      'installationSuccesfullyFinished.dat'
         recurse:                       true
@@ -169,6 +182,7 @@
     - name:                            "SCS Install: show"
       ansible.builtin.debug:
         var:                           scs_installed_according_to_sapinst
+        verbosity:                     2
 
     - name:                            "SCS Install: flag"
       ansible.builtin.file:

@@ -85,7 +85,7 @@ output "random_id" {
 }
 
 output "user_vault_name" {
-  value = local.user_keyvault_exist ? data.azurerm_key_vault.kv_user[0].name : azurerm_key_vault.kv_user[0].name
+  value = var.key_vault.kv_exists ? data.azurerm_key_vault.kv_user[0].name : azurerm_key_vault.kv_user[0].name
 }
 
 ###############################################################################
@@ -120,7 +120,7 @@ output "deployer_user" {
 */
 
 output "deployer_keyvault_user_arm_id" {
-  value = local.user_keyvault_exist ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id
+  value = var.key_vault.kv_exists ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id
 }
 
 

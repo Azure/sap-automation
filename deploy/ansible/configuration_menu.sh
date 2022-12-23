@@ -149,6 +149,7 @@ playbook_options=(
         --private-key=${ANSIBLE_PRIVATE_KEY_FILE}
         --extra-vars="_workspace_directory=`pwd`"
         --extra-vars="@${sap_params_file}"
+        --extra-vars="BOM_CATALOG={{ lookup("env", "BOM_CATALOG") }}"
         -e ansible_ssh_pass='{{ lookup("env", "ANSIBLE_PASSWORD") }}'
         "${@}"
 )
@@ -165,7 +166,7 @@ do
 
         case $opt in
         "${options[-1]}")   # Quit
-                rm sshkey       
+                rm sshkey
                 break;;
         "${options[-2]}")   # Run through all playbooks
                 playbooks+=( "${all_playbooks[@]}" );;

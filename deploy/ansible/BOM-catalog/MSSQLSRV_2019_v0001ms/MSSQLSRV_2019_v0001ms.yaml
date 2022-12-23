@@ -3,6 +3,7 @@
 name:    "MSSQLSRV_2019_0001ms"
 target:  'RDBMS MSSQLSRV 2019 - SQL4SAP only'
 version: 1
+platform: "SQLSERVER"
 
 materials:
 
@@ -17,12 +18,12 @@ materials:
     #   url:          https://softwaredownloads.sap.com/file/0030000001004302020
 
     - name:         "RDBMS MSSQLSRV 2019"
-      archive:      51054503.ZIP
+      archive:      51054188.ZIP
       extract:      true
       download:     true
       extractDir:   mssserver2019
       path:         download_basket
-      checksum:     46383aa819a69599098dea805b70987ea5e1c4a29effc9b7e0c61d57ceae55ca
-      url:          https://softwaredownloads.sap.com/file/0030000001016442020
+      checksum:     c702bfa15ce74fdcbf6695a1230f20a1c39f622283be41c9c5fddedc227aa8eb
+      url:          https://softwaredownloads.sap.com/file/0030000000635602020
 
 ...

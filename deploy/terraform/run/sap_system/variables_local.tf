@@ -11,7 +11,7 @@ locals {
 
 
   db_sid  = upper(try(local.database.instance.sid, "HDB"))
-  sap_sid = upper(try(local.application.sid, local.db_sid))
+  sap_sid = upper(try(local.application_tier.sid, local.db_sid))
 
   enable_db_deployment = length(local.database.platform) > 0
 

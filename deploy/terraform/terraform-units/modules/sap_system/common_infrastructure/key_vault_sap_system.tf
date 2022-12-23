@@ -38,7 +38,7 @@ data "azurerm_key_vault_secret" "sid_password" {
 ###############################################################################
 resource "azurerm_key_vault" "sid_keyvault_user" {
   provider = azurerm.main
-  count    = local.enable_sid_deployment && local.use_local_credentials ? 1 : 0
+  count    = local.enable_sid_deployment && local.use_local_credentials && length(local.user_key_vault_id) == 0 ? 1 : 0
   name     = local.user_keyvault_name
   location = var.infrastructure.region
   resource_group_name = local.resource_group_exists ? (
@@ -109,7 +109,7 @@ resource "azurerm_key_vault_secret" "auth_username" {
   count        = local.enable_sid_deployment && local.use_local_credentials ? 1 : 0
   name         = format("%s-username", local.prefix)
   value        = local.sid_auth_username
-  key_vault_id = azurerm_key_vault.sid_keyvault_user[0].id
+  key_vault_id = length(local.user_key_vault_id) > 0 ? data.azurerm_key_vault.sid_keyvault_user[0].id : azurerm_key_vault.sid_keyvault_user[0].id
 }
 
 // Store the password in KV when authentication type is password
@@ -118,7 +118,7 @@ resource "azurerm_key_vault_secret" "auth_password" {
   count        = local.enable_sid_deployment && local.use_local_credentials ? 1 : 0
   name         = format("%s-password", local.prefix)
   value        = local.sid_auth_password
-  key_vault_id = azurerm_key_vault.sid_keyvault_user[0].id
+  key_vault_id = length(local.user_key_vault_id) > 0 ? data.azurerm_key_vault.sid_keyvault_user[0].id : azurerm_key_vault.sid_keyvault_user[0].id
 }
 
 // Using TF tls to generate SSH key pair and store in user KV
@@ -138,7 +138,7 @@ resource "azurerm_key_vault_secret" "sdu_private_key" {
   count        = local.enable_sid_deployment && local.use_local_credentials ? 1 : 0
   name         = format("%s-sshkey", local.prefix)
   value        = local.sid_private_key
-  key_vault_id = azurerm_key_vault.sid_keyvault_user[0].id
+  key_vault_id = length(local.user_key_vault_id) > 0 ? data.azurerm_key_vault.sid_keyvault_user[0].id : azurerm_key_vault.sid_keyvault_user[0].id
 }
 
 resource "azurerm_key_vault_secret" "sdu_public_key" {
@@ -146,5 +146,5 @@ resource "azurerm_key_vault_secret" "sdu_public_key" {
   count        = local.enable_sid_deployment && local.use_local_credentials ? 1 : 0
   name         = format("%s-sshkey-pub", local.prefix)
   value        = local.sid_public_key
-  key_vault_id = azurerm_key_vault.sid_keyvault_user[0].id
+  key_vault_id = length(local.user_key_vault_id) > 0 ? data.azurerm_key_vault.sid_keyvault_user[0].id : azurerm_key_vault.sid_keyvault_user[0].id
 }

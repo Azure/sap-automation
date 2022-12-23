@@ -28,10 +28,10 @@ function showhelp {
     echo "#   The script experts the following exports:                                           #"
     echo "#                                                                                       #"
     echo "#     ARM_SUBSCRIPTION_ID to specify which subscription to deploy to                    #"
-    echo "#     DEPLOYMENT_REPO_PATH the path to the folder containing the cloned sap-automation        #"
+    echo "#     SAP_AUTOMATION_REPO_PATH the path to the folder containing the cloned sap-automation        #"
     echo "#                                                                                       #"
     echo "#   The script will persist the parameters needed between the executions in the         #"
-    echo "#   ~/.sap_deployment_automation folder                                                 #"
+    echo "#   [CONFIG_REPO_PATH]/.sap_deployment_automation folder                                #"
     echo "#                                                                                       #"
     echo "#                                                                                       #"
     echo "#   Usage: install_deployer.sh                                                          #"
@@ -115,7 +115,7 @@ get_region_code $region
 key=$(echo "${parameterfile}" | cut -d. -f1)
 
 #Persisting the parameters across executions
-automation_config_directory=~/.sap_deployment_automation/
+automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation/
 generic_config_information="${automation_config_directory}"config
 deployer_config_information="${automation_config_directory}""${environment}""${region_code}"
 
@@ -127,15 +127,18 @@ param_dirname=$(pwd)
 init "${automation_config_directory}" "${generic_config_information}" "${deployer_config_information}"
 
 var_file="${param_dirname}"/"${parameterfile}"
-# Check that the exports ARM_SUBSCRIPTION_ID and DEPLOYMENT_REPO_PATH are defined
+# Check that the exports ARM_SUBSCRIPTION_ID and SAP_AUTOMATION_REPO_PATH are defined
 validate_exports
 return_code=$?
 if [ 0 != $return_code ]; then
     exit $return_code
 fi
 
-terraform_module_directory="${DEPLOYMENT_REPO_PATH}"/deploy/terraform/bootstrap/"${deployment_system}"/
+terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/"${deployment_system}"/
 export TF_DATA_DIR="${param_dirname}"/.terraform
+
+this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
+export TF_VAR_Agent_IP=$this_ip
 
 ok_to_proceed=false
 new_deployment=false
@@ -244,56 +247,56 @@ fi
 terraform -chdir="${terraform_module_directory}"  apply ${approve} -parallelism="${parallelism}" -var-file="${var_file}" $extra_vars -json | tee -a  apply_output.json
 return_value=$?
 
-rerun_apply=0 
+rerun_apply=0
 if [ -f apply_output.json ]
 then
     errors_occurred=$(jq 'select(."@level" == "error") | length' apply_output.json)
 
     if [[ -n $errors_occurred ]]
     then
-    echo ""
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo -e "#                          $boldreduscore!Errors during the apply phase!$resetformatting                              #"
+      echo ""
+      echo "#########################################################################################"
+      echo "#                                                                                       #"
+      echo -e "#                          $boldreduscore!Errors during the apply phase!$resetformatting                              #"
 
-    return_value=2
-    all_errors=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary, detail: .diagnostic.detail}' apply_output.json)
-    if [[ -n ${all_errors} ]]
-    then
-        readarray -t errors_strings < <(echo ${all_errors} | jq -c '.' )
-        for errors_string in "${errors_strings[@]}"; do
-            string_to_report=$(jq -c -r '.detail '  <<< "$errors_string" )
-            if [[ -z ${string_to_report} ]]
-            then
-                string_to_report=$(jq -c -r '.summary '  <<< "$errors_string" )
-            fi
-            
-            echo -e "#                          $boldreduscore  $string_to_report $resetformatting"
-            echo "##vso[task.logissue type=error]${string_to_report}"
-        
-        done
-        
-    fi
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
-    echo ""
+      return_value=2
+      all_errors=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary, detail: .diagnostic.detail}' apply_output.json)
+      if [[ -n ${all_errors} ]]
+      then
+          readarray -t errors_strings < <(echo ${all_errors} | jq -c '.' )
+          for errors_string in "${errors_strings[@]}"; do
+              string_to_report=$(jq -c -r '.detail '  <<< "$errors_string" )
+              if [[ -z ${string_to_report} ]]
+              then
+                  string_to_report=$(jq -c -r '.summary '  <<< "$errors_string" )
+              fi
 
-    # Check for resource that can be imported
-    existing=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary}  | select(.summary | startswith("A resource with the ID"))' apply_output.json)
-    if [[ -n ${existing} ]]
-    then
-        
-        readarray -t existing_resources < <(echo ${existing} | jq -c '.' )
-        for item in "${existing_resources[@]}"; do
-        moduleID=$(jq -c -r '.address '  <<< "$item")
-        resourceID=$(jq -c -r '.summary' <<< "$item" | awk -F'\"' '{print $2}')
-        echo "Trying to import" $resourceID "into" $moduleID
-        
-        echo terraform -chdir="${terraform_module_directory}" import -allow-missing-config  -var-file="${var_file}" $extra_vars $moduleID $resourceID
-        terraform -chdir="${terraform_module_directory}" import -allow-missing-config -var-file="${var_file}" $extra_vars $moduleID $resourceID
-        done
-        rerun_apply=1 
-    fi
+              echo -e "#                          $boldreduscore  $string_to_report $resetformatting"
+              echo "##vso[task.logissue type=error]${string_to_report}"
+
+          done
+
+      fi
+      echo "#                                                                                       #"
+      echo "#########################################################################################"
+      echo ""
+
+      # Check for resource that can be imported
+      existing=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary}  | select(.summary | startswith("A resource with the ID"))' apply_output.json)
+      if [[ -n ${existing} ]]
+      then
+
+          readarray -t existing_resources < <(echo ${existing} | jq -c '.' )
+          for item in "${existing_resources[@]}"; do
+            moduleID=$(jq -c -r '.address '  <<< "$item")
+            resourceID=$(jq -c -r '.summary' <<< "$item" | awk -F'\"' '{print $2}')
+            echo "Trying to import" $resourceID "into" $moduleID
+
+            echo terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" $extra_vars $moduleID $resourceID
+            terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" $extra_vars $moduleID $resourceID
+          done
+          rerun_apply=1
+      fi
     fi
 
 fi
@@ -311,14 +314,67 @@ if [ $rerun_apply == 1 ] ; then
     echo "#                                                                                       #"
     echo "#########################################################################################"
     echo ""
-    terraform -chdir="${terraform_module_directory}"  apply ${approve} -parallelism="${parallelism}" -var-file="${var_file}" $extra_vars
+    terraform -chdir="${terraform_module_directory}"  apply ${approve} -parallelism="${parallelism}" -var-file="${var_file}" $extra_vars -json | tee -a  apply_output.json
     return_value=$?
 fi
 
+return_value=$?
+
+if [ -f apply_output.json ]
+then
+    errors_occurred=$(jq 'select(."@level" == "error") | length' apply_output.json)
+    if [[ -n $errors_occurred ]]
+    then
+      echo ""
+      echo "#########################################################################################"
+      echo "#                                                                                       #"
+      echo -e "#                          $boldreduscore!Errors during the apply phase!$resetformatting                              #"
+
+      return_value=2
+      all_errors=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary, detail: .diagnostic.detail}' apply_output.json)
+      if [[ -n ${all_errors} ]]
+      then
+          readarray -t errors_strings < <(echo ${all_errors} | jq -c '.' )
+          for errors_string in "${errors_strings[@]}"; do
+              string_to_report=$(jq -c -r '.detail '  <<< "$errors_string" )
+              if [[ -z ${string_to_report} ]]
+              then
+                  string_to_report=$(jq -c -r '.summary '  <<< "$errors_string" )
+              fi
+
+              echo -e "#                          $boldreduscore  $string_to_report $resetformatting"
+              echo "##vso[task.logissue type=error]${string_to_report}"
+
+          done
+
+      fi
+      echo "#                                                                                       #"
+      echo "#########################################################################################"
+      echo ""
+
+      # Check for resource that can be imported
+
+      existing=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary}  | select(.summary | startswith("A resource with the ID"))' apply_output.json)
+      if [[ -n ${existing} ]]
+      then
+        readarray -t existing_resources < <(echo ${existing} | jq -c '.' )
+        for item in "${existing_resources[@]}"; do
+            moduleID=$(jq -c -r '.address '  <<< "$item")
+            resourceID=$(jq -c -r '.summary' <<< "$item" | awk -F'\"' '{print $2}')
+            echo "Trying to import" $resourceID "into" $moduleID
+
+            echo terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" $extra_vars $moduleID $resourceID
+            terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" $extra_vars $moduleID $resourceID
+        done
+        terraform -chdir="${terraform_module_directory}"  apply ${approve} -parallelism="${parallelism}" -var-file="${var_file}" $extra_vars -json | tee -a  apply_output.json
+        return_value=$?
+      fi
+    fi
+else
+  return_value=0
+fi
 
 keyvault=$(terraform -chdir="${terraform_module_directory}"  output deployer_kv_user_name | tr -d \")
-
-return_value=0
 temp=$(echo "${keyvault}" | grep "Warning")
 if [ -z "${temp}" ]
 then
@@ -343,4 +399,5 @@ then
     fi
 fi
 unset TF_DATA_DIR
+
 exit $return_value

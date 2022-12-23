@@ -1,18 +1,40 @@
-# TBC -
-# Execute command as db2<sid> db2pd -hadr -db <SID>
-# and check the following values
-#
-#                        HADR_ROLE = PRIMARY
-#                           REPLAY_TYPE = PHYSICAL
-#                         HADR_SYNCMODE = NEARSYNC
-#                            STANDBY_ID = 1
-#                         LOG_STREAM_ID = 0
-#                            HADR_STATE = PEER
-#                            HADR_FLAGS = TCP_PROTOCOL
-#                   PRIMARY_MEMBER_HOST = azibmdb02
-#                      PRIMARY_INSTANCE = db2ptr
-#                        PRIMARY_MEMBER = 0
-#                   STANDBY_MEMBER_HOST = azibmdb01
-#                      STANDBY_INSTANCE = db2ptr
-#                        STANDBY_MEMBER = 0
-#                   HADR_CONNECT_STATUS = CONNECTED
+---
+########################### the playbook checks the status of replication in both primary and secondary instance#####
+
+- name:                                "DB2 Primary Instance: - Ensure replication status is active"
+  become_user:                         db2{{ db_sid | lower }}
+  ansible.builtin.shell:               db2pd -hadr -db {{ db_sid | upper }} | grep -e 'HADR_STATE = PEER' -e 'HADR_CONNECT_STATUS = CONNECTED'
+  register:                            grep_result
+  until:                               grep_result.rc == 0 or grep_result.rc == 1
+  failed_when:                         grep_result.rc != 0 and grep_result.rc != 1
+  changed_when:                        false
+  retries:                             5
+  delay:                               5
+  when:                                ansible_hostname == primary_instance_name
+  tags:
+    - skip_ansible_lint
+
+- name:                                "DB2 Primary Instance  Replication - Status"
+  ansible.builtin.debug:
+    var:                               grep_result
+    verbosity:                         2
+
+- name:                                "DB2 Secondary Instance: - Ensure replication status is active"
+  become_user:                         db2{{ db_sid | lower }}
+  ansible.builtin.shell:               db2pd -hadr -db {{ db_sid | upper }} | grep -e 'HADR_STATE = PEER' -e 'HADR_CONNECT_STATUS = CONNECTED'
+  register:                            grep_result
+  until:                               grep_result.rc == 0 or grep_result.rc == 1
+  failed_when:                         grep_result.rc != 0 and grep_result.rc != 1
+  changed_when:                        false
+  retries:                             5
+  delay:                               5
+  when:                                ansible_hostname == secondary_instance_name
+  tags:
+    - skip_ansible_lint
+
+- name:                                "DB2 Secondary Instance Replication - Status"
+  ansible.builtin.debug:
+    var:                               grep_result
+    verbosity:                         2
+
+...

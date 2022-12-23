@@ -37,7 +37,7 @@
 
 # Mount Filesystems
 - name:     "Mount Filesystems for Oracle"
-  mount:
+  ansible.posix.mount:
     src:    "{{ dev_path_from_lv_item }}"
     # path:   "{{ ['/'~item.lv|split('_')[-2], db_sid | upper, item.lv | split('_')[-1]] | join('/') }}"
     path: >-
@@ -60,7 +60,7 @@
 
 # Mount Filesystems
 - name:     "Mount SAP Filesystems on Database for installation"
-  mount:
+  ansible.posix.mount:
     src:    "{{ item.src }}"
     path:   "{{ item.path }}"
     fstype: "{{ item.type }}"

@@ -21,7 +21,7 @@ product_ids:
 
 materials:
   dependencies:
-  #  - name:                            "HANA_2_00_059_v0001ms"
+    - name:                            "HANA_2_00_065_v0001ms"
     - name:                            "SWPM20SP11_latest"
 
   media:
@@ -219,7 +219,7 @@ materials:
       archive:                         S4CORE106_INST_EXPORT_28.zip
       url:                             https://softwaredownloads.sap.com/file/0030000001440592021
       path:                            download_basket
-    
+
     # LANGUAGE PACKS: Includes only English, German and Japanese language packs.
     - name:                            "File on DVD - S4HANAOP106_ERP_LANG_DE.SAR"
       archive:                         S4HANAOP106_ERP_LANG_DE.SAR

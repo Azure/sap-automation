@@ -14,12 +14,12 @@
 
 - name:                                "HANA HSR: - HSR Create helper variables"
   ansible.builtin.set_fact:
-    DB:                                "{{ hana_tenant_database_name }}/HDB{{ hdb_instance_number }}"
+    DB:                                "{{ hana_tenant_database_name }}/HDB{{ db_instance_number }}"
 
 - name:                                "HANA HSR: - pre-checks"
   block:
     - name:                            "HANA HSR: - pre-checks"
-      import_tasks:                    4.0.1.0-pre_checks.yml
+      ansible.builtin.import_tasks:    4.0.1.0-pre_checks.yml
   vars:
     ansible_python_interpreter:        'python3'
   environment:
@@ -34,16 +34,18 @@
     PYTHONPATH:                        "/usr/sap/{{ DB }}/exe/Py3:/usr/sap/HDB/SYS/global/hdb/custom/python_support:/usr/sap/{{ DB }}/exe/python_support:/usr/sap/{{ DB }}/{{ ansible_hostname }}:/usr/sap/{{ DB }}/exe:/usr/sap/{{ DB }}/exe/testscripts:/usr/sap/{{ DB }}/exe/Python3/lib/python3.7"
     PATH:                              "/usr/sap/{{ DB }}/exe/krb5/bin:/usr/sap/{{ DB }}/exe/krb5/sbin:/usr/sap/{{ DB }}/{{ ansible_hostname }}:/usr/sap/{{ DB }}:/usr/sap/{{ DB }}/exe:/usr/sap/{{ DB }}/exe/mdc:/usr/sap/{{ DB }}/exe/Python3/bin:/usr/sap/{{ DB }}/exe/dat_bin_dir:/usr/sap/HDB/home:/usr/sap/HDB/home/bin:/usr/local/bin:/usr/bin:/bin:/usr/games:/usr/lib/mit/bin"
     LD_LIBRARY_PATH:                   "/usr/sap/{{ DB }}/exe/krb5/lib/krb5/plugins/preauth:/usr/sap/{{ DB }}/exe/krb5/lib:/usr/sap/{{ DB }}/exe:/usr/sap/{{ DB }}/exe/Python3/lib:/usr/sap/{{ DB }}/exe/Py3:/usr/sap/{{ DB }}/exe/filter:/usr/sap/{{ DB }}/exe/dat_bin_dir:/usr/sap/{{ DB }}/exe/plugins/afl:/usr/sap/{{ DB }}/exe/plugins/lcapps:/usr/sap/{{ DB }}/exe/plugins/repository:/usr/sap/{{ DB }}/exe/plugins/epmmds:/usr/sap/HDB/SYS/global/hdb/federation:/usr/sap/HDB/SYS/global/hdb/plugins/3rd_party_libs:/usr/sap/HDB/SYS/global/hdb/plugins/1st_party_libs"
+    TEMPDIR:                           "{{ tmp_directory }}/{{ sap_sid | upper }}"
+    ANSIBLE_REMOTE_TMP:                "{{ tmp_directory }}/{{ sap_sid | upper }}"
 
 - name:                                "HANA HSR: - Replication"
   block:
 
     - name:                            "HANA HSR: - HSR Set Runtime facts"
-      import_tasks:                    4.0.1.1-set_runtime_path_facts.yml
+      ansible.builtin.import_tasks:    4.0.1.1-set_runtime_path_facts.yml
     - name:                            "HANA HSR: - Copy Keys"
-      import_tasks:                    4.0.1.3-copy_ssfs_keys.yml
+      ansible.builtin.import_tasks:    4.0.1.3-copy_ssfs_keys.yml
     - name:                            "HANA HSR: - Create HANA backup"
-      import_tasks:                    4.0.1.4-create_hana_backup.yml
+      ansible.builtin.import_tasks:    4.0.1.4-create_hana_backup.yml
 
   vars:
     ansible_python_interpreter:        python3
@@ -59,15 +61,17 @@
     PYTHONPATH:                        "/usr/sap/{{ DB }}/exe/Py3:/usr/sap/HDB/SYS/global/hdb/custom/python_support:/usr/sap/{{ DB }}/exe/python_support:/usr/sap/{{ DB }}/{{ ansible_hostname }}:/usr/sap/{{ DB }}/exe:/usr/sap/{{ DB }}/exe/testscripts:/usr/sap/{{ DB }}/exe/Python3/lib/python3.7"
     PATH:                              "/usr/sap/{{ DB }}/exe/krb5/bin:/usr/sap/{{ DB }}/exe/krb5/sbin:/usr/sap/{{ DB }}/{{ ansible_hostname }}:/usr/sap/{{ DB }}:/usr/sap/{{ DB }}/exe:/usr/sap/{{ DB }}/exe/mdc:/usr/sap/{{ DB }}/exe/Python3/bin:/usr/sap/{{ DB }}/exe/dat_bin_dir:/usr/sap/HDB/home:/usr/sap/HDB/home/bin:/usr/local/bin:/usr/bin:/bin:/usr/games:/usr/lib/mit/bin"
     LD_LIBRARY_PATH:                   "/usr/sap/{{ DB }}/exe/krb5/lib/krb5/plugins/preauth:/usr/sap/{{ DB }}/exe/krb5/lib:/usr/sap/{{ DB }}/exe:/usr/sap/{{ DB }}/exe/Python3/lib:/usr/sap/{{ DB }}/exe/Py3:/usr/sap/{{ DB }}/exe/filter:/usr/sap/{{ DB }}/exe/dat_bin_dir:/usr/sap/{{ DB }}/exe/plugins/afl:/usr/sap/{{ DB }}/exe/plugins/lcapps:/usr/sap/{{ DB }}/exe/plugins/repository:/usr/sap/{{ DB }}/exe/plugins/epmmds:/usr/sap/HDB/SYS/global/hdb/federation:/usr/sap/HDB/SYS/global/hdb/plugins/3rd_party_libs:/usr/sap/HDB/SYS/global/hdb/plugins/1st_party_libs"
+    TEMPDIR:                           "{{ tmp_directory }}/{{ sap_sid | upper }}"
+    ANSIBLE_REMOTE_TMP:                "{{ tmp_directory }}/{{ sap_sid | upper }}"
 
 - name:                                "HANA HSR: - Provision replication"
-  import_tasks:                        4.0.1.5-provision_hana_replication.yml
+  ansible.builtin.import_tasks:        4.0.1.5-provision_hana_replication.yml
   when:                                hana_system_replication_needed
 
 - name:                                "HANA HSR: - Perform the HSR post check tasks"
   block:
     - name:                            "HANA HSR: - Perform the HSR post check tasks"
-      import_tasks:                    4.0.1.6-post_checks.yml
+      ansible.builtin.import_tasks:    4.0.1.6-post_checks.yml
       vars:
         ansible_python_interpreter:    python3
       environment:
@@ -83,5 +87,7 @@
         PYTHONPATH:                    "/usr/sap/{{ DB }}/exe/Py3:/usr/sap/HDB/SYS/global/hdb/custom/python_support:/usr/sap/{{ DB }}/exe/python_support:/usr/sap/{{ DB }}/{{ ansible_hostname }}:/usr/sap/{{ DB }}/exe:/usr/sap/{{ DB }}/exe/testscripts:/usr/sap/{{ DB }}/exe/Python3/lib/python3.7"
         PATH:                          "/usr/sap/{{ DB }}/exe/krb5/bin:/usr/sap/{{ DB }}/exe/krb5/sbin:/usr/sap/{{ DB }}/{{ ansible_hostname }}:/usr/sap/{{ DB }}:/usr/sap/{{ DB }}/exe:/usr/sap/{{ DB }}/exe/mdc:/usr/sap/{{ DB }}/exe/Python3/bin:/usr/sap/{{ DB }}/exe/dat_bin_dir:/usr/sap/HDB/home:/usr/sap/HDB/home/bin:/usr/local/bin:/usr/bin:/bin:/usr/games:/usr/lib/mit/bin"
         LD_LIBRARY_PATH:               "/usr/sap/{{ DB }}/exe/krb5/lib/krb5/plugins/preauth:/usr/sap/{{ DB }}/exe/krb5/lib:/usr/sap/{{ DB }}/exe:/usr/sap/{{ DB }}/exe/Python3/lib:/usr/sap/{{ DB }}/exe/Py3:/usr/sap/{{ DB }}/exe/filter:/usr/sap/{{ DB }}/exe/dat_bin_dir:/usr/sap/{{ DB }}/exe/plugins/afl:/usr/sap/{{ DB }}/exe/plugins/lcapps:/usr/sap/{{ DB }}/exe/plugins/repository:/usr/sap/{{ DB }}/exe/plugins/epmmds:/usr/sap/HDB/SYS/global/hdb/federation:/usr/sap/HDB/SYS/global/hdb/plugins/3rd_party_libs:/usr/sap/HDB/SYS/global/hdb/plugins/1st_party_libs"
+        TEMPDIR:                       "{{ tmp_directory }}/{{ sap_sid | upper }}"
+        ANSIBLE_REMOTE_TMP:            "{{ tmp_directory }}/{{ sap_sid | upper }}"
   when:
     - hana_system_replication_needed

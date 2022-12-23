@@ -1,8 +1,8 @@
 
 ###############################################################################
-#                                                                             # 
-#                             Resource Group                                  # 
-#                                                                             # 
+#                                                                             #
+#                             Resource Group                                  #
+#                                                                             #
 ###############################################################################
 
 output "created_resource_group_id" {
@@ -26,14 +26,15 @@ output "workload_zone_prefix" {
 }
 
 ###############################################################################
-#                                                                             # 
-#                            Network                                          # 
-#                                                                             # 
+#                                                                             #
+#                            Network                                          #
+#                                                                             #
 ###############################################################################
 
 output "vnet_sap_arm_id" {
   description = "Azure resource identifier for the Virtual Network"
-  value       = module.sap_landscape.vnet_sap_id
+
+  value       = length(var.network_arm_id) > 0 ? var.network_arm_id : module.sap_landscape.vnet_sap_id
 }
 
 output "route_table_id" {
@@ -43,22 +44,22 @@ output "route_table_id" {
 
 output "admin_subnet_id" {
   description = "Azure resource identifier for the admin subnet"
-  value       = module.sap_landscape.admin_subnet_id
+  value       = length(var.admin_subnet_arm_id) > 0 ? var.admin_subnet_arm_id : module.sap_landscape.admin_subnet_id
 }
 
 output "app_subnet_id" {
   description = "Azure resource identifier for the app subnet"
-  value       = module.sap_landscape.app_subnet_id
+  value       = length(var.app_subnet_arm_id) > 0 ? var.app_subnet_arm_id : module.sap_landscape.app_subnet_id
 }
 
 output "db_subnet_id" {
   description = "Azure resource identifier for the db subnet"
-  value       = module.sap_landscape.db_subnet_id
+  value       = length(var.db_subnet_arm_id) > 0 ? var.db_subnet_arm_id : module.sap_landscape.db_subnet_id
 }
 
 output "web_subnet_id" {
   description = "Azure resource identifier for the web subnet"
-  value       = module.sap_landscape.web_subnet_id
+  value       = length(var.web_subnet_arm_id) > 0 ? var.web_subnet_arm_id : module.sap_landscape.web_subnet_id
 }
 
 
@@ -88,15 +89,15 @@ output "subnet_mgmt_id" {
 
 
 ###############################################################################
-#                                                                             # 
-#                            Key Vault                                        # 
-#                                                                             # 
+#                                                                             #
+#                            Key Vault                                        #
+#                                                                             #
 ###############################################################################
 
 
 output "landscape_key_vault_user_arm_id" {
   description = "Azure resource identifier for the user credential keyvault"
-  value       = try(module.sap_landscape.kv_user, "")
+  value       = length(var.user_keyvault_id) > 0 ? var.user_keyvault_id : try(module.sap_landscape.kv_user, "")
 }
 
 output "spn_kv_id" {
@@ -105,7 +106,7 @@ output "spn_kv_id" {
 
 output "workloadzone_kv_name" {
   description = "User credential keyvault name"
-  value       = try(split("/", module.sap_landscape.kv_user)[8], "")
+  value       = length(var.user_keyvault_id) > 0 ? split("/", var.user_keyvault_id)[8] : try(split("/", module.sap_landscape.kv_user)[8], "")
 }
 
 output "landscape_key_vault_private_arm_id" {
@@ -130,9 +131,9 @@ output "sid_password_secret_name" {
 }
 
 ###############################################################################
-#                                                                             # 
-#                            iSCSI                                            # 
-#                                                                             # 
+#                                                                             #
+#                            iSCSI                                            #
+#                                                                             #
 ###############################################################################
 
 output "iscsi_authentication_type" {
@@ -148,9 +149,9 @@ output "iscsi_private_ip" {
 }
 
 ###############################################################################
-#                                                                             # 
-#                            DNS                                 # 
-#                                                                             # 
+#                                                                             #
+#                            DNS                                 #
+#                                                                             #
 ###############################################################################
 output "dns_info_iscsi" {
   description = "value"
@@ -186,9 +187,9 @@ output "dns_resource_group_name" {
 
 
 ###############################################################################
-#                                                                             # 
-#                            Storage accounts                                 # 
-#                                                                             # 
+#                                                                             #
+#                            Storage accounts                                 #
+#                                                                             #
 ###############################################################################
 
 output "storageaccount_name" {
@@ -223,9 +224,9 @@ output "witness_storage_account_key" {
 
 
 ###############################################################################
-#                                                                             # 
-#                            ANF                                              # 
-#                                                                             # 
+#                                                                             #
+#                            ANF                                              #
+#                                                                             #
 ###############################################################################
 
 output "ANF_pool_settings" {
@@ -233,9 +234,9 @@ output "ANF_pool_settings" {
 }
 
 ###############################################################################
-#                                                                             # 
-#                            Mount info                                       # 
-#                                                                             # 
+#                                                                             #
+#                            Mount info                                       #
+#                                                                             #
 ###############################################################################
 
 output "saptransport_path" {

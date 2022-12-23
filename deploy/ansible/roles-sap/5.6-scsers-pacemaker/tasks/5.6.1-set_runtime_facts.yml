@@ -32,7 +32,7 @@
 - name:                                "5.6 SCSERS - Set the subnet prefix"
   ansible.builtin.set_fact:
     subnet_prefix: "{{ ((hostvars[ansible_hostname]['ansible_eth0']['ipv4']['address'] | string) + '/' +
-                        (hostvars[ansible_hostname]['ansible_eth0']['ipv4']['netmask'] | string)) | ipaddr('prefix')
+                        (hostvars[ansible_hostname]['ansible_eth0']['ipv4']['netmask'] | string)) | ansible.utils.ipaddr('prefix')
      }}"
 
 

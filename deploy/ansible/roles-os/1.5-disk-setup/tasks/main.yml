@@ -27,8 +27,21 @@
 # -------------------------------------+---------------------------------------8
 #
 
+- name:                                "1.5 Disk setup - Check if installation root directory exists"
+  ansible.builtin.stat:
+    path:                              "{{ tmp_directory }}"
+  register:                            tmp_dir
+
+- name:                                "1.5 Disk setup - Ensure installation root directory exists"
+  ansible.builtin.file:
+    path:                              "{{ tmp_directory }}"
+    state:                             directory
+    mode:                              0775
+  when: not tmp_dir.stat.isdir
+
 - name:                                "1.5 Disk setup - Load the disk configuration settings"
   ansible.builtin.include_vars:        disks_config.yml
+
 
 - name:                                "1.5 Disk setup - Check if the shared disk exists"
   ansible.builtin.set_fact:
@@ -40,7 +53,7 @@
 
 - name:                                "1.5 Disk setup - Append 'sapmnt' if neeeded"
   ansible.builtin.set_fact:
-    logical_volumes:                   "{{ logical_volumes + logical_volumes_sapmnt }}"
+    logical_volumes:                   "{{ logical_volumes_sapmnt + logical_volumes }}"
   when: sap_mnt is not defined
 
 - name:                                "1.5 Disk setup - Append 'install' if needed"

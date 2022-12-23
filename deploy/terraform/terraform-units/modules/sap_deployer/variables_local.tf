@@ -15,7 +15,7 @@ locals {
   // Default option(s):
   enable_secure_transfer    = try(var.options.enable_secure_transfer, true)
   enable_deployer_public_ip = try(var.options.enable_deployer_public_ip, false)
-  Agent_IP = try(var.Agent_IP, "")
+  Agent_IP                  = try(var.Agent_IP, "")
 
 
   // Resource group
@@ -86,7 +86,7 @@ locals {
   )
   management_subnet_deployed_prefixes = local.management_subnet_exists ? (
     data.azurerm_subnet.subnet_mgmt[0].address_prefixes) : (
-    try(azurerm_subnet.subnet_mgmt[0].address_prefixes, "")
+    try(azurerm_subnet.subnet_mgmt[0].address_prefixes, [])
   )
 
   // Management NSG
@@ -113,10 +113,6 @@ locals {
       var.infrastructure.vnets.management.subnet_mgmt.nsg.allowed_ips) : (
       ["0.0.0.0/0"]
     )
-  )
-  management_subnet_nsg_deployed = local.management_subnet_nsg_exists ? (
-    data.azurerm_network_security_group.nsg_mgmt[0]) : (
-    try(azurerm_network_security_group.nsg_mgmt[0], "")
   )
 
   // Firewall subnet
@@ -195,9 +191,7 @@ locals {
   )
 
   // If the user specifies arm id of key vaults in input, the key vault will be imported instead of creating new key vaults
-  user_key_vault_id         = try(var.key_vault.kv_user_id, "")
   prvt_key_vault_id         = try(var.key_vault.kv_prvt_id, "")
-  user_keyvault_exist       = length(local.user_key_vault_id) > 0
   automation_keyvault_exist = length(local.prvt_key_vault_id) > 0
 
   // If the user specifies the secret name of key pair/password in input, the secrets will be imported instead of creating new secrets
@@ -261,8 +255,8 @@ locals {
   )
 
   // Extract information from the specified key vault arm ids
-  user_keyvault_name    = local.user_keyvault_exist ? split("/", local.user_key_vault_id)[8] : local.keyvault_names.user_access
-  user_keyvault_rg_name = local.user_keyvault_exist ? split("/", local.user_key_vault_id)[4] : ""
+  user_keyvault_name    = var.key_vault.kv_exists ? split("/", var.key_vault.kv_user_id)[8] : local.keyvault_names.user_access
+  user_keyvault_rg_name = var.key_vault.kv_exists ? split("/", var.key_vault.kv_user_id)[4] : ""
 
   automation_keyvault_name    = local.automation_keyvault_exist ? split("/", local.prvt_key_vault_id)[8] : local.keyvault_names.private_access
   automation_keyvault_rg_name = local.automation_keyvault_exist ? split("/", local.prvt_key_vault_id)[4] : ""
