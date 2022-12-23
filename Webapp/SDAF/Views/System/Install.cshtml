@@ -4,13 +4,13 @@
     ViewBag.Title = "Install SAP";
     ViewData["environment"] = Model.SapObject.environment;
     IEnumerable<SelectListItem> environments = ViewBag.Environments;
-    IEnumerable<SelectListItem> acssEnvs = new List<SelectListItem> 
+    IEnumerable<SelectListItem> acssEnvs = new List<SelectListItem>
     {
         new SelectListItem { Text = "", Value = "" },
         new SelectListItem { Text = "NonProd", Value = "NonProd" },
         new SelectListItem { Text = "Prod", Value = "Prod" }
     };
-    IEnumerable<SelectListItem> acssSystems = new List<SelectListItem> 
+    IEnumerable<SelectListItem> acssSystems = new List<SelectListItem>
     {
         new SelectListItem { Text = "", Value = "" },
         new SelectListItem { Text = "ECC", Value = "ECC" },
@@ -57,7 +57,7 @@
             </div>
 
             <div class="right-input">
-                @Html.TextBox("sap_system_configuration_name", Model.SapObject.Id, new { @class = "ms-TextField-field", @onkeyup = $"toggleDisableViaNInputs(['sap_system_configuration_name', 'environment', 'bom_base_name', 'acss_environment', 'acss_sap_product'], 'confirm-install-system-checkbox')" })
+                @Html.TextBox("sap_system_configuration_name", Model.SapObject.Id, new { @class = "ms-TextField-field", @onkeyup = $"toggleDisableViaNInputs(['sap_system_configuration_name', 'environment', 'bom_base_name'], 'confirm-install-system-checkbox')" })
             </div>
         </div>
 
@@ -68,7 +68,7 @@
             </div>
 
             <div class="right-input">
-                @Html.DropDownList("environment", environments, new { @class = "js-example-placeholder-single", @style = "width: 100%;", @onchange = $"toggleDisableViaNInputs(['sap_system_configuration_name', 'environment', 'bom_base_name', 'acss_environment', 'acss_sap_product'], 'confirm-install-system-checkbox')" })
+                @Html.DropDownList("environment", environments, new { @class = "js-example-placeholder-single", @style = "width: 100%;", @onchange = $"toggleDisableViaNInputs(['sap_system_configuration_name', 'environment', 'bom_base_name'], 'confirm-install-system-checkbox')" })
             </div>
         </div>
 
@@ -79,7 +79,7 @@
             </div>
 
             <div class="right-input">
-                @Html.TextBox("bom_base_name", "", new { @class = "ms-TextField-field", @onkeyup = $"toggleDisableViaNInputs(['sap_system_configuration_name', 'environment', 'bom_base_name', 'acss_environment', 'acss_sap_product'], 'confirm-install-system-checkbox')" })
+                @Html.TextBox("bom_base_name", "", new { @class = "ms-TextField-field", @onkeyup = $"toggleDisableViaNInputs(['sap_system_configuration_name', 'environment', 'bom_base_name'], 'confirm-install-system-checkbox')" })
             </div>
         </div>
 

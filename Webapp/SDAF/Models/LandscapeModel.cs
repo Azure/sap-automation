@@ -1,4 +1,4 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using static AutomationForm.Models.CustomValidators;
 
@@ -46,7 +46,7 @@ namespace AutomationForm.Models
 
         // ADVANCED
 
-        [SubnetRequired(subnetType: "admin")]
+        //[SubnetRequired(subnetType: "admin")]
         [AddressPrefixValidator(ErrorMessage = "Admin subnet address space must be a valid RFC 1918 address")]
         public string admin_subnet_address_prefix { get; set; }
 
@@ -58,7 +58,7 @@ namespace AutomationForm.Models
         [AddressPrefixValidator(ErrorMessage = "App subnet address space must be a valid RFC 1918 address")]
         public string app_subnet_address_prefix { get; set; }
 
-        [SubnetRequired(subnetType: "web")]
+        //[SubnetRequired(subnetType: "web")]
         [AddressPrefixValidator(ErrorMessage = "Web subnet address space must be a valid RFC 1918 address")]
         public string web_subnet_address_prefix { get; set; }
 
