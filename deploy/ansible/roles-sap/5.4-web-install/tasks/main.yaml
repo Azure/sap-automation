@@ -26,7 +26,7 @@
   loop:
     - { mode: '0755', path: '{{ dir_params }}' }
     - { mode: '0755', path: '{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}' }
-    - { mode: '0755', path: '/etc/sap_deployment_automation/{{ sap_sid | upper }}' }
+    - { mode: '0755', path: '/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}' }
 
 - name:                                "Web Install: reset"
   ansible.builtin.file:
@@ -120,15 +120,15 @@
 # 2230669 - System Provisioning Using a Parameter Input File
 #
 
-    - name:                            "SAP Web Dispatcher Install: progress"
-      ansible.builtin.debug:
-        msg:                           "Starting Web Install ({{ sid_to_be_deployed.sid | upper }})"
-
     - name:                            "Create temp directory for sid"
       ansible.builtin.file:
         path:                          "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
         state:                         directory
         mode:                          0755
+
+    - name:                            "SAP Web Dispatcher Install: progress"
+      ansible.builtin.debug:
+        msg:                           "Starting Web Install ({{ sid_to_be_deployed.sid | upper }})"
 
     - name:                            "SAP Web Dispatcher Install"
       ansible.builtin.command: |
@@ -166,7 +166,6 @@
         mode:                          0755
 
   when:
-    - node_tier == 'web'
     - not web_installed.stat.exists
 
 # *====================================4=======================================8

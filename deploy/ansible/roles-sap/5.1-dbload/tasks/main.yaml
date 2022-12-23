@@ -200,6 +200,12 @@
         - job_result.rc is defined
         - job_result.rc == 0
 
+    # # Import this task only if the tier is ora.
+    # - import_tasks:                    "oracle-postprocessing.yaml"
+    #   when:
+    #     - node_tier in ["oracle","oracle-asm"]
+
+
   when:
     - not dbload_installed.stat.exists
 
