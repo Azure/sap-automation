@@ -83,19 +83,19 @@
 - name:                               "Get the List of Data disks"
   become:                             true
   become_user:                        root
-  ansible.builtin.shell:              "oracleasm listdisks |grep DATA"
+  ansible.builtin.shell:              "set -o pipefail && oracleasm listdisks |grep DATA"
   register:                           asm_dlist
 
 - name:                               "Get the List of ARCH disks"
   become:                             true
   become_user:                        root
-  ansible.builtin.shell:              "oracleasm listdisks |grep ARCH"
+  ansible.builtin.shell:              "set -o pipefail && oracleasm listdisks |grep ARCH"
   register:                           asm_alist
 
 - name:                               "Get the List of RECO disks"
   become:                             true
   become_user:                        root
-  ansible.builtin.shell:              "oracleasm listdisks |grep RECO"
+  ansible.builtin.shell:              "set -o pipefail && oracleasm listdisks |grep RECO"
   register:                           asm_rlist
 
 # - name:                               "Get the List of OLOG disks"
@@ -106,11 +106,11 @@
 
 
 - name:                              "Prepare the Data disk list"
-  set_fact:
+  ansible.builtin.set_fact:
     asm_dlist1:                    "{{ asm_dlist.stdout_lines | list }}"
     asm_alist1:                    "{{ asm_alist.stdout_lines | list }}"
     asm_rlist1:                    "{{ asm_rlist.stdout_lines | list }}"
-    
+
 
 - name:                            "DISPLAY Oracle lists"
   ansible.builtin.debug:
@@ -119,11 +119,11 @@
 
 
 - name:                           "Append /dev/oracleasm/disk to each of of the disk"
-  ansible.builtin.set_fact:  
-    asm_datadisklist:     "{{ asm_dlist1 | map('regex_replace', '^(.*)$','/dev/oracleasm/disks/\\1') | join(',') }}"
-    asm_archdisklist:     "{{ asm_alist1 | map('regex_replace', '^(.*)$','/dev/oracleasm/disks/\\1') | join(',') }}"
-    asm_recodisklist:     "{{ asm_rlist1 | map('regex_replace', '^(.*)$','/dev/oracleasm/disks/\\1') | join(',') }}"
-    
+  ansible.builtin.set_fact:
+    asm_datadisklist:     "{{ asm_dlist1 | map('regex_replace', '^(.*)$', '/dev/oracleasm/disks/\\1') | join(',') }}"
+    asm_archdisklist:     "{{ asm_alist1 | map('regex_replace', '^(.*)$', '/dev/oracleasm/disks/\\1') | join(',') }}"
+    asm_recodisklist:     "{{ asm_rlist1 | map('regex_replace', '^(.*)$', '/dev/oracleasm/disks/\\1') | join(',') }}"
+
 
 - name:                            "DISPLAY Oracle lists with prefix"
   ansible.builtin.debug:
@@ -161,7 +161,7 @@
     creates:                           /etc/sap_deployment_automation/oracle/gridswunzip.txt
     owner:                             oracle
     group:                             oinstall
-    remote_src:                        yes
+    remote_src:                        true
 
 
 - name:                                "SAP Oracle ASM: create after a successful unzip"
@@ -174,19 +174,15 @@
 - name:                                "SAP Oracle ASM: Install CVUQDISK RPM"
   become:                              true
   become_user:                         root
-  ansible.builtin.shell: |
-                               yum install -y cvuqdisk-1.0.10-1.rpm
-  args:
-    chdir:                             "/oracle/GRID/{{ ora_version }}/cv/rpm"
-    creates:                          "/etc/sap_deployment_automation/oracle/CVUQDISK.txt"
+  ansible.builtin.yum:
+    name:                              /oracle/GRID/{{ ora_version }}/cv/rpm/cvuqdisk-1.0.10-1.rpm
+    state:                             present
 
 - name:                                "SAP Oracle ASM: create after a RPM install"
   ansible.builtin.file:
     path:                              "/etc/sap_deployment_automation/oracle/CVUQDISK.txt"
     state:                             touch
     mode:                              '0755'
-
-
 
 # +------------------------------------4--------------------------------------*/
 # |                                                                            |
@@ -225,7 +221,6 @@
     mode:                              '755'
   loop:                               '{{ recodisklist }}'
 
-
 - name:                                "SAP Oracle ASM: Install Execute GRIDSETUP"
   become:                              true
   become_user:                         oracle
@@ -234,13 +229,13 @@
                                        set -o pipefail
                                        ./gridSetup.sh -silent -responseFile /etc/sap_deployment_automation/oracle/ORACLE_{{ ora_release }}c_00_ASM_{{ ansible_hostname }}_{{ db_sid }}_install.rsp |tee -a /etc/sap_deployment_automation/oracle/gridinstall.log
   register:                            gridinstaller_results
-  failed_when:                         gridinstaller_results.rc >= 2              #installer returns rc=1 (exited with warning) by default when run is silent mode as the oratab file is created only after running the root.sh
+  failed_when:                         gridinstaller_results.rc >= 2              # installer returns rc=1 (exited with warning) by default when run is silent mode as the oratab file is created only after running the root.sh
   environment:
     CV_ASSUME_DISTID:                  OL7
-    ORACLE_SID:                       "{{db_sid |upper }}"
+    ORACLE_SID:                       "{{ db_sid | upper }}"
     ORACLE_BASE:                      /oracle/BASE
     ORACLE_HOME:                      /oracle/GRID/{{ ora_version }}
-    DB_SID:                           "{{db_sid |upper }}"
+    DB_SID:                           "{{ db_sid | upper }}"
   args:
     executable:                        /bin/csh
     chdir:                             "/oracle/GRID/{{ ora_version }}"
@@ -266,6 +261,7 @@
   become:                              true
   become_user:                         root
   ansible.builtin.shell: |
+                                       set -o pipefail
                                        /oracle/oraInventory/orainstRoot.sh |tee -a /etc/sap_deployment_automation/oracle/orainst.log
                                        /oracle/GRID/{{ ora_version }}/root.sh |tee -a /etc/sap_deployment_automation/oracle/gridrootexec.log
   register:                            grid_rootscript_results
@@ -297,17 +293,17 @@
                                        set -o pipefail
                                        ./gridSetup.sh -executeConfigTools  -responseFile /etc/sap_deployment_automation/oracle/ORACLE_19c_00_ASM_{{ ansible_hostname }}_{{ db_sid }}_install.rsp -silent |tee -a /etc/sap_deployment_automation/oracle/asm_tools_install.log
   register:                            tools_installer_results
-  failed_when:                         tools_installer_results.rc >= 2              #installer returns rc=1 (exited with warning) by default when run is silent mode as the oratab file is created only after running the root.sh
+  failed_when:                         tools_installer_results.rc >= 2              # installer returns rc=1 (exited with warning) by default when run is silent mode as the oratab file is created only after running the root.sh
   environment:
     DB_SID:                            "{{ db_sid }}"
     CV_ASSUME_DISTID:                  OL7
-    ORACLE_SID:                       "{{db_sid |upper }}"
+    ORACLE_SID:                       "{{ db_sid | upper }}"
     ORACLE_BASE:                      /oracle/BASE
     ORACLE_HOME:                      /oracle/GRID/{{ ora_version }}
-    
+
   args:
     executable:                        /bin/csh
-    #chdir:                             "/oracle/GRID/{{ ora_version }}"
+    # chdir:                             "/oracle/GRID/{{ ora_version }}"
     chdir:                             /oracle/GRID/{{ ora_version }}/
     creates:                           /etc/sap_deployment_automation/oracle/asm_tools_install.txt
 
@@ -316,9 +312,6 @@
     path:                              "/etc/sap_deployment_automation/oracle/asm_tools_install.txt"
     state:                             touch
     mode:                              '0755'
-
-
-
 
 
 # - fail:

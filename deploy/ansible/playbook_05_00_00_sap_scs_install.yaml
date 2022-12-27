@@ -132,7 +132,6 @@
         - scs_high_availability
       block:
         - name:                        Generic Users and Groups for SAP Installation for Oracle SCS High availability
-          when:                            
           ansible.builtin.include_role:
             name:                      roles-sap-os/2.5-sap-users
             tasks_from:                user_nw.yaml
@@ -376,7 +375,7 @@
               - sap_mnt is defined
             fail_msg:                  A highly available SCS deployment requires a shared sap_mnt
 
-            
+
         - name:                        "SCS HA Installation Playbook: - Initialize facts"
           ansible.builtin.set_fact:
             tier:                       ha
