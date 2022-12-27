@@ -64,7 +64,7 @@ variable "app_ostype" {
 
 variable "db_platform" {
   description = "AnyDB platform type (Oracle, DB2, SQLServer, ASE)"
-  default     = "LINUX"
+  default     = "HANA"
 }
 
 variable "anchor_ostype" {
