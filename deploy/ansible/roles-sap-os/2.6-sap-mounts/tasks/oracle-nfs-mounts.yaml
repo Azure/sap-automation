@@ -1,5 +1,4 @@
-
-
+---
 - name:                            Mount Install folder when using AFS
   become:                              true
   become_user:                         root
@@ -37,3 +36,4 @@
     path:                              /etc/sap_deployment_automation/filepermission.txt
     mode:                              '0755'
     state:                             touch
+...

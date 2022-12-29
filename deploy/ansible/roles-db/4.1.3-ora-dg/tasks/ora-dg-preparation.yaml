@@ -102,8 +102,6 @@
     mode:                              '0755'
   when:                                node_tier == "oracle-asm"
 
-
-
 - name:                                "Oracle Data Guard - Preparation: create enableforcelogging.sql"
   become:                              true
   become_user:                         oracle
@@ -269,7 +267,7 @@
   ansible.builtin.template:
     backup:                           true
     src:                              tnsnames_primary.j2
-    dest:                             "{{ target_media_location }}/downloads/{{db_sid| upper }}/tnsnames.ora"
+    dest:                             "{{ target_media_location }}/downloads/{{ db_sid | upper }}/tnsnames.ora"
     mode:                             '0644'
     force:                            true
   vars:
@@ -318,7 +316,7 @@
   ansible.builtin.template:
     backup:                           true
     src:                              sqlnet.ora.j2
-    dest:                             "{{ target_media_location }}/downloads/{{ db_sid| upper }}/sqlnet.ora"
+    dest:                             "{{ target_media_location }}/downloads/{{ db_sid | upper }}/sqlnet.ora"
     mode:                             '0644'
     force:                            true
   vars:
