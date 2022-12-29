@@ -1,0 +1,44 @@
+#   2482103 - Installation with SWPM in unattended mode using parameter input file fails
+#   2393060 - SAPinst Framework 749 Central Note
+
+########################################################################################################################################################################################################
+#                                                                                                                                                                                                      #
+# Installation service 'Generic Options > SAP ASE > Preparations > Operating System Users and Groups', product id 'NW_Users_Create:GENERIC.SYB.PD'                                                     #
+#                                                                                                                                                                                                      #
+########################################################################################################################################################################################################
+
+# The database system ID (DBSID)
+NW_Users_Create.dbsid = {{ db_sid|upper }}
+
+# Specify whether you are preparing for an SAP sytem based on AS ABAP.
+NW_Users_Create.hasABAP = true
+
+# Specify whether database users are to be installed.
+NW_Users_Create.installDBUsers = true
+
+# SAP system ID
+NW_Users_Create.sid = {{ db_sid|upper }}
+
+# Which database. Must be one of ada,db2,db4,db6,hdb,inf,mss,ora,syb. Needed, if NW_Users_Create.installDBUsers is set to true.
+nwUsers.dbtype = syb
+
+# UNIX only: The user ID of the 'sapadm' user, leave empty for default. The ID is ignored if the user already exists.
+nwUsers.sapadmUID = {{ sapadm_uid }}
+
+# UNIX only: The group id of the 'sapsys' group, leave empty for default. The ID is ignored if the group already exists.
+nwUsers.sapsysGID = {{ sapsys_gid }}
+
+# UNIX only: The user id of the <sapsid>adm user, leave empty for default. The ID is ignored if the user already exists.
+nwUsers.sidAdmUID = {{ sidadm_uid }}
+
+# The password of the '<sapsid>adm' user
+nwUsers.sidadmPassword = {{ main_password }}
+
+# User ID of the OS user for database administration
+nwUsers.syb.sybsidId = {{ sybsid_uid }}
+
+# Password of the OS user for database administration
+nwUsers.syb.sybsidPassword = {{ main_password }}
+
+# Password for the 'sapadm' user of the SAP Host Agent
+hostAgent.sapAdmPassword =  {{ main_password }}
