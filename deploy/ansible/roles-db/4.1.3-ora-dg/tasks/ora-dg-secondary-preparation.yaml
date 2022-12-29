@@ -21,7 +21,7 @@
   become:                              true
   become_user:                         "root"
   ansible.builtin.file:
-    path:                              "{{ target_media_location }}/downloads/{{ db_sid| upper }}"
+    path:                              "{{ target_media_location }}/downloads/{{ db_sid | upper }}"
     mode:                              '0755'
     state:                             directory
     owner:                             oracle
@@ -31,7 +31,7 @@
   become:                              true
   become_user:                         "root"
   ansible.builtin.file:
-    path:                              "{{ target_media_location }}/downloads/{{ db_sid| upper }}/dbs"
+    path:                              "{{ target_media_location }}/downloads/{{ db_sid | upper }}/dbs"
     mode:                              '0755'
     state:                             directory
     owner:                             oracle

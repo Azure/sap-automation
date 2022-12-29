@@ -195,8 +195,10 @@ packages:
     - { tier: 'ha',    package: 'cloud-netconfig-azure>=1.3',                   node_tier: 'all',     state: 'present' }
   # Assumption: Public_Cloud_Module_x86_64 already available
     - { tier: 'ha',    package: 'python-azure-mgmt-compute',                    node_tier: 'all',     state: 'present' }
-    - { tier: 'ha',    package: 'python-azure-identity',                                node_tier: 'all',     state: 'present' }  # Added as part of documentation update
+    - { tier: 'ha',    package: 'python-azure-identity',                        node_tier: 'all',     state: 'present' }  # Added as part of documentation update
+    - { tier: 'ha',    package: 'sap-suse-cluster-connector',                   node_tier: 'hana',     state: 'present' }
     - { tier: 'ha',    package: 'sap-suse-cluster-connector',                   node_tier: 'scs',     state: 'present' }
+    - { tier: 'ha',    package: 'sap-suse-cluster-connector',                   node_tier: 'ers',     state: 'present' }
   # -------------------------- End - packages required for Clustering ------------------------------------8
   sles_sap12.4:
   sles_sap12.5:
@@ -257,9 +259,12 @@ packages:
     - { tier: 'ha',    package: 'azure-cli',                                    node_tier: 'scs',     state: 'present' }
     - { tier: 'ha',    package: 'azure-cli',                                    node_tier: 'ers',     state: 'present' }
     - { tier: 'ha',    package: 'python3-azure-mgmt-compute',                   node_tier: 'hana',    state: 'present' }
+    - { tier: 'ha',    package: 'python3-azure-identity',                       node_tier: 'hana',    state: 'present' }
     - { tier: 'ha',    package: 'python3-azure-mgmt-compute',                   node_tier: 'scs',     state: 'present' }
+    - { tier: 'ha',    package: 'python3-azure-identity',                       node_tier: 'scs',     state: 'present' }
     - { tier: 'ha',    package: 'python3-azure-mgmt-compute',                   node_tier: 'ers',     state: 'present' }
     - { tier: 'ha',    package: 'python3-azure-identity',                       node_tier: 'ers',     state: 'present' } # Added as part of documentation update
+    - { tier: 'ha',    package: 'sap-suse-cluster-connector',                   node_tier: 'hana',    state: 'present' }
     - { tier: 'ha',    package: 'sap-suse-cluster-connector',                   node_tier: 'scs',     state: 'present' }
     - { tier: 'ha',    package: 'sap-suse-cluster-connector',                   node_tier: 'ers',     state: 'present' }
   # ------------------------ End - packages required for Clustering --------------------------------------8
@@ -267,11 +272,14 @@ packages:
   sles_sap15.2:
     - { tier: 'db2',   package: 'system-user-bin',                              node_tier: 'db2',     state: 'present' }
   sles_sap15.3:
-#    - { tier: 'os',    package: 'sle-module-public-cloud',                                  state: 'present' }
+  #    - { tier: 'os',    package: 'sle-module-public-cloud',                                  state: 'present' }
     - { tier: 'db2',   package: 'system-user-bin',                              node_tier: 'db2',     state: 'present' }
-    # Adding packages for Oracle linux 8.4 to start with, copied the list from RHEL.
-    # Adding additional Oracle linux packages as per SAP Note 2069760 - Oracle Linux 7.x SAP Installation and Upgrade. Need to add the groupinstall command.
+  sles_sap15.4:
+  #    - { tier: 'os',    package: 'sle-module-public-cloud',                                  state: 'present' }
+    - { tier: 'db2',   package: 'system-user-bin',                              node_tier: 'db2',     state: 'present' }
 
+  # Adding packages for Oracle linux 8.4 to start with, copied the list from RHEL.
+  # Adding additional Oracle linux packages as per SAP Note 2069760 - Oracle Linux 7.x SAP Installation and Upgrade. Need to add the groupinstall command.
   oraclelinux8:
     - { tier: 'os',    package: 'sudo',                                         node_tier: 'all',     state: 'present' }
     - { tier: 'os',    package: 'tcsh',                                         node_tier: 'all',     state: 'present' }
