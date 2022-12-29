@@ -280,40 +280,15 @@ logical_volumes:
   - tier:       'sapos'
     node_tier:  'sybase'
     vg:         'vg_sybase_sapdata'
-    lv:         'lv_sybase_sapdata1'
-    size:       '25%VG'
-    stripesize: 256
-    fstype:     'xfs'
-
-  - tier:       'sapos'
-    node_tier:  'sybase'
-    vg:         'vg_sybase_sapdata'
-    lv:         'lv_sybase_sapdata2'
-    size:       '25%VG'
-    stripesize: 256
-    fstype:     'xfs'
-
-  - tier:       'sapos'
-    node_tier:  'sybase'
-    vg:         'vg_sybase_sapdata'
-    lv:         'lv_sybase_sapdata3'
-    size:       '25%VG'
-    stripesize: 256
-    fstype:     'xfs'
-  # Here we are left with 25%VG so we assign 100%FREE so as to not fail because
-  # the calculated size is less than what is available on disk xD
-  - tier:       'sapos'
-    node_tier:  'sybase'
-    vg:         'vg_sybase_sapdata'
-    lv:         'lv_sybase_sapdata4'
-    size:       '100%FREE'
+    lv:         'lv_sybase_sapdata_1'
+    size:       '100%VG'
     stripesize: 256
     fstype:     'xfs'
 
   - tier:       'sapos'
     node_tier:  'sybase'
     vg:         'vg_sybase_saplog'
-    lv:         'lv_sybase_saplog'
+    lv:         'lv_sybase_saplog_1'
     size:       '100%FREE'
     stripesize: 64
     fstype:     'xfs'
