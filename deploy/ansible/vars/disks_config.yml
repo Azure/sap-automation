@@ -36,7 +36,8 @@ disk_type_to_name_map:
   # ------------------- End - disktypes required for DB2 ---------------------8
   
   # ------------------- Begin - disktypes required for ASE -------------------8
-  saplog:         '{{ node_tier | lower }}_saplog'
+  sapdata_1:      '{{ node_tier | lower }}_sapdata_1'
+  saplog_1:       '{{ node_tier | lower }}_saplog_1'
   system:         '{{ node_tier | lower }}_system'
   saptemp:        '{{ node_tier | lower }}_saptemp'
   sapdiag:        '{{ node_tier | lower }}_sapdiag'
