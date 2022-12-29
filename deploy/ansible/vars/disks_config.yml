@@ -278,13 +278,6 @@ logical_volumes:
   # --------------------- Begin - disks required for ASE ---------------------8
   - tier:       'sapos'
     node_tier:  'ase'
-    vg:         'vg_sybase'
-    lv:         'lv_sybase'
-    size:       '100%FREE'
-    fstype:     'xfs'
-
-  - tier:       'sapos'
-    node_tier:  'ase'
     vg:         'vg_sybase_sapdata'
     lv:         'lv_sybase_sapdata1'
     size:       '25%VG'
