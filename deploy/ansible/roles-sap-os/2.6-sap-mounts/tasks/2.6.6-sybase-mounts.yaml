@@ -42,7 +42,7 @@
                                         {%- elif ('system' in lv_parts) and
                                             (lv_parts| length == 3 ) -%}
                                         {%- set _path = ['/' ~ lv_parts[-2],
-                                          db_sid | upper | join('/') ] |
+                                          db_sid | upper |
                                           join('/') -%}
                                         {%- else -%}
                                         {%- set _path = ['/' ~ lv_parts[-2],
