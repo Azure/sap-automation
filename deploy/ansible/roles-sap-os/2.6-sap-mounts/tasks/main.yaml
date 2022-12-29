@@ -181,7 +181,7 @@
         state:                         mounted
       when:
         - tier == 'sapos'
-        - node_tier in ['pas', 'app', 'ers', 'oracle', 'db2']
+        - node_tier in ['pas', 'app', 'ers', 'oracle', 'db2', 'ase']
         - sap_mnt is undefined
         - MULTI_SIDS is undefined
         - nfs_server !=  ansible_hostname
@@ -198,7 +198,7 @@
         state:                         remounted
       when:
         - tier == 'sapos'
-        - node_tier in ['pas', 'app', 'ers', 'oracle', 'db2']
+        - node_tier in ['pas', 'app', 'ers', 'oracle', 'db2', 'ase']
         - sap_mnt is undefined
         - MULTI_SIDS is undefined
         - nfs_server !=  ansible_hostname
@@ -300,6 +300,12 @@
   ansible.builtin.import_tasks:        "2.6.4-db2-mounts.yaml"
   when:
     - node_tier == "db2"
+
+# Import this task only if the node_tier is ase.
+- name:                                "2.6 SAP Mounts: - Import ASE tasks"
+  ansible.builtin.import_tasks:        "2.6.6-ase-mounts.yaml"
+  when:
+    - node_tier == "ase"
 
 # Import this task only if the sap_mnt is defined, i.e. AFS is used
 - name:                                "2.6 SAP Mounts: - Import AFS tasks"

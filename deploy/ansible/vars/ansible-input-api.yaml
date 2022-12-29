@@ -74,6 +74,11 @@ tmp_directory:                         "/var/tmp"
 url_internet:                          "http://www.github.com" # URL to use for internet access checks"
 check_outbound:                        false
 
+# ASE specific parameters
+# ase_sid:                     "ASE"
+asesysadm_gid:                         4000
+asesidadm_uid:                         4004
+
 # Oracle specific parameters
 ora_sid:                               "ORA"
 dba_gid:                               3000
