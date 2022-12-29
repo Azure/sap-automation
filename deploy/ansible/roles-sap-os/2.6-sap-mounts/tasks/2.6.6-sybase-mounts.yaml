@@ -8,31 +8,31 @@
 
 # Mount Filesystems
 
-- name:                                "ASE: Get Logical volumes created in 1.5"
+- name:                                "SYBASE: Get Logical volumes created in 1.5"
   ansible.builtin.include_vars:        disks_config.yml
 
-- name:                                "ASE: Check if LVs exists."
+- name:                                "SYBASE: Check if LVs exists."
   ansible.builtin.stat:
     path:                              "{{ dev_path_from_lv_item }}"
   loop:                                "{{ logical_volumes }}"
-  register:                            asevolstat
+  register:                            sybasevolstat
 
-- name:                                "ASE: Debug - Show volume information"
+- name:                                "SYBASE: Debug - Show volume information"
   ansible.builtin.debug:
-    var:                               asevolstat
+    var:                               sybasevolstat
     verbosity:                         2
 
-- name:                                "ASE: Gather existing LVs"
+- name:                                "SYBASE: Gather existing LVs"
   ansible.builtin.set_fact:
-    lvexists:                          "{{ asevolstat.results | selectattr('stat.exists', 'equalto', true) | map(attribute='item.lv') | list }}"
+    lvexists:                          "{{ sybasevolstat.results | selectattr('stat.exists', 'equalto', true) | map(attribute='item.lv') | list }}"
 
-- name:                                "ASE: Show lvexists"
+- name:                                "SYBASE: Show lvexists"
   ansible.builtin.debug:
     var:                               lvexists
     verbosity:                         2
 
 # Mount Filesystems
-- name:                                "ASE: Mount Filesystems for ASE"
+- name:                                "SYBASE: Mount Filesystems for SYBASE"
   ansible.posix.mount:
     src:                               "{{ dev_path_from_lv_item }}"
     path: >-
@@ -56,12 +56,12 @@
     state:                             mounted
   loop:                                "{{ logical_volumes |
                                             sort(attribute='lv') }}"
-  register:  asefsmounts
+  register:  sybasefsmounts
   when:
-    - item.node_tier == "ase"
+    - item.node_tier == "sybase"
     - item.lv in  lvexists
 
-- name:                                "ASE: Create sap_deployment_automation
+- name:                                "SYBASE: Create sap_deployment_automation
                                         folder"
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation
@@ -69,17 +69,17 @@
     state:                             directory
 
 # Debug - Fail
-# - name:                                "ASE: fail here"
+# - name:                                "SYBASE: fail here"
 #   ansible.builtin.fail:
 #     msg:                               "Fail after printing lv details"
 
-- name:                                "ASE: Make sybase:dba as owners for ASE
+- name:                                "SYBASE: Make sybase:dba as owners for SYBASE
                                         directories - check flag file"
   ansible.builtin.stat:
     path:                              /etc/sap_deployment_automation/filepermission.txt
-  register:                            ase_permissions_set
+  register:                            sybase_permissions_set
 
-- name:                                "ASE: Make asesid:dba as owners for ASE directories"
+- name:                                "SYBASE: Make asesid:dba as owners for SYBASE directories"
   ansible.builtin.file:
     path:                              "{{ item.path }}"
     state:                             directory
@@ -89,16 +89,16 @@
   loop:
     - { path: '/sybase', group: '{{ asesysadm_gid }}', owner: '{{ asesidadm_uid }}' }
   when:
-    - not ase_permissions_set.stat.exists
+    - not sybase_permissions_set.stat.exists
 
-- name:                                "ASE: Create sap_deployment_automation
+- name:                                "SYBASE: Create sap_deployment_automation
                                         folder"
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation
     mode:                              0755
     state:                             directory
 
-- name:                                "ASE: Create filepermission.txt"
+- name:                                "SYBASE: Create filepermission.txt"
   become:                              true
   become_user:                         root
   ansible.builtin.file:
@@ -106,21 +106,21 @@
     mode:                              0644
     state:                             touch
 
-- name:                                "ASE: Set NFS Server variable"
+- name:                                "SYBASE: Set NFS Server variable"
   ansible.builtin.set_fact:
     sapmnt_nfs_mount: >-
                                         {% if (NFS_provider == 'AFS' or NFS_provider == 'ANF') and (sap_mnt is defined) %}{{ sap_mnt }}{% else %}{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') | first }}:/sapmnt/{{ sap_sid | upper }}{% endif %}
 
-- name:                                "ASE: Set NFS Server variable"
+- name:                                "SYBASE: Set NFS Server variable"
   ansible.builtin.debug:
     var:  sapmnt_nfs_mount
 
-- name:                                "ASE: Set NFS Server options"
+- name:                                "SYBASE: Set NFS Server options"
   ansible.builtin.set_fact:
     sapmnt_nfs_opts: >-
                                         {% if (NFS_provider == 'AFS' or NFS_provider == 'ANF') and (sap_mnt is defined) %}rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp{% else %}defaults{% endif %}
 
-- name:                                "ASE: Set NFS Server options"
+- name:                                "SYBASE: Set NFS Server options"
   ansible.builtin.debug:
     var:  sapmnt_nfs_opts
 
@@ -133,18 +133,18 @@
     opts:                              "{{ item.opts }}"
     state:                             mounted
   loop:
-    - {   tier: 'ase'
+    - {   tier: 'sybase'
           , type: 'nfs4'
           , src: '{{ sapmnt_nfs_mount }}'
           , path: '/sapmnt/{{ sap_sid | upper }}'
           , opts: '{{ sapmnt_nfs_opts }}'
     }
   when:
-    - item.tier == "ase"
+    - item.tier == "sybase"
     - sap_mnt is undefined
 
 # Debug for testing
-- name:                                "ASE: Print filesystems"
+- name:                                "SYBASE: Print filesystems"
   ansible.builtin.debug:
     var:                               asefsmounts
     verbosity:                         2

@@ -302,8 +302,8 @@
     - node_tier == "db2"
 
 # Import this task only if the node_tier is ase.
-- name:                                "2.6 SAP Mounts: - Import ASE tasks"
-  ansible.builtin.import_tasks:        "2.6.6-ase-mounts.yaml"
+- name:                                "2.6 SAP Mounts: - Import SYBASE tasks"
+  ansible.builtin.import_tasks:        "2.6.6-sybase-mounts.yaml"
   when:
     - node_tier == "ase"
 
