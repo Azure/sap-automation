@@ -305,7 +305,7 @@
 - name:                                "2.6 SAP Mounts: - Import SYBASE tasks"
   ansible.builtin.import_tasks:        "2.6.6-sybase-mounts.yaml"
   when:
-    - node_tier == "ase"
+    - node_tier == "sybase"
 
 # Import this task only if the sap_mnt is defined, i.e. AFS is used
 - name:                                "2.6 SAP Mounts: - Import AFS tasks"
