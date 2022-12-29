@@ -181,7 +181,7 @@
         state:                         mounted
       when:
         - tier == 'sapos'
-        - node_tier in ['pas', 'app', 'ers', 'oracle', 'db2', 'ase']
+        - node_tier in ['pas', 'app', 'ers', 'oracle', 'db2', 'sybase']
         - sap_mnt is undefined
         - MULTI_SIDS is undefined
         - nfs_server !=  ansible_hostname
