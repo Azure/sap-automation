@@ -80,7 +80,7 @@ admin_groups:
   - name:         db{{db_sid | lower}}adm
     gid:          "{{ asedbadm_gid }}"
     state:        present
-    tier:         sybase
+    tier:         sapos
     enabled:      true
     node_tier:    sybase
 
@@ -333,7 +333,7 @@ admin_users:
     sudoers_role: "admin_no_password"
     shell:        /bin/csh
     state:        present
-    tier:         sybase
+    tier:         sapos
     node_tier:    sybase
     enabled:      true
 
@@ -346,7 +346,7 @@ admin_users:
     sudoers_role: "admin_no_password"
     shell:        /bin/csh
     state:        present
-    tier:         sybase
+    tier:         sapos
     node_tier:    sybase
     enabled:      true
 
