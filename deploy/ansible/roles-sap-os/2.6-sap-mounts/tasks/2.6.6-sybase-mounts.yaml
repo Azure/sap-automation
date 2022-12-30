@@ -43,6 +43,12 @@
                                           db_sid | upper,
                                           lv_parts[-2:] | join('_') ] |
                                           join('/') -%}
+                                        {%- elif ('saplog' in lv_parts) and
+                                            (lv_parts| length == 4) -%}
+                                        {%- set _path = ['/' ~ lv_parts[-3],
+                                          db_sid | upper,
+                                          lv_parts[-2:] | join('_') ] |
+                                          join('/') -%}
                                         {%- elif ('system' in lv_parts) and
                                             (lv_parts| length == 3 ) -%}
                                         {%- set _path = ['/' ~ lv_parts[-2],
