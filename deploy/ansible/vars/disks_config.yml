@@ -279,7 +279,7 @@ logical_volumes:
   # --------------------- Begin - disks required for ASE ---------------------8
   - tier:       'sapos'
     node_tier:  'sybase'
-    vg:         'vg_sybase_sapdata'
+    vg:         'vg_sybase_sapdata_1'
     lv:         'lv_sybase_sapdata_1'
     size:       '100%VG'
     stripesize: 256
@@ -287,7 +287,7 @@ logical_volumes:
 
   - tier:       'sapos'
     node_tier:  'sybase'
-    vg:         'vg_sybase_saplog'
+    vg:         'vg_sybase_saplog_1'
     lv:         'lv_sybase_saplog_1'
     size:       '100%FREE'
     stripesize: 64
@@ -312,6 +312,13 @@ logical_volumes:
     node_tier:  'sybase'
     vg:         'vg_sybase_sapdiag'
     lv:         'lv_sybase_sapdiag'
+    size:       '100%FREE'
+    fstype:     'xfs'
+  
+  - tier:       'sapos'
+    node_tier:  'sybase'
+    vg:         'vg_sybase_backup'
+    lv:         'lv_sybase_backup'
     size:       '100%FREE'
     fstype:     'xfs'
   # ----------------------- End - disks required for ASE ----------------------8
