@@ -1,0 +1,558 @@
+---
+
+name:             "NW750SPS25_JAVA_v0001ms"
+target: "NETWEAVER 7.50 JAVA SPS 25"
+version: 0001
+
+defaults:
+  target_location: "{{ target_media_location }}/download_basket"
+
+product_ids:
+  dbl:                                 NW_Java_DB:NW750.HDB.PD
+  scs:                                 NW_Java_SCS:NW750.HDB.PD
+  scs_ha:                              NW_Java_ASCS:NW750.HDB.JavaHA
+  pas:                                 NW_Java_CI:NW750.HDB.PD
+  pas_ha:                              NW_Java_CI:NW750.HDB.JavaHA
+  app:                                 NW_DI:NW750.HDB.PD
+  app_ha:                              NW_DI:NW750.HDB.Java.HA
+  web:                                 NW_Webdispatcher:NW750.IND.PD
+  ers:                                 NW_ERS:NW750.HDB.HA
+  ers_ha:                              NW_ERS:NW750.HDB.JavaHA
+  generic:                             NW_Users_Create:GENERIC.HDB.PD
+
+materials:
+  dependencies:
+    - name:                            HANA_2_00_066_v0001ms
+
+  media:
+    # DB Export
+    - name:             "NW 7.5 JAVA Installation Export"
+      archive: 	        51055106.ZIP
+      checksum:         6cf18b4ab1d1d48809e3103810ccf3f0c73ca4bce6b92b6b187aff27a044d21b
+      extract:          true
+      extractDir:       CD_EXPORT
+      creates:          CDLABEL.ASC
+      url:              https://softwaredownloads.sap.com/file/0030000000231172022
+
+    # kernel components
+    
+    - name:             "Kernel Part II (753)"
+      archive:          SAPEXEDB_1100-80002572.SAR
+      checksum:         3c50249e1a5a684efed14e1c2fe086ed58ebe592e0019563ae4e632eb9001151
+      url:              https://softwaredownloads.sap.com/file/0020000001664982022
+      path:             download_basket
+
+
+    - name:             "Kernel Part I (753)"
+      archive:          SAPEXE_1100-80002573.SAR
+      checksum:         290fdab37be4adf9255b06db1a2d8e839540d2730019c9f267751bb8484f001f
+      url:              https://softwaredownloads.sap.com/file/0020000001664462022
+      path:             download_basket
+      
+    - name:             "SAP JVM 8.1"
+      archive:          SAPJVM8_91-80000202.SAR
+      checksum:         781368906b03a2e3494d3d92ee23789af18549e57f4c9d9f5a7a29f80c51b1ae
+      url:              https://softwaredownloads.sap.com/file/0020000001443282022
+      path:             download_basket
+
+    # SAP Host Agent
+    - name:             "SAP HOST AGENT 7.22 SP58"
+      archive:          SAPHOSTAGENT58_58-80004822.SAR
+      url:              https://softwaredownloads.sap.com/file/0020000001370172022
+      path:             download_basket
+
+    # IGS
+    - name:             "Installation for SAP IGS integrated in SAP Kernel"
+      archive:          igsexe_13-80003187.sar
+      url:              https://softwaredownloads.sap.com/file/0020000000534572021
+      path:             download_basket
+
+    - name:             "SAP IGS Fonts and Textures"
+      archive:          igshelper_17-10010245.sar
+      url:              https://softwaredownloads.sap.com/file/0020000000703122018
+      path:             download_basket
+
+    #SWPM
+    - name:             "SWPM 1.0 SP36 for NW higher than 7.0x"
+      archive:          SWPM10SP36_3-20009701.SAR
+      filename:         "SWPM.SAR"
+      extract:          true
+      extractDir:       SWPM
+      url:              https://softwaredownloads.sap.com/file/0020000001603992022
+      path:             download_basket
+
+    # Other files
+    - name:             "SP25 for AJAX RUNTIME 7.50"
+      archive:          AJAXRUNTIME25_0-80000486.SCA
+      checksum:         3206429721ce840530e4a0dc141cb08583f57e062a5d9463260a39138b560e88
+      url:              https://softwaredownloads.sap.com/file/0020000001169492022
+      path:             download_basket
+      download:         false
+
+    - name:             "SP25 for J2EE ENGINE BASE TABLES 7.50"
+      archive:           BASETABLES25_0-80000577.SCA
+      checksum:         3f80e74105fcf5e619a50b249fa8150dd476689e182c31714dcb6422fb77021
+      url:              https://softwaredownloads.sap.com/file/0020000001170992022
+      path:             download_basket
+      download:         false
+
+    - name:             "SP25 for BI UDI 7.50"
+      archive:          BIUDI25_0-80000573.SCA
+      checksum:         511219dd495177862b71f2393400efea16b851ed113336f6162b972e6aa4046c
+      url:              https://softwaredownloads.sap.com/file/0020000001169482022
+      path:             download_basket
+      download:         false
+
+    - name:             "SP25 for BI WEBDYNPRO ALV 7.50"
+      archive:          BIWDALV25_0-80000567.SCA
+      checksum:         4bbd38f6eea5f00593e99275c33a5ff51c322dd53632b0584941efbf7d6e7326
+      url:              https://softwaredownloads.sap.com/file/0020000001169472022
+      path:             download_basket
+      download:         false
+
+    - name:             "SP25 for ZERO ADMIN CONFIG 7.50"
+      archive:          CFGZA25_0-80000741.SCA
+      checksum:         ba14c8661f1b6ad2342b5c799aa4a89a205f08b5ed862fba238d2ede151d89a5
+      url:              https://softwaredownloads.sap.com/file/0020000001170612022
+      path:             download_basket
+      download:         false
+
+    - name:             "SP25 for ZERO ADMIN TEMPLATES CE 7.50"
+      archive:          CFGZACE25_0-80000742.SCA
+      checksum:         ec254149b0711dbfd1674d68ee397b9fbbd332823292148f750d6577951bd7d7
+      url:              https://softwaredownloads.sap.com/file/0020000001170572022
+      path:             download_basket
+      download:         false
+
+    - name:             "SP25 for COMPOSITION BUILD TOOL 7.50"
+      archive:          COMPBUILDT25_0-80000600.SCA
+      checksum:         62cbba3ff7c0a7da84a02acb864129a1b5365b478eb1242ef3a843a35b767e72
+      url:              https://softwaredownloads.sap.com/file/0020000001169682022
+      path:             download_basket
+      download:         false
+
+    - name:             "SP25 for J2EE ENGINE CORE TOOLS 7.50"
+      archive:          CORETOOLS25_0-80000437.SCA
+      checksum:         8e5e0ea952f613e147ff259dc411ed4140e88bc0c73c93c439a2895409722b81
+      url:              https://softwaredownloads.sap.com/file/0020000001171382022
+      path:             download_basket
+      download:         false
+
+    - name:             "SP25 for CU BASE JAVA 7.50"
+      archive:          CUBASEJAVA25_0-80000601.SCA
+      checksum:         a55b5d9694d88ea7cce6a63fddf71e10980f99e0f074641d1a44096b1d6edbb9
+      url:              https://softwaredownloads.sap.com/file/0020000001169642022
+      path:             download_basket
+      download:         false
+
+    - name:             "SP25 for CU BASE WEB DYNPRO 7.50"
+      archive:           CUBASEWD25_0-80000603.SCA
+      checksum:         7e64ddcd4ba1036fce2eb44bfea619e4644dabce424662d4504c49ef50a8e723
+      url:              https://softwaredownloads.sap.com/file/0020000001169652022
+      path:             download_basket
+      download:         false
+
+    - name:             "SP25 for DATA MAPPING 7.50"
+      archive:          DATAMAPPING25_0-80000605.SCA
+      checksum:         d899dc2f472b8b962c3450dd145a02ec830dae4a0f2cf2a5f4954e1f8d46699b
+      url:              https://softwaredownloads.sap.com/file/0020000001169832022
+      path:             download_basket
+      download:         false
+
+    - name:             "SP25 for DI CLIENTS 7.50"
+      archive:          DICLIENTS25_0-80000608.SCA
+      checksum:         5be03372df1b7998150d7d2dd4e1550b3a56993f608abf58274edfb4665bab4e
+      url:              https://softwaredownloads.sap.com/file/0020000001169882022
+      path:             download_basket
+      download:         false
+
+    - name:             "SP25 for ECM CORE COMPONENTS 7.50"
+      archive:          ECMCORE25_0-80000612.SCA
+      checksum:         4678e0189a9be267cdcd40975b5a4ffc8b33b1cfe3b90f45bfbc4acb6caf6e8e
+      url:              https://softwaredownloads.sap.com/file/0020000001169842022
+      path:             download_basket
+      download:         false
+
+    - name:             "SP25 for J2EE ENGINE FACADE 7.50"
+      archive:          ENGFACADE25_0-80000438.SCA
+      checksum:         e75defab4d186cad3f683fe699f57d87e40d34bf4ae3c79189e536d44d615767
+      url:              https://softwaredownloads.sap.com/file/0020000001171002022
+      path:             download_basket
+      download:         false
+
+    - name:             "SP25 for ENGINEAPI 7.50"
+      archive:          ENGINEAPI25_0-80000618.SCA
+      checksum:         efa5e7bbda17f75f294fb6645703a66c7b441ea832f4fb1ec53d98f50f6951af
+      url:              https://softwaredownloads.sap.com/file/0020000001169852022
+      path:             download_basket
+      download:         false
+
+    - name:             "SP25 for PORTAL BASIS 7.50"
+      archive:          EPBASIS25_0-80000701.SCA
+      checksum:         6e6af0af709bde139167df306eaec69f735f09ac1d9403098eb809d80de9630a
+      url:              https://softwaredownloads.sap.com/file/0020000001171792022
+      path:             download_basket
+      download:         false
+
+    - name:             "SP25 for PORTAL BASIS API 7.50"
+      archive:          EPBASISAPI25_0-80000702.SCA
+      checksum:         6a4ca90bb16feda123469096fd8a520cb1447ef37a53a7d9cd08e847f0e9d9ea
+      url:              https://softwaredownloads.sap.com/file/0020000001171772022
+      path:             download_basket
+      download:         false
+
+    - name:             "SP25 for ESCONF BUILD TOOL 7.50"
+      archive:          ESCONFBUILDT25_0-80000500.SCA
+      checksum:         1845c7b195633289cd317f8d6594aeead35a460dd19cfb098307e76aabe70273
+      url:              https://softwaredownloads.sap.com/file/0020000001169972022
+      path:             download_basket
+      download:         false
+
+    - name:             "SP25 for ESI USER INTERFACE 7.50"
+      archive:          ESIUI25_0-80000633.SCA
+      checksum:         64c30e1594d6f60904b974f35a884a86585f92fff690fddb4508534f7242f9bc
+      url:              https://softwaredownloads.sap.com/file/0020000001169962022
+      path:             download_basket
+      download:         false
+
+    - name:             "SP25 for ESMP BUILD TOOL 7.50"
+      archive:          ESMPBUILDT25_0-80000634.SCA
+      checksum:         70afa8db32321cad54583b06ce8ab70fbc2cd4197330048422108c45470eec18
+      url:              https://softwaredownloads.sap.com/file/0020000001170002022
+      path:             download_basket
+      download:         false
+
+    - name:             "SP25 for ESI - ES PROTOCOL 7.50"
+      archive:          ESPFRAMEWORK25_0-80000631.SCA
+      checksum:         30901fb55a4d0c335a06675d1e74595180014a0091c875c58dbc0018f358371b
+      url:              https://softwaredownloads.sap.com/file/0020000001169992022
+      path:             download_basket
+      download:         false
+
+    - name:             "SP25 for ES REGISTRY BASIC 7.50"
+      archive:          ESREGBASIC25_0-80000497.SCA
+      checksum:         0ff6725ab44dd24e5a92510a88f613c41d4738d18a4ce5f472cbea06a8cad06c
+      url:              https://softwaredownloads.sap.com/file/0020000001169982022
+      path:             download_basket
+      download:         false
+
+    - name:             "SP25 for ES REGISTRY SERVICES 7.50"
+      archive:          ESREGSERVICES25_0-80000498.SCA
+      checksum:         95cd30b081fe798a25e3f8369ad5bc119e932e2f07e83e18a1366196df2f298e
+      url:              https://softwaredownloads.sap.com/file/0020000001169942022
+      path:             download_basket
+      download:         false
+
+    - name:             "SP25 for JAVA FRAMEWORK OFFLINE 7.50"
+      archive:          FRAMEWORK25_0-80000661.SCA
+      checksum:         a9f4118ba470e5ca7bae02c250eaee37649d8986cd089f28f5826a2affb9a899
+      url:              https://softwaredownloads.sap.com/file/0020000001171152022
+      path:             download_basket
+      download:         false
+
+    - name:             "SP25 for FRAMEWORK EXTENSIONS 7.50"
+      archive:          FRAMEWORKEXT25_0-80000637.SCA
+      checksum:         8fb0c3309654a9bcb5c8888e971eaae4c00a91f13e128d9419897d68f4cc1441
+      url:              https://softwaredownloads.sap.com/file/0020000001170872022
+      path:             download_basket
+      download:         false
+
+    - name:             "SAP HANA CLIENT Version 2.14"
+      archive:          IMDB_CLIENT20_014_24-80002082.SAR
+      url:              https://softwaredownloads.sap.com/file/0020000001642632022
+      path:             download_basket
+      download:         false
+
+    - name:             "SP25 for J2EE ENGINE APPLICATIONS 7.50"
+      archive:          J2EEAPPS25_0-80000576.SCA
+      checksum:         208988372c61f36528df1a3d72eb6d5eecc4f423b17b36423a280ff34e785b53
+      url:              https://softwaredownloads.sap.com/file/0020000001171332022
+      path:             download_basket
+      download:         false
+
+    - name:             "SP25 for J2EE ENGINE FRAMEWORK 7.50"
+      archive:          J2EEFRMW25_0-80000439.SCA
+      checksum:         0ffe18d8fe66f75c211494192bcc0dad0a7ade60ab4306b991db50f5daef4628
+      url:              https://softwaredownloads.sap.com/file/0020000001171342022
+      path:             download_basket
+      download:         false
+
+    - name:             "SP25 Patch0 for JAVA SP MANAGER 7.50"
+      archive:          JSPM25_0-70000681.SCA
+      checksum:         872e0b90b1db78b3951c22279ebf54bd596f86e965a6a638d260fe6e3bb52623
+      url:              https://softwaredownloads.sap.com/file/0020000001171112022
+      path:             download_basket
+      download:         false
+
+    - name:             "SP25 for SAP_IKS_7.50"
+      archive:          KMKWJIKS25_0-80000624.SCA
+      checksum:         57641d00702fa1bb3cd73f9fe750741895e0f57004239a1c170095ba7851b1fe
+      url:              https://softwaredownloads.sap.com/file/0020000001170392022
+      path:             download_basket
+      download:         false
+
+    - name:             "SP25 for LM CONFIGURATION 7.50"
+      archive:          LMCFG25_0-80000669.SCA
+      checksum:         ade6a4b64545b6b28f3e04d0d6edac1d718f765e5030b466adcc2be4b7c1c56c
+      url:              https://softwaredownloads.sap.com/file/0020000001170102022
+      path:             download_basket
+      download:         false
+
+    - name:             "SP25 for J2EE ENGINE LM-CORE 7.50"
+      archive:          LMCORE25_0-80000440.SCA
+      checksum:         762f9a30660f7113e0b240c79a5cd96652bf7b78f7057c8a2da8cb87a8ab5fa4
+      url:              https://softwaredownloads.sap.com/file/0020000001171352022
+      path:             download_basket
+      download:         false
+
+    - name:             "SP25 for LM CONFIGURATION WIZARD 7.50"
+      archive:          LMCTC25_0-80000670.SCA
+      checksum:         85768f550dd7d77737c286624b9ea2fc03319a115b5db29c275a32d9cc768172
+      url:              https://softwaredownloads.sap.com/file/0020000001170032022
+      path:             download_basket
+      download:         false
+
+    - name:             "SP25 for LM CTS 7.50"
+      archive:          LMCTS25_0-80000671.SCA
+      checksum:         a34e2d65d205754e9a85f39999730fcac87797a8662a1e49ef78ec57e628471d
+      url:              https://softwaredownloads.sap.com/file/0020000001170142022
+      path:             download_basket
+      download:         false
+
+    - name:             "SP25 for LM CTS UIS 7.50"
+      archive:          LMCTSUI25_0-80000672.SCA
+      checksum:         f114389411eaa301fe076909036d3269cbcca7a3db7dbfcfb54d33c2c3259251
+      url:              https://softwaredownloads.sap.com/file/0020000001170072022
+      path:             download_basket
+      download:         false
+
+    - name:             "SP25 for LM MODEL BASE 7.50"
+      archive:          LMMODELBASE25_0-80000673.SCA
+      checksum:         954ed3770be2c591bc6292122a19a2a08737007499d78595ddad43fad7a82427
+      url:              https://softwaredownloads.sap.com/file/0020000001170112022
+      path:             download_basket
+      download:         false
+
+    - name:             "SP25 for LM MODEL NW 7.50"
+      archive:          LMMODELNW25_0-80000674.SCA
+      checksum:         001afd085a4b3027b55fb956e82e9eeedd87dae71ca9fcea510940e83fc00313
+      url:              https://softwaredownloads.sap.com/file/0020000001170042022
+      path:             download_basket
+      download:         false
+
+    - name:             "SP25 for LM NWA BASIC APPS 7.50"
+      archive:          LMNWABASICAPPS25_0-80000675.SCA
+      checksum:         b4971e0e04df06472a2ab1a362d9cde5547a1c8c0c1e907079e955b93637d3fb
+      url:              https://softwaredownloads.sap.com/file/0020000001170132022
+      path:             download_basket
+      download:         false
+
+    - name:             "SP25 for LMNWABASICCOMP 7.50"
+      archive:          LMNWABASICCOMP25_0-80000681.SCA
+      checksum:         0a3344723ab4f817637928d9b0d80144e1dab25949f315e1730875b3bb92525f
+      url:              https://softwaredownloads.sap.com/file/0020000001170172022
+      path:             download_basket
+      download:         false
+
+    - name:             "SP25 for LM NWA BASIC MBEAN 7.50"
+      archive:          LMNWABASICMBEAN25_0-80000676.SCA
+      checksum:         ce6de9ae0a603c5bc6ed9be1090c1ffadf216c2fb83641a69c9a44ceb39864dd
+      url:              https://softwaredownloads.sap.com/file/0020000001170152022
+      path:             download_basket
+      download:         false
+
+    - name:             "SP25 for LM NWA CDP 7.50"
+      archive:          LMNWACDP25_0-80000677.SCA
+      checksum:         5bf3043394873ddc2475f4aee298206b7698c6920bab04ed8f94de783eb1579f
+      url:              https://softwaredownloads.sap.com/file/0020000001170182022
+      path:             download_basket
+      download:         false
+
+    - name:             "SP25 for LM NWA TOOLS 7.50"
+      archive:          LMNWATOOLS25_0-80000678.SCA
+      checksum:         4b4ba98195818a1ac621415511a7893d865c15b084693126e35629dc207e258f
+      url:              https://softwaredownloads.sap.com/file/0020000001170092022
+      path:             download_basket
+      download:         false
+
+    - name:             "SP25 for LM NWA UI FRAMEWORK 7.50"
+      archive:          LMNWAUIFRMRK25_0-80000679.SCA
+      checksum:         ff5017a7e766e3a51c1030b5c2325757258ede0cdcd10085caaae5d8854353c4
+      url:              https://softwaredownloads.sap.com/file/0020000001170062022
+      path:             download_basket
+      download:         false
+
+    - name:             "SP25 for LM SLD 7.50"
+      archive:          LMSLD25_0-80000680.SCA
+      checksum:         a63f5980102dfe89e72c7ed5416eb391b30c8d9758abf2d4549ff6626aff151f
+      url:              https://softwaredownloads.sap.com/file/0020000001170162022
+      path:             download_basket
+      download:         false
+
+    - name:             "SP25 for LIFECYCLE MGMT TOOLS 7.50"
+      archive:          LMTOOLS25_0-80000668.SCA
+      checksum:         2ca7ae5cae9ab0caf01f7fa73ee6e5bc267306a59f02c34a8ba9022964456eaf
+      url:              https://softwaredownloads.sap.com/file/0020000001170052022
+      path:             download_basket
+      download:         false
+
+    - name:             "SP25 for MESSAGING SYSTEM SERVICE 7.50"
+      archive:          MESSAGING25_0-80000682.SCA
+      checksum:         bfb26442fe98b202d3f48ef927608051a0cf20a510c77b303fa14682acbf1012
+      url:              https://softwaredownloads.sap.com/file/0020000001171552022
+      path:             download_basket
+      download:         false
+
+    - name:             "SP25 for MMR SERVER 7.50"
+      archive:          MMRSERVER25_0-80000683.SCA
+      checksum:         58e8717fc135887ab04c087c511ed466f69dc4cbf8a929c9e62557e46d4253bf
+      url:              https://softwaredownloads.sap.com/file/0020000001171412022
+      path:             download_basket
+      download:         false
+
+    - name:             "SP25 for MOIN BUILD TOOL 7.50"
+      archive:          MOINBUILDT25_0-80000684.SCA
+      checksum:         365a0a50e1f6eefafc84d213bee72f988b3a88b0a9d557bee92d7dc549b0095f
+      url:              https://softwaredownloads.sap.com/file/0020000001171362022
+      path:             download_basket
+      download:         false
+
+    - name:             "SP25 for NW TECHNOLOGY TOOLS 7.50"
+      archive:          NWTEC25_0-80000686.SCA
+      checksum:         d6bd4c359a8391b3f1d8725a5104e7b07cf6e6bbd59ff0723a6c0eb3a0997111
+      url:              https://softwaredownloads.sap.com/file/0020000001171452022
+      path:             download_basket
+      download:         false
+
+    - name:             "SP25 for SAP ODATA4J+CXF-REST LIB 7.50"
+      archive:          ODATACXFEXT25_0-80000706.SCA
+      checksum:         fec8e89edb3e683e6f52970ebc2dd19b4116f4eb4580e8f9a06f2f816db83a35
+      url:              https://softwaredownloads.sap.com/file/0020000001170352022
+      path:             download_basket
+      download:         false
+
+    - name:             "SP25 for DI BUILD TOOL 7.50"
+      archive:          SAPBUILDT25_0-80000606.SCA
+      checksum:         83a7f6882c69f7882e1fdd1005b923b168a3c03f4de1314c8b6c58a680c992b8
+      url:              https://softwaredownloads.sap.com/file/0020000001169912022
+      path:             download_basket
+      download:         false
+
+    - name:             "SP25 for SECURITY EXTENSIONS 7.50"
+      archive:          SECURITYEXT25_0-80000712.SCA
+      checksum:         66144a11356dcb2f7860979d2357118da03392a539b964f0398b547f2cf4dba9
+      url:              https://softwaredownloads.sap.com/file/0020000001171732022
+      path:             download_basket
+      download:         false
+
+    - name:             "SP25 for J2EE ENGINE SERVERCORE 7.50"
+      archive:          SERVERCORE25_0-80000485.SCA
+      checksum:         4e3d7226217015a1a44f9c26b3736cd893bcb0e920fad7d0e71279b2e83ec09c
+      url:              https://softwaredownloads.sap.com/file/0020000001171392022
+      path:             download_basket
+      download:         false
+
+    - name:             "SP25 for SERVICE COMPOSITION 7.50"
+      archive:          SERVICECOMP25_0-80000713.SCA
+      checksum:         373fbd35c992e5838eb000ca3dd2d0191dc449740ddc9d1dbd4c171bffead40f
+      url:              https://softwaredownloads.sap.com/file/0020000001171802022
+      path:             download_basket
+      download:         false
+
+    - name:             "SP25 for SOA MONITORS BASIC 7.50"
+      archive:          SOAMONBASIC25_0-80000715.SCA
+      checksum:         f807e8a3867d6cccbf55c6938995889eeff048b6efbbc9fe5c04dd20c109ea4d
+      url:              https://softwaredownloads.sap.com/file/0020000001171482022
+      path:             download_basket
+      download:         false
+
+    - name:             "SP25 for SR UI 7.50"
+      archive:          SRUI25_0-80000717.SCA
+      checksum:         8869009f718c3b4aff617bc804117eb1017fbecdf6101a028255f2b66c0f1c9c
+      url:              https://softwaredownloads.sap.com/file/0020000001171752022
+      path:             download_basket
+      download:         false
+
+    - name:             "Patch 9 for SOFTWARE UPDATE MANAGER 1.1 SP00"
+      archive:          SUM11SP00_9-80006800.SAR
+      checksum:         bbf1d8b989f443ce94a6b41b2e8a047dade3fd7d2743b5d886cfef9fed99fa48
+      url:              https://softwaredownloads.sap.com/file/0020000001751502022
+      path:             download_basket
+      download:         false
+
+    - name:             "SP25 for SAP SUPPORT TOOLS 7.50"
+      archive:          SUPPORTTOOLS25_0-80000707.SCA
+      checksum:         8fbe4b8d6598f7a0fc2270d9b93d98ec28bad0435fedf209086d5efda72fbc67
+      url:              https://softwaredownloads.sap.com/file/0020000001170342022
+      path:             download_basket
+      download:         false
+
+    - name:             "SP25 for SOFTWARE LIFECYCLE 7.50"
+      archive:          SWLIFECYCL25_0-80000716.SCA
+      checksum:         5ed415e08425646ea23f38cd72a8bccaf71f577d9c48379f8015517a89ebb3a0
+      url:              https://softwaredownloads.sap.com/file/0020000001171762022
+      path:             download_basket
+      download:         false
+
+    - name:             "SP25 for ES UDDI 7.50"
+      archive:          UDDI25_0-80000499.SCA
+      checksum:         fb936fc7496fb8192bc2fd133e7ea2ec80ddb47fa9e484a7be9fbe33119adfae
+      url:              https://softwaredownloads.sap.com/file/0020000001169952022
+      path:             download_basket
+      download:         false
+
+    - name:             "SP25 for SAPUI5 CLIENT RT AS JAVA 7.50"
+      archive:          UISAPUI5JAVA25_0-80000708.SCA
+      checksum:         aa6de175aefbfd47c1d7dc42358d145eca63cbcef606b55fa1d9acca214e3bff
+      url:              https://softwaredownloads.sap.com/file/0020000001170422022
+      path:             download_basket
+      download:         false
+
+    - name:             "SP25 for UKMS JAVA 7.50"
+      archive:          UKMSJAVA25_0-80000719.SCA
+      checksum:         fa9be8978347f9540e31a981b1f675f24c693433ae656fe57b172a413ae51f91
+      url:              https://softwaredownloads.sap.com/file/0020000001170482022
+      path:             download_basket
+      download:         false
+
+    - name:             "SP25 for UME ADMINISTRATION 7.50"
+      archive:          UMEADMIN25_0-80000720.SCA
+      checksum:         ad9614fa8dd3202d9c331424d43fbf19939cdf7466e64119c81bbfcbb62dec14
+      url:              https://softwaredownloads.sap.com/file/0020000001170492022
+      path:             download_basket
+      download:         false
+
+    - name:             "SP25 for WEB DYNPRO ADOBE 7.50"
+      archive:          WDADOBE25_0-80000729.SCA
+      checksum:         56edaf7d2a907c823514438ec456ada5e0e435fcede4a945bbcf349f3b2e767e
+      url:              https://softwaredownloads.sap.com/file/0020000001170552022
+      path:             download_basket
+      download:         false
+
+    - name:             "SP25 for WEB DYNPRO APPLICATIONS 7.50"
+      archive:          WDAPPS25_0-80000730.SCA
+      checksum:         aac0e3fc6fb206280e4bffc1e404ac36e1ed200e5afe58c789ee0a93840864cd
+      url:              https://softwaredownloads.sap.com/file/0020000001170622022
+      path:             download_basket
+      download:         false
+
+    - name:             "SP25 for WEB DYNPRO RUNTIME 7.50"
+      archive:          WDRUNTIME25_0-80000736.SCA
+      checksum:         2adfbe242dfce9b1f8876a2899ede6ecd7e92cf670f4ce4b39f5fbdb72e0532b
+      url:              https://softwaredownloads.sap.com/file/0020000001170602022
+      path:             download_basket
+      download:         false
+
+    - name:             "SP25 for WEB DYNPRO RUNTIME EXT 7.50"
+      archive:          WDRUNTIMEEXT25_0-80000733.SCA
+      checksum:         5d55526cdfa8f17ead7b4c5e1327e3ef742e11e09474d8c3ef595fac07912898
+      url:              https://softwaredownloads.sap.com/file/0020000001170582022
+      path:             download_basket
+      download:         false
+
+    - name:             "SP25 for ESI - WSRM 7.50"
+      archive:          WSRM25_0-80000632.SCA
+      checksum:         6494530592333afff4de2543f82058134de300274a6c6fc039ec87115bd74c49
+      url:              https://softwaredownloads.sap.com/file/0020000001170012022
+      path:             download_basket
+      download:         false
