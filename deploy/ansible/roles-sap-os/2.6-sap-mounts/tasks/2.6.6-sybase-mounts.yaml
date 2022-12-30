@@ -37,7 +37,7 @@
     src:                               "{{ dev_path_from_lv_item }}"
     path: >-
                                         {%- set lv_parts = item.lv.split('_') -%}
-                                        {%- if (lv_parts in ['log', 'data']) and
+                                        {%- if (lv_parts in ['saplog', 'sapdata']) and
                                             (lv_parts| length == 4) -%}
                                         {%- set _path = ['/' ~ lv_parts[-3],
                                           db_sid | upper,
