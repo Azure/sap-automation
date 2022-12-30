@@ -324,6 +324,7 @@ admin_users:
     tier:         example
     enabled:      true
     node_tier:    none
+
 # SYBASE users and groups will be created as part of the generic install process
   - name:         sybadm
     comment:      "SAP System Administrator"
