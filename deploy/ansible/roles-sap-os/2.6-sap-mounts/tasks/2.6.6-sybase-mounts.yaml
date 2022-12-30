@@ -39,9 +39,9 @@
                                         {%- set lv_parts = item.lv.split('_') -%}
                                         {%- if ('data' in lv_parts or 'log' in lv_parts) and
                                             (lv_parts| length == 4) -%}
-                                        {%- set _path = ['/' ~ lv_parts[-4],
+                                        {%- set _path = ['/' ~ lv_parts[-3],
                                           db_sid | upper,
-                                          lv_parts[-3:] | join('_') ] |
+                                          lv_parts[-2:] | join('_') ] |
                                           join('/') -%}
                                         {%- elif ('system' in lv_parts) and
                                             (lv_parts| length == 3 ) -%}
