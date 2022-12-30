@@ -322,6 +322,7 @@ admin_users:
     comment:      "SAP System Administrator"
     uid:          "{{ asesidadm_uid }}"
     group:        "sybase"
+    groups:       ["sapsys"]
     password:     "{{ main_password }}"
     sudoers_role: "admin_no_password"
     shell:        /bin/csh
