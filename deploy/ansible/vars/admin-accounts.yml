@@ -73,7 +73,7 @@ admin_groups:
   - name:         sybase
     gid:          "{{ asesysadm_gid }}"
     state:        present
-    tier:         sybase
+    tier:         sapos
     enabled:      true
     node_tier:    sybase
 
