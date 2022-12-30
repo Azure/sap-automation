@@ -351,6 +351,7 @@ admin_users:
     tier:         sybase
     node_tier:    sybase
     enabled:      true
+
 #  - name:         sapadm
 #   comment:      "SAP Host Agent"
 #    uid:          "{{ sapadm_uid }}"
