@@ -70,7 +70,7 @@ admin_groups:
     node_tier:    db2
 
 # Admin groups for ASE
-  - name:         sybase
+  - name:         "sybadm"
     gid:          "{{ asesysadm_gid }}"
     state:        present
     tier:         sapos
@@ -324,11 +324,11 @@ admin_users:
 
 # SYBASE users and groups will be created as part of the generic install process
   
-  - name:         "sybadm"
+  - name:         "sybase"
     comment:      "SAP System Administrator"
     uid:          "{{ asesidadm_uid }}"
-    group:        "sybase"
-    groups:       ["sapsys","sapinst"]
+    group:        "sybadm"
+    groups:       ["sapsys","sapinst","db{{ db_sid | lower }}adms"]
     password:     "{{ main_password }}"
     sudoers_role: "admin_no_password"
     shell:        /bin/csh
