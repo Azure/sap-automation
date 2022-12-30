@@ -313,7 +313,7 @@ admin_users:
     comment:      "Example User"
     uid:          "2000"
     group:        example
-    groups:       ["users", "adm"]
+    groups:       ["users","adm"]
     sudoers_role: "admin_no_password"
     shell:        /bin/bash
     password:     "some_password_string"
