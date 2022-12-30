@@ -37,13 +37,7 @@
     src:                               "{{ dev_path_from_lv_item }}"
     path: >-
                                         {%- set lv_parts = item.lv.split('_') -%}
-                                        {%- if ('data' in lv_parts) and
-                                            (lv_parts| length == 4) -%}
-                                        {%- set _path = ['/' ~ lv_parts[-3],
-                                          db_sid | upper,
-                                          lv_parts[-2:] | join('_') ] |
-                                          join('/') -%}
-                                        {%- elif ('log' in lv_parts) and
+                                        {%- if ('data' in lv_parts or 'log' in lv_parts) and
                                             (lv_parts| length == 4) -%}
                                         {%- set _path = ['/' ~ lv_parts[-3],
                                           db_sid | upper,
