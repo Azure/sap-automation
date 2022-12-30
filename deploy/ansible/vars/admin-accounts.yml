@@ -77,6 +77,13 @@ admin_groups:
     enabled:      true
     node_tier:    sybase
 
+  - name:         db{{db_sid | lower}}adm
+    gid:          "{{ asedbadm_gid }}"
+    state:        present
+    tier:         sybase
+    enabled:      true
+    node_tier:    sybase
+
   # Admin groups for Oracle Non-ASM
   - name:         dba
     gid:          "{{ dba_gid }}"
@@ -318,19 +325,31 @@ admin_users:
     enabled:      true
     node_tier:    none
 # SYBASE users and groups will be created as part of the generic install process
-  - name:         "sybadm"
+  - name:         sybadm
     comment:      "SAP System Administrator"
     uid:          "{{ asesidadm_uid }}"
-    group:        "sybase"
-    groups:       ["sapsys"]
+    group:        sybase
+    groups:       ["sapsys","sapinst"]
     password:     "{{ main_password }}"
     sudoers_role: "admin_no_password"
     shell:        /bin/csh
     state:        present
-    tier:         sapos
+    tier:         sybase
     node_tier:    sybase
     enabled:      true
 
+  - name:         sap
+    comment:      "SAP DB Installation User"
+    uid:          "{{ asesidadm_uid }}"
+    group:        "{{ db{{ db_sid | lower }}adm }}"
+    groups:       ["sapsys","sapinst"]
+    password:     "{{ main_password }}"
+    sudoers_role: "admin_no_password"
+    shell:        /bin/csh
+    state:        present
+    tier:         sybase
+    node_tier:    sybase
+    enabled:      true
 #  - name:         sapadm
 #   comment:      "SAP Host Agent"
 #    uid:          "{{ sapadm_uid }}"
