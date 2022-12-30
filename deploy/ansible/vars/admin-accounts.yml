@@ -328,7 +328,7 @@ admin_users:
     comment:      "SAP System Administrator"
     uid:          "{{ asesidadm_uid }}"
     group:        "sybadm"
-    groups:       ["sapsys","sapinst","db{{ db_sid | lower }}adms"]
+    groups:       ["sapsys","sapinst","db{{ db_sid | lower }}adm"]
     password:     "{{ main_password }}"
     sudoers_role: "admin_no_password"
     shell:        /bin/csh
@@ -340,7 +340,7 @@ admin_users:
   - name:         "sap"
     comment:      "SAP DB Installation User"
     uid:          "{{ asedbsap_uid }}"
-    group:        sapinst
+    group:        "sapinst"
     groups:       ["sapsys","sapinst"]
     password:     "{{ main_password }}"
     sudoers_role: "admin_no_password"
