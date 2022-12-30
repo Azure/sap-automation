@@ -317,6 +317,18 @@ admin_users:
     tier:         example
     enabled:      true
     node_tier:    none
+# SYBASE users and groups will be created as part of the generic install process
+  - name:         "sybadm"
+    comment:      "SAP System Administrator"
+    uid:          "{{ asesidadm_uid }}"
+    group:        "sybase"
+    password:     "{{ main_password }}"
+    sudoers_role: "admin_no_password"
+    shell:        /bin/csh
+    state:        present
+    tier:         sapos
+    node_tier:    sybase
+    enabled:      true
 
 #  - name:         sapadm
 #   comment:      "SAP Host Agent"
