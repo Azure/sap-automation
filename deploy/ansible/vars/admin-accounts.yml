@@ -171,9 +171,6 @@ admin_groups:
     enabled:      true
     node_tier:    oracle-asm
 
-
-
-
 # Admin groups for Oracle Non-ASM Multi-SID
   - name:         dba
     gid:          "{{ dba_gid }}"
@@ -312,18 +309,18 @@ admin_groups:
 # -------------------------------------+---------------------------------------8
 
 admin_users:
-#  - name:         example
-#    comment:      "Example User"
-#    uid:          "2000"
-#    group:        example
-#    groups:       ["users", "adm"]
-#    sudoers_role: "admin_no_password"
-#    shell:        /bin/bash
-#    password:     "some_password_string"
-#    state:        present
-#    tier:         example
-#    enabled:      true
-#   node_tier:    none
+  - name:         example
+    comment:      "Example User"
+    uid:          "2000"
+    group:        example
+    groups:       ["users", "adm"]
+    sudoers_role: "admin_no_password"
+    shell:        /bin/bash
+    password:     "some_password_string"
+    state:        present
+    tier:         example
+    enabled:      true
+    node_tier:    none
 
 # SYBASE users and groups will be created as part of the generic install process
   
