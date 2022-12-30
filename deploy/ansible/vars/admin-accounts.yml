@@ -340,7 +340,7 @@ admin_users:
   - name:         "sap"
     comment:      "SAP DB Installation User"
     uid:          "{{ asesidadm_uid }}"
-    group:        "{{ db{{ db_sid | lower }}adm }}"
+    group:        sapinst
     groups:       ["sapsys","sapinst"]
     password:     "{{ main_password }}"
     sudoers_role: "admin_no_password"
