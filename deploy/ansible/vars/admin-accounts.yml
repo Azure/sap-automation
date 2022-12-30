@@ -73,9 +73,9 @@ admin_groups:
   - name:         sybase
     gid:          "{{ asesysadm_gid }}"
     state:        present
-    tier:         ase
+    tier:         sybase
     enabled:      true
-    node_tier:    ase
+    node_tier:    sybase
 
   # Admin groups for Oracle Non-ASM
   - name:         dba
