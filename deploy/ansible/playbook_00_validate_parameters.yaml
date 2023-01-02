@@ -287,7 +287,7 @@
 
     - name:                            "0.0 Validations - Show Mounts"
       ansible.builtin.debug:
-        var: ansible_mounts 
+        msg: {{ ansible_mounts  | selectattr('mount', '/mnt') }}
 
 
 # /*---------------------------------------------------------------------------8
