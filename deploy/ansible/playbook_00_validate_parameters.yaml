@@ -274,14 +274,16 @@
         resource_group_name:           "{{ json_azure_data | json_query('compute.resourceGroupName') }}"
         mnt_free_diskspace:            "{{ ansible_mounts | json_query('[?mount == `/mnt`].size_available') | first | int / 1048576 | int }}"
 
-    - name:                            "0.0 Validations - Show Mounts"
-      ansible.builtin.debug:
-        msg:                           "{{ mnt_free_diskspace | int / 1024 }}"
+    - name:                            "0.0 Validations - Deployer disk space requirements"
+      ansible.builtin.set_fact:
+        deployer_disk_space:           100
+      when:
+        - deployer_disk_space is not defined
 
-    - name:                            "0.0 Validations - Free for disk space on deployer "
+    - name:                            "0.0 Validations - Check for free disk space on deployer "
       ansible.builtin.assert:
         that:
-          - "{{ (mnt_free_diskspace | int / 1024) > 100 }}"
+          - "{{ (mnt_free_diskspace | int / 1024) > (deployer_disk_space | int) }}"
         fail_msg: "The deployer needs at least 100 GB of free disk space in /mnt"
 
 
