@@ -273,6 +273,13 @@
         subscription_id:               "{{ json_azure_data | json_query('compute.subscriptionId') }}"
         resource_group_name:           "{{ json_azure_data | json_query('compute.resourceGroupName') }}"
 
+    - name:                            "0.0 Validations - Show Mounts"
+      ansible.builtin.command: df -h
+      register: mounts
+      failed_when: false
+      tags:
+        - 0.0-mounts
+
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
 # |                  Validate the server side parameters                       |
@@ -286,8 +293,8 @@
     {{ sap_sid | upper }}_APP :
     {{ sap_sid | upper }}_WEB"
 
-  name: "0.0 Validations - Validate SAP-Parameters"
-  gather_facts: true
+  name:                                "0.0 Validations - Validate SAP-Parameters"
+  gather_facts:                        true
   vars_files:
     - vars/ansible-input-api.yaml # API Input template with defaults
   tasks:
