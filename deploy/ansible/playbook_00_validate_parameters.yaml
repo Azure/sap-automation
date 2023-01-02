@@ -272,22 +272,11 @@
       ansible.builtin.set_fact:
         subscription_id:               "{{ json_azure_data | json_query('compute.subscriptionId') }}"
         resource_group_name:           "{{ json_azure_data | json_query('compute.resourceGroupName') }}"
-
-    - name:                            "0.0 Validations - Get Mount info"
-      ansible.builtin.command:         df /mnt | grep /mnt | awk '{printf "%d", $4/1024/1024}'
-      register: mounts
-      failed_when: false
-      tags:
-        - 0.0-mounts
+        mnt_diskspace:                 "{{ ansible_mounts | selectattr('mount', '/mnt') }}"
 
     - name:                            "0.0 Validations - Show Mounts"
       ansible.builtin.debug:
-        var: mounts
-      when: mounts is defined
-
-    - name:                            "0.0 Validations - Show Mounts"
-      ansible.builtin.debug:
-        msg: {{ ansible_mounts  | selectattr('mount', '/mnt') }}
+        var:                           mnt_diskspace 
 
 
 # /*---------------------------------------------------------------------------8
