@@ -272,7 +272,7 @@
       ansible.builtin.set_fact:
         subscription_id:               "{{ json_azure_data | json_query('compute.subscriptionId') }}"
         resource_group_name:           "{{ json_azure_data | json_query('compute.resourceGroupName') }}"
-        mnt_diskspace:                 "{{ ansible_mounts | selectattr('fstype', 'ext4') }}"
+        mnt_diskspace:                 "{{ ansible_mounts | selectattr('mount', '==', '/mnt') }}"
 
     - name:                            "0.0 Validations - Show Mounts"
       ansible.builtin.fail:
