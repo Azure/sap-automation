@@ -511,7 +511,7 @@
     - name:                            "0.0 Validations - Validate that MULTISID is provided"
       ansible.builtin.assert:
         that:
-          -  "distribution_id ==  'oraclelinux8'",
+          -  "distribution_id ==  'oraclelinux8'"
         fail_msg: "For Oracle deployments DB, PAS and APP needs to run on OracleLinux"
       when:
         - platform == 'ORACLE'
