@@ -274,10 +274,10 @@
         resource_group_name:           "{{ json_azure_data | json_query('compute.resourceGroupName') }}"
         mnt_free_diskspace:            "{{ ansible_mounts | json_query('[?mount == `/mnt`].size_available') | first | int / 1024 / 1024 | int }}"
 
-    - name:                            "0.0 Validations - Check required Database HA variables are present and not empty"
+    - name:                            "0.0 Validations - Free for disk space on deployer "
       ansible.builtin.assert:
         that:
-          - mnt_free_diskspace > 10000
+          - "{{ mnt_free_diskspace | int > 10000 }}"
         fail_msg: "The deployer needs at least 100 GB of free disk space in /mnt"
 
     - name:                            "0.0 Validations - Show Mounts"
