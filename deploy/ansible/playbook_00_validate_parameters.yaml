@@ -508,7 +508,7 @@
   vars_files:
     - vars/ansible-input-api.yaml # API Input template with defaults
   tasks:
-    - name:                            "0.0 Validations - Validate that MULTISID is provided"
+    - name:                            "0.0 Validations - Validate that the correct distribution is used"
       ansible.builtin.assert:
         that:
           -  "distribution_id ==  'oraclelinux8'"
