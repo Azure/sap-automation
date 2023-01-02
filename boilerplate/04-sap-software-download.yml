@@ -24,6 +24,8 @@ parameters:
       - ORACLE_19_00_ORA_MSID_v0001ms
       - ORACLE_19_00_ORA_MSID_v0002ms
       - ERP6_EHP8_WIN_MSS2019_v0001ms
+      - NW750SPS20_SYBASE_v0001ms
+      - SYBASE_1603SP11_v0001ms
 
   - name: environment
     displayName: Control Plane Environment
