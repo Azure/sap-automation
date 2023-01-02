@@ -16,6 +16,7 @@ target_media_location:                 "/usr/sap/install"
 download_directory:                    "/mnt/downloads"
 check_storage_account:                 true
 bom_processing_become:                 true # BOM processing as root user
+deployer_free_temp_disk_space:         100 # Free disk space requirement on deployer
 
 # Default BoM Processing variables for Windows
 target_media_location_windows:         'C:\sap'                                                  # Default

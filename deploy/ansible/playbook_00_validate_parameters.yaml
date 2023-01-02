@@ -276,15 +276,15 @@
 
     - name:                            "0.0 Validations - Deployer disk space requirements"
       ansible.builtin.set_fact:
-        deployer_disk_space:           100
+        deployer_free_temp_disk_space: 100
       when:
-        - deployer_disk_space is not defined
+        - deployer_free_temp_disk_space is not defined
 
     - name:                            "0.0 Validations - Check for free disk space on deployer "
       ansible.builtin.assert:
         that:
-          - "{{ (mnt_free_diskspace | int / 1024) > (deployer_disk_space | int) }}"
-        fail_msg: "The deployer needs at least 100 GB of free disk space in /mnt"
+          - "{{ (mnt_free_diskspace | int / 1024) > (deployer_free_temp_disk_space | int) }}"
+        fail_msg: "The deployer needs at least {{ deployer_free_temp_disk_space }} GB of free disk space in /mnt"
 
 
 # /*---------------------------------------------------------------------------8
