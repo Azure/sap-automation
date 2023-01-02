@@ -293,9 +293,18 @@
     - vars/ansible-input-api.yaml # API Input template with defaults
   tasks:
 
+    - name:                            "0.0 Validations: - Set distro"
+      ansible.builtin.set_fact:
+        distro_family:                 "{{ ansible_os_family | upper }}"
+        distribution_id:               "{{ ansible_distribution | lower ~ ansible_distribution_major_version }}"
+        distribution_full_id:          "{{ ansible_distribution | lower ~ ansible_distribution_version }}"
+
     - name:                            "0.0 Validations: - Show distro"
       ansible.builtin.debug:
-        var:                           distribution_id
+        msg:
+          - "Distro family:        {{ distro_family }}"                           
+          - "Distribution id:      {{ distribution_id }}"                           
+          - "Distribution full id: {{ distribution_full_id }}"                           
 
     - name:                            "0.0 Validations: - Set Python version {{ distribution_id }}"
       ansible.builtin.set_fact:
