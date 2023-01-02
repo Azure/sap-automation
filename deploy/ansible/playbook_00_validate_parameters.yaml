@@ -283,7 +283,6 @@
     {{ sap_sid | upper }}_SCS :
     {{ sap_sid | upper }}_ERS :
     {{ sap_sid | upper }}_PAS :
-    {{ sap_sid | upper }}_ERS :
     {{ sap_sid | upper }}_APP :
     {{ sap_sid | upper }}_WEB"
 
@@ -499,6 +498,23 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
+
+- hosts: "{{ sap_sid | upper }}_DB  :
+    {{ sap_sid | upper }}_PAS :
+    {{ sap_sid | upper }}_APP 
+
+  name:                                "0.0 Validations - Validate SAP-Parameters for Oracle"
+  gather_facts:                        true
+  vars_files:
+    - vars/ansible-input-api.yaml # API Input template with defaults
+  tasks:
+    - name:                            "0.0 Validations - Validate that MULTISID is provided"
+      ansible.builtin.assert:
+        that:
+          -  "distribution_id ==  'oraclelinux8'",
+        fail_msg: "For Oracle deployments DB, PAS and APP needs to run on OracleLinux"
+      when:
+        - platform == 'ORACLE'
 
 - hosts:                               "{{ sap_sid | upper }}_DB"
 
