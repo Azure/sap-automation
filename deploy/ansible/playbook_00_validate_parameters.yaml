@@ -292,6 +292,11 @@
   vars_files:
     - vars/ansible-input-api.yaml # API Input template with defaults
   tasks:
+
+    - name:                            "0.0 Validations: - Show distro"
+      ansible.builtin.debug:
+        var:                           distribution_id
+
     - name:                            "0.0 Validations: - Set Python version {{ distribution_id }}"
       ansible.builtin.set_fact:
         python_version: "python2"
