@@ -279,10 +279,16 @@
       failed_when: false
       tags:
         - 0.0-mounts
+
     - name:                            "0.0 Validations - Show Mounts"
       ansible.builtin.debug:
         var: mounts
       when: mounts is defined
+
+    - name:                            "0.0 Validations - Show Mounts"
+      ansible.builtin.debug:
+        var: ansible_mounts 
+
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
