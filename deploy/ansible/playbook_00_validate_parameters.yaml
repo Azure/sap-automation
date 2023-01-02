@@ -301,9 +301,9 @@
     - name:                            "0.0 Validations: - Show distro"
       ansible.builtin.debug:
         msg:
-          - "Distro family:        {{ distro_family }}"                           
-          - "Distribution id:      {{ distribution_id }}"                           
-          - "Distribution full id: {{ distribution_full_id }}"                           
+          - "Distro family:        {{ distro_family }}"
+          - "Distribution id:      {{ distribution_id }}"
+          - "Distribution full id: {{ distribution_full_id }}"
 
     - name:                            "0.0 Validations: - Set Python version {{ distribution_id }}"
       ansible.builtin.set_fact:
@@ -501,7 +501,7 @@
 
 - hosts: "{{ sap_sid | upper }}_DB  :
     {{ sap_sid | upper }}_PAS :
-    {{ sap_sid | upper }}_APP 
+    {{ sap_sid | upper }}_APP"
 
   name:                                "0.0 Validations - Validate SAP-Parameters for Oracle"
   gather_facts:                        true
