@@ -274,15 +274,14 @@
         resource_group_name:           "{{ json_azure_data | json_query('compute.resourceGroupName') }}"
 
     - name:                            "0.0 Validations - Show Mounts"
-      ansible.builtin.command:         df -h
+      ansible.builtin.command:         df /mnt | grep /mnt | awk '{printf "%d", $4/1024/1024}'
       register: mounts
       failed_when: false
       tags:
         - 0.0-mounts
-
     - name:                            "0.0 Validations - Show Mounts"
       ansible.builtin.debug:
-        var: mounts.stdout_lines
+        var: mounts.stdout_lines 
       when: mounts is defined
 
 # /*---------------------------------------------------------------------------8
