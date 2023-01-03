@@ -32,8 +32,6 @@
 #   ansible.builtin.debug:
 #     var:                           sapbits_location_base_path, sapbits_bom_files, target_media_location
 
-
-
 # -------------------------------------+---------------------------------------8
 # Step: 01
 # Description:  Validation for bom_base_name
@@ -61,30 +59,8 @@
 
 
 
-# # -------------------------------------+---------------------------------------8
-# # Step: 02
-# # Description:  Validation for target_media_location.
-# #               This is the location used when performing installs.
-# #               Default: /usr/sap/install
-# #
-# - name:                                 "Check required variables are present and not empty (target_media_location)"
-#   ansible.builtin.assert:
-#     that:
-#       - "target_media_location is defined"                                      # Has the variable been defined
-#       - "target_media_location | type_debug != 'NoneType'"                      #  is not null
-#       - "target_media_location | trim | length != 0"                            #   and given a value
-#     success_msg: |-
-#                                         target_media_location:        {{ target_media_location | default('NOT DEFINED') }}
-#     fail_msg: |-
-#                                         Please ensure that the details are provided for:
-#                                         - target_media_location
-# # Step: 02 - END
-# # -------------------------------------+---------------------------------------8
-
-
-
 # -------------------------------------+---------------------------------------8
-# Step: 03
+# Step: 02
 # Description:  KeyVault Access
 #               If neither deployer_kv_name or kv_name are defined, then skip.
 #               Otherwise fetch:
@@ -101,11 +77,21 @@
                                         Entering KV Block...
         verbosity:                      1
 
+# -------------------------------------+---------------------------------------8
+# Step: 02-01
+# Description:  
+#
     - name:                             "{{ task_prefix }} - Set deployer keyvault name"
       ansible.builtin.set_fact:
         kv_name:                        "{{ deployer_kv_name }}"
       when:                             deployer_kv_name is defined
+# Step: 02-01 - END
+# -------------------------------------+---------------------------------------8
 
+# -------------------------------------+---------------------------------------8
+# Step: 02-02
+# Description:  
+#
     - name:                             "{{ task_prefix }} - Load the keyvault secrets"
       ansible.builtin.include_role:
         name:                           roles-misc/0.2-kv-secrets
@@ -114,7 +100,13 @@
         tier:                           bom
       # tags:
       #   - 0.2-kv-secrets
+# Step: 02-02 - END
+# -------------------------------------+---------------------------------------8
 
+# -------------------------------------+---------------------------------------8
+# Step: 02-03
+# Description:  
+#
     - name:                             "{{ task_prefix }} - Set kv_enabled: true"
       ansible.builtin.set_fact:
         kv_enabled:                     true
@@ -122,6 +114,8 @@
         - "kv_name is defined"                                                  # Has the variable been defined
         - "kv_name | type_debug != 'NoneType'"                                  #  is not null
         - "kv_name | trim | length > 1"                                         #  and given a value
+# Step: 02-03 - END
+# -------------------------------------+---------------------------------------8
 
   vars:
     task_prefix:                        KeyVault validation block
@@ -130,13 +124,13 @@
         ( deployer_kv_name is defined     and   deployer_kv_name | trim | length > 1 ) )
     # - ( ( s_user           is undefined   or    s_user           | trim | length < 1 ) or
     #     ( s_password       is undefined   or    s_password       | trim | length < 1 ) )
-# Step: 03 - END
+# Step: 02 - END
 # -------------------------------------+---------------------------------------8
 
 
 
 # -------------------------------------+---------------------------------------8
-# Step: 04
+# Step: 03
 # Description:  Informational check of the kv_name parameter.
 #
 - name:                                 "Informational check of the kv_name parameter"
@@ -155,13 +149,13 @@
                                         If this is undesired, please set:
                                         - deployer_kv_name
   ignore_errors:                        true
-# Step: 04 - END
+# Step: 03 - END
 # -------------------------------------+---------------------------------------8
 
 
 
 # -------------------------------------+---------------------------------------8
-# Step: 05
+# Step: 04
 # Description:  Validation for s_user
 #
 - name:                                 "Check that the S-User is present and not empty (s_user)"
@@ -177,13 +171,13 @@
                                         - s_user
 
                                         either as a parameter or in the deployer key vault
-# Step: 05 - END
+# Step: 04 - END
 # -------------------------------------+---------------------------------------8
 
 
 
 # -------------------------------------+---------------------------------------8
-# Step: 06
+# Step: 05
 # Description:  Validate that s_password parameter has been given a value
 #
 - name:                                 "Check that the S-User password is present and not empty (s_password)"
@@ -199,13 +193,13 @@
                                         - s_password
 
                                         either as a parameter or in the deployer key vault
-# Step: 06 - END
+# Step: 05 - END
 # -------------------------------------+---------------------------------------8
 
 
 
 # -------------------------------------+---------------------------------------8
-# Step: 07
+# Step: 06
 # Description:  Validation for download_directory
 #               This is the location used when downloading files from SAP. This
 #               is an intermediary location to stage files before upload to SA.
@@ -222,13 +216,13 @@
     fail_msg: |-
                                         Please ensure that the details are provided for:
                                         - download_directory
-# Step: 07 - END
+# Step: 06 - END
 # -------------------------------------+---------------------------------------8
 
 
 
 # -------------------------------------+---------------------------------------8
-# Step: 08
+# Step: 07
 # Description:  Create BOM download directories".
 #
 # TODO: allow for concurrancy by using unique tmp directory dtructure.
@@ -236,7 +230,9 @@
 - name:                                 "Prepare download directory"
   block:
 
-# Step: 08-01
+# -------------------------------------+---------------------------------------8
+# Step: 07-01
+# Description:  Ensure download_directory exists
 #
     - name:                             "{{ task_prefix }} - Create BOM download directories"
       ansible.builtin.file:
@@ -244,9 +240,12 @@
         state:                          directory
         mode:                           0755
       delegate_to:                      localhost
+# Step: 07-01 - END
+# -------------------------------------+---------------------------------------8
 
-
-# Step: 08-02
+# -------------------------------------+---------------------------------------8
+# Step: 07-02
+# Description:  Create test file
 #
     - name:                             "{{ task_prefix }} - BoM Initial file"
       ansible.builtin.copy:
@@ -254,18 +253,20 @@
         content:                        "This is the container with the SAP media"
         mode:                           0644
       register:                         readme_file
+# Step: 07-02 - END
+# -------------------------------------+---------------------------------------8
 
   vars:
     task_prefix:                        Prepare download directory block
   when:
     - download_directory
-# Step: 08 - END
+# Step: 07 - END
 # -------------------------------------+---------------------------------------8
 
 
 
 # -------------------------------------+---------------------------------------8
-# Step: 09
+# Step: 08
 # Description:  Storage Account Access
 #               If neither deployer_kv_name or kv_name are defined, then skip.
 #               Otherwise fetch:
@@ -284,7 +285,8 @@
         verbosity:                      1
 
 
-# Step: 09-01
+# -------------------------------------+---------------------------------------8
+# Step: 08-01
 # Description:  Validate sapbits_bom_files
 #
     - name:                             "{{ task_prefix }} - Validate required variable is present and not empty (sapbits_bom_files)"
@@ -297,8 +299,11 @@
         fail_msg: |-
                                         Please ensure that the details are provided for:
                                         - sapbits_bom_files
+# Step: 08-01 - END
+# -------------------------------------+---------------------------------------8
 
-# Step: 09-02
+# -------------------------------------+---------------------------------------8
+# Step: 08-02
 # Description:  
 #
     - name:                             "{{ task_prefix }} - Load the storage account details"
@@ -307,8 +312,11 @@
         public:                         true
       tags:
         - 0.3.sap-installation-media-storage-details
+# Step: 08-02 - END
+# -------------------------------------+---------------------------------------8
 
-# Step: 09-03
+# -------------------------------------+---------------------------------------8
+# Step: 08-03
 # Description:  
 #
     - name:                             "{{ task_prefix }} - Validate required variable is present and not empty (sapbits_location_base_path)"
@@ -323,37 +331,23 @@
                                         - sapbits_location_base_path
 
                                         either as a parameter or in the deployer key vault
-
-# # Step: 09-04
-# # Description:  
-# #
-#     - name:                             "{{ task_prefix }} - Check storage account container"
-#       ansible.builtin.command: >-
-#                                         az storage blob upload
-#                                           --account-name {{ sapbits_location_base_path.rpartition('//')[2].split('.')[0] }}
-#                                           --sas-token {{ sapbits_sas_token }}
-#                                           --container-name {{ sapbits_location_base_path.rpartition('//')[2].split('/')[1] }}/{{ sapbits_bom_files }}/archives
-#                                           --name readme.md
-#                                           --file {{ readme_file.dest }}
-#                                           --if-none-match "*"
-#                                           --no-progress
-#       delegate_to:                      localhost
-#       register:                         azresult
-#       ignore_errors:                    true
-#       changed_when:                     false
-#       failed_when:
-#         - azresult.rc != 0
-#         - azresult.stderr is defined
-#         - azresult.stderr.find("BlobAlreadyExists") == -1
+# Step: 08-03 - END
+# -------------------------------------+---------------------------------------8
 
   vars:
     task_prefix:                        Storage Account validation block
   when:                                 
     - ( ( kv_name          is defined     and   kv_name          | trim | length > 1 ) or
         ( deployer_kv_name is defined     and   deployer_kv_name | trim | length > 1 ) )
-# Step: 09 - END
+# Step: 08 - END
 # -------------------------------------+---------------------------------------8
 
+
+
+# -------------------------------------+---------------------------------------8
+# Step: 09
+# Description:  
+#
 - name:                                 "Set SAS Token"
   ansible.builtin.set_fact:
     sapbits_sas_token:                  "{{ sapbits_access_key }}"
@@ -361,12 +355,10 @@
   when:
     - sapbits_access_key  is      defined
     - sapbits_sas_token   is not  defined
+# Step: 09 - END
+# -------------------------------------+---------------------------------------8
 
 
-# - name:                                 "pre_checks TROUBLESHOOTING..."
-#   pause:
-#     prompt: "Press enter to continue..."
-#     echo: yes
 
 # -------------------------------------+---------------------------------------8
 # Step: 10
@@ -384,11 +376,12 @@
     
     - "sapbits_sas_token          is defined"                                 # Has the variable been defined
     - "sapbits_sas_token          | trim | length != 0"                       #  and given a value
-# Step: 11 - END
+# Step: 10 - END
 # -------------------------------------+---------------------------------------8
 
 
-# Step: 09-04
+# -------------------------------------+---------------------------------------8
+# Step: 11
 # Description:  
 #
 - name:                                 "{{ task_prefix }} - Check storage account container"
@@ -414,17 +407,13 @@
   no_log:                               true                                    # censor output of secret
   when:
     - sa_enabled
-
-
-# - name:                                 "pre_checks TROUBLESHOOTING..."
-#   pause:
-#     prompt: "Press enter to continue..."
-#     echo: yes
+# Step: 11 - END
+# -------------------------------------+---------------------------------------8
 
 
 
 # -------------------------------------+---------------------------------------8
-# Step: 11
+# Step: 12
 # Description:  Informational check of Storage Account parameters.
 #
 #   - sapbits_location_base_path
@@ -448,8 +437,15 @@
                                         Storage Account access DISABLED
                                         sa_enabled:       {{ sa_enabled }}
   ignore_errors:                        true
-# Step: 11 - END
+# Step: 12 - END
 # -------------------------------------+---------------------------------------8
+
+- name:                                 "TROUBLESHOOTING: pre_checks.yaml (END)"
+  pause:
+    prompt: "Press enter to continue..."
+    echo: yes
+  when:
+    - pause|default(false)
 
 ...
 # /*---------------------------------------------------------------------------8
