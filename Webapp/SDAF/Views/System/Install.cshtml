@@ -116,6 +116,27 @@
 
         @Html.EditorForModel("Checkbox", new { ParameterName = "acss_registration", DisplayName = "Register System in ACSS", IsChecked = true })
 
+        <div class="ms-TextField">
+            <div class="left-input">
+                @Html.Label("acss_environment", "ACSS Prod/NonProd", new { @class = $"ms-Label required" })
+            </div>
+
+            <div class="right-input">
+                @Html.DropDownList("acss_environment", acssEnvs , new { @class = "js-example-placeholder-single", @style = "width: 100%;", @onchange = $"toggleDisableViaNInputs(['sap_system_configuration_name', 'environment', 'bom_base_name', 'acss_environment', 'acss_sap_product'], 'confirm-install-system-checkbox')" })
+            </div>
+        </div>
+
+        <div class="ms-TextField">
+            <div class="left-input">
+                @Html.Label("acss_sap_product", "SystemType", new { @class = $"ms-Label required" })
+            </div>
+
+            <div class="right-input">
+                @Html.DropDownList("acss_sap_product", acssSystems, new { @class = "js-example-placeholder-single", @style = "width: 100%;", @onchange = $"toggleDisableViaNInputs(['sap_system_configuration_name', 'environment', 'bom_base_name', 'acss_environment', 'acss_sap_product'], 'confirm-install-system-checkbox')" })
+            </div>
+        </div>
+
+
 
         <fluent-checkbox id="confirm-install-system-checkbox" onchange="toggleDisableViaCheckbox(this, 'install-system-button')" disabled>I confirm that I wish to install SAP on this system</fluent-checkbox><br />
 

@@ -94,10 +94,15 @@
       ansible.builtin.set_fact:
         all_sids:                      "{% if MULTI_SIDS is defined %}{{ MULTI_SIDS }}{% else %}{{ all_sids | default([]) + [this_sid] }}{% endif %}"
 
-    - name:                            Generic Users and Groups for SAP Installation
+    - name:                            "Generic Users and Groups for SAP Installation"
       ansible.builtin.include_role:
         name:                          roles-sap-os/2.5-sap-users
         tasks_from:                    user_nw.yaml
+        apply:
+          tags:
+            - 2.5-sap-users
+          become:                      true
+          become_user:                 root
       vars:
         scs_instance_number:           "{{ sid_to_be_deployed.ascs_inst_no }}"
         tier:                          generic
@@ -197,13 +202,13 @@
 
         - name:                        Run the PAS installation Playbook
           block:
-            
+
             - name:                        "APP Playbook - Install: Include 2.6-sap-mounts role"
               ansible.builtin.include_role:
                 name:                      roles-sap-os/2.6-sap-mounts
               tags:
                 - 2.6-sap-mounts
-            
+
             - name:                    "PAS Installation Playbook: - Install SAPInst"
               ansible.builtin.include_role:
                 name:                  roles-sap/5.2-pas-install

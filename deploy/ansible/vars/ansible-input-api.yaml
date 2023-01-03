@@ -36,6 +36,7 @@ BOM_directory:                          "{{ playbook_dir }}/BOM-catalog"
 always_upload_jinja_templates:          true
 
 # SAP Configuration for templates and install
+hana_backup_path:                       /hana/backup
 aas_hostname:                           ""
 aas_instance_number:                    ""
 sap_sid:                                ""                                      # REQUIRED - SAP Install

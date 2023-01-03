@@ -90,7 +90,7 @@
 - name:                                "2.6 SAP Mounts: - Mount local file systems (backup)"
   ansible.posix.mount:
     src:                               '/dev/vg_hana_backup/lv_hana_backup'
-    path:                              '/hana/backup'
+    path:                              '{{ hana_backup_path }}'
     fstype:                            'xfs'
     opts:                              defaults
     state:                             mounted
@@ -272,22 +272,25 @@
     - node_tier == "oracle"
 
 # Import this task only if the tier is ora for oracle-asm.
-- import_tasks:                        "oracle-asm-prereq.yaml"
+- name:                                "2.6 SAP Mounts: - Import Oracle ASM pre-requisite tasks"
+  ansible.builtin.import_tasks:        "oracle-asm-prereq.yaml"
   when:
     - node_tier == "oracle-asm"
 
 # Import this task only if the tier is ora for oracle-asm.
-- import_tasks:                        "oracle-asm.yaml"
+- name:                                "2.6 SAP Mounts: - Import Oracle ASM tasks"
+  ansible.builtin.import_tasks:        "oracle-asm.yaml"
   when:
     - node_tier == "oracle-asm"
     - tier == "ora"
 
-- import_tasks:                        "oracle-observer.yaml"
+- name:                                "2.6 SAP Mounts: - Import Oracle observer tasks"
+  ansible.builtin.import_tasks:        "oracle-observer.yaml"
   when:
     - node_tier == "observer"
 
-
-- import_tasks:                        "oracle-multi-sid.yaml"
+- name:                                "2.6 SAP Mounts: - Import Oracle shared home tasks"
+  ansible.builtin.import_tasks:        "oracle-multi-sid.yaml"
   when:
     - node_tier == "oracle-multi-sid"
     - node_tier != "oracle-asm"
@@ -306,7 +309,6 @@
     - NFS_provider == 'AFS'
 
 
-
 # Import this task only if the sap_mnt is defined, i.e. ANF is used
 - name:                                "2.6 SAP Mounts: - Import ANF tasks"
   ansible.builtin.import_tasks:        2.6.1-anf-mounts.yaml
@@ -315,7 +317,8 @@
     - NFS_provider == 'ANF'
 
 # Import NFS mounts and permissions changes for oracle and oracle-asm installation.
-- import_tasks:                        "oracle-nfs-mounts.yaml"
+- name:                                "2.6 SAP Mounts: - Import Oracle NFS tasks"
+  ansible.builtin.import_tasks:        "oracle-nfs-mounts.yaml"
   when:
     - node_tier in ['oracle','oracle-asm','observer']
 
