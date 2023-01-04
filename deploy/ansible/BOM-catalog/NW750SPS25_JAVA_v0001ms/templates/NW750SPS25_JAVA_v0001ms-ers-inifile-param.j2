@@ -3,7 +3,16 @@
 # Installation service 'SAP NetWeaver 7.5 > SAP HANA Database > Installation > Application Server Java > High-Availability System > Enqueue Replication Server Instance', product id 'NW_ERS:NW750.HDB.HA' #
 #                                                                                                                                                                                                          #
 ############################################################################################################################################################################################################
-# IMPORTANT DO NOT DELETE!!! SAPInstDes25Hash=$epackL+yJON1$L0+zdBnX8NwCWxv/cged05Bv5HIGNY/Juz0NdljkwiRH9KonnwMeFS6t684mJHdb/lN9PUisHH4N5tjruTsSf8Mn1PUdrQIh
+
+
+# Location of Export CD
+SAPINST.CD.PACKAGE.HDBCLIENT                                          = {{ sap_cd_package_hdbclient }}
+SAPINST.CD.PACKAGE.CD1                                                = {{ sap_cd_package_cd1 }}
+SAPINST.CD.PACKAGE.CD2                                                = {{ sap_cd_package_cd2 }}
+SAPINST.CD.PACKAGE.CD3                                                = {{ sap_cd_package_cd3 }}
+SAPINST.CD.PACKAGE.CD4                                                = {{ sap_cd_package_cd4 }}
+SAPINST.CD.PACKAGE.CD5                                                = {{ sap_cd_package_cd5 }}
+
 
 # Password for the Diagnostics Agent specific <dasid>adm user. Provided value may be encoded.
 # DiagnosticsAgent.dasidAdmPassword =
@@ -40,9 +49,6 @@ NW_readProfileDir.profileDir = /usr/sap/{{ app_sid | upper }}/SYS/profile
 
 # Windows only: The drive to use
 # NW_readProfileDir.sapdrive =
-
-# The folder containing all archives that have been downloaded from http://support.sap.com/swdc and are supposed to be used in this procedure
-archives.downloadBasket = {{ download_basket_dir }}
 
 # Windows only: The domain of the SAP Host Agent user
 # hostAgent.domain =
