@@ -86,7 +86,7 @@
     path:                              /oracle
     group:                             oinstall
     owner:                             oracle
-    mode:                              0777
+    mode:                              0775
   when:                                
     - not oracle_permissions_set.stat.exists
 
