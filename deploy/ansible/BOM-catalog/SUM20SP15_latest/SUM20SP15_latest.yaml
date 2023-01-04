@@ -1,20 +1,20 @@
 ---
 name:    'SUM20SP15'
 target:  'SUM20SP15'
-version: 004
+version: 005
 
 materials:
 
   media:
     # SUM
-    - name:         "Patch 4 for SOFTWARE UPDATE MANAGER 2.0 SP15 (Linux on x86_64)"
-      archive:      SUM20SP15_4-80002456.SAR
-      checksum:     4b9b1451ae62f9d5f159e7de82302ef9bdc9e16978fee608c8191264ae6f003c
+    - name:         "Patch 5 for SOFTWARE UPDATE MANAGER 2.0 SP15 (Linux on x86_64)"
+      archive:      SUM20SP15_5-80002456.SAR
+      checksum:     88432adae2f72ed1a4579b87d1f353e1e180ccd94b6acfdcd4e30d7c5ee4fea4
       download:     false
-      url:          https://softwaredownloads.sap.com/file/0020000001705862022
+      url:          https://softwaredownloads.sap.com/file/0020000000001112023
 
-    - name:         "Patch 4 for SOFTWARE UPDATE MANAGER 2.0 SP15 (Windows)"
-      archive:      SUM20SP15_4-80002458.SAR
-      checksum:     45af533c9a2d9b23548bcbf711d64f51bc19a1ccc049c73656e7be2465debe61
+    - name:         "Patch 5 for SOFTWARE UPDATE MANAGER 2.0 SP15 (Windows)"
+      archive:      SUM20SP15_5-80002458.SAR
+      checksum:     e37332825f6890b3e67a4bffebc928bb12981993ec3a0188bcf1d29ae09af290
       download:     false
-      url:          https://softwaredownloads.sap.com/file/0020000001705832022
+      url:          https://softwaredownloads.sap.com/file/0020000000001072023
