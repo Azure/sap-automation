@@ -84,7 +84,8 @@
   become_user:                         root
   ansible.builtin.file:
     path:                              /oracle
-    group:                             oracle:oinstall
+    group:                             oinstall
+    owner:                             oracle
     mode:                              0777
   when:                                
     - not oracle_permissions_set.stat.exists
