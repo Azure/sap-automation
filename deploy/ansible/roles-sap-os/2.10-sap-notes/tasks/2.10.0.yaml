@@ -19,7 +19,7 @@
     - processor.max_cstate:              '1'
 
 - name:                                "2.10.0 sap-notes: - Update GRUB config for UEFI systems"
-  ansible.builtin.command:             grub2-mkconfig -o /boot/efi/EFI/sles/grub.cfg
+  ansible.builtin.command:             grub2-mkconfig -o /boot/efi/EFI/BOOT/grub.cfg
   changed_when:                        false
   when:                                "'/boot/efi' in ansible_mounts | map(attribute='mount') | list"
 
