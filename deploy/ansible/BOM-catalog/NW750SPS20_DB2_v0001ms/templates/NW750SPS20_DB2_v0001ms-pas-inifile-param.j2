@@ -29,7 +29,12 @@ NW_readProfileDir.profileDir                                                    
 
 NW_checkMsgServer.abapMSPort                                                                = 36{{ scs_instance_number }}
 NW_getLoadType.loadType                                                                     = SAP
-NW_getUnicode.isUnicode                                                                     = true
+
+# ABAP system is Unicode (true|false), only needed if it cannot be determined from the system.
+NW_getUnicode.isUnicode = true
+
+# Specify whether this system is to be a Unicode system.
+NW_GetSidNoProfiles.unicode = true
 
 nwUsers.sapadmUID                                                                           = {{ sapadm_uid }}
 nwUsers.sapsysGID                                                                           = {{ sapsys_gid }}
