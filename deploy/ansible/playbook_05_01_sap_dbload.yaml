@@ -154,7 +154,7 @@
 
       when:
         - platform == 'HANA'
-        - "'pas' in supported_tiers"
+        - "'scs' in supported_tiers"
 
 # /*----------------------------------------------------------------------------8
 # |                                                                            |
