@@ -6,7 +6,7 @@ The sap-automation repository is a framework that offers you automation to deplo
 
 To get started with your own configuration repository we added this boilerplate with the most basic configuration for the pipelines already configured. Just copy the content of the boilerplate folder into the root of your configuration repository and change the following configuration.
 
-In the resouces.yml configure the following configuration by replacing ```<MyGithubConnector>``` with the name of your Github connector.
+In the resources.yml configure the following configuration by replacing ```<MyGithubConnector>``` with the name of your Github connector.
 
 ``` yaml
     - repository: sap-automation
@@ -25,7 +25,7 @@ During pipeline execustion the two repositories will be present on the deployer-
 - sap-automation will be mapped to ```/sap-automation```
 - customer configuration repository will be mapped to ```/config```
 
-During execution the repositories will interact with eachother by using the following:
+During execution the repositories will interact with each other by using the following:
 
 ```mermaid
 flowchart LR
