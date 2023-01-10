@@ -1,15 +1,15 @@
 #region Initialize
 # Initialize variables from Environment variables
 
-$ADO_Organization = $Env:SDAF_ADO_ORGANIZATION
-$ADO_Project = $Env:SDAF_ADO_PROJECT
-$Control_plane_code = $Env:SDAF_CONTROL_PLANE_CODE
-$Workload_zone_code = $Env:SDAF_WORKLOAD_ZONE_CODE
+$ADO_Organization = "https://dev.azure.com/msft365test/"
+$ADO_Project = "SDAF Deployment Automation - Bug 342"
+$Control_plane_code = "mgmt"
+$Workload_zone_code = "dev"
 
-$Control_plane_subscriptionID = $Env:SDAF_ControlPlaneSubscriptionID
-$Workload_zone_subscriptionID = $Env:SDAF_WorkloadZoneSubscriptionID
-$ControlPlaneSubscriptionName = $Env:SDAF_ControlPlaneSubscriptionName
-$Workload_zoneSubscriptionName = $Env:SDAF_WorkloadZoneSubscriptionName
+$Control_plane_subscriptionID = "9006c0ed-5386-4b59-b125-bd13aa15a833"
+$Workload_zone_subscriptionID = "9006c0ed-5386-4b59-b125-bd13aa15a833"
+$ControlPlaneSubscriptionName = "SAP Subscription"
+$Workload_zoneSubscriptionName = "SAP Subscription"
 #endregion
 if ($Env:ARM_TENANT_ID.Length -eq 0) {
   az login --output none --only-show-errors
@@ -151,7 +151,7 @@ if ($Project_ID.Length -eq 0) {
   $repo_id = (az repos list --query "[?name=='$ADO_Project'].id | [0]").Replace("""", "")
 
   Write-Host "Importing the content from GitHub" -ForegroundColor Green
-  az repos import create --git-url https://github.com/Azure/SAP-automation-bootstrap --repository $repo_id --output none
+  az repos import create --git-url https://github.com/jhajduk-microsoft/sap-automation --repository $repo_id --output none
 
   az repos update --repository $repo_id --default-branch main --output none
 

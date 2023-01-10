@@ -1,0 +1,25 @@
+{
+  "refUpdates": [
+    {
+      "name": "refs/heads/main",
+      "oldObjectId": "cb6b5ccb41f44660ec418d328c8e48a58aca33f9"
+    }
+  ],
+  "commits": [
+    {
+      "changes": [
+        {
+          "newContent": {
+            "contentType": "base64Encoded",
+            "content": "CnBhcmFtZXRlcnM6CiAgLSBuYW1lOiBzdGFnZXMKICAgIHR5cGU6IHN0YWdlTGlzdAogICAgZGVmYXVsdDogW10KCnN0YWdlczoKICAtICR7eyBwYXJhbWV0ZXJzLnN0YWdlcyB9fQoKcmVzb3VyY2VzOgogIHJlcG9zaXRvcmllczoKICAgIC0gcmVwb3NpdG9yeTogc2FwLWF1dG9tYXRpb24KICAgICAgdHlwZTogZ2l0CiAgICAgIG5hbWU6IFNEQUYgRGVwbG95bWVudCBBdXRvbWF0aW9uIC0gQnVnIDM0Mi9zYXAtYXV0b21hdGlvbgogICAgICByZWY6IHJlZnMvaGVhZHMvZXhwZXJpbWVudGFsCiAgICAtIHJlcG9zaXRvcnk6IHNhcC1zYW1wbGVzCiAgICAgIHR5cGU6IGdpdAogICAgICBuYW1lOiBTREFGIERlcGxveW1lbnQgQXV0b21hdGlvbiAtIEJ1ZyAzNDIvc2FwLXNhbXBsZXMKICAgICAgcmVmOiByZWZzL2hlYWRzL21haW4K"
+          },
+          "item": {
+            "path": "/pipelines/resources_including_samples.yml"
+          },
+          "changetype": "edit"
+        }
+      ],
+      "comment": "Updated resources_including_samples.yml"
+    }
+  ]
+}
