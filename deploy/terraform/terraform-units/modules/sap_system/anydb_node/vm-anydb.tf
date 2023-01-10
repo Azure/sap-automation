@@ -448,7 +448,6 @@ SETTINGS
 }
 
 resource "azurerm_virtual_machine_extension" "configure_ansible" {
-
   provider = azurerm.main
   count = local.enable_deployment ? (
     upper(local.anydb_ostype) == "WINDOWS" ? (
@@ -458,6 +457,7 @@ resource "azurerm_virtual_machine_extension" "configure_ansible" {
     0
   )
 
+  depends_on = [azurerm_virtual_machine_data_disk_attachment.vm_disks]
 
   name                 = "configure_ansible"
   virtual_machine_id   = azurerm_windows_virtual_machine.dbserver[count.index].id
