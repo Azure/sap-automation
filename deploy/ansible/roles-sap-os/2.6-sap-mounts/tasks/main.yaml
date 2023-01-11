@@ -284,13 +284,6 @@
     - node_tier == "oracle-asm"
     # - tier == "ora"
 
-# Import this task for all oracle installations.
-- name:                                "2.6 SAP Mounts: - Import Oracle NFS Mounts tasks"
-  ansible.builtin.import_tasks:        "2.6.6-oracle-nfs-mounts.yaml"
-  when:
-    - node_tier in ['oracle','oracle-asm']
-    # - tier == "ora"
-
 - name:                                "2.6 SAP Mounts: - Import Oracle observer tasks"
   ansible.builtin.import_tasks:        "oracle-observer.yaml"
   when:
