@@ -67,9 +67,9 @@
       - "Unique disks:    {{ disktypes }} "
       - "Volume groups:   {{ volume_groups }} "
       - "Logical volumes: {{ logical_volumes }} "
-      - "sap mount:       {% sap_mnt is defined %}{{ sap_mnt }}{% else %}local{% endif %}"
-      - "sap trans:       {% sap_trans is defined %}{{ sap_trans }}{% else %}local{% endif %}"
-      - "usr install:     {% usr_sap_install_mountpoint is defined %}{{ usr_sap_install_mountpoint }}{% else %}local{% endif %}"
+      - "sap mount:       {{ sap_mnt }}"
+      - "sap trans:       {{ sap_trans }}"
+      - "usr install:     {{ usr_sap_install_mountpoint }}"
     verbosity:                         2
 
 # CREATE VOLUME GROUPS BASED ON sap-parameters.yaml
