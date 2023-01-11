@@ -143,12 +143,12 @@ resource "azurerm_linux_virtual_machine" "web" {
   network_interface_ids = var.application_tier.dual_nics ? (
     var.options.legacy_nic_order ? (
       [
-        azurerm_network_interface.scs_admin[count.index].id,
-        azurerm_network_interface.scs[count.index].id
+        azurerm_network_interface.web_admin[count.index].id,
+        azurerm_network_interface.web[count.index].id
       ]) : (
       [
-        azurerm_network_interface.scs[count.index].id,
-        azurerm_network_interface.scs_admin[count.index].id
+        azurerm_network_interface.web[count.index].id,
+        azurerm_network_interface.web_admin[count.index].id
       ]
     )
     ) : (
