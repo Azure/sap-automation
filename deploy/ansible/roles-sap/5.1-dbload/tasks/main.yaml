@@ -71,6 +71,11 @@
     bom_name:                          "{{ bom_base_name }}"
     task_prefix:                       "DBLoad: "
 
+- name:                                "Hana backup directory"
+  ansible.builtin.stat:
+    path:                              /hana/data/backup
+  register:                            hana_backup_location_found
+
 - name:                                "DBLoad: - Include roles-sap/3.3.1-bom-utility role"
   ansible.builtin.include_role:
     name:                              roles-sap/3.3.1-bom-utility
@@ -101,6 +106,7 @@
     # support older dbload inifile templates where hdb_instance_number was used
     hdb_instance_number:               "{{ db_instance_number }}"
     db_instance_number:                "{{ db_instance_number }}"
+    hana_backup_path:                  "{% if hana_backup_location_found.stat.exists %}'/hana/data/backup'{% else %}{{ hana_backup_path }}{% endif %}"
   tags:
     - skip_ansible_lint
 

@@ -98,6 +98,14 @@
     - node_tier == 'hana'
     - (backupdisks_count | int) > 0
 
+- name:                                "2.6 SAP Mounts: - Mount local file systems (backup)"
+  ansible.builtin.file:
+    path:                              /hana/data/backup
+    state:                             directory
+  when:
+    - node_tier == 'hana'
+    - (backupdisks_count | int) == 0
+
 - name:                                "2.6 SAP Mounts: - Mount local file systems (hana data)"
   ansible.posix.mount:
     src:                               '/dev/vg_hana_data/lv_hana_data'
