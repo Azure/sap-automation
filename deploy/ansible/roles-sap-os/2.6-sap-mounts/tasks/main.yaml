@@ -138,6 +138,10 @@
     - MULTI_SIDS is defined
     - sap_trans is undefined
 
+- name:                                "2.6 SAP Mounts: - Debug"
+  ansible.builtin.debug:
+    var:                               usr_sap_install_mountpoint
+
 - name:                                "2.6 SAP Mounts: - Mount local install file system on SCS (when not using AFS)"
   ansible.posix.mount:
     src:                               '/dev/vg_sap/lv_usrsapinstall'
