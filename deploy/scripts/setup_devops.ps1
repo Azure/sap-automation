@@ -151,7 +151,7 @@ if ($Project_ID.Length -eq 0) {
   $repo_id = (az repos list --query "[?name=='$ADO_Project'].id | [0]").Replace("""", "")
 
   Write-Host "Importing the content from GitHub" -ForegroundColor Green
-  az repos import create --git-url https://github.com/jhajduk-microsoft/sap-automation --repository $repo_id --output none
+  az repos import create --git-url https://github.com/Azure/SAP-automation-bootstrap --repository $repo_id --output none
 
   az repos update --repository $repo_id --default-branch main --output none
 
