@@ -303,6 +303,7 @@ locals {
           caching                   = storage_type.caching
           write_accelerator_enabled = try(storage_type.write_accelerator, false)
           type                      = storage_type.name
+          tier                      = try(storage_type.tier, null)
           lun                       = storage_type.lun_start + idx
         }
         if try(storage_type.append, false)

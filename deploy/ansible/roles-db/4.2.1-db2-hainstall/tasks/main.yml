@@ -20,11 +20,21 @@
 - name:                                "DB2 Primary System Setup"
   block:
 
-    - name:                            "DB2 Primary System Install "
+    - name:                            "DB2 Primary System Install"
       ansible.builtin.import_tasks:    4.2.1.0-db2_ha_install_primary.yml
 
     - name:                            "DB2 - Take offline backup of Primary DB"
       ansible.builtin.import_tasks:    4.2.1.1-db2_primary_backup.yml
+  always:
+    - name:                            "DB2 Primary System Install: result"
+      ansible.builtin.debug:
+        var:                           db2_installation
+        verbosity:                     4
+
+    - name:                            "DB2 Primary System Install: result"
+      ansible.builtin.fail:
+        msg:                           db2_installation.stdout_lines
+      when:                            db2_installation.rc != 0
 
   when:
     - ansible_hostname == primary_instance_name
@@ -37,7 +47,16 @@
 
     - name:                            "DB2 - Restore Secondary with backup of Primary DB"
       ansible.builtin.import_tasks:    4.2.1.3-db2_restore_secondary.yml
+  always:
+    - name:                            "DB2 Secondary System Install: result"
+      ansible.builtin.debug:
+        var:                           db2_installation
+        verbosity:                     4
 
+    - name:                            "DB2 Primary System Install: result"
+      ansible.builtin.fail:
+        msg:                           db2_installation.stdout_lines
+      when:                            db2_installation.rc != 0
   when:
     - ansible_hostname == secondary_instance_name
 

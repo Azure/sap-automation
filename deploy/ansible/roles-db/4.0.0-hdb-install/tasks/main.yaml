@@ -124,7 +124,7 @@
 
     - name:                            "SAP HANA: Create backup folder"
       ansible.builtin.file:
-        path:                          "/hana/backup"
+        path:                          "{{ hana_backup_path }}"
         state:                         directory
         group:                         sapsys
         owner:                         "{{ db_sid | lower }}adm"
@@ -155,7 +155,7 @@
 
     - name:                            "SAP HANA: Create backup folder"
       ansible.builtin.file:
-        path:                          "/hana/backup"
+        path:                          "{{ hana_backup_path }}"
         state:                         directory
         group:                         sapsys
         owner:                         "{{ db_sid | lower }}adm"

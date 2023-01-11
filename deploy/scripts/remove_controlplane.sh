@@ -426,6 +426,15 @@ else
 
   param_dirname=$(pwd)
 
+  if [ -z "$keyvault" ]; then
+    load_config_vars "${environment_config_information}" "keyvault"
+    if valid_kv_name "$keyvault" ; then
+        az keyvault network-rule add  --ip-address $TF_VAR_Agent_IP --name "$keyvault"
+    fi
+
+  fi
+
+
   terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/sap_deployer/
   export TF_DATA_DIR="${param_dirname}/.terraform"
 

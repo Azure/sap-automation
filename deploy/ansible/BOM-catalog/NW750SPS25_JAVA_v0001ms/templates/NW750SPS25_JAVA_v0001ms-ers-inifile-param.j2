@@ -1,0 +1,84 @@
+############################################################################################################################################################################################################
+#                                                                                                                                                                                                          #
+# Installation service 'SAP NetWeaver 7.5 > SAP HANA Database > Installation > Application Server Java > High-Availability System > Enqueue Replication Server Instance', product id 'NW_ERS:NW750.HDB.HA' #
+#                                                                                                                                                                                                          #
+############################################################################################################################################################################################################
+
+
+# Location of Export CD
+SAPINST.CD.PACKAGE.HDBCLIENT                                          = {{ sap_cd_package_hdbclient }}
+SAPINST.CD.PACKAGE.CD1                                                = {{ sap_cd_package_cd1 }}
+SAPINST.CD.PACKAGE.CD2                                                = {{ sap_cd_package_cd2 }}
+SAPINST.CD.PACKAGE.CD3                                                = {{ sap_cd_package_cd3 }}
+SAPINST.CD.PACKAGE.CD4                                                = {{ sap_cd_package_cd4 }}
+SAPINST.CD.PACKAGE.CD5                                                = {{ sap_cd_package_cd5 }}
+
+
+# Password for the Diagnostics Agent specific <dasid>adm user. Provided value may be encoded.
+# DiagnosticsAgent.dasidAdmPassword =
+
+# Windows domain in which the Diagnostics Agent users must be created. This is an optional property (Windows only).
+# DiagnosticsAgent.domain =
+
+# Windows only: Password for the Diagnostics Agent specific 'SAPService<DASID>' user.
+# DiagnosticsAgent.sapServiceDASIDPassword =
+
+# Specify whether the all operating system users are to be removed from group 'sapinst' after the execution of Software Provisioning Manager has completed.
+NW_Delete_Sapinst_Users.removeUsers = true
+
+# SAP INTERNAL USE ONLY
+# NW_System.installSAPHostAgent = true
+
+# SAP INTERNAL USE ONLY
+# NW_adaptProfile.templateFiles =
+
+# The FQDN of the system
+NW_getFQDN.FQDN = {{ sap_fqdn }}
+
+# SAP INTERNAL USE ONLY
+# NW_getFQDN.resolve = true
+
+# Specify whether you want to set FQDN for the system.
+# NW_getFQDN.setFQDN = true
+
+# ABAP system is Unicode (true|false), only needed if it cannot be determined from the system.
+# NW_getUnicode.isUnicode =
+
+# Provide  'profile' directory of SAP Netweaver-based system.
+NW_readProfileDir.profileDir = /usr/sap/{{ app_sid | upper }}/SYS/profile
+
+# Windows only: The drive to use
+# NW_readProfileDir.sapdrive =
+
+# Windows only: The domain of the SAP Host Agent user
+# hostAgent.domain =
+
+# Password for the 'sapadm' user of the SAP Host Agent
+hostAgent.sapAdmPassword = {{ main_password }}
+
+# Windows only: The domain of all users of this SAP system. Leave empty for default.
+# nwUsers.sapDomain =
+
+# Windows only: The password of the 'SAPServiceSID' user
+# nwUsers.sapServiceSIDPassword =
+
+# UNIX only: The user ID of the 'sapadm' user, leave empty for default. The ID is ignored if the user already exists.
+# nwUsers.sapadmUID =
+
+# UNIX only: The group id of the 'sapsys' group, leave empty for default. The ID is ignored if the group already exists.
+nwUsers.sapsysGID = {{ sapsys_gid }}
+
+# UNIX only: The user id of the <sapsid>adm user, leave empty for default. The ID is ignored if the user already exists.
+nwUsers.sidAdmUID = {{ sidadm_uid }}
+
+# The password of the '<sapsid>adm' user
+nwUsers.sidadmPassword = {{ main_password }}
+
+# The instance number of the ERS instance. Leave empty for default.
+#nw_instance_ers.ersInstanceNumber = {{ ers_instance_number }}
+
+# Host name of the ERS instance. It can be either the physical host name or -  in case of  high-availability system installation, - one of the virtual host names.
+nw_instance_ers.ersVirtualHostname = {{ ers_virtual_hostname }}
+
+# Restart (A)SCS instance during ERS installation. Default value 'true'. Possible values 'true' or 'false'. Leave empty for default.
+# nw_instance_ers.restartSCS = true
