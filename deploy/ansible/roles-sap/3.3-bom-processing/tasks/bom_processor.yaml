@@ -170,6 +170,12 @@
     - distribution_id != 'sles_sap15'
     - distribution_id != 'redhat8'
 
+
+- name:                               "3.3 BoM Processing: - Download result"
+  ansible.builtin.debug:
+    var:                              result
+    verbosity:                        2
+
 #   05) Extract files - SAPCAR
 - name:                                "3.3 BoM Processing: - Extract File, SAPCAR"
   ansible.builtin.command:             "{{ target_media_location }}/downloads/SAPCAR -manifest SIGNATURE.SMF \
