@@ -108,7 +108,7 @@
             msg:                       "{{ hostvars.localhost.sap_password }}"
             verbosity:                 4
 
-        - name:                        Run the Database installation Playbook
+        - name:                        "Run the Database installation Playbook"
           block:
             - name:                    "Database Installation Playbook: - run HANA installation"
               ansible.builtin.include_role:
@@ -167,41 +167,46 @@
             fencing_spn_client_pwd:    "{% if not use_msi_for_clusters %}{{ hostvars.localhost.sap_fencing_spn_pwd }}{% endif %}"
             fencing_spn_tenant_id:     "{% if not use_msi_for_clusters %}{{ hostvars.localhost.sap_fencing_spn_tenant_id }}{% endif %}"
 
-        - name:                    "Database Installation Playbook: - Ensure the correct repositories are set"
+        - name:                        "Database Installation Playbook: - Ensure the correct repositories are set"
           ansible.builtin.include_role:
-            name:                  roles-os/1.3-repository
+            name:                      roles-os/1.3-repository
           tags:
             - 1.3-repository
 
-        - name:                    "Database Installation Playbook: - Ensure the correct packages are installed"
+        - name:                        "Database Installation Playbook: - Ensure the correct packages are installed"
           ansible.builtin.include_role:
-            name:                  roles-os/1.4-packages
+            name:                      roles-os/1.4-packages
           tags:
             - 1.4-packages
 
         # Setup the kernel parameters required for pacemaker cluster VMs
-        - name:                    "Database Installation Playbook: - Ensure the correct kernel parameters are set"
+        - name:                        "Database Installation Playbook: - Ensure the correct kernel parameters are set"
           ansible.builtin.include_role:
-            name:                  roles-os/1.9-kernelparameters
+            name:                      roles-os/1.9-kernelparameters
           tags:
             - 1.9-kernelparameters
 
-        - name:                    "Database Installation Playbook: - Ensure the needed services are enabled/disabled"
+        - name:                        "Database Installation Playbook: - Ensure the needed services are enabled/disabled"
           ansible.builtin.include_role:
-            name:                  roles-os/1.16-services
+            name:                      roles-os/1.16-services
           tags:
             - 1.16-services
 
-        - name:                    "Database Installation Playbook: - Ensure the accounts are present"
+        - name:                        "Database Installation Playbook: - Ensure the accounts are present"
           ansible.builtin.include_role:
-            name:                  roles-os/1.11-accounts
+            name:                      roles-os/1.11-accounts
           tags:
             - 1.11-accounts
 
-        - name:                    "Database Installation Playbook: - Install Pacemaker"
+        - name:                        "Database Installation Playbook: - Install Pacemaker"
           ansible.builtin.include_role:
-            name:                  roles-os/1.17-generic-pacemaker                         # Configures the Pacemaker cluster with Azure fence agent
-          when:                    node_tier != 'oracle'
+            name:                      roles-os/1.17-generic-pacemaker                         # Configures the Pacemaker cluster with Azure fence agent
+            apply:
+              tags:
+                - 1.17-generic-pacemaker
+              become:                  true
+              become_user:             root
+          when:                        node_tier != 'oracle'
           tags:
             - 1.17-generic-pacemaker
 
@@ -535,7 +540,7 @@
     - name:                            "Install Oracle on ASM"
       when:
         - node_tier == 'oracle-asm'
-        - platform == 'ORACLE'    
+        - platform == 'ORACLE'
       block:
         - name:                        Setting the DB facts for ASM
           ansible.builtin.set_fact:
@@ -543,23 +548,23 @@
             main_password:             "{{ hostvars.localhost.sap_password }}"
           tags:
             - always
-        
+
         - name:                        Include 1.5.1.1-disk-setup-asm-sap
           ansible.builtin.include_role:
             name:                      roles-os/1.5.1.1-disk-setup-asm-sap
-        
+
         - name:                        "OS configuration playbook: - Ensure the kernel parameters are set"
           ansible.builtin.include_role:
             name:                      roles-os/1.9-kernelparameters
           tags:
              - 1.9-kernelparameters
-        
+
         - name:                        "SAP OS configuration playbook: - Configure accounts"
           ansible.builtin.include_role:
             name:                      roles-os/1.11-accounts
           tags:
             - 1.11-accounts
-        
+
 
         - name:                        "SAP OS configuration playbook: - Create SAP users/groups"
           ansible.builtin.include_role:
