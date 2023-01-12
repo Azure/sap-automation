@@ -170,14 +170,14 @@
     state:                             touch
     mode:                              '0755'
 
-# Can not use ansible yum module as it will throw an signature error.
+# Can not use ansible yum module as we need to use -y option in yum.
 - name:                                "SAP Oracle ASM: Install CVUQDISK RPM"
   become:                              true
   become_user:                         root
   ansible.builtin.shell: |
                                        set -o errexit
                                        set -o pipefail
-                                       /oracle/GRID/{{ ora_version }}/cv/rpm/cvuqdisk-1.0.10-1.rpm
+                                       yum install -y /oracle/GRID/{{ ora_version }}/cv/rpm/cvuqdisk-1.0.10-1.rpm
   args:
     creates:                           /etc/sap_deployment_automation/oracle/CVUQDISK.txt
 
