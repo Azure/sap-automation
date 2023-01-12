@@ -19,11 +19,10 @@ ansible-playbook                                                                
                   "bom_base_name":                  "TEST_BOM_v0001ms",
                   "new_bom_name":                   "MKD_v0001cust",
                   "download_directory":             "~/tmp/download",
-                  "sapbits_location_base_path":     "https://mkddynbomtst.blob.core.windows.net/sapbits",
-                  "pause":                          "true"
+                  "sapbits_location_base_path":     "https://mkddynbomtst.blob.core.windows.net/sapbits"
                 }'                                                                                              \
   --extra-vars="@../../../SUSER.yaml"                                                                           \
-  -v                                                                                                            \
+  -v                                                                                                     \
 test_playbook_bom_downloader.yaml
 
 set +x

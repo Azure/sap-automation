@@ -70,6 +70,7 @@
 - name:                                 "Dynamic processing - BOM update block..."
   block:
 
+# -------------------------------------+---------------------------------------8
 # Step: 03-01
     - name:                                 "Dynamic processing - Show media entry"
       ansible.builtin.debug:
@@ -84,14 +85,24 @@
                                             {{ "%-9s"|format(line.platform) }}| {{ "%-10s"|format(line.number) }}| {{ line.description }}
                                             {% endfor %}
         verbosity:                          1
+# Step: 03-01 - END
+# -------------------------------------+---------------------------------------8
 
+# -------------------------------------+---------------------------------------8
 # Step: 03-02
+# Description:  
+#
     - name:                                 "Dynamic processing - Show BOM entry BEFORE Dynamic Processing"
       ansible.builtin.debug:
         var:                                bom.materials.media[bom_media_index]
         verbosity:                          1
+# Step: 03-02 - END
+# -------------------------------------+---------------------------------------8
 
+# -------------------------------------+---------------------------------------8
 # Step: 03-03
+# Description:  
+#
     - name:                                 "Dynamic processing - Update BOM"
       ansible.builtin.set_fact:
         bom:                                "{{ bom_update }}"
@@ -130,87 +141,29 @@
                                             "
       loop:                                 "{{ sap_search_results.entry|flatten(levels=1) }}"
       when:                                 sap_platform_map_lookup.number == platformNumber_list[1]
+# Step: 03-03 - END
+# -------------------------------------+---------------------------------------8
 
+# -------------------------------------+---------------------------------------8
 # Step: 03-04
+# Description:  
+#
     - name:                                 "Dynamic processing - Show BOM entry AFTER Dynamic Processing"
       ansible.builtin.debug:
         var:                                bom.materials.media[bom_media_index]
         verbosity:                          1
+# Step: 03-04 - END
+# -------------------------------------+---------------------------------------8
+
 # Step: 03 - END
 # -------------------------------------+---------------------------------------8
 
-
-
-
-
-
-
-
-
-# - name:                                 "Dynamic processing - Create new_entry"
-#   ansible.builtin.set_fact:
-#     new_bom_entry:
-#       name:                             "{{ item.Description }} - {{ item.Infotype }}"
-#       dynamic:                          false
-#       archive:                          "{{ item.Title }}"
-#       checksum:                         ""
-#       url:                              "{{ item.DownloadDirectLink }}"
-#   vars:
-#     sap_platform_map_lookup:            "{{   sap_platform_map 
-#                                             | selectattr('platform', '==', bom_media_entry.platform)
-#                                             | first
-#                                         }}"
-#     sap_search_results:                 "{{ 
-#                                               sap_asset_search.stdout
-#                                             | regex_search(
-#                                                             '(?:.*(?P<first_part><feed.*))(?P<second_part>.*?feed>)',
-#                                                             '\\g<first_part>',
-#                                                             '\\g<second_part>'
-#                                                           )
-#                                             | join
-#                                             | parse_xml(role_path + '/templates/sap_search.yaml')
-#                                         }}"
-#     keyTitle_list:                      "{{ item.Title 
-#                                             | regex_search(
-#                                                             '(?P<prefix>^.*)[-](?P<hwid>.*)[.](?P<suffix>.*$)',
-#                                                             '\\g<prefix>',
-#                                                             '\\g<hwid>',
-#                                                             '\\g<suffix>'
-#                                                           )
-#                                         }}"
-#   loop:                                 "{{ sap_search_results.entry|flatten(levels=1) }}"
-#   when:                                 sap_platform_map_lookup.number == keyTitle_list[1]
-
-# - name:                                 "Dynamic processing - Show udated media entry (new_entry)"
-#   ansible.builtin.debug:
-#     var:                                new_bom_entry
-#     verbosity:                          1
-
-# - name:                                 "Update BOM dictionary"
-#   ansible.builtin.set_fact:
-#     bom:                                "{{ bom_update }}"
-#   vars:
-#     bom_update:                         "
-#                                         {#-  -#}
-#                                         {% set _ = bom.materials.media[item_index].update({'name':      new_bom_entry.name})      -%}
-#                                         {% set _ = bom.materials.media[item_index].update({'archive':   new_bom_entry.archive})   -%}
-#                                         {% set _ = bom.materials.media[item_index].update({'checksum':  new_bom_entry.checksum})  -%}
-#                                         {% set _ = bom.materials.media[item_index].update({'dynamic':   new_bom_entry.dynamic})   -%}
-#                                         {% set _ = bom.materials.media[item_index].update({'url':       new_bom_entry.url})       -%}
-#                                         {% set _ = bom.materials.media[item_index].update({'index':     item_index})              -%}
-#                                         {{ bom }}
-#                                         "
-#   loop:                                 "{{ bom.materials.media|flatten(levels=1) }}"
-#   loop_control:
-#     loop_var:                           item
-#     index_var:                          item_index
-#   when:
-#     - item.name     is  defined
-#     - item.dynamic  is  defined
-#     - item.platform is  defined
-#     - item.name     ==  bom_media_entry.name
-#     - item.dynamic  ==  bom_media_entry.dynamic
-#     - item.platform ==  bom_media_entry.platform
+- name:                                 "Pause to review bom update"
+  pause:
+    prompt: "Press enter to continue..."
+    echo: yes
+  when:
+    - pause|default(false)                                                      # when true; if not defined, then value is false
 
 ...
 # /*---------------------------------------------------------------------------8

@@ -34,17 +34,30 @@
 # |   02) Download media                                                       |
 # +------------------------------------4--------------------------------------*/
 
+# -------------------------------------+---------------------------------------8
+# Step: 01
+# Description:  Informational
+#
 - name:                             "Informational"
   ansible.builtin.debug:
     var:                            bom_name
     verbosity:                      1
+# Step: 01 - END
+# -------------------------------------+---------------------------------------8
 
 
 
 # -------------------------------------+---------------------------------------8
-# Step: 01
+# Step: 02
 # Description:  Register BOM
 #
+# - name:                                 "TROUBLESHOOTING: bom-registration.yaml"
+#   pause:
+#     prompt: "Press enter to continue..."
+#     echo: yes
+#   when:
+#     - pause|default(false)                                                      # when true; if not defined, then value is false
+
 - name:                                "Call BOM registration"
   ansible.builtin.include_role:
     name:                              roles-sap/3.3.1-bom-utility
@@ -53,16 +66,23 @@
     inventory_dir:                     "{{ download_directory }}/bom"
     task_prefix:                       "Validation: "
     source:                            "disk"
-# Step: 01 - END
+# Step: 02 - END
 # -------------------------------------+---------------------------------------8
 
 
 
 # -------------------------------------+---------------------------------------8
-# Step: 02
+# Step: 03
 # Description:  Dynamic Processing - Iterate over BOM dictionary to find Dynamic
 #               entries.
 #
+# - name:                                 "TROUBLESHOOTING: dynamic_bom_processing.yaml"
+#   pause:
+#     prompt: "Press enter to continue..."
+#     echo: yes
+#   when:
+#     - pause|default(false)                                                      # when true; if not defined, then value is false
+
 - name:                                 "Reconcile dynamic entries of BOM"
   ansible.builtin.include_tasks:        "dynamic_bom_processing.yaml"
   loop:                                 "{{ bom.materials.media|flatten(levels=1) }}"
@@ -72,30 +92,43 @@
   when:
     - bom_media_entry.dynamic is defined
     - bom_media_entry.dynamic
-# Step: 02 - END
+# Step: 03 - END
 # -------------------------------------+---------------------------------------8
 
 
 # -------------------------------------+---------------------------------------8
-# Step: 03
+# Step: 04
 # Description:  Generate SAS token block
 #
 - name:                                 "Generate SAS token block"
   block:
 
-# Step: 03-01
+# -------------------------------------+---------------------------------------8
+# Step: 04-01
+# Description:  
+#
     - name:                             "{{ task_prefix }} - Informational"
       ansible.builtin.debug:
         msg: |-
                                         Entering SAS token block...
         verbosity:                      1
+# Step: 04-01 - END
+# -------------------------------------+---------------------------------------8
 
-# Step: 03-02
+# -------------------------------------+---------------------------------------8
+# Step: 04-02
+# Description:  
+#
     - name:                             "{{ task_prefix }} - Caculate expiration date (+3 Days)"
       ansible.builtin.set_fact:
         expiry:                         "{{ '%Y-%m-%d' | strftime((ansible_date_time.epoch | int) + (86400 * 3)) }}"
+# Step: 04-02 - END
+# -------------------------------------+---------------------------------------8
 
-# Step: 03-02
+# -------------------------------------+---------------------------------------8
+# Step: 04-03
+# Description:  
+#
     - name:                             "{{ task_prefix }} - Create SAP Binaries Storage Account SAS"
       ansible.builtin.shell: >-
                                         az storage account generate-sas                                                     \
@@ -108,23 +141,30 @@
                                           | tr -d \"
       changed_when:                     false
       register:                         az_sapbits_sas_token
+# Step: 04-03 - END
+# -------------------------------------+---------------------------------------8
 
-# Step: 03-04
+# -------------------------------------+---------------------------------------8
+# Step: 04-04
+# Description:  
+#
     - name:                             "{{ task_prefix }} - Extract SAP Binaries Storage Account SAS (temp)"
       ansible.builtin.set_fact:
         sapbits_sas_token:              "{{ az_sapbits_sas_token.stdout }}"
+# Step: 04-04 - END
+# -------------------------------------+---------------------------------------8
 
   vars:
     task_prefix:                        Generate SAS token block
   when:
     - sa_enabled
-# Step: 03 - END
+# Step: 04 - END
 # -------------------------------------+---------------------------------------8
 
 
 
 # -------------------------------------+---------------------------------------8
-# Step: 04
+# Step: 05
 # Description:  Check and download files
 #
 - name:                                "0.1 BoM Validator: - BOM: {{ bom_name }} Check and Download Files"
@@ -134,33 +174,6 @@
     loop_var:                           bom_media_entry
     index_var:                          bom_media_index
   no_log:                              false
-# Step: 04 - END
-# -------------------------------------+---------------------------------------8
-
-
-
-# -------------------------------------+---------------------------------------8
-# Step: 05
-# Description:  Combine dependent BoMs block
-#
-- name:                                 "Combine dependent BoMs block"
-  block:
-
-    - name:                             "{{ task_prefix }} - Combine dependent BoMs"
-      ansible.builtin.set_fact:
-        root_media_list:                "{{ root_media_list + bom.materials.media | flatten(levels=1) }}"
-
-    - name:                             "{{ task_prefix }} - Informational"
-      ansible.builtin.debug:
-        msg: |-
-                                        {{ root_media_list }}
-        verbosity:                      1
-
-  vars:
-    task_prefix:                        Combine dependent BoMs block
-  when: root_media_list is defined
-
-
 # Step: 05 - END
 # -------------------------------------+---------------------------------------8
 
@@ -168,24 +181,61 @@
 
 # -------------------------------------+---------------------------------------8
 # Step: 06
+# Description:  Combine dependent BoMs block
+#
+- name:                                 "Combine dependent BoMs block"
+  block:
+
+# -------------------------------------+---------------------------------------8
+# Step: 06-01
+# Description:  
+#
+    - name:                             "{{ task_prefix }} - Combine dependent BoMs"
+      ansible.builtin.set_fact:
+        root_media_list:                "{{ root_media_list + bom.materials.media | flatten(levels=1) }}"
+# Step: 06-01 - END
+# -------------------------------------+---------------------------------------8
+
+# -------------------------------------+---------------------------------------8
+# Step: 06-02
+# Description:  
+#
+    - name:                             "{{ task_prefix }} - Informational"
+      ansible.builtin.debug:
+        msg: |-
+                                        {{ root_media_list }}
+        verbosity:                      1
+# Step: 06-02 - END
+# -------------------------------------+---------------------------------------8
+
+  vars:
+    task_prefix:                        Combine dependent BoMs block
+  when: root_media_list is defined
+# Step: 06 - END
+# -------------------------------------+---------------------------------------8
+
+
+
+# -------------------------------------+---------------------------------------8
+# Step: 07
 # Description:  
 #
 - name:                                "0.1 BoM Validator: - BOM: {{ bom_name }} Folder"
   ansible.builtin.debug:
     msg:                               "FOLDERNAME : {{ bom_file.rpartition('/')[0] }}"
-# Step: 06 - END
+# Step: 07 - END
 # -------------------------------------+---------------------------------------8
 
 
 # # -------------------------------------+---------------------------------------8
-# # Step: 07
+# # Step: 08
 # # Description:  
 # #
 # - name: "Upload"
 #   block:
 
 # # -------------------------------------+---------------------------------------8
-# # Step: 07-01
+# # Step: 08-01
 # # Description:  
 # #
 #     - name:                                "0.1 BoM Validator: - delete old versions of templates"
@@ -198,11 +248,11 @@
 #       delegate_to:                         localhost
 #       ignore_errors:                       false
 #       changed_when:                        false
-# # Step: 07-01 - END
+# # Step: 08-01 - END
 # # -------------------------------------+---------------------------------------8
 
 # # -------------------------------------+---------------------------------------8
-# # Step: 07-02
+# # Step: 08-02
 # # Description:  
 # #
 #     - name:                                "0.1 BoM Validator: - BOM: {{ bom_name }} Upload Folder"
@@ -225,14 +275,14 @@
 #         - bom_upload_azresult.rc != 0
 #         - bom_upload_azresult.stderr is defined
 #         - bom_upload_azresult.stderr.find("BlobAlreadyExists") == -1
-# # Step: 07-02 - END
+# # Step: 08-02 - END
 # # -------------------------------------+---------------------------------------8
 
 #   when:  
 #     - upload is defined
 #     - upload
 #     - sa_enabled                                              # and Stroage Account is enabled
-# # Step: 07 - END
+# # Step: 08 - END
 # # -------------------------------------+---------------------------------------8
 
 ...

@@ -100,12 +100,12 @@
 # Step: 02
 # Description:  Validation for Prerequisites
 #
-- name:                                 "TROUBLESHOOTING: main.yaml - call pre_checks"
-  pause:
-    prompt: "Press enter to continue..."
-    echo: yes
-  when:
-    - pause|default(false)
+# - name:                                 "TROUBLESHOOTING: main.yaml - call pre_checks"
+#   pause:
+#     prompt: "Press enter to continue..."
+#     echo: yes
+#   when:
+#     - pause|default(false)                                                      # when true; if not defined, then value is false
 
 - name:                                 "Execute Pre-checks Task"
   ansible.builtin.import_tasks:         pre_checks.yaml
@@ -130,12 +130,12 @@
 # Step: 04
 # Description:  Call BOM processor, passing BOM name.
 #
-- name:                                 "TROUBLESHOOTING: main.yaml - call bom_validator"
-  pause:
-    prompt: "Press enter to continue..."
-    echo: yes
-  when:
-    - pause|default(false)
+# - name:                                 "TROUBLESHOOTING: main.yaml - call bom_validator"
+#   pause:
+#     prompt: "Press enter to continue..."
+#     echo: yes
+#   when:
+#     - pause|default(false)
 
 - name:                                "0.1 BoM Validator: - Process main BOM"
   ansible.builtin.include_tasks:       bom_validator.yaml
@@ -234,8 +234,6 @@
   loop_control:
     loop_var:                          bom_dir
 
-
-
 # - name:                                "0.1 BOM Validator: - remove BoM"
 #   # become:                              true
 #   # become_user:                         root
@@ -325,7 +323,6 @@
     - name:                             "Remove temporary directory"
       ansible.builtin.file:
         path:                           "{{ download_directory }}/bom/{{ new_bom_name }}"
-        recurse:                        true
         state:                          absent
 # Step: 10-03 - END
 # -------------------------------------+---------------------------------------8

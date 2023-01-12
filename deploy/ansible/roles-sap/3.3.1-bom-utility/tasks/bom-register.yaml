@@ -62,7 +62,10 @@
 - name:                                 "Check Storage Account for BOM block"
   block:
 
+# -------------------------------------+---------------------------------------8
 # Step: 03-01
+# Description:  
+#
     - name:                             "3.3.1 BoM Processing: {{ bom_name }} Download: {{ bom_name }} from the storage account"
       ansible.builtin.get_url:
         url:                            "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ bom_name }}/{{ bom_name }}.yaml\
@@ -78,8 +81,13 @@
       when:
         - distribution_id in ['suse15', 'redhat8', 'sles_sap15']
         - not always_upload_jinja_templates
+# Step: 03-01 - END
+# -------------------------------------+---------------------------------------8
 
+# -------------------------------------+---------------------------------------8
 # Step: 03-02
+# Description:  
+#
     - name:                             "3.3.1 BoM Processing: {{ bom_name }} Download: {{ bom_name }} from the storage account"
       ansible.builtin.get_url:
         url:                            "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ bom_name }}/{{ bom_name }}.yaml\
@@ -97,17 +105,27 @@
         - distribution_id != 'sles_sap15'
         - distribution_id != 'redhat8'
         - not always_upload_jinja_templates
+# Step: 03-02 - END
+# -------------------------------------+---------------------------------------8
 
+# -------------------------------------+---------------------------------------8
+# Step: 03-03
+# Description:  
+#
     - name:                             "BOM: Show blob status"
       ansible.builtin.debug:
         msg:
           - "{{ result }}"
           - "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ bom_name }}/{{ bom_name }}.yaml{{ sapbits_sas_token }}"
-        verbosity:                      1
+        verbosity:                      0
+# Step: 03-03 - END
+# -------------------------------------+---------------------------------------8
 
   when:
-    - sa_enabled is defined
-    - sa_enabled
+    - sa_enabled|default(false)                                                 # when true; if not defined, then value is false
+    # - sa_enabled is defined
+    # - sa_enabled
+
     # - sa_enabled is not defined or sa_enabled | bool
 # Step: 03 - END
 # -------------------------------------+---------------------------------------8
@@ -121,25 +139,34 @@
 - name:                                 "3.3.1 BoM Processing: Register BOM ({{ bom_name }}) from Storage Account"
   block:
 
+# -------------------------------------+---------------------------------------8
 # Step: 04-01
+# Description:  
+#
     - name:                             "{{ task_prefix }} Register downloaded BOM ({{ bom_name }})"
       ansible.builtin.include_vars:
         file:                           "{{ download_directory }}/bom/{{ bom_name }}.yaml"
         name:                           bom
+# Step: 04-01 - END
+# -------------------------------------+---------------------------------------8
 
+# -------------------------------------+---------------------------------------8
 # Step: 04-02
+# Description:  
+#
     - name:                             "{{ task_prefix }} Register downloaded BOM ({{ bom_name }}) file name"
       ansible.builtin.set_fact:
         bom_file:                       "{{ download_directory }}/bom/{{ bom_name }}.yaml"
         aggregated_bom_directories:     "{{ aggregated_bom_directories | default([]) + [{ 'path': path, 'location': 'sa' }] }}"
       vars:
         path:                           "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ bom_name }}"
+# Step: 04-02 - END
+# -------------------------------------+---------------------------------------8
 
   when:
     - result is succeeded or result is skipped
     - not always_upload_jinja_templates
-    - sa_enabled is defined
-    - sa_enabled
+    - sa_enabled|default(false)
     # - sa_enabled is not defined or sa_enabled | bool
 # Step: 04 - END
 # -------------------------------------+---------------------------------------8
@@ -153,29 +180,47 @@
 - name:                                 "{{ task_prefix }} Check for Microsoft Supplied BOM ({{ bom_name }})"
   block:
 
+# -------------------------------------+---------------------------------------8
 # Step: 05-01
+# Description:  
+#
     - name:                             "{{ task_prefix }} Check for Microsoft Supplied BOM ({{ bom_name }})"
       ansible.builtin.stat:
         path:                           "{{ BOM_directory }}/{{ bom_name }}/{{ bom_name }}.yaml"
       register:                         microsoft_supplied_bom
       delegate_to:                      localhost
+# Step: 05-01 - END
+# -------------------------------------+---------------------------------------8
 
+# -------------------------------------+---------------------------------------8
 # Step: 05-02
+# Description:  
+#
     - name:                             "{{ task_prefix }} Show Microsoft Supplied BOM ({{ bom_base_name }}) result"
       ansible.builtin.debug:
         msg: |-
                                         BOM PATH:   {{ BOM_directory }}/{{ bom_name }}/{{ bom_name }}.yaml
                                         BOM Exists: {{ microsoft_supplied_bom.stat.exists }}
         verbosity:                      0
+# Step: 05-02 - END
+# -------------------------------------+---------------------------------------8
 
+# -------------------------------------+---------------------------------------8
 # Step: 05-03
+# Description:  
+#
     - name:                             "{{ task_prefix }} Register Microsoft Supplied BOM {{ bom_name }}"
       ansible.builtin.include_vars:
         file:                           "{{ microsoft_supplied_bom.stat.path }}"
         name:                           bom_temp
       when:                             microsoft_supplied_bom.stat.exists
+# Step: 05-03 - END
+# -------------------------------------+---------------------------------------8
 
+# -------------------------------------+---------------------------------------8
 # Step: 05-04
+# Description:  
+#
     - name:                             "{{ task_prefix }} Register Microsoft Supplied BOM ({{ bom_name }}) file name"
       ansible.builtin.set_fact:
         bom:                            "{{ bom_temp }}"
@@ -184,26 +229,44 @@
       vars:
         path:                           "{{ microsoft_supplied_bom.stat.path | dirname }}"
       when:                             microsoft_supplied_bom.stat.exists
+# Step: 05-04 - END
+# -------------------------------------+---------------------------------------8
 
+# -------------------------------------+---------------------------------------8
 # Step: 05-05
+# Description:  
+#
     - name:                             "{{ task_prefix }} Check for Microsoft Supplied BOM ({{ bom_name }}) in archives"
       block:
 
+# -------------------------------------+---------------------------------------8
 # Step: 05-05-01
+# Description:  
+#
         - name:                         "{{ task_prefix }} Check for Microsoft Supplied BOM ({{ bom_name }}) in archives"
           ansible.builtin.stat:
             path:                       "{{ BOM_directory }}/archives/{{ bom_name }}/{{ bom_name }}.yaml"
           register:                     microsoft_supplied_bom_archive
           delegate_to:                  localhost
+# Step: 05-05-01 - END
+# -------------------------------------+---------------------------------------8
 
-# Step: 05-05-01
+# -------------------------------------+---------------------------------------8
+# Step: 05-05-02
+# Description:  
+#
         - name:                         "{{ task_prefix }} Register Microsoft Supplied BOM {{ bom_name }} from archives"
           ansible.builtin.include_vars:
             file:                       "{{ microsoft_supplied_bom_archive.path }}"
             name:                       bom_temp
           when:                         microsoft_supplied_bom_archive.stat.exists
+# Step: 05-05-02 - END
+# -------------------------------------+---------------------------------------8
 
-# Step: 05-05-01
+# -------------------------------------+---------------------------------------8
+# Step: 05-05-03
+# Description:  
+#
         - name:                         "{{ task_prefix }} Register Microsoft Supplied BOM ({{ bom_name }}) file name from archives"
           ansible.builtin.set_fact:
             bom:                        "{{ bom_temp }}"
@@ -212,8 +275,12 @@
           vars:
             path:                       "{{ microsoft_supplied_bom_archive.stat.path | dirname }}"
           when:                         microsoft_supplied_bom_archive.stat.exists
+# Step: 05-05-03 - END
+# -------------------------------------+---------------------------------------8
 
       when:                             not microsoft_supplied_bom.stat.exists
+# Step: 05-05 - END
+# -------------------------------------+---------------------------------------8
 
   when:                                 result is failed or always_upload_jinja_templates or (sa_enabled is defined and not sa_enabled)
   # when:                                 result is failed or always_upload_jinja_templates or sa_enabled is not defined or not sa_enabled
@@ -251,13 +318,6 @@
     - bom.name is not search('SUM')
 # Step: 07 - END
 # -------------------------------------+---------------------------------------8
-
-
-
-# - name:                                 "TROUBLESHOOTING..."
-#   pause:
-#     prompt: "Press enter to continue..."
-#     echo: yes
 
 
 
