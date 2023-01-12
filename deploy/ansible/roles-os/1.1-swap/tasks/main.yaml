@@ -40,7 +40,7 @@
 
 - name:                                "SWAP Enabled"
   ansible.builtin.debug:
-    msg:                               "{{ swap_size }}"
+    msg:                               "Swap size: {{ swap_size }}"
     verbosity:                         2
 
 - name:                                "1.1 Swap: - Ensure waagent file is configured with proper parameters"
