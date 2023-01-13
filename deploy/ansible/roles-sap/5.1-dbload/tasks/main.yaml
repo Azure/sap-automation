@@ -76,6 +76,14 @@
     path:                              /hana/data/backup
   register:                            hana_backup_location_found
 
+- name:                                "DBLoad: -  Set the hana backup facts"
+  ansible.builtin.set_fact:
+    backup_path:                       "{% if hana_backup_location_found.stat.exists %}/hana/data/backup{% else %}{{ hana_backup_path }}{% endif %}"
+
+- name:                                "Hana backup directory"
+  ansible.builtin.debug:
+    msg
+
 - name:                                "DBLoad: - Include roles-sap/3.3.1-bom-utility role"
   ansible.builtin.include_role:
     name:                              roles-sap/3.3.1-bom-utility
@@ -106,7 +114,8 @@
     # support older dbload inifile templates where hdb_instance_number was used
     hdb_instance_number:               "{{ db_instance_number }}"
     db_instance_number:                "{{ db_instance_number }}"
-    hana_backup_path:                  "{% if hana_backup_location_found.stat.exists %}'/hana/data/backup'{% else %}{{ hana_backup_path }}{% endif %}"
+    hana_backup_path:                  "{{ backup_path }}"
+    
   tags:
     - skip_ansible_lint
 
