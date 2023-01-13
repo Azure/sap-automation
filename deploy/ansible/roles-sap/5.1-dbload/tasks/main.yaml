@@ -71,14 +71,23 @@
     bom_name:                          "{{ bom_base_name }}"
     task_prefix:                       "DBLoad: "
 
-- name:                                "Hana backup directory"
-  ansible.builtin.stat:
-    path:                              /hana/data/backup
-  register:                            hana_backup_location_found
+- name:                                "DBLoad: - DB Server name list"
+  ansible.builtin.set_fact:
+    db_server:                         "{{ db_server | default([]) + [item] }}"
+  with_items:
+    - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
+
+- name:                                "DBLoad: - Check if the backup disk exists on DB Server"
+  ansible.builtin.set_fact:
+    backupdisks_count:                 "{{ disks | selectattr('host', 'defined') |
+      selectattr('host', 'equalto', inventory_hostname) |
+      selectattr('type', 'equalto', 'backup') |
+      map(attribute='type') | sort | unique |
+      list | length | int }}"
 
 - name:                                "DBLoad: -  Set the hana backup facts"
   ansible.builtin.set_fact:
-    backup_path:                       "{% if hana_backup_location_found.stat.exists %}/hana/data/backup{% else %}{{ hana_backup_path }}{% endif %}"
+    backup_path:                       "{% if (backupdisks_count | int) > 0 %}/hana/data/backup{% else %}{{ hana_backup_path }}{% endif %}"
 
 - name:                                "Hana backup directory"
   ansible.builtin.debug:
