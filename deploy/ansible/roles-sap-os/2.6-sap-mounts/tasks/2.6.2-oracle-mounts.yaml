@@ -79,19 +79,16 @@
     path:                              /etc/sap_deployment_automation/filepermission.txt
   register:                            oracle_permissions_set
 
-- name:                                "ORACLE: Make orasid:dba as owners"
+- name:                                "Make oracle:oinstall as owners"
   become:                              true
   become_user:                         root
   ansible.builtin.file:
-    path:                              "{{ item.path }}"
-    state:                             directory
-    owner:                             "{{ item.owner }}"
-    group:                             "{{ item.group }}"
-    recurse:                           true
-  loop:
-    - { path: '{{ target_media_location }}/SBP',       group: 'oinstall',   owner: 'oracle'}
-    - { path: '{{ target_media_location }}/oraclient', group: 'oinstall',   owner: 'oracle'}
-    - { path: '{{ target_media_location }}/oraserver', group: 'oinstall',   owner: 'oracle'}
+    path:                              /oracle
+    group:                             oinstall
+    owner:                             oracle
+    mode:                              0775
+  when:                                
+    - not oracle_permissions_set.stat.exists
 
 - name:                                "ORACLE: Create filepermission.txt"
   become:                              true

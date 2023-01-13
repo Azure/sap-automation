@@ -55,7 +55,7 @@ steps:
 
     command="ansible-playbook -i $INVENTORY --private-key $PARAMETERS_FOLDER/sshkey  \
       -e @$SAP_PARAMS -e "_workspace_directory=$PARAMETERS_FOLDER" $EXTRA_PARAMS     \
-      -e ansible_ssh_pass='${password_secret}'                                       \
+      -e ansible_ssh_pass='${password_secret}'                                                                                   \
        $ANSIBLE_FILE_PATH"
 
     echo $command
