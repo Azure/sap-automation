@@ -289,7 +289,7 @@
     - name:                            "0.0 Validations - Check for free disk space on deployer "
       ansible.builtin.assert:
         that:
-          - "{{ (mnt_free_diskspace | first | int / 1024) > (deployer_free_temp_disk_space | int) }}"
+          - "{{ (mnt_free_diskspace | first | int / (1024 * 1024 * 1024) | int) > (deployer_free_temp_disk_space | int) }}"
         fail_msg: "The deployer needs at least {{ deployer_free_temp_disk_space }} GB of free disk space in /mnt"
 
 
@@ -516,7 +516,7 @@
 
     - name:                            "0.0 Validations - Disk space details"
       ansible.builtin.set_fact:
-        free_diskspace:            "{{ ansible_mounts | json_query('[?mount == `/usr/sap`].size_available') | int / 1048576 | int }}"
+        free_diskspace:            "{{ ansible_mounts | json_query('[?mount == `/usr/sap`].size_available') }}"
       when:
         - "'scs' in supported_tiers"
         - ansible_os_family != "Windows"
@@ -532,7 +532,7 @@
     - name:                            "0.0 Validations - Check for free disk space on SCS"
       ansible.builtin.assert:
         that:
-          - "{{ (free_diskspace | first | int / 1024) > (scs_free_diskspace | int) }}"
+          - "{{ (free_diskspace | first | int / (1024 * 1024 * 1024) | int) > (scs_free_diskspace | int) }}"
         fail_msg: "The SCS server needs at least {{ scs_free_diskspace }} GB of free disk space in /mnt"
       when:
         - "'scs' in supported_tiers"
