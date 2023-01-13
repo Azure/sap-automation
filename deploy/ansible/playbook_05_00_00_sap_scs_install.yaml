@@ -201,7 +201,9 @@
                 that:
                   - "scs_instance_number != db_instance_number"
                 fail_msg:              "Please ensure that the scs_instance_number is different from the db_instance_number"
-          when:                        (ansible_play_hosts_all | length) == 1
+          when:
+            - (ansible_play_hosts_all | length) == 1
+            - platform == "HANA"
 
         - name:                        "SCS Installation Playbook: - Set 'scs' tier facts"
           ansible.builtin.set_fact:
@@ -374,7 +376,6 @@
             that:
               - sap_mnt is defined
             fail_msg:                  A highly available SCS deployment requires a shared sap_mnt
-
 
         - name:                        "SCS HA Installation Playbook: - Initialize facts"
           ansible.builtin.set_fact:
