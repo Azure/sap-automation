@@ -102,6 +102,7 @@
   ansible.builtin.file:
     path:                              /hana/data/backup
     state:                             directory
+    mode:                              0755
   when:
     - node_tier == 'hana'
     - (backupdisks_count | int) == 0

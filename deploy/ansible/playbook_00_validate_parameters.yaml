@@ -58,7 +58,7 @@
       tags:
         - 0.1-win-passwords
       when:
-       - platform == "SQLSERVER"
+        - platform == "SQLSERVER"
 
     - name:                            "0.0 Validations - Retrieve the storage account details"
       ansible.builtin.include_role:
@@ -274,7 +274,7 @@
       ansible.builtin.set_fact:
         subscription_id:               "{{ json_azure_data | json_query('compute.subscriptionId') }}"
         resource_group_name:           "{{ json_azure_data | json_query('compute.resourceGroupName') }}"
-        mnt_free_diskspace:            "{{ ansible_mounts | json_query('[?mount == `/mnt`].size_available') | first | int / 1048576 | int }}"
+        mnt_free_diskspace:            "{{ ansible_mounts | json_query('[?mount == `/mnt`].size_available') | int / 1048576 | int }}"
 
     - name:                            "0.0 Validations - Deployer disk space requirements"
       ansible.builtin.set_fact:
@@ -358,9 +358,9 @@
         that:
           - "scs_instance_number != db_instance_number"
         fail_msg:                      "Please ensure that the scs_instance_number is different from the db_instance_number when performing a standalone installation"
-      when:                            
-       - (ansible_play_hosts_all | length) == 1
-       - platform == "HANA"
+      when:
+        - (ansible_play_hosts_all | length) == 1
+        - platform == "HANA"
       tags:
         - 0.0-scs-db-instance-single
 
@@ -512,7 +512,7 @@
 
     - name:                            "0.0 Validations - Disk space details"
       ansible.builtin.set_fact:
-        free_diskspace:            "{{ ansible_mounts | json_query('[?mount == `/usr/sap`].size_available') | first | int / 1048576 | int }}"
+        free_diskspace:            "{{ ansible_mounts | json_query('[?mount == `/usr/sap`].size_available') | int / 1048576 | int }}"
       when:
         - "'scs' in supported_tiers"
         - ansible_os_family != "Windows"
@@ -553,7 +553,7 @@
     - name:                            "0.0 Validations - Validate that the correct distribution is used"
       ansible.builtin.assert:
         that:
-          -  "distribution_id ==  'oraclelinux8'"
+          - "distribution_id ==  'oraclelinux8'"
         fail_msg: "For Oracle deployments DB, PAS and APP needs to run on OracleLinux"
       when:
         - platform == 'ORACLE'

@@ -217,7 +217,8 @@
     - not dbload_installed.stat.exists
 
 # Import this task only if the tier is ora.
-- import_tasks:                    "oracle-postprocessing.yaml"
+- name:                                "Oracle post processing"
+  ansible.builtin.import_tasks:        "oracle-postprocessing.yaml"
   when:
     - node_tier in ["oracle","oracle-asm"]
 
