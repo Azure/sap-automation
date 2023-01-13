@@ -87,7 +87,7 @@
 
 - name:                                "DBLoad: -  Set the hana backup facts"
   ansible.builtin.set_fact:
-    backup_path:                       "{% if (backupdisks_count | int) > 0 %}/hana/data/backup{% else %}{{ hana_backup_path }}{% endif %}"
+    backup_path:                       "{% if (backupdisks_count | int) == 0 %}/hana/data/backup{% else %}{{ hana_backup_path }}{% endif %}"
 
 - name:                                "Hana backup directory"
   ansible.builtin.debug:
