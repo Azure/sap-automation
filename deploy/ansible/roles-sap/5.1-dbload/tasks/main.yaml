@@ -82,7 +82,7 @@
 
 - name:                                "Hana backup directory"
   ansible.builtin.debug:
-    msg
+    msg:                               "Backup path: {{ backup_path }}"
 
 - name:                                "DBLoad: - Include roles-sap/3.3.1-bom-utility role"
   ansible.builtin.include_role:
