@@ -50,6 +50,14 @@
     var:                               scs_installed
     verbosity:                         2
 
+- name:                                "SCS Install: Include 3.3.1-bom-utility role"
+  ansible.builtin.include_role:
+    name:                              roles-sap/3.3.1-bom-utility
+    tasks_from:                        bom-register
+  vars:
+    bom_name:                          "{{ bom_base_name }}"
+    task_prefix:                       "SCS Install: "
+
 - name:                                "SCS Install"
   block:
 
@@ -67,14 +75,6 @@
       ansible.builtin.fail:
         msg:                           "INSTALL:0002:Unable to find sapinst, please check that the installation media is mounted"
       when: not sapinst_found.stat.exists
-
-    - name:                            "SCS Install: Include 3.3.1-bom-utility role"
-      ansible.builtin.include_role:
-        name:                          roles-sap/3.3.1-bom-utility
-        tasks_from:                    bom-register
-      vars:
-        bom_name:                      "{{ bom_base_name }}"
-        task_prefix:                   "SCS Install: "
 
     - name:                            "SCS Install: Include roles-sap/3.3.1-bom-utility role"
       ansible.builtin.include_role:

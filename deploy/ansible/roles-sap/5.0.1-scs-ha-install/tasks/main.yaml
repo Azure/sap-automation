@@ -37,6 +37,15 @@
   register:                            scs_installed
   when:                                node_tier == 'scs'
 
+    # Returns bom object
+- name:                                "SCS HA Install: Register BoM"
+  ansible.builtin.include_role:
+    name:                              roles-sap/3.3.1-bom-utility
+    tasks_from:                        bom-register
+  vars:
+    bom_name:                          "{{ bom_base_name }}"
+    task_prefix:                       "SCS HA Install: "
+
 - name:                                "SCS HA Install: register variables"
   ansible.builtin.set_fact:
     scs_bom_id:                        "{{ bom.product_ids.scs_ha }}"
@@ -54,16 +63,6 @@
       ansible.builtin.fail:
         msg:                           "INSTALL:0003:Unable to find sapinst, please check that the installation media is mounted"
       when: not sapinst_found.stat.exists
-
-
-    # Returns bom object
-    - name:                            "SCS HA Install: Register BoM"
-      ansible.builtin.include_role:
-        name:                          roles-sap/3.3.1-bom-utility
-        tasks_from:                    bom-register
-      vars:
-        bom_name:                      "{{ bom_base_name }}"
-        task_prefix:                   "SCS HA Install: "
 
     - name:                            "SCS HA Install: Register BoM templates"
       ansible.builtin.include_role:

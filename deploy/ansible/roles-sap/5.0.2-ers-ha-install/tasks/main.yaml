@@ -36,6 +36,15 @@
   register:                            ers_installed
   when: node_tier == 'ers'
 
+# Returns bom object
+- name:                                "ERS Install: Register BoM"
+  ansible.builtin.include_role:
+    name:                              roles-sap/3.3.1-bom-utility
+    tasks_from:                        bom-register
+  vars:
+    bom_name:                          "{{ bom_base_name }}"
+    task_prefix:                       "ERS Install: "
+
 - name:                                "ERS Install"
   block:
 
@@ -48,15 +57,6 @@
       ansible.builtin.fail:
         msg:                           "INSTALL:0004:Unable to find sapinst, please check that the installation media is mounted"
       when: not sapinst_found.stat.exists
-
-    # Returns bom object
-    - name:                            "ERS Install: Register BoM"
-      ansible.builtin.include_role:
-        name:                          roles-sap/3.3.1-bom-utility
-        tasks_from:                    bom-register
-      vars:
-        bom_name:                      "{{ bom_base_name }}"
-        task_prefix:                   "ERS Install: "
 
     - name:                            "ERS Install: Register BoM templates"
       ansible.builtin.include_role:

@@ -39,6 +39,15 @@
     path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_web.txt"
   register:                            web_installed
 
+# Returns bom object
+- name:                                "Web Install: Register BoM"
+  ansible.builtin.include_role:
+    name:                              roles-sap/3.3.1-bom-utility
+    tasks_from:                        bom-register
+  vars:
+    bom_name:                          "{{ bom_base_name }}"
+    task_prefix:                       "Web Install: "
+
 - name:                                "Web Install"
   block:
 
@@ -62,16 +71,6 @@
       ansible.builtin.fail:
         msg:                           "INSTALL:0008:Unable to find sapinst, please check that the installation media is mounted"
       when: not sapinst_found.stat.exists
-
-    # Returns bom object
-
-    - name:                            "Web Install: Include 3.3.1-bom-utility role"
-      ansible.builtin.include_role:
-        name:                          roles-sap/3.3.1-bom-utility
-        tasks_from:                    bom-register
-      vars:
-        bom_name:                      "{{ bom_base_name }}"
-        task_prefix:                   "Web Install: "
 
     - name:                            "Web Install: Include roles-sap/3.3.1-bom-utility role"
       ansible.builtin.include_role:
