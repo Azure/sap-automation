@@ -36,66 +36,66 @@
   register:                            ers_installed
   when: node_tier == 'ers'
 
-- name:                                "SCS Install: check media exists"
-  ansible.builtin.stat:
-    path:                              "{{ target_media_location }}/SWPM/sapinst"
-  register:                            sapinst_found
-
-- name:                                "ErrorHandling"
-  ansible.builtin.fail:
-    msg:                               "INSTALL:0004:Unable to find sapinst, please check that the installation media is mounted"
-  when: not sapinst_found.stat.exists
-
-# Returns bom object
-- name:                                "ERS Install: Register BoM"
-  ansible.builtin.include_role:
-    name:                              roles-sap/3.3.1-bom-utility
-    tasks_from:                        bom-register
-  vars:
-    bom_name:                          "{{ bom_base_name }}"
-    task_prefix:                       "ERS Install: "
-
-- name:                                "ERS Install: Register BoM templates"
-  ansible.builtin.include_role:
-    name:                              roles-sap/3.3.1-bom-utility
-    tasks_from:                        bom-template
-  vars:
-    task_prefix:                       "ERS Install: "
-    always_upload_jinja_templates:     false
-    bom_name:                          "{{ bom_base_name }}"
-    sap_cd_package_cd1:
-    sap_cd_package_cd2:
-    sap_cd_package_cd3:
-    sap_cd_package_cd4:
-    sap_cd_package_cd5:
-    sap_cd_package_hdbclient:
-    sap_ciInstanceNumber:
-    app_instance_number:
-    sap_ciDialogWPNumber:
-    sap_ciBtcWPNumber:
-    sap_installSAPHostAgent:
-    sap_profile_dir:                   "/sapmnt/{{ sap_sid | upper }}/profile"
-    ers_virtual_hostname:              "{{ sap_sid | lower }}ers{{ ers_instance_number }}cl2"
-    sap_db_hostname:
-    sap_ciVirtualHostname:
-    sap_appVirtualHostname:
-    sap_scs_hostname:                  "{{ sap_sid | lower }}scs{{ scs_instance_number }}cl1"
-    param_directory:                   "{{ dir_params }}"
-    hdb_instance_number:               "{{ db_instance_number }}"
-  tags:
-    - skip_ansible_lint
-
-- name:                                "ERS Install: register variables"
-  ansible.builtin.set_fact:
-    ers_bom_id:                        "{{ bom.product_ids.ers_ha }}"
-
-- name:                                "ERS Install: check if installed"
-  ansible.builtin.debug:
-    msg:                               "ERS Install flag: {{ ers_installed }}"
-    verbosity:                         2
-
 - name:                                "ERS Install"
   block:
+
+    - name:                            "ERS Install: check media exists"
+      ansible.builtin.stat:
+        path:                          "{{ target_media_location }}/SWPM/sapinst"
+      register:                        sapinst_found
+
+    - name:                            "ErrorHandling"
+      ansible.builtin.fail:
+        msg:                           "INSTALL:0004:Unable to find sapinst, please check that the installation media is mounted"
+      when: not sapinst_found.stat.exists
+
+    # Returns bom object
+    - name:                            "ERS Install: Register BoM"
+      ansible.builtin.include_role:
+        name:                          roles-sap/3.3.1-bom-utility
+        tasks_from:                    bom-register
+      vars:
+        bom_name:                      "{{ bom_base_name }}"
+        task_prefix:                   "ERS Install: "
+
+    - name:                            "ERS Install: Register BoM templates"
+      ansible.builtin.include_role:
+        name:                          roles-sap/3.3.1-bom-utility
+        tasks_from:                    bom-template
+      vars:
+        task_prefix:                   "ERS Install: "
+        always_upload_jinja_templates: false
+        bom_name:                      "{{ bom_base_name }}"
+        sap_cd_package_cd1:
+        sap_cd_package_cd2:
+        sap_cd_package_cd3:
+        sap_cd_package_cd4:
+        sap_cd_package_cd5:
+        sap_cd_package_hdbclient:
+        sap_ciInstanceNumber:
+        app_instance_number:
+        sap_ciDialogWPNumber:
+        sap_ciBtcWPNumber:
+        sap_installSAPHostAgent:
+        sap_profile_dir:               "/sapmnt/{{ sap_sid | upper }}/profile"
+        ers_virtual_hostname:          "{{ sap_sid | lower }}ers{{ ers_instance_number }}cl2"
+        sap_db_hostname:
+        sap_ciVirtualHostname:
+        sap_appVirtualHostname:
+        sap_scs_hostname:              "{{ sap_sid | lower }}scs{{ scs_instance_number }}cl1"
+        param_directory:               "{{ dir_params }}"
+        hdb_instance_number:           "{{ db_instance_number }}"
+      tags:
+        - skip_ansible_lint
+
+    - name:                            "ERS Install: register variables"
+      ansible.builtin.set_fact:
+        ers_bom_id:                    "{{ bom.product_ids.ers_ha }}"
+
+    - name:                            "ERS Install: check if installed"
+      ansible.builtin.debug:
+        msg:                           "ERS Install flag: {{ ers_installed }}"
+        verbosity:                     2
 
     - name:                            "ERS Install: install variables"
       ansible.builtin.debug:

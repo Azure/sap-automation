@@ -37,61 +37,6 @@
   register:                            scs_installed
   when:                                node_tier == 'scs'
 
-- name:                                "SCS Install: check media exists"
-  ansible.builtin.stat:
-    path:                              "{{ target_media_location }}/SWPM/sapinst"
-  register:                            sapinst_found
-
-- name:                                "ErrorHandling"
-  ansible.builtin.fail:
-    msg:                               "INSTALL:0003:Unable to find sapinst, please check that the installation media is mounted"
-  when: not sapinst_found.stat.exists
-
-
-# Returns bom object
-- name:                                "SCS HA Install: Register BoM"
-  ansible.builtin.include_role:
-    name:                              roles-sap/3.3.1-bom-utility
-    tasks_from:                        bom-register
-  vars:
-    bom_name:                          "{{ bom_base_name }}"
-    task_prefix:                       "SCS HA Install: "
-
-- name:                                "SCS HA Install: Register BoM templates"
-  ansible.builtin.include_role:
-    name:                              roles-sap/3.3.1-bom-utility
-    tasks_from:                        bom-template
-  vars:
-    task_prefix:                       "SCS HA Install: "
-    always_upload_jinja_templates:     false
-    bom_name:                          "{{ bom_base_name }}"
-    sap_cd_package_cd1:
-    sap_cd_package_cd2:
-    sap_cd_package_cd3:
-    sap_cd_package_cd4:
-    sap_cd_package_cd5:
-    sap_cd_package_hdbclient:
-    sap_ciInstanceNumber:
-    app_instance_number:
-    sap_ciDialogWPNumber:
-    sap_ciBtcWPNumber:
-    sap_installSAPHostAgent:
-    sap_profile_dir:
-    sap_scs_hostname:                  "{{ scs_virtual_hostname }}" # "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') | first }}"
-    sap_db_hostname:
-    sap_ciVirtualHostname:
-    sap_appVirtualHostname:
-    param_directory:                   "{{ dir_params }}"
-    hdb_instance_number:               "{{ db_instance_number }}"
-  tags:
-    - skip_ansible_lint
-
-
-- name:                                "SCS HA Install: check if installed"
-  ansible.builtin.debug:
-    msg:                               "SCS HA Install flag: {{ scs_installed }}"
-    verbosity:                         2
-
 - name:                                "SCS HA Install: register variables"
   ansible.builtin.set_fact:
     scs_bom_id:                        "{{ bom.product_ids.scs_ha }}"
@@ -99,6 +44,60 @@
 
 - name:                                "SCS HA Install"
   block:
+
+    - name:                            "SCS Install: check media exists"
+      ansible.builtin.stat:
+        path:                          "{{ target_media_location }}/SWPM/sapinst"
+      register:                        sapinst_found
+
+    - name:                            "ErrorHandling"
+      ansible.builtin.fail:
+        msg:                           "INSTALL:0003:Unable to find sapinst, please check that the installation media is mounted"
+      when: not sapinst_found.stat.exists
+
+
+    # Returns bom object
+    - name:                            "SCS HA Install: Register BoM"
+      ansible.builtin.include_role:
+        name:                          roles-sap/3.3.1-bom-utility
+        tasks_from:                    bom-register
+      vars:
+        bom_name:                      "{{ bom_base_name }}"
+        task_prefix:                   "SCS HA Install: "
+
+    - name:                            "SCS HA Install: Register BoM templates"
+      ansible.builtin.include_role:
+        name:                          roles-sap/3.3.1-bom-utility
+        tasks_from:                    bom-template
+      vars:
+        task_prefix:                   "SCS HA Install: "
+        always_upload_jinja_templates: false
+        bom_name:                      "{{ bom_base_name }}"
+        sap_cd_package_cd1:
+        sap_cd_package_cd2:
+        sap_cd_package_cd3:
+        sap_cd_package_cd4:
+        sap_cd_package_cd5:
+        sap_cd_package_hdbclient:
+        sap_ciInstanceNumber:
+        app_instance_number:
+        sap_ciDialogWPNumber:
+        sap_ciBtcWPNumber:
+        sap_installSAPHostAgent:
+        sap_profile_dir:
+        sap_scs_hostname:              "{{ scs_virtual_hostname }}" # "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') | first }}"
+        sap_db_hostname:
+        sap_ciVirtualHostname:
+        sap_appVirtualHostname:
+        param_directory:               "{{ dir_params }}"
+        hdb_instance_number:           "{{ db_instance_number }}"
+      tags:
+        - skip_ansible_lint
+
+    - name:                            "SCS HA Install: check if installed"
+      ansible.builtin.debug:
+        msg:                           "SCS HA Install flag: {{ scs_installed }}"
+        verbosity:                     2
 
     - name:                            "SCS HA Install: install variables"
       ansible.builtin.debug:
