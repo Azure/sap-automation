@@ -263,6 +263,10 @@
             "Value": "ORACLE"
           },
           {
+            "Text": "ORACLE ASM",
+            "Value": "ORACLE-ASM"
+          },
+          {
             "Text": "ASE",
             "Value": "ASE"
           },

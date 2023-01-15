@@ -258,6 +258,7 @@ namespace AutomationForm.Models
                     "HANA",
                     "DB2",
                     "ORACLE",
+                    "ORACLE-ASM",
                     "ASE",
                     "SQLSERVER",
                     "NONE"
