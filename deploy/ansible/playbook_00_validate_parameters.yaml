@@ -527,7 +527,7 @@
       when:
         - "'scs' in supported_tiers"
         - ansible_os_family != "Windows"
-        - usr_sap_mounted
+        - usr_sap_mounted is defined
       block:
         - name:                        "0.0 Validations - Disk space details"
           ansible.builtin.set_fact:
