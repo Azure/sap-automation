@@ -362,7 +362,7 @@
       become_user:                     root
       when:
         - node_tier == 'oracle-asm'
-        - platform == 'ORACLE'
+        - platform == 'ORACLE-ASM'
       block:
         - name:                        Setting the DB facts for ASM
           ansible.builtin.set_fact:
@@ -379,7 +379,7 @@
           ansible.builtin.include_role:
             name:                      roles-os/1.9-kernelparameters
           tags:
-             - 1.9-kernelparameters
+            - 1.9-kernelparameters
 
         - name:                        "SAP OS configuration playbook: - Configure accounts"
           ansible.builtin.include_role:
