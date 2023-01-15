@@ -291,7 +291,7 @@ variable "use_spn" {
 #########################################################################################
 
 variable "database_platform" {
-  description = "Database platform, supported values are HANA, DB2, ORACLE, ASE, SQLSERVER or NONE (in this case no database tier is deployed)"
+  description = "Database platform, supported values are HANA, DB2, ORACLE, ORACLE-ASM, ASE, SQLSERVER or NONE (in this case no database tier is deployed)"
   default     = ""
 }
 

@@ -251,7 +251,7 @@ locals {
   domain_user      = lookup(local.itemvalues, "domain_user", "")
   domain_name      = lookup(local.itemvalues, "domain_name", "")
 
-  oracle = upper(var.platform) == "ORACLE" ? (
+  oracle = (upper(var.platform) == "ORACLE" || upper(var.platform) == "ORACLE-ASM") ? (
     format("ora_release: %s\nora_version: %s\noracle_sbp_patch: %s\n", local.ora_release, local.ora_version, local.oracle_sbp_patch)) : (
     ""
   )

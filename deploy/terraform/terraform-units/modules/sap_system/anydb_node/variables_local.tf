@@ -89,7 +89,7 @@ locals {
   enable_db_lb_deployment = (
     var.database_server_count > 0 &&
     (var.use_loadbalancers_for_standalone_deployments || var.database_server_count > 1) &&
-    var.database.platform != "ORACLE" &&
+    var.database.platform != "ORACLE" && var.database.platform != "ORACLE-ASM" &&
     var.database.platform != "NONE"
   )
 
@@ -188,7 +188,7 @@ locals {
 
   #If using an existing VM for observer set use_observer to false in .tfvars
   deploy_observer = var.use_observer ? (
-    upper(var.database.platform) == "ORACLE" && local.anydb_ha) : (
+    (upper(var.database.platform) == "ORACLE" || upper(var.database.platform) == "ORACLE-ASM") && local.anydb_ha) : (
     false
   )
   observer_size            = "Standard_D4s_v3"
