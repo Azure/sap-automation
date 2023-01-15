@@ -529,10 +529,20 @@
         - "'scs' in supported_tiers"
         - ansible_os_family != "Windows"
 
+    - name:                            "0.0 Validations - Show SCS disk space"
+      ansible.builtin.debug:
+        msg:
+          - "Free disk space: {{ free_diskspace }}"
+
+    - name:                            "0.0 Validations - Show SCS disk space required"
+      ansible.builtin.debug:
+        msg:
+          - "Free disk space required: {{ scs_free_diskspace }}"
+
     - name:                            "0.0 Validations - Check for free disk space on SCS"
       ansible.builtin.assert:
         that:
-          - "{{ (free_diskspace | first | int / (1024 * 1024 * 1024) | int) > (scs_free_diskspace | int) }}"
+          - "{{ (free_diskspace | int / (1024 * 1024 * 1024) | int) > (scs_free_diskspace | int) }}"
         fail_msg: "The SCS server needs at least {{ scs_free_diskspace }} GB of free disk space in /mnt"
       when:
         - "'scs' in supported_tiers"
