@@ -77,14 +77,14 @@ check_outbound:                        false
 
 # Oracle specific parameters
 ora_sid:                               "ORA"
-dba_gid:                               3000
-oper_gid:                              3001
-asmoper_gid:                           3002
-asmadmin_gid:                          3003
-asmdba_gid:                            3004
-oinstall_gid:                          3005
-orasid_uid:                            3000
-oracle_uid:                            3001
+dba_gid:                               3100
+oper_gid:                              3101
+asmoper_gid:                           3102
+asmadmin_gid:                          3103
+asmdba_gid:                            3104
+oinstall_gid:                          3105
+orasid_uid:                            3100
+oracle_uid:                            3101
 hdbshm_gid:                            2002
 observer_uid:                          4000
 scs_hostname:                          ""
