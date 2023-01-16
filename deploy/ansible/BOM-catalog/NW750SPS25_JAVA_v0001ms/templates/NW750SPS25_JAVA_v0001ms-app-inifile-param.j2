@@ -1,6 +1,6 @@
 ##############################################################################################################################################################################################################
 #                                                                                                                                                                                                            #
-# Installation service 'SAP NetWeaver 7.5 > SAP HANA Database > Installation > Application Server Java > High-Availability System > Additional Application Server Instance', product id 'NW_DI:NW750.HDB.HA' #
+# Installation service 'SAP NetWeaver 7.5 > SAP HANA Database > Installation > Application Server Java > High-Availability System > Additional Application Server Instance', product id 'NW_DI:NW750.HDB.PD' #
 #                                                                                                                                                                                                            #
 ##############################################################################################################################################################################################################
 
@@ -11,6 +11,7 @@ SAPINST.CD.PACKAGE.CD2                                                = {{ sap_c
 SAPINST.CD.PACKAGE.CD3                                                = {{ sap_cd_package_cd3 }}
 SAPINST.CD.PACKAGE.CD4                                                = {{ sap_cd_package_cd4 }}
 SAPINST.CD.PACKAGE.CD5                                                = {{ sap_cd_package_cd5 }}
+archives.downloadBasket                                               = {{ target_media_location }}/download_basket
 
 
 # Password for the Diagnostics Agent specific <dasid>adm user. Provided value may be encoded.
@@ -54,7 +55,7 @@ NW_AS.instanceNumber                                                    =  {{ aa
 # NW_DI_Instance.nodesNumber                                            = defNodes
 
 # You can specify a virtual host name for the application server instance. Leave empty if you want to use the default physical host name. The virtual host name must already be bound to a local network interface.
-NW_DI_Instance.virtualHostname                                          = 
+NW_DI_Instance.virtualHostname                                          = {{ sap_ciVirtualHostname }}
 
 # Specify whether the all operating system users are to be removed from group 'sapinst' after the execution of Software Provisioning Manager has completed.
 NW_Delete_Sapinst_Users.removeUsers                                   = true
