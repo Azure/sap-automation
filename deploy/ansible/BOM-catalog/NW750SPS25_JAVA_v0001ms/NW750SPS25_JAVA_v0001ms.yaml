@@ -1,8 +1,9 @@
 ---
 
 name:             "NW750SPS25_JAVA_v0001ms"
-target: "NETWEAVER 7.50 JAVA SPS 25"
-version: 0001
+target:           "NETWEAVER 7.50 JAVA SPS 25"
+version:           0001
+InstanceType:     "JAVA"
 
 defaults:
   target_location: "{{ target_media_location }}/download_basket"
