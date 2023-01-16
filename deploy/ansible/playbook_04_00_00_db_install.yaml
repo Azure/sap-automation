@@ -206,9 +206,9 @@
                 - 1.17-generic-pacemaker
               become:                  true
               become_user:             root
-          when:                        
-           - node_tier != 'oracle'
-           - node_tier != 'oracle-asm'
+          when:
+            - node_tier != 'oracle'
+            - node_tier != 'oracle-asm'
           tags:
             - 1.17-generic-pacemaker
 
@@ -383,11 +383,11 @@
           tags:
             - 1.9-kernelparameters
 
-        - name:                        "SAP OS configuration playbook: - Configure accounts"
-          ansible.builtin.include_role:
-            name:                      roles-os/1.11-accounts
-          tags:
-            - 1.11-accounts
+        # - name:                        "SAP OS configuration playbook: - Configure accounts"
+        #   ansible.builtin.include_role:
+        #     name:                      roles-os/1.11-accounts
+        #   tags:
+        #     - 1.11-accounts
 
         - name:                        "SAP OS configuration playbook: - Create SAP users/groups"
           ansible.builtin.include_role:
