@@ -104,6 +104,7 @@
       become:                          true
       when:
         - platform != "ORACLE"
+        - platform != "ORACLE-ASM"
         - ansible_os_family != "Windows"
       block:
 
@@ -128,7 +129,7 @@
     - name:                            Generic Users and Groups for SAP Installation for Oracle SCS High availability
       become:                          true
       when:
-        - platform == "ORACLE"
+        - platform in ['ORACLE', 'ORACLE-ASM']
         - scs_high_availability
       block:
         - name:                        Generic Users and Groups for SAP Installation for Oracle SCS High availability

@@ -73,4 +73,3 @@
     - ((sudoers_user is not defined) or
       ((sudoers_user == "") or
       ((sudoers_user not in getent_passwd) and (sudoers_state == "present"))))
-
