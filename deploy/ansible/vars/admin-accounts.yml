@@ -386,36 +386,6 @@ admin_users:
     node_tier:    oracle-multi-sid
     enabled:      true
 
-# Admin users for Oracle ASM
-
-  - name:         "ora{{ db_sid | lower }}"
-    comment:      "Oracle Database System Administrator"
-    uid:          "{{ orasid_uid }}"
-    group:        dba
-    groups:       ["oper","sapinst","oinstall","sapsys"]
-    sudoers_role: "admin_no_password"
-    password:     "{{ main_password }}"
-    shell:        /bin/csh
-    state:        present
-    tier:         ora
-    node_tier:    oracle-asm
-    enabled:      true
-
-  - name:         "oracle"
-    comment:      "Oracle Database software Administrator"
-    uid:          "{{ oracle_uid }}"
-    group:        oinstall
-    groups:       ["oper","sapsys","sapinst","asmdba","dba","asmadmin","asmoper","racdba"]
-    sudoers_role: "admin_no_password"
-    password:     "{{ main_password }}"
-    shell:        /bin/csh
-    state:        present
-    tier:         ora
-    node_tier:    oracle-asm
-    enabled:      true
-
-
-
   # Admin users for Oracle ASM
 
   - name:         "ora{{ sap_sid | lower }}"
