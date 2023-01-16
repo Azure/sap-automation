@@ -59,7 +59,7 @@
                                         {%- elif bom.InstanceType == 'ABAP' -%}
                                         {%- set _instance_type == 'ASCS' -%}
                                         {%- else -%}
-                                        {%- set _instance_type == 'ASCS'-%}
+                                        {%- set _instance_type == 'ASCS' -%}
                                         {%- endif -%}"
     public:                            true
   when:                                bom.InstanceType is defined
@@ -69,6 +69,20 @@
     instance_name:                     "{{ sap_sid }}_{{ instance_type }}{{ scs_instance_number }}_{{ scs_virtual_hostname }}"
     start_profile_path:                "/sapmnt/{{ sap_sid }}/profile/{{ sap_sid }}_{{ instance_type }}{{ scs_instance_number }}_{{ scs_virtual_hostname }}"
     profile_directory:                 "/usr/sap/{{ sap_sid | upper }}/{{ instance_type }}{{ scs_instance_number }}"
+
+
+- name:                                "ASCS/ERS check if installed"
+  become:                              true
+  block:
+    - name:                            "SCS HA Install: check if installed"
+      ansible.builtin.stat:
+        path:                          /etc/sap_deployment_automation/sap_deployment_scs.txt
+      register:                        scs_installed
+
+    - name:                            "ERS Install: check if installed"
+      ansible.builtin.stat:
+        path:                          /etc/sap_deployment_automation/sap_deployment_ers.txt
+      register:                        ers_installed
 
 # /*---------------------------------------------------------------------------8
 # |                                   END                                     |
