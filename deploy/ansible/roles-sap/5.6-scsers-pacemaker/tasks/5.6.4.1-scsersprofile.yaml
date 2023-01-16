@@ -20,7 +20,7 @@
     line:                              "{{ item.lif }}"
     state:                             present
   loop:
-    - {regexp: "LD_LIBRARY_PATH=/usr/sap/{{ sap_sid | upper }}/ASCS{{ scs_instance_number }}/exe", lif: "LD_LIBRARY_PATH=/usr/sap/{{ sap_sid | upper }}/ASCS{{ scs_instance_number }}/exe:$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; /usr/sap/{{ sap_sid | upper }}/ASCS{{ scs_instance_number }}/exe/sapstartsrv pf=/usr/sap/{{ sap_sid }}/SYS/profile/{{ sap_sid }}_ASCS{{ scs_instance_number }}_{{ scs_virtual_hostname }} -D -u {{ sap_sid | lower }}adm" }
+    - {regexp: "LD_LIBRARY_PATH=/usr/sap/{{ sap_sid | upper }}/{{ instance_type | upper }}{{ scs_instance_number }}/exe", lif: "LD_LIBRARY_PATH=/usr/sap/{{ sap_sid | upper }}/{{ instance_type | upper }}{{ scs_instance_number }}/exe:$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; /usr/sap/{{ sap_sid | upper }}/{{ instance_type | upper }}{{ scs_instance_number }}/exe/sapstartsrv pf=/usr/sap/{{ sap_sid }}/SYS/profile/{{ sap_sid }}_{{ instance_type | upper }}{{ scs_instance_number }}_{{ scs_virtual_hostname }} -D -u {{ sap_sid | lower }}adm" }
     - {regexp: "LD_LIBRARY_PATH=/usr/sap/{{ sap_sid | upper }}/ERS{{ ers_instance_number }}/exe", lif: "LD_LIBRARY_PATH=/usr/sap/{{ sap_sid | upper }}/ERS{{ ers_instance_number }}/exe:$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; /usr/sap/{{ sap_sid | upper }}/ERS{{ ers_instance_number }}/exe/sapstartsrv pf=/usr/sap/{{ sap_sid }}/SYS/profile/{{ sap_sid }}_ERS{{ ers_instance_number }}_{{ ers_virtual_hostname }} -D -u {{ sap_sid | lower }}adm"     }
   when:
     - ansible_os_family | upper == "SUSE"
@@ -39,7 +39,7 @@
 
     - name:                            "5.6 SCSERS - ASCS Profile - add service/halib"
       ansible.builtin.blockinfile:
-        path:                          /sapmnt/{{ sap_sid | upper }}/profile/{{ sap_sid | upper }}_ASCS{{ scs_instance_number }}_{{ scs_virtual_hostname }}
+        path:                          /sapmnt/{{ sap_sid | upper }}/profile/{{ sap_sid | upper }}_{{ instance_type | upper }}{{ scs_instance_number }}_{{ scs_virtual_hostname }}
         block: |
                                        service/halib = $(DIR_CT_RUN)/saphascriptco.so
                                        service/halib_cluster_connector = /usr/bin/sap_suse_cluster_connector
@@ -62,7 +62,7 @@
   block:
     - name:                            "5.6 SCSERS - ASCS Profile - add service/halib"
       ansible.builtin.blockinfile:
-        path:                          /sapmnt/{{ sap_sid | upper }}/profile/{{ sap_sid | upper }}_ASCS{{ scs_instance_number }}_{{ scs_virtual_hostname }}
+        path:                          /sapmnt/{{ sap_sid | upper }}/profile/{{ sap_sid | upper }}_{{ instance_type | upper }}{{ scs_instance_number }}_{{ scs_virtual_hostname }}
         block: |
                                        service/halib = $(DIR_CT_RUN)/saphascriptco.so
                                        service/halib_cluster_connector = /usr/bin/sap_cluster_connector
@@ -88,7 +88,7 @@
      # Starting with ABAP Platform 1809, enqueue server 2 is installed by default
     - name:                            "5.6 SCSERS - ASCS Profile - Comment Restart_Program_01 If Using ENSA1"
       ansible.builtin.replace:
-        path:                          /sapmnt/{{ sap_sid }}/profile/{{ sap_sid }}_ASCS{{ scs_instance_number }}_{{ scs_virtual_hostname }}
+        path:                          /sapmnt/{{ sap_sid }}/profile/{{ sap_sid }}_{{ instance_type | upper }}{{ scs_instance_number }}_{{ scs_virtual_hostname }}
         backup:                        true
         regexp:                        '^Restart_Program_01'
         replace:                       '#Restart_Program_01'
@@ -97,7 +97,7 @@
 
     - name:                            "5.6 SCSERS - ASCS Profile- Add the right Start command to ASCS profile If Using ENSA1"
       ansible.builtin.lineinfile:
-        path:                          /sapmnt/{{ sap_sid }}/profile/{{ sap_sid }}_ASCS{{ scs_instance_number }}_{{ scs_virtual_hostname }}
+        path:                          /sapmnt/{{ sap_sid }}/profile/{{ sap_sid }}_{{ instance_type | upper }}{{ scs_instance_number }}_{{ scs_virtual_hostname }}
         line:                          Start_Program_01 = local $(_EN) pf=$(_PF)
         insertafter:                   Restart_Program_01
       tags:
@@ -130,7 +130,7 @@
 
     - name:                            "5.6 SCSERS - Add the keep alive parameter, if using ENSA1"
       ansible.builtin.lineinfile:
-        path:                          /sapmnt/{{ sap_sid }}/profile/{{ sap_sid }}_ASCS{{ scs_instance_number }}_{{ scs_virtual_hostname }}
+        path:                          /sapmnt/{{ sap_sid }}/profile/{{ sap_sid }}_{{ instance_type | upper }}{{ scs_instance_number }}_{{ scs_virtual_hostname }}
         line:                          enque/encni/set_so_keepalive = true
       tags:
         - keepalive
@@ -154,7 +154,7 @@
      # Starting with ABAP Platform 1809, enqueue server 2 is installed by default
     - name:                            "5.6 SCSERS - ASCS Profile - Comment Restart_Program_01 If Using ENSA1"
       ansible.builtin.replace:
-        path:                          /sapmnt/{{ sap_sid }}/profile/{{ sap_sid }}_ASCS{{ scs_instance_number }}_{{ scs_virtual_hostname }}
+        path:                          /sapmnt/{{ sap_sid }}/profile/{{ sap_sid }}_{{ instance_type | upper }}{{ scs_instance_number }}_{{ scs_virtual_hostname }}
         backup:                        true
         regexp:                        '^Restart_Program_01'
         replace:                       '#Restart_Program_01'
@@ -163,7 +163,7 @@
 
     - name:                            "5.6 SCSERS - ASCS Profile- Add the right Start command to ASCS profile If Using ENSA1"
       ansible.builtin.lineinfile:
-        path:                          /sapmnt/{{ sap_sid }}/profile/{{ sap_sid }}_ASCS{{ scs_instance_number }}_{{ scs_virtual_hostname }}
+        path:                          /sapmnt/{{ sap_sid }}/profile/{{ sap_sid }}_{{ instance_type | upper }}{{ scs_instance_number }}_{{ scs_virtual_hostname }}
         line:                          Start_Program_01 = local $(_EN) pf=$(_PF)
         insertafter:                   Restart_Program_01
       tags:
@@ -196,7 +196,7 @@
 
     - name:                            "5.6 SCSERS - Add the keep alive parameter, if using ENSA1"
       ansible.builtin.lineinfile:
-        path:                          /sapmnt/{{ sap_sid }}/profile/{{ sap_sid }}_ASCS{{ scs_instance_number }}_{{ scs_virtual_hostname }}
+        path:                          /sapmnt/{{ sap_sid }}/profile/{{ sap_sid }}_{{ instance_type | upper }}{{ scs_instance_number }}_{{ scs_virtual_hostname }}
         line:                          enque/encni/set_so_keepalive = true
       tags:
         - keepalive

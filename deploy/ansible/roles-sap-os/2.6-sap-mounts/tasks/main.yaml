@@ -10,6 +10,10 @@
     var:                               MULTI_SIDS
     verbosity:                         4
 
+- name:                                "2.6 SAP Mounts: - set run time facts"
+  ansible.builtin.include_tasks:
+    file:                              "2.6-set_runtime_facts.yaml"
+
 - name:                                "2.6 SAP Mounts: - Check if the shared disk exists"
   ansible.builtin.set_fact:
     shareddisk:                        "{{ disks | selectattr('host', 'defined') |
