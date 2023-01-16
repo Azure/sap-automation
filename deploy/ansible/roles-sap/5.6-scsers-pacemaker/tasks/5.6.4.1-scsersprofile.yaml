@@ -7,6 +7,7 @@
 ###############################################################################################
 
 - name:                                "5.6 SCSERS - Add the user '{{ sap_sid | lower }}adm' to haclient group"
+  become:                              true
   ansible.builtin.user:
     name:                              "{{ sap_sid | lower }}adm"
     comment:                           "{{ sap_sid | lower }}adm User account"
@@ -35,6 +36,7 @@
     - ansible_os_family | upper == "REDHAT"
 
 - name:                                "5.6 SCSERS - ASCS, ERS profile changes"
+  become:                              true
   block:
 
     - name:                            "5.6 SCSERS - ASCS Profile - add service/halib"
@@ -59,6 +61,7 @@
     - inventory_hostname == primary_instance_name
 
 - name:                                "5.6 SCSERS - ASCS, ERS profile changes"
+  become:                              true
   block:
     - name:                            "5.6 SCSERS - ASCS Profile - add service/halib"
       ansible.builtin.blockinfile:
@@ -81,6 +84,7 @@
 
 # Following are the changes in ASCS/ERS profiles based if ENSA1 is applicable
 - name:                                "5.6 SCSERS - ASCS, ERS profile changes"
+  become:                              true
   block:
 
      # execute the following tasks only when using ENSA1
@@ -147,6 +151,7 @@
 #################################################################################################################
 
 - name:                                "5.6 - SCS / ASCS profile changes - DB2 Installations"
+  become:                              true
   block:
 
      # execute the following tasks only when using ENSA1
