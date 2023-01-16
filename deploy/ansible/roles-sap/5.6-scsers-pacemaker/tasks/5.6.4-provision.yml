@@ -44,8 +44,13 @@
       failed_when:                     not post_ers_install.stat.exists
       when:                            ansible_hostname == secondary_instance_name
 
+
 - name:                                "5.6 SCSERS - profile"
-  ansible.builtin.include_tasks:       "5.6.4.1-scsersprofile.yaml"
+  ansible.builtin.include_tasks:
+    file:                              "5.6.4.2-sap-resources-{{ ansible_os_family }}.yml"
+    apply:
+      become:                          true
+      become_user:                     root
 
 - name:                                "5.6 SCSERS - resources"
   ansible.builtin.include_tasks:
