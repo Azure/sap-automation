@@ -468,6 +468,8 @@ stages:
                   parametersFolder:            $(Preparation.FOLDER)
                   config_repo_path:            ${{ parameters.config_repo_path }}
                   sap_automation_repo_path:    ${{ parameters.sap_automation_repo_path }}
+                  TF_Remote_SA_Name:           $(Terraform_Remote_Storage_Account_Name)
+                  TF_Remote_Storage_Subscription: $(Terraform_Remote_Storage_Subscription)
 
           - template:                          templates\collect-log-files.yaml
             parameters:

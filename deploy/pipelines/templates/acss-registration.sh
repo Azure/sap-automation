@@ -15,6 +15,8 @@ acss_sap_product=${ACSS_SAP_PRODUCT}
 acss_workloads_extension_url="https://github.com/Azure/Azure-Center-for-SAP-solutions-preview/raw/main/CLI_Documents/ACSS_CLI_Extension/workloads-0.1.0-py3-none-any.whl"
 #--------------------------------------+---------------------------------------8
 
+echo -e "$green-- ${CODE_FOLDER} --$reset"
+
 #--------------------------------------+---------------------------------------8
 #                                                                              |
 # Install ACSS Workloads extension for Azure CLI                               |
