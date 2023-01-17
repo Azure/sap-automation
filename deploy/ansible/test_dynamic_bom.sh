@@ -10,20 +10,21 @@
 # test BOMs
                   # "bom_base_name":                  "TEST_BOM_v0001ms",
                   # "bom_base_name":                  "TEST_BOM_v0002ms",
+                  # "new_bom_name":                   "MKD_v0001cust",
 
 
 set -x
 
 ansible-playbook                                                                                                \
   --extra-vars='{
-                  "bom_base_name":                  "TEST_BOM_v0001ms",
-                  "new_bom_name":                   "MKD_v0001cust",
+                  "bom_base_name":                  "S41909SPS03_v0012ms",
                   "download_directory":             "~/tmp/download",
+                  "mkd":                            "xx",
                   "sapbits_location_base_path":     "https://mkddynbomtst.blob.core.windows.net/sapbits"
                 }'                                                                                              \
   --extra-vars="@../../../SUSER.yaml"                                                                           \
   -v                                                                                                     \
-test_playbook_bom_downloader.yaml
+playbook_bom_downloader.yaml
 
 set +x
 

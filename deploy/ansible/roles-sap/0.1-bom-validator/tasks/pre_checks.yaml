@@ -3,34 +3,18 @@
 #
 # Description:  Validation for Prerequisites
 #
-
-# √ bom_base_name                 must be provided
-
-#   kv_name                       if defined, check for s_user and s_password
-#                               else s_user and s_password must be provided
-#   s_user
-#   s_password
+#   01) bom_base_name                   must be provided
+#   02) deployer_kv_name or
+#       kv_name                         if defined, check for s_user and s_password
+#                                       else s_user and s_password must be provided
+#   04) s_user                          provided or recovered from KV
+#   05) s_password                      provided or recovered from KV
+#   06) download_directory
 #   sapbits_sas_token
 #   sapbits_access_key
-#   download_directory
 #   sapbits_bom_files
 #   target_media_location
 #   sapbits_location_base_path
-
-
-# TODO:
-# check required parameters
-# Check SA Access
-# Check KV Access
-# Determine if this is a download only or upload as well scenario
-
-
-# sapbits_location_base_path
-# sapbits_bom_files
-# target_media_location
-# - name:                             Debug
-#   ansible.builtin.debug:
-#     var:                           sapbits_location_base_path, sapbits_bom_files, target_media_location
 
 # -------------------------------------+---------------------------------------8
 # Step: 01
@@ -371,8 +355,8 @@
     - "sapbits_location_base_path is defined"                                 # Has the variable been defined
     - "sapbits_location_base_path | trim | length != 0"                       #  and given a value
 
-    - "sapbits_access_key         is defined"                                 # Has the variable been defined
-    - "sapbits_access_key         | trim | length != 0"                       #  and given a value
+    # - "sapbits_access_key         is defined"                                 # Has the variable been defined
+    # - "sapbits_access_key         | trim | length != 0"                       #  and given a value
     
     - "sapbits_sas_token          is defined"                                 # Has the variable been defined
     - "sapbits_sas_token          | trim | length != 0"                       #  and given a value
@@ -439,13 +423,6 @@
   ignore_errors:                        true
 # Step: 12 - END
 # -------------------------------------+---------------------------------------8
-
-# - name:                                 "TROUBLESHOOTING: pre_checks.yaml (END)"
-#   pause:
-#     prompt: "Press enter to continue..."
-#     echo: yes
-#   when:
-#     - pause|default(false)
 
 ...
 # /*---------------------------------------------------------------------------8

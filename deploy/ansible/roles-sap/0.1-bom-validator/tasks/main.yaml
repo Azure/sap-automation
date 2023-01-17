@@ -10,9 +10,10 @@
 # Objects:
 #   External:
 #             bom_base_name                   - Name of BOM
+#             new_bom_name                    - Default: <bom_base_name>-<bom_suffix>
 #             sapbits_location_base_path      - URL of Blob Storage
-#             sapbits_access_key              - 
-#             sapbits_sas_token               - SAS Token
+#             sapbits_access_key              - KV 
+#             sapbits_sas_token               - calculated SAS Token
 #   Defaults:
 #             bom_suffix                      - customer
 #             download_directory              - Path to the download location on the ansible controller.
@@ -28,25 +29,6 @@
 #
 # -------------------------------------+---------------------------------------8
 # Test Cases:
-#   01) Dynamic BOM
-#         - No Dependancies
-#         - No SA
-#         - No KV 
-#
-#   02) Dynamic BOM
-#         - Dependancies (HANA)
-#         - No SA
-#         - No KV 
-#
-#   03) Dynamic BOM
-#         - No Dependancies
-#         - SA
-#         - No KV 
-#
-#   04) Dynamic BOM
-#         - Dependancies (HANA)
-#         - SA
-#         - No KV 
 #
 # +----------------+--------------+
 # |                | Dependancies |
@@ -56,11 +38,11 @@
 # |                |      |   | Key Vault   |
 # +----------------+------+---+---+---------+
 # |Dynamic BOM     | NONE |   |   | Pass
-# |                | NONE |   | X |
-# |                | NONE | X |   |
+# |                | NONE |   | X | 
+# |                | NONE | X |   | Pass
 # |                | NONE | X | X |
 # |                |------+---+---|
-# |                | HANA |   |   |
+# |                | HANA |   |   | Pass
 # |                | HANA |   | X |
 # |                | HANA | X |   | Pass
 # |                | HANA | X | X |
@@ -74,6 +56,15 @@
 #
 # -------------------------------------+---------------------------------------8
 ---
+
+# When Fact: pause = true
+- name:                                 "TROUBLESHOOTING: "
+  pause:
+    prompt: "Press enter to continue..."
+    echo: yes
+  when:
+    - pause|default(false)
+
 
 # -------------------------------------+---------------------------------------8
 # Step: 01
@@ -100,13 +91,6 @@
 # Step: 02
 # Description:  Validation for Prerequisites
 #
-# - name:                                 "TROUBLESHOOTING: main.yaml - call pre_checks"
-#   pause:
-#     prompt: "Press enter to continue..."
-#     echo: yes
-#   when:
-#     - pause|default(false)                                                      # when true; if not defined, then value is false
-
 - name:                                 "Execute Pre-checks Task"
   ansible.builtin.import_tasks:         pre_checks.yaml
 # Step: 02 - END
@@ -130,13 +114,6 @@
 # Step: 04
 # Description:  Call BOM processor, passing BOM name.
 #
-# - name:                                 "TROUBLESHOOTING: main.yaml - call bom_validator"
-#   pause:
-#     prompt: "Press enter to continue..."
-#     echo: yes
-#   when:
-#     - pause|default(false)
-
 - name:                                "0.1 BoM Validator: - Process main BOM"
   ansible.builtin.include_tasks:       bom_validator.yaml
   vars:
@@ -166,12 +143,6 @@
 # Step: 06
 # Description:  Call BOM processor, passing dependent BOM names.
 #
-
-# - name:                                 "TROUBLESHOOTING..."
-#   pause:
-#     prompt: "Press enter to continue..."
-#     echo: yes
-
 - name:                                "0.1 BoM Validator: - Process dependent BoMs in a loop"
   ansible.builtin.include_tasks:       bom_validator.yaml
   vars:
@@ -251,9 +222,6 @@
 #     dest:                              "{{ download_directory }}/bom/{{ bom_base_name }}-{{ bom_suffix }}.yaml"
 #     mode:                              0644
 #     force:                             true
-
-
-
 
 # Step: 09 - END
 # -------------------------------------+---------------------------------------8

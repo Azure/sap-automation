@@ -17,15 +17,13 @@
 # Step: 01
 # Description:  Create download directory structure
 #
-# TODO: remove become
-#
 - name:                                 "3.3.1 BoM Processing: - Create BOM download directories"
   ansible.builtin.file:
     path:                               "{{ item.path }}"
     state:                              directory
     mode:                               0755
   delegate_to:                          localhost
-  # 20221201 MKD - Dynamic BOM, mitigate become
+# 20221201 MKD (DynBOM)- mitigate become
   # become:                               "{{ bom_processing_become }}"
   # become_user:                          root
   loop:
@@ -73,6 +71,7 @@
         dest:                           "{{ download_directory }}/bom/{{ bom_name }}.yaml"
         mode:                           0644
       delegate_to:                      localhost
+# 20221201 MKD (DynBOM)- mitigate become
       # become:                           "{{ bom_processing_become }}"
       ignore_errors:                    true
       register:                         result
@@ -95,7 +94,7 @@
         dest:                           "{{ download_directory }}/bom/{{ bom_name }}.yaml"
         mode:                           0644
       delegate_to:                      localhost
-      # 20221201 MKD - Dynamic BOM, mitigate become
+# 20221201 MKD (DynBOM)- mitigate become
       # become:                           "{{ bom_processing_become }}"
       # become_user:                         root
       register:                         result

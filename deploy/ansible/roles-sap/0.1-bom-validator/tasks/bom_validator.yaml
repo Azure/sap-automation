@@ -76,13 +76,6 @@
 # Description:  Dynamic Processing - Iterate over BOM dictionary to find Dynamic
 #               entries.
 #
-# - name:                                 "TROUBLESHOOTING: dynamic_bom_processing.yaml"
-#   pause:
-#     prompt: "Press enter to continue..."
-#     echo: yes
-#   when:
-#     - pause|default(false)                                                      # when true; if not defined, then value is false
-
 - name:                                 "Reconcile dynamic entries of BOM"
   ansible.builtin.include_tasks:        "dynamic_bom_processing.yaml"
   loop:                                 "{{ bom.materials.media|flatten(levels=1) }}"
