@@ -63,17 +63,18 @@
     prompt: "Press enter to continue..."
     echo: yes
   when:
-    - pause|default(false)
+    - pause|default(false)                                                      # When Fact: pause is True, then wait for ENTER key
 
 
 # -------------------------------------+---------------------------------------8
 # Step: 01
-# Description:  Initialize Facts
+# Description:  Initialize Facts - Start out with KeyVault and Storage Account
+#               access disabled.
 #
 - name:                                 "Initialize facts"
   ansible.builtin.set_fact:
-    kv_enabled:                         false
-    sa_enabled:                         false
+    kv_enabled:                         False
+    sa_enabled:                         False
 
 - name:                                 "Informational"
   ansible.builtin.debug:
@@ -89,7 +90,7 @@
 
 # -------------------------------------+---------------------------------------8
 # Step: 02
-# Description:  Validation for Prerequisites
+# Description:  Call validation for Prerequisites
 #
 - name:                                 "Execute Pre-checks Task"
   ansible.builtin.import_tasks:         pre_checks.yaml
@@ -113,6 +114,7 @@
 # -------------------------------------+---------------------------------------8
 # Step: 04
 # Description:  Call BOM processor, passing BOM name.
+#               account and container vars are never used if sa_enabled is False
 #
 - name:                                "0.1 BoM Validator: - Process main BOM"
   ansible.builtin.include_tasks:       bom_validator.yaml
@@ -128,7 +130,7 @@
 
 # -------------------------------------+---------------------------------------8
 # Step: 05
-# Description:  
+# Description:  Save BOM and Media list for consolidation
 #
 - name:                                "0.1 BoM Validator: - Save BOM {{ bom_base_name }} as Dictionary"
   ansible.builtin.set_fact:
@@ -142,6 +144,7 @@
 # -------------------------------------+---------------------------------------8
 # Step: 06
 # Description:  Call BOM processor, passing dependent BOM names.
+#               account and container vars are never used if sa_enabled is False
 #
 - name:                                "0.1 BoM Validator: - Process dependent BoMs in a loop"
   ansible.builtin.include_tasks:       bom_validator.yaml
@@ -164,7 +167,7 @@
 
 # -------------------------------------+---------------------------------------8
 # Step: 07
-# Description:  
+# Description:  Deduplicate entries in consolidated BOM Media list
 #
 - name:                                "0.1 BOM Validator: - Filter combined BoM"
   ansible.builtin.set_fact:
@@ -175,7 +178,7 @@
 
 # -------------------------------------+---------------------------------------8
 # Step: 08
-# Description:  
+# Description:  Create consolidated BOM
 #
 - name:                                "0.1 BOM Validator: - Assemble combined BoM"
   ansible.builtin.set_fact:
@@ -192,7 +195,8 @@
 
 # -------------------------------------+---------------------------------------8
 # Step: 09
-# Description:  Aggregate BOM files
+# Description:  Aggregate BOM files - Loop through all BOM directories used and
+#               build consolidated BOM directory.
 #
 - name:                                 "main: - Informational"
   ansible.builtin.debug:
@@ -230,9 +234,11 @@
 
 # -------------------------------------+---------------------------------------8
 # Step: 10
-# Description:  
+# Description:  Upload New Customer BOM to Storage Account
 #
 - name: "BOM Upload"
+  when:
+    - sa_enabled
   block:
 
 # -------------------------------------+---------------------------------------8
@@ -307,8 +313,6 @@
 # Step: 10-04 - END
 # -------------------------------------+---------------------------------------8
 
-  when:
-    - sa_enabled
 # Step: 10 - END
 # -------------------------------------+---------------------------------------8
 
@@ -316,7 +320,7 @@
 
 # -------------------------------------+---------------------------------------8
 # Step: 11
-# Description:  
+# Description:  When Storage Account access is disabled, show local path.
 #
 - name:                                "Show local BOM folder path"
   ansible.builtin.debug:
