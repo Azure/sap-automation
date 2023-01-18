@@ -296,7 +296,7 @@ stages:
 
               else
                 echo -e "$green--- az login ---$reset"
-                  az login --identity --output none
+                  az login --identity --allow-no-subscriptions --output none
 
                   return_code=$?
                   if [ 0 != $return_code ]; then
