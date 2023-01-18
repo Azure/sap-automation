@@ -38,13 +38,21 @@
     - distribution_full_id == "sles_sap15.3"
     - tier == 'os'
 
-- name:                                "1.4 Packages: - Update Python: {{ distribution_full_id }}"  # noqa package-latest
-  community.general.zypper:
-    name:                              'python-xml'
-    state:                             latest
-  when:                                distribution_id in ['suse15', 'sles_sap15']
-  tags:
-    - skip_ansible_lint
+- name:                                "1.4 Packages - Activate public cloud extension"
+  ansible.builtin.shell: |
+                                       SUSEConnect -p sle-module-public-cloud/15.4/x86_64
+  when:
+    - distribution_full_id == "sles_sap15.4"
+    - tier == 'os'
+
+# covered by python-xml for SLES 15 SP1-3 and python3-xml for SLES 15 SP4 in var/os-packages.yaml
+# - name:                                "1.4 Packages: - Update Python: {{ distribution_full_id }}"  # noqa package-latest
+#  community.general.zypper:
+#    name:                              'python-xml'
+#    state:                             latest
+#  when:                                distribution_id in ['suse15', 'sles_sap15']
+#  tags:
+#    - skip_ansible_lint
 
 # Analyse the package list for this distribution selecting only those
 # packages assigned to the active tier or 'all'.
