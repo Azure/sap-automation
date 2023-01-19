@@ -308,7 +308,7 @@ stages:
                 echo -e "$green --- Set secrets ---$reset"
 
                 $SAP_AUTOMATION_REPO_PATH/deploy/scripts/set_secrets.sh --workload --vault "${key_vault}" --environment "${ENVIRONMENT}"  \
-                  --region "${LOCATION}" --subscription $ARM_SUBSCRIPTION_ID --spn_id $ARM_CLIENT_ID --spn_secret $ARM_CLIENT_SECRET      \
+                  --region "${LOCATION}" --subscription $ARM_SUBSCRIPTION_ID --spn_id $ARM_CLIENT_ID --spn_secret "${ARM_CLIENT_SECRET}"      \
                   --tenant_id $ARM_TENANT_ID --keyvault_subscription $STATE_SUBSCRIPTION
                 secrets_set=$? ; echo -e "$cyan Set Secrets returned $secrets_set $reset"
                 az keyvault set-policy --name "${key_vault}" --object-id $ARM_OBJECT_ID --secret-permissions get list  --output none
