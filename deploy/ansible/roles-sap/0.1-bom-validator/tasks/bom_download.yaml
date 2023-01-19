@@ -50,7 +50,7 @@
             http_agent:                'SAP Software Download'
             timeout:                   60
             mode:                      0644
-          become:                      true
+          become:                      "{{ bom_processing_become }}"
           become_user:                 root
           register:                    result
           until:                       result is succeeded or not result.changed
@@ -77,7 +77,7 @@
             http_agent:                'SAP Software Download'
             timeout:                   60
             mode:                      0644
-          become:                      true
+          become:                      "{{ bom_processing_become }}"
           become_user:                 root
           register:                    result
           no_log:                      false
@@ -165,7 +165,7 @@
         - azresult.stderr.find("BlobAlreadyExists") == -1
 
     - name:                            "BOM: {{ bom_name }} Remove File {{ item.archive }}"
-      become:                          true
+      become:                          "{{ bom_processing_become }}"
       ansible.builtin.file:
         dest:                          "{{ download_directory }}/files/{{ item.archive }}"
         state:                         absent

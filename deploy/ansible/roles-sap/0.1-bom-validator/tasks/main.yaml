@@ -60,7 +60,7 @@
     content:                           "This is the container with the SAP media"
     mode:                              0755
   register:                            readme_file
-  become:                              true
+  become:                              "{{ bom_processing_become }}"
   become_user:                         root
 
 - name:                                "0.1 BoM Validator: - Check storage account container"
