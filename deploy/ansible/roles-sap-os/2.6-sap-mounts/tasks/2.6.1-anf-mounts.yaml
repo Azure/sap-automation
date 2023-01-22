@@ -7,7 +7,7 @@
 
 - name:                                "ANF Mount: Set the NFS Service name"
   ansible.builtin.set_fact:
-    nfs_service:                       "{% if distribution_id == 'redhat8' %}nfs-server{% else %}{% if distribution_id == 'redhat7' %}nfs{% else %}nfsserver{% endif %}{% endif %}"
+    nfs_service:                       "{% if distribution_id == 'redhat8' %}nfs-server{% else %}{% if distribution_id == 'redhat7' %}nfs{% else %}{% if distribution_id == 'oraclelinux8' %}rpcbind{% else %}nfsserver{% endif %}{% endif %}{% endif %}"
 
 - name:                                "ANF Mount: Set the NFSmount options"
   ansible.builtin.set_fact:

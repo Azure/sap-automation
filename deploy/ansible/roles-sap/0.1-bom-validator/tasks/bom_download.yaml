@@ -120,9 +120,9 @@
         - name:                        "BOM: Line"
           ansible.builtin.blockinfile:
             path:                      "{{ bom_file }}"
-            regexp:                    '      archive:      {{ item.archive }}'
-            insertafter:               '      archive:      {{ item.archive }}'
-            block:                     "      checksum:     {{ fs_check.stat.checksum }}"
+            # regexp:                    '      archive:      {{ item.archive }}'
+            insertafter:               '^\s*archive:\s*{{ item.archive }}'
+            block:                     "      checksum: {{ fs_check.stat.checksum }}"
             marker:                    "# {mark} ANSIBLE MANAGED BLOCK {{ item.archive }}"
           when:
             - fs_check is defined

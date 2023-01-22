@@ -90,7 +90,7 @@
 - name:                                "2.6 SAP Mounts: - Mount local file systems (backup)"
   ansible.posix.mount:
     src:                               '/dev/vg_hana_backup/lv_hana_backup'
-    path:                              '/hana/backup'
+    path:                              '{{ hana_backup_path }}'
     fstype:                            'xfs'
     opts:                              defaults
     state:                             mounted
@@ -267,27 +267,30 @@
 
 # Import this task only if the tier is ora.
 - name:                                "2.6 SAP Mounts: - Import Oracle tasks"
-  ansible.builtin.import_tasks:        "oracle.yaml"
+  ansible.builtin.import_tasks:        "2.6.2-oracle-mounts.yaml"
   when:
     - node_tier == "oracle"
 
 # Import this task only if the tier is ora for oracle-asm.
-- import_tasks:                        "oracle-asm-prereq.yaml"
+- name:                                "2.6 SAP Mounts: - Import Oracle ASM pre-requisite tasks"
+  ansible.builtin.import_tasks:        "oracle-asm-prereq.yaml"
   when:
     - node_tier == "oracle-asm"
 
 # Import this task only if the tier is ora for oracle-asm.
-- import_tasks:                        "oracle-asm.yaml"
+- name:                                "2.6 SAP Mounts: - Import Oracle ASM tasks"
+  ansible.builtin.import_tasks:        "2.6.3-oracle-asm-mounts.yaml"
   when:
     - node_tier == "oracle-asm"
-    - tier == "ora"
+    # - tier == "ora"
 
-- import_tasks:                        "oracle-observer.yaml"
+- name:                                "2.6 SAP Mounts: - Import Oracle observer tasks"
+  ansible.builtin.import_tasks:        "oracle-observer.yaml"
   when:
     - node_tier == "observer"
 
-
-- import_tasks:                        "oracle-multi-sid.yaml"
+- name:                                "2.6 SAP Mounts: - Import Oracle shared home tasks"
+  ansible.builtin.import_tasks:        "oracle-multi-sid.yaml"
   when:
     - node_tier == "oracle-multi-sid"
     - node_tier != "oracle-asm"
@@ -302,22 +305,54 @@
 - name:                                "2.6 SAP Mounts: - Import AFS tasks"
   ansible.builtin.import_tasks:        2.6.0-afs-mounts.yaml
   when:
-    - sap_mnt is defined or sap_trans is defined
+    - sap_mnt is defined or sap_trans is defined or usr_sap_install_mountpoint is defined
     - NFS_provider == 'AFS'
-
 
 
 # Import this task only if the sap_mnt is defined, i.e. ANF is used
 - name:                                "2.6 SAP Mounts: - Import ANF tasks"
   ansible.builtin.import_tasks:        2.6.1-anf-mounts.yaml
   when:
-    - sap_mnt is defined or sap_trans is defined
+    - sap_mnt is defined or sap_trans is defined or usr_sap_install_mountpoint is defined
     - NFS_provider == 'ANF'
 
 # Import NFS mounts and permissions changes for oracle and oracle-asm installation.
-- import_tasks:                        "oracle-nfs-mounts.yaml"
+- name:                                "2.6 SAP Mounts: - Import Oracle NFS tasks"
+  ansible.builtin.import_tasks:        "2.6.6-oracle-nfs-mounts.yaml"
   when:
     - node_tier in ['oracle','oracle-asm','observer']
 
+
+- name:                                "2.6 SAP Mounts: - Set permissions"
+  become:                               true
+  become_user:                          root
+  when:
+    - node_tier == "hana"
+  block:
+    - name:                                "2.6 SAP Mounts: - Set permissions on hana folders"
+      ansible.builtin.file:
+        owner:                             "{{ db_sid | lower }}adm"
+        group:                             sapsys
+        state:                             directory
+        recurse:                           true
+        path:                              "{{ item.path }}"
+        mode:                              '{{ item.mode }}'
+      loop:
+        - { mode: '0755', path: '/hana/data' }
+        - { mode: '0755', path: '/hana/log' }
+        - { mode: '0755', path: '/hana/shared' }
+  rescue:
+    - name:                                "2.6 SAP Mounts: - Set permissions on hana folders"
+      ansible.builtin.file:
+        owner:                             '{{ hdbadm_uid }}'
+        group:                             sapsys
+        state:                             directory
+        recurse:                           true
+        path:                              "{{ item.path }}"
+        mode:                              '{{ item.mode }}'
+      loop:
+        - { mode: '0755', path: '/hana/data' }
+        - { mode: '0755', path: '/hana/log' }
+        - { mode: '0755', path: '/hana/shared' }
 
 ...

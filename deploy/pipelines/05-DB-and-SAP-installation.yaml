@@ -77,6 +77,28 @@ parameters:
     type:                              boolean
     default:                           false
 
+# 20220929 MKD - ACSS Registration <BEGIN>
+  - name:                             acss_registration
+    displayName:                      Register System in ACSS
+    type:                             boolean
+    default:                          true
+
+  - name:                             acss_environment
+    displayName:                      ACSS Prod/NonProd
+    type:                             string
+    values:
+      - NonProd
+      - Prod
+
+  - name:                              acss_sap_product
+    displayName:                       System Type
+    type:                              string
+    values:
+      - S4HANA
+      - ECC
+      - Other
+  # 20220929 MKD - ACSS Registration <END>
+
   - name:                              sap_automation_repo_path
     displayName:                       The local path on the agent where the sap_automation repo can be found
     type:                              string
@@ -193,17 +215,24 @@ stages:
               echo -e "$green--- Get connection details ---$reset"
                 mkdir -p artifacts
 
-                az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "${NETWORK}"Workload_Key_Vault.value | tr -d \")
+                az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "${NETWORK}"Workload_Key_Vault.value --output tsv)
                 if [ -z ${az_var} ]; then
-                  export workload_key_vault=$(cat "${environment_file_name}"  | grep workload_key_vault      | awk -F'=' '{print $2}' | xargs) ; echo 'Workload Key Vault' ${workload_key_vault}
+                  export workload_key_vault=$(cat "${environment_file_name}"  | grep workloadkeyvault      | awk -F'=' '{print $2}' | xargs) ; echo 'Workload Key Vault' ${workload_key_vault}
                 else
-                  export workload_key_vault=${az_var} ; echo 'Workload Key Vault' ${workload_key_vault}
+                  export workload_key_vault=${az_var} ; echo 'Workload Key Vault' ${workload_key_vault} ; echo 'Workload Key Vault' ${workload_key_vault}
                 fi
 
-                echo "##vso[task.setvariable variable=SSH_KEY_NAME;isOutput=true]${ENVIRONMENT}-${LOCATION}-${NETWORK}-sid-sshkey"
+                az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "${NETWORK}"Workload_Secret_Prefix.value  --output tsv)
+                if [ -z ${az_var} ]; then
+                  export workload_prefix=$(cat "${environment_file_name}"  | grep workload_zone_prefix      | awk -F'=' '{print $2}' | xargs) ; echo 'Workload Prefix' ${workload_prefix}
+                else
+                  export workload_prefix=${az_var} ; echo 'Workload Prefix' ${workload_prefix}; echo 'Workload Prefix' ${workload_prefix}
+                fi
+
+                echo "##vso[task.setvariable variable=SSH_KEY_NAME;isOutput=true]${workload_prefix}-sid-sshkey"
                 echo "##vso[task.setvariable variable=VAULT_NAME;isOutput=true]$workload_key_vault"
-                echo "##vso[task.setvariable variable=PASSWORD_KEY_NAME;isOutput=true]${ENVIRONMENT}-${LOCATION}-${NETWORK}-sid-password"
-                echo "##vso[task.setvariable variable=USERNAME_KEY_NAME;isOutput=true]${ENVIRONMENT}-${LOCATION}-${NETWORK}-sid-username"
+                echo "##vso[task.setvariable variable=PASSWORD_KEY_NAME;isOutput=true]${workload_prefix}-sid-password"
+                echo "##vso[task.setvariable variable=USERNAME_KEY_NAME;isOutput=true]${workload_prefix}-sid-username"
 
               echo -e "$green--- az login ---$reset"
                 #If the deployer_file exists we run on a deployer configured by the framework instead of a azdo hosted one
@@ -219,7 +248,7 @@ stages:
                 fi
                 az account set --subscription $AZURE_SUBSCRIPTION_ID
 
-                az keyvault secret show --name ${ENVIRONMENT}-${LOCATION}-${NETWORK}-sid-sshkey --vault-name $workload_key_vault --query value -o tsv > artifacts/${SAP_SYSTEM_CONFIGURATION_NAME}_sshkey
+                az keyvault secret show --name ${workload_prefix}-sid-sshkey --vault-name $workload_key_vault --query value -o tsv > artifacts/${SAP_SYSTEM_CONFIGURATION_NAME}_sshkey
                 cp sap-parameters.yaml artifacts/.
                 cp ${SID}_hosts.yaml artifacts/.
 
@@ -424,6 +453,19 @@ stages:
                   azureClientSecret:         $(ARM_CLIENT_SECRET)
                   azureTenantId:             $(ARM_TENANT_ID)
                   azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
+          - ${{ if eq(parameters.acss_registration, true) }}:
+              - template:                    templates\acss-registration.yaml
+                parameters:
+                  displayName:                 "ACSS Registration"
+                  scriptPath:                  ${{ parameters.sap_automation_repo_path }}/deploy/pipelines/templates
+                  azureClientId:               $(ARM_CLIENT_ID)
+                  azureClientSecret:           $(ARM_CLIENT_SECRET)
+                  azureTenantId:               $(ARM_TENANT_ID)
+                  azureSubscriptionId:         $(ARM_SUBSCRIPTION_ID)
+                  acssEnvironment:             ${{ parameters.acss_environment }}
+                  acssSapProduct:              ${{ parameters.acss_sap_product }}
+                  sapSystemConfigurationName:  ${{ parameters.sap_system_configuration_name }}
+                  parametersFolder:            $(Preparation.FOLDER)
 
           - template:                          templates\collect-log-files.yaml
             parameters:

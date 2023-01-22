@@ -1,0 +1,14 @@
+---
+name:    'SUM20SP15'
+target:  'SUM20SP15'
+version: 003
+
+materials:
+
+  media:
+    # SUM
+    - name:         "Patch 3 for SOFTWARE UPDATE MANAGER 2.0 SP15 (Windows)"
+      archive:      SUM20SP15_3-80002458.SAR
+      checksum:     84901fd9026466ee4632f4fa1e6b5e676162d1291389e2910df26ef68f132a9d
+      download:     false
+      url:          https://softwaredownloads.sap.com/file/0020000001615422022
