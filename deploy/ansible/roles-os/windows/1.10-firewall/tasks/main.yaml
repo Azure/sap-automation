@@ -8,14 +8,13 @@
 # BEGIN
 
 # Disable the Firewall
-- name:                                     Disable domain Firewall
+- name:                                     Disable Domain,Public,Private Firewall
   ansible.windows.win_dsc:
     resource_name:                          FirewallProfile
     Enabled:                                false
-    Name:                                   Domain
-
-- name:                                     Disable public Firewall
-  ansible.windows.win_dsc:
-    resource_name:                          FirewallProfile
-    Enabled:                                false
-    Name:                                   Public
+    Name:                                   "{{ item }}"
+  loop:
+    - Domain
+    - Public
+    - Private
+  
