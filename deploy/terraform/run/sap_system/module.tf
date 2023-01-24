@@ -130,7 +130,7 @@ module "hdb_node" {
   cloudinit_growpart_config                    = null # This needs more consideration module.common_infrastructure.cloudinit_growpart_config
   license_type                                 = var.license_type
   use_loadbalancers_for_standalone_deployments = var.use_loadbalancers_for_standalone_deployments
-  database_dual_nics                           = module.common_infrastructure.admin_subnet == null ? false : var.database_dual_nics
+  database_dual_nics                           = try(module.common_infrastructure.admin_subnet, null) == null ? false : var.database_dual_nics
   database_vm_db_nic_ips                       = var.database_vm_db_nic_ips
   database_vm_db_nic_secondary_ips             = var.database_vm_db_nic_secondary_ips
   database_vm_admin_nic_ips                    = var.database_vm_admin_nic_ips
@@ -236,7 +236,7 @@ module "anydb_node" {
   sid_keyvault_user_id                         = module.common_infrastructure.sid_keyvault_user_id
   naming                                       = length(var.name_override_file) > 0 ? local.custom_names : module.sap_namegenerator.naming
   custom_disk_sizes_filename                   = try(coalesce(var.custom_disk_sizes_filename, var.db_disk_sizes_filename), "")
-  admin_subnet                                 = module.common_infrastructure.admin_subnet
+  admin_subnet                                 = try(module.common_infrastructure.admin_subnet, null)
   db_subnet                                    = module.common_infrastructure.db_subnet
   anchor_vm                                    = module.common_infrastructure.anchor_vm // Workaround to create dependency from anchor to db to app
   sid_password                                 = module.common_infrastructure.sid_password
