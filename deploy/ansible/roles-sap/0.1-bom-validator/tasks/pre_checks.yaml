@@ -411,7 +411,7 @@
     fail_msg: |-
                                         Storage Account access DISABLED
                                         sa_enabled:       {{ sa_enabled }}
-  ignore_errors:                        true
+  failed_when:                         false
 # Step: 12 - END
 # -------------------------------------+---------------------------------------8
 
