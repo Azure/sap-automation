@@ -31,7 +31,7 @@
 # - name:                                 "sap_sso_authentication TROUBLESHOOTING..."
 #   pause:
 #     prompt: "Press enter to continue..."
-#     echo: yes
+#     echo: true
 
 
 # -------------------------------------+---------------------------------------8
@@ -135,7 +135,7 @@
     create:                             true
     path:                               cookie_jar
     mode:                               0644
-    regexp:                             ^#.*?_({{ url | regex_replace('[.]','[.]') }}).*?\s({{ (item.split('=', 1))[0] | trim | regex_replace('[.]','[.]') }})\s
+    regexp:                             ^#.*?_({{ url|regex_replace('[.]','[.]') }}).*?\s({{ (item.split('=', 1))[0]|trim|regex_replace('[.]','[.]') }})\s
     line:                               "
                                         {#-  -#}
                                         {% set _cookie = {  'cookie_name':  '',
@@ -180,18 +180,19 @@
   loop:                                 "{{ set_cookie_string_filtered.split(',') }}"
   vars:
     set_cookie_string_filtered:         "{{ step1Results.set_cookie | regex_replace('Expires=(?P<day>...),', 'Expires=\\g<day>%2C') }}"
-    url:                                "{{ step1Results.url | urlsplit('hostname') }}"
+    url:                                "{{ step1Results.url|urlsplit('hostname') }}"
   tags:
     - skip_ansible_lint
 # Step: 02 - END
 # -------------------------------------+---------------------------------------8
 
 
+
 # -------------------------------------+---------------------------------------8
 # Step: 03
 # Description:  SSO Authentication block
 #
-- name:                                "Authentication Required"
+- name:                                 "Authentication Required"
   block:
 
 # -------------------------------------+---------------------------------------8
@@ -297,6 +298,7 @@
 # -------------------------------------+---------------------------------------8
 
 
+
 # -------------------------------------+---------------------------------------8
 # Step: 03-02
 # Description:  Maintain Cookie Jar
@@ -357,6 +359,7 @@
         - skip_ansible_lint
 # Step: 03-02 - END
 # -------------------------------------+---------------------------------------8
+
 
 
 # -------------------------------------+---------------------------------------8
@@ -444,6 +447,7 @@
     - name:                                   "Step 3 - Store cookies for accounts.sap.com"
       ansible.builtin.set_fact:
         cookies_accounts_sap_com:             "{{ step3Results.cookies }}"
+
 
 
     - name:                                   "Step 3 - Show data"
@@ -565,6 +569,8 @@
         - skip_ansible_lint
 # Step: 03-04 - END
 # -------------------------------------+---------------------------------------8
+
+
 
 
 # -------------------------------------+---------------------------------------8
@@ -703,14 +709,10 @@
         - skip_ansible_lint
 
 
+
     - name:                                 "Step 4 - Update cookies for accounts.sap.com"
       ansible.builtin.set_fact:
         cookies_accounts_sap_com:           "{{ cookies_accounts_sap_com | combine(step4Results.cookies) }}"
-
-    - name:                                 "Step 4 - Show raw data"
-      ansible.builtin.debug:
-        msg:
-          - "step4Results.content: {{ step4Results.content }}"
 
 
     - name:                                 "Step 4 - Show data"
@@ -772,6 +774,8 @@
 # Step: 03-05 - END
 # -------------------------------------+---------------------------------------8
 
+
+
 # -------------------------------------+---------------------------------------8
 # Step: 03-06
 # Description:  Maintain Cookie Jar
@@ -830,13 +834,14 @@
       loop:                                 "{{ set_cookie_string_filtered.split(',') }}"
       vars:
         set_cookie_string_filtered:         "{{ step4Results.set_cookie | regex_replace('Expires=(?P<day>...),', 'Expires=\\g<day>%2C') }}"
-        url:                                "{{ step4Results.url | urlsplit('hostname') }}"
+        url:                                "{{ step4Results.url|urlsplit('hostname') }}"
       tags:
         - skip_ansible_lint
 
                                             # {%     set _ = _cookie.update({'Expires':      (sub[1]|trim|to_datetime('%a%%2C %d-%b-%Y %H:%M:%S %Z')).strftime('%s')})     -%}
 # Step: 03-06 - END
 # -------------------------------------+---------------------------------------8
+
 
 
 # -------------------------------------+---------------------------------------8
@@ -988,6 +993,7 @@
 # -------------------------------------+---------------------------------------8
 
 
+
 # -------------------------------------+---------------------------------------8
 # Step: 03-08
 #   Description:
@@ -1062,6 +1068,7 @@
       register:                             step6Results
       tags:
         - skip_ansible_lint
+
 
     - name:                                 "Step 6 - Show data"
       ansible.builtin.debug:
@@ -1182,6 +1189,7 @@
 # -------------------------------------+---------------------------------------8
 
 
+
 # -------------------------------------+---------------------------------------8
 # Step: 04
 #   Description:
@@ -1218,6 +1226,7 @@
 # -------------------------------------+---------------------------------------8
 
 
+
 # -------------------------------------+---------------------------------------8
 # Step: 05
 #   Description:  Informational
@@ -1234,6 +1243,7 @@
     post_action:                        "https://launchpad.support.sap.com/services/odata/svt/swdcuisrv/SearchResultSet?SEARCH_MAX_RESULT=500&RESULT_PER_PAGE=500&SEARCH_STRING={{ asset }}&sap-language=en"
 # Step: 05 - END
 # -------------------------------------+---------------------------------------8
+
 
 
 # -------------------------------------+---------------------------------------8
