@@ -1,0 +1,169 @@
+---
+# -------------------------------------+---------------------------------------8
+#
+# Description:  Dynamic BOM Processing
+#
+
+# - name:                                 "dynamic_bom_processing TROUBLESHOOTING..."
+#   pause:
+#     prompt: "Press enter to continue..."
+#     echo: yes
+
+
+# -------------------------------------+---------------------------------------8
+# Step: 01
+# Description:
+#
+- name:                                 "Dynamic processing - Show media entry"
+  ansible.builtin.debug:
+    var:                                bom_media_entry
+    verbosity:                          1
+
+- name:                                 "Dynamic processing - Show media entry index"
+  ansible.builtin.debug:
+    msg: |-
+                                        bom_media_entry index: {{ bom_media_index }}
+
+    verbosity:                          1
+# Step: 01 - END
+# -------------------------------------+---------------------------------------8
+
+
+# -------------------------------------+---------------------------------------8
+# Step: 02
+# Description:  Call SAP SSO Logon and Search
+#
+- name:                                 "Dynamic processing - SAP SSO Logon and Search"
+  ansible.builtin.include_tasks:        "sap_sso_authentication.yaml"
+  vars:
+    asset:                              "{{ bom_media_entry.name }}"
+# Step: 02 - END
+# -------------------------------------+---------------------------------------8
+
+
+# -------------------------------------+---------------------------------------8
+# Step: 03
+# Description:  Locate the entry in the search results, matching the platform.
+#               Update the entry in the BOM dictionary object to convert the
+#               dynamic entry to a static entry.
+#
+# Sample data access: sap_search_results.entry[8].Id
+#
+#     Entry:
+#       Id:                   000001
+# √     Title:                SWPM20SP13_2-70003174.SAR
+# √     Description:          SWPM20SP13
+# √     Infotype:             Support Package SOFTWARE PROVISIONING MGR 2.0 AIX 64bit
+#       Fastkey:              0020000001603662022
+#       SubtreeEvent:         None
+# √     DownloadDirectLink:   https://softwaredownloads.sap.com/file/0020000001603662022
+#       ApplicationLink:      None
+#       PackApplicationLink:  None
+#       InfoObjectLink:       None
+#       ContentInfoLink:      https://launchpad.support.sap.com/#/softwarecenter/object/0020000001603662022
+#       SideEffectsLink:      None
+#       DependenciesLink:     None
+#       SearchResultDescr:    Search results 1 - 11 of maximum 66. The actual number of the search results depends on your licenses.
+#
+- name:                                 "Dynamic processing - BOM update block..."
+  block:
+
+# -------------------------------------+---------------------------------------8
+# Step: 03-01
+    - name:                                 "Dynamic processing - Show media entry"
+      ansible.builtin.debug:
+        msg: |-
+                                            Name:     {{ bom_media_entry.name }}
+                                            Platform: {{ bom_media_entry.platform }}
+
+                                            SAP Platform Map:
+                                            Platform | Number    | Description
+                                            ---------+-----------+-----------------------------
+                                            {% for line in sap_platform_map[bom_media_entry.name] %}
+                                            {{ "%-9s" | format(line.platform) }} | {{ "%-10s" | format(line.number) }} | {{ line.description }}
+                                            {% endfor %}
+        verbosity:                          1
+# Step: 03-01 - END
+# -------------------------------------+---------------------------------------8
+
+# -------------------------------------+---------------------------------------8
+# Step: 03-02
+# Description:
+#
+    - name:                                 "Dynamic processing - Show BOM entry BEFORE Dynamic Processing"
+      ansible.builtin.debug:
+        var:                                bom.materials.media[bom_media_index]
+        verbosity:                          1
+# Step: 03-02 - END
+# -------------------------------------+---------------------------------------8
+
+# -------------------------------------+---------------------------------------8
+# Step: 03-03
+# Description:
+#
+    - name:                                 "Dynamic processing - Update BOM"
+      ansible.builtin.set_fact:
+        bom:                                "{{ bom_update }}"
+      vars:
+        sap_platform_map_lookup:            "{{   sap_platform_map[bom_media_entry.name]
+                                                | selectattr('platform', '==', bom_media_entry.platform)
+                                                | first
+                                            }}"
+        sap_search_results:                 "{{
+                                                  sap_asset_search.stdout
+                                                | regex_search(
+                                                                '(?:.*(?P<first_part><feed.*))(?P<second_part>.*?feed>)',
+                                                                '\\g<first_part>',
+                                                                '\\g<second_part>'
+                                                              )
+                                                | join
+                                                | parse_xml(role_path + '/templates/sap_search.yaml')
+                                            }}"
+        platformNumber_list:                "{{ item.Title
+                                                | regex_search(
+                                                                '(?P<prefix>^.*)[-](?P<hwid>.*)[.](?P<suffix>.*$)',
+                                                                '\\g<prefix>',
+                                                                '\\g<hwid>',
+                                                                '\\g<suffix>'
+                                                              )
+                                            }}"
+                                            # setting the checksum value to true is used durring download to update field with correct checksum.
+        bom_update:                         "
+                                            {#-  -#}
+                                            {% set _ = bom.materials.media[bom_media_index].update({'name':      item.Description + ' - ' + item.Infotype}) -%}
+                                            {% set _ = bom.materials.media[bom_media_index].update({'archive':   item.Title})                               -%}
+                                            {% set _ = bom.materials.media[bom_media_index].update({'checksum':  'true'})                                   -%}
+                                            {% set _ = bom.materials.media[bom_media_index].update({'dynamic':   'false'})                                  -%}
+                                            {% set _ = bom.materials.media[bom_media_index].update({'url':       item.DownloadDirectLink})                  -%}
+                                            {{ bom }}
+                                            "
+      loop:                                 "{{ sap_search_results.entry|flatten(levels=1) }}"
+      when:                                 sap_platform_map_lookup.number == platformNumber_list[1]
+# Step: 03-03 - END
+# -------------------------------------+---------------------------------------8
+
+# -------------------------------------+---------------------------------------8
+# Step: 03-04
+# Description:
+#
+    - name:                                 "Dynamic processing - Show BOM entry AFTER Dynamic Processing"
+      ansible.builtin.debug:
+        var:                                bom.materials.media[bom_media_index]
+        verbosity:                          1
+# Step: 03-04 - END
+# -------------------------------------+---------------------------------------8
+
+# Step: 03 - END
+# -------------------------------------+---------------------------------------8
+
+- name:                                 "Pause to review bom update"
+  ansible.builtin.pause:
+    prompt:                             "Press enter to continue..."
+    echo:                               true
+  when:
+    - pause | default(false)                                                      # when true; if not defined, then value is false
+
+...
+# /*---------------------------------------------------------------------------8
+# |                                   END                                      |
+# +------------------------------------4--------------------------------------*/
