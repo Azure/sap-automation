@@ -745,9 +745,9 @@
           # - "css:                             {{ css }}"
           # - "passwordlessAuthnSelected:       {{ passwordlessAuthnSelected }}"
           - "j_username:                      {{ j_username }}"
-          - "j_password:                      {{ j_password }}"
+          # - "j_password:                      {{ j_password }}"
           - "cookies_accounts_sap_com_string: {{ cookies_accounts_sap_com_string }}"
-        verbosity:                            1
+        verbosity:                            0
       vars:
         origin:                               "{{ step4Results.url     | regex_search('^http.*?://[^/]+') }}"
         referer:                              "{{ step4Results.url     | regex_search('^http.*?://[^/]+') }}/"
