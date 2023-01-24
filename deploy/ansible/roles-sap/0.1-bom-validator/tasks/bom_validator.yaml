@@ -75,7 +75,7 @@
 #
 - name:                                 "Reconcile dynamic entries of BOM"
   ansible.builtin.include_tasks:        "dynamic_bom_processing.yaml"
-  loop:                                 "{{ bom.materials.media|flatten(levels=1) }}"
+  loop:                                 "{{ bom.materials.media | flatten(levels=1) }}"
   loop_control:
     loop_var:                           bom_media_entry
     index_var:                          bom_media_index

@@ -291,6 +291,8 @@
                 - fs_check is defined
                 - create_checksums is defined
                 - bom_file is defined
+              tags:
+              - skip_ansible_lint
 # Step: 05-03-02-01 - END
 # -------------------------------------+---------------------------------------8
 
