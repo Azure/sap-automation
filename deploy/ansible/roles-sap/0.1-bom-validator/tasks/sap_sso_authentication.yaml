@@ -707,6 +707,11 @@
       ansible.builtin.set_fact:
         cookies_accounts_sap_com:           "{{ cookies_accounts_sap_com | combine(step4Results.cookies) }}"
 
+    - name:                                 "Step 4 - Show raw data"
+      ansible.builtin.debug:
+        msg:
+          - "step4Results.content: {{ step4Results.content }}"
+
 
     - name:                                 "Step 4 - Show data"
       ansible.builtin.debug:
