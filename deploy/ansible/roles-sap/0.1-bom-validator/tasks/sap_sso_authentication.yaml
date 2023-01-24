@@ -713,6 +713,11 @@
         cookies_accounts_sap_com:           "{{ cookies_accounts_sap_com | combine(step4Results.cookies) }}"
 
 
+    - name:                                 "Step 4 - Show data - step4Results"
+      ansible.builtin.debug:
+        var:                                step4Results.content
+
+
     - name:                                 "Step 4 - Show data"
       ansible.builtin.debug:
         msg:
