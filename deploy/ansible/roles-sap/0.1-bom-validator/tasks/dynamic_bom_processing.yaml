@@ -1,9 +1,7 @@
----
 # -------------------------------------+---------------------------------------8
 #
 # Description:  Dynamic BOM Processing
 #
-
 # - name:                                 "dynamic_bom_processing TROUBLESHOOTING..."
 #   pause:
 #     prompt: "Press enter to continue..."
