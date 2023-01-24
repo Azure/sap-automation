@@ -715,6 +715,11 @@
 
     - name:                                 "Step 4 - Show data"
       ansible.builtin.debug:
+        var:                                step4Results.content
+
+
+    - name:                                 "Step 4 - Show data"
+      ansible.builtin.debug:
         msg:
           - "origin:                          {{ origin }}"
           - "referer:                         {{ referer }}"
