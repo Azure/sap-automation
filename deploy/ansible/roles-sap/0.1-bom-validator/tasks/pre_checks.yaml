@@ -214,10 +214,14 @@
 #
     - name:                            "{{ task_prefix }} - Create BOM download directories"
       ansible.builtin.file:
-        path:                          "{{ download_directory }}/tmp"
+        path:                          "{{ item.path }}"
         state:                         directory
-        mode:                          0755
+        mode:                          '{{ item.mode }}'
       delegate_to:                     localhost
+      loop:
+        - { mode: '0755', path: '{{ download_directory }}' }
+        - { mode: '0755', path: '{{ download_directory }}/tmp' }
+        - { mode: '0755', path: '{{ download_directory }}/files' }
 
 
 # Step: 07-01 - END
