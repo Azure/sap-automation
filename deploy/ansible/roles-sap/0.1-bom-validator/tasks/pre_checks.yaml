@@ -130,7 +130,7 @@
 
                                         If this is undesired, please set:
                                         - deployer_kv_name
-  ignore_errors:                        true
+  failed_when:                         false
 # Step: 03 - END
 # -------------------------------------+---------------------------------------8
 
@@ -231,6 +231,7 @@
         content:                        "This is the container with the SAP media"
         mode:                           0644
       register:                         readme_file
+      delegate_to:                      localhost
 # Step: 07-02 - END
 # -------------------------------------+---------------------------------------8
 
