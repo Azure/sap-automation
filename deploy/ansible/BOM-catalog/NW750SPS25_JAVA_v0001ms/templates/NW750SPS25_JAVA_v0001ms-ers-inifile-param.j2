@@ -45,7 +45,7 @@ NW_getFQDN.FQDN = {{ sap_fqdn }}
 # NW_getUnicode.isUnicode =
 
 # Provide  'profile' directory of SAP Netweaver-based system.
-NW_readProfileDir.profileDir = /usr/sap/{{ app_sid | upper }}/SYS/profile
+NW_readProfileDir.profileDir = {{ sap_profile_dir }}
 
 # Windows only: The drive to use
 # NW_readProfileDir.sapdrive =
@@ -75,7 +75,7 @@ nwUsers.sidAdmUID = {{ sidadm_uid }}
 nwUsers.sidadmPassword = {{ main_password }}
 
 # The instance number of the ERS instance. Leave empty for default.
-#nw_instance_ers.ersInstanceNumber = {{ ers_instance_number }}
+nw_instance_ers.ersInstanceNumber = {{ ers_instance_number }}
 
 # Host name of the ERS instance. It can be either the physical host name or -  in case of  high-availability system installation, - one of the virtual host names.
 nw_instance_ers.ersVirtualHostname = {{ ers_virtual_hostname }}
