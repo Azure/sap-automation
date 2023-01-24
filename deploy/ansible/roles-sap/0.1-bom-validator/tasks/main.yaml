@@ -108,6 +108,14 @@
 #     tier:                               preparation
 # # Step: 03 - END
 # # -------------------------------------+---------------------------------------8
+- name:                                "0.1 BoM Validator: - BoM Initial file"
+  ansible.builtin.copy:
+    dest:                              "{{ download_directory }}/readme.md"
+    content:                           "This is the container with the SAP media"
+    mode:                              0755
+  register:                            readme_file
+  become:                              "{{ bom_processing_become }}"
+  become_user:                         root
 
 
 
