@@ -1,7 +1,7 @@
 ---
 # -------------------------------------+---------------------------------------8
 # Step: 01
-# Description:  
+# Description:
 #
 - name:                                 "aggregate_bom: - Informational"
   ansible.builtin.debug:
@@ -10,11 +10,9 @@
 # Step: 01 - END
 # -------------------------------------+---------------------------------------8
 
-
-
 # -------------------------------------+---------------------------------------8
 # Step: 02
-# Description:  
+# Description:
 #
 - name:                                 "aggregate_bom: - One time block"
   block:
@@ -82,7 +80,7 @@
 - name:                                 "aggregate_bom: - find files and directories"
   ansible.builtin.find:
     paths:                              "{{ bom_dir.path }}"
-    file_type:                          any  
+    file_type:                          any
     recurse:                            true
   register:                             bom_directory_all_files
 # Step: 03 - END
