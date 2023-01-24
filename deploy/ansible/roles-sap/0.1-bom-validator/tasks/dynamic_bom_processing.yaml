@@ -67,6 +67,8 @@
 #
 - name:                                 "Dynamic processing - BOM update block..."
   block:
+  tags:
+    - skip_ansible_lint
 
 # -------------------------------------+---------------------------------------8
 # Step: 03-01
@@ -107,7 +109,7 @@
       ansible.builtin.set_fact:
         bom:                                "{{ bom_update }}"
       vars:
-        sap_platform_map_lookup:            "{{   sap_platform_map[bom_media_entry.name]
+        sap_platform_map_lookup:            "{{ sap_platform_map[bom_media_entry.name]
                                                 | selectattr('platform', '==', bom_media_entry.platform)
                                                 | first 
                                             }}"
@@ -141,8 +143,6 @@
                                             "
       loop:                                 "{{ sap_search_results.entry | flatten(levels=1) }}"
       when:                                 sap_platform_map_lookup.number == platformNumber_list[1]
-      tags:
-        - skip_ansible_lint
 # Step: 03-03 - END
 # -------------------------------------+---------------------------------------8
 
