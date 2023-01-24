@@ -105,6 +105,13 @@
 #     tier:                               preparation
 # # Step: 03 - END
 # # -------------------------------------+---------------------------------------8
+- name:                             "{{ task_prefix }} - Create BOM download directories"
+  ansible.builtin.file:
+    path:                           "{{ download_directory }}"
+    state:                          directory
+    mode:                           0755
+  delegate_to:                      localhost
+
 - name:                                "0.1 BoM Validator: - BoM Initial file"
   ansible.builtin.copy:
     dest:                              "{{ download_directory }}/readme.md"

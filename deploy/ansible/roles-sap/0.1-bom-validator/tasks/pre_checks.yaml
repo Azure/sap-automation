@@ -115,7 +115,7 @@
 # Step: 03
 # Description:  Informational check of the kv_name parameter.
 #
-- name:                                 "(pre_checks.yaml) - Informational check of the kv_name parameter"
+- name:                                "(pre_checks.yaml) - Informational check of the kv_name parameter"
   ansible.builtin.assert:
     that:
       - "kv_name is defined"                                                    # Has the variable been defined
@@ -393,7 +393,7 @@
 #   - sapbits_location_base_path
 #   - sapbits_access_key
 #   - sapbits_sas_token
-- name:                                 "(pre_checks.yaml) - Informational check of Storage Account parameters"
+- name:                                "(pre_checks.yaml) - Informational check of Storage Account parameters"
   ansible.builtin.assert:
     that:
       - "sapbits_location_base_path is defined"                                 # Has the variable been defined
