@@ -287,7 +287,7 @@
 # Step: 06
 # Description:  Validate that BoM was found
 #
-- name:                                 "{{ task_prefix }} Ensure that a BOM object is created"
+- name:                                 "{{ task_prefix }} Validate that a BOM object is created"
   ansible.builtin.fail:
     msg:                                "Unable to find the Bill of materials file for {{ bom_name }} "
   when:                                 bom is not defined
@@ -317,7 +317,7 @@
 # Step: 08
 # Description:  Validate that BoM was found
 #
-- name:                                 "{{ task_prefix }} Ensure that a BoM object is created"
+- name:                                 "{{ task_prefix }} Ensure that a BoM platform is defined"
   ansible.builtin.assert:
     that:
       - bom.platform is defined                                                 # Has the variable been defined
