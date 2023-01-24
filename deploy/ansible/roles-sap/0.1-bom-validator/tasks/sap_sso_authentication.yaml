@@ -712,15 +712,6 @@
       ansible.builtin.set_fact:
         cookies_accounts_sap_com:           "{{ cookies_accounts_sap_com | combine(step4Results.cookies) }}"
 
-    - name: debug through ansible.env
-      debug:
-        var:                               ansible_env.HOME
-
-
-    - name: debug through ansible.env
-      debug:
-        var:                               download_directory
-
 
     - name:                                 "Step 4 - Show data - step4Results"
       ansible.builtin.debug:
