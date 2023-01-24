@@ -12,7 +12,7 @@
 #             bom_base_name                   - Name of BOM
 #             new_bom_name                    - Default: <bom_base_name>-<bom_suffix>
 #             sapbits_location_base_path      - URL of Blob Storage
-#             sapbits_access_key              - KV 
+#             sapbits_access_key              - KV
 #             sapbits_sas_token               - calculated SAS Token
 #   Defaults:
 #             bom_suffix                      - customer
@@ -38,7 +38,7 @@
 # |                |      |   | Key Vault   |
 # +----------------+------+---+---+---------+
 # |Dynamic BOM     | NONE |   |   | Pass
-# |                | NONE |   | X | 
+# |                | NONE |   | X |
 # |                | NONE | X |   | Pass
 # |                | NONE | X | X |
 # |                |------+---+---|
@@ -59,9 +59,9 @@
 
 # When Fact: pause = true
 - name:                                 "TROUBLESHOOTING: "
-  pause:
-    prompt: "Press enter to continue..."
-    echo: yes
+  ansible.builtin.pause:
+    prompt:                             "Press enter to continue..."
+    echo:                               true
   when:
     - pause|default(false)                                                      # When Fact: pause is True, then wait for ENTER key
 
@@ -73,8 +73,8 @@
 #
 - name:                                 "Initialize facts"
   ansible.builtin.set_fact:
-    kv_enabled:                         False
-    sa_enabled:                         False
+    kv_enabled:                         false
+    sa_enabled:                         false
 
 - name:                                 "Informational"
   ansible.builtin.debug:
@@ -87,7 +87,6 @@
 # -------------------------------------+---------------------------------------8
 
 
-
 # -------------------------------------+---------------------------------------8
 # Step: 02
 # Description:  Call validation for Prerequisites
@@ -97,11 +96,9 @@
 # Step: 02 - END
 # -------------------------------------+---------------------------------------8
 
-
-
 # # -------------------------------------+---------------------------------------8
 # # Step: 03
-# # Description:  
+# # Description:
 # #
 # - name:                                 "Set tier to preparation"
 #   ansible.builtin.set_fact:
@@ -116,7 +113,6 @@
   register:                            readme_file
   become:                              "{{ bom_processing_become }}"
   become_user:                         root
-
 
 
 # -------------------------------------+---------------------------------------8
@@ -135,7 +131,6 @@
 # -------------------------------------+---------------------------------------8
 
 
-
 # -------------------------------------+---------------------------------------8
 # Step: 05
 # Description:  Save BOM and Media list for consolidation
@@ -146,7 +141,6 @@
     root_media_list:                   "{{ bom.materials.media | flatten(levels=1) }}"
 # Step: 05 - END
 # -------------------------------------+---------------------------------------8
-
 
 
 # -------------------------------------+---------------------------------------8
@@ -170,7 +164,6 @@
     - bom.materials.dependencies | length>0
 # Step: 06 - END
 # -------------------------------------+---------------------------------------8
-
 
 
 # -------------------------------------+---------------------------------------8
@@ -198,7 +191,6 @@
     verbosity:                        1
 # Step: 08 - END
 # -------------------------------------+---------------------------------------8
-
 
 
 # -------------------------------------+---------------------------------------8
@@ -239,7 +231,6 @@
 # -------------------------------------+---------------------------------------8
 
 
-
 # -------------------------------------+---------------------------------------8
 # Step: 10
 # Description:  Upload New Customer BOM to Storage Account
@@ -251,7 +242,7 @@
 
 # -------------------------------------+---------------------------------------8
 # Step: 10-01
-# Description:  
+# Description:
 #
     # - name:                                "0.1 BoM Validator: - delete combined BoM"
     #   ansible.builtin.command: >-
@@ -271,10 +262,9 @@
 # -------------------------------------+---------------------------------------8
 
 
-
 # -------------------------------------+---------------------------------------8
 # Step: 10-02
-# Description:  
+# Description:
 #
     - name:                                "0.1 BoM Validator: - Upload combined BoM"
       ansible.builtin.command: >-
@@ -297,10 +287,9 @@
 # -------------------------------------+---------------------------------------8
 
 
-
 # -------------------------------------+---------------------------------------8
 # Step: 10-03
-# Description:  
+# Description:
 #
     - name:                             "Remove temporary directory"
       ansible.builtin.file:
@@ -310,10 +299,9 @@
 # -------------------------------------+---------------------------------------8
 
 
-
 # -------------------------------------+---------------------------------------8
 # Step: 10-04
-# Description:  
+# Description:
 #
     - name:                                "Show Storage Account BOM folder path"
       ansible.builtin.debug:
@@ -323,8 +311,6 @@
 
 # Step: 10 - END
 # -------------------------------------+---------------------------------------8
-
-
 
 # -------------------------------------+---------------------------------------8
 # Step: 11

@@ -42,7 +42,6 @@
 # -------------------------------------+---------------------------------------8
 
 
-
 # -------------------------------------+---------------------------------------8
 # Step: 02
 # Description:  KeyVault Access
@@ -50,7 +49,7 @@
 #               Otherwise fetch:
 #                 - s_user
 #                 - s_password
-#               from KeyVault when they are not already defined. 
+#               from KeyVault when they are not already defined.
 #
 - name:                                 "(pre_checks.yaml) - KeyVault validation block..."
   block:
@@ -63,7 +62,7 @@
 
 # -------------------------------------+---------------------------------------8
 # Step: 02-01
-# Description:  
+# Description:
 #
     - name:                             "(pre_checks.yaml) - {{ task_prefix }} - Set deployer keyvault name"
       ansible.builtin.set_fact:
@@ -74,7 +73,7 @@
 
 # -------------------------------------+---------------------------------------8
 # Step: 02-02
-# Description:  
+# Description:
 #
     - name:                             "(pre_checks.yaml) - {{ task_prefix }} - Load the keyvault secrets"
       ansible.builtin.include_role:
@@ -89,7 +88,7 @@
 
 # -------------------------------------+---------------------------------------8
 # Step: 02-03
-# Description:  
+# Description:
 #
     - name:                             "(pre_checks.yaml) - {{ task_prefix }} - Set kv_enabled: true"
       ansible.builtin.set_fact:
@@ -103,14 +102,13 @@
 
   vars:
     task_prefix:                        KeyVault validation block
-  when:                                 
+  when:
     - ( ( kv_name          is defined     and   kv_name          | trim | length > 1 ) or
         ( deployer_kv_name is defined     and   deployer_kv_name | trim | length > 1 ) )
     # - ( ( s_user           is undefined   or    s_user           | trim | length < 1 ) or
     #     ( s_password       is undefined   or    s_password       | trim | length < 1 ) )
 # Step: 02 - END
 # -------------------------------------+---------------------------------------8
-
 
 
 # -------------------------------------+---------------------------------------8
@@ -137,7 +135,6 @@
 # -------------------------------------+---------------------------------------8
 
 
-
 # -------------------------------------+---------------------------------------8
 # Step: 04
 # Description:  Validation for s_user
@@ -157,7 +154,6 @@
                                         either as a parameter or in the deployer key vault
 # Step: 04 - END
 # -------------------------------------+---------------------------------------8
-
 
 
 # -------------------------------------+---------------------------------------8
@@ -181,7 +177,6 @@
 # -------------------------------------+---------------------------------------8
 
 
-
 # -------------------------------------+---------------------------------------8
 # Step: 06
 # Description:  Validation for download_directory
@@ -202,7 +197,6 @@
                                         - download_directory
 # Step: 06 - END
 # -------------------------------------+---------------------------------------8
-
 
 
 # -------------------------------------+---------------------------------------8
@@ -248,7 +242,6 @@
 # -------------------------------------+---------------------------------------8
 
 
-
 # -------------------------------------+---------------------------------------8
 # Step: 08
 # Description:  Storage Account Access
@@ -257,7 +250,7 @@
 #                 - sapbits_location_base_path
 #                 - sapbits_access_key
 #                 - sapbits_sas_token
-#               from KeyVault when they are not already defined. 
+#               from KeyVault when they are not already defined.
 #
 - name:                                 "(pre_checks.yaml) - Storage Account validation block"
   block:
@@ -288,7 +281,7 @@
 
 # -------------------------------------+---------------------------------------8
 # Step: 08-02
-# Description:  
+# Description:
 #
     - name:                             "(pre_checks.yaml) - {{ task_prefix }} - Load the storage account details"
       ansible.builtin.include_role:
@@ -301,7 +294,7 @@
 
 # -------------------------------------+---------------------------------------8
 # Step: 08-03
-# Description:  
+# Description:
 #
     - name:                             "(pre_checks.yaml) - {{ task_prefix }} - Validate required variable is present and not empty (sapbits_location_base_path)"
       ansible.builtin.assert:
@@ -320,17 +313,16 @@
 
   vars:
     task_prefix:                        Storage Account validation block
-  when:                                 
+  when:
     - ( ( kv_name          is defined     and   kv_name          | trim | length > 1 ) or
         ( deployer_kv_name is defined     and   deployer_kv_name | trim | length > 1 ) )
 # Step: 08 - END
 # -------------------------------------+---------------------------------------8
 
 
-
 # -------------------------------------+---------------------------------------8
 # Step: 09
-# Description:  
+# Description:
 #
 - name:                                 "(pre_checks.yaml) - Set SAS Token"
   ansible.builtin.set_fact:
@@ -343,10 +335,9 @@
 # -------------------------------------+---------------------------------------8
 
 
-
 # -------------------------------------+---------------------------------------8
 # Step: 10
-# Description:  
+# Description:
 #
 - name:                                 "(pre_checks.yaml) - Set sa_enabled: true"
   ansible.builtin.set_fact:
@@ -357,7 +348,7 @@
 
     # - "sapbits_access_key         is defined"                                 # Has the variable been defined
     # - "sapbits_access_key         | trim | length != 0"                       #  and given a value
-    
+
     - "sapbits_sas_token          is defined"                                 # Has the variable been defined
     - "sapbits_sas_token          | trim | length != 0"                       #  and given a value
 # Step: 10 - END
@@ -366,7 +357,7 @@
 
 # -------------------------------------+---------------------------------------8
 # Step: 11
-# Description:  
+# Description:
 #
 - name:                                 "(pre_checks.yaml) - {{ task_prefix }} - Check storage account container"
   ansible.builtin.command: >-
@@ -395,7 +386,6 @@
 # -------------------------------------+---------------------------------------8
 
 
-
 # -------------------------------------+---------------------------------------8
 # Step: 12
 # Description:  Informational check of Storage Account parameters.
@@ -411,7 +401,7 @@
 
       - "sapbits_access_key         is defined"                                 # Has the variable been defined
       - "sapbits_access_key         | trim | length != 0"                       #  and given a value
-      
+
       - "sapbits_sas_token          is defined"                                 # Has the variable been defined
       - "sapbits_sas_token          | trim | length != 0"                       #  and given a value
     success_msg: |-

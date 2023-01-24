@@ -34,7 +34,6 @@
 #     echo: yes
 
 
-
 # -------------------------------------+---------------------------------------8
 # Step: 01
 #   Description:  Connect to launchpad.support.sap.com to begin logon process.
@@ -69,12 +68,12 @@
 #     Connection: keep-alive              | Connection: close
 #     Content-Encoding: gzip              |
 # -------------------------------------+---------------------------------------8
-# 
+#
 
 
 # -------------------------------------+---------------------------------------8
 # Step: 01
-# Description:  
+# Description:
 #
 - name:                                 "SAP SSO Logon - Begin logon request"
   ansible.builtin.uri:
@@ -91,9 +90,8 @@
       Sec-Fetch-User:                   "{{ sap_sso_parameters.sec_fetch_user }}"
       Sec-Fetch-Dest:                   "{{ sap_sso_parameters.sec_fetch_dest }}"
       Accept-Language:                  "{{ sap_sso_parameters.accept_language }}"
-    return_content:                     yes
+    return_content:                     true
   register:                             step1Results
-
 
 
 - name:                                 "SAP SSO Logon - Show data"
@@ -121,9 +119,10 @@
     relayState:                         "{{ step1Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"relayState\".*?>)',    '\\g<first_part>', '\\g<second_part>') | join | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}"
     action:                             "{{ step1Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"action\".*?>)',        '\\g<first_part>', '\\g<second_part>') | join | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}"
     signature:                          "{{ step1Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"signature\".*?>)',     '\\g<first_part>', '\\g<second_part>') | join | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}"
+  tags:
+    - skip_ansible_lint
 # Step: 01 - END
 # -------------------------------------+---------------------------------------8
-
 
 
 # -------------------------------------+---------------------------------------8
@@ -133,21 +132,21 @@
 - name:                                 "SAP SSO Logon - Maintain Cookie Jar"
   ansible.builtin.lineinfile:
     state:                              present
-    create:                             yes
+    create:                             true
     path:                               cookie_jar
     mode:                               0644
-    regexp:                             ^#.*?_({{ url|regex_replace('[.]','[.]') }}).*?\s({{ (item.split('=', 1))[0]|trim|regex_replace('[.]','[.]') }})\s
+    regexp:                             ^#.*?_({{ url | regex_replace('[.]','[.]') }}).*?\s({{ (item.split('=', 1))[0] | trim | regex_replace('[.]','[.]') }})\s
     line:                               "
                                         {#-  -#}
-                                        {% set _cookie = {  'cookie_name':  '', 
-                                                            'cookie_value': '', 
-                                                            'Expires':      '0', 
-                                                            'Max-age':      '', 
-                                                            'Url':          '', 
-                                                            'Domain':       'FALSE', 
-                                                            'Path':         '', 
-                                                            'Secure':       '', 
-                                                            'HttpOnly':     'FALSE', 
+                                        {% set _cookie = {  'cookie_name':  '',
+                                                            'cookie_value': '',
+                                                            'Expires':      '0',
+                                                            'Max-age':      '',
+                                                            'Url':          '',
+                                                            'Domain':       'FALSE',
+                                                            'Path':         '',
+                                                            'Secure':       '',
+                                                            'HttpOnly':     'FALSE',
                                                             'SameSite':     '' }
                                                                                                        -%}
                                         {% for element in item.split(';')                              -%}
@@ -181,17 +180,18 @@
   loop:                                 "{{ set_cookie_string_filtered.split(',') }}"
   vars:
     set_cookie_string_filtered:         "{{ step1Results.set_cookie | regex_replace('Expires=(?P<day>...),', 'Expires=\\g<day>%2C') }}"
-    url:                                "{{ step1Results.url|urlsplit('hostname') }}"
+    url:                                "{{ step1Results.url | urlsplit('hostname') }}"
+  tags:
+    - skip_ansible_lint
 # Step: 02 - END
 # -------------------------------------+---------------------------------------8
-
 
 
 # -------------------------------------+---------------------------------------8
 # Step: 03
 # Description:  SSO Authentication block
 #
-- name:                                 "Authentication Required"
+- name:                                "Authentication Required"
   block:
 
 # -------------------------------------+---------------------------------------8
@@ -258,8 +258,8 @@
           action:                           "{{ action }}"
           signature:                        "{{ signature }}"
         follow_redirects:                   safe
-        force:                              yes
-        return_content:                     yes
+        force:                              true
+        return_content:                     true
       vars:
         origin:                             "{{ step1Results.url     | regex_search('^http.*?://[^/]+') }}"
         referer:                            "{{ step1Results.url     | regex_search('^http.*?://[^/]+') }}/"
@@ -272,7 +272,8 @@
         action:                             "{{ step1Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"action\".*?>)',        '\\g<first_part>', '\\g<second_part>') | join | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}"
         signature:                          "{{ step1Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"signature\".*?>)',     '\\g<first_part>', '\\g<second_part>') | join | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}"
       register:                             step2Results
-
+      tags:
+        - skip_ansible_lint
 
 
     - name:                                 "Step 2 - Show data"
@@ -290,9 +291,10 @@
         post_action:                        "{{ step2Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> action=\".*?>)',              '\\g<first_part>', '\\g<second_part>') | join | regex_search(' action=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
         SAMLRequest:                        "{{ step2Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"SAMLRequest\".*?>)',   '\\g<first_part>', '\\g<second_part>') | join | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}"
         RelayState:                         "{{ step2Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"RelayState\".*?>)',    '\\g<first_part>', '\\g<second_part>') | join | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}"
+      tags:
+        - skip_ansible_lint
 # Step: 03-01 - END
 # -------------------------------------+---------------------------------------8
-
 
 
 # -------------------------------------+---------------------------------------8
@@ -302,21 +304,21 @@
     - name:                                 "Step 2 - Maintain Cookie Jar"
       ansible.builtin.lineinfile:
         state:                              present
-        create:                             yes
+        create:                             true
         path:                               cookie_jar
         mode:                               0644
         regexp:                             ^#.*?_({{ url|regex_replace('[.]','[.]') }}).*?\s({{ (item.split('=', 1))[0]|trim|regex_replace('[.]','[.]') }})\s
         line:                               "
                                             {#-  -#}
-                                            {% set _cookie = {  'cookie_name':  '', 
-                                                                'cookie_value': '', 
-                                                                'Expires':      '0', 
-                                                                'Max-age':      '', 
-                                                                'Url':          '', 
-                                                                'Domain':       'FALSE', 
-                                                                'Path':         '', 
-                                                                'Secure':       '', 
-                                                                'HttpOnly':     'FALSE', 
+                                            {% set _cookie = {  'cookie_name':  '',
+                                                                'cookie_value': '',
+                                                                'Expires':      '0',
+                                                                'Max-age':      '',
+                                                                'Url':          '',
+                                                                'Domain':       'FALSE',
+                                                                'Path':         '',
+                                                                'Secure':       '',
+                                                                'HttpOnly':     'FALSE',
                                                                 'SameSite':     '' }
                                                                                                           -%}
                                             {% for element in item.split(';')                              -%}
@@ -351,9 +353,10 @@
       vars:
         set_cookie_string_filtered:         "{{ step2Results.set_cookie | regex_replace('Expires=(?P<day>...),', 'Expires=\\g<day>%2C') }}"
         url:                                "{{ step2Results.url|urlsplit('hostname') }}"
+      tags:
+        - skip_ansible_lint
 # Step: 03-02 - END
 # -------------------------------------+---------------------------------------8
-
 
 
 # -------------------------------------+---------------------------------------8
@@ -425,8 +428,8 @@
           SAMLRequest:                        "{{ SAMLRequest }}"
           RelayState:                         "{{ RelayState }}"
         follow_redirects:                     safe
-        force:                                yes
-        return_content:                       yes
+        force:                                true
+        return_content:                       true
       vars:
         origin:                               "{{ step2Results.url     | regex_search('^http.*?://[^/]+') }}"
         referer:                              "{{ step2Results.url     | regex_search('^http.*?://[^/]+') }}/"
@@ -434,13 +437,13 @@
         SAMLRequest:                          "{{ step2Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"SAMLRequest\".*?>)',   '\\g<first_part>', '\\g<second_part>') | join | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}"
         RelayState:                           "{{ step2Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"RelayState\".*?>)',    '\\g<first_part>', '\\g<second_part>') | join | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}"
       register:                               step3Results
-
+      tags:
+        - skip_ansible_lint
 
 
     - name:                                   "Step 3 - Store cookies for accounts.sap.com"
       ansible.builtin.set_fact:
         cookies_accounts_sap_com:             "{{ step3Results.cookies }}"
-
 
 
     - name:                                   "Step 3 - Show data"
@@ -495,6 +498,8 @@
                                                   map('join', '=')                       |
                                                   join('; ')
                                                 }}"
+      tags:
+        - skip_ansible_lint
 # Step: 03-03 - END
 # -------------------------------------+---------------------------------------8
 
@@ -507,21 +512,21 @@
     - name:                                 "Step 3 - Maintain Cookie Jar"
       ansible.builtin.lineinfile:
         state:                              present
-        create:                             yes
+        create:                             true
         path:                               cookie_jar
         mode:                               0644
         regexp:                             ^#.*?_({{ url|regex_replace('[.]','[.]') }}).*?\s({{ (item.split('=', 1))[0]|trim|regex_replace('[.]','[.]') }})\s
         line:                               "
                                             {#-  -#}
-                                            {% set _cookie = {  'cookie_name':  '', 
-                                                                'cookie_value': '', 
-                                                                'Expires':      '0', 
-                                                                'Max-age':      '', 
-                                                                'Url':          '', 
-                                                                'Domain':       'FALSE', 
-                                                                'Path':         '', 
-                                                                'Secure':       '', 
-                                                                'HttpOnly':     'FALSE', 
+                                            {% set _cookie = {  'cookie_name':  '',
+                                                                'cookie_value': '',
+                                                                'Expires':      '0',
+                                                                'Max-age':      '',
+                                                                'Url':          '',
+                                                                'Domain':       'FALSE',
+                                                                'Path':         '',
+                                                                'Secure':       '',
+                                                                'HttpOnly':     'FALSE',
                                                                 'SameSite':     '' }
                                                                                                           -%}
                                             {% for element in item.split(';')                              -%}
@@ -556,10 +561,10 @@
       vars:
         set_cookie_string_filtered:         "{{ step3Results.set_cookie | regex_replace('Expires=(?P<day>...),', 'Expires=\\g<day>%2C') }}"
         url:                                "{{ step3Results.url|urlsplit('hostname') }}"
+      tags:
+        - skip_ansible_lint
 # Step: 03-04 - END
 # -------------------------------------+---------------------------------------8
-
-
 
 
 # -------------------------------------+---------------------------------------8
@@ -665,8 +670,8 @@
           passwordlessAuthnSelected:        "{{ passwordlessAuthnSelected }}"
           j_username:                       "{{ j_username }}"
         follow_redirects:                   safe
-        force:                              yes
-        return_content:                     yes
+        force:                              true
+        return_content:                     true
       vars:
         origin:                             "{{ step3Results.url     | regex_search('^http.*?://[^/]+') }}"
         referer:                            "{{ step3Results.url     | regex_search('^http.*?://[^/]+') }}/"
@@ -694,13 +699,13 @@
                                                 join('; ')
                                                 }}"
       register:                             step4Results
-
+      tags:
+        - skip_ansible_lint
 
 
     - name:                                 "Step 4 - Update cookies for accounts.sap.com"
       ansible.builtin.set_fact:
         cookies_accounts_sap_com:           "{{ cookies_accounts_sap_com | combine(step4Results.cookies) }}"
-
 
 
     - name:                                 "Step 4 - Show data"
@@ -757,10 +762,10 @@
                                                   map('join', '=')                       |
                                                   join('; ')
                                                 }}"
+      tags:
+        - skip_ansible_lint
 # Step: 03-05 - END
 # -------------------------------------+---------------------------------------8
-
-
 
 # -------------------------------------+---------------------------------------8
 # Step: 03-06
@@ -769,21 +774,21 @@
     - name:                                 "Step 4 - Maintain Cookie Jar"
       ansible.builtin.lineinfile:
         state:                              present
-        create:                             yes
+        create:                             true
         path:                               cookie_jar
         mode:                               0644
         regexp:                             ^#.*?_({{ url|regex_replace('[.]','[.]') }}).*?\s({{ (item.split('=', 1))[0]|trim|regex_replace('[.]','[.]') }})\s
         line:                               "
                                             {#-  -#}
-                                            {% set _cookie = {  'cookie_name':  '', 
-                                                                'cookie_value': '', 
-                                                                'Expires':      '0', 
-                                                                'Max-age':      '', 
-                                                                'Url':          '', 
-                                                                'Domain':       'FALSE', 
-                                                                'Path':         '', 
-                                                                'Secure':       '', 
-                                                                'HttpOnly':     'FALSE', 
+                                            {% set _cookie = {  'cookie_name':  '',
+                                                                'cookie_value': '',
+                                                                'Expires':      '0',
+                                                                'Max-age':      '',
+                                                                'Url':          '',
+                                                                'Domain':       'FALSE',
+                                                                'Path':         '',
+                                                                'Secure':       '',
+                                                                'HttpOnly':     'FALSE',
                                                                 'SameSite':     '' }
                                                                                                            -%}
                                             {% for element in item.split(';')                              -%}
@@ -820,12 +825,13 @@
       loop:                                 "{{ set_cookie_string_filtered.split(',') }}"
       vars:
         set_cookie_string_filtered:         "{{ step4Results.set_cookie | regex_replace('Expires=(?P<day>...),', 'Expires=\\g<day>%2C') }}"
-        url:                                "{{ step4Results.url|urlsplit('hostname') }}"
+        url:                                "{{ step4Results.url | urlsplit('hostname') }}"
+      tags:
+        - skip_ansible_lint
 
                                             # {%     set _ = _cookie.update({'Expires':      (sub[1]|trim|to_datetime('%a%%2C %d-%b-%Y %H:%M:%S %Z')).strftime('%s')})     -%}
 # Step: 03-06 - END
 # -------------------------------------+---------------------------------------8
-
 
 
 # -------------------------------------+---------------------------------------8
@@ -945,7 +951,8 @@
         j_username:                         "{{ s_user }}"
         j_password:                         "{{ s_password }}"
       register:                             step5Results
-
+      tags:
+        - skip_ansible_lint
 
 
     - name:                                           "Step 5 - Show data"
@@ -970,9 +977,10 @@
         authenticity_token:                           "{{ step5Results.stdout  | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"authenticity_token\".*?>)',       '\\g<first_part>', '\\g<second_part>') | join                              | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}"
         SAMLResponse:                                 "{{ step5Results.stdout  | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"SAMLResponse\".*?>)',             '\\g<first_part>', '\\g<second_part>') | join                              | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}"
         RelayState:                                   "{{ step5Results.stdout  | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"RelayState\".*?>)',               '\\g<first_part>', '\\g<second_part>') | join                              | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}"
+      tags:
+        - skip_ansible_lint
 # Step: 03-07 - END
 # -------------------------------------+---------------------------------------8
-
 
 
 # -------------------------------------+---------------------------------------8
@@ -1047,8 +1055,8 @@
         SAMLResponse:                       "{{ step5Results.stdout  | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"SAMLResponse\".*?>)',             '\\g<first_part>', '\\g<second_part>') | join                              | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}"
         RelayState:                         "{{ step5Results.stdout  | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"RelayState\".*?>)',               '\\g<first_part>', '\\g<second_part>') | join                              | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}"
       register:                             step6Results
-
-
+      tags:
+        - skip_ansible_lint
 
     - name:                                 "Step 6 - Show data"
       ansible.builtin.debug:
@@ -1078,6 +1086,8 @@
         authenticity_token:                           "{{ step6Results.stdout  | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"authenticity_token\".*?>)',       '\\g<first_part>', '\\g<second_part>') | join                              | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}"
         SAMLResponse:                                 "{{ step6Results.stdout  | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"SAMLResponse\".*?>)',             '\\g<first_part>', '\\g<second_part>') | join                              | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}"
         RelayState:                                   "{{ step6Results.stdout  | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"RelayState\".*?>)',               '\\g<first_part>', '\\g<second_part>') | join                              | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}"
+      tags:
+        - skip_ansible_lint
 # Step: 03-08 - END
 # -------------------------------------+---------------------------------------8
 
@@ -1097,7 +1107,7 @@
 #
 #   Cookies Received:   sso_domains_supportportal_supportportal
 #                       <id>
-#   Data Received:      
+#   Data Received:
 #
 # Notes:
 #   Request:
@@ -1154,16 +1164,17 @@
         SAMLResponse:                       "{{ step6Results.stdout  | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"SAMLResponse\".*?>)',             '\\g<first_part>', '\\g<second_part>') | join                              | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}"
         RelayState:                         "{{ step6Results.stdout  | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"RelayState\".*?>)',               '\\g<first_part>', '\\g<second_part>') | join                              | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}"
       register:                             step7Results
+      tags:
+        - skip_ansible_lint
 # Step: 03-09 - END
 # -------------------------------------+---------------------------------------8
 
-  when: 
+  when:
     - "step1Results['com.sap.cloud.security.login'] is defined"                 # is the key defined
     - "step1Results['com.sap.cloud.security.login'] | type_debug != 'NoneType'" #  and not null
     - "step1Results['com.sap.cloud.security.login'] == 'login-request'"         #  and equals value
 # Step: 03 - END
 # -------------------------------------+---------------------------------------8
-
 
 
 # -------------------------------------+---------------------------------------8
@@ -1196,9 +1207,10 @@
   vars:
     post_action:                        "https://launchpad.support.sap.com/services/odata/svt/swdcuisrv/SearchResultSet?SEARCH_MAX_RESULT=500&RESULT_PER_PAGE=500&SEARCH_STRING={{ asset }}&sap-language=en"
   register:                             sap_asset_search
+  tags:
+    - skip_ansible_lint
 # Step: 04 - END
 # -------------------------------------+---------------------------------------8
-
 
 
 # -------------------------------------+---------------------------------------8
@@ -1217,7 +1229,6 @@
     post_action:                        "https://launchpad.support.sap.com/services/odata/svt/swdcuisrv/SearchResultSet?SEARCH_MAX_RESULT=500&RESULT_PER_PAGE=500&SEARCH_STRING={{ asset }}&sap-language=en"
 # Step: 05 - END
 # -------------------------------------+---------------------------------------8
-
 
 
 # -------------------------------------+---------------------------------------8

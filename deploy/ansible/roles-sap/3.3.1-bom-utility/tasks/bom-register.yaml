@@ -35,7 +35,6 @@
 # -------------------------------------+---------------------------------------8
 
 
-
 # -------------------------------------+---------------------------------------8
 # Step: 02
 # Description:  Set Python version
@@ -52,7 +51,6 @@
 # -------------------------------------+---------------------------------------8
 
 
-
 # -------------------------------------+---------------------------------------8
 # Step: 03
 # Description:  Check Storage Account for BOM when SA is enabled
@@ -62,7 +60,7 @@
 
 # -------------------------------------+---------------------------------------8
 # Step: 03-01
-# Description:  
+# Description:
 #
     - name:                             "3.3.1 BoM Processing: {{ bom_name }} Download: {{ bom_name }} from the storage account"
       ansible.builtin.get_url:
@@ -85,7 +83,7 @@
 
 # -------------------------------------+---------------------------------------8
 # Step: 03-02
-# Description:  
+# Description:
 #
     - name:                             "3.3.1 BoM Processing: {{ bom_name }} Download: {{ bom_name }} from the storage account"
       ansible.builtin.get_url:
@@ -109,7 +107,7 @@
 
 # -------------------------------------+---------------------------------------8
 # Step: 03-03
-# Description:  
+# Description:
 #
     - name:                             "BOM: Show blob status"
       ansible.builtin.debug:
@@ -130,7 +128,6 @@
 # -------------------------------------+---------------------------------------8
 
 
-
 # -------------------------------------+---------------------------------------8
 # Step: 04
 # Description:  Register BOM if found in Storage Account
@@ -140,7 +137,7 @@
 
 # -------------------------------------+---------------------------------------8
 # Step: 04-01
-# Description:  
+# Description:
 #
     - name:                             "{{ task_prefix }} Register downloaded BOM ({{ bom_name }})"
       ansible.builtin.include_vars:
@@ -151,12 +148,12 @@
 
 # -------------------------------------+---------------------------------------8
 # Step: 04-02
-# Description:  
+# Description:
 #
     - name:                             "{{ task_prefix }} Register downloaded BOM ({{ bom_name }}) file name"
       ansible.builtin.set_fact:
         bom_file:                       "{{ download_directory }}/bom/{{ bom_name }}.yaml"
-        aggregated_bom_directories:     "{{ aggregated_bom_directories | default([]) + [{ 'path': path, 'location': 'sa' }] }}"
+        aggregated_bom_directories:     "{{ aggregated_bom_directories | default([]) + [{'path': path, 'location': 'sa'}] }}"
       vars:
         path:                           "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ bom_name }}"
 # Step: 04-02 - END
@@ -171,7 +168,6 @@
 # -------------------------------------+---------------------------------------8
 
 
-
 # -------------------------------------+---------------------------------------8
 # Step: 05
 # Description:  Check for MS provided BOM if not in SA
@@ -181,7 +177,7 @@
 
 # -------------------------------------+---------------------------------------8
 # Step: 05-01
-# Description:  
+# Description:
 #
     - name:                             "{{ task_prefix }} Check for Microsoft Supplied BOM ({{ bom_name }})"
       ansible.builtin.stat:
@@ -193,7 +189,7 @@
 
 # -------------------------------------+---------------------------------------8
 # Step: 05-02
-# Description:  
+# Description:
 #
     - name:                             "{{ task_prefix }} Show Microsoft Supplied BOM ({{ bom_base_name }}) result"
       ansible.builtin.debug:
@@ -206,7 +202,7 @@
 
 # -------------------------------------+---------------------------------------8
 # Step: 05-03
-# Description:  
+# Description:
 #
     - name:                             "{{ task_prefix }} Register Microsoft Supplied BOM {{ bom_name }}"
       ansible.builtin.include_vars:
@@ -218,13 +214,13 @@
 
 # -------------------------------------+---------------------------------------8
 # Step: 05-04
-# Description:  
+# Description:
 #
     - name:                             "{{ task_prefix }} Register Microsoft Supplied BOM ({{ bom_name }}) file name"
       ansible.builtin.set_fact:
         bom:                            "{{ bom_temp }}"
         bom_file:                       "{{ microsoft_supplied_bom.stat.path }}"
-        aggregated_bom_directories:     "{{ aggregated_bom_directories | default([]) + [{ 'path': path, 'location': 'local' }] }}"
+        aggregated_bom_directories:     "{{ aggregated_bom_directories | default([]) + [{'path': path, 'location': 'local'}] }}"
       vars:
         path:                           "{{ microsoft_supplied_bom.stat.path | dirname }}"
       when:                             microsoft_supplied_bom.stat.exists
@@ -233,14 +229,14 @@
 
 # -------------------------------------+---------------------------------------8
 # Step: 05-05
-# Description:  
+# Description:
 #
     - name:                             "{{ task_prefix }} Check for Microsoft Supplied BOM ({{ bom_name }}) in archives"
       block:
 
 # -------------------------------------+---------------------------------------8
 # Step: 05-05-01
-# Description:  
+# Description:
 #
         - name:                         "{{ task_prefix }} Check for Microsoft Supplied BOM ({{ bom_name }}) in archives"
           ansible.builtin.stat:
@@ -252,7 +248,7 @@
 
 # -------------------------------------+---------------------------------------8
 # Step: 05-05-02
-# Description:  
+# Description:
 #
         - name:                         "{{ task_prefix }} Register Microsoft Supplied BOM {{ bom_name }} from archives"
           ansible.builtin.include_vars:
@@ -264,13 +260,13 @@
 
 # -------------------------------------+---------------------------------------8
 # Step: 05-05-03
-# Description:  
+# Description:
 #
         - name:                         "{{ task_prefix }} Register Microsoft Supplied BOM ({{ bom_name }}) file name from archives"
           ansible.builtin.set_fact:
             bom:                        "{{ bom_temp }}"
             bom_file:                   "{{ microsoft_supplied_bom_archive.stat.path }}"
-            aggregated_bom_directories: "{{ aggregated_bom_directories | default([]) + [{ 'path': path, 'location': 'local' }] }}"
+            aggregated_bom_directories: "{{ aggregated_bom_directories | default([]) + [{'path': path, 'location': 'local'}] }}"
           vars:
             path:                       "{{ microsoft_supplied_bom_archive.stat.path | dirname }}"
           when:                         microsoft_supplied_bom_archive.stat.exists
@@ -287,7 +283,6 @@
 # -------------------------------------+---------------------------------------8
 
 
-
 # -------------------------------------+---------------------------------------8
 # Step: 06
 # Description:  Validate that BoM was found
@@ -298,7 +293,6 @@
   when:                                 bom is not defined
 # Step: 06 - END
 # -------------------------------------+---------------------------------------8
-
 
 
 # -------------------------------------+---------------------------------------8
@@ -317,7 +311,6 @@
     - bom.name is not search('SUM')
 # Step: 07 - END
 # -------------------------------------+---------------------------------------8
-
 
 
 # -------------------------------------+---------------------------------------8
