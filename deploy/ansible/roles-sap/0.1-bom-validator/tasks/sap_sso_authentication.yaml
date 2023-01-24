@@ -716,6 +716,12 @@
       debug:
         var:                               ansible_env.HOME
 
+
+    - name: debug through ansible.env
+      debug:
+        var:                               download_directory
+
+
     - name:                                 "Step 4 - Show data - step4Results"
       ansible.builtin.debug:
         var:                                step4Results.content
