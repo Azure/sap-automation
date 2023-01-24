@@ -65,8 +65,6 @@
 #
 - name:                                 "Dynamic processing - BOM update block..."
   block:
-  tags:
-    - skip_ansible_lint
 
 # -------------------------------------+---------------------------------------8
 # Step: 03-01
@@ -83,8 +81,6 @@
                                             {{ "%-9s" | format(line.platform) }} | {{ "%-10s" | format(line.number) }} | {{ line.description }}
                                             {% endfor %}
         verbosity:                          1
-        tags:
-          - skip_ansible_lint
 # Step: 03-01 - END
 # -------------------------------------+---------------------------------------8
 
@@ -141,6 +137,8 @@
                                             "
       loop:                                 "{{ sap_search_results.entry | flatten(levels=1) }}"
       when:                                 sap_platform_map_lookup.number == platformNumber_list[1]
+      tags:
+        - skip_ansible_lint
 # Step: 03-03 - END
 # -------------------------------------+---------------------------------------8
 
