@@ -8,9 +8,9 @@ platform:  {% if root_bom.platform is defined %}{{ root_bom.platform }}{% endif 
 product_ids:
 
 {% if root_bom.product_ids is defined %}
-{% for pKey,pValue in root_bom.product_ids.items() %}
+{%   for pKey,pValue in root_bom.product_ids.items() %}
 {{'  %-10s' | format(pKey | trim +':') }}{{' \"%s\"' | format(pValue | trim) }}
-{% endfor %}
+{%   endfor %}
 {% endif %}
 
 
@@ -18,14 +18,14 @@ materials:
   media:
 {% for media in root_media_list %}
 
-{{'    - name: \"%s\"' | format(media.name | trim) }}
-{% for key,value in media.items() %}
-{% if key != 'name' %}
-{% if key == 'permissions' %}
-{{'      %s:' | format(key | trim) }}{{' \'%s\'' | format(value | trim) }}
-{% else %}
-{{'      %s:' | format(key | trim) }}{{' %s' | format(value | trim) }}
-{% endif %}
-{% endif %}
-{% endfor %}
+{{'    %-16s' | format('- name:' | trim) }}{{'\"%s\"' | format(media.name | trim) }}
+{%   for key,value in media.items() %}
+{%     if key != 'name' %}
+{%       if key == 'permissions' %}
+{{'      %-13s' | format(key + ':' | trim) }}{{' \'%s\'' | format(value | trim) }}
+{%       else %}
+{{'      %-13s' | format(key + ':' | trim) }}{{' %s'     | format(value | trim) }}
+{%       endif %}
+{%     endif %}
+{%   endfor %}
 {% endfor %}
