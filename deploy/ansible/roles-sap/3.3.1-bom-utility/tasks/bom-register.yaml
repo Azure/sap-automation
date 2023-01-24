@@ -42,6 +42,7 @@
 - name:                                 "3.3.1 BoM Processing: - Set Python2 version {{ distribution_id }}"
   ansible.builtin.set_fact:
     python_version:                     'python2'
+  when:                                 distribution_id not in ['suse15', 'redhat8', 'sles_sap15']
 
 - name:                                 "3.3.1 BoM Processing: - Set Python3 version {{ distribution_id }}"
   ansible.builtin.set_fact:
@@ -70,14 +71,13 @@
         mode:                           0644
       delegate_to:                      localhost
 # 20221201 MKD (DynBOM)- mitigate become
-      # become:                           "{{ bom_processing_become }}"
+      become:                           "{{ bom_processing_become }}"
       ignore_errors:                    true
       register:                         result
       vars:
         ansible_python_interpreter:     "{{ python_version }}"
       when:
         - distribution_id in ['suse15', 'redhat8', 'sles_sap15']
-        - not always_upload_jinja_templates
 # Step: 03-01 - END
 # -------------------------------------+---------------------------------------8
 
@@ -93,7 +93,7 @@
         mode:                           0644
       delegate_to:                      localhost
 # 20221201 MKD (DynBOM)- mitigate become
-      # become:                           "{{ bom_processing_become }}"
+      become:                           "{{ bom_processing_become }}"
       # become_user:                         root
       register:                         result
       ignore_errors:                    true
@@ -101,7 +101,6 @@
         - distribution_id != 'suse15'
         - distribution_id != 'sles_sap15'
         - distribution_id != 'redhat8'
-        - not always_upload_jinja_templates
 # Step: 03-02 - END
 # -------------------------------------+---------------------------------------8
 
@@ -119,7 +118,7 @@
 # -------------------------------------+---------------------------------------8
 
   when:
-    - sa_enabled|default(false)                                                 # when true; if not defined, then value is false
+    - sa_enabled | default(false)                                                 # when true; if not defined, then value is false
     # - sa_enabled is defined
     # - sa_enabled
 

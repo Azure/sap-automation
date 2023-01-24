@@ -267,7 +267,7 @@
 #   when:
 #     - upload is defined
 #     - upload
-#     - sa_enabled                                              # and Stroage Account is enabled
+#     - sa_enabled                                              # and Storage Account is enabled
 # # Step: 08 - END
 # # -------------------------------------+---------------------------------------8
 

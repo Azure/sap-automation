@@ -63,7 +63,7 @@
     prompt:                             "Press enter to continue..."
     echo:                               true
   when:
-    - pause|default(false)                                                      # When Fact: pause is True, then wait for ENTER key
+    - pause | default(false)                                                      # When Fact: pause is True, then wait for ENTER key
 
 
 # -------------------------------------+---------------------------------------8
