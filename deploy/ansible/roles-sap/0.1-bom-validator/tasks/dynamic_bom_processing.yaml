@@ -135,7 +135,7 @@
                                             {% set _ = bom.materials.media[bom_media_index].update({'url':       item.DownloadDirectLink})                  -%}
                                             {{ bom }}
                                             "
-      loop:                                 "{{ sap_search_results.entry | flatten(levels=1) }}"
+      loop:                                 "{{ sap_search_results.entry | flatten(levels = 1) }}"
       when:                                 sap_platform_map_lookup.number == platformNumber_list[1]
       tags:
         - skip_ansible_lint

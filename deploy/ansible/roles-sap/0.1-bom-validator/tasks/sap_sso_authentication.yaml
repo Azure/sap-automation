@@ -191,10 +191,8 @@
 # Step: 03
 # Description:  SSO Authentication block
 #
-- name:                                 "Authentication Required"
+- name:                                "Authentication Required"
   block:
-  tags:
-    - skip_ansible_lint
 
 # -------------------------------------+---------------------------------------8
 # Step: 03-01
@@ -274,6 +272,8 @@
         action:                             "{{ step1Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"action\".*?>)',        '\\g<first_part>', '\\g<second_part>') | join | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}"
         signature:                          "{{ step1Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"signature\".*?>)',     '\\g<first_part>', '\\g<second_part>') | join | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}"
       register:                             step2Results
+      tags:
+        - skip_ansible_lint
 
 
     - name:                                 "Step 2 - Show data"
@@ -706,7 +706,6 @@
       register:                             step4Results
       tags:
         - skip_ansible_lint
-
 
 
     - name:                                 "Step 4 - Update cookies for accounts.sap.com"
