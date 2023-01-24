@@ -39,12 +39,12 @@
 # Step: 02
 # Description:  Set Python version
 #
-- name:                                 "3.3.1 BoM Processing: - Set Python2 version {{ distribution_id }}"
+- name:                                 "3.3.1 BoM Processing: - Set Python2 version for {{ distribution_id }}"
   ansible.builtin.set_fact:
     python_version:                     'python2'
   when:                                 distribution_id not in ['suse15', 'redhat8', 'sles_sap15']
 
-- name:                                 "3.3.1 BoM Processing: - Set Python3 version {{ distribution_id }}"
+- name:                                 "3.3.1 BoM Processing: - Set Python3 version for {{ distribution_id }}"
   ansible.builtin.set_fact:
     python_version:                     'python3'
   when:                                 distribution_id in ['suse15', 'redhat8', 'sles_sap15']
@@ -118,7 +118,7 @@
 # -------------------------------------+---------------------------------------8
 
   when:
-    - sa_enabled | default(false)                                                 # when true; if not defined, then value is false
+    - sa_enabled | default(true)                                                 # when true; if not defined, then value is false
     # - sa_enabled is defined
     # - sa_enabled
 
@@ -160,8 +160,7 @@
 
   when:
     - result is succeeded or result is skipped
-    - not always_upload_jinja_templates
-    - sa_enabled|default(false)
+    - sa_enabled | default(true)
     # - sa_enabled is not defined or sa_enabled | bool
 # Step: 04 - END
 # -------------------------------------+---------------------------------------8
