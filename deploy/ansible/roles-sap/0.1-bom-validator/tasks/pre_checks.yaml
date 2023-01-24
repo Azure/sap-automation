@@ -212,12 +212,23 @@
 # Step: 07-01
 # Description:  Ensure download_directory exists
 #
-    - name:                             "{{ task_prefix }} - Create BOM download directories"
+    - name:                            "{{ task_prefix }} - Create BOM download directories"
       ansible.builtin.file:
-        path:                           "{{ download_directory }}"
+        path:                          "{{ item.path }}"
         state:                          directory
         mode:                           0755
       delegate_to:                      localhost
+      loop:
+        - path: "{{ download_directory }}/tmp"
+
+#   02) Create static download directories
+- name:                                "3.3 BoM Processing: - Create SAP download directories"
+  ansible.builtin.file:
+    path:                              "{{ item.path }}"
+    state:                             directory
+    mode:                              0755
+
+
 # Step: 07-01 - END
 # -------------------------------------+---------------------------------------8
 
