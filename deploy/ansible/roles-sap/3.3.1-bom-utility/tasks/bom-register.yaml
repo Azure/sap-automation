@@ -214,7 +214,7 @@
 # Step: 05-04
 # Description:
 #
-    - name:                             "{{ task_prefix }} Register Microsoft Supplied BOM ({{ bom_name }}) file name"
+    - name:                             "{{ task_prefix }} Register Microsoft Supplied BOM ({{ bom_name }}) facts"
       ansible.builtin.set_fact:
         bom:                            "{{ bom_temp }}"
         bom_file:                       "{{ microsoft_supplied_bom.stat.path }}"
@@ -260,7 +260,7 @@
 # Step: 05-05-03
 # Description:
 #
-        - name:                         "{{ task_prefix }} Register Microsoft Supplied BOM ({{ bom_name }}) file name from archives"
+        - name:                         "{{ task_prefix }} Register Microsoft Supplied BOM ({{ bom_name }}) facts"
           ansible.builtin.set_fact:
             bom:                        "{{ bom_temp }}"
             bom_file:                   "{{ microsoft_supplied_bom_archive.stat.path }}"
@@ -323,7 +323,6 @@
       - bom.platform | upper == platform | upper
     fail_msg:                           "The BoM {{ bom_name }} is not for platform {{ platform }}"
   when:
-    - operation is defined
     - operation != 'SoftwareAcquisition'
 # Step: 08 - END
 # -------------------------------------+---------------------------------------8
