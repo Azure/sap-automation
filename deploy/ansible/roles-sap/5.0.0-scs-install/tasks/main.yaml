@@ -120,6 +120,11 @@
           - "HOST:       {{ virtual_host }}"
           - "SID:        {{ sid_to_be_deployed.sid | upper }}"
 
+    - name:                            "SCS Install: register variables"
+      ansible.builtin.set_fact:
+        scs_bom_instance_type:         "{% if bom.InstanceType is defined %}bom.InstanceType{% else %}ABAP{% endif %}"
+        public:                        true
+
     - name:                            "Create temp directory for sid"
       ansible.builtin.file:
         path:                          "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"

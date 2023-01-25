@@ -263,7 +263,7 @@
                   vars:
                     suffix:                "_SCS"
                     prefix:                "{{ bom.product_ids.scs.replace('.', '/').replace('/ABAP', '').split(':')[1] }}"
-                    path:                  'INSTALL/DISTRIBUTED/ABAP/ASCS'
+                    path:                  'INSTALL/DISTRIBUTED/{{ scs_bom_instance_type }}/{{ instance_type }}'
                     tier:                  'scs'
                     this_sid:              "{{ sid_to_be_deployed.sid | upper }}"
                   loop:                    "{{ all_sids }}"
@@ -502,7 +502,7 @@
               vars:
                 suffix:                "_SCS"
                 prefix:                "{{ scs_bom_id.replace('.', '/').replace('/ABAPHA', '').replace('/HA', '').split(':')[1] }}"
-                path:                  'INSTALL/HA/{{ instance_type }}/ASCS'
+                path:                  'INSTALL/HA/{{ scs_bom_instance_type }}/{{ instance_type }}'
                 tier:                  'scs'
                 this_sid:              "{{ sap_sid | upper }}"
               when:
@@ -515,7 +515,7 @@
               vars:
                 suffix:                "_ERS"
                 prefix:                "{{ ers_bom_id.replace('.', '/').replace('/ABAPHA', '').replace('/HA', '').split(':')[1] }}"
-                path:                  'INSTALL/HA/{{ instance_type }}/ERS'
+                path:                  'INSTALL/HA/{{ ers_bom_instance_type }}/ERS'
                 tier:                  'ers'
                 this_sid:              "{{ sap_sid | upper }}"
               when:

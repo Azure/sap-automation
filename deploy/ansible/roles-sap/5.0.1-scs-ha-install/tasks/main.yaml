@@ -49,6 +49,7 @@
 - name:                                "SCS HA Install: register variables"
   ansible.builtin.set_fact:
     scs_bom_id:                        "{{ bom.product_ids.scs_ha }}"
+    scs_bom_instance_type:             "{% if bom.InstanceType is defined %}bom.InstanceType{% else %}ABAP{% endif %}"
     public:                            true
 
 - name:                                "SCS HA Install"
