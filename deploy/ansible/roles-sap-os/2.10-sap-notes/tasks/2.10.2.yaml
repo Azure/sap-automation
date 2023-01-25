@@ -36,7 +36,7 @@
     - hard
 
 - name:                                "2.10.2 sap-notes: - Disable SELinux"
-  selinux:
+  ansible.posix.selinux:
     state:                             disabled
     # state:                             permissive
   notify:                              "2.10-sap-notes: Reboot after the selinux is configured"
@@ -45,7 +45,6 @@
 
 - name:                                "2.10.2 - Force all notified handlers to run now"
   ansible.builtin.meta:                flush_handlers
-
 
 
 ...

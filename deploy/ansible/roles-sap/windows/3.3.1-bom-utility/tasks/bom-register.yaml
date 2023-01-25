@@ -28,11 +28,14 @@
     - path: "{{ download_directory }}/files"
 
 
-- name:                                "3.3.1 BoM Processing: - Set Python version {{ distribution_id }}"
+- name:                                "3.3.1 BoM Processing: - Set Python version for {{ distribution_id }}"
   ansible.builtin.set_fact:
     python_version:                    'python2'
+  when:
+    - distribution_id != 'suse15'
+    - distribution_id != 'redhat8'
 
-- name:                                "3.3 BoM Processing: - Set Python version {{ distribution_id }}"
+- name:                                "3.3 BoM Processing: - Set Python version for {{ distribution_id }}"
   ansible.builtin.set_fact:
     python_version:                    'python3'
   when:                                distribution_id in ['suse15', 'redhat8']
@@ -51,7 +54,6 @@
     ansible_python_interpreter:        "{{ python_version }}"
   when:
     - distribution_id in ['suse15', 'redhat8']
-    - not always_upload_jinja_templates
 
 - name:                                "3.3.1 BoM Processing: {{ bom_name }} Download: {{ bom_name }} from the storage account"
   ansible.builtin.get_url:
@@ -67,7 +69,6 @@
   when:
     - distribution_id != 'suse15'
     - distribution_id != 'redhat8'
-    - not always_upload_jinja_templates
 
 # - name:                                "BOM: Show blob status"
 #   ansible.builtin.debug:
@@ -89,7 +90,6 @@
 
   when:
     - result is succeeded or result is skipped
-    - not always_upload_jinja_templates
 
 # -------------------------------------+---------------------------------------8
 
@@ -162,7 +162,7 @@
     - bom.name is not search('SWPM')
     - bom.name is not search('SUM')
 
-- name:                                "{{ task_prefix }} Ensure that a BoM object is created"
+- name:                                "{{ task_prefix }} Ensure that a BoM platform is defined"
   ansible.builtin.assert:
     that:
       - bom.platform is defined                    # Has the variable been defined

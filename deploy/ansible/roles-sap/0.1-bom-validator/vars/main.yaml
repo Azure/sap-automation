@@ -1,0 +1,76 @@
+---
+sap_logon_url:                          "https://launchpad.support.sap.com"
+
+# ------------------------- Begin - SAP Platform Map --------------------------8
+sap_platform_map:
+  swpm20:
+    - { number: '70003174',     platform: 'AIX',      description: 'AIX 64bit'                }
+    - { number: '70003175',     platform: 'HPUX',     description: 'HP-UX on IA64 64bit'      }
+    - { number: '70003177',     platform: 'LNXZ',     description: 'Linux on zSeries 64bit'   }
+    - { number: '70003179',     platform: 'OS400',    description: 'OS/400'                   }
+    - { number: '70003180',     platform: 'SPARC',    description: 'Solaris on SPARC 64bit'   }
+    - { number: '70003211',     platform: 'SOL',      description: 'Solaris on x86_64 64bit'  }
+    - { number: '70003212',     platform: 'WIN',      description: 'Windows on x64 64bit'     }
+    - { number: '70003213',     platform: 'ZOS',      description: 'z/OS 64bit'               }
+    - { number: '80003424',     platform: 'LNX',      description: 'Linux on x86_64 64bit'    }
+    - { number: '80003425',     platform: 'LNXBE',    description: 'Linux on Power BE 64bit'  }
+    - { number: '80003426',     platform: 'LNXLE',    description: 'Linux on Power LE 64bit'  }
+  sum20:
+    - { number: '80002454',     platform: 'AIX',      description: 'AIX 64bit'                }
+    - { number: '80002455',     platform: 'HPUX',     description: 'HP-UX on IA64 64bit'      }
+    - { number: '80002481',     platform: 'LNXZ',     description: 'Linux on zSeries 64bit'   }
+    - { number: '80002460',     platform: 'OS400',    description: 'OS/400'                   }
+    - { number: '80002482',     platform: 'SPARC',    description: 'Solaris on SPARC 64bit'   }
+    - { number: '80002483',     platform: 'SOL',      description: 'Solaris on x86_64 64bit'  }
+    - { number: '80002458',     platform: 'WIN',      description: 'Windows on x64 64bit'     }
+    - { number: '80002456',     platform: 'LNX',      description: 'Linux on x86_64 64bit'    }
+    - { number: '80002457',     platform: 'LNXBE',    description: 'Linux on Power BE 64bit'  }
+    - { number: '80002470',     platform: 'LNXLE',    description: 'Linux on Power LE 64bit'  }
+  sapcar:
+    - { number: '70006233',     platform: 'AIX',      description: 'AIX 64bit'                }
+    - { number: '70006173',     platform: 'HPUX',     description: 'HP-UX on IA64 64bit'      }
+    - { number: '70006174',     platform: 'HPUXRISC', description: 'HP-UX on PA-RISC 64bit'   }
+    - { number: '70006234',     platform: 'LNXZ',     description: 'Linux on zSeries 64bit'   }
+    - { number: '70006232',     platform: 'ZOS',      description: 'Linux on ZOS 64bit'       }
+    - { number: '70006237',     platform: 'OS400',    description: 'OS/400'                   }
+    - { number: '70006236',     platform: 'SPARC',    description: 'Solaris on SPARC 64bit'   }
+    - { number: '70006235',     platform: 'SOL',      description: 'Solaris on x86_64 64bit'  }
+    - { number: '70006231',     platform: 'WIN',      description: 'Windows on x64 64bit'     }
+    - { number: '70006178',     platform: 'LNX',      description: 'Linux on x86_64 64bit'    }
+    - { number: '70006177',     platform: 'LNXIA',    description: 'Linux on IA64 64bit'      }
+    - { number: '70006175',     platform: 'LNXBE',    description: 'Linux on Power BE 64bit'  }
+    - { number: '70006238',     platform: 'LNXLE',    description: 'Linux on Power LE 64bit'  }
+    - { number: '70006239',     platform: 'MACOSX',   description: 'MacOS X 64bit'            }
+    - { number: '70006240',     platform: 'MACOSX',   description: 'MacOS X 32bit'            }
+# ------------------------- End   - SAP Platform Map --------------------------8
+
+# ------------------------- Begin - SAP SSO Map -------------------------------8
+sap_sso_parameters:
+  # ------------------------------
+  # Unicode Character:
+  #   Character:      ✓
+  #   Character Name: CHECK MARK
+  #   Unicode:        U+2713 
+  #   UTF-8:          E2 9C 93
+  #   urlencoded:     %E2%9C%93
+  # ------------------------------
+  utf8:                                 "✓"
+  sec_fetch_mode:                       navigate
+  sec_fetch_user:                       ?1
+  sec_fetch_dest:                       document
+  accept_language:                      en-US,en;q=0.9
+  connection:                           keep-alive
+  sec_ch_ua:                            "\"Google Chrome\";v=\"106\", \"Not)A;Brand\";v=\"99\", \"Chromium\";v=\"106\""
+  sec_ch_ua_mobile:                     ?0
+  sec_ch_ua_platform:                   "\"macOS\""
+  upgrade_insecure_requests:            1
+  accept:                               text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
+  cache_control:                        max-age=0
+  content_type:                         application/x-www-form-urlencoded
+
+# ------------------------- End   - SAP SSO Map -------------------------------8
+
+...
+# /*---------------------------------------------------------------------------8
+# |                                   END                                      |
+# +------------------------------------4--------------------------------------*/
