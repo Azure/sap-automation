@@ -80,6 +80,8 @@
         - name:                        "SAP OS configuration playbook: - Set sapos fact"
           ansible.builtin.set_fact:
             tier:                      sapos                                     # Actions for HANA DB Serve
+            sapbits_location_base_path: "{{ hostvars.localhost.sapbits_location_base_path }}"
+            sapbits_sas_token:          "{{ hostvars.localhost.sapbits_sas_token }}"
           tags:
             - always
 
