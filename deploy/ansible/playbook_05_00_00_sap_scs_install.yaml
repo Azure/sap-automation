@@ -120,6 +120,7 @@
             main_password:              "{{ hostvars.localhost.sap_password }}"
             sapbits_location_base_path: "{{ hostvars.localhost.sapbits_location_base_path }}"
             sapbits_sas_token:          "{{ hostvars.localhost.sapbits_sas_token }}"
+            sa_enabled:                 true
           loop:                         "{{ all_sids }}"
           loop_control:
             loop_var:                  sid_to_be_deployed
