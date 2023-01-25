@@ -31,10 +31,10 @@
     public:                            true
   when:                                bom.InstanceType is defined
 
-    - name:                            "2.6 SCS HA Install: Populate InstanceName for cluster resource"
-      ansible.builtin.set_fact:
-        instance_name:                 "{{ sap_sid }}_{{ instance_type }}{{ scs_instance_number }}_{{ scs_virtual_hostname }}"
-        start_profile_path:            "/sapmnt/{{ sap_sid }}/profile/{{ sap_sid }}_{{ instance_type }}{{ scs_instance_number }}_{{ scs_virtual_hostname }}"
-        profile_directory:             "/usr/sap/{{ sap_sid | upper }}/{{ instance_type }}{{ scs_instance_number }}"
+- name:                            "2.6 SCS HA Install: Populate InstanceName for cluster resource"
+  ansible.builtin.set_fact:
+    instance_name:                 "{{ sap_sid }}_{{ instance_type }}{{ scs_instance_number }}_{{ scs_virtual_hostname }}"
+    start_profile_path:            "/sapmnt/{{ sap_sid }}/profile/{{ sap_sid }}_{{ instance_type }}{{ scs_instance_number }}_{{ scs_virtual_hostname }}"
+    profile_directory:             "/usr/sap/{{ sap_sid | upper }}/{{ instance_type }}{{ scs_instance_number }}"
   when:
     - node_tier in ['scs', 'ers']
