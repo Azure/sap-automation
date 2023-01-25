@@ -72,7 +72,7 @@
       delegate_to:                      localhost
 # 20221201 MKD (DynBOM)- mitigate become
       # become:                           "{{ bom_processing_become }}"
-      # ignore_errors:                    true
+      ignore_errors:                    true
       register:                         result
       vars:
         ansible_python_interpreter:     "{{ python_version }}"
@@ -96,7 +96,7 @@
       # become:                           "{{ bom_processing_become }}"
       # become_user:                         root
       register:                         result
-      # ignore_errors:                    true
+      ignore_errors:                    true
       when:
         - distribution_id != 'suse15'
         - distribution_id != 'sles_sap15'
