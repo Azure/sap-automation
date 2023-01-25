@@ -66,13 +66,13 @@
     - name:                             "3.3.1 BoM Processing: {{ bom_name }} Download: {{ bom_name }} from the storage account"
       ansible.builtin.get_url:
         url:                            "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ bom_name }}/{{ bom_name }}.yaml\
-                                        {% if sapbits_sas_token is not undefined %}?{{ sapbits_sas_token }}{% endif %}"
+                                        {% if sapbits_sas_token is defined %}?{{ sapbits_sas_token }}{% endif %}"
         dest:                           "{{ download_directory }}/bom/{{ bom_name }}.yaml"
         mode:                           0644
       delegate_to:                      localhost
 # 20221201 MKD (DynBOM)- mitigate become
-      become:                           "{{ bom_processing_become }}"
-      ignore_errors:                    true
+      # become:                           "{{ bom_processing_become }}"
+      # ignore_errors:                    true
       register:                         result
       vars:
         ansible_python_interpreter:     "{{ python_version }}"
@@ -88,15 +88,15 @@
     - name:                             "3.3.1 BoM Processing: {{ bom_name }} Download: {{ bom_name }} from the storage account"
       ansible.builtin.get_url:
         url:                            "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ bom_name }}/{{ bom_name }}.yaml\
-                                        {% if sapbits_sas_token is not undefined %}?{{ sapbits_sas_token }}{% endif %}"
+                                        {% if sapbits_sas_token is defined %}?{{ sapbits_sas_token }}{% endif %}"
         dest:                           "{{ download_directory }}/bom/{{ bom_name }}.yaml"
         mode:                           0644
       delegate_to:                      localhost
 # 20221201 MKD (DynBOM)- mitigate become
-      become:                           "{{ bom_processing_become }}"
+      # become:                           "{{ bom_processing_become }}"
       # become_user:                         root
       register:                         result
-      ignore_errors:                    true
+      # ignore_errors:                    true
       when:
         - distribution_id != 'suse15'
         - distribution_id != 'sles_sap15'
@@ -108,11 +108,11 @@
 # Step: 03-03
 # Description:
 #
-    - name:                             "BOM: Show blob status"
+    - name:                             "BOM: Show BoM download status"
       ansible.builtin.debug:
         msg:
-          - "{{ result }}"
-          - "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ bom_name }}/{{ bom_name }}.yaml{{ sapbits_sas_token }}"
+          - "URL:    {{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ bom_name }}/{{ bom_name }}.yaml{% if sapbits_sas_token is defined %}?{{ sapbits_sas_token }}{% endif %}"
+          - "Result: {{ result }}"
         verbosity:                      0
 # Step: 03-03 - END
 # -------------------------------------+---------------------------------------8
@@ -304,6 +304,7 @@
       - "BoM target:      {{ bom.target }}"
       - "BoM version:     {{ bom.version }}"
       - "BoM DB platform: {% if bom.platform is defined %}{{ bom.platform }}{% else %}Not defined{% endif %}"
+      - "Instance type:   {% if bom.InstanceType is defined %}{{ bom.InstanceType }}{% else %}Not defined{% endif %}"
   when:
     - bom.name is not search('SWPM')
     - bom.name is not search('SUM')
