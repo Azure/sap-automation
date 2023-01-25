@@ -323,7 +323,7 @@
       - bom.platform | upper == platform | upper
     fail_msg:                           "The BoM {{ bom_name }} is not for platform {{ platform }}"
   when:
-    - operation != 'SoftwareAcquisition'
+    - platform is defined
 # Step: 08 - END
 # -------------------------------------+---------------------------------------8
 
