@@ -23,9 +23,9 @@
                                             {%- if bom.InstanceType == 'JAVA' -%}
                                             {%- set _instance_type = 'SCS' -%}
                                             {%- elif bom.InstanceType == 'ABAP' -%}
-                                            {%- set _instance_type == 'ASCS' -%}
+                                            {%- set _instance_type = 'ASCS' -%}
                                             {%- else -%}
-                                            {%- set _instance_type == 'ASCS' -%}
+                                            {%- set _instance_type = 'ASCS' -%}
                                             {%- endif -%}
                                             {{- _instance_type -}}
         public:                            true
