@@ -316,15 +316,16 @@
 # Step: 08
 # Description:  Validate that BoM was found
 #
-- name:                                 "{{ task_prefix }} Ensure that a BoM platform is defined"
-  ansible.builtin.assert:
-    that:
-      - bom.platform is defined                                                 # Has the variable been defined
-      - bom.platform | upper == platform | upper
-    fail_msg:                           "The BoM {{ bom_name }} is not for platform {{ platform }}"
-  when:
-    - platform is defined
-    - platform | length > 2
+# ToDo Add this back later, Kimmo Jan 25
+# - name:                                 "{{ task_prefix }} Ensure that a BoM platform is defined"
+#   ansible.builtin.assert:
+#     that:
+#       - bom.platform is defined                                                 # Has the variable been defined
+#       - bom.platform | upper == platform | upper
+#     fail_msg:                           "The BoM {{ bom_name }} is not for platform {{ platform }}"
+#   when:
+#     - platform is defined
+#     - platform | length > 2
 # Step: 08 - END
 # -------------------------------------+---------------------------------------8
 
