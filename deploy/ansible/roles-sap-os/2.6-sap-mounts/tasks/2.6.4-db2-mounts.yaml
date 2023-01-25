@@ -50,7 +50,7 @@
                                           db_sid | upper, lv_parts[-1]] |
                                           join('/') -%}
                                         {%- endif -%}
-                                        {{- _path -}}
+                                        {%- _path -%}
     fstype:                            "{{ item.fstype }}"
     opts:                              defaults
     state:                             mounted

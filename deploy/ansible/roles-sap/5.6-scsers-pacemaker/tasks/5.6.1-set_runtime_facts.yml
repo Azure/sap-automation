@@ -60,7 +60,8 @@
                                         {%- set _instance_type == 'ASCS' -%}
                                         {%- else -%}
                                         {%- set _instance_type == 'ASCS' -%}
-                                        {%- endif -%}"
+                                        {%- endif -%}
+                                        {% _instance_type %}"
     public:                            true
   when:                                bom.InstanceType is defined
 
