@@ -324,6 +324,7 @@
     fail_msg:                           "The BoM {{ bom_name }} is not for platform {{ platform }}"
   when:
     - platform is defined
+    - platform | length > 2
 # Step: 08 - END
 # -------------------------------------+---------------------------------------8
 
