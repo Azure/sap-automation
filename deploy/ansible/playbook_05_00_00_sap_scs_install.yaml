@@ -499,8 +499,8 @@
                 name:                  roles-sap/7.0.0-post-install
               vars:
                 suffix:                "_SCS"
-                prefix:                "{{ scs_bom_id.replace('.', '/').replace('/ABAPHA', '').split(':')[1] }}"
-                path:                  'INSTALL/HA/ABAP/ASCS'
+                prefix:                "{{ scs_bom_id.replace('.', '/').replace('/ABAPHA', '').replace('/HA', '').split(':')[1] }}"
+                path:                  'INSTALL/HA/{{ instance_type }}/ASCS'
                 tier:                  'scs'
                 this_sid:              "{{ sap_sid | upper }}"
               when:
@@ -512,8 +512,8 @@
                 name:                  roles-sap/7.0.0-post-install
               vars:
                 suffix:                "_ERS"
-                prefix:                "{{ ers_bom_id.replace('.', '/').replace('/ABAPHA', '').split(':')[1] }}"
-                path:                  'INSTALL/HA/ABAP/ERS'
+                prefix:                "{{ ers_bom_id.replace('.', '/').replace('/ABAPHA', '').replace('/HA', '').split(':')[1] }}"
+                path:                  'INSTALL/HA/{{ instance_type }}/ERS'
                 tier:                  'ers'
                 this_sid:              "{{ sap_sid | upper }}"
               when:
