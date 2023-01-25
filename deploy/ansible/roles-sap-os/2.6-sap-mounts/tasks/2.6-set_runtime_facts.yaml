@@ -16,9 +16,9 @@
         instance_type:                 "ASCS"
       when:                            bom.InstanceType is not defined
 
-- name:                                "5.6 SCS HA Install: register instance type"
-  ansible.builtin.set_fact:
-    instance_type:  >-
+    - name:                            "2.6 SCS HA Install: register instance type"
+      ansible.builtin.set_fact:
+        instance_type:  >-
                                         {%- set _instance_type = ASCS -%}
                                         {%- if bom.InstanceType == 'JAVA' -%}
                                         {%- set _instance_type = 'SCS' -%}
@@ -28,8 +28,8 @@
                                         {%- set _instance_type == 'ASCS' -%}
                                         {%- endif -%}
                                         {%- _instance_type -%}
-    public:                            true
-  when:                                bom.InstanceType is defined
+        public:                        true
+      when:                            bom.InstanceType is defined
 
     - name:                            "2.6 SCS HA Install: Populate InstanceName for cluster resource"
       ansible.builtin.set_fact:
