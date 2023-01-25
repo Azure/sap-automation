@@ -1,7 +1,7 @@
 - name:                                "2.6 SCSERS: Block"
   block:
 
-# Returns bom object
+    # Returns bom object
     - name:                            "2.6 SCSERS: SCS HA Install - Register BoM"
       ansible.builtin.include_role:
         name:                          roles-sap/3.3.1-bom-utility
