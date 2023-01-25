@@ -3,34 +3,292 @@
 # Description:  SAP SSO Authentication Process
 #
 
-# - name:                                 "Show data"
-#   ansible.builtin.debug:
-#     msg:                                "{{ cookie_test_1 | combine({item.key: item.value}) }}"
-#   with_dict:                            "{{ cookie_test_2 }}"
-#   when:                                 "'cookie3' in item.key"
 
-# - name:                                 "merge a cookie"
-#   ansible.builtin.set_fact:
-#     cookie_test_1:                      "{{ cookie_test_1 | combine({item.key: item.value}) }}"
-#   with_dict:                            "{{ cookie_test_2 }}"
-#   when:                                 "'cookie3' in item.key"
 
-# - name:                                 "Show data"
-#   ansible.builtin.debug:
-#     var:                                cookie_test_1
+# Locality
+#
+#   Redmond, WA, US
+#     +-------------------------------------------------------------------------------------------------------------+
+#     | Flow Overview                                                                                               |
+#     +-------------------------------------------------------------------------------------------------------------+
+#     | 1 https://launchpad.support.sap.com                                                                         |
+#     | 2 https://authn.hana.ondemand.com/saml2/sp/mds                                                              |
+#     | 3 https://accounts.sap.com/saml2/idp/sso                                                                    |
+#     | 4 https://accounts.sap.com/saml2/idp/sso                                                                    |
+#     | 5 https://accounts.sap.com/saml2/idp/sso  (302 -->)   https://accounts.sap.com/saml2/idp/sso?redirect=true  |
+#     | 6 https://authn.hana.ondemand.com/saml2/sp/acs/supportportal/supportportal                                  |
+#     | 7 https://launchpad.support.sap.com       (302 -->)   https://launchpad.support.sap.com/                    |
+#     +-------------------------------------------------------------------------------------------------------------+
+#
+#     +---------------------------------------------------------------------------------------+
+#     | 1) Entry                                                                              |
+#     +---------------------------------------------------------------------------------------+
+#     | URL:  https://launchpad.support.sap.com                                               |
+#     +---------------------------+-----------------------------------------------------------+
+#     | Form                      | Cookies                                                   |
+#     +---------------------------+-----------------------------------------------------------+
+#     | tenantId                  | BIGipServerdispatcher.factory.customdomain                |
+#     | idpName                   | mdsoucrsntneufdztyvuyrhharfs                              |
+#     | requestUrl                |                                                           |
+#     | requestId                 |                                                           |
+#     | relayState                |                                                           |
+#     | action                    |                                                           |
+#     | signature                 |                                                           |
+#     +---------------------------+-----------------------------------------------------------+
+#     | Post Action: https://authn.hana.ondemand.com/saml2/sp/mds                             |
+#     +---------------------------------------------------------------------------------------+
+#
+#     +---------------------------------------------------------------------------------------+
+#     | 2) SAML Provider                                                                      |
+#     +---------------------------------------------------------------------------------------+
+#     | URL:  https://authn.hana.ondemand.com/saml2/sp/mds                                    |
+#     +---------------------------+-----------------------------------------------------------+
+#     | Form                      | Cookies                                                   |
+#     +---------------------------+-----------------------------------------------------------+
+#     | SAMLRequest               | BIGipServerssoendpointssecurity.hana.ondemand.com         |
+#     | RelayState                | oucrsntneufdztyvuyrhharfs                                 |
+#     +---------------------------+-----------------------------------------------------------+
+#     | Post Action: https://accounts.sap.com/saml2/idp/sso                                   |
+#     +---------------------------------------------------------------------------------------+
+#
+#     +---------------------------------------------------------------------------------------+
+#     | 3) Identity Provider                                                                  |
+#     +---------------------------------------------------------------------------------------+
+#     | URL:  https://accounts.sap.com/saml2/idp/sso                                          |
+#     +---------------------------+-----------------------------------------------------------+
+#     | Form                      | Cookies                                                   |
+#     +---------------------------+-----------------------------------------------------------+
+#     | utf8                      | JSESSIONID                                                |
+#     | authenticity_token        | XSRF_COOKIE                                               |
+#     | xsrfProtection            |                                                           |
+#     | method                    |                                                           |
+#     | idpSSOEndpoint            |                                                           |
+#     | SAMLRequest               |                                                           |
+#     | RelayState                |                                                           |
+#     | targetUrl                 |                                                           |
+#     | sourceUrl                 |                                                           |
+#     | org                       |                                                           |
+#     | spId                      |                                                           |
+#     | spName                    |                                                           |
+#     | mobileSSOToken            |                                                           |
+#     | tfaToken                  |                                                           |
+#     | css                       |                                                           |
+#     | passwordlessAuthnSelected |                                                           |
+#     | j_username                |                                                           |
+#     +---------------------------+-----------------------------------------------------------+
+#     | Post Action: /saml2/idp/sso (https://accounts.sap.com implied)                        |
+#     +---------------------------------------------------------------------------------------+
+#
+#     +---------------------------------------------------------------------------------------+
+#     | 4) Identity Provider                                                                  |
+#     +---------------------------------------------------------------------------------------+
+#     | URL:  https://accounts.sap.com/saml2/idp/sso                                          |
+#     +---------------------------+-----------------------------------------------------------+
+#     | Form                      | Cookies                                                   |
+#     +---------------------------+-----------------------------------------------------------+
+#     | utf8                      | JSESSIONID                                                |
+#     | authenticity_token        | authIdentifierDataTemporary                               |
+#     | xsrfProtection            |                                                           |
+#     | method                    |                                                           |
+#     | idpSSOEndpoint            |                                                           |
+#     | SAMLRequest               |                                                           |
+#     | RelayState                |                                                           |
+#     | targetUrl                 |                                                           |
+#     | sourceUrl                 |                                                           |
+#     | org                       |                                                           |
+#     | spId                      |                                                           |
+#     | spName                    |                                                           |
+#     | mobileSSOToken            |                                                           |
+#     | tfaToken                  |                                                           |
+#     | css                       |                                                           |
+#     | passwordlessAuthnSelected |                                                           |
+#     | j_username                |                                                           |
+#     | j_password                |                                                           |
+#     | rememberme                |                                                           |
+#     +---------------------------+-----------------------------------------------------------+
+#     | Post Action: /saml2/idp/sso (https://accounts.sap.com implied)                        |
+#     +---------------------------------------------------------------------------------------+
+#
+#     +---------------------------------------------------------------------------------------+
+#     | 5a) Identity Provider                                                                 |
+#     +---------------------------------------------------------------------------------------+
+#     | URL:  https://accounts.sap.com/saml2/idp/sso                                          |
+#     +---------------------------+-----------------------------------------------------------+
+#     |                           | Cookies                                                   |
+#     +---------------------------+-----------------------------------------------------------+
+#     |                           | authIdentifierDataTemporary                               |
+#     |                           | IDP_USER                                                  |
+#     |                           | IDP_J_COOKIE                                              |
+#     |                           | IDP_SESSION_MARKER_accounts                               |
+#     |                           | XSRF_COOKIE                                               |
+#     |                           | authIdentifierData                                        |
+#     |                           | JSESSIONID                                                |
+#     +---------------------------+-----------------------------------------------------------+
+#     | 302 Redirect Location: https://accounts.sap.com/saml2/idp/sso?redirect=true           |
+#     +---------------------------------------------------------------------------------------+
+#
+#     +---------------------------------------------------------------------------------------+
+#     | 5b) Identity Provider                                                                 |
+#     +---------------------------------------------------------------------------------------+
+#     | URL:  https://accounts.sap.com/saml2/idp/sso?redirect=true                            |
+#     +---------------------------+-----------------------------------------------------------+
+#     | Form                      | Cookies                                                   |
+#     +---------------------------+-----------------------------------------------------------+
+#     | utf8                      | JSESSIONID                                                |
+#     | authenticity_token        |                                                           |
+#     | SAMLResponse              |                                                           |
+#     | RelayState                |                                                           |
+#     +---------------------------+-----------------------------------------------------------+
+#     | Post Action: https://authn.hana.ondemand.com/saml2/sp/acs/supportportal/supportportal |
+#     +---------------------------------------------------------------------------------------+
+#
+#     +---------------------------------------------------------------------------------------+
+#     | 6) SAML Provider                                                                      |
+#     +---------------------------------------------------------------------------------------+
+#     | URL:  https://authn.hana.ondemand.com/saml2/sp/acs/supportportal/supportportal        |
+#     +---------------------------+-----------------------------------------------------------+
+#     | Form                      | Cookies                                                   |
+#     +---------------------------+-----------------------------------------------------------+
+#     | utf8                      | sso_domains_supportportal_supportportal                   |
+#     | authenticity_token        | oucrsntneufdztyvuyrhharfs                                 |
+#     | SAMLResponse              |                                                           |
+#     | RelayState                |                                                           |
+#     +---------------------------+-----------------------------------------------------------+
+#     | Post Action: https://launchpad.support.sap.com/                                       |
+#     +---------------------------------------------------------------------------------------+
+#
+#     +---------------------------------------------------------------------------------------+
+#     | 7a) Back to Entry Page                                                                |
+#     +---------------------------------------------------------------------------------------+
+#     | URL:  https://launchpad.support.sap.com/                                              |
+#     +---------------------------+-----------------------------------------------------------+
+#     |                           | Cookies                                                   |
+#     +---------------------------+-----------------------------------------------------------+
+#     |                           | oucrsntneufdztyvuyrhharfs_anchor                          |
+#     |                           | mdsoucrsntneufdztyvuyrhharfs                              |
+#     |                           | JSESSIONID                                                |
+#     |                           | JTENANTSESSIONID_supportportal                            |
+#     +---------------------------+-----------------------------------------------------------+
+#     | 302 Redirect Location: / (https://launchpad.support.sap.com implied)                  |
+#     +---------------------------------------------------------------------------------------+
+#
+#     +---------------------------------------------------------------------------------------+
+#     | 7b) Back to Entry Page                                                                |
+#     +---------------------------------------------------------------------------------------+
+#     | URL:  https://launchpad.support.sap.com/                                              |
+#     +---------------------------+-----------------------------------------------------------+
 
-# - name:                                 "Show data"
-#   ansible.builtin.debug:
-#     var:                                sap_sso_parameters
+
+
+#     +---------------------------------------------------------------------------------------+
+#     | 8) Search                                                                             |
+#     +---------------------------------------------------------------------------------------+
+#     | URL:  https://launchpad.support.sap.com/services/odata/svt/swdcuisrv/SearchResultSet  |
+#     |               ?SEARCH_MAX_RESULT=500&RESULT_PER_PAGE=500&SEARCH_STRING=swpm20         |
+#     |               &sap-language=en                                                        |
+#     +---------------------------+-----------------------------------------------------------+
+
+
+
+#   NOEU - North Europe - Dublin, Ireland
+#     +-------------------------------------------------------------------------------------------------------------------+
+#     | Flow Overview                                                                                                     |
+#     +-------------------------------------------------------------------------------------------------------------------+
+#     | 1 https://launchpad.support.sap.com                                                                               |
+#     | 2 https://authn.hana.ondemand.com/saml2/sp/mds                                                                    |
+#     | 3 https://accounts.sap.com/saml2/idp/sso                                                                          |
+#     | 4 https://accounts.sap.com/saml2/idp/sso                                                                          |
+#     | 5 https://fidm.eu1.gigya.com/saml/v2.0/3_8nyT5U5bgmcYd76h25LbEmWhqOWeM39-36YxT90-TFTHoCC5AWQbqzABxbwJMaxU/idp/sso |
+    
+#     | https://accounts.sap.com/saml2/idp/sso  (302 -->)   https://accounts.sap.com/saml2/idp/sso?redirect=true  |
+#     | https://authn.hana.ondemand.com/saml2/sp/acs/supportportal/supportportal                                  |
+#     | https://launchpad.support.sap.com       (302 -->)   https://launchpad.support.sap.com/                    |
+#     +-------------------------------------------------------------------------------------------------------------------+
+
+#     +---------------------------------------------------------------------------------------+
+#     | 1) Entry                                                                              |
+#     +---------------------------------------------------------------------------------------+
+#     | URL:  https://launchpad.support.sap.com                                               |
+#     +---------------------------+-----------------------------------------------------------+
+#     | Form                      | Cookies                                                   |
+#     +---------------------------+-----------------------------------------------------------+
+#     | tenantId                  | BIGipServerdispatcher.factory.customdomain                |
+#     | idpName                   | mdsoucrsntneufdztyvuyrhharfs                              |
+#     | requestUrl                |                                                           |
+#     | requestId                 |                                                           |
+#     | relayState                |                                                           |
+#     | action                    |                                                           |
+#     | signature                 |                                                           |
+#     +---------------------------+-----------------------------------------------------------+
+#     | Post Action: https://authn.hana.ondemand.com/saml2/sp/mds                             |
+#     +---------------------------------------------------------------------------------------+
+
+#     +---------------------------------------------------------------------------------------+
+#     | 2) SAML Provider                                                                      |
+#     +---------------------------------------------------------------------------------------+
+#     | URL:  https://authn.hana.ondemand.com/saml2/sp/mds                                    |
+#     +---------------------------+-----------------------------------------------------------+
+#     | Form                      | Cookies                                                   |
+#     +---------------------------+-----------------------------------------------------------+
+#     | SAMLRequest               | BIGipServerssoendpointssecurity.hana.ondemand.com         |
+#     | RelayState                | oucrsntneufdztyvuyrhharfs                                 |
+#     +---------------------------+-----------------------------------------------------------+
+#     | Post Action: https://accounts.sap.com/saml2/idp/sso                                   |
+#     +---------------------------------------------------------------------------------------+
+
+#     +---------------------------------------------------------------------------------------+
+#     | 3) Identity Provider                                                                  |
+#     +---------------------------------------------------------------------------------------+
+#     | URL:  https://accounts.sap.com/saml2/idp/sso                                          |
+#     +---------------------------+-----------------------------------------------------------+
+#     | Form                      | Cookies                                                   |
+#     +---------------------------+-----------------------------------------------------------+
+#     | utf8                      | JSESSIONID                                                |
+#     | authenticity_token        | XSRF_COOKIE                                               |
+#     | xsrfProtection            |                                                           |
+#     | method                    |                                                           |
+#     | idpSSOEndpoint            |                                                           |
+#     | SAMLRequest               |                                                           |
+#     | RelayState                |                                                           |
+#     | targetUrl                 |                                                           |
+#     | sourceUrl                 |                                                           |
+#     | org                       |                                                           |
+#     | spId                      |                                                           |
+#     | spName                    |                                                           |
+#     | mobileSSOToken            |                                                           |
+#     | tfaToken                  |                                                           |
+#     | css                       |                                                           |
+#     | passwordlessAuthnSelected |                                                           |
+#     | j_username                |                                                           |
+#     +---------------------------+-----------------------------------------------------------+
+#     | Post Action: /saml2/idp/sso (https://accounts.sap.com implied)                        |
+#     +---------------------------------------------------------------------------------------+
+
+#     +---------------------------------------------------------------------------------------+
+#     | 4) Identity Provider                                                                  |
+#     +---------------------------------------------------------------------------------------+
+#     | URL:  https://accounts.sap.com/saml2/idp/sso                                          |
+#     +---------------------------+-----------------------------------------------------------+
+#     | Form                      | Cookies                                                   |
+#     +---------------------------+-----------------------------------------------------------+
+#     | utf8                      | JSESSIONID                                                |
+#     | authenticity_token        | authIdentifierDataTemporary                               |
+#     | SAMLRequest               | arc3ea9e8                                                 |
+#     | RelayState                |                                                           |
+#     | login_hint                |                                                           |
+#     +---------------------------+-----------------------------------------------------------+---------------------------------------+
+#     | Post Action: https://fidm.eu1.gigya.com/saml/v2.0/3_8nyT5U5bgmcYd76h25LbEmWhqOWeM39-36YxT90-TFTHoCC5AWQbqzABxbwJMaxU/idp/sso  |
+#     +-------------------------------------------------------------------------------------------------------------------------------+
+
+
+
+
+
 
 
 # TODO: create a Windows version?
 
 
-# - name:                                 "sap_sso_authentication TROUBLESHOOTING..."
-#   pause:
-#     prompt: "Press enter to continue..."
-#     echo: true
 
 
 # -------------------------------------+---------------------------------------8
@@ -191,7 +449,7 @@
 # Step: 03
 # Description:  SSO Authentication block
 #
-- name:                                "Authentication Required"
+- name:                                "SAP SSO Logon - Authentication Required"
   block:
 
 # -------------------------------------+---------------------------------------8
@@ -230,7 +488,7 @@
 #     Connection: keep-alive              | Connection: close
 #     Keep-Alive: timeout=20              |
 # -------------------------------------+---------------------------------------8
-    - name:                                 "Step 2 - Get SAML request"
+    - name:                                 "SAP SSO Logon - Step 2 - Get SAML request"
       ansible.builtin.uri:
         url:                                "{{ post_action }}"
         method:                             POST
@@ -276,7 +534,7 @@
         - skip_ansible_lint
 
 
-    - name:                                 "Step 2 - Show data"
+    - name:                                 "SAP SSO Logon - Step 2 - Show data"
       ansible.builtin.debug:
         msg:
           - "origin:                        {{ origin }}"
@@ -302,7 +560,7 @@
 # Step: 03-02
 # Description:  Maintain Cookie Jar
 #
-    - name:                                 "Step 2 - Maintain Cookie Jar"
+    - name:                                 "SAP SSO Logon - Step 2 - Maintain Cookie Jar"
       ansible.builtin.lineinfile:
         state:                              present
         create:                             true
@@ -407,7 +665,7 @@
 #     Keep-Alive: timeout=20              |
 #     Content-Encoding: gzip              |
 # -------------------------------------+---------------------------------------8
-    - name:                                   "Step 3 - Submit SAML information to Identity provider: {{ post_action }}"
+    - name:                                   "SAP SSO Logon - Step 3 - Submit SAML information to Identity provider: {{ post_action }}"
       ansible.builtin.uri:
         url:                                  "{{ post_action }}"
         method:                               POST
@@ -443,13 +701,13 @@
         - skip_ansible_lint
 
 
-    - name:                                   "Step 3 - Store cookies for accounts.sap.com"
+    - name:                                   "SAP SSO Logon - Step 3 - Store cookies for accounts.sap.com"
       ansible.builtin.set_fact:
         cookies_accounts_sap_com:             "{{ step3Results.cookies }}"
 
 
 
-    - name:                                   "Step 3 - Show data"
+    - name:                                   "SAP SSO Logon - Step 3 - Show data"
       ansible.builtin.debug:
         msg:
           - "origin:                          {{ origin }}"
@@ -512,7 +770,7 @@
 # Step: 03-04
 # Description:  Maintain Cookie Jar
 #
-    - name:                                 "Step 3 - Maintain Cookie Jar"
+    - name:                                 "SAP SSO Logon - Step 3 - Maintain Cookie Jar"
       ansible.builtin.lineinfile:
         state:                              present
         create:                             true
@@ -635,7 +893,7 @@
 #     Keep-Alive: timeout=20              |
 #     Content-Encoding: gzip              |
 # -------------------------------------+---------------------------------------8
-    - name:                                 "Step 4 - Submit User information to Identity provider: {{ post_url }}"
+    - name:                                 "SAP SSO Logon - Step 4 - Submit User information to Identity provider: {{ post_url }}"
       ansible.builtin.uri:
         url:                                "{{ post_url }}"
         method:                             POST
@@ -708,17 +966,17 @@
         - skip_ansible_lint
 
 
-    - name:                                 "Step 4 - Update cookies for accounts.sap.com"
+    - name:                                 "SAP SSO Logon - Step 4 - Update cookies for accounts.sap.com"
       ansible.builtin.set_fact:
         cookies_accounts_sap_com:           "{{ cookies_accounts_sap_com | combine(step4Results.cookies) }}"
 
 
-    - name:                                 "Step 4 - Show data - step4Results"
+    - name:                                 "SAP SSO Logon - Step 4 - Show data - step4Results"
       ansible.builtin.debug:
         var:                                step4Results.content
 
 
-    - name:                                 "Step 4 - Show data"
+    - name:                                 "SAP SSO Logon - Step 4 - Show data"
       ansible.builtin.debug:
         msg:
           - "origin:                          {{ origin }}"
@@ -727,7 +985,7 @@
           - "post_url:                        {{ post_url }}"
           - "utf8:                            {{ sap_sso_parameters.utf8 }}"
           - "authenticity_token:              {{ authenticity_token }}"
-          # - "xsrfProtection:                  {{ xsrfProtection }}"
+          - "xsrfProtection:                  {{ xsrfProtection | default('NOT_SET') }}"
           # - "method:                          {{ method }}"
           # - "idpSSOEndpoint:                  {{ idpSSOEndpoint }}"
           - "SAMLRequest:                     {{ SAMLRequest }}"
@@ -753,6 +1011,7 @@
         post_url:                             "{{ post_action }}"
         authenticity_token:                   "{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"authenticity_token\".*?>)',       '\\g<first_part>', '\\g<second_part>') | join                              | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}"
         # xsrfProtection:                       "{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"xsrfProtection\".*?>)',           '\\g<first_part>', '\\g<second_part>') | join                              | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}"
+        xsrfProtection:                       "{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"xsrfProtection\".*?>)',           '\\g<first_part>', '\\g<second_part>') | join }}"
         # method:                               "{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"method\".*?>)',                   '\\g<first_part>', '\\g<second_part>') | join                              | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}"
         # idpSSOEndpoint:                       "{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"idpSSOEndpoint\".*?>)',           '\\g<first_part>', '\\g<second_part>') | join                              | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}"
         SAMLRequest:                          "{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"SAMLRequest\".*?>)',              '\\g<first_part>', '\\g<second_part>') | join                              | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}"
@@ -778,13 +1037,13 @@
 # Step: 03-05 - END
 # -------------------------------------+---------------------------------------8
 
-
+- fail:
 
 # -------------------------------------+---------------------------------------8
 # Step: 03-06
 # Description:  Maintain Cookie Jar
 #
-    - name:                                 "Step 4 - Maintain Cookie Jar"
+    - name:                                 "SAP SSO Logon - Step 4 - Maintain Cookie Jar"
       ansible.builtin.lineinfile:
         state:                              present
         create:                             true
@@ -899,7 +1158,7 @@
 #     Keep-Alive: timeout=20              |
 #     Set-Cookie: JSESSIONID=<id>         |
 # -------------------------------------+---------------------------------------8
-    - name:                                 "Step 5 - Submit Password information to IPD provider: {{ post_url }}"
+    - name:                                 "SAP SSO Logon - Step 5 - Submit Password information to IPD provider: {{ post_url }}"
       ansible.builtin.command: >-
                                             curl  {{ post_url }}                                                        \
                                             --include                                                                   \
@@ -997,7 +1256,7 @@
       tags:
         - skip_ansible_lint
 
-    - name:                                 "Step 5 - Show data - step5Results"
+    - name:                                 "SAP SSO Logon - Step 5 - Show data - step5Results"
       ansible.builtin.debug:
         var:                                step5Results.content
 
@@ -1068,7 +1327,7 @@
 #     Connection: keep-alive              | Connection: close
 #     Keep-Alive: timeout=20              |
 # -------------------------------------+---------------------------------------8
-    - name:                                 "Step 6 - Return SAML response to SAML provider: {{ post_action }}"
+    - name:                                 "SAP SSO Logon - Step 6 - Return SAML response to SAML provider: {{ post_action }}"
       ansible.builtin.command: >-
                                             curl  {{ post_action }}                                                     \
                                             --include                                                                   \
@@ -1109,7 +1368,7 @@
         - skip_ansible_lint
 
 
-    - name:                                 "Step 6 - Show data"
+    - name:                                 "SAP SSO Logon - Step 6 - Show data"
       ansible.builtin.debug:
         msg:
           # - "results:                                 {{ results }}"
@@ -1175,7 +1434,7 @@
 #     Connection: keep-alive              | Connection: close
 #     Keep-Alive: timeout=20              |
 # -------------------------------------+---------------------------------------8
-    - name:                                 "Step 7 - back to {{ post_action }}"
+    - name:                                 "SAP SSO Logon - Step 7 - back to {{ post_action }}"
       ansible.builtin.command: >-
                                             curl  {{ post_action }}                                                     \
                                             --include                                                                   \
@@ -1233,7 +1492,7 @@
 # Step: 04
 #   Description:
 #
-- name:                                 "Step 8 - Query {{ post_action }}"
+- name:                                 "SAP SSO Logon - Step 8 - Query {{ post_action }}"
   ansible.builtin.command: >-
                                         curl  {{ post_action }}                                                     \
                                         --include                                                                   \
@@ -1270,7 +1529,7 @@
 # Step: 05
 #   Description:  Informational
 #
-- name:                                 "Step 8 - Show data"
+- name:                                 "SAP SSO Logon - Step 8 - Show data"
   ansible.builtin.debug:
     msg:
       - "results:                       {{ results }}"
@@ -1289,7 +1548,7 @@
 # Step: 06
 #   Description:  Remove cookie_jar
 #
-- name:                             "Remove cookie jar"
+- name:                             "SAP SSO Logon - Remove cookie jar"
   ansible.builtin.file:
     path:                           cookie_jar
     state:                          absent
