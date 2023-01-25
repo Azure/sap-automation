@@ -118,7 +118,7 @@
 # -------------------------------------+---------------------------------------8
 
   when:
-    - sa_enabled | default(true)                                                 # when true; if not defined, then value is false
+    - sa_enabled | default(false)                                                 # when true; if not defined, then value is false
     # - sa_enabled is defined
     # - sa_enabled
 
@@ -160,7 +160,7 @@
 
   when:
     - result is succeeded or result is skipped
-    - sa_enabled | default(true)
+    - sa_enabled | default(false)
     # - sa_enabled is not defined or sa_enabled | bool
 # Step: 04 - END
 # -------------------------------------+---------------------------------------8

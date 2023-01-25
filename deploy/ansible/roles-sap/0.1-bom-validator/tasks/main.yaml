@@ -118,6 +118,7 @@
     container:                         "{{ sapbits_location_base_path.rpartition('//')[2].split('/')[1] }}/{{ sapbits_bom_files }}/archives"
     bom_name:                          "{{ bom_base_name }}"
     upload:                            true
+    operation:                         "{{ operation }}"
 # Step: 04 - END
 # -------------------------------------+---------------------------------------8
 
