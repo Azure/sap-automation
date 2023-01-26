@@ -49,7 +49,7 @@
 - name:                                "SCS HA Install: register variables"
   ansible.builtin.set_fact:
     scs_bom_id:                        "{{ bom.product_ids.scs_ha }}"
-    scs_bom_instance_type:             "{% if bom.InstanceType is defined %}bom.InstanceType{% else %}ABAP{% endif %}"
+    scs_bom_instance_type:             "{% if bom.InstanceType is defined %}{{ bom.InstanceType }}{% else %}ABAP{% endif %}"
     public:                            true
 
 - name:                                "SCS HA Install"
@@ -117,7 +117,7 @@
       loop:
         - { path: '/sapmnt/{{ sap_sid | upper }}' }
         - { path: '/usr/sap/{{ sap_sid | upper }}/SYS' }
-        - { path: '/usr/sap/{{ sap_sid | upper }}/ASCS{{ scs_instance_number }}' }
+        - { path: '/usr/sap/{{ sap_sid | upper }}/{{ instance_type }}{{ scs_instance_number }}' }
 
     - name:                            "SCS HA Install: - SCS - comment out required message server ports in /etc/services"
       ansible.builtin.replace:
@@ -132,7 +132,7 @@
         regexp:                        '^([a-z\-]+\s+39{{ scs_instance_number }}/.*)$'
         replace:                       '# \1'
         backup:                        true
-      when:                            instance_type=='JAVA'
+      when:                            instance_type=='SCS'
 
     - name:                            "SCS HA Install: - SCS - comment out required message server ports in /etc/services for JAVA"
       ansible.builtin.replace:
@@ -140,7 +140,7 @@
         regexp:                        '^([a-z\-]+\s+39{{ scs_instance_number | int + 1 | string }}/.*)$'
         replace:                       '# \1'
         backup:                        true
-      when:                            instance_type=='JAVA'
+      when:                            instance_type=='SCS'
 
 # *====================================4=======================================8
 # |  SAP SCS: Install                                                          |
@@ -225,7 +225,7 @@
           loop:
             - { path: '/sapmnt/{{ sap_sid | upper }}' }
             - { path: '/usr/sap/{{ sap_sid | upper }}/SYS' }
-            - { path: '/usr/sap/{{ sap_sid | upper }}/ASCS{{ scs_instance_number }}' }
+            - { path: '/usr/sap/{{ sap_sid | upper }}/{{ instance_type }}{{ scs_instance_number }}' }
           when:                        node_tier == 'scs'
 
         # Add IS_HOST_LOCAL_USING_STRING_COMPARE=true to fix The host with the
