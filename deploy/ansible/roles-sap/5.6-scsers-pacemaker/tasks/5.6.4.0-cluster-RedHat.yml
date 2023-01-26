@@ -80,6 +80,12 @@
     - name:                            "5.6 SCSERS - RHEL - SCS - Install SCS on Primary host"
       ansible.builtin.include_role:
         name:                          roles-sap/5.0.1-scs-ha-install
+
+    - name:                            "5.6 SCSERS - RHEL - SCS - Install SCS on Primary host results"
+      ansible.builtin.fail:
+        msg:                       
+        -  "SCS HA installation failed"
+      when: not scs_installation_succeeded
   when: inventory_hostname == primary_instance_name
 
 # [1] Create a virtual IP resource and health-probe for the ERS instance
