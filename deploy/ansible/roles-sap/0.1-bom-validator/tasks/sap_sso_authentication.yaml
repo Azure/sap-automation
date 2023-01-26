@@ -985,7 +985,7 @@
           - "post_url:                        {{ post_url }}"
           - "utf8:                            {{ sap_sso_parameters.utf8 }}"
           - "authenticity_token:              {{ authenticity_token }}"
-          - "xsrfProtection:                  {{ xsrfProtection | default('NOT_SET') }}"
+          - "xsrfProtection:                  {{ xsrfProtection }}"
           # - "method:                          {{ method }}"
           # - "idpSSOEndpoint:                  {{ idpSSOEndpoint }}"
           - "SAMLRequest:                     {{ SAMLRequest }}"
@@ -1011,7 +1011,8 @@
         post_url:                             "{{ post_action }}"
         authenticity_token:                   "{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"authenticity_token\".*?>)',       '\\g<first_part>', '\\g<second_part>') | join                              | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}"
         # xsrfProtection:                       "{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"xsrfProtection\".*?>)',           '\\g<first_part>', '\\g<second_part>') | join                              | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}"
-        xsrfProtection:                       "{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"xsrfProtection\".*?>)',           '\\g<first_part>', '\\g<second_part>') | join }}"
+        # xsrfProtection:                       "{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"xsrfProtection\".*?>)',           '\\g<first_part>', '\\g<second_part>') | default('NOT_SET') | join }}"
+        xsrfProtection:                       "{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"xsrfProtection\".*?>)',           '\\g<first_part>') | join }}"
         # method:                               "{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"method\".*?>)',                   '\\g<first_part>', '\\g<second_part>') | join                              | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}"
         # idpSSOEndpoint:                       "{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"idpSSOEndpoint\".*?>)',           '\\g<first_part>', '\\g<second_part>') | join                              | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}"
         SAMLRequest:                          "{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"SAMLRequest\".*?>)',              '\\g<first_part>', '\\g<second_part>') | join                              | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}"
@@ -1037,7 +1038,7 @@
 # Step: 03-05 - END
 # -------------------------------------+---------------------------------------8
 
-- fail:
+    - fail:
 
 # -------------------------------------+---------------------------------------8
 # Step: 03-06
