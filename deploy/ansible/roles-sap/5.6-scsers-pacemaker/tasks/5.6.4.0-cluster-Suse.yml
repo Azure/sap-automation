@@ -66,11 +66,17 @@
       vars:
         sap_scs_hostname:              "{{ scs_virtual_hostname }}"
 
+    - name:                            "5.6 SCSERS - SUSE - SCS - Check if installation succeeded"
+      ansible.builtin.stat:
+        path:                          "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_scs.txt"
+      register:                        scs_installed
+
     - name:                            "5.6 SCSERS - SUSE - SCS - Install SCS on Primary host results"
       ansible.builtin.fail:
         msg:
           - "SCS HA installation failed"
-      when: not scs_installation_succeeded
+      when:
+        - not scs_installed.stat.exists
   when: inventory_hostname == primary_instance_name
 
 # [1] Create a virtual IP resource and health-probe for the ERS instance
@@ -144,6 +150,19 @@
       ansible.builtin.command:         "crm node online {{ primary_instance_name }}"
       register:                        primary_online
       changed_when:                    primary_online.rc != 0
+
+    - name:                            "5.6 SCSERS - SUSE - ERS - Check if installation succeeded"
+      ansible.builtin.stat:
+        path:                          "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_ers.txt"
+      register:                        ers_installed
+
+    - name:                            "5.6 SCSERS - SUSE - ERS - Install ERS on Secondary host results"
+      ansible.builtin.fail:
+        msg:
+          - "ERS installation failed"
+      when:
+        - not ers_installed.stat.exists
+
   when: inventory_hostname == secondary_instance_name
 
 
