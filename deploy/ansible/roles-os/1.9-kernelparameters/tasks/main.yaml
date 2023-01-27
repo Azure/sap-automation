@@ -148,6 +148,19 @@
   when:
     - node_tier == 'hana'
 
+- name:                                "Set limits for app tier"
+  ansible.builtin.blockinfile:
+    path:                              /etc/security/limits.conf
+    insertafter:                       '#@student        -       maxlogins       4'
+    state:                              present
+    block: |
+                @sapsys    hard    nproc    unlimited
+                @sapsys    soft    nproc    unlimited
+                @sapsys    hard    nofile   65536
+                @sapsys    soft    nofile   65536
+  when:
+    - node_tier in ['scs','ers','app','pas']
+
 # ----------------------------------------
 # END
 # ----------------------------------------
