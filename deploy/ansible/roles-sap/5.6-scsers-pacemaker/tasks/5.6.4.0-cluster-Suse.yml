@@ -71,10 +71,9 @@
         path:                          "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_scs.txt"
       register:                        scs_installed
 
-    - name:                            "5.6 SCSERS - SUSE - SCS - Install SCS on Primary host results"
+    - name:                            "ErrorHandling"
       ansible.builtin.fail:
-        msg:
-          - "SCS HA installation failed"
+        msg:                           "INSTALL:0014:SCS HA installation failed"
       when:
         - not scs_installed.stat.exists
   when: inventory_hostname == primary_instance_name
@@ -156,10 +155,9 @@
         path:                          "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_ers.txt"
       register:                        ers_installed
 
-    - name:                            "5.6 SCSERS - SUSE - ERS - Install ERS on Secondary host results"
+    - name:                            "ErrorHandling"
       ansible.builtin.fail:
-        msg:
-          - "ERS installation failed"
+        msg:                           "INSTALL:0014:ERS installation failed"
       when:
         - not ers_installed.stat.exists
 
