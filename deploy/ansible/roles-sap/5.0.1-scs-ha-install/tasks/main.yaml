@@ -141,7 +141,7 @@
     - name:                            "SCS HA Install: SCS Second port for JAVA"
       ansible.builtin.set_fact:
         second_port_str:               '{{ "%02d" | format(((second_port | int) + 1)) }}'
-        
+
     - name:                            "SCS HA Install: - SCS - comment out required message server ports in /etc/services for JAVA"
       ansible.builtin.replace:
         path:                          /etc/services
@@ -150,10 +150,10 @@
         backup:                        true
       when:                            instance_type=='SCS'
 
-# *====================================4=======================================8
-# |  SAP SCS: Install                                                          |
-# | 2230669 - System Provisioning Using a Parameter Input File                 |
-# *====================================4=======================================8
+    # *====================================4=======================================8
+    # |  SAP SCS: Install                                                          |
+    # | 2230669 - System Provisioning Using a Parameter Input File                 |
+    # *====================================4=======================================8
 
     - name:                            "Create temp directory for sid"
       ansible.builtin.file:
@@ -274,7 +274,7 @@
 
         - name:                        "SCS HA Install: Save installation results"
           ansible.builtin.set_fact:
-            scs_installation_succeeded: false                    
+            scs_installation_succeeded: false
 
         - name:                        "SCS HA Install: Installation results"
           ansible.builtin.fail:
@@ -352,6 +352,7 @@
           - "{{ ensa2 }}"
   when:
     - inventory_hostname == primary_instance_name
+    - scs_installed.stat.exists
 
 ...
 # /*---------------------------------------------------------------------------8
