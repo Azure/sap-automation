@@ -9,9 +9,10 @@
 - name:                                "5.6 SCSERS - Add the user '{{ sap_sid | lower }}adm' to haclient group"
   become:                              true
   ansible.builtin.user:
+    append:                            true
     name:                              "{{ sap_sid | lower }}adm"
     comment:                           "{{ sap_sid | lower }}adm User account"
-    group:                             haclient
+    groups:                            haclient
 
 - name:                                "5.6 SCSERS - SUSE - Add the ASCS and ERS service definitions from sapservices file"
   ansible.builtin.lineinfile:
