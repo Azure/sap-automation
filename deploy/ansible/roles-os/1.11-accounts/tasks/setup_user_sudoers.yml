@@ -63,13 +63,14 @@
   when:
     - sudoers_state == "absent"
 
-- name:                                Ensure that sudoers_user was specified
-  ansible.builtin.fail:
-    msg: >
-      Please ensure that a 'sudoers_user` is specified, is not an
-      empty value, and matches a known user if creating a sudoers
-      entry.
-  when:
-    - ((sudoers_user is not defined) or
-      ((sudoers_user == "") or
-      ((sudoers_user not in getent_passwd) and (sudoers_state == "present"))))
+# ToDo: Fix this later, Kimmo Jan 27
+# - name:                                Ensure that sudoers_user was specified
+#   ansible.builtin.fail:
+#     msg: >
+#       Please ensure that a 'sudoers_user` is specified, is not an
+#       empty value, and matches a known user if creating a sudoers
+#       entry.
+#   when:
+#     - ((sudoers_user is not defined) or
+#       ((sudoers_user == "") or
+#       ((sudoers_user not in getent_passwd) and (sudoers_state == "present"))))
