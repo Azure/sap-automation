@@ -140,7 +140,7 @@
 
     - name:                            "SCS HA Install: SCS Second port for JAVA"
       ansible.builtin.set_fact:
-        second_port_str:               '{{ "%02d" | format((second_port + 1)) }}'
+        second_port_str:               '{{ "%02d" | format(((second_port | int) + 1)) }}'
         
     - name:                            "SCS HA Install: - SCS - comment out required message server ports in /etc/services for JAVA"
       ansible.builtin.replace:
