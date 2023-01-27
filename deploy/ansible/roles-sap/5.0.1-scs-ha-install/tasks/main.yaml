@@ -137,11 +137,15 @@
     - name:                            "SCS HA Install: SCS Second port for JAVA"
       ansible.builtin.set_fact:
         second_port:                   "{{ scs_instance_number | int }}"
+
+    - name:                            "SCS HA Install: SCS Second port for JAVA"
+      ansible.builtin.set_fact:
+        second_port_str:               '{{ "%02d" | format((second_port + 1)) }}'
         
     - name:                            "SCS HA Install: - SCS - comment out required message server ports in /etc/services for JAVA"
       ansible.builtin.replace:
         path:                          /etc/services
-        regexp:                        '^([a-z\-]+\s+39{{ "%02d" | format(second_port + 1) }}/.*)$'
+        regexp:                        '^([a-z\-]+\s+39{{ second_port_str }}/.*)$'
         replace:                       '# \1'
         backup:                        true
       when:                            instance_type=='SCS'
