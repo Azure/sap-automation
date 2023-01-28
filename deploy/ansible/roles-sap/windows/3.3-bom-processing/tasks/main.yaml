@@ -62,6 +62,7 @@
   vars:
     bom_name:                          "{{ bom_base_name }}"
     task_prefix:                       "BOM Processing: "
+    sa_enabled:                        true
 
 - name:                                "3.3 BoM Processing: - Save the BOM"
   ansible.builtin.set_fact:

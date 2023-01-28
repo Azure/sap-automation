@@ -45,6 +45,8 @@
   vars:
     bom_name:                          "{{ bom_base_name }}"
     task_prefix:                       "SCS HA Install: "
+    sa_enabled:                        true
+
 
 - name:                                "SCS HA Install: register variables"
   ansible.builtin.set_fact:
