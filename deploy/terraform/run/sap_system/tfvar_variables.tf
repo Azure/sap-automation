@@ -732,7 +732,7 @@ variable "idle_timeout_scs_ers" {
 }
 
 variable "bom_name" {
-  description = "NAme of the SAP Application Bill of Material file"
+  description = "Name of the SAP Application Bill of Material file"
   default     = ""
 }
 
