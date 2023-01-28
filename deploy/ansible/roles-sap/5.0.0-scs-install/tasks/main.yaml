@@ -59,6 +59,12 @@
     task_prefix:                       "SCS Install: "
     sa_enabled:                        true
 
+- name:                                "SCS Install: register variables"
+  ansible.builtin.set_fact:
+    scs_bom_id:                        "{{ bom.product_ids.scs }}"
+    scs_bom_instance_type:             "{% if bom.InstanceType is defined %}{{ bom.InstanceType }}{% else %}ABAP{% endif %}"
+    public:                            true
+
 - name:                                "SCS Install"
   block:
 
@@ -120,6 +126,26 @@
           - "MEDIA:      {{ target_media_location }}"
           - "HOST:       {{ virtual_host }}"
           - "SID:        {{ sid_to_be_deployed.sid | upper }}"
+
+    - name:                            "SCS Install: Default instance type"
+      ansible.builtin.set_fact:
+        instance_type:                 "ASCS"
+      when:                            bom.InstanceType is not defined
+
+    - name:                            "SCS Install: register instance type"
+      ansible.builtin.set_fact:
+        instance_type:  >-
+                                        {%- set _instance_type = 'ASCS' -%}
+                                        {%- if bom.InstanceType == 'JAVA' -%}
+                                        {%- set _instance_type = 'SCS' -%}
+                                        {%- elif bom.InstanceType == 'ABAP' -%}
+                                        {%- set _instance_type = 'ASCS' -%}
+                                        {%- else -%}
+                                        {%- set _instance_type = 'ASCS' -%}
+                                        {%- endif -%}
+                                        {{- _instance_type -}}
+        public:                        true
+      when:                            bom.InstanceType is defined
 
     - name:                            "SCS Install: register variables"
       ansible.builtin.set_fact:
