@@ -43,6 +43,26 @@
     bom_name:                          "{{ bom_base_name }}"
     task_prefix:                       "PAS Install: "
 
+- name:                                "5.6 SCS HA Install: Default instance type"
+  ansible.builtin.set_fact:
+    instance_type:                      "ASCS"
+  when:                                bom.InstanceType is not defined
+
+- name:                                "5.6 SCS HA Install: register instance type"
+  ansible.builtin.set_fact:
+    instance_type:  >-
+                                        {%- set _instance_type = 'ASCS' -%}
+                                        {%- if bom.InstanceType == 'JAVA' -%}
+                                        {%- set _instance_type = 'SCS' -%}
+                                        {%- elif bom.InstanceType == 'ABAP' -%}
+                                        {%- set _instance_type = 'ASCS' -%}
+                                        {%- else -%}
+                                        {%- set _instance_type = 'ASCS' -%}
+                                        {%- endif -%}
+                                        {{- _instance_type -}}
+    public:                            true
+  when:                                bom.InstanceType is defined
+
 - name:                                "PAS Install"
   block:
 
@@ -139,6 +159,8 @@
       when:
         - db_high_availability
         - platform == "HANA"
+      vars:
+        instance_type:               "{{ instance_type }}"
 
     - name:                            "Create temp directory for sid"
       ansible.builtin.file:
