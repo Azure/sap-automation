@@ -52,6 +52,8 @@
     - { group: 'asmdba',    gid: '{{ asmdba_gid }}'    }
     - { group: 'backupdba', gid: '{{ backupdba_gid }}' }
     - { group: 'dgdba',     gid: '{{ dgdba_gid }}'     }
+    - { group: 'kmdba',     gid: '{{ kmdba_gid }}'     }
+    - { group: 'racdba',    gid: '{{ racdba_gid }}'     }
   when:
     - node_tier == "oracle-asm"
 

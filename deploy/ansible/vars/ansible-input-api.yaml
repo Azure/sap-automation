@@ -90,6 +90,8 @@ asmdba_gid:                            3104
 oinstall_gid:                          3105
 backupdba_gid:                         3106
 dgdba_gid:                             3107
+kmdba_gid:                             3108
+racdba_gid:                            3109
 orasid_uid:                            3100
 oracle_uid:                            3101
 hdbshm_gid:                            2002
