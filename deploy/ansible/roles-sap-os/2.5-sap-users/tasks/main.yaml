@@ -50,6 +50,7 @@
     - { group: 'asmoper',    gid: '{{ asmoper_gid }}'  }
     - { group: 'asmadmin',   gid: '{{ asmadmin_gid }}' }
     - { group: 'asmdba',     gid: '{{ asmdba_gid }}'  }
+    - { group: 'backupdba',  gid: '{{ backupdba_gid }}'  }
   when:
     - node_tier == "oracle-asm"
 
