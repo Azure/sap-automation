@@ -45,6 +45,31 @@
     task_prefix:                       "DBLoad: "
     sa_enabled:                        true
 
+- name:                                "DBLoad: Default instance type"
+  ansible.builtin.set_fact:
+    instance_type:                     "ASCS"
+  when:                                bom.InstanceType is not defined
+
+- name:                                "DBLoad: register instance type"
+  ansible.builtin.set_fact:
+    instance_type:  >-
+                                       "{%- set _instance_type = 'ASCS' -%}
+                                        {%- if bom.InstanceType == 'JAVA' -%}
+                                        {%- set _instance_type = 'SCS' -%}
+                                        {%- elif bom.InstanceType == 'ABAP' -%}
+                                        {%- set _instance_type = 'ASCS' -%}
+                                        {%- else -%}
+                                        {%- set _instance_type = 'ASCS' -%}
+                                        {%- endif -%}
+                                        {{- _instance_type -}}"
+    public:                            true
+  when:                                bom.InstanceType is defined
+
+- name:                                "DBLoad: register variables"
+  ansible.builtin.set_fact:
+    dbl_bom_instance_type:             "{% if bom.InstanceType is defined %}{{ bom.InstanceType }}{% else %}ABAP{% endif %}"
+    public:                            true
+
 # *====================================4=======================================8
 #   SAP DBLOAD: Install
 # 2230669 - System Provisioning Using a Parameter Input File
