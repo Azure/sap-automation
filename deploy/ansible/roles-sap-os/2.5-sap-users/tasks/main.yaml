@@ -47,10 +47,11 @@
     gid:                               "{{ item.gid }}"
     state:                             present
   loop:
-    - { group: 'asmoper',    gid: '{{ asmoper_gid }}'  }
-    - { group: 'asmadmin',   gid: '{{ asmadmin_gid }}' }
-    - { group: 'asmdba',     gid: '{{ asmdba_gid }}'  }
-    - { group: 'backupdba',  gid: '{{ backupdba_gid }}'  }
+    - { group: 'asmoper',   gid: '{{ asmoper_gid }}'   }
+    - { group: 'asmadmin',  gid: '{{ asmadmin_gid }}'  }
+    - { group: 'asmdba',    gid: '{{ asmdba_gid }}'    }
+    - { group: 'backupdba', gid: '{{ backupdba_gid }}' }
+    - { group: 'dgdba',     gid: '{{ dgdba_gid }}'     }
   when:
     - node_tier == "oracle-asm"
 
