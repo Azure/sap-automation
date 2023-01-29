@@ -342,6 +342,13 @@
       ansible.builtin.set_fact:
         ensa1:                         "{{ enq_server.stdout_lines | select('search', 'enserver') | length > 0 }}"
 
+    # logic added to identify java based installations
+    - name:                            "SCSERS - Is ENSA1 - JAVA"
+      ansible.builtin.set_fact:
+        ensa1:                         "{{ enq_server.stdout_lines | select('search', 'enrepserver') | length > 0 }}"
+      when:
+        - not ensa1
+
     # enq_server, Enqueue Server 2
     - name:                            "SCSERS - Is ENSA2"
       ansible.builtin.set_fact:
