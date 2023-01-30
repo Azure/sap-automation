@@ -163,11 +163,11 @@
 
     - name:                            "PAS Install: HANA HSR - Update Profile"
       ansible.builtin.import_tasks:    ../../../roles-db/4.0.1-hdb-hsr/tasks/4.0.1.7-sap-profile-changes.yml
+      vars:
+        instance_type:                 "{{ instance_type }}"
       when:
         - db_high_availability
         - platform == "HANA"
-      vars:
-        instance_type:               "{{ instance_type }}"
 
     - name:                            "Create temp directory for sid"
       ansible.builtin.file:
