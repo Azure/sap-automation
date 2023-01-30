@@ -194,12 +194,6 @@
           tags:
             - 1.1-swap
 
-        - name:                        "OS configuration playbook: - Memory Dump"
-          ansible.builtin.include_role:
-            name:                      roles-os/windows/1.2-memory-dump
-          tags:
-            - 1.2-memory-dump
-
         - name:                        "OS configuration playbook: - Configure Disks"
           ansible.builtin.include_role:
             name:                      roles-os/windows/1.5-disk-setup
@@ -222,12 +216,6 @@
 
           tags:
             - 1.11-domain-join
-
-        - name:                        "OS configuration playbook: - Registry Configuration"
-          ansible.builtin.include_role:
-            name:                      roles-os/windows/1.12-registry-config
-          tags:
-            - 1.12-registry-config
 
       when:
         - ansible_os_family == "Windows"
