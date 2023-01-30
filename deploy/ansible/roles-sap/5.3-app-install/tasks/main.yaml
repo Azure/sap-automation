@@ -58,6 +58,10 @@
     task_prefix:                       "APP Install: "
     sa_enabled:                        true
 
+- name:                                "APP Install: register variables"
+  ansible.builtin.set_fact:
+    app_bom_id:                        "{{ bom.product_ids.app }}"
+
 - name:                                "APP Install"
   block:
 
