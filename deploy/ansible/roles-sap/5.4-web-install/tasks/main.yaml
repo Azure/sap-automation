@@ -39,82 +39,80 @@
     path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_web.txt"
   register:                            web_installed
 
-- name:                                "Web Install: Get the SCS Server name list"
-  ansible.builtin.set_fact:
-    scs_server_temp:                   "{{ scs_server_temp | default([]) + [item] }}"
-  with_items:
-    - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') }}"
-    - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
-
-- name:                                "Web Install: Set the SCS Server name"
-  ansible.builtin.set_fact:
-    scs_server:                         "{% if scs_high_availability %}{{ sap_sid | lower }}scs{{ scs_instance_number }}cl1{% else %}{{ scs_server_temp | first }}{% endif %}"
-
-- name:                                "SCS Install: check media exists"
-  ansible.builtin.stat:
-    path:                              "{{ target_media_location }}/SWPM/sapinst"
-  register:                            sapinst_found
-
-- name:                                "ErrorHandling"
-  ansible.builtin.fail:
-    msg:                               "INSTALL:0008:Unable to find sapinst, please check that the installation media is mounted"
-  when: not sapinst_found.stat.exists
-
 # Returns bom object
-
-- name:                                "Web Install: Include 3.3.1-bom-utility role"
+- name:                                "Web Install: Register BoM"
   ansible.builtin.include_role:
     name:                              roles-sap/3.3.1-bom-utility
     tasks_from:                        bom-register
   vars:
     bom_name:                          "{{ bom_base_name }}"
     task_prefix:                       "Web Install: "
-
-- name:                                "Web Install: Include roles-sap/3.3.1-bom-utility role"
-  ansible.builtin.include_role:
-    name:                              roles-sap/3.3.1-bom-utility
-    tasks_from:                        bom-template
-  vars:
-    task_prefix:                       "Web Install: "
-    always_upload_jinja_templates:     false
-    param_directory:                   "{{ dir_params }}"
-    bom_name:                          "{{ bom_base_name }}"
-    sap_cd_package_hdbclient:          "{{ target_media_location }}/CD_HDBCLIENT/SAP_HANA_CLIENT"
-    sap_cd_package_cd1:                "{{ target_media_location }}/CD_EXPORT"
-    sap_cd_package_cd2:
-    sap_cd_package_cd3:
-    sap_cd_package_cd4:
-    sap_cd_package_cd5:
-    web_instance_number:               "00" # "{{ web_instance_number }}"
-    sap_ciInstanceNumber:              "00"
-    sap_profile_dir:                   /sapmnt/{{ sap_sid | upper }}/profile
-    sap_scs_hostname:                  "{{ scs_server }}"
-    sap_webVirtualHostname:            "{{ inventory_hostname }}"
-    sap_installSAPHostAgent:           false
-    hdb_instance_number:               "{{ db_instance_number }}"
-
-  tags:
-    - skip_ansible_lint
-
-- name:                                "Web install: register variables"
-  ansible.builtin.set_fact:
-    web_bom_id:                        "{{ bom.product_ids.web }}"
-
-- name:                                "Web Install: install variables"
-  ansible.builtin.debug:
-    msg:
-      - "INSTALLED:  {{ web_installed.stat.exists }}"
-      - "INIFILE:    {{ sap_inifile }}"
-      - "SID:        {{ web_sid }}"
-      - "SAPSID:     {{ sap_sid }}"
-      - "PRODUCT ID: {{ web_bom_id }}"
-      - "INSTANCE:   {{ web_instance_number }}"
-      - "SCSHOST:    {{ scs_server }}"
-
+    sa_enabled:                        true
 
 - name:                                "Web Install"
   block:
 
+    - name:                            "Web Install: Get the SCS Server name list"
+      ansible.builtin.set_fact:
+        scs_server_temp:               "{{ scs_server_temp | default([]) + [item] }}"
+      with_items:
+        - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') }}"
+        - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
+
+    - name:                            "Web Install: Set the SCS Server name"
+      ansible.builtin.set_fact:
+        scs_server:                     "{% if scs_high_availability %}{{ sap_sid | lower }}scs{{ scs_instance_number }}cl1{% else %}{{ scs_server_temp | first }}{% endif %}"
+
+    - name:                            "SCS Install: check media exists"
+      ansible.builtin.stat:
+        path:                          "{{ target_media_location }}/SWPM/sapinst"
+      register:                        sapinst_found
+
+    - name:                            "ErrorHandling"
+      ansible.builtin.fail:
+        msg:                           "INSTALL:0008:Unable to find sapinst, please check that the installation media is mounted"
+      when: not sapinst_found.stat.exists
+
+    - name:                            "Web Install: Include roles-sap/3.3.1-bom-utility role"
+      ansible.builtin.include_role:
+        name:                          roles-sap/3.3.1-bom-utility
+        tasks_from:                    bom-template
+      vars:
+        task_prefix:                   "Web Install: "
+        always_upload_jinja_templates: false
+        param_directory:               "{{ dir_params }}"
+        bom_name:                      "{{ bom_base_name }}"
+        sap_cd_package_hdbclient:      "{{ target_media_location }}/CD_HDBCLIENT/SAP_HANA_CLIENT"
+        sap_cd_package_cd1:            "{{ target_media_location }}/CD_EXPORT"
+        sap_cd_package_cd2:
+        sap_cd_package_cd3:
+        sap_cd_package_cd4:
+        sap_cd_package_cd5:
+        web_instance_number:           "00" # "{{ web_instance_number }}"
+        sap_ciInstanceNumber:          "00"
+        sap_profile_dir:               /sapmnt/{{ sap_sid | upper }}/profile
+        sap_scs_hostname:              "{{ scs_server }}"
+        sap_webVirtualHostname:        "{{ inventory_hostname }}"
+        sap_installSAPHostAgent:       false
+        hdb_instance_number:           "{{ db_instance_number }}"
+
+      tags:
+        - skip_ansible_lint
+
+    - name:                            "Web install: register variables"
+      ansible.builtin.set_fact:
+        web_bom_id:                    "{{ bom.product_ids.web }}"
+
+    - name:                            "Web Install: install variables"
+      ansible.builtin.debug:
+        msg:
+          - "INSTALLED:  {{ web_installed.stat.exists }}"
+          - "INIFILE:    {{ sap_inifile }}"
+          - "SID:        {{ web_sid }}"
+          - "SAPSID:     {{ sap_sid }}"
+          - "PRODUCT ID: {{ web_bom_id }}"
+          - "INSTANCE:   {{ web_instance_number }}"
+          - "SCSHOST:    {{ scs_server }}"
 # *====================================4=======================================8
 #   SAP Web Dispatcher: Install
 # 2230669 - System Provisioning Using a Parameter Input File

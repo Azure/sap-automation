@@ -300,7 +300,7 @@
   loop:
     - { path: '/usr/sap/{{ sap_sid | upper }}' }
     - { path: '/usr/sap/{{ sap_sid | upper }}/SYS' }
-    - { path: '/usr/sap/{{ sap_sid | upper }}/ASCS{{ scs_instance_number }}' }
+    - { path: '/usr/sap/{{ sap_sid | upper }}/{{ instance_type | upper }}{{ scs_instance_number }}' }
     - { path: '/usr/sap/{{ sap_sid | upper }}/ERS{{ ers_instance_number }}' }
   when:
     - tier == 'sapos'

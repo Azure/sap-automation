@@ -50,16 +50,6 @@
     var:                               scs_installed
     verbosity:                         2
 
-- name:                                "SCS Install: check media exists"
-  ansible.builtin.stat:
-    path:                              "{{ target_media_location }}/SWPM/sapinst"
-  register:                            sapinst_found
-
-- name:                                "ErrorHandling"
-  ansible.builtin.fail:
-    msg:                               "INSTALL:0002:Unable to find sapinst, please check that the installation media is mounted"
-  when: not sapinst_found.stat.exists
-
 - name:                                "SCS Install: Include 3.3.1-bom-utility role"
   ansible.builtin.include_role:
     name:                              roles-sap/3.3.1-bom-utility
@@ -67,50 +57,13 @@
   vars:
     bom_name:                          "{{ bom_base_name }}"
     task_prefix:                       "SCS Install: "
+    sa_enabled:                        true
 
-- name:                                "SCS Install: Include roles-sap/3.3.1-bom-utility role"
-  ansible.builtin.include_role:
-    name:                              roles-sap/3.3.1-bom-utility
-    tasks_from:                        bom-template
-  vars:
-    task_prefix:                       "SCS Install: "
-    always_upload_jinja_templates:     false
-    bom_name:                          "{{ bom_base_name }}"
-    sap_cd_package_cd1:
-    sap_cd_package_cd2:
-    sap_cd_package_cd3:
-    sap_cd_package_cd4:
-    sap_cd_package_cd5:
-    sap_cd_package_hdbclient:
-    sap_ciInstanceNumber:
-    app_instance_number:
-    sap_ciDialogWPNumber:
-    sap_ciBtcWPNumber:
-    sap_installSAPHostAgent:
-    sap_profile_dir:
-    sap_scs_hostname:                  "{{ virtual_host }}"
-    sap_db_hostname:
-    sap_ciVirtualHostname:
-    sap_appVirtualHostname:
-    tier:                              "{{ tier }}"
-    param_directory:                   "{{ dir_params }}"
-    sap_sid:                           "{{ sid_to_be_deployed.sid }}"
-    scs_instance_number:               "{{ sid_to_be_deployed.ascs_inst_no }}"
-    sidadm_uid:                        "{{ sid_to_be_deployed.sidadm_uid }}"
-    hdb_instance_number:               "{{ db_instance_number }}"
-  tags:
-    - skip_ansible_lint
-
-- name:                                "SCS Install: install variables"
-  ansible.builtin.debug:
-    msg:
-      - "INSTALLED:  {{ scs_installed.stat.exists }}"
-      - "INIFILE:    {{ sap_inifile }}"
-      - "PRODUCT ID: {{ bom.product_ids.scs }}"
-      - "INSTANCE:   {{ sid_to_be_deployed.ascs_inst_no }}"
-      - "MEDIA:      {{ target_media_location }}"
-      - "HOST:       {{ virtual_host }}"
-      - "SID:        {{ sid_to_be_deployed.sid | upper }}"
+- name:                                "SCS Install: register variables"
+  ansible.builtin.set_fact:
+    scs_bom_id:                        "{{ bom.product_ids.scs }}"
+    scs_bom_instance_type:             "{% if bom.InstanceType is defined %}{{ bom.InstanceType }}{% else %}ABAP{% endif %}"
+    public:                            true
 
 - name:                                "SCS Install"
   block:
@@ -120,15 +73,90 @@
 # | 2230669 - System Provisioning Using a Parameter Input File                 |
 # *====================================4=======================================8
 
+    - name:                            "SCS Install: check media exists"
+      ansible.builtin.stat:
+        path:                          "{{ target_media_location }}/SWPM/sapinst"
+      register:                        sapinst_found
+
+    - name:                            "ErrorHandling"
+      ansible.builtin.fail:
+        msg:                           "INSTALL:0002:Unable to find sapinst, please check that the installation media is mounted"
+      when: not sapinst_found.stat.exists
+
+    - name:                            "SCS Install: Include roles-sap/3.3.1-bom-utility role"
+      ansible.builtin.include_role:
+        name:                          roles-sap/3.3.1-bom-utility
+        tasks_from:                    bom-template
+      vars:
+        task_prefix:                   "SCS Install: "
+        always_upload_jinja_templates: false
+        bom_name:                      "{{ bom_base_name }}"
+        sap_cd_package_cd1:
+        sap_cd_package_cd2:
+        sap_cd_package_cd3:
+        sap_cd_package_cd4:
+        sap_cd_package_cd5:
+        sap_cd_package_hdbclient:
+        sap_ciInstanceNumber:
+        app_instance_number:
+        sap_ciDialogWPNumber:
+        sap_ciBtcWPNumber:
+        sap_installSAPHostAgent:
+        sap_profile_dir:
+        sap_scs_hostname:              "{{ virtual_host }}"
+        sap_db_hostname:
+        sap_ciVirtualHostname:
+        sap_appVirtualHostname:
+        tier:                          "{{ tier }}"
+        param_directory:               "{{ dir_params }}"
+        sap_sid:                       "{{ sid_to_be_deployed.sid }}"
+        scs_instance_number:           "{{ sid_to_be_deployed.ascs_inst_no }}"
+        sidadm_uid:                    "{{ sid_to_be_deployed.sidadm_uid }}"
+        hdb_instance_number:           "{{ db_instance_number }}"
+      tags:
+        - skip_ansible_lint
+
+    - name:                            "SCS Install: install variables"
+      ansible.builtin.debug:
+        msg:
+          - "INSTALLED:  {{ scs_installed.stat.exists }}"
+          - "INIFILE:    {{ sap_inifile }}"
+          - "PRODUCT ID: {{ bom.product_ids.scs }}"
+          - "INSTANCE:   {{ sid_to_be_deployed.ascs_inst_no }}"
+          - "MEDIA:      {{ target_media_location }}"
+          - "HOST:       {{ virtual_host }}"
+          - "SID:        {{ sid_to_be_deployed.sid | upper }}"
+
+    - name:                            "SCS Install: Default instance type"
+      ansible.builtin.set_fact:
+        instance_type:                 "ASCS"
+      when:                            bom.InstanceType is not defined
+
+    - name:                            "SCS Install: register instance type"
+      ansible.builtin.set_fact:
+        instance_type:  >-
+                                        {%- set _instance_type = 'ASCS' -%}
+                                        {%- if bom.InstanceType == 'JAVA' -%}
+                                        {%- set _instance_type = 'SCS' -%}
+                                        {%- elif bom.InstanceType == 'ABAP' -%}
+                                        {%- set _instance_type = 'ASCS' -%}
+                                        {%- else -%}
+                                        {%- set _instance_type = 'ASCS' -%}
+                                        {%- endif -%}
+                                        {{- _instance_type -}}
+        public:                        true
+      when:                            bom.InstanceType is defined
+
+    - name:                            "SCS Install: register variables"
+      ansible.builtin.set_fact:
+        scs_bom_instance_type:         "{% if bom.InstanceType is defined %}{{ bom.InstanceType }}{% else %}ABAP{% endif %}"
+        public:                        true
+
     - name:                            "Create temp directory for sid"
       ansible.builtin.file:
         path:                          "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
         state:                         directory
         mode:                          0755
-
-    - name:                            "SCS Install: Progress"
-      ansible.builtin.debug:
-        msg:                           "Start SCS Installation"
 
     - name:                            "SCS Install: - comment out required message server prots in /etc/services"
       ansible.builtin.replace:
@@ -136,6 +164,10 @@
         regexp:                        '^([a-z\-]+\s+36{{ scs_instance_number }}/.*)$'
         replace:                       '# \1'
         backup:                        true
+
+    - name:                            "SCS Install: Progress"
+      ansible.builtin.debug:
+        msg:                           "Start SCS Installation"
 
     - name:                            "SCS Install: SAP SCS Install on {{ ansible_hostname }}"
       ansible.builtin.shell: |

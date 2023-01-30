@@ -1,9 +1,7 @@
----
 # -------------------------------------+---------------------------------------8
 #
 # Description:  Dynamic BOM Processing
 #
-
 # - name:                                 "dynamic_bom_processing TROUBLESHOOTING..."
 #   pause:
 #     prompt: "Press enter to continue..."
@@ -105,9 +103,9 @@
       ansible.builtin.set_fact:
         bom:                                "{{ bom_update }}"
       vars:
-        sap_platform_map_lookup:            "{{   sap_platform_map[bom_media_entry.name]
+        sap_platform_map_lookup:            "{{ sap_platform_map[bom_media_entry.name]
                                                 | selectattr('platform', '==', bom_media_entry.platform)
-                                                | first
+                                                | first 
                                             }}"
         sap_search_results:                 "{{
                                                   sap_asset_search.stdout
@@ -137,8 +135,10 @@
                                             {% set _ = bom.materials.media[bom_media_index].update({'url':       item.DownloadDirectLink})                  -%}
                                             {{ bom }}
                                             "
-      loop:                                 "{{ sap_search_results.entry|flatten(levels=1) }}"
+      loop:                                 "{{ sap_search_results.entry | flatten(levels = 1) }}"
       when:                                 sap_platform_map_lookup.number == platformNumber_list[1]
+      tags:
+        - skip_ansible_lint
 # Step: 03-03 - END
 # -------------------------------------+---------------------------------------8
 

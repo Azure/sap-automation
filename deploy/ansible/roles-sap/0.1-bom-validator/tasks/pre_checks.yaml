@@ -115,7 +115,7 @@
 # Step: 03
 # Description:  Informational check of the kv_name parameter.
 #
-- name:                                 "(pre_checks.yaml) - Informational check of the kv_name parameter"
+- name:                                "(pre_checks.yaml) - Informational check of the kv_name parameter"
   ansible.builtin.assert:
     that:
       - "kv_name is defined"                                                    # Has the variable been defined
@@ -130,7 +130,7 @@
 
                                         If this is undesired, please set:
                                         - deployer_kv_name
-  ignore_errors:                        true
+  failed_when:                         false
 # Step: 03 - END
 # -------------------------------------+---------------------------------------8
 
@@ -212,12 +212,18 @@
 # Step: 07-01
 # Description:  Ensure download_directory exists
 #
-    - name:                             "{{ task_prefix }} - Create BOM download directories"
+    - name:                            "{{ task_prefix }} - Create BOM download directories"
       ansible.builtin.file:
-        path:                           "{{ download_directory }}"
-        state:                          directory
-        mode:                           0755
-      delegate_to:                      localhost
+        path:                          "{{ item.path }}"
+        state:                         directory
+        mode:                          '{{ item.mode }}'
+      delegate_to:                     localhost
+      loop:
+        - { mode: '0755', path: '{{ download_directory }}' }
+        - { mode: '0755', path: '{{ download_directory }}/tmp' }
+        - { mode: '0755', path: '{{ download_directory }}/files' }
+
+
 # Step: 07-01 - END
 # -------------------------------------+---------------------------------------8
 
@@ -231,6 +237,7 @@
         content:                        "This is the container with the SAP media"
         mode:                           0644
       register:                         readme_file
+      delegate_to:                      localhost
 # Step: 07-02 - END
 # -------------------------------------+---------------------------------------8
 
@@ -393,7 +400,7 @@
 #   - sapbits_location_base_path
 #   - sapbits_access_key
 #   - sapbits_sas_token
-- name:                                 "(pre_checks.yaml) - Informational check of Storage Account parameters"
+- name:                                "(pre_checks.yaml) - Informational check of Storage Account parameters"
   ansible.builtin.assert:
     that:
       - "sapbits_location_base_path is defined"                                 # Has the variable been defined
@@ -410,7 +417,7 @@
     fail_msg: |-
                                         Storage Account access DISABLED
                                         sa_enabled:       {{ sa_enabled }}
-  ignore_errors:                        true
+  failed_when:                         false
 # Step: 12 - END
 # -------------------------------------+---------------------------------------8
 

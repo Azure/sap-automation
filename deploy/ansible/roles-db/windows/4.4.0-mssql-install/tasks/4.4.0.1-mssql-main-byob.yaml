@@ -11,57 +11,71 @@
 # Data file in a different disk
 ---
 
-- name:                                "WIN-SQL: Create run flag directory"
+- name:                                "WIN-SQL-BYOB: Create run flag directory"
   ansible.windows.win_file:
     path:                              '{{ sap_deployment_automation }}\{{ sap_sid | upper }}'
     state:                             directory
 
-- name:                                "WIN-SQL: check if SQL Server service is started"
+- name:                                "WIN-SQL-BYOB: check if SQL Server service exists"
   ansible.windows.win_service_info:
     name:                              MSSQLServer
   register:                            sql_service
 
-- name:                                "WIN-SQL: SQL4SAP Install || Flag File"
+- name:                                "WIN-SQL-BYOB: SQLBYOB Install || Flag File"
   ansible.windows.win_file:
     path:                              '{{ sap_deployment_automation }}\{{ sap_sid | upper }}\sap_deployment_sqldb.txt'
     state:                             touch
   when:                                sql_service.exists
 
-# - name:                                     "WIN-SQL: Install reset"
-#   ansible.windows.win_file:
-#     path:                                   '{{ target_media_location }}\sap_deployment_automation\{{ sap_sid | upper }}\sap_deployment_sqldb.txt'
-#     state:                                  absent
-#   when: reinstall
-
-- name:                                "WIN-SQL: check if installed"
+- name:                                "WIN-SQL-BYOB: check if installed"
   ansible.windows.win_stat:
     path:                              '{{ sap_deployment_automation }}\{{ sap_sid | upper }}\sap_deployment_sqldb.txt'
   register:                            sql_installed
 
 # +------------------------------------4--------------------------------------*/
-- name:                                "WIN-SQL: check if SQL4SAP is installed"
+- name:                                "WIN-SQL-BYOB: check if SQLBYOB is installed"
   block:
-    - name:                            "WIN-SQL: Install status"
+    - name:                            "WIN-SQL-BYOB: Install status"
       ansible.builtin.debug:
-        msg:                           "WIN-SQL: is already installed"
+        msg:                           "WIN-SQL-BYOB: is already installed"
 
-    - name:                            "WIN-SQL:: - return value"
+    - name:                            "WIN-SQL-BYOB:: - return value"
       ansible.builtin.set_fact:
-        sql4sap_already_installed:     true
+        sqlbyob_already_installed:     true
 
   when:
     - sql_installed.stat.exists
 
 
-- name:                                     "WIN-SQL: Install from Microsoft bits"
+- name:                                     "WIN-SQL-BYOB: Install from Microsoft bits"
   block:
-    - name:                                 "WIN-SQL: Progress"
+    - name:                                 "WIN-SQL-BYOB: Progress"
       ansible.builtin.debug:
-        msg:                                "Start SQL4SAP Installation"
+        msg:                                "Start SQLBYOB Installation"
 
-    - name:                                 "WIN-SQL: Install SQL4SAP on {{ ansible_hostname }}"
-      ansible.windows.win_shell: |
-                                            {{ download_directory_windows }}\{{ mssserver_version }}\SQL4SAP.bat -d
+    - name:                                 "WIN-SQL-BYOB: Install SQLBYOB on {{ ansible_hostname }}"
+      ansible.windows.win_dsc:
+        resource_name:                      xSQLServerSetup
+        InstanceName:                       MSSQLSERVER
+        SourcePath:                         '{{ download_directory_windows }}\{{ mssserver_version }}'
+        Features:                           SQLENGINE,FULLTEXT,CONN,BC
+        SQLCollation:                       SQL_Latin1_General_CP850_BIN2
+        SQLSvcAccount:                      '{{ domain }}\{{ sap_sid }}adm'
+        SQLSysAdminAccounts:                '{{ domain }}\{{ sap_sid }}adm'
+        SAPwd:                              "{{ sapadm_password }}"
+        InstallSharedDir:                   '{{ sap_deployment_automation }}\{{ sap_sid | upper }}\SQLBYOB'
+        InstallSharedWOWDir:                '{{ sap_deployment_automation }}\{{ sap_sid | upper }}\SQLBYOB'
+        InstallSQLDataDir:                  '{{ sap_deployment_automation }}\{{ sap_sid | upper }}\SQLBYOB'
+        InstallSQLLogDir:                   '{{ sap_deployment_automation }}\{{ sap_sid | upper }}\SQLBYOB'
+        InstallSQLTempDBDir:                '{{ sap_deployment_automation }}\{{ sap_sid | upper }}\SQLBYOB'
+        InstallSQLUserDBDir:                '{{ sap_deployment_automation }}\{{ sap_sid | upper }}\SQLBYOB'
+        InstallSQLBackupDir:                '{{ sap_deployment_automation }}\{{ sap_sid | upper }}\SQLBYOB'
+        SecurityMode:                       SQL
+        UpdateEnabled:                      False
+        ForceReboot:                        False
+        Action:                             Install
+        PsDscRunAsCredential_username:      '{{ domain }}\{{ sap_sid }}adm'
+        PsDscRunAsCredential_password:      "{{ domain_user_password }}"
       args:
         creates:                            '{{ sap_deployment_automation }}\{{ sap_sid | upper }}\sap_deployment_sqldb.txt'
       vars:
@@ -72,46 +86,46 @@
       register:                             sql_install_output
       failed_when:                          sql_install_output.rc != 0
 
-    - name:                                 "WIN-SQL: Installation results"
+    - name:                                 "WIN-SQL-BYOB: Installation results"
       ansible.builtin.debug:
-        msg:                                "SQL4SAP Installation succeeded"
+        msg:                                "SQLBYOB Installation succeeded"
       changed_when:                         true
       when:
         - sql_install_output.rc is defined
         - sql_install_output.rc == 0
         - sql_install_output.stdout | length > 0
         - sql_install_output.stdout is search("Execution successful")
-      notify:                               "WIN-SQL: Restart SQL Server VM"
+      notify:                               "WIN-SQL-BYOB: Restart SQL Server VM"
 
     - name:                                 "Force all notified handlers to run now"
       ansible.builtin.meta:                                 flush_handlers
 
-    - name:                                 "WIN-SQL: Installation results"
+    - name:                                 "WIN-SQL-BYOB: Installation results"
       ansible.builtin.debug:
-        msg:                                "WIN-SQL: A reboot is pending. We will restart the machine, so please start SQL4SAP installation again."
+        msg:                                "WIN-SQL-BYOB: A reboot is pending. We will restart the machine, so please start SQLBYOB installation again."
       changed_when:                         true
       when:
         - sql_install_output.rc is defined
         - sql_install_output.rc == 0
         - sql_install_output.stdout | length > 0
         - sql_install_output.stdout is search("A reboot is pending.")
-      notify:                               "WIN-SQL: Restart SQL Server VM"
+      notify:                               "WIN-SQL-BYOB: Restart SQL Server VM"
 
     - name:                                 "Force all notified handlers to run now"
       ansible.builtin.meta:                                 flush_handlers
 
-    - name:                                 "WIN-SQL: Installation results"
+    - name:                                 "WIN-SQL-BYOB: Installation results"
       ansible.builtin.debug:
         msg:
-          - "SQL4SAP Installation failed, another installation might be already exist"
-          - "SQL4SAP output: {{ sql_install_output }}"
+          - "SQLBYOB Installation failed, another installation might be already exist"
+          - "SQLBYOB output: {{ sql_install_output }}"
       when:
         - sql_install_output.rc is defined
         - sql_install_output.rc == 0
         - sql_install_output.stdout | length > 0
         - sql_install_output.stdout is search("Error during execution")
 
-    - name:                                 "WIN-SQL: SQL4SAP Install || Flag File"
+    - name:                                 "WIN-SQL-BYOB: SQLBYOB Install || Flag File"
       ansible.windows.win_file:
         path:                               '{{ sap_deployment_automation }}\{{ sap_sid | upper }}\sap_deployment_sqldb.txt'
         state:                              touch
@@ -123,12 +137,12 @@
     - not sql_installed.stat.exists
     - use_sql_for_SAP
 
-- name:                                     "WIN-SQL: Install from Microsoft "
+- name:                                     "WIN-SQL-BYOB: Install from Microsoft "
   block:
 
-    - name:                                 "WIN-SQL: Install SQL4SAP on {{ ansible_hostname }}"
+    - name:                                 "WIN-SQL-BYOB: Install SQLBYOB on {{ ansible_hostname }}"
       ansible.windows.win_shell: |
-                                            {{ download_directory_windows }}\{{ mssserver_version }}\SQL4SAP.bat -d
+                                            {{ download_directory_windows }}\{{ mssserver_version }}\SQLBYOB.bat -d
       args:
         creates:                            '{{ sap_deployment_automation }}\{{ sap_sid | upper }}\sap_deployment_sqldb.txt'
       vars:
@@ -139,46 +153,46 @@
       register:                             sql_install_output
       failed_when:                          sql_install_output.rc != 0
 
-    - name:                                 "WIN-SQL: Installation results"
+    - name:                                 "WIN-SQL-BYOB: Installation results"
       ansible.builtin.debug:
-        msg:                                "SQL4SAP Installation succeeded"
+        msg:                                "SQLBYOB Installation succeeded"
       changed_when:                         true
       when:
         - sql_install_output.rc is defined
         - sql_install_output.rc == 0
         - sql_install_output.stdout | length > 0
         - sql_install_output.stdout is search("Execution successful")
-      notify:                               "WIN-SQL: Restart SQL Server VM"
+      notify:                               "WIN-SQL-BYOB: Restart SQL Server VM"
 
     - name:                                 "Force all notified handlers to run now"
       ansible.builtin.meta:                                 flush_handlers
 
-    - name:                                 "WIN-SQL: Installation results"
+    - name:                                 "WIN-SQL-BYOB: Installation results"
       ansible.builtin.debug:
-        msg:                                "WIN-SQL: A reboot is pending. We will restart the machine, so please start SQL4SAP installation again."
+        msg:                                "WIN-SQL-BYOB: A reboot is pending. We will restart the machine, so please start SQLBYOB installation again."
       changed_when:                         true
       when:
         - sql_install_output.rc is defined
         - sql_install_output.rc == 0
         - sql_install_output.stdout | length > 0
         - sql_install_output.stdout is search("A reboot is pending.")
-      notify:                               "WIN-SQL: Restart SQL Server VM"
+      notify:                               "WIN-SQL-BYOB: Restart SQL Server VM"
 
     - name:                                 "Force all notified handlers to run now"
       ansible.builtin.meta:                                 flush_handlers
 
-    - name:                                 "WIN-SQL: Installation results"
+    - name:                                 "WIN-SQL-BYOB: Installation results"
       ansible.builtin.debug:
         msg:
-          - "SQL4SAP Installation failed, another installation might be already exist"
-          - "SQL4SAP output: {{ sql_install_output }}"
+          - "SQLBYOB Installation failed, another installation might be already exist"
+          - "SQLBYOB output: {{ sql_install_output }}"
       when:
         - sql_install_output.rc is defined
         - sql_install_output.rc == 0
         - sql_install_output.stdout | length > 0
         - sql_install_output.stdout is search("Error during execution")
 
-    - name:                                 "WIN-SQL: SQL4SAP Install || Flag File"
+    - name:                                 "WIN-SQL-BYOB: SQLBYOB Install || Flag File"
       ansible.windows.win_file:
         path:                               '{{ sap_deployment_automation }}\{{ sap_sid | upper }}\sap_deployment_sqldb.txt'
         state:                              touch

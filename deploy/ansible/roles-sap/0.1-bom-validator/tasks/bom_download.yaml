@@ -101,7 +101,7 @@
 
                                         Skipping download...
                                         proceed:  {{ proceed }}
-  ignore_errors:                        true
+  failed_when:                          false
 # Step: 04 - END
 # -------------------------------------+---------------------------------------8
 
@@ -291,6 +291,8 @@
                 - fs_check is defined
                 - create_checksums is defined
                 - bom_file is defined
+              tags:
+              - skip_ansible_lint
 # Step: 05-03-02-01 - END
 # -------------------------------------+---------------------------------------8
 
@@ -313,7 +315,7 @@
 # -------------------------------------+---------------------------------------8
 
           when:
-            - bom_media_entry.checksum|bool is not true
+            - bom_media_entry.checksum | bool is not true
 # Step: 05-03-02 - END
 # -------------------------------------+---------------------------------------8
 
@@ -332,12 +334,11 @@
               ansible.builtin.set_fact:
                 bom:                                "{{ bom_update }}"
               vars:
-                bom_update:                         "
-                                                    {#-  -#}
-                                                    {% set _ = bom.materials.media[bom_media_index].update({'checksum':  fs_check.stat.checksum})                                   -%}
-                                                    {{ bom }}
-                                                    "
-# Step: 05-03-03-01 - END
+                bom_update:                         "{#- -#}{% set _ = bom.materials.media[bom_media_index].update({'checksum': fs_check.stat.checksum}) -%} {{ bom }}"
+              tags:
+               - skip_ansible_lint
+        # Step: 05-03-03-01 - END
+
 # -------------------------------------+---------------------------------------8
 
 # -------------------------------------+---------------------------------------8
@@ -352,14 +353,14 @@
 # -------------------------------------+---------------------------------------8
 
           when:
-            - bom_media_entry.checksum|bool
+            - bom_media_entry.checksum | bool
 # Step: 05-03-03 - END
 # -------------------------------------+---------------------------------------8
 
       when:
         # - bom_media_entry.checksum is not defined
         # - create_checksums is defined
-        - (bom_media_entry.checksum|bool) or (bom_media_entry.checksum is not defined and create_checksums is defined)
+        - (bom_media_entry.checksum | bool) or (bom_media_entry.checksum is not defined and create_checksums is defined)
 # Step: 05-03 - END
 # -------------------------------------+---------------------------------------8
 

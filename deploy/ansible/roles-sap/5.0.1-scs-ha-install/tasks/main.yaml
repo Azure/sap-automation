@@ -12,7 +12,7 @@
   ansible.builtin.set_fact:
     sap_inifile:                        "{{ bom_base_name }}-scsha-{{ ansible_hostname }}.params"
     sap_inifile_template:               "{{ bom_base_name }}-scsha-inifile-param.j2"
-    dir_params:                         "{{ tmp_directory }}/.{{ sap_sid | lower }}-params"
+    dir_params:                         "{{ tmp_directory }}/.{{ sid_to_be_deployed.sid | lower }}-params"
 
 #   0x) Create hidden directory for parameter files
 - name:                                "SCS HA Install: Create directories"
@@ -23,32 +23,21 @@
   loop:
     - { mode: '0755', path: '{{ dir_params }}' }
     - { mode: '0755', path: '{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}' }
-    - { mode: '0755', path: '/etc/sap_deployment_automation/{{ sap_sid | upper }}' }
+    - { mode: '0755', path: '/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}' }
 
 - name:                                "SCS HA Install: reset"
   ansible.builtin.file:
-    path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_scs.txt"
+    path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_scs.txt"
     state:                             absent
   when:                                reinstall
 
 - name:                                "SCS HA Install: check if installed"
   ansible.builtin.stat:
-    path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_scs.txt"
+    path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_scs.txt"
   register:                            scs_installed
   when:                                node_tier == 'scs'
 
-- name:                                "SCS Install: check media exists"
-  ansible.builtin.stat:
-    path:                              "{{ target_media_location }}/SWPM/sapinst"
-  register:                            sapinst_found
-
-- name:                                "ErrorHandling"
-  ansible.builtin.fail:
-    msg:                               "INSTALL:0003:Unable to find sapinst, please check that the installation media is mounted"
-  when: not sapinst_found.stat.exists
-
-
-# Returns bom object
+    # Returns bom object
 - name:                                "SCS HA Install: Register BoM"
   ansible.builtin.include_role:
     name:                              roles-sap/3.3.1-bom-utility
@@ -56,49 +45,61 @@
   vars:
     bom_name:                          "{{ bom_base_name }}"
     task_prefix:                       "SCS HA Install: "
+    sa_enabled:                        true
 
-- name:                                "SCS HA Install: Register BoM templates"
-  ansible.builtin.include_role:
-    name:                              roles-sap/3.3.1-bom-utility
-    tasks_from:                        bom-template
-  vars:
-    task_prefix:                       "SCS HA Install: "
-    always_upload_jinja_templates:     false
-    bom_name:                          "{{ bom_base_name }}"
-    sap_cd_package_cd1:
-    sap_cd_package_cd2:
-    sap_cd_package_cd3:
-    sap_cd_package_cd4:
-    sap_cd_package_cd5:
-    sap_cd_package_hdbclient:
-    sap_ciInstanceNumber:
-    app_instance_number:
-    sap_ciDialogWPNumber:
-    sap_ciBtcWPNumber:
-    sap_installSAPHostAgent:
-    sap_profile_dir:
-    sap_scs_hostname:                  "{{ scs_virtual_hostname }}" # "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') | first }}"
-    sap_db_hostname:
-    sap_ciVirtualHostname:
-    sap_appVirtualHostname:
-    param_directory:                   "{{ dir_params }}"
-    hdb_instance_number:               "{{ db_instance_number }}"
-  tags:
-    - skip_ansible_lint
-
-
-- name:                                "SCS HA Install: check if installed"
-  ansible.builtin.debug:
-    msg:                               "SCS HA Install flag: {{ scs_installed }}"
-    verbosity:                         2
 
 - name:                                "SCS HA Install: register variables"
   ansible.builtin.set_fact:
     scs_bom_id:                        "{{ bom.product_ids.scs_ha }}"
+    scs_bom_instance_type:             "{% if bom.InstanceType is defined %}{{ bom.InstanceType }}{% else %}ABAP{% endif %}"
     public:                            true
 
 - name:                                "SCS HA Install"
   block:
+
+    - name:                            "SCS Install: check media exists"
+      ansible.builtin.stat:
+        path:                          "{{ target_media_location }}/SWPM/sapinst"
+      register:                        sapinst_found
+
+    - name:                            "ErrorHandling"
+      ansible.builtin.fail:
+        msg:                           "INSTALL:0003:Unable to find sapinst, please check that the installation media is mounted"
+      when: not sapinst_found.stat.exists
+
+    - name:                            "SCS HA Install: Register BoM templates"
+      ansible.builtin.include_role:
+        name:                          roles-sap/3.3.1-bom-utility
+        tasks_from:                    bom-template
+      vars:
+        task_prefix:                   "SCS HA Install: "
+        always_upload_jinja_templates: false
+        bom_name:                      "{{ bom_base_name }}"
+        sap_cd_package_cd1:
+        sap_cd_package_cd2:
+        sap_cd_package_cd3:
+        sap_cd_package_cd4:
+        sap_cd_package_cd5:
+        sap_cd_package_hdbclient:
+        sap_ciInstanceNumber:
+        app_instance_number:
+        sap_ciDialogWPNumber:
+        sap_ciBtcWPNumber:
+        sap_installSAPHostAgent:
+        sap_profile_dir:
+        sap_scs_hostname:              "{{ scs_virtual_hostname }}" # "{{ query('inventory_hostnames', '{{ sid_to_be_deployed.sid | upper }}_SCS') | first }}"
+        sap_db_hostname:
+        sap_ciVirtualHostname:
+        sap_appVirtualHostname:
+        param_directory:               "{{ dir_params }}"
+        hdb_instance_number:           "{{ db_instance_number }}"
+      tags:
+        - skip_ansible_lint
+
+    - name:                            "SCS HA Install: check if installed"
+      ansible.builtin.debug:
+        msg:                           "SCS HA Install flag: {{ scs_installed }}"
+        verbosity:                     2
 
     - name:                            "SCS HA Install: install variables"
       ansible.builtin.debug:
@@ -111,26 +112,50 @@
     - name:                            "SCS HA Install: - SCS - Assign ownership"
       ansible.builtin.file:
         path:                          "{{ item.path }}"
-        owner:                         "{{ sap_sid | lower }}adm"
+        owner:                         "{{ sid_to_be_deployed.sid | lower }}adm"
         group:                         sapsys
         recurse:                       true
         state:                         directory
       loop:
-        - { path: '/sapmnt/{{ sap_sid | upper }}' }
-        - { path: '/usr/sap/{{ sap_sid | upper }}/SYS' }
-        - { path: '/usr/sap/{{ sap_sid | upper }}/ASCS{{ scs_instance_number }}' }
+        - { path: '/sapmnt/{{ sid_to_be_deployed.sid | upper }}' }
+        - { path: '/usr/sap/{{ sid_to_be_deployed.sid | upper }}/SYS' }
+        - { path: '/usr/sap/{{ sid_to_be_deployed.sid | upper }}/{{ instance_type }}{{ scs_instance_number }}' }
 
-    - name:                            "SCS HA Install: - SCS - comment out required message server prots in /etc/services"
+    - name:                            "SCS HA Install: - SCS - comment out required message server ports in /etc/services"
       ansible.builtin.replace:
         path:                          /etc/services
         regexp:                        '^([a-z\-]+\s+36{{ scs_instance_number }}/.*)$'
         replace:                       '# \1'
         backup:                        true
 
-# *====================================4=======================================8
-# |  SAP SCS: Install                                                          |
-# | 2230669 - System Provisioning Using a Parameter Input File                 |
-# *====================================4=======================================8
+    - name:                            "SCS HA Install: - SCS - comment out required message server ports in /etc/services for JAVA"
+      ansible.builtin.replace:
+        path:                          /etc/services
+        regexp:                        '^([a-z\-]+\s+39{{ scs_instance_number }}/.*)$'
+        replace:                       '# \1'
+        backup:                        true
+      when:                            instance_type=='SCS'
+
+    - name:                            "SCS HA Install: SCS Second port for JAVA"
+      ansible.builtin.set_fact:
+        second_port:                   "{{ scs_instance_number | int }}"
+
+    - name:                            "SCS HA Install: SCS Second port for JAVA"
+      ansible.builtin.set_fact:
+        second_port_str:               '{{ "%02d" | format(((second_port | int) + 1)) }}'
+
+    - name:                            "SCS HA Install: - SCS - comment out required message server ports in /etc/services for JAVA"
+      ansible.builtin.replace:
+        path:                          /etc/services
+        regexp:                        '^([a-z\-]+\s+39{{ second_port_str }}/.*)$'
+        replace:                       '# \1'
+        backup:                        true
+      when:                            instance_type=='SCS'
+
+    # *====================================4=======================================8
+    # |  SAP SCS: Install                                                          |
+    # | 2230669 - System Provisioning Using a Parameter Input File                 |
+    # *====================================4=======================================8
 
     - name:                            "Create temp directory for sid"
       ansible.builtin.file:
@@ -140,7 +165,7 @@
 
     - name:                            "SCS HA Installation"
       ansible.builtin.debug:
-        msg:                           "Starting sapinst for {{ sap_sid | upper }}. Please wait"
+        msg:                           "Starting sapinst for {{ sid_to_be_deployed.sid | upper }}. Please wait"
 
     - name:                            "SCS HA Installation"
       block:
@@ -154,9 +179,9 @@
                                                  SAPINST_USE_HOSTNAME={{ scs_virtual_hostname }}
           args:
             chdir:                     "{{ target_media_location }}/SWPM"
-            creates:                   "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_scs.txt"
+            creates:                   "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_scs.txt"
           environment:
-            SAPSYSTEMNAME:             "{{ sap_sid | upper }}"
+            SAPSYSTEMNAME:             "{{ sid_to_be_deployed.sid | upper }}"
             TMPDIR:                    "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
           register:                    scs_installation
           failed_when:                 scs_installation.rc > 0
@@ -169,13 +194,13 @@
         # actions based on them
         - name:                        "RESCUE - SCS HA Install: Check '/usr/sap/<SAPSID>/SYS/exe/uc/linuxx86_64' exists"
           ansible.builtin.stat:
-            path:                      '/usr/sap/{{ sap_sid | upper }}/SYS/exe/uc/linuxx86_64'
+            path:                      '/usr/sap/{{ sid_to_be_deployed.sid | upper }}/SYS/exe/uc/linuxx86_64'
           register:                    stat_sys_exe_uc
           when:                        node_tier == 'scs'
 
         - name:                        "RESCUE - SCS HA Install: Check '/usr/sap/<SAPSID>/SYS/exe/uc/linuxx86_64' is empty"
           ansible.builtin.find:
-            path:                      '/usr/sap/{{ sap_sid | upper }}/SYS/exe/uc/linuxx86_64'
+            path:                      '/usr/sap/{{ sid_to_be_deployed.sid | upper }}/SYS/exe/uc/linuxx86_64'
             patterns:                  "*"
             file_type:                 directory
           register:                    find_sys_exe_uc_result
@@ -191,9 +216,9 @@
             var:                       scs_installation
           when:                        scs_installation is defined
 
-        - name:                        "RESCUE - SCS HA Install: Cleanup '/usr/sap/{{ sap_sid | upper }}/SYS/exe/uc/linuxx86_64'"
+        - name:                        "RESCUE - SCS HA Install: Cleanup '/usr/sap/{{ sid_to_be_deployed.sid | upper }}/SYS/exe/uc/linuxx86_64'"
           ansible.builtin.file:
-            path:                      "/usr/sap/{{ sap_sid | upper }}/SYS/exe/uc/linuxx86_64"
+            path:                      "/usr/sap/{{ sid_to_be_deployed.sid | upper }}/SYS/exe/uc/linuxx86_64"
             state:                     absent
           when:
             - node_tier == 'scs'
@@ -203,14 +228,14 @@
         - name:                        "RESCUE - SCS HA Install: - SCS - Assign ownership"
           ansible.builtin.file:
             path:                      "{{ item.path }}"
-            owner:                     "{{ sap_sid | lower }}adm"
+            owner:                     "{{ sid_to_be_deployed.sid | lower }}adm"
             group:                     sapsys
             recurse:                   true
             state:                     directory
           loop:
-            - { path: '/sapmnt/{{ sap_sid | upper }}' }
-            - { path: '/usr/sap/{{ sap_sid | upper }}/SYS' }
-            - { path: '/usr/sap/{{ sap_sid | upper }}/ASCS{{ scs_instance_number }}' }
+            - { path: '/sapmnt/{{ sid_to_be_deployed.sid | upper }}' }
+            - { path: '/usr/sap/{{ sid_to_be_deployed.sid | upper }}/SYS' }
+            - { path: '/usr/sap/{{ sid_to_be_deployed.sid | upper }}/{{ instance_type }}{{ scs_instance_number }}' }
           when:                        node_tier == 'scs'
 
         # Add IS_HOST_LOCAL_USING_STRING_COMPARE=true to fix The host with the
@@ -232,24 +257,41 @@
                                                  IS_HOST_LOCAL_USING_STRING_COMPARE=true
           args:
             chdir:                     "{{ target_media_location }}/SWPM"
-            creates:                   "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_scs.txt"
+            creates:                   "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_scs.txt"
           environment:
-            SAPSYSTEMNAME:             "{{ sap_sid | upper }}"
+            SAPSYSTEMNAME:             "{{ sid_to_be_deployed.sid | upper }}"
             TMPDIR:                    "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
           register:                    scs_installation
-          failed_when:                 scs_installation.rc > 0
+          failed_when:                 false
           tags:
             - skip_ansible_lint
           when:                        node_tier == 'scs'
 
     - name:                            "SCS HA Install: Installation results"
-      ansible.builtin.debug:
-        var:                           scs_installation
+      block:
+        - name:                        "SCS HA Install: Installation results (debug)"
+          ansible.builtin.debug:
+            var:                       scs_installation
+            verbosity:                 2
+
+        - name:                        "SCS HA Install: Save installation results"
+          ansible.builtin.set_fact:
+            scs_installation_succeeded: false
+
+        - name:                        "SCS HA Install: Installation results"
+          ansible.builtin.fail:
+            msg:                       SCS HA installation failed"
+
       when:                            scs_installation.rc > 0
 
     - name:                            "SCS HA Install: Installation results"
       ansible.builtin.debug:
         msg:                           "SCS HA Installation succeeded"
+      when:                            scs_installation.rc == 0
+
+    - name:                            "SCS HA Install: Save installation results"
+      ansible.builtin.set_fact:
+        scs_installation_succeeded:    true
       when:                            scs_installation.rc == 0
 
     - name:                            "SCS HA Install: Cleanup ini file {{ ansible_hostname }}"
@@ -259,7 +301,7 @@
 
     - name:                            "SCS HA Install: flag"
       ansible.builtin.file:
-        path:                          "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_scs.txt"
+        path:                          "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_scs.txt"
         state:                         touch
         mode:                          0755
 
@@ -284,13 +326,13 @@
 - name:                                "SCSERS - Enqueue Server Setup"
   block:
     - name:                            "SCSERS - Get the variable to determine ENSA version"
-      become_user:                     "{{ sap_sid | lower }}adm"
+      become_user:                     "{{ sid_to_be_deployed.sid | lower }}adm"
       ansible.builtin.shell:           "{{ sapcontrolscs_command }} -host {{ scs_virtual_hostname }} -function GetProcessList"
       environment:
-        PATH:                          /usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/usr/sap/{{ sap_sid | upper }}/SYS/exe/uc/linuxx86_64:/usr/sap/{{ sap_sid | upper }}/SYS/exe/run:/home/{{ sap_sid | lower }}adm
-        DIR_LIBRARY:                   /usr/sap/{{ sap_sid | upper }}/SYS/exe/run
-        LD_LIBRARY_PATH:               /usr/sap/{{ sap_sid | upper }}/SYS/exe/run:/usr/sap/{ sap_sid | upper }}/SYS/exe/uc/linuxx86_64
-        SAPSYSTEMNAME:                 "{{ sap_sid | upper }}"
+        PATH:                          /usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/usr/sap/{{ sid_to_be_deployed.sid | upper }}/SYS/exe/uc/linuxx86_64:/usr/sap/{{ sid_to_be_deployed.sid | upper }}/SYS/exe/run:/home/{{ sid_to_be_deployed.sid | lower }}adm
+        DIR_LIBRARY:                   /usr/sap/{{ sid_to_be_deployed.sid | upper }}/SYS/exe/run
+        LD_LIBRARY_PATH:               /usr/sap/{{ sid_to_be_deployed.sid | upper }}/SYS/exe/run:/usr/sap/{ sid_to_be_deployed.sid | upper }}/SYS/exe/uc/linuxx86_64
+        SAPSYSTEMNAME:                 "{{ sid_to_be_deployed.sid | upper }}"
       register:                        enq_server
       failed_when:                     enq_server.rc > 3
       changed_when:                    false
@@ -299,6 +341,13 @@
     - name:                            "SCSERS - Is ENSA1"
       ansible.builtin.set_fact:
         ensa1:                         "{{ enq_server.stdout_lines | select('search', 'enserver') | length > 0 }}"
+
+    # logic added to identify java based installations
+    - name:                            "SCSERS - Is ENSA1 - JAVA"
+      ansible.builtin.set_fact:
+        ensa1:                         "{{ enq_server.stdout_lines | select('search', 'enrepserver') | length > 0 }}"
+      when:
+        - not ensa1
 
     # enq_server, Enqueue Server 2
     - name:                            "SCSERS - Is ENSA2"
@@ -312,6 +361,7 @@
           - "{{ ensa2 }}"
   when:
     - inventory_hostname == primary_instance_name
+    - scs_installed.stat.exists
 
 ...
 # /*---------------------------------------------------------------------------8

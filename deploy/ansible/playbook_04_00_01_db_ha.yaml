@@ -131,7 +131,7 @@
     - name:                            "Oracle Data Guard Setup"
       when:
         - db_high_availability
-        - platform == 'ORACLE'
+        - platform in ['ORACLE', 'ORACLE-ASM']
       become:                          true
       block:
         - name:                        Setting the DB facts
@@ -160,7 +160,7 @@
     - name:                            "Oracle Data Guard Setup"
       when:
         - db_high_availability
-        - platform == 'ORACLE'
+        - platform in ['ORACLE', 'ORACLE-ASM']
       become:                          true
       block:
         - name:                        Setting the DB facts
@@ -196,7 +196,7 @@
     - name:                            "Oracle Data Guard Setup"
       when:
         - db_high_availability
-        - platform == 'ORACLE'
+        - platform in ['ORACLE', 'ORACLE-ASM']
       become:                          true
       block:
         - name:                        Setting the DB facts

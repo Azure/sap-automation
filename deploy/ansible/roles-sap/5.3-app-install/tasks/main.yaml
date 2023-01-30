@@ -7,11 +7,25 @@
 # +------------------------------------4--------------------------------------*/
 
 ---
+- name:                                "APP Install: Set the SCS Server name list"
+  ansible.builtin.set_fact:
+    scs_server_temp:                   "{{ scs_server_temp | default([]) + [item] }}"
+  with_items:
+    - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') }}"
+    - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
+
+- name:                                "APP Install: -  Set the DB Server name list"
+  ansible.builtin.set_fact:
+    db_server_temp:                    "{{ db_server_temp | default([]) + [item] }}"
+  with_items:
+    - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
+
 - name:                                "APP Install: Set BOM facts"
   ansible.builtin.set_fact:
     sap_inifile:                       "{{ bom_base_name }}-app-{{ sid_to_be_deployed.sid }}-{{ ansible_hostname }}.params"
     sap_inifile_template:              "{{ bom_base_name }}-app-inifile-param.j2"
     dir_params:                        "{{ tmp_directory }}/.{{ sid_to_be_deployed.sid | upper }}-params"
+    db_lb_virtual_host:                "{% if db_high_availability %}{{ sid_to_be_deployed.sid | lower }}{{ db_sid | lower }}db{{ db_instance_number }}cl{% else %}{{ hostvars[db_server_temp | first]['virtual_host'] }}{% endif %}"
 
 - name:                                "APP Install: -  Create directories"
   ansible.builtin.file:
@@ -34,90 +48,19 @@
     path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_app.txt"
   register:                            app_installed
 
-- name:                                "APP Install: Set the SCS Server name list"
-  ansible.builtin.set_fact:
-    scs_server_temp:                   "{{ scs_server_temp | default([]) + [item] }}"
-  with_items:
-    - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') }}"
-    - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
-
-- name:                                "PAS Install: -  Set the DB Server name list"
-  ansible.builtin.set_fact:
-    db_server_temp:                    "{{ db_server_temp | default([]) + [item] }}"
-  with_items:
-    - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
-
-- name:                                "APP Install: Set the SCS Server name"
-  ansible.builtin.set_fact:
-    scs_server:                        "{% if scs_high_availability %}{{ sid_to_be_deployed.sid | lower }}scs{{ scs_instance_number }}cl1{% else %}{{ hostvars[scs_server_temp | first]['virtual_host'] }}{% endif %}"
-    db_virtual_host:                   "{{ hostvars[db_server_temp | first]['virtual_host'] }}"
-    file_path:                         "{% if scs_high_availability %}INSTALL/HA/ABAP/APPX{% else %}INSTALL/DISTRIBUTED/ABAP/APPS{% endif %}"
-    db_lb_virtual_host:                "{% if db_high_availability %}{{ sid_to_be_deployed.sid | lower }}{{ db_sid | lower }}db{{ db_instance_number }}cl{% else %}{{ hostvars[db_server_temp | first]['virtual_host'] }}{% endif %}"
-
-- name:                                "SCS Install: check media exists"
-  ansible.builtin.stat:
-    path:                              "{{ target_media_location }}/SWPM/sapinst"
-  register:                            sapinst_found
-
-- name:                                "ErrorHandling"
-  ansible.builtin.fail:
-    msg:                               "INSTALL:0007:Unable to find sapinst, please check that the installation media is mounted"
-  when: not sapinst_found.stat.exists
-
-- name:                                "APP Install: Include 3.3.1-bom-utility role"
+# Returns bom object
+- name:                                "APP Install: Register BoM"
   ansible.builtin.include_role:
     name:                              roles-sap/3.3.1-bom-utility
     tasks_from:                        bom-register
   vars:
     bom_name:                          "{{ bom_base_name }}"
     task_prefix:                       "APP Install: "
+    sa_enabled:                        true
 
-- name:                                "APP Install: Include roles-sap/3.3.1-bom-utility role"
-  ansible.builtin.include_role:
-    name:                              roles-sap/3.3.1-bom-utility
-    tasks_from:                        bom-template
-  vars:
-    task_prefix:                       "APP Install: "
-    always_upload_jinja_templates:     false
-    bom_name:                          "{{ bom_base_name }}"
-    sap_cd_package_hdbclient:          "{{ target_media_location }}/CD_HDBCLIENT/SAP_HANA_CLIENT"
-    sap_cd_package_cd1:                "{{ target_media_location }}/CD_EXPORT"
-    sap_cd_package_cd2:
-    sap_cd_package_cd3:
-    sap_cd_package_cd4:
-    sap_cd_package_cd5:
-    sap_ciInstanceNumber:             "{{ scs_instance_number }}"
-    app_instance_number:
-    sap_ciDialogWPNumber:              12
-    sap_ciBtcWPNumber:                 8
-    sap_installSAPHostAgent:           "false"
-    sap_profile_dir:                   /sapmnt/{{ sid_to_be_deployed.sid | upper }}/profile
-    sap_scs_hostname:                  "{{ scs_server }}"
-    sap_db_hostname:                   "{{ db_lb_virtual_host }}"
-    sap_ciVirtualHostname:             "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_APP') | first }}"
-    sap_appVirtualHostname:            "{{ virtual_host }}"
-    param_directory:                   "{{ dir_params }}"
-    sap_sid:                           "{{ sid_to_be_deployed.sid }}"
-    sidadm_uid:                        "{{ sid_to_be_deployed.sidadm_uid }}"
-    virt_do_not_resolve_hostname:      "{{ db_lb_virtual_host }}"
-    # support older app inifile templates where hdb_instance_number was used
-    hdb_instance_number:               "{{ db_instance_number }}"
-  tags:
-    - skip_ansible_lint
-
-- name:                                "App install: register variables"
+- name:                                "APP Install: register variables"
   ansible.builtin.set_fact:
     app_bom_id:                        "{{ bom.product_ids.app }}"
-
-- name:                                "App Install: install variables"
-  ansible.builtin.debug:
-    msg:
-      - "INSTALLED:  {{ app_installed.stat.exists }}"
-      - "INIFILE:    {{ sap_inifile }}"
-      - "PRODUCT ID: {{ bom.product_ids.app }}"
-      - "DBHOST:     {{ db_virtual_host }}"
-      - "HOST:       {{ virtual_host }}"
-      - "SID:        {{ sid_to_be_deployed.sid | upper }}"
 
 - name:                                "APP Install"
   block:
@@ -126,6 +69,70 @@
 #   SAP APP: Install
 # 2230669 - System Provisioning Using a Parameter Input File
 #
+
+    - name:                            "APP Install: Set the SCS Server name"
+      ansible.builtin.set_fact:
+        scs_server:                    "{% if scs_high_availability %}{{ sid_to_be_deployed.sid | lower }}scs{{ scs_instance_number }}cl1{% else %}{{ hostvars[scs_server_temp | first]['virtual_host'] }}{% endif %}"
+        db_virtual_host:               "{{ hostvars[db_server_temp | first]['virtual_host'] }}"
+        file_path:                     "{% if scs_high_availability %}INSTALL/HA/ABAP/APPX{% else %}INSTALL/DISTRIBUTED/ABAP/APPS{% endif %}"
+
+    - name:                            "SCS Install: check media exists"
+      ansible.builtin.stat:
+        path:                          "{{ target_media_location }}/SWPM/sapinst"
+      register:                        sapinst_found
+
+    - name:                            "ErrorHandling"
+      ansible.builtin.fail:
+        msg:                           "INSTALL:0007:Unable to find sapinst, please check that the installation media is mounted"
+      when: not sapinst_found.stat.exists
+
+    - name:                            "APP Install: Include roles-sap/3.3.1-bom-utility role"
+      ansible.builtin.include_role:
+        name:                          roles-sap/3.3.1-bom-utility
+        tasks_from:                    bom-template
+      vars:
+        task_prefix:                   "APP Install: "
+        always_upload_jinja_templates: false
+        bom_name:                      "{{ bom_base_name }}"
+        sap_cd_package_hdbclient:      "{{ target_media_location }}/CD_HDBCLIENT/SAP_HANA_CLIENT"
+        sap_cd_package_cd1:            "{{ target_media_location }}/CD_EXPORT"
+        sap_cd_package_cd2:
+        sap_cd_package_cd3:
+        sap_cd_package_cd4:
+        sap_cd_package_cd5:
+        sap_ciInstanceNumber:          "{{ scs_instance_number }}"
+        app_instance_number:
+        sap_ciDialogWPNumber:          12
+        sap_ciBtcWPNumber:             8
+        sap_installSAPHostAgent:       "false"
+        sap_profile_dir:               /sapmnt/{{ sid_to_be_deployed.sid | upper }}/profile
+        sap_scs_hostname:              "{{ scs_server }}"
+        sap_db_hostname:               "{{ db_lb_virtual_host }}"
+        sap_ciVirtualHostname:         "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_APP') | first }}"
+        sap_appVirtualHostname:        "{{ virtual_host }}"
+        param_directory:               "{{ dir_params }}"
+        sap_sid:                       "{{ sid_to_be_deployed.sid }}"
+        sidadm_uid:                    "{{ sid_to_be_deployed.sidadm_uid }}"
+        virt_do_not_resolve_hostname:  "{{ db_lb_virtual_host }}"
+        # support older app inifile templates where hdb_instance_number was used
+        hdb_instance_number:           "{{ db_instance_number }}"
+      tags:
+        - skip_ansible_lint
+
+    - name:                            "App install: register variables"
+      ansible.builtin.set_fact:
+        app_bom_id:                    "{{ bom.product_ids.app }}"
+
+    - name:                            "App Install: install variables"
+      ansible.builtin.debug:
+        msg:
+          - "INSTALLED:  {{ app_installed.stat.exists }}"
+          - "INIFILE:    {{ sap_inifile }}"
+          - "PRODUCT ID: {{ bom.product_ids.app }}"
+          - "DBHOST:     {{ db_virtual_host }}"
+          - "HOST:       {{ virtual_host }}"
+          - "SID:        {{ sid_to_be_deployed.sid | upper }}"
+
     - name:                            "APP Install: HANA HSR - Update Profile"
       ansible.builtin.import_tasks:    ../../../roles-db/4.0.1-hdb-hsr/tasks/4.0.1.7-sap-profile-changes.yml
       when:

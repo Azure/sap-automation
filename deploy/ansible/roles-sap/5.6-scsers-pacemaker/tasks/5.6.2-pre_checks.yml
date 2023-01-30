@@ -17,10 +17,7 @@
 
 - name:                                "5.6 SCSERS - Check the required Clustering scripts are available"
   ansible.builtin.stat:
-    path:                              "{{ item }}"
-  loop:
-    - "/usr/sbin/ha-cluster-init"
-    - "/usr/sbin/ha-cluster-join"
+    path:                              "/usr/sbin/crm"
   register:                            cluster_scripts_status_results
   failed_when:                         not cluster_scripts_status_results.stat.exists
   when:                                ansible_os_family | upper == 'SUSE'
@@ -33,7 +30,7 @@
 
 - name:                                "5.6 SCSERS - Set fact ASCS/ERS instance number"
   ansible.builtin.set_fact:
-    ascs_instance:                     "ASCS{{ scs_instance_number }}"
+    ascs_instance:                     "{{ instance_type | upper }}{{ scs_instance_number }}"
     ers_instance:                      "ERS{{ ers_instance_number }}"
 
 - name:                                "5.6 SCSERS - Check if a cluster has already been prepared (save)"

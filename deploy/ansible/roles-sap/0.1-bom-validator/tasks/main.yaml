@@ -63,7 +63,7 @@
     prompt:                             "Press enter to continue..."
     echo:                               true
   when:
-    - pause|default(false)                                                      # When Fact: pause is True, then wait for ENTER key
+    - pause | default(false)                                                      # When Fact: pause is True, then wait for ENTER key
 
 
 # -------------------------------------+---------------------------------------8
@@ -105,15 +105,6 @@
 #     tier:                               preparation
 # # Step: 03 - END
 # # -------------------------------------+---------------------------------------8
-- name:                                "0.1 BoM Validator: - BoM Initial file"
-  ansible.builtin.copy:
-    dest:                              "{{ download_directory }}/readme.md"
-    content:                           "This is the container with the SAP media"
-    mode:                              0755
-  register:                            readme_file
-  become:                              "{{ bom_processing_become }}"
-  become_user:                         root
-
 
 # -------------------------------------+---------------------------------------8
 # Step: 04
@@ -127,6 +118,7 @@
     container:                         "{{ sapbits_location_base_path.rpartition('//')[2].split('/')[1] }}/{{ sapbits_bom_files }}/archives"
     bom_name:                          "{{ bom_base_name }}"
     upload:                            true
+    operation:                         "{{ operation }}"
 # Step: 04 - END
 # -------------------------------------+---------------------------------------8
 

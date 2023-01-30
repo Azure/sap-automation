@@ -21,32 +21,32 @@
 
     - name:                            "5.6 SCSERS - RHEL - Set fact for ASCS Filesystem"
       ansible.builtin.set_fact:
-        ascs_filesystem_device:        "{{ sap_mnt }}/usrsap{{ sap_sid }}ascs{{ scs_instance_number }}"
+        ascs_filesystem_device:        "{{ sap_mnt }}/usrsap{{ sap_sid }}{{ instance_type | lower }}{{ scs_instance_number }}"
 
     - name:                            "5.6 SCSERS - RHEL - SCS - Configure File system resources"
       ansible.builtin.command: >
-                                       pcs resource create fs_{{ sap_sid }}_ASCS Filesystem \
+                                       pcs resource create fs_{{ sap_sid }}_{{ instance_type | upper }} Filesystem \
                                        device='{{ ascs_filesystem_device }}' \
-                                       directory='/usr/sap/{{ sap_sid | upper }}/ASCS{{ scs_instance_number }}' fstype='nfs' force_unmount=safe options='sec=sys,vers=4.1' \
+                                       directory='{{ profile_directory }}' fstype='nfs' force_unmount=safe options='sec=sys,vers=4.1' \
                                        op start interval=0 timeout=60 \
                                        op stop interval=0 timeout=120 \
                                        op monitor interval=200 timeout=40 \
-                                       --group g-{{ sap_sid }}_ASCS
+                                       --group g-{{ sap_sid }}_{{ instance_type | upper }}
       register:                        ascs_fs_resource
       failed_when:                     ascs_fs_resource.rc > 1
 
     - name:                            "5.6 SCSERS - RHEL - SCS - Create ASCS VIP - This is LB frontend ASCS/SCS IP"
       ansible.builtin.command: >
-                                       pcs resource create vip_{{ sap_sid }}_ASCS IPaddr2 \
+                                       pcs resource create vip_{{ sap_sid }}_{{ instance_type | upper }} IPaddr2 \
                                        ip={{ scs_lb_ip }} cidr_netmask={{ subnet_prefix }} \
-                                       --group g-{{ sap_sid }}_ASCS
+                                       --group g-{{ sap_sid }}_{{ instance_type | upper }}
       register:                        ascs_vip
       failed_when:                     ascs_vip.rc > 1
 
     - name:                            "5.6 SCSERS - RHEL - SCS - create Azure LB resource"
       ansible.builtin.command: >
-                                       pcs resource create nc_{{ sap_sid }}_ASCS azure-lb port=620{{ scs_instance_number }} \
-                                       --group g-{{ sap_sid }}_ASCS
+                                       pcs resource create nc_{{ sap_sid }}_{{ instance_type | upper }} azure-lb port=620{{ scs_instance_number }} \
+                                       --group g-{{ sap_sid }}_{{ instance_type | upper }}
       register:                        ascs_lb
       failed_when:                     ascs_lb.rc > 1
 
@@ -72,7 +72,7 @@
       loop:
         - { path: '/sapmnt/{{ sap_sid | upper }}', mode: '0755' }
         - { path: '/usr/sap/{{ sap_sid | upper }}/SYS', mode: '0700' }
-        - { path: '/usr/sap/{{ sap_sid }}/ASCS{{ scs_instance_number }}', mode: '0755' }
+        - { path: '/usr/sap/{{ sap_sid }}/{{ instance_type | upper }}{{ scs_instance_number }}', mode: '0755' }
       when: inventory_hostname == primary_instance_name
       tags:
         - skip_ansible_lint
@@ -80,6 +80,18 @@
     - name:                            "5.6 SCSERS - RHEL - SCS - Install SCS on Primary host"
       ansible.builtin.include_role:
         name:                          roles-sap/5.0.1-scs-ha-install
+
+    - name:                            "5.6 SCSERS - RHEL - SCS - Check if installation succeeded"
+      ansible.builtin.stat:
+        path:                          "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_scs.txt"
+      register:                        scs_installed
+
+    - name:                            "ErrorHandling"
+      ansible.builtin.fail:
+        msg:                           "INSTALL:0014:SCS HA installation failed"
+      when:
+        - not scs_installed.stat.exists
+
   when: inventory_hostname == primary_instance_name
 
 # [1] Create a virtual IP resource and health-probe for the ERS instance
@@ -161,6 +173,18 @@
       ansible.builtin.command:         pcs node unstandby {{ primary_instance_name }}
       register:                        primary_online
       changed_when:                    primary_online.rc != 0
+
+    - name:                            "5.6 SCSERS - RHEL - ERS - Check if installation succeeded"
+      ansible.builtin.stat:
+        path:                          "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_ers.txt"
+      register:                        ers_installed
+ 
+    - name:                            "ErrorHandling"
+      ansible.builtin.fail:
+        msg:                           "INSTALL:0014:ERS installation failed"
+      when:
+        - not ers_installed.stat.exists
+
 
   when: inventory_hostname == secondary_instance_name
 

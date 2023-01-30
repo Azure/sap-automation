@@ -59,6 +59,46 @@
       tags:
         - dbhostpara
 
+    - name:                            "HSR: 4.0.1.7 - SAP DEFAULT.PFL changes for JAVA"
+      block:
+        - name:                            "HSR: 4.0.1.7 - Check if SAP DEFAULT.PFL changes are needed for JAVA"
+          ansible.builtin.lineinfile:
+            path:                          "/sapmnt/{{ sap_sid | upper }}/profile/DEFAULT.PFL"
+            regexp:                        "^j2ee/dbhost = {{ db_lb_virtual_host }}"
+            line:                          "j2ee/dbhost = {{ db_lb_virtual_host }}"
+            state:                         present
+          check_mode:                      true
+          register:                        check_default_pfl
+          when:
+            - db_high_availability
+
+        - name:                            "HSR: 4.0.1.7 - SAP DEFAULT.PFL changes for JAVA"
+          ansible.builtin.replace:
+            path:                          /sapmnt/{{ sap_sid | upper }}/profile/DEFAULT.PFL
+            backup:                        true
+            regexp:                        '^j2ee/dbhost'
+            replace:                       '#j2ee/dbhost'
+          when:
+            - check_default_pfl is changed
+            - db_high_availability
+          tags:
+            - dbhostcomment
+
+        - name:                            "HSR: 4.0.1.7 - SAP DEFAULT.PFL changes - add db virtual hostname for JAVA"
+          ansible.builtin.lineinfile:
+            path:                          /sapmnt/{{ sap_sid | upper }}/profile/DEFAULT.PFL
+            line:                          j2ee/dbhost = {{ db_lb_virtual_host }}
+            insertafter:                   '#j2ee/dbhost'
+          when:
+            - check_default_pfl is changed
+            - db_high_availability
+          tags:
+            - dbhostpara
+      when:
+        - platform == 'HANA'
+        - db_high_availability
+        - instance_type is defined
+        - instance_type == 'JAVA'
   when:
     - platform == 'HANA'
     - db_high_availability

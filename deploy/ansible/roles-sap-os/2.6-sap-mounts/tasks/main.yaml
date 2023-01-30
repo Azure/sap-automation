@@ -10,6 +10,10 @@
     var:                               MULTI_SIDS
     verbosity:                         4
 
+- name:                                "2.6 SAP Mounts: - set run time facts"
+  ansible.builtin.include_tasks:
+    file:                              "2.6-set_runtime_facts.yaml"
+
 - name:                                "2.6 SAP Mounts: - Check if the shared disk exists"
   ansible.builtin.set_fact:
     shareddisk:                        "{{ disks | selectattr('host', 'defined') |
@@ -98,6 +102,15 @@
     - node_tier == 'hana'
     - (backupdisks_count | int) > 0
 
+- name:                                "2.6 SAP Mounts: - Mount local file systems (backup)"
+  ansible.builtin.file:
+    path:                              /hana/data/backup
+    state:                             directory
+    mode:                              0755
+  when:
+    - node_tier == 'hana'
+    - (backupdisks_count | int) == 0
+
 - name:                                "2.6 SAP Mounts: - Mount local file systems (hana data)"
   ansible.posix.mount:
     src:                               '/dev/vg_hana_data/lv_hana_data'
@@ -129,6 +142,10 @@
     - node_tier == 'scs'
     - MULTI_SIDS is defined
     - sap_trans is undefined
+
+- name:                                "2.6 SAP Mounts: - Debug"
+  ansible.builtin.debug:
+    var:                               usr_sap_install_mountpoint
 
 - name:                                "2.6 SAP Mounts: - Mount local install file system on SCS (when not using AFS)"
   ansible.posix.mount:
@@ -306,7 +323,7 @@
   ansible.builtin.import_tasks:        2.6.0-afs-mounts.yaml
   when:
     - sap_mnt is defined or sap_trans is defined or usr_sap_install_mountpoint is defined
-    - NFS_provider == 'AFS'
+    - NFS_provider != 'ANF'
 
 
 # Import this task only if the sap_mnt is defined, i.e. ANF is used

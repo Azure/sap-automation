@@ -87,7 +87,7 @@
     group:                             oinstall
     owner:                             oracle
     mode:                              0775
-  when:                                
+  when:
     - not oracle_permissions_set.stat.exists
 
 - name:                                "ORACLE: Create filepermission.txt"

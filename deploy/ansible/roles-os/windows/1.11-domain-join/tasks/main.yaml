@@ -3,7 +3,6 @@
     msg:
       - "Domain:              {{ domain }}"
       - "domain_svc_account:  {{ domain_service_account }}"
-      - "domain_svc_password: {{ domain_service_password }}"
       - "hostname:            {{ ansible_hostname }}"
     verbosity:                          2
 
@@ -12,6 +11,7 @@
     dns_domain_name:                   "{{ domain }}"
     domain_admin_user:                 "{{ domain_service_account }}@{{ domain }}"
     domain_admin_password:             "{{ domain_service_password }}"
+    # domain_ou_path:                    "OU=Windows,OU=Servers,DC=ansible,DC=vagrant"
     hostname:                          "{{ ansible_hostname }}"
     state:                             domain
   register:                            domain_state

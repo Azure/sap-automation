@@ -308,7 +308,7 @@ secretname="${environment}"-subscription-id
 deleted=$(az keyvault secret list-deleted --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --query "[].{Name:name} | [? contains(Name,'${secretname}')] | [0]" -o tsv)
 if [ "${deleted}" == "${secretname}"  ]; then
     echo -e "\t $cyan Recovering secret ${secretname} in keyvault ${keyvault} $resetformatting \n"
-    az keyvault secret recover --name "${secretname}" --vault-name "${keyvault}" --subscription $STATE_SUBSCRIPTION
+    az keyvault secret recover --name "${secretname}" --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}"
     sleep 10
     v=$(az keyvault secret list --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --query [].name | tee grep "${secretname}")
 

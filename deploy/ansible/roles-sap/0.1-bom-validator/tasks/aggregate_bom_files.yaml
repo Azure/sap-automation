@@ -92,6 +92,7 @@
         src:                            "{{ object_stats.stat.path }}"
         dest:                           "{{ destination }}/{% if dir_path != '' %}{{ dir_path }}/{% endif %}{{ new_file_name }}"
         force:                          true
+        mode:                           0755
 # Step: 03-02 - END
 # -------------------------------------+---------------------------------------8
 
@@ -142,6 +143,7 @@
         src:                            "{{ object_stats.stat.path }}"
         dest:                           "{{ destination }}/{% if dir_path != '' %}{{ dir_path }}/{% endif %}{{ new_file_name }}"
         force:                          true
+        mode:                           0755
 # Step: 04-02 - END
 # -------------------------------------+---------------------------------------8
 

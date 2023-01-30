@@ -141,7 +141,7 @@
               vars:
                 suffix:                '_DBLOAD'
                 prefix:                "{{ bom.product_ids.dbl.replace('.', '/').replace('/ABAP', '').split(':')[1] }}"
-                path:                  '/INSTALL/DISTRIBUTED/ABAP/DB'
+                path:                  '/INSTALL/DISTRIBUTED/{{ dbl_bom_instance_type }}/DB'
                 tier:                  'dbload'
 
             - name:                    "DBLoad Playbook: - Get the Error lines from installation output"

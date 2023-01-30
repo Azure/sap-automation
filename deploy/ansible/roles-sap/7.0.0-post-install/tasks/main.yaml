@@ -26,6 +26,8 @@
     - tier != 'oracle'
 
 - name:                                "Post Installation: Find the log files (SAPINST)"
+  become_user:                         root
+  become:                              true
   ansible.builtin.find:
     paths:                             "{{ tmp_directory }}/{{ this_sid }}/sapinst_instdir/{{ prefix }}/{{ path }}"
     file_type:                         file
@@ -56,6 +58,8 @@
   when:                                sapinst_list_of_files is defined
 
 - name:                                "Post Installation: Compress the installation log files"
+  become_user:                         root
+  become:                              true
   community.general.archive:
     path:                              "{{ sapinst_list_of_files }}"
     dest:                              "{{ tmp_directory }}/{{ this_sid }}/{{ this_sid }}{{ suffix }}.zip"
@@ -65,6 +69,8 @@
     - sapinst_list_of_files is defined
 
 - name:                                "Post Installation: Copy installation logs"
+  become_user:                         root
+  become:                              true
   ansible.builtin.fetch:
     src:                               "{{ tmp_directory }}/{{ this_sid }}/{{ this_sid }}{{ suffix }}.zip"
     dest:                              "{{ _workspace_directory }}/logs/{{ this_sid }}{{ suffix }}.zip"
@@ -76,6 +82,8 @@
   block:
 
     - name:                            "Post Installation: Find the log files (HDBLCM)"
+      become_user:                     root
+      become:                          true
       ansible.builtin.find:
         paths:                         "{{ tmp_directory }}/{{ db_sid }}"
         file_type:                     file
@@ -91,6 +99,8 @@
         - hana_log_files.files | length > 0
 
     - name:                            "Post Installation: Compress the installation log files (hana)"
+      become_user:                     root
+      become:                          true
       community.general.archive:
         path:                          "{{ hana_list_of_files }}"
         dest:                          "{{ tmp_directory }}/{{ db_sid }}{{ suffix }}{{ ansible_hostname }}.zip"
@@ -100,6 +110,8 @@
         - hana_list_of_files is defined
 
     - name:                            "Post Installation: Copy installation logs (hana)"
+      become_user:                     root
+      become:                          true
       ansible.builtin.fetch:
         src:                           "{{ tmp_directory }}/{{ db_sid }}{{ suffix }}{{ ansible_hostname }}.zip"
         dest:                          "{{ _workspace_directory }}/logs/{{ sap_sid }}{{ suffix }}{{ ansible_hostname }}.zip"
@@ -117,6 +129,8 @@
   block:
 
     - name:                            "Post Installation: Find the log files (Oracle)"
+      become_user:                     root
+      become:                          true
       ansible.builtin.find:
         paths:                         /etc/sap_deployment_automation
         file_type:                     file
@@ -131,17 +145,21 @@
         - oracle_log_files.files is defined
         - oracle_log_files.files | length > 0
 
-    - name:                                "Post Installation: Compress the installation log files (Oracle)"
+    - name:                            "Post Installation: Compress the installation log files (Oracle)"
+      become_user:                     root
+      become:                          true
       community.general.archive:
-        path:                              "{{ oracle_list_of_files }}"
-        dest:                              "/etc/sap_deployment_automation{{ ansible_hostname }}.zip"
-        format:                            zip
-        mode:                              0755
+        path:                          "{{ oracle_list_of_files }}"
+        dest:                          "/etc/sap_deployment_automation{{ ansible_hostname }}.zip"
+        format:                        zip
+        mode:                          0755
 
       when:
         - oracle_log_files is defined
 
     - name:                                "Post Installation: Copy installation logs (Oracle)"
+      become_user:                     root
+      become:                          true
       ansible.builtin.fetch:
         src:                               "/etc/sap_deployment_automation{{ ansible_hostname }}.zip"
         dest:                              "{{ _workspace_directory }}/logs/{{ sap_sid }}Oracle{{ ansible_hostname }}.zip"

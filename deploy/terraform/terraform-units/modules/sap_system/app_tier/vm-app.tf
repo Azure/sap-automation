@@ -439,6 +439,8 @@ resource "azurerm_virtual_machine_extension" "configure_ansible_app" {
     local.application_server_count) : (
     0
   )
+  
+  depends_on = [azurerm_virtual_machine_data_disk_attachment.app]
 
   name                 = "configure_ansible"
   virtual_machine_id   = azurerm_windows_virtual_machine.app[count.index].id

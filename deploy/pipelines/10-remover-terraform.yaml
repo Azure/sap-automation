@@ -135,6 +135,15 @@ stages:
                   exit 2
                 fi
 
+              echo -e "$green--- az login ---$reset"
+                az login --service-principal --username $(ARM_CLIENT_ID) --password=$ARM_CLIENT_SECRET --tenant $(ARM_TENANT_ID) --output none
+                return_code=$?
+                if [ 0 != $return_code ]; then
+                  echo -e "$boldred--- Login failed ---$reset"
+                  echo "##vso[task.logissue type=error]az login failed."
+                  exit $return_code
+                fi
+
               echo -e "$green--- Configure devops CLI extension ---$reset"
                 az config set extension.use_dynamic_install=yes_without_prompt --output none
 
@@ -189,6 +198,8 @@ stages:
                   export STATE_SUBSCRIPTION=$(cat ${workload_environment_file_name}  | grep STATE_SUBSCRIPTION   | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file subscription' $STATE_SUBSCRIPTION
                 fi
 
+                az account set --subscription ${STATE_SUBSCRIPTION}
+
                 az_var=$(az pipelines variable-group variable list --group-id ${PARENT_VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Account_Name.value" | tr -d \")
                 if [ -n "${az_var}" ]; then
                   REMOTE_STATE_SA="${az_var}"  ; echo 'Terraform state file storage account' $REMOTE_STATE_SA
@@ -198,40 +209,6 @@ stages:
 
               echo -e "$green--- Convert config file to UX format ---$reset"
                 dos2unix -q SYSTEM/$(sap_system_folder)/$(sap_system_configuration)
-
-              echo -e "$green--- az login ---$reset"
-                az login --service-principal --username $(ARM_CLIENT_ID) --password=$ARM_CLIENT_SECRET --tenant $(ARM_TENANT_ID) --output none
-                return_code=$?
-                if [ 0 != $return_code ]; then
-                  echo -e "$boldred--- Login failed ---$reset"
-                  echo "##vso[task.logissue type=error]az login failed."
-                  exit $return_code
-                fi
-
-                ip_added_workload=0
-
-                az account set --subscription $(ARM_SUBSCRIPTION_ID)
-                ip_added_control_plane=0
-
-                if [ "azure pipelines" = "$(this_agent)" ]; then
-                  this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
-                  echo -e "$green--- Set IP ---$reset"
-                  if [ -n "${workload_key_vault}" ]; then
-                    az keyvault network-rule add --name ${workload_key_vault} --ip-address ${this_ip}  --output none --only-show-errors
-                    ip_added_workload=1
-                  fi
-                fi
-
-                az account set --subscription ${STATE_SUBSCRIPTION}
-
-                if [ "azure pipelines" = "$(this_agent)" ]; then
-                  this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
-                  echo -e "$green--- Set IP ${this_ip} ---$reset"
-                  if [ -n "${key_vault}" ]; then
-                    az keyvault network-rule add --name ${key_vault} --ip-address ${this_ip} --output none --only-show-errors
-                    ip_added_control_plane=1
-                  fi
-                fi
 
               echo -e "$green--- Run the remover script that destroys the SAP system ---$reset"
                 cd $CONFIG_REPO_PATH/SYSTEM/$(sap_system_folder)
@@ -246,27 +223,6 @@ stages:
               echo -e "$green--- Pull latest from DevOps Repository ---$reset"
                 git checkout -q $(Build.SourceBranchName)
                 git pull
-
-                az account set --subscription $(ARM_SUBSCRIPTION_ID)
-
-                if [[ ip_added_workload -eq 1 ]]; then
-                  echo -e "$green--- Remove IP ---$reset"
-                  if [[ "azure pipelines" == "${agent_name}" ]]; then
-                    if [ -n "${workload_key_vault}" ]; then
-                      az keyvault network-rule remove --name ${workload_key_vault} --ip-address ${this_ip} --output none --only-show-errors
-                    fi
-                  fi
-                fi
-
-                az account set --subscription ${STATE_SUBSCRIPTION}
-                if [[ ip_added_control_plane -eq 1 ]]; then
-                  echo -e "$green--- Remove IP ---$reset"
-                  if [[ "azure pipelines" == "${agent_name}" ]]; then
-                    if [ -n "${key_vault}" ]; then
-                      az keyvault network-rule remove --name ${key_vault} --ip-address ${this_ip} --output none --only-show-errors
-                    fi
-                  fi
-                fi
 
               #stop the pipeline after you have reset the whitelisting on your resources
               echo "Return code from remover.sh $return_code."

@@ -28,17 +28,6 @@
   ansible.builtin.getent:
     database:                          passwd
 
-- name:                                Ensure that sudoers_user was specified
-  ansible.builtin.fail:
-    msg: >
-      Please ensure that a 'sudoers_user` is specified, is not an
-      empty value, and matches a known user if creating a sudoers
-      entry.
-  when:
-    - ((sudoers_user is not defined) or
-      ((sudoers_user == "") or
-      ((sudoers_user not in getent_passwd) and (sudoers_state == "present"))))
-
 - name:                                Optionally include any vars settings for specified role
   ansible.builtin.include_vars:        "{{ found_var_file }}"
   loop_control:
@@ -48,6 +37,12 @@
   with_first_found:
     - "sudoers_{{ sudoers_role }}.yml"
     - "sudoers_default.yml"
+
+- name:                                Load database of known users
+  ansible.builtin.debug:
+    msg:
+      - "sudoers_user: {{ sudoers_user }}"
+      - "sudoers_state: {{ sudoers_state }}"
 
 - name:                                Create sudoers file for {{ sudoers_user }} with
                                        role {{ sudoers_role }} if required
@@ -67,3 +62,15 @@
     state:                             absent
   when:
     - sudoers_state == "absent"
+
+# ToDo: Fix this later, Kimmo Jan 27
+# - name:                                Ensure that sudoers_user was specified
+#   ansible.builtin.fail:
+#     msg: >
+#       Please ensure that a 'sudoers_user` is specified, is not an
+#       empty value, and matches a known user if creating a sudoers
+#       entry.
+#   when:
+#     - ((sudoers_user is not defined) or
+#       ((sudoers_user == "") or
+#       ((sudoers_user not in getent_passwd) and (sudoers_state == "present"))))
