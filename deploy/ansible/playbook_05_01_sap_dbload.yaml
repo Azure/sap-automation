@@ -54,50 +54,9 @@
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
-# |              Playbook for SCS Cluster validation               |
-# |                                                                            |
-# +------------------------------------4--------------------------------------*/
-
-- hosts:                               "{{ sap_sid | upper }}_SCS :
-                                        {{ sap_sid | upper }}_ERS"
-  name:                                "SCS Cluster Validation"
-  remote_user:                         "{{ orchestration_ansible_user }}"
-  gather_facts:                        true                                    # Important to collect hostvars information
-  vars_files:
-    - vars/ansible-input-api.yaml                                              # API Input template with defaults
-
-  tasks:
-# -------------------------------------+---------------------------------------8
-#
-# Build the list of tasks to be executed in order here.
-#
-# -------------------------------------+---------------------------------------8
-    - name:                            "DBLoad Playbook: - Cluster validation"
-      become:                          true
-      become_user:                     root
-      block:
-        - name:                        "DBLoad Playbook: - Setting the facts"
-          ansible.builtin.set_fact:
-            tier:                      scsvalidation                                                          # SAP Install phase: DBLOAD
-            primary_instance_name:      "{{ ansible_play_hosts_all[0] }}"         # Setting up Primary Instance Name
-            secondary_instance_name:    "{{ ansible_play_hosts_all[1] }}"         # Setting up Secondary Instance Name
-
-        - name:                        "DBLoad Playbook: - Run DBLoad"
-          ansible.builtin.include_role:
-            name:                      roles-sap/5.6-scsers-pacemaker
-            tasks_from:                5.6.6-validate
-
-      when:
-        - scs_high_availability
-        - "'scs' in supported_tiers or 'ers' in supported_tiers "
-
-
-# /*---------------------------------------------------------------------------8
-# |                                                                            |
 # |                      Playbook for SAP DB Load                              |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
-
 
 - hosts:                               "{{ sap_sid | upper }}_PAS  :
                                         {{ sap_sid | upper }}_SCS :
