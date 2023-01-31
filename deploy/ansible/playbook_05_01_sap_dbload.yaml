@@ -82,6 +82,7 @@
         - name:                        "DBLoad Playbook: - Run DBLoad"
           ansible.builtin.include_role:
             name:                      roles-sap/5.6-scsers-pacemaker
+            tasks_from:                5.6.6-validate
 
       when:
         - scs_high_availability
