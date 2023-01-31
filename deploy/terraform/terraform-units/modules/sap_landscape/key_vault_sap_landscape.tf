@@ -62,7 +62,7 @@ resource "azurerm_private_dns_a_record" "kv_user" {
   resource_group_name = var.management_dns_resourcegroup_name
   ttl                 = 3600
   records             = [data.azurerm_network_interface.keyvault[0].ip_configuration[0].private_ip_address]
-  
+
   provider = azurerm.dnsmanagement
 
   lifecycle {
@@ -71,9 +71,9 @@ resource "azurerm_private_dns_a_record" "kv_user" {
 }
 
 data "azurerm_network_interface" "keyvault" {
-  count               = var.use_private_endpoint && var.use_custom_dns_a_registration ? 1 : 0
-  name                = azurerm_private_endpoint.kv_user[count.index].network_interface[0].name
-  
+  count = var.use_private_endpoint && var.use_custom_dns_a_registration ? 1 : 0
+  name  = azurerm_private_endpoint.kv_user[count.index].network_interface[0].name
+
   resource_group_name = split("/", azurerm_private_endpoint.kv_user[count.index].network_interface[0].id)[4]
 }
 
@@ -414,7 +414,7 @@ data "azurerm_private_dns_zone" "keyvault" {
   count               = var.use_private_endpoint && var.use_custom_dns_a_registration ? 1 : 0
   name                = "privatelink.vaultcore.azure.net"
   resource_group_name = var.management_dns_resourcegroup_name
-  provider = azurerm.dnsmanagement
+  provider            = azurerm.dnsmanagement
 
 }
 
