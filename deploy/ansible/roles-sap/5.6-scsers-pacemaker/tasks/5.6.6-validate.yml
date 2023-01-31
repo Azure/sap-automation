@@ -3,11 +3,35 @@
 - name:                                "Determine if SCS is running on {{ ansible_hostname }}"
   become_user:                         "{{ sap_sid | lower }}adm"
   become:                              true
-  ansible.builtin.command:             "{{ sapcontrol_command }} -function GetProcessList"
-  changed_when:                        false
-  failed_when:                         false
-  register:                            is_running
+  block:
+    - name:                            "PAS Install: Get sapcontrol path"
+      ansible.builtin.find:
+        paths:                         "/usr/sap/{{ sap_sid | upper }}"
+        file_type:                     file
+        patterns:                      'sapcontrol'
+        recurse:                       true
+      register:                        sapcontrol_file
 
-- name:                                "Show if SCS is running on {{ ansible_hostname }}"
-  ansible.builtin.debug:
-    var: is_running
+    - name:                            "PAS Install: Set sapcontrol path"
+      ansible.builtin.set_fact:
+        sapcontrol_path:               "{{ sapcontrol_file.files[0].path }}"
+      when:
+        - sapcontrol_file | length > 0
+
+    - name:                                "Determine if SCS is running on {{ ansible_hostname }}"
+      ansible.builtin.command:             "{{ sapcontrol_path }} -nr {{ scs_instance_number }} -function GetProcessList"
+      changed_when:                        false
+      failed_when:                         false
+      register:                            is_running
+      vars:
+        allow_world_readable_tmpfiles:     true
+        ansible_python_interpreter:        python3
+      environment:
+        ANSIBLE_REMOTE_TEMP:               "{{ tmp_directory }}/{{ sap_sid | upper }}"
+        TEMPDIR:                           "{{ tmp_directory }}/{{ sap_sid | upper }}"
+      tags:
+        - skip_ansible_lint
+
+    - name:                                "Show if SCS is running on {{ ansible_hostname }}"
+      ansible.builtin.debug:
+        var: is_running
