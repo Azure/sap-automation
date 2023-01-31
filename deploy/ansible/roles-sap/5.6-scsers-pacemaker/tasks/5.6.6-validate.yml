@@ -142,6 +142,10 @@
           tags:
             - skip_ansible_lint
 
+        - name:                            "Wait 60 secs for the StartService {{ sap_sid | upper }} to finish"
+          ansible.builtin.wait_for:
+            timeout:                      60
+
         #{{ sapcontrol_path }} -nr {{ scs_instance_number }} -function GetProcessList | grep MessageServer | awk '{split($0,result,", "); print result[1],result[3] }'
         - name:                            "Determine if SCS is running on {{ ansible_hostname }}"
           ansible.builtin.command:         "{{ sapcontrol_path }} -nr {{ scs_instance_number }} -function StartSystem ALL"
