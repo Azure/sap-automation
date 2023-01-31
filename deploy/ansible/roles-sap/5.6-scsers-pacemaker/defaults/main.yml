@@ -11,3 +11,5 @@ ers_virtual_hostname:                  "{{ sap_sid | lower }}ers{{ ers_instance_
 iscsi_object:                          iqn.2006-04
 
 iscsi_port:                            3260
+
+sapcontrol_command:                    "sapcontrol -nr {{ scs_instance_number }}"
