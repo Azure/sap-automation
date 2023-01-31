@@ -58,7 +58,7 @@
       become:                          true
       become_user:                     root
       ansible.builtin.shell: >-
-        set -o pipefail
+        set -o pipefail;
         crm_resource --resource g-{{ sap_sid }}_{{ instance_type | upper }} --locate | cut -d ':' -f 2| cut -d " " -f 2
       when:
         - ansible_hostname == primary_instance_name
@@ -100,7 +100,7 @@
           become:                          true
           become_user:                     root
           ansible.builtin.shell: >-
-            set -o pipefail
+            set -o pipefail;
             crm_resource --resource g-{{ sap_sid }}_{{ instance_type | upper }} --locate | cut -d ':' -f 2| cut -d " " -f 2
           when:
             - ansible_hostname == primary_instance_name
