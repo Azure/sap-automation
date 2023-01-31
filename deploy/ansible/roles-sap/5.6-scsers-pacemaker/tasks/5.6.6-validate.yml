@@ -10,6 +10,7 @@
         file_type:                     file
         patterns:                      'sapcontrol'
         recurse:                       true
+        follow:                        true
       register:                        sapcontrol_file
 
     - name:                            "PAS Install: Set sapcontrol path"
