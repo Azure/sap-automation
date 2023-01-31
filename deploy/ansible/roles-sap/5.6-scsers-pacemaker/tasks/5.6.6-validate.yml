@@ -18,17 +18,19 @@
       when:
         - sapcontrol_file | length > 0
 
-    - name:                                "Determine if SCS is running on {{ ansible_hostname }}"
-      ansible.builtin.command:             "{{ sapcontrol_path }} -nr {{ scs_instance_number }} -function GetProcessList"
-      changed_when:                        false
-      failed_when:                         false
-      register:                            is_running
+    - name:                            "Determine if SCS is running on {{ ansible_hostname }}"
+      ansible.builtin.command:         "{{ sapcontrol_path }} -nr {{ scs_instance_number }} -function GetProcessList"
+      changed_when:                    false
+      failed_when:                     false
+      register:                        is_running
       vars:
-        allow_world_readable_tmpfiles:     true
-        ansible_python_interpreter:        python3
+        allow_world_readable_tmpfiles: true
+        ansible_python_interpreter:    python3
+      args:   
+        chdir:                         "{{ sapcontrol_path | dirname }}"
       environment:
-        ANSIBLE_REMOTE_TEMP:               "{{ tmp_directory }}/{{ sap_sid | upper }}"
-        TEMPDIR:                           "{{ tmp_directory }}/{{ sap_sid | upper }}"
+        ANSIBLE_REMOTE_TEMP:           "{{ tmp_directory }}/{{ sap_sid | upper }}"
+        TEMPDIR:                       "{{ tmp_directory }}/{{ sap_sid | upper }}"
       tags:
         - skip_ansible_lint
 
