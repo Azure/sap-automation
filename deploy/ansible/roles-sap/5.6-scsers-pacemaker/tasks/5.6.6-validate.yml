@@ -31,6 +31,10 @@
       environment:
         ANSIBLE_REMOTE_TEMP:           "{{ tmp_directory }}/{{ sap_sid | upper }}"
         TEMPDIR:                       "{{ tmp_directory }}/{{ sap_sid | upper }}"
+        PATH:                          /usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/usr/sap/{{ sap_sid | upper }}/SYS/exe/uc/linuxx86_64:/usr/sap/{{ sap_sid | upper }}/SYS/exe/run:/home/{{ sap_sid | lower }}adm
+        DIR_LIBRARY:                   /usr/sap/{{ sap_sid | upper }}/SYS/exe/run
+        LD_LIBRARY_PATH:               /usr/sap/{{ sap_sid | upper }}/SYS/exe/run:/usr/sap/{ sap_sid | upper }}/SYS/exe/uc/linuxx86_64
+        SAPSYSTEMNAME:                 "{{ sap_sid | upper }}"
       tags:
         - skip_ansible_lint
 
