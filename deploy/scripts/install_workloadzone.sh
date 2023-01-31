@@ -411,46 +411,37 @@ fi
 
 if [ -n "${keyvault}" ]
 then
-    secretname="${environment}"-client-id
-    echo "Setting secrets"
+    echo "Setting the secrets"
 
-    secret_value=$(az keyvault secret show --name "$secretname" --vault "$keyvault" --only-show-errors --query id 2>error.log)
-    if [ -f error.log ]
+    save_config_var "client_id" "${workload_config_information}"
+    save_config_var "tenant_id" "${workload_config_information}"
+
+    if [ -n "$spn_secret" ]
     then
-        save_config_var "client_id" "${workload_config_information}"
-        save_config_var "tenant_id" "${workload_config_information}"
+        allParams=$(printf " --workload --environment %s --region %s --vault %s --spn_secret %s --subscription %s --spn_id %s --tenant_id %s " "${environment}" "${region_code}" "${keyvault}" "${spn_secret}" "${subscription}" "${client_id}" "${tenant_id}" )
 
-        if [ -n "$spn_secret" ]
-        then
-            allParams=$(printf " --workload --environment %s --region %s --vault %s --spn_secret %s --subscription %s --spn_id %s --tenant_id %s " "${environment}" "${region_code}" "${keyvault}" "${spn_secret}" "${subscription}" "${client_id}" "${tenant_id}" )
+        echo "Calling set_secrets with " $allParams
 
-            echo $allParams
+        "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/set_secrets.sh $allParams
 
-            "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/set_secrets.sh $allParams
+        if [ -f secret.err ]; then
+            error_message=$(cat secret.err)
+            echo "##vso[task.logissue type=error]${error_message}"
 
-            if [ -f secret.err ]; then
-                error_message=$(cat secret.err)
-                echo "##vso[task.logissue type=error]${error_message}"
+            exit 65
+        fi
+    else
+        read -p "Do you want to specify the Workload SPN Details Y/N?"  ans
+        answer=${ans^^}
+        if [ $answer == 'Y' ]; then
+            allParams=$(printf " --workload --environment %s --region %s --vault %s --subscription %s  --spn_id %s " "${environment}" "${region_code}" "${keyvault}" "${subscription}" "${client_id}" )
 
-                exit 65
-            fi
-        else
-            read -p "Do you want to specify the Workload SPN Details Y/N?"  ans
-            answer=${ans^^}
-            if [ $answer == 'Y' ]; then
-                allParams=$(printf " --workload --environment %s --region %s --vault %s --subscription %s  --spn_id %s " "${environment}" "${region_code}" "${keyvault}" "${subscription}" "${client_id}" )
-
-                "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/set_secrets.sh ${allParams}
-                if [ $? -eq 255 ]
-                then
-                    exit $?
-                fi
+            "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/set_secrets.sh ${allParams}
+            if [ $? -eq 255 ]
+            then
+                exit $?
             fi
         fi
-    fi
-    if [ -f error.log ]
-    then
-        rm error.log
     fi
 
     if [ -f kv.log ]
