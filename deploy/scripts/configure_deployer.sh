@@ -471,6 +471,7 @@ else
     sudo -H ${ansible_venv_bin}/ansible-galaxy collection install ansible.windows --force --collections-path ${ansible_collections}
     sudo -H ${ansible_venv_bin}/ansible-galaxy collection install ansible.posix --force --collections-path ${ansible_collections}
     sudo -H ${ansible_venv_bin}/ansible-galaxy collection install ansible.utils --force --collections-path ${ansible_collections}
+    sudo -H ${ansible_venv_bin}/ansible-galaxy collection install ansible.netcommon --force --collections-path ${ansible_collections}
     sudo -H ${ansible_venv_bin}/ansible-galaxy collection install community.windows --force --collections-path ${ansible_collections}
     sudo -H ${ansible_venv_bin}/ansible-galaxy collection install community.general --force --collections-path ${ansible_collections}
     #
