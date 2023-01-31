@@ -77,6 +77,7 @@
         - ansible_hostname == primary_instance_name
         - cluster_group_location.rc == 0
         - scs_running_on is not defined
+      failed_when:                     cluster_group_moved.rc != 0 or not cluster_group_moved.stderr_lines | regex_search('Already in requested state')
       register:                        cluster_group_moved
       tags:
         - skip_ansible_lint
@@ -92,8 +93,10 @@
         - cluster_group_location.rc == 0
         - scs_running_on is not defined
       register:                        cluster_group_moved
+      failed_when:                     cluster_group_moved.rc != 0 or not cluster_group_moved.stderr_lines | regex_search('Already in requested state')
       tags:
         - skip_ansible_lint
+
     - name:                            "Perfom Cluster resource move and SAP start when the group g-{{ sap_sid }}_{{ instance_type | upper }} has moved"
       block:
         - name:                        "Check if cluster group g-{{ sap_sid }}_{{ instance_type | upper }} is running on {{ primary_instance_name }}"
