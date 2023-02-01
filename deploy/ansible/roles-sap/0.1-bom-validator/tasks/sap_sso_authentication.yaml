@@ -721,7 +721,7 @@
           - "passwordlessAuthnSelected:       {{ passwordlessAuthnSelected }}"
           - "login_hint:                      {{ login_hint }}"
           - "j_username:                      {{ j_username }}"
-          - "j_password:                      {{ j_password }}"
+          # - "j_password:                      {{ j_password }}"
           - "cookies_accounts_sap_com_string: {{ cookies_accounts_sap_com_string }}"
         verbosity:                            0
       vars:
