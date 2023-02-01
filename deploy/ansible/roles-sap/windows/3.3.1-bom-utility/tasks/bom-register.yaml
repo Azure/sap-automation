@@ -13,19 +13,19 @@
 #               If not, download from storage account location.
 #
 
-# - name:                                "3.3.1 BoM Processing: - Create BOM download directories"
-#   ansible.builtin.file:
-#     path:                              "{{ item.path }}"
-#     state:                             directory
-#     mode:                              0755
-#   delegate_to:                         localhost
-#   become:                              "{{ bom_processing_become }}"
-#   become_user:                         root
-#   loop:
-#     - path: "{{ download_directory }}"
-#     - path: "{{ download_directory }}/tmp"
-#     - path: "{{ download_directory }}/bom"
-#     - path: "{{ download_directory }}/files"
+- name:                                "3.3.1 BoM Processing: - Create BOM download directories"
+  ansible.builtin.file:
+    path:                              "{{ item.path }}"
+    state:                             directory
+    mode:                              0755
+  delegate_to:                         localhost
+  become:                              "{{ bom_processing_become }}"
+  become_user:                         root
+  loop:
+    - path: "{{ download_directory }}"
+    - path: "{{ download_directory }}\\tmp"
+    - path: "{{ download_directory }}\\bom"
+    - path: "{{ download_directory }}\\files"
 
 
 - name:                                "3.3.1 BoM Processing: - Set Python version for {{ distribution_id }}"
@@ -44,7 +44,7 @@
   ansible.builtin.get_url:
     url:                               "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ bom_name }}/{{ bom_name }}.yaml\
                                        {% if sapbits_sas_token is not undefined %}?{{ sapbits_sas_token }}{% endif %}"
-    dest:                              "{{ target_media_location }}/bom/{{ bom_name }}.yaml"
+    dest:                              "{{ download_directory }}/bom/{{ bom_name }}.yaml"
     mode:                              0644
   delegate_to:                         localhost
   become:                              "{{ bom_processing_become }}"
@@ -59,7 +59,7 @@
   ansible.builtin.get_url:
     url:                               "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ bom_name }}/{{ bom_name }}.yaml\
                                        {% if sapbits_sas_token is not undefined %}?{{ sapbits_sas_token }}{% endif %}"
-    dest:                              "{{ target_media_location }}/bom/{{ bom_name }}.yaml"
+    dest:                              "{{ download_directory }}/bom/{{ bom_name }}.yaml"
     mode:                              0644
   delegate_to:                         localhost
   become:                              "{{ bom_processing_become }}"
