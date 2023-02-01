@@ -68,56 +68,56 @@ variable "spn_keyvault_id" {
 
 variable "library_sapmedia_arm_id" {
   description = "Optional Azure resource identifier for the storage account where the SAP bits will be stored"
-  default = ""
+  default     = ""
 }
 
 variable "library_sapmedia_name" {
   description = "If defined, the name of the storage account where the SAP bits will be stored"
-  default = ""
+  default     = ""
 }
 
 variable "library_sapmedia_account_tier" {
   description = "The storage account tier"
-  default = "Standard"
+  default     = "Standard"
 }
 
 variable "library_sapmedia_account_replication_type" {
   description = "The replication type for the storage account"
-  default = "LRS"
+  default     = "LRS"
 }
 
 variable "library_sapmedia_account_kind" {
   description = "The storage account kind"
-  default = "StorageV2"
+  default     = "StorageV2"
 }
 
 variable "library_sapmedia_file_share_enable_deployment" {
   description = "If true, the file share will be created"
-  default = true
+  default     = true
 }
 
 variable "library_sapmedia_file_share_is_existing" {
   description = "If defined use an existing file share"
-  default = false
+  default     = false
 }
 
 variable "library_sapmedia_file_share_name" {
   description = "If defined, the name of the file share"
-  default = "sapbits"
+  default     = "sapbits"
 }
 variable "library_sapmedia_blob_container_enable_deployment" {
   description = "If true, the blob container will be created"
-  default = true
+  default     = true
 }
 
 variable "library_sapmedia_blob_container_is_existing" {
   description = "If defined use an existing blob container"
-  default = false
+  default     = false
 }
 
 variable "library_sapmedia_blob_container_name" {
   description = "If defined, the name of the blob container"
-  default = "sapbits"
+  default     = "sapbits"
 }
 
 
@@ -131,47 +131,47 @@ variable "library_sapmedia_blob_container_name" {
 
 variable "library_terraform_state_arm_id" {
   description = "Optional Azure resource identifier for the storage account where the terraform state will be stored"
-  default = ""
+  default     = ""
 }
 
 variable "library_terraform_state_name" {
   description = "Optional name for the storage account where the terraform state will be stored"
-  default = ""
+  default     = ""
 }
 
 variable "library_terraform_state_account_tier" {
   description = "The storage account tier"
-  default = "Standard"
+  default     = "Standard"
 }
 
 variable "library_terraform_state_account_replication_type" {
   description = "The replication type for the storage account"
-  default = "LRS"
+  default     = "LRS"
 }
 
 variable "library_terraform_state_account_kind" {
   description = "The storage account kind"
-  default = "StorageV2"
+  default     = "StorageV2"
 }
 
 variable "library_terraform_state_blob_container_is_existing" {
   description = "If defined use an existing blob container"
-  default = false
+  default     = false
 }
 
 variable "library_terraform_state_blob_container_name" {
   description = "If defined, the blob container name to create"
-  default = "tfstate"
+  default     = "tfstate"
 }
 
 variable "library_ansible_blob_container_is_existing" {
   description = "If defined use an existing blob container"
-  default = false
+  default     = false
 }
 
 variable "library_ansible_blob_container_name" {
   description = "If defined, the blob container name to create"
-  default = "ansible"
+  default     = "ansible"
 }
 
 
@@ -215,12 +215,12 @@ variable "management_dns_resourcegroup_name" {
 
 variable "use_webapp" {
   description = "Boolean value indicating if a webapp should be created"
-  default = false
+  default     = false
 }
 
 
 variable "Agent_IP" {
   description = "If provided, contains the IP address of the agent"
-  type    = string
-  default = ""
+  type        = string
+  default     = ""
 }

@@ -58,7 +58,6 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-
 - hosts:                               "{{ sap_sid | upper }}_PAS  :
                                         {{ sap_sid | upper }}_SCS :
                                         {{ sap_sid | upper }}_DB"
@@ -70,6 +69,7 @@
     - vars/ansible-input-api.yaml                                              # API Input template with defaults
 
   tasks:
+
 # -------------------------------------+---------------------------------------8
 #
 # Build the list of tasks to be executed in order here.
@@ -141,7 +141,7 @@
               vars:
                 suffix:                '_DBLOAD'
                 prefix:                "{{ bom.product_ids.dbl.replace('.', '/').replace('/ABAP', '').split(':')[1] }}"
-                path:                  '/INSTALL/DISTRIBUTED/ABAP/DB'
+                path:                  '/INSTALL/DISTRIBUTED/{{ dbl_bom_instance_type }}/DB'
                 tier:                  'dbload'
 
             - name:                    "DBLoad Playbook: - Get the Error lines from installation output"

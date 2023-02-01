@@ -237,42 +237,43 @@
                   loop_control:
                     loop_var:              sid_to_be_deployed
 
-                - name:                    "SCS Installation Playbook: - Ensure scs-install-done flag exists"
-                  delegate_to:             localhost
-                  become:                  false
+                - name:                "SCS Installation Playbook: - Ensure scs-install-done flag exists"
+                  delegate_to:         localhost
+                  become:              false
                   ansible.builtin.file:
-                    path:                  "{{ _workspace_directory }}/.progress/scs-install-done"
-                    state:                 touch
-                    mode:                  0755
+                    path:              "{{ _workspace_directory }}/.progress/scs-install-done"
+                    state:             touch
+                    mode:              0755
                   when:
                     - scs_already_installed is defined or (scs_installation.rc is defined and scs_installation.rc == 0)
 
               always:
-                - name:                    "SCS Installation Playbook: - Get the Error lines from installation output"
+                - name:                "SCS Installation Playbook: - Get the Error lines from installation output"
                   ansible.builtin.set_fact:
-                    error_lines:           "{{ error_lines | default([]) + [item] }}"
-                  with_items:              "{{ scs_installation.stdout_lines }}"
+                    error_lines:       "{{ error_lines | default([]) + [item] }}"
+                  with_items:          "{{ scs_installation.stdout_lines }}"
                   when:
                     - scs_installation.stdout_lines is defined
                     - '"ERROR" in item'
                     - scs_installation.rc > 0
 
-                - name:                    "SCS Installation Playbook: - Run post installation routines"
+                - name:                "SCS Installation Playbook: - Run post installation routines"
                   ansible.builtin.include_role:
-                    name:                  roles-sap/7.0.0-post-install
+                    name:              roles-sap/7.0.0-post-install
                   vars:
-                    suffix:                "_SCS"
-                    prefix:                "{{ bom.product_ids.scs.replace('.', '/').replace('/ABAP', '').split(':')[1] }}"
-                    path:                  'INSTALL/DISTRIBUTED/{{ scs_bom_instance_type }}/{{ instance_type }}'
-                    tier:                  'scs'
-                    this_sid:              "{{ sid_to_be_deployed.sid | upper }}"
-                  loop:                    "{{ all_sids }}"
-                  loop_control:
-                    loop_var:              sid_to_be_deployed
+                    suffix:            "_SCS"
+                    prefix:            "{{ bom.product_ids.scs.replace('.', '/').replace('/ABAP', '').split(':')[1] }}"
+                    path:              'INSTALL/DISTRIBUTED/{{ scs_bom_instance_type }}/{{ instance_type }}'
+                    tier:              'scs'
+                    this_sid:          "{{ sid_to_be_deployed.sid | upper }}"
 
-                - name:                    "SCS Installation Playbook: - Show errors from HANA installation"
+                  loop:                "{{ all_sids }}"
+                  loop_control:
+                    loop_var:          sid_to_be_deployed
+
+                - name:                "SCS Installation Playbook: - Show errors from HANA installation"
                   ansible.builtin.debug:
-                    msg:                   "{{ error_lines }}"
+                    msg:               "{{ error_lines }}"
                   when:
                     - error_lines is defined
 
@@ -358,6 +359,7 @@
   name:                                "SCS HA Install and Pacemaker Resources"
   remote_user:                         "{{ orchestration_ansible_user }}"
   gather_facts:                        true                                    # Important to collect hostvars information
+  #serial:                              1                                       # Run the playbook serially
   vars_files:
     - vars/ansible-input-api.yaml                                              # API Input template with defaults
 

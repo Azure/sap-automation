@@ -6,23 +6,25 @@
     suffix:                            extract
   register:                            tempdir
 
-- name:                                Show temporary extract directory
-  ansible.builtin.debug:
-    var:                               tempdir
-
 - name:                                Show extract command
   ansible.builtin.debug:
-    msg:                               '{{ target_media_location_windows }}\{% if item.path is undefined %}downloads{% else %}{{ item.path }}{% endif %}\{% if item.filename is undefined %}{{ item.archive }}{% else %}{{ item.filename }}{% endif %} -d{{ tempdir.path }} -S'
+    msg: 
+      - "Temporary extract directory: {{ tempdir }}"
+      - 'Extract command: {{ target_media_location_windows }}\{% if item.path is undefined %}downloads{% else %}{{ item.path }}{% endif %}\{% if item.filename is undefined %}{{ item.archive }}{% else %}{{ item.filename }}{% endif %} -d {{ tempdir.path }} -S'
 
-- name:                                "3.3 BoM Processing: - Extract File, EXE"
-  ansible.windows.win_shell:           '{{ target_media_location_windows }}\{% if item.path is undefined %}downloads{% else %}{{ item.path }}{% endif %}\{% if item.filename is undefined %}{{ item.archive }}{% else %}{{ item.filename }}{% endif %} -d{{ tempdir.path }} -S'
+- name:                                "3.3 BoM Processing: - Extract File, exe file"
+  ansible.windows.win_shell:           '{{ target_media_location_windows }}\{% if item.path is undefined %}downloads{% else %}{{ item.path }}{% endif %}\{% if item.filename is undefined %}{{ item.archive }}{% else %}{{ item.filename }}{% endif %} -d {{ tempdir.path }} -S'
   args:
     chdir:                             '{{ tempdir.path }}'
+  register:                            extract_result
 
-- name:                                Wait for to exist before continuing
-  ansible.windows.win_wait_for:
-    path:                              '{{ tempdir.path }}{% if item.tempDir is defined %}\{{ item.tempDir }}{% endif %}\{{ item.creates }}'
+- name:                                Show extract result
+  ansible.builtin.debug:
+    var:                               extract_result
 
+# - name:                                Wait for file to exist before continuing
+#   ansible.windows.win_wait_for:
+#     path:                              '{{ tempdir.path }}{% if item.tempDir is defined %}\{{ item.tempDir }}{% endif %}\{{ item.creates }}'
 
 - name:                                Copy the folder
   ansible.windows.win_copy:

@@ -104,6 +104,7 @@
     bom_name:                          "{{ bom_base_name }}"
     tier:                              "scs"
     task_prefix:                       "SCS Install: "
+    sa_enabled:                        true
 
 - name:                                "SCS Install: Include roles-sap/windows/3.3.1-bom-utility role"
   ansible.builtin.include_role:

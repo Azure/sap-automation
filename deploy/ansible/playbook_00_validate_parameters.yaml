@@ -516,47 +516,49 @@
         - ansible_os_family != "Windows"
 
     - name:                            Check if /usr/sap is already mounted
-      ansible.builtin.set_fact:
-        usr_sap_mounted:               true
-      with_items: "{{ ansible_mounts }}"
       when:
-        - item.mount == "/usr/sap"
-        - "'scs' in supported_tiers"
         - ansible_os_family != "Windows"
-
-    - name:                            "0.0 Validations - Disk space details"
-      when:
-        - "'scs' in supported_tiers"
-        - ansible_os_family != "Windows"
-        - usr_sap_mounted is defined
       block:
-        - name:                        "0.0 Validations - Disk space details"
+        - name:                        Check if /usr/sap is already mounted
           ansible.builtin.set_fact:
-            free_diskspace:            "{{ ansible_mounts | json_query('[?mount == `/usr/sap`].size_available') }}"
-
-        - name:                        "0.0 Validations - SCS /usr/sap disk space requirements"
-          ansible.builtin.set_fact:
-            scs_free_diskspace:        10
+            usr_sap_mounted:           true
+          with_items: "{{ ansible_mounts }}"
           when:
-            - scs_free_diskspace is not defined
+            - item.mount == "/usr/sap"
+            - "'scs' in supported_tiers"
 
-        - name:                            "0.0 Validations - Show SCS disk space"
-          ansible.builtin.debug:
-            msg:
-              - "Free disk space: {{ free_diskspace | first | int / (1024 * 1024 * 1024) | int }}"
-            verbosity:                     2
+        - name:                        "0.0 Validations - Disk space details"
+          when:
+            - "'scs' in supported_tiers"
+            - usr_sap_mounted is defined
+          block:
+            - name:                    "0.0 Validations - Disk space details"
+              ansible.builtin.set_fact:
+                free_diskspace:        "{{ ansible_mounts | json_query('[?mount == `/usr/sap`].size_available') }}"
 
-        - name:                            "0.0 Validations - Show SCS disk space required"
-          ansible.builtin.debug:
-            msg:
-              - "Free disk space required: {{ scs_free_diskspace }}"
-            verbosity:                     2
+            - name:                    "0.0 Validations - SCS /usr/sap disk space requirements"
+              ansible.builtin.set_fact:
+                scs_free_diskspace:    10
+              when:
+                - scs_free_diskspace is not defined
 
-        - name:                            "0.0 Validations - Check for free disk space on SCS"
-          ansible.builtin.assert:
-            that:
-              - "{{ (free_diskspace | first | int / (1024 * 1024 * 1024) | int) > (scs_free_diskspace | int) }}"
-            fail_msg: "The SCS server needs at least {{ scs_free_diskspace }} GB of free disk space in /mnt"
+            - name:                    "0.0 Validations - Show SCS disk space"
+              ansible.builtin.debug:
+                msg:
+                  - "Free disk space: {{ free_diskspace | first | int / (1024 * 1024 * 1024) | int }}"
+                verbosity:             2
+
+            - name:                    "0.0 Validations - Show SCS disk space required"
+              ansible.builtin.debug:
+                msg:
+                  - "Free disk space required: {{ scs_free_diskspace }}"
+                verbosity:             2
+
+            - name:                    "0.0 Validations - Check for free disk space on SCS"
+              ansible.builtin.assert:
+                that:
+                  - "{{ (free_diskspace | first | int / (1024 * 1024 * 1024) | int) > (scs_free_diskspace | int) }}"
+                fail_msg: "The SCS server needs at least {{ scs_free_diskspace }} GB of free disk space in /mnt"
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |

@@ -63,9 +63,6 @@ $$use_secondary_ips$$
 # subscription is the subscription in which the system will be deployed (informational only)
 $$subscription$$
 
-# bom_name is the name of the SAP Bill of Materials file
-$$bom_name$$
-
 
 #########################################################################################
 #                                                                                       #
@@ -731,3 +728,14 @@ $$tfstate_resource_id$$
 $$deployer_tfstate_key$$
 
 $$landscape_tfstate_key$$
+
+
+#########################################################################################
+#                                                                                       #
+#  SAP Application Information                                                          #
+#                                                                                       #
+#########################################################################################
+
+# bom_name is the name of the SAP Application Bill of Materials file
+
+$$bom_name$$

@@ -732,14 +732,14 @@ variable "idle_timeout_scs_ers" {
 }
 
 variable "bom_name" {
-  description = "NAme of the SAP Application Bill of Material file"
+  description = "Name of the SAP Application Bill of Material file"
   default     = ""
 }
 
 variable "Agent_IP" {
   description = "If provided, contains the IP address of the agent"
-  type    = string
-  default = ""
+  type        = string
+  default     = ""
 }
 
 variable "shared_home" {

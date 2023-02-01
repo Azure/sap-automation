@@ -114,6 +114,7 @@
     bom_name:                          "{{ bom_base_name }}"
     tier:                              dbload
     task_prefix:                       "DBLoad: "
+    sa_enabled:                        true
 
 - name:                                "SQL Disks"
   ansible.builtin.set_fact:

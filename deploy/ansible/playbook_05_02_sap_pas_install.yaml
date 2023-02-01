@@ -203,9 +203,9 @@
         - name:                        Run the PAS installation Playbook
           block:
 
-            - name:                        "APP Playbook - Install: Include 2.6-sap-mounts role"
+            - name:                    "APP Playbook - Install: Include 2.6-sap-mounts role"
               ansible.builtin.include_role:
-                name:                      roles-sap-os/2.6-sap-mounts
+                name:                  roles-sap-os/2.6-sap-mounts
               tags:
                 - 2.6-sap-mounts
 
@@ -241,8 +241,8 @@
                 name:                  roles-sap/7.0.0-post-install
               vars:
                 suffix:                "_PAS"
-                prefix:                "{{ bom.product_ids.pas.replace('.', '/').replace('/ABAP', '').split(':')[1] }}"
-                path:                  "{{ pas_file_path.replace('//', '/') }}"
+                prefix:                "{{ bom.product_ids.pas.replace('.', '/').replace('/ABAP', '').replace('/PD', '').split(':')[1] }}"
+                path:                  'INSTALL/DISTRIBUTED/{{ pas_bom_instance_type }}/APP1'
                 tier:                  'pas'
                 this_sid:              "{{ sid_to_be_deployed.sid | upper }}"
               loop:                    "{{ all_sids }}"

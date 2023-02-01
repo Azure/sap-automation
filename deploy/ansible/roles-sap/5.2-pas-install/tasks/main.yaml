@@ -7,11 +7,26 @@
 # +------------------------------------4--------------------------------------*/
 
 ---
+
+- name:                                "PAS Install: Set the SCS Server name list"
+  ansible.builtin.set_fact:
+    scs_server_temp:                   "{{ scs_server_temp | default([]) + [item] }}"
+  with_items:
+    - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') }}"
+    - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
+
+- name:                                "PAS Install: -  Set the DB Server name list"
+  ansible.builtin.set_fact:
+    db_server_temp:                    "{{ db_server_temp | default([]) + [item] }}"
+  with_items:
+    - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
+
 - name:                                "PAS Install: Set BOM facts"
   ansible.builtin.set_fact:
     sap_inifile:                       "{{ bom_base_name }}-pas-{{ sid_to_be_deployed.sid | lower }}-{{ ansible_hostname }}.params"
     sap_inifile_template:              "{{ bom_base_name }}-pas-inifile-param.j2"
     dir_params:                        "{{ tmp_directory }}/.{{ sid_to_be_deployed.sid | lower }}-params"
+    db_lb_virtual_host:                "{% if db_high_availability %}{{ sid_to_be_deployed.sid | lower }}{{ db_sid | lower }}db{{ db_instance_number }}cl{% else %}{{ hostvars[db_server_temp | first]['virtual_host'] }}{% endif %}"
 
 - name:                                "PAS Install: -  Create directories"
   ansible.builtin.file:
@@ -42,6 +57,26 @@
   vars:
     bom_name:                          "{{ bom_base_name }}"
     task_prefix:                       "PAS Install: "
+    sa_enabled:                        true
+
+# - name:                                "PAS Install: Default instance type"
+#   ansible.builtin.set_fact:
+#     instance_type:                     "ASCS"
+#     public:                            true
+#   when:                                bom.InstanceType is not defined
+
+# - name:                                "PAS Install: register instance type if JAVA"
+#   ansible.builtin.set_fact:
+#     instance_type:                     "JAVA"
+#     public:                            true
+#   when:
+#     - bom.InstanceType is defined
+#     - bom.InstanceType | upper == 'JAVA'
+
+- name:                                "PAS Install: register variables"
+  ansible.builtin.set_fact:
+    pas_bom_instance_type:             "{% if bom.InstanceType is defined %}{{ bom.InstanceType }}{% else %}ABAP{% endif %}"
+    public:                            true
 
 - name:                                "PAS Install"
   block:
@@ -52,19 +87,6 @@
 # |                                                                            |
 # *====================================4=======================================8
 
-    - name:                            "PAS Install: Set the SCS Server name list"
-      ansible.builtin.set_fact:
-        scs_server_temp:               "{{ scs_server_temp | default([]) + [item] }}"
-      with_items:
-        - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') }}"
-        - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
-
-    - name:                            "PAS Install: -  Set the DB Server name list"
-      ansible.builtin.set_fact:
-        db_server_temp:                "{{ db_server_temp | default([]) + [item] }}"
-      with_items:
-        - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
-
     - name:                            "PAS Install: Set the SCS Server name"
       ansible.builtin.set_fact:
         scs_server:                    "{% if scs_high_availability %}{{ sid_to_be_deployed.sid | lower }}scs{{ scs_instance_number }}cl1{% else %}{{ hostvars[scs_server_temp | first]['virtual_host'] }}{% endif %}"
@@ -72,7 +94,6 @@
         instance_number:               "{% if node_tier == 'pas' %}'00'{% else %}'01'{% endif %}"
         file_path:                     "{% if scs_high_availability %}INSTALL/HA/ABAP/APP1{% else %}INSTALL/DISTRIBUTED/ABAP/APP1{% endif %}"
         DB:                            "{% if MULTI_SIDS is defined %}{{ sid_to_be_deployed.sid | upper }}/HDB{{ db_instance_number }}{% else %}{{ db_sid | upper }}/HDB{{ db_instance_number }}{% endif %}"
-        db_lb_virtual_host:            "{% if db_high_availability %}{{ sid_to_be_deployed.sid | lower }}{{ db_sid | lower }}db{{ db_instance_number }}cl{% else %}{{ hostvars[db_server_temp | first]['virtual_host'] }}{% endif %}"
 
     - name:                            "SCS Install: check media exists"
       ansible.builtin.stat:
@@ -136,6 +157,8 @@
 
     - name:                            "PAS Install: HANA HSR - Update Profile"
       ansible.builtin.import_tasks:    ../../../roles-db/4.0.1-hdb-hsr/tasks/4.0.1.7-sap-profile-changes.yml
+      vars:
+        instance_type:                 "{{ pas_bom_instance_type }}"
       when:
         - db_high_availability
         - platform == "HANA"

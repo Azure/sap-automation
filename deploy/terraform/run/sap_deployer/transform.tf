@@ -191,12 +191,12 @@ locals {
   }
 
   key_vault = {
-    kv_user_id = var.user_keyvault_id
-    kv_exists = length(var.user_keyvault_id) > 0 ? true : false
+    kv_user_id     = var.user_keyvault_id
+    kv_exists      = length(var.user_keyvault_id) > 0 ? true : false
     kv_sshkey_prvt = var.deployer_private_key_secret_name
-    kv_sshkey_pub = var.deployer_public_key_secret_name
-    kv_username = var.deployer_username_secret_name
-    kv_pwd = var.deployer_password_secret_name
+    kv_sshkey_pub  = var.deployer_public_key_secret_name
+    kv_username    = var.deployer_username_secret_name
+    kv_pwd         = var.deployer_password_secret_name
 
   }
 
