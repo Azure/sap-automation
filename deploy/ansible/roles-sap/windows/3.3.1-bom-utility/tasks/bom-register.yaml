@@ -23,9 +23,9 @@
   become_user:                         root
   loop:
     - path: "{{ download_directory }}"
-    - path: "{{ download_directory }}\\tmp"
-    - path: "{{ download_directory }}\\bom"
-    - path: "{{ download_directory }}\\files"
+    - path: "{{ download_directory }}/tmp"
+    - path: "{{ download_directory }}/bom"
+    - path: "{{ download_directory }}/files"
 
 
 - name:                                "3.3.1 BoM Processing: - Set Python version for {{ distribution_id }}"
