@@ -1,0 +1,171 @@
+# Validate that the SCS cluster is working as expected
+
+- name:                                "Determine if SCS is running on {{ ansible_hostname }}"
+  become_user:                         "{{ sap_sid | lower }}adm"
+  become:                              true
+  block:
+    - name:                            "PAS Install: Get sapcontrol path"
+      ansible.builtin.find:
+        paths:                         "/usr/sap/{{ sap_sid | upper }}"
+        file_type:                     file
+        patterns:                      'sapcontrol'
+        recurse:                       true
+        follow:                        true
+      register:                        sapcontrol_file
+
+    - name:                            "PAS Install: Set sapcontrol path"
+      ansible.builtin.set_fact:
+        sapcontrol_path:               "{{ sapcontrol_file.files[0].path }}"
+      when:
+        - sapcontrol_file | length > 0
+
+    #{{ sapcontrol_path }} -nr {{ scs_instance_number }} -function GetProcessList | grep MessageServer | awk '{split($0,result,", "); print result[1],result[3] }'
+    - name:                            "Determine if SCS is running on {{ ansible_hostname }}"
+      ansible.builtin.command:         "{{ sapcontrol_path }} -nr {{ scs_instance_number }} -function GetProcessList"
+      changed_when:                    false
+      failed_when:                     false
+      register:                        is_running
+      vars:
+        allow_world_readable_tmpfiles: true
+        ansible_python_interpreter:    python3
+      args:
+        chdir:                         "{{ sapcontrol_path | dirname }}"
+      environment:
+        ANSIBLE_REMOTE_TEMP:           "{{ tmp_directory }}/{{ sap_sid | upper }}"
+        TEMPDIR:                       "{{ tmp_directory }}/{{ sap_sid | upper }}"
+        PATH:                          /usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/usr/sap/{{ sap_sid | upper }}/SYS/exe/uc/linuxx86_64:/usr/sap/{{ sap_sid | upper }}/SYS/exe/run:/home/{{ sap_sid | lower }}adm
+        DIR_LIBRARY:                   /usr/sap/{{ sap_sid | upper }}/SYS/exe/run
+        LD_LIBRARY_PATH:               /usr/sap/{{ sap_sid | upper }}/SYS/exe/run:/usr/sap/{ sap_sid | upper }}/SYS/exe/uc/linuxx86_64
+        SAPSYSTEMNAME:                 "{{ sap_sid | upper }}"
+      tags:
+        - skip_ansible_lint
+
+    - name:                                "Show if SCS is running on {{ ansible_hostname }}"
+      ansible.builtin.debug:
+        var: is_running
+
+    # when the rc is 3, the SCS is running on ansible_hostname.
+    # if the ansible_hostname is not the primary_instance_name, then failover cluster resources for ASCS/SCS
+    # start the SAP instance on primary_instance_name. This is a failover scenario.
+    - name:                            "Validate that SCS is running on {{ ansible_hostname }}"
+      ansible.builtin.set_fact:
+        scs_running_on:               "{{ ansible_hostname }}"
+      when:
+        - is_running.rc == 3
+        - is_running.stdout | regex_search('MessageServer')
+
+    - name:                            "Check where the cluster group g-{{ sap_sid }}_{{ instance_type | upper }} is running"
+      become:                          true
+      become_user:                     root
+      ansible.builtin.shell: >-
+        set -o pipefail;
+        crm_resource --resource g-{{ sap_sid }}_{{ instance_type | upper }} --locate | cut -d ':' -f 2| cut -d " " -f 2
+      when:
+        - ansible_hostname == primary_instance_name
+      failed_when:                     false
+      register:                        cluster_group_location
+      tags:
+        - skip_ansible_lint
+
+    # move cluster group g-{{ sap_sid }}_{{ instance_type | upper }} to primary_instance_name
+    - name:                            "Move cluster group g-{{ sap_sid }}_{{ instance_type | upper }} to {{ primary_instance_name }}"
+      become:                          true
+      become_user:                     root
+      ansible.builtin.command:         "crm resource move g-{{ sap_sid }}_{{ instance_type | upper }} {{ primary_instance_name }}"
+      when:
+        - ansible_os_family | upper == 'SUSE'
+        - ansible_hostname == primary_instance_name
+        - cluster_group_location.rc == 0
+        - scs_running_on is not defined
+      failed_when:                     cluster_group_moved.rc != 0 and cluster_group_moved.stderr is not search('Already in requested state')
+      register:                        cluster_group_moved
+      tags:
+        - skip_ansible_lint
+
+    # move cluster group g-{{ sap_sid }}_{{ instance_type | upper }} to primary_instance_name
+    - name:                            "Move cluster group g-{{ sap_sid }}_{{ instance_type | upper }} to {{ primary_instance_name }}"
+      become:                          true
+      become_user:                     root
+      ansible.builtin.command:         "pcs resource move g-{{ sap_sid }}_{{ instance_type | upper }} {{ primary_instance_name }}"
+      when:
+        - ansible_os_family | upper == 'REDHAT'
+        - ansible_hostname == primary_instance_name
+        - cluster_group_location.rc == 0
+        - scs_running_on is not defined
+      register:                        cluster_group_moved
+      failed_when:                     cluster_group_moved.rc != 0 and cluster_group_moved.stderr is not search('Already in requested state')
+      tags:
+        - skip_ansible_lint
+
+    - name:                            "Perfom Cluster resource move and SAP start when the group g-{{ sap_sid }}_{{ instance_type | upper }} has moved"
+      block:
+        - name:                        "Check if cluster group g-{{ sap_sid }}_{{ instance_type | upper }} is running on {{ primary_instance_name }}"
+          become:                          true
+          become_user:                     root
+          ansible.builtin.shell: >-
+            set -o pipefail;
+            crm_resource --resource g-{{ sap_sid }}_{{ instance_type | upper }} --locate | cut -d ':' -f 2| cut -d " " -f 2
+          when:
+            - ansible_hostname == primary_instance_name
+            - cluster_group_moved is changed
+          register:                    cluster_group_location
+          failed_when:                 false
+          tags:
+            - skip_ansible_lint
+
+        - name:                        "Validate if cluster group g-{{ sap_sid }}_{{ instance_type | upper }} is running on {{ primary_instance_name }}"
+          ansible.builtin.assert:
+            that:
+              - cluster_group_location.stdout == primary_instance_name
+            fail_msg:                  "cluster group g-{{ sap_sid }}_{{ instance_type | upper }} is not running on {{ primary_instance_name }}"
+          tags:
+            - skip_ansible_lint
+
+        #{{ sapcontrol_path }} -nr {{ scs_instance_number }} -function GetProcessList | grep MessageServer | awk '{split($0,result,", "); print result[1],result[3] }'
+        - name:                        "Determine if SCS is running on {{ ansible_hostname }}"
+          ansible.builtin.command:     "{{ sapcontrol_path }} -nr {{ scs_instance_number }} -function StartService {{ sap_sid | upper }}"
+          changed_when:                false
+          failed_when:                 false
+          register:                    is_running
+          vars:
+            allow_world_readable_tmpfiles: true
+            ansible_python_interpreter:    python3
+          args:
+            chdir:                         "{{ sapcontrol_path | dirname }}"
+          environment:
+            ANSIBLE_REMOTE_TEMP:           "{{ tmp_directory }}/{{ sap_sid | upper }}"
+            TEMPDIR:                       "{{ tmp_directory }}/{{ sap_sid | upper }}"
+            PATH:                          /usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/usr/sap/{{ sap_sid | upper }}/SYS/exe/uc/linuxx86_64:/usr/sap/{{ sap_sid | upper }}/SYS/exe/run:/home/{{ sap_sid | lower }}adm
+            DIR_LIBRARY:                   /usr/sap/{{ sap_sid | upper }}/SYS/exe/run
+            LD_LIBRARY_PATH:               /usr/sap/{{ sap_sid | upper }}/SYS/exe/run:/usr/sap/{ sap_sid | upper }}/SYS/exe/uc/linuxx86_64
+            SAPSYSTEMNAME:                 "{{ sap_sid | upper }}"
+          tags:
+            - skip_ansible_lint
+
+        - name:                            "Wait 60 secs for the StartService {{ sap_sid | upper }} to finish"
+          ansible.builtin.wait_for:
+            timeout:                      60
+
+        #{{ sapcontrol_path }} -nr {{ scs_instance_number }} -function GetProcessList | grep MessageServer | awk '{split($0,result,", "); print result[1],result[3] }'
+        - name:                            "Determine if SCS is running on {{ ansible_hostname }}"
+          ansible.builtin.command:         "{{ sapcontrol_path }} -nr {{ scs_instance_number }} -function StartSystem ALL"
+          changed_when:                    false
+          failed_when:                     false
+          register:                        is_running
+          vars:
+            allow_world_readable_tmpfiles: true
+            ansible_python_interpreter:    python3
+          args:
+            chdir:                         "{{ sapcontrol_path | dirname }}"
+          environment:
+            ANSIBLE_REMOTE_TEMP:           "{{ tmp_directory }}/{{ sap_sid | upper }}"
+            TEMPDIR:                       "{{ tmp_directory }}/{{ sap_sid | upper }}"
+            PATH:                          /usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/usr/sap/{{ sap_sid | upper }}/SYS/exe/uc/linuxx86_64:/usr/sap/{{ sap_sid | upper }}/SYS/exe/run:/home/{{ sap_sid | lower }}adm
+            DIR_LIBRARY:                   /usr/sap/{{ sap_sid | upper }}/SYS/exe/run
+            LD_LIBRARY_PATH:               /usr/sap/{{ sap_sid | upper }}/SYS/exe/run:/usr/sap/{ sap_sid | upper }}/SYS/exe/uc/linuxx86_64
+            SAPSYSTEMNAME:                 "{{ sap_sid | upper }}"
+          tags:
+            - skip_ansible_lint
+      when:
+        - cluster_group_moved is changed
+        - ansible_hostname == primary_instance_name

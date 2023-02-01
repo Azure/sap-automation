@@ -1,0 +1,11 @@
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                           Registry Configuration                           |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+---
+# ----------------------------------------
+# BEGIN
+
+- name:                                "1.12 Registry Config - Ciphers and Protocols Configuration"
+  ansible.builtin.include_tasks:       protocols-config.yaml

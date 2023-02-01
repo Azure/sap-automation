@@ -110,19 +110,19 @@ resource "local_file" "ansible_inventory_new_yml" {
 
 resource "local_file" "sap-parameters_yml" {
   content = templatefile(format("%s/sap-parameters.yml.tmpl", path.module), {
-    sid           = var.sap_sid,
-    db_sid        = var.db_sid
-    kv_name       = local.kv_name,
-    secret_prefix = local.secret_prefix,
-    disks         = var.disks
-    scs_ha        = var.scs_ha
-    scs_lb_ip     = var.scs_lb_ip
-    ers_lb_ip     = var.ers_lb_ip
-    db_lb_ip      = var.db_lb_ip
-    db_ha         = var.db_ha
+    sid                = var.sap_sid,
+    db_sid             = var.db_sid
+    kv_name            = local.kv_name,
+    secret_prefix      = local.secret_prefix,
+    disks              = var.disks
+    scs_ha             = var.scs_ha
+    scs_lb_ip          = var.scs_lb_ip
+    ers_lb_ip          = var.ers_lb_ip
+    db_lb_ip           = var.db_lb_ip
+    db_ha              = var.db_ha
     db_instance_number = try(var.database.instance.instance_number, "00")
-    dns           = local.dns_label
-    bom           = local.bom
+    dns                = local.dns_label
+    bom                = local.bom
     sap_mnt = length(trimspace(var.sap_mnt)) > 0 ? (
       format("sap_mnt:                       %s", var.sap_mnt)) : (
       ""
@@ -270,7 +270,7 @@ resource "local_file" "sap_inventory_for_wiki_md" {
     scs_lb_ip           = length(var.scs_lb_ip) > 0 ? var.scs_lb_ip : try(local.ips_scs[0], "")
     platform            = upper(var.platform)
     kv_pwd_secret       = format("%s-%s-sap-password", local.secret_prefix, var.sap_sid)
-    db_servers          = var.platform == "HANA" ? join(",", var.naming.virtualmachine_names.HANA_COMPUTERNAME) : join(",",var.naming.virtualmachine_names.ANYDB_COMPUTERNAME)
+    db_servers          = var.platform == "HANA" ? join(",", var.naming.virtualmachine_names.HANA_COMPUTERNAME) : join(",", var.naming.virtualmachine_names.ANYDB_COMPUTERNAME)
     scs_servers         = join(",", var.naming.virtualmachine_names.SCS_COMPUTERNAME)
     pas_server          = try(var.naming.virtualmachine_names.APP_COMPUTERNAME[0], "")
     application_servers = join(",", var.naming.virtualmachine_names.APP_COMPUTERNAME)

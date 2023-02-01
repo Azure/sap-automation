@@ -1,13 +1,15 @@
 ######################################################################################################################################################################################
 #                                                                                                                                                                                    #
-# Installation service 'SAP NetWeaver 7.5 > MS SQL Server > Installation > Application Server ABAP > Distributed System > Database Instance', product id 'NW_ABAP_DB:NW750.MSS.ABAP' #
+# Installation service 'SAP NetWeaver 7.5 > MS SQL Server > Installation > Application Server ABAP > Distributed System > Database Instance', product id 'NW_ABAP_DB:NW752.MSS.PD'   #
 #                                                                                                                                                                                    #
 ######################################################################################################################################################################################
 
 # Location of download_basket\CD_EXPORT CD
+SAPINST.CD.PACKAGE.LOAD                                    = {{ download_directory_windows }}\CD_EXPORT
 SAPINST.CD.PACKAGE.CD1                                     = {{ download_directory_windows }}\CD_EXPORT\DATA_UNITS\EXP1
 SAPINST.CD.PACKAGE.CD2                                     = {{ download_directory_windows }}\CD_EXPORT\DATA_UNITS\EXP2
 SAPINST.CD.PACKAGE.CD3                                     = {{ download_directory_windows }}\CD_EXPORT\DATA_UNITS\EXP3
+
 
 # Password for the Diagnostics Agent specific <dasid>adm user. Provided value may be encoded.
 # DiagnosticsAgent.dasidAdmPassword =

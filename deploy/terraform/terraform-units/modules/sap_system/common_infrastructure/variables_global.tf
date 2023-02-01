@@ -193,8 +193,8 @@ variable "azure_files_sapmnt_id" {
 
 variable "Agent_IP" {
   description = "If provided, contains the IP address of the agent"
-  type    = string
-  default = ""
+  type        = string
+  default     = ""
 }
 
 variable "use_private_endpoint" {

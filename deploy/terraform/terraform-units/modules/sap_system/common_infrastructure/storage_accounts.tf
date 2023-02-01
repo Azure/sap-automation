@@ -50,11 +50,11 @@ resource "azurerm_storage_account_network_rules" "sapmnt" {
   bypass = ["AzureServices", "Logging", "Metrics"]
   virtual_network_subnet_ids = compact(
     [
-        try(var.landscape_tfstate.admin_subnet_id, ""),
-        try(var.landscape_tfstate.app_subnet_id, ""),
-        try(var.landscape_tfstate.db_subnet_id, ""),
-        try(var.landscape_tfstate.web_subnet_id, ""),
-        try(var.landscape_tfstate.subnet_mgmt_id, "")
+      try(var.landscape_tfstate.admin_subnet_id, ""),
+      try(var.landscape_tfstate.app_subnet_id, ""),
+      try(var.landscape_tfstate.db_subnet_id, ""),
+      try(var.landscape_tfstate.web_subnet_id, ""),
+      try(var.landscape_tfstate.subnet_mgmt_id, "")
     ]
   )
 
@@ -64,7 +64,7 @@ resource "azurerm_private_dns_a_record" "sapmnt" {
   depends_on = [
     azurerm_private_endpoint.sapmnt
   ]
-  count               = var.use_private_endpoint && var.use_custom_dns_a_registration ? 1 : 0
+  count = var.use_private_endpoint && var.use_custom_dns_a_registration ? 1 : 0
   name = replace(
     lower(
       format("%s%s",
@@ -230,12 +230,12 @@ data "azurerm_private_dns_zone" "storage" {
   count               = var.use_private_endpoint && var.use_custom_dns_a_registration ? 1 : 0
   name                = "privatelink.blob.core.windows.net"
   resource_group_name = var.management_dns_resourcegroup_name
-  provider = azurerm.dnsmanagement
+  provider            = azurerm.dnsmanagement
 
 }
 
 data "azurerm_network_interface" "sapmnt" {
-  count               = var.use_private_endpoint && length(var.azure_files_sapmnt_id) == 0  ? 1 : 0
+  count               = var.use_private_endpoint && length(var.azure_files_sapmnt_id) == 0 ? 1 : 0
   name                = azurerm_private_endpoint.sapmnt[count.index].network_interface[0].name
   resource_group_name = split("/", azurerm_private_endpoint.sapmnt[count.index].network_interface[0].id)[4]
 }

@@ -504,7 +504,7 @@ locals {
   scs_no_ppg = var.application_tier.scs_no_ppg
   web_no_ppg = var.application_tier.web_no_ppg
 
-  dns_label               = try(var.landscape_tfstate.dns_label, "")
+  dns_label = try(var.landscape_tfstate.dns_label, "")
 
   deploy_route_table = local.enable_deployment && length(var.route_table_id) > 0
 

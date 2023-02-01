@@ -333,6 +333,7 @@ data "azurerm_private_dns_zone" "keyvault" {
   name                = "privatelink.vaultcore.azure.net"
   resource_group_name = var.management_dns_resourcegroup_name
   provider            = azurerm.dnsmanagement
+  
 }
 
 

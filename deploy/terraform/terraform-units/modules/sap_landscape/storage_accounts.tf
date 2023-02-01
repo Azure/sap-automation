@@ -605,16 +605,23 @@ resource "azurerm_private_endpoint" "install" {
 
 resource "azurerm_storage_share" "install" {
   count = var.NFS_provider == "AFS" ? (
-    length(var.install_storage_account_id) > 0 ? (
+    length(var.install_storage_account_id) > 0 || var.install_always_create_fileshares ? (
       0) : (
       1
     )) : (
     0
   )
 
-  name                 = format("%s", local.resource_suffixes.install_volume)
-  storage_account_name = var.NFS_provider == "AFS" ? azurerm_storage_account.install[0].name : ""
-  enabled_protocol     = "NFS"
+  name = format("%s", local.resource_suffixes.install_volume)
+  storage_account_name = var.NFS_provider == "AFS" ? (
+    length(var.install_storage_account_id) > 0 ? (
+      split("/", var.install_storage_account_id)[8]
+      ) : (
+      azurerm_storage_account.install[0].name
+    )) : (
+    ""
+  )
+  enabled_protocol = "NFS"
 
   quota = var.install_volume_size
 }
