@@ -5,9 +5,8 @@
 # +------------------------------------4--------------------------------------*/
 
 - name:                                "1.10 Networking - Get the IP information from instance meta data service"
-  ansible.builtin.command: curl -H Metadata:true --noproxy "*" "http://169.254.169.254/metadata/instance/network/interface/0?api-version=2021-02-01"
+  ansible.builtin.command:             curl -H Metadata:true --noproxy "*" "http://169.254.169.254/metadata/instance/network/interface/0?api-version=2021-02-01"
   register:                            azure_metadata
-  no_log:                              true
   changed_when:                        false
   args:
     warn:                              false
@@ -15,22 +14,18 @@
 - name:                                "1.10 Networking - Pass the output of instance meta data to azure meta data function"
   ansible.builtin.set_fact:
     json_azure_data:                   "{{ azure_metadata.stdout | from_json }}"
-  no_log: true
 
 - name:                                "1.10 Networking - Filter out the values for IPAddresses in json format"
   ansible.builtin.set_fact:
-    private_ips_info: "{{ json_azure_data | json_query('ipv4.ipAddress') }}"
-  no_log: true
+    private_ips_info:                  "{{ json_azure_data | json_query('ipv4.ipAddress') }}"
 
 - name:                                "1.10 Networking - Convert ips to list"
   ansible.builtin.set_fact:
-    ipadd: "{{ private_ips_info | map(attribute='privateIpAddress') | list }}"
-  no_log: true
+    ipadd:                             "{{ private_ips_info | map(attribute='privateIpAddress') | list }}"
 
 - name:                                "1.10 Networking - Get the secondary IP"
   ansible.builtin.set_fact:
     secondary_ip:                      "{{ ipadd[1] }}"
-  no_log: true
   when:
     - ipadd is defined
     - ipadd | length > 1
