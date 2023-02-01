@@ -166,6 +166,12 @@ variable "install_private_endpoint_id" {
   default     = ""
 }
 
+variable "install_always_create_fileshares" {
+  description = "Value indicating if file shares are created ehen using existing storage accounts"
+  default     = false
+}
+
+
 #########################################################################################
 #                                                                                       #
 #  Miscallaneous variables                                                              #

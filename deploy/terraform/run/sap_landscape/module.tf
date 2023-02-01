@@ -60,6 +60,7 @@ module "sap_landscape" {
 
   enable_firewall_for_keyvaults_and_storage = var.enable_firewall_for_keyvaults_and_storage
 
+  install_always_create_fileshares = var.install_always_create_fileshares
 
 }
 
