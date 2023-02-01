@@ -21,7 +21,7 @@ output "created_resource_group_name" {
 
 output "environment" {
   description = "Deployer environment name"
-  value = var.environment
+  value       = var.environment
 }
 
 ###############################################################################

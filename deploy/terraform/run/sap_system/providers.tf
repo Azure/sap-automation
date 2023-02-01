@@ -64,7 +64,7 @@ terraform {
       source = "hashicorp/tls"
     }
     azuread = {
-      source = "hashicorp/azuread"
+      source  = "hashicorp/azuread"
       version = "~> 2.2"
     }
     azurerm = {

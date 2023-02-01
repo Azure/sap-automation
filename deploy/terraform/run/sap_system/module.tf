@@ -169,7 +169,7 @@ module "app_tier" {
     azurerm.deployer      = azurerm.deployer
     azurerm.dnsmanagement = azurerm.dnsmanagement
   }
-  depends_on = [module.common_infrastructure]
+  depends_on       = [module.common_infrastructure]
   order_deployment = null
 
   application_tier                             = local.application_tier

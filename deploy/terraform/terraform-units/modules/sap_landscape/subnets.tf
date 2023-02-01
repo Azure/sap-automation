@@ -193,7 +193,7 @@ resource "azurerm_subnet_route_table_association" "db" {
     azurerm_route_table.rt
   ]
   provider       = azurerm.main
-  count          = local.database_subnet_defined && !local.vnet_sap_exists && !local.database_subnet_existing ? 1 : 0 
+  count          = local.database_subnet_defined && !local.vnet_sap_exists && !local.database_subnet_existing ? 1 : 0
   subnet_id      = local.database_subnet_existing ? local.database_subnet_arm_id : azurerm_subnet.db[0].id
   route_table_id = azurerm_route_table.rt[0].id
 }

@@ -7,12 +7,12 @@
 
 output "region" {
   description = "Azure region"
-  value = local.infrastructure.region
+  value       = local.infrastructure.region
 }
 
 output "environment" {
   description = "Name of environment"
-  value = local.infrastructure.environment
+  value       = local.infrastructure.environment
 }
 
 
@@ -24,7 +24,7 @@ output "environment" {
 
 output "automation_version" {
   description = "Defines the version of the terraform templates used in the deloyment"
-  value = local.version_label
+  value       = local.version_label
 }
 
 ###############################################################################
@@ -148,12 +148,12 @@ output "sid" {
 
 output "disks" {
   description = "Disks attached to the virtual machines"
-  value = compact(concat(module.hdb_node.dbtier_disks, module.anydb_node.dbtier_disks, module.app_tier.apptier_disks))
+  value       = compact(concat(module.hdb_node.dbtier_disks, module.anydb_node.dbtier_disks, module.app_tier.apptier_disks))
 
 }
 
 output "sapmnt_path" {
   description = "Path to the sapmnt folder"
-  value = module.common_infrastructure.sapmnt_path
+  value       = module.common_infrastructure.sapmnt_path
 }
 

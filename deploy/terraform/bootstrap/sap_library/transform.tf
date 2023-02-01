@@ -11,7 +11,7 @@ locals {
     tags = try(coalesce(var.resourcegroup_tags, try(var.infrastructure.tags, {})), {})
   }
   deployer = {
-    use         = var.use_deployer
+    use = var.use_deployer
 
   }
   key_vault = {

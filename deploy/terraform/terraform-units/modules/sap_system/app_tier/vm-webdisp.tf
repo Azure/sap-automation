@@ -453,7 +453,7 @@ resource "azurerm_virtual_machine_extension" "configure_ansible_web" {
     local.webdispatcher_count) : (
     0
   )
-  
+
   depends_on = [azurerm_virtual_machine_data_disk_attachment.web]
 
   virtual_machine_id   = azurerm_windows_virtual_machine.web[count.index].id
