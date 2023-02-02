@@ -235,7 +235,7 @@ data "azurerm_private_dns_zone" "storage" {
 }
 
 data "azurerm_network_interface" "sapmnt" {
-  count               = var.use_private_endpoint && length(var.azure_files_sapmnt_id) == 0 ? 1 : 0
+  count               = var.use_private_endpoint && length(var.azure_files_sapmnt_id) == 0 && var.NFS_provider == "AFS" ? 1 : 0
   name                = azurerm_private_endpoint.sapmnt[count.index].network_interface[0].name
   resource_group_name = split("/", azurerm_private_endpoint.sapmnt[count.index].network_interface[0].id)[4]
 }
