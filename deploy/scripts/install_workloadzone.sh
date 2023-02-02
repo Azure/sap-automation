@@ -1025,7 +1025,7 @@ echo "##########################################################################
 echo ""
 
 rg_name=$(terraform -chdir="${terraform_module_directory}"  output -no-color -raw created_resource_group_name | tr -d \")
-az deployment group create --resource-group "${rg_name}" --name "SAP-WORKLOAD-ZONE_${rg_name}" --subscription  ${subscription} --template-file "${script_directory}/templates/empty-deployment.json" --output none
+az deployment group create --resource-group "${rg_name}" --name "SAP-WORKLOAD-ZONE_${rg_name}" --subscription "${subscription}" --template-file "${script_directory}/templates/empty-deployment.json" --output none
 
 now=$(date)
 cat <<EOF > "${workload_config_information}".md
