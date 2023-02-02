@@ -487,7 +487,7 @@ stages:
                   fi
 
                   az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "${NETWORK}"Workload_Secret_Prefix.value --output table)
-                  if [ -z ${az_var} ]; then
+                  if [ -z "${az_var}" ]; then
                     az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name "${NETWORK}"Workload_Secret_Prefix --value $workload_prefix --output none --only-show-errors
                   else
                     az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name "${NETWORK}"Workload_Secret_Prefix --value $workload_prefix --output none --only-show-errors
@@ -501,7 +501,7 @@ stages:
                   fi
 
                   az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query WZ_PAT.value --output table)
-                  if [ -z ${az_var} ]; then
+                  if [ -z "${az_var}" ]; then
                     az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name WZ_PAT --value $AZURE_DEVOPS_EXT_PAT --output none --only-show-errors --secret true
                   else
                     az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name WZ_PAT --value $AZURE_DEVOPS_EXT_PAT --output none --only-show-errors --secret true

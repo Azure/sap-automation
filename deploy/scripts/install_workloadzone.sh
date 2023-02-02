@@ -591,7 +591,7 @@ echo -e "#       $cyan Changing the subscription to: ${subscription} $resetforma
 echo "#                                                                                       #"
 echo "#########################################################################################"
 echo ""
-az account set --sub "${subscription}"
+#az account set --sub "${subscription}"
 
 save_config_var "REMOTE_STATE_SA" "${workload_config_information}"
 save_config_var "subscription" "${workload_config_information}"
