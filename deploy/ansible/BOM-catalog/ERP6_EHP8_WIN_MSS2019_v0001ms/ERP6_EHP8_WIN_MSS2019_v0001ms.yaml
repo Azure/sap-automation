@@ -2,7 +2,7 @@
 
 name:                           "ERP6 EHP8 WIN MSS2019"
 filename:                       "ERP6_EHP8_WIN_MSS2019_v0001ms"
-target:                         "SAP NETWEAVER 7.5"
+target:                         "SAP ERP 6.0"
 version:                        "1"
 platform:                       "SQLSERVER"
 
@@ -10,12 +10,12 @@ defaults:
   target_location: "{{ target_media_location }}/download_basket"
 
 product_ids:
-  scs:                          NW_ABAP_ASCS:NW750.MSS.ABAP
-  scs_ha:                       NW_FirstClusterNode_ABAP:NW750.MSS.ABAPHA
-  dbl:                          NW_ABAP_DB:NW750.MSS.ABAP
-  pas:                          NW_ABAP_CI:NW750.MSS.ABAP
+  scs:                          NW_ABAP_ASCS:BS2016.ERP608.MSS.PD
+  scs_ha:                       NW_FirstClusterNode_ABAP:BS2016.ERP608.MSS.PDHA
+  dbl:                          NW_ABAP_DB:BS2016.ERP608.MSS.PD
+  pas:                          NW_ABAP_CI:BS2016.ERP608.MSS.PD
   pas_ha:
-  app:
+  app:                          NW_DI:BS2016.ERP608.MSS.PD 
   app_ha:
   web:
   ers:
@@ -24,7 +24,7 @@ product_ids:
 materials:
   dependencies:
     - name:                     "MSSQLSRV_2019_v0001ms"
-    - name:                     "SUM20SP14_win_latest"
+    - name:                     "SUM20SP15_win_latest"
     - name:                     "SWPM10SP36_win_latest"
 
   media:
@@ -62,26 +62,45 @@ materials:
       url:                      https://softwaredownloads.sap.com/file/0020000000703122018
       path:                     download_basket
 
-    - name:                     "NW 7.5 Installation Export"
-      archive:                  51050829_3.ZIP
-      checksum:                 06c3a3cd5d1ad266f61ca202552468501d94cfdc7641ffdadf0a9abad82b648a
+    # DB export
+    - name:                     "SAP ERP 6.0 EHP8 Installation Export 1/4"
+      archive:                  51050708_part1.exe
+      checksum:                 8a4f3658b08687633aa5ae1bb59fe7396b0ee5a7be24498c61d67585d142da6f
       extract:                  true
       extractDir:               CD_EXPORT
-      creates:                  CDLABEL.ASC
-      url:                      https://softwaredownloads.sap.com/file/0030000000635092016
+      creates:                  'CDLABEL.ASC'
+      url:                      https://softwaredownloads.sap.com/file/0030000000002962016
 
-    # Languages
-    - name:                     "NW 7.5 Language 1/2"
-      archive:                  51050829_LNG1_part1.exe
-      checksum:                 4fb96950412547ea3a49e9f1488f7fea7fd6c651143113b70b32543f9b166c71
-      url:                      https://softwaredownloads.sap.com/file/0030000000635132016
+    - name:                     "SAP ERP 6.0 EHP8 Installation Export 2/4"
+      archive:                  51050708_part2.rar
+      checksum:                 f75977549ccbdd39f91f86d0bea21b692b0a8b123d50059848a5519b92f2e591
+      extract:                  false
+      extractDir:               CD_EXPORT
+      creates:                  'LABELIDX.ASC'
+      url:                      https://softwaredownloads.sap.com/file/0030000000002972016
 
-    - name:                     "NW 7.5 Language 2/2"
-      archive:                  51050829_LNG1_part2.rar
-      checksum:                 9fc3fa5a22c120df9d3b6aa04eff39c924dffd8bd633607116f446b46d3b5dd7
-      url:                      https://softwaredownloads.sap.com/file/0030000000635142016
+    - name:                     "SAP ERP 6.0 EHP8 Installation Export 3/4"
+      archive:                  51050708_part3.rar
+      checksum:                 2894f9cb2b0cc2486a1567dc7c047227b89ad5930ae8f5425872b6a829185ee7
+      extract:                  false
+      extractDir:               CD_EXPORT
+      creates:                  'LABELIDX.ASC'
+      url:                      https://softwaredownloads.sap.com/file/0030000000002982016
+
+    - name:                     "SAP ERP 6.0 EHP8 Installation Export 4/4"
+      archive:                  51050708_part4.rar
+      checksum:                 409714e4478eaf2ef45793c9e57bf583ac61f0f8938f862adae2328a38e71988
+      extract:                  false
+      extractDir:               CD_EXPORT
+      creates:                  'LABELIDX.ASC'
+      url:                      https://softwaredownloads.sap.com/file/0030000000002992016
 
     # other components
+    - name:                     "SAP ERP 6.0 EHP8 SAP Components"
+      archive:                  51050610_16
+      checksum:                 5b45e56660f036b2762caceca2b0dfc0671e7d46e296d924d0052567ddf61926
+      url:                      https://softwaredownloads.sap.com/file/0030000000001942016
+      path:                     download_basket
 
     - name:                     "Attribute Change Package 02 for EA-DFPS 618"
       archive:                  EA-DFPS618.SAR
