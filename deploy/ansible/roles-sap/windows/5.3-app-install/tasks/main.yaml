@@ -146,7 +146,7 @@
     sap_scs_hostname:                  "{{ scs_server }}"
     sap_db_hostname:                   "{{ db_virtual_host }}"
     sap_ciVirtualHostname:
-    sap_appVirtualHostname:
+    sap_appVirtualHostname:            "{{ virtual_host }}"
     tier:                              "{{ tier }}"
     param_directory:                   "{{ dir_params }}"
     sap_sid:                           "{{ sid_to_be_deployed.sid }}"
