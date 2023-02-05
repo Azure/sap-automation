@@ -241,7 +241,7 @@
         "Options": [],
         "Overrules": "",
         "Display": 2
-      }, 
+      },
       {
         "Name": "enable_firewall_for_keyvaults_and_storage",
         "Required": false,
@@ -790,6 +790,24 @@
         "Name": "ANF_pool_name",
         "Required": false,
         "Description": "the NetApp capacity pool name (if any)",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "ANF_transport_volume_throughput",
+        "Required": false,
+        "Description": "The throughput in MB/s for the transport volume.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "ANF_install_volume_throughput",
+        "Required": false,
+        "Description": "The throughput in MB/s for the install volume.",
         "Type": "field",
         "Options": [],
         "Overrules": "",
