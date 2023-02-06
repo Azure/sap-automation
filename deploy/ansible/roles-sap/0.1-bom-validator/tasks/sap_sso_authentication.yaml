@@ -878,78 +878,9 @@
 #     Keep-Alive: timeout=20              |
 #     Set-Cookie: JSESSIONID=<id>         |
 # -------------------------------------+---------------------------------------8
-    # - name:                                 "SAP SSO Logon - Step 5 - Submit Password information to IPD provider: {{ post_url }}"
-    #   ansible.builtin.command: >-
-    #                                         curl  {{ post_url }}                                                        \
-    #                                         --include                                                                   \
-    #                                         --cookie-jar cookie_jar                                                     \
-    #                                         --cookie     cookie_jar                                                     \
-    #                                         --location                                                                  \
-    #                                         --silent                                                                    \
-    #                                         --user-agent 'ansible-httpget'                                              \
-    #                                         --header 'Content-Type: {{ sap_sso_parameters.content_type }}'              \
-    #                                         --header 'Accept: {{ sap_sso_parameters.accept }}'                          \
-    #                                         --header 'Accept-Language: {{ sap_sso_parameters.accept_language }}'        \
-    #                                         --header 'Connection: {{ sap_sso_parameters.connection }}'                  \
-    #                                         --header 'sec-ch-ua: {{ sap_sso_parameters.sec_ch_ua }}'                    \
-    #                                         --header 'sec-ch-ua-mobile: {{ sap_sso_parameters.sec_ch_ua_mobile }}'      \
-    #                                         --header 'sec-ch-ua-platform: {{ sap_sso_parameters.sec_ch_ua_platform }}'  \
-    #                                         --header 'Upgrade-Insecure-Requests: {{ sap_sso_parameters.upgrade_insecure_requests }}' \
-    #                                         --header 'Sec-Fetch-Site: same-origin'                                      \
-    #                                         --header 'Sec-Fetch-Mode: {{ sap_sso_parameters.sec_fetch_mode }}'          \
-    #                                         --header 'Sec-Fetch-User: {{ sap_sso_parameters.sec_fetch_user }}'          \
-    #                                         --header 'Sec-Fetch-Dest: {{ sap_sso_parameters.sec_fetch_dest }}'          \
-    #                                         --header 'Cache-Control: {{ sap_sso_parameters.cache_control }}'            \
-    #                                         --header 'Origin: {{ origin }}'                                             \
-    #                                         --header 'Referer: {{ referer }}'                                           \
-    #                                         --data-urlencode 'utf8={{ sap_sso_parameters.utf8 }}'                       \
-    #                                         --data-urlencode 'authenticity_token={{ authenticity_token }}'              \
-    #                                         --data-urlencode 'xsrfProtection={{ xsrfProtection }}'                      \
-    #                                         --data-urlencode 'method={{ method }}'                                      \
-    #                                         --data-urlencode 'idpSSOEndpoint={{ idpSSOEndpoint }}'                      \
-    #                                         --data-urlencode 'SAMLRequest={{ SAMLRequest }}'                            \
-    #                                         --data-urlencode 'RelayState={{ RelayState }}'                              \
-    #                                         --data-urlencode 'targetUrl={{ targetUrl }}'                                \
-    #                                         --data-urlencode 'sourceUrl={{ sourceUrl }}'                                \
-    #                                         --data-urlencode 'org={{ org }}'                                            \
-    #                                         --data-urlencode 'spId={{ spId }}'                                          \
-    #                                         --data-urlencode 'spName={{ spName }}'                                      \
-    #                                         --data-urlencode 'mobileSSOToken={{ mobileSSOToken }}'                      \
-    #                                         --data-urlencode "tfaToken={{ tfaToken }}"                                  \
-    #                                         --data-urlencode 'css={{ css }}'                                            \
-    #                                         --data-urlencode 'passwordlessAuthnSelected={{ passwordlessAuthnSelected }}' \
-    #                                         --data-urlencode 'j_username={{ j_username }}'                              \
-    #                                         --data-urlencode 'j_password={{ j_password }}'                              \
-    #                                         --output -
-    #   vars:
-    #     origin:                             "{{ step4Results.url     | regex_search('^http.*?://[^/]+') }}"
-    #     referer:                            "{{ step4Results.url     | regex_search('^http.*?://[^/]+') }}/"
-    #     post_action:                        "{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> action=\".*?>)',                         '\\g<first_part>', '\\g<second_part>') | join                              | regex_search(' action=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
-    #     post_url:                           "{{ origin }}{{ post_action }}"
-    #     authenticity_token:                 "{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"authenticity_token\".*?>)',       '\\g<first_part>', '\\g<second_part>') | join                              | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}"
-    #     xsrfProtection:                     "{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"xsrfProtection\".*?>)',           '\\g<first_part>', '\\g<second_part>') | join                              | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}"
-    #     method:                             "{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"method\".*?>)',                   '\\g<first_part>', '\\g<second_part>') | join                              | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}"
-    #     idpSSOEndpoint:                     "{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"idpSSOEndpoint\".*?>)',           '\\g<first_part>', '\\g<second_part>') | join                              | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}"
-    #     SAMLRequest:                        "{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"SAMLRequest\".*?>)',              '\\g<first_part>', '\\g<second_part>') | join                              | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}"
-    #     RelayState:                         "{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"RelayState\".*?>)',               '\\g<first_part>', '\\g<second_part>') | join                              | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}"
-    #     targetUrl:                          "{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=.targetUrl..*?>)',                  '\\g<first_part>', '\\g<second_part>') | join | regex_replace(\"'\", '\"') | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}"
-    #     sourceUrl:                          "{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=.sourceUrl..*?>)',                  '\\g<first_part>', '\\g<second_part>') | join | regex_replace(\"'\", '\"') | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}"
-    #     org:                                "{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=.org..*?>)',                        '\\g<first_part>', '\\g<second_part>') | join | regex_replace(\"'\", '\"') | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}"
-    #     spId:                               "{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=.spId..*?>)',                       '\\g<first_part>', '\\g<second_part>') | join | regex_replace(\"'\", '\"') | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}"
-    #     spName:                             "{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=.spName..*?>)',                     '\\g<first_part>', '\\g<second_part>') | join | regex_replace(\"'\", '\"') | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}"
-    #     mobileSSOToken:                     "{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=.mobileSSOToken..*?>)',             '\\g<first_part>', '\\g<second_part>') | join | regex_replace(\"'\", '\"') | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}"
-    #     tfaToken:                           "{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=.tfaToken..*?>)',                   '\\g<first_part>', '\\g<second_part>') | join | regex_replace(\"'\", '\"') | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}"
-    #     css:                                "{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=.css..*?>)',                        '\\g<first_part>', '\\g<second_part>') | join | regex_replace(\"'\", '\"') | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}"
-    #     passwordlessAuthnSelected:          "{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=.passwordlessAuthnSelected..*?>)',  '\\g<first_part>', '\\g<second_part>') | join | regex_replace(\"'\", '\"') | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}"
-    #     j_username:                         "{{ s_user }}"
-    #     j_password:                         "{{ s_password }}"
-    #   register:                             step5Results
-    #   tags:
-    #     - skip_ansible_lint
-
     - name:                                 "SAP SSO Logon - Step 5 - Submit Password information to IPD provider: {{ post_url }}"
       ansible.builtin.command: >-
-                                            curl  {{ post_action }}                                                     \
+                                            curl  {{ post_url }}                                                        \
                                             --include                                                                   \
                                             --cookie-jar cookie_jar                                                     \
                                             --cookie     cookie_jar                                                     \
@@ -973,40 +904,109 @@
                                             --header 'Referer: {{ referer }}'                                           \
                                             --data-urlencode 'utf8={{ sap_sso_parameters.utf8 }}'                       \
                                             --data-urlencode 'authenticity_token={{ authenticity_token }}'              \
+                                            --data-urlencode 'xsrfProtection={{ xsrfProtection }}'                      \
+                                            --data-urlencode 'method={{ method }}'                                      \
+                                            --data-urlencode 'idpSSOEndpoint={{ idpSSOEndpoint }}'                      \
                                             --data-urlencode 'SAMLRequest={{ SAMLRequest }}'                            \
                                             --data-urlencode 'RelayState={{ RelayState }}'                              \
-                                            --data-urlencode 'login_hint={{ login_hint }}'                              \
+                                            --data-urlencode 'targetUrl={{ targetUrl }}'                                \
+                                            --data-urlencode 'sourceUrl={{ sourceUrl }}'                                \
+                                            --data-urlencode 'org={{ org }}'                                            \
+                                            --data-urlencode 'spId={{ spId }}'                                          \
+                                            --data-urlencode 'spName={{ spName }}'                                      \
+                                            --data-urlencode 'mobileSSOToken={{ mobileSSOToken }}'                      \
+                                            --data-urlencode "tfaToken={{ tfaToken }}"                                  \
+                                            --data-urlencode 'css={{ css }}'                                            \
+                                            --data-urlencode 'passwordlessAuthnSelected={{ passwordlessAuthnSelected }}' \
+                                            --data-urlencode 'j_username={{ j_username }}'                              \
+                                            --data-urlencode 'j_password={{ j_password }}'                              \
                                             --output -
       vars:
-        origin:                               "{{ step4Results.url     | regex_search('^http.*?://[^/]+') }}"
-        referer:                              "{{ step4Results.url     | regex_search('^http.*?://[^/]+') }}/"
-        post_action:                          "{%- if (step4Results.content | regex_search(' action='))                           -%}{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> action=\".*?>)',                         '\\g<first_part>', '\\g<second_part>') | join                              | regex_search(' action=\"(?P<value>.*?)\"', '\\g<value>') | join }}{%- else -%}NOT_SET{%- endif -%}"
-        post_url:                             "{{ origin }}{{ post_action }}"
-        authenticity_token:                   "{%- if (step4Results.content | regex_search(' name=.authenticity_token. '))        -%}{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"authenticity_token\".*?>)',       '\\g<first_part>', '\\g<second_part>') | join                              | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}{%- else -%}NOT_SET{%- endif -%}"
-        xsrfProtection:                       "{%- if (step4Results.content | regex_search(' name=.xsrfProtection. '))            -%}{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"xsrfProtection\".*?>)',           '\\g<first_part>', '\\g<second_part>') | join                              | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}{%- else -%}NOT_SET{%- endif -%}"
-        method:                               "{%- if (step4Results.content | regex_search(' name=.method. '))                    -%}{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"method\".*?>)',                   '\\g<first_part>', '\\g<second_part>') | join                              | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}{%- else -%}NOT_SET{%- endif -%}"
-        idpSSOEndpoint:                       "{%- if (step4Results.content | regex_search(' name=.idpSSOEndpoint. '))            -%}{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"idpSSOEndpoint\".*?>)',           '\\g<first_part>', '\\g<second_part>') | join                              | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}{%- else -%}NOT_SET{%- endif -%}"
-        SAMLRequest:                          "{%- if (step4Results.content | regex_search(' name=.SAMLRequest. '))               -%}{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"SAMLRequest\".*?>)',              '\\g<first_part>', '\\g<second_part>') | join                              | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}{%- else -%}NOT_SET{%- endif -%}"
-        RelayState:                           "{%- if (step4Results.content | regex_search(' name=.RelayState. '))                -%}{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"RelayState\".*?>)',               '\\g<first_part>', '\\g<second_part>') | join                              | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}{%- else -%}NOT_SET{%- endif -%}"
-        targetUrl:                            "{%- if (step4Results.content | regex_search(' name=.targetUrl. '))                 -%}{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=.targetUrl..*?>)',                  '\\g<first_part>', '\\g<second_part>') | join | regex_replace(\"'\", '\"') | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}{%- else -%}NOT_SET{%- endif -%}"
-        sourceUrl:                            "{%- if (step4Results.content | regex_search(' name=.sourceUrl. '))                 -%}{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=.sourceUrl..*?>)',                  '\\g<first_part>', '\\g<second_part>') | join | regex_replace(\"'\", '\"') | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}{%- else -%}NOT_SET{%- endif -%}"
-        org:                                  "{%- if (step4Results.content | regex_search(' name=.org. '))                       -%}{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=.org..*?>)',                        '\\g<first_part>', '\\g<second_part>') | join | regex_replace(\"'\", '\"') | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}{%- else -%}NOT_SET{%- endif -%}"
-        spId:                                 "{%- if (step4Results.content | regex_search(' name=.spId. '))                      -%}{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=.spId..*?>)',                       '\\g<first_part>', '\\g<second_part>') | join | regex_replace(\"'\", '\"') | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}{%- else -%}NOT_SET{%- endif -%}"
-        spName:                               "{%- if (step4Results.content | regex_search(' name=.spName. '))                    -%}{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=.spName..*?>)',                     '\\g<first_part>', '\\g<second_part>') | join | regex_replace(\"'\", '\"') | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}{%- else -%}NOT_SET{%- endif -%}"
-        mobileSSOToken:                       "{%- if (step4Results.content | regex_search(' name=.mobileSSOToken. '))            -%}{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=.mobileSSOToken..*?>)',             '\\g<first_part>', '\\g<second_part>') | join | regex_replace(\"'\", '\"') | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}{%- else -%}NOT_SET{%- endif -%}"
-        tfaToken:                             "{%- if (step4Results.content | regex_search(' name=.tfaToken. '))                  -%}{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=.tfaToken..*?>)',                   '\\g<first_part>', '\\g<second_part>') | join | regex_replace(\"'\", '\"') | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}{%- else -%}NOT_SET{%- endif -%}"
-        css:                                  "{%- if (step4Results.content | regex_search(' name=.css. '))                       -%}{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=.css..*?>)',                        '\\g<first_part>', '\\g<second_part>') | join | regex_replace(\"'\", '\"') | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}{%- else -%}NOT_SET{%- endif -%}"
-        passwordlessAuthnSelected:            "{%- if (step4Results.content | regex_search(' name=.passwordlessAuthnSelected. ')) -%}{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=.passwordlessAuthnSelected..*?>)',  '\\g<first_part>', '\\g<second_part>') | join | regex_replace(\"'\", '\"') | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}{%- else -%}NOT_SET{%- endif -%}"
-        login_hint:                           "{%- if (step4Results.content | regex_search(' name=.login_hint. '))                -%}{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=.login_hint..*?>)',  '\\g<first_part>', '\\g<second_part>') | join | regex_replace(\"'\", '\"') | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}{%- else -%}NOT_SET{%- endif -%}"
+        origin:                             "{{ step4Results.url     | regex_search('^http.*?://[^/]+') }}"
+        referer:                            "{{ step4Results.url     | regex_search('^http.*?://[^/]+') }}/"
+        post_action:                        "{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> action=\".*?>)',                         '\\g<first_part>', '\\g<second_part>') | join                              | regex_search(' action=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+        post_url:                           "{{ origin }}{{ post_action }}"
+        authenticity_token:                 "{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"authenticity_token\".*?>)',       '\\g<first_part>', '\\g<second_part>') | join                              | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}"
+        xsrfProtection:                     "{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"xsrfProtection\".*?>)',           '\\g<first_part>', '\\g<second_part>') | join                              | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}"
+        method:                             "{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"method\".*?>)',                   '\\g<first_part>', '\\g<second_part>') | join                              | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}"
+        idpSSOEndpoint:                     "{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"idpSSOEndpoint\".*?>)',           '\\g<first_part>', '\\g<second_part>') | join                              | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}"
+        SAMLRequest:                        "{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"SAMLRequest\".*?>)',              '\\g<first_part>', '\\g<second_part>') | join                              | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}"
+        RelayState:                         "{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"RelayState\".*?>)',               '\\g<first_part>', '\\g<second_part>') | join                              | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}"
+        targetUrl:                          "{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=.targetUrl..*?>)',                  '\\g<first_part>', '\\g<second_part>') | join | regex_replace(\"'\", '\"') | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}"
+        sourceUrl:                          "{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=.sourceUrl..*?>)',                  '\\g<first_part>', '\\g<second_part>') | join | regex_replace(\"'\", '\"') | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}"
+        org:                                "{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=.org..*?>)',                        '\\g<first_part>', '\\g<second_part>') | join | regex_replace(\"'\", '\"') | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}"
+        spId:                               "{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=.spId..*?>)',                       '\\g<first_part>', '\\g<second_part>') | join | regex_replace(\"'\", '\"') | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}"
+        spName:                             "{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=.spName..*?>)',                     '\\g<first_part>', '\\g<second_part>') | join | regex_replace(\"'\", '\"') | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}"
+        mobileSSOToken:                     "{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=.mobileSSOToken..*?>)',             '\\g<first_part>', '\\g<second_part>') | join | regex_replace(\"'\", '\"') | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}"
+        tfaToken:                           "{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=.tfaToken..*?>)',                   '\\g<first_part>', '\\g<second_part>') | join | regex_replace(\"'\", '\"') | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}"
+        css:                                "{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=.css..*?>)',                        '\\g<first_part>', '\\g<second_part>') | join | regex_replace(\"'\", '\"') | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}"
+        passwordlessAuthnSelected:          "{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=.passwordlessAuthnSelected..*?>)',  '\\g<first_part>', '\\g<second_part>') | join | regex_replace(\"'\", '\"') | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}"
         j_username:                         "{{ s_user }}"
         j_password:                         "{{ s_password }}"
       register:                             step5Results
       tags:
         - skip_ansible_lint
 
-    - name:                                 "SAP SSO Logon - Step 5 - Show data - step5Results"
-      ansible.builtin.debug:
-        var:                                step5Results.content
+    # - name:                                 "SAP SSO Logon - Step 5 - Submit Password information to IPD provider: {{ post_url }}"
+    #   ansible.builtin.command: >-
+    #                                         curl  {{ post_action }}                                                     \
+    #                                         --include                                                                   \
+    #                                         --cookie-jar cookie_jar                                                     \
+    #                                         --cookie     cookie_jar                                                     \
+    #                                         --location                                                                  \
+    #                                         --silent                                                                    \
+    #                                         --user-agent 'ansible-httpget'                                              \
+    #                                         --header 'Content-Type: {{ sap_sso_parameters.content_type }}'              \
+    #                                         --header 'Accept: {{ sap_sso_parameters.accept }}'                          \
+    #                                         --header 'Accept-Language: {{ sap_sso_parameters.accept_language }}'        \
+    #                                         --header 'Connection: {{ sap_sso_parameters.connection }}'                  \
+    #                                         --header 'sec-ch-ua: {{ sap_sso_parameters.sec_ch_ua }}'                    \
+    #                                         --header 'sec-ch-ua-mobile: {{ sap_sso_parameters.sec_ch_ua_mobile }}'      \
+    #                                         --header 'sec-ch-ua-platform: {{ sap_sso_parameters.sec_ch_ua_platform }}'  \
+    #                                         --header 'Upgrade-Insecure-Requests: {{ sap_sso_parameters.upgrade_insecure_requests }}' \
+    #                                         --header 'Sec-Fetch-Site: same-origin'                                      \
+    #                                         --header 'Sec-Fetch-Mode: {{ sap_sso_parameters.sec_fetch_mode }}'          \
+    #                                         --header 'Sec-Fetch-User: {{ sap_sso_parameters.sec_fetch_user }}'          \
+    #                                         --header 'Sec-Fetch-Dest: {{ sap_sso_parameters.sec_fetch_dest }}'          \
+    #                                         --header 'Cache-Control: {{ sap_sso_parameters.cache_control }}'            \
+    #                                         --header 'Origin: {{ origin }}'                                             \
+    #                                         --header 'Referer: {{ referer }}'                                           \
+    #                                         --data-urlencode 'utf8={{ sap_sso_parameters.utf8 }}'                       \
+    #                                         --data-urlencode 'authenticity_token={{ authenticity_token }}'              \
+    #                                         --data-urlencode 'SAMLRequest={{ SAMLRequest }}'                            \
+    #                                         --data-urlencode 'RelayState={{ RelayState }}'                              \
+    #                                         --data-urlencode 'login_hint={{ login_hint }}'                              \
+    #                                         --output -
+    #   vars:
+    #     origin:                               "{{ step4Results.url     | regex_search('^http.*?://[^/]+') }}"
+    #     referer:                              "{{ step4Results.url     | regex_search('^http.*?://[^/]+') }}/"
+    #     post_action:                          "{%- if (step4Results.content | regex_search(' action='))                           -%}{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> action=\".*?>)',                         '\\g<first_part>', '\\g<second_part>') | join                              | regex_search(' action=\"(?P<value>.*?)\"', '\\g<value>') | join }}{%- else -%}NOT_SET{%- endif -%}"
+    #     post_url:                             "{{ origin }}{{ post_action }}"
+    #     authenticity_token:                   "{%- if (step4Results.content | regex_search(' name=.authenticity_token. '))        -%}{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"authenticity_token\".*?>)',       '\\g<first_part>', '\\g<second_part>') | join                              | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}{%- else -%}NOT_SET{%- endif -%}"
+    #     xsrfProtection:                       "{%- if (step4Results.content | regex_search(' name=.xsrfProtection. '))            -%}{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"xsrfProtection\".*?>)',           '\\g<first_part>', '\\g<second_part>') | join                              | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}{%- else -%}NOT_SET{%- endif -%}"
+    #     method:                               "{%- if (step4Results.content | regex_search(' name=.method. '))                    -%}{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"method\".*?>)',                   '\\g<first_part>', '\\g<second_part>') | join                              | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}{%- else -%}NOT_SET{%- endif -%}"
+    #     idpSSOEndpoint:                       "{%- if (step4Results.content | regex_search(' name=.idpSSOEndpoint. '))            -%}{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"idpSSOEndpoint\".*?>)',           '\\g<first_part>', '\\g<second_part>') | join                              | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}{%- else -%}NOT_SET{%- endif -%}"
+    #     SAMLRequest:                          "{%- if (step4Results.content | regex_search(' name=.SAMLRequest. '))               -%}{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"SAMLRequest\".*?>)',              '\\g<first_part>', '\\g<second_part>') | join                              | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}{%- else -%}NOT_SET{%- endif -%}"
+    #     RelayState:                           "{%- if (step4Results.content | regex_search(' name=.RelayState. '))                -%}{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"RelayState\".*?>)',               '\\g<first_part>', '\\g<second_part>') | join                              | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}{%- else -%}NOT_SET{%- endif -%}"
+    #     targetUrl:                            "{%- if (step4Results.content | regex_search(' name=.targetUrl. '))                 -%}{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=.targetUrl..*?>)',                  '\\g<first_part>', '\\g<second_part>') | join | regex_replace(\"'\", '\"') | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}{%- else -%}NOT_SET{%- endif -%}"
+    #     sourceUrl:                            "{%- if (step4Results.content | regex_search(' name=.sourceUrl. '))                 -%}{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=.sourceUrl..*?>)',                  '\\g<first_part>', '\\g<second_part>') | join | regex_replace(\"'\", '\"') | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}{%- else -%}NOT_SET{%- endif -%}"
+    #     org:                                  "{%- if (step4Results.content | regex_search(' name=.org. '))                       -%}{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=.org..*?>)',                        '\\g<first_part>', '\\g<second_part>') | join | regex_replace(\"'\", '\"') | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}{%- else -%}NOT_SET{%- endif -%}"
+    #     spId:                                 "{%- if (step4Results.content | regex_search(' name=.spId. '))                      -%}{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=.spId..*?>)',                       '\\g<first_part>', '\\g<second_part>') | join | regex_replace(\"'\", '\"') | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}{%- else -%}NOT_SET{%- endif -%}"
+    #     spName:                               "{%- if (step4Results.content | regex_search(' name=.spName. '))                    -%}{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=.spName..*?>)',                     '\\g<first_part>', '\\g<second_part>') | join | regex_replace(\"'\", '\"') | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}{%- else -%}NOT_SET{%- endif -%}"
+    #     mobileSSOToken:                       "{%- if (step4Results.content | regex_search(' name=.mobileSSOToken. '))            -%}{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=.mobileSSOToken..*?>)',             '\\g<first_part>', '\\g<second_part>') | join | regex_replace(\"'\", '\"') | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}{%- else -%}NOT_SET{%- endif -%}"
+    #     tfaToken:                             "{%- if (step4Results.content | regex_search(' name=.tfaToken. '))                  -%}{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=.tfaToken..*?>)',                   '\\g<first_part>', '\\g<second_part>') | join | regex_replace(\"'\", '\"') | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}{%- else -%}NOT_SET{%- endif -%}"
+    #     css:                                  "{%- if (step4Results.content | regex_search(' name=.css. '))                       -%}{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=.css..*?>)',                        '\\g<first_part>', '\\g<second_part>') | join | regex_replace(\"'\", '\"') | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}{%- else -%}NOT_SET{%- endif -%}"
+    #     passwordlessAuthnSelected:            "{%- if (step4Results.content | regex_search(' name=.passwordlessAuthnSelected. ')) -%}{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=.passwordlessAuthnSelected..*?>)',  '\\g<first_part>', '\\g<second_part>') | join | regex_replace(\"'\", '\"') | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}{%- else -%}NOT_SET{%- endif -%}"
+    #     login_hint:                           "{%- if (step4Results.content | regex_search(' name=.login_hint. '))                -%}{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=.login_hint..*?>)',  '\\g<first_part>', '\\g<second_part>') | join | regex_replace(\"'\", '\"') | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}{%- else -%}NOT_SET{%- endif -%}"
+    #     j_username:                         "{{ s_user }}"
+    #     j_password:                         "{{ s_password }}"
+    #   register:                             step5Results
+    #   tags:
+    #     - skip_ansible_lint
+
+    # - name:                                 "SAP SSO Logon - Step 5 - Show data - step5Results"
+    #   ansible.builtin.debug:
+    #     var:                                step5Results.content
 
 
 
@@ -1038,7 +1038,7 @@
 # Step: 03-07 - END
 # -------------------------------------+---------------------------------------8
 
-    - fail:
+
 
 # -------------------------------------+---------------------------------------8
 # Step: 03-08
