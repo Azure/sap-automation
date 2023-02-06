@@ -471,7 +471,7 @@ else
 
     # Set env for ansible
     echo export ANSIBLE_HOST_KEY_CHECKING=False | sudo tee -a /etc/profile.d/deploy_server.sh
-    echo export ANSIBLE_COLLECTIONS_PATHS=$${ansible_collections} | sudo tee -a /tmp/deploy_server.sh
+    echo export ANSIBLE_COLLECTIONS_PATHS=$${ansible_collections} | sudo tee -a /etc/profile.d/deploy_server.sh
 
     echo "export DOTNET_ROOT=/snap/dotnet-sdk/current" | tee -a /tmp/deploy_server.sh
 
