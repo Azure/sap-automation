@@ -484,7 +484,7 @@ $$ANF_HANA_shared_volume_name$$
 
 #########################################################################################
 #                                                                                       #
-#  /usr/sap                                                                             #
+#  Azure NetApp Files /usr/sap                                                          #
 #                                                                                       #
 #########################################################################################
 
@@ -506,12 +506,12 @@ $$ANF_usr_sap_volume_name$$
 
 #########################################################################################
 #                                                                                       #
-#  sapmnt                                                                               #
+#  Azure NetApp Files sapmnt                                                            #
 #                                                                                       #
 #########################################################################################
 
 # ANF_sapmnt, if defined, will create Azure NetApp Files volume for /sapmnt
-$$ANF_sapmnt$$
+$$ANF_sapmnt_use_existing$$
 
 # ANF_sapmnt_volume_size, if defined, provides the size of the /sapmnt volume.
 $$ANF_sapmnt_volume_size$$

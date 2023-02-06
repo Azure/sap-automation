@@ -72,6 +72,18 @@
     }
   },
   {
+    "name": "SUSE 15 SP4",
+    "data": {
+      "os_type": "LINUX",
+      "source_image_id": "",
+      "publisher": "SUSE",
+      "offer": "sles-sap-15-sp4",
+      "sku": "gen2",
+      "version": "latest",
+      "type": "marketplace"
+    }
+  },
+  {
     "name": "Oracle 8.2",
     "data": {
       "os_type": "LINUX",

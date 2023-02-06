@@ -10,7 +10,7 @@
 # The automation framework supports both creating resources (greenfield) or using       #
 # existing resources (brownfield).                                                      #
 #                                                                                       #
-# For the greenfield scenario the automation defines default names for resources,       # 
+# For the greenfield scenario the automation defines default names for resources,       #
 # if there is a XXXXname variable then the name is customizable.                        #
 #                                                                                       #
 # For the brownfield scenario the Azure resource identifiers for the resources must     #
@@ -43,7 +43,7 @@ $$name_override_file$$
 # 1. Subnets are defined as part of the workload zone deployment                        #
 #    In this model multiple SAP System share the subnets                                #
 # 2. Subnets are deployed as part of the SAP system                                     #
-#    In this model each SAP system has its own sets of subnets                          # 
+#    In this model each SAP system has its own sets of subnets                          #
 #                                                                                       #
 # The automation supports both creating the subnets (greenfield)                        #
 # or using existing subnets (brownfield)                                                #
@@ -55,7 +55,7 @@ $$name_override_file$$
 #                                                                                       #
 #########################################################################################
 
-# The network logical name is mandatory - it is used in the naming convention and should map to the workload virtual network logical name 
+# The network logical name is mandatory - it is used in the naming convention and should map to the workload virtual network logical name
 $$network_logical_name$$
 
 # The name is optional - it can be used to override the default naming
@@ -85,7 +85,7 @@ $$enable_firewall_for_keyvaults_and_storage$$
 #                                                                                       #
 #########################################################################################
 
-# admin_subnet_name is an optional parameter and should only be used if the default naming is not acceptable 
+# admin_subnet_name is an optional parameter and should only be used if the default naming is not acceptable
 $$admin_subnet_name$$
 
 # admin_subnet_address_prefix is a mandatory parameter if the subnets are not defined in the workload or if existing subnets are not used
@@ -94,7 +94,7 @@ $$admin_subnet_address_prefix$$
 # admin_subnet_arm_id is an optional parameter that if provided specifies Azure resource identifier for the existing subnet to use
 $$admin_subnet_arm_id$$
 
-# admin_subnet_nsg_name is an optional parameter and should only be used if the default naming is not acceptable for the network security group name 
+# admin_subnet_nsg_name is an optional parameter and should only be used if the default naming is not acceptable for the network security group name
 $$admin_subnet_nsg_name$$
 
 # admin_subnet_nsg_arm_id is an optional parameter that if provided specifies Azure resource identifier for the existing network security group to use
@@ -107,7 +107,7 @@ $$admin_subnet_nsg_arm_id$$
 #########################################################################################
 
 # If defined these parameters control the subnet name and the subnet prefix
-# db_subnet_name is an optional parameter and should only be used if the default naming is not acceptable 
+# db_subnet_name is an optional parameter and should only be used if the default naming is not acceptable
 $$db_subnet_name$$
 
 # db_subnet_address_prefix is a mandatory parameter if the subnets are not defined in the workload or if existing subnets are not used
@@ -116,7 +116,7 @@ $$db_subnet_address_prefix$$
 # db_subnet_arm_id is an optional parameter that if provided specifies Azure resource identifier for the existing subnet to use
 $$db_subnet_arm_id$$
 
-# db_subnet_nsg_name is an optional parameter and should only be used if the default naming is not acceptable for the network security group name 
+# db_subnet_nsg_name is an optional parameter and should only be used if the default naming is not acceptable for the network security group name
 $$db_subnet_nsg_name$$
 
 # db_subnet_nsg_arm_id is an optional parameter that if provided specifies Azure resource identifier for the existing network security group to use
@@ -129,7 +129,7 @@ $$db_subnet_nsg_arm_id$$
 #########################################################################################
 
 # If defined these parameters control the subnet name and the subnet prefix
-# app_subnet_name is an optional parameter and should only be used if the default naming is not acceptable 
+# app_subnet_name is an optional parameter and should only be used if the default naming is not acceptable
 $$app_subnet_name$$
 
 # app_subnet_address_prefix is a mandatory parameter if the subnets are not defined in the workload or if existing subnets are not used
@@ -138,7 +138,7 @@ $$app_subnet_address_prefix$$
 # app_subnet_arm_id is an optional parameter that if provided specifies Azure resource identifier for the existing subnet to use
 $$app_subnet_arm_id$$
 
-# app_subnet_nsg_name is an optional parameter and should only be used if the default naming is not acceptable for the network security group name 
+# app_subnet_nsg_name is an optional parameter and should only be used if the default naming is not acceptable for the network security group name
 $$app_subnet_nsg_name$$
 
 # app_subnet_nsg_arm_id is an optional parameter that if provided specifies Azure resource identifier for the existing network security group to use
@@ -151,7 +151,7 @@ $$app_subnet_nsg_arm_id$$
 #########################################################################################
 
 # If defined these parameters control the subnet name and the subnet prefix
-# web_subnet_name is an optional parameter and should only be used if the default naming is not acceptable 
+# web_subnet_name is an optional parameter and should only be used if the default naming is not acceptable
 $$web_subnet_name$$
 
 # web_subnet_address_prefix is a mandatory parameter if the subnets are not defined in the workload or if existing subnets are not used
@@ -160,7 +160,7 @@ $$web_subnet_address_prefix$$
 # web_subnet_arm_id is an optional parameter that if provided specifies Azure resource identifier for the existing subnet to use
 $$web_subnet_arm_id$$
 
-# web_subnet_nsg_name is an optional parameter and should only be used if the default naming is not acceptable for the network security group name 
+# web_subnet_nsg_name is an optional parameter and should only be used if the default naming is not acceptable for the network security group name
 $$web_subnet_nsg_name$$
 
 # web_subnet_nsg_arm_id is an optional parameter that if provided specifies Azure resource identifier for the existing network security group to use
@@ -173,17 +173,17 @@ $$web_subnet_nsg_arm_id$$
 #########################################################################################
 
 # If defined these parameters control the subnet name and the subnet prefix
-# anf_subnet_name is an optional parameter and should only be used if the default naming is not acceptable 
+# anf_subnet_name is an optional parameter and should only be used if the default naming is not acceptable
 $$anf_subnet_name$$
 
 # anf_subnet_arm_id is an optional parameter that if provided specifies Azure resource identifier for the existing subnet
 $$anf_subnet_arm_id$$
 
-# ANF requires a dedicated subnet, the address space for the subnet is provided with  anf_subnet_address_prefix 
+# ANF requires a dedicated subnet, the address space for the subnet is provided with  anf_subnet_address_prefix
 # anf_subnet_address_prefix is a mandatory parameter if the subnets are not defined in the workload or if existing subnets are not used
 $$anf_subnet_address_prefix$$
 
-# $anf_subnet_nsg_name is an optional parameter and should only be used if the default naming is not acceptable for the network security group name 
+# $anf_subnet_nsg_name is an optional parameter and should only be used if the default naming is not acceptable for the network security group name
 $$anf_subnet_nsg_name$$
 
 # anf_subnet_nsg_arm_id is an optional parameter that if provided specifies Azure resource identifier for the existing network security group to use
@@ -302,7 +302,7 @@ $$resourcegroup_arm_id$$
 
 # If defined provides the name of the resource group hosting the Private DNS zone
 $$dns_resource_group_name$$
- 
+
 #########################################################################################
 #                                                                                       #
 #  NFS support                                                                          #
@@ -387,7 +387,7 @@ $$ANF_install_volume_size$$
 
 /* iscsi subnet information */
 # If defined these parameters control the subnet name and the subnet prefix
-# iscsi_subnet_name is an optional parameter and should only be used if the default naming is not acceptable 
+# iscsi_subnet_name is an optional parameter and should only be used if the default naming is not acceptable
 $$iscsi_subnet_name$$
 
 # iscsi_subnet_arm_id is an optional parameter that if provided specifies Azure resource identifier for the existing subnet
@@ -396,10 +396,10 @@ $$iscsi_subnet_arm_id$$
 # iscsi_subnet_address_prefix is a mandatory parameter if the subnets are not defined in the workload or if existing subnets are not used
 $$iscsi_subnet_address_prefix$$
 
-# iscsi_subnet_nsg_arm_id is an optional parameter that if provided specifies Azure resource identifier for the existing nsg 
+# iscsi_subnet_nsg_arm_id is an optional parameter that if provided specifies Azure resource identifier for the existing nsg
 $$iscsi_subnet_nsg_arm_id$$
 
-# iscsi_subnet_nsg_name is an optional parameter and should only be used if the default naming is not acceptable for the network security group name 
+# iscsi_subnet_nsg_name is an optional parameter and should only be used if the default naming is not acceptable for the network security group name
 $$iscsi_subnet_nsg_name$$
 
 

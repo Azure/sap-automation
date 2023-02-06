@@ -923,6 +923,11 @@ variable "use_service_endpoint" {
   type        = bool
 }
 
+variable "ANF_sapmnt_use_existing" {
+  description = "Use existing sapmnt volume"
+  default     = false
+}
+
 variable "ANF_sapmnt" {
   description = "Use existing sapmnt volume"
   default     = false

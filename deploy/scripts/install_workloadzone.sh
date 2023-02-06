@@ -591,7 +591,7 @@ echo -e "#       $cyan Changing the subscription to: ${subscription} $resetforma
 echo "#                                                                                       #"
 echo "#########################################################################################"
 echo ""
-az account set --sub "${subscription}"
+#az account set --sub "${subscription}"
 
 save_config_var "REMOTE_STATE_SA" "${workload_config_information}"
 save_config_var "subscription" "${workload_config_information}"
@@ -972,15 +972,13 @@ then
 
 fi
 
-
-workload_zone_prefix=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw workload_zone_prefix | tr -d \")
-save_config_var "workload_zone_prefix" "${workload_config_information}"
-
 if [ -f apply_output.json ]
 then
      rm apply_output.json
 fi
 
+workload_zone_prefix=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw workload_zone_prefix | tr -d \")
+save_config_var "workload_zone_prefix" "${workload_config_information}"
 save_config_var "landscape_tfstate_key" "${workload_config_information}"
 
 if [ 0 == $return_value ] ; then
@@ -1024,8 +1022,14 @@ echo "#                                                                         
 echo "#########################################################################################"
 echo ""
 
+if [ -n "$spn_secret" ]
+    then
+        az logout
+        az login --service-principal --username "${client_id}" --password="${spn_secret}" --tenant "${tenant_id}" --output none
+fi
+
 rg_name=$(terraform -chdir="${terraform_module_directory}"  output -no-color -raw created_resource_group_name | tr -d \")
-az deployment group create --resource-group "${rg_name}" --name "SAP-WORKLOAD-ZONE_${rg_name}" --subscription  ${subscription} --template-file "${script_directory}/templates/empty-deployment.json" --output none
+az deployment group create --resource-group "${rg_name}" --name "SAP-WORKLOAD-ZONE_${rg_name}" --subscription "${subscription}" --template-file "${script_directory}/templates/empty-deployment.json" --output none
 
 now=$(date)
 cat <<EOF > "${workload_config_information}".md
