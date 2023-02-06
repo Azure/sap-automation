@@ -77,9 +77,9 @@
 
 - name:                                 "Show Installed Collections"
   ansible.builtin.command: >-
-                                        ansible-galaxy collection list
-  become:                               true
-  become_user:                          root
+                                        ansible-galaxy collection list -vvv
+  # become:                               true
+  # become_user:                          root
   register:                             galaxyOutput
 
 - name:                                 "Informational"
