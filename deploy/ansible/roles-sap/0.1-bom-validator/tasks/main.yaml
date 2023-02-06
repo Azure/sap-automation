@@ -75,6 +75,17 @@
     verbosity:                          1
 
 
+- name:                                 "Show Installed Collections"
+  ansible.builtin.command: >-
+                                        ansible-galaxy collection list
+  register:                             galaxyOutput
+
+- name:                                 "Informational"
+  ansible.builtin.debug:
+    var:                                galaxyOutput
+    verbosity:                          1
+
+
 # -------------------------------------+---------------------------------------8
 # Step: 01
 # Description:  Initialize Facts - Start out with KeyVault and Storage Account
