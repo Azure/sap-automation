@@ -26,7 +26,7 @@ set -x
 if [ -z "$(az extension list | grep \"name\": | grep \"workloads\")" ]
 then
   echo -e "$green--- Installing ACSS \"Workloads\" CLI extension ---$reset"
-  wget $acss_workloads_extension_url || exit 1
+  wget $acss_workloads_extension_url -O workloads-0.1.0-py3-none-any.whl || exit 1
   az extension add --source=./workloads-0.1.0-py3-none-any.whl --yes || exit 1
 else
   echo -e "$green--- ACSS \"Workloads\" CLI extension already installed ---$reset"
@@ -56,8 +56,6 @@ __moduleDir=${CODE_FOLDER}/deploy/terraform/run/sap_system/
 TF_DATA_DIR=${__configDir}
 
 cd ${__configDir}
-
-az account set --subscription ${ARM_SUBSCRIPTION_ID}
 
 tfstate_resource_id=$(az resource list --name "${TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME}" --subscription ${TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION} --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
 

@@ -643,6 +643,19 @@ if [ 0 == $return_value ] ; then
           REMOTE_STATE_SA=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw remote_state_storage_account_name| tr -d \")
 
           get_and_store_sa_details "${REMOTE_STATE_SA}" "${system_config_information}"
+
+          SAPBITS=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw sapbits_storage_account_name| tr -d \")
+
+          if [ -n "${SAPBITS}" ] ; then
+            az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "INSTALLATION_MEDIA_ACCOUNT.value")
+            if [ -z ${az_var} ]; then
+              az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name INSTALLATION_MEDIA_ACCOUNT --value $SAPBITS --output none --only-show-errors
+            else
+              az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name INSTALLATION_MEDIA_ACCOUNT --value $SAPBITS --output none --only-show-errors
+            fi
+          fi
+
+
       fi
     fi
 

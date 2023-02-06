@@ -1,13 +1,22 @@
-######################################################################################################################################################################################
-#                                                                                                                                                                                    #
-# Installation service 'SAP NetWeaver 7.5 > MS SQL Server > Installation > Application Server ABAP > Distributed System > Database Instance', product id 'NW_ABAP_DB:NW750.MSS.ABAP' #
-#                                                                                                                                                                                    #
-######################################################################################################################################################################################
+#################################################################################################################################################################################################################################
+#                                                                                                                                                                                                                               #
+# Installation service 'SAP Business Suite 7i 2016 > EHP8 for SAP ERP 6.0 ABAP > MS SQL Server > Installation > Application Server ABAP > Distributed System > Database Instance', product id 'NW_ABAP_DB:BS2016.ERP608.MSS.PD' #
+#                                                                                                                                                                                                                               #
+#################################################################################################################################################################################################################################
 
 # Location of download_basket\CD_EXPORT CD
+SAPINST.CD.PACKAGE.LOAD                                    = {{ download_directory_windows }}\CD_EXPORT
 SAPINST.CD.PACKAGE.CD1                                     = {{ download_directory_windows }}\CD_EXPORT\DATA_UNITS\EXP1
 SAPINST.CD.PACKAGE.CD2                                     = {{ download_directory_windows }}\CD_EXPORT\DATA_UNITS\EXP2
 SAPINST.CD.PACKAGE.CD3                                     = {{ download_directory_windows }}\CD_EXPORT\DATA_UNITS\EXP3
+SAPINST.CD.PACKAGE.CD4                                     = {{ download_directory_windows }}\CD_EXPORT\DATA_UNITS\EXP4
+SAPINST.CD.PACKAGE.CD5                                     = {{ download_directory_windows }}\CD_EXPORT\DATA_UNITS\EXP5
+SAPINST.CD.PACKAGE.CD6                                     = {{ download_directory_windows }}\CD_EXPORT\DATA_UNITS\EXP6
+SAPINST.CD.PACKAGE.CD7                                     = {{ download_directory_windows }}\CD_EXPORT\DATA_UNITS\EXP7
+SAPINST.CD.PACKAGE.CD8                                     = {{ download_directory_windows }}\CD_EXPORT\DATA_UNITS\EXP8
+SAPINST.CD.PACKAGE.CD9                                     = {{ download_directory_windows }}\CD_EXPORT\DATA_UNITS\EXP9
+SAPINST.CD.PACKAGE.CD10                                    = {{ download_directory_windows }}\CD_EXPORT\DATA_UNITS\EXP10
+SAPINST.CD.PACKAGE.CD11                                    = {{ download_directory_windows }}\CD_EXPORT\DATA_UNITS\EXP11
 
 # Password for the Diagnostics Agent specific <dasid>adm user. Provided value may be encoded.
 # DiagnosticsAgent.dasidAdmPassword =
@@ -61,13 +70,13 @@ MSS.ServerConfig.CUST_MAXDOP_DURINGLOAD                                      = 4
 MSS.ServerConfig.MaxDopConfig                                                = CUSTOM
 
 # Maximum memory to be used by the database server
-# MSS.ServerConfig.MaxRamCustom                                                = 55296
+# MSS.ServerConfig.MaxRamCustom                                              = 55296
 
 # Specify whether the database server memory is to be changed to a new setting. Possible values are 'DEFAULT' or 'CUSTOM'. If you want database server memory to stay unchanged, set the value to 'NO_CONFIG'.
 MSS.ServerConfig.MemoryConfig                                                = NO_CONFIG
 
 # Minimum memory to be used by the database server
-# MSS.ServerConfig.MinRamCustom                                                = 55296
+# MSS.ServerConfig.MinRamCustom                                              = 55296
 
 # Disables the check for existing database objects in the relevant schema.
 # MSS.Uninstall.MustCleanup =
@@ -118,7 +127,7 @@ NW_readProfileDir.sapdrive                                                   = {
 archives.downloadBasket                                                      = {{ download_directory_windows }}\download_basket
 
 # Password of the sidadm user.
-db2.sidAdmPassword                                                           = {{ ansible_password }}
+db2.sidAdmPassword                                                           = {{ domain_user_password }}
 
 # Windows only: The domain of the SAP Host Agent user
 # hostAgent.domain =
