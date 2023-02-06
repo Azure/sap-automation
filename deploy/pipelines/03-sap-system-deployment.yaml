@@ -174,8 +174,6 @@ stages:
                 # Pull changes if there are other deployment jobs
 
                 cd $HOME_CONFIG/SYSTEM/$(sap_system_folder)
-                echo -e "$green--- Pull the latest content from DevOps ---$reset"
-                  git pull
 
               echo -e "$green--- Configure devops CLI extension ---$reset"
 
@@ -184,7 +182,8 @@ stages:
 
                 az devops configure --defaults organization=$(System.CollectionUri) project='$(System.TeamProject)' --output none
 
-
+              echo -e "$green--- Pull the latest content from DevOps ---$reset"
+                git pull
               echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
 
                 added=0

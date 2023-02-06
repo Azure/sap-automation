@@ -60,6 +60,7 @@ parameters:
       - WEIN
       - WEUS
       - WUS2
+      - WUS3
 
 variables:
   - name:                              deployer_environment
