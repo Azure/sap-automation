@@ -77,6 +77,14 @@
 
 - name:                                 "Show Installed Collections"
   ansible.builtin.command: >-
+                                        ansible-galaxy collection install ansible.netcommon
+  # become:                               true
+  # become_user:                          root
+
+
+
+- name:                                 "Show Installed Collections"
+  ansible.builtin.command: >-
                                         ansible-galaxy collection list -vvv
   # become:                               true
   # become_user:                          root
@@ -86,6 +94,9 @@
   ansible.builtin.debug:
     var:                                galaxyOutput
     verbosity:                          1
+
+
+
 
 
 # -------------------------------------+---------------------------------------8
