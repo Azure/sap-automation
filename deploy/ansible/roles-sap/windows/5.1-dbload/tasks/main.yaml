@@ -74,20 +74,7 @@
     state:                             directory
 
 #   2x) Install vcredist package then reboot.
-- name:                                "Install SAP vcredist package"
-  ansible.windows.win_package:
-    path:                              '{{ download_directory_windows }}\SWPM\NTPATCH\VCREDIST2017\VC_redist.x64.exe'
-    product_id:                        '{CF2BEA3C-26EA-32F8-AA9B-331F7E34BA97}'
-    state:                             present
-    arguments:                         '/norestart /log vcredist_x64.log /quiet'
-  vars:
-    ansible_become:                    true
-    ansible_become_method:             runas
-    ansible_become_user:               '{{ domain }}\{{ sap_sid }}adm'
-    ansible_become_password:           "{{ domain_user_password }}"
-  register:                            vcredist2017_output
-
-- name:                                "Install SAP vcredist package"
+- name:                                "Install Visual C++ 2013 Redistributable package"
   ansible.windows.win_package:
     path:                              '{{ download_directory_windows }}\SWPM\NTPATCH\VCREDIST2013\vcredist_x64.exe'
     product_id:                        '{CF2BEA3C-26EA-32F8-AA9B-331F7E34BA97}'
@@ -100,11 +87,24 @@
     ansible_become_password:           "{{ domain_user_password }}"
   register:                            vcredist2013_output
 
+- name:                                "Install Visual C++ 2017 Redistributable package"
+  ansible.windows.win_package:
+    path:                              '{{ download_directory_windows }}\SWPM\NTPATCH\VCREDIST2017\VC_redist.x64.exe'
+    product_id:                        '{CF2BEA3C-26EA-32F8-AA9B-331F7E34BA97}'
+    state:                             present
+    arguments:                         '/norestart /log vcredist_x64.log /quiet'
+  vars:
+    ansible_become:                    true
+    ansible_become_method:             runas
+    ansible_become_user:               '{{ domain }}\{{ sap_sid }}adm'
+    ansible_become_password:           "{{ domain_user_password }}"
+  register:                            vcredist2017_output
+
 - name:                                "Reboot after package installation"
   ansible.windows.win_reboot:
     reboot_timeout:                    600
     post_reboot_delay:                 120
-  when: vcredist2017_output.reboot_required or vcredist2013_output.reboot_required
+  when: vcredist2013_output.reboot_required or vcredist2017_output.reboot_required
 
 - name:                                "DBLoad: - Include 3.3.1-bom-utility role"
   ansible.builtin.include_role:
