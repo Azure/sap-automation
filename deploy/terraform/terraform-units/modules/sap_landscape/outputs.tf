@@ -268,8 +268,8 @@ output "ANF_pool_settings" {
     resource_group_name = var.ANF_settings.use_existing_pool ? (
       split("/", var.ANF_settings.arm_id)[4]) : (
       local.resource_group_exists ? (
-        data.azurerm_resource_group.resource_group[0].location) : (
-        azurerm_resource_group.resource_group[0].location
+        data.azurerm_resource_group.resource_group[0].name) : (
+        azurerm_resource_group.resource_group[0].name
       )
     )
     location = local.resource_group_exists ? (
