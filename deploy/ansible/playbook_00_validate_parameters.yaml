@@ -291,6 +291,8 @@
         that:
           - "{{ (mnt_free_diskspace | first | int / (1024 * 1024 * 1024) | int) > (deployer_free_temp_disk_space | int) }}"
         fail_msg: "The deployer needs at least {{ deployer_free_temp_disk_space }} GB of free disk space in /mnt"
+      tags:
+        - 0.0-agent-diskspace
 
 
 # /*---------------------------------------------------------------------------8
@@ -559,6 +561,8 @@
                 that:
                   - "{{ (free_diskspace | first | int / (1024 * 1024 * 1024) | int) > (scs_free_diskspace | int) }}"
                 fail_msg: "The SCS server needs at least {{ scs_free_diskspace }} GB of free disk space in /mnt"
+              tags:
+                - 0.0-scs-diskspace
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
