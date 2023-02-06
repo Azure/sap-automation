@@ -128,6 +128,7 @@
       become:                          true
       become_user:                     root
       ansible.builtin.shell: |
+                                       umask {{ custom_umask | default('022') }};
                                        ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }} \
                                                  SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.generic }}        \
                                                  SAPINST_SKIP_DIALOGS=true                                       \
