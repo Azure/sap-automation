@@ -95,6 +95,9 @@
   ansible.builtin.command: >-
                                         ansible-galaxy collection list
   register:                             galaxyOutput
+  environment:
+    ANSIBLE_COLLECTIONS_PATHS:          "/opt/ansible/collections"
+
 
 - name:                                 "Informational"
   ansible.builtin.debug:
@@ -157,7 +160,8 @@
     container:                         "{{ sapbits_location_base_path.rpartition('//')[2].split('/')[1] }}/{{ sapbits_bom_files }}/archives"
     bom_name:                          "{{ bom_base_name }}"
     upload:                            true
-    operation:                         "{{ operation }}"
+  environment:
+    ANSIBLE_COLLECTIONS_PATHS:         "/opt/ansible/collections"
 # Step: 04 - END
 # -------------------------------------+---------------------------------------8
 
@@ -186,6 +190,8 @@
     container:                         "{{ sapbits_location_base_path.rpartition('//')[2].split('/')[1] }}/{{ sapbits_bom_files }}/archives"
     bom_name:                          "{{ bom_dependency.name }}"
     upload:                            false
+  environment:
+    ANSIBLE_COLLECTIONS_PATHS:         "/opt/ansible/collections"
   register:                            dependent_bom_collection
   loop:                                "{{ bom.materials.dependencies | flatten(levels=1) }}"
   loop_control:
@@ -236,6 +242,8 @@
 
 - name:                                 "main: - Aggregate BOM files"
   ansible.builtin.include_tasks:        aggregate_bom.yaml
+  environment:
+    ANSIBLE_COLLECTIONS_PATHS:         "/opt/ansible/collections"
   loop:                                "{{ aggregated_bom_directories }}"
   loop_control:
     loop_var:                          bom_dir
