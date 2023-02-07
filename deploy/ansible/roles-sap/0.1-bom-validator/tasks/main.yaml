@@ -79,15 +79,15 @@
 #   ansible.builtin.command: >-
 #                                         ansible-galaxy collection install ansible.netcommon
 
-# - name:                                 "Show Installed Collections"
-#   ansible.builtin.command: >-
-#                                         ansible-galaxy collection list
-#   register:                             galaxyOutput
+- name:                                 "Show Installed Collections"
+  ansible.builtin.command: >-
+                                        ansible-galaxy collection list
+  register:                             galaxyOutput
 
-# - name:                                 "Informational"
-#   ansible.builtin.debug:
-#     var:                                galaxyOutput
-#     verbosity:                          1
+- name:                                 "Informational"
+  ansible.builtin.debug:
+    var:                                galaxyOutput
+    verbosity:                          1
 
 
 
