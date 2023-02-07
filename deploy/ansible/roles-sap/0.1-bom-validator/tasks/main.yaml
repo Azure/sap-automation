@@ -81,6 +81,18 @@
 
 - name:                                 "Show Installed Collections"
   ansible.builtin.command: >-
+                                        ENV
+  register:                             envOutput
+
+- name:                                 "Informational"
+  ansible.builtin.debug:
+    var:                                envOutput
+    verbosity:                          1
+
+
+
+- name:                                 "Show Installed Collections"
+  ansible.builtin.command: >-
                                         ansible-galaxy collection list
   register:                             galaxyOutput
 
