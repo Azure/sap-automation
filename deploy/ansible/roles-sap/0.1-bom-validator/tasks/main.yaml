@@ -81,7 +81,7 @@
 
 - name:                                 "Show Installed Collections"
   ansible.builtin.command: >-
-                                        ENV
+                                        env
   register:                             envOutput
 
 - name:                                 "Informational"
