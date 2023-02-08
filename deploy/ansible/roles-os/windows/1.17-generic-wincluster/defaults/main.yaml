@@ -1,0 +1,5 @@
+---
+
+cluster_name: "{{ sap_sid | lower }}{{node_tier}}cl"
+
+...
