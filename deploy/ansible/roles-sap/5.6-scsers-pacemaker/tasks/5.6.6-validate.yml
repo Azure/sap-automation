@@ -144,7 +144,7 @@
           register:                    is_running
           vars:
             allow_world_readable_tmpfiles: true
-            ansible_python_interpreter:    python3
+            ansible_python_interpreter:    "{{ python_version }}"
           args:
             chdir:                         "{{ sapcontrol_path | dirname }}"
           environment:
@@ -169,7 +169,7 @@
           register:                        is_running
           vars:
             allow_world_readable_tmpfiles: true
-            ansible_python_interpreter:    python3
+            ansible_python_interpreter:    "{{ python_version }}"
           args:
             chdir:                         "{{ sapcontrol_path | dirname }}"
           environment:
