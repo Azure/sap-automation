@@ -77,7 +77,7 @@ if [ -z $id ]; then
   repo_id=$(az repos list --org $ADO_ORGANIZATION --project $id --query "[].id | [0]" | tr -d \")
 
   echo "Importing the repo"
-  az repos import create --git-url https://github.com/Azure/sap-automation.git --org  $ADO_ORGANIZATION --project $id --repository $repo_id --output none
+  az repos import create --git-url https://github.com/Azure/sap-automation-bootstrap.git --org  $ADO_ORGANIZATION --project $id --repository $repo_id --output none
 
   az repos update --repository $repo_id --org $ADO_ORGANIZATION --project $id --default-branch main
 
@@ -91,57 +91,57 @@ echo "Creating the pipelines"
 pipeline_name='Deploy Controlplane'
 pipeline_id=$(az pipelines list --org "${ADO_ORGANIZATION}" --project "${ADO_PROJECT}" --query "[?name=='${pipeline_name}'].id | [0]" | tr -d \")
 if [ -z ${pipeline_id} ]; then
-  az pipelines create --name 'Deploy Controlplane' --branch main --description 'Deploys the control plane' --org  $ADO_ORGANIZATION --project $id --skip-run --yaml-path /deploy/pipelines/01-deploy-control-plane.yaml --repository $repo_id --repository-type tfsgit --output none
+  az pipelines create --name 'Deploy Controlplane' --branch main --description 'Deploys the control plane' --org  $ADO_ORGANIZATION --project $id --skip-run --yaml-path /pipelines/01-deploy-control-plane.yml --repository $repo_id --repository-type tfsgit --output none
 fi
 
 pipeline_name='SAP workload zone deployment'
 wz_pipeline_id=$(az pipelines list --org "${ADO_ORGANIZATION}" --project "${ADO_PROJECT}" --query "[?name=='${pipeline_name}'].id | [0]" | tr -d \")
 if [ -z $wz_pipeline_id ] ; then
-  az pipelines create --name 'SAP workload zone deployment' --branch main --description 'Deploys the workload zone' --org  $ADO_ORGANIZATION --project $id --skip-run --yaml-path /deploy/pipelines/02-sap-workload-zone.yaml --repository $repo_id --repository-type tfsgit --output none
+  az pipelines create --name 'SAP workload zone deployment' --branch main --description 'Deploys the workload zone' --org  $ADO_ORGANIZATION --project $id --skip-run --yaml-path /pipelines/02-sap-workload-zone.yml --repository $repo_id --repository-type tfsgit --output none
   wz_pipeline_id=$(az pipelines list --org "${ADO_ORGANIZATION}" --project "${ADO_PROJECT}" --query "[?name=='${pipeline_name}'].id | [0]" | tr -d \")
 fi
 
 pipeline_name='SAP system deployment (infrastructure)'
 system_pipeline_id=$(az pipelines list --org "${ADO_ORGANIZATION}" --project "${ADO_PROJECT}" --query "[?name=='${pipeline_name}'].id | [0]" | tr -d \")
 if [ -z $system_pipeline_id ] ; then
-  az pipelines create --name 'SAP system deployment (infrastructure)' --branch main --description 'SAP system deployment (infrastructure)' --org  $ADO_ORGANIZATION --project $id --skip-run --yaml-path /deploy/pipelines/03-sap-system-deployment.yaml --repository $repo_id --repository-type tfsgit --output none
+  az pipelines create --name 'SAP system deployment (infrastructure)' --branch main --description 'SAP system deployment (infrastructure)' --org  $ADO_ORGANIZATION --project $id --skip-run --yaml-path /pipelines/03-sap-system-deployment.yml --repository $repo_id --repository-type tfsgit --output none
   system_pipeline_id=$(az pipelines list --org "${ADO_ORGANIZATION}" --project "${ADO_PROJECT}" --query "[?name=='${pipeline_name}'].id | [0]" | tr -d \")
 fi
 
 pipeline_name='SAP Software acquisition'
 pipeline_id=$(az pipelines list --org "${ADO_ORGANIZATION}" --project "${ADO_PROJECT}" --query "[?name=='${pipeline_name}'].id | [0]" | tr -d \")
 if [ -z $pipeline_id ] ; then
-  az pipelines create --name 'SAP Software acquisition' --branch main --description 'Downloads the software from SAP' --org  $ADO_ORGANIZATION --project $id --skip-run --yaml-path /deploy/pipelines/04-sap-software-download.yaml --repository $repo_id --repository-type tfsgit --output none
+  az pipelines create --name 'SAP Software acquisition' --branch main --description 'Downloads the software from SAP' --org  $ADO_ORGANIZATION --project $id --skip-run --yaml-path /pipelines/04-sap-software-download.yml --repository $repo_id --repository-type tfsgit --output none
 fi
 
 pipeline_name='Configuration and SAP installation'
 installation_pipeline_id=$(az pipelines list --org "${ADO_ORGANIZATION}" --project "${ADO_PROJECT}" --query "[?name=='${pipeline_name}'].id | [0]" | tr -d \")
 if [ -z $installation_pipeline_id ] ; then
-  installation_pipeline_id=$(az pipelines create --name 'Configuration and SAP installation' --branch main --description 'Configures the Operating System and installs the SAP application' --org  $ADO_ORGANIZATION --project $id --skip-run --yaml-path /deploy/pipelines/05-DB-and-SAP-installation.yaml --repository $repo_id --repository-type tfsgit --output none)
+  installation_pipeline_id=$(az pipelines create --name 'Configuration and SAP installation' --branch main --description 'Configures the Operating System and installs the SAP application' --org  $ADO_ORGANIZATION --project $id --skip-run --yaml-path /pipelines/05-DB-and-SAP-installation.yml --repository $repo_id --repository-type tfsgit --output none)
 fi
 
 pipeline_name='Remove deployments'
 pipeline_id=$(az pipelines list --org "${ADO_ORGANIZATION}" --project "${ADO_PROJECT}" --query "[?name=='${pipeline_name}'].id | [0]" | tr -d \")
 if [ -z $pipeline_id ] ; then
-  az pipelines create --name 'Remove deployments' --branch main --description 'Removes either the SAP system or the workload zone' --org  $ADO_ORGANIZATION --project $id --skip-run --yaml-path /deploy/pipelines/10-remover-terraform.yaml --repository $repo_id --repository-type tfsgit --output none
+  az pipelines create --name 'Remove deployments' --branch main --description 'Removes either the SAP system or the workload zone' --org  $ADO_ORGANIZATION --project $id --skip-run --yaml-path /pipelines/10-remover-terraform.yml --repository $repo_id --repository-type tfsgit --output none
 fi
 
 pipeline_name='Remove deployments via ARM'
 pipeline_id=$(az pipelines list --org "${ADO_ORGANIZATION}" --project "${ADO_PROJECT}" --query "[?name=='${pipeline_name}'].id | [0]" | tr -d \")
 if [ -z $pipeline_id ] ; then
-  az pipelines create --name 'Remove deployments via ARM' --branch main --description 'Removes the resource groups via ARM. Use this only as last resort' --org  $ADO_ORGANIZATION --project $id --skip-run --yaml-path /deploy/pipelines/11-remover-arm-fallback.yaml --repository $repo_id --repository-type tfsgit --output none
+  az pipelines create --name 'Remove deployments via ARM' --branch main --description 'Removes the resource groups via ARM. Use this only as last resort' --org  $ADO_ORGANIZATION --project $id --skip-run --yaml-path /pipelines/11-remover-arm-fallback.yml --repository $repo_id --repository-type tfsgit --output none
 fi
 
 pipeline_name='Remove control plane'
 pipeline_id=$(az pipelines list --org "${ADO_ORGANIZATION}" --project "${ADO_PROJECT}" --query "[?name=='${pipeline_name}'].id | [0]" | tr -d \")
 if [ -z $pipeline_id ] ; then
-  az pipelines create --name 'Remove control plane' --branch main --description 'Removes the control plane' --org  $ADO_ORGANIZATION --project $id --skip-run --yaml-path /deploy/pipelines/12-remove-control-plane.yaml --repository $repo_id --repository-type tfsgit --output none
+  az pipelines create --name 'Remove control plane' --branch main --description 'Removes the control plane' --org  $ADO_ORGANIZATION --project $id --skip-run --yaml-path /pipelines/12-remove-control-plane.yml --repository $repo_id --repository-type tfsgit --output none
 fi
 
-pipeline_name='Update repository'
+pipeline_name='Update pipelines'
 pipeline_id=$(az pipelines list --org "${ADO_ORGANIZATION}" --project "${ADO_PROJECT}" --query "[?name=='${pipeline_name}'].id | [0]" | tr -d \")
 if [ -z $pipeline_id ] ; then
-  az pipelines create --name 'Update repository' --branch main --description 'Updates the codebase' --org  $ADO_ORGANIZATION --project $id --skip-run --yaml-path /deploy/pipelines/20-update-ado-repository.yaml --repository $repo_id --repository-type tfsgit --output none
+  az pipelines create --name 'Update repository' --branch main --description 'Updates the codebase' --org  $ADO_ORGANIZATION --project $id --skip-run --yaml-path /pipelines/21-update-pipelines.yml --repository $repo_id --repository-type tfsgit --output none
 fi
 
 pipeline_name='Create Sample Deployer Configuration'

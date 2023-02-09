@@ -363,7 +363,7 @@ else {
   Add-Content -Path $templatename "      type: GitHub"
   Add-Content -Path $templatename -Value ("      endpoint: " + $ghConn)
   Add-Content -Path $templatename "      name: Azure/sap-automation"
-  Add-Content -Path $templatename "      ref: refs/heads/experimental"
+  Add-Content -Path $templatename "      ref: refs/heads/main"
 
   $cont = Get-Content -Path $templatename -Raw
 
@@ -412,7 +412,7 @@ else {
   Add-Content -Path $templatename "     type: GitHub"
   Add-Content -Path $templatename -Value ("     endpoint: " + $ghConn)
   Add-Content -Path $templatename "     name: Azure/sap-automation"
-  Add-Content -Path $templatename "     ref: refs/heads/experimental"
+  Add-Content -Path $templatename "     ref: refs/heads/main"
   Add-Content -Path $templatename "   - repository: sap-samples"
   Add-Content -Path $templatename "     type: GitHub"
   Add-Content -Path $templatename -Value ("     endpoint: " + $ghConn)
@@ -647,6 +647,21 @@ if ($import_code) {
     authorized = $true
   }
 
+}
+
+
+$pipeline_name = 'Update Pipelines'
+$pipeline_id = (az pipelines list --query "[?name=='$pipeline_name'].id | [0]")
+if ($pipeline_id.Length -eq 0) {
+  az pipelines create --name $pipeline_name --branch main --description 'Updates the pipelines' --skip-run --yaml-path "/pipelines/21-update-pipelines.yml" --repository $repo_id --repository-type tfsgit --output none --only-show-errors
+}
+$pipeline_id = (az pipelines list --query "[?name=='$pipeline_name'].id | [0]")
+$this_pipeline_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) + "/_build?definitionId=" + $pipeline_id
+$log = ("[" + $pipeline_name + "](" + $this_pipeline_url + ")")
+Add-Content -Path $fname -Value $log
+$bodyText.pipelines += @{
+  id         = $pipeline_id
+  authorized = $true
 }
 
 
