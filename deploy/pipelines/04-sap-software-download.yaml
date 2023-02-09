@@ -229,13 +229,14 @@ stages:
             displayName:               Download
             name:                      download
             env:
-              ARM_CLIENT_ID:            $(CP_ARM_CLIENT_ID)
-              ARM_CLIENT_SECRET:        $(CP_ARM_CLIENT_SECRET)
-              ARM_TENANT_ID:            $(CP_ARM_TENANT_ID)
-              ARM_SUBSCRIPTION_ID:      $(CP_ARM_SUBSCRIPTION_ID)
-              SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
-              SAMPLE_REPO_PATH:         ${{ parameters.sample_repo_path }}
-              CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
-              ExtraParams:              ${{ parameters.ExtraParams }}
-            failOnStderr:               false
+              ARM_CLIENT_ID:                 $(CP_ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:             $(CP_ARM_CLIENT_SECRET)
+              ARM_TENANT_ID:                 $(CP_ARM_TENANT_ID)
+              ARM_SUBSCRIPTION_ID:           $(CP_ARM_SUBSCRIPTION_ID)
+              SAP_AUTOMATION_REPO_PATH:      ${{ parameters.sap_automation_repo_path }}
+              SAMPLE_REPO_PATH:              ${{ parameters.sample_repo_path }}
+              CONFIG_REPO_PATH:              ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
+              ANSIBLE_COLLECTIONS_PATHS:     ~/.ansible/collections:/opt/ansible/collections
+              ExtraParams:                   ${{ parameters.ExtraParams }}
+            failOnStderr:                    false
 
