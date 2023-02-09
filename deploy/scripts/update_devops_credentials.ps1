@@ -19,9 +19,25 @@ else {
   Write-Host "Using Project: $Project"
 }
 
+if ($Env:SDAF_CONTROL_PLANE_CODE.Length -ne 0) {
+ $SDAF_CONTROL_PLANE_CODE = $Env:SDAF_CONTROL_PLANE_CODE
+}
+else
+{
+  $SDAF_CONTROL_PLANE_CODE = "MGMT"
+}
 
-$MgmtPrefix = "SDAF-MGMT"
-$DEVPrefix = "SDAF-DEV"
+if ($Env:SDAF_WORKLOAD_ZONE_CODE.Length -ne 0) {
+ $SDAF_WORKLOAD_ZONE_CODE = $Env:SDAF_WORKLOAD_ZONE_CODE
+}
+else
+{
+  $SDAF_WORKLOAD_ZONE_CODE = "DEV"
+}
+
+
+$MgmtPrefix = "SDAF-"+$SDAF_CONTROL_PLANE_CODE
+$DEVPrefix = "SDAF-"+$SDAF_WORKLOAD_ZONE_CODE
 $Name = $MgmtPrefix + "-configuration-app"
 
 if ($Env:SDAF_APP_NAME.Length -ne 0) {
@@ -70,7 +86,7 @@ $pat_url = ($url.Substring(0, $idx) + "_usersSettings/tokens").Replace("""", "")
 
 $project_id = (az devops project list --organization $Env:ADO_ORGANIZATION --query "[value[]] | [0] | [? name=='$Env:ADO_PROJECT'].id | [0]").Replace("""", "")
 $permissions_url = $url.Substring(0, $idx) + $project_id + "/_settings/repositories?_a=permissions"
-$GroupID = (az pipelines variable-group list --project $Project --organization $Organization --query "[?name=='SDAF-MGMT'].id | [0]" --only-show-errors )
+$GroupID = (az pipelines variable-group list --project $Project --organization $Organization --query "[?name=='$MgmtPrefix'].id | [0]" --only-show-errors )
 if ($GroupID.Length -eq 0) {
   Write-Host "Could not find variable group SDAF-MGMT"
   exit
@@ -93,13 +109,14 @@ else {
 }
 
 $pool_url = $url.Substring(0, $idx) + "_settings/agentpools"
+$POOL=$SDAF_CONTROL_PLANE_CODE+"-POOL"
 
-$POOL_NAME = $(az pipelines pool list  --organization $Organization  --query "[?name=='MGMT-POOL'].name | [0]")
+$POOL_NAME = $(az pipelines pool list  --organization $Organization  --query "[?name=='$POOL'].name | [0]")
 if ($POOL_NAME.Length -gt 0) {
-  Write-Host "Agent pool MGMT-POOL already exists"
+  Write-Host "Agent pool " $POOL " already exists"
 }
 else {
-  Write-Host "The browser will now open, please create an Agent Pool with the name 'MGMT-POOL'. Ensure that the Agent Pool is define using the Self-hosted pool type."
+  Write-Host "The browser will now open, please create an Agent Pool with the name '$POOL'. Ensure that the Agent Pool is define using the Self-hosted pool type."
 
   Start-Process $pool_url.Replace("""", "")
   Read-Host -Prompt "Once you have created the Agent pool, Press any key to continue"
@@ -120,7 +137,7 @@ if ($found_appRegistration -eq $Name) {
   Write-Host "Updating the variable group (APP_REGISTRATION_APP_ID)"
 
   az pipelines variable-group variable update --group-id $GroupID --project $Project --organization $Organization --name "APP_REGISTRATION_APP_ID" --value $ExistingData.appId --only-show-errors
-  Write-Host "Please update the WEB_APP_CLIENT_SECRET manually if needed in variable group SDAF-MGMT"
+  Write-Host "Please update the WEB_APP_CLIENT_SECRET manually if needed in variable group " + $MgmtPrefix
 
 }
 else {
@@ -158,8 +175,9 @@ if ($found_appName.Length -gt 0) {
   $ExistingData = (az ad sp list --show-mine --query "[?displayName=='$app_name']| [0]" --only-show-errors) | ConvertFrom-Json
   Write-Host "Updating the variable group"
 
-  az pipelines variable-group variable update --group-id $GroupID --project $Project --organization $Organization --name "ARM_CLIENT_ID" --value $ExistingData.appId --output none --only-show-errors
-  az pipelines variable-group variable update --group-id $GroupID --project $Project --organization $Organization --name "ARM_TENANT_ID" --value $ExistingData.appOwnerOrganizationId --output none --only-show-errors
+  az pipelines variable-group variable update --group-id $GroupID --project $Project --organization $Organization --name "CP_ARM_CLIENT_ID" --value $ExistingData.appId --output none --only-show-errors
+  az pipelines variable-group variable update --group-id $GroupID --project $Project --organization $Organization --name "CP_ARM_OBJECT_ID" --value $ExistingData.Id --output none --only-show-errors
+  az pipelines variable-group variable update --group-id $GroupID --project $Project --organization $Organization --name "CP_ARM_TENANT_ID" --value $ExistingData.appOwnerOrganizationId --output none --only-show-errors
   Write-Host "Please update the Control Plane Service Principal Password manually if needed"
 }
 else {
@@ -167,9 +185,10 @@ else {
   $MGMTData = (az ad sp create-for-rbac --role="Contributor" --scopes=$scopes --name=$app_name --only-show-errors) | ConvertFrom-Json
   Write-Host "Updating the variable group"
 
-  az pipelines variable-group variable update --group-id $GroupID --project $Project --organization $Organization --name "ARM_CLIENT_ID" --value $MGMTData.appId --output none --only-show-errors
-  az pipelines variable-group variable update --group-id $GroupID --project $Project --organization $Organization --name "ARM_TENANT_ID" --value $MGMTData.tenant --output none --only-show-errors
-  az pipelines variable-group variable update --group-id $GroupID --project $Project --organization $Organization --name "ARM_CLIENT_SECRET" --value $MGMTData.password --secret true --output none --only-show-errors
+  az pipelines variable-group variable update --group-id $GroupID --project $Project --organization $Organization --name "CP_ARM_CLIENT_ID" --value $MGMTData.appId --output none --only-show-errors
+  az pipelines variable-group variable update --group-id $GroupID --project $Project --organization $Organization --name "CP_ARM_OBJECT_ID" --value $MGMTData.Id --output none --only-show-errors
+  az pipelines variable-group variable update --group-id $GroupID --project $Project --organization $Organization --name "CP_ARM_TENANT_ID" --value $MGMTData.tenant --output none --only-show-errors
+  az pipelines variable-group variable update --group-id $GroupID --project $Project --organization $Organization --name "CP_ARM_CLIENT_SECRET" --value $MGMTData.password --secret true --output none --only-show-errors
   $Env:AZURE_DEVOPS_EXT_AZURE_RM_SERVICE_PRINCIPAL_KEY = $MGMTData.password
   $epExists = (az devops service-endpoint list  --project $Project --organization $Organization --query "[?name=='Control_Plane_Service_Connection'].name | [0]")
   if ($epExists.Length -eq 0) {
@@ -180,7 +199,8 @@ else {
 }
 
 
-$DevGroupID = (az pipelines variable-group list --project $Project  --organization $Organization --query "[?name=='SDAF-DEV'].id | [0]")
+
+$DevGroupID = (az pipelines variable-group list --project $Project  --organization $Organization --query "[?name=='$DEVPrefix'].id | [0]")
 Write-Host "SDAF-DEV variable group ID" $DevGroupID
 $dev_scopes = "/subscriptions/" + $DevSubscriptionID
 $dev_app_name = $DevPrefix + " Deployment credential"
@@ -195,6 +215,7 @@ if ($found_appName.Length -ne 0) {
   $ExistingData = (az ad sp list --show-mine --query "[?displayName=='$dev_app_name'] | [0]" --only-show-errors) | ConvertFrom-Json
   Write-Host "Updating the variable group"
   az pipelines variable-group variable update --group-id $DevGroupID --project $Project --organization $Organization --name "ARM_CLIENT_ID" --value $ExistingData.appId --output none --only-show-errors
+  az pipelines variable-group variable update --group-id $DevGroupID --project $Project --organization $Organization --name "ARM_OBJECT_ID" --value $ExistingData.Id --output none --only-show-errors
   az pipelines variable-group variable update --group-id $DevGroupID --project $Project --organization $Organization --name "ARM_TENANT_ID" --value $ExistingData.appOwnerOrganizationId --output none --only-show-errors
   Write-Host "Please update the Workload zone Service Principal Password manually if needed"
 }
@@ -205,12 +226,15 @@ else {
 
   az pipelines variable-group variable update --group-id $DevGroupID --project $Project --organization $Organization --name "ARM_SUBSCRIPTION_ID" --value $DevSubscriptionID --output none --only-show-errors
   az pipelines variable-group variable update --group-id $DevGroupID --project $Project --organization $Organization --name "ARM_CLIENT_ID" --value $Data.appId --output none --only-show-errors
+  az pipelines variable-group variable update --group-id $DevGroupID --project $Project --organization $Organization --name "ARM_OBJECT_ID" --value $Data.Id --output none --only-show-errors
   az pipelines variable-group variable update --group-id $DevGroupID --project $Project --organization $Organization --name "ARM_TENANT_ID" --value $Data.tenant --output none --only-show-errors
   az pipelines variable-group variable update --group-id $DevGroupID --project $Project --organization $Organization --name "ARM_CLIENT_SECRET" --value $Data.password --secret true --output none --only-show-errors
   $Env:AZURE_DEVOPS_EXT_AZURE_RM_SERVICE_PRINCIPAL_KEY = $Data.password
-  $epExists = (az devops service-endpoint list  --project $Project --organization $Organization --query "[?name=='DEV_Service_Connection'].name | [0]")
+
+  $Dev_Connection=$SDAF_WORKLOAD_ZONE_CODE+"_Service_Connection"
+  $epExists = (az devops service-endpoint list  --project $Project --organization $Organization --query "[?name=='$Dev_Connection'].name | [0]")
   if ($epExists.Length -eq 0) {
-    az devops service-endpoint azurerm create --project $Project --organization $Organization --azure-rm-service-principal-id $Data.appId --azure-rm-subscription-id $DevSubscriptionID --azure-rm-subscription-name $DevSubscriptionName --azure-rm-tenant-id $Data.tenant --name "DEV_Service_Connection" --output none --only-show-errors
+    az devops service-endpoint azurerm create --project $Project --organization $Organization --azure-rm-service-principal-id $Data.appId --azure-rm-subscription-id $DevSubscriptionID --azure-rm-subscription-name $DevSubscriptionName --azure-rm-tenant-id $Data.tenant --name $Dev_Connection --output none --only-show-errors
   }
 }
 if ($AlreadySet) {
