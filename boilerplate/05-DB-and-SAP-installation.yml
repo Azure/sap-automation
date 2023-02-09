@@ -26,6 +26,7 @@ parameters:
       - NW752SPS09_v0001ms
       - ORACLE_19_00_v0002ms
       - NW750SPS20_DB2_v0001ms
+      - NW750SPS20_DB2_11-1_v0001ms
       - ORACLE_19_00_ORA_MSID_v0001ms
 
   - name: base_os_configuration
