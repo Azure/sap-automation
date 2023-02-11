@@ -1025,6 +1025,7 @@ echo ""
 if [ -n "$spn_secret" ]
     then
         az logout
+        echo "Login as SPN"
         az login --service-principal --username "${client_id}" --password="${spn_secret}" --tenant "${tenant_id}" --output none
 fi
 
