@@ -831,8 +831,15 @@ if [ -n "${test}" ] ; then
 fi
 
 echo "TEST_ONLY: " $TEST_ONLY
-if [ ${TEST_ONLY} != "True" ]; then
-  exit 0
+if [ ${TEST_ONLY} == "True" ]; then
+    echo ""
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo -e "#                                 $cyan Running plan only $resetformatting                                   #"
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
+    echo ""
+    exit 0
 fi
 
 ok_to_proceed=1
