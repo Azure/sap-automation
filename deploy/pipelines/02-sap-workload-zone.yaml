@@ -176,8 +176,6 @@ stages:
 
               echo -e "$green--- Convert config file to UX format ---$reset"
                 dos2unix -q LANDSCAPE/$(workload_zone_folder)/$(workload_zone_configuration_file)
-                dos2unix -q ${deployer_environment_file_name}
-                dos2unix -q ${workload_environment_file_name}
               echo -e "$green--- Read details ---$reset"
 
                 
@@ -287,6 +285,8 @@ stages:
 
                 deployer_environment_file_name=$CONFIG_REPO_PATH/.sap_deployment_automation/$(deployer_environment)$(deployer_region)
                 workload_environment_file_name=$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}${NETWORK}
+                dos2unix -q ${deployer_environment_file_name}
+                dos2unix -q ${workload_environment_file_name}
 
                 if [ ! -f ${deployer_environment_file_name} ]; then
                   echo -e "$boldred--- $(deployer_environment)$LOCATION was not found ---$reset"
