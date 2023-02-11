@@ -412,13 +412,12 @@ stages:
               #!/bin/bash 
                 green="\e[1;32m" ; reset="\e[0m"
               echo -e "$green--- Checkout $(Build.SourceBranchName) ---$reset"
-                cd $CONFIG_REPO_PATH
                 git checkout -q $(Build.SourceBranchName)
 
               echo "##vso[build.updatebuildnumber]Removing the SAP Workload zone defined in $(workload_zone_folder)"
                 
               echo -e "$green--- Validations ---$reset"
-                HOME_CONFIG=${CONFIG_REPO_PATH}/$(Deployment_Configuration_Path)
+                HOME_CONFIG=${CONFIG_REPO_PATH}
                 cd $HOME_CONFIG; mkdir -p .sap_deployment_automation
 
                 if [ ! -f LANDSCAPE/$(workload_zone_folder)/$(workload_zone_configuration_file) ]; then
