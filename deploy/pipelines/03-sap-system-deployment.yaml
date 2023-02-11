@@ -23,6 +23,10 @@ parameters:
     displayName:                       The local path on the agent where the config repo can be found
     type:                              string
 
+  - name:                              test
+    displayName:                       Test deployment without applying the changes
+    type:                              boolean
+
 stages:
   - stage: Deploy_SAP_infrastructure
     condition: and(not(failed()), not(canceled()))
@@ -31,6 +35,7 @@ stages:
         parameters:
           sap_system:                  ${{ parameters.sap_system }}
           environment:                 ${{ parameters.environment }}
+          test:                        ${{ parameters.test }}
     displayName:                       Deploy SAP infrastructure
     jobs:
       - job:                           Deploy_SAP_infrastructure
@@ -289,6 +294,8 @@ stages:
                 fi
 
               echo -e "$green--- Run the installer script that deploys the SAP System ---$reset"
+
+                export TEST_ONLY=$(test_only)
                 $SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer.sh --parameterfile $(sap_system_configuration) --type sap_system \
                  --state_subscription ${STATE_SUBSCRIPTION} --storageaccountname ${REMOTE_STATE_SA}                                 \
                  --deployer_tfstate_key ${deployer_tfstate_key} --landscape_tfstate_key ${landscape_tfstate_key}                    \

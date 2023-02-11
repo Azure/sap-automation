@@ -888,6 +888,7 @@ if [ 1 == $ok_to_proceed ]; then
     allParams=$(printf " -var-file=%s %s %s %s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter}"  "${approve}" )
 
     if [ 1 == $called_from_ado ] ; then
+        echo $TEST_ONLY
         terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings -json $allParams | tee -a apply_output.json
     else
         terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -json $allParams | tee -a  apply_output.json
@@ -978,6 +979,7 @@ if [ 1 == $ok_to_proceed ]; then
         echo ""
         echo ""
         if [ 1 == $called_from_ado ] ; then
+            echo $TEST_ONLY
             terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -compact-warnings $allParams
         else
             terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" $allParams
