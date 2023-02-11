@@ -738,13 +738,6 @@ if [ -f plan_output.log ]; then
 fi
 
 if [ 0 == $return_value ] ; then
-    echo ""
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo -e "#                          $cyan Infrastructure is up to date $resetformatting                               #"
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
-    echo ""
     if [ -f plan_output.log ]
     then
         rm plan_output.log

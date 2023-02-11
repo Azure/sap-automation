@@ -455,27 +455,19 @@ stages:
                   az login --identity --output none
                 fi
 
-                if [ 0 != $secrets_set ] ; then
-                  echo "Install and call Set Secrets failed"
-                  $SAP_AUTOMATION_REPO_PATH/deploy/scripts/install_workloadzone.sh --parameterfile $(workload_zone_configuration_file)       \
-                    --deployer_environment $(deployer_environment) --subscription $(ARM_SUBSCRIPTION_ID)                                 \
-                    --spn_id $ARM_CLIENT_ID --spn_secret $ARM_CLIENT_SECRET --tenant_id $ARM_TENANT_ID                                   \
-                    --deployer_tfstate_key "${deployer_tfstate_key}" --keyvault "${key_vault}" --storageaccountname "${REMOTE_STATE_SA}" \
-                    --state_subscription "${STATE_SUBSCRIPTION}" --auto-approve --ado
-                else
-                  $SAP_AUTOMATION_REPO_PATH/deploy/scripts/install_workloadzone.sh --parameterfile $(workload_zone_configuration_file)       \
-                    --deployer_environment $(deployer_environment) --subscription $(ARM_SUBSCRIPTION_ID)                                 \
-                    --deployer_tfstate_key "${deployer_tfstate_key}" --storageaccountname "${REMOTE_STATE_SA}"                           \
-                    --state_subscription "${STATE_SUBSCRIPTION}" --auto-approve --ado
-                fi
+                $SAP_AUTOMATION_REPO_PATH/deploy/scripts/install_workloadzone.sh --parameterfile $(workload_zone_configuration_file)       \
+                  --deployer_environment $(deployer_environment) --subscription $(ARM_SUBSCRIPTION_ID)                                 \
+                  --spn_id $ARM_CLIENT_ID --spn_secret $ARM_CLIENT_SECRET --tenant_id $ARM_TENANT_ID                                   \
+                  --deployer_tfstate_key "${deployer_tfstate_key}" --keyvault "${key_vault}" --storageaccountname "${REMOTE_STATE_SA}" \
+                  --state_subscription "${STATE_SUBSCRIPTION}" --auto-approve --ado
                 return_code=$?
 
                 echo "Return code: ${return_code}"
 
                 if [ -f ${workload_environment_file_name} ]; then
-                  export    workload_key_vault=$(cat ${workload_environment_file_name}  | grep workloadkeyvault      | awk -F'=' '{print $2}' | xargs) ; echo 'Workload Key Vault'       ${workload_key_vault}
-                  export       workload_prefix=$(cat ${workload_environment_file_name}  | grep workload_zone_prefix  | awk -F'=' '{print $2}' | xargs) ; echo 'Workload Prefix'          ${workload_prefix}
-                  export landscape_tfstate_key=$(cat ${workload_environment_file_name}  | grep landscape_tfstate_key | awk -F'=' '{print $2}' | xargs) ; echo 'Workload Zone State File' $landscape_tfstate_key
+                  export    workload_key_vault=$(grep workloadkeyvault      | ${workload_environment_file_name}  | awk -F'=' '{print $2}' | xargs) ; echo 'Workload Key Vault'       ${workload_key_vault}
+                  export       workload_prefix=$(grep workload_zone_prefix  | ${workload_environment_file_name}  | awk -F'=' '{print $2}' | xargs) ; echo 'Workload Prefix'          ${workload_prefix}
+                  export landscape_tfstate_key=$(grep landscape_tfstate_key | ${workload_environment_file_name}  | awk -F'=' '{print $2}' | xargs) ; echo 'Workload Zone State File' $landscape_tfstate_key
                 fi
 
                 az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "FENCING_SPN_ID.value")
