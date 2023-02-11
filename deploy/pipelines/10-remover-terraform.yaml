@@ -94,7 +94,7 @@ stages:
               echo "##vso[build.updatebuildnumber]Removing the SAP System defined in $(sap_system_folder)"
                 
               echo -e "$green--- Validations ---$reset"
-                HOME_CONFIG=${CONFIG_REPO_PATH}/$(Deployment_Configuration_Path)
+                HOME_CONFIG=${CONFIG_REPO_PATH}
                 cd $HOME_CONFIG; mkdir -p .sap_deployment_automation
                 if [ ! -f SYSTEM/$(sap_system_folder)/$(sap_system_configuration) ]; then
                   echo -e "$boldred--- $HOME_CONFIG/SYSTEM/$(sap_system_folder)/$(sap_system_configuration) was not found ---$reset"
