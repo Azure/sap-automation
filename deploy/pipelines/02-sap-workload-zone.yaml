@@ -120,6 +120,12 @@ stages:
                   sudo apt-get -qq install dos2unix
                 fi
 
+                if [ ! -f $CONFIG_REPO_PATH/LANDSCAPE/$(workload_zone_folder)/$(workload_zone_configuration_file) ]; then
+                  echo -e "$boldred--- $(workload_zone_configuration_file) was not found ---$reset"
+                  echo "##vso[task.logissue type=error]File $(workload_zone_configuration_file) was not found."
+                  exit 2
+                fi
+
                 echo -e "$green--- Checkout $(Build.SourceBranchName) ---$reset"
 
                 cd $CONFIG_REPO_PATH
@@ -167,13 +173,83 @@ stages:
                   exit 2
                 fi
 
-              echo -e "$green--- Set WORKSPACES folder ---$reset"
-
-                ENVIRONMENT=$(echo $(workload_zone_folder) | awk -F'-' '{print $1}' | xargs ) ; echo Environment $ENVIRONMENT
-                LOCATION=$(echo $(workload_zone_folder)    | awk -F'-' '{print $2}' | xargs ) ; echo Location    $LOCATION
-                NETWORK=$(echo $(workload_zone_folder)     | awk -F'-' '{print $3}' | xargs ) ; echo Network     $NETWORK
+              echo -e "$green--- Read details ---$reset"
 
                 cd $CONFIG_REPO_PATH; mkdir -p .sap_deployment_automation
+
+                ENVIRONMENT=$(grep "^environment" LANDSCAPE/$(workload_zone_folder)/$(workload_zone_configuration_file) | awk -F'-' '{print $2}' | xargs)          ; echo Environment $ENVIRONMENT
+                LOCATION=   $(grep "^location" LANDSCAPE/$(workload_zone_folder)/$(workload_zone_configuration_file) | awk -F'-' '{print $2}' | xargs)             ; echo Location    $LOCATION
+                NETWORK=    $(grep "^network_logical_name" LANDSCAPE/$(workload_zone_folder)/$(workload_zone_configuration_file) | awk -F'-' '{print $2}' | xargs) ; echo Network     $NETWORK
+                
+                ENVIRONMENT_IN_FILENAME=$(echo $(workload_zone_folder) | awk -F'-' '{print $1}' | xargs )
+                LOCATION_CODE=   $(echo $(workload_zone_folder) | awk -F'-' '{print $2}' | xargs )
+                $LOCATION_IN_FILENAME = switch ("$LOCATION_CODE") {
+                  "AUCE" { "australiacentral" }
+                  "AUC2" { "australiacentral2" }
+                  "AUEA" { "australiaeast" }
+                  "AUSE" { "australiasoutheast" }
+                  "BRSO" { "brazilsouth" }
+                  "BRSE" { "brazilsoutheast" }
+                  "BRUS" { "brazilus" }
+                  "CACE" { "canadacentral" }
+                  "CAEA" { "canadaeast" }
+                  "CEIN" { "centralindia" }
+                  "CEUS" { "centralus" }
+                  "CEUA" { "centraluseuap" }
+                  "EAAS" { "eastasia" }
+                  "EAUS" { "eastus" }
+                  "EUS2" { "eastus2" }
+                  "FRCE" { "francecentral" }
+                  "FRSO" { "francesouth" }
+                  "GENO" { "germanynorth" }
+                  "GEWC" { "germanywestcentral" }
+                  "JAEA" { "japaneast" }
+                  "JAWE" { "japanwest" }
+                  "JINC" { "jioindiacentral" }
+                  "JINW" { "jioindiawest" }
+                  "KOCE" { "koreacentral" }
+                  "KOSO" { "koreasouth" }
+                  "NCUS" { "northcentralus" }
+                  "NOEU" { "northeurope" }
+                  "NOEA" { "norwayeast" }
+                  "NOWE" { "norwaywest" }
+                  "SANO" { "southafricanorth" }
+                  "SAWE" { "southafricawest" }
+                  "SCUS" { "southcentralus" }
+                  "SCUG" { "southcentralusstg" }
+                  "SOEA" { "southeastasia" }
+                  "SOIN" { "southindia" }
+                  "SECE" { "swedencentral" }
+                  "SWNO" { "switzerlandnorth" }
+                  "SWWE" { "switzerlandwest" }
+                  "UACE" { "uaecentral" }
+                  "UANO" { "uaenorth" }
+                  "UKSO" { "uksouth" }
+                  "UKWE" { "ukwest" }
+                  "WCUS" { "westcentralus" }
+                  "WEEU" { "westeurope" }
+                  "WEIN" { "westindia" }
+                  "WEUS" { "westus" }
+                  "WUS2" { "westus2" }
+                  "WUS3" { "westus3" }
+              }
+
+                NETWORK_IN_FILENAME=    $(echo $(workload_zone_folder) | awk -F'-' '{print $3}' | xargs )
+
+                if [ $ENVIRONMENT != ENVIRONMENT_IN_FILENAME]; then
+                  echo "##vso[task.logissue type=error]The environment setting in $(workload_zone_configuration_file) does not match the $(workload_zone_configuration_file) file name. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
+                  exit 2
+                fi
+
+                if [ $LOCATION != LOCATION_IN_FILENAME]; then
+                  echo "##vso[task.logissue type=error]The location setting in $(workload_zone_configuration_file) does not match the $(workload_zone_configuration_file) file name. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
+                  exit 2
+                fi
+                
+                if [ $NETWORK != NETWORK_IN_FILENAME]; then
+                  echo "##vso[task.logissue type=error]The network_logical_name setting in $(workload_zone_configuration_file) does not match the $(workload_zone_configuration_file) file name. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
+                  exit 2
+                fi
 
               echo -e "$green--- Configure devops CLI extension ---$reset"
                 az config set extension.use_dynamic_install=yes_without_prompt --output none
@@ -200,12 +276,6 @@ stages:
 
                 deployer_environment_file_name=$CONFIG_REPO_PATH/.sap_deployment_automation/$(deployer_environment)$(deployer_region)
                 workload_environment_file_name=$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}${NETWORK}
-
-                if [ ! -f $CONFIG_REPO_PATH/LANDSCAPE/$(workload_zone_folder)/$(workload_zone_configuration_file) ]; then
-                  echo -e "$boldred--- $(workload_zone_configuration_file) was not found ---$reset"
-                  echo "##vso[task.logissue type=error]File $(workload_zone_configuration_file) was not found."
-                  exit 2
-                fi
 
                 if [ ! -f ${deployer_environment_file_name} ]; then
                   echo -e "$boldred--- $(deployer_environment)$LOCATION was not found ---$reset"
