@@ -286,13 +286,13 @@ stages:
               echo -e "$green--- Set CONFIG_REPO_PATH variable ---$reset"
 
                 deployer_environment_file_name=$CONFIG_REPO_PATH/.sap_deployment_automation/$(deployer_environment)$(deployer_region) ; echo 'Deployer Environment File' $deployer_environment_file_name
-                workload_environment_file_name=$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}${NETWORK}       ; echo 'Workload Environment File' $workload_environment_file_name
+                workload_environment_file_name=$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION_CODE}${NETWORK}  ; echo 'Workload Environment File' $workload_environment_file_name
                 dos2unix -q ${deployer_environment_file_name}
                 dos2unix -q ${workload_environment_file_name}
 
                 if [ ! -f ${deployer_environment_file_name} ]; then
-                  echo -e "$boldred--- $(deployer_environment)$LOCATION was not found ---$reset"
-                  echo "##vso[task.logissue type=error]Control plane configuration file $(deployer_environment)$LOCATION was not found."
+                  echo -e "$boldred--- $(deployer_environment)$(deployer_region) was not found ---$reset"
+                  echo "##vso[task.logissue type=error]Control plane configuration file $(deployer_environment)$(deployer_region) was not found."
                   exit 2
                 fi
 
