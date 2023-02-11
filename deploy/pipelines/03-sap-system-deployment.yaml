@@ -208,6 +208,19 @@ stages:
                   echo "##vso[task.logissue type=error]SID was not defined in the parameter file."
                   exit 2
                 fi
+              echo -e "$green--- Configure devops CLI extension ---$reset"
+
+                az config set extension.use_dynamic_install=yes_without_prompt --output none
+
+                az devops configure --defaults organization=$(System.CollectionUri) project='$(System.TeamProject)' --output none
+
+                export VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(variable_group)'].id | [0]")
+                echo '$(variable_group) id: ' $VARIABLE_GROUP_ID
+                if [ -z ${VARIABLE_GROUP_ID} ]; then
+                  echo "##vso[task.logissue type=error]Variable group $(variable_group) could not be found."
+                  exit 2
+                fi
+
               # Check if running on deployer
               if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 
@@ -233,20 +246,6 @@ stages:
                   fi
                 fi
               fi
-
-              echo -e "$green--- Configure devops CLI extension ---$reset"
-
-                az logout
-                az config set extension.use_dynamic_install=yes_without_prompt --output none
-
-                az devops configure --defaults organization=$(System.CollectionUri) project='$(System.TeamProject)' --output none
-
-                export VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(variable_group)'].id | [0]")
-                echo '$(variable_group) id: ' $VARIABLE_GROUP_ID
-                if [ -z ${VARIABLE_GROUP_ID} ]; then
-                  echo "##vso[task.logissue type=error]Variable group $(variable_group) could not be found."
-                  exit 2
-                fi
 
               echo -e "$green--- Define variables ---$reset"
                 cd $HOME_CONFIG/SYSTEM/$(sap_system_folder)
