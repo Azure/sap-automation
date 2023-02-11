@@ -830,7 +830,8 @@ if [ -n "${test}" ] ; then
     fatal_errors=1
 fi
 
-if [ $TEST_ONLY != "True" ]; then
+echo "TEST_ONLY: " $TEST_ONLY
+if [ ${TEST_ONLY} != "True" ]; then
   exit 0
 fi
 
