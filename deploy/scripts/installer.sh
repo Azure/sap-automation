@@ -831,7 +831,7 @@ if [ -n "${test}" ] ; then
 fi
 
 echo "TEST_ONLY: " $TEST_ONLY
-if [ ${TEST_ONLY} == "True" ]; then
+if [ "${TEST_ONLY}" == "True" ]; then
     echo ""
     echo "#########################################################################################"
     echo "#                                                                                       #"
