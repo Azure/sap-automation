@@ -183,7 +183,7 @@ stages:
                 
                 ENVIRONMENT_IN_FILENAME=$(echo $(workload_zone_folder) | awk -F'-' '{print $1}' | xargs )
                 LOCATION_CODE=   $(echo $(workload_zone_folder) | awk -F'-' '{print $2}' | xargs )
-                $LOCATION_IN_FILENAME = switch ("$LOCATION_CODE") {
+                $LOCATION_IN_FILENAME = switch (${LOCATION_CODE}) {
                   "AUCE" { "australiacentral" }
                   "AUC2" { "australiacentral2" }
                   "AUEA" { "australiaeast" }
