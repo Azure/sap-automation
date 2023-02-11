@@ -723,7 +723,6 @@ fi
 
 ok_to_proceed=0
 if [ -f plan_output.log ]; then
-    echo "2"
     cat plan_output.log
     LASTERROR=$(grep -m1 'Error: ' plan_output.log )
 
@@ -1022,7 +1021,7 @@ echo "#                                                                         
 echo "#########################################################################################"
 echo ""
 
-if [ -n "$spn_secret" ]
+if [ -n "${spn_secret}" ]
     then
         az logout
         echo "Login as SPN"
