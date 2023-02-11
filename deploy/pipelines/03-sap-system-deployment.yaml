@@ -295,7 +295,6 @@ stages:
 
               echo -e "$green--- Run the installer script that deploys the SAP System ---$reset"
 
-                export TEST_ONLY=$(test_only)
                 $SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer.sh --parameterfile $(sap_system_configuration) --type sap_system \
                  --state_subscription ${STATE_SUBSCRIPTION} --storageaccountname ${REMOTE_STATE_SA}                                 \
                  --deployer_tfstate_key ${deployer_tfstate_key} --landscape_tfstate_key ${landscape_tfstate_key}                    \
@@ -366,22 +365,22 @@ stages:
                   echo "##vso[task.uploadsummary]$HOME_CONFIG/SYSTEM/$(sap_system_folder)/${SID}.md"
                 fi
 
-                file_name=${SID}_inventory.md
-                if [ -f ${SID}_inventory.md ]; then
-                  az devops configure --defaults organization=$(System.CollectionUri) project='$(System.TeamProject)' --output none
+                # file_name=${SID}_inventory.md
+                # if [ -f ${SID}_inventory.md ]; then
+                #   az devops configure --defaults organization=$(System.CollectionUri) project='$(System.TeamProject)' --output none
 
-                  # ToDo: Fix this later
-                  # WIKI_NAME_FOUND=$(az devops wiki list --query "[?name=='SDAF'].name | [0]")
-                  # echo "${WIKI_NAME_FOUND}"
-                  # if [ -n "${WIKI_NAME_FOUND}" ]; then
-                  #   eTag=$(az devops wiki page show --path "${file_name}" --wiki SDAF --query eTag )
-                  #   if [ -n "$eTag" ]; then
-                  #     az devops wiki page update --path "${file_name}" --wiki SDAF --file-path ./"${file_name}" --only-show-errors --version $eTag --output none
-                  #   else
-                  #     az devops wiki page create --path "${file_name}" --wiki SDAF --file-path ./"${file_name}" --output none --only-show-errors
-                  #   fi
-                  # fi
-                fi
+                #   # ToDo: Fix this later
+                #   # WIKI_NAME_FOUND=$(az devops wiki list --query "[?name=='SDAF'].name | [0]")
+                #   # echo "${WIKI_NAME_FOUND}"
+                #   # if [ -n "${WIKI_NAME_FOUND}" ]; then
+                #   #   eTag=$(az devops wiki page show --path "${file_name}" --wiki SDAF --query eTag )
+                #   #   if [ -n "$eTag" ]; then
+                #   #     az devops wiki page update --path "${file_name}" --wiki SDAF --file-path ./"${file_name}" --only-show-errors --version $eTag --output none
+                #   #   else
+                #   #     az devops wiki page create --path "${file_name}" --wiki SDAF --file-path ./"${file_name}" --output none --only-show-errors
+                #   #   fi
+                #   # fi
+                # fi
 
               exit $return_code
 
@@ -395,5 +394,6 @@ stages:
               SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
               CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}
               AZURE_DEVOPS_EXT_PAT:     $(WZ_PAT)
+              TEST_ONLY:                ${{ parameters.test }}
 
             failOnStderr:               false
