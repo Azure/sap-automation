@@ -278,8 +278,8 @@ stages:
                     changed=1
                 fi
 
-                if [ -d "DEPLOYER/$(deployer_folder)/.terraform" ]; then
-                  git add -d "DEPLOYER/$(deployer_folder)/.terraform"
+                if [ -f "DEPLOYER/$(deployer_folder)/.terraform/terraform.tfstate" ]; then
+                  git add -f "DEPLOYER/$(deployer_folder)/.terraform/terraform.tfstate"
                   changed=1
                 fi
 
