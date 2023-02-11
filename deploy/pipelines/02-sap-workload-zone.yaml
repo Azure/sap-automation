@@ -177,9 +177,9 @@ stages:
 
                 cd $CONFIG_REPO_PATH; mkdir -p .sap_deployment_automation
 
-                ENVIRONMENT=$(grep "^environment" LANDSCAPE/$(workload_zone_folder)/$(workload_zone_configuration_file) | awk -F'-' '{print $2}' | xargs)          ; echo Environment $ENVIRONMENT
-                LOCATION=   $(grep "^location" LANDSCAPE/$(workload_zone_folder)/$(workload_zone_configuration_file) | awk -F'-' '{print $2}' | xargs)             ; echo Location    $LOCATION
-                NETWORK=    $(grep "^network_logical_name" LANDSCAPE/$(workload_zone_folder)/$(workload_zone_configuration_file) | awk -F'-' '{print $2}' | xargs) ; echo Network     $NETWORK
+                ENVIRONMENT=$(grep "^environment" LANDSCAPE/$(workload_zone_folder)/$(workload_zone_configuration_file) | awk -F'=' '{print $2}' | xargs)          ; echo Environment $ENVIRONMENT
+                LOCATION=   $(grep "^location" LANDSCAPE/$(workload_zone_folder)/$(workload_zone_configuration_file) | awk -F'=' '{print $2}' | xargs)             ; echo Location    $LOCATION
+                NETWORK=    $(grep "^network_logical_name" LANDSCAPE/$(workload_zone_folder)/$(workload_zone_configuration_file) | awk -F'=' '{print $2}' | xargs) ; echo Network     $NETWORK
                 
                 ENVIRONMENT_IN_FILENAME=$(echo $(workload_zone_folder) | awk -F'-' '{print $1}' | xargs )
                 LOCATION_CODE=   $(echo $(workload_zone_folder) | awk -F'-' '{print $2}' | xargs )
@@ -235,6 +235,10 @@ stages:
               }
 
                 NETWORK_IN_FILENAME=    $(echo $(workload_zone_folder) | awk -F'-' '{print $3}' | xargs )
+                echo Environment(filename) $ENVIRONMENT_IN_FILENAME
+                echo Location(filename)    $LOCATION_IN_FILENAME
+                echo Network(filename)     $NETWORK_IN_FILENAME
+   
 
                 if [ $ENVIRONMENT != ENVIRONMENT_IN_FILENAME]; then
                   echo "##vso[task.logissue type=error]The environment setting in $(workload_zone_configuration_file) does not match the $(workload_zone_configuration_file) file name. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
