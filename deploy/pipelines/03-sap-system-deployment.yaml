@@ -193,7 +193,7 @@ stages:
               echo -e "$green--- Set CONFIG_REPO_PATH variable and ---$reset"
                 echo CONFIG_REPO_PATH=$CONFIG_REPO_PATH > .sap_deployment_automation/config
 
-                environment_file_name=$HOME_CONFIG/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}${NETWORK}
+                environment_file_name=$HOME_CONFIG/.sap_deployment_automation/${ENVIRONMENT}${LOCATION_CODE}${NETWORK}
                 if [ ! -f $environment_file_name ]; then
                   echo -e "$boldred--- $environment_file_name was not found ---$reset"
                   echo "##vso[task.logissue type=error]Please rerun the workload zone deployment. Workload zone configuration file $environment_file_name was not found."
@@ -227,27 +227,18 @@ stages:
                     echo "##vso[task.logissue type=error]az login failed."
                     exit $return_code
                   fi
-
                 fi
-
               fi
-
 
               echo -e "$green--- Define variables ---$reset"
                 cd $HOME_CONFIG/SYSTEM/$(sap_system_folder)
 
-                export REMOTE_STATE_SA=$(cat ${environment_file_name}      | grep REMOTE_STATE_SA      | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file storage account' $REMOTE_STATE_SA
-                export STATE_SUBSCRIPTION=$(cat ${environment_file_name}   | grep STATE_SUBSCRIPTION   | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file subscription' $STATE_SUBSCRIPTION
-                export deployer_tfstate_key=$(cat ${environment_file_name} | grep deployer_tfstate_key | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer State File' $deployer_tfstate_key
-                export key_vault=$(cat ${environment_file_name}            | grep keyvault=            | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer Key Vault' ${key_vault}
-                export landscape_tfstate_key=$(cat "${environment_file_name}"  | grep landscape_tfstate_key | awk -F'=' '{print $2}' | xargs) ; echo 'landscape_tfstate_key' $landscape_tfstate_key
-                export workload_key_vault=$(cat "${environment_file_name}"  | grep workloadkeyvault      | awk -F'=' '{print $2}' | xargs) ; echo 'Workload Key Vault' ${workload_key_vault}
-
-
-              echo -e "$green--- Convert config file to UX format ---$reset"
-
-                dos2unix -q SYSTEM/$(sap_system_folder)/$(sap_system_configuration)
-
+                export REMOTE_STATE_SA=$(cat ${environment_file_name}         | grep REMOTE_STATE_SA       | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file storage account' $REMOTE_STATE_SA
+                export STATE_SUBSCRIPTION=$(cat ${environment_file_name}      | grep STATE_SUBSCRIPTION    | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file subscription' $STATE_SUBSCRIPTION
+                export deployer_tfstate_key=$(cat ${environment_file_name}    | grep deployer_tfstate_key  | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer State File' $deployer_tfstate_key
+                export key_vault=$(cat ${environment_file_name}               | grep keyvault=             | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer Key Vault' ${key_vault}
+                export landscape_tfstate_key=$(cat "${environment_file_name}" | grep landscape_tfstate_key | awk -F'=' '{print $2}' | xargs) ; echo 'landscape_tfstate_key' $landscape_tfstate_key
+                export workload_key_vault=$(cat "${environment_file_name}"    | grep workloadkeyvault      | awk -F'=' '{print $2}' | xargs) ; echo 'Workload Key Vault' ${workload_key_vault}
 
               echo -e "$green--- Run the installer script that deploys the SAP System ---$reset"
                 $SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer.sh --parameterfile $(sap_system_configuration) --type sap_system \
