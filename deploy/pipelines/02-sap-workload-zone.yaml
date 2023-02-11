@@ -180,15 +180,15 @@ stages:
 
                 
                 ENVIRONMENT=$(grep "^environment" LANDSCAPE/$(workload_zone_folder)/$(workload_zone_configuration_file) | awk -F'=' '{print $2}' | xargs | tr -d '\r')
-                LOCATION=   $(grep "^location" LANDSCAPE/$(workload_zone_folder)/$(workload_zone_configuration_file) | awk -F'=' '{print $2}' | xargs | tr -d '\r')
-                NETWORK=    $(grep "^network_logical_name" LANDSCAPE/$(workload_zone_folder)/$(workload_zone_configuration_file) | awk -F'=' '{print $2}' | xargs | tr -d '\r')
+                   LOCATION=$(grep "^location" LANDSCAPE/$(workload_zone_folder)/$(workload_zone_configuration_file) | awk -F'=' '{print $2}' | xargs | tr -d '\r')
+                    NETWORK=$(grep "^network_logical_name" LANDSCAPE/$(workload_zone_folder)/$(workload_zone_configuration_file) | awk -F'=' '{print $2}' | xargs | tr -d '\r')
                 echo Environment: ${ENVIRONMENT}
                 echo Location:    ${LOCATION}
                 echo Network     ${NETWORK}
                 
                 ENVIRONMENT_IN_FILENAME=$(echo $(workload_zone_folder) | awk -F'-' '{print $1}' | xargs )
-                LOCATION_CODE=   $(echo $(workload_zone_folder) | awk -F'-' '{print $2}' | xargs )
-                $LOCATION_IN_FILENAME = switch ($LOCATION_CODE) {
+                          LOCATION_CODE=$(echo $(workload_zone_folder) | awk -F'-' '{print $2}' | xargs )
+                  LOCATION_IN_FILENAME = switch ($LOCATION_CODE) {
                   "AUCE" { "australiacentral" }
                   "AUC2" { "australiacentral2" }
                   "AUEA" { "australiaeast" }
@@ -237,9 +237,9 @@ stages:
                   "WEUS" { "westus" }
                   "WUS2" { "westus2" }
                   "WUS3" { "westus3" }
-              }
+                   }
 
-                NETWORK_IN_FILENAME=    $(echo $(workload_zone_folder) | awk -F'-' '{print $3}' | xargs )
+                NETWORK_IN_FILENAME=$(echo $(workload_zone_folder) | awk -F'-' '{print $3}' | xargs )
                 echo Environment(filename) $ENVIRONMENT_IN_FILENAME
                 echo Location(filename)    $LOCATION_IN_FILENAME
                 echo Network(filename)     $NETWORK_IN_FILENAME
