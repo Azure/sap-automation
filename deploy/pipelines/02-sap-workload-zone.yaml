@@ -129,6 +129,7 @@ stages:
                 echo -e "$green--- Checkout $(Build.SourceBranchName) ---$reset"
 
                 cd $CONFIG_REPO_PATH
+                mkdir -p .sap_deployment_automation                
                 git checkout -q $(Build.SourceBranchName)
 
                 echo -e "$green--- Validations ---$reset"
@@ -173,10 +174,13 @@ stages:
                   exit 2
                 fi
 
+              echo -e "$green--- Convert config file to UX format ---$reset"
+                dos2unix -q LANDSCAPE/$(workload_zone_folder)/$(workload_zone_configuration_file)
+                dos2unix -q ${deployer_environment_file_name}
+                dos2unix -q ${workload_environment_file_name}
               echo -e "$green--- Read details ---$reset"
 
-                cd $CONFIG_REPO_PATH; mkdir -p .sap_deployment_automation
-
+                
                 ENVIRONMENT=$(grep "^environment" LANDSCAPE/$(workload_zone_folder)/$(workload_zone_configuration_file) | awk -F'=' '{print $2}' | xargs | tr -d '\r')
                 LOCATION=   $(grep "^location" LANDSCAPE/$(workload_zone_folder)/$(workload_zone_configuration_file) | awk -F'=' '{print $2}' | xargs | tr -d '\r')
                 NETWORK=    $(grep "^network_logical_name" LANDSCAPE/$(workload_zone_folder)/$(workload_zone_configuration_file) | awk -F'=' '{print $2}' | xargs | tr -d '\r')
@@ -290,10 +294,6 @@ stages:
                   exit 2
                 fi
 
-              echo -e "$green--- Convert config file to UX format ---$reset"
-                dos2unix -q LANDSCAPE/$(workload_zone_folder)/$(workload_zone_configuration_file)
-                dos2unix -q ${deployer_environment_file_name}
-                dos2unix -q ${workload_environment_file_name}
 
               echo -e "$green--- Read parameter values ---$reset"
 
