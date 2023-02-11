@@ -238,7 +238,7 @@ stages:
                   "WEUS") LOCATION_IN_FILENAME="westus" ;;
                   "WUS2") LOCATION_IN_FILENAME="westus" ;;
                   "WUS3") LOCATION_IN_FILENAME="westus3" ;;
-                  *) clear; ;
+                  *) LOCATION_IN_FILENAME="westeurope" ;;
                 esac
 
                 NETWORK_IN_FILENAME=$(echo $(workload_zone_folder) | awk -F'-' '{print $3}' | xargs )
