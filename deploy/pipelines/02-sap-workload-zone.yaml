@@ -180,7 +180,7 @@ stages:
 
                 
                 ENVIRONMENT=$(grep "^environment" LANDSCAPE/$(workload_zone_folder)/$(workload_zone_configuration_file) | awk -F'=' '{print $2}' | xargs)
-                   LOCATION=$(grep "^location" LANDSCAPE/$(workload_zone_folder)/$(workload_zone_configuration_file) | awk -F'=' '{print $2}' | xargs)
+                   LOCATION=$(grep "^location" LANDSCAPE/$(workload_zone_folder)/$(workload_zone_configuration_file) | awk -F'=' '{print $2}' | xargs | tr 'A-Z' 'a-z')
                     NETWORK=$(grep "^network_logical_name" LANDSCAPE/$(workload_zone_folder)/$(workload_zone_configuration_file) | awk -F'=' '{print $2}' | xargs)
                 echo Environment: ${ENVIRONMENT}
                 echo Location:    ${LOCATION}
@@ -188,56 +188,58 @@ stages:
                 
                 ENVIRONMENT_IN_FILENAME=$(echo $(workload_zone_folder) | awk -F'-' '{print $1}' | xargs )
                           LOCATION_CODE=$(echo $(workload_zone_folder) | awk -F'-' '{print $2}' | xargs )
-                LOCATION_IN_FILENAME=switch ($LOCATION_CODE) {
-                  "AUCE" { "australiacentral" }
-                  "AUC2" { "australiacentral2" }
-                  "AUEA" { "australiaeast" }
-                  "AUSE" { "australiasoutheast" }
-                  "BRSO" { "brazilsouth" }
-                  "BRSE" { "brazilsoutheast" }
-                  "BRUS" { "brazilus" }
-                  "CACE" { "canadacentral" }
-                  "CAEA" { "canadaeast" }
-                  "CEIN" { "centralindia" }
-                  "CEUS" { "centralus" }
-                  "CEUA" { "centraluseuap" }
-                  "EAAS" { "eastasia" }
-                  "EAUS" { "eastus" }
-                  "EUS2" { "eastus2" }
-                  "FRCE" { "francecentral" }
-                  "FRSO" { "francesouth" }
-                  "GENO" { "germanynorth" }
-                  "GEWC" { "germanywestcentral" }
-                  "JAEA" { "japaneast" }
-                  "JAWE" { "japanwest" }
-                  "JINC" { "jioindiacentral" }
-                  "JINW" { "jioindiawest" }
-                  "KOCE" { "koreacentral" }
-                  "KOSO" { "koreasouth" }
-                  "NCUS" { "northcentralus" }
-                  "NOEU" { "northeurope" }
-                  "NOEA" { "norwayeast" }
-                  "NOWE" { "norwaywest" }
-                  "SANO" { "southafricanorth" }
-                  "SAWE" { "southafricawest" }
-                  "SCUS" { "southcentralus" }
-                  "SCUG" { "southcentralusstg" }
-                  "SOEA" { "southeastasia" }
-                  "SOIN" { "southindia" }
-                  "SECE" { "swedencentral" }
-                  "SWNO" { "switzerlandnorth" }
-                  "SWWE" { "switzerlandwest" }
-                  "UACE" { "uaecentral" }
-                  "UANO" { "uaenorth" }
-                  "UKSO" { "uksouth" }
-                  "UKWE" { "ukwest" }
-                  "WCUS" { "westcentralus" }
-                  "WEEU" { "westeurope" }
-                  "WEIN" { "westindia" }
-                  "WEUS" { "westus" }
-                  "WUS2" { "westus2" }
-                  "WUS3" { "westus3" }
-                   }
+                case "$LOCATION_CODE" in
+                  "AUCE") LOCATION_IN_FILENAME="australiacentral" ;;
+                  "AUC2") LOCATION_IN_FILENAME="australiacentral2" ;;
+                  "AUEA") LOCATION_IN_FILENAME="australiaeast" ;;
+                  "AUSE") LOCATION_IN_FILENAME="australiasoutheast" ;;
+                  "BRSO") LOCATION_IN_FILENAME="brazilsouth" ;;
+                  "BRSE") LOCATION_IN_FILENAME="brazilsoutheast" ;;
+                  "BRUS") LOCATION_IN_FILENAME="brazilus" ;;
+                  "CACE") LOCATION_IN_FILENAME="canadacentral" ;;
+                  "CAEA") LOCATION_IN_FILENAME="canadaeast" ;;
+                  "CEIN") LOCATION_IN_FILENAME="centralindia" ;;
+                  "CEUS") LOCATION_IN_FILENAME="centralus" ;;
+                  "CEUA") LOCATION_IN_FILENAME="centraluseuap" ;;
+                  "EAAS") LOCATION_IN_FILENAME="eastasia" ;;
+                  "EAUS") LOCATION_IN_FILENAME="eastus" ;;
+                  "EUS2") LOCATION_IN_FILENAME="eastus2" ;;
+                  "FRCE") LOCATION_IN_FILENAME="francecentral" ;;
+                  "FRSO") LOCATION_IN_FILENAME="francesouth" ;;
+                  "GENO") LOCATION_IN_FILENAME="germanynorth" ;;
+                  "GEWC") LOCATION_IN_FILENAME="germanywest" ;;
+                  "JAEA") LOCATION_IN_FILENAME="japaneastst" ;;
+                  "JAWE") LOCATION_IN_FILENAME="japanwestst" ;;
+                  "JINC") LOCATION_IN_FILENAME="jioindiacentral" ;;
+                  "JINW") LOCATION_IN_FILENAME="jioindiawest" ;;
+                  "GENO") LOCATION_IN_FILENAME="germanynorth" ;;
+                  "KOCE") LOCATION_IN_FILENAME="koreacentral" ;;
+                  "KOSO") LOCATION_IN_FILENAME="koreasouth" ;;
+                  "NCUS") LOCATION_IN_FILENAME="northcentralus" ;;
+                  "NOEU") LOCATION_IN_FILENAME="northeurope" ;;
+                  "NOEA") LOCATION_IN_FILENAME="norwayeast" ;;
+                  "NOWE") LOCATION_IN_FILENAME="norwaywest" ;;
+                  "SANO") LOCATION_IN_FILENAME="southafricanorth" ;;
+                  "SAWE") LOCATION_IN_FILENAME="southafricawest" ;;
+                  "SCUS") LOCATION_IN_FILENAME="southcentralus" ;;
+                  "SCUG") LOCATION_IN_FILENAME="southcentralusstg" ;;
+                  "SOEA") LOCATION_IN_FILENAME="southeastasia" ;;
+                  "SOIN") LOCATION_IN_FILENAME="southindia" ;;
+                  "SECE") LOCATION_IN_FILENAME="swedencentral" ;;
+                  "SWNO") LOCATION_IN_FILENAME="switzerlandnorth" ;;
+                  "SWWE") LOCATION_IN_FILENAME="switzerlandwest" ;;
+                  "UACE") LOCATION_IN_FILENAME="uaecentral" ;;
+                  "UANO") LOCATION_IN_FILENAME="uaenorth" ;;
+                  "UKSO") LOCATION_IN_FILENAME="uksouth" ;;
+                  "UKWE") LOCATION_IN_FILENAME="ukwest" ;;
+                  "WCUS") LOCATION_IN_FILENAME="westcentralus" ;;
+                  "WEEU") LOCATION_IN_FILENAME="westeurope" ;;
+                  "WEIN") LOCATION_IN_FILENAME="westindia" ;;
+                  "WEUS") LOCATION_IN_FILENAME="westus" ;;
+                  "WUS2") LOCATION_IN_FILENAME="westus" ;;
+                  "WUS3") LOCATION_IN_FILENAME="westus3" ;;
+                  *) clear; ;
+                esac
 
                 NETWORK_IN_FILENAME=$(echo $(workload_zone_folder) | awk -F'-' '{print $3}' | xargs )
                 echo Environment(filename) $ENVIRONMENT_IN_FILENAME
