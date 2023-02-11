@@ -89,7 +89,6 @@ stages:
               #!/bin/bash 
                 green="\e[1;32m" ; reset="\e[0m"
               echo -e "$green--- Checkout $(Build.SourceBranchName) ---$reset"
-                cd $CONFIG_REPO_PATH
                 git checkout -q $(Build.SourceBranchName)
 
               echo "##vso[build.updatebuildnumber]Removing the SAP System defined in $(sap_system_folder)"
@@ -97,9 +96,9 @@ stages:
               echo -e "$green--- Validations ---$reset"
                 HOME_CONFIG=${CONFIG_REPO_PATH}/$(Deployment_Configuration_Path)
                 cd $HOME_CONFIG; mkdir -p .sap_deployment_automation
-                if [ ! -f $HOME_CONFIG/SYSTEM/$(sap_system_folder)/$(sap_system_configuration) ]; then
+                if [ ! -f SYSTEM/$(sap_system_folder)/$(sap_system_configuration) ]; then
                   echo -e "$boldred--- $HOME_CONFIG/SYSTEM/$(sap_system_folder)/$(sap_system_configuration) was not found ---$reset"
-                  echo "##vso[task.logissue type=error]File $HOME_CONFIG/SYSTEM/$(sap_system_folder)/$(sap_system_configuration) was not found."
+                  echo "##vso[task.logissue type=error]File SYSTEM/$(sap_system_folder)/$(sap_system_configuration) was not found."
                   exit 2
                 fi
 
