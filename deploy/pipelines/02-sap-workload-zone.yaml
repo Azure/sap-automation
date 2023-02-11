@@ -177,9 +177,9 @@ stages:
 
                 cd $CONFIG_REPO_PATH; mkdir -p .sap_deployment_automation
 
-                ENVIRONMENT=$(grep "^environment" LANDSCAPE/$(workload_zone_folder)/$(workload_zone_configuration_file) | awk -F'=' '{print $2}' | xargs)          ; echo Environment $ENVIRONMENT
-                LOCATION=   $(grep "^location" LANDSCAPE/$(workload_zone_folder)/$(workload_zone_configuration_file) | awk -F'=' '{print $2}' | xargs)             ; echo Location    $LOCATION
-                NETWORK=    $(grep "^network_logical_name" LANDSCAPE/$(workload_zone_folder)/$(workload_zone_configuration_file) | awk -F'=' '{print $2}' | xargs) ; echo Network     $NETWORK
+                ENVIRONMENT=$(grep "^environment" LANDSCAPE/$(workload_zone_folder)/$(workload_zone_configuration_file) | awk -F'=' '{print $2}' | xargs | tr -d '\r')          ; echo Environment $ENVIRONMENT
+                LOCATION=   $(grep "^location" LANDSCAPE/$(workload_zone_folder)/$(workload_zone_configuration_file) | awk -F'=' '{print $2}' | xargs | tr -d '\r')             ; echo Location    $LOCATION
+                NETWORK=    $(grep "^network_logical_name" LANDSCAPE/$(workload_zone_folder)/$(workload_zone_configuration_file) | awk -F'=' '{print $2}' | xargs | tr -d '\r') ; echo Network     $NETWORK
                 
                 ENVIRONMENT_IN_FILENAME=$(echo $(workload_zone_folder) | awk -F'-' '{print $1}' | xargs )
                 LOCATION_CODE=   $(echo $(workload_zone_folder) | awk -F'-' '{print $2}' | xargs )
