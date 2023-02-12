@@ -249,7 +249,7 @@
 #   delegate_to:                         localhost
 #   ansible.builtin.copy:
 #     content:                           "{{ new_bom }}"
-#     dest:                              "{{ download_directory }}/bom/{{ bom_base_name }}-{{ bom_suffix }}.yaml"
+#     dest:                              "{{ download_directory }}/bom/{{ bom_base_name }}{{ bom_suffix }}.yaml"
 #     mode:                              0644
 #     force:                             true
 

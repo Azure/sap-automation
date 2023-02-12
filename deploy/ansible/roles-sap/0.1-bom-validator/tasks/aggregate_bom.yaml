@@ -23,7 +23,7 @@
 #
     - name:                            "aggregate_bom: - new bom name"
       ansible.builtin.set_fact:
-        new_bom_name:                  "{{ bom_base_name.replace('-ms', '') }}-{{ bom_suffix }}"
+        new_bom_name:                  "{{ bom_base_name }}{{ bom_suffix }}"
       when:
         - new_bom_name is not defined
 
