@@ -58,12 +58,33 @@
       BOOTPROTO=static
       ONBOOT=yes
       IPADDR="{{ secondary_ip }}"
-      NETMASK=255.255.255.0
+      NETMASK="{{ hostvars[ansible_hostname]['ansible_default_ipv4']['netmask'] }}"
+    mode:                              755
+  register:                            definition_made
+  when:
+    - secondary_ip is defined
+    - ansible_os_family | upper == "REDHAT"
+
+- name:                                "1.10 Networking - Create the file with secondary ip"
+  ansible.builtin.blockinfile:
+    create:                            true
+    path:                              /etc/sysconfig/network-scripts/ifcfg-eth0:0
+    marker_begin:                      "-- BEGIN"
+    marker_end:                        "-- END"
+    block: |
+      DEVICE=eth0:0
+      BOOTPROTO=static
+      ONBOOT=yes
+      IPADDR="{{ secondary_ip }}"
+      NETMASK="{{ hostvars[ansible_hostname]['ansible_default_ipv4']['netmask'] }}"
       CLOUD_NETCONFIG_MANAGE='yes'
     mode:                              755
   register:                            definition_made
   when:
     - secondary_ip is defined
+    - ansible_os_family | upper == "SUSE"
+
+
 
 # Restart Network service
 - name:                                "1.10 Networking - Restart Network service"
