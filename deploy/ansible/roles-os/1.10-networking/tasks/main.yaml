@@ -59,6 +59,7 @@
       ONBOOT=yes
       IPADDR="{{ secondary_ip }}"
       NETMASK=255.255.255.0
+      CLOUD_NETCONFIG_MANAGE='yes'
     mode:                              755
   register:                            definition_made
   when:
