@@ -132,7 +132,7 @@
     new_bom:                           "{{ lookup('template', 'bom.j2') }}"
 
 - name:                                "0.1 BOM Validator: - remove BoM"
-  become:                              true
+  become:                              "{{ bom_processing_become }}"
   become_user:                         root
   delegate_to:                         localhost
   ansible.builtin.file:
@@ -140,7 +140,7 @@
     state:                             absent
 
 - name:                                "0.1 BOM Validator: - write combined BoM"
-  become:                              true
+  become:                              "{{ bom_processing_become }}"
   become_user:                         root
   delegate_to:                         localhost
   ansible.builtin.copy:
