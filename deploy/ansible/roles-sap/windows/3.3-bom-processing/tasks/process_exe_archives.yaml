@@ -28,7 +28,7 @@
 
 - name:                                Copy the folder
   ansible.windows.win_copy:
-    src:                               '{{ tempdir.path }}{% if item.tempDir is defined %}\{{ item.tempDir }}{% endif %}'
+    src:                               '{{ tempdir.path }}{% if item.tempDir is defined %}\{{ item.tempDir }}{% endif %}\'
     dest:                              '{{ target_media_location_windows }}\{{ item.extractDir }}'
     remote_src:                        true
 
