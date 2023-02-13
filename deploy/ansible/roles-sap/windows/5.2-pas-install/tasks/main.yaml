@@ -42,25 +42,37 @@
     ansible_become_password:           "{{ domain_user_password }}"
 
 #   2x) Install vcredist package then reboot.
-- name:                                "Install Microsoft Visual C++ Redistributable package"
+- name:                                "Install Visual C++ 2013 Redistributable package"
   ansible.windows.win_package:
-    path:                              https://aka.ms/vs/17/release/vc_redist.x64.exe
+    path:                              '{{ download_directory_windows }}\SWPM\NTPATCH\VCREDIST2013\vcredist_x64.exe'
     product_id:                        '{CF2BEA3C-26EA-32F8-AA9B-331F7E34BA97}'
-    arguments:
-      - /install
-      - /passive
+    state:                             present
+    arguments:                         '/norestart /log vcredist_x64.log /quiet'
   vars:
     ansible_become:                    true
     ansible_become_method:             runas
     ansible_become_user:               '{{ domain }}\{{ sap_sid }}adm'
     ansible_become_password:           "{{ domain_user_password }}"
-  register:                            vcredist_output
+  register:                            vcredist2013_output
+
+- name:                                "Install Visual C++ 2017 Redistributable package"
+  ansible.windows.win_package:
+    path:                              '{{ download_directory_windows }}\SWPM\NTPATCH\VCREDIST2017\VC_redist.x64.exe'
+    product_id:                        '{CF2BEA3C-26EA-32F8-AA9B-331F7E34BA97}'
+    state:                             present
+    arguments:                         '/norestart /log vcredist_x64.log /quiet'
+  vars:
+    ansible_become:                    true
+    ansible_become_method:             runas
+    ansible_become_user:               '{{ domain }}\{{ sap_sid }}adm'
+    ansible_become_password:           "{{ domain_user_password }}"
+  register:                            vcredist2017_output
 
 - name:                                "Reboot after package installation"
   ansible.windows.win_reboot:
     reboot_timeout:                    600
     post_reboot_delay:                 120
-  when: vcredist_output.reboot_required
+  when: vcredist2013_output.reboot_required or vcredist2017_output.reboot_required
 
 #   3x) download SQL server ODBC 17 on windows.
 - name:                                "Download SQL Server ODBC Driver 17"
@@ -213,18 +225,6 @@
         ansible_become_password:       "{{ domain_user_password }}"
       register:                        scs_extraction
       failed_when:                     scs_extraction.rc > 0
-
-    # - name:                            "Install SAP vcredist package"
-    #   win_package:
-    #     path:                          '{{ download_directory_windows }}\SWPM\NTPATCH\VCREDIST2013\vcredist_x64.exe'
-    #     product_id:                    '{CF2BEA3C-26EA-32F8-AA9B-331F7E34BA97}'
-    #     state:                         present
-    #     arguments:                     '/norestart /log vcredist_x64.log /quiet'
-    #   vars:
-    #     ansible_become:                true
-    #     ansible_become_method:         runas
-    #     ansible_become_user:           '{{ domain }}\{{ sap_sid }}adm'
-    #     ansible_become_password:       "{{ domain_user_password }}"
 
     - name:                            "PAS Install"
       win_shell: |

@@ -419,15 +419,15 @@ stages:
 
                   resource_group_name=$(az resource show --id "${tfstate_resource_id}" --query resourceGroup -o tsv)
 
-                  if [ -n ${resource_group_name} ]; then
-                    for scope in $(az resource list --resource-group "${resource_group_name}" --subscription ${STATE_SUBSCRIPTION} --resource-type Microsoft.Network/privateDnsZones --query "[].id" --output tsv); do
-                      perms=$(az role assignment list --subscription ${STATE_SUBSCRIPTION} --role "Private DNS Zone Contributor" --scope $scope --query "[?principalId=='$ARM_OBJECT_ID'].principalId | [0]" -o tsv  --only-show-errors)
-                      if [ -z "$perms" ]; then
-                        echo "Assigning DNS Zone Contributor permissions for $ARM_OBJECT_ID to ${scope}"
-                        az role assignment create --assignee-object-id $ARM_OBJECT_ID  --assignee-principal-type ServicePrincipal --role "Private DNS Zone Contributor" --scope $scope --output none
-                      fi
-                    done
-                  fi
+                if [ -n ${resource_group_name} ]; then
+                  for scope in $(az resource list --resource-group "${resource_group_name}" --subscription ${STATE_SUBSCRIPTION} --resource-type Microsoft.Network/privateDnsZones --query "[].id" --output tsv); do
+                    perms=$(az role assignment list --subscription ${STATE_SUBSCRIPTION} --role "Private DNS Zone Contributor" --scope $scope --query "[?principalId=='$ARM_OBJECT_ID'].principalId | [0]" -o tsv  --only-show-errors)
+                    if [ -z "$perms" ]; then
+                      echo "Assigning DNS Zone Contributor permissions for $ARM_OBJECT_ID to ${scope}"
+                      az role assignment create --assignee-object-id $ARM_OBJECT_ID  --assignee-principal-type ServicePrincipal --role "Private DNS Zone Contributor" --scope $scope --output none
+                    fi
+                  done
+                fi
 
                   resource_group_name=$(az keyvault show --name "${key_vault}" --query resourceGroup --subscription ${STATE_SUBSCRIPTION} -o tsv)
 

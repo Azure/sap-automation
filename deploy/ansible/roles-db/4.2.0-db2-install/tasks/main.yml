@@ -106,6 +106,7 @@
 
     - name:                            "DB2 Install - SAPINST DB2 Install"
       ansible.builtin.shell: |
+                                       umask {{ custom_umask | default('022') }};
                                        ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }}     \
                                                  SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.dbl }}                \
                                                  SAPINST_SKIP_DIALOGS=true                                           \
