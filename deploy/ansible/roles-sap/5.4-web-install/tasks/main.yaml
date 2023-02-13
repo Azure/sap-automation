@@ -81,7 +81,7 @@
         task_prefix:                   "Web Install: "
         always_upload_jinja_templates: false
         param_directory:               "{{ dir_params }}"
-        bom_name:                      "{{ bom_base_name }}"
+        bom_name:                      "{{ bom_base_name }}{{ bom_suffix }}"
         sap_cd_package_hdbclient:      "{{ target_media_location }}/CD_HDBCLIENT/SAP_HANA_CLIENT"
         sap_cd_package_cd1:            "{{ target_media_location }}/CD_EXPORT"
         sap_cd_package_cd2:
