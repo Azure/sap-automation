@@ -65,7 +65,7 @@
         tasks_from:                    bom-template
   # Template parameter mapping
       vars:
-        bom_name:                      "{{ bom_base_name }}"
+        bom_name:                      "{{ bom_base_name }}{{ bom_suffix }}"
         always_upload_jinja_templates: false
         task_prefix:                   "SAP HANA: "
         _rsp_component_root:           "../COMPONENTS"
