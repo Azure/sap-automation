@@ -111,7 +111,7 @@ output "db_admin_ip" {
 }
 
 output "db_ip" {
-  value = local.enable_deployment ? azurerm_network_interface.nics_dbnodes_db[*].private_ip_address : []
+  value = local.enable_deployment ? azurerm_network_interface.nics_dbnodes_db[*].private_ip_addresses[var.use_secondary_ips ? 1 : 0] : []
 }
 
 output "hana_data_primary" {
