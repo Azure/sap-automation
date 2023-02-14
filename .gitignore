@@ -39,5 +39,8 @@ Webapp/SDAF/Properties/PublishProfiles
 Webapp/.vs/ProjectEvaluation
 Webapp/SDAF/Properties/ServiceDependencies
 
+deploy/ansible/roles-os/windows/1.17-generic-wincluster
+deploy/ansible/roles-misc/0.5-ACSS-registration
+
 # Ignore OS files         - MKD 20221221
 **/.DS_Store
