@@ -67,11 +67,11 @@
     - ansible_os_family | upper == "REDHAT"
     - secondary_ip is defined
 
-- name:                                "1.10 Networking - Print Secondary ip"
+- name:                                "1.10 Networking - Get ifcfg-eth0 content"
   ansible.builtin.command:             "cat /etc/sysconfig/network-scripts/ifcfg-eth0"
   register:                            file_content
 
-- name:                                "1.10 Networking - Print Secondary ip"
+- name:                                "1.10 Networking - Print ifcfg-eth0 content"
   ansible.builtin.debug:
     var:                               file_content
 
