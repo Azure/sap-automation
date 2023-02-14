@@ -58,7 +58,7 @@
     regexp:                            "{{ item.regexp }}"
     line:                              "{{ item.lif }}"
     state:                             present
-    mode:                              644
+    mode:                              0644
   loop:
     - {regexp: "^IPADDR1={{ secondary_ip }}",     lif: "IPADDR1={{ secondary_ip }}"         }
     - {regexp: "^NETMASK1={{ az_snet_netmask }}", lif: "NETMASK1={{ az_snet_netmask }}"     }
