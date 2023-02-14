@@ -37,7 +37,7 @@ resource "azurerm_private_dns_a_record" "storage_bootdiag" {
   count = var.use_private_endpoint && !var.use_custom_dns_a_registration ? 1 : 0
   name  = lower(local.storageaccount_name)
 
-  zone_name           = "privatelink.file.core.windows.net"
+  zone_name           = "privatelink.blob.core.windows.net"
   resource_group_name = var.management_dns_resourcegroup_name
   ttl                 = 3600
   records             = [data.azurerm_network_interface.storage_bootdiag[count.index].ip_configuration[0].private_ip_address]
@@ -166,7 +166,7 @@ resource "azurerm_storage_account_network_rules" "witness" {
 resource "azurerm_private_dns_a_record" "witness_storage" {
   count               = var.use_private_endpoint && !var.use_custom_dns_a_registration ? 1 : 0
   name                = lower(local.witness_storageaccount_name)
-  zone_name           = "privatelink.file.core.windows.net"
+  zone_name           = "privatelink.blob.core.windows.net"
   resource_group_name = var.management_dns_resourcegroup_name
   ttl                 = 3600
   records             = [data.azurerm_network_interface.witness_storage[count.index].ip_configuration[0].private_ip_address]
@@ -592,7 +592,7 @@ resource "azurerm_private_endpoint" "install" {
   dynamic "private_dns_zone_group" {
     for_each = range(var.use_private_endpoint && !var.use_custom_dns_a_registration ? 1 : 0)
     content {
-      name                 = "privatelink.blob.core.windows.net"
+      name                 = "privatelink.file.core.windows.net"
       private_dns_zone_ids = [data.azurerm_private_dns_zone.storage[0].id]
     }
   }
@@ -660,7 +660,13 @@ data "azurerm_private_dns_zone" "storage" {
   name                = "privatelink.blob.core.windows.net"
   resource_group_name = var.management_dns_resourcegroup_name
   provider            = azurerm.dnsmanagement
+}
 
+data "azurerm_private_dns_zone" "file" {
+  count               = var.use_private_endpoint && !var.use_custom_dns_a_registration ? 1 : 0
+  name                = "privatelink.file.core.windows.net"
+  resource_group_name = var.management_dns_resourcegroup_name
+  provider            = azurerm.dnsmanagement
 }
 
 data "azurerm_network_interface" "storage_bootdiag" {
