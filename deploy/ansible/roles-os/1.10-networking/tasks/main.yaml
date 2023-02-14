@@ -30,6 +30,10 @@
     - ipadd is defined
     - ipadd | length > 1
 
+- name:                                "1.10 Networking - Set the netmask"
+  ansible.builtin.set_fact:
+    az_snet_netmask:                   "{{ hostvars[ansible_hostname]['ansible_default_ipv4']['netmask'] }}"
+
 - name:                                "1.10 Networking - Print ip info"
   ansible.builtin.debug:
     msg:                               "{{ json_azure_data }}"
@@ -48,26 +52,33 @@
     - secondary_ip is defined
 
 - name:                                "1.10 Networking - Update the file with secondary ip"
-  ansible.builtin.blockinfile:
-    create:                            true
+  ansible.builtin.lineinfile:
+    backup:                            true
     path:                              /etc/sysconfig/network-scripts/ifcfg-eth0
-    marker_begin:                      "-- BEGIN"
-    marker_end:                        "-- END"
-    block: |
-      IPADDR1="{{ secondary_ip }}"
-      NETMASK1="{{ hostvars[ansible_hostname]['ansible_default_ipv4']['netmask'] }}"
+    regexp:                            "{{ item.regexp }}"
+    line:                              "{{ item.lif }}"
+    state:                             present
     mode:                              644
+  loop:
+    - {regexp: "^IPADDR1={{ secondary_ip }}",     lif: "IPADDR1={{ secondary_ip }}"         }
+    - {regexp: "^NETMASK1={{ az_snet_netmask }}", lif: "NETMASK1={{ az_snet_netmask }}"     }
   register:                            definition_made
   when:
-    - secondary_ip is defined
     - ansible_os_family | upper == "REDHAT"
+    - secondary_ip is defined
 
+# Stop network interface eth0
+- name:                                "1.10 Networking - Stop Network service"
+  ansible.builtin.command:             ifdown eth0
+  when:
+    - definition_made.changed
 
-# Restart Network service
+# Start network interface eth0
 - name:                                "1.10 Networking - Restart Network service"
   ansible.builtin.command:             ifup eth0
   when:
     - definition_made.changed
+
 ...
 # /*----------------------------------------------------------------------------8
 # |                                    END                                      |
