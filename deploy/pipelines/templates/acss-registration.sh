@@ -77,6 +77,8 @@ echo -e "$green--- Successfully configured the backend "azurerm"! Terraform will
 
 # Fetch values from Terraform State file
 # have awk only fetch the first line of the output: NR==1
+acss_scs_vm_ids=$(    terraform -chdir="${__moduleDir}" output scs_vm_ids)
+echo -e "$green--- SCS VM IDs: $acss_scs_vm_ids ---$reset"
 acss_scs_vm_id=$(     terraform -chdir="${__moduleDir}" output scs_vm_ids                  | awk -F\" 'NR==1{print $2}' | tr -d '\n\r\t[:space:]')
 acss_sid=$(           terraform -chdir="${__moduleDir}" output sid                         | tr -d '"')
 acss_resource_group=$(terraform -chdir="${__moduleDir}" output created_resource_group_name | tr -d '"')
