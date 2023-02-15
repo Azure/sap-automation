@@ -10,16 +10,17 @@ locals {
   landscape_tfstate = var.landscape_tfstate
   ips_dbnodes_admin = [for key, value in var.nics_dbnodes_admin : value.private_ip_address]
 
-  ips_primary_scs = var.scs_server_ips
-  ips_primary_app = var.application_server_ips
-  ips_primary_web = var.webdispatcher_server_ips
+  ips_scs = var.scs_server_ips
+  ips_app = var.application_server_ips
+  ips_web = var.webdispatcher_server_ips
 
-  ips_scs = [for key, value in local.ips_primary_scs : value.private_ip_address]
-  ips_app = [for key, value in local.ips_primary_app : value.private_ip_address]
-  ips_web = [for key, value in local.ips_primary_web : value.private_ip_address]
+  # ips_scs = [for key, value in local.ips_primary_scs : value.private_ip_address]
+  # ips_app = [for key, value in local.ips_primary_app : value.private_ip_address]
+  # ips_web = [for key, value in local.ips_primary_web : value.private_ip_address]
 
   ips_primary_db = var.db_server_ips
-  ips_dbnodes    = [for key, value in local.ips_primary_db : value.private_ip_address]
+  ips_dbnodes    = var.db_server_ips
+  ## ips_dbnodes    = [for key, value in local.ips_primary_db : value.private_ip_address]
 
   secret_prefix = var.use_local_credentials ? var.naming.prefix.SDU : var.naming.prefix.WORKLOAD_ZONE
   dns_label     = try(var.landscape_tfstate.dns_label, "")
