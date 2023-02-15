@@ -111,6 +111,12 @@ output "scs_loadbalancer_id" {
 ###############################################################################
 
 
+
+output "app_vm_ips" {
+  description = "Application Virtual Machine IPs"
+  value       = module.app_tier.app_ip
+}
+
 output "app_vm_ids" {
   description = "Virtual Machine IDs for the application servers"
   value       = module.app_tier.app_vm_ids
