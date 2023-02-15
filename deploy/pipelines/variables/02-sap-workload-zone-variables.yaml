@@ -113,5 +113,5 @@ variables:
   - name:                              this_agent
     value:                             $[lower(coalesce(variables['POOL'], variables['Agent']))]
 
-  - name:                              test_only
+  - name:                              test
     value:                             ${{ parameters.test }}
