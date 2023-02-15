@@ -1,4 +1,5 @@
 resource "local_file" "ansible_inventory_new_yml" {
+  count = 0
   content = templatefile(format("%s%s", path.module, "/ansible_inventory.tmpl"), {
     ips_dbnodes = var.database_admin_ips,
     dbnodes     = var.platform == "HANA" ? var.naming.virtualmachine_names.HANA_COMPUTERNAME : var.naming.virtualmachine_names.ANYDB_COMPUTERNAME
