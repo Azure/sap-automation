@@ -79,6 +79,11 @@ parameters:
     type:                              boolean
     default:                           true
 
+  - name:                              test
+    displayName:                       Test only
+    type:                              boolean
+    default:                           false
+
 variables:
   - group:                             "SDAF-General"
 
