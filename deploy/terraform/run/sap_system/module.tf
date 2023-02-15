@@ -323,8 +323,8 @@ module "output_files" {
     module.anydb_node.db_lb_ip[0]
   )
   database_admin_ips = upper(try(local.database.platform, "HANA")) == "HANA" ? (
-    module.hdb_node.db_ip) : (
-    module.anydb_node.anydb_db_ip
+    module.hdb_node.db_admin_ip) : (
+    module.anydb_node.anydb_admin_ip
   ) #TODO Change to use Admin IP
   sap_mnt                 = module.common_infrastructure.sapmnt_path
   sap_transport           = try(data.terraform_remote_state.landscape.outputs.saptransport_path, "")
