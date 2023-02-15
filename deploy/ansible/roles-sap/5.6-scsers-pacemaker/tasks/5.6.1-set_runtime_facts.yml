@@ -48,7 +48,7 @@
 
 - name:                                "5.6 SCS HA Install: Default instance type"
   ansible.builtin.set_fact:
-    instance_type:                      "ASCS"
+    instance_type:                     "ASCS"
   when:                                bom.InstanceType is not defined
 
 - name:                                "5.6 SCS HA Install: register instance type"
