@@ -24,8 +24,8 @@ locals {
   secret_prefix = var.use_local_credentials ? var.naming.prefix.SDU : var.naming.prefix.WORKLOAD_ZONE
   dns_label     = try(var.landscape_tfstate.dns_label, "")
 
-  app_server_count = length(var.nics_app)
-  scs_server_count = length(var.nics_scs)
+  app_server_count = length(var.application_server_ips)
+  scs_server_count = length(var.scs_server_ips)
 
   app_tier = (local.app_server_count + local.scs_server_count) > 0
 
