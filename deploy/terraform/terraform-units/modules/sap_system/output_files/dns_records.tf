@@ -34,7 +34,7 @@ resource "azurerm_private_dns_a_record" "web_secondary" {
   zone_name           = length(var.dns)
   resource_group_name = var.management_dns_resourcegroup_name
   ttl                 = 3600
-  records             = [var.web_server_secondary_ips[count.index]]
+  records             = [var.webdispatcher_server_secondary_ips[count.index]]
 
   provider = azurerm.dnsmanagement
 
