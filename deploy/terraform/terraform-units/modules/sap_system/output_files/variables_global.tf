@@ -24,19 +24,33 @@ variable "scs_server_ips" {
   description = "List of IP addresses for the SCS Servers"
 }
 
+variable "scs_server_secondary_ips" {
+  description = "List of secondary IP addresses for the SCS Servers"
+}
+
 variable "application_server_ips" {
   description = "List of IP addresses for the Application Servers"
+}
+
+variable "application_server_secondary_ips" {
+  description = "List of secondary IP addresses for the Application Servers"
 }
 
 variable "webdispatcher_server_ips" {
   description = "List of IP addresses for the Web dispatchers"
 }
 
+variable "webdispatcher_server_secondary_ips" {
+  description = "List of secondary IP addresses for the Web dispatchers"
+}
+
 variable "db_server_ips" {
   description = "List of IP addresses for the database servers"
 }
 
-# Any DB
+variable "db_server_secondary_ips" {
+  description = "List of secondary IP addresses for the database servers"
+}
 
 variable "nics_scs_admin" {
   description = "List of NICs for the SCS Application VMs"
@@ -228,4 +242,22 @@ variable "use_msi_for_clusters" {
 variable "dns" {
   description = "The DNS label"
   default     = ""
+}
+
+variable "use_custom_dns_a_registration" {
+  description = "Boolean value indicating if a custom dns a record should be created when using private endpoints"
+  default     = false
+  type        = bool
+}
+
+variable "management_dns_subscription_id" {
+  description = "String value giving the possibility to register custom dns a records in a separate subscription"
+  default     = null
+  type        = string
+}
+
+variable "management_dns_resourcegroup_name" {
+  description = "String value giving the possibility to register custom dns a records in a separate resourcegroup"
+  default     = null
+  type        = string
 }

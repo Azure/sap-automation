@@ -14,7 +14,11 @@ output "nics_scs_admin" {
 }
 
 output "scs_server_ips" {
-  value = try(azurerm_network_interface.scs[*].private_ip_addresses[var.use_secondary_ips ? 1 : 0],[])
+  value = try(azurerm_network_interface.scs[*].private_ip_addresses[0],[])
+}
+
+output "scs_server_secondary_ips" {
+  value = var.use_secondary_ips ? try(azurerm_network_interface.scs[*].private_ip_addresses[1],[]) : []
 }
 
 output "scs_admin_ip" {
@@ -95,7 +99,11 @@ output "nics_app_admin" {
 }
 
 output "application_server_ips" {
-  value = try(azurerm_network_interface.app[*].private_ip_addresses[var.use_secondary_ips ? 1 : 0], [])
+  value = try(azurerm_network_interface.app[*].private_ip_addresses[0], [])
+}
+
+output "application_server_secondary_ips" {
+  value = var.use_secondary_ips ? try(azurerm_network_interface.app[*].private_ip_addresses[1],[]) : []
 }
 
 output "app_admin_ip" {
@@ -131,7 +139,11 @@ output "nics_web_admin" {
 }
 
 output "webdispatcher_server_ips" {
-  value = try(azurerm_network_interface.web[*].private_ip_addresses[var.use_secondary_ips ? 1 : 0], [])
+  value = try(azurerm_network_interface.web[*].private_ip_addresses[0], [])
+}
+
+output "webdispatcher_server_secondary_ips" {
+  value = var.use_secondary_ips ? try(azurerm_network_interface.web[*].private_ip_addresses[1],[]) : []
 }
 
 output "web_admin_ip" {

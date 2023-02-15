@@ -39,5 +39,9 @@ locals {
     "00"
   )
 
+  db_secondary_dns_names = var.platform == "HANA" ? (
+    var.naming.virtualmachine_names.HANA_SECONDARY_DNSNAME) : (
+    var.naming.virtualmachine_names.ANYDB_SECONDARY_DNSNAME
+  )
 
 }
