@@ -51,29 +51,58 @@
   when:
     - secondary_ip is defined
 
-- name:                                "1.10 Networking - Update the file with secondary ip"
-  ansible.builtin.lineinfile:
-    backup:                            true
-    path:                              /etc/sysconfig/network-scripts/ifcfg-eth0
-    regexp:                            "{{ item.regexp }}"
-    line:                              "{{ item.lif }}"
-    state:                             present
-    mode:                              0644
-  loop:
-    - {regexp: "^IPADDR1={{ secondary_ip }}",     lif: "IPADDR1={{ secondary_ip }}"         }
-    - {regexp: "^NETMASK1={{ az_snet_netmask }}", lif: "NETMASK1={{ az_snet_netmask }}"     }
+# - name:                                "1.10 Networking - Update the file with secondary ip"
+#   ansible.builtin.lineinfile:
+#     backup:                            true
+#     path:                              /etc/sysconfig/network-scripts/ifcfg-eth0
+#     regexp:                            "{{ item.regexp }}"
+#     line:                              "{{ item.lif }}"
+#     state:                             present
+#     mode:                              0644
+#   loop:
+#     - {regexp: "^IPADDR1={{ secondary_ip }}",     lif: "IPADDR1={{ secondary_ip }}"         }
+#     - {regexp: "^NETMASK1={{ az_snet_netmask }}", lif: "NETMASK1={{ az_snet_netmask }}"     }
+#   register:                            definition_made
+#   when:
+#     - ansible_os_family | upper == "REDHAT"
+#     - secondary_ip is defined
+
+# - name:                                "1.10 Networking - Get ifcfg-eth0 content"
+#   ansible.builtin.command:             "cat /etc/sysconfig/network-scripts/ifcfg-eth0"
+#   register:                            file_content
+
+# - name:                                "1.10 Networking - Print ifcfg-eth0 content"
+#   ansible.builtin.debug:
+#     var:                               file_content
+
+- name:                                "1.10 Networking - Create the file with secondary ip"
+  ansible.builtin.blockinfile:
+    create:                            true
+    path:                              /etc/sysconfig/network-scripts/ifcfg-eth0:0
+    marker_begin:                      "-- BEGIN"
+    marker_end:                        "-- END"
+    block: |
+      DEVICE=eth0:0
+      BOOTPROTO=static
+      ONBOOT=yes
+      IPADDR={{ secondary_ip }}
+      NETMASK={{ az_snet_netmask }}
+    mode:                              644
   register:                            definition_made
   when:
-    - ansible_os_family | upper == "REDHAT"
     - secondary_ip is defined
 
-- name:                                "1.10 Networking - Print Secondary ip"
-  ansible.builtin.command:             "cat /etc/sysconfig/network-scripts/ifcfg-eth0"
-  register:                            file_content
+# - name:                                "1.16 - Restart Service NetworkManager"
+#   ansible.builtin.service:
+#     name:                              NetworkManager
+#     state:                             restarted
 
-- name:                                "1.10 Networking - Print Secondary ip"
-  ansible.builtin.debug:
-    var:                               file_content
+# Restart Network service (ifup eth0)
+- name:                                "1.10 Networking - Restart Network service"
+  ansible.builtin.command:             systemctl restart NetworkManager.service
+  when:
+    - definition_made.changed
+
 
 # Stop network interface eth0
 # - name:                                "1.10 Networking - Stop Network service"

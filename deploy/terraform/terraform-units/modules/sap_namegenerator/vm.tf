@@ -112,7 +112,7 @@ locals {
 
   //For customer who want to have an alternative name for the second IP address
   app_secondary_dnsnames = [for idx in range(var.app_server_count) :
-    format("%sapp%02d%s%s", lower(var.sap_sid), idx + var.resource_offset, local.app_oscode, local.random_id_vm_verified)
+    format("v%sapp%02d%s%s", lower(var.sap_sid), idx + var.resource_offset, local.app_oscode, local.random_id_virt_vm_verified)
   ]
 
   anchor_secondary_dnsnames = [for idx in range(length(local.zones)) :
@@ -120,27 +120,27 @@ locals {
   ]
 
   anydb_secondary_dnsnames = [for idx in range(var.db_server_count) :
-    format("%sd%s%02dl%d%s", lower(var.sap_sid), lower(var.db_sid), idx + var.resource_offset, 0, local.random_id_vm_verified)
+    format("v%sd%s%02dl%d%s", lower(var.sap_sid), lower(var.db_sid), idx + var.resource_offset, 0, local.random_id_virt_vm_verified)
   ]
 
   anydb_secondary_dnsnames_ha = [for idx in range(var.db_server_count) :
-    format("%sd%s%02dl%d%s", lower(var.sap_sid), lower(var.db_sid), idx + var.resource_offset, 1, local.random_id_vm_verified)
+    format("v%sd%s%02dl%d%s", lower(var.sap_sid), lower(var.db_sid), idx + var.resource_offset, 1, local.random_id_virt_vm_verified)
   ]
 
   hana_secondary_dnsnames = [for idx in range(var.db_server_count) :
-    format("%sd%s%02dl%d%s", lower(var.sap_sid), lower(var.db_sid), idx + var.resource_offset, 0, substr(local.random_id_vm_verified, 0, 2))
+    format("v%sd%s%02dl%d%s", lower(var.sap_sid), lower(var.db_sid), idx + var.resource_offset, 0, local.random_id_virt_vm_verified)
   ]
 
   hana_secondary_dnsnames_ha = [for idx in range(var.db_server_count) :
-    format("%sd%s%02dl%d%s", lower(var.sap_sid), lower(var.db_sid), idx + var.resource_offset, 1, substr(local.random_id_vm_verified, 0, 2))
+    format("v%sd%s%02dl%d%s", lower(var.sap_sid), lower(var.db_sid), idx + var.resource_offset, 1, local.random_id_virt_vm_verified)
   ]
 
   scs_secondary_dnsnames = [for idx in range(var.scs_server_count) :
-    format("%sscs%02d%s%s", lower(var.sap_sid), idx + var.resource_offset, local.app_oscode, local.random_id_vm_verified)
+    format("v%sscs%02d%s%s", lower(var.sap_sid), idx + var.resource_offset, local.app_oscode, local.random_id_virt_vm_verified)
   ]
 
   web_secondary_dnsnames = [for idx in range(var.web_server_count) :
-    format("%sweb%02d%s%s", lower(var.sap_sid), idx + var.resource_offset, local.app_oscode, local.random_id_vm_verified)
+    format("v%sweb%02d%s%s", lower(var.sap_sid), idx + var.resource_offset, local.app_oscode, local.random_id_virt_vm_verified)
   ]
 
   utility_vm_names = [for idx in range(var.utility_vm_count) :
