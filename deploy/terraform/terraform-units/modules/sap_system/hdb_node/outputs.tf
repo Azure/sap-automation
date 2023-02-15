@@ -110,7 +110,7 @@ output "db_admin_ip" {
   )
 }
 
-output "db_ip" {
+output "db_server_ips" {
   value = local.enable_deployment ? try(azurerm_network_interface.nics_dbnodes_db[*].private_ip_addresses[var.use_secondary_ips ? 1 : 0], []) : []
 }
 

@@ -284,21 +284,22 @@ module "output_files" {
   authentication      = local.authentication
   authentication_type = try(local.application_tier.authentication.type, "key")
   nics_dbnodes_admin  = module.hdb_node.nics_dbnodes_admin
-  nics_dbnodes_db     = module.hdb_node.nics_dbnodes_db
-  loadbalancers       = module.hdb_node.loadbalancers
-  sap_sid             = local.sap_sid
-  db_sid              = local.db_sid
-  nics_scs            = module.app_tier.nics_scs
-  nics_app            = module.app_tier.nics_app
-  nics_web            = module.app_tier.nics_web
-  nics_anydb          = module.anydb_node.nics_anydb
-  nics_scs_admin      = module.app_tier.nics_scs_admin
-  nics_app_admin      = module.app_tier.nics_app_admin
-  nics_web_admin      = module.app_tier.nics_web_admin
-  nics_anydb_admin    = module.anydb_node.nics_anydb_admin
-  anydb_loadbalancers = module.anydb_node.anydb_loadbalancers
-  random_id           = module.common_infrastructure.random_id
-  landscape_tfstate   = data.terraform_remote_state.landscape.outputs
+  db_server_ips = upper(try(local.database.platform, "HANA")) == "HANA" ? (module.hdb_node.db_server_ips
+    ) : (module.anydb_node.db_server_ips
+  )
+  loadbalancers            = module.hdb_node.loadbalancers
+  sap_sid                  = local.sap_sid
+  db_sid                   = local.db_sid
+  scs_server_ips           = module.app_tier.scs_server_ips
+  application_server_ips   = module.app_tier.application_server_ips
+  webdispatcher_server_ips = module.app_tier.webdispatcher_server_ips
+  nics_scs_admin           = module.app_tier.nics_scs_admin
+  nics_app_admin           = module.app_tier.nics_app_admin
+  nics_web_admin           = module.app_tier.nics_web_admin
+  nics_anydb_admin         = module.anydb_node.nics_anydb_admin
+  anydb_loadbalancers      = module.anydb_node.anydb_loadbalancers
+  random_id                = module.common_infrastructure.random_id
+  landscape_tfstate        = data.terraform_remote_state.landscape.outputs
   naming = length(var.name_override_file) > 0 ? (
     local.custom_names) : (
     module.sap_namegenerator.naming
