@@ -11,7 +11,7 @@ timezone:                               "Etc/GMT"
 
 # --------------------- Begin - BOM Processing variables ---------------------8
 # Default BoM Processing variables
-bom_suffix:                             "-customer"                              # MKD 20221201 Dynamic BOM
+bom_suffix:                             ""                              # MKD 20221201 Dynamic BOM
 sapbits_bom_files:                      "sapfiles"
 target_media_location:                  "/usr/sap/install"
 # download_directory:                     "/mnt/downloads"                      # MKD 20221212 Dynamic BOM - become root mitigation
