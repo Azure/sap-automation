@@ -111,9 +111,9 @@ output "db_admin_ip" {
 }
 
 output "db_ip" {
-  value = local.enable_deployment ? azurerm_network_interface.nics_dbnodes_db[*].private_ip_addresses : []
+  value = local.enable_deployment ? [element(azurerm_network_interface.nics_dbnodes_db[*].private_ip_addresses, length(azurerm_network_interface.nics_dbnodes_db[*].private_ip_addresses) - 1)] : []
 }
-#   value = local.enable_deployment ? [element(azurerm_network_interface.nics_dbnodes_db[*].private_ip_addresses, length(azurerm_network_interface.nics_dbnodes_db[*].private_ip_addresses) - 1)] : []
+#   
 
 output "hana_data_primary" {
   value = var.hana_ANF_volumes.use_for_data ? (
