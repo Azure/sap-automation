@@ -68,6 +68,7 @@ materials:
       checksum:                 8a4f3658b08687633aa5ae1bb59fe7396b0ee5a7be24498c61d67585d142da6f
       extract:                  true
       extractDir:               CD_EXPORT
+      tempDir:                  '51050708'
       creates:                  'CDLABEL.ASC'
       url:                      https://softwaredownloads.sap.com/file/0030000000002962016
 

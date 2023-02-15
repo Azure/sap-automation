@@ -23,7 +23,7 @@ output "anydb_admin_ip" {
   ) : []
 }
 
-output "anydb_db_ip" {
+output "db_server_ips" {
   value = local.enable_deployment ? try(azurerm_network_interface.anydb_db[*].private_ip_addresses[var.use_secondary_ips ? 1 : 0], []) : []
 }
 
