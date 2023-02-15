@@ -22,22 +22,22 @@
 # -------------------------------------+---------------------------------------8
 
 - name:                               "Check if auto-reboot is enabled"
-  win_shell: |
+  ansible.windows.win_shell: |
                                       Get-WmiObject -Class Win32_OSRecoveryConfiguration | Select-Object -ExpandProperty AutoReboot
   register:                           auto_reboot_enabled
-  
+
 - name:                               "Enable AutoReboot"
-  win_shell: |
+  ansible.windows.win_shell: |
                                       (Get-WmiObject -Class Win32_OSRecoveryConfiguration) | Set-WmiInstance -Arguments @{ AutoReboot= $True}
   when:                               (auto_reboot_enabled.stdout | trim) == "False"
 
 - name:                               "Print AutoReboot status"
-  debug:
+  ansible.builtin.debug:
     msg:                              "AutoReboot already enabled"
   when:                               (auto_reboot_enabled.stdout | trim) == "True"
 
 - name:                               "Print AutoReboot status"
-  debug:
+  ansible.builtin.debug:
     msg:                              "AutoReboot Enabled"
   when:                               (auto_reboot_enabled.stdout | trim) == "False"
 
@@ -46,22 +46,22 @@
 # -------------------------------------+---------------------------------------8
 
 - name:                               "Check if complete memory dump is enabled"
-  win_shell: |
+  ansible.windows.win_shell: |
                                       Get-WmiObject -Class Win32_OSRecoveryConfiguration | Select-Object -ExpandProperty DebugInfoType
   register:                           memory_dump_enabled
 
 - name:                               "Enable Complete Memory Dump"
-  win_shell: |
+  ansible.windows.win_shell: |
                                       (Get-WmiObject -Class Win32_OSRecoveryConfiguration) | Set-WmiInstance -Arguments @{ DebugInfoType=1 }
   when:                               (memory_dump_enabled.stdout | trim) != '1'
 
 - name:                               "Print Memory Dump status"
-  debug:
+  ansible.builtin.debug:
     msg:                              "Complete Memory Dump already enabled"
   when:                               (memory_dump_enabled.stdout | trim) == '1'
 
 - name:                               "Print Memory Dump status"
-  debug:
+  ansible.builtin.debug:
     msg:                              "Complete Memory Dump enabled"
   when:                               (memory_dump_enabled.stdout | trim) != '1'
 
@@ -74,12 +74,12 @@
     state:                            directory
 
 - name:                               "Set Memory Dump Location"
-  win_shell: |
+  ansible.windows.win_shell: |
                                       (Get-WmiObject -Class Win32_OSRecoveryConfiguration) | Set-WmiInstance -Arguments @{ DebugFilePath= 'C:\MemoryDump\MEMORY.DMP'}
   register:                           memory_dump_location
 
 - name:                               "Print Memory Dump Location"
-  debug:
+  ansible.builtin.debug:
     msg:                              "MemoryDump Location changed to {{ memory_dump_location.stdout_lines[3].split()[0] }}"
 
 # -------------------------------------+---------------------------------------8

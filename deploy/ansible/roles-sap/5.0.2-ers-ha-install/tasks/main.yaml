@@ -10,7 +10,7 @@
 - name:                                "ERS Install: Set BOM facts"
   ansible.builtin.set_fact:
     sap_inifile:                       "{{ bom_base_name }}-ers-{{ ansible_hostname }}.params"
-    sap_inifile_template:              "{{ bom_base_name }}-ers-inifile-param.j2"
+    sap_inifile_template:              "{{ bom_base_name }}{{ bom_suffix }}-ers-inifile-param.j2"
     dir_params:                        "{{ tmp_directory }}/.{{ sid_to_be_deployed.sid | lower }}-params"
 
 #   0x) Create hidden directory for parameter files
@@ -66,7 +66,7 @@
       vars:
         task_prefix:                   "ERS Install: "
         always_upload_jinja_templates: false
-        bom_name:                      "{{ bom_base_name }}"
+        bom_name:                      "{{ bom_base_name }}{{ bom_suffix }}"
         sap_cd_package_cd1:
         sap_cd_package_cd2:
         sap_cd_package_cd3:

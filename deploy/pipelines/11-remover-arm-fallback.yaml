@@ -312,7 +312,7 @@ stages:
                 fi
                 return_code=0
 
-                export VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(parent_variable_group)'].id | [0]")
+                export VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(parent_variable_group)'].id | [0]"); echo "Variable group: " $VARIABLE_GROUP_ID
                 variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "ARM_SUBSCRIPTION_ID.value" | tr -d \")
                 if [ -z $variable_value ]; then
                   subscription=$ARM_SUBSCRIPTION_ID
@@ -338,7 +338,7 @@ stages:
                   exit 2
                 fi
 
-                az login --service-principal --username $ARM_CLIENT_ID --password='$ARM_CLIENT_SECRET' --tenant $ARM_TENANT_ID --output none
+                az login --service-principal --username $(CP_ARM_CLIENT_ID) --password=$(CP_ARM_CLIENT_SECRET) --tenant $(CP_ARM_TENANT_ID) --output none
                 return_code=$?
                 if [ 0 != $return_code ]; then
                   echo -e "$boldred--- Login failed ---$reset"
@@ -348,7 +348,7 @@ stages:
 
                 echo "Subscription: $subscription"
 
-                az account set --subscription ${subscription}
+                az account set --subscription $(CP_ARM_SUBSCRIPTION_ID)
 
                 rg=$(az group list --query "[?name=='$(library_folder)'].name | [0]" | grep $(library_folder))
                 if [ ${#rg} != 0 ]; then

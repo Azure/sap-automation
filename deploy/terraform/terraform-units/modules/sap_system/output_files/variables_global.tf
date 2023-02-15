@@ -7,9 +7,6 @@ variable "nics_dbnodes_admin" {
   description = "Admin NICs of HANA database nodes"
 }
 
-variable "nics_dbnodes_db" {
-  description = "NICs of HANA database nodes"
-}
 
 variable "loadbalancers" {
   description = "List of LoadBalancers created for HANA Databases"
@@ -23,22 +20,23 @@ variable "db_sid" {
   description = "Database SID"
 }
 
-variable "nics_scs" {
-  description = "List of NICs for the SCS Application VMs"
+variable "scs_server_ips" {
+  description = "List of IP addresses for the SCS Servers"
 }
 
-variable "nics_app" {
-  description = "List of NICs for the Application Instance VMs"
+variable "application_server_ips" {
+  description = "List of IP addresses for the Application Servers"
 }
 
-variable "nics_web" {
-  description = "List of NICs for the Web dispatcher VMs"
+variable "webdispatcher_server_ips" {
+  description = "List of IP addresses for the Web dispatchers"
+}
+
+variable "db_server_ips" {
+  description = "List of IP addresses for the database servers"
 }
 
 # Any DB
-variable "nics_anydb" {
-  description = "List of NICs for the AnyDB VMs"
-}
 
 variable "nics_scs_admin" {
   description = "List of NICs for the SCS Application VMs"

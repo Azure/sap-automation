@@ -51,6 +51,9 @@
 # Step: 02 - END
 # -------------------------------------+---------------------------------------8
 
+- name:                                "3.3.1 BoM Processing: - Set the new name"
+  ansible.builtin.set_fact:
+    new_bom_name:                      "{{ bom_base_name }}{{ bom_suffix }}"
 
 # -------------------------------------+---------------------------------------8
 # Step: 03
@@ -63,11 +66,11 @@
 # Step: 03-01
 # Description:
 #
-    - name:                             "3.3.1 BoM Processing: {{ bom_name }} Download: {{ bom_name }} from the storage account"
+    - name:                             "3.3.1 BoM Processing: {{ bom_name }} Download: {{ new_bom_name }} from the storage account"
       ansible.builtin.get_url:
-        url:                            "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ bom_name }}/{{ bom_name }}.yaml\
+        url:                            "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ new_bom_name }}/{{ new_bom_name }}.yaml\
                                         {% if sapbits_sas_token is defined %}?{{ sapbits_sas_token }}{% endif %}"
-        dest:                           "{{ download_directory }}/bom/{{ bom_name }}.yaml"
+        dest:                           "{{ download_directory }}/bom/{{ new_bom_name }}.yaml"
         mode:                           0644
       delegate_to:                      localhost
 # 20221201 MKD (DynBOM)- mitigate become
@@ -76,34 +79,9 @@
       register:                         result
       vars:
         ansible_python_interpreter:     "{{ python_version }}"
-      when:
-        - distribution_id in ['suse15', 'redhat8', 'sles_sap15', 'oraclelinux8']
 # Step: 03-01 - END
 # -------------------------------------+---------------------------------------8
 
-# -------------------------------------+---------------------------------------8
-# Step: 03-02
-# Description:
-#
-    - name:                             "3.3.1 BoM Processing: {{ bom_name }} Download: {{ bom_name }} from the storage account"
-      ansible.builtin.get_url:
-        url:                            "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ bom_name }}/{{ bom_name }}.yaml\
-                                        {% if sapbits_sas_token is defined %}?{{ sapbits_sas_token }}{% endif %}"
-        dest:                           "{{ download_directory }}/bom/{{ bom_name }}.yaml"
-        mode:                           0644
-      delegate_to:                      localhost
-# 20221201 MKD (DynBOM)- mitigate become
-      # become:                           "{{ bom_processing_become }}"
-      # become_user:                         root
-      register:                         result
-      ignore_errors:                    true
-      when:
-        - distribution_id != 'suse15'
-        - distribution_id != 'sles_sap15'
-        - distribution_id != 'redhat8'
-        - distribution_id != 'oraclelinux8'
-# Step: 03-02 - END
-# -------------------------------------+---------------------------------------8
 
 # -------------------------------------+---------------------------------------8
 # Step: 03-03
@@ -112,9 +90,9 @@
     - name:                             "BOM: Show BoM download status"
       ansible.builtin.debug:
         msg:
-          - "URL:    {{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ bom_name }}/{{ bom_name }}.yaml{% if sapbits_sas_token is defined %}?{{ sapbits_sas_token }}{% endif %}"
+          - "URL:    {{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ new_bom_name }}/{{ new_bom_name }}.yaml{% if sapbits_sas_token is defined %}?{{ sapbits_sas_token }}{% endif %}"
           - "Result: {{ result }}"
-        verbosity:                      0
+        verbosity:                      2
 # Step: 03-03 - END
 # -------------------------------------+---------------------------------------8
 
@@ -141,7 +119,7 @@
 #
     - name:                             "{{ task_prefix }} Register downloaded BOM ({{ bom_name }})"
       ansible.builtin.include_vars:
-        file:                           "{{ download_directory }}/bom/{{ bom_name }}.yaml"
+        file:                           "{{ download_directory }}/bom/{{ new_bom_name }}.yaml"
         name:                           bom
 # Step: 04-01 - END
 # -------------------------------------+---------------------------------------8
@@ -152,10 +130,10 @@
 #
     - name:                             "{{ task_prefix }} Register downloaded BOM ({{ bom_name }}) file name"
       ansible.builtin.set_fact:
-        bom_file:                       "{{ download_directory }}/bom/{{ bom_name }}.yaml"
+        bom_file:                       "{{ download_directory }}/bom/{{ new_bom_name }}.yaml"
         aggregated_bom_directories:     "{{ aggregated_bom_directories | default([]) + [{'path': path, 'location': 'sa'}] }}"
       vars:
-        path:                           "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ bom_name }}"
+        path:                           "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ new_bom_name }}"
 # Step: 04-02 - END
 # -------------------------------------+---------------------------------------8
 

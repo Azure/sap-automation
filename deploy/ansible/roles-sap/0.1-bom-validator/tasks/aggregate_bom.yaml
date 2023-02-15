@@ -3,10 +3,10 @@
 # Step: 01
 # Description:
 #
-- name:                                 "aggregate_bom: - Informational"
+- name:                                "aggregate_bom: - Informational"
   ansible.builtin.debug:
-    var:                                bom_dir
-    verbosity:                          1
+    var:                               bom_dir
+    verbosity:                         1
 # Step: 01 - END
 # -------------------------------------+---------------------------------------8
 
@@ -21,16 +21,16 @@
 # Step: 02-01
 # Description:  Set Fact
 #
-    - name:                                 "aggregate_bom: - new bom name"
+    - name:                            "aggregate_bom: - new bom name"
       ansible.builtin.set_fact:
-        new_bom_name:                       "{{ bom_base_name }}-{{ bom_suffix }}"
+        new_bom_name:                  "{{ bom_base_name }}{{ bom_suffix }}"
       when:
         - new_bom_name is not defined
 
-    - name:                                 "Informational"
+    - name:                            "Informational"
       ansible.builtin.debug:
-        var:                                new_bom_name
-        verbosity:                          1
+        var:                           new_bom_name
+        verbosity:                     1
 # Step: 02-01 - END
 # -------------------------------------+---------------------------------------8
 
@@ -38,12 +38,12 @@
 # Step: 02-02
 # Description:  Create download directory structure
 #
-    - name:                                 "aggregate_bom: - Create temporary BOM directories"
-      delegate_to:                          localhost
+    - name:                            "aggregate_bom: - Create temporary BOM directories"
+      delegate_to:                     localhost
       ansible.builtin.file:
-        path:                               "{{ download_directory }}/bom/{{ new_bom_name }}"
-        state:                              directory
-        mode:                               0755
+        path:                          "{{ download_directory }}/bom/{{ new_bom_name }}"
+        state:                         directory
+        mode:                          0755
 # Step: 02-02 - END
 # -------------------------------------+---------------------------------------8
 
@@ -51,14 +51,14 @@
 # Step: 02-03
 # Description:  Write aggregated bom
 #
-    - name:                                "aggregate_bom: - write aggregated BOM"
-      delegate_to:                         localhost
+    - name:                            "aggregate_bom: - write aggregated BOM"
+      delegate_to:                     localhost
       ansible.builtin.copy:
-        content:                           "{{ new_bom | default('NOT DEFINED') }}"
-        dest:                              "{{ download_directory }}/bom/{{ new_bom_name }}/{{ new_bom_name }}.yaml"
-        mode:                              0644
-        force:                             true
-      register:                            first_pass
+        content:                       "{{ new_bom | default('NOT DEFINED') }}"
+        dest:                          "{{ download_directory }}/bom/{{ new_bom_name }}/{{ new_bom_name }}.yaml"
+        mode:                          0644
+        force:                         true
+      register:                        first_pass
 # Step: 02-03 - END
 # -------------------------------------+---------------------------------------8
 

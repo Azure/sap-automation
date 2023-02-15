@@ -12,6 +12,9 @@
   name:                                 BOM Downloader Playbook
   gather_facts:                         true
   connection:                           local
+  environment:
+    ANSIBLE_COLLECTIONS_PATHS:         "/opt/ansible/collections"
+
 # -------------------------------------+
 # 20230117 MKD (DynBOM) - BEGIN
 # Mitigate root requirement

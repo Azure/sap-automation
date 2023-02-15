@@ -54,6 +54,34 @@ resource "azurerm_private_dns_zone" "blob" {
   )
 }
 
+resource "azurerm_private_dns_zone" "vault" {
+  depends_on = [
+    azurerm_resource_group.library
+  ]
+  provider = azurerm.main
+  count    = length(var.dns_label) > 0 && !var.use_custom_dns_a_registration && var.use_private_endpoint ? 1 : 0
+  name     = "privatelink.vaultcore.azure.net"
+  resource_group_name = local.resource_group_exists ? (
+    split("/", var.infrastructure.resource_group.arm_id)[4]) : (
+    azurerm_resource_group.library[0].name
+  )
+}
+
+resource "azurerm_private_dns_zone" "file" {
+  depends_on = [
+    azurerm_resource_group.library
+  ]
+  provider = azurerm.main
+  count    = length(var.dns_label) > 0 && !var.use_custom_dns_a_registration && var.use_private_endpoint ? 1 : 0
+  name     = "privatelink.file.core.windows.net"
+  resource_group_name = local.resource_group_exists ? (
+    split("/", var.infrastructure.resource_group.arm_id)[4]) : (
+    azurerm_resource_group.library[0].name
+  )
+}
+
+
+
 resource "azurerm_private_dns_zone_virtual_network_link" "vnet_mgmt" {
   count = length(var.dns_label) > 0 && !var.use_custom_dns_a_registration && var.use_private_endpoint ? 1 : 0
   name = format("%s%s%s%s",

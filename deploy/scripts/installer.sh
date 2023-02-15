@@ -830,6 +830,20 @@ if [ -n "${test}" ] ; then
     fatal_errors=1
 fi
 
+echo "TEST_ONLY: " $TEST_ONLY
+if [ "${TEST_ONLY}" == "True" ]; then
+    echo ""
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo -e "#                                 $cyan Running plan only. $resetformatting                                  #"
+    echo "#                                                                                       #"
+    echo "#                                  No deployment performed.                             #"
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
+    echo ""
+    exit 0
+fi
+
 ok_to_proceed=1
 
 if [ $fatal_errors == 1 ] ; then
@@ -978,6 +992,7 @@ if [ 1 == $ok_to_proceed ]; then
         echo ""
         echo ""
         if [ 1 == $called_from_ado ] ; then
+            echo $TEST_ONLY
             terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -compact-warnings $allParams
         else
             terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" $allParams
@@ -1106,6 +1121,8 @@ then
     #         terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" $allParams  2>error.log
     #     fi
     # fi
+
+    az login --service-principal --username $ARM_CLIENT_ID --password=$ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID  --output none
 
     rg_name=$(terraform -chdir="${terraform_module_directory}"  output -no-color -raw created_resource_group_name | tr -d \")
 

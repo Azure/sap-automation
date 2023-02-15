@@ -13,8 +13,8 @@ output "nics_scs_admin" {
   value = azurerm_network_interface.scs_admin
 }
 
-output "scs_ip" {
-  value = azurerm_network_interface.scs[*].private_ip_address
+output "scs_server_ips" {
+  value = try(azurerm_network_interface.scs[*].private_ip_addresses[var.use_secondary_ips ? 1 : 0],[])
 }
 
 output "scs_admin_ip" {
@@ -94,8 +94,8 @@ output "nics_app_admin" {
   value = azurerm_network_interface.app_admin
 }
 
-output "app_ip" {
-  value = azurerm_network_interface.app[*].private_ip_address
+output "application_server_ips" {
+  value = try(azurerm_network_interface.app[*].private_ip_addresses[var.use_secondary_ips ? 1 : 0], [])
 }
 
 output "app_admin_ip" {
@@ -130,8 +130,8 @@ output "nics_web_admin" {
   value = azurerm_network_interface.web_admin
 }
 
-output "web_ip" {
-  value = azurerm_network_interface.web[*].private_ip_address
+output "webdispatcher_server_ips" {
+  value = try(azurerm_network_interface.web[*].private_ip_addresses[var.use_secondary_ips ? 1 : 0], [])
 }
 
 output "web_admin_ip" {

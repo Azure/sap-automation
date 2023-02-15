@@ -76,7 +76,9 @@ init -upgrade=true                                                              
 echo -e "$green--- Successfully configured the backend "azurerm"! Terraform will automatically use this backend unless the backend configuration changes. ---$reset"
 
 # Fetch values from Terraform State file
-acss_scs_vm_id=$(     terraform -chdir="${__moduleDir}" output scs_vm_ids                  | awk -F\" '{print $2}' | tr -d '\n\r\t[:space:]')
+# have awk only fetch the first line of the output: NR==2
+acss_scs_vm_id=$(     terraform -chdir="${__moduleDir}" output scs_vm_ids                  | awk -F\" 'NR==2{print $2}' | tr -d '\n\r\t[:space:]')
+echo -e "$green--- SCS VM ID: $acss_scs_vm_id ---$reset"
 acss_sid=$(           terraform -chdir="${__moduleDir}" output sid                         | tr -d '"')
 acss_resource_group=$(terraform -chdir="${__moduleDir}" output created_resource_group_name | tr -d '"')
 acss_location=$(      terraform -chdir="${__moduleDir}" output region                      | tr -d '"')

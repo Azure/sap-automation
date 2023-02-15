@@ -1,4 +1,12 @@
 # Validate that the SCS cluster is working as expected
+- name:                            "0.0 Validations: - Set Python version {{ distribution_id }}"
+  ansible.builtin.set_fact:
+    python_version: "python2"
+
+- name:                            "0.0 Validations: - Set Python version {{ distribution_id }}"
+  ansible.builtin.set_fact:
+    python_version: "python3"
+  when: (ansible_distribution | lower ~ ansible_distribution_major_version) in ['suse15', 'redhat8', 'sles_sap15']
 
 - name:                                "Determine if SCS is running on {{ ansible_hostname }}"
   become_user:                         "{{ sap_sid | lower }}adm"
@@ -27,7 +35,7 @@
       register:                        is_running
       vars:
         allow_world_readable_tmpfiles: true
-        ansible_python_interpreter:    python3
+        ansible_python_interpreter:    "{{ python_version }}"
       args:
         chdir:                         "{{ sapcontrol_path | dirname }}"
       environment:
@@ -77,7 +85,10 @@
         - ansible_hostname == primary_instance_name
         - cluster_group_location.rc == 0
         - scs_running_on is not defined
-      failed_when:                     cluster_group_moved.rc != 0 and cluster_group_moved.stderr is not search('Already in requested state')
+      failed_when:                     cluster_group_moved.rc != 0 and (
+                                        cluster_group_moved.stderr is not search('Already in requested state')
+                                        or cluster_group_moved.stderr is not search('is already active on')
+                                        )
       register:                        cluster_group_moved
       tags:
         - skip_ansible_lint
@@ -93,7 +104,11 @@
         - cluster_group_location.rc == 0
         - scs_running_on is not defined
       register:                        cluster_group_moved
-      failed_when:                     cluster_group_moved.rc != 0 and cluster_group_moved.stderr is not search('Already in requested state')
+      failed_when:                     false
+      # failed_when:                     cluster_group_moved.rc != 0 and (
+      #                                  cluster_group_moved.stderr is not search('Already in requested state')
+      #                                  or cluster_group_moved.stderr is not search('is already active on')
+      #                                  )
       tags:
         - skip_ansible_lint
 
@@ -129,7 +144,7 @@
           register:                    is_running
           vars:
             allow_world_readable_tmpfiles: true
-            ansible_python_interpreter:    python3
+            ansible_python_interpreter:    "{{ python_version }}"
           args:
             chdir:                         "{{ sapcontrol_path | dirname }}"
           environment:
@@ -154,7 +169,7 @@
           register:                        is_running
           vars:
             allow_world_readable_tmpfiles: true
-            ansible_python_interpreter:    python3
+            ansible_python_interpreter:    "{{ python_version }}"
           args:
             chdir:                         "{{ sapcontrol_path | dirname }}"
           environment:

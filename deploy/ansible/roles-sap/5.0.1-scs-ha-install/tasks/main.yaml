@@ -7,11 +7,19 @@
 # +------------------------------------4--------------------------------------*/
 
 ---
+- name:                                "SCS HA Install: - Set Python version {{ distribution_id }}"
+  ansible.builtin.set_fact:
+    python_version: "python2"
+
+- name:                                "SCS HA Install: - Set Python version {{ distribution_id }}"
+  ansible.builtin.set_fact:
+    python_version: "python3"
+  when: (ansible_distribution | lower ~ ansible_distribution_major_version) in ['suse15', 'redhat8', 'sles_sap15']
 
 - name:                                 "SCS HA Install: Set BOM facts"
   ansible.builtin.set_fact:
     sap_inifile:                        "{{ bom_base_name }}-scsha-{{ ansible_hostname }}.params"
-    sap_inifile_template:               "{{ bom_base_name }}-scsha-inifile-param.j2"
+    sap_inifile_template:               "{{ bom_base_name }}{{ bom_suffix }}-scsha-inifile-param.j2"
     dir_params:                         "{{ tmp_directory }}/.{{ sid_to_be_deployed.sid | lower }}-params"
 
 #   0x) Create hidden directory for parameter files
@@ -74,7 +82,7 @@
       vars:
         task_prefix:                   "SCS HA Install: "
         always_upload_jinja_templates: false
-        bom_name:                      "{{ bom_base_name }}"
+        bom_name:                      "{{ bom_base_name }}{{ bom_suffix }}"
         sap_cd_package_cd1:
         sap_cd_package_cd2:
         sap_cd_package_cd3:
@@ -334,6 +342,9 @@
         DIR_LIBRARY:                   /usr/sap/{{ sid_to_be_deployed.sid | upper }}/SYS/exe/run
         LD_LIBRARY_PATH:               /usr/sap/{{ sid_to_be_deployed.sid | upper }}/SYS/exe/run:/usr/sap/{ sid_to_be_deployed.sid | upper }}/SYS/exe/uc/linuxx86_64
         SAPSYSTEMNAME:                 "{{ sid_to_be_deployed.sid | upper }}"
+      vars:
+        allow_world_readable_tmpfiles: true
+        ansible_python_interpreter:    "{{ python_version }}"
       register:                        enq_server
       failed_when:                     enq_server.rc > 3
       changed_when:                    false

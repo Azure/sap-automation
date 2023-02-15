@@ -117,7 +117,7 @@
       no_log:                          true
       when: keyvault_secret_show_sas_token is defined
 
-- name:                                 "0.4 Installation Media: - Extract SAP Binaries Storage Account SAS secret"
+- name:                                 "0.4 Installation Media: - Create SAP Binaries Storage Account SAS token"
   block:
 
     - name:                             "0.4 Installation Media: - SAS token"
@@ -167,7 +167,7 @@
   ansible.builtin.debug:
     msg:
       - "SAS     :     {{ sapbits_sas_token }}"
-    verbosity:                        2
+    verbosity:                         2
 
 ...
 # /*---------------------------------------------------------------------------8

@@ -66,6 +66,41 @@
     - pause | default(false)                                                      # When Fact: pause is True, then wait for ENTER key
 
 
+# - name:                                 "Informational"
+#   ansible.builtin.debug:
+#     msg: |-
+#                                         Informational facts:
+#                                         Ansible version         = {{ ansible_version.string }}
+#                                         Ansible Python version  = {{ ansible_python_version }}
+#     verbosity:                          1
+
+
+# - name:                                 "Install Collections"
+#   ansible.builtin.command: >-
+#                                         ansible-galaxy collection install ansible.netcommon
+
+- name:                                 "Show Installed Collections"
+  ansible.builtin.command: >-
+                                        env
+  register:                             envOutput
+
+- name:                                 "Informational"
+  ansible.builtin.debug:
+    var:                                envOutput
+    verbosity:                          1
+
+- name:                                 "Show Installed Collections"
+  ansible.builtin.command: >-
+                                        ansible-galaxy collection list
+  register:                             galaxyOutput
+
+
+- name:                                 "Informational"
+  ansible.builtin.debug:
+    var:                                galaxyOutput
+    verbosity:                          1
+
+
 # -------------------------------------+---------------------------------------8
 # Step: 01
 # Description:  Initialize Facts - Start out with KeyVault and Storage Account
@@ -118,7 +153,6 @@
     container:                         "{{ sapbits_location_base_path.rpartition('//')[2].split('/')[1] }}/{{ sapbits_bom_files }}/archives"
     bom_name:                          "{{ bom_base_name }}"
     upload:                            true
-    operation:                         "{{ operation }}"
 # Step: 04 - END
 # -------------------------------------+---------------------------------------8
 
@@ -215,7 +249,7 @@
 #   delegate_to:                         localhost
 #   ansible.builtin.copy:
 #     content:                           "{{ new_bom }}"
-#     dest:                              "{{ download_directory }}/bom/{{ bom_base_name }}-{{ bom_suffix }}.yaml"
+#     dest:                              "{{ download_directory }}/bom/{{ bom_base_name }}{{ bom_suffix }}.yaml"
 #     mode:                              0644
 #     force:                             true
 

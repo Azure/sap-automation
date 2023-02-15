@@ -264,6 +264,7 @@ stages:
               AZURE_CLIENT_SECRET:           $(ARM_CLIENT_SECRET)
               AZURE_TENANT_ID:               $(ARM_TENANT_ID)
               AZURE_SUBSCRIPTION_ID:         $(ARM_SUBSCRIPTION_ID)
+              ANSIBLE_COLLECTIONS_PATHS:     /opt/ansible/collections
               CONFIG_REPO_PATH:              ${{ parameters.config_repo_path }}
               BOM_BASE_NAME:                 ${{ parameters.bom_base_name }}
               SAP_SYSTEM_CONFIGURATION_NAME: ${{ parameters.sap_system_configuration_name }}

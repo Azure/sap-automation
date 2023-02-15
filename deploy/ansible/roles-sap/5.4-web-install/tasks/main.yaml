@@ -15,7 +15,7 @@
 - name:                                "Web Install: Set BOM facts"
   ansible.builtin.set_fact:
     sap_inifile:                       "{{ bom_base_name }}-web-{{ sid_to_be_deployed.sid }}-{{ ansible_hostname }}.params"
-    sap_inifile_template:              "{{ bom_base_name }}-web-inifile-param.j2"
+    sap_inifile_template:              "{{ bom_base_name }}{{ bom_suffix }}-web-inifile-param.j2"
     dir_params:                        "{{ tmp_directory }}/.{{ sid_to_be_deployed.sid | lower }}-params"
 
 - name:                                "Web Install: Create directories"
@@ -81,7 +81,7 @@
         task_prefix:                   "Web Install: "
         always_upload_jinja_templates: false
         param_directory:               "{{ dir_params }}"
-        bom_name:                      "{{ bom_base_name }}"
+        bom_name:                      "{{ bom_base_name }}{{ bom_suffix }}"
         sap_cd_package_hdbclient:      "{{ target_media_location }}/CD_HDBCLIENT/SAP_HANA_CLIENT"
         sap_cd_package_cd1:            "{{ target_media_location }}/CD_EXPORT"
         sap_cd_package_cd2:

@@ -1,0 +1,42 @@
+---
+name:    "DB2_UDB_11_1_v0001ms"
+target:  "DB2 11.1"
+platform: "DB2"
+version: 1
+
+materials:
+
+  media:
+    - name:         "DB2 LUW 11.1 MP4 FP7 SAP3 LNX x86_64 64bit"
+      archive:      51056263.ZIP
+      checksum:     b4074803637d226184d237ea424bd62c1627e75daccb9bd90d4b0f7328a9f33f
+      extract:      true
+      extractDir:   sapdb2_software/db2server
+      path:         download_basket
+      download:     true
+      url:          https://softwaredownloads.sap.com/file/0030000001713062022                       #Not all S-users have permissions to download the DB2 software.
+
+    - name:         "DB2 LUW 11.1 MP4 FP7 Client"
+      archive:      51055413.ZIP
+      checksum:     6a0010188d7604820b9751d18402aceb07b0201fc1fe3913807a4159582e4815
+      extract:      true
+      download:     true
+      extractDir:   sapdb2_software/db2client
+      path:         download_basket
+      url:          https://softwaredownloads.sap.com/file/0030000000641112022                       #Not all S-users have permissions to download the DB2 software.
+
+    - name:         "DB2 LUW 11.1 MP4 FP7 SAP Client"
+      archive:      51055654.ZIP
+      checksum:     784c32f1efccdba782479d8bfdcf617c77647e71a4e87ba5d0ec424299cd0671
+      extract:      true
+      download:     true
+      extractDir:   sapdb2_software/db2client
+      path:         download_basket
+      url:          https://softwaredownloads.sap.com/file/0030000000942072022                       #Not all S-users have permissions to download the DB2 software.
+
+
+
+
+
+
+...

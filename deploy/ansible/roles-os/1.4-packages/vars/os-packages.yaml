@@ -44,7 +44,7 @@ packages:
     - { tier: 'os',    package: 'lvm2',                                         node_tier: 'all',     state: 'present' }
     - { tier: 'os',    package: 'numad',                                        node_tier: 'all',     state: 'present' }
     - { tier: 'os',    package: 'cifs-utils',                                   node_tier: 'all',     state: 'present' }
-    - { tier: 'os',    package: 'unrar',                                        node_tier: 'all',     state: 'present' }
+    # - { tier: 'os',    package: 'unrar',                                        node_tier: 'all',     state: 'present' }
     # --------------------------- Begin - Packages required for DB2 -----------------------------------------8
     # https://www.ibm.com/docs/en/db2/11.5?topic=servers-linux
     - { tier: 'os',    package: 'libaio',                                       node_tier: 'db2',     state: 'present' }

@@ -9,6 +9,15 @@
 # 3. create os based cluster resources yaml where you actually create the cluster resources
 
 # Clustering commands are based on the Host OS
+- name:                                "ERS Install: check if installed"
+  ansible.builtin.stat:
+    path:                              /etc/sap_deployment_automation/sap_deployment_ers.txt
+  register:                            ers_installed
+
+- name:                                "SCS HA Install: check if installed"
+  ansible.builtin.stat:
+    path:                              /etc/sap_deployment_automation/sap_deployment_scs.txt
+  register:                            scs_installed
 
 - name:                                "5.6 SCSERS - Cluster based on OS in VM"
   ansible.builtin.include_tasks:

@@ -723,7 +723,6 @@ fi
 
 ok_to_proceed=0
 if [ -f plan_output.log ]; then
-    echo "2"
     cat plan_output.log
     LASTERROR=$(grep -m1 'Error: ' plan_output.log )
 
@@ -739,13 +738,6 @@ if [ -f plan_output.log ]; then
 fi
 
 if [ 0 == $return_value ] ; then
-    echo ""
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo -e "#                          $cyan Infrastructure is up to date $resetformatting                               #"
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
-    echo ""
     if [ -f plan_output.log ]
     then
         rm plan_output.log
@@ -1022,9 +1014,10 @@ echo "#                                                                         
 echo "#########################################################################################"
 echo ""
 
-if [ -n "$spn_secret" ]
+if [ -n "${spn_secret}" ]
     then
         az logout
+        echo "Login as SPN"
         az login --service-principal --username "${client_id}" --password="${spn_secret}" --tenant "${tenant_id}" --output none
 fi
 

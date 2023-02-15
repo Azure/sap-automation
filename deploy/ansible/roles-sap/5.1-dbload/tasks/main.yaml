@@ -11,7 +11,7 @@
 - name:                                "DBLoad: - Set dbload facts"
   ansible.builtin.set_fact:
     sap_inifile:                       "{{ bom_base_name }}-dbload-{{ sid_to_be_deployed.sid | lower }}-{{ ansible_hostname }}.params"
-    sap_inifile_template:              "{{ bom_base_name }}-dbload-inifile-param.j2"
+    sap_inifile_template:              "{{ bom_base_name }}{{ bom_suffix }}-dbload-inifile-param.j2"
     dir_params:                        "{{ tmp_directory }}/.params"
 
 - name:                                "DBLoad: -  Create directories"
@@ -136,7 +136,7 @@
       vars:
         task_prefix:                   "DBLoad: "
         always_upload_jinja_templates: false
-        bom_name:                      "{{ bom_base_name }}"
+        bom_name:                      "{{ bom_base_name }}{{ bom_suffix }}"
         sap_cd_package_hdbclient:      "{{ target_media_location }}/CD_HDBCLIENT/SAP_HANA_CLIENT"
         sap_cd_package_cd1:            "{{ target_media_location }}/CD_EXPORT"
         sap_cd_package_cd2:
