@@ -195,30 +195,6 @@ resource "local_file" "sap_inventory_md" {
   directory_permission = "0770"
 }
 
-
-resource "azurerm_storage_blob" "hosts_yaml" {
-  count                  = 0
-  provider               = azurerm.deployer
-  name                   = format("%s_hosts.yaml", length(trimspace(var.naming.prefix.SDU)) > 0 ? trimspace(var.naming.prefix.SDU) : var.sap_sid)
-  storage_account_name   = local.tfstate_storage_account_name
-  storage_container_name = local.ansible_container_name
-  type                   = "Block"
-  source                 = local_file.ansible_inventory_new_yml.filename
-}
-
-resource "azurerm_storage_blob" "sap_parameters_yaml" {
-  depends_on = [
-    local_file.sap-parameters_yml
-  ]
-  count                  = 0
-  provider               = azurerm.deployer
-  name                   = format("%s_sap-parameters.yaml", length(trimspace(var.naming.prefix.SDU)) > 0 ? trimspace(var.naming.prefix.SDU) : var.sap_sid)
-  storage_account_name   = local.tfstate_storage_account_name
-  storage_container_name = local.ansible_container_name
-  type                   = "Block"
-  source                 = local_file.sap-parameters_yml.filename
-}
-
 locals {
   fileContents     = fileexists(format("%s/sap-parameters.yaml", path.cwd)) ? file(format("%s/sap-parameters.yaml", path.cwd)) : ""
   fileContentsList = split("\n", local.fileContents)
