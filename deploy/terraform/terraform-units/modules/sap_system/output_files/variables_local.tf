@@ -19,7 +19,7 @@ locals {
   ips_web = [for key, value in local.ips_primary_web : value.private_ip_address]
 
   ips_primary_db = var.db_server_ips
-  ips_dbnodes    = [for key, value in local.db_server_ips : value.private_ip_address]
+  ips_dbnodes    = [for key, value in local.ips_primary_db : value.private_ip_address]
 
   secret_prefix = var.use_local_credentials ? var.naming.prefix.SDU : var.naming.prefix.WORKLOAD_ZONE
   dns_label     = try(var.landscape_tfstate.dns_label, "")
