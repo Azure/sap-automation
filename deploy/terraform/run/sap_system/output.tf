@@ -143,8 +143,8 @@ output "anydb_vm_ids" {
 output "db_vm_ips" {
   description = "Database Virtual Machine IPs"
   value       =   upper(try(local.database.platform, "HANA")) == "HANA" ? (
-    module.hdb_node.db_ip) : (
-    module.anydb_node.anydb_db_ip
+    module.hdb_node.db_server_ips) : (
+    module.anydb_node.db_server_ips
   ) #TODO Change to use Admin IP
 
 }
