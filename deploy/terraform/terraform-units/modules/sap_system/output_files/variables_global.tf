@@ -158,6 +158,10 @@ variable "ers_instance_number" {
   default = "02"
 }
 
+variable "pas_instance_number" {
+  default = "00"
+}
+
 variable "platform" {
   default = "HANA"
 }
@@ -228,4 +232,8 @@ variable "use_msi_for_clusters" {
 variable "dns" {
   description = "The DNS label"
   default     = ""
+}
+
+variable "configuration_settings" {
+  description = "This is a dictionary that will contain values persisted to the sap-parameters.file"
 }

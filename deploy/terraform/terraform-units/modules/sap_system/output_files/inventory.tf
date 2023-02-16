@@ -142,11 +142,10 @@ resource "local_file" "sap-parameters_yml" {
       ""
     )
     NFS_provider        = var.NFS_provider
-    pas_instance_number = local.pas_instance_number
+    pas_instance_number = var.pas_instance_number
 
-    oracle = local.oracle
 
-    domain = local.domain_info
+    settings = local.settings
 
     hana_data = length(try(var.hana_data[0], "")) > 1 ? (
       format("hana_data_mountpoint:          %s", jsonencode(var.hana_data))) : (

@@ -332,6 +332,7 @@ module "output_files" {
   bom_name                = var.bom_name
   scs_instance_number     = var.scs_instance_number
   ers_instance_number     = var.ers_instance_number
+  pas_instance_number     = var.pas_instance_number
   platform                = upper(try(local.database.platform, "HANA"))
   db_auth_type            = try(local.database.authentication.type, "key")
   tfstate_resource_id     = var.tfstate_resource_id
@@ -349,4 +350,5 @@ module "output_files" {
   web_sid                 = var.web_sid
   use_msi_for_clusters    = var.use_msi_for_clusters
   dns                     = try(data.terraform_remote_state.landscape.outputs.dns_label, "")
+  configuration_settings  = var.configuration_settings
 }
