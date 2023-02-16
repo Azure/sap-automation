@@ -33,6 +33,6 @@ locals {
   db_supported_tiers  = local.app_tier ? lower(var.platform) : format("%s, scs, pas", lower(var.platform))
   scs_supported_tiers = local.app_server_count > 0 ? "scs" : "scs, pas"
 
-  settings = yamlencode(var.configuration_settings)
+  settings = yamlencode(var.configuration_settings).replace("\"","")
 
 }
