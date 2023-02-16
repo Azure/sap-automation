@@ -431,7 +431,7 @@
 
 # If the DB HA is configured successfully, we need to create the db-ha-done file
 - hosts:                               localhost
-  name:                                Log results
+  name:                                "Log results"
   vars_files:
     - vars/ansible-input-api.yaml      # API Input template with defaults
   tasks:
