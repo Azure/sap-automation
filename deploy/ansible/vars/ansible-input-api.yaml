@@ -135,6 +135,7 @@ NFS_provider:                           "NONE"
 # Windows AD specific parameters
 domain_name:
 domain:
+domain_ou_path:                         ""
 domain_service_account:                 "{{ adsvc_account }}"
 domain_service_password:                "{{ adsvc_password }}"
 domain_user:                            '{{ domain }}\{{ sap_sid }}adm'

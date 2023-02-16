@@ -238,11 +238,15 @@ $$scs_server_count$$
 # scs_high_availability is a boolean flag controlling if SCS should be highly available
 $$scs_high_availability$$
 
-# scs_instance_number
+# scs_instance_number defines the instance number for SCS
 $$scs_instance_number$$
 
-# ers_instance_number
+# ers_instance_number defines the instance number for ERS
 $$ers_instance_number$$
+
+# pas_instance_number defines the instance number for PAS
+$$pas_instance_number$$
+
 
 # scs_server_zones is an optional list defining the availability zones to which deploy the SCS servers
 $$scs_server_zones$$
@@ -739,3 +743,6 @@ $$landscape_tfstate_key$$
 # bom_name is the name of the SAP Application Bill of Materials file
 
 $$bom_name$$
+
+# configuration_settings is a dictionary containing values that will be persisted in sap-parameters.yaml
+$$configuration_settings$$

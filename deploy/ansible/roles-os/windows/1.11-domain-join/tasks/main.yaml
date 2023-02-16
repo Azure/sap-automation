@@ -1,20 +1,37 @@
 - name:                                "WIN: Joining the domain {{ domain }}"
   ansible.builtin.debug:
     msg:
-      - "Domain:              {{ domain }}"
-      - "domain_svc_account:  {{ domain_service_account }}"
-      - "hostname:            {{ ansible_hostname }}"
-    verbosity:                          2
+      - "Domain:                       {{ domain }}"
+      - "domain_svc_account:           {{ domain_service_account }}"
+      - "hostname:                     {{ ansible_hostname }}"
+    verbosity:                         2
 
+# domain_ou_path needs to be defined in the ansible-input-api.yaml file
+# in the format as an example: 'OU=Windows,OU=Servers,DC=ansible,DC=local'
 - name:                                "WIN: Joining the domain {{ domain }}"
   ansible.windows.win_domain_membership:
-    dns_domain_name:                   "{{ domain }}"
+    dns_domain_name:                   "{{ domain_name }}"
     domain_admin_user:                 "{{ domain_service_account }}@{{ domain }}"
     domain_admin_password:             "{{ domain_service_password }}"
-    # domain_ou_path:                    "OU=Windows,OU=Servers,DC=ansible,DC=vagrant"
+    domain_ou_path:                    "{{ domain_ou_path }}"
     hostname:                          "{{ ansible_hostname }}"
     state:                             domain
   register:                            domain_state
+  when:
+    - domain_ou_path is defined
+    - domain_ou_path | type_debug != 'NoneType'
+    - domain_ou_path | trim | length > 1
+
+- name:                                "WIN: Joining the domain {{ domain }}"
+  ansible.windows.win_domain_membership:
+    dns_domain_name:                   "{{ domain_name }}"
+    domain_admin_user:                 "{{ domain_service_account }}@{{ domain }}"
+    domain_admin_password:             "{{ domain_service_password }}"
+    hostname:                          "{{ ansible_hostname }}"
+    state:                             domain
+  register:                            domain_state
+  when:
+    - domain_ou_path is not defined or domain_ou_path | type_debug == 'NoneType' or domain_ou_path | trim | length == 0
 
 - name:                                "WIN: Joining the domain {{ domain }} - reboot"
   ansible.windows.win_reboot:

@@ -428,6 +428,20 @@
       when:
         - db_high_availability
         - platform == 'DB2'
+
+# If the DB HA is configured successfully, we need to create the db-ha-done file
+- hosts:                               localhost
+  name:                                "Log results"
+  vars_files:
+    - vars/ansible-input-api.yaml      # API Input template with defaults
+  tasks:
+    - name:                            Ensure db-ha-done file exists
+      ansible.builtin.file:
+        path:                          "{{ _workspace_directory }}/.progress/db-ha-done"
+        state:                         touch
+        mode:                          0755
+      when:                            db_high_availability
+
 ...
 # /*----------------------------------------------------------------------------8
 # |                                    END                                      |
