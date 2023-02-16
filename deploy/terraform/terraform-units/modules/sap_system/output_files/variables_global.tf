@@ -172,6 +172,10 @@ variable "ers_instance_number" {
   default = "02"
 }
 
+variable "pas_instance_number" {
+  default = "00"
+}
+
 variable "platform" {
   default = "HANA"
 }
@@ -260,4 +264,8 @@ variable "management_dns_resourcegroup_name" {
   description = "String value giving the possibility to register custom dns a records in a separate resourcegroup"
   default     = null
   type        = string
+}
+
+variable "configuration_settings" {
+  description = "This is a dictionary that will contain values persisted to the sap-parameters.file"
 }

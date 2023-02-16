@@ -217,6 +217,7 @@
         path:                          "{{ item.path }}"
         state:                         directory
         mode:                          '{{ item.mode }}'
+        owner:                         "{{ orchestration_ansible_user }}"
       delegate_to:                     localhost
       loop:
         - { mode: '0755', path: '{{ download_directory }}' }
