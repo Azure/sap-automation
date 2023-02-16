@@ -1021,4 +1021,5 @@ variable "subscription" {
 
 variable "configuration_settings" {
   description = "This is a dictionary that will contain values persisted to the sap-parameters.file"
+  default     = {}
 }
