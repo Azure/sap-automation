@@ -203,7 +203,7 @@ module "app_tier" {
   fencing_role_name                            = var.fencing_role_name
   use_custom_dns_a_registration                = data.terraform_remote_state.landscape.outputs.use_custom_dns_a_registration
   management_dns_subscription_id               = try(data.terraform_remote_state.landscape.outputs.management_dns_subscription_id, null)
-  management_dns_resourcegroup_name            = data.terraform_remote_state.landscape.outputs.management_dns_resourcegroup_name
+  management_dns_resourcegroup_name            = coalesce(data.terraform_remote_state.landscape.outputs.management_dns_resourcegroup_name, local.saplib_resource_group_name)
 
 }
 
@@ -333,29 +333,32 @@ module "output_files" {
     module.hdb_node.db_admin_ip) : (
     module.anydb_node.anydb_admin_ip
   ) #TODO Change to use Admin IP
-  sap_mnt                 = module.common_infrastructure.sapmnt_path
-  sap_transport           = try(data.terraform_remote_state.landscape.outputs.saptransport_path, "")
-  ers_lb_ip               = module.app_tier.ers_lb_ip
-  bom_name                = var.bom_name
-  scs_instance_number     = var.scs_instance_number
-  ers_instance_number     = var.ers_instance_number
-  pas_instance_number     = var.pas_instance_number
-  platform                = upper(try(local.database.platform, "HANA"))
-  db_auth_type            = try(local.database.authentication.type, "key")
-  tfstate_resource_id     = var.tfstate_resource_id
-  install_path            = try(data.terraform_remote_state.landscape.outputs.install_path, "")
-  NFS_provider            = var.NFS_provider
-  observer_ips            = module.anydb_node.observer_ips
-  observer_vms            = module.anydb_node.observer_vms
-  shared_home             = var.shared_home
-  hana_data               = [module.hdb_node.hana_data_primary, module.hdb_node.hana_data_secondary]
-  hana_log                = [module.hdb_node.hana_log_primary, module.hdb_node.hana_log_secondary]
-  hana_shared             = [module.hdb_node.hana_shared_primary, module.hdb_node.hana_shared_secondary]
-  usr_sap                 = module.common_infrastructure.usrsap_path
-  save_naming_information = var.save_naming_information
-  use_secondary_ips       = var.use_secondary_ips
-  web_sid                 = var.web_sid
-  use_msi_for_clusters    = var.use_msi_for_clusters
-  dns                     = try(data.terraform_remote_state.landscape.outputs.dns_label, "")
-  configuration_settings  = var.configuration_settings
+  sap_mnt                           = module.common_infrastructure.sapmnt_path
+  sap_transport                     = try(data.terraform_remote_state.landscape.outputs.saptransport_path, "")
+  ers_lb_ip                         = module.app_tier.ers_lb_ip
+  bom_name                          = var.bom_name
+  scs_instance_number               = var.scs_instance_number
+  ers_instance_number               = var.ers_instance_number
+  pas_instance_number               = var.pas_instance_number
+  platform                          = upper(try(local.database.platform, "HANA"))
+  db_auth_type                      = try(local.database.authentication.type, "key")
+  tfstate_resource_id               = var.tfstate_resource_id
+  install_path                      = try(data.terraform_remote_state.landscape.outputs.install_path, "")
+  NFS_provider                      = var.NFS_provider
+  observer_ips                      = module.anydb_node.observer_ips
+  observer_vms                      = module.anydb_node.observer_vms
+  shared_home                       = var.shared_home
+  hana_data                         = [module.hdb_node.hana_data_primary, module.hdb_node.hana_data_secondary]
+  hana_log                          = [module.hdb_node.hana_log_primary, module.hdb_node.hana_log_secondary]
+  hana_shared                       = [module.hdb_node.hana_shared_primary, module.hdb_node.hana_shared_secondary]
+  usr_sap                           = module.common_infrastructure.usrsap_path
+  save_naming_information           = var.save_naming_information
+  use_secondary_ips                 = var.use_secondary_ips
+  web_sid                           = var.web_sid
+  use_msi_for_clusters              = var.use_msi_for_clusters
+  dns                               = try(data.terraform_remote_state.landscape.outputs.dns_label, "")
+  configuration_settings            = var.configuration_settings
+  use_custom_dns_a_registration     = data.terraform_remote_state.landscape.outputs.use_custom_dns_a_registration
+  management_dns_subscription_id    = try(data.terraform_remote_state.landscape.outputs.management_dns_subscription_id, null)
+  management_dns_resourcegroup_name = coalesce(data.terraform_remote_state.landscape.outputs.management_dns_resourcegroup_name, local.saplib_resource_group_name)
 }
