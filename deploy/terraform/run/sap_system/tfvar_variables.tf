@@ -564,6 +564,11 @@ variable "application_server_count" {
   default     = 0
 }
 
+variable "pas_instance_number" {
+  description = "The Instance number for PAS"
+  default     = "00"
+}
+
 variable "application_server_app_nic_ips" {
   description = "IP addresses for the application servers"
   default     = []
@@ -1006,4 +1011,14 @@ variable "anchor_vm_accelerated_networking" {
 variable "subscription" {
   description = "Target subscription"
   default     = ""
+}
+
+#########################################################################################
+#                                                                                       #
+#  Configuration values                                                                 #
+#                                                                                       #
+#########################################################################################
+
+variable "configuration_settings" {
+  description = "This is a dictionary that will contain values persisted to the sap-parameters.file"
 }

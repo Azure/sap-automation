@@ -65,7 +65,6 @@ db_instance_number:            "${db_instance_number}"
 # SQLSERVER
 
 platform:                      ${platform}
-${oracle}
 
 # db_high_availability is a boolean flag indicating if the
 # SAP database servers are deployed using high availability
@@ -107,7 +106,7 @@ upgrade_packages:              false
 # Set to true to instruct Ansible to configure Pacemaker clusters using an managed identity
 use_msi_for_clusters:          ${use_msi_for_clusters}
 
-${domain}
+${settings}
 
 #############################################################################
 #                                                                           #

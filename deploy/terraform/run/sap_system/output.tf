@@ -157,7 +157,7 @@ output "sid" {
 
 ###############################################################################
 #                                                                             #
-#                           Virtual Machine IDs                               #
+#                           Disks                                             #
 #                                                                             #
 ###############################################################################
 
@@ -172,4 +172,10 @@ output "sapmnt_path" {
   description = "Path to the sapmnt folder"
   value       = module.common_infrastructure.sapmnt_path
 }
+
+output "configuration_settings" {
+  description = "Additional configuration settings"
+  value       = var.configuration_settings
+}
+
 

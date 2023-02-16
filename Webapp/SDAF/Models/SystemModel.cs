@@ -256,6 +256,8 @@ namespace AutomationForm.Models
 
         public string ers_instance_number { get; set; }
 
+        public string pas_instance_number { get; set; }
+
         public Image scs_server_image { get; set; }
 
         public string[] scs_server_zones { get; set; }
@@ -403,6 +405,8 @@ namespace AutomationForm.Models
         public bool? anchor_vm_use_DHCP { get; set; }
 
         public string bom_name { get; set; }
+
+        public Tag[] configuration_settings { get; set; }
 
 
         [KeyvaultIdValidator]

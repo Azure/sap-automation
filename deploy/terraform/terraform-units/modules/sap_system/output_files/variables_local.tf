@@ -33,11 +33,6 @@ locals {
   db_supported_tiers  = local.app_tier ? lower(var.platform) : format("%s, scs, pas", lower(var.platform))
   scs_supported_tiers = local.app_server_count > 0 ? "scs" : "scs, pas"
 
-  # If PAS and SCS is on same server
-  pas_instance_number = (local.app_server_count + local.scs_server_count) <= 1 ? (
-    "02") : (
-    "00"
-  )
-
+  settings = replace(yamlencode(var.configuration_settings),"\"","")
 
 }
