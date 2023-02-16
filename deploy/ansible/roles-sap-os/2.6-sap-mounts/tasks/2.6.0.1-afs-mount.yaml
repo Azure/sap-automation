@@ -12,6 +12,10 @@
     var:                               item
     verbosity:                         2
 
+- name:                                "AFS Mount: First server"
+  ansible.builtin.debug:
+    var:                               primary_host
+
 - name:                                "AFS Mount: HANA {{ item.type }}"
   block:
     - name:                            "AFS Mount: Create /{{ item.temppath }}"
