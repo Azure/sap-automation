@@ -394,12 +394,12 @@
       'permissions':       '0775',
       'set_chattr_on_dir': false,
       'target_nodes':      ['all'],
-      'create_temp_folders': true
+      'create_temp_folders': true 
     }
   vars:
     primary_host:                     "{{ first_server_temp | first }}"
   when:
-    - tier == 'sapos' or node_tier in ['oracle','oracle-asm','observer']
+    - tier == 'sapos' 
     - usr_sap_install_mountpoint is defined
 
 - name:                                "AFS Mount: sap_trans"
