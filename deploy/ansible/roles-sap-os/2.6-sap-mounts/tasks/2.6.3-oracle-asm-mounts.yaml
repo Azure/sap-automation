@@ -14,19 +14,19 @@
     nfs_server:                        "{{ nfs_server_temp | first }}"
   when:                                NFS_provider == "NONE"
 
-- name: Check if LVs exists.
+- name:                                Check if LVs exists.
   ansible.builtin.stat:
-    path: "{{ dev_path_from_lv_item }}"
-  loop: "{{ logical_volumes }}"
-  register: oravgstat
+    path:                              "{{ dev_path_from_lv_item }}"
+  loop:                                "{{ logical_volumes }}"
+  register:                            oravgstat
 
-- name:     "Mount SAP Filesystems on Database for installation when using Shared File systems"
+- name:                                "Mount SAP Filesystems on Database for installation when using Shared File systems"
   ansible.posix.mount:
-    src:    "{{ item.src }}"
-    path:   "{{ item.path }}"
-    fstype: "{{ item.type }}"
-    opts:   defaults
-    state:  mounted
+    src:                               "{{ item.src }}"
+    path:                              "{{ item.path }}"
+    fstype:                            "{{ item.type }}"
+    opts:                              defaults
+    state:                             mounted
   loop:
     - { type: 'xfs',   src: '/dev/vg_sap/lv_usrsap',                             path: '/usr/sap' }
     - { type: 'xfs',   src: '/dev/vg_oracle/lv_oracle',                          path: '/oracle' }
@@ -95,9 +95,11 @@
     # Get all the hostnames in <SID>_SCS group and return only the first hostname
     nfs_server:                        "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') | first }}"
   loop:
-    - {type: 'nfs4',    src: '{{ nfs_server }}:/sapmnt/{{ sap_sid | upper }}',    path: '/sapmnt/{{ sap_sid | upper }}' }
+    - { type: 'nfs4',    src: '{{ nfs_server }}:/sapmnt/{{ sap_sid | upper }}',    path: '/sapmnt/{{ sap_sid | upper }}' }
   when:
     - sap_mnt is undefined
+    - NFS_provider not in ['ANF', 'AFS']
+
 
 # Mount install file system on Observer node.
 - name:                                "ORACLE: Mount SAP : Mount Install folder when using AFS"
