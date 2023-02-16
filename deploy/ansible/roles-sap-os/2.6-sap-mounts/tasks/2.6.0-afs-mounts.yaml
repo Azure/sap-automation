@@ -126,7 +126,7 @@
             - { path: '/saptmp/usrsap{{ sap_sid | upper }}sys'                           }
             - { path: '/saptmp/usrsap{{ sap_sid | upper }}'                              }
 
-        - name:                        "AFS Mount: Create SAP Directories (AFS)"
+        - name:                        "AFS Mount: Remove /saptmp/sapmnt (AFS)"
           ansible.builtin.file:
             path:                      "/saptmp/sapmnt{{ item.sid | upper }}"
             state:                     absent
@@ -242,6 +242,8 @@
     - MULTI_SIDS is undefined
 
 - name:                                "AFS Mount: sapmnt/{{ sap_sid | upper }} - Standalone"
+  become:                              true
+  become_user:                         root
   block:
 
     - name:                            "AFS Mount: sapmnt/{{ sap_sid | upper }} - Standalone"
@@ -260,6 +262,20 @@
         - MULTI_SIDS is undefined
 
   rescue:
+    - name:                            "AFS Mount: sapmnt/{{ sap_sid | upper }} - Standalone"
+      ansible.posix.mount:
+        src:                           "{{ item.src }}"
+        path:                          "{{ item.path }}"
+        fstype:                        "{{ item.type }}"
+        opts:                          'vers=4,minorversion=1,sec=sys'
+        state:                         unmounted
+      loop:
+        - { type: 'nfs4',  src: '{{ sap_mnt }}/sapmnt{{ sap_sid | upper }}',    path: '/sapmnt/{{ sap_sid | upper }}'      }
+      when:
+        - not scs_high_availability
+        - node_tier != 'hana'
+        - sap_mnt is defined
+        - MULTI_SIDS is undefined
     - name:                            "AFS Mount: Pause for 15 seconds"
       ansible.builtin.pause:
         seconds:                       15
