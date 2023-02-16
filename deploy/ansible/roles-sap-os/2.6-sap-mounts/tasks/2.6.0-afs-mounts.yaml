@@ -32,6 +32,7 @@
   ansible.builtin.debug:
     msg:
       - "List of all the SAP mounts: {{ all_sap_mounts }}"
+      - "First server: first_server_temp"
     verbosity:                         2
 
 # /*---------------------------------------------------------------------------8
@@ -125,7 +126,7 @@
             - { path: '/saptmp/usrsap{{ sap_sid | upper }}sys'                           }
             - { path: '/saptmp/usrsap{{ sap_sid | upper }}'                              }
 
-        - name:                        "AFS Mount: Create SAP Directories (AFS)"
+        - name:                        "AFS Mount: Remove /saptmp/sapmnt (AFS)"
           ansible.builtin.file:
             path:                      "/saptmp/sapmnt{{ item.sid | upper }}"
             state:                     absent
@@ -145,6 +146,27 @@
   when:
     - tier == 'sapos'
     - "'scs' in supported_tiers"
+
+- name:                                "AFS Mount: install"
+  ansible.builtin.include_tasks:       2.6.0.1-afs-mount.yaml
+  loop:
+    - {
+      'type':              'install',
+      'temppath':          'sapinstall',
+      'folder':            '{{ bom_base_name }}',
+      'mount':             '{{ usr_sap_install_mountpoint }}',
+      'opts':              'rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp',
+      'path':              '/usr/sap/install',
+      'permissions':       '0775',
+      'set_chattr_on_dir': false,
+      'target_nodes':      ['all'],
+      'create_temp_folders': true 
+    }
+  vars:
+    primary_host:                     "{{ first_server_temp | first }}"
+  when:
+    - tier == 'sapos' 
+    - usr_sap_install_mountpoint is defined
 
 - name:                                "AFS Mount: sap_mnt"
   block:
@@ -220,6 +242,8 @@
     - MULTI_SIDS is undefined
 
 - name:                                "AFS Mount: sapmnt/{{ sap_sid | upper }} - Standalone"
+  become:                              true
+  become_user:                         root
   block:
 
     - name:                            "AFS Mount: sapmnt/{{ sap_sid | upper }} - Standalone"
@@ -238,6 +262,20 @@
         - MULTI_SIDS is undefined
 
   rescue:
+    - name:                            "AFS Mount: sapmnt/{{ sap_sid | upper }} - Standalone"
+      ansible.posix.mount:
+        src:                           "{{ item.src }}"
+        path:                          "{{ item.path }}"
+        fstype:                        "{{ item.type }}"
+        opts:                          'vers=4,minorversion=1,sec=sys'
+        state:                         unmounted
+      loop:
+        - { type: 'nfs4',  src: '{{ sap_mnt }}/sapmnt{{ sap_sid | upper }}',    path: '/sapmnt/{{ sap_sid | upper }}'      }
+      when:
+        - not scs_high_availability
+        - node_tier != 'hana'
+        - sap_mnt is defined
+        - MULTI_SIDS is undefined
     - name:                            "AFS Mount: Pause for 15 seconds"
       ansible.builtin.pause:
         seconds:                       15
@@ -380,27 +418,6 @@
     - scs_high_availability
     - node_tier == 'ers'
     - sap_mnt is defined
-
-- name:                                "AFS Mount: install"
-  ansible.builtin.include_tasks:       2.6.0.1-afs-mount.yaml
-  loop:
-    - {
-      'type':              'install',
-      'temppath':          'sapinstall',
-      'folder':            '{{ bom_base_name }}',
-      'mount':             '{{ usr_sap_install_mountpoint }}',
-      'opts':              'rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp',
-      'path':              '/usr/sap/install',
-      'permissions':       '0775',
-      'set_chattr_on_dir': false,
-      'target_nodes':      ['all'],
-      'create_temp_folders': true
-    }
-  vars:
-    primary_host:                     "{{ first_server_temp | first }}"
-  when:
-    - tier == 'sapos' or node_tier in ['oracle','oracle-asm','observer']
-    - usr_sap_install_mountpoint is defined
 
 - name:                                "AFS Mount: sap_trans"
   ansible.builtin.include_tasks:       2.6.0.1-afs-mount.yaml
