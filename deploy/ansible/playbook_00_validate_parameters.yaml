@@ -484,7 +484,9 @@
     - name:                            "0.0 Validations - Show Mounts"
       ansible.builtin.debug:
         var: mounts.stdout_lines
-      when: mounts is defined
+      when: 
+        - mounts is defined
+        - ansible_os_family != "Windows"
 
     - name:                            "0.0 Validations - Show Hosts"
       ansible.builtin.command: cat /etc/hosts
@@ -497,7 +499,9 @@
     - name:                            "0.0 Validations - Show Hosts"
       ansible.builtin.debug:
         var: hosts.stdout_lines
-      when: hosts is defined
+      when:
+        - hosts is defined
+        - ansible_os_family != "Windows"
 
     - name:                            "0.0 Validations - Create validation-done flag"
       delegate_to: localhost
