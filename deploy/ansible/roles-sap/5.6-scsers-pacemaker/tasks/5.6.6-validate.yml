@@ -65,6 +65,9 @@
     - name:                            "Check where the cluster group g-{{ sap_sid }}_{{ instance_type | upper }} is running"
       become:                          true
       become_user:                     root
+      vars:
+        allow_world_readable_tmpfiles: true
+        ansible_python_interpreter:    "{{ python_version }}"
       ansible.builtin.shell: >-
         set -o pipefail;
         crm_resource --resource g-{{ sap_sid }}_{{ instance_type | upper }} --locate | cut -d ':' -f 2| cut -d " " -f 2
@@ -80,6 +83,9 @@
       become:                          true
       become_user:                     root
       ansible.builtin.command:         "crm resource move g-{{ sap_sid }}_{{ instance_type | upper }} {{ primary_instance_name }}"
+      vars:
+        allow_world_readable_tmpfiles: true
+        ansible_python_interpreter:    "{{ python_version }}"
       when:
         - ansible_os_family | upper == 'SUSE'
         - ansible_hostname == primary_instance_name
@@ -95,6 +101,9 @@
       become:                          true
       become_user:                     root
       ansible.builtin.command:         "pcs resource move g-{{ sap_sid }}_{{ instance_type | upper }} {{ primary_instance_name }}"
+      vars:
+        allow_world_readable_tmpfiles: true
+        ansible_python_interpreter:    "{{ python_version }}"
       when:
         - ansible_os_family | upper == 'REDHAT'
         - ansible_hostname == primary_instance_name
@@ -112,11 +121,14 @@
     - name:                            "Perform Cluster resource move and SAP start when the group g-{{ sap_sid }}_{{ instance_type | upper }} has moved"
       block:
         - name:                        "Check if cluster group g-{{ sap_sid }}_{{ instance_type | upper }} is running on {{ primary_instance_name }}"
-          become:                          true
-          become_user:                     root
+          become:                      true
+          become_user:                 root
           ansible.builtin.shell: >-
             set -o pipefail;
             crm_resource --resource g-{{ sap_sid }}_{{ instance_type | upper }} --locate | cut -d ':' -f 2| cut -d " " -f 2
+          vars:
+            allow_world_readable_tmpfiles: true
+            ansible_python_interpreter:    "{{ python_version }}"
           when:
             - ansible_hostname == primary_instance_name
             - cluster_group_moved is changed
@@ -145,37 +157,37 @@
           args:
             chdir:                         "{{ sapcontrol_path | dirname }}"
           environment:
-            ANSIBLE_REMOTE_TEMP:           "{{ tmp_directory }}/{{ sap_sid | upper }}"
-            TEMPDIR:                       "{{ tmp_directory }}/{{ sap_sid | upper }}"
-            PATH:                          /usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/usr/sap/{{ sap_sid | upper }}/SYS/exe/uc/linuxx86_64:/usr/sap/{{ sap_sid | upper }}/SYS/exe/run:/home/{{ sap_sid | lower }}adm
-            DIR_LIBRARY:                   /usr/sap/{{ sap_sid | upper }}/SYS/exe/run
-            LD_LIBRARY_PATH:               /usr/sap/{{ sap_sid | upper }}/SYS/exe/run:/usr/sap/{ sap_sid | upper }}/SYS/exe/uc/linuxx86_64
-            SAPSYSTEMNAME:                 "{{ sap_sid | upper }}"
+            ANSIBLE_REMOTE_TEMP:       "{{ tmp_directory }}/{{ sap_sid | upper }}"
+            TEMPDIR:                   "{{ tmp_directory }}/{{ sap_sid | upper }}"
+            PATH:                      /usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/usr/sap/{{ sap_sid | upper }}/SYS/exe/uc/linuxx86_64:/usr/sap/{{ sap_sid | upper }}/SYS/exe/run:/home/{{ sap_sid | lower }}adm
+            DIR_LIBRARY:               /usr/sap/{{ sap_sid | upper }}/SYS/exe/run
+            LD_LIBRARY_PATH:           /usr/sap/{{ sap_sid | upper }}/SYS/exe/run:/usr/sap/{ sap_sid | upper }}/SYS/exe/uc/linuxx86_64
+            SAPSYSTEMNAME:             "{{ sap_sid | upper }}"
           tags:
             - skip_ansible_lint
 
-        - name:                            "Wait 60 secs for the StartService {{ sap_sid | upper }} to finish"
+        - name:                        "Wait 60 secs for the StartService {{ sap_sid | upper }} to finish"
           ansible.builtin.wait_for:
-            timeout:                      60
+            timeout:                   0
 
         #{{ sapcontrol_path }} -nr {{ scs_instance_number }} -function GetProcessList | grep MessageServer | awk '{split($0,result,", "); print result[1],result[3] }'
-        - name:                            "Determine if SCS is running on {{ ansible_hostname }}"
-          ansible.builtin.command:         "{{ sapcontrol_path }} -nr {{ scs_instance_number }} -function StartSystem ALL"
-          changed_when:                    false
-          failed_when:                     false
-          register:                        is_running
+        - name:                        "Determine if SCS is running on {{ ansible_hostname }}"
+          ansible.builtin.command:     "{{ sapcontrol_path }} -nr {{ scs_instance_number }} -function StartSystem ALL"
+          changed_when:                false
+          failed_when:                 false
+          register:                    is_running
           vars:
             allow_world_readable_tmpfiles: true
             ansible_python_interpreter:    "{{ python_version }}"
           args:
-            chdir:                         "{{ sapcontrol_path | dirname }}"
+            chdir:                     "{{ sapcontrol_path | dirname }}"
           environment:
-            ANSIBLE_REMOTE_TEMP:           "{{ tmp_directory }}/{{ sap_sid | upper }}"
-            TEMPDIR:                       "{{ tmp_directory }}/{{ sap_sid | upper }}"
-            PATH:                          /usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/usr/sap/{{ sap_sid | upper }}/SYS/exe/uc/linuxx86_64:/usr/sap/{{ sap_sid | upper }}/SYS/exe/run:/home/{{ sap_sid | lower }}adm
-            DIR_LIBRARY:                   /usr/sap/{{ sap_sid | upper }}/SYS/exe/run
-            LD_LIBRARY_PATH:               /usr/sap/{{ sap_sid | upper }}/SYS/exe/run:/usr/sap/{ sap_sid | upper }}/SYS/exe/uc/linuxx86_64
-            SAPSYSTEMNAME:                 "{{ sap_sid | upper }}"
+            ANSIBLE_REMOTE_TEMP:       "{{ tmp_directory }}/{{ sap_sid | upper }}"
+            TEMPDIR:                   "{{ tmp_directory }}/{{ sap_sid | upper }}"
+            PATH:                      /usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/usr/sap/{{ sap_sid | upper }}/SYS/exe/uc/linuxx86_64:/usr/sap/{{ sap_sid | upper }}/SYS/exe/run:/home/{{ sap_sid | lower }}adm
+            DIR_LIBRARY:               /usr/sap/{{ sap_sid | upper }}/SYS/exe/run
+            LD_LIBRARY_PATH:           /usr/sap/{{ sap_sid | upper }}/SYS/exe/run:/usr/sap/{ sap_sid | upper }}/SYS/exe/uc/linuxx86_64
+            SAPSYSTEMNAME:             "{{ sap_sid | upper }}"
           tags:
             - skip_ansible_lint
       when:
