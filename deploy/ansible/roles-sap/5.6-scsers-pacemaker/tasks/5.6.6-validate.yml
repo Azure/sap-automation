@@ -92,6 +92,7 @@
         - cluster_group_location.rc == 0
         - scs_running_on is not defined
       failed_when:                     false
+      changed_when:                    false
       register:                        cluster_group_moved
       tags:
         - skip_ansible_lint
@@ -111,6 +112,7 @@
         - scs_running_on is not defined
       register:                        cluster_group_moved
       failed_when:                     false
+      changed_when:                    false
       # failed_when:                     cluster_group_moved.rc != 0 and (
       #                                  cluster_group_moved.stderr is not search('Already in requested state')
       #                                  or cluster_group_moved.stderr is not search('is already active on')
@@ -129,9 +131,7 @@
           vars:
             allow_world_readable_tmpfiles: true
             ansible_python_interpreter:    "{{ python_version }}"
-          when:
-            - ansible_hostname == primary_instance_name
-            - cluster_group_moved is changed
+
           register:                    cluster_group_location
           failed_when:                 false
           tags:
@@ -191,5 +191,5 @@
           tags:
             - skip_ansible_lint
       when:
-        - cluster_group_moved is changed
+        - cluster_group_moved.rc == 0 or cluster_group_moved.rc == 1
         - ansible_hostname == primary_instance_name
