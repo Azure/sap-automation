@@ -29,7 +29,7 @@
 {% elif disktype == 'data' %}
 {%     set startlettercharacter = "abcdefghijklmnopqrstuvwxyz"[startletter.value - 97]  | upper %}
 {% elif disktype == 'backup' %}
-{%     set startlettercharacter = "T"}
+{%     set startlettercharacter = "T"%}
 {% else %}
 {%     set startlettercharacter = "V" %}
 {% endif %}
