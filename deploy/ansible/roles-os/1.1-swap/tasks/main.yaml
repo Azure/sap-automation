@@ -62,8 +62,10 @@
     - { state: 'present',  regexp: 'ResourceDisk.SwapSizeMB=',  line: 'ResourceDisk.SwapSizeMB={{ swap_size_mb | default(2052) }}' }
     - { state: 'present',  regexp: 'ResourceDisk.MountPoint=',  line: 'ResourceDisk.MountPoint=/mnt'                               }
     - { state: 'present',  regexp: 'Provisioning.Agent=',       line: 'Provisioning.Agent=waagent'                                 }
+  notify:                              "Swap reboot"
   vars:
     swap_size_mb:                      "{{ (sap_swap | selectattr('tier', 'search', node_tier) | list | first).swap_size_mb }}"
+
   when:
     - swap_size == '0'
 
