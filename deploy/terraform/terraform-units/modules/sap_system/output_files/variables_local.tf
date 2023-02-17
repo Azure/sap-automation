@@ -47,6 +47,6 @@ locals {
   )
 
   encoded_configuration = replace(yamlencode(var.configuration_settings), "\"", "")
-  settings              = length(encoded_configuration) > 4 ? encoded_configuration : ""
+  settings              = length(encoded_configuration) > 4 ? local.encoded_configuration : ""
 
 }
