@@ -77,8 +77,6 @@
       # become:                           "{{ bom_processing_become }}"
       ignore_errors:                    true
       register:                         result
-      vars:
-        ansible_python_interpreter:     "{{ python_version }}"
 # Step: 03-01 - END
 # -------------------------------------+---------------------------------------8
 
