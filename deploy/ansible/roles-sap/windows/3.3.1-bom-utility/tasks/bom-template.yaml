@@ -27,21 +27,26 @@
 # Look for template in the storage account first
 #
 # -------------------------------------+---------------------------------------8
+#   0x) Create a directory for parameter files
 
-- name:                                "3.3.1 BoM Template Processing: - Set the new name"
+- name:                                "3.3.1 BoM Processing: - Set the new name"
   ansible.builtin.set_fact:
     new_bom_name:                      "{{ bom_base_name }}{{ bom_suffix }}"
 
+- name:                                "3.3.1 BoM Processing: - Show new name"
+  ansible.builtin.debug:
+    msg:
+      - "BoM Name:   {{ new_bom_name }}"
 
-#   0x) Create a directory for parameter files
+
 - name:                                "3.3 BoM Processing: Create a directory"
   ansible.windows.win_file:
     path:                              "{{ param_directory }}"
     state:                             directory
 
-- name:                                "3.3.1 BoM Template processing: {{ bom_name }} Download: {{ sap_inifile_template }} from the storage account"
+- name:                                "3.3.1 BoM Processing: {{ bom_name }} Download: {{ sap_inifile_template }} from the storage account"
   ansible.builtin.get_url:
-    url:                               "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ bom_name }}/templates/\
+    url:                               "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ bom_base_name }}/templates/\
                                         {{ sap_inifile_template }}{% if sapbits_sas_token is not undefined %}?{{ sapbits_sas_token }}{% endif %}"
     dest:                              "{{ download_directory }}/bom/{{ sap_inifile_template }}"
     mode:                              0644
@@ -50,6 +55,22 @@
   become:                              "{{ bom_processing_become }}"
   register:                            result
   when:
+    - not always_upload_jinja_templates
+
+- name:                                "3.3.1 BoM Processing: {{ bom_name }} Download: {{ sap_inifile_template }} from the storage account"
+  ansible.builtin.get_url:
+    url:                               "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ bom_base_name }}/templates/\
+                                        {{ sap_inifile_template }}{% if sapbits_sas_token is not undefined %}?{{ sapbits_sas_token }}{% endif %}"
+    dest:                              "{{ download_directory }}/bom/{{ sap_inifile_template }}"
+    mode:                              0644
+    force:                             true
+  delegate_to:                         localhost
+  become_user:                         root
+  become:                              "{{ bom_processing_become }}"
+  register:                            result
+  when:
+    - distribution_id != 'suse15'
+    - distribution_id != 'redhat8'
     - not always_upload_jinja_templates
 
 - name:                                "BOM: Create ini files ({{ bom_base_name }})"
