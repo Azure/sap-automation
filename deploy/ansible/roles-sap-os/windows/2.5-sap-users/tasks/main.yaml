@@ -3,6 +3,17 @@
 # Description:  Manage Windows domain users and local groups
 #
 
+- name:                                "2.5-sap-users: Calculating the domain value from {{ domain_name }}"
+  ansible.builtin.set_fact:
+    domain:                            "{{ domain_name | split('.') | first }}"
+    cacheable:                         true
+  when:
+    - domain_name is defined
+    - domain_name | type_debug != 'NoneType'
+    - domain_name | trim | length > 1
+    - domain is not defined
+
+
 - name:                                "2.5-sap-users: Add Local Groups"
   ansible.builtin.import_tasks:        add_local_groups.yaml
 
