@@ -320,6 +320,8 @@ function set_executing_user_environment_variables() {
         az_client_id=$(az account show --query user.name -o tsv)
         az_subscription_id=$(az account show --query id -o tsv)
 
+        az account show
+
         echo -e "\t\t[set_executing_user_environment_variables]: client id: "${az_client_id}""
 
         #do we need to get details of the service principal?
