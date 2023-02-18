@@ -457,6 +457,7 @@ stages:
                 if [ -f /etc/profile.d/deploy_server.sh ]; then
                   az logout --output none
                   az login --identity --output none
+                  export ARM_USE_MSI=true
                 fi
 
                 $SAP_AUTOMATION_REPO_PATH/deploy/scripts/install_workloadzone.sh --parameterfile $(workload_zone_configuration_file)       \
