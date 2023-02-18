@@ -36,7 +36,6 @@ output "deployer_id" {
 }
 
 output "deployer_uai" {
-  sensitive = true
   value = {
     principal_id = module.sap_deployer.deployer_uai.principal_id
     tenant_id    = module.sap_deployer.deployer_uai.tenant_id
