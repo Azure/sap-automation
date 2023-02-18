@@ -13,6 +13,12 @@
 */
 
 provider "azurerm" {
+  features {}
+  subscription_id = length(local.deployer_subscription_id) > 0 ? local.deployer_subscription_id : null
+  use_msi         = true
+}
+
+provider "azurerm" {
   features {
     resource_group {
       prevent_deletion_if_contains_resources = true
@@ -32,14 +38,8 @@ provider "azurerm" {
   use_msi         = var.use_spn ? false : true
 
   partner_id = "25c87b5f-716a-4067-bcd8-116956916dd6"
+  alias      = "workload"
 
-}
-
-provider "azurerm" {
-  features {}
-  subscription_id = length(local.deployer_subscription_id) > 0 ? local.deployer_subscription_id : null
-  alias           = "deployer"
-  use_msi         = true
 }
 
 provider "azurerm" {
