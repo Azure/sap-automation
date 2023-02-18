@@ -87,6 +87,7 @@
             sapbits_sas_token:         "{{ hostvars.localhost.sapbits_sas_token }}"
             bom_processing:            true
             always_upload_jinja_templates: false
+            sa_enabled:                true
           tags:
             - always
 

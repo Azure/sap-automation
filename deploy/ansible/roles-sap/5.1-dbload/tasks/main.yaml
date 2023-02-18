@@ -97,7 +97,7 @@
         scs_server:                    "{% if scs_high_availability %}{{ sid_to_be_deployed.sid | lower }}scs{{ scs_instance_number }}cl1{% else %}{{ hostvars[scs_server_temp | first]['virtual_host'] }}{% endif %}"
         db_virtual_host:               "{{ hostvars[db_server_temp | first]['virtual_host'] }}"
 
-    - name:                            "SCS Install: check media exists"
+    - name:                            "DBLoad: check media exists"
       ansible.builtin.stat:
         path:                          "{{ target_media_location }}/SWPM/sapinst"
       register:                        sapinst_found
