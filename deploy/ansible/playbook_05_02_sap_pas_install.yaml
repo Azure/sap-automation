@@ -354,7 +354,7 @@
 # +------------------------------------4--------------------------------------*/
 - hosts:                               "{{ sap_sid | upper }}_DB"
 
-  name:                                "Restting the DB2 LOCK escalationparameters"
+  name:                                "Resetting the DB2 LOCK escalationparameters"
   serial:                              1
   gather_facts:                        true
   vars_files:

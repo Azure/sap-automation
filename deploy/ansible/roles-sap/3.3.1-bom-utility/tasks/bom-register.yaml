@@ -50,7 +50,6 @@
   ansible.builtin.debug:
     msg:
       - "BoM Name:   {{ new_bom_name }}"
-      - "SA Enabled: {{ sa_enabled }}"
 
 # -------------------------------------+---------------------------------------8
 # Step: 03
