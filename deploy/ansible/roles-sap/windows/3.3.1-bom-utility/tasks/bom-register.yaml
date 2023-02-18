@@ -148,7 +148,7 @@
 
 - name:                                "{{ task_prefix }} Ensure that a BoM object is created"
   ansible.builtin.fail:
-    msg:                               "Unable to find the Bill of materials file for {{ bom_name }} "
+    msg:                               "Unable to find the Bill of materials file for {{ bom_name }}."
   when:                                bom is not defined
 
 - name:                                "{{ task_prefix }} Show BoM details"
