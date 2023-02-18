@@ -152,6 +152,7 @@
         sapbits_sas_token:             "{{ hostvars.localhost.sapbits_sas_token }}"
         pas_file_path:                 INSTALL/DISTRIBUTED/ABAP/APP1
         always_upload_jinja_templates: false
+        sa_enabled:                    true
       tags:
         - always
 

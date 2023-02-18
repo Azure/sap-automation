@@ -144,6 +144,7 @@
         sapbits_sas_token:             "{{ hostvars.localhost.sapbits_sas_token }}"
         app_file_path:                 INSTALL/AS/APPS/
         always_upload_jinja_templates: false
+        sa_enabled:                    true
 
     - name:                            "APP Installation Playbook: Define this SID"
       ansible.builtin.set_fact:
