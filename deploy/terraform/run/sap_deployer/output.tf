@@ -42,6 +42,10 @@ output "deployer_uai" {
   }
 }
 
+output "deployer_msi_id" {
+  value = module.sap_deployer.deployer_uai.principal_id
+}
+
 
 output "deployer_public_ip_address" {
   value = module.sap_deployer.deployer_public_ip_address
