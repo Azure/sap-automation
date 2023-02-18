@@ -380,6 +380,8 @@
                 removes:               '{{ log_dir_windows }}\sapinst_logs'
               register:                sapinst_log_name
               failed_when:             sapinst_log_name.rc > 0
+              when:
+                    - ansible_os_family == "Windows"
 
           tags:
             - 5.1-dbload
