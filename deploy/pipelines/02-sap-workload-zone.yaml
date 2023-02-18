@@ -605,6 +605,8 @@ stages:
               SAPBITS:                 $(INSTALLATION_MEDIA_ACCOUNT)
               TEST_ONLY:               ${{ parameters.test }}
               AZURE_DEVOPS_EXT_PAT:    $(PAT)
+              TF_LOG:                  $(TF_LOG)
+              TF_IN_AUTOMATION:        true
               SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
               CONFIG_REPO_PATH:        ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
             failOnStderr: false
