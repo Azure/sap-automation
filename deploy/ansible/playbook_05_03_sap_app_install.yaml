@@ -282,7 +282,7 @@
               register:                sapinst_log_name
               failed_when:             sapinst_log_name.rc > 0
               when:
-                    - ansible_os_family == "Windows"
+                - ansible_os_family == "Windows"
 
             - name:                    "APP Playbook - Install: - Create app-install-done flag"
               delegate_to:             localhost
