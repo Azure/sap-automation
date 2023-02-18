@@ -269,7 +269,7 @@
             - 5.1-dbload
 
       when:
-        - platform == 'ORACLE'
+        - platform in ['ORACLE', 'ORACLE-ASM']
         - ansible_os_family != "Windows"
 
 # /*----------------------------------------------------------------------------8
