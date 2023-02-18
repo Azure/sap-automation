@@ -39,21 +39,18 @@
 # Step: 02
 # Description:  Set Python version
 #
-- name:                                 "3.3.1 BoM Processing: - Set Python2 version for {{ distribution_id }}"
-  ansible.builtin.set_fact:
-    python_version:                     'python2'
-  when:                                 distribution_id not in ['suse15', 'redhat8', 'sles_sap15', 'oraclelinux8']
-
-- name:                                 "3.3.1 BoM Processing: - Set Python3 version for {{ distribution_id }}"
-  ansible.builtin.set_fact:
-    python_version:                     'python3'
-  when:                                 distribution_id in ['suse15', 'redhat8', 'sles_sap15', 'oraclelinux8']
 # Step: 02 - END
 # -------------------------------------+---------------------------------------8
 
 - name:                                "3.3.1 BoM Processing: - Set the new name"
   ansible.builtin.set_fact:
     new_bom_name:                      "{{ bom_base_name }}{{ bom_suffix }}"
+
+- name:                                "3.3.1 BoM Processing: - Show new name"
+  ansible.builtin.debug:
+    msg:
+      - "BoM Name:   {{ new_bom_name }}"
+      - "SA Enabled: {{ sa_enabled }}"
 
 # -------------------------------------+---------------------------------------8
 # Step: 03
