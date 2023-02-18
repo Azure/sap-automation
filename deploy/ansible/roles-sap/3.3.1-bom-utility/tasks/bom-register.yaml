@@ -92,7 +92,7 @@
 # -------------------------------------+---------------------------------------8
 
   when:
-    - sa_enabled | default(false)                                                 # when true; if not defined, then value is false
+    - sa_enabled | default(true)                                                 # when true; if not defined, then value is false
     # - sa_enabled is defined
     # - sa_enabled
 
