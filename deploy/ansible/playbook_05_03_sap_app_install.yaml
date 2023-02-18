@@ -78,7 +78,7 @@
     - name:                            Run the APP installation Playbook
       become:                          true
       when:
-        - platform != 'ORACLE'
+        - platform not in [ "ORACLE", "ORACLE-ASM" ]
         - ansible_os_family != "Windows"
       block:
         - name:                            "APP Installation Playbook: Define this SID"
