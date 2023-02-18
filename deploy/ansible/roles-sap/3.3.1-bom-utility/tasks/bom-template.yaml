@@ -44,15 +44,6 @@
 #
 # -------------------------------------+---------------------------------------8
 
-- name:                                "3.3.1 BoM Template processing: - Set Python version {{ distribution_id }}"
-  ansible.builtin.set_fact:
-    python_version:                    'python2'
-
-- name:                                "3.3.1 BoM Template processing: - Set Python version {{ distribution_id }}"
-  ansible.builtin.set_fact:
-    python_version:                    'python3'
-  when:                                distribution_id in ['suse15', 'redhat8', 'sles_sap15']
-
 - name:                                "3.3.1 BoM Template Processing: - Set the new name"
   ansible.builtin.set_fact:
     new_bom_name:                      "{{ bom_base_name }}{{ bom_suffix }}"
