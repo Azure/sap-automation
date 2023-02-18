@@ -119,6 +119,7 @@
                 name:                  roles-sap/5.1-dbload
               vars:
                 scs_instance_number: "{{ sid_to_be_deployed.ascs_inst_no }}"
+                sa_enabled:            true
               loop:                    "{{ all_sids }}"
               loop_control:
                 loop_var:              sid_to_be_deployed
