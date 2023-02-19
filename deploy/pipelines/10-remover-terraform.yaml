@@ -89,7 +89,6 @@ stages:
               #!/bin/bash
                 green="\e[1;32m" ; reset="\e[0m"
               echo -e "$green--- Checkout $(Build.SourceBranchName) ---$reset"
-                git checkout -q $(Build.SourceBranchName)
 
               echo "##vso[build.updatebuildnumber]Removing the SAP System defined in $(sap_system_folder)"
 
@@ -139,7 +138,6 @@ stages:
                   rm -f terraform_$(tf_version)_linux_amd64.zip
               else
                 source /etc/profile.d/deploy_server.sh
-
               fi
               echo -e "$green--- Configure devops CLI extension ---$reset"
 
@@ -267,17 +265,6 @@ stages:
                 fi
               else
                 echo -e "$green --- Running on deployer ---$reset"
-
-                tfstate_resource_id=$(az resource list --name "${REMOTE_STATE_SA}" --subscription ${STATE_SUBSCRIPTION} --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
-                if [ -z $tfstate_resource_id ]; then
-                  az login --service-principal --username $WL_ARM_CLIENT_ID --password=$WL_ARM_CLIENT_SECRET --tenant $WL_ARM_TENANT_ID  --output none
-                  return_code=$?
-                  if [ 0 != $return_code ]; then
-                    echo -e "$boldred--- Login failed ---$reset"
-                    echo "##vso[task.logissue type=error]az login failed."
-                    exit $return_code
-                  fi
-                fi
               fi
 
               echo -e "$green--- Set variables ---$reset"
