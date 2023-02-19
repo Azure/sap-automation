@@ -590,10 +590,6 @@ if [ 0 == $return_value ] ; then
         deployer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output deployer_public_ip_address | tr -d \")
         save_config_var "deployer_public_ip_address" "${system_config_information}"
 
-        terraform -chdir="${terraform_module_directory}" output -no-color deployer_msi_id
-
-        terraform -chdir="${terraform_module_directory}" output 
-
         keyvault=$(terraform -chdir="${terraform_module_directory}"  output -no-color -raw deployer_kv_user_name | tr -d \")
         save_config_var "keyvault" "${system_config_information}"
         if [ 1 == $called_from_ado ] ; then
@@ -1026,6 +1022,12 @@ then
     keyvault=$(terraform -chdir="${terraform_module_directory}"  output -no-color -raw deployer_kv_user_name | tr -d \")
 
     created_resource_group_name=$(terraform -chdir="${terraform_module_directory}"  output -no-color -raw created_resource_group_name | tr -d \")
+
+    terraform -chdir="${terraform_module_directory}" output -no-color deployer_msi_id
+
+    terraform -chdir="${terraform_module_directory}" output 
+
+
 
     az deployment group create --resource-group ${created_resource_group_name} --name "ControlPlane_Deployer_${created_resource_group_name}" --template-file "${script_directory}/templates/empty-deployment.json" --output none
     if [ 1 == $called_from_ado ] ; then
