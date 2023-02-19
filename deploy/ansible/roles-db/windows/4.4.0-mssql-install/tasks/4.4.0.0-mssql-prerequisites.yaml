@@ -21,6 +21,17 @@
     - SecurityPolicyDsc
     - StorageDsc
 
+
+- name:                                "WIN: Calculating the domain value from {{ domain_name }}"
+  ansible.builtin.set_fact:
+    domain:                            "{{ domain_name | split('.') | first }}"
+    cacheable:                         true
+  when:
+    - domain_name is defined
+    - domain_name | type_debug != 'NoneType'
+    - domain_name | trim | length > 1
+    - domain is not defined
+
 # Examples for Assign Local Security
 # Reference: https://github.com/dsccommunity/SecurityPolicyDsc/blob/master/source/Examples/Resources/UserRightsAssignment/1-UserRightsAssignment_Basic_Config.ps1
 # - name:                                     "WIN-SQL: Assign Act_as_part_of_the_operating_system Policy"
