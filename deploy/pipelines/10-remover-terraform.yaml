@@ -101,7 +101,7 @@ stages:
                   exit 2
                 fi
 
-                if [ -z $(ARM_SUBSCRIPTION_ID) ]; then
+                if [ -z $WL_ARM_SUBSCRIPTION_ID ]; then
                   echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined."
                   exit 2
                 fi
