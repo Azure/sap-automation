@@ -189,10 +189,10 @@ data "template_cloudinit_config" "config_growpart" {
 }
 
 resource "azurerm_key_vault_secret" "iscsi_ppk" {
+  provider     = azurerm.main
   depends_on = [
     azurerm_key_vault_access_policy.kv_user
   ]
-  provider     = azurerm.main
   count        = (local.enable_landscape_kv && local.enable_iscsi_auth_key && !local.iscsi_key_exist) ? 1 : 0
   content_type = ""
   name         = local.iscsi_ppk_name
@@ -201,10 +201,10 @@ resource "azurerm_key_vault_secret" "iscsi_ppk" {
 }
 
 resource "azurerm_key_vault_secret" "iscsi_pk" {
+  provider     = azurerm.main
   depends_on = [
     azurerm_key_vault_access_policy.kv_user
   ]
-  provider     = azurerm.main
   count        = (local.enable_landscape_kv && local.enable_iscsi_auth_key && !local.iscsi_key_exist) ? 1 : 0
   content_type = ""
   name         = local.iscsi_pk_name
@@ -213,10 +213,10 @@ resource "azurerm_key_vault_secret" "iscsi_pk" {
 }
 
 resource "azurerm_key_vault_secret" "iscsi_username" {
+  provider     = azurerm.main
   depends_on = [
     azurerm_key_vault_access_policy.kv_user
   ]
-  provider     = azurerm.main
   count        = (local.enable_landscape_kv && local.enable_iscsi && !local.iscsi_username_exist) ? 1 : 0
   content_type = ""
   name         = local.iscsi_username_name
@@ -225,10 +225,10 @@ resource "azurerm_key_vault_secret" "iscsi_username" {
 }
 
 resource "azurerm_key_vault_secret" "iscsi_password" {
+  provider     = azurerm.main
   depends_on = [
     azurerm_key_vault_access_policy.kv_user
   ]
-  provider     = azurerm.main
   count        = (local.enable_landscape_kv && local.enable_iscsi_auth_password && !local.iscsi_pwd_exist) ? 1 : 0
   content_type = ""
   name         = local.iscsi_pwd_name

@@ -64,6 +64,7 @@ resource "azurerm_netapp_pool" "workload_netapp_pool" {
 }
 
 data "azurerm_netapp_pool" "workload_netapp_pool" {
+  provider = azurerm.main
   count = var.ANF_settings.use ? (
     var.ANF_settings.use_existing_pool ? (
       1) : (
@@ -152,6 +153,7 @@ resource "azurerm_netapp_volume" "transport" {
 }
 
 data "azurerm_netapp_volume" "transport" {
+  provider = azurerm.main
   count = var.NFS_provider == "ANF" ? (
     var.ANF_settings.use_existing_transport_volume ? (
       1) : (
@@ -252,6 +254,7 @@ resource "azurerm_netapp_volume" "install" {
 }
 
 data "azurerm_netapp_volume" "install" {
+  provider = azurerm.main
   count = var.NFS_provider == "ANF" ? (
     var.ANF_settings.use_existing_install_volume ? (
       1) : (

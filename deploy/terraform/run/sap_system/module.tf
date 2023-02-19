@@ -276,8 +276,8 @@ module "anydb_node" {
 module "output_files" {
   source = "../../terraform-units/modules/sap_system/output_files"
   providers = {
-    azurerm.main          = azurerm
-    azurerm.deployer      = azurerm.deployer
+    azurerm.main          = azurerm.system
+    azurerm.deployer      = azurerm
     azurerm.dnsmanagement = azurerm.dnsmanagement
   }
   database            = local.database
