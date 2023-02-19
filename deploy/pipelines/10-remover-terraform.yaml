@@ -107,17 +107,17 @@ stages:
                   exit 2
                 fi
 
-                if [ -z $(ARM_CLIENT_ID) ]; then
+                if [ -z $WL_ARM_CLIENT_ID ]; then
                   echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined."
                   exit 2
                 fi
 
-                if [ -z $ARM_CLIENT_SECRET ]; then
+                if [ -z $WL_ARM_CLIENT_SECRET ]; then
                   echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined."
                   exit 2
                 fi
 
-                if [ -z $(ARM_TENANT_ID) ]; then
+                if [ -z $WL_ARM_TENANT_ID ]; then
                   echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined."
                   exit 2
                 fi
@@ -137,6 +137,8 @@ stages:
                   fi
                   unzip -qq terraform_$(tf_version)_linux_amd64.zip ; sudo mv terraform /bin/
                   rm -f terraform_$(tf_version)_linux_amd64.zip
+              else
+                source /etc/profile.d/deploy_server.sh
 
               fi
               echo -e "$green--- Configure devops CLI extension ---$reset"
@@ -256,7 +258,7 @@ stages:
               # Check if running on deployer
               if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 
-                az login --service-principal --username $(ARM_CLIENT_ID) --password=$ARM_CLIENT_SECRET --tenant $(ARM_TENANT_ID)  --output none
+                az login --service-principal --username $(WL_ARM_CLIENT_ID) --password=$WL_ARM_CLIENT_SECRET --tenant $WL_ARM_TENANT_ID  --output none
                 return_code=$?
                 if [ 0 != $return_code ]; then
                   echo -e "$boldred--- Login failed ---$reset"
@@ -265,11 +267,10 @@ stages:
                 fi
               else
                 echo -e "$green --- Running on deployer ---$reset"
-                az login --identity --output none
 
                 tfstate_resource_id=$(az resource list --name "${REMOTE_STATE_SA}" --subscription ${STATE_SUBSCRIPTION} --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
                 if [ -z $tfstate_resource_id ]; then
-                  az login --service-principal --username $(ARM_CLIENT_ID) --password=$ARM_CLIENT_SECRET --tenant $(ARM_TENANT_ID)  --output none
+                  az login --service-principal --username $WL_ARM_CLIENT_ID --password=$WL_ARM_CLIENT_SECRET --tenant $WL_ARM_TENANT_ID  --output none
                   return_code=$?
                   if [ 0 != $return_code ]; then
                     echo -e "$boldred--- Login failed ---$reset"
@@ -377,10 +378,10 @@ stages:
             displayName:               "Remove SAP system"
             env:
               SYSTEM_ACCESSTOKEN:       $(System.AccessToken)
-              ARM_SUBSCRIPTION_ID:      $(ARM_SUBSCRIPTION_ID)
-              ARM_CLIENT_ID:            $(ARM_CLIENT_ID)
-              ARM_CLIENT_SECRET:        $(ARM_CLIENT_SECRET)
-              ARM_TENANT_ID:            $(ARM_TENANT_ID)
+              WL_ARM_SUBSCRIPTION_ID:   $(ARM_SUBSCRIPTION_ID)
+              WL_ARM_CLIENT_ID:         $(ARM_CLIENT_ID)
+              WL_ARM_CLIENT_SECRET:     $(ARM_CLIENT_SECRET)
+              WL_ARM_TENANT_ID:         $(ARM_TENANT_ID)
               AZURE_DEVOPS_EXT_PAT:     $(PAT)
               SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
               CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
@@ -426,22 +427,22 @@ stages:
                   exit 2
                 fi
 
-                if [ -z $(ARM_SUBSCRIPTION_ID) ]; then
+                if [ -z $WL_ARM_SUBSCRIPTION_ID ]; then
                   echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined."
                   exit 2
                 fi
 
-                if [ -z $(ARM_CLIENT_ID) ]; then
+                if [ -z $WL_ARM_CLIENT_ID ]; then
                   echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined."
                   exit 2
                 fi
 
-                if [ -z $ARM_CLIENT_SECRET ]; then
+                if [ -z $WL_ARM_CLIENT_SECRET ]; then
                   echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined."
                   exit 2
                 fi
 
-                if [ -z $(ARM_TENANT_ID) ]; then
+                if [ -z $WL_ARM_TENANT_ID ]; then
                   echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined."
                   exit 2
                 fi
@@ -461,6 +462,8 @@ stages:
                   fi
                   unzip -qq terraform_$(tf_version)_linux_amd64.zip ; sudo mv terraform /bin/
                   rm -f terraform_$(tf_version)_linux_amd64.zip
+              else
+                source /etc/profile.d/deploy_server.sh
 
               fi
               echo -e "$green--- Configure devops CLI extension ---$reset"
@@ -606,7 +609,7 @@ stages:
               # Check if running on deployer
               if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 
-                az login --service-principal --username $(ARM_CLIENT_ID) --password=$ARM_CLIENT_SECRET --tenant $(ARM_TENANT_ID)  --output none
+                az login --service-principal --username $WL_ARM_CLIENT_ID --password=$WL_ARM_CLIENT_SECRET --tenant $WL_ARM_TENANT_ID  --output none
                 return_code=$?
                 if [ 0 != $return_code ]; then
                   echo -e "$boldred--- Login failed ---$reset"
@@ -619,7 +622,7 @@ stages:
 
                 tfstate_resource_id=$(az resource list --name "${REMOTE_STATE_SA}" --subscription ${STATE_SUBSCRIPTION} --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
                 if [ -z $tfstate_resource_id ]; then
-                  az login --service-principal --username $(ARM_CLIENT_ID) --password=$ARM_CLIENT_SECRET --tenant $(ARM_TENANT_ID)  --output none
+                  az login --service-principal --username $WL_ARM_CLIENT_ID --password=$WL_ARM_CLIENT_SECRET --tenant $WL_ARM_TENANT_ID  --output none
                   return_code=$?
                   if [ 0 != $return_code ]; then
                     echo -e "$boldred--- Login failed ---$reset"
@@ -709,7 +712,7 @@ stages:
             env:
               SYSTEM_ACCESSTOKEN:       $(System.AccessToken)
               ARM_SUBSCRIPTION_ID:      $(ARM_SUBSCRIPTION_ID)
-              ARM_CLIENT_ID:            $(ARM_CLIENT_ID)
+              ARM_CLIENT_ID:            $(WL_ARM_CLIENT_ID)
               ARM_CLIENT_SECRET:        $(ARM_CLIENT_SECRET)
               ARM_TENANT_ID:            $(ARM_TENANT_ID)
               AZURE_DEVOPS_EXT_PAT:     $(PAT)
