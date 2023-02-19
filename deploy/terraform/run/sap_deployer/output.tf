@@ -63,7 +63,6 @@ output "vnet_mgmt_id" {
 
 output "subnet_mgmt_id" {
   value = module.sap_deployer.subnet_mgmt_id
-  asd
 }
 
 output "subnet_webapp_id" {
