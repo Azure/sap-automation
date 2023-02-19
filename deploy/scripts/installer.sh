@@ -1023,15 +1023,11 @@ then
 
     created_resource_group_name=$(terraform -chdir="${terraform_module_directory}"  output -no-color -raw created_resource_group_name | tr -d \")
 
-    terraform -chdir="${terraform_module_directory}" output -no-color deployer_msi_id
-
-    terraform -chdir="${terraform_module_directory}" output 
-
-
-
     az deployment group create --resource-group ${created_resource_group_name} --name "ControlPlane_Deployer_${created_resource_group_name}" --template-file "${script_directory}/templates/empty-deployment.json" --output none
     if [ 1 == $called_from_ado ] ; then
 
+        terraform -chdir="${terraform_module_directory}" output -no-color deployer_uai -json | jq 
+        terraform -chdir="${terraform_module_directory}" output -no-color deployer_uai -json | jq  -r '.client_id' | tr -d \"
         if [ -n "${created_resource_group_name}" ] ; then
             az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "WEBAPP_RESOURCE_GROUP.value")
             if [ -z ${az_var} ]; then
