@@ -234,6 +234,8 @@
         SAPSYSTEMNAME:                 "{{ sid_to_be_deployed.sid | upper }}"
         ssfs_connect:                  1
       register:                        hdbuserstore
+      vars:
+        allow_world_readable_tmpfiles: true
       tags:
         - skip_ansible_lint
       when:
@@ -291,6 +293,8 @@
       register:                        hdbuserstore
       become:                          true
       become_user:                     "{{ sid_to_be_deployed.sid | lower }}adm"
+      vars:
+        allow_world_readable_tmpfiles: true
       when:
         - db_high_availability
         - platform == 'HANA'
