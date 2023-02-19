@@ -8,7 +8,7 @@
   ansible.windows.win_dsc:
     resource_name:                          UserRightsAssignment
     Policy:                                 "{{ item }}"
-    Identity:                               '{{ domain }}\{{ sap_sid }}adm'
+    Identity:                               '{{ sap_sid }}adm@{{ domain_name }}'
   loop:
     - Act_as_part_of_the_operating_system
     - Adjust_memory_quotas_for_a_process
