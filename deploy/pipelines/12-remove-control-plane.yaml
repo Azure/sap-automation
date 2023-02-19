@@ -263,7 +263,7 @@ stages:
                 if [ -f DEPLOYER/$(deployer_folder)/terraform.tfstate ]; then
                     echo "Compressing the state file."
                     sudo apt install zip
-                    pass=$(echo $ARM_CLIENT_SECRET | sed 's/-//g')
+                    pass=$(echo $CP_ARM_CLIENT_SECRET | sed 's/-//g')
                     zip -j -P "${pass}" DEPLOYER/$(deployer_folder)/state DEPLOYER/$(deployer_folder)/terraform.tfstate
                     git add -f DEPLOYER/$(deployer_folder)/state.zip
                     changed=1
