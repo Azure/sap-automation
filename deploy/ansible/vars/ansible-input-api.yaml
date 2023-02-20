@@ -134,11 +134,10 @@ NFS_provider:                           "NONE"
 
 # Windows AD specific parameters
 domain_name:
-domain:
 domain_ou_path:                         ""
 domain_service_account:                 "{{ adsvc_account }}"
 domain_service_password:                "{{ adsvc_password }}"
-domain_user:                            '{{ domain }}\{{ sap_sid }}adm'
+domain_user:                            '{{ sap_sid }}adm@{{ domain_name }}'
 domain_user_password:                   "{{ winadm_password }}"
 sid_service_password:                   "{{ svc_password }}"
 win_sap_admin:                          "SAP_{{ sap_sid | upper }}_GlobalAdmin"
