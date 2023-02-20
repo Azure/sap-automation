@@ -137,7 +137,7 @@ stages:
                    LOCATION=$(grep "^location" $CONFIG_REPO_PATH/DEPLOYER/$(deployer_folder)/$(deployer_configuration_file) | awk -F'=' '{print $2}' | xargs | tr 'A-Z' 'a-z')
                 echo Environment: ${ENVIRONMENT}
                 echo Location:    ${LOCATION}
-                
+
                 ENVIRONMENT_IN_FILENAME=$(echo $(deployer_folder) | awk -F'-' '{print $1}' | xargs )
                           LOCATION_CODE=$(echo $(deployer_folder) | awk -F'-' '{print $2}' | xargs )
                 case "$LOCATION_CODE" in
@@ -188,7 +188,7 @@ stages:
                   "WEEU") LOCATION_IN_FILENAME="westeurope" ;;
                   "WEIN") LOCATION_IN_FILENAME="westindia" ;;
                   "WEUS") LOCATION_IN_FILENAME="westus" ;;
-                  "WUS2") LOCATION_IN_FILENAME="westus" ;;
+                  "WUS2") LOCATION_IN_FILENAME="westus2" ;;
                   "WUS3") LOCATION_IN_FILENAME="westus3" ;;
                   *) LOCATION_IN_FILENAME="westeurope" ;;
                 esac
@@ -425,7 +425,7 @@ stages:
                    LOCATION=$(grep "^location" $CONFIG_REPO_PATH/DEPLOYER/$(deployer_folder)/$(deployer_configuration_file) | awk -F'=' '{print $2}' | xargs | tr 'A-Z' 'a-z')
                 echo Environment: ${ENVIRONMENT}
                 echo Location:    ${LOCATION}
-                
+
                 ENVIRONMENT_IN_FILENAME=$(echo $(deployer_folder) | awk -F'-' '{print $1}' | xargs )
                           LOCATION_CODE=$(echo $(deployer_folder) | awk -F'-' '{print $2}' | xargs )
                 case "$LOCATION_CODE" in
@@ -476,7 +476,7 @@ stages:
                   "WEEU") LOCATION_IN_FILENAME="westeurope" ;;
                   "WEIN") LOCATION_IN_FILENAME="westindia" ;;
                   "WEUS") LOCATION_IN_FILENAME="westus" ;;
-                  "WUS2") LOCATION_IN_FILENAME="westus" ;;
+                  "WUS2") LOCATION_IN_FILENAME="westus2" ;;
                   "WUS3") LOCATION_IN_FILENAME="westus3" ;;
                   *) LOCATION_IN_FILENAME="westeurope" ;;
                 esac
