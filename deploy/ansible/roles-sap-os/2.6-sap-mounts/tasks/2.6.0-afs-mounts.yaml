@@ -32,7 +32,7 @@
   ansible.builtin.debug:
     msg:
       - "List of all the SAP mounts: {{ all_sap_mounts }}"
-      - "First server: first_server_temp"
+      - "First server: {{ first_server_temp }}"
     verbosity:                         2
 
 # /*---------------------------------------------------------------------------8

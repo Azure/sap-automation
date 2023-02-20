@@ -128,7 +128,7 @@
   loop:
     - { type: 'nfs4', src: '{{ usr_sap_install_mountpoint }}', path: '{{ target_media_location }}' }
   when:
-    - node_tier == 'observer'
+    - node_tier in ['observer', 'oracle-asm']
     - use_AFS
 
 # Debug for testing

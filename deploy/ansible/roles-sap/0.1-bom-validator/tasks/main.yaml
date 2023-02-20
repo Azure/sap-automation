@@ -270,20 +270,20 @@
 # Step: 10-01
 # Description:
 #
-    # - name:                                "0.1 BoM Validator: - delete combined BoM"
-    #   ansible.builtin.command: >-
-    #                                       az storage blob delete
-    #                                         --account-name {{ sapbits_location_base_path.rpartition('//')[2].split('.')[0] }}
-    #                                         --sas-token {{ sapbits_sas_token }}
-    #                                         --container-name {{ sapbits_location_base_path.rpartition('//')[2].split('/')[1] }}/{{ sapbits_bom_files }}/boms/{{ bom_base_name }}
-    #                                         --name {{ bom_base_name }}.yaml
-    #   delegate_to:                         localhost
-    #   register:                            azresult
-    #   changed_when:                        false
-    #   failed_when:
-    #     - azresult.rc != 0
-    #     - azresult.stderr is defined
-    #     - azresult.stderr.find("BlobNotFound") == -1
+    - name:                                "0.1 BoM Validator: - delete combined BoM"
+      ansible.builtin.command: >-
+                                          az storage blob delete
+                                            --account-name {{ sapbits_location_base_path.rpartition('//')[2].split('.')[0] }}
+                                            --sas-token {{ sapbits_sas_token }}
+                                            --container-name {{ sapbits_location_base_path.rpartition('//')[2].split('/')[1] }}/{{ sapbits_bom_files }}/boms/{{ new_bom_name }}
+                                            --name {{ bom_base_name }}.yaml
+      delegate_to:                         localhost
+      register:                            azresult
+      changed_when:                        false
+      failed_when:
+        - azresult.rc != 0
+        - azresult.stderr is defined
+        - azresult.stderr.find("BlobNotFound") == -1
 # Step: 10-01 - END
 # -------------------------------------+---------------------------------------8
 
@@ -299,7 +299,7 @@
                                             --sas-token     {{ sapbits_sas_token }}
                                             --destination   {{ sapbits_location_base_path.rpartition('//')[2].split('/')[1] }}/{{ sapbits_bom_files }}/boms/{{ new_bom_name }}
                                             --source        {{ download_directory }}/bom/{{ new_bom_name }}
-                                            --overwrite true
+                                            --overwrite True
                                             --if-none-match "*"
                                             --no-progress
       delegate_to:                         localhost

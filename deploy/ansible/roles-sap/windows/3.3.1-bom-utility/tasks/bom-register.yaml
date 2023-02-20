@@ -27,19 +27,6 @@
     - path: "{{ download_directory }}/bom"
     - path: "{{ download_directory }}/files"
 
-
-- name:                                "3.3.1 BoM Processing: - Set Python version for {{ distribution_id }}"
-  ansible.builtin.set_fact:
-    python_version:                    'python2'
-  when:
-    - distribution_id != 'suse15'
-    - distribution_id != 'redhat8'
-
-- name:                                "3.3 BoM Processing: - Set Python version for {{ distribution_id }}"
-  ansible.builtin.set_fact:
-    python_version:                    'python3'
-  when:                                distribution_id in ['suse15', 'redhat8']
-
 - name:                                "3.3.1 BoM Processing: {{ bom_name }} Download: {{ bom_name }} from the storage account"
   ansible.builtin.get_url:
     url:                               "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ bom_name }}/{{ bom_name }}.yaml\
@@ -50,25 +37,6 @@
   become:                              "{{ bom_processing_become }}"
   ignore_errors:                       true
   register:                            result
-  vars:
-    ansible_python_interpreter:        "{{ python_version }}"
-  when:
-    - distribution_id in ['suse15', 'redhat8']
-
-- name:                                "3.3.1 BoM Processing: {{ bom_name }} Download: {{ bom_name }} from the storage account"
-  ansible.builtin.get_url:
-    url:                               "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ bom_name }}/{{ bom_name }}.yaml\
-                                       {% if sapbits_sas_token is not undefined %}?{{ sapbits_sas_token }}{% endif %}"
-    dest:                              "{{ download_directory }}/bom/{{ bom_name }}.yaml"
-    mode:                              0644
-  delegate_to:                         localhost
-  become:                              "{{ bom_processing_become }}"
-  become_user:                         root
-  register:                            result
-  ignore_errors:                       true
-  when:
-    - distribution_id != 'suse15'
-    - distribution_id != 'redhat8'
 
 # - name:                                "BOM: Show blob status"
 #   ansible.builtin.debug:
@@ -148,7 +116,7 @@
 
 - name:                                "{{ task_prefix }} Ensure that a BoM object is created"
   ansible.builtin.fail:
-    msg:                               "Unable to find the Bill of materials file for {{ bom_name }} "
+    msg:                               "Unable to find the Bill of materials file for {{ bom_name }}."
   when:                                bom is not defined
 
 - name:                                "{{ task_prefix }} Show BoM details"

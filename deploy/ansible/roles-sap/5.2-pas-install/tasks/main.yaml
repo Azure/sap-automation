@@ -254,12 +254,16 @@
 
     - name:                            "PAS Install: Set DB Virtual Host name ({{ db_lb_virtual_host }})"
       become:                          true
+      become_user:                     "{{ sid_to_be_deployed.sid | lower }}adm"
       ansible.builtin.shell: |
                                        {{ hdbuserstore_path }} SET DEFAULT {{ db_lb_virtual_host }}:30313@{{ db_sid | upper }} {{ hana_schema }} {{ main_password }}
       environment:
         SAPSYSTEMNAME:                 "{{ sid_to_be_deployed.sid | upper }}"
         TMPDIR:                        "{{ hdbuserstore_path }}"
+        ssfs_connect:                  1
       register:                        hdbuserstore
+      vars:
+        allow_world_readable_tmpfiles: true
       tags:
         - skip_ansible_lint
       when:
@@ -331,8 +335,12 @@
                                        {{ hdbuserstore_path }} SET DEFAULT {{ db_lb_virtual_host }}:3{{ db_instance_number }}13@{{ db_sid | upper }} {{ hana_schema }} {{ main_password }}
       environment:
         SAPSYSTEMNAME:                 "{{ sid_to_be_deployed.sid | upper }}"
+        ssfs_connect:                  1
       register:                        hdbuserstore
       become:                          true
+      become_user:                     "{{ sid_to_be_deployed.sid | lower }}adm"
+      vars:
+        allow_world_readable_tmpfiles: true
       when:
         - db_high_availability
         - platform == 'HANA'

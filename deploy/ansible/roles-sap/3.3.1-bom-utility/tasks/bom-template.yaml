@@ -81,26 +81,7 @@
   delegate_to:                         localhost
   become:                              "{{ bom_processing_become }}"
   register:                            result
-  vars:
-    ansible_python_interpreter:        "{{ python_version }}"
   when:
-    - distribution_id in ['suse15', 'redhat8', 'sles_sap15']
-    - not always_upload_jinja_templates
-
-- name:                                "3.3.1 BoM Template processing: {{ bom_name }} Download: {{ sap_inifile_template }} from the storage account"
-  ansible.builtin.get_url:
-    url:                               "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ bom_name }}/templates/\
-                                        {{ sap_inifile_template }}{% if sapbits_sas_token is not undefined %}?{{ sapbits_sas_token }}{% endif %}"
-    dest:                              "{{ download_directory }}/bom/{{ sap_inifile_template }}"
-    mode:                              0644
-    force:                             true
-  delegate_to:                         localhost
-  become:                              "{{ bom_processing_become }}"
-  register:                            result
-  when:
-    - distribution_id != 'suse15'
-    - distribution_id != 'sles_sap15'
-    - distribution_id != 'redhat8'
     - not always_upload_jinja_templates
 
 - name:                                "3.3.1 BoM Template processing: Remove ini file {{ sap_inifile }}"

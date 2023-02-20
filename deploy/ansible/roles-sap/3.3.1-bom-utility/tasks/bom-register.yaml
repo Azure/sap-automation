@@ -39,21 +39,17 @@
 # Step: 02
 # Description:  Set Python version
 #
-- name:                                 "3.3.1 BoM Processing: - Set Python2 version for {{ distribution_id }}"
-  ansible.builtin.set_fact:
-    python_version:                     'python2'
-  when:                                 distribution_id not in ['suse15', 'redhat8', 'sles_sap15', 'oraclelinux8']
-
-- name:                                 "3.3.1 BoM Processing: - Set Python3 version for {{ distribution_id }}"
-  ansible.builtin.set_fact:
-    python_version:                     'python3'
-  when:                                 distribution_id in ['suse15', 'redhat8', 'sles_sap15', 'oraclelinux8']
 # Step: 02 - END
 # -------------------------------------+---------------------------------------8
 
 - name:                                "3.3.1 BoM Processing: - Set the new name"
   ansible.builtin.set_fact:
     new_bom_name:                      "{{ bom_base_name }}{{ bom_suffix }}"
+
+- name:                                "3.3.1 BoM Processing: - Show new name"
+  ansible.builtin.debug:
+    msg:
+      - "BoM Name:   {{ new_bom_name }}"
 
 # -------------------------------------+---------------------------------------8
 # Step: 03
@@ -77,8 +73,6 @@
       # become:                           "{{ bom_processing_become }}"
       ignore_errors:                    true
       register:                         result
-      vars:
-        ansible_python_interpreter:     "{{ python_version }}"
 # Step: 03-01 - END
 # -------------------------------------+---------------------------------------8
 
@@ -97,7 +91,7 @@
 # -------------------------------------+---------------------------------------8
 
   when:
-    - sa_enabled | default(false)                                                 # when true; if not defined, then value is false
+    - sa_enabled | default(true)                                                 # when true; if not defined, then value is false
     # - sa_enabled is defined
     # - sa_enabled
 
@@ -266,7 +260,7 @@
 #
 - name:                                 "{{ task_prefix }} Validate that a BOM object is created"
   ansible.builtin.fail:
-    msg:                                "Unable to find the Bill of materials file for {{ bom_name }} "
+    msg:                                "Unable to find the Bill of materials file for {{ bom_name }}."
   when:                                 bom is not defined
 # Step: 06 - END
 # -------------------------------------+---------------------------------------8

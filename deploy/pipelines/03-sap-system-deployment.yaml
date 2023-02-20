@@ -395,5 +395,7 @@ stages:
               CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}
               AZURE_DEVOPS_EXT_PAT:     $(WZ_PAT)
               TEST_ONLY:                ${{ parameters.test }}
+              TF_LOG:                   $(TF_LOG)
+              TF_IN_AUTOMATION:         true
 
             failOnStderr:               false
