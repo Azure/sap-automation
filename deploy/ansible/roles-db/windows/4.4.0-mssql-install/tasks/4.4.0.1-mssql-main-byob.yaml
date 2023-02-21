@@ -71,8 +71,8 @@
         InstallSQLUserDBDir:                '{{ sap_deployment_automation }}\{{ sap_sid | upper }}\SQLBYOB'
         InstallSQLBackupDir:                '{{ sap_deployment_automation }}\{{ sap_sid | upper }}\SQLBYOB'
         SecurityMode:                       SQL
-        UpdateEnabled:                      False
-        ForceReboot:                        False
+        UpdateEnabled:                      false
+        ForceReboot:                        false
         Action:                             Install
         PsDscRunAsCredential_username:      '{{ sap_sid }}adm@{{ domain_name }}'
         PsDscRunAsCredential_password:      "{{ domain_user_password }}"

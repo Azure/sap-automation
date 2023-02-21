@@ -484,7 +484,7 @@
     - name:                            "0.0 Validations - Show Mounts"
       ansible.builtin.debug:
         var: mounts.stdout_lines
-      when: 
+      when:
         - mounts is defined
         - ansible_os_family != "Windows"
 

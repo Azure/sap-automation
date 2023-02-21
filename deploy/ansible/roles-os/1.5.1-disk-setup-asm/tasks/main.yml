@@ -413,8 +413,8 @@
       ansible.builtin.file:
         path:                          "/etc/sap_deployment_automation/asmdatadisks.txt"
         mode:                          0755
-        state:                         §touch
-      #when:                           § datadiskcreated.rc == 0
+        state:                         touch
+      # when:                           datadiskcreated.rc == 0
 
     - name:                            "ORACLE ASM: Print datadiskcreated"
       ansible.builtin.debug:
