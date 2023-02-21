@@ -99,7 +99,9 @@
 
 # Restart Network service (ifup eth0)
 - name:                                "1.10 Networking - Restart Network service"
-  ansible.builtin.command:             systemctl restart NetworkManager.service
+  ansible.builtin.systemd:
+    name:                              NetworkManager.service
+    state:                             restarted
   when:
     - definition_made.changed
 

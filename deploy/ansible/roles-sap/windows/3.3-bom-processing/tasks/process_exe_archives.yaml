@@ -8,7 +8,7 @@
 
 - name:                                Show extract command
   ansible.builtin.debug:
-    msg: 
+    msg:
       - "Temporary extract directory: {{ tempdir }}"
       - 'Extract command: {{ target_media_location_windows }}\{% if item.path is undefined %}downloads{% else %}{{ item.path }}{% endif %}\{% if item.filename is undefined %}{{ item.archive }}{% else %}{{ item.filename }}{% endif %} -d {{ tempdir.path }} -S'
 

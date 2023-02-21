@@ -361,7 +361,7 @@
   name:                                "SCS HA Install and Pacemaker Resources"
   remote_user:                         "{{ orchestration_ansible_user }}"
   gather_facts:                        true                                    # Important to collect hostvars information
-  #serial:                              1                                       # Run the playbook serially
+  # serial:                              1                                       # Run the playbook serially
   vars_files:
     - vars/ansible-input-api.yaml                                              # API Input template with defaults
 
