@@ -27,6 +27,7 @@ repos:
   sles_sap15.1:
   sles_sap15.2:
   sles_sap15.3:
+  sles_sap15.4:
 
   # Oracle
 
@@ -38,3 +39,7 @@ repos:
   oraclelinux8.3:
 
   oraclelinux8.4:
+  oraclelinux8.5:
+  oraclelinux8.6:
+  oraclelinux8.7:
+  oraclelinux8.8:

@@ -21,7 +21,7 @@ output "created_resource_group_name" {
 
 output "environment" {
   description = "Deployer environment name"
-  value = var.environment
+  value       = var.environment
 }
 
 ###############################################################################
@@ -36,13 +36,12 @@ output "deployer_id" {
 }
 
 output "deployer_uai" {
-  sensitive = true
   value = {
     principal_id = module.sap_deployer.deployer_uai.principal_id
+    client_id = module.sap_deployer.deployer_uai.client_id
     tenant_id    = module.sap_deployer.deployer_uai.tenant_id
   }
 }
-
 
 output "deployer_public_ip_address" {
   value = module.sap_deployer.deployer_public_ip_address

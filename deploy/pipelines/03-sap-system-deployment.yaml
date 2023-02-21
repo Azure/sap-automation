@@ -23,6 +23,10 @@ parameters:
     displayName:                       The local path on the agent where the config repo can be found
     type:                              string
 
+  - name:                              test
+    displayName:                       Test deployment without applying the changes
+    type:                              boolean
+
 stages:
   - stage: Deploy_SAP_infrastructure
     condition: and(not(failed()), not(canceled()))
@@ -31,6 +35,7 @@ stages:
         parameters:
           sap_system:                  ${{ parameters.sap_system }}
           environment:                 ${{ parameters.environment }}
+          test:                        ${{ parameters.test }}
     displayName:                       Deploy SAP infrastructure
     jobs:
       - job:                           Deploy_SAP_infrastructure
@@ -45,70 +50,37 @@ stages:
               echo "##vso[build.updatebuildnumber]Deploying the SAP System defined in $(sap_system_folder)"
               green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
 
-              echo -e "$green--- Checkout $(Build.SourceBranchName) ---$reset"
-                cd $CONFIG_REPO_PATH
-                git checkout -q $(Build.SourceBranchName)
-
-              echo -e "$green--- Read parameters ---$reset"
-                      HOME_CONFIG=${CONFIG_REPO_PATH}/$(Deployment_Configuration_Path)
-                ENVIRONMENT=$(echo $(sap_system_folder) | awk -F'-' '{print $1}' | xargs) ; echo "Environment: $ENVIRONMENT"
-                  LOCATION=$(echo $(sap_system_folder) | awk -F'-' '{print $2}' | xargs) ; echo "Location:    $LOCATION"
-                    NETWORK=$(echo $(sap_system_folder) | awk -F'-' '{print $3}' | xargs) ; echo "Network:     $NETWORK"
-                        SID=$(echo $(sap_system_folder) | awk -F'-' '{print $4}' | xargs) ; echo "SID:         $SID"
-
-                cd $HOME_CONFIG; mkdir -p .sap_deployment_automation
-
-              echo -e "$green--- Set CONFIG_REPO_PATH variable and ---$reset"
-                echo CONFIG_REPO_PATH=$CONFIG_REPO_PATH > .sap_deployment_automation/config
-
               echo -e "$green--- Validations ---$reset"
+                HOME_CONFIG=${CONFIG_REPO_PATH}/$(Deployment_Configuration_Path)
+                cd $HOME_CONFIG; mkdir -p .sap_deployment_automation
                 if [ ! -f $HOME_CONFIG/SYSTEM/$(sap_system_folder)/$(sap_system_configuration) ]; then
                   echo -e "$boldred--- $HOME_CONFIG/SYSTEM/$(sap_system_folder)/$(sap_system_configuration) was not found ---$reset"
                   echo "##vso[task.logissue type=error]File $HOME_CONFIG/SYSTEM/$(sap_system_folder)/$(sap_system_configuration) was not found."
                   exit 2
                 fi
 
-                environment_file_name=$HOME_CONFIG/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}${NETWORK}
-                if [ ! -f $environment_file_name ]; then
-                  echo -e "$boldred--- $environment_file_name was not found ---$reset"
-                  echo "##vso[task.logissue type=error]Please rerun the workload zone deployment. Workload zone configuration file $environment_file_name was not found."
-                  exit 2
-                fi
-
-                if [ -z $(ARM_SUBSCRIPTION_ID) ]; then
+                if [ -z $WL_ARM_SUBSCRIPTION_ID ]; then
                   echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined."
                   exit 2
                 fi
 
-                if [ -z $(ARM_CLIENT_ID) ]; then
+                if [ -z $WL_ARM_CLIENT_ID ]; then
                   echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined."
                   exit 2
                 fi
 
-                if [ -z $ARM_CLIENT_SECRET ]; then
+                if [ -z $WL_ARM_CLIENT_SECRET ]; then
                   echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined."
                   exit 2
                 fi
 
-                if [ -z $(ARM_TENANT_ID) ]; then
+                if [ -z $WL_ARM_TENANT_ID ]; then
                   echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined."
                   exit 2
                 fi
-
-                if [ -z ${SID} ]; then
-                  echo "##vso[task.logissue type=error]SID was not defined in the parameter file."
-                  exit 2
-                fi
-
-              echo -e "$green--- Define variables ---$reset"
-                cd $HOME_CONFIG/SYSTEM/$(sap_system_folder)
-
-                export REMOTE_STATE_SA=$(cat ${environment_file_name}      | grep REMOTE_STATE_SA      | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file storage account' $REMOTE_STATE_SA
-                export STATE_SUBSCRIPTION=$(cat ${environment_file_name}   | grep STATE_SUBSCRIPTION   | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file subscription' $STATE_SUBSCRIPTION
-                export deployer_tfstate_key=$(cat ${environment_file_name} | grep deployer_tfstate_key | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer State File' $deployer_tfstate_key
-                export key_vault=$(cat ${environment_file_name}            | grep keyvault=            | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer Key Vault' ${key_vault}
-                export landscape_tfstate_key=$(cat "${environment_file_name}"  | grep landscape_tfstate_key | awk -F'=' '{print $2}' | xargs) ; echo 'landscape_tfstate_key' $landscape_tfstate_key
-                export workload_key_vault=$(cat "${environment_file_name}"  | grep workloadkeyvault      | awk -F'=' '{print $2}' | xargs) ; echo 'Workload Key Vault' ${workload_key_vault}
+              echo -e "$green--- Checkout $(Build.SourceBranchName) ---$reset"
+                cd $CONFIG_REPO_PATH
+                git checkout -q $(Build.SourceBranchName)
 
               # Check if running on deployer
               if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
@@ -125,18 +97,146 @@ stages:
                   fi
                   unzip -qq terraform_$(tf_version)_linux_amd64.zip ; sudo mv terraform /bin/
                   rm -f terraform_$(tf_version)_linux_amd64.zip
+              else
+                source /etc/profile.d/deploy_server.sh
 
-                  az login --service-principal --username $(ARM_CLIENT_ID) --password=$ARM_CLIENT_SECRET --tenant $(ARM_TENANT_ID)  --output none
-                  return_code=$?
-                  if [ 0 != $return_code ]; then
-                    echo -e "$boldred--- Login failed ---$reset"
-                    echo "##vso[task.logissue type=error]az login failed."
-                    exit $return_code
-                  fi
+              fi
+
+              echo -e "$green--- Convert config file to UX format ---$reset"
+                dos2unix -q $HOME_CONFIG/SYSTEM/$(sap_system_folder)/$(sap_system_configuration)
+              echo -e "$green--- Read parameters ---$reset"
+
+                ENVIRONMENT=$(grep "^environment" $HOME_CONFIG/SYSTEM/$(sap_system_folder)/$(sap_system_configuration) | awk -F'=' '{print $2}' | xargs)
+                   LOCATION=$(grep "^location" $HOME_CONFIG/SYSTEM/$(sap_system_folder)/$(sap_system_configuration) | awk -F'=' '{print $2}' | xargs | tr 'A-Z' 'a-z')
+                    NETWORK=$(grep "^network_logical_name" $HOME_CONFIG/SYSTEM/$(sap_system_folder)/$(sap_system_configuration) | awk -F'=' '{print $2}' | xargs)
+                    SID=$(grep "^sid" $HOME_CONFIG/SYSTEM/$(sap_system_folder)/$(sap_system_configuration) | awk -F'=' '{print $2}' | xargs)
+
+                echo "Environment: $ENVIRONMENT"
+                echo "Location:    $LOCATION"
+                echo "Network:     $NETWORK"
+                echo "SID:         $SID"
+
+                ENVIRONMENT_IN_FILENAME=$(echo $(sap_system_folder) | awk -F'-' '{print $1}' | xargs) ;
+                          LOCATION_CODE=$(echo $(sap_system_folder) | awk -F'-' '{print $2}' | xargs) ;
+                    NETWORK_IN_FILENAME=$(echo $(sap_system_folder) | awk -F'-' '{print $3}' | xargs) ;
+                        SID_IN_FILENAME=$(echo $(sap_system_folder) | awk -F'-' '{print $4}' | xargs) ;
+                case "$LOCATION_CODE" in
+                  "AUCE") LOCATION_IN_FILENAME="australiacentral" ;;
+                  "AUC2") LOCATION_IN_FILENAME="australiacentral2" ;;
+                  "AUEA") LOCATION_IN_FILENAME="australiaeast" ;;
+                  "AUSE") LOCATION_IN_FILENAME="australiasoutheast" ;;
+                  "BRSO") LOCATION_IN_FILENAME="brazilsouth" ;;
+                  "BRSE") LOCATION_IN_FILENAME="brazilsoutheast" ;;
+                  "BRUS") LOCATION_IN_FILENAME="brazilus" ;;
+                  "CACE") LOCATION_IN_FILENAME="canadacentral" ;;
+                  "CAEA") LOCATION_IN_FILENAME="canadaeast" ;;
+                  "CEIN") LOCATION_IN_FILENAME="centralindia" ;;
+                  "CEUS") LOCATION_IN_FILENAME="centralus" ;;
+                  "CEUA") LOCATION_IN_FILENAME="centraluseuap" ;;
+                  "EAAS") LOCATION_IN_FILENAME="eastasia" ;;
+                  "EAUS") LOCATION_IN_FILENAME="eastus" ;;
+                  "EUS2") LOCATION_IN_FILENAME="eastus2" ;;
+                  "FRCE") LOCATION_IN_FILENAME="francecentral" ;;
+                  "FRSO") LOCATION_IN_FILENAME="francesouth" ;;
+                  "GENO") LOCATION_IN_FILENAME="germanynorth" ;;
+                  "GEWC") LOCATION_IN_FILENAME="germanywest" ;;
+                  "JAEA") LOCATION_IN_FILENAME="japaneastst" ;;
+                  "JAWE") LOCATION_IN_FILENAME="japanwestst" ;;
+                  "JINC") LOCATION_IN_FILENAME="jioindiacentral" ;;
+                  "JINW") LOCATION_IN_FILENAME="jioindiawest" ;;
+                  "GENO") LOCATION_IN_FILENAME="germanynorth" ;;
+                  "KOCE") LOCATION_IN_FILENAME="koreacentral" ;;
+                  "KOSO") LOCATION_IN_FILENAME="koreasouth" ;;
+                  "NCUS") LOCATION_IN_FILENAME="northcentralus" ;;
+                  "NOEU") LOCATION_IN_FILENAME="northeurope" ;;
+                  "NOEA") LOCATION_IN_FILENAME="norwayeast" ;;
+                  "NOWE") LOCATION_IN_FILENAME="norwaywest" ;;
+                  "SANO") LOCATION_IN_FILENAME="southafricanorth" ;;
+                  "SAWE") LOCATION_IN_FILENAME="southafricawest" ;;
+                  "SCUS") LOCATION_IN_FILENAME="southcentralus" ;;
+                  "SCUG") LOCATION_IN_FILENAME="southcentralusstg" ;;
+                  "SOEA") LOCATION_IN_FILENAME="southeastasia" ;;
+                  "SOIN") LOCATION_IN_FILENAME="southindia" ;;
+                  "SECE") LOCATION_IN_FILENAME="swedencentral" ;;
+                  "SWNO") LOCATION_IN_FILENAME="switzerlandnorth" ;;
+                  "SWWE") LOCATION_IN_FILENAME="switzerlandwest" ;;
+                  "UACE") LOCATION_IN_FILENAME="uaecentral" ;;
+                  "UANO") LOCATION_IN_FILENAME="uaenorth" ;;
+                  "UKSO") LOCATION_IN_FILENAME="uksouth" ;;
+                  "UKWE") LOCATION_IN_FILENAME="ukwest" ;;
+                  "WCUS") LOCATION_IN_FILENAME="westcentralus" ;;
+                  "WEEU") LOCATION_IN_FILENAME="westeurope" ;;
+                  "WEIN") LOCATION_IN_FILENAME="westindia" ;;
+                  "WEUS") LOCATION_IN_FILENAME="westus" ;;
+                  "WUS2") LOCATION_IN_FILENAME="westus2" ;;
+                  "WUS3") LOCATION_IN_FILENAME="westus3" ;;
+                  *) LOCATION_IN_FILENAME="westeurope" ;;
+                esac
+
+                echo "Environment(filename): $ENVIRONMENT_IN_FILENAME"
+                echo "Location(filename):    $LOCATION_IN_FILENAME"
+                echo "Network(filename):     $NETWORK_IN_FILENAME"
+                echo "SID(filename):         $SID_IN_FILENAME"
+
+                if [ $ENVIRONMENT != $ENVIRONMENT_IN_FILENAME ]; then
+                  echo "##vso[task.logissue type=error]The environment setting in $(sap_system_configuration) '$ENVIRONMENT' does not match the $(sap_system_configuration) file name '$ENVIRONMENT_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-[SID]"
+                  exit 2
+                fi
+
+                if [ $LOCATION != $LOCATION_IN_FILENAME ]; then
+                  echo "##vso[task.logissue type=error]The location setting in $(sap_system_configuration) '$LOCATION' does not match the $(sap_system_configuration) file name '$LOCATION_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-[SID]"
+                  exit 2
+                fi
+
+                if [ $NETWORK != $NETWORK_IN_FILENAME ]; then
+                  echo "##vso[task.logissue type=error]The network_logical_name setting in $(sap_system_configuration) '$NETWORK' does not match the $(sap_system_configuration) file name '$NETWORK_IN_FILENAME-. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-[SID]"
+                  exit 2
+                fi
+
+                if [ $SID != $SID_IN_FILENAME ]; then
+                  echo "##vso[task.logissue type=error]The sid setting in $(sap_system_configuration) '$SID' does not match the $(sap_system_configuration) file name '$SID_IN_FILENAME-. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-[SID]"
+                  exit 2
+                fi
+
+              echo -e "$green--- Set CONFIG_REPO_PATH variable and ---$reset"
+
+                environment_file_name=$HOME_CONFIG/.sap_deployment_automation/${ENVIRONMENT}${LOCATION_CODE}${NETWORK}
+                if [ ! -f $environment_file_name ]; then
+                  echo -e "$boldred--- $environment_file_name was not found ---$reset"
+                  echo "##vso[task.logissue type=error]Please rerun the workload zone deployment. Workload zone configuration file $environment_file_name was not found."
+                  exit 2
+                fi
+
+                if [ -z ${SID} ]; then
+                  echo "##vso[task.logissue type=error]SID was not defined in the parameter file."
+                  exit 2
+                fi
+              echo -e "$green--- Configure devops CLI extension ---$reset"
+
+                az config set extension.use_dynamic_install=yes_without_prompt --output none
+
+                az devops configure --defaults organization=$(System.CollectionUri) project='$(System.TeamProject)' --output none
+
+                export VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(variable_group)'].id | [0]")
+                echo '$(variable_group) id: ' $VARIABLE_GROUP_ID
+                if [ -z ${VARIABLE_GROUP_ID} ]; then
+                  echo "##vso[task.logissue type=error]Variable group $(variable_group) could not be found."
+                  exit 2
+                fi
+
+              # Check if running on deployer
+              if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
+
+                az login --service-principal --username $(WL_ARM_CLIENT_ID) --password=$WL_ARM_CLIENT_SECRET --tenant $(WL_ARM_TENANT_ID)  --output none
+                return_code=$?
+                if [ 0 != $return_code ]; then
+                  echo -e "$boldred--- Login failed ---$reset"
+                  echo "##vso[task.logissue type=error]az login failed."
+                  exit $return_code
+                fi
               else
                 echo -e "$green --- Running on deployer ---$reset"
-                az login --identity --output none
-                
+
                 tfstate_resource_id=$(az resource list --name "${REMOTE_STATE_SA}" --subscription ${STATE_SUBSCRIPTION} --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
                 if [ -z $tfstate_resource_id ]; then
                   az login --service-principal --username $(ARM_CLIENT_ID) --password=$ARM_CLIENT_SECRET --tenant $(ARM_TENANT_ID)  --output none
@@ -146,18 +246,56 @@ stages:
                     echo "##vso[task.logissue type=error]az login failed."
                     exit $return_code
                   fi
-
                 fi
-
-
               fi
 
-              echo -e "$green--- Convert config file to UX format ---$reset"
+              echo -e "$green--- Define variables ---$reset"
+                cd $HOME_CONFIG/SYSTEM/$(sap_system_folder)
 
-                dos2unix -q SYSTEM/$(sap_system_folder)/$(sap_system_configuration)
+                az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Subscription.value" | tr -d \")
+                if [ -z ${az_var} ]; then
+                  export STATE_SUBSCRIPTION=$(grep STATE_SUBSCRIPTION ${environment_file_name} | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file subscription' $STATE_SUBSCRIPTION
+                else
+                  export STATE_SUBSCRIPTION=${az_var} ; echo 'Terraform state file subscription' $STATE_SUBSCRIPTION
+                fi
 
+                az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Account_Name.value" | tr -d \")
+                if [ -z ${az_var} ]; then
+                  export REMOTE_STATE_SA=$(grep REMOTE_STATE_SA ${environment_file_name} | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file storage account' $REMOTE_STATE_SA
+                else
+                  export REMOTE_STATE_SA=${az_var} ; echo 'Terraform state file storage account' $REMOTE_STATE_SA
+                fi
+
+                az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Deployer_State_FileName.value" | tr -d \")
+                if [ -z ${az_var} ]; then
+                  export deployer_tfstate_key=$(grep deployer_tfstate_key ${environment_file_name} | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer State File' $deployer_tfstate_key
+                else
+                  export deployer_tfstate_key=${az_var} ; echo 'Deployer State File' $deployer_tfstate_key
+                fi
+
+                az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "${NETWORK}"Workload_Zone_State_FileName.value | tr -d \")
+                if [ -z ${az_var} ]; then
+                  export landscape_tfstate_key=$(grep keyvault= ${environment_file_name} | awk -F'=' '{print $2}' | xargs) ; echo 'landscape_tfstate_key' $landscape_tfstate_key
+                else
+                  export landscape_tfstate_key=${az_var} ; echo 'landscape_tfstate_key' $landscape_tfstate_key
+                fi
+
+                az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Deployer_Key_Vault.value" | tr -d \")
+                if [ -z ${az_var} ]; then
+                  export key_vault=$(grep keyvault= ${environment_file_name} | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer Key Vault' $key_vault
+                else
+                  export key_vault=${az_var} ; echo 'Deployer Key Vault' $key_vault
+                fi
+
+                az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "${NETWORK}"Workload_Key_Vault.value | tr -d \")
+                if [ -z ${az_var} ]; then
+                  export workload_key_vault=$(grep keyvault= ${environment_file_name} | awk -F'=' '{print $2}' | xargs) ; echo 'Workload Key Vault' ${workload_key_vault}
+                else
+                  export workload_key_vault=${az_var} ; echo 'Workload Key Vault' ${workload_key_vault}
+                fi
 
               echo -e "$green--- Run the installer script that deploys the SAP System ---$reset"
+
                 $SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer.sh --parameterfile $(sap_system_configuration) --type sap_system \
                  --state_subscription ${STATE_SUBSCRIPTION} --storageaccountname ${REMOTE_STATE_SA}                                 \
                  --deployer_tfstate_key ${deployer_tfstate_key} --landscape_tfstate_key ${landscape_tfstate_key}                    \
@@ -174,17 +312,9 @@ stages:
                 # Pull changes if there are other deployment jobs
 
                 cd $HOME_CONFIG/SYSTEM/$(sap_system_folder)
-                echo -e "$green--- Pull the latest content from DevOps ---$reset"
-                  git pull
 
-              echo -e "$green--- Configure devops CLI extension ---$reset"
-
-                az logout
-                az config set extension.use_dynamic_install=yes_without_prompt --output none
-
-                az devops configure --defaults organization=$(System.CollectionUri) project='$(System.TeamProject)' --output none
-
-
+              echo -e "$green--- Pull the latest content from DevOps ---$reset"
+                git pull
               echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
 
                 added=0
@@ -236,34 +366,37 @@ stages:
                   echo "##vso[task.uploadsummary]$HOME_CONFIG/SYSTEM/$(sap_system_folder)/${SID}.md"
                 fi
 
-                file_name=${SID}_inventory.md
-                if [ -f ${SID}_inventory.md ]; then
-                  az devops configure --defaults organization=$(System.CollectionUri) project='$(System.TeamProject)' --output none
+                # file_name=${SID}_inventory.md
+                # if [ -f ${SID}_inventory.md ]; then
+                #   az devops configure --defaults organization=$(System.CollectionUri) project='$(System.TeamProject)' --output none
 
-                  # ToDo: Fix this later
-                  # WIKI_NAME_FOUND=$(az devops wiki list --query "[?name=='SDAF'].name | [0]")
-                  # echo "${WIKI_NAME_FOUND}"
-                  # if [ -n "${WIKI_NAME_FOUND}" ]; then
-                  #   eTag=$(az devops wiki page show --path "${file_name}" --wiki SDAF --query eTag )
-                  #   if [ -n "$eTag" ]; then
-                  #     az devops wiki page update --path "${file_name}" --wiki SDAF --file-path ./"${file_name}" --only-show-errors --version $eTag --output none
-                  #   else
-                  #     az devops wiki page create --path "${file_name}" --wiki SDAF --file-path ./"${file_name}" --output none --only-show-errors
-                  #   fi
-                  # fi
-                fi
+                #   # ToDo: Fix this later
+                #   # WIKI_NAME_FOUND=$(az devops wiki list --query "[?name=='SDAF'].name | [0]")
+                #   # echo "${WIKI_NAME_FOUND}"
+                #   # if [ -n "${WIKI_NAME_FOUND}" ]; then
+                #   #   eTag=$(az devops wiki page show --path "${file_name}" --wiki SDAF --query eTag )
+                #   #   if [ -n "$eTag" ]; then
+                #   #     az devops wiki page update --path "${file_name}" --wiki SDAF --file-path ./"${file_name}" --only-show-errors --version $eTag --output none
+                #   #   else
+                #   #     az devops wiki page create --path "${file_name}" --wiki SDAF --file-path ./"${file_name}" --output none --only-show-errors
+                #   #   fi
+                #   # fi
+                # fi
 
               exit $return_code
 
             displayName:               Deploy_SAP_infrastructure
             env:
-              ARM_SUBSCRIPTION_ID:      $(ARM_SUBSCRIPTION_ID)
-              ARM_CLIENT_ID:            $(ARM_CLIENT_ID)
-              ARM_CLIENT_SECRET:        $(ARM_CLIENT_SECRET)
-              ARM_TENANT_ID:            $(ARM_TENANT_ID)
+              WL_ARM_SUBSCRIPTION_ID:      $(ARM_SUBSCRIPTION_ID)
+              WL_ARM_CLIENT_ID:            $(ARM_CLIENT_ID)
+              WL_ARM_CLIENT_SECRET:        $(ARM_CLIENT_SECRET)
+              WL_ARM_TENANT_ID:            $(ARM_TENANT_ID)
               SYSTEM_ACCESSTOKEN:       $(System.AccessToken)
               SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
               CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}
               AZURE_DEVOPS_EXT_PAT:     $(WZ_PAT)
+              TEST_ONLY:                ${{ parameters.test }}
+              TF_LOG:                   $(TF_LOG)
+              TF_IN_AUTOMATION:         true
 
             failOnStderr:               false

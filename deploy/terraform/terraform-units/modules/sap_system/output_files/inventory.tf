@@ -1,6 +1,6 @@
 resource "local_file" "ansible_inventory_new_yml" {
   content = templatefile(format("%s%s", path.module, "/ansible_inventory.tmpl"), {
-    ips_dbnodes = var.database_admin_ips,
+    ips_dbnodes = var.db_server_ips
     dbnodes     = var.platform == "HANA" ? var.naming.virtualmachine_names.HANA_COMPUTERNAME : var.naming.virtualmachine_names.ANYDB_COMPUTERNAME
     virt_dbnodes = var.use_secondary_ips ? (
       var.platform == "HANA" ? var.naming.virtualmachine_names.HANA_SECONDARY_DNSNAME : var.naming.virtualmachine_names.ANYDB_SECONDARY_DNSNAME
@@ -110,19 +110,19 @@ resource "local_file" "ansible_inventory_new_yml" {
 
 resource "local_file" "sap-parameters_yml" {
   content = templatefile(format("%s/sap-parameters.yml.tmpl", path.module), {
-    sid           = var.sap_sid,
-    db_sid        = var.db_sid
-    kv_name       = local.kv_name,
-    secret_prefix = local.secret_prefix,
-    disks         = var.disks
-    scs_ha        = var.scs_ha
-    scs_lb_ip     = var.scs_lb_ip
-    ers_lb_ip     = var.ers_lb_ip
-    db_lb_ip      = var.db_lb_ip
-    db_ha         = var.db_ha
+    sid                = var.sap_sid,
+    db_sid             = var.db_sid
+    kv_name            = local.kv_name,
+    secret_prefix      = local.secret_prefix,
+    disks              = var.disks
+    scs_ha             = var.scs_ha
+    scs_lb_ip          = var.scs_lb_ip
+    ers_lb_ip          = var.ers_lb_ip
+    db_lb_ip           = var.db_lb_ip
+    db_ha              = var.db_ha
     db_instance_number = try(var.database.instance.instance_number, "00")
-    dns           = local.dns_label
-    bom           = local.bom
+    dns                = local.dns_label
+    bom                = local.bom
     sap_mnt = length(trimspace(var.sap_mnt)) > 0 ? (
       format("sap_mnt:                       %s", var.sap_mnt)) : (
       ""
@@ -142,11 +142,10 @@ resource "local_file" "sap-parameters_yml" {
       ""
     )
     NFS_provider        = var.NFS_provider
-    pas_instance_number = local.pas_instance_number
+    pas_instance_number = var.pas_instance_number
 
-    oracle = local.oracle
 
-    domain = local.domain_info
+    settings = local.settings
 
     hana_data = length(try(var.hana_data[0], "")) > 1 ? (
       format("hana_data_mountpoint:          %s", jsonencode(var.hana_data))) : (
@@ -194,30 +193,6 @@ resource "local_file" "sap_inventory_md" {
   directory_permission = "0770"
 }
 
-
-resource "azurerm_storage_blob" "hosts_yaml" {
-  count                  = 0
-  provider               = azurerm.deployer
-  name                   = format("%s_hosts.yaml", length(trimspace(var.naming.prefix.SDU)) > 0 ? trimspace(var.naming.prefix.SDU) : var.sap_sid)
-  storage_account_name   = local.tfstate_storage_account_name
-  storage_container_name = local.ansible_container_name
-  type                   = "Block"
-  source                 = local_file.ansible_inventory_new_yml.filename
-}
-
-resource "azurerm_storage_blob" "sap_parameters_yaml" {
-  depends_on = [
-    local_file.sap-parameters_yml
-  ]
-  count                  = 0
-  provider               = azurerm.deployer
-  name                   = format("%s_sap-parameters.yaml", length(trimspace(var.naming.prefix.SDU)) > 0 ? trimspace(var.naming.prefix.SDU) : var.sap_sid)
-  storage_account_name   = local.tfstate_storage_account_name
-  storage_container_name = local.ansible_container_name
-  type                   = "Block"
-  source                 = local_file.sap-parameters_yml.filename
-}
-
 locals {
   fileContents     = fileexists(format("%s/sap-parameters.yaml", path.cwd)) ? file(format("%s/sap-parameters.yaml", path.cwd)) : ""
   fileContentsList = split("\n", local.fileContents)
@@ -251,7 +226,7 @@ locals {
   domain_user      = lookup(local.itemvalues, "domain_user", "")
   domain_name      = lookup(local.itemvalues, "domain_name", "")
 
-  oracle = upper(var.platform) == "ORACLE" ? (
+  oracle = (upper(var.platform) == "ORACLE" || upper(var.platform) == "ORACLE-ASM") ? (
     format("ora_release: %s\nora_version: %s\noracle_sbp_patch: %s\n", local.ora_release, local.ora_version, local.oracle_sbp_patch)) : (
     ""
   )
@@ -270,7 +245,7 @@ resource "local_file" "sap_inventory_for_wiki_md" {
     scs_lb_ip           = length(var.scs_lb_ip) > 0 ? var.scs_lb_ip : try(local.ips_scs[0], "")
     platform            = upper(var.platform)
     kv_pwd_secret       = format("%s-%s-sap-password", local.secret_prefix, var.sap_sid)
-    db_servers          = var.platform == "HANA" ? join(",", var.naming.virtualmachine_names.HANA_COMPUTERNAME) : join(",",var.naming.virtualmachine_names.ANYDB_COMPUTERNAME)
+    db_servers          = var.platform == "HANA" ? join(",", var.naming.virtualmachine_names.HANA_COMPUTERNAME) : join(",", var.naming.virtualmachine_names.ANYDB_COMPUTERNAME)
     scs_servers         = join(",", var.naming.virtualmachine_names.SCS_COMPUTERNAME)
     pas_server          = try(var.naming.virtualmachine_names.APP_COMPUTERNAME[0], "")
     application_servers = join(",", var.naming.virtualmachine_names.APP_COMPUTERNAME)

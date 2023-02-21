@@ -15,7 +15,7 @@
 
 - hosts:                               localhost
   name:                                "WEB Installation Playbook: - Initialization"
-  gather_facts:                        false
+  gather_facts:                        true
   vars_files:
     - vars/ansible-input-api.yaml                               # API Input template with defaults
 
@@ -82,6 +82,7 @@
         sapbits_sas_token:             "{{ hostvars.localhost.sapbits_sas_token }}"
         always_upload_jinja_templates: false
         file_path:                     /GENERIC/AS/WI_UC
+        sa_enabled:                    true
 
       tags:
         - always

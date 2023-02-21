@@ -79,6 +79,8 @@ stages:
 
                             set -eu
 
+                            file_deployer_tfstate_key=$(deployerfolder).tfstate
+
                             ENVIRONMENT=$(echo $(deployerfolder) | awk -F'-' '{print $1}' | xargs) ; echo Environment ${ENVIRONMENT}
                             LOCATION=$(echo $(deployerfolder) | awk -F'-' '{print $2}' | xargs) ;    echo Location ${LOCATION}
                             deployer_environment_file_name=$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}
@@ -179,7 +181,8 @@ stages:
                                 echo 'Deployer Agent Pool' $(POOL)
                                 POOL_NAME=$(az pipelines pool list --organization $(System.CollectionUri) --query "[?name=='$(POOL)'].name | [0]")
                                 if [ ${#POOL_NAME} -eq 0 ]; then
-                                    echo "##vso[task.logissue type=warning]Agent Pool $TF_VAR_agent_pool does not exist."
+                                    echo "##vso[task.logissue type=warning]Agent Pool $(POOL) does not exist."
+                                    exit 2
                                 fi
                                 export TF_VAR_agent_pool=$(POOL)
                                 export TF_VAR_agent_pat=$(PAT)
@@ -284,6 +287,7 @@ stages:
                       ARM_CLIENT_SECRET:           $(CP_ARM_CLIENT_SECRET)
                       ARM_TENANT_ID:               $(CP_ARM_TENANT_ID)
                       TF_VAR_agent_ado_url:        $(System.CollectionUri)
+                      TF_VAR_agent_pool:           $(POOL)
                       AZURE_DEVOPS_EXT_PAT:        $(PAT)
                       IS_PIPELINE_DEPLOYMENT:      true
                       WEB_APP_CLIENT_SECRET:       $(WEB_APP_CLIENT_SECRET)
@@ -335,6 +339,10 @@ stages:
                           ENVIRONMENT=$(echo $(deployerfolder) | awk -F'-' '{print $1}' | xargs) ; echo Environment ${ENVIRONMENT}
                           LOCATION=$(echo $(deployerfolder) | awk -F'-' '{print $2}' | xargs) ;    echo Location ${LOCATION}
                           deployer_environment_file_name=${CONFIG_REPO_PATH}/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}
+                          file_deployer_tfstate_key=$(deployerfolder).tfstate
+                          file_key_vault=""
+                          file_REMOTE_STATE_SA=""
+                          file_REMOTE_STATE_RG=$(deployerfolder)
 
                           echo "Agent: " $(this_agent)
                       echo -e "$green--- Checkout $(Build.SourceBranchName) ---$reset"
@@ -732,6 +740,7 @@ stages:
                       ARM_CLIENT_ID:               $(CP_ARM_CLIENT_ID)
                       ARM_CLIENT_SECRET:           $(CP_ARM_CLIENT_SECRET)
                       ARM_TENANT_ID:               $(CP_ARM_TENANT_ID)
+                      TF_VAR_agent_pool:           $(POOL)
                       TF_VAR_agent_ado_url:        $(System.CollectionUri)
                       AZURE_DEVOPS_EXT_PAT:        $(PAT)
                       IS_PIPELINE_DEPLOYMENT:      true

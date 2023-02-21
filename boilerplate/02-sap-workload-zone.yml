@@ -68,6 +68,7 @@ parameters:
       - WEIN
       - WEUS
       - WUS2
+      - WUS3
 
   - name: inherit_settings
     displayName: Inherit Terraform state file information from control plane

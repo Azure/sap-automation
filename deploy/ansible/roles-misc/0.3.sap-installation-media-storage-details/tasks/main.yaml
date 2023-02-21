@@ -1,7 +1,7 @@
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
 # |     Storage account helpers                                                |
-# |     Read the deployer key vault name fro the workload zone keyvault         |
+# |     Read the deployer key vault name fro the workload zone keyvault        |
 # |     Read the storage account details                                       |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
@@ -22,14 +22,16 @@
                                        az keyvault secret show
                                          --vault-name {{ kv_name }}
                                          --name {{ deployer_kv_name_secret }}
+                                         --query value
+                                         --output tsv
       changed_when:                    false
       register:                        deployer_kv_name_secret
       when:                            bom_processing is not defined
 
     - name:                            "0.4 Installation Media: - Save Deployer key vault name"
       ansible.builtin.set_fact:
-        deployer_kv_name: >-
-                                       {{ (deployer_kv_name_secret.stdout | from_json).value }}
+        deployer_kv_name:              "{{ deployer_kv_name_secret.stdout }}"
+        cacheable:                     true
   when: deployer_kv_name is not defined
 
 - name:                                "0.4 Installation Media: - Extract SAP Binaries Storage Account secrets"
@@ -39,14 +41,16 @@
                                        az keyvault secret show
                                          --vault-name {{ deployer_kv_name }}
                                          --name {{ sapbits_location_secret }}
+                                         --query value
+                                         --output tsv
       changed_when:                    false
       register:                        sapbits_location_base_path_secret
       no_log:                          false
 
     - name:                            "0.4 Installation Media: - Save SAP Binaries Storage Account information"
       ansible.builtin.set_fact:
-        sapbits_location_base_path: >-
-                                       {{ (sapbits_location_base_path_secret.stdout | from_json).value }}
+        sapbits_location_base_path:    "{{ sapbits_location_base_path_secret.stdout }}"
+        cacheable:                     true
   when:                                sapbits_location_base_path is not defined
 
 - name:                                "0.4 Installation Media: - Retrieve Access Key secret"
@@ -57,7 +61,6 @@
         az keyvault secret list
           --vault-name {{ deployer_kv_name }} --query "[].{Name:name} | [? contains(Name,'sapbits-access-key')] | [0]"
       changed_when:                    false
-      no_log:                          true
       register:                        keyvault_secrets
 
     - name:                            "0.4 Installation Media: - Retrieve Access Key details"
@@ -65,6 +68,8 @@
         az keyvault secret show
           --vault-name {{ deployer_kv_name }}
           --name "sapbits-access-key"
+          --query value
+          --output tsv
       changed_when:                    false
       no_log:                          true
       register:                        keyvault_secret_show_accesskey
@@ -72,12 +77,13 @@
 
     - name:                            "0.4 Installation Media: - Extract Access Key details"
       ansible.builtin.set_fact:
-        sapbits_access_key: "{{ (keyvault_secret_show_accesskey.stdout | from_json).value }}"
+        sapbits_access_key:            "{{ keyvault_secret_show_accesskey.stdout }}"
+        cacheable:                     true
       when:
         - keyvault_secrets.stdout | length > 0
         - keyvault_secret_show_accesskey is defined
 
-- name:                                "0.4 Installation Media: - Retrieve SAS token secret details "
+- name:                                "0.4 Installation Media: - Retrieve SAS token secret details"
   when:
     - sapbits_access_key is not defined
     - sapbits_sas_token is not defined or (sapbits_sas_token | string | length == 0)
@@ -87,7 +93,6 @@
         az keyvault secret list
           --vault-name {{ deployer_kv_name }} --query "[].{Name:name} | [? contains(Name,'sapbits-sas-token')] | [0]"
       changed_when:                    false
-      no_log:                          true
       register:                        keyvault_secrets
 
     - name:                            "0.4 Installation Media: - Retrieve SAS token details"
@@ -95,6 +100,8 @@
         az keyvault secret show
           --vault-name {{ deployer_kv_name }}
           --name "sapbits-sas-token"
+          --query value
+          --output tsv
       changed_when:                    false
       no_log:                          true
       register:                        keyvault_secret_show_sas_token
@@ -102,22 +109,22 @@
 
     - name:                            "0.4 Installation Media: - Extract SAS token"
       ansible.builtin.set_fact:
-        sapbits_sas_token: >-
-          {{ (keyvault_secret_show_sas_token.stdout | from_json).value }}
+        sapbits_sas_token:             "{{ keyvault_secret_show_sas_token.stdout }}"
+        cacheable:                     true
 
       no_log:                          true
       when: keyvault_secret_show_sas_token is defined
 
-- name:                                "0.4 Installation Media: - Extract SAP Binaries Storage Account SAS secret"
+- name:                                 "0.4 Installation Media: - Create SAP Binaries Storage Account SAS token"
   block:
 
-    - name:                            "0.4 Installation Media: - SAS token"
+    - name:                             "0.4 Installation Media: - SAS token"
       ansible.builtin.debug:
-        msg:                           "Creating the storage account SAS token"
+        msg:                            "Creating the storage account SAS token"
 
-    - name:                            "0.4 Installation Media: - Set Expiry"
-      ansible.builtin.command:         "date +'%Y-%m-%d' -d '+3 days'"
-      register: expiry
+    - name:                             "0.4 Installation Media: - Set Expiry"
+      ansible.builtin.command:          "date +'%Y-%m-%d' -d '+3 days'"
+      register:                         expiry
 
     - name:                            "0.4 Installation Media: - Create SAP Binaries Storage Account SAS"
       ansible.builtin.command: >-
@@ -132,15 +139,15 @@
       changed_when:                    false
       register:                        az_sapbits_sas_token
 
-    - name:                            "0.4 Installation Media: - Extract SAP Binaries Storage Account SAS (temp)"
+    - name:                             "0.4 Installation Media: - Extract SAP Binaries Storage Account SAS (temp)"
       ansible.builtin.set_fact:
-        sapbits_sas_token:             "{{ az_sapbits_sas_token.stdout }}"
+        sapbits_sas_token:              "{{ az_sapbits_sas_token.stdout }}"
 
   when:
     - sapbits_sas_token is not defined or (sapbits_sas_token | string | length == 0)
     - sapbits_access_key is defined
 
-- name:                            "0.0 Validations - Check required variables are present and not empty"
+- name:                                 "0.0 Validations - Check required variables are present and not empty"
   ansible.builtin.assert:
     that:
       - "{{ sapbits_sas_token is defined }}"                    # Has the variable been defined
@@ -148,7 +155,7 @@
     fail_msg: >-
       "The variable 'sapbits_sas_token' is not defined or is empty. Please provide it in the deployer key vault, sap-parameters file or pass it in as a parameter."
 
-- name:                                "0.4 Installation Media: - Debug storage account details"
+- name:                                 "0.4 Installation Media: - Debug storage account details"
   ansible.builtin.debug:
     msg:
       - "KEYVAULT:     {{ deployer_kv_name }}"
@@ -158,7 +165,7 @@
   ansible.builtin.debug:
     msg:
       - "SAS     :     {{ sapbits_sas_token }}"
-    verbosity:                        2
+    verbosity:                         2
 
 ...
 # /*---------------------------------------------------------------------------8

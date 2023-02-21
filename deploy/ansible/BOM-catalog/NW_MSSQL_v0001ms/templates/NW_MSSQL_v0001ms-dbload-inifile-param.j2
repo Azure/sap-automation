@@ -5,9 +5,11 @@
 ######################################################################################################################################################################################
 
 # Location of download_basket\CD_EXPORT CD
+SAPINST.CD.PACKAGE.LOAD                                    = {{ download_directory_windows }}\CD_EXPORT
 SAPINST.CD.PACKAGE.CD1                                     = {{ download_directory_windows }}\CD_EXPORT\DATA_UNITS\EXP1
 SAPINST.CD.PACKAGE.CD2                                     = {{ download_directory_windows }}\CD_EXPORT\DATA_UNITS\EXP2
 SAPINST.CD.PACKAGE.CD3                                     = {{ download_directory_windows }}\CD_EXPORT\DATA_UNITS\EXP3
+
 
 # Password for the Diagnostics Agent specific <dasid>adm user. Provided value may be encoded.
 # DiagnosticsAgent.dasidAdmPassword =
@@ -142,4 +144,4 @@ hostAgent.sapAdmPassword                                                     = {
 nwUsers.sapServiceSIDPassword                                                = {{ sid_service_password }}
 
 # The password of the '<sapsid>adm' user
-nwUsers.sidadmPassword                                                = {{ domain_user_password }}
+nwUsers.sidadmPassword                                                       = {{ domain_user_password }}

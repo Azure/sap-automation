@@ -1,13 +1,14 @@
+---
+
 # /*----------------------------------------------------------------------------8
 # |                                                                            |
 # |         Playbook for preparing for SAP specific OS configuration tasks     |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
----
 
 - hosts:                               localhost
   name:                                "SAP OS configuration playbook: - Initialization"
-  gather_facts:                        false
+  gather_facts:                        true
   vars_files:
     - vars/ansible-input-api.yaml                               # API Input template with defaults
 
@@ -28,6 +29,21 @@
         path:                          "{{ _workspace_directory }}/.progress/sap-os-configuration-done"
         state:                          absent
 
+    - name:                            Include 0.3.sap-installation-media-storage-details role
+      ansible.builtin.include_role:
+        name:                          roles-misc/0.3.sap-installation-media-storage-details
+        public:                        true
+      vars:
+        tier:                          bom_download
+
+    - name:                            "SAP OS configuration playbook: - Read password"
+      ansible.builtin.include_role:
+        name:                          roles-misc/0.1-passwords
+        tasks_from:                    windows.yaml
+        public:                        true
+      when: platform == "SQLSERVER"
+      tags:
+        - 0.1-win-passwords
 
 # /*----------------------------------------------------------------------------8
 # |                                                                            |
@@ -45,106 +61,138 @@
 
   name:                                OS - SAP specific configuration
   remote_user:                         "{{ orchestration_ansible_user }}"
-  become:                              true
   gather_facts:                        true                                    # Important to collect hostvars information
   any_errors_fatal:                    true
   vars_files:
     - vars/ansible-input-api.yaml                                              # API Input template with defaults
 
-
-  tasks:
 # -------------------------------------+---------------------------------------8
 #
 # Build the list of tasks to be executed in order here.
 #
 # -------------------------------------+---------------------------------------8
-    - name:                            "SAP OS configuration playbook: - Set sapos fact"
-      ansible.builtin.set_fact:
-        tier:                          sapos                                     # Actions for HANA DB Serve
-      tags:
-        - always
+  tasks:
+    - name:                            "SAP OS Configuration - Linux based systems"
+      become:                          true
+      become_user:                     "root"
+      block:
 
-    - name:                            "SAP OS configuration playbook: - Create hosts file"
-      ansible.builtin.include_role:
-        name:                          roles-sap-os/2.4-hosts-file
-      tags:
-        - 2.4-hosts-file
+        - name:                        "SAP OS configuration playbook: - Set sapos fact"
+          ansible.builtin.set_fact:
+            tier:                      sapos                                     # Actions for HANA DB Serve
+            sapbits_location_base_path: "{{ hostvars.localhost.sapbits_location_base_path }}"
+            sapbits_sas_token:          "{{ hostvars.localhost.sapbits_sas_token }}"
+            sa_enabled:                true
+          tags:
+            - always
 
-    - name:                            "SAP OS configuration playbook: - Ensure the repositories are registered"
-      ansible.builtin.include_role:
-        name:                          roles-os/1.3-repository
-      tags:
-        - 1.3-repository
+        - name:                        "SAP OS configuration playbook: - Create hosts file"
+          ansible.builtin.include_role:
+            name:                      roles-sap-os/2.4-hosts-file
+          tags:
+            - 2.4-hosts-file
 
-    - name:                            "SAP OS configuration playbook: - Configure accounts"
-      ansible.builtin.include_role:
-        name:                          roles-os/1.11-accounts
-      tags:
-        - 1.11-accounts
+        - name:                        "SAP OS configuration playbook: - Ensure the repositories are registered"
+          ansible.builtin.include_role:
+            name:                      roles-os/1.3-repository
+          tags:
+            - 1.3-repository
 
-    - name:                            "SAP OS configuration playbook: - Ensure the packages are registered"
-      ansible.builtin.include_role:
-        name:                          roles-os/1.4-packages
-      tags:
-        - 1.4-packages
+        - name:                        "SAP OS configuration playbook: - Configure accounts"
+          ansible.builtin.include_role:
+            name:                      roles-os/1.11-accounts
+          tags:
+            - 1.11-accounts
 
-    - name:                            "SAP OS configuration playbook: - Configure volume groups, logical volumes and file systems"
-      ansible.builtin.include_role:
-        name:                          roles-os/1.5-disk-setup
-      when:                            (node_tier != "oracle-multi-sid" or node_tier != "oracle-asm")
-      tags:
-        - 1.5-disk-setup
+        - name:                        "SAP OS configuration playbook: - Ensure the packages are registered"
+          ansible.builtin.include_role:
+            name:                      roles-os/1.4-packages
+          tags:
+            - 1.4-packages
 
-    - name:                            Include 1.5.2-disk-setup-ora-multi-sid role
-      ansible.builtin.include_role:
-        name:                          roles-os/1.5.2-disk-setup-ora-multi-sid
-      when:                            node_tier == "oracle-multi-sid"
-      tags:
-        - 1.5.2-disk-setup-ora-multi-sid
+        - name:                        "SAP OS configuration playbook: - Configure volume groups, logical volumes and file systems"
+          ansible.builtin.include_role:
+            name:                      roles-os/1.5-disk-setup
+          when:                        node_tier not in ["oracle-multi-sid", "oracle-asm"]
+          tags:
+            - 1.5-disk-setup
 
+        - name:                        "SAP OS configuration playbook: - Configure volume groups, logical volumes and file systems"
+          ansible.builtin.include_role:
+            name:                      roles-os/1.5.1.1-disk-setup-asm-sap
+          when:
+            - node_tier == "oracle-asm"
+          tags:
+            - 1.5.1.1-disk-setup-asm-sap
 
-    - name:                            Include 1.9-kernelparameters role
-      ansible.builtin.include_role:
-        name:                          roles-os/1.9-kernelparameters
-      tags:
-        - 1.9-kernelparameters
+        - name:                        Include 1.5.2-disk-setup-ora-multi-sid role
+          ansible.builtin.include_role:
+            name:                      roles-os/1.5.2-disk-setup-ora-multi-sid
+          when:                        node_tier == "oracle-multi-sid"
+          tags:
+            - 1.5.2-disk-setup-ora-multi-sid
 
-    - name:                            "SAP OS configuration playbook: - Create SAP users/groups"
-      ansible.builtin.include_role:
-        name:                          roles-sap-os/2.5-sap-users
-      tags:
-        - 2.5-sap-users
+        - name:                        Include 1.9-kernelparameters role
+          ansible.builtin.include_role:
+            name:                      roles-os/1.9-kernelparameters
+          tags:
+            - 1.9-kernelparameters
 
-    - name:                            Include 1.16-services role
-      ansible.builtin.include_role:
-        name:                          roles-os/1.16-services
-      tags:
-        - 1.16-services
+        - name:                        "SAP OS configuration playbook: - Create SAP users/groups"
+          ansible.builtin.include_role:
+            name:                      roles-sap-os/2.5-sap-users
+          tags:
+            - 2.5-sap-users
 
-    - name:                            "SAP OS configuration playbook: - directory permissions"
-      ansible.builtin.include_role:
-        name:                          roles-sap-os/2.2-sapPermissions
-      tags:
-        - 2.2-sapPermissions
+        - name:                        Include 1.16-services role
+          ansible.builtin.include_role:
+            name:                      roles-os/1.16-services
+          tags:
+            - 1.16-services
 
-    - name:                            "SAP OS configuration playbook: - configure exports"
-      ansible.builtin.include_role:
-        name:                          roles-sap-os/2.3-sap-exports
-      tags:
-        - 2.3-sap-exports
+        - name:                        "SAP OS configuration playbook: - directory permissions"
+          ansible.builtin.include_role:
+            name:                      roles-sap-os/2.2-sapPermissions
+          tags:
+            - 2.2-sapPermissions
 
-    - name:                            Include 2.6-sap-mounts role
-      ansible.builtin.include_role:
-        name:                          roles-sap-os/2.6-sap-mounts
-      when:                            node_tier != "oracle-asm"
-      tags:
-        - 2.6-sap-mounts
+        - name:                        "SAP OS configuration playbook: - configure exports"
+          ansible.builtin.include_role:
+            name:                      roles-sap-os/2.3-sap-exports
+          tags:
+            - 2.3-sap-exports
 
-    - name:                            "SAP OS configuration playbook: - Configurations according to SAP Notes"
-      ansible.builtin.include_role:
-        name:                          roles-sap-os/2.10-sap-notes
-      tags:
-        - 2.10-sap-notes
+        - name:                        Include 2.6-sap-mounts role
+          ansible.builtin.include_role:
+            name:                      roles-sap-os/2.6-sap-mounts
+          tags:
+            - 2.6-sap-mounts
+
+        - name:                        "SAP OS configuration playbook: - Configurations according to SAP Notes"
+          ansible.builtin.include_role:
+            name:                      roles-sap-os/2.10-sap-notes
+          tags:
+            - 2.10-sap-notes
+      when:
+        - ansible_os_family != "Windows"
+
+    - name:                            "SAP OS configuration - Windows based systems"
+      block:
+        - name:                        "SAP OS configuration playbook: - Add local groups and Permissions"
+          ansible.builtin.include_role:
+            name:                      roles-sap-os/windows/2.5-sap-users
+
+        - name:                        "SAP OS configuration playbook: - Sharing Data Folder"
+          ansible.builtin.include_role:
+            name:                      roles-sap-os/windows/2.3-sap-exports
+
+        - name:                        "SAP OS configuration playbook: - Mounting Shared Folder"
+          ansible.builtin.include_role:
+            name:                      roles-sap-os/windows/2.6-sap-mounts
+          vars:
+            domain_user_password:      "{{ hostvars.localhost.winadm_password }}"
+
+      when: ansible_os_family == "Windows"
 
 # /*----------------------------------------------------------------------------8
 # |                                                                            |

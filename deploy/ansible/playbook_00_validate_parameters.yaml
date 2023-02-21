@@ -5,9 +5,9 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-- hosts: localhost
-  name: "0.0 Validations"
-  gather_facts: false
+- hosts:                               localhost
+  name:                                "0.0 Validations"
+  gather_facts:                        true
   vars_files:
     - vars/ansible-input-api.yaml # API Input template with defaults
 
@@ -49,6 +49,16 @@
       when:                            platform != "ORACLE"
       tags:
         - kv-secrets
+
+    - name:                            "0.0 Validations - Retrieve the domain passwords"
+      ansible.builtin.include_role:
+        name:                          roles-misc/0.1-passwords
+        tasks_from:                    windows.yaml
+        public:                        true
+      tags:
+        - 0.1-win-passwords
+      when:
+        - platform == "SQLSERVER"
 
     - name:                            "0.0 Validations - Retrieve the storage account details"
       ansible.builtin.include_role:
@@ -199,7 +209,7 @@
           - ora_version is version(ora_supported_version,'>=')
         fail_msg: "Oracle deployments requires that ora_release and ora_version are provided"
       when:
-        - platform == 'ORACLE'
+        - platform in ['ORACLE', 'ORACLE-ASM']
 
     - name:                            "0.0 Validations - Validate ORACLE parameters (oracle_sbp_patch)"
       ansible.builtin.assert:
@@ -208,7 +218,7 @@
           - oracle_sbp_patch | default('') | trim | length > 1
         fail_msg: "Oracle deployments requires that oracle_sbp_patch is provided"
       when:
-        - platform == 'ORACLE'
+        - platform in ['ORACLE', 'ORACLE-ASM']
 
     - name:                            "0.0 Validations - Show ORACLE parameters"
       ansible.builtin.debug:
@@ -218,7 +228,18 @@
           - "oracle_sbp_patch: {{ oracle_sbp_patch }}"
 
       when:
-        - platform == 'ORACLE'
+        - platform in ['ORACLE', 'ORACLE-ASM']
+
+    - name:                            "0.0 Validations - Validate SQL Server parameters"
+      ansible.builtin.assert:
+        that:
+          - domain_name is defined                    # Has the variable been defined
+          - domain_name | type_debug != 'NoneType'    # Does it have a value
+          - domain_name | trim | length > 1
+        fail_msg:                      'SQL Server deployments require that domain is specified'
+      when:
+        - platform == 'SQLSERVER'
+
 
     - name:                            "0.0 Validations - Get Access Token"
       ansible.builtin.command: >-
@@ -253,6 +274,26 @@
       ansible.builtin.set_fact:
         subscription_id:               "{{ json_azure_data | json_query('compute.subscriptionId') }}"
         resource_group_name:           "{{ json_azure_data | json_query('compute.resourceGroupName') }}"
+        mnt_free_diskspace:            "{{ ansible_mounts | json_query('[?mount == `/mnt`].size_available') }}"
+
+    - name:                            "0.0 Validations - Show IMDS results"
+      ansible.builtin.debug:
+        var:                           mnt_free_diskspace
+
+    - name:                            "0.0 Validations - Deployer disk space requirements"
+      ansible.builtin.set_fact:
+        deployer_free_temp_disk_space: 100
+      when:
+        - deployer_free_temp_disk_space is not defined
+
+    - name:                            "0.0 Validations - Check for free disk space on deployer "
+      ansible.builtin.assert:
+        that:
+          - "{{ (mnt_free_diskspace | first | int / (1024 * 1024 * 1024) | int) > (deployer_free_temp_disk_space | int) }}"
+        fail_msg: "The deployer needs at least {{ deployer_free_temp_disk_space }} GB of free disk space in /mnt"
+      tags:
+        - 0.0-agent-diskspace
+
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
@@ -264,15 +305,28 @@
     {{ sap_sid | upper }}_SCS :
     {{ sap_sid | upper }}_ERS :
     {{ sap_sid | upper }}_PAS :
-    {{ sap_sid | upper }}_ERS :
     {{ sap_sid | upper }}_APP :
     {{ sap_sid | upper }}_WEB"
 
-  name: "0.0 Validations - Validate SAP-Parameters"
-  gather_facts: true
+  name:                                "0.0 Validations - Validate SAP-Parameters"
+  gather_facts:                        true
   vars_files:
     - vars/ansible-input-api.yaml # API Input template with defaults
   tasks:
+
+    - name:                            "0.0 Validations: - Set distro"
+      ansible.builtin.set_fact:
+        distro_family:                 "{{ ansible_os_family | upper }}"
+        distribution_id:               "{{ ansible_distribution | lower ~ ansible_distribution_major_version }}"
+        distribution_full_id:          "{{ ansible_distribution | lower ~ ansible_distribution_version }}"
+
+    - name:                            "0.0 Validations: - Show distro"
+      ansible.builtin.debug:
+        msg:
+          - "Distro family:        {{ distro_family }}"
+          - "Distribution id:      {{ distribution_id }}"
+          - "Distribution full id: {{ distribution_full_id }}"
+
     - name:                            "0.0 Validations: - Set Python version {{ distribution_id }}"
       ansible.builtin.set_fact:
         python_version: "python2"
@@ -310,7 +364,9 @@
         that:
           - "scs_instance_number != db_instance_number"
         fail_msg:                      "Please ensure that the scs_instance_number is different from the db_instance_number when performing a standalone installation"
-      when:                            (ansible_play_hosts_all | length) == 1
+      when:
+        - (ansible_play_hosts_all | length) == 1
+        - platform == "HANA"
       tags:
         - 0.0-scs-db-instance-single
 
@@ -319,9 +375,9 @@
         that:
           - "sap_sid != db_sid"
         fail_msg:                      "Please ensure that the sap_sid is different from the db_sid when performing a standalone installation"
-      when:                            (ansible_play_hosts_all | length) == 1
-      tags:
-        - 0.0-scs-db-single
+      when:
+        - (ansible_play_hosts_all | length) == 1
+        - platform != "ORACLE"
 
     - name: Validate SCS and PAS instance numbers
       ansible.builtin.assert:
@@ -356,6 +412,7 @@
         ansible_python_interpreter: "{{ python_version }}"
       when:
         - (ansible_distribution | lower ~ ansible_distribution_major_version) in ['suse15', 'redhat8', 'sles_sap15' ]
+        - ansible_os_family != "Windows"
       tags:
         - 0.0-internet
 
@@ -374,6 +431,7 @@
         - (ansible_distribution | lower ~ ansible_distribution_major_version) != 'suse15'
         - (ansible_distribution | lower ~ ansible_distribution_major_version) != 'sles_sap15'
         - (ansible_distribution | lower ~ ansible_distribution_major_version) != 'redhat8'
+        - ansible_os_family != "Windows"
       tags:
         - 0.0-internet
 
@@ -420,22 +478,30 @@
       failed_when: false
       tags:
         - 0.0-mounts
+      when:
+        - ansible_os_family != "Windows"
 
     - name:                            "0.0 Validations - Show Mounts"
       ansible.builtin.debug:
         var: mounts.stdout_lines
-      when: mounts is defined
+      when:
+        - mounts is defined
+        - ansible_os_family != "Windows"
 
     - name:                            "0.0 Validations - Show Hosts"
       ansible.builtin.command: cat /etc/hosts
       register: hosts
       tags:
         - 0.0-hosts
+      when:
+        - ansible_os_family != "Windows"
 
     - name:                            "0.0 Validations - Show Hosts"
       ansible.builtin.debug:
         var: hosts.stdout_lines
-      when: hosts is defined
+      when:
+        - hosts is defined
+        - ansible_os_family != "Windows"
 
     - name:                            "0.0 Validations - Create validation-done flag"
       delegate_to: localhost
@@ -452,6 +518,55 @@
           - "CIDR:    {{ ((hostvars[ansible_hostname]['ansible_default_ipv4']['address'] | string) + '/' +
             (hostvars[ansible_hostname]['ansible_default_ipv4']['netmask'] | string)) | ansible.utils.ipaddr('prefix') }}"
           - "IPV4:    {{ hostvars[ansible_hostname]['ansible_default_ipv4']['address'] }}"
+      when:
+        - ansible_os_family != "Windows"
+
+    - name:                            Check if /usr/sap is already mounted
+      when:
+        - ansible_os_family != "Windows"
+      block:
+        - name:                        Check if /usr/sap is already mounted
+          ansible.builtin.set_fact:
+            usr_sap_mounted:           true
+          with_items: "{{ ansible_mounts }}"
+          when:
+            - item.mount == "/usr/sap"
+            - "'scs' in supported_tiers"
+
+        - name:                        "0.0 Validations - Disk space details"
+          when:
+            - "'scs' in supported_tiers"
+            - usr_sap_mounted is defined
+          block:
+            - name:                    "0.0 Validations - Disk space details"
+              ansible.builtin.set_fact:
+                free_diskspace:        "{{ ansible_mounts | json_query('[?mount == `/usr/sap`].size_available') }}"
+
+            - name:                    "0.0 Validations - SCS /usr/sap disk space requirements"
+              ansible.builtin.set_fact:
+                scs_free_diskspace:    10
+              when:
+                - scs_free_diskspace is not defined
+
+            - name:                    "0.0 Validations - Show SCS disk space"
+              ansible.builtin.debug:
+                msg:
+                  - "Free disk space: {{ free_diskspace | first | int / (1024 * 1024 * 1024) | int }}"
+                verbosity:             2
+
+            - name:                    "0.0 Validations - Show SCS disk space required"
+              ansible.builtin.debug:
+                msg:
+                  - "Free disk space required: {{ scs_free_diskspace }}"
+                verbosity:             2
+
+            - name:                    "0.0 Validations - Check for free disk space on SCS"
+              ansible.builtin.assert:
+                that:
+                  - "{{ (free_diskspace | first | int / (1024 * 1024 * 1024) | int) > (scs_free_diskspace | int) }}"
+                fail_msg: "The SCS server needs at least {{ scs_free_diskspace }} GB of free disk space in /mnt"
+              tags:
+                - 0.0-scs-diskspace
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
@@ -460,10 +575,27 @@
 # +------------------------------------4--------------------------------------*/
 
 
-- hosts:               "{{ sap_sid | upper }}_DB"
+- hosts: "{{ sap_sid | upper }}_DB  :
+    {{ sap_sid | upper }}_PAS :
+    {{ sap_sid | upper }}_APP"
 
-  name: "0.0 Validations - Validate SAP-Parameters for Oracle"
-  gather_facts: true
+  name:                                "0.0 Validations - Validate SAP-Parameters for Oracle"
+  gather_facts:                        true
+  vars_files:
+    - vars/ansible-input-api.yaml # API Input template with defaults
+  tasks:
+    - name:                            "0.0 Validations - Validate that the correct distribution is used"
+      ansible.builtin.assert:
+        that:
+          - "distribution_id ==  'oraclelinux8'"
+        fail_msg: "For Oracle deployments DB, PAS and APP needs to run on OracleLinux"
+      when:
+        - platform == 'ORACLE'
+
+- hosts:                               "{{ sap_sid | upper }}_DB"
+
+  name:                                "0.0 Validations - Validate SAP-Parameters for Oracle"
+  gather_facts:                        true
   vars_files:
     - vars/ansible-input-api.yaml # API Input template with defaults
   tasks:
@@ -475,10 +607,10 @@
         fail_msg: "Please specify MULTI_SIDS if you are deploying a shared home installation"
       when: node_tier == 'oracle-multi-sid'
 
-- hosts:               "{{ sap_sid | upper }}_WEB"
+- hosts:                               "{{ sap_sid | upper }}_WEB"
 
-  name: "0.0 Validations - Validate SAP-Parameters for Web Dispatchers"
-  gather_facts: true
+  name:                                "0.0 Validations - Validate SAP-Parameters for Web Dispatchers"
+  gather_facts:                        true
   vars_files:
     - vars/ansible-input-api.yaml # API Input template with defaults
   tasks:

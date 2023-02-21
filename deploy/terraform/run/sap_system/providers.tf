@@ -24,12 +24,13 @@ provider "azurerm" {
   tenant_id       = local.spn.tenant_id
 
   partner_id = "3179cd51-f54b-4c73-ac10-8e99417efce7"
+  alias      = "system"
 }
 
 provider "azurerm" {
   features {}
-  alias           = "deployer"
   subscription_id = length(local.deployer_subscription_id) > 0 ? local.deployer_subscription_id : null
+  use_msi         = true
 }
 
 provider "azurerm" {
@@ -64,7 +65,7 @@ terraform {
       source = "hashicorp/tls"
     }
     azuread = {
-      source = "hashicorp/azuread"
+      source  = "hashicorp/azuread"
       version = "~> 2.2"
     }
     azurerm = {

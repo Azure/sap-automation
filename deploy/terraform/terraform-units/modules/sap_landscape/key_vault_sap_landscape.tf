@@ -56,14 +56,13 @@ resource "azurerm_key_vault" "kv_user" {
 }
 
 resource "azurerm_private_dns_a_record" "kv_user" {
-  count               = var.use_private_endpoint && var.use_custom_dns_a_registration ? 1 : 0
+  provider = azurerm.dnsmanagement
+  count               = var.use_private_endpoint && !var.use_custom_dns_a_registration ? 1 : 0
   name                = lower(local.user_keyvault_name)
   zone_name           = "privatelink.vaultcore.azure.net"
   resource_group_name = var.management_dns_resourcegroup_name
   ttl                 = 3600
   records             = [data.azurerm_network_interface.keyvault[0].ip_configuration[0].private_ip_address]
-  
-  provider = azurerm.dnsmanagement
 
   lifecycle {
     ignore_changes = [tags]
@@ -71,9 +70,10 @@ resource "azurerm_private_dns_a_record" "kv_user" {
 }
 
 data "azurerm_network_interface" "keyvault" {
-  count               = var.use_private_endpoint && var.use_custom_dns_a_registration ? 1 : 0
-  name                = azurerm_private_endpoint.kv_user[count.index].network_interface[0].name
-  
+  provider = azurerm.main
+  count = var.use_private_endpoint && !var.use_custom_dns_a_registration ? 1 : 0
+  name  = azurerm_private_endpoint.kv_user[count.index].network_interface[0].name
+
   resource_group_name = split("/", azurerm_private_endpoint.kv_user[count.index].network_interface[0].id)[4]
 }
 
@@ -95,6 +95,7 @@ data "azurerm_key_vault" "kv_user" {
 
 
 resource "azurerm_role_assignment" "role_assignment_msi" {
+  provider = azurerm.main
   count = var.enable_rbac_authorization_for_keyvault ? 1 : 0
   scope = local.user_keyvault_exist ? (
     local.user_key_vault_id) : (
@@ -105,6 +106,7 @@ resource "azurerm_role_assignment" "role_assignment_msi" {
 }
 
 resource "azurerm_role_assignment" "role_assignment_spn" {
+  provider = azurerm.main
   count = var.enable_rbac_authorization_for_keyvault && local.service_principal.object_id != "" ? 1 : 0
   scope = local.user_keyvault_exist ? (
     local.user_key_vault_id) : (
@@ -115,7 +117,6 @@ resource "azurerm_role_assignment" "role_assignment_spn" {
 }
 
 resource "azurerm_key_vault_access_policy" "kv_user" {
-
   provider     = azurerm.main
   count        = (local.enable_landscape_kv && !local.user_keyvault_exist) && !var.enable_rbac_authorization_for_keyvault ? 1 : 0
   key_vault_id = local.user_keyvault_exist ? local.user_key_vault_id : azurerm_key_vault.kv_user[0].id
@@ -156,12 +157,12 @@ resource "random_password" "created_password" {
 
 // Key pair/password will be stored in the existing KV if specified, otherwise will be stored in a newly provisioned KV
 resource "azurerm_key_vault_secret" "sid_ppk" {
+  provider = azurerm.main
   depends_on = [
     azurerm_key_vault_access_policy.kv_user,
     azurerm_role_assignment.role_assignment_spn,
     time_sleep.wait_for_dns_refresh
   ]
-  provider     = azurerm.main
   count        = !local.sid_key_exist ? 1 : 0
   content_type = ""
   name         = local.sid_ppk_name
@@ -177,12 +178,12 @@ data "azurerm_key_vault_secret" "sid_ppk" {
 }
 
 resource "azurerm_key_vault_secret" "sid_pk" {
+  provider = azurerm.main
   depends_on = [
     azurerm_key_vault_access_policy.kv_user,
     azurerm_role_assignment.role_assignment_spn,
     time_sleep.wait_for_dns_refresh
   ]
-  provider     = azurerm.main
   count        = !local.sid_key_exist ? 1 : 0
   content_type = ""
   name         = local.sid_pk_name
@@ -200,12 +201,12 @@ data "azurerm_key_vault_secret" "sid_pk" {
 
 // Credentials will be stored in the existing KV if specified, otherwise will be stored in a newly provisioned KV
 resource "azurerm_key_vault_secret" "sid_username" {
+  provider     = azurerm.main
   depends_on = [
     azurerm_key_vault_access_policy.kv_user,
     azurerm_role_assignment.role_assignment_spn,
     time_sleep.wait_for_dns_refresh
   ]
-  provider     = azurerm.main
   count        = (!local.sid_credentials_secret_exist) ? 1 : 0
   content_type = ""
   name         = local.sid_username_secret_name
@@ -221,12 +222,12 @@ data "azurerm_key_vault_secret" "sid_username" {
 }
 
 resource "azurerm_key_vault_secret" "sid_password" {
+  provider     = azurerm.main
   depends_on = [
     azurerm_key_vault_access_policy.kv_user,
     azurerm_role_assignment.role_assignment_spn,
     time_sleep.wait_for_dns_refresh
   ]
-  provider     = azurerm.main
   count        = (!local.sid_credentials_secret_exist) ? 1 : 0
   name         = local.sid_password_secret_name
   content_type = ""
@@ -244,12 +245,12 @@ data "azurerm_key_vault_secret" "sid_password" {
 
 //Witness access key
 resource "azurerm_key_vault_secret" "witness_access_key" {
+  provider     = azurerm.main
   depends_on = [
     azurerm_key_vault_access_policy.kv_user,
     azurerm_role_assignment.role_assignment_spn,
     time_sleep.wait_for_dns_refresh
   ]
-  provider     = azurerm.main
   count        = 1
   content_type = ""
   name = replace(
@@ -273,12 +274,12 @@ resource "azurerm_key_vault_secret" "witness_access_key" {
 
 //Witness access key
 resource "azurerm_key_vault_secret" "witness_name" {
+  provider     = azurerm.main
   depends_on = [
     azurerm_key_vault_access_policy.kv_user,
     azurerm_role_assignment.role_assignment_spn,
     time_sleep.wait_for_dns_refresh
   ]
-  provider     = azurerm.main
   count        = 1
   content_type = ""
   name = replace(
@@ -329,11 +330,11 @@ resource "azurerm_key_vault_access_policy" "kv_user_msi" {
 
 //Witness access key
 resource "azurerm_key_vault_secret" "deployer_keyvault_user_name" {
+  provider     = azurerm.main
   depends_on = [
     azurerm_key_vault_access_policy.kv_user,
     time_sleep.wait_for_dns_refresh
   ]
-  provider     = azurerm.main
   content_type = ""
   name         = "deployer-kv-name"
   value        = local.deployer_keyvault_user_name
@@ -401,7 +402,7 @@ resource "azurerm_private_endpoint" "kv_user" {
   }
 
   dynamic "private_dns_zone_group" {
-    for_each = range(var.use_private_endpoint && var.use_custom_dns_a_registration ? 1 : 0)
+    for_each = range(var.use_private_endpoint && !var.use_custom_dns_a_registration ? 1 : 0)
     content {
       name                 = "privatelink.vaultcore.azure.net"
       private_dns_zone_ids = [data.azurerm_private_dns_zone.keyvault[0].id]
@@ -411,10 +412,10 @@ resource "azurerm_private_endpoint" "kv_user" {
 }
 
 data "azurerm_private_dns_zone" "keyvault" {
-  count               = var.use_private_endpoint && var.use_custom_dns_a_registration ? 1 : 0
+  provider            = azurerm.dnsmanagement
+  count               = var.use_private_endpoint && !var.use_custom_dns_a_registration ? 1 : 0
   name                = "privatelink.vaultcore.azure.net"
   resource_group_name = var.management_dns_resourcegroup_name
-  provider = azurerm.dnsmanagement
 
 }
 
@@ -426,6 +427,7 @@ data "azurerm_private_dns_zone" "keyvault" {
 ###############################################################################
 
 resource "azurerm_key_vault_access_policy" "kv_user_additional_users" {
+  provider     = azurerm.main
 
   count = var.enable_rbac_authorization_for_keyvault ? (
     0) : (

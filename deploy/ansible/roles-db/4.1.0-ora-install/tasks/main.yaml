@@ -333,10 +333,9 @@
     - name:                            "ORACLE: Post Processing - SBP Patching"
       become:                          true
       become_user:                     "oracle"
-      ansible.builtin.command:         $IHRDBMS/MOPatch/mopatch.sh -v -s {{ target_media_location }}/SBP/{{ oracle_sbp_patch }}
+      ansible.builtin.shell:           $IHRDBMS/MOPatch/mopatch.sh -v -s {{ oracle_sbp_patch }}
       environment:
-        DB_SID:                        "{{ db_sid }}"
-        CV_ASSUME_DISTID:              OL7
+        DB_SID:                        "{{ db_sid | upper }}"
         IHRDBMS:                       /oracle/{{ db_sid | upper }}/{{ ora_version }}
         ORACLE_HOME:                   /oracle/{{ db_sid | upper }}/{{ ora_version }}
         RDBMS:                         /oracle/{{ db_sid | upper }}/{{ ora_version }}
@@ -344,8 +343,8 @@
       register:                        sbpscript_results
       failed_when:                     sbpscript_results.rc >= 2
       args:
-        creates:                       "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sbp_installed.txt"
         chdir:                         "{{ target_media_location }}/SBP"
+        creates:                       "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sbp_installed.txt"
         executable:                    /bin/csh
 
     - name:                            "ORACLE: Post processing installer output"

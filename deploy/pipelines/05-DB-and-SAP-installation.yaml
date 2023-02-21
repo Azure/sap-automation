@@ -21,22 +21,6 @@ parameters:
   - name:                              bom_base_name
     displayName:                       Bill of Materials name
     type:                              string
-    values:
-      - S4HANA_2021_ISS_v0001ms
-      - S42020SPS04_v0001ms
-      - S41909SPS03_v0011ms
-      - BW4HANA2021SPS01_v0003ms
-      - HANA_2_00_063_v0001ms
-      - HANA_2_00_061_v0001ms
-      - HANA_2_00_059_v0003ms
-      - HANA_2_00_055_v0006ms
-      - NW750SPS20_v0004ms
-      - NW752SPS09_v0001ms
-      - NW750SPS20_DB2_v0001ms
-      - ORACLE_19_00_v0003ms
-      - DB2_UDB_11_5_v0001ms
-      - ORACLE_19_00_ORA_MSID_v0002ms
-      - HCMT_v0002ms
 
   - name:                              extra_params
     displayName:                       Extra Parameters
@@ -92,6 +76,28 @@ parameters:
     displayName:                       WebDispatcher Installation
     type:                              boolean
     default:                           false
+
+# 20220929 MKD - ACSS Registration <BEGIN>
+  - name:                             acss_registration
+    displayName:                      Register System in ACSS
+    type:                             boolean
+    default:                          true
+
+  - name:                             acss_environment
+    displayName:                      ACSS Prod/NonProd
+    type:                             string
+    values:
+      - NonProd
+      - Prod
+
+  - name:                              acss_sap_product
+    displayName:                       System Type
+    type:                              string
+    values:
+      - S4HANA
+      - ECC
+      - Other
+  # 20220929 MKD - ACSS Registration <END>
 
   - name:                              sap_automation_repo_path
     displayName:                       The local path on the agent where the sap_automation repo can be found
@@ -209,17 +215,24 @@ stages:
               echo -e "$green--- Get connection details ---$reset"
                 mkdir -p artifacts
 
-                az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "${NETWORK}"Workload_Key_Vault.value | tr -d \")
+                az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "${NETWORK}"Workload_Key_Vault.value --output tsv)
                 if [ -z ${az_var} ]; then
-                  export workload_key_vault=$(cat "${environment_file_name}"  | grep workload_key_vault      | awk -F'=' '{print $2}' | xargs) ; echo 'Workload Key Vault' ${workload_key_vault}
+                  export workload_key_vault=$(cat "${environment_file_name}"  | grep workloadkeyvault      | awk -F'=' '{print $2}' | xargs) ; echo 'Workload Key Vault' ${workload_key_vault}
                 else
-                  export workload_key_vault=${az_var} ; echo 'Workload Key Vault' ${workload_key_vault}
+                  export workload_key_vault=${az_var} ; echo 'Workload Key Vault' ${workload_key_vault} ; echo 'Workload Key Vault' ${workload_key_vault}
                 fi
 
-                echo "##vso[task.setvariable variable=SSH_KEY_NAME;isOutput=true]${ENVIRONMENT}-${LOCATION}-${NETWORK}-sid-sshkey"
+                az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "${NETWORK}"Workload_Secret_Prefix.value  --output tsv)
+                if [ -z ${az_var} ]; then
+                  export workload_prefix=$(cat "${environment_file_name}"  | grep workload_zone_prefix      | awk -F'=' '{print $2}' | xargs) ; echo 'Workload Prefix' ${workload_prefix}
+                else
+                  export workload_prefix=${az_var} ; echo 'Workload Prefix' ${workload_prefix}; echo 'Workload Prefix' ${workload_prefix}
+                fi
+
+                echo "##vso[task.setvariable variable=SSH_KEY_NAME;isOutput=true]${workload_prefix}-sid-sshkey"
                 echo "##vso[task.setvariable variable=VAULT_NAME;isOutput=true]$workload_key_vault"
-                echo "##vso[task.setvariable variable=PASSWORD_KEY_NAME;isOutput=true]${ENVIRONMENT}-${LOCATION}-${NETWORK}-sid-password"
-                echo "##vso[task.setvariable variable=USERNAME_KEY_NAME;isOutput=true]${ENVIRONMENT}-${LOCATION}-${NETWORK}-sid-username"
+                echo "##vso[task.setvariable variable=PASSWORD_KEY_NAME;isOutput=true]${workload_prefix}-sid-password"
+                echo "##vso[task.setvariable variable=USERNAME_KEY_NAME;isOutput=true]${workload_prefix}-sid-username"
 
               echo -e "$green--- az login ---$reset"
                 #If the deployer_file exists we run on a deployer configured by the framework instead of a azdo hosted one
@@ -235,7 +248,7 @@ stages:
                 fi
                 az account set --subscription $AZURE_SUBSCRIPTION_ID
 
-                az keyvault secret show --name ${ENVIRONMENT}-${LOCATION}-${NETWORK}-sid-sshkey --vault-name $workload_key_vault --query value -o tsv > artifacts/${SAP_SYSTEM_CONFIGURATION_NAME}_sshkey
+                az keyvault secret show --name ${workload_prefix}-sid-sshkey --vault-name $workload_key_vault --query value -o tsv > artifacts/${SAP_SYSTEM_CONFIGURATION_NAME}_sshkey
                 cp sap-parameters.yaml artifacts/.
                 cp ${SID}_hosts.yaml artifacts/.
 
@@ -251,6 +264,7 @@ stages:
               AZURE_CLIENT_SECRET:           $(ARM_CLIENT_SECRET)
               AZURE_TENANT_ID:               $(ARM_TENANT_ID)
               AZURE_SUBSCRIPTION_ID:         $(ARM_SUBSCRIPTION_ID)
+              ANSIBLE_COLLECTIONS_PATHS:     /opt/ansible/collections
               CONFIG_REPO_PATH:              ${{ parameters.config_repo_path }}
               BOM_BASE_NAME:                 ${{ parameters.bom_base_name }}
               SAP_SYSTEM_CONFIGURATION_NAME: ${{ parameters.sap_system_configuration_name }}
@@ -440,6 +454,23 @@ stages:
                   azureClientSecret:         $(ARM_CLIENT_SECRET)
                   azureTenantId:             $(ARM_TENANT_ID)
                   azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
+          - ${{ if eq(parameters.acss_registration, true) }}:
+              - template:                    templates\acss-registration.yaml
+                parameters:
+                  displayName:                 "ACSS Registration"
+                  scriptPath:                  ${{ parameters.sap_automation_repo_path }}/deploy/pipelines/templates
+                  azureClientId:               $(ARM_CLIENT_ID)
+                  azureClientSecret:           $(ARM_CLIENT_SECRET)
+                  azureTenantId:               $(ARM_TENANT_ID)
+                  azureSubscriptionId:         $(ARM_SUBSCRIPTION_ID)
+                  acssEnvironment:             ${{ parameters.acss_environment }}
+                  acssSapProduct:              ${{ parameters.acss_sap_product }}
+                  sapSystemConfigurationName:  ${{ parameters.sap_system_configuration_name }}
+                  parametersFolder:            $(Preparation.FOLDER)
+                  config_repo_path:            ${{ parameters.config_repo_path }}
+                  sap_automation_repo_path:    ${{ parameters.sap_automation_repo_path }}
+                  TF_Remote_SA_Name:           $(Terraform_Remote_Storage_Account_Name)
+                  TF_Remote_Storage_Subscription: $(Terraform_Remote_Storage_Subscription)
 
           - template:                          templates\collect-log-files.yaml
             parameters:

@@ -477,6 +477,9 @@ resource "azurerm_virtual_machine_extension" "configure_ansible_scs" {
     local.scs_server_count) : (
     0
   )
+
+  depends_on = [azurerm_virtual_machine_data_disk_attachment.scs]
+
   virtual_machine_id   = azurerm_windows_virtual_machine.scs[count.index].id
   name                 = "configure_ansible"
   publisher            = "Microsoft.Compute"

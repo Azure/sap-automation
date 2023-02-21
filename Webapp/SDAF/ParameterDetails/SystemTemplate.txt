@@ -63,9 +63,6 @@ $$use_secondary_ips$$
 # subscription is the subscription in which the system will be deployed (informational only)
 $$subscription$$
 
-# bom_name is the name of the SAP Bill of Materials file
-$$bom_name$$
-
 
 #########################################################################################
 #                                                                                       #
@@ -241,11 +238,15 @@ $$scs_server_count$$
 # scs_high_availability is a boolean flag controlling if SCS should be highly available
 $$scs_high_availability$$
 
-# scs_instance_number
+# scs_instance_number defines the instance number for SCS
 $$scs_instance_number$$
 
-# ers_instance_number
+# ers_instance_number defines the instance number for ERS
 $$ers_instance_number$$
+
+# pas_instance_number defines the instance number for PAS
+$$pas_instance_number$$
+
 
 # scs_server_zones is an optional list defining the availability zones to which deploy the SCS servers
 $$scs_server_zones$$
@@ -487,7 +488,7 @@ $$ANF_HANA_shared_volume_name$$
 
 #########################################################################################
 #                                                                                       #
-#  /usr/sap                                                                             #
+#  Azure NetApp Files /usr/sap                                                          #
 #                                                                                       #
 #########################################################################################
 
@@ -509,12 +510,12 @@ $$ANF_usr_sap_volume_name$$
 
 #########################################################################################
 #                                                                                       #
-#  sapmnt                                                                               #
+#  Azure NetApp Files sapmnt                                                            #
 #                                                                                       #
 #########################################################################################
 
 # ANF_sapmnt, if defined, will create Azure NetApp Files volume for /sapmnt
-$$ANF_sapmnt$$
+$$ANF_sapmnt_use_existing$$
 
 # ANF_sapmnt_volume_size, if defined, provides the size of the /sapmnt volume.
 $$ANF_sapmnt_volume_size$$
@@ -731,3 +732,17 @@ $$tfstate_resource_id$$
 $$deployer_tfstate_key$$
 
 $$landscape_tfstate_key$$
+
+
+#########################################################################################
+#                                                                                       #
+#  SAP Application Information                                                          #
+#                                                                                       #
+#########################################################################################
+
+# bom_name is the name of the SAP Application Bill of Materials file
+
+$$bom_name$$
+
+# configuration_settings is a dictionary containing values that will be persisted in sap-parameters.yaml
+$$configuration_settings$$

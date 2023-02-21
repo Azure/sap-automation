@@ -65,6 +65,10 @@
       # registercloudguest rc == 1 when successful
       failed_when:                     reg_result.rc > 1
 
+    - name:                            "1.3 Packages - Wait 30 secs before retrying"
+      ansible.builtin.wait_for:
+        timeout:                       30
+
     - name:                            "1.3 Repository - Verify that zypper repos are configured after re-registering SLE instance"
       ansible.builtin.command:         zypper lr
       args:

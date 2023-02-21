@@ -363,7 +363,7 @@ else {
   Add-Content -Path $templatename "      type: GitHub"
   Add-Content -Path $templatename -Value ("      endpoint: " + $ghConn)
   Add-Content -Path $templatename "      name: Azure/sap-automation"
-  Add-Content -Path $templatename "      ref: refs/heads/experimental"
+  Add-Content -Path $templatename "      ref: refs/heads/main"
 
   $cont = Get-Content -Path $templatename -Raw
 
@@ -412,7 +412,7 @@ else {
   Add-Content -Path $templatename "     type: GitHub"
   Add-Content -Path $templatename -Value ("     endpoint: " + $ghConn)
   Add-Content -Path $templatename "     name: Azure/sap-automation"
-  Add-Content -Path $templatename "     ref: refs/heads/experimental"
+  Add-Content -Path $templatename "     ref: refs/heads/main"
   Add-Content -Path $templatename "   - repository: sap-samples"
   Add-Content -Path $templatename "     type: GitHub"
   Add-Content -Path $templatename -Value ("     endpoint: " + $ghConn)
@@ -468,6 +468,17 @@ $provideSUser = Read-Host "Do you want to provide the S user details y/n?"
 if ($provideSUser -eq 'y') {
   $SUserName = Read-Host "Enter your S User ID"
   $SPassword = Read-Host "Enter your S user password"
+}
+
+
+Write-Host "Creating the variable group SDAF-General" -ForegroundColor Green
+
+$general_group_id = (az pipelines variable-group list --query "[?name=='SDAF-General'].id | [0]" --only-show-errors)
+if ($general_group_id.Length -eq 0) {
+  az pipelines variable-group create --name SDAF-General --variables ANSIBLE_HOST_KEY_CHECKING=false Deployment_Configuration_Path=WORKSPACES Branch=main tf_version="1.3.4" ansible_core_version="2.13" S-Username=$SUserName S-Password=$SPassword --output yaml --authorize true --output none
+  $general_group_id = (az pipelines variable-group list --query "[?name=='SDAF-General'].id | [0]" --only-show-errors)
+  az pipelines variable-group variable update --group-id $general_group_id --name "S-Password" --value $SPassword --secret true --output none --only-show-errors
+
 }
 
 #region Create pipelines
@@ -639,15 +650,22 @@ if ($import_code) {
 }
 
 
-#endregion
-
-Write-Host "Creating the variable group SDAF-General" -ForegroundColor Green
-
-$general_group_id = (az pipelines variable-group list --query "[?name=='SDAF-General'].id | [0]" --only-show-errors)
-if ($general_group_id.Length -eq 0) {
-  az pipelines variable-group create --name SDAF-General --variables ANSIBLE_HOST_KEY_CHECKING=false Deployment_Configuration_Path=WORKSPACES Branch=main S-Username=$SUserName S-Password=$SPassword tf_version=1.3.4 ansible_core_version=2.13 --output yaml --authorize true --output none
-  $general_group_id = (az pipelines variable-group list --query "[?name=='SDAF-General'].id | [0]" --only-show-errors)
+$pipeline_name = 'Update Pipelines'
+$pipeline_id = (az pipelines list --query "[?name=='$pipeline_name'].id | [0]")
+if ($pipeline_id.Length -eq 0) {
+  az pipelines create --name $pipeline_name --branch main --description 'Updates the pipelines' --skip-run --yaml-path "/pipelines/21-update-pipelines.yml" --repository $repo_id --repository-type tfsgit --output none --only-show-errors
 }
+$pipeline_id = (az pipelines list --query "[?name=='$pipeline_name'].id | [0]")
+$this_pipeline_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) + "/_build?definitionId=" + $pipeline_id
+$log = ("[" + $pipeline_name + "](" + $this_pipeline_url + ")")
+Add-Content -Path $fname -Value $log
+$bodyText.pipelines += @{
+  id         = $pipeline_id
+  authorized = $true
+}
+
+
+#endregion
 
 Add-Content -Path $fname -Value ""
 Add-Content -Path $fname -Value "### Variable Groups"
@@ -783,14 +801,6 @@ else {
 
 az pipelines variable-group variable update --group-id $Control_plane_groupID --name "WEB_APP_CLIENT_SECRET" --value $WEB_APP_CLIENT_SECRET --secret true --output none --only-show-errors
 
-if ( $provideSUser ) {
-  if ($SPassword.Length -eq 0) {
-    az pipelines variable-group variable update --group-id $general_group_id --name "S-Password" --value $SPassword --secret true --output none --only-show-errors
-  }
-  if ($SUserName.Length -eq 0) {
-    az pipelines variable-group variable update --group-id $general_group_id --name "S-Username" --value $SUserName --output none --only-show-errors
-  }
-}
 
 
 #endregion
@@ -899,9 +909,9 @@ else {
   $POOL_NAME_FOUND = (az pipelines pool list --query "[?name=='$Pool_Name'].name | [0]")
   if ($POOL_NAME_FOUND.Length -gt 0) {
     Write-Host "Agent pool" $Pool_Name "already exists" -ForegroundColor Yellow
-    $POOL_ID = (az pipelines pool list --query "[?name=='$Pool_Name'].id | [0]").Replace("""", "")
+    $POOL_ID = (az pipelines pool list --query "[?name=='$Pool_Name'].id | [0]" --output tsv).Replace("""", "")
     Set-Content -Path pool.json -Value (ConvertTo-Json @{name = $Pool_Name; pool = @{ id = $POOL_ID }; projectID = $Project_ID })
-    az devops invoke --area distributedtask --resource queues --http-method POST --api-version "7.1-preview" --in-file .\pool.json --query-parameters authorizePipelines=true --route-parameters project=$Project_ID --output none
+    az devops invoke --area distributedtask --resource queues --http-method POST --api-version "7.1-preview" --in-file .\pool.json --query-parameters authorizePipelines=true --route-parameters project=$Project_ID --output none --only-show-errors
 
   }
   else {
@@ -909,7 +919,8 @@ else {
     Write-Host "Creating agent pool" $Pool_Name -ForegroundColor Green
 
     Set-Content -Path pool.json -Value (ConvertTo-Json @{name = $Pool_Name; autoProvision = $true })
-    az devops invoke --area distributedtask --resource pools --http-method POST --api-version "7.1-preview" --in-file .\pool.json --query-parameters authorizePipelines=true --query id --output none
+    az devops invoke --area distributedtask --resource pools --http-method POST --api-version "7.1-preview" --in-file .\pool.json --query-parameters authorizePipelines=true --query id --output none --only-show-errors
+    $POOL_ID = (az pipelines pool list --query "[?name=='$Pool_Name'].id | [0]" --output tsv).Replace("""", "")
     Write-Host "Agent pool" $Pool_Name "created"
 
   }

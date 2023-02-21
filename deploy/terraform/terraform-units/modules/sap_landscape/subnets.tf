@@ -178,41 +178,42 @@ resource "azurerm_subnet_network_security_group_association" "web" {
 #Associate the subnets to the route table
 
 resource "azurerm_subnet_route_table_association" "admin" {
+  provider       = azurerm.main
   depends_on = [
     azurerm_route_table.rt
   ]
 
-  provider       = azurerm.main
   count          = local.admin_subnet_defined && !local.vnet_sap_exists && !local.admin_subnet_existing ? 1 : 0
   subnet_id      = local.admin_subnet_existing ? local.admin_subnet_arm_id : azurerm_subnet.admin[0].id
   route_table_id = azurerm_route_table.rt[0].id
 }
 
 resource "azurerm_subnet_route_table_association" "db" {
+  provider       = azurerm.main
   depends_on = [
     azurerm_route_table.rt
   ]
-  provider       = azurerm.main
-  count          = local.database_subnet_defined && !local.vnet_sap_exists && !local.database_subnet_existing ? 1 : 0 
+
+  count          = local.database_subnet_defined && !local.vnet_sap_exists && !local.database_subnet_existing ? 1 : 0
   subnet_id      = local.database_subnet_existing ? local.database_subnet_arm_id : azurerm_subnet.db[0].id
   route_table_id = azurerm_route_table.rt[0].id
 }
 
 resource "azurerm_subnet_route_table_association" "app" {
+  provider       = azurerm.main
   depends_on = [
     azurerm_route_table.rt
   ]
-  provider       = azurerm.main
   count          = local.application_subnet_defined && !local.vnet_sap_exists && !local.application_subnet_existing ? 1 : 0
   subnet_id      = local.application_subnet_existing ? local.application_subnet_arm_id : azurerm_subnet.app[0].id
   route_table_id = azurerm_route_table.rt[0].id
 }
 
 resource "azurerm_subnet_route_table_association" "web" {
+  provider       = azurerm.main
   depends_on = [
     azurerm_route_table.rt
   ]
-  provider       = azurerm.main
   count          = local.web_subnet_defined && !local.vnet_sap_exists && !local.web_subnet_existing ? 1 : 0
   subnet_id      = local.web_subnet_existing ? local.web_subnet_arm_id : azurerm_subnet.web[0].id
   route_table_id = azurerm_route_table.rt[0].id

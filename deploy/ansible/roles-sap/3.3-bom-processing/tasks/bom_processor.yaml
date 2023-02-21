@@ -1,5 +1,5 @@
 ---
-# /*----------------------------------------------------------------------------8
+# /*---------------------------------------------------------------------------8
 # |                                                                            |
 # |         BOM Validation role                                                |
 # |                                                                            |
@@ -7,7 +7,7 @@
 # |   target_media_location exists on disk                                     |
 # |                                                                            |
 # | Inputs:                                                                    |
-# |   target_media_location             Default     {{ target_media_location }}           |
+# |   target_media_location             Default     {{ target_media_location }}|
 # | download_directory                                                         |
 # | bom_name                                                                   |
 # | sapbits_location_base_path                                                 |
@@ -31,14 +31,14 @@
 # |                                                                            |
 # | Steps:                                                                     |
 # |  01) Register BOM                                                          |
-# |  02) Create static download directories
-# |  03) Create dynamic extract directories
-# |  04) Download media from bom
-# |  05) Extract files - SAPCAR
-# |  06) Extract files - UNRAR
-# |  07) Extract files - UNZIP
-# |  08) Purge BOM file from Ansible Controller - TBD
-
+# |  02) Create static download directories                                    |
+# |  03) Create dynamic extract directories                                    |
+# |  04) Download media from bom                                               |
+# |  05) Extract files - SAPCAR                                                |
+# |  06) Extract files - UNRAR                                                 |
+# |  07) Extract files - UNZIP                                                 |
+# |  08) Purge BOM file from Ansible Controller - TBD                          |
+#                                                                              |
 # +------------------------------------4--------------------------------------*/
 
 - name:                                "3.3 BoM Processing: - Create BOM download directories"
@@ -170,6 +170,12 @@
     - distribution_id != 'sles_sap15'
     - distribution_id != 'redhat8'
 
+
+- name:                               "3.3 BoM Processing: - Download result"
+  ansible.builtin.debug:
+    var:                              result
+    verbosity:                        2
+
 #   05) Extract files - SAPCAR
 - name:                                "3.3 BoM Processing: - Extract File, SAPCAR"
   ansible.builtin.command:             "{{ target_media_location }}/downloads/SAPCAR -manifest SIGNATURE.SMF \
@@ -189,8 +195,7 @@
 
 #   06) Extract files - UNRAR
 - name:                                "3.3 BoM Processing: - Extract File, UNRAR"
-  ansible.builtin.command:             unrar x "{{ target_media_location }}/{% if item.path is undefined %}downloads{% else %}{{ item.path }}{% endif %}/\
-                                       {% if item.filename is undefined %}{{ item.archive }}{% else %}{{ item.filename }}{% endif %}"
+  ansible.builtin.command:             unrar x "{{ target_media_location }}/{% if item.path is undefined %}downloads{% else %}{{ item.path }}{% endif %}/{% if item.filename is undefined %}{{ item.archive }}{% else %}{{ item.filename }}{% endif %}"
   args:
     chdir:                             "{{ target_media_location }}/{{ item.extractDir }}"
     creates:                           "{{ target_media_location }}/{{ item.extractDir }}/\

@@ -368,6 +368,7 @@ resource "azurerm_managed_disk" "disks" {
   create_option          = "Empty"
   storage_account_type   = local.anydb_disks[count.index].storage_account_type
   disk_size_gb           = local.anydb_disks[count.index].disk_size_gb
+  tier                   = local.anydb_disks[count.index].tier
   disk_encryption_set_id = try(var.options.disk_encryption_set_id, null)
   disk_iops_read_write = "UltraSSD_LRS" == local.anydb_disks[count.index].storage_account_type ? (
     local.anydb_disks[count.index].disk_iops_read_write) : (
@@ -398,6 +399,7 @@ resource "azurerm_virtual_machine_data_disk_attachment" "vm_disks" {
   caching                   = local.anydb_disks[count.index].caching
   write_accelerator_enabled = local.anydb_disks[count.index].write_accelerator_enabled
   lun                       = local.anydb_disks[count.index].lun
+  # tier                      = local.anydb_disks[count.index].tier
 }
 
 
@@ -411,6 +413,7 @@ resource "azurerm_virtual_machine_extension" "anydb_lnx_aem_extension" {
     )) : (
     0
   )
+  depends_on           = [azurerm_virtual_machine_data_disk_attachment.vm_disks]
   name                 = "MonitorX64Linux"
   virtual_machine_id   = azurerm_linux_virtual_machine.dbserver[count.index].id
   publisher            = "Microsoft.AzureCAT.AzureEnhancedMonitoring"
@@ -433,6 +436,7 @@ resource "azurerm_virtual_machine_extension" "anydb_win_aem_extension" {
     )) : (
     0
   )
+  depends_on           = [azurerm_virtual_machine_data_disk_attachment.vm_disks]
   name                 = "MonitorX64Windows"
   virtual_machine_id   = azurerm_windows_virtual_machine.dbserver[count.index].id
   publisher            = "Microsoft.AzureCAT.AzureEnhancedMonitoring"
@@ -446,7 +450,6 @@ SETTINGS
 }
 
 resource "azurerm_virtual_machine_extension" "configure_ansible" {
-
   provider = azurerm.main
   count = local.enable_deployment ? (
     upper(local.anydb_ostype) == "WINDOWS" ? (
@@ -456,6 +459,7 @@ resource "azurerm_virtual_machine_extension" "configure_ansible" {
     0
   )
 
+  depends_on = [azurerm_virtual_machine_data_disk_attachment.vm_disks]
 
   name                 = "configure_ansible"
   virtual_machine_id   = azurerm_windows_virtual_machine.dbserver[count.index].id

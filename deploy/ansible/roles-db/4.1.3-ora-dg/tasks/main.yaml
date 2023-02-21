@@ -15,13 +15,13 @@
     ora_secondary:                     "{{ ansible_play_hosts_all[1] }}"         # Oracle Secondary Host
     current_host:                      "{{ ansible_hostname }}"
   when:
-    - node_tier == "oracle"
+    - node_tier == "oracle" or node_tier == "oracle-asm"
     - action == 1
 
 - name:                                "Oracle Data Guard: Prepare secondary node"
   ansible.builtin.include_tasks:       "ora-dg-secondary-preparation.yaml"
   when:
-    - node_tier == "oracle"
+    - node_tier == "oracle" or node_tier == "oracle-asm"
     - action == 0
 
 - name:                                "Oracle Data Guard: Prepare and Restore"
@@ -40,13 +40,13 @@
         - current_host == ora_secondary
   when:
     - action == 1
-    - node_tier == "oracle"
+    - node_tier == "oracle" or node_tier == "oracle-asm"
     - node_tier != "observer"
 
 - name:                                "Oracle Data Guard: Post processing"
   ansible.builtin.include_tasks:       "ora-dg-postprocessing.yaml"
   when:
-    - node_tier == "oracle"
+    - node_tier == "oracle" or node_tier == "oracle-asm"
     - node_tier != "observer"
     - action       == 2
 

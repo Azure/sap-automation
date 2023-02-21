@@ -218,7 +218,7 @@ locals {
         for idx, disk_count in range(storage_type.count) : {
           suffix = format("-%s%02d",
             storage_type.name,
-            disk_count + var.options.resource_offset
+            storage_type.name_offset + disk_count + var.options.resource_offset
           )
           storage_account_type      = storage_type.disk_type,
           disk_size_gb              = storage_type.size_gb,
@@ -235,13 +235,9 @@ locals {
     ]
   ) : []
 
-  all_data_disk_per_dbnode = distinct(
-    concat(local.data_disk_per_dbnode, local.append_disk_per_dbnode)
-  )
-
-  data_disk_list = flatten([
+  base_data_disk_list = flatten([
     for vm_counter in range(var.database_server_count) : [
-      for datadisk in local.all_data_disk_per_dbnode : {
+      for datadisk in local.data_disk_per_dbnode : {
         suffix                    = datadisk.suffix
         vm_index                  = vm_counter
         caching                   = datadisk.caching
@@ -255,6 +251,25 @@ locals {
       }
     ]
   ])
+
+  append_data_disk_list = flatten([
+    for vm_counter in range(var.database_server_count) : [
+      for datadisk in local.append_disk_per_dbnode : {
+        suffix                    = datadisk.suffix
+        vm_index                  = vm_counter
+        caching                   = datadisk.caching
+        storage_account_type      = datadisk.storage_account_type
+        disk_size_gb              = datadisk.disk_size_gb
+        write_accelerator_enabled = datadisk.write_accelerator_enabled
+        disk_iops_read_write      = datadisk.disk_iops_read_write
+        disk_mbps_read_write      = datadisk.disk_mbps_read_write
+        lun                       = datadisk.lun
+        type                      = datadisk.type
+      }
+    ]
+  ])
+
+  data_disk_list = distinct(concat(local.base_data_disk_list, local.append_data_disk_list))
 
   //Disks for Ansible
   // host: xxx, LUN: #, type: sapusr, size: #
@@ -293,7 +308,7 @@ locals {
   //PPG control flag
   no_ppg = var.database.no_ppg
 
-  dns_label               = try(var.landscape_tfstate.dns_label, "")
+  dns_label = try(var.landscape_tfstate.dns_label, "")
 
   ANF_pool_settings = var.NFS_provider == "ANF" ? (
     try(var.landscape_tfstate.ANF_pool_settings, null)
@@ -326,5 +341,4 @@ locals {
     flatten(concat(local.database_primary_ips, local.database_secondary_ips))) : (
     local.database_primary_ips
   )
-
 }
