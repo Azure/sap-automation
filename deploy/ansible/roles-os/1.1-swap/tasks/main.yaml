@@ -24,10 +24,10 @@
   ansible.builtin.shell:               set -o pipefail && cat /proc/meminfo | grep SwapTotal
   register:                            swap_space
 
-- name:                               "SWAP space"
+- name:                                "SWAP space from /proc/meminfo"
   ansible.builtin.debug:
-    msg:                              "{{ swap_space }}"
-    verbosity:                        2
+    msg:                               "SWAP size from procinfo: {{ swap_space }}"
+    verbosity:                         2
 
 
 - name:                                "Trim Swap space"
@@ -38,10 +38,9 @@
   ansible.builtin.set_fact:
     swap_size:                         "{{ swap_value | int }}"
 
-- name:                                "SWAP Enabled"
+- name:                                "SWAP size"
   ansible.builtin.debug:
     msg:                               "Swap size: {{ swap_size }}"
-    verbosity:                         2
 
 - name:                                "1.1 Swap: - Ensure waagent file is configured with proper parameters"
   ansible.builtin.lineinfile:
@@ -62,6 +61,7 @@
     - { state: 'present',  regexp: 'ResourceDisk.SwapSizeMB=',  line: 'ResourceDisk.SwapSizeMB={{ swap_size_mb | default(2052) }}' }
     - { state: 'present',  regexp: 'ResourceDisk.MountPoint=',  line: 'ResourceDisk.MountPoint=/mnt'                               }
     - { state: 'present',  regexp: 'Provisioning.Agent=',       line: 'Provisioning.Agent=waagent'                                 }
+  register:                            wagent_configuration
   vars:
     swap_size_mb:                      "{{ (sap_swap | selectattr('tier', 'search', node_tier) | list | first).swap_size_mb }}"
   when:
@@ -70,7 +70,7 @@
 - name:                                "Swap reboot"
   ansible.builtin.reboot:
   when:
-    - swap_size == '0'
+    - wagent_configuration.changed
 
 # - name:                               "Get SWAP Size"
 #   set_fact:

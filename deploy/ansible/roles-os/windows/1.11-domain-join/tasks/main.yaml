@@ -1,7 +1,17 @@
+- name:                                "WIN: Calculating the domain value from {{ domain_name }}"
+  ansible.builtin.set_fact:
+    domain:                            "{{ domain_name | split('.') | first }}"
+    cacheable:                         true
+  when:
+    - domain_name is defined
+    - domain_name | type_debug != 'NoneType'
+    - domain_name | trim | length > 1
+    - domain is not defined
+
 - name:                                "WIN: Joining the domain {{ domain }}"
   ansible.builtin.debug:
     msg:
-      - "Domain:                       {{ domain }}"
+      - "Domain:                       {{ domain_name }}"
       - "domain_svc_account:           {{ domain_service_account }}"
       - "hostname:                     {{ ansible_hostname }}"
     verbosity:                         2
@@ -11,7 +21,7 @@
 - name:                                "WIN: Joining the domain {{ domain }}"
   ansible.windows.win_domain_membership:
     dns_domain_name:                   "{{ domain_name }}"
-    domain_admin_user:                 "{{ domain_service_account }}@{{ domain }}"
+    domain_admin_user:                 "{{ domain_service_account }}@{{ domain_name }}"
     domain_admin_password:             "{{ domain_service_password }}"
     domain_ou_path:                    "{{ domain_ou_path }}"
     hostname:                          "{{ ansible_hostname }}"
@@ -25,7 +35,7 @@
 - name:                                "WIN: Joining the domain {{ domain }}"
   ansible.windows.win_domain_membership:
     dns_domain_name:                   "{{ domain_name }}"
-    domain_admin_user:                 "{{ domain_service_account }}@{{ domain }}"
+    domain_admin_user:                 "{{ domain_service_account }}@{{ domain_name }}"
     domain_admin_password:             "{{ domain_service_password }}"
     hostname:                          "{{ ansible_hostname }}"
     state:                             domain

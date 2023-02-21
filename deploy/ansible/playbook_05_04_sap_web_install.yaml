@@ -82,6 +82,7 @@
         sapbits_sas_token:             "{{ hostvars.localhost.sapbits_sas_token }}"
         always_upload_jinja_templates: false
         file_path:                     /GENERIC/AS/WI_UC
+        sa_enabled:                    true
 
       tags:
         - always

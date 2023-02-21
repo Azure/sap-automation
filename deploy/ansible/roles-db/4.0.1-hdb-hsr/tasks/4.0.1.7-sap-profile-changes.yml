@@ -103,4 +103,13 @@
     - platform == 'HANA'
     - db_high_availability
 
+- name:                            "4.0.1.7 - Check if SAP DEFAULT.PFL changes are needed for rsdb/ssfs_connect"
+  ansible.builtin.lineinfile:
+    path:                          "/sapmnt/{{ sap_sid | upper }}/profile/DEFAULT.PFL"
+    regexp:                        "^rsdb/ssfs_connect = "
+    line:                          "rsdb/ssfs_connect = 1"
+    state:                         present
+  check_mode:                      true
+  register:                        check_ssfs_connect_pfl
+
 ...

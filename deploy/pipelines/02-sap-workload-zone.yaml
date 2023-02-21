@@ -122,6 +122,8 @@ stages:
                 if [ ! -f /etc/profile.d/deploy_server.sh ]; then
                   echo -e "$green --- Install dos2unix ---$reset"
                   sudo apt-get -qq install dos2unix
+                else
+                  source /etc/profile.d/deploy_server.sh
                 fi
 
                 if [ ! -f $CONFIG_REPO_PATH/LANDSCAPE/$(workload_zone_folder)/$(workload_zone_configuration_file) ]; then
@@ -133,27 +135,27 @@ stages:
                 echo -e "$green--- Checkout $(Build.SourceBranchName) ---$reset"
 
                 cd $CONFIG_REPO_PATH
-                mkdir -p .sap_deployment_automation                
+                mkdir -p .sap_deployment_automation
                 git checkout -q $(Build.SourceBranchName)
 
                 echo -e "$green--- Validations ---$reset"
 
-                if [ -z $ARM_SUBSCRIPTION_ID ]; then
+                if [ -z $WL_ARM_SUBSCRIPTION_ID ]; then
                   echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined in the $(variable_group) variable group."
                   exit 2
                 fi
 
-                if [ -z $ARM_CLIENT_ID ]; then
+                if [ -z $WL_ARM_CLIENT_ID ]; then
                   echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined in the $(variable_group) variable group."
                   exit 2
                 fi
 
-                if [ -z $ARM_CLIENT_SECRET ]; then
+                if [ -z $WL_ARM_CLIENT_SECRET ]; then
                   echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined in the $(variable_group) variable group."
                   exit 2
                 fi
 
-                if [ -z $ARM_TENANT_ID ]; then
+                if [ -z $WL_ARM_TENANT_ID ]; then
                   echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined in the $(variable_group) variable group."
                   exit 2
                 fi
@@ -181,14 +183,14 @@ stages:
               echo -e "$green--- Convert config file to UX format ---$reset"
                 dos2unix -q LANDSCAPE/$(workload_zone_folder)/$(workload_zone_configuration_file)
               echo -e "$green--- Read details ---$reset"
-                
+
                 ENVIRONMENT=$(grep "^environment" LANDSCAPE/$(workload_zone_folder)/$(workload_zone_configuration_file) | awk -F'=' '{print $2}' | xargs)
                    LOCATION=$(grep "^location" LANDSCAPE/$(workload_zone_folder)/$(workload_zone_configuration_file) | awk -F'=' '{print $2}' | xargs | tr 'A-Z' 'a-z')
                     NETWORK=$(grep "^network_logical_name" LANDSCAPE/$(workload_zone_folder)/$(workload_zone_configuration_file) | awk -F'=' '{print $2}' | xargs)
                 echo Environment: ${ENVIRONMENT}
                 echo Location:    ${LOCATION}
                 echo Network:     ${NETWORK}
-                
+
                 ENVIRONMENT_IN_FILENAME=$(echo $(workload_zone_folder) | awk -F'-' '{print $1}' | xargs )
                           LOCATION_CODE=$(echo $(workload_zone_folder) | awk -F'-' '{print $2}' | xargs )
                 case "$LOCATION_CODE" in
@@ -239,7 +241,7 @@ stages:
                   "WEEU") LOCATION_IN_FILENAME="westeurope" ;;
                   "WEIN") LOCATION_IN_FILENAME="westindia" ;;
                   "WEUS") LOCATION_IN_FILENAME="westus" ;;
-                  "WUS2") LOCATION_IN_FILENAME="westus" ;;
+                  "WUS2") LOCATION_IN_FILENAME="westus2" ;;
                   "WUS3") LOCATION_IN_FILENAME="westus3" ;;
                   *) LOCATION_IN_FILENAME="westeurope" ;;
                 esac
@@ -248,7 +250,7 @@ stages:
                 echo "Environment(filename): $ENVIRONMENT_IN_FILENAME"
                 echo "Location(filename):    $LOCATION_IN_FILENAME"
                 echo "Network(filename):     $NETWORK_IN_FILENAME"
-   
+
 
                 if [ $ENVIRONMENT != $ENVIRONMENT_IN_FILENAME ]; then
                   echo "##vso[task.logissue type=error]The environment setting in $(workload_zone_configuration_file) '$ENVIRONMENT' does not match the $(workload_zone_configuration_file) file name '$ENVIRONMENT_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
@@ -259,7 +261,7 @@ stages:
                   echo "##vso[task.logissue type=error]The location setting in $(workload_zone_configuration_file) '$LOCATION' does not match the $(workload_zone_configuration_file) file name '$LOCATION_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
                   exit 2
                 fi
-                
+
                 if [ $NETWORK != $NETWORK_IN_FILENAME ]; then
                   echo "##vso[task.logissue type=error]The network_logical_name setting in $(workload_zone_configuration_file) '$NETWORK' does not match the $(workload_zone_configuration_file) file name '$NETWORK_IN_FILENAME-. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
                   exit 2
@@ -337,7 +339,7 @@ stages:
                     echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined."
                     exit 2
                   else
-                    echo 'Target subscription' $ARM_SUBSCRIPTION_ID
+                    echo 'Target subscription' $WL_ARM_SUBSCRIPTION_ID
                   fi
 
                   az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Workload_Key_Vault.value" | tr -d \")
@@ -391,10 +393,10 @@ stages:
                 echo -e "$green --- Set secrets ---$reset"
 
                 $SAP_AUTOMATION_REPO_PATH/deploy/scripts/set_secrets.sh --workload --vault "${key_vault}" --environment "${ENVIRONMENT}"  \
-                  --region "${LOCATION}" --subscription $ARM_SUBSCRIPTION_ID --spn_id $ARM_CLIENT_ID --spn_secret "${ARM_CLIENT_SECRET}"      \
-                  --tenant_id $ARM_TENANT_ID --keyvault_subscription $STATE_SUBSCRIPTION
+                  --region "${LOCATION}" --subscription $WL_ARM_SUBSCRIPTION_ID --spn_id $WL_ARM_CLIENT_ID --spn_secret "${WL_ARM_CLIENT_SECRET}"      \
+                  --tenant_id $WL_ARM_TENANT_ID --keyvault_subscription $STATE_SUBSCRIPTION
                 secrets_set=$? ; echo -e "$cyan Set Secrets returned $secrets_set $reset"
-                az keyvault set-policy --name "${key_vault}" --object-id $ARM_OBJECT_ID --secret-permissions get list  --output none
+                az keyvault set-policy --name "${key_vault}" --object-id $WL_ARM_OBJECT_ID --secret-permissions get list  --output none
               fi
 
               debug_variable='--output none'
@@ -409,26 +411,26 @@ stages:
               if [ -n "${isUserAccessAdmin}" ]; then
 
                 echo -e "$green--- Set permissions ---$reset"
-                  perms=$(az role assignment list --subscription ${STATE_SUBSCRIPTION} --role "Reader" --query "[?principalId=='$ARM_CLIENT_ID'].principalId | [0]"  -o tsv  --only-show-errors)
+                  perms=$(az role assignment list --subscription ${STATE_SUBSCRIPTION} --role "Reader" --query "[?principalId=='$WL_ARM_CLIENT_ID'].principalId | [0]"  -o tsv  --only-show-errors)
                   if [ -z "$perms" ]; then
                     echo -e "$green --- Assign subscription permissions to $perms ---$reset"
-                    az role assignment create --assignee-object-id $ARM_OBJECT_ID  --assignee-principal-type ServicePrincipal --role "Reader" --scope "/subscriptions/${STATE_SUBSCRIPTION}" --output none
+                    az role assignment create --assignee-object-id $WL_ARM_OBJECT_ID  --assignee-principal-type ServicePrincipal --role "Reader" --scope "/subscriptions/${STATE_SUBSCRIPTION}" --output none
                   fi
 
-                  perms=$(az role assignment list --subscription ${STATE_SUBSCRIPTION} --role "Storage Account Contributor" --scope "${tfstate_resource_id}" --query "[?principalId=='$ARM_OBJECT_ID'].principalName | [0]" -o tsv  --only-show-errors)
+                  perms=$(az role assignment list --subscription ${STATE_SUBSCRIPTION} --role "Storage Account Contributor" --scope "${tfstate_resource_id}" --query "[?principalId=='$WL_ARM_OBJECT_ID'].principalName | [0]" -o tsv  --only-show-errors)
                   if [ -z "$perms" ]; then
-                    echo "Assigning Storage Account Contributor permissions for $ARM_OBJECT_ID to ${tfstate_resource_id}"
-                    az role assignment create --assignee-object-id $ARM_OBJECT_ID  --assignee-principal-type ServicePrincipal --role "Storage Account Contributor" --scope "${tfstate_resource_id}" --output none
+                    echo "Assigning Storage Account Contributor permissions for $WL_ARM_OBJECT_ID to ${tfstate_resource_id}"
+                    az role assignment create --assignee-object-id $WL_ARM_OBJECT_ID  --assignee-principal-type ServicePrincipal --role "Storage Account Contributor" --scope "${tfstate_resource_id}" --output none
                   fi
 
                   resource_group_name=$(az resource show --id "${tfstate_resource_id}" --query resourceGroup -o tsv)
 
                 if [ -n ${resource_group_name} ]; then
                   for scope in $(az resource list --resource-group "${resource_group_name}" --subscription ${STATE_SUBSCRIPTION} --resource-type Microsoft.Network/privateDnsZones --query "[].id" --output tsv); do
-                    perms=$(az role assignment list --subscription ${STATE_SUBSCRIPTION} --role "Private DNS Zone Contributor" --scope $scope --query "[?principalId=='$ARM_OBJECT_ID'].principalId | [0]" -o tsv  --only-show-errors)
+                    perms=$(az role assignment list --subscription ${STATE_SUBSCRIPTION} --role "Private DNS Zone Contributor" --scope $scope --query "[?principalId=='$WL_ARM_OBJECT_ID'].principalId | [0]" -o tsv  --only-show-errors)
                     if [ -z "$perms" ]; then
-                      echo "Assigning DNS Zone Contributor permissions for $ARM_OBJECT_ID to ${scope}"
-                      az role assignment create --assignee-object-id $ARM_OBJECT_ID  --assignee-principal-type ServicePrincipal --role "Private DNS Zone Contributor" --scope $scope --output none
+                      echo "Assigning DNS Zone Contributor permissions for $WL_ARM_OBJECT_ID to ${scope}"
+                      az role assignment create --assignee-object-id $WL_ARM_OBJECT_ID  --assignee-principal-type ServicePrincipal --role "Private DNS Zone Contributor" --scope $scope --output none
                     fi
                   done
                 fi
@@ -440,16 +442,16 @@ stages:
 
                     vnet_resource_id=$(az resource list --resource-group "${resource_group_name}" --subscription ${STATE_SUBSCRIPTION} --resource-type Microsoft.Network/virtualNetworks -o tsv --query "[].id | [0]")
                     if [ -n "${vnet_resource_id}" ]; then
-                      perms=$(az role assignment list --subscription ${STATE_SUBSCRIPTION} --role "Network Contributor"  --scope $vnet_resource_id --only-show-errors --query "[].principalId | [0]"  --assignee $ARM_OBJECT_ID -o tsv --only-show-errors)
+                      perms=$(az role assignment list --subscription ${STATE_SUBSCRIPTION} --role "Network Contributor"  --scope $vnet_resource_id --only-show-errors --query "[].principalId | [0]"  --assignee $WL_ARM_OBJECT_ID -o tsv --only-show-errors)
 
                       if [ -z "$perms" ]; then
-                        echo "Assigning Network Contributor rights for $ARM_OBJECT_ID to ${vnet_resource_id}"
-                        az role assignment create --assignee-object-id $ARM_OBJECT_ID  --assignee-principal-type ServicePrincipal --role "Network Contributor"  --scope $vnet_resource_id --output none
+                        echo "Assigning Network Contributor rights for $WL_ARM_OBJECT_ID to ${vnet_resource_id}"
+                        az role assignment create --assignee-object-id $WL_ARM_OBJECT_ID  --assignee-principal-type ServicePrincipal --role "Network Contributor"  --scope $vnet_resource_id --output none
                       fi
                     fi
                 fi
               else
-                echo "##vso[task.logissue type=warning]Service Principal $CP_ARM_CLIENT_ID does not have 'User Access Administrator' permissions. Please ensure that the service principal $ARM_CLIENT_ID has permissions on the Terrafrom state storage account and if needed on the Private DNS zone and the source management network resource"
+                echo "##vso[task.logissue type=warning]Service Principal $CP_ARM_CLIENT_ID does not have 'User Access Administrator' permissions. Please ensure that the service principal $WL_ARM_CLIENT_ID has permissions on the Terrafrom state storage account and if needed on the Private DNS zone and the source management network resource"
               fi
 
               echo -e "$green--- Deploy the workload zone ---$reset"
@@ -457,11 +459,12 @@ stages:
                 if [ -f /etc/profile.d/deploy_server.sh ]; then
                   az logout --output none
                   az login --identity --output none
+                  export ARM_USE_MSI=true
                 fi
 
                 $SAP_AUTOMATION_REPO_PATH/deploy/scripts/install_workloadzone.sh --parameterfile $(workload_zone_configuration_file)       \
                   --deployer_environment $(deployer_environment) --subscription $(ARM_SUBSCRIPTION_ID)                                 \
-                  --spn_id $ARM_CLIENT_ID --spn_secret $ARM_CLIENT_SECRET --tenant_id $ARM_TENANT_ID                                   \
+                  --spn_id $WL_ARM_CLIENT_ID --spn_secret $WL_ARM_CLIENT_SECRET --tenant_id $WL_ARM_TENANT_ID                                   \
                   --deployer_tfstate_key "${deployer_tfstate_key}" --keyvault "${key_vault}" --storageaccountname "${REMOTE_STATE_SA}" \
                   --state_subscription "${STATE_SUBSCRIPTION}" --auto-approve --ado
                 return_code=$?
@@ -591,11 +594,11 @@ stages:
             displayName:               Deploy SAP Workload Zone
             env:
               SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
-              ARM_SUBSCRIPTION_ID:     $(ARM_SUBSCRIPTION_ID)
-              ARM_CLIENT_ID:           $(ARM_CLIENT_ID)
-              ARM_CLIENT_SECRET:       $(ARM_CLIENT_SECRET)
-              ARM_TENANT_ID:           $(ARM_TENANT_ID)
-              ARM_OBJECT_ID:           $(ARM_OBJECT_ID)
+              WL_ARM_SUBSCRIPTION_ID:  $(ARM_SUBSCRIPTION_ID)
+              WL_ARM_TENANT_ID:        $(ARM_TENANT_ID)
+              WL_ARM_CLIENT_ID:        $(ARM_CLIENT_ID)
+              WL_ARM_CLIENT_SECRET:    $(ARM_CLIENT_SECRET)
+              WL_ARM_OBJECT_ID:        $(ARM_OBJECT_ID)
               CP_ARM_SUBSCRIPTION_ID:  $(CP_ARM_SUBSCRIPTION_ID)
               CP_ARM_CLIENT_ID:        $(CP_ARM_CLIENT_ID)
               CP_ARM_CLIENT_SECRET:    $(CP_ARM_CLIENT_SECRET)
@@ -605,6 +608,8 @@ stages:
               SAPBITS:                 $(INSTALLATION_MEDIA_ACCOUNT)
               TEST_ONLY:               ${{ parameters.test }}
               AZURE_DEVOPS_EXT_PAT:    $(PAT)
+              TF_LOG:                  $(TF_LOG)
+              TF_IN_AUTOMATION:        true
               SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
               CONFIG_REPO_PATH:        ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
             failOnStderr: false

@@ -14,7 +14,7 @@
 
 - name:                                "AFS Mount: First server"
   ansible.builtin.debug:
-    var:                               primary_host
+    msg:                               "Primary host: {{ primary_host }}"
 
 - name:                                "AFS Mount: HANA {{ item.type }}"
   block:

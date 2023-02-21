@@ -59,22 +59,22 @@ stages:
                   exit 2
                 fi
 
-                if [ -z $(ARM_SUBSCRIPTION_ID) ]; then
+                if [ -z $WL_ARM_SUBSCRIPTION_ID ]; then
                   echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined."
                   exit 2
                 fi
 
-                if [ -z $(ARM_CLIENT_ID) ]; then
+                if [ -z $WL_ARM_CLIENT_ID ]; then
                   echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined."
                   exit 2
                 fi
 
-                if [ -z $ARM_CLIENT_SECRET ]; then
+                if [ -z $WL_ARM_CLIENT_SECRET ]; then
                   echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined."
                   exit 2
                 fi
 
-                if [ -z $(ARM_TENANT_ID) ]; then
+                if [ -z $WL_ARM_TENANT_ID ]; then
                   echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined."
                   exit 2
                 fi
@@ -97,13 +97,15 @@ stages:
                   fi
                   unzip -qq terraform_$(tf_version)_linux_amd64.zip ; sudo mv terraform /bin/
                   rm -f terraform_$(tf_version)_linux_amd64.zip
+              else
+                source /etc/profile.d/deploy_server.sh
 
               fi
 
               echo -e "$green--- Convert config file to UX format ---$reset"
                 dos2unix -q $HOME_CONFIG/SYSTEM/$(sap_system_folder)/$(sap_system_configuration)
               echo -e "$green--- Read parameters ---$reset"
-              
+
                 ENVIRONMENT=$(grep "^environment" $HOME_CONFIG/SYSTEM/$(sap_system_folder)/$(sap_system_configuration) | awk -F'=' '{print $2}' | xargs)
                    LOCATION=$(grep "^location" $HOME_CONFIG/SYSTEM/$(sap_system_folder)/$(sap_system_configuration) | awk -F'=' '{print $2}' | xargs | tr 'A-Z' 'a-z')
                     NETWORK=$(grep "^network_logical_name" $HOME_CONFIG/SYSTEM/$(sap_system_folder)/$(sap_system_configuration) | awk -F'=' '{print $2}' | xargs)
@@ -114,10 +116,10 @@ stages:
                 echo "Network:     $NETWORK"
                 echo "SID:         $SID"
 
-                ENVIRONMENT_IN_FILENAME=$(echo $(sap_system_folder) | awk -F'-' '{print $1}' | xargs) ; 
-                          LOCATION_CODE=$(echo $(sap_system_folder) | awk -F'-' '{print $2}' | xargs) ; 
-                    NETWORK_IN_FILENAME=$(echo $(sap_system_folder) | awk -F'-' '{print $3}' | xargs) ; 
-                        SID_IN_FILENAME=$(echo $(sap_system_folder) | awk -F'-' '{print $4}' | xargs) ;                 
+                ENVIRONMENT_IN_FILENAME=$(echo $(sap_system_folder) | awk -F'-' '{print $1}' | xargs) ;
+                          LOCATION_CODE=$(echo $(sap_system_folder) | awk -F'-' '{print $2}' | xargs) ;
+                    NETWORK_IN_FILENAME=$(echo $(sap_system_folder) | awk -F'-' '{print $3}' | xargs) ;
+                        SID_IN_FILENAME=$(echo $(sap_system_folder) | awk -F'-' '{print $4}' | xargs) ;
                 case "$LOCATION_CODE" in
                   "AUCE") LOCATION_IN_FILENAME="australiacentral" ;;
                   "AUC2") LOCATION_IN_FILENAME="australiacentral2" ;;
@@ -166,7 +168,7 @@ stages:
                   "WEEU") LOCATION_IN_FILENAME="westeurope" ;;
                   "WEIN") LOCATION_IN_FILENAME="westindia" ;;
                   "WEUS") LOCATION_IN_FILENAME="westus" ;;
-                  "WUS2") LOCATION_IN_FILENAME="westus" ;;
+                  "WUS2") LOCATION_IN_FILENAME="westus2" ;;
                   "WUS3") LOCATION_IN_FILENAME="westus3" ;;
                   *) LOCATION_IN_FILENAME="westeurope" ;;
                 esac
@@ -185,12 +187,12 @@ stages:
                   echo "##vso[task.logissue type=error]The location setting in $(sap_system_configuration) '$LOCATION' does not match the $(sap_system_configuration) file name '$LOCATION_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-[SID]"
                   exit 2
                 fi
-                
+
                 if [ $NETWORK != $NETWORK_IN_FILENAME ]; then
                   echo "##vso[task.logissue type=error]The network_logical_name setting in $(sap_system_configuration) '$NETWORK' does not match the $(sap_system_configuration) file name '$NETWORK_IN_FILENAME-. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-[SID]"
                   exit 2
                 fi
-                
+
                 if [ $SID != $SID_IN_FILENAME ]; then
                   echo "##vso[task.logissue type=error]The sid setting in $(sap_system_configuration) '$SID' does not match the $(sap_system_configuration) file name '$SID_IN_FILENAME-. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-[SID]"
                   exit 2
@@ -225,7 +227,7 @@ stages:
               # Check if running on deployer
               if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 
-                az login --service-principal --username $(ARM_CLIENT_ID) --password=$ARM_CLIENT_SECRET --tenant $(ARM_TENANT_ID)  --output none
+                az login --service-principal --username $(WL_ARM_CLIENT_ID) --password=$WL_ARM_CLIENT_SECRET --tenant $(WL_ARM_TENANT_ID)  --output none
                 return_code=$?
                 if [ 0 != $return_code ]; then
                   echo -e "$boldred--- Login failed ---$reset"
@@ -234,8 +236,7 @@ stages:
                 fi
               else
                 echo -e "$green --- Running on deployer ---$reset"
-                az login --identity --output none
-                
+
                 tfstate_resource_id=$(az resource list --name "${REMOTE_STATE_SA}" --subscription ${STATE_SUBSCRIPTION} --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
                 if [ -z $tfstate_resource_id ]; then
                   az login --service-principal --username $(ARM_CLIENT_ID) --password=$ARM_CLIENT_SECRET --tenant $(ARM_TENANT_ID)  --output none
@@ -264,7 +265,7 @@ stages:
                 else
                   export REMOTE_STATE_SA=${az_var} ; echo 'Terraform state file storage account' $REMOTE_STATE_SA
                 fi
-                
+
                 az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Deployer_State_FileName.value" | tr -d \")
                 if [ -z ${az_var} ]; then
                   export deployer_tfstate_key=$(grep deployer_tfstate_key ${environment_file_name} | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer State File' $deployer_tfstate_key
@@ -386,14 +387,16 @@ stages:
 
             displayName:               Deploy_SAP_infrastructure
             env:
-              ARM_SUBSCRIPTION_ID:      $(ARM_SUBSCRIPTION_ID)
-              ARM_CLIENT_ID:            $(ARM_CLIENT_ID)
-              ARM_CLIENT_SECRET:        $(ARM_CLIENT_SECRET)
-              ARM_TENANT_ID:            $(ARM_TENANT_ID)
+              WL_ARM_SUBSCRIPTION_ID:      $(ARM_SUBSCRIPTION_ID)
+              WL_ARM_CLIENT_ID:            $(ARM_CLIENT_ID)
+              WL_ARM_CLIENT_SECRET:        $(ARM_CLIENT_SECRET)
+              WL_ARM_TENANT_ID:            $(ARM_TENANT_ID)
               SYSTEM_ACCESSTOKEN:       $(System.AccessToken)
               SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
               CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}
               AZURE_DEVOPS_EXT_PAT:     $(WZ_PAT)
               TEST_ONLY:                ${{ parameters.test }}
+              TF_LOG:                   $(TF_LOG)
+              TF_IN_AUTOMATION:         true
 
             failOnStderr:               false

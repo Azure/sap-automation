@@ -113,7 +113,7 @@
       loop_control:
         loop_var:                      sid_to_be_deployed
       when:
-        - platform != 'ORACLE'
+        - platform not in [ "ORACLE", "ORACLE-ASM" ]
         - ansible_os_family != "Windows"
       tags:
         - 2.5-sap-users
@@ -151,6 +151,7 @@
         sapbits_sas_token:             "{{ hostvars.localhost.sapbits_sas_token }}"
         pas_file_path:                 INSTALL/DISTRIBUTED/ABAP/APP1
         always_upload_jinja_templates: false
+        sa_enabled:                    true
       tags:
         - always
 
@@ -339,6 +340,8 @@
                 removes:               '{{ log_dir_windows }}\sapinst_logs'
               register:                sapinst_log_name
               failed_when:             sapinst_log_name.rc > 0
+              when:
+                - ansible_os_family == "Windows"
 
           tags:
             - 5.2-pas-install
@@ -351,7 +354,7 @@
 # +------------------------------------4--------------------------------------*/
 - hosts:                               "{{ sap_sid | upper }}_DB"
 
-  name:                                "Restting the DB2 LOCK escalationparameters"
+  name:                                "Resetting the DB2 LOCK escalationparameters"
   serial:                              1
   gather_facts:                        true
   vars_files:

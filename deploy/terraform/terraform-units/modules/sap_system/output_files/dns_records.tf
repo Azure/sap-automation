@@ -4,7 +4,7 @@ resource "azurerm_private_dns_a_record" "app_secondary" {
   zone_name           = var.dns
   resource_group_name = var.management_dns_resourcegroup_name
   ttl                 = 3600
-  records             = [var.application_server_secondary_ips[count.index]]
+  records             = [try(var.application_server_secondary_ips[count.index], "")]
 
   provider = azurerm.dnsmanagement
 
@@ -19,7 +19,7 @@ resource "azurerm_private_dns_a_record" "scs_secondary" {
   zone_name           = var.dns
   resource_group_name = var.management_dns_resourcegroup_name
   ttl                 = 3600
-  records             = [var.scs_server_secondary_ips[count.index]]
+  records             = [try(var.scs_server_secondary_ips[count.index], "")]
 
   provider = azurerm.dnsmanagement
 
@@ -34,7 +34,7 @@ resource "azurerm_private_dns_a_record" "web_secondary" {
   zone_name           = var.dns
   resource_group_name = var.management_dns_resourcegroup_name
   ttl                 = 3600
-  records             = [var.webdispatcher_server_secondary_ips[count.index]]
+  records             = [try(var.webdispatcher_server_secondary_ips[count.index], "")]
 
   provider = azurerm.dnsmanagement
 
@@ -49,7 +49,7 @@ resource "azurerm_private_dns_a_record" "db_secondary" {
   zone_name           = var.dns
   resource_group_name = var.management_dns_resourcegroup_name
   ttl                 = 3600
-  records             = [var.db_server_secondary_ips[count.index]]
+  records             = [try(var.db_server_secondary_ips[count.index], "")]
 
   provider = azurerm.dnsmanagement
 

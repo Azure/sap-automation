@@ -7,7 +7,7 @@
     name:                                   "SAP_{{ sap_sid | upper }}_LocalAdmin"
     members:
       - '{{ domain }}\{{ win_sap_admin }}'
-      - '{{ domain }}\{{ sap_sid }}adm'
+      - '{{ sap_sid }}adm@{{ domain_name }}'
     state:                                  present
   notify:                                   reboot
 
@@ -15,6 +15,6 @@
   ansible.windows.win_group_membership:
     name:                                   "Administrators"
     members:
-      - '{{ domain }}\{{ sap_sid }}adm'
+      - '{{ sap_sid }}adm@{{ domain_name }}'
     state:                                  present
   notify:                                   reboot

@@ -60,8 +60,8 @@
         SourcePath:                         '{{ download_directory_windows }}\{{ mssserver_version }}'
         Features:                           SQLENGINE,FULLTEXT,CONN,BC
         SQLCollation:                       SQL_Latin1_General_CP850_BIN2
-        SQLSvcAccount:                      '{{ domain }}\{{ sap_sid }}adm'
-        SQLSysAdminAccounts:                '{{ domain }}\{{ sap_sid }}adm'
+        SQLSvcAccount:                      '{{ sap_sid }}adm@{{ domain_name }}'
+        SQLSysAdminAccounts:                '{{ sap_sid }}adm@{{ domain_name }}'
         SAPwd:                              "{{ sapadm_password }}"
         InstallSharedDir:                   '{{ sap_deployment_automation }}\{{ sap_sid | upper }}\SQLBYOB'
         InstallSharedWOWDir:                '{{ sap_deployment_automation }}\{{ sap_sid | upper }}\SQLBYOB'
@@ -74,14 +74,14 @@
         UpdateEnabled:                      False
         ForceReboot:                        False
         Action:                             Install
-        PsDscRunAsCredential_username:      '{{ domain }}\{{ sap_sid }}adm'
+        PsDscRunAsCredential_username:      '{{ sap_sid }}adm@{{ domain_name }}'
         PsDscRunAsCredential_password:      "{{ domain_user_password }}"
       args:
         creates:                            '{{ sap_deployment_automation }}\{{ sap_sid | upper }}\sap_deployment_sqldb.txt'
       vars:
         ansible_become:                     true
         ansible_become_method:              runas
-        ansible_become_user:                '{{ domain }}\{{ sap_sid }}adm'
+        ansible_become_user:                '{{ sap_sid }}adm@{{ domain_name }}'
         ansible_become_password:            "{{ domain_user_password }}"
       register:                             sql_install_output
       failed_when:                          sql_install_output.rc != 0
@@ -148,7 +148,7 @@
       vars:
         ansible_become:                     true
         ansible_become_method:              runas
-        ansible_become_user:                '{{ domain }}\{{ sap_sid }}adm'
+        ansible_become_user:                '{{ sap_sid }}adm@{{ domain_name }}'
         ansible_become_password:            "{{ domain_user_password }}"
       register:                             sql_install_output
       failed_when:                          sql_install_output.rc != 0

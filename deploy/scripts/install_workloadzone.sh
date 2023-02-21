@@ -345,7 +345,8 @@ then
 fi
 
 #setting the user environment variables
-set_executing_user_environment_variables "none"
+set_executing_user_environment_variables "${spn_secret}"
+
 if [[ -z ${REMOTE_STATE_SA} ]]; then
     load_config_vars "${workload_config_information}" "REMOTE_STATE_SA"
 fi

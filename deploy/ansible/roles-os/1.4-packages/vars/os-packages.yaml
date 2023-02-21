@@ -233,8 +233,7 @@ packages:
     - { tier: 'sapos', package: 'libstdc++6',                                   node_tier: 'all',     state: 'present' }
     - { tier: 'sapos', package: 'libatomic1',                                   node_tier: 'all',     state: 'present' }
     - { tier: 'sapos', package: 'uuidd',                                        node_tier: 'all',     state: 'present' }
-    - { tier: 'sapos', package: 'acl',                                          node_tier: 'scs',     state: 'present' }
-    - { tier: 'sapos', package: 'acl',                                          node_tier: 'ers',     state: 'present' }
+    - { tier: 'sapos', package: 'acl',                                          node_tier: 'all',     state: 'present' }
   # ----------------------- Begin - Packages required for Clustering -------------------------------------8
     - { tier: 'ha',    package: 'acl',                                          node_tier: 'hana',    state: 'present' }
     - { tier: 'ha',    package: 'socat',                                        node_tier: 'all' ,    state: 'present' }

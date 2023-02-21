@@ -371,6 +371,17 @@
         msg:
           - "{{ ensa1 }}"
           - "{{ ensa2 }}"
+  rescue:
+    - name:                            "SCSERS - set default to ENSA2 for HANA if message server is down"
+      ansible.builtin.set_fact:
+        ensa2:                         true
+      when:                            platform == 'HANA'
+
+    - name:                            "SCSERS - set default to ENSA1 for AnyDB if message server is down"
+      ansible.builtin.set_fact:
+        ensa1:                         true
+      when:                            platform != 'HANA'
+
   when:
     - inventory_hostname == primary_instance_name
     - scs_installed.stat.exists

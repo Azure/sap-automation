@@ -61,7 +61,6 @@
         az keyvault secret list
           --vault-name {{ deployer_kv_name }} --query "[].{Name:name} | [? contains(Name,'sapbits-access-key')] | [0]"
       changed_when:                    false
-      no_log:                          true
       register:                        keyvault_secrets
 
     - name:                            "0.4 Installation Media: - Retrieve Access Key details"
@@ -94,7 +93,6 @@
         az keyvault secret list
           --vault-name {{ deployer_kv_name }} --query "[].{Name:name} | [? contains(Name,'sapbits-sas-token')] | [0]"
       changed_when:                    false
-      no_log:                          true
       register:                        keyvault_secrets
 
     - name:                            "0.4 Installation Media: - Retrieve SAS token details"

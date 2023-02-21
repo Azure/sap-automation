@@ -287,6 +287,11 @@ variable "additional_users_to_add_to_keyvault_policies" {
   default     = [""]
 }
 
+variable "keyvault_private_endpoint_id" {
+  description = "Existing private endpoint for key vault"
+  default     = ""
+}
+
 #########################################################################################
 #                                                                                       #
 #  Authentication variables                                                             #

@@ -13,6 +13,16 @@
     msg:
       - "SID:        {{ sid_to_be_deployed.sid | upper }}"
 
+- name:                                "SCS Install: Calculating the domain value from {{ domain_name }}"
+  ansible.builtin.set_fact:
+    domain:                            "{{ domain_name | split('.') | first }}"
+    cacheable:                         true
+  when:
+    - domain_name is defined
+    - domain_name | type_debug != 'NoneType'
+    - domain_name | trim | length > 1
+    - domain is not defined
+
 - name:                                "SCS Install: Set the SCS Server name"
   ansible.builtin.set_fact:
     scs_server:                        "{{ virtual_host }}"
@@ -79,7 +89,7 @@
   vars:
     ansible_become:                    true
     ansible_become_method:             runas
-    ansible_become_user:               '{{ domain }}\{{ sap_sid }}adm'
+    ansible_become_user:               '{{ sap_sid }}adm@{{ domain_name }}'
     ansible_become_password:           "{{ domain_user_password }}"
   register:                            vcredist2013_output
 
@@ -92,7 +102,7 @@
   vars:
     ansible_become:                    true
     ansible_become_method:             runas
-    ansible_become_user:               '{{ domain }}\{{ sap_sid }}adm'
+    ansible_become_user:               '{{ sap_sid }}adm@{{ domain_name }}'
     ansible_become_password:           "{{ domain_user_password }}"
   register:                            vcredist2017_output
 
@@ -188,7 +198,7 @@
         creates:                       '{{ download_directory_windows }}\sap_extract\sapinst.exe'
       become:                          true
       become_method:                   runas
-      become_user:                     '{{ domain }}\{{ sap_sid }}adm'
+      become_user:                     '{{ sap_sid }}adm@{{ domain_name }}'
       vars:
         ansible_become_password:       "{{ domain_user_password }}"
       register:                        scs_extraction
@@ -203,7 +213,7 @@
         - name:                        "SCS Install: SAP SCS Install on {{ ansible_hostname }}"
           become:                      true
           become_method:               runas
-          become_user:                 '{{ domain }}\{{ sap_sid }}adm'
+          become_user:                 '{{ sap_sid }}adm@{{ domain_name }}'
           ansible.windows.win_shell: |
                                        {{ download_directory_windows }}\sap_extract\sapinst.exe SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}\{{ sap_inifile }}   `
                                                                                                  SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.scs }}             `

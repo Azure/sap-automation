@@ -90,14 +90,14 @@
       ansible.builtin.set_fact:
         db_server_temp:                "{{ db_server_temp | default([]) + [item] }}"
       with_items:
-        - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
+        - "{{ query('inventory_hostnames', '{{ sid_to_be_deployed.sid | upper }}_DB') }}"
 
     - name:                            "DBLoad: -  Set the server facts"
       ansible.builtin.set_fact:
         scs_server:                    "{% if scs_high_availability %}{{ sid_to_be_deployed.sid | lower }}scs{{ scs_instance_number }}cl1{% else %}{{ hostvars[scs_server_temp | first]['virtual_host'] }}{% endif %}"
         db_virtual_host:               "{{ hostvars[db_server_temp | first]['virtual_host'] }}"
 
-    - name:                            "SCS Install: check media exists"
+    - name:                            "DBLoad: check media exists"
       ansible.builtin.stat:
         path:                          "{{ target_media_location }}/SWPM/sapinst"
       register:                        sapinst_found
@@ -160,6 +160,7 @@
         hdb_instance_number:           "{{ db_instance_number }}"
         db_instance_number:            "{{ db_instance_number }}"
         hana_backup_path:              "{{ backup_path }}"
+        sa_enabled:                    true
 
       tags:
         - skip_ansible_lint

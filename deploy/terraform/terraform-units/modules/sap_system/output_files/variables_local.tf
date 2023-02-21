@@ -34,7 +34,7 @@ locals {
   scs_supported_tiers = local.app_server_count > 0 ? "scs" : "scs, pas"
 
   # If PAS and SCS is on same server
-  pas_instance_number = (length (var.pas_instance_number) > 0) ? var.pas_instance_number : (
+  pas_instance_number = (length(var.pas_instance_number) > 0) ? var.pas_instance_number : (
     (local.app_server_count + local.scs_server_count) <= 1 ? (
       "02") : (
       "00"
@@ -46,6 +46,7 @@ locals {
     var.naming.virtualmachine_names.ANYDB_SECONDARY_DNSNAME
   )
 
-  settings = replace(yamlencode(var.configuration_settings),"\"","")
+  encoded_configuration = replace(yamlencode(var.configuration_settings), "\"", "")
+  settings              = length(local.encoded_configuration) > 4 ? local.encoded_configuration : ""
 
 }

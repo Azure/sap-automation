@@ -91,22 +91,22 @@ stages:
                     echo "##vso[task.logissue type=error]Variable group $(parent_variable_group) could not be found."
                     exit 2
                 fi
-                if [ -z $ARM_SUBSCRIPTION_ID ]; then
+                if [ -z $CP_ARM_SUBSCRIPTION_ID ]; then
                   echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined."
                   exit 2
                 fi
 
-                if [ -z $ARM_CLIENT_ID ]; then
+                if [ -z $CP_ARM_CLIENT_ID ]; then
                   echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined."
                   exit 2
                 fi
 
-                if [ -z $ARM_CLIENT_SECRET ]; then
+                if [ -z $CP_ARM_CLIENT_SECRET ]; then
                   echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined."
                   exit 2
                 fi
 
-                if [ -z $ARM_TENANT_ID ]; then
+                if [ -z $CP_ARM_TENANT_ID ]; then
                   echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined."
                   exit 2
                 fi
@@ -125,6 +125,8 @@ stages:
                     fi
                     unzip -qq terraform_$(tf_version)_linux_amd64.zip ; sudo mv terraform /bin/
                     rm -f terraform_$(tf_version)_linux_amd64.zip
+                else
+                  source /etc/profile.d/deploy_server.sh
                 fi
 
               echo -e "$green--- Convert config files to UX format ---$reset"
@@ -137,7 +139,7 @@ stages:
                    LOCATION=$(grep "^location" $CONFIG_REPO_PATH/DEPLOYER/$(deployer_folder)/$(deployer_configuration_file) | awk -F'=' '{print $2}' | xargs | tr 'A-Z' 'a-z')
                 echo Environment: ${ENVIRONMENT}
                 echo Location:    ${LOCATION}
-                
+
                 ENVIRONMENT_IN_FILENAME=$(echo $(deployer_folder) | awk -F'-' '{print $1}' | xargs )
                           LOCATION_CODE=$(echo $(deployer_folder) | awk -F'-' '{print $2}' | xargs )
                 case "$LOCATION_CODE" in
@@ -188,7 +190,7 @@ stages:
                   "WEEU") LOCATION_IN_FILENAME="westeurope" ;;
                   "WEIN") LOCATION_IN_FILENAME="westindia" ;;
                   "WEUS") LOCATION_IN_FILENAME="westus" ;;
-                  "WUS2") LOCATION_IN_FILENAME="westus" ;;
+                  "WUS2") LOCATION_IN_FILENAME="westus2" ;;
                   "WUS3") LOCATION_IN_FILENAME="westus3" ;;
                   *) LOCATION_IN_FILENAME="westeurope" ;;
                 esac
@@ -233,19 +235,8 @@ stages:
 
                 export STATE_SUBSCRIPTION=$ARM_SUBSCRIPTION_ID ; echo 'Terraform state file subscription' $STATE_SUBSCRIPTION
 
-              echo -e "$green--- az login ---$reset"
-
-                az login --service-principal --username $ARM_CLIENT_ID --password=$ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID --output none
-                return_code=$?
-                if [ 0 != $return_code ]; then
-                  echo -e "$boldred--- Login failed ---$reset"
-                  echo "##vso[task.logissue type=error]az login failed."
-                  exit $return_code
-                fi
 
               echo -e "$green--- Running the remove region script that destroys deployer VM and SAP library ---$reset"
-
-                az account set --subscription ${STATE_SUBSCRIPTION}
 
                 $SAP_AUTOMATION_REPO_PATH/deploy/scripts/remove_controlplane.sh                            \
                   --deployer_parameter_file $CONFIG_REPO_PATH/DEPLOYER/$(deployer_folder)/$(deployer_configuration_file) \
@@ -272,7 +263,7 @@ stages:
                 if [ -f DEPLOYER/$(deployer_folder)/terraform.tfstate ]; then
                     echo "Compressing the state file."
                     sudo apt install zip
-                    pass=$(echo $ARM_CLIENT_SECRET | sed 's/-//g')
+                    pass=$(echo $CP_ARM_CLIENT_SECRET | sed 's/-//g')
                     zip -j -P "${pass}" DEPLOYER/$(deployer_folder)/state DEPLOYER/$(deployer_folder)/terraform.tfstate
                     git add -f DEPLOYER/$(deployer_folder)/state.zip
                     changed=1
@@ -310,10 +301,10 @@ stages:
             displayName:               Remove control plane
             env:
               SYSTEM_ACCESSTOKEN:       $(System.AccessToken)
-              ARM_SUBSCRIPTION_ID:      $(CP_ARM_SUBSCRIPTION_ID)
-              ARM_CLIENT_ID:            $(CP_ARM_CLIENT_ID)
-              ARM_CLIENT_SECRET:        $(CP_ARM_CLIENT_SECRET)
-              ARM_TENANT_ID:            $(CP_ARM_TENANT_ID)
+              CP_ARM_SUBSCRIPTION_ID:   $(CP_ARM_SUBSCRIPTION_ID)
+              CP_ARM_CLIENT_ID:         $(CP_ARM_CLIENT_ID)
+              CP_ARM_CLIENT_SECRET:     $(CP_ARM_CLIENT_SECRET)
+              CP_ARM_TENANT_ID:         $(CP_ARM_TENANT_ID)
               SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
               CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
               key_vault:                $(Deployer_Key_Vault)
@@ -425,7 +416,7 @@ stages:
                    LOCATION=$(grep "^location" $CONFIG_REPO_PATH/DEPLOYER/$(deployer_folder)/$(deployer_configuration_file) | awk -F'=' '{print $2}' | xargs | tr 'A-Z' 'a-z')
                 echo Environment: ${ENVIRONMENT}
                 echo Location:    ${LOCATION}
-                
+
                 ENVIRONMENT_IN_FILENAME=$(echo $(deployer_folder) | awk -F'-' '{print $1}' | xargs )
                           LOCATION_CODE=$(echo $(deployer_folder) | awk -F'-' '{print $2}' | xargs )
                 case "$LOCATION_CODE" in
@@ -476,7 +467,7 @@ stages:
                   "WEEU") LOCATION_IN_FILENAME="westeurope" ;;
                   "WEIN") LOCATION_IN_FILENAME="westindia" ;;
                   "WEUS") LOCATION_IN_FILENAME="westus" ;;
-                  "WUS2") LOCATION_IN_FILENAME="westus" ;;
+                  "WUS2") LOCATION_IN_FILENAME="westus2" ;;
                   "WUS3") LOCATION_IN_FILENAME="westus3" ;;
                   *) LOCATION_IN_FILENAME="westeurope" ;;
                 esac
