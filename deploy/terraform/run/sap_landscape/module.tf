@@ -34,6 +34,7 @@ module "sap_landscape" {
   enable_purge_control_for_keyvaults = var.enable_purge_control_for_keyvaults
   use_private_endpoint               = var.use_private_endpoint
   use_service_endpoint               = var.use_service_endpoint
+  keyvault_private_endpoint_id       = var.keyvault_private_endpoint_id
 
   use_custom_dns_a_registration     = var.use_custom_dns_a_registration
   management_dns_subscription_id    = try(var.management_dns_subscription_id, length(local.deployer_subscription_id) > 0 ? local.deployer_subscription_id : null)

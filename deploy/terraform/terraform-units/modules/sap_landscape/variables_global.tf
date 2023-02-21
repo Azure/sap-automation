@@ -114,6 +114,11 @@ variable "enable_rbac_authorization_for_keyvault" {
   description = "Enables RBAC authorization for Azure keyvault"
 }
 
+variable "keyvault_private_endpoint_id" {
+  description = "Existing private endpoint for key vault"
+}
+
+
 #########################################################################################
 #                                                                                       #
 #  Storage Account Variables                                                            #
