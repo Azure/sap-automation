@@ -44,8 +44,8 @@ module "sap_namegenerator" {
 module "common_infrastructure" {
   source = "../../terraform-units/modules/sap_system/common_infrastructure"
   providers = {
-    azurerm.main          = azurerm
-    azurerm.deployer      = azurerm.deployer
+    azurerm.deployer      = azurerm
+    azurerm.main          = azurerm.system
     azurerm.dnsmanagement = azurerm.dnsmanagement
   }
   is_single_node_hana                = "true"
@@ -97,8 +97,8 @@ module "common_infrastructure" {
 module "hdb_node" {
   source = "../../terraform-units/modules/sap_system/hdb_node"
   providers = {
-    azurerm.main          = azurerm
-    azurerm.deployer      = azurerm.deployer
+    azurerm.deployer      = azurerm
+    azurerm.main          = azurerm.system
     azurerm.dnsmanagement = azurerm.dnsmanagement
   }
   depends_on = [module.common_infrastructure]
@@ -165,8 +165,8 @@ module "hdb_node" {
 module "app_tier" {
   source = "../../terraform-units/modules/sap_system/app_tier"
   providers = {
-    azurerm.main          = azurerm
-    azurerm.deployer      = azurerm.deployer
+    azurerm.deployer      = azurerm
+    azurerm.main          = azurerm.system
     azurerm.dnsmanagement = azurerm.dnsmanagement
   }
   depends_on       = [module.common_infrastructure]
@@ -216,8 +216,8 @@ module "app_tier" {
 module "anydb_node" {
   source = "../../terraform-units/modules/sap_system/anydb_node"
   providers = {
-    azurerm.main          = azurerm
-    azurerm.deployer      = azurerm.deployer
+    azurerm.deployer      = azurerm
+    azurerm.main          = azurerm.system
     azurerm.dnsmanagement = azurerm.dnsmanagement
   }
   depends_on = [module.common_infrastructure]
@@ -276,8 +276,8 @@ module "anydb_node" {
 module "output_files" {
   source = "../../terraform-units/modules/sap_system/output_files"
   providers = {
-    azurerm.main          = azurerm
-    azurerm.deployer      = azurerm.deployer
+    azurerm.deployer      = azurerm
+    azurerm.main          = azurerm.system
     azurerm.dnsmanagement = azurerm.dnsmanagement
   }
   database            = local.database

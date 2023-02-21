@@ -308,6 +308,12 @@ function set_executing_user_environment_variables() {
 
         echo -e "\t[set_executing_user_environment_variables]: logged in user id: ${az_user_obj_id} (${az_user_name})"
         echo -e "\t[set_executing_user_environment_variables]: Initializing state with user: ${az_user_name}"
+
+        # print ARM environment variables
+        echo -e "\t[set_executing_user_environment_variables]: ARM environment variables:"
+        echo -e "\t\tARM_CLIENT_ID: $(printenv ARM_CLIENT_ID)"
+        echo -e "\t\tARM_USE_MSI: $(printenv ARM_USE_MSI)"
+
     else
         # else, if you are executing as service principal, we need to export the ARM variables
         #when logged in as a service principal or MSI, username is clientID
@@ -325,11 +331,13 @@ function set_executing_user_environment_variables() {
         case "${az_client_id}" in
             "systemAssignedIdentity")
                 echo -e "\t[set_executing_user_environment_variables]: logged in using '${az_exec_user_type}'"
-                echo -e "\t[set_executing_user_environment_variables]: Nothing to do"
+                echo -e "\t[set_executing_user_environment_variables]: unset ARM_CLIENT_SECRET"
+                unset ARM_CLIENT_SECRET
             ;;
             "userAssignedIdentity")
                 echo -e "\t[set_executing_user_environment_variables]: logged in using User Assigned Identity: '${az_exec_user_type}'"
-                echo -e "\t[set_executing_user_environment_variables]: Nothing to do"
+                echo -e "\t[set_executing_user_environment_variables]: logged in using User Assigned Identity: unset ARM_CLIENT_SECRET"
+                unset ARM_CLIENT_SECRET
             ;;
             *)
                 if is_valid_guid "${az_exec_user_name}"; then
@@ -369,6 +377,10 @@ function set_executing_user_environment_variables() {
             ;;
         esac
 
+        # print ARM environment variables
+        echo -e "\t[set_executing_user_environment_variables]: ARM environment variables:"
+        echo -e "\t\tARM_CLIENT_ID: $(printenv ARM_CLIENT_ID)"
+        echo -e "\t\tARM_USE_MSI: $(printenv ARM_USE_MSI)"
     fi
 }
 

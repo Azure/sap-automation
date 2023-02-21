@@ -53,6 +53,7 @@ resource "azurerm_network_interface" "web" {
 }
 
 resource "azurerm_network_interface_application_security_group_association" "web" {
+  provider        = azurerm.main
   count = local.enable_deployment ? (
     var.deploy_application_security_groups ? local.webdispatcher_count : 0) : (
     0

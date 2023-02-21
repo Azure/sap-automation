@@ -130,10 +130,10 @@ resource "azurerm_route_table" "rt" {
 }
 
 resource "azurerm_route" "admin" {
+  provider = azurerm.main
   depends_on = [
     azurerm_route_table.rt
   ]
-  provider = azurerm.main
   count    = length(local.firewall_ip) > 0 ? local.vnet_sap_exists ? 0 : 1 : 0
   name = format("%s%s%s%s",
     var.naming.resource_prefixes.fw_route,

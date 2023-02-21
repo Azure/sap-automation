@@ -65,7 +65,7 @@
   vars:
     ansible_become:                    true
     ansible_become_method:             runas
-    ansible_become_user:               '{{ domain }}\{{ sap_sid }}adm'
+    ansible_become_user:               '{{ sap_sid }}adm@{{ domain_name }}'
     ansible_become_password:           "{{ domain_user_password }}"
 
 - name:                                "DBLoad: Create log Directory"
@@ -83,7 +83,7 @@
   vars:
     ansible_become:                    true
     ansible_become_method:             runas
-    ansible_become_user:               '{{ domain }}\{{ sap_sid }}adm'
+    ansible_become_user:               '{{ sap_sid }}adm@{{ domain_name }}'
     ansible_become_password:           "{{ domain_user_password }}"
   register:                            vcredist2013_output
 
@@ -96,7 +96,7 @@
   vars:
     ansible_become:                    true
     ansible_become_method:             runas
-    ansible_become_user:               '{{ domain }}\{{ sap_sid }}adm'
+    ansible_become_user:               '{{ sap_sid }}adm@{{ domain_name }}'
     ansible_become_password:           "{{ domain_user_password }}"
   register:                            vcredist2017_output
 
@@ -205,7 +205,7 @@
       vars:
         ansible_become:                true
         ansible_become_method:         runas
-        ansible_become_user:           '{{ domain }}\{{ sap_sid }}adm'
+        ansible_become_user:           '{{ sap_sid }}adm@{{ domain_name }}'
         ansible_become_password:       "{{ domain_user_password }}"
       register:                        scs_extraction
       failed_when:                     scs_extraction.rc > 0
@@ -224,7 +224,7 @@
       vars:
         ansible_become:                true
         ansible_become_method:         runas
-        ansible_become_user:           '{{ domain }}\{{ sap_sid }}adm'
+        ansible_become_user:           '{{ sap_sid }}adm@{{ domain_name }}'
         ansible_become_password:       "{{ domain_user_password }}"
       register:                        dbload_results
       failed_when:                     dbload_results.rc > 0

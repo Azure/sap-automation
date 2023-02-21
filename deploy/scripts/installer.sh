@@ -594,6 +594,8 @@ if [ 0 == $return_value ] ; then
         save_config_var "keyvault" "${system_config_information}"
         if [ 1 == $called_from_ado ] ; then
 
+            
+
             if [[ "${TF_VAR_use_webapp}" == "true" && $IS_PIPELINE_DEPLOYMENT = "true" ]]; then
                 webapp_url_base=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_url_base | tr -d \")
 
@@ -1024,6 +1026,8 @@ then
     az deployment group create --resource-group ${created_resource_group_name} --name "ControlPlane_Deployer_${created_resource_group_name}" --template-file "${script_directory}/templates/empty-deployment.json" --output none
     if [ 1 == $called_from_ado ] ; then
 
+        terraform -chdir="${terraform_module_directory}" output -json -no-color deployer_uai
+        
         if [ -n "${created_resource_group_name}" ] ; then
             az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "WEBAPP_RESOURCE_GROUP.value")
             if [ -z ${az_var} ]; then
