@@ -429,7 +429,7 @@ admin_users:
     node_tier:    observer
     enabled:      true
 
-  
+
   - name:         "oracle"
     comment:      "Oracle Database software Administrator"
     uid:          "{{ oracle_uid }}"

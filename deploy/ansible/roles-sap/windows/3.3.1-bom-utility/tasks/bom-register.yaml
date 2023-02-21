@@ -37,7 +37,6 @@
       - "BoM Name:   {{ new_bom_name }}"
 
 
-
 - name:                                "3.3.1 BoM Processing: {{ bom_name }} Download: {{ new_bom_name }} from the storage account"
   ansible.builtin.get_url:
     url:                               "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ new_bom_name }}/{{ new_bom_name }}.yaml\
