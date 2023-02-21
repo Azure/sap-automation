@@ -277,7 +277,7 @@ logical_volumes:
     lv:         'lv_oracle'
     size:       '100%FREE'
     fstype:     'xfs'
-  
+
   - tier:       'sapos'
     node_tier:  'oracle-asm'
     vg:         'vg_sap'
