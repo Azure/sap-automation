@@ -71,21 +71,11 @@ resource "azurerm_private_dns_a_record" "kv_user" {
 
 data "azurerm_network_interface" "keyvault" {
   provider = azurerm.main
-  count    = var.use_private_endpoint && !var.use_custom_dns_a_registration ? 1 : 0
+  count    = var.use_private_endpoint && !local.user_keyvault_exist == 0 ? 1 : 0
 
+  name = azurerm_private_endpoint.kv_user[count.index].network_interface[0].name
 
-
-  name = length(var.keyvault_private_endpoint_id) > 0 ? (
-    data.azurerm_private_endpoint.kv_user[count.index].network_interface[0].name
-    ) : (
-    azurerm_private_endpoint.kv_user[count.index].network_interface[0].name
-  )
-
-  resource_group_name = split("/", length(var.keyvault_private_endpoint_id) > 0 ? (
-    data.azurerm_private_endpoint.kv_user[count.index].network_interface[0].id
-    ) : (
-    azurerm_private_endpoint.kv_user[count.index].network_interface[0].id)
-  )[4]
+  resource_group_name = split("/", azurerm_private_endpoint.kv_user[count.index].network_interface[0].id)[4]
 }
 
 #Errors can occure when the dns record has not properly been activated, add a wait timer to give
