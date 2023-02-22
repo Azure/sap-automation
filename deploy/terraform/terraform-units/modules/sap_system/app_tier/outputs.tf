@@ -42,7 +42,7 @@ output "scs_lb_id" {
 }
 
 output "ers_lb_ip" {
-  value = local.enable_scs_lb_deployment && local.scs_high_availability ? (
+  value = local.enable_scs_lb_deployment && var.application_tier.scs_high_availability ? (
     try(azurerm_lb.scs[0].frontend_ip_configuration[1].private_ip_address, "")
     ) : (
     ""
@@ -50,14 +50,14 @@ output "ers_lb_ip" {
 }
 
 output "cluster_lb_ip" {
-  value = local.enable_scs_lb_deployment && (local.scs_high_availability && upper(var.application_tier.scs_os.os_type) == "WINDOWS") ? (
+  value = local.enable_scs_lb_deployment && (var.application_tier.scs_high_availability && upper(var.application_tier.scs_os.os_type) == "WINDOWS") ? (
     try(azurerm_lb.scs[0].frontend_ip_configuration[2].private_ip_address, "")) : (
     ""
   )
 }
 
 output "fileshare_lb_ip" {
-  value = local.enable_scs_lb_deployment && (local.scs_high_availability && upper(var.application_tier.scs_os.os_type) == "WINDOWS") ? (
+  value = local.enable_scs_lb_deployment && (var.application_tier.scs_high_availability && upper(var.application_tier.scs_os.os_type) == "WINDOWS") ? (
     try(azurerm_lb.scs[0].frontend_ip_configuration[3].private_ip_address, "")) : (
     ""
   )
@@ -215,7 +215,7 @@ output "dns_info_vms" {
 
 output "dns_info_loadbalancers" {
   description = "DNS information for the application tier load balancers"
-  value = !(local.enable_deployment && (var.use_loadbalancers_for_standalone_deployments || local.scs_high_availability)) ? null : (
+  value = !(local.enable_deployment && (var.use_loadbalancers_for_standalone_deployments || var.application_tier.scs_high_availability)) ? null : (
     zipmap(
       compact([
         local.enable_scs_lb_deployment ? format("%s%s%s", local.prefix, var.naming.separator, "scs") : "",
@@ -289,5 +289,5 @@ output "apptier_disks" {
 
 output "scs_ha" {
   description = "Defines if high availability is used"
-  value       = local.scs_high_availability
+  value       = var.application_tier.scs_high_availability
 }

@@ -553,6 +553,16 @@ variable "scs_server_no_ppg" {
   default     = false
 }
 
+variable "scs_shared_disk_size" {
+  description = "The size of the shared disk for the SAP Central Services Windows cluster"
+  default     = 128
+}
+
+variable "scs_shared_disk_lun" {
+  description = "The LUN of the shared disk for the SAP Central Services Windows cluster"
+  default     = 5
+}
+
 #########################################################################################
 #                                                                                       #
 #  Application Server variables                                                         #
