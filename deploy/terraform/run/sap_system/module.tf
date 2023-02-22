@@ -70,7 +70,7 @@ module "common_infrastructure" {
   ha_validator = format("%d%d-%s",
     local.application_tier.scs_high_availability ? 1 : 0,
     local.database.high_availability ? 1 : 0,
-    var.NFS_provider
+    upper(try(local.application_tier.app_os.os_type, "LINUX")) == "LINUX" ? var.NFS_provider : "WINDOWS"
   )
   Agent_IP             = var.Agent_IP
   use_private_endpoint = var.use_private_endpoint
