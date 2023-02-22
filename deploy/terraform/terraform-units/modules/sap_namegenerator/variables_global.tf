@@ -166,7 +166,7 @@ variable "azlimits" {
 variable "region_mapping" {
   type        = map(string)
   description = "Region Mapping: Full = Single CHAR, 4-CHAR"
-  # 42 Regions 
+  # 42 Regions
   default = {
     "australiacentral"   = "auce"
     "australiacentral2"  = "auc2"
@@ -242,6 +242,7 @@ variable "resource_prefixes" {
     "app_service_plan"                = ""
     "bastion_host"                   = ""
     "bastion_pip"                    = ""
+    "cluster_disk"                   = ""
     "db_alb"                         = ""
     "db_alb_bepool"                  = ""
     "db_alb_feip"                    = ""
@@ -367,6 +368,7 @@ variable "resource_suffixes" {
     "app_subnet_nsg"                 = "appSubnet-nsg"
     "bastion_host"                   = "bastion-host"
     "bastion_pip"                    = "bastion-pip"
+    "cluster_disk"                   = "cluster-disks"
     "db_alb"                         = "db-alb"
     "db_alb_bepool"                  = "dbAlb-bePool"
     "db_alb_feip"                    = "dbAlb-feip"

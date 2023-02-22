@@ -497,12 +497,11 @@ resource "azurerm_virtual_machine_extension" "configure_ansible_scs" {
 resource "azurerm_managed_disk" "cluster" {
   provider = azurerm.main
   count    = local.enable_deployment && upper(var.application_tier.scs_os.os_type) == "WINDOWS" && var.application_tier.scs_high_availability ? 1 : 0
-  name = format("%s%s%s%s%s",
-    var.naming.resource_prefixes.disk,
+  name = format("%s%s%s%s",
+    var.naming.resource_prefixes.cluster_disk,
     local.prefix,
     var.naming.separator,
-    var.naming.virtualmachine_names.SCS_VMNAME[local.scs_data_disks[count.index].vm_index],
-    "-cluster"
+    var.naming.resource_suffixes.cluster_disk
   )
   location               = var.resource_group[0].location
   resource_group_name    = var.resource_group[0].name
