@@ -226,6 +226,11 @@ stages:
 
               # Check if running on deployer
               if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
+                export ARM_CLIENT_ID=$WL_ARM_CLIENT_ID
+                export ARM_CLIENT_SECRET=$WL_ARM_CLIENT_SECRET
+                export ARM_TENANT_ID=$WL_ARM_TENANT_ID
+                export ARM_SUBSCRIPTION_ID=$WL_ARM_SUBSCRIPTION_ID
+                export ARM_USE_MSI=false
 
                 az login --service-principal --username $(WL_ARM_CLIENT_ID) --password=$WL_ARM_CLIENT_SECRET --tenant $(WL_ARM_TENANT_ID)  --output none
                 return_code=$?
@@ -236,17 +241,8 @@ stages:
                 fi
               else
                 echo -e "$green --- Running on deployer ---$reset"
+                  az login --identity --allow-no-subscriptions --output none
 
-                tfstate_resource_id=$(az resource list --name "${REMOTE_STATE_SA}" --subscription ${STATE_SUBSCRIPTION} --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
-                if [ -z $tfstate_resource_id ]; then
-                  az login --service-principal --username $(ARM_CLIENT_ID) --password=$ARM_CLIENT_SECRET --tenant $(ARM_TENANT_ID)  --output none
-                  return_code=$?
-                  if [ 0 != $return_code ]; then
-                    echo -e "$boldred--- Login failed ---$reset"
-                    echo "##vso[task.logissue type=error]az login failed."
-                    exit $return_code
-                  fi
-                fi
               fi
 
               echo -e "$green--- Define variables ---$reset"

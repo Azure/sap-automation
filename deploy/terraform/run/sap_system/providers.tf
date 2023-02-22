@@ -30,7 +30,6 @@ provider "azurerm" {
 provider "azurerm" {
   features {}
   subscription_id = length(local.deployer_subscription_id) > 0 ? local.deployer_subscription_id : null
-  use_msi         = true
 }
 
 provider "azurerm" {
