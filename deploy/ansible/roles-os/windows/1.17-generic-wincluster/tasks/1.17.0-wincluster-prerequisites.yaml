@@ -1,0 +1,24 @@
+---
+- name: "Add the failover cluster DSC module"
+  windows.ansible.win_psmodule:
+    name: FailoverCluster
+    state: present
+
+- name: "Add the windows cluster features"
+  windows.ansible.win_feature:
+    name: "{{ item }}"
+    state: present
+    include_management_tools: true
+    include_sub_features: true
+  with_items:
+    - Failover-Clustering
+    - RSAT-Clustering
+    - RSAT-Clustering-PowerShell
+    - RSAT-Clustering-CmdInterface
+  register: cluster_features
+
+- name: "Reboot if needed"
+  windows.ansible.win_reboot:
+    post_reboot_delay: 60
+  when: (cluster_features | json_query('results[*].reboot_required')) | any
+...

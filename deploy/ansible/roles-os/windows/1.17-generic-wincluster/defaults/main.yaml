@@ -1,0 +1,9 @@
+---
+
+cluster_name: "{{ sap_sid | lower }}{{ node_tier }}cl"
+witness_storage_account_name: "{{ sap_sid | lower }}{{ node_tier }}witness" #placeholder, need to get the data from terraform.
+
+# placeholder, need to get the information from storage account.
+# delegate task to localhost to get the information
+witness_storage_account_key: ""
+...
