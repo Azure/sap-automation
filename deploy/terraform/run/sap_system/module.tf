@@ -173,37 +173,46 @@ module "app_tier" {
   order_deployment = null
 
   application_tier                             = local.application_tier
+  sap_sid                                      = local.sap_sid
   infrastructure                               = local.infrastructure
   options                                      = local.options
+
+  custom_disk_sizes_filename                   = try(coalesce(var.custom_disk_sizes_filename, var.app_disk_sizes_filename), "")
+
   resource_group                               = module.common_infrastructure.resource_group
   storage_bootdiag_endpoint                    = module.common_infrastructure.storage_bootdiag_endpoint
   ppg                                          = module.common_infrastructure.ppg
   sid_keyvault_user_id                         = module.common_infrastructure.sid_keyvault_user_id
   naming                                       = length(var.name_override_file) > 0 ? local.custom_names : module.sap_namegenerator.naming
+  network_location                             = module.common_infrastructure.network_location
+  network_resource_group                       = module.common_infrastructure.network_resource_group
   admin_subnet                                 = module.common_infrastructure.admin_subnet
-  custom_disk_sizes_filename                   = try(coalesce(var.custom_disk_sizes_filename, var.app_disk_sizes_filename), "")
+  use_secondary_ips                            = var.use_secondary_ips
+
   sid_password                                 = module.common_infrastructure.sid_password
   sid_username                                 = module.common_infrastructure.sid_username
   sdu_public_key                               = module.common_infrastructure.sdu_public_key
+
   route_table_id                               = module.common_infrastructure.route_table_id
   firewall_id                                  = module.common_infrastructure.firewall_id
-  sap_sid                                      = local.sap_sid
   landscape_tfstate                            = data.terraform_remote_state.landscape.outputs
-  terraform_template_version                   = var.terraform_template_version
   deployment                                   = var.deployment
-  network_location                             = module.common_infrastructure.network_location
-  network_resource_group                       = module.common_infrastructure.network_resource_group
   cloudinit_growpart_config                    = null # This needs more consideration module.common_infrastructure.cloudinit_growpart_config
   license_type                                 = var.license_type
   use_loadbalancers_for_standalone_deployments = var.use_loadbalancers_for_standalone_deployments
   idle_timeout_scs_ers                         = var.idle_timeout_scs_ers
-  use_secondary_ips                            = var.use_secondary_ips
   deploy_application_security_groups           = var.deploy_application_security_groups
-  use_msi_for_clusters                         = var.use_msi_for_clusters
+  terraform_template_version                   = var.terraform_template_version
+
   fencing_role_name                            = var.fencing_role_name
+
   use_custom_dns_a_registration                = data.terraform_remote_state.landscape.outputs.use_custom_dns_a_registration
   management_dns_subscription_id               = try(data.terraform_remote_state.landscape.outputs.management_dns_subscription_id, null)
   management_dns_resourcegroup_name            = coalesce(data.terraform_remote_state.landscape.outputs.management_dns_resourcegroup_name, local.saplib_resource_group_name)
+
+  use_msi_for_clusters                         = var.use_msi_for_clusters
+  scs_shared_disk_lun  = var.scs_shared_disk_lun
+  scs_shared_disk_size = var.scs_shared_disk_size
 
 }
 
