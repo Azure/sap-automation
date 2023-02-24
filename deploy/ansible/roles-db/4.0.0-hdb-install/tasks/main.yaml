@@ -145,8 +145,8 @@
           ansible.builtin.include_role:
             name:                      roles-misc/0.6-ARM-Deployment
           vars:
-            subscription_id:           "{{ subscription_id }}"
-            resource_group_name:       "{{ resource_group_name }}"
+            subscriptionId:           "{{ subscription_id }}"
+            resourceGroupName:       "{{ resource_group_name }}"
 
         - name:                        "SAP HANA: ARM Deployment flag"
           ansible.builtin.file:
