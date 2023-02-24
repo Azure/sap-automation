@@ -12,6 +12,13 @@
   ansible.builtin.set_fact:
     deployment_name:                   "SDAF-{{ platform | upper}}-{{ deployment_type }}"
 
+- name:                                "SDAF: ARM deployment debug"
+  ansible.builtin.debug:
+    msg:
+      - "Deployment name: {{ deployment_name }}"
+      - "resourceGroupName: {{ resource_group_name }}"
+      - "subscriptionId: {{ subscription_id }}"
+
 - name:                                "SDAF: Create ARM deployment"
   ansible.builtin.command:             "az deployment group create --resource-group {{ resource_group_name }} --subscription {{ subscription_id }} --name {{ deployment_name }} --template-file 'templates/empty-deployment.json'"
   register:                            arm_deployment
