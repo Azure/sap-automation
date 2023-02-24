@@ -1,12 +1,12 @@
 
 - name:                                "SDAF: Set Deployment Type"
+  delegate_to:                         localhost
   ansible.builtin.set_fact:
     deployment_type:                   "STANDALONE"
-  delegate_to:                         localhost
 
 - name:                                "SDAF: Set Deployment Type"
-  ansible.builtin.set_fact:
   delegate_to:                         localhost
+  ansible.builtin.set_fact:
     deployment_type:                   "HA"
   when:                                db_high_availability
 
@@ -24,9 +24,9 @@
       - "subscriptionId: {{ subscriptionId }}"
 
 - name:                                "SDAF: Create ARM deployment"
+  delegate_to:                         localhost
   ansible.builtin.command:             "az deployment group create --resource-group {{ resourceGroupName }} --subscription {{ subscriptionId }} --name {{ deployment_name }} --template-file 'templates/empty-deployment.json'"
   register:                            arm_deployment
-  delegate_to:                         localhost
 
 - name:                                "SDAF: Create ARM deployment name"
   delegate_to:                         localhost
