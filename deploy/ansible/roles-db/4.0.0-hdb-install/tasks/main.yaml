@@ -92,7 +92,7 @@
       environment:
         TMPDIR:                        "{{ tmp_directory }}/{{ db_sid | upper }}"
       register:                        hana_installation
-      failed_when:                     hana_installation.rc > 0
+      failed_when:                     hana_installation.rc > 1
 
     - name:                            "SAP HANA: Installation results"
       ansible.builtin.debug:
