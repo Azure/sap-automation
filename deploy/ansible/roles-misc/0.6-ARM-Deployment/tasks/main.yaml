@@ -13,7 +13,7 @@
     deployment_name:                   "SDAF-{{ platform | upper}}-{{ deployment_type }}"
 
 - name:                                "SDAF: Create ARM deployment"
-  ansible.builtin.command:             az deployment group create --resource-group {{ resource_group_name }} --name {{ deployment_name }} --template-file "templates/empty-deployment.json"
+  ansible.builtin.command:             "az deployment group create --resource-group {{ resource_group_name }} --subscription {{ subscription_id }} --name {{ deployment_name }} --template-file 'templates/empty-deployment.json'"
   register:                            arm_deployment
   delegate_to:                         localhost
 
