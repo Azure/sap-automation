@@ -123,6 +123,10 @@
       register:                        sap_hana_ord_ip
       failed_when:                     sap_hana_ord_ip.rc > 1
 
+      # Command task added to ensure HANA is running on primary node and is set to master.
+    - name:                            Ensure HANA is master on Primary node
+      ansible.builtin.shell:           "crm resource move msl_SAPHana_{{ db_sid | upper }}_HDB{{ db_instance_number }} {{ primary_instance_name }} force"
+
     - name:                            Ensure any required cluster resources are cleaned up
       ansible.builtin.command:         "crm resource cleanup rsc_SAPHana_{{ db_sid | upper }}_HDB{{ db_instance_number }}"
 
