@@ -209,6 +209,20 @@ variable "use_service_endpoint" {
   type        = bool
 }
 
+
+#########################################################################################
+#                                                                                       #
+#  DNS settings                                                                         #
+#                                                                                       #
+#########################################################################################
+
+
+variable "create_storage_dns_a_records" {
+  description = "Boolean value indicating if dns a records should be created for the Virtual Machines"
+  type        = bool
+}
+
+
 variable "use_custom_dns_a_registration" {
   description = "Boolean value indicating if a custom dns a record should be created when using private endpoints"
   default     = false

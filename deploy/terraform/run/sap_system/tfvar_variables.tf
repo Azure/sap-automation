@@ -795,6 +795,13 @@ variable "management_dns_resourcegroup_name" {
   default     = null
   type        = string
 }
+
+variable "create_storage_dns_a_records" {
+  description = "Boolean value indicating if dns a records should be created for the storage accounts"
+  default     = false
+  type        = bool
+}
+
 #########################################################################################
 #                                                                                       #
 #  NFS and Shared Filed settings                                                        #

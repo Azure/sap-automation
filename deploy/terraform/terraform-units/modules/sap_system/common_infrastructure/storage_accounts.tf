@@ -68,7 +68,7 @@ resource "azurerm_private_dns_a_record" "sapmnt" {
   depends_on = [
     azurerm_private_endpoint.sapmnt
   ]
-  count = var.use_private_endpoint && var.use_custom_dns_a_registration ? 1 : 0
+  count = var.create_storage_dns_a_records ? 1 : 0
   name = replace(
     lower(
       format("%s%s",

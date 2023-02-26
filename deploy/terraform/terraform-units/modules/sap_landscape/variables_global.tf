@@ -242,15 +242,8 @@ variable "dns_resource_group_name" {
   default     = ""
 }
 
-variable "use_private_endpoint" {
-  description = "Boolean value indicating if private endpoint should be used for the deployment"
-  default     = false
-  type        = bool
-}
-
-variable "use_service_endpoint" {
-  description = "Boolean value indicating if service endpoints should be used for the deployment"
-  default     = false
+variable "create_vaults_and_storage_dns_a_records" {
+  description = "Boolean value indicating if dns a records should be created for the vaults and storage accounts"
   type        = bool
 }
 
@@ -271,6 +264,19 @@ variable "management_dns_resourcegroup_name" {
   default     = null
   type        = string
 }
+
+variable "use_private_endpoint" {
+  description = "Boolean value indicating if private endpoint should be used for the deployment"
+  default     = false
+  type        = bool
+}
+
+variable "use_service_endpoint" {
+  description = "Boolean value indicating if service endpoints should be used for the deployment"
+  default     = false
+  type        = bool
+}
+
 
 variable "NFS_provider" {
   description = "Describes the NFS solution used"

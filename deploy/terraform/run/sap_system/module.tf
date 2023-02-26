@@ -75,6 +75,7 @@ module "common_infrastructure" {
   Agent_IP             = var.Agent_IP
   use_private_endpoint = var.use_private_endpoint
 
+  create_storage_dns_a_records      = var.create_storage_dns_a_records
   use_custom_dns_a_registration     = try(data.terraform_remote_state.landscape.outputs.use_custom_dns_a_registration, true)
   management_dns_subscription_id    = try(data.terraform_remote_state.landscape.outputs.management_dns_subscription_id, null)
   management_dns_resourcegroup_name = coalesce(data.terraform_remote_state.landscape.outputs.management_dns_resourcegroup_name, local.saplib_resource_group_name)
@@ -150,6 +151,7 @@ module "hdb_node" {
   use_msi_for_clusters               = var.use_msi_for_clusters
   fencing_role_name                  = var.fencing_role_name
 
+  create_storage_dns_a_records      = var.create_storage_dns_a_records
   use_custom_dns_a_registration     = data.terraform_remote_state.landscape.outputs.use_custom_dns_a_registration
   management_dns_subscription_id    = try(data.terraform_remote_state.landscape.outputs.management_dns_subscription_id, null)
   management_dns_resourcegroup_name = coalesce(data.terraform_remote_state.landscape.outputs.management_dns_resourcegroup_name, local.saplib_resource_group_name)
@@ -172,26 +174,26 @@ module "app_tier" {
   depends_on       = [module.common_infrastructure]
   order_deployment = null
 
-  application_tier                             = local.application_tier
-  sap_sid                                      = local.sap_sid
-  infrastructure                               = local.infrastructure
-  options                                      = local.options
+  application_tier = local.application_tier
+  sap_sid          = local.sap_sid
+  infrastructure   = local.infrastructure
+  options          = local.options
 
-  custom_disk_sizes_filename                   = try(coalesce(var.custom_disk_sizes_filename, var.app_disk_sizes_filename), "")
+  custom_disk_sizes_filename = try(coalesce(var.custom_disk_sizes_filename, var.app_disk_sizes_filename), "")
 
-  resource_group                               = module.common_infrastructure.resource_group
-  storage_bootdiag_endpoint                    = module.common_infrastructure.storage_bootdiag_endpoint
-  ppg                                          = module.common_infrastructure.ppg
-  sid_keyvault_user_id                         = module.common_infrastructure.sid_keyvault_user_id
-  naming                                       = length(var.name_override_file) > 0 ? local.custom_names : module.sap_namegenerator.naming
-  network_location                             = module.common_infrastructure.network_location
-  network_resource_group                       = module.common_infrastructure.network_resource_group
-  admin_subnet                                 = module.common_infrastructure.admin_subnet
-  use_secondary_ips                            = var.use_secondary_ips
+  resource_group            = module.common_infrastructure.resource_group
+  storage_bootdiag_endpoint = module.common_infrastructure.storage_bootdiag_endpoint
+  ppg                       = module.common_infrastructure.ppg
+  sid_keyvault_user_id      = module.common_infrastructure.sid_keyvault_user_id
+  naming                    = length(var.name_override_file) > 0 ? local.custom_names : module.sap_namegenerator.naming
+  network_location          = module.common_infrastructure.network_location
+  network_resource_group    = module.common_infrastructure.network_resource_group
+  admin_subnet              = module.common_infrastructure.admin_subnet
+  use_secondary_ips         = var.use_secondary_ips
 
-  sid_password                                 = module.common_infrastructure.sid_password
-  sid_username                                 = module.common_infrastructure.sid_username
-  sdu_public_key                               = module.common_infrastructure.sdu_public_key
+  sid_password   = module.common_infrastructure.sid_password
+  sid_username   = module.common_infrastructure.sid_username
+  sdu_public_key = module.common_infrastructure.sdu_public_key
 
   route_table_id                               = module.common_infrastructure.route_table_id
   firewall_id                                  = module.common_infrastructure.firewall_id
@@ -204,13 +206,14 @@ module "app_tier" {
   deploy_application_security_groups           = var.deploy_application_security_groups
   terraform_template_version                   = var.terraform_template_version
 
-  fencing_role_name                            = var.fencing_role_name
+  fencing_role_name = var.fencing_role_name
 
-  use_custom_dns_a_registration                = data.terraform_remote_state.landscape.outputs.use_custom_dns_a_registration
-  management_dns_subscription_id               = try(data.terraform_remote_state.landscape.outputs.management_dns_subscription_id, null)
-  management_dns_resourcegroup_name            = coalesce(data.terraform_remote_state.landscape.outputs.management_dns_resourcegroup_name, local.saplib_resource_group_name)
+  create_storage_dns_a_records      = var.create_storage_dns_a_records
+  use_custom_dns_a_registration     = data.terraform_remote_state.landscape.outputs.use_custom_dns_a_registration
+  management_dns_subscription_id    = try(data.terraform_remote_state.landscape.outputs.management_dns_subscription_id, null)
+  management_dns_resourcegroup_name = coalesce(data.terraform_remote_state.landscape.outputs.management_dns_resourcegroup_name, local.saplib_resource_group_name)
 
-  use_msi_for_clusters                         = var.use_msi_for_clusters
+  use_msi_for_clusters = var.use_msi_for_clusters
   scs_shared_disk_lun  = var.scs_shared_disk_lun
   scs_shared_disk_size = var.scs_shared_disk_size
 
@@ -270,9 +273,11 @@ module "anydb_node" {
   deploy_application_security_groups = var.deploy_application_security_groups
   use_msi_for_clusters               = var.use_msi_for_clusters
   fencing_role_name                  = var.fencing_role_name
-  use_custom_dns_a_registration      = data.terraform_remote_state.landscape.outputs.use_custom_dns_a_registration
-  management_dns_subscription_id     = try(data.terraform_remote_state.landscape.outputs.management_dns_subscription_id, null)
-  management_dns_resourcegroup_name  = coalesce(data.terraform_remote_state.landscape.outputs.management_dns_resourcegroup_name, local.saplib_resource_group_name)
+
+  create_storage_dns_a_records      = var.create_storage_dns_a_records
+  use_custom_dns_a_registration     = data.terraform_remote_state.landscape.outputs.use_custom_dns_a_registration
+  management_dns_subscription_id    = try(data.terraform_remote_state.landscape.outputs.management_dns_subscription_id, null)
+  management_dns_resourcegroup_name = coalesce(data.terraform_remote_state.landscape.outputs.management_dns_resourcegroup_name, local.saplib_resource_group_name)
 
 }
 

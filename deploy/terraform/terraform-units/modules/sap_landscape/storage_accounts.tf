@@ -36,7 +36,7 @@ resource "azurerm_storage_account" "storage_bootdiag" {
 resource "azurerm_private_dns_a_record" "storage_bootdiag" {
   provider = azurerm.dnsmanagement
 
-  count = var.use_private_endpoint && !var.use_custom_dns_a_registration ? 1 : 0
+  count = var.create_vaults_and_storage_dns_a_records ? 1 : 0
   name  = lower(local.storageaccount_name)
 
   zone_name           = "privatelink.blob.core.windows.net"
@@ -164,7 +164,7 @@ resource "azurerm_storage_account_network_rules" "witness" {
 
 }
 resource "azurerm_private_dns_a_record" "witness_storage" {
-  count               = var.use_private_endpoint && !var.use_custom_dns_a_registration ? 1 : 0
+  count               = var.create_vaults_and_storage_dns_a_records ? 1 : 0
   name                = lower(local.witness_storageaccount_name)
   zone_name           = "privatelink.blob.core.windows.net"
   resource_group_name = var.management_dns_resourcegroup_name
@@ -304,7 +304,7 @@ resource "azurerm_storage_account_network_rules" "transport" {
 }
 
 resource "azurerm_private_dns_a_record" "transport" {
-  count = var.use_private_endpoint && !var.use_custom_dns_a_registration && var.NFS_provider == "AFS" ? 1 : 0
+  count = var.create_vaults_and_storage_dns_a_records && var.NFS_provider == "AFS" ? 1 : 0
   name = replace(
     lower(
       format("%s", local.landscape_shared_transport_storage_account_name)
@@ -501,7 +501,7 @@ resource "azurerm_storage_account_network_rules" "install" {
 
 resource "azurerm_private_dns_a_record" "install" {
   provider = azurerm.dnsmanagement
-  count = var.use_private_endpoint && !var.use_custom_dns_a_registration && var.NFS_provider == "AFS" ? 1 : 0
+  count = var.create_vaults_and_storage_dns_a_records && var.NFS_provider == "AFS" ? 1 : 0
   name = replace(
     lower(
       format("%s", local.landscape_shared_install_storage_account_name)
