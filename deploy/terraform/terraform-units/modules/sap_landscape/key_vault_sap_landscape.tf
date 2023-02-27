@@ -63,7 +63,7 @@ resource "azurerm_private_dns_a_record" "kv_user" {
   resource_group_name = var.management_dns_resourcegroup_name
   ttl                 = 3600
   records = [length(var.keyvault_private_endpoint_id) > 0 ? (
-    data.azurerm_private_endpoint.kv_user[0].private_service_connection[0].private_ip_address) : (
+    data.azurerm_private_endpoint_connection.kv_user[0].private_service_connection[0].private_ip_address) : (
     azurerm_private_endpoint.kv_user[0].private_service_connection[0].private_ip_address
   )]
 
@@ -340,7 +340,7 @@ resource "azurerm_key_vault_secret" "deployer_keyvault_user_name" {
 }
 
 
-data "azurerm_private_endpoint_connection" "kv_user" {
+data "azurerm_private_endpoint" "kv_user" {
   provider = azurerm.main
   count = length(var.keyvault_private_endpoint_id) > 0 ? (
     1) : (
