@@ -288,39 +288,30 @@ output "ANF_pool_settings" {
 ###############################################################################
 
 output "saptransport_path" {
-  value = try(var.NFS_provider == "AFS" ? (
-    format("%s:/%s/%s",
-      length(var.transport_private_endpoint_id) == 0 ? (
-        try(azurerm_private_endpoint.transport[0].custom_dns_configs[0].fqdn,
-          azurerm_private_endpoint.transport[0].private_service_connection[0].private_ip_address
-        )) : (
-        data.azurerm_private_endpoint_connection.transport[0].private_service_connection[0].private_ip_address
-
-      ),
-      length(var.transport_storage_account_id) == 0 ? (
+  value = var.NFS_provider == "AFS" ? (
+    length(var.transport_private_endpoint_id) == 0 ? (
+      format("%s:/%s/%s", try(azurerm_private_endpoint.transport[0].custom_dns_configs[0].fqdn,
+        azurerm_private_endpoint.transport[0].private_service_connection[0].private_ip_address), length(var.transport_storage_account_id) == 0 ? (
         azurerm_storage_account.transport[0].name) : (
-        split("/", var.transport_storage_account_id)[8]
-      ),
-      try(azurerm_storage_share.transport[0].name, "")
-    )
-    ) : (
+        split("/", var.transport_storage_account_id)[8]), try(azurerm_storage_share.transport[0].name, "")
+      )) : (
+      format("%s:/%s", data.azurerm_storage_account.transport[0].primary_blob_endpoint, try(azurerm_storage_share.transport[0].name, ""))
+    )) : (
     var.NFS_provider == "ANF" ? (
       format("%s:/%s",
         var.ANF_settings.use_existing_transport_volume ? (
-          data.azurerm_netapp_volume.transport[0].mount_ip_addresses[0]
-          ) : (
+          data.azurerm_netapp_volume.transport[0].mount_ip_addresses[0]) : (
           azurerm_netapp_volume.transport[0].mount_ip_addresses[0]
         ),
         var.ANF_settings.use_existing_transport_volume ? (
-          data.azurerm_netapp_volume.transport[0].volume_path
-          ) : (
+          data.azurerm_netapp_volume.transport[0].volume_path) : (
           azurerm_netapp_volume.transport[0].volume_path
         )
       )
       ) : (
       ""
     )
-  ), "")
+  )
 }
 
 output "install_path" {
