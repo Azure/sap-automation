@@ -41,6 +41,8 @@ module "sap_deployer" {
   sa_connection_string    = var.sa_connection_string
   webapp_client_secret    = var.webapp_client_secret
 
+  additional_users_to_add_to_keyvault_policies = var.additional_users_to_add_to_keyvault_policies
+
   bastion_deployment = var.bastion_deployment
   bastion_sku        = var.bastion_sku
 
