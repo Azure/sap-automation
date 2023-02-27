@@ -304,7 +304,7 @@ resource "azurerm_storage_account_network_rules" "transport" {
 }
 
 resource "azurerm_private_dns_a_record" "transport" {
-  count = var.create_vaults_and_storage_dns_a_records && var.NFS_provider == "AFS" length(var.transport_private_endpoint_id) == 0 ? 1 : 0
+  count = var.create_vaults_and_storage_dns_a_records && var.NFS_provider == "AFS" && length(var.transport_private_endpoint_id) == 0 ? 1 : 0
   name = replace(
     lower(
       format("%s", local.landscape_shared_transport_storage_account_name)
