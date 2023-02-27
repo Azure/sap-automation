@@ -57,9 +57,6 @@ resource "azurerm_key_vault" "kv_user" {
 
 resource "azurerm_private_dns_a_record" "kv_user" {
   provider = azurerm.dnsmanagement
-  depends_on = [
-    data.azurerm_network_interface.keyvault
-  ]
   count               = var.use_private_endpoint && var.create_vaults_and_storage_dns_a_records ? 1 : 0
   name                = lower(local.user_keyvault_name)
   zone_name           = "privatelink.vaultcore.azure.net"
