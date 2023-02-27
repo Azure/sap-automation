@@ -346,13 +346,12 @@ data "azurerm_private_dns_a_record" "transport" {
 resource "azurerm_storage_share" "transport" {
   provider = azurerm.main
   count = var.NFS_provider == "AFS" ? (
-    length(var.transport_storage_account_id) == 0 || var.install_always_create_fileshares ? (
-      1) : (
-      0
+    length(var.transport_storage_account_id) > 0   ? (
+      var.install_always_create_fileshares ? 1 : 0 ) : (
+      1
     )) : (
     0
   )
-
   name = format("%s", local.resource_suffixes.transport_volume)
 
   storage_account_name = length(var.transport_storage_account_id) > 0 ? (
@@ -648,8 +647,8 @@ resource "azurerm_private_endpoint" "install" {
 resource "azurerm_storage_share" "install" {
   provider = azurerm.main
   count = var.NFS_provider == "AFS" ? (
-    length(var.install_storage_account_id) > 0 || var.install_always_create_fileshares ? (
-      0) : (
+    length(var.install_storage_account_id) > 0   ? (
+      var.install_always_create_fileshares ? 1 : 0 ) : (
       1
     )) : (
     0
@@ -672,8 +671,8 @@ resource "azurerm_storage_share" "install" {
 resource "azurerm_storage_share" "install_smb" {
   provider = azurerm.main
   count = var.NFS_provider == "AFS" ? (
-    length(var.install_storage_account_id) > 0 ? (
-      0) : (
+    length(var.install_storage_account_id) > 0   ? (
+      var.install_always_create_fileshares ? 1 : 0 ) : (
       1
     )) : (
     0
