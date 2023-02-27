@@ -56,7 +56,7 @@ resource "azurerm_key_vault" "kv_user" {
 }
 
 resource "azurerm_private_dns_a_record" "kv_user" {
-  provider            = azurerm.dnsmanagement
+  provider = azurerm.dnsmanagement
   depends_on = [
     data.azurerm_network_interface.keyvault
   ]
@@ -65,20 +65,14 @@ resource "azurerm_private_dns_a_record" "kv_user" {
   zone_name           = "privatelink.vaultcore.azure.net"
   resource_group_name = var.management_dns_resourcegroup_name
   ttl                 = 3600
-  records             = [data.azurerm_network_interface.keyvault[0].ip_configuration[0].private_ip_address]
+  records = [length(var.keyvault_private_endpoint_id) > 0 ? (
+    data.azurerm_private_endpoint.kv_user[0].private_service_connection[0].private_ip_address) : (
+    azurerm_private_endpoint.kv_user[0].private_service_connection[0].private_ip_address
+  )]
 
   lifecycle {
     ignore_changes = [tags]
   }
-}
-
-data "azurerm_network_interface" "keyvault" {
-  provider = azurerm.main
-  count    = var.use_private_endpoint && !local.user_keyvault_exist == 0 ? 1 : 0
-
-  name = azurerm_private_endpoint.kv_user[count.index].network_interface[0].name
-
-  resource_group_name = split("/", azurerm_private_endpoint.kv_user[count.index].network_interface[0].id)[4]
 }
 
 #Errors can occure when the dns record has not properly been activated, add a wait timer to give
