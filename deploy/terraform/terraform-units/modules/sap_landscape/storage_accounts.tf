@@ -331,7 +331,13 @@ resource "azurerm_private_dns_a_record" "transport" {
 data "azurerm_private_dns_a_record" "transport" {
   provider            = azurerm.dnsmanagement
   count               = var.use_private_endpoint && length(var.transport_private_endpoint_id) > 0 ? 1 : 0
-  name                = lower(split("/", var.transport_private_endpoint_id)[8])
+  name = replace(
+    lower(
+      format("%s", local.landscape_shared_transport_storage_account_name)
+    ),
+    "/[^a-z0-9]/",
+    ""
+  )
   zone_name           = "privatelink.file.core.windows.net"
   resource_group_name = var.management_dns_resourcegroup_name
 }
@@ -537,7 +543,13 @@ resource "azurerm_private_dns_a_record" "install" {
 data "azurerm_private_dns_a_record" "install" {
   provider            = azurerm.dnsmanagement
   count               = var.use_private_endpoint && length(var.install_private_endpoint_id) > 0 ? 1 : 0
-  name                = lower(split("/", var.install_private_endpoint_id)[8])
+name = replace(
+    lower(
+      format("%s", local.landscape_shared_install_storage_account_name)
+    ),
+    "/[^a-z0-9]/",
+    ""
+  )
   zone_name           = "privatelink.file.core.windows.net"
   resource_group_name = var.management_dns_resourcegroup_name
 }
