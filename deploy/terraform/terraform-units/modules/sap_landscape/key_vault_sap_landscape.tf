@@ -340,7 +340,7 @@ resource "azurerm_key_vault_secret" "deployer_keyvault_user_name" {
 }
 
 
-data "azurerm_private_endpoint" "kv_user" {
+data "azurerm_private_endpoint_connection" "kv_user" {
   provider = azurerm.main
   count = length(var.keyvault_private_endpoint_id) > 0 ? (
     1) : (
