@@ -295,7 +295,7 @@ output "saptransport_path" {
         azurerm_storage_account.transport[0].name) : (
         split("/", var.transport_storage_account_id)[8]), try(azurerm_storage_share.transport[0].name, "")
       )) : (
-      format("%s:/%s", data.azurerm_storage_account.transport[0].primary_blob_endpoint, try(azurerm_storage_share.transport[0].name, ""))
+      format("%s:/%s", data.azurerm_private_dns_a_record.transport[0].fqdn, try(azurerm_storage_share.transport[0].name, ""))
     )) : (
     var.NFS_provider == "ANF" ? (
       format("%s:/%s",
@@ -316,20 +316,14 @@ output "saptransport_path" {
 
 output "install_path" {
   value = try(var.NFS_provider == "AFS" ? (
-    format("%s:/%s/%s",
-      length(var.install_private_endpoint_id) == 0 ? (
-        try(azurerm_private_endpoint.install[0].custom_dns_configs[0].fqdn,
-          azurerm_private_endpoint.install[0].private_service_connection[0].private_ip_address
-        )) : (
-        data.azurerm_private_endpoint_connection.install[0].private_service_connection[0].private_ip_address
-      ),
-      length(var.install_storage_account_id) == 0 ? (
+    length(var.install_private_endpoint_id) == 0 ? (
+      format("%s:/%s/%s", try(azurerm_private_endpoint.install[0].custom_dns_configs[0].fqdn,
+        azurerm_private_endpoint.install[0].private_service_connection[0].private_ip_address), length(var.transport_storage_account_id) == 0 ? (
         azurerm_storage_account.install[0].name) : (
-        split("/", var.install_storage_account_id)[8]
-      ),
-      try(azurerm_storage_share.install[0].name, "")
-    )
-    ) : (
+        split("/", var.install_private_endpoint_id)[8]), format("%s", local.resource_suffixes.install_volume)
+      )) : (
+      format("%s:/%s", data.azurerm_private_dns_a_record.install[0].fqdn, format("%s", local.resource_suffixes.install_volume))
+    )) : (
     var.NFS_provider == "ANF" ? (
       format("%s:/%s",
         var.ANF_settings.use_existing_install_volume ? (

@@ -328,6 +328,15 @@ resource "azurerm_private_dns_a_record" "transport" {
   }
 }
 
+data "azurerm_private_dns_a_record" "transport" {
+  provider            = azurerm.dnsmanagement
+  count               = var.use_private_endpoint && length(var.transport_private_endpoint_id) > 0 ? 1 : 0
+  name                = lower(split("/", var.transport_private_endpoint_id)[8])
+  zone_name           = "privatelink.file.core.windows.net"
+  resource_group_name = var.management_dns_resourcegroup_name
+}
+
+
 resource "azurerm_storage_share" "transport" {
   provider = azurerm.main
   count = var.NFS_provider == "AFS" ? (
@@ -524,6 +533,16 @@ resource "azurerm_private_dns_a_record" "install" {
     ignore_changes = [tags]
   }
 }
+
+data "azurerm_private_dns_a_record" "install" {
+  provider            = azurerm.dnsmanagement
+  count               = var.use_private_endpoint && length(var.install_private_endpoint_id) > 0 ? 1 : 0
+  name                = lower(split("/", var.install_private_endpoint_id)[8])
+  zone_name           = "privatelink.file.core.windows.net"
+  resource_group_name = var.management_dns_resourcegroup_name
+}
+
+
 
 data "azurerm_storage_account" "install" {
   provider = azurerm.main
