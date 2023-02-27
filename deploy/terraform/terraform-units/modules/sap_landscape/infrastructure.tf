@@ -187,7 +187,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "storage" {
   registration_enabled = false
 }
 
-resource "azurerm_private_dns_zone_virtual_network_link" "storage" {
+resource "azurerm_private_dns_zone_virtual_network_link" "vault" {
   provider = azurerm.dnsmanagement
   count    = var.create_vaults_and_storage_dns_a_records && !local.vnet_sap_exists ? 1 : 0
   name = format("%s%s%s%s",
@@ -197,7 +197,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "storage" {
     "storage"
   )
   resource_group_name = var.management_dns_resourcegroup_name
-  private_dns_zone_name = "privatelink.file.core.windows.net"
+  private_dns_zone_name = "privatelink.vaultcore.azure.net"
   virtual_network_id = local.vnet_sap_exists ? (
     data.azurerm_virtual_network.vnet_sap[0].id) : (
     azurerm_virtual_network.vnet_sap[0].id
