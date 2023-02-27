@@ -315,7 +315,10 @@ resource "azurerm_private_dns_a_record" "transport" {
   zone_name           = "privatelink.file.core.windows.net"
   resource_group_name = var.management_dns_resourcegroup_name
   ttl                 = 3600
-  records             = [data.azurerm_network_interface.transport[count.index].ip_configuration[0].private_ip_address]
+  records = [length(var.transport_private_endpoint_id) > 0 ? (
+    data.azurerm_private_endpoint_connection.transport[0].private_service_connection[0].private_ip_address) : (
+    azurerm_private_endpoint.transport[0].private_service_connection[0].private_ip_address
+  )]
 
 
   provider = azurerm.dnsmanagement
@@ -501,7 +504,7 @@ resource "azurerm_storage_account_network_rules" "install" {
 
 resource "azurerm_private_dns_a_record" "install" {
   provider = azurerm.dnsmanagement
-  count = var.create_vaults_and_storage_dns_a_records && var.NFS_provider == "AFS" ? 1 : 0
+  count    = var.create_vaults_and_storage_dns_a_records && var.NFS_provider == "AFS" ? 1 : 0
   name = replace(
     lower(
       format("%s", local.landscape_shared_install_storage_account_name)
@@ -512,8 +515,11 @@ resource "azurerm_private_dns_a_record" "install" {
   zone_name           = "privatelink.file.core.windows.net"
   resource_group_name = var.management_dns_resourcegroup_name
   ttl                 = 3600
-  records             = [data.azurerm_network_interface.install[count.index].ip_configuration[0].private_ip_address]
 
+  records = [length(var.install_private_endpoint_id) > 0 ? (
+    data.azurerm_private_endpoint_connection.install[0].private_service_connection[0].private_ip_address) : (
+    azurerm_private_endpoint.kv_user[0].private_service_connection[0].private_ip_address
+  )]
   lifecycle {
     ignore_changes = [tags]
   }
@@ -553,7 +559,7 @@ resource "azurerm_private_endpoint" "install" {
     azurerm_subnet.app
   ]
   count = var.NFS_provider == "AFS" ? (
-    length(var.install_storage_account_id) > 0 ? (
+    length(var.install_private_endpoint_id) > 0 ? (
       0) : (
       1
     )) : (
