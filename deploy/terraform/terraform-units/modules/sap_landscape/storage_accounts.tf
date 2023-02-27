@@ -355,7 +355,7 @@ resource "azurerm_storage_share" "transport" {
 
   name = format("%s", local.resource_suffixes.transport_volume)
 
-  storage_account_name = azurerm_storage_account.transport[0].name
+  storage_account_name = length(var.transport_storage_account_id) > 0 split("/",var.transport_storage_account_id)[8] : azurerm_storage_account.transport[0].name
   enabled_protocol     = "NFS"
 
   quota = var.transport_volume_size
