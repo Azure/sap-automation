@@ -187,6 +187,24 @@ resource "azurerm_private_dns_zone_virtual_network_link" "storage" {
   registration_enabled = false
 }
 
+resource "azurerm_private_dns_zone_virtual_network_link" "blob" {
+  provider = azurerm.dnsmanagement
+  count    = var.create_vaults_and_storage_dns_a_records && !local.vnet_sap_exists ? 1 : 0
+  name = format("%s%s%s%s",
+    var.naming.resource_prefixes.dns_link,
+    local.prefix,
+    var.naming.separator,
+    "blob"
+  )
+  resource_group_name = var.management_dns_resourcegroup_name
+  private_dns_zone_name = "privatelink.blob.core.windows.net"
+  virtual_network_id = local.vnet_sap_exists ? (
+    data.azurerm_virtual_network.vnet_sap[0].id) : (
+    azurerm_virtual_network.vnet_sap[0].id
+  )
+  registration_enabled = false
+}
+
 resource "azurerm_private_dns_zone_virtual_network_link" "vault" {
   provider = azurerm.dnsmanagement
   count    = var.create_vaults_and_storage_dns_a_records && !local.vnet_sap_exists ? 1 : 0
@@ -194,7 +212,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vault" {
     var.naming.resource_prefixes.dns_link,
     local.prefix,
     var.naming.separator,
-    "storage"
+    "vault"
   )
   resource_group_name = var.management_dns_resourcegroup_name
   private_dns_zone_name = "privatelink.vaultcore.azure.net"
