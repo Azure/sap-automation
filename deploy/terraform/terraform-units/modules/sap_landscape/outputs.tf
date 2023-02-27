@@ -292,12 +292,27 @@ output "saptransport_path" {
     length(var.transport_private_endpoint_id) == 0 ? (
       format("%s:/%s/%s", try(azurerm_private_endpoint.transport[0].custom_dns_configs[0].fqdn,
         azurerm_private_endpoint.transport[0].private_service_connection[0].private_ip_address,
+        length(var.transport_storage_account_id) > 0 ? split("/", var.transport_storage_account_id)[8] : replace(
+          lower(
+            format("%s", local.landscape_shared_transport_storage_account_name)
+          ),
+          "/[^a-z0-9]/",
+          ""
+        ),
         local.resource_suffixes.transport_volume)
       )) : (
-      format("%s:/%s", trimsuffix(data.azurerm_private_dns_a_record.transport[0].fqdn, "."), try(azurerm_storage_share.transport[0].name, ""))
+      format("%s:/%s/%s", trimsuffix(data.azurerm_private_dns_a_record.transport[0].fqdn, "."),
+        length(var.transport_storage_account_id) > 0 ? split("/", var.transport_storage_account_id)[8] : replace(
+          lower(
+            format("%s", local.landscape_shared_transport_storage_account_name)
+          ),
+          "/[^a-z0-9]/",
+          ""
+        ),
+      try(azurerm_storage_share.transport[0].name, ""))
     )) : (
     var.NFS_provider == "ANF" ? (
-      format("%s:/%s",
+      format("%s:/%s/%s",
         var.ANF_settings.use_existing_transport_volume ? (
           data.azurerm_netapp_volume.transport[0].mount_ip_addresses[0]) : (
           azurerm_netapp_volume.transport[0].mount_ip_addresses[0]
@@ -316,13 +331,28 @@ output "saptransport_path" {
 output "install_path" {
   value = try(var.NFS_provider == "AFS" ? (
     length(var.install_private_endpoint_id) == 0 ? (
-      format("%s:/%s", try(azurerm_private_endpoint.install[0].custom_dns_configs[0].fqdn,
+      format("%s:/%s/%s", try(azurerm_private_endpoint.install[0].custom_dns_configs[0].fqdn,
         azurerm_private_endpoint.install[0].private_service_connection[0].private_ip_address),
-
+        length(var.install_storage_account_id) > 0 ? split("/", var.install_storage_account_id)[8] : replace(
+          lower(
+            format("%s", local.landscape_shared_install_storage_account_name)
+          ),
+          "/[^a-z0-9]/",
+          ""
+        ),
         local.resource_suffixes.install_volume
       )
       ) : (
-      format("%s:/%s", trimsuffix(data.azurerm_private_dns_a_record.install[0].fqdn, "."), local.resource_suffixes.install_volume)
+      format("%s:/%s/%s",
+        trimsuffix(data.azurerm_private_dns_a_record.install[0].fqdn, "."),
+        length(var.install_storage_account_id) > 0 ? split("/", var.install_storage_account_id)[8] : replace(
+          lower(
+            format("%s", local.landscape_shared_install_storage_account_name)
+          ),
+          "/[^a-z0-9]/",
+          ""
+        ),
+      local.resource_suffixes.install_volume)
     )) : (
     var.NFS_provider == "ANF" ? (
       format("%s:/%s",
