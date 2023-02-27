@@ -381,6 +381,17 @@ $$webdispatcher_server_zones$$
 # in this case os_type must also be specified
 $$webdispatcher_server_image$$
 
+
+#########################################################################################
+#                                                                                       #
+#  DNS Settings                                                                         #
+#                                                                                       #
+#########################################################################################
+
+# Defines if a custom dns A records should be created for accounts
+$$create_storage_dns_a_records$$
+
+
 #########################################################################################
 #                                                                                       #
 #  Miscellaneous settings                                                               #

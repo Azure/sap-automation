@@ -64,7 +64,7 @@ namespace AutomationForm.Models
 
         public string automation_username { get; set; } = "azureadm";
 
-        // EXPERT 
+        // EXPERT
 
         public string deployer_tfstate_key { get; set; }
 
@@ -199,7 +199,7 @@ namespace AutomationForm.Models
 
         public string management_dns_subscription_id { get; set; }
 
-        public bool? use_custom_dns_a_registration { get; set; }
+        public bool? create_vaults_and_storage_dns_a_records { get; set; }
 
 
         [KeyvaultIdValidator]

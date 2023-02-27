@@ -201,8 +201,8 @@ $$management_dns_resourcegroup_name$$
 # custom dns subscription
 $$management_dns_subscription_id$$
 
-# Defines if a custom dns a record should be created when using private endpoints
-$$use_custom_dns_a_registration$$
+# Defines if a custom dns A records should be created for key vaults and storage accounts
+$$create_vaults_and_storage_dns_a_records$$
 
 #########################################################################################
 #                                                                                       #

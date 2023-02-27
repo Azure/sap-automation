@@ -322,6 +322,9 @@ namespace AutomationForm.Models
 
         public bool? nsg_asg_with_vnet { get; set; } = false;
 
+         public bool? create_storage_dns_a_records { get; set; }
+
+
         // NFS Support
 
         public string NFS_provider { get; set; }
