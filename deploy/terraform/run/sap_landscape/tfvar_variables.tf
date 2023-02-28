@@ -412,6 +412,12 @@ variable "management_dns_resourcegroup_name" {
   type        = string
 }
 
+variable "create_vaults_and_storage_dns_a_records" {
+  description = "Boolean value indicating if dns a records should be created for the vaults and storage accounts"
+  default     = false
+  type        = bool
+}
+
 
 #########################################################################################
 #                                                                                       #

@@ -778,6 +778,14 @@ variable "use_private_endpoint" {
   type        = bool
 }
 
+
+#########################################################################################
+#                                                                                       #
+#  DNS settings                                                                         #
+#                                                                                       #
+#########################################################################################
+
+
 variable "use_custom_dns_a_registration" {
   description = "Boolean value indicating if a custom dns a record should be created when using private endpoints"
   default     = false
@@ -795,6 +803,13 @@ variable "management_dns_resourcegroup_name" {
   default     = null
   type        = string
 }
+
+variable "create_storage_dns_a_records" {
+  description = "Boolean value indicating if dns a records should be created for the storage accounts"
+  default     = false
+  type        = bool
+}
+
 #########################################################################################
 #                                                                                       #
 #  NFS and Shared Filed settings                                                        #

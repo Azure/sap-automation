@@ -215,6 +215,7 @@
             sapbits_location_base_path: "{{ hostvars.localhost.sapbits_location_base_path }}"
             sapbits_sas_token:         "{{ hostvars.localhost.sapbits_sas_token }}"
             always_upload_jinja_templates: false
+            sa_enabled:                 true
           tags:
             - always
 

@@ -637,9 +637,9 @@
     "Link": "",
     "Parameters": [
       {
-        "Name": "use_custom_dns_a_registration",
+        "Name": "create_vaults_and_storage_dns_a_records",
         "Required": false,
-        "Description": "Boolean value indicating if a custom dns a record should be created when using private endpoints",
+        "Description": "Boolean value indicating if a custom dns record should be created for the storage account",
         "Type": "checkbox",
         "Options": [],
         "Overrules": "",

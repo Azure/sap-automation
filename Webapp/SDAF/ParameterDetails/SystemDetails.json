@@ -231,9 +231,6 @@
         "Overrules": "",
         "Display": 3
       }
-      
-      
-      
     ]
   },
   {
@@ -399,7 +396,6 @@
         "Overrules": "",
         "Display": 3
       },
-     
       {
         "Name": "database_vm_db_nic_ips",
         "Required": false,
@@ -1461,6 +1457,21 @@
         "Name": "enable_purge_control_for_keyvaults",
         "Required": false,
         "Description": "Disables the purge protection for Azure key vaults.",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      }
+    ]
+  },
+  {
+    "Section": "DNS",
+    "Link": "",
+    "Parameters": [
+      {
+        "Name": "create_storage_dns_a_records",
+        "Required": false,
+        "Description": "Boolean value indicating if a custom dns record should be created for the storage accounts",
         "Type": "checkbox",
         "Options": [],
         "Overrules": "",

@@ -36,8 +36,9 @@ module "sap_landscape" {
   use_service_endpoint               = var.use_service_endpoint
   keyvault_private_endpoint_id       = var.keyvault_private_endpoint_id
 
-  use_custom_dns_a_registration     = var.use_custom_dns_a_registration
-  management_dns_subscription_id    = try(var.management_dns_subscription_id, length(local.deployer_subscription_id) > 0 ? local.deployer_subscription_id : null)
+  create_vaults_and_storage_dns_a_records = var.create_vaults_and_storage_dns_a_records
+  use_custom_dns_a_registration           = var.use_custom_dns_a_registration
+  management_dns_subscription_id          = try(var.management_dns_subscription_id, length(local.deployer_subscription_id) > 0 ? local.deployer_subscription_id : null)
   management_dns_resourcegroup_name = length(var.management_dns_resourcegroup_name) > 0 ? (
     var.management_dns_resourcegroup_name) : (
     local.saplib_resource_group_name

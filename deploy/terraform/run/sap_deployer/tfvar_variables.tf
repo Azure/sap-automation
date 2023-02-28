@@ -145,6 +145,11 @@ variable "bastion_deployment" {
   default     = false
 }
 
+variable "bastion_sku" {
+  description = "The SKU of the Bastion Host. Accepted values are Basic or Standard"
+  default     = "Basic"
+}
+
 ###############################################################################
 #                                                                             #
 #                            Management NSG                                   #
