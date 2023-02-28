@@ -89,8 +89,6 @@
     sap_appVirtualHostname:
     param_directory:                   "{{ dir_params }}"
     sidadm_uid:                        "{{ sid_to_be_deployed.sidadm_uid }}"
-  tags:
-    - skip_ansible_lint
 
 - name:                                "User Creation: install variables"
   ansible.builtin.debug:
@@ -141,8 +139,6 @@
         TMPDIR:                        "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
       register:                        generic_user_creation
       failed_when:                     generic_user_creation.rc > 0
-      tags:
-        - skip_ansible_lint
 
     - name:                            "User Creation: Installation results"
       ansible.builtin.debug:

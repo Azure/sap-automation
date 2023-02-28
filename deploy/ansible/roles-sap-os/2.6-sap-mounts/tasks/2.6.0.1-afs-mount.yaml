@@ -97,9 +97,6 @@
     state:                             directory
     recurse:                           true
   register:                            is_created_now
-
-  tags:
-    - skip_ansible_lint
   when:
     - node_tier in item.target_nodes or item.target_nodes == ['all']
 
@@ -119,8 +116,6 @@
     - node_tier in item.target_nodes or item.target_nodes == "all"
     - is_created_now.changed
     - item.set_chattr_on_dir
-  tags:
-    - skip_ansible_lint
 
 - name:                                "AFS Mount"
   when:
@@ -144,4 +139,3 @@
         fstype:                        "nfs4"
         opts:                          "{{ item.opts }}"
         state:                         mounted
-

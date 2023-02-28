@@ -16,8 +16,6 @@
   retries:                             10
   delay:                               5
   when:                                ansible_hostname == primary_instance_name
-  tags:
-    - skip_ansible_lint
 
 - name:                                "HANA HSR: - Debug replication"
   ansible.builtin.debug:

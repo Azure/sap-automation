@@ -68,7 +68,7 @@
 
 # -------------------------------------+---------------------------------------8
 # Step: 03-01
-    - name:                                 "Dynamic processing - Show media entry"
+    - name:                                 "Dynamic processing - Show media entry"  # noqa jinja[spacing]
       ansible.builtin.debug:
         msg: |-
                                             Name:     {{ bom_media_entry.name }}
@@ -99,7 +99,7 @@
 # Step: 03-03
 # Description:
 #
-    - name:                                 "Dynamic processing - Update BOM"
+    - name:                                 "Dynamic processing - Update BOM"  # noqa jinja[spacing]
       ansible.builtin.set_fact:
         bom:                                "{{ bom_update }}"
       vars:
@@ -116,14 +116,7 @@
                                                 | join
                                                 | parse_xml(role_path + '/templates/sap_search.yaml')
                                             }}"
-        platformNumber_list:                "{{ item.Title
-                                                | regex_search(
-                                                                '(?P<prefix>^.*)[-](?P<hwid>.*)[.](?P<suffix>.*$)',
-                                                                '\\g<prefix>',
-                                                                '\\g<hwid>',
-                                                                '\\g<suffix>'
-                                                              )
-                                            }}"
+        platformNumber_list:                "{{ item.Title | regex_search('(?P<prefix>^.*)[-](?P<hwid>.*)[.](?P<suffix>.*$)', '\\g<prefix>', '\\g<hwid>', '\\g<suffix>')}}"
                                             # setting the checksum value to true is used durring download to update field with correct checksum.
         bom_update:                         "
                                             {#-  -#}
@@ -136,8 +129,6 @@
                                             "
       loop:                                 "{{ sap_search_results.entry | flatten(levels = 1) }}"
       when:                                 sap_platform_map_lookup.number == platformNumber_list[1]
-      tags:
-        - skip_ansible_lint
 # Step: 03-03 - END
 # -------------------------------------+---------------------------------------8
 

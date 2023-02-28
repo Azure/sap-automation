@@ -158,12 +158,8 @@
         sidadm_uid:                    "{{ sid_to_be_deployed.sidadm_uid }}"
         # support older dbload inifile templates where hdb_instance_number was used
         hdb_instance_number:           "{{ db_instance_number }}"
-        db_instance_number:            "{{ db_instance_number }}"
         hana_backup_path:              "{{ backup_path }}"
         sa_enabled:                    true
-
-      tags:
-        - skip_ansible_lint
 
     - name:                            "DBLoad: install variables"
       ansible.builtin.debug:
@@ -206,8 +202,6 @@
         TMPDIR:                        "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
         SAPSYSTEMNAME:                 "{{ sid_to_be_deployed.sid | upper }}"
       register:                        dbload_results
-      tags:
-        - skip_ansible_lint
       async:                           7200
       poll:                            0
 

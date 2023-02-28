@@ -174,8 +174,6 @@
         state:                         directory
         mode:                          0755
         group:                         sapsys
-      tags:
-        - skip_ansible_lint
 
     - name:                            "ANF Mount: (sapmnt)"
       block:
@@ -269,8 +267,6 @@
     state:                             directory
   register: is_created_now
   loop:                                "{{ all_sap_mounts }}"
-  tags:
-    - skip_ansible_lint
   when:
     - tier == 'sapos'
     - node_tier in ['app','scs','ers', 'pas'] or 'scs' in supported_tiers
@@ -287,8 +283,6 @@
     - tier == 'sapos'
     - item.item is changed
   register: set_immutable_attribute
-  tags:
-    - skip_ansible_lint
 
 - name:                                "ANF Mount: Create SAP Directories (scs & ers)"
   ansible.builtin.file:
@@ -320,8 +314,6 @@
     - tier == 'sapos'
     - item.item is changed
   register: set_immutable_attribute
-  tags:
-    - skip_ansible_lint
 
 - name:                                "ANF Mount: sapmnt/{{ sap_sid | upper }} - Standalone"
   ansible.posix.mount:
