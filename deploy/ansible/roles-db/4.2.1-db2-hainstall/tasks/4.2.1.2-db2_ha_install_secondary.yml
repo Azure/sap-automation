@@ -121,6 +121,7 @@
         creates:                       "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_db2.txt"
       environment:
         TMPDIR:                        "{{ tmp_directory }}/{{ sap_sid | upper }}"
+        DB2TMPDIR:                     "{{ tmp_directory }}"
       register:                        db2_installation
       failed_when:                     db2_installation.rc > 0
       tags:
