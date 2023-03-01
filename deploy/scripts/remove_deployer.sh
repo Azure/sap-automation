@@ -148,7 +148,7 @@ fi
 
 dir=$(pwd)
 
-terraform -chdir="${terraform_module_directory}" init -backend-config "path=${dir}/terraform.tfstate"
+terraform -chdir="${terraform_module_directory}" init -reconfigure -backend-config "path=${dir}/terraform.tfstate"
 extra_vars=""
 
 if [ -f terraform.tfvars ]; then
