@@ -30,7 +30,7 @@
 # -------------------------------------+---------------------------------------8
 #
 - name:                                "Oracle (sharedHome) - Volume Group creation"
-  community.general.system.lvg:
+  community.general.lvg:
     vg:                                "{{ item.vg }}"
     pvs:                               "{{ item.pvs }}"
     pesize:                            4M
@@ -46,7 +46,7 @@
 # -------------------------------------+---------------------------------------8
 #
 - name:                                "Oracle (sharedHome) - Logical Volume creation"
-  community.general.system.lvol:
+  community.general.lvol:
     lv:                                "{{ item.lv }}"
     vg:                                "{{ item.vg }}"
     size:                              "{{ item.size }}"
@@ -71,7 +71,7 @@
     lv_created_list:                   "{{ lv_created_list_tmp | map(attribute='item.lv') | list }}"
 
 - name:                                "Oracle (sharedHome) - File system creation"
-  community.general.system.filesystem:
+  community.general.filesystem:
     dev:                               "{{ dev_path_from_lv_item }}"
     fstype:                            "{{ item.fstype }}"
     opts:                              "{{ item.fsopts | default('') }}"
