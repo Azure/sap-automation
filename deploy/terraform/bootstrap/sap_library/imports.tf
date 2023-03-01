@@ -4,7 +4,6 @@
 */
 
 data "terraform_remote_state" "deployer" {
-  provider = azurerm.deployer
   backend = "local"
   count   = length(var.deployer_statefile_foldername) > 0 || var.use_deployer ? 1 : 0
   config = {
