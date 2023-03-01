@@ -1,11 +1,27 @@
 ---
-- name: "Add the failover cluster DSC module"
-  windows.ansible.win_psmodule:
-    name: FailoverCluster
-    state: present
+# Windows cluster pre-requisites
 
-- name: "Add the windows cluster features"
-  windows.ansible.win_feature:
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |     1  Add failover cluster DSC module                                     |
+# |     2  Add required cluster features                                       |
+# |     3  Reboot the nodes if any of the feature installation requires it     |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+# some modules are added in case we come here directly
+- name:                                "WinCluster-PreReq: Ensure DSC modules are installed"
+  community.windows.win_psmodule:
+    name:                              "{{ item }}"
+    state:                             present
+    accept_license:                    true
+  loop:
+    - FailOverClusterDsc
+    - PSDesiredStateConfiguration
+    - ServerManager
+
+- name:                                "WinCluster-PreReq: Add the windows cluster features"
+  ansible.windows.win_feature:
     name: "{{ item }}"
     state: present
     include_management_tools: true
@@ -17,8 +33,19 @@
     - RSAT-Clustering-CmdInterface
   register: cluster_features
 
-- name: "Reboot if needed"
-  windows.ansible.win_reboot:
+- name:                                "WinCluster-PreReq: Ensure Registery Services is Running"
+  ansible.windows.win_dsc:
+    resource_name:                    Service
+    Name:                             "{{ item }}"
+    State:                            Running
+    StartupType:                      Automatic
+  loop:
+    - TermService
+    - RemoteRegistry
+
+- name:                                "WinCluster-PreReq: Reboot '{{ ansible_hostname }}' if needed"
+  ansible.windows.win_reboot:
     post_reboot_delay: 60
   when: (cluster_features | json_query('results[*].reboot_required')) | any
+
 ...

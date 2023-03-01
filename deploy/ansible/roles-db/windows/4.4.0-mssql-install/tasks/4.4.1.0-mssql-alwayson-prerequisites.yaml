@@ -1,0 +1,89 @@
+---
+# +------------------------------------4--------------------------------------*/
+- name:                                "WIN: Joining the domain {{ domain }}"
+  ansible.builtin.debug:
+    msg:
+      - "Domain:                       {{ domain_name }}"
+      - "domain_svc_account:           {{ domain_service_account }}"
+      - "hostname:                     {{ ansible_hostname }}"
+    verbosity:                         2
+
+- name:                                "Assert domain user name and other details are available"
+  ansible.builtin.assert:
+    that:
+      - domain_name is defined
+      - domain_service_account is defined
+      - domain_service_account_password is defined
+    fail_msg:
+      - "Domain name is not defined"
+      - "Domain service account is not defined"
+      - "Domain service account password is not defined"
+    quiet:                            true
+
+- name:                                "Enable SQL Server Always On Service"
+  ansible.windows.win_dsc:
+    resource_name:                     SqlAlwaysOnService
+    Ensure:                            Present
+    ServerName:                        "{{ ansible_hostname }}"
+    InstanceName:                      "{{ mssql_instance_name }}"
+    RestartTimeout:                    180
+    PsDscRunAsCredential_username:     "{{ domain_service_account }}@{{ domain_name }}"
+    PsDscRunAsCredential_password:     "{{ domain_service_password }}"
+  register:                           sql_always_on_service
+  until:                              sql_always_on_service is succeeded
+  retries:                            6
+  delay:                              20
+
+- name:                                "Add required users to SQL Server"
+  ansible.windows.win_dsc:
+    resource_name:                     SqlLogin
+    Ensure:                            Present
+    ServerName:                        "{{ ansible_hostname }}"
+    InstanceName:                      "{{ mssql_instance_name }}"
+    LoginType:                         WindowsUser
+    Name:                              "{{ item }}"
+    PsDscRunAsCredential_username:     "{{ domain_service_account }}@{{ domain_name }}"
+    PsDscRunAsCredential_password:     "{{ domain_service_password }}"
+  loop:
+    - "{{ win_cluster_svc_account: }}"
+    - "{{ win_sql_svc_account }}"
+    - "{{ win_sqlagent_svc_account }}"
+  register:                           sql_login
+
+# maybe split to two tasks, and assign lesser perms to cluster service account
+- name:                                "Give permissions on the SQL Server to cluster service account"
+  ansible.windows.win_dsc:
+    resource_name:                     SqlServerPermission
+    Ensure:                            Present
+    ServerName:                        "{{ ansible_hostname }}"
+    InstanceName:                      "{{ mssql_instance_name }}"
+    Permission:
+      - State: Grant
+        Permission:
+          - ConnectSql
+          - ViewServerState
+          - AlterAnyEndpoint
+          - AlterAnyAvailabilityGroup
+    Principal:                         "{{ win_cluster_svc_account }}"
+    PsDscRunAsCredential_username:     "{{ domain_service_account }}@{{ domain_name }}"
+    PsDscRunAsCredential_password:     "{{ domain_service_password }}"
+  loop:
+    - "{{ win_cluster_svc_account: }}"
+    - "{{ win_sql_svc_account }}"
+    - "{{ win_sqlagent_svc_account }}"
+  register:                           sql_server_permission
+
+- name:                                "Create SQL Server Availability Group Endpoint"
+  ansible.windows.win_dsc:
+    resource_name:                     SqlEndpoint
+    Ensure:                            Present
+    EndpointName:                      "SDAF-HADR"
+    EndpointType:                      DatabaseMirroring
+    State:                             Started
+    Port:                              5022
+    ServerName:                        "{{ ansible_hostname }}"
+    InstanceName:                      "{{ mssql_instance_name }}"
+    PsDscRunAsCredential_username:     "{{ domain_service_account }}@{{ domain_name }}"
+    PsDscRunAsCredential_password:     "{{ domain_service_password }}"
+
+...

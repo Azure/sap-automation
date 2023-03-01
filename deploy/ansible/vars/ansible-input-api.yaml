@@ -148,6 +148,11 @@ data_disks:                             F:\{{ sap_sid | upper }}DATA1\{{ sap_sid
 log_disks:                              J:\{{ sap_sid | upper }}LOG1\{{ sap_sid | upper }}4LOG1.ldf
 
 win_mapped_drive:                       Z
+
+win_sql_svc_account:                    'NT SERVICE\MSSQLSERVER'
+win_sqlagent_svc_account:               'NT Service\SQLSERVERAGENT'
+win_cluster_svc_account:                'NT SERVICE\ClusSvc'
+
 # ------------------- Begin - SAP SWAP settings variables --------------------8
 sap_swap:
   - { tier: "scs",                swap_size_mb: "4096"  }

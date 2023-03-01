@@ -1,0 +1,131 @@
+---
+# +------------------------------------4--------------------------------------*/
+- name:                                "WIN: validating the domain is defined {{ domain }}"
+  ansible.builtin.debug:
+    msg:
+      - "Domain:                       {{ domain_name }}"
+      - "domain_svc_account:           {{ domain_service_account }}"
+      - "hostname:                     {{ ansible_hostname }}"
+    verbosity:                         2
+
+- name:                                "Assert domain user name and other details are available"
+  ansible.builtin.assert:
+    that:
+      - domain_name is defined
+      - domain_service_account is defined
+      - domain_service_account_password is defined
+    fail_msg:
+      - "Domain name is not defined"
+      - "Domain service account is not defined"
+      - "Domain service account password is not defined"
+    quiet:                            true
+
+- name:                                "HADR: Tasks on primary node"
+  block:
+    - name:                            "Set SQL Server Always On Endpoint Permission"
+      ansible.windows.win_dsc:
+        resource_name:                 SqlEndpointPermission
+        Ensure:                        Present
+        ServerName:                    "{{ ansible_hostname }}"
+        InstanceName:                  "{{ mssql_instance_name }}"
+        Name:                          "SDAF-HADR"
+        Principal:                     "{{ win_sql_svc_account }}"
+        Permission:                    "CONNECT"
+        PsDscRunAsCredential_username: "{{ domain_service_account }}@{{ domain_name }}"
+        PsDscRunAsCredential_password: "{{ domain_service_password }}"
+      register:                        sql_always_on_endpoint_permission
+
+    - name:                            "Create AG for SQL Server"
+      ansible.windows.win_dsc:
+        resource_name:                 SqlAG
+        Ensure:                        Present
+        Name:                          "{{ mssql_ag_name }}"
+        ServerName:                    "{{ ansible_hostname }}"
+        InstanceName:                  "{{ mssql_instance_name }}"
+        ProcessOnlyOnActiveNode:       true
+        AutomatedBackupPreference:     Primary
+        AvailabilityMode:              SynchronousCommit
+        BackupPriority:                50
+        ConnectionModeInPrimaryRole:   AllowAllConnections
+        ConnectionModeInSecondaryRole: AllowNoConnections
+        FailoverMode:                  Automatic
+        HealthCheckTimeout:            15000
+        BasicAvailabilityGroup:        false
+        DatabaseHealthTrigger:         true
+        DtcSupportEnabled:             true
+        PsDscRunAsCredential_username: "{{ domain_service_account }}@{{ domain_name }}"
+        PsDscRunAsCredential_password: "{{ domain_service_password }}"
+      register:                        sql_ag_creation
+
+    - name:                            "Create AG Listener for SQL Server"
+      ansible.windows.win_dsc:
+        resource_name:                 SqlAGListener
+        Ensure:                        Present
+        Name:                          "{{ mssql_ag_listener_name }}"
+        ServerName:                    "{{ ansible_hostname }}"
+        InstanceName:                  "{{ mssql_instance_name }}"
+        AvailabilityGroup:             "{{ mssql_ag_name }}"
+        Port:                          5022
+        IpAddress:                     "{{ ansible_default_ipv4.address/ansible_default_ipv4.netmask }}"
+        PsDscRunAsCredential_username: "{{ domain_service_account }}@{{ domain_name }}"
+        PsDscRunAsCredential_password: "{{ domain_service_password }}"
+      register:                        sql_ag_listener_creation
+
+  when:
+    - ansible_hostname == mssql_primary_node
+
+- name:                                "HADR: Tasks on secondary node"
+  block:
+    - name:                            "Wait for AvailabilityGroup to be available on secondary node"
+      ansible.windows.win_dsc:
+        resource_name:                 SqlWaitForAG
+        Name:                          "{{ mssql_ag_name }}"
+        RetryIntervalSec:              20
+        RetryCount:                    30
+        ServerName:                    "{{ ansible_hostname }}"
+        InstanceName:                  "{{ mssql_instance_name }}"
+        PsDscRunAsCredential_username: "{{ domain_service_account }}@{{ domain_name }}"
+        PsDscRunAsCredential_password: "{{ domain_service_password }}"
+      register:                        sql_wait_for_ag
+
+    - name:                            "Add replica to AG: {{ mssql_ag_name }}"
+      ansible.windows.win_dsc:
+        resource_name:                 SqlAGReplica
+        Ensure:                        Present
+        AvailabilityGroupName:         "{{ mssql_ag_name }}"
+        Name:                          "{{ ansible_hostname }}"
+        ServerName:                    "{{ ansible_hostname }}"
+        InstanceName:                  "{{ mssql_instance_name }}"
+        PrimaryReplicaServerName:      "{{ mssql_primary_node }}"
+        PrimaryReplicaInstanceName:    "{{ mssql_instance_name }}"
+        AvailabilityMode:              SynchronousCommit
+        BackupPriority:                50
+        ConnectionModeInPrimaryRole:   AllowAllConnections
+        ConnectionModeInSecondaryRole: AllowNoConnections
+        FailoverMode:                  Automatic
+        ProcessOnlyOnActiveNode:       true
+        PsDscRunAsCredential_username: "{{ domain_service_account }}@{{ domain_name }}"
+        PsDscRunAsCredential_password: "{{ domain_service_password }}"
+      when:
+        - sql_wait_for_ag is changed
+        - sql_always_on_service is changed
+      register:                        sql_ag_replica_creation
+
+  when:
+    - ansible_hostname == mssql_secondary_node
+
+- name:                                "Add DB {{ db_sid | upper }} to AG: {{ mssql_ag_name }}"
+  ansible.windows.win_dsc:
+    resource_name:                     SqlAGDatabase
+    Ensure:                            Present
+    AvailabilityGroupName:             "{{ mssql_ag_name }}"
+    ServerName:                        "{{ ansible_hostname }}"
+    InstanceName:                      "{{ mssql_instance_name }}"
+    DatabaseName:                      "{{ db_sid | upper }}"
+    ProcessOnlyOnActiveNode:           true
+    BackupPath:                        "{{ mssql_backup_path }}"
+    PsDscRunAsCredential_username:     "{{ domain_service_account }}@{{ domain_name }}"
+    PsDscRunAsCredential_password:     "{{ domain_service_password }}"
+  register:                            sql_ag_db_creation
+
+...

@@ -1,63 +1,102 @@
 ---
+
 # This user must have the permission to create the CNO (Cluster Name Object)
 # in Active Directory. This need not be a domain admin account.
-- name: "Check the node status"
-  windows.ansible.win_shell: |
-    $cluster = Get-Cluster -Name {{ cluster_name }} -ErrorAction SilentlyContinue
-    if($cluster){
-        (Get-ClusterNode -Cluster $cluster -Name {{ ansible_hostname }}).NodeName -join ','
-        #foreach($node in (Get-ClusterNode -Cluster $cluster)){
-        #    $node.NodeName
-        #    $node.State
-        #}
-    }
-    Get-ClusterNode -Name {{ ansible_hostname }} | Select-Object -ExpandProperty State
-  register: cluster_node_names
-  ignore_errors: yes
-  changed_when: false
 
-- name: "Create the cluster"
-  win_dsc:
-    resource_name: xCluster
-    Name: "{{ cluster_name }}"
-    StaticIPAddress: "{{ cluster_ip_address }}"
-    DomainAdministratorCredential_username: "{{ domain_service_account }}@{{ domain }}"
-    DomainAdministratorCredential_password: "{{ domain_service_password }}"
+# ClusterIPAddress            = '192.168.100.20/24'
+# ClusterName                 = 'Cluster1'
+
+# If the CNO is prestaged, then the computer object must be disabled for the
+# resource Cluster to be able to create the cluster.
+# If the CNO is not prestaged, then the credential used in the Cluster resource
+# must have the permission in Active Directory to create the CNO (Cluster Name
+# Object).
+
+# by default the cluster is created with nostorage option
+# https://github.com/dsccommunity/FailoverClusterDsc/blob/main/source/DSCResources/DSC_Cluster/DSC_Cluster.psm1#L204
+
+- name:                                "WIN: Calculating the domain value from {{ domain_name }}"
+  ansible.builtin.set_fact:
+    domain:                            "{{ domain_name | split('.') | first }}"
+    cacheable:                         true
   when:
-    - ansible_hostname == primary_node
-    - cluster_node_names.stdout | length == 0
-  register: cluster_creation
+    - domain_name is defined
+    - domain_name | type_debug != 'NoneType'
+    - domain_name | trim | length > 1
+    - domain is not defined
+
+- name:                                "Check if cluster is already created"
+  ansible.windows.win_powershell:
+    script: |
+                                       "if(Get-Cluster -Name . -ErrorAction SilentlyContinue){
+                                           $true
+                                         } else {
+                                           $false
+                                         }"
+  register:                            cluster_exists
+  changed_when:                        false
+  ignore_errors:                       true
   vars:
     ansible_become:                     true
     ansible_become_method:              runas
 
-- name: "Wait for cluster to start up and stabilize"
-  win_dsc:
-    resource_name: xWaitForCluster
-    Name: "{{ cluster_name }}"
-    RetryIntervalSec: 10
-    RetryCount: 60
+- name:                                "Check if {{ ansible_hostname }} is already a cluster node"
+  ansible.windows.win_powershell:
+    script: |
+                                       "(Get-ClusterNode -Name {{ ansible_hostname }} -ErrorAction SilentlyContinue | `
+                                        Select-Object -ExpandProperty NodeName) -join ','
+                                       "
+  register:                            cluster_node_names
   when:
-    - ansible_hostname == primary_node
-    - cluster_creation is changed
+    - cluster_exists.stdout == "True"
+  vars:
+    ansible_become:                     true
+    ansible_become_method:              runas
 
-- name: "Configure cluster quorum on cloud witness"
-  win_dsc:
-    resource_name: xClusterQuorum
-    Name: "{{ cluster_name }}"
-    QuorumType: "NodeAndCloudMajority"
-    Resource: "{{ witness_storage_account_name }}"
-    StorageAccountAccessKey: "{{ witness_storage_account_key }}"
-    PsDscRunAsCredential_username: "{{ domain_service_account }}@{{ domain }}"
-    PsDscRunAsCredential_password: "{{ domain_service_password }}"
-  register: cluster_quorum
+
+- name:                                "Create windows cluster on the first node"
+  ansible.windows.win_dsc:
+    resource_name:                      Cluster
+    ClusterIPAddress:                   "{{ ClusterIPAddress }}"
+    ClusterName:                        "{{ ClusterName }}"
+    DependsOn:                          "[WindowsFeature]FailoverClustering"
+    PsDscRunAsCredential_username:      "{{ domain_service_account }}@{{ domain_name }}"
+    PsDscRunAsCredential_password:      "{{ domain_service_password }}"
   when:
+    - cluster_exists.stdout == "False"
     - ansible_hostname == primary_node
-    - cluster_creation is changed
 
-- name: "Ensure the cluster is healthy"
-- name: "Add Additional Failover Cluster Nodes Windows Server 2016"
-- name: "Add Additional Failover Cluster Nodes Windows Server 2019"
+- name:                                "Create quorum resource"
+  ansible.windows.win_dsc:
+    resource_name:                      ClusterQuorum
+    DependsOn:                          "[Cluster]{{ ClusterName }}"
+    Type:                               "NodeAndCloudMajority"
+    IsSingleInstance:                   "Yes"
+    Resouce:                            "{{ witness_storage_account_name }}"
+    StorageAccountAccessKey:            "{{ witness_storage_account_key }}"
+    PsDscRunAsCredential_username:      "{{ domain_service_account }}@{{ domain_name }}"
+    PsDscRunAsCredential_password:      "{{ domain_service_password }}"
 
+- name:                                "Tasks for secondary nodes"
+  block:
+    - name:                            "Wait for cluster to be created"
+      ansible.windows.win_dsc:
+        resource_name:                  WaitForCluster
+        ClusterName:                    "{{ ClusterName }}"
+        RetryIntervalSec:               10
+        RetryCount:                     60
+        DependsOn:                      "[Cluster]{{ ClusterName }}"
+      when:
+        - cluster_exists.stdout == "False"
 
+    - name:                                "Add {{ ansible_hostname }} to the cluster"
+      ansible.windows.win_dsc:
+        resource_name:                      ClusterNode
+        ClusterName:                        "{{ ClusterName }}"
+        NodeName:                           "{{ ansible_hostname }}"
+        DependsOn:                          "[Cluster]{{ ClusterName }}"
+      when:
+        - ansible_hostname not in cluster_node_names.stdout
+  when:
+    - ansible_hostname == secondary_node
 ...

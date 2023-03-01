@@ -1,0 +1,25 @@
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                     Windows Base Cluster Configuration                     |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+---
+
+- name:                                "WinCluster: Prepare for cluster configuration"
+  ansible.builtin.import_tasks:
+    file:                              "1.17.0-wincluster-prerequisites.yaml"
+    apply:
+      ansible_become:                  true
+      ansible_become_method:           "runas"
+      tags:
+        -                              "win_cluster_prepare"
+
+- name:                                "WinCluster: Configure cluster"
+  ansible.builtin.import_tasks:
+    file:                              "1.17.1-wincluster-createcluster.yaml"
+    apply:
+      ansible_become:                  true
+      ansible_become_method:           "runas"
+      tags:
+        -                              "win_cluster_configure"
+...
