@@ -307,7 +307,10 @@ else
     pkg_mgr_refresh
 
     # Install required packages as determined above
+    set +o errexit
     pkg_mgr_install "$${required_pkgs[@]}"
+
+    set -o errexit
 
 
     # Prepare Azure SAP Automated Deployment folder structure
