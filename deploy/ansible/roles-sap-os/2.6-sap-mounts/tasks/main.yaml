@@ -323,7 +323,7 @@
   ansible.builtin.import_tasks:        2.6.0-afs-mounts.yaml
   when:
     - sap_mnt is defined or sap_trans is defined or usr_sap_install_mountpoint is defined
-    - NFS_provider != 'ANF'
+    - NFS_provider == 'AFS'
 
 
 # Import this task only if the sap_mnt is defined, i.e. ANF is used
@@ -343,8 +343,7 @@
 - name:                                "2.6 SAP Mounts: - Set permissions"
   become:                               true
   become_user:                          root
-  when:
-    - node_tier == "hana"
+  when:                                 node_tier == "hana"
   block:
     - name:                            "2.6 SAP Mounts: - Set permissions on hana folders"
       ansible.builtin.file:

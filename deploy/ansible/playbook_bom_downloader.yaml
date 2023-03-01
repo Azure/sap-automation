@@ -14,14 +14,8 @@
   connection:                           local
   environment:
     ANSIBLE_COLLECTIONS_PATHS:         "/opt/ansible/collections"
-
-# -------------------------------------+
-# 20230117 MKD (DynBOM) - BEGIN
-# Mitigate root requirement
-  become:                               true
+  become:                               "{{ bom_processing_become  }}"
   become_user:                          "{{ orchestration_ansible_user }}"
-# 20230117 MKD (DynBOM) - END
-# -------------------------------------+
   vars_files:
     - vars/ansible-input-api.yaml                                               # API Input template with defaults
 

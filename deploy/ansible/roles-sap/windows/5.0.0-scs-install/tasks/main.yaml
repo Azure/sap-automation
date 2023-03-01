@@ -146,13 +146,10 @@
     sap_db_hostname:
     sap_ciVirtualHostname:
     sap_appVirtualHostname:
-    tier:                              "{{ tier }}"
     param_directory:                   "{{ dir_params }}"
     sap_sid:                           "{{ sid_to_be_deployed.sid }}"
     scs_instance_number:               "{{ sid_to_be_deployed.ascs_inst_no }}"
     sidadm_uid:                        "{{ sid_to_be_deployed.sidadm_uid }}"
-  tags:
-    - skip_ansible_lint
 
 - name:                                "SCS Install: install variables"
   ansible.builtin.debug:
@@ -228,8 +225,6 @@
             ansible_become_password:   "{{ domain_user_password }}"
           register:                    scs_installation
           failed_when:                 scs_installation.rc > 0
-          tags:
-            - skip_ansible_lint
       rescue:
         - name:                        'RESCUE - SCS Install: Check {{ sap_drive }}\usr\sap\{{ sap_sid | upper }}\SYS\exe\uc\NTAMD64 exists'
           ansible.windows.win_stat:

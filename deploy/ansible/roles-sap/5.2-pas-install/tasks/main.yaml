@@ -129,7 +129,6 @@
         sap_db_hostname:               "{{ db_lb_virtual_host }}"
         sap_ciVirtualHostname:
         sap_appVirtualHostname:
-        tier:                          "{{ tier }}"
         param_directory:               "{{ dir_params }}"
         sap_sid:                       "{{ sid_to_be_deployed.sid }}"
         scs_instance_number:           "{{ sid_to_be_deployed.ascs_inst_no }}"
@@ -137,8 +136,6 @@
         virt_do_not_resolve_hostname:  "{{ db_lb_virtual_host }}"
         # support older app inifile templates where hdb_instance_number was used
         hdb_instance_number:           "{{ db_instance_number }}"
-      tags:
-        - skip_ansible_lint
 
     - name:                            "PAS Install: register variables"
       ansible.builtin.set_fact:
@@ -189,8 +186,6 @@
         SAPSYSTEMNAME:                 "{{ sid_to_be_deployed.sid | upper }}"
       register:                        pas_installation
       failed_when:                     pas_installation.rc > 0
-      tags:
-        - skip_ansible_lint
 
     - name:                            "PAS Install: Installation results"
       ansible.builtin.debug:
@@ -260,12 +255,10 @@
       environment:
         SAPSYSTEMNAME:                 "{{ sid_to_be_deployed.sid | upper }}"
         TMPDIR:                        "{{ hdbuserstore_path }}"
-        ssfs_connect:                  1
+        ssfs_connect:                  "1"
       register:                        hdbuserstore
       vars:
         allow_world_readable_tmpfiles: true
-      tags:
-        - skip_ansible_lint
       when:
         - db_high_availability
         - platform == 'HANA'
@@ -335,7 +328,7 @@
                                        {{ hdbuserstore_path }} SET DEFAULT {{ db_lb_virtual_host }}:3{{ db_instance_number }}13@{{ db_sid | upper }} {{ hana_schema }} {{ main_password }}
       environment:
         SAPSYSTEMNAME:                 "{{ sid_to_be_deployed.sid | upper }}"
-        ssfs_connect:                  1
+        ssfs_connect:                  "1"
       register:                        hdbuserstore
       become:                          true
       become_user:                     "{{ sid_to_be_deployed.sid | lower }}adm"
@@ -344,8 +337,6 @@
       when:
         - db_high_availability
         - platform == 'HANA'
-      tags:
-        - skip_ansible_lint
 
 
   when:

@@ -84,13 +84,10 @@
         db2_sslencryption_label:       "sap_db2{{ db_sid }}_{{ sap_db_hostname }}_ssl_comm_000"
         sap_scs_hostname:               "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') | first }}"
         sap_profile_dir:               "/sapmnt/{{ sap_sid | upper }}/profile"
-        tier:                          "{{ tier }}"
         param_directory:               "{{ dir_params }}"
         db2_memory:                    "{{ mem_size | int }}"
         always_upload_jinja_templates: false
 
-      tags:
-        - skip_ansible_lint
 # +------------------------------------4--------------------------------------*/
 
     - name:                            "SAP DB2 install Secondary: variables"
@@ -121,10 +118,9 @@
         creates:                       "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_db2.txt"
       environment:
         TMPDIR:                        "{{ tmp_directory }}/{{ sap_sid | upper }}"
+        DB2TMPDIR:                     "{{ tmp_directory }}"
       register:                        db2_installation
       failed_when:                     db2_installation.rc > 0
-      tags:
-        - skip_ansible_lint
 
     - name:                            "SAP DB2 Install: progress"
       ansible.builtin.debug:

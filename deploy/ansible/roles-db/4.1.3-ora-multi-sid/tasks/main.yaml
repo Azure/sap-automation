@@ -86,8 +86,6 @@
     executable:                         /bin/csh
     chdir:                             "{{ target_media_location }}/oraserver/LINUX_X86_64/db_home/SAP"
     creates:                           /etc/sap_deployment_automation/shared_db_installed.txt
-  tags:
-    - skip_ansible_lint
 
 - name:                                 "ORACLE (sharedHome): Debug: installer output"
   ansible.builtin.debug:
@@ -131,8 +129,6 @@
     executable:                         /bin/csh
     chdir:                             "{{ target_media_location }}/oraserver/LINUX_X86_64/db_home/SAP"
     creates:                           /etc/sap_deployment_automation/oracle_installed.txt
-  tags:
-    - skip_ansible_lint
 
 - name:                                 "ORACLE (sharedHome): create after a successful install"
   ansible.builtin.file:
@@ -156,8 +152,6 @@
   args:
     creates:                           /etc/sap_deployment_automation/orainstRoot_executed.txt
     executable:                         /bin/csh
-  tags:
-    - skip_ansible_lint
 
 - name:                                 "ORACLE (sharedHome): Debug: orainstRoot output"
   ansible.builtin.debug:
@@ -185,8 +179,6 @@
   args:
     creates:                          /etc/sap_deployment_automation/root_scripts_executed.txt
     executable:                        /bin/csh
-  tags:
-    - skip_ansible_lint
 
 - name:                                 "ORACLE (sharedHome): Debug: rootscript output"
   ansible.builtin.debug:
@@ -221,9 +213,6 @@
     owner:                             oracle
     group:                             oinstall
     mode:                              06751
-  tags:
-    - skip_ansible_lint
-
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
@@ -239,9 +228,6 @@
     owner:                             oracle
     group:                             oinstall
     mode:                              06751
-  tags:
-    - skip_ansible_lint
-
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
@@ -313,17 +299,15 @@
   environment:
     DB_SID:                             "{{ db_sid }}"
     CV_ASSUME_DISTID:                   OL7
-    IHRDBMS:                           /oracle/RDBMS/{{ ora_version }}
-    ORACLE_HOME:                       /oracle/RDBMS/{{ ora_version }}
-    RDBMS:                             /oracle/RDBMS/{{ ora_version }}
+    IHRDBMS:                            /oracle/RDBMS/{{ ora_version }}
+    ORACLE_HOME:                        /oracle/RDBMS/{{ ora_version }}
+    RDBMS:                              /oracle/RDBMS/{{ ora_version }}
   register:                             sbpscript_results
-  failed_when:                         sbpscript_results.rc >= 2
+  failed_when:                          sbpscript_results.rc >= 2
   args:
-    creates:                           /etc/sap_deployment_automation/sbpinstalled.txt
-    chdir:                             "{{ target_media_location }}/SBP"
+    creates:                            /etc/sap_deployment_automation/sbpinstalled.txt
+    chdir:                              "{{ target_media_location }}/SBP"
     executable:                         /bin/csh
-  tags:
-    - skip_ansible_lint
 
 - name:                                 "ORACLE (sharedHome): Post processing installer output"
   ansible.builtin.debug:

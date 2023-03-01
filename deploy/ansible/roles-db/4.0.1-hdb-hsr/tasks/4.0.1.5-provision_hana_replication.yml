@@ -166,8 +166,6 @@
         --operationMode={{ hana_operation_mode }} --name=SITEB
       register:                        hsr_secondary_registration
       changed_when:                    "'adding site' in hsr_secondary_registration.stdout"
-      tags:
-        - skip_ansible_lint
       args:
         executable: /bin/bash
 

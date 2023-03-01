@@ -5,7 +5,6 @@
 # |         SAP APP: Install                                                   |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
-
 ---
 - name:                                "APP Install: Set the SCS Server name list"
   ansible.builtin.set_fact:
@@ -62,14 +61,13 @@
   ansible.builtin.set_fact:
     app_bom_id:                        "{{ bom.product_ids.app }}"
 
-- name:                                "APP Install"
-  block:
-
 # *====================================4=======================================8
 #   SAP APP: Install
 # 2230669 - System Provisioning Using a Parameter Input File
 #
-
+- name:                                "APP Install"
+  when:                                not app_installed.stat.exists
+  block:
     - name:                            "APP Install: Set the SCS Server name"
       ansible.builtin.set_fact:
         scs_server:                    "{% if scs_high_availability %}{{ sid_to_be_deployed.sid | lower }}scs{{ scs_instance_number }}cl1{% else %}{{ hostvars[scs_server_temp | first]['virtual_host'] }}{% endif %}"
@@ -116,8 +114,6 @@
         virt_do_not_resolve_hostname:  "{{ db_lb_virtual_host }}"
         # support older app inifile templates where hdb_instance_number was used
         hdb_instance_number:           "{{ db_instance_number }}"
-      tags:
-        - skip_ansible_lint
 
     - name:                            "App install: register variables"
       ansible.builtin.set_fact:
@@ -165,8 +161,6 @@
         TMPDIR:                        "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
       register:                        app_installation
       failed_when:                     app_installation.rc > 0
-      tags:
-        - skip_ansible_lint
 
     - name:                            "APP Install: Installation results"
       ansible.builtin.debug:
@@ -228,24 +222,18 @@
     - name:                            "APP Install: Set DB Virtual Host name"
       become:                          true
       become_user:                     "{{ sid_to_be_deployed.sid | lower }}adm"
-      ansible.builtin.shell: |
-                                       {{ hdbuserstore_path }} SET DEFAULT {{ db_lb_virtual_host }}:3{{ db_instance_number }}13@{{ db_sid | upper }} {{ hana_schema }} {{ main_password }}
+      ansible.builtin.shell:           "{{ hdbuserstore_path }} SET DEFAULT {{ db_lb_virtual_host }}:3{{ db_instance_number }}13@{{ db_sid | upper }} {{ hana_schema }} {{ main_password }}"
       environment:
         SAPSYSTEMNAME:                 "{{ sid_to_be_deployed.sid | upper }}"
-        ssfs_connect:                  1
+        ssfs_connect:                  "1"
       register:                        hdbuserstore
       vars:
         allow_world_readable_tmpfiles: true
-      tags:
-        - skip_ansible_lint
       when:
         - db_high_availability
         - platform == 'HANA'
         - pas_installed_according_to_sapinst is defined
         - pas_installed_according_to_sapinst | length > 0
-
-  when:
-    - not app_installed.stat.exists
 
 - name:                                "APP Install: - status"
   block:
@@ -285,11 +273,10 @@
         - platform == 'HANA'
 
     - name:                            "APP Install: Set DB Virtual Host name ({{ db_lb_virtual_host }})"
-      ansible.builtin.shell: |
-                                       {{ hdbuserstore_path }} SET DEFAULT {{ db_lb_virtual_host }}:30313@{{ db_sid | upper }} {{ hana_schema }} {{ main_password }}
+      ansible.builtin.shell:           "{{ hdbuserstore_path }} SET DEFAULT {{ db_lb_virtual_host }}:30313@{{ db_sid | upper }} {{ hana_schema }} {{ main_password }}"
       environment:
         SAPSYSTEMNAME:                 "{{ sid_to_be_deployed.sid | upper }}"
-        ssfs_connect:                  1
+        ssfs_connect:                  "1"
       register:                        hdbuserstore
       become:                          true
       become_user:                     "{{ sid_to_be_deployed.sid | lower }}adm"
@@ -298,8 +285,6 @@
       when:
         - db_high_availability
         - platform == 'HANA'
-      tags:
-        - skip_ansible_lint
 
   when:
     - app_installed.stat.exists

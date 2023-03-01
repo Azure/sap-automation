@@ -283,7 +283,6 @@
             - name:                        "BOM: Line"
               ansible.builtin.blockinfile:
                 path:                      "{{ bom_file }}"
-                regexp:                    '      archive:      {{ bom_media_entry.archive }}'
                 insertafter:               '      archive:      {{ bom_media_entry.archive }}'
                 block:                     "      checksum:     {{ fs_check.stat.checksum }}"
                 marker:                    "# {mark} ANSIBLE MANAGED BLOCK {{ bom_media_entry.archive }}"
@@ -291,8 +290,6 @@
                 - fs_check is defined
                 - create_checksums is defined
                 - bom_file is defined
-              tags:
-              - skip_ansible_lint
 # Step: 05-03-02-01 - END
 # -------------------------------------+---------------------------------------8
 
@@ -335,8 +332,6 @@
                 bom:                                "{{ bom_update }}"
               vars:
                 bom_update:                         "{#- -#}{% set _ = bom.materials.media[bom_media_index].update({'checksum': fs_check.stat.checksum}) -%} {{ bom }}"
-              tags:
-               - skip_ansible_lint
         # Step: 05-03-03-01 - END
 
 # -------------------------------------+---------------------------------------8
