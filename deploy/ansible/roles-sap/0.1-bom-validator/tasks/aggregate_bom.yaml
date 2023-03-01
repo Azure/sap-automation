@@ -41,6 +41,7 @@
     - name:                            "aggregate_bom: - Create temporary BOM directories"
       delegate_to:                     localhost
       become:                          "{{ bom_processing_become }}"
+      become_user:                     "{{ orchestration_ansible_user }}"
       ansible.builtin.file:
         path:                          "{{ download_directory }}/bom/{{ new_bom_name }}"
         state:                         directory
@@ -55,6 +56,7 @@
     - name:                            "aggregate_bom: - write aggregated BOM"
       delegate_to:                     localhost
       become:                          "{{ bom_processing_become }}"
+      become_user:                     "{{ orchestration_ansible_user }}"
       ansible.builtin.copy:
         content:                       "{{ new_bom | default('NOT DEFINED') }}"
         dest:                          "{{ download_directory }}/bom/{{ new_bom_name }}/{{ new_bom_name }}.yaml"
