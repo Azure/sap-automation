@@ -97,7 +97,7 @@ if ($Env:SDAF_APP_NAME.Length -ne 0) {
 
 $ControlPlanePrefix = "SDAF-" + $Control_plane_code
 $WorkloadZonePrefix = "SDAF-" + $Workload_zone_code
-$Pool_Name = $ADO_Project + "-POOL"
+$Pool_Name = $ADO_Project.ToUpper() + "-POOL"
 
 $url = ( az devops project list --organization $ADO_Organization --query "value | [0].url")
 if ($url.Length -eq 0) {
@@ -182,11 +182,13 @@ else {
   az repos update --repository $repo_id --default-branch main --output none
 
 }
-Write-Host "You can optionally import the Terraform and Ansible code from GitHub into Azure DevOps, however, this should only be done if you cannot access github from the Azure DevOps agent or if you intend to customize the code." -ForegroundColor Green
-$confirmation =  "Do you want to use the code directly from GitHub y/n?"
+Write-Host
+Write-Host "You can optionally import the Terraform and Ansible code from GitHub into Azure DevOps, however, this should only be done if you cannot access github from the Azure DevOps agent or if you intend to customize the code." -ForegroundColor White
+Write-Host
+$confirmation = Read-Host "Do you want to use the code directly from GitHub y/n?"
 if ($confirmation -ne 'y') {
   Add-Content -Path $fname -Value ""
-  Add-Content -Path $fname -Value "Using the code from the sap-automation repository"
+  Add-Content -Path $fname -Value "Using the code from the sap-automation repository on GitHub."
 
   $import_code = $true
   $repo_name = "sap-automation"
@@ -852,7 +854,7 @@ az role assignment create --assignee $ARM_CLIENT_ID --role "Reader" --subscripti
 az role assignment create --assignee $ARM_CLIENT_ID --role "User Access Administrator" --subscription $Workload_zone_subscriptionID --output none
 az role assignment create --assignee $ARM_CLIENT_ID --role "Storage Account Contributor" --subscription $Control_plane_subscriptionID --output none
 
-$Service_Connection_Name = $Workload_zone_code+"_WorkloadZone_Service_Connection"
+$Service_Connection_Name = $Workload_zone_code + "_WorkloadZone_Service_Connection"
 
 $GroupID = (az pipelines variable-group list --query "[?name=='$WorkloadZonePrefix'].id | [0]" --only-show-errors )
 if ($GroupID.Length -eq 0) {
