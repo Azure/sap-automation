@@ -19,6 +19,10 @@ data "azurerm_client_config" "current" {
 
 provider "azurerm" {
   features {
+    resource_group {
+      prevent_deletion_if_contains_resources = true
+    }
+
   }
   subscription_id = local.spn.subscription_id
   client_id       = var.use_deployer ? local.spn.client_id : null
@@ -26,7 +30,7 @@ provider "azurerm" {
   tenant_id       = var.use_deployer ? local.spn.tenant_id : null
   partner_id      = "140c3bc9-c937-4139-874f-88288bab08bb"
 
-
+  alias = "main"
 }
 
 provider "azurerm" {

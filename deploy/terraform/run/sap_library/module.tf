@@ -4,7 +4,7 @@
 */
 module "sap_library" {
   providers = {
-    azurerm.main          = azurerm
+    azurerm.main          = azurerm.main
     azurerm.deployer      = azurerm.deployer
     azurerm.dnsmanagement = azurerm.dnsmanagement
   }

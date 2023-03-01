@@ -19,11 +19,17 @@ data "azurerm_client_config" "current" {
 
 provider "azurerm" {
   features {
+    resource_group {
+      prevent_deletion_if_contains_resources = true
+    }
+
   }
   subscription_id = var.use_deployer ? local.spn.subscription_id : null
   client_id       = var.use_deployer ? local.spn.client_id : null
   client_secret   = var.use_deployer ? local.spn.client_secret : null
   tenant_id       = var.use_deployer ? local.spn.tenant_id : null
+
+  alias = "main"
 }
 
 provider "azurerm" {
