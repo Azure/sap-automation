@@ -105,7 +105,7 @@ resource "azurerm_key_vault_access_policy" "kv_user_pre_deployer" {
 
   tenant_id = azurerm_user_assigned_identity.deployer.tenant_id
   # If running as a normal user use the object ID of the user otherwise use the object_id from AAD
-  object_id = coalesce(
+  object_id = coalesce(var.spn_id,
     data.azurerm_client_config.deployer.object_id,
     data.azurerm_client_config.deployer.client_id,
     var.arm_client_id
@@ -333,7 +333,7 @@ data "azurerm_private_dns_zone" "keyvault" {
   name                = "privatelink.vaultcore.azure.net"
   resource_group_name = var.management_dns_resourcegroup_name
   provider            = azurerm.dnsmanagement
-  
+
 }
 
 

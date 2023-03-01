@@ -54,6 +54,8 @@ module "sap_deployer" {
 
   ansible_core_version = var.ansible_core_version
 
+  spn_id = var.spn_id
+
 }
 
 module "sap_namegenerator" {

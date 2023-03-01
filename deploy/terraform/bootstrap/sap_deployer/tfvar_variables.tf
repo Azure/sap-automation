@@ -346,7 +346,7 @@ variable "deployer_diagnostics_account_arm_id" {
 
 variable "tf_version" {
   description = "Terraform version to install on deployer"
-  default     = "1.2.6"
+  default     = "1.3.4"
 }
 
 variable "name_override_file" {
@@ -357,6 +357,11 @@ variable "name_override_file" {
 variable "auto_configure_deployer" {
   description = "Value indicating if the deployer should be configured automatically"
   default     = true
+}
+
+variable "spn_id" {
+  description = "SPN ID to be used for the deployment"
+  default     = ""
 }
 
 #########################################################################################
