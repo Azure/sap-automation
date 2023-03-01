@@ -24,6 +24,15 @@ provider "azurerm" {
     }
 
   }
+}
+
+provider "azurerm" {
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = true
+    }
+
+  }
   subscription_id = var.use_deployer ? local.spn.subscription_id : null
   client_id       = var.use_deployer ? local.spn.client_id : null
   client_secret   = var.use_deployer ? local.spn.client_secret : null
@@ -31,6 +40,7 @@ provider "azurerm" {
 
   alias = "main"
 }
+
 
 provider "azurerm" {
   features {
