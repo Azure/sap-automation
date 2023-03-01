@@ -87,9 +87,6 @@
     state:                             directory
     recurse:                           true
   register:                            is_created_now
-
-  tags:
-    - skip_ansible_lint
   when:
     - node_tier in item.target_nodes or item.target_nodes == ['all']
 
@@ -109,8 +106,6 @@
     - node_tier in item.target_nodes or item.target_nodes == "all"
     - is_created_now.changed
     - item.set_chattr_on_dir
-  tags:
-    - skip_ansible_lint
 
 - name:                                "ANF Mount: ({{ item.path }} on {% if item.create_temp_folders %}{{ item.mount }}/{{ item.folder }}{% else %}{{ item.mount }}{% endif %})"
   ansible.posix.mount:

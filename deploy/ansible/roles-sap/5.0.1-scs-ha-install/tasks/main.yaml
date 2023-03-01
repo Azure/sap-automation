@@ -101,8 +101,6 @@
         sap_appVirtualHostname:
         param_directory:               "{{ dir_params }}"
         hdb_instance_number:           "{{ db_instance_number }}"
-      tags:
-        - skip_ansible_lint
 
     - name:                            "SCS HA Install: check if installed"
       ansible.builtin.debug:
@@ -193,8 +191,6 @@
             TMPDIR:                    "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
           register:                    scs_installation
           failed_when:                 scs_installation.rc > 0
-          tags:
-            - skip_ansible_lint
           when:                        node_tier == 'scs'
       rescue:
         # ToDO: cleanup file systems on failed install.
@@ -272,8 +268,6 @@
             TMPDIR:                    "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
           register:                    scs_installation
           failed_when:                 false
-          tags:
-            - skip_ansible_lint
           when:                        node_tier == 'scs'
 
     - name:                            "SCS HA Install: Installation results"

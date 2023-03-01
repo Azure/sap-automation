@@ -234,7 +234,6 @@
 
   tasks:
     - name:                            "OS configuration playbook: - Create os-configuration-done flag"
-      become: true
       ansible.builtin.file:
         path: "{{ _workspace_directory }}/.progress/os-configuration-done"
         state: touch

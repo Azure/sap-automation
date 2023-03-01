@@ -79,8 +79,7 @@
       delay:                           10
       until:                           "(primary_instance_name + ' ' + secondary_instance_name) in cluster_stable_check.stdout or (secondary_instance_name + ' ' + primary_instance_name) in cluster_stable_check.stdout"
       when:                            ansible_distribution_major_version != "8"
-      tags:
-        - skip_ansible_lint
+
     # '*' is a special character in regexp and needs to be escaped for literal matching
     # if we are worried about character spacing across distros we can match for '\* Online:'
     - name:                            "1.17 Generic Pacemaker - Wait until cluster has stabilized"
@@ -90,8 +89,6 @@
       delay:                           10
       until:                           "(primary_instance_name + ' ' + secondary_instance_name) in cluster_stable_check.stdout or (secondary_instance_name + ' ' + primary_instance_name) in cluster_stable_check.stdout"
       when:                            ansible_distribution_major_version == "8"
-      tags:
-        - skip_ansible_lint
 
     - name:                            "1.17 Generic Pacemaker - Ensure the expected quorum votes is set for the cluster"
       ansible.builtin.command:         pcs quorum expected-votes "{{ cluster_quorum.expected_votes }}"

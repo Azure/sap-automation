@@ -96,9 +96,6 @@
         sap_installSAPHostAgent:       false
         hdb_instance_number:           "{{ db_instance_number }}"
 
-      tags:
-        - skip_ansible_lint
-
     - name:                            "Web install: register variables"
       ansible.builtin.set_fact:
         web_bom_id:                    "{{ bom.product_ids.web }}"
@@ -144,8 +141,6 @@
         TMPDIR:                        "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
       register:                        web_installation
       failed_when:                     web_installation.rc > 0
-      tags:
-        - skip_ansible_lint
       when:                            node_tier == 'web'
 
     - name:                            "WEB Install: Installation results"

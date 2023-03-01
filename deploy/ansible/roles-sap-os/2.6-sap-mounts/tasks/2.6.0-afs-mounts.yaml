@@ -141,8 +141,6 @@
             state:                     absent
       when:
         - sap_mnt is defined
-      tags:
-        - skip_ansible_lint
   when:
     - tier == 'sapos'
     - "'scs' in supported_tiers"
@@ -151,15 +149,15 @@
   ansible.builtin.include_tasks:       2.6.0.1-afs-mount.yaml
   loop:
     - {
-      'type':              'install',
-      'temppath':          'sapinstall',
-      'folder':            '{{ bom_base_name }}',
-      'mount':             '{{ usr_sap_install_mountpoint }}',
-      'opts':              'rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp',
-      'path':              '/usr/sap/install',
-      'permissions':       '0775',
-      'set_chattr_on_dir': false,
-      'target_nodes':      ['all'],
+      'type':               'install',
+      'temppath':           'sapinstall',
+      'folder':             '{{ bom_base_name }}',
+      'mount':              '{{ usr_sap_install_mountpoint }}',
+      'opts':               'rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp',
+      'path':               '/usr/sap/install',
+      'permissions':        '0775',
+      'set_chattr_on_dir':  false,
+      'target_nodes':       ['all'],
       'create_temp_folders': true
     }
   vars:
@@ -180,8 +178,6 @@
         state:                         directory
       register:                        is_created_now
       loop:                            "{{ all_sap_mounts }}"
-      tags:
-        - skip_ansible_lint
 
     - name:                            "AFS Mount: Change attribute only when we create SAP Directories (sapmnt)"
       ansible.builtin.file:
@@ -193,8 +189,6 @@
       when:
         - item.item is changed
       register: set_immutable_attribute
-      tags:
-        - skip_ansible_lint
   when:
     - tier == 'sapos'
     - node_tier != 'hana'
@@ -233,8 +227,6 @@
       when:
         - item.item is changed
       register: set_immutable_attribute
-      tags:
-        - skip_ansible_lint
   when:
     - tier == 'sapos'
     - "'scs' in supported_tiers or 'ers' in supported_tiers "
