@@ -181,7 +181,7 @@ resource "azurerm_private_endpoint" "storage_tfstate" {
     for_each = range(var.use_private_endpoint && !var.use_custom_dns_a_registration ? 1 : 0)
     content {
       name                 = "privatelink.blob.core.windows.net"
-      private_dns_zone_ids = [data.azurerm_private_dns_zone.storage[0].id]
+      private_dns_zone_ids = [local.use_local_private_dns ? azurerm_private_dns_zone.storage[0].id : data.azurerm_private_dns_zone.storage[0].id]
     }
   }
 
@@ -314,7 +314,7 @@ resource "azurerm_private_endpoint" "storage_sapbits" {
     for_each = range(var.use_private_endpoint && !var.use_custom_dns_a_registration ? 1 : 0)
     content {
       name                 = "privatelink.blob.core.windows.net"
-      private_dns_zone_ids = [data.azurerm_private_dns_zone.storage[0].id]
+      private_dns_zone_ids = [local.use_local_private_dns ? azurerm_private_dns_zone.storage[0].id : data.azurerm_private_dns_zone.storage[0].id]
     }
 
   }
@@ -391,8 +391,9 @@ resource "azurerm_key_vault_secret" "sapbits_location_base_path" {
 }
 
 data "azurerm_private_dns_zone" "storage" {
-  provider            = azurerm.dnsmanagement
-  count               = var.use_private_endpoint && !var.use_custom_dns_a_registration && length(var.management_dns_subscription_id) > 0 ? 1 : 0
+  provider = azurerm.dnsmanagement
+
+  count               = !local.use_local_private_dns && var.use_private_endpoint ? 1 : 0
   name                = "privatelink.blob.core.windows.net"
   resource_group_name = var.management_dns_resourcegroup_name
 
