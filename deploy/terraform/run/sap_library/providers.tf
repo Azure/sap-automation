@@ -26,6 +26,8 @@ provider "azurerm" {
   tenant_id       = var.use_deployer ? local.spn.tenant_id : null
   partner_id      = "140c3bc9-c937-4139-874f-88288bab08bb"
 
+  alias = "main"
+
 }
 
 provider "azurerm" {
@@ -37,7 +39,7 @@ provider "azurerm" {
 provider "azurerm" {
   features {}
   alias                      = "dnsmanagement"
-  subscription_id            = try(var.management_dns_subscription_id, null)
+  subscription_id            = coalesce(var.management_dns_subscription_id, local.spn.subscription_id)
   skip_provider_registration = true
 }
 

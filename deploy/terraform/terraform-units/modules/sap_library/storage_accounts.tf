@@ -178,7 +178,7 @@ resource "azurerm_private_endpoint" "storage_tfstate" {
   }
 
   dynamic "private_dns_zone_group" {
-    for_each = range(var.use_private_endpoint && var.use_custom_dns_a_registration ? 1 : 0)
+    for_each = range(var.use_private_endpoint && !var.use_custom_dns_a_registration ? 1 : 0)
     content {
       name                 = "privatelink.blob.core.windows.net"
       private_dns_zone_ids = [data.azurerm_private_dns_zone.storage[0].id]
@@ -311,7 +311,7 @@ resource "azurerm_private_endpoint" "storage_sapbits" {
   }
 
   dynamic "private_dns_zone_group" {
-    for_each = range(var.use_private_endpoint && var.use_custom_dns_a_registration ? 1 : 0)
+    for_each = range(var.use_private_endpoint && !var.use_custom_dns_a_registration ? 1 : 0)
     content {
       name                 = "privatelink.blob.core.windows.net"
       private_dns_zone_ids = [data.azurerm_private_dns_zone.storage[0].id]
