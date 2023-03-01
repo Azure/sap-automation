@@ -160,15 +160,11 @@
     sap_db_hostname:                   "{{ db_virtual_host }}"
     sap_ciVirtualHostname:
     sap_appVirtualHostname:            "{{ virtual_host }}"
-    tier:                              "{{ tier }}"
     param_directory:                   "{{ dir_params }}"
     sap_sid:                           "{{ sid_to_be_deployed.sid }}"
     scs_instance_number:               "{{ sid_to_be_deployed.ascs_inst_no }}"
     sidadm_uid:                        "{{ sid_to_be_deployed.sidadm_uid }}"
     virt_do_not_resolve_hostname:      "{{ db_lb_virtual_host }}"
-
-  tags:
-    - skip_ansible_lint
 
 - name:                                "APP Install: register variables"
   ansible.builtin.set_fact:
@@ -243,8 +239,6 @@
         ansible_become_password:       "{{ domain_user_password }}"
       register:                        app_installation
       failed_when:                     app_installation.rc > 0
-      tags:
-        - skip_ansible_lint
 
     - name:                            "APP Install: Installation results"
       ansible.builtin.debug:

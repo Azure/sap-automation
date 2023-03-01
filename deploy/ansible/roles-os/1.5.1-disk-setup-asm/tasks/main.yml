@@ -401,8 +401,6 @@
       register:                            datadiskcreated
       args:
         creates:      "/etc/sap_deployment_automation/asmdatadisks.txt"
-      tags:
-        - skip_ansible_lint
 
     - name:                            Print datadiskcreated
       ansible.builtin.debug:
@@ -469,15 +467,13 @@
       register:                        archdiskcreated
       args:
         creates:                       "/etc/sap_deployment_automation/asmarchdisks.txt"
-      tags:
-        - skip_ansible_lint
 
     - name:                            "ORACLE ASM: Initialize ASM DISKS ARCH File"
       ansible.builtin.file:
         path:                          "/etc/sap_deployment_automation/asmarchdisks.txt"
         state:                         touch
         mode:                          0755
-      #when:                                archdiskcreated == 0
+      # when:                                archdiskcreated == 0
 
     - name:                            "ORACLE ASM: Print archdiskcreated"
       ansible.builtin.debug:
@@ -529,15 +525,13 @@
       register:                        recodiskcreated
       args:
         creates:                       "/etc/sap_deployment_automation/asmrecodisks.txt"
-      tags:
-        - skip_ansible_lint
 
     - name:                            "ORACLE ASM: Initialize ASM DISKS RECO File"
       ansible.builtin.file:
         path:                          "/etc/sap_deployment_automation/asmrecodisks.txt"
         state:                         touch
         mode:                          0755
-      #when:                                recodiskcreated == 0
+      # when:                                recodiskcreated == 0
 
     - name:                            "ORACLE ASM: Print recodiskcreated"
       ansible.builtin.debug:
@@ -582,5 +576,4 @@
         mode:                          '755'
       loop:                            '{{ recodisklist }}'
 
-
-  #when: not oracleasm_initialised.stat.exists
+  # when: not oracleasm_initialised.stat.exists

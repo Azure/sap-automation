@@ -20,6 +20,7 @@ repos:
   #  - { tier:   'os', repo: 'epel', url: 'https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm', state: 'absent' }
   redhat8.4:
   redhat8.6:
+  redhat8.7:
   # do not have any repos that are needed for RedHat at the moment.
   sles_sap12.3:
   sles_sap12.4:

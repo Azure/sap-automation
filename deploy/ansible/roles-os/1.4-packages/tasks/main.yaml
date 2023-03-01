@@ -106,8 +106,6 @@
 #    name:                              'python-xml'
 #    state:                             latest
 #  when:                                distribution_id in ['suse15', 'sles_sap15']
-#  tags:
-#    - skip_ansible_lint
 
 # Analyse the package list for this distribution selecting only those
 # packages assigned to the active tier or 'all'.
@@ -292,8 +290,6 @@
     - ansible_os_family == 'Suse'
     - upgrade_packages is defined
     - upgrade_packages
-  tags:
-    - skip_ansible_lint
 
 - name:                                "1.4 Packages: - Upgrade all: {{ distribution_full_id }}"  # noqa package-latest
   become:                              true
@@ -305,9 +301,6 @@
     - ansible_os_family == 'Redhat'
     - upgrade_packages is defined
     - upgrade_packages
-  tags:
-    - skip_ansible_lint
-
 
 # /*----------------------------------------------------------------------------8
 # |                                    END                                      |

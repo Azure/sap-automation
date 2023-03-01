@@ -24,8 +24,7 @@
     - name:                            "PAS Install: Set sapcontrol path"
       ansible.builtin.set_fact:
         sapcontrol_path:               "{{ sapcontrol_file.files[0].path }}"
-      when:
-        - sapcontrol_file | length > 0
+      when: sapcontrol_file | length > 0
 
     # {{ sapcontrol_path }} -nr {{ scs_instance_number }} -function GetProcessList | grep MessageServer | awk '{split($0,result,", "); print result[1],result[3] }'
     - name:                            "Determine if SCS is running on {{ ansible_hostname }}"
@@ -45,8 +44,6 @@
         DIR_LIBRARY:                   /usr/sap/{{ sap_sid | upper }}/SYS/exe/run
         LD_LIBRARY_PATH:               /usr/sap/{{ sap_sid | upper }}/SYS/exe/run:/usr/sap/{ sap_sid | upper }}/SYS/exe/uc/linuxx86_64
         SAPSYSTEMNAME:                 "{{ sap_sid | upper }}"
-      tags:
-        - skip_ansible_lint
 
     - name:                            "Show if SCS is running on {{ ansible_hostname }}"
       ansible.builtin.debug:
@@ -75,8 +72,6 @@
         - ansible_hostname == primary_instance_name
       failed_when:                     false
       register:                        cluster_group_location
-      tags:
-        - skip_ansible_lint
 
     # move cluster group g-{{ sap_sid }}_{{ instance_type | upper }} to primary_instance_name
     - name:                            "Move cluster group g-{{ sap_sid }}_{{ instance_type | upper }} to {{ primary_instance_name }}"
@@ -94,8 +89,6 @@
       failed_when:                     false
       changed_when:                    false
       register:                        cluster_group_moved
-      tags:
-        - skip_ansible_lint
 
     # move cluster group g-{{ sap_sid }}_{{ instance_type | upper }} to primary_instance_name
     - name:                            "Move cluster group g-{{ sap_sid }}_{{ instance_type | upper }} to {{ primary_instance_name }}"
@@ -117,8 +110,6 @@
       #                                  cluster_group_moved.stderr is not search('Already in requested state')
       #                                  or cluster_group_moved.stderr is not search('is already active on')
       #                                  )
-      tags:
-        - skip_ansible_lint
 
     - name:                            "Validate Cluster resource move and SAP start when the group g-{{ sap_sid }}_{{ instance_type | upper }} has moved"
       block:
@@ -127,7 +118,7 @@
           become_user:                 root
           ansible.builtin.shell: >-
             set -o pipefail;
-            crm_resource --resource g-{{ sap_sid }}_{{ instance_type | upper }} --locate | cut -d ':' -f 2| cut -d " " -f 2
+            crm_resource --resource g-{{ sap_sid }}_{{ instance_type | upper }} --locate | cut -d ':' -f 2 | cut -d " " -f 2
           vars:
             allow_world_readable_tmpfiles: true
             ansible_python_interpreter:    "{{ python_version }}"
@@ -135,18 +126,14 @@
           register:                    cluster_group_location
           failed_when:                 false
           changed_when:                false
-          tags:
-            - skip_ansible_lint
 
         - name:                        "Validate that cluster group g-{{ sap_sid }}_{{ instance_type | upper }} is running on {{ primary_instance_name }}"
           ansible.builtin.assert:
             that:
               - cluster_group_location.stdout == primary_instance_name
             fail_msg:                  "cluster group g-{{ sap_sid }}_{{ instance_type | upper }} is not running on {{ primary_instance_name }}"
-          tags:
-            - skip_ansible_lint
 
-        #{{ sapcontrol_path }} -nr {{ scs_instance_number }} -function GetProcessList | grep MessageServer | awk '{split($0,result,", "); print result[1],result[3] }'
+        # {{ sapcontrol_path }} -nr {{ scs_instance_number }} -function GetProcessList | grep MessageServer | awk '{split($0,result,", "); print result[1],result[3] }'
         - name:                        "Determine if SCS is running on {{ ansible_hostname }}"
           ansible.builtin.command:     "{{ sapcontrol_path }} -nr {{ scs_instance_number }} -function StartService {{ sap_sid | upper }}"
           changed_when:                false
@@ -164,14 +151,12 @@
             DIR_LIBRARY:               /usr/sap/{{ sap_sid | upper }}/SYS/exe/run
             LD_LIBRARY_PATH:           /usr/sap/{{ sap_sid | upper }}/SYS/exe/run:/usr/sap/{ sap_sid | upper }}/SYS/exe/uc/linuxx86_64
             SAPSYSTEMNAME:             "{{ sap_sid | upper }}"
-          tags:
-            - skip_ansible_lint
 
         - name:                        "Wait 60 secs for the StartService {{ sap_sid | upper }} to finish"
           ansible.builtin.wait_for:
             timeout:                   0
 
-        #{{ sapcontrol_path }} -nr {{ scs_instance_number }} -function GetProcessList | grep MessageServer | awk '{split($0,result,", "); print result[1],result[3] }'
+        # {{ sapcontrol_path }} -nr {{ scs_instance_number }} -function GetProcessList | grep MessageServer | awk '{split($0,result,", "); print result[1],result[3] }'
         - name:                        "Determine if SCS is running on {{ ansible_hostname }}"
           ansible.builtin.command:     "{{ sapcontrol_path }} -nr {{ scs_instance_number }} -function StartSystem ALL"
           changed_when:                false
@@ -189,8 +174,6 @@
             DIR_LIBRARY:               /usr/sap/{{ sap_sid | upper }}/SYS/exe/run
             LD_LIBRARY_PATH:           /usr/sap/{{ sap_sid | upper }}/SYS/exe/run:/usr/sap/{ sap_sid | upper }}/SYS/exe/uc/linuxx86_64
             SAPSYSTEMNAME:             "{{ sap_sid | upper }}"
-          tags:
-            - skip_ansible_lint
       when:
         - scs_running_on is not defined
         - ansible_hostname == primary_instance_name

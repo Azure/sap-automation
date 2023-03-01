@@ -86,8 +86,6 @@
         sap_scs_hostname:              "{{ sid_to_be_deployed.sid | lower }}scs{{ scs_instance_number }}cl1"
         param_directory:               "{{ dir_params }}"
         hdb_instance_number:           "{{ db_instance_number }}"
-      tags:
-        - skip_ansible_lint
 
     - name:                            "ERS Install: register variables"
       ansible.builtin.set_fact:
@@ -151,8 +149,6 @@
             TMPDIR:                    "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
           register:                    ers_installation
           failed_when:                 ers_installation.rc > 0
-          tags:
-            - skip_ansible_lint
       rescue:
         - name:                        "RESCUE - ERS Install: Check '/usr/sap/<SAPSID>/SYS/exe/uc/linuxx86_64' exists"
           ansible.builtin.stat:
@@ -198,8 +194,6 @@
             TMPDIR:                    "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
           register:                    ers_installation
           failed_when:                 false
-          tags:
-            - skip_ansible_lint
 
     - name:                            "ERS Install: Installation results"
       block:
@@ -210,7 +204,7 @@
 
         - name:                        "ERS Install: Save installation results"
           ansible.builtin.set_fact:
-            ers_installation_succeeded: false                    
+            ers_installation_succeeded: false
 
         - name:                        "ERS Install: Installation results"
           ansible.builtin.fail:
