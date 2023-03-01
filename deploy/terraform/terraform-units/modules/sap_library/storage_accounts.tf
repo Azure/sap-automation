@@ -391,7 +391,8 @@ resource "azurerm_key_vault_secret" "sapbits_location_base_path" {
 }
 
 data "azurerm_private_dns_zone" "storage" {
-  count               = var.use_private_endpoint && var.use_custom_dns_a_registration ? 1 : 0
+  provider            = azurerm.dnsmanagement
+  count               = var.use_private_endpoint && !var.use_custom_dns_a_registration ? 1 : 0
   name                = "privatelink.blob.core.windows.net"
   resource_group_name = var.management_dns_resourcegroup_name
 
