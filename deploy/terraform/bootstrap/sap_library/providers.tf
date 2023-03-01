@@ -51,7 +51,7 @@ provider "azurerm" {
 provider "azurerm" {
   features {}
   alias                      = "dnsmanagement"
-  subscription_id            = try(var.management_dns_subscription_id, null)
+  subscription_id            = coalesce(var.management_dns_subscription_id, local.spn.subscription_id)
   skip_provider_registration = true
 }
 
