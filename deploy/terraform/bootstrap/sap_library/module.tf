@@ -5,7 +5,7 @@
 module "sap_library" {
   source = "../../terraform-units/modules/sap_library"
   providers = {
-    azurerm.main          = azurerm
+    azurerm.main          = azurerm.main
     azurerm.deployer      = azurerm.deployer
     azurerm.dnsmanagement = azurerm.dnsmanagement
   }
@@ -21,8 +21,8 @@ module "sap_library" {
   dns_label                         = var.dns_label
   use_private_endpoint              = var.use_private_endpoint
   use_custom_dns_a_registration     = var.use_custom_dns_a_registration
-  management_dns_subscription_id    = var.management_dns_subscription_id
-  management_dns_resourcegroup_name = var.management_dns_resourcegroup_name
+  management_dns_subscription_id    = trimspace(var.management_dns_subscription_id)
+  management_dns_resourcegroup_name = trimspace(var.management_dns_resourcegroup_name)
   use_webapp                        = var.use_webapp
 }
 

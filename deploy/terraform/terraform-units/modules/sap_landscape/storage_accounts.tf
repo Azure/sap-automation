@@ -346,13 +346,12 @@ data "azurerm_private_dns_a_record" "transport" {
 resource "azurerm_storage_share" "transport" {
   provider = azurerm.main
   count = var.NFS_provider == "AFS" ? (
-    length(var.transport_storage_account_id) == 0 || var.install_always_create_fileshares ? (
-      1) : (
-      0
+    length(var.transport_storage_account_id) > 0   ? (
+      var.install_always_create_fileshares ? 1 : 0 ) : (
+      1
     )) : (
     0
   )
-
   name = format("%s", local.resource_suffixes.transport_volume)
 
   storage_account_name = length(var.transport_storage_account_id) > 0 ? (
@@ -426,7 +425,7 @@ resource "azurerm_private_endpoint" "transport" {
   dynamic "private_dns_zone_group" {
     for_each = range(var.use_private_endpoint && !var.use_custom_dns_a_registration ? 1 : 0)
     content {
-      name                 = "privatelink.blob.core.windows.net"
+      name                 = "privatelink.file.core.windows.net"
       private_dns_zone_ids = [data.azurerm_private_dns_zone.storage[0].id]
     }
   }
@@ -523,7 +522,7 @@ resource "azurerm_storage_account_network_rules" "install" {
 
 resource "azurerm_private_dns_a_record" "install" {
   provider = azurerm.dnsmanagement
-  count    = var.create_vaults_and_storage_dns_a_records && var.NFS_provider == "AFS" ? 1 : 0
+  count    = var.create_vaults_and_storage_dns_a_records && var.NFS_provider == "AFS" && length(var.install_private_endpoint_id) == 0 ? 1 : 0
   name = replace(
     lower(
       format("%s", local.landscape_shared_install_storage_account_name)
@@ -648,8 +647,8 @@ resource "azurerm_private_endpoint" "install" {
 resource "azurerm_storage_share" "install" {
   provider = azurerm.main
   count = var.NFS_provider == "AFS" ? (
-    length(var.install_storage_account_id) > 0 || var.install_always_create_fileshares ? (
-      0) : (
+    length(var.install_storage_account_id) > 0   ? (
+      var.install_always_create_fileshares ? 1 : 0 ) : (
       1
     )) : (
     0
@@ -672,15 +671,22 @@ resource "azurerm_storage_share" "install" {
 resource "azurerm_storage_share" "install_smb" {
   provider = azurerm.main
   count = var.NFS_provider == "AFS" ? (
-    length(var.install_storage_account_id) > 0 ? (
-      0) : (
+    length(var.install_storage_account_id) > 0   ? (
+      var.install_always_create_fileshares ? 1 : 0 ) : (
       1
     )) : (
     0
   )
 
   name                 = format("%s", local.resource_suffixes.install_volume_smb)
-  storage_account_name = var.NFS_provider == "AFS" ? azurerm_storage_account.install[0].name : ""
+  storage_account_name = var.NFS_provider == "AFS" ? (
+    length(var.install_storage_account_id) > 0 ? (
+      split("/", var.install_storage_account_id)[8]
+      ) : (
+      azurerm_storage_account.install[0].name
+    )) : (
+    ""
+  )
   enabled_protocol     = "SMB"
 
   quota = var.install_volume_size

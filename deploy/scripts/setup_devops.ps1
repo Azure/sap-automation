@@ -97,7 +97,7 @@ if ($Env:SDAF_APP_NAME.Length -ne 0) {
 
 $ControlPlanePrefix = "SDAF-" + $Control_plane_code
 $WorkloadZonePrefix = "SDAF-" + $Workload_zone_code
-$Pool_Name = $ControlPlanePrefix + "-POOL"
+$Pool_Name = $ADO_Project + "-POOL"
 
 $url = ( az devops project list --organization $ADO_Organization --query "value | [0].url")
 if ($url.Length -eq 0) {
@@ -182,8 +182,8 @@ else {
   az repos update --repository $repo_id --default-branch main --output none
 
 }
-
-$confirmation = Read-Host "You can optionally import the Terraform and Ansible code from GitHub into Azure DevOps, however, this should only be done if you cannot access github from the Azure DevOps agent or if you intend to customize the code. Do you want to run the code from GitHub y/n?"
+Write-Host "You can optionally import the Terraform and Ansible code from GitHub into Azure DevOps, however, this should only be done if you cannot access github from the Azure DevOps agent or if you intend to customize the code." -ForegroundColor Green
+$confirmation =  "Do you want to use the code directly from GitHub y/n?"
 if ($confirmation -ne 'y') {
   Add-Content -Path $fname -Value ""
   Add-Content -Path $fname -Value "Using the code from the sap-automation repository"
@@ -676,7 +676,7 @@ Add-Content -Path $fname -Value $WorkloadZonePrefix
 
 Add-Content -Path $fname -Value "### Credentials"
 Add-Content -Path $fname -Value ""
-Add-Content -Path $fname -Value ("Web Application:" + $ApplicationName)
+Add-Content -Path $fname -Value ("Web Application: " + $ApplicationName)
 
 
 
@@ -716,7 +716,7 @@ if ($Env:SDAF_MGMT_SPN_NAME.Length -ne 0) {
   $spn_name = $Env:SDAF_MGMT_SPN_NAME
 }
 
-Add-Content -Path $fname -Value ("Control Plane Service Principal:" + $spn_name)
+Add-Content -Path $fname -Value ("Control Plane Service Principal: " + $spn_name)
 
 $scopes = "/subscriptions/" + $Control_plane_subscriptionID
 
@@ -807,7 +807,6 @@ az pipelines variable-group variable update --group-id $Control_plane_groupID --
 
 
 #region Workload zone Service Principal
-Add-Content -path $fname -value ("Workload zone Service Principal:" + $spn_name)
 
 $ARM_CLIENT_SECRET = "Please update"
 $ARM_OBJECT_ID = ""
@@ -845,15 +844,20 @@ else {
 
 }
 
+Add-Content -path $fname -value ("Workload zone Service Principal: " + $workload_zone_spn_name)
+
+
 Write-Host "Assigning reader permissions to the control plane subscription" -ForegroundColor Green
 az role assignment create --assignee $ARM_CLIENT_ID --role "Reader" --subscription $Control_plane_subscriptionID --output none
 az role assignment create --assignee $ARM_CLIENT_ID --role "User Access Administrator" --subscription $Workload_zone_subscriptionID --output none
 az role assignment create --assignee $ARM_CLIENT_ID --role "Storage Account Contributor" --subscription $Control_plane_subscriptionID --output none
 
+$Service_Connection_Name = $Workload_zone_code+"_WorkloadZone_Service_Connection"
+
 $GroupID = (az pipelines variable-group list --query "[?name=='$WorkloadZonePrefix'].id | [0]" --only-show-errors )
 if ($GroupID.Length -eq 0) {
   Write-Host "Creating the variable group" $WorkloadZonePrefix -ForegroundColor Green
-  az pipelines variable-group create --name $WorkloadZonePrefix --variables Agent='Azure Pipelines' ARM_CLIENT_ID=$ARM_CLIENT_ID ARM_OBJECT_ID=$ARM_OBJECT_ID ARM_CLIENT_SECRET=$ARM_CLIENT_SECRET ARM_SUBSCRIPTION_ID=$Workload_zone_subscriptionID ARM_TENANT_ID=$ARM_TENANT_ID PAT='Enter your personal access token here' POOL=$Pool_Name AZURE_CONNECTION_NAME=DEV_Service_Connection TF_LOG=OFF --output none --authorize true
+  az pipelines variable-group create --name $WorkloadZonePrefix --variables Agent='Azure Pipelines' ARM_CLIENT_ID=$ARM_CLIENT_ID ARM_OBJECT_ID=$ARM_OBJECT_ID ARM_CLIENT_SECRET=$ARM_CLIENT_SECRET ARM_SUBSCRIPTION_ID=$Workload_zone_subscriptionID ARM_TENANT_ID=$ARM_TENANT_ID PAT='Enter your personal access token here' POOL=$Pool_Name AZURE_CONNECTION_NAME=$Service_Connection_Name TF_LOG=OFF --output none --authorize true
   $GroupID = (az pipelines variable-group list --query "[?name=='$WorkloadZonePrefix'].id | [0]" --only-show-errors)
 }
 
@@ -861,7 +865,6 @@ if ($ARM_CLIENT_SECRET -ne "Please update") {
   az pipelines variable-group variable update --group-id $GroupID --name "ARM_CLIENT_SECRET" --value $ARM_CLIENT_SECRET --secret true --output none --only-show-errors
   az pipelines variable-group variable update --group-id $GroupID --name "ARM_CLIENT_ID" --value $ARM_CLIENT_ID --output none --only-show-errors
   az pipelines variable-group variable update --group-id $GroupID --name "ARM_OBJECT_ID" --value $ARM_OBJECT_ID --output none --only-show-errors
-  $Service_Connection_Name = "WorkloadZone_Service_Connection"
   $Env:AZURE_DEVOPS_EXT_AZURE_RM_SERVICE_PRINCIPAL_KEY = $ARM_CLIENT_SECRET
 
   $epExists = (az devops service-endpoint list --query "[?name=='$Service_Connection_Name'].name | [0]")
@@ -893,7 +896,7 @@ else {
   Write-Host ""
   Write-Host "The browser will now open, please create a Personal Access Token. Ensure that Read & manage is selected for Agent Pools, Read & write is selected for Code, Read & execute is selected for Build, and Read, create, & manage is selected for Variable Groups"
   Start-Process $pat_url
-  $PAT = Read-Host -Prompt "Please enter the PAT"
+  $PAT = Read-Host -Prompt "Please enter the PAT token"
   az pipelines variable-group variable update --group-id $Control_plane_groupID --name "PAT" --value $PAT --secret true --only-show-errors --output none
   az pipelines variable-group variable update --group-id $GroupID --name "PAT" --value $PAT --secret true --only-show-errors --output none
   # Create header with PAT
