@@ -35,7 +35,6 @@ provider "azurerm" {
 provider "azurerm" {
   features {
   }
-  alias = "deployer"
 }
 
 provider "azurerm" {
