@@ -176,6 +176,10 @@ variable "install_always_create_fileshares" {
   default     = false
 }
 
+variable "storage_account_replication_type" {
+  description = "Storage account replication type"
+  default     = "ZRS"
+}
 
 #########################################################################################
 #                                                                                       #

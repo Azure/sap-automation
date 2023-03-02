@@ -386,6 +386,10 @@ variable "Agent_IP" {
   default     = ""
 }
 
+variable "storage_account_replication_type" {
+  description = "Storage account replication type"
+  default     = "ZRS"
+}
 
 #########################################################################################
 #                                                                                       #

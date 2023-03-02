@@ -838,6 +838,10 @@ variable "sapmnt_private_endpoint_id" {
   default     = ""
 }
 
+variable "storage_account_replication_type" {
+  description = "Storage account replication type"
+  default     = "ZRS"
+}
 
 #########################################################################################
 #                                                                                       #

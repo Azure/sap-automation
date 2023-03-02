@@ -267,7 +267,7 @@ resource "azurerm_storage_account" "transport" {
   )
   location                        = var.infrastructure.region
   account_tier                    = "Premium"
-  account_replication_type        = "ZRS"
+  account_replication_type        = var.storage_account_replication_type
   account_kind                    = "FileStorage"
   enable_https_traffic_only       = false
   min_tls_version                 = "TLS1_2"
@@ -484,7 +484,7 @@ resource "azurerm_storage_account" "install" {
   )
 
   account_tier                    = "Premium"
-  account_replication_type        = "ZRS"
+  account_replication_type        = var.storage_account_replication_type
   account_kind                    = "FileStorage"
   enable_https_traffic_only       = false
   min_tls_version                 = "TLS1_2"
