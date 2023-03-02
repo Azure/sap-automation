@@ -1,6 +1,6 @@
 ---
 
-cluster_name: "{{ sap_sid | lower }}{{ tier }}cl"
+cluster_ip_address: "{{ sap_cluster_ip_address }}"
 witness_storage_account_name: "{{ sap_sid | lower }}{{ node_tier }}witness" #placeholder, need to get the data from terraform.
 
 # placeholder, need to get the information from storage account.

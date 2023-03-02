@@ -15,7 +15,7 @@
 # by default the cluster is created with nostorage option
 # https://github.com/dsccommunity/FailoverClusterDsc/blob/main/source/DSCResources/DSC_Cluster/DSC_Cluster.psm1#L204
 
-- name:                                "WIN: Calculating the domain value from {{ domain_name }}"
+- name:                                "WinCluster-Create: Calculating the domain value from {{ domain_name }}"
   ansible.builtin.set_fact:
     domain:                            "{{ domain_name | split('.') | first }}"
     cacheable:                         true
@@ -25,7 +25,18 @@
     - domain_name | trim | length > 1
     - domain is not defined
 
-- name:                                "Check if cluster is already created"
+- name:                                "WinCluster-Create: Calculating the domain value from {{ ansible_domain }}"
+  ansible.builtin.debug:
+    msg:
+      - "ClusterName is {{ cluster_name }}"
+      - "ClusterIPAddress is {{ cluster_ip_address }}"
+      - "DomainName is {{ domain_name }}"
+  when:
+    - domain is defined
+    - domain | type_debug != 'NoneType'
+    - domain | trim | length > 1
+
+- name:                                "WinCluster-Create: Check if cluster is already created"
   ansible.windows.win_powershell:
     script: |
                                        "if(Get-Cluster -Name . -ErrorAction SilentlyContinue){
@@ -40,7 +51,7 @@
     ansible_become:                     true
     ansible_become_method:              runas
 
-- name:                                "Check if {{ ansible_hostname }} is already a cluster node"
+- name:                                "WinCluster-Create: Check if {{ ansible_hostname }} is already a cluster node"
   ansible.windows.win_powershell:
     script: |
                                        "(Get-ClusterNode -Name {{ ansible_hostname }} -ErrorAction SilentlyContinue | `
@@ -54,11 +65,11 @@
     ansible_become_method:              runas
 
 
-- name:                                "Create windows cluster on the first node"
+- name:                                "WinCluster-Create: Create windows cluster on the first node"
   ansible.windows.win_dsc:
     resource_name:                      Cluster
-    ClusterIPAddress:                   "{{ ClusterIPAddress }}"
-    ClusterName:                        "{{ ClusterName }}"
+    ClusterIPAddress:                   "{{ cluster_ip_address }}"
+    ClusterName:                        "{{ cluster_name }}"
     DependsOn:                          "[WindowsFeature]FailoverClustering"
     PsDscRunAsCredential_username:      "{{ domain_service_account }}@{{ domain_name }}"
     PsDscRunAsCredential_password:      "{{ domain_service_password }}"
@@ -66,10 +77,10 @@
     - cluster_exists.stdout == "False"
     - ansible_hostname == primary_node
 
-- name:                                "Create quorum resource"
+- name:                                "WinCluster-Create: Create quorum resource"
   ansible.windows.win_dsc:
     resource_name:                      ClusterQuorum
-    DependsOn:                          "[Cluster]{{ ClusterName }}"
+    DependsOn:                          "[Cluster]{{ cluster_name }}"
     Type:                               "NodeAndCloudMajority"
     IsSingleInstance:                   "Yes"
     Resouce:                            "{{ witness_storage_account_name }}"
@@ -77,24 +88,24 @@
     PsDscRunAsCredential_username:      "{{ domain_service_account }}@{{ domain_name }}"
     PsDscRunAsCredential_password:      "{{ domain_service_password }}"
 
-- name:                                "Tasks for secondary nodes"
+- name:                                "WinCluster-Create: Tasks for secondary nodes"
   block:
-    - name:                            "Wait for cluster to be created"
+    - name:                            "WinCluster-Create: Wait for cluster to be created"
       ansible.windows.win_dsc:
         resource_name:                  WaitForCluster
-        ClusterName:                    "{{ ClusterName }}"
+        ClusterName:                    "{{ cluster_name }}"
         RetryIntervalSec:               10
         RetryCount:                     60
-        DependsOn:                      "[Cluster]{{ ClusterName }}"
+        DependsOn:                      "[Cluster]{{ cluster_name }}"
       when:
         - cluster_exists.stdout == "False"
 
-    - name:                                "Add {{ ansible_hostname }} to the cluster"
+    - name:                                "WinCluster-Create: Add {{ ansible_hostname }} to the cluster"
       ansible.windows.win_dsc:
         resource_name:                      ClusterNode
-        ClusterName:                        "{{ ClusterName }}"
+        ClusterName:                        "{{ cluster_name }}"
         NodeName:                           "{{ ansible_hostname }}"
-        DependsOn:                          "[Cluster]{{ ClusterName }}"
+        DependsOn:                          "[Cluster]{{ cluster_name }}"
       when:
         - ansible_hostname not in cluster_node_names.stdout
   when:
