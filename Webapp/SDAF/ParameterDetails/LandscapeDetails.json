@@ -1008,6 +1008,24 @@
         "Display": 3
       },
       {
+        "Name": "storage_account_replication_type",
+        "Required": false,
+        "Description": "Defines the replication type for Azure Files for NFS storage accounts.",
+        "Type": "lookup",
+        "Options": [
+          {
+            "Text": "LRS",
+            "Value": "LRS"
+          },
+          {
+            "Text": "ZRS",
+            "Value": "ZRS"
+          }
+        ],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
         "Name": "diagnostics_storage_account_arm_id",
         "Required": false,
         "Description": "Azure resource id for the diagnostics storage account",

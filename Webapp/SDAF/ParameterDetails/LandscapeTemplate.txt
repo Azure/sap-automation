@@ -275,6 +275,8 @@ $$diagnostics_storage_account_arm_id$$
 # witness_storage_account_arm_id defines the Azure resource id for the witness storage accounts
 $$witness_storage_account_arm_id$$
 
+# storage_account_replication_type defines the replication type for Azure Files for NFS storage accounts
+$$storage_account_replication_type$$
 
 
 #########################################################################################
