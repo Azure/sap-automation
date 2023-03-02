@@ -29,7 +29,7 @@
     HOME:                              "/usr/sap/{{ db_sid | upper }}/home"
     PYTHONHOME:                        "/usr/sap/{{ DB }}/exe/Python3"
     DIR_EXECUTABLE:                    "/usr/sap/{{ DB }}/exe"
-    SAP_RETRIEVAL_PATH:                "/usr/sap/{{ DB }}/{{ ansible_hostname | lower}}"
+    SAP_RETRIEVAL_PATH:                "/usr/sap/{{ DB }}/{{ ansible_hostname | lower }}"
     DIR_SYSEXE:                        "/usr/sap/{{ db_sid | upper }}/SYS/exe/hdb"
     SAPSYSTEMNAME:                     "{{ db_sid | upper }}"
     SECUDIR:                           "/usr/sap/{{ DB }}/{{ ansible_hostname | lower }}/sec"
