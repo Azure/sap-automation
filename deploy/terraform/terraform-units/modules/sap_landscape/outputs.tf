@@ -291,15 +291,14 @@ output "saptransport_path" {
   value = var.NFS_provider == "AFS" ? (
     length(var.transport_private_endpoint_id) == 0 ? (
       format("%s:/%s/%s", try(azurerm_private_endpoint.transport[0].custom_dns_configs[0].fqdn,
-        azurerm_private_endpoint.transport[0].private_service_connection[0].private_ip_address,
+        azurerm_private_endpoint.transport[0].private_service_connection[0].private_ip_address),
         length(var.transport_storage_account_id) > 0 ? split("/", var.transport_storage_account_id)[8] : replace(
           lower(
             format("%s", local.landscape_shared_transport_storage_account_name)
           ),
           "/[^a-z0-9]/",
-          ""
-        ),
-        local.resource_suffixes.transport_volume)
+        ""),
+        local.resource_suffixes.transport_volume
       )) : (
       format("%s:/%s/%s", trimsuffix(data.azurerm_private_dns_a_record.transport[0].fqdn, "."),
         length(var.transport_storage_account_id) > 0 ? split("/", var.transport_storage_account_id)[8] : replace(
