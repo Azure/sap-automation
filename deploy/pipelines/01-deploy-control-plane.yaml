@@ -90,6 +90,8 @@ stages:
                             deployer_environment_file_name=$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}
                             if [ $(force) == "true" ]; then
                               rm -f ${deployer_environment_file_name}
+                              rm -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/.terraform/terraform.tfstate
+                              rm -f ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/.terraform/terraform.tfstate
                             fi
                             if [ -f ${deployer_environment_file_name} ]; then
                               step=$(cat ${deployer_environment_file_name}  | grep step= | awk -F'=' '{print $2}' | xargs) ; echo 'Step' ${step}
