@@ -225,6 +225,11 @@ variable "deployer_private_ip_address" {
   default = ""
 }
 
+variable "add_system_assigned_identity" {
+  description = "Boolean flag indicating if a system assigned identity should be added to the deployer"
+  default     = false
+  type        = bool
+}
 
 ###############################################################################
 #                                                                             #

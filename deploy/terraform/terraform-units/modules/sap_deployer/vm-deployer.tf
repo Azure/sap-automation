@@ -148,7 +148,7 @@ resource "azurerm_linux_virtual_machine" "deployer" {
   }
 
   identity {
-    type         = "UserAssigned"
+    type         = var.deployer.add_system_assigned_identity ? "SystemAssigned, UserAssigned" : "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.deployer.id]
   }
 
