@@ -422,7 +422,7 @@ namespace AutomationForm.Models
 
         public bool? deploy_application_security_groups { get; set; } = true;
 
-        public string[] storage_account_replication_type { get; set; } = "LRS";
+        public string storage_account_replication_type { get; set; } = "LRS";
     }
 
     public class Tag
