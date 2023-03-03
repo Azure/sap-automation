@@ -144,7 +144,7 @@ locals {
         try(var.deployers[0].authentication.type, "")
       )
     }
-    add_system_assigned_identity = var.deployer_add_system_assigned_identity
+    add_system_assigned_identity = var.add_system_assigned_identity
     os = {
       os_type = "LINUX"
       source_image_id = try(coalesce(
