@@ -275,7 +275,6 @@ module "anydb_node" {
   use_msi_for_clusters               = var.use_msi_for_clusters
   fencing_role_name                  = var.fencing_role_name
 
-  create_storage_dns_a_records      = var.create_storage_dns_a_records
   use_custom_dns_a_registration     = data.terraform_remote_state.landscape.outputs.use_custom_dns_a_registration
   management_dns_subscription_id    = try(data.terraform_remote_state.landscape.outputs.management_dns_subscription_id, null)
   management_dns_resourcegroup_name = coalesce(data.terraform_remote_state.landscape.outputs.management_dns_resourcegroup_name, local.saplib_resource_group_name)
