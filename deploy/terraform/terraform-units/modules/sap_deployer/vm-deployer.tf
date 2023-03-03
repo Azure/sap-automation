@@ -72,7 +72,7 @@ resource "azurerm_network_interface" "deployer" {
   }
 }
 
-// User defined identity for all Deployer, assign contributor to the current subscription
+// User defined identity for all Deployers, assign contributor to the current subscription
 resource "azurerm_user_assigned_identity" "deployer" {
   resource_group_name = local.resource_group_exists ? data.azurerm_resource_group.deployer[0].name : azurerm_resource_group.deployer[0].name
   location            = local.resource_group_exists ? data.azurerm_resource_group.deployer[0].location : azurerm_resource_group.deployer[0].location
@@ -177,6 +177,15 @@ resource "azurerm_linux_virtual_machine" "deployer" {
 
   tags = local.tags
 }
+
+# // Add role to be able to deploy resources
+resource "azurerm_role_assignment" "subscription_contributor_system_identity" {
+  count                = var.assign_subscription_permissions ? var.deployer_vm_count : 0
+  scope                = data.azurerm_subscription.primary.id
+  role_definition_name = "Contributor"
+  principal_id         = azurerm_linux_virtual_machine.deployer[count.index].identity[0].principal_id
+}
+
 
 resource "azurerm_virtual_machine_extension" "configure" {
 
