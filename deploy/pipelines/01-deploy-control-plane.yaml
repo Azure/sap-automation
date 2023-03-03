@@ -397,23 +397,23 @@ stages:
                           if [ -z ${TF_VAR_ansible_core_version} ]; then
                               export TF_VAR_ansible_core_version=2.13
                           fi
-                          if [ -z ${ARM_SUBSCRIPTION_ID} ]; then
-                              echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined."
+                          if [ -z ${CP_ARM_SUBSCRIPTION_ID} ]; then
+                              echo "##vso[task.logissue type=error]Variable CP_ARM_SUBSCRIPTION_ID was not defined."
                               exit 2
                           fi
 
-                          if [ -z ${ARM_CLIENT_ID} ]; then
-                              echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined."
+                          if [ -z ${CP_ARM_CLIENT_ID} ]; then
+                              echo "##vso[task.logissue type=error]Variable CP_ARM_CLIENT_ID was not defined."
                               exit 2
                           fi
 
-                          if [ -z ${ARM_CLIENT_SECRET} ]; then
-                              echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined."
+                          if [ -z ${CP_ARM_CLIENT_SECRET} ]; then
+                              echo "##vso[task.logissue type=error]Variable CP_ARM_CLIENT_SECRET was not defined."
                               exit 2
                           fi
 
-                          if [ -z ${ARM_TENANT_ID} ]; then
-                              echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined."
+                          if [ -z ${CP_ARM_TENANT_ID} ]; then
+                              echo "##vso[task.logissue type=error]Variable CP_ARM_TENANT_ID was not defined."
                               exit 2
                           fi
 
@@ -503,7 +503,7 @@ stages:
 
                           az extension add --name storage-blob-preview >/dev/null
                           echo -e "$green--- az login ---$reset"
-                          az login --service-principal --username $ARM_CLIENT_ID --password=$ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID --output none
+                          az login --service-principal --username $CP_ARM_CLIENT_ID --password=$CP_ARM_CLIENT_SECRET --tenant $CP_ARM_TENANT_ID --output none
                           return_code=$?
                           if [ 0 != $return_code ]; then
                               echo -e "$boldred--- Login failed ---$reset"
@@ -511,17 +511,17 @@ stages:
                               exit $return_code
                           fi
 
-                          az account set --subscription $ARM_SUBSCRIPTION_ID
+                          az account set --subscription $CP_ARM_SUBSCRIPTION_ID
 
                       else
                           source /etc/profile.d/deploy_server.sh
-                          az login --service-principal --username $ARM_CLIENT_ID --password=$ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID --output none
-                          return_code=$?
-                          if [ 0 != $return_code ]; then
-                              echo -e "$boldred--- Login failed ---$reset"
-                              echo "##vso[task.logissue type=error]az login failed."
-                              exit $return_code
-                          fi
+                          # az login --service-principal --username $CP_ARM_CLIENT_ID --password=$CP_ARM_CLIENT_SECRET --tenant $CP_ARM_TENANT_ID --output none
+                          # return_code=$?
+                          # if [ 0 != $return_code ]; then
+                          #     echo -e "$boldred--- Login failed ---$reset"
+                          #     echo "##vso[task.logissue type=error]az login failed."
+                          #     exit $return_code
+                          # fi
                       fi
 
                       echo -e "$green--- Configure parameters ---$reset"
@@ -746,9 +746,9 @@ stages:
                   env:
                       SYSTEM_ACCESSTOKEN:          $(System.AccessToken)
                       ARM_SUBSCRIPTION_ID:         $(CP_ARM_SUBSCRIPTION_ID)
-                      ARM_CLIENT_ID:               $(CP_ARM_CLIENT_ID)
-                      ARM_CLIENT_SECRET:           $(CP_ARM_CLIENT_SECRET)
-                      ARM_TENANT_ID:               $(CP_ARM_TENANT_ID)
+                      CP_ARM_CLIENT_ID:            $(CP_ARM_CLIENT_ID)
+                      CP_ARM_CLIENT_SECRET:        $(CP_ARM_CLIENT_SECRET)
+                      CP_ARM_TENANT_ID:            $(CP_ARM_TENANT_ID)
                       TF_VAR_agent_pool:           $(POOL)
                       TF_VAR_agent_ado_url:        $(System.CollectionUri)
                       AZURE_DEVOPS_EXT_PAT:        $(PAT)
