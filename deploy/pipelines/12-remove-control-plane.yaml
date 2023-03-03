@@ -500,6 +500,21 @@ stages:
                 fi
                 az account set --subscription $ARM_SUBSCRIPTION_ID
 
+                az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Deployer_Key_Vault.value" | tr -d \")
+                if [ -n "${az_var}" ]; then
+                  key_vault="${az_var}" ; echo 'Deployer Key Vault' ${key_vault}
+                else
+                  echo "Reading key vault from environment file"
+                  key_vault=$(cat ${deployer_environment_file_name} | grep keyvault= -m1 | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer Key Vault' ${key_vault}
+                fi
+
+
+                if [ "azure pipelines" = "$(this_agent)" ]; then
+                    this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
+                    az keyvault network-rule add --name ${key_vault} --ip-address ${this_ip} --only-show-errors --output none
+                    ip_added=1
+                fi
+
               echo -e "$green--- Running the remove_deployer script that destroys deployer VM ---$reset"
                 if [ -f $CONFIG_REPO_PATH/DEPLOYER/$(deployer_folder)/state.zip ]; then
                     echo "Unzipping state.zip"

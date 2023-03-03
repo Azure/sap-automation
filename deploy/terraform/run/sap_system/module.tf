@@ -28,7 +28,7 @@ module "sap_namegenerator" {
   scs_zones                  = try(local.application_tier.scs_zones, [])
   web_zones                  = try(local.application_tier.web_zones, [])
   db_zones                   = try(local.database.zones, [])
-  resource_offset            = try(var.options.resource_offset, 0)
+  resource_offset            = try(var.resource_offset, 0)
   custom_prefix              = var.custom_prefix
   database_high_availability = local.database.high_availability
   scs_high_availability      = local.application_tier.scs_high_availability
