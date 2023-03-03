@@ -105,7 +105,7 @@ resource "azurerm_key_vault_access_policy" "kv_user_systemidentity" {
   key_vault_id = var.key_vault.kv_exists ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id
 
   tenant_id = azurerm_linux_virtual_machine.deployer[count.index].identity[0].tenant_id
-  object_id = azurerm_linux_virtual_machine.deployer[count.index].identity[0].tenant_id.principal_id
+  object_id = azurerm_linux_virtual_machine.deployer[count.index].identity[0].principal_id
 
   secret_permissions = [
     "Get",
