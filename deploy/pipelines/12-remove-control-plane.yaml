@@ -627,6 +627,12 @@ stages:
                         az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_ID                            --yes --only-show-errors
                       fi
 
+                      variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "WEBAPP_RESOURCE_GROUP.value" )
+                      if [ ${#variable_value} != 0 ]; then
+                        az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_RESOURCE_GROUP                --yes --only-show-errors
+                      fi
+
+
                     fi
 
                 fi
