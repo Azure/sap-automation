@@ -5,7 +5,7 @@
 # -----------------------------------------------------------------------------
 
 - name:                                1.6 - Setting OS timezone
-  community.general.system.timezone:
+  community.general.timezone:
     name:                              "{{ timezone }}"
 
 # /*----------------------------------------------------------------------------8

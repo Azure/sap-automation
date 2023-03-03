@@ -58,7 +58,7 @@
 # -------------------------------------+---------------------------------------8
 #
 - name:                                "ORACLE ASM: Volume Group creation"
-  community.general.system.lvg:
+  community.general.lvg:
     vg:                                "{{ item.vg }}"
     pvs:                               "{{ item.pvs }}"
     pesize:                            4M
@@ -89,7 +89,7 @@
 # -------------------------------------+---------------------------------------8
 #
 - name:                                "ORACLE ASM: Logical Volume creation"
-  community.general.system.lvol:
+  community.general.lvol:
     lv:                                "{{ item.lv }}"
     vg:                                "{{ item.vg }}"
     size:                              "{{ item.size }}"
@@ -137,7 +137,7 @@
 
 
 - name:                                "ORACLE ASM: Filesystem creation"
-  community.general.system.filesystem:
+  community.general.filesystem:
     dev:                               "{{ dev_path_from_lv_item }}"
     fstype:                            "{{ item.fstype }}"
     opts:                              "{{ item.fsopts | default('') }}"
