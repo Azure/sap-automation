@@ -1532,24 +1532,6 @@
         "Display": 2
       },
       {
-        "Name": "storage_account_replication_type",
-        "Required": false,
-        "Description": "Defines the replication type for Azure Files for NFS storage account for sapmnt.",
-        "Type": "lookup",
-        "Options": [
-          {
-            "Text": "LRS",
-            "Value": "LRS"
-          },
-          {
-            "Text": "ZRS",
-            "Value": "ZRS"
-          }
-        ],
-        "Overrules": "",
-        "Display": 2
-      },
-      {
         "Name": "azure_files_sapmnt_id",
         "Required": false,
         "Description": "Azure resource identifier for an existing storage account used for sapmnt.",

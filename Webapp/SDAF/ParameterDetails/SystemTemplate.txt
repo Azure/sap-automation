@@ -431,9 +431,6 @@ $$azure_files_sapmnt_id$$
 # sapmnt_private_endpoint_id defines the Resource identifier for the private endpoint for Azure Files for NFS storage account for sapmnt
 $$sapmnt_private_endpoint_id$$
 
-# storage_account_replication_type defines the replication type for Azure Files for NFS storage account for sapmnt
-$$storage_account_replication_type$$
-
 #########################################################################################
 #                                                                                       #
 #  HANA Data                                                                            #

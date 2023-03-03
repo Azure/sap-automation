@@ -191,10 +191,6 @@ variable "azure_files_sapmnt_id" {
   default = ""
 }
 
-variable "storage_account_replication_type" {
-  description = "Storage account replication type"
-}
-
 
 variable "Agent_IP" {
   description = "If provided, contains the IP address of the agent"

@@ -1010,7 +1010,7 @@
       {
         "Name": "storage_account_replication_type",
         "Required": false,
-        "Description": "Defines the replication type for Azure Files for NFS storage accounts.",
+        "Description": "Defines the replication type for Azure Files for NFS install account.",
         "Type": "lookup",
         "Options": [
           {
