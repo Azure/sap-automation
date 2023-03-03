@@ -288,7 +288,7 @@ stages:
                       ARM_CLIENT_SECRET:           $(CP_ARM_CLIENT_SECRET)
                       ARM_TENANT_ID:               $(CP_ARM_TENANT_ID)
                       TF_VAR_agent_ado_url:        $(System.CollectionUri)
-                      TF_VAR_spn_id:               $(CP_ARM_CLIENT_ID)
+                      TF_VAR_spn_id:               $(CP_ARM_OBJECT_ID)
                       AZURE_DEVOPS_EXT_PAT:        $(PAT)
                       IS_PIPELINE_DEPLOYMENT:      true
                       WEB_APP_CLIENT_SECRET:       $(WEB_APP_CLIENT_SECRET)
