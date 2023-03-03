@@ -35,6 +35,11 @@ parameters:
     type:                              string
     default:                           Control_Plane_Service_Connection
 
+  - name:                              reset
+    displayName:                       Force a re-install - may require multiple re-runs
+    type:                              boolean
+    default:                           false
+
 variables:
   - group:                             "SDAF-General"
 
@@ -73,3 +78,5 @@ variables:
   - name:                              connection_name
     value:                             ${{ parameters.connection_name }}
 
+  - name:                              force
+    value:                             ${{ parameters.reset }}
