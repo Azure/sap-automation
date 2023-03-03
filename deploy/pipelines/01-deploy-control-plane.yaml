@@ -184,7 +184,7 @@ stages:
                                     echo "##vso[task.logissue type=warning]Agent Pool $(POOL) does not exist."
                                     exit 2
                                 fi
-                                echo 'Deployer Agent Pool found' $(POOL_NAME)
+                                echo 'Deployer Agent Pool found' $POOL_NAME
                                 export TF_VAR_agent_pool=$(POOL)
                                 export TF_VAR_agent_pat=$(PAT)
                             fi
