@@ -594,7 +594,7 @@ if [ 0 == $return_value ] ; then
         save_config_var "keyvault" "${system_config_information}"
         if [ 1 == $called_from_ado ] ; then
 
-            
+
 
             if [[ "${TF_VAR_use_webapp}" == "true" && $IS_PIPELINE_DEPLOYMENT = "true" ]]; then
                 webapp_url_base=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_url_base | tr -d \")
@@ -968,6 +968,7 @@ if [ 1 == $ok_to_proceed ]; then
                 done
                 rerun_apply=1
             fi
+            jq 'select(."@level" == "error") | {summary: .diagnostic.summary}  | select(.summary | startswith("Code=\"RetryableError\""))' apply_output.json
             retryable=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary}  | select(.summary | startswith("Code=\"RetryableError\""))' apply_output.json)
             if [[ -n ${retryable} ]]
             then
@@ -1027,7 +1028,7 @@ then
     if [ 1 == $called_from_ado ] ; then
 
         terraform -chdir="${terraform_module_directory}" output -json -no-color deployer_uai
-        
+
         if [ -n "${created_resource_group_name}" ] ; then
             az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "WEBAPP_RESOURCE_GROUP.value")
             if [ -z ${az_var} ]; then
