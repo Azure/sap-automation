@@ -22,7 +22,7 @@
   loop:
     - { mode: '0755', path: '{{ dir_params }}' }
     - { mode: '0755', path: '{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}' }
-    - { mode: '0766', path: '/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}' }
+    - { mode: '0755', path: '/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}' }
 
 - name:                                "User Creation: Set the Server name list"
   ansible.builtin.set_fact:
