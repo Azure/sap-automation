@@ -97,6 +97,7 @@ stages:
                                 if [ "0" != ${step} ]; then
                                   exit 0
                                 fi
+                              fi
                             fi
                             echo "Agent: " $(this_agent)
                         echo -e "$green--- Checkout $(Build.SourceBranchName) ---$reset"
