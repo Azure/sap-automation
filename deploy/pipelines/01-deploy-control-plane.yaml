@@ -87,9 +87,32 @@ stages:
                             ENVIRONMENT=$(echo $(deployerfolder) | awk -F'-' '{print $1}' | xargs) ; echo Environment ${ENVIRONMENT}
                             LOCATION=$(echo $(deployerfolder) | awk -F'-' '{print $2}' | xargs) ;    echo Location ${LOCATION}
                             deployer_environment_file_name=$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}
+
+                        echo -e "$green--- Checkout $(Build.SourceBranchName) ---$reset"
+                            cd $CONFIG_REPO_PATH
+                            git checkout -q $(Build.SourceBranchName)
+                        echo -e "$green--- Configure devops CLI extension ---$reset"
+                            az config set extension.use_dynamic_install=yes_without_prompt
+
+                            az devops configure --defaults organization=$(System.CollectionUri) project='$(System.TeamProject)' --output none
+                            export VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(variable_group)'].id | [0]")
+                            echo "$(variable_group) id: ${VARIABLE_GROUP_ID}"
+
                             echo ${{ parameters.force_reset }}
                             if [ ${{ parameters.force_reset }} == "True" ]; then
                               echo "##vso[task.logissue type=warning]Forcing a re-install"
+                              az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Deployer_Key_Vault.value" | tr -d \")
+                              if [ -n "${az_var}" ]; then
+                                key_vault="${az_var}" ; echo 'Deployer Key Vault' ${key_vault}
+                              else
+                                echo "Reading key vault from environment file"
+                                key_vault=$(cat ${deployer_environment_file_name} | grep keyvault= -m1 | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer Key Vault' ${key_vault}
+                              fi
+
+
+                              this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
+                              az keyvault network-rule add --name ${key_vault} --ip-address ${this_ip} --only-show-errors --output none
+
                               step=0
                             else
                               if [ -f ${deployer_environment_file_name} ]; then
@@ -100,15 +123,6 @@ stages:
                               fi
                             fi
                             echo "Agent: " $(this_agent)
-                        echo -e "$green--- Checkout $(Build.SourceBranchName) ---$reset"
-                            cd $CONFIG_REPO_PATH
-                            git checkout -q $(Build.SourceBranchName)
-                        echo -e "$green--- Configure devops CLI extension ---$reset"
-                            az config set extension.use_dynamic_install=yes_without_prompt
-
-                            az devops configure --defaults organization=$(System.CollectionUri) project='$(System.TeamProject)' --output none
-                            export VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(variable_group)'].id | [0]")
-                            echo "$(variable_group) id: ${VARIABLE_GROUP_ID}"
                             if [ -z ${VARIABLE_GROUP_ID} ]; then
                                 echo "##vso[task.logissue type=error]Variable group $(variable_group) could not be found."
                                 exit 2
@@ -231,6 +245,9 @@ stages:
                                --auto-approve --ado --only_deployer
                             return_code=$?
                             echo "Return code from deploy_controlplane $return_code."
+
+                            this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
+                            az keyvault network-rule remove --name ${key_vault} --ip-address ${this_ip} --only-show-errors --output none
 
                             set -eu
 
