@@ -146,6 +146,7 @@ data "azurerm_storage_container" "storagecontainer_tfstate" {
 }
 
 resource "azurerm_private_endpoint" "storage_tfstate" {
+  provider = azurerm.dnsmanagement
   count = var.use_private_endpoint && !local.sa_tfstate_exists ? 1 : 0
   name = format("%s%s%s",
     var.naming.resource_prefixes.storage_private_link_tf,
@@ -278,6 +279,7 @@ data "azurerm_storage_account" "storage_sapbits" {
 
 
 resource "azurerm_private_endpoint" "storage_sapbits" {
+  provider = azurerm.dnsmanagement
   count = var.use_private_endpoint && !local.sa_sapbits_exists ? 1 : 0
   name = format("%s%s%s",
     var.naming.resource_prefixes.storage_private_link_sap,
@@ -288,6 +290,7 @@ resource "azurerm_private_endpoint" "storage_sapbits" {
     data.azurerm_resource_group.library[0].name) : (
     azurerm_resource_group.library[0].name
   )
+
   location = local.resource_group_exists ? (
     data.azurerm_resource_group.library[0].location) : (
     azurerm_resource_group.library[0].location
