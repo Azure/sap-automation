@@ -90,15 +90,13 @@ stages:
                             echo ${{ parameters.force_reset }}
                             if [ ${{ parameters.force_reset }} == "True" ]; then
                               echo "##vso[task.logissue type=warning]Forcing a re-install"
-                              rm -f ${deployer_environment_file_name}
-                              rm -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/.terraform/terraform.tfstate
-                              rm -f ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/.terraform/terraform.tfstate
-                            fi
-                            if [ -f ${deployer_environment_file_name} ]; then
-                              step=$(cat ${deployer_environment_file_name}  | grep step= | awk -F'=' '{print $2}' | xargs) ; echo 'Step' ${step}
-                              if [ "0" != ${step} ]; then
-                                exit 0
-                              fi
+                              step=0
+                            else
+                              if [ -f ${deployer_environment_file_name} ]; then
+                                step=$(cat ${deployer_environment_file_name}  | grep step= | awk -F'=' '{print $2}' | xargs) ; echo 'Step' ${step}
+                                if [ "0" != ${step} ]; then
+                                  exit 0
+                                fi
                             fi
                             echo "Agent: " $(this_agent)
                         echo -e "$green--- Checkout $(Build.SourceBranchName) ---$reset"
