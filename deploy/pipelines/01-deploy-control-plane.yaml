@@ -48,6 +48,9 @@ parameters:
     displayName:                       Service Connection Name
     type:                              string
 
+  - name:                              reset
+    displayName:                       Force a re-install - may require multiple re-runs
+    type:                              boolean
 stages:
     - stage: Prepare_Deployer
       condition: and(not(failed()), not(canceled()))
