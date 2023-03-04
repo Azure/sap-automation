@@ -7,6 +7,7 @@ module "sap_deployer" {
   source = "../../terraform-units/modules/sap_deployer/"
   providers = {
     azurerm.dnsmanagement = azurerm.dnsmanagement
+    azurerm.main = azurerm.main
   }
   infrastructure = local.infrastructure
   deployer       = local.deployer

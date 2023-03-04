@@ -81,9 +81,10 @@ resource "azurerm_user_assigned_identity" "deployer" {
 
 # // Add role to be able to deploy resources
 resource "azurerm_role_assignment" "sub_contributor" {
+  provider             = azurerm.main
   count                = var.assign_subscription_permissions ? 1 : 0
   scope                = data.azurerm_subscription.primary.id
-  role_definition_name = "Contributor"
+  role_definition_name = "Reader"
   principal_id         = azurerm_user_assigned_identity.deployer.principal_id
 }
 
@@ -180,6 +181,7 @@ resource "azurerm_linux_virtual_machine" "deployer" {
 
 # // Add role to be able to deploy resources
 resource "azurerm_role_assignment" "subscription_contributor_system_identity" {
+  provider             = azurerm.main
   count                = var.assign_subscription_permissions ? var.deployer_vm_count : 0
   scope                = data.azurerm_subscription.primary.id
   role_definition_name = "Contributor"
