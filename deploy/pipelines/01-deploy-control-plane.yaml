@@ -89,6 +89,7 @@ stages:
                             LOCATION=$(echo $(deployerfolder) | awk -F'-' '{print $2}' | xargs) ;    echo Location ${LOCATION}
                             deployer_environment_file_name=$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}
                             if [ $(force) == "true" ]; then
+                              echo "##vso[task.logissue type=warning]Forcing a re-install"
                               rm -f ${deployer_environment_file_name}
                               rm -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/.terraform/terraform.tfstate
                               rm -f ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/.terraform/terraform.tfstate
