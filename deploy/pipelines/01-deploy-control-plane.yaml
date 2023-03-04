@@ -221,6 +221,7 @@ stages:
                             if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip ]; then
                                 pass=$(echo $ARM_CLIENT_SECRET | sed 's/-//g')
                                 unzip -qq -o -P "${pass}" ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip -d ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)
+                                cat ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/terraform.tfstate
                             fi
 
                           if [ $(use_webapp) == "true" ]; then
