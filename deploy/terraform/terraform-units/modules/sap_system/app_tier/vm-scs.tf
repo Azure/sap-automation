@@ -520,7 +520,7 @@ resource "azurerm_managed_disk" "cluster" {
 resource "azurerm_virtual_machine_data_disk_attachment" "cluster" {
   provider           = azurerm.main
   count              = local.enable_deployment && upper(var.application_tier.scs_os.os_type) == "WINDOWS" && var.application_tier.scs_high_availability ? local.scs_server_count : 0
-  managed_disk_id    = azurerm_managed_disk.cluster.id
+  managed_disk_id    = azurerm_managed_disk.cluster[0].id
   virtual_machine_id = azurerm_windows_virtual_machine.scs[count.index].id
   caching            = "None"
   lun                = var.scs_shared_disk_lun
