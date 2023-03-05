@@ -127,6 +127,7 @@ resource "azurerm_app_service_virtual_network_swift_connection" "webapp_vnet_con
 
 
 resource "azurerm_role_assignment" "app_service_contributor" {
+  provider             = azurerm.main
   count                = var.use_webapp && var.deployer.add_system_assigned_identity ? var.deployer_vm_count : 0
   scope                = azurerm_windows_web_app.webapp[0].id
   role_definition_name = "Website Contributor"
@@ -134,6 +135,7 @@ resource "azurerm_role_assignment" "app_service_contributor" {
 }
 
 resource "azurerm_role_assignment" "app_service_contributor_msi" {
+  provider             = azurerm.main
   count                = var.use_webapp && var.deployer.add_system_assigned_identity ? var.deployer_vm_count : 0
   scope                = azurerm_windows_web_app.webapp[0].id
   role_definition_name = "Website Contributor"
