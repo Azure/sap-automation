@@ -80,7 +80,7 @@ data "azurerm_key_vault" "kv_user" {
 }
 
 resource "azurerm_key_vault_access_policy" "kv_user_msi" {
-
+  provider = azurerm.main
   key_vault_id = var.key_vault.kv_exists ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id
 
   tenant_id = azurerm_user_assigned_identity.deployer.tenant_id
@@ -99,6 +99,7 @@ resource "azurerm_key_vault_access_policy" "kv_user_msi" {
 }
 
 resource "azurerm_key_vault_access_policy" "kv_user_systemidentity" {
+  provider = azurerm.main
 
   count = var.deployer.add_system_assigned_identity ? var.deployer_vm_count : 0
 
@@ -121,7 +122,7 @@ resource "azurerm_key_vault_access_policy" "kv_user_systemidentity" {
 
 
 resource "azurerm_key_vault_access_policy" "kv_user_pre_deployer" {
-
+  provider = azurerm.main
   count        = var.key_vault.kv_exists ? 0 : 1
   key_vault_id = azurerm_key_vault.kv_user[0].id
 
