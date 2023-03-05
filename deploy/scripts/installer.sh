@@ -964,6 +964,7 @@ if [ 1 == $ok_to_proceed ]; then
 
             # Check for resource that can be imported
             existing=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary}  | select(.summary | startswith("A resource with the ID"))' apply_output.json)
+            cat apply_output.json
             if [[ -n ${existing} ]]
             then
 
