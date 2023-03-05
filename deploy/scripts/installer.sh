@@ -978,6 +978,23 @@ if [ 1 == $ok_to_proceed ]; then
                 done
                 rerun_apply=1
             fi
+            # Check for assignment that can be imported
+            existing=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary}  | select(.summary | startswith("The role assignment already exists"))' apply_output.json)
+            if [[ -n ${existing} ]]
+            then
+
+                readarray -t existing_resources < <(echo ${existing} | jq -c '.' )
+                for item in "${existing_resources[@]}"; do
+                    moduleID=$(jq -c -r '.address '  <<< "$item")
+                    resourceID=$(jq -c -r '.summary' <<< "$item" | awk -F'\"' '{print $2}')
+                    echo "Trying to import" $resourceID "into" $moduleID
+                    allParamsforImport=$(printf " -var-file=%s %s %s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter} " )
+                    echo terraform -chdir="${terraform_module_directory}" import -allow-missing-config  $allParamsforImport $moduleID $resourceID
+                    terraform -chdir="${terraform_module_directory}" import -allow-missing-config  $allParamsforImport $moduleID $resourceID
+                done
+                rerun_apply=1
+            fi
+
             jq 'select(."@level" == "error") | {summary: .diagnostic.summary}  | select(.summary | startswith("Code=\"RetryableError\""))' apply_output.json
             retryable=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary}  | select(.summary | startswith("Code=\"RetryableError\""))' apply_output.json)
             if [[ -n ${retryable} ]]
