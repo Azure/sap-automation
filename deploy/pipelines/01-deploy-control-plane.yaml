@@ -786,6 +786,7 @@ stages:
                       CP_ARM_CLIENT_ID:            $(CP_ARM_CLIENT_ID)
                       CP_ARM_CLIENT_SECRET:        $(CP_ARM_CLIENT_SECRET)
                       CP_ARM_TENANT_ID:            $(CP_ARM_TENANT_ID)
+                      TF_VAR_spn_id:               $(CP_ARM_OBJECT_ID)
                       TF_VAR_agent_pool:           $(POOL)
                       TF_VAR_agent_ado_url:        $(System.CollectionUri)
                       AZURE_DEVOPS_EXT_PAT:        $(PAT)
