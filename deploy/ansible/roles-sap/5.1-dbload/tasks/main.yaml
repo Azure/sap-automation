@@ -115,14 +115,14 @@
       - "DBHOST:     {{ db_virtual_host }}"
       - "SID:        {{ sid_to_be_deployed.sid | upper }}"
 
-- name:                                "DBLoad: - Install"
-  block:
-
 # *====================================4=======================================8
 #   SAP DBLOAD: Install
 # 2230669 - System Provisioning Using a Parameter Input File
 #
 # *====================================4=======================================8
+
+- name:                                "DBLoad: - Install"
+  block:
     # Import this task only if the tier is ora.
     - name:                            "DBLoad: import oracle tasks"
       ansible.builtin.import_tasks:    oracle.yaml

@@ -25,3 +25,9 @@ NW_SCS_Instance.instanceNumber                                       = {{ scs_in
 NW_SCS_Instance.scsVirtualHostname                                   = {{ sap_scs_hostname }}
 
 NW_getFQDN.FQDN                                                      = {{ sap_fqdn }}
+
+# ABAP system is Unicode (true|false), only needed if it cannot be determined from the system.
+NW_getUnicode.isUnicode = true
+
+# Specify whether this system is to be a Unicode system.
+NW_GetSidNoProfiles.unicode = true

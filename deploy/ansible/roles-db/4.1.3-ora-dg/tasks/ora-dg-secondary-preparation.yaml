@@ -132,7 +132,7 @@
     group:                             oinstall
     force:                             true
     mode:                              "{{ '0777' | int - (custom_umask | default('022') | int) }}"
-  
+
 
 
 - name:                                "Oracle Data Guard - Preparation (Secondary): Create dbscopied.txt"

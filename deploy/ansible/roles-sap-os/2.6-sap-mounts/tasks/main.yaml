@@ -267,7 +267,7 @@
 
 # Import this task only if the tier is ora.
 - name:                                "2.6 SAP Mounts: - Import Oracle tasks"
-  ansible.builtin.import_tasks:        "oracle.yaml"
+  ansible.builtin.import_tasks:        "2.6.2-oracle-mounts.yaml"
   when:
     - node_tier == "oracle"
 
@@ -279,10 +279,10 @@
 
 # Import this task only if the tier is ora for oracle-asm.
 - name:                                "2.6 SAP Mounts: - Import Oracle ASM tasks"
-  ansible.builtin.import_tasks:        "oracle-asm.yaml"
+  ansible.builtin.import_tasks:        "2.6.3-oracle-asm-mounts.yaml"
   when:
     - node_tier == "oracle-asm"
-    - tier == "ora"
+    # - tier == "ora"
 
 - name:                                "2.6 SAP Mounts: - Import Oracle observer tasks"
   ansible.builtin.import_tasks:        "oracle-observer.yaml"
@@ -311,7 +311,7 @@
 - name:                                "2.6 SAP Mounts: - Import AFS tasks"
   ansible.builtin.import_tasks:        2.6.0-afs-mounts.yaml
   when:
-    - sap_mnt is defined or sap_trans is defined
+    - sap_mnt is defined or sap_trans is defined or usr_sap_install_mountpoint is defined
     - NFS_provider == 'AFS'
 
 
@@ -319,12 +319,12 @@
 - name:                                "2.6 SAP Mounts: - Import ANF tasks"
   ansible.builtin.import_tasks:        2.6.1-anf-mounts.yaml
   when:
-    - sap_mnt is defined or sap_trans is defined
+    - sap_mnt is defined or sap_trans is defined or usr_sap_install_mountpoint is defined
     - NFS_provider == 'ANF'
 
 # Import NFS mounts and permissions changes for oracle and oracle-asm installation.
 - name:                                "2.6 SAP Mounts: - Import Oracle NFS tasks"
-  ansible.builtin.import_tasks:        "oracle-nfs-mounts.yaml"
+  ansible.builtin.import_tasks:        "2.6.6-oracle-nfs-mounts.yaml"
   when:
     - node_tier in ['oracle','oracle-asm','observer']
 

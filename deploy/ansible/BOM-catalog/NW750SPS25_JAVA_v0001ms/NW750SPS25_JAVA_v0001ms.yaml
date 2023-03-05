@@ -1,24 +1,25 @@
 ---
 
 name:             "NW750SPS25_JAVA_v0001ms"
-target: "NETWEAVER 7.50 JAVA SPS 25"
-version: 0001
+target:           "NETWEAVER 7.50 JAVA SPS 25"
+version:           0001
+InstanceType:     "JAVA"
 
 defaults:
   target_location: "{{ target_media_location }}/download_basket"
 
 product_ids:
-  dbl:                                 NW_Java_DB:NW750.HDB.PD
-  scs:                                 NW_Java_SCS:NW750.HDB.PD
-  scs_ha:                              NW_Java_ASCS:NW750.HDB.JavaHA
-  pas:                                 NW_Java_CI:NW750.HDB.PD
-  pas_ha:                              NW_Java_CI:NW750.HDB.JavaHA
-  app:                                 NW_DI:NW750.HDB.PD
-  app_ha:                              NW_DI:NW750.HDB.Java.HA
-  web:                                 NW_Webdispatcher:NW750.IND.PD
-  ers:                                 NW_ERS:NW750.HDB.HA
-  ers_ha:                              NW_ERS:NW750.HDB.JavaHA
-  generic:                             NW_Users_Create:GENERIC.HDB.PD
+  dbl:                                NW_Java_DB:NW750.HDB.PD
+  scs:                                NW_Java_SCS:NW750.HDB.PD
+  scs_ha:                             NW_Java_SCS:NW750.HDB.HA
+  pas:                                NW_Java_CI:NW750.HDB.PD
+  pas_ha:                             NW_Java_CI:NW750.HDB.HA
+  app:                                NW_DI:NW750.HDB.PD
+  app_ha:                             NW_DI:NW750.HDB.HA
+  web:                                NW_Webdispatcher:NW750.IND.PD
+  ers:                                NW_ERS:NW750.HDB.PD
+  ers_ha:                             NW_ERS:NW750.HDB.HA
+  generic:                            NW_Users_Create:GENERIC.HDB.PD
 
 materials:
   dependencies:

@@ -147,7 +147,7 @@ NW_getLoadType.loadType                                               = SAP
 NW_internal.useProductVersionDescriptor                               = true
 
 # Provide  'profile' directory of SAP Netweaver-based system.
-NW_readProfileDir.profileDir                                          = /usr/sap/{{ sap_sid | upper }}/SYS/profile
+NW_readProfileDir.profileDir                                          = {{ sap_profile_dir }}
 
 # Enter the path of the existing 'profile' directory.
 # NW_readProfileDir.profilesAvailable                                 = true

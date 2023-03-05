@@ -251,7 +251,14 @@
         tier:                          os
       tags:
         - always
-    
+
+    - name:                            "Observer Play"
+      become:                          true
+      block:
+        - name:                        "Observer Playbook: Check if the mounts place"
+          ansible.builtin.include_role:
+            name:                      roles-sap-os/2.6-sap-mounts
+
     - name:                            "Observer Play"
       become:                          true
       block:
@@ -379,6 +386,11 @@
             - name:                    "DB2 HA - Generic pacemaker Configuration"
               ansible.builtin.include_role:
                 name:                  roles-os/1.17-generic-pacemaker                         # Configures the Pacemaker cluster with Azure fence agent
+                apply:
+                  tags:
+                    - 1.17-generic-pacemaker
+                  become:              true
+                  become_user:         root
               tags:
                 - 1.17-generic-pacemaker
 

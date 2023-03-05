@@ -21,7 +21,13 @@
   register:                            scs_installed
 
 - name:                                "5.6 SCSERS - Cluster based on OS in VM"
-  ansible.builtin.include_tasks:       "5.6.4.0-cluster-{{ ansible_os_family }}.yml"
+  ansible.builtin.include_tasks:
+    file:                              "5.6.4.0-cluster-{{ ansible_os_family }}.yml"
+    apply:
+      become:                          true
+      become_user:                     root
+      tags:
+        - "5.6.4.0-cluster-{{ ansible_os_family }}"
   when:                                (not scs_installed.stat.exists) or (not ers_installed.stat.exists)
 
 # introduce throttle to sequence task execution on each node before moving to next task
@@ -52,7 +58,13 @@
   ansible.builtin.include_tasks:       "5.6.4.1-scsersprofile.yaml"
 
 - name:                                "5.6 SCSERS - resources"
-  ansible.builtin.include_tasks:       "5.6.4.2-sap-resources-{{ ansible_os_family }}.yml"
+  ansible.builtin.include_tasks:
+    file:                              "5.6.4.2-sap-resources-{{ ansible_os_family }}.yml"
+    apply:
+      become:                          true
+      become_user:                     root
+      tags:
+        - "5.6.4.2-sap-resources-{{ ansible_os_family }}"
   # when:
   #   - ersservicehalib.rc == 0
   #   - scsservicehalib.rc == 0

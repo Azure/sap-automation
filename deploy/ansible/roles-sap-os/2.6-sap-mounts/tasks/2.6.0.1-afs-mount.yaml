@@ -118,12 +118,26 @@
   tags:
     - skip_ansible_lint
 
-- name:                                "AFS Mount: ({{ item.path }} on {% if item.create_temp_folders %}{{ item.mount }}/{{ item.folder }}{% else %}{{ item.mount }}{% endif %})"
-  ansible.posix.mount:
-    src:                               "{% if item.create_temp_folders %}{{ item.mount }}/{{ item.folder }}{% else %}{{ item.mount }}{% endif %}"
-    path:                              "{{ item.path }}"
-    fstype:                            "nfs4"
-    opts:                              "{{ item.opts }}"
-    state:                             mounted
+- name:                                "AFS Mount"
   when:
     - node_tier in item.target_nodes or item.target_nodes == ['all']
+  block:
+    - name:                            "AFS Mount: ({{ item.path }} on {% if item.create_temp_folders %}{{ item.mount }}/{{ item.folder }}{% else %}{{ item.mount }}{% endif %})"
+      ansible.posix.mount:
+        src:                           "{% if item.create_temp_folders %}{{ item.mount }}/{{ item.folder }}{% else %}{{ item.mount }}{% endif %}"
+        path:                          "{{ item.path }}"
+        fstype:                        "nfs4"
+        opts:                          "{{ item.opts }}"
+        state:                         mounted
+  rescue:
+    - name:                            "AFS Mount: Sleep for 10 seconds and continue with play"
+      ansible.builtin.wait_for:
+        timeout:                       10
+    - name:                            "AFS Mount: ({{ item.path }} on {% if item.create_temp_folders %}{{ item.mount }}/{{ item.folder }}{% else %}{{ item.mount }}{% endif %})"
+      ansible.posix.mount:
+        src:                           "{% if item.create_temp_folders %}{{ item.mount }}/{{ item.folder }}{% else %}{{ item.mount }}{% endif %}"
+        path:                          "{{ item.path }}"
+        fstype:                        "nfs4"
+        opts:                          "{{ item.opts }}"
+        state:                         mounted
+

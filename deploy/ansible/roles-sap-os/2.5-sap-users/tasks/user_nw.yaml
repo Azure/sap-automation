@@ -121,6 +121,7 @@
     - name:                            "User Creation: Progress"
       ansible.builtin.debug:
         var:                           generic_user_creation_ini
+        verbosity:                     2
 
     - name:                            "User Creation: SAP OS USERS and Group Creation {{ sid_to_be_deployed.sid | upper }}"
       become:                          true

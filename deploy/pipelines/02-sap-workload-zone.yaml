@@ -500,10 +500,10 @@ stages:
                   fi
 
                   az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query WZ_PAT.value --output table)
-                  if [ -n "${az_var}" ]; then
-                    az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name WZ_PAT --value $AZURE_DEVOPS_EXT_PAT --output none --only-show-errors --secret true
-                  else
+                  if [ -z ${az_var} ]; then
                     az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name WZ_PAT --value $AZURE_DEVOPS_EXT_PAT --output none --only-show-errors --secret true
+                  else
+                    az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name WZ_PAT --value $AZURE_DEVOPS_EXT_PAT --output none --only-show-errors --secret true
                   fi
 
                 fi

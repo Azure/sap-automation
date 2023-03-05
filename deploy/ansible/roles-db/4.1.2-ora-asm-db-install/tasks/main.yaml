@@ -337,18 +337,18 @@
         mode:                          '0755'
         owner:                         oracle
         group:                         oinstall
-    
-    
+
+
     # - name:                                Remove SAPSBP
     #   ansible.builtin.file:
     #     path:                              "{{ mopatch_path }}"
     #     state:                             absent
-    
+
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
 # | Step 4 SBP Patching for Oracle  GRID                                       |
 # |                                                                            |
-# +------------------------------------4--------------------------------------*/  
+# +------------------------------------4--------------------------------------*/
     # Backup Oracle GRID Home prior to patching.
 
     # - name:                            "ORACLE ASM : BACKUP ASM GRID"
@@ -362,7 +362,7 @@
     #     owner:                         oracle
     #     group:                         oinstall
 
-    
+
     - name:                            "ORACLE ASM : BACKUP ORACLE GRID"
       # become:                              true
       # become_user:                         "oracle"
@@ -373,7 +373,7 @@
         mode:                          '0755'
         owner:                         oracle
         group:                         oinstall
-    
+
     - name:                            "ORACLE: Check if 'OPatch.bck' exists"
       ansible.builtin.stat:
         path:                          /oracle/GRID/{{ ora_version }}/OPatch.bck
@@ -389,12 +389,12 @@
         - not opatchgrid_stat.stat.exists
 
     # Check if MOPatch exists, backup the old MOPatch and copy the new one.
-    
+
     - name:                            "ORACLE: Check if 'MOPatch.bck' exists for GRID"
       ansible.builtin.stat:
         path:                          /oracle/GRID/{{ ora_version }}/MOPatch.bck
       register:                        mopatchgrid_stat
-    
+
     - name:                            "ORACLE: backup MOPatch"
       ansible.builtin.copy:
             src:                           /oracle/GRID/{{ ora_version }}/MOPatch
@@ -405,16 +405,16 @@
             group:                         oinstall
       when:
         - mopatchgrid_stat.stat.exists
-    
-    
+
+
     - name:                            "ORACLE: remove old MOPatch"
       ansible.builtin.file:
         path:                          /oracle/GRID/{{ ora_version }}/MOPatch
         state:                         absent
       when:
         - not mopatchgrid_stat.stat.exists
-    
-    
+
+
     - name:                            "ORACLE: copy MOPatch for GRID"
       # become:                              true
       # become_user:                         "oracle"
@@ -425,14 +425,14 @@
         mode:                          '0755'
         owner:                         oracle
         group:                         oinstall
-    
+
     #Backup the existing Opatch and then copy the new Opatch from the downloads folder
-    
+
     - name:                            "ORACLE: Check if 'OPatch.bck' exists for GRID"
       ansible.builtin.stat:
         path:                          /oracle/GRID/{{ ora_version }}/OPatch.bck
       register:                        opatchgrid_stat
-    
+
     - name:                            "ORACLE: backup OPatch"
       ansible.builtin.copy:
             src:                           /oracle/GRID/{{ ora_version }}/OPatch
@@ -443,15 +443,15 @@
             group:                         oinstall
       when:
         - not opatchgrid_stat.stat.exists
-    
-    
+
+
     - name:                            "ORACLE: remove old OPatch"
       ansible.builtin.file:
         path:                          /oracle/GRID/{{ ora_version }}/OPatch
         state:                         absent
       when:
         - not opatchgrid_stat.stat.exists
-    
+
     - name:                            "ORACLE: copy OPatch for GRID"
       # become:                              true
       # become_user:                         "oracle"
@@ -462,7 +462,7 @@
         mode:                          '0755'
         owner:                         oracle
         group:                         oinstall
-    
+
     - name:                                "SAP Oracle DB ASM: Prepare for GRID SBP Patching"
       become:                          true
       become_user:                     "root"
@@ -471,15 +471,15 @@
       register:                            gridpreinstall
       args:
         creates:                           /etc/sap_deployment_automation/{{ sap_sid | upper }}/gridpreinstall.txt
-    
+
     - name:                                "SAP Oracle DB ASM: Create flag after a successful preparation"
       ansible.builtin.file:
         path:                              /etc/sap_deployment_automation/{{ sap_sid | upper }}/gridpreinstall.txt
         state:                             touch
         mode:                              '0755'
       when:                                gridpreinstall.rc == 0
-    
-    
+
+
     #STEP 4.2.2 SBP Patching for Oracle GRID.
     - name:                            "ORACLE: Post Processing - GRID SBP Patching"
       become:                          true
@@ -497,29 +497,29 @@
         creates:                        "/etc/sap_deployment_automation/{{ sap_sid | upper }}/gridsbp_installed.txt"
         chdir:                          "{{ target_media_location }}/SBP"
         executable:                     /bin/csh
-    
+
     - name:                            "ORACLE: Post processing installer output"
       ansible.builtin.debug:
         var:                           gridsbpscript_results.stdout_lines
         verbosity:                     2
-    
+
     - name:                            "ORACLE: Post processing installer output"
       ansible.builtin.copy:
         dest:                          "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sbpgrid.log"
         content:                       "{{ gridsbpscript_results.stdout }}"
         mode:                          '0777'
       when:                            gridsbpscript_results.stdout is defined
-    
+
     - name:                                "SAP Oracle DB ASM: Create flag after a successful SBP GRID installation"
       ansible.builtin.file:
         path:                              /etc/sap_deployment_automation/{{ sap_sid | upper }}/gridsbp_installed.txt
         state:                             touch
         mode:                               '0755'
-    
+
     #STEP 4.2.3 Post-Processing SBP Patching for Oracle GRID.
     #SAP Note 2893317 - ORA-12547:  TNS:lost contact during SWPM system copy import -NetWeaver
     # Run the post install script for GRID SBP patching to start the Oracle Cluster service manager, ASMCA and relevant toolset.
-    
+
     - name:                                "SAP Oracle DB ASM: Oracle Post Processing - GRID SBP GRID Patching Post-Processing"
       become:                              true
       become_user:                         root
@@ -532,14 +532,14 @@
       args:
         chdir:                            /oracle/GRID/{{ ora_version }}
         creates:                          /etc/sap_deployment_automation/{{ sap_sid | upper }}/sbp-grid-postprocess.txt
-    
+
     - name:                               "SAP Oracle DB ASM: Create flag after a successful change"
       ansible.builtin.file:
         path:                             /etc/sap_deployment_automation/{{ sap_sid | upper }}/sbp-grid-postprocess.txt
         state:                            touch
         mode:                             '0755'
       #when:                               sbppostpro_results.rc >= 2
-    
+
     - name:                            "ORACLE: Create sbp_installed.txt"
       ansible.builtin.file:
         path:                          "/etc/sap_deployment_automation/{{ sap_sid | upper }}/grid_sbp_installed.txt"
@@ -556,7 +556,7 @@
         mode:                          '6751'
       tags:
         - skip_ansible_lint
-    
+
     - name:                            "ORACLE: environment variables to the Bash profile"
       become:                          true
       become_user:                     "oracle"
@@ -593,7 +593,7 @@
             set path = ($path $ORACLE_HOME/bin)
         mode:                              '0755'
 
-    
+
 
 
   when:

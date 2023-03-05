@@ -57,6 +57,8 @@
         public:                        true
       tags:
         - 0.1-win-passwords
+      when:
+       - platform == "SQLSERVER"
 
     - name:                            "0.0 Validations - Retrieve the storage account details"
       ansible.builtin.include_role:
@@ -272,6 +274,20 @@
       ansible.builtin.set_fact:
         subscription_id:               "{{ json_azure_data | json_query('compute.subscriptionId') }}"
         resource_group_name:           "{{ json_azure_data | json_query('compute.resourceGroupName') }}"
+        mnt_free_diskspace:            "{{ ansible_mounts | json_query('[?mount == `/mnt`].size_available') | first | int / 1048576 | int }}"
+
+    - name:                            "0.0 Validations - Deployer disk space requirements"
+      ansible.builtin.set_fact:
+        deployer_free_temp_disk_space: 100
+      when:
+        - deployer_free_temp_disk_space is not defined
+
+    - name:                            "0.0 Validations - Check for free disk space on deployer "
+      ansible.builtin.assert:
+        that:
+          - "{{ (mnt_free_diskspace | int / 1024) > (deployer_free_temp_disk_space | int) }}"
+        fail_msg: "The deployer needs at least {{ deployer_free_temp_disk_space }} GB of free disk space in /mnt"
+
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
@@ -283,15 +299,28 @@
     {{ sap_sid | upper }}_SCS :
     {{ sap_sid | upper }}_ERS :
     {{ sap_sid | upper }}_PAS :
-    {{ sap_sid | upper }}_ERS :
     {{ sap_sid | upper }}_APP :
     {{ sap_sid | upper }}_WEB"
 
-  name: "0.0 Validations - Validate SAP-Parameters"
-  gather_facts: true
+  name:                                "0.0 Validations - Validate SAP-Parameters"
+  gather_facts:                        true
   vars_files:
     - vars/ansible-input-api.yaml # API Input template with defaults
   tasks:
+
+    - name:                            "0.0 Validations: - Set distro"
+      ansible.builtin.set_fact:
+        distro_family:                 "{{ ansible_os_family | upper }}"
+        distribution_id:               "{{ ansible_distribution | lower ~ ansible_distribution_major_version }}"
+        distribution_full_id:          "{{ ansible_distribution | lower ~ ansible_distribution_version }}"
+
+    - name:                            "0.0 Validations: - Show distro"
+      ansible.builtin.debug:
+        msg:
+          - "Distro family:        {{ distro_family }}"
+          - "Distribution id:      {{ distribution_id }}"
+          - "Distribution full id: {{ distribution_full_id }}"
+
     - name:                            "0.0 Validations: - Set Python version {{ distribution_id }}"
       ansible.builtin.set_fact:
         python_version: "python2"
@@ -329,7 +358,9 @@
         that:
           - "scs_instance_number != db_instance_number"
         fail_msg:                      "Please ensure that the scs_instance_number is different from the db_instance_number when performing a standalone installation"
-      when:                            (ansible_play_hosts_all | length) == 1
+      when:                            
+       - (ansible_play_hosts_all | length) == 1
+       - platform == "HANA"
       tags:
         - 0.0-scs-db-instance-single
 
@@ -485,6 +516,23 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
+
+- hosts: "{{ sap_sid | upper }}_DB  :
+    {{ sap_sid | upper }}_PAS :
+    {{ sap_sid | upper }}_APP"
+
+  name:                                "0.0 Validations - Validate SAP-Parameters for Oracle"
+  gather_facts:                        true
+  vars_files:
+    - vars/ansible-input-api.yaml # API Input template with defaults
+  tasks:
+    - name:                            "0.0 Validations - Validate that the correct distribution is used"
+      ansible.builtin.assert:
+        that:
+          -  "distribution_id ==  'oraclelinux8'"
+        fail_msg: "For Oracle deployments DB, PAS and APP needs to run on OracleLinux"
+      when:
+        - platform == 'ORACLE'
 
 - hosts:                               "{{ sap_sid | upper }}_DB"
 
