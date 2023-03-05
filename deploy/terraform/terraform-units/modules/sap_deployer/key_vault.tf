@@ -166,6 +166,28 @@ resource "azurerm_key_vault_secret" "pat" {
   key_vault_id = var.key_vault.kv_exists ? var.key_vault.kv_user_id : azurerm_key_vault.kv_user[0].id
 }
 
+resource "azurerm_key_vault_secret" "web_pwd" {
+  depends_on = [
+    azurerm_key_vault_access_policy.kv_user_pre_deployer[0],
+    azurerm_key_vault_access_policy.kv_user_msi,
+    azurerm_key_vault_access_policy.kv_user_systemidentity,
+    time_sleep.wait_for_dns_refresh
+  ]
+  count = (local.enable_key && !local.key_exist) ? (
+    (
+      !var.bootstrap || !var.key_vault.kv_exists) ? (
+      1) : (
+      0
+    )) : (
+    0
+  )
+
+  name         = "WEB-PWD"
+  value        = var.webapp_client_secret
+  key_vault_id = var.key_vault.kv_exists ? var.key_vault.kv_user_id : azurerm_key_vault.kv_user[0].id
+}
+
+
 // Generate random password if password is set as authentication type, and save in KV
 resource "random_password" "deployer" {
   count = (
