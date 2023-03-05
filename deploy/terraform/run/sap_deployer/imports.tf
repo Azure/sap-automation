@@ -22,9 +22,3 @@ data "azurerm_key_vault_secret" "tenant_id" {
   name         = format("%s-tenant-id", upper(local.infrastructure.environment))
   key_vault_id = var.deployer_kv_user_arm_id
 }
-
-// Import current service principal
-data "azuread_service_principal" "sp" {
-  count        = length(var.deployer_kv_user_arm_id) > 0 ? 1 : 0
-  application_id = local.spn.client_id
-}
