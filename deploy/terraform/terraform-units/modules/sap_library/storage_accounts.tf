@@ -42,11 +42,13 @@ resource "azurerm_storage_account" "storage_tfstate" {
   }
 }
 
-# resource "azurerm_role_assignment" "storage_tfstate_contributor" {
-#   scope                = local.sa_tfstate_exists ? data.azurerm_storage_account.storage_tfstate[0].id : azurerm_storage_account.storage_tfstate[0].id
-#   role_definition_name = "Storage Account Contributor"
-#   principal_id         = var.deployer_tfstate.deployer_uai.principal_id
-# }
+resource "azurerm_role_assignment" "storage_tfstate_contributor" {
+  provider             = azurerm.main
+  count                = length(try(var.deployer_tfstate.deployer_system_assigned_identity, []))
+  scope                = local.sa_tfstate_exists ? data.azurerm_storage_account.storage_tfstate[0].id : azurerm_storage_account.storage_tfstate[0].id
+  role_definition_name = "Storage Account Contributor"
+  principal_id         = var.deployer_tfstate.deployer_system_assigned_identity[count.index]
+}
 
 
 resource "azurerm_storage_account_network_rules" "storage_tfstate" {
@@ -147,7 +149,7 @@ data "azurerm_storage_container" "storagecontainer_tfstate" {
 
 resource "azurerm_private_endpoint" "storage_tfstate" {
   provider = azurerm.dnsmanagement
-  count = var.use_private_endpoint && !local.sa_tfstate_exists ? 1 : 0
+  count    = var.use_private_endpoint && !local.sa_tfstate_exists ? 1 : 0
   name = format("%s%s%s",
     var.naming.resource_prefixes.storage_private_link_tf,
     local.prefix,
@@ -280,7 +282,7 @@ data "azurerm_storage_account" "storage_sapbits" {
 
 resource "azurerm_private_endpoint" "storage_sapbits" {
   provider = azurerm.dnsmanagement
-  count = var.use_private_endpoint && !local.sa_sapbits_exists ? 1 : 0
+  count    = var.use_private_endpoint && !local.sa_sapbits_exists ? 1 : 0
   name = format("%s%s%s",
     var.naming.resource_prefixes.storage_private_link_sap,
     local.prefix,
@@ -412,4 +414,12 @@ data "azurerm_network_interface" "storage_sapbits" {
   count               = var.use_private_endpoint && !local.sa_sapbits_exists ? 1 : 0
   name                = azurerm_private_endpoint.storage_sapbits[count.index].network_interface[0].name
   resource_group_name = split("/", azurerm_private_endpoint.storage_sapbits[count.index].network_interface[0].id)[4]
+}
+
+
+resource "azurerm_role_assignment" "storage_tfstate" {
+  name               = "00000000-0000-0000-0000-000000000000"
+  scope              = data.azurerm_subscription.primary.id
+  role_definition_id = azurerm_role_definition.example.role_definition_resource_id
+  principal_id       = data.azurerm_client_config.example.object_id
 }

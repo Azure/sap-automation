@@ -50,6 +50,10 @@ output "deployer_public_ip_address" {
   value = module.sap_deployer.deployer_public_ip_address
 }
 
+output "deployer_system_assigned_identity" {
+  value = module.sap_deployer.deployer_system_assigned_identity
+}
+
 ###############################################################################
 #                                                                             #
 #                                  Network                                    #

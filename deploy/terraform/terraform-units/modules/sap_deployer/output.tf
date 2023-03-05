@@ -53,6 +53,11 @@ output "deployer_private_ip_address" {
   value = azurerm_network_interface.deployer[*].private_ip_address
 }
 
+output "deployer_system_assigned_identity" {
+  value = azurerm_linux_virtual_machine.deployer[*].identity[0].principal_id
+}
+
+
 ###############################################################################
 #                                                                             #
 #                                  Network                                    #
