@@ -25,11 +25,12 @@ locals {
     jsondecode(file(format("%s/%s", path.cwd, var.name_override_file)))) : (
     null
   )
+
   spn = {
-    subscription_id = data.azurerm_key_vault_secret.subscription_id.value,
-    client_id       = data.azurerm_key_vault_secret.client_id.value,
-    client_secret   = data.azurerm_key_vault_secret.client_secret.value,
-    tenant_id       = data.azurerm_key_vault_secret.tenant_id.value
+    subscription_id = length(var.deployer_kv_user_arm_id) > 0 ? data.azurerm_key_vault_secret.subscription_id.value : null,
+    client_id       = length(var.deployer_kv_user_arm_id) > 0 ? data.azurerm_key_vault_secret.client_id.value : null,
+    client_secret   = length(var.deployer_kv_user_arm_id) > 0 ? data.azurerm_key_vault_secret.client_secret.value : null,
+    tenant_id       = length(var.deployer_kv_user_arm_id) > 0 ? data.azurerm_key_vault_secret.tenant_id.value : null
   }
 
 }

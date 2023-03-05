@@ -406,9 +406,19 @@ if [ -f terraform.tfstate ]; then
 
   if [ "${deployment_system}" == sap_deployer ]
   then
-    echo "Reinitializing deployer in case of on a new deployer"
+    echo ""
+    echo -e "$cyan Reinitializing deployer in case of on a new deployer $resetformatting"
+
     terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/"${deployment_system}"/
     terraform -chdir="${terraform_module_directory}" init  -backend-config "path=${param_dirname}/terraform.tfstate" -reconfigure
+    echo ""
+    key_vault_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_arm_id | tr -d \")
+
+    if [ -n "${key_vault_id}" ]
+    then
+      export TF_VAR_deployer_kv_user_arm_id="${key_vault_id}"
+    fi
+
 
   fi
 

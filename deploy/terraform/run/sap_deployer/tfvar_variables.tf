@@ -299,6 +299,11 @@ variable "additional_users_to_add_to_keyvault_policies" {
   default     = [""]
 }
 
+variable "deployer_kv_user_arm_id" {
+  description = "Azure resource identifier for the deployer user Azure Key Vault"
+  default     = ""
+}
+
 #########################################################################################
 #                                                                                       #
 #  Miscallaneous settings                                                               #
