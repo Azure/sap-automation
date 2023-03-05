@@ -50,6 +50,13 @@ resource "azurerm_role_assignment" "storage_tfstate_contributor" {
   principal_id         = var.deployer_tfstate.deployer_system_assigned_identity[count.index]
 }
 
+resource "azurerm_role_assignment" "storage_tfstate_contributor_msi" {
+  provider             = azurerm.main
+  scope                = local.sa_tfstate_exists ? data.azurerm_storage_account.storage_tfstate[0].id : azurerm_storage_account.storage_tfstate[0].id
+  role_definition_name = "Storage Account Contributor"
+  principal_id         = var.deployer_tfstate.deployer_uai.principal_id
+}
+
 
 resource "azurerm_storage_account_network_rules" "storage_tfstate" {
   provider           = azurerm.main
@@ -140,7 +147,7 @@ data "azurerm_storage_container" "storagecontainer_tfstate" {
     data.azurerm_storage_account.storage_tfstate[0].name) : (
     azurerm_storage_account.storage_tfstate[0].name
   )
-
+var.deployer_tfstate
   depends_on = [
     time_sleep.wait_for_dns_refresh,
     azurerm_private_endpoint.storage_tfstate
