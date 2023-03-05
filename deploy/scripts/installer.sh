@@ -913,6 +913,8 @@ if [ 1 == $ok_to_proceed ]; then
 
     allParams=$(printf " -var-file=%s %s %s %s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter}"  "${approve}" )
 
+    terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}"  $allParams
+
     if [ 1 == $called_from_ado ] ; then
         terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings -json $allParams | tee -a apply_output.json
     else
@@ -922,9 +924,10 @@ if [ 1 == $ok_to_proceed ]; then
 
     if [ -f apply_output.json ]
     then
+       cat apply_output.json
         errors_occurred=$(jq 'select(."@level" == "error") | length' apply_output.json)
 
-        echo apply_output.json | jq
+
 
         if [[ -n $errors_occurred ]]
         then
@@ -966,7 +969,6 @@ if [ 1 == $ok_to_proceed ]; then
 
             # Check for resource that can be imported
             existing=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary}  | select(.summary | startswith("A resource with the ID"))' apply_output.json)
-            cat apply_output.json
             if [[ -n ${existing} ]]
             then
 
