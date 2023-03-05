@@ -492,37 +492,3 @@ resource "azurerm_virtual_machine_extension" "configure_ansible_scs" {
         }
     SETTINGS
 }
-
-
-resource "azurerm_managed_disk" "cluster" {
-  provider = azurerm.main
-  count    = local.enable_deployment && upper(var.application_tier.scs_os.os_type) == "WINDOWS" && var.application_tier.scs_high_availability ? 1 : 0
-  name = format("%s%s%s%s%s",
-    var.naming.resource_prefixes.disk,
-    local.prefix,
-    var.naming.separator,
-    var.naming.virtualmachine_names.SCS_VMNAME[local.scs_data_disks[count.index].vm_index],
-    "-cluster"
-  )
-  location               = var.resource_group[0].location
-  resource_group_name    = var.resource_group[0].name
-  create_option          = "Empty"
-  storage_account_type   = "Premium_LRS"
-  disk_size_gb           = var.scs_shared_disk_size
-  disk_encryption_set_id = try(var.options.disk_encryption_set_id, null)
-  max_shares             = local.scs_server_count
-
-  lifecycle {
-    ignore_changes = [tags]
-  }
-}
-
-resource "azurerm_virtual_machine_data_disk_attachment" "cluster" {
-  provider           = azurerm.main
-  count              = local.enable_deployment && upper(var.application_tier.scs_os.os_type) == "WINDOWS" && var.application_tier.scs_high_availability ? local.scs_server_count : 0
-  managed_disk_id    = azurerm_managed_disk.cluster.id
-  virtual_machine_id = azurerm_windows_virtual_machine.scs[count.index].id
-  caching            = "None"
-  lun                = var.scs_shared_disk_lun
-
-}
