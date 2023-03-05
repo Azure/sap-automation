@@ -96,3 +96,17 @@ data "azurerm_storage_account" "deployer" {
   resource_group_name = split("/", var.deployer.deployer_diagnostics_account_arm_id)[4]
 
 }
+
+resource "azurerm_role_assignment" "deployer_boot_diagnostics_contributor" {
+  count                = var.deployer.add_system_assigned_identity ? var.deployer_vm_count : 0
+  scope                = length(var.deployer.deployer_diagnostics_account_arm_id) > 0 ? var.deployer.deployer_diagnostics_account_arm_id : azurerm_storage_account.deployer[0].id
+  role_definition_name = "Storage Account Contributor"
+  principal_id         = azurerm_linux_virtual_machine.deployer[count.index].identity[0].principal_id
+}
+
+resource "azurerm_role_assignment" "deployer_boot_diagnostics_contributor_msi" {
+  count                = var.deployer.add_system_assigned_identity ? var.deployer_vm_count : 0
+  scope                = length(var.deployer.deployer_diagnostics_account_arm_id) > 0 ? var.deployer.deployer_diagnostics_account_arm_id : azurerm_storage_account.deployer[0].id
+  role_definition_name = "Storage Account Contributor"
+  principal_id         = azurerm_user_assigned_identity.deployer_uai.principal_id
+}
