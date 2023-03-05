@@ -922,8 +922,9 @@ if [ 1 == $ok_to_proceed ]; then
 
     if [ -f apply_output.json ]
     then
-        cat apply_output.json
         errors_occurred=$(jq 'select(."@level" == "error") | length' apply_output.json)
+
+        echo apply_output.json | jq
 
         if [[ -n $errors_occurred ]]
         then
