@@ -147,7 +147,6 @@ data "azurerm_storage_container" "storagecontainer_tfstate" {
     data.azurerm_storage_account.storage_tfstate[0].name) : (
     azurerm_storage_account.storage_tfstate[0].name
   )
-var.deployer_tfstate
   depends_on = [
     time_sleep.wait_for_dns_refresh,
     azurerm_private_endpoint.storage_tfstate
