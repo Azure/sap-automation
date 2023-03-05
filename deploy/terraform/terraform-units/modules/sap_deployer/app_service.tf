@@ -141,7 +141,7 @@ resource "azurerm_role_assignment" "app_service_contributor" {
 
 resource "azurerm_role_assignment" "app_service_contributor_msi" {
   provider             = azurerm.main
-  count                = var.use_webapp && var.deployer.add_system_assigned_identity ? var.deployer_vm_count : 0
+  count                = var.use_webapp ? 1 : 0
   scope                = azurerm_windows_web_app.webapp[0].id
   role_definition_name = "Website Contributor"
   principal_id         = azurerm_user_assigned_identity.deployer.principal_id
