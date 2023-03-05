@@ -20,7 +20,7 @@ target_media_location:                  "/usr/sap/install"
 download_directory:                     "{% if ansible_env.HOME is defined %}{{ ansible_env.HOME }}{% else %}/mnt/downloads{% endif %}/tmp/downloads"
 check_storage_account:                  true
 bom_processing_become:                  true                                    # BOM processing as root user
-deployer_free_temp_disk_space:          100                                     # Free disk space requirement on deployer
+deployer_free_temp_disk_space:          50                                     # Free disk space requirement on deployer
 # -------------------------------------+---------------------------------------8
 
 # Default BoM Processing variables for Windows
