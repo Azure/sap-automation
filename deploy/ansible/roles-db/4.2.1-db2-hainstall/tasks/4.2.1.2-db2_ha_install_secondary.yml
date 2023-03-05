@@ -19,7 +19,7 @@
     - name:                            "SAP DB2 Install Secondary: Set BOM facts"
       ansible.builtin.set_fact:
         sap_inifile:                   "{{ bom_base_name }}-dbloadstandby-{{ ansible_hostname }}.params"
-        sap_inifile_template:          "{{ bom_base_name }}-dbloadstandby-inifile-param.j2"
+        sap_inifile_template:          "{{ bom_base_name }}{{ bom_suffix }}-dbloadstandby-inifile-param.j2"
         dir_params:                    "{{ tmp_directory }}/.{{ sap_sid | upper }}-params"
         mem_size:                      "{{ ansible_facts.memory_mb.real.total | int * 0.8 }}"
 
@@ -84,13 +84,10 @@
         db2_sslencryption_label:       "sap_db2{{ db_sid }}_{{ sap_db_hostname }}_ssl_comm_000"
         sap_scs_hostname:               "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') | first }}"
         sap_profile_dir:               "/sapmnt/{{ sap_sid | upper }}/profile"
-        tier:                          "{{ tier }}"
         param_directory:               "{{ dir_params }}"
         db2_memory:                    "{{ mem_size | int }}"
         always_upload_jinja_templates: false
 
-      tags:
-        - skip_ansible_lint
 # +------------------------------------4--------------------------------------*/
 
     - name:                            "SAP DB2 install Secondary: variables"
@@ -110,6 +107,7 @@
 
     - name:                            "SAP DB2 Install - Secondary DB"
       ansible.builtin.shell: |
+                                       umask {{ custom_umask | default('022') }};
                                        ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }}     \
                                                  SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.dblsby }}             \
                                                  SAPINST_SKIP_DIALOGS=true                                           \
@@ -120,10 +118,9 @@
         creates:                       "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_db2.txt"
       environment:
         TMPDIR:                        "{{ tmp_directory }}/{{ sap_sid | upper }}"
+        DB2TMPDIR:                     "{{ tmp_directory }}"
       register:                        db2_installation
       failed_when:                     db2_installation.rc > 0
-      tags:
-        - skip_ansible_lint
 
     - name:                            "SAP DB2 Install: progress"
       ansible.builtin.debug:

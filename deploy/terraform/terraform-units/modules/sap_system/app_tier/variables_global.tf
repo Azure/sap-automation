@@ -140,3 +140,12 @@ variable "management_dns_resourcegroup_name" {
   default     = null
   type        = string
 }
+
+
+variable "scs_shared_disk_size" {
+  description = "The size of the shared disk for the SAP Central Services Windows cluster"
+}
+
+variable "scs_shared_disk_lun" {
+  description = "The LUN of the shared disk for the SAP Central Services Windows cluster"
+}

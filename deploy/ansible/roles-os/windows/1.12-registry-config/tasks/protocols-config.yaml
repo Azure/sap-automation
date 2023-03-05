@@ -1,0 +1,53 @@
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                   Ciphers and Protocols Configuration                      |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+---
+# ----------------------------------------
+# BEGIN
+
+- name: "1.12 Protocols Config - Disable insecure Ciphers"
+  ansible.windows.win_regedit:
+    path: HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Ciphers\{{ item }}
+    name: Enabled
+    type: dword
+    data: 0
+  loop:
+    - RC4 128/128
+    - RC4 40/128
+    - RC4 56/128
+    - RC4 64/128
+    - RC2 56/128
+    - RC2 40/128
+    - Triple DES 168
+    - DES 56/56
+    - 'NULL'
+
+- name: "1.12 Protocols Config - Disable insecure Protocols"
+  ansible.windows.win_regedit:
+    path: HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\{{ item.protocol }}\{{ item.property }}
+    name: Enabled
+    type: dword
+    data: 0
+  loop:
+    - { protocol: 'TLS 1.0', property: 'Client' }
+    - { protocol: 'TLS 1.0', property: 'Server' }
+    - { protocol: 'TLS 1.1', property: 'Client' }
+    - { protocol: 'TLS 1.1', property: 'Server' }
+    - { protocol: 'PCT 1.0', property: 'Client' }
+    - { protocol: 'SSL 2.0', property: 'Client' }
+    - { protocol: 'SSL 2.0', property: 'Server' }
+    - { protocol: 'SSL 3.0', property: 'Client' }
+    - { protocol: 'SSL 3.0', property: 'Server' }
+
+- name: "1.12 Protocols Config - Enable TLS 1.2 Protocol"
+  ansible.windows.win_regedit:
+    path: HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\{{ item.protocol }}\{{ item.property }}
+    name: Enabled
+    type: dword
+    data: 1
+  loop:
+    - { protocol: 'TLS 1.2', property: 'Client' }
+    - { protocol: 'TLS 1.2', property: 'Server' }
+...

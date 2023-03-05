@@ -4,6 +4,12 @@ The SAP deployment automation framework on Azure is an open-source orchestration
 
 The framework uses Terraform for infrastructure deployment, and Ansible for the operating system and application configuration.
 
+# Enterprise-scale  - Reference Implementation 
+
+[![Average time to resolve an issue](http://isitmaintained.com/badge/resolution/azure/sap-automation.svg)](http://isitmaintained.com/project/azure/sap-automation "Average time to resolve an issue")
+
+[![Percentage of issues still open](http://isitmaintained.com/badge/open/azure/sap-automation.svg)](http://isitmaintained.com/project/azure/sap-automation "Percentage of issues still open")
+
 ## Partnership
 
 The project is being build in partnership with [SUSE](https://www.suse.com/) and [Red Hat](https://www.redhat.com/)

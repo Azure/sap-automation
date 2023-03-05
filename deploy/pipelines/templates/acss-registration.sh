@@ -12,8 +12,10 @@ green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
 __basedir="${ROOT_FOLDER}"
 acss_environment=${ACSS_ENVIRONMENT}
 acss_sap_product=${ACSS_SAP_PRODUCT}
-acss_workloads_extension_url="https://github.com/Azure/Azure-Center-for-SAP-solutions-preview/raw/main/CLI_Documents/ACSS_CLI_Extension/workloads-0.1.0-py3-none-any.whl"
+acss_workloads_extension_url="https://aka.ms/ACSSCLI"
 #--------------------------------------+---------------------------------------8
+
+echo -e "$green-- CODE_FOLDER:${CODE_FOLDER} --$reset"
 
 #--------------------------------------+---------------------------------------8
 #                                                                              |
@@ -24,7 +26,7 @@ set -x
 if [ -z "$(az extension list | grep \"name\": | grep \"workloads\")" ]
 then
   echo -e "$green--- Installing ACSS \"Workloads\" CLI extension ---$reset"
-  wget $acss_workloads_extension_url || exit 1
+  wget $acss_workloads_extension_url -O workloads-0.1.0-py3-none-any.whl || exit 1
   az extension add --source=./workloads-0.1.0-py3-none-any.whl --yes || exit 1
 else
   echo -e "$green--- ACSS \"Workloads\" CLI extension already installed ---$reset"
@@ -55,8 +57,6 @@ TF_DATA_DIR=${__configDir}
 
 cd ${__configDir}
 
-az account set --subscription ${ARM_SUBSCRIPTION_ID}
-
 tfstate_resource_id=$(az resource list --name "${TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME}" --subscription ${TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION} --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
 
 TERRAFORM_REMOTE_STORAGE_RESOURCE_GROUP_NAME=$(az resource show --id "${tfstate_resource_id}" --query resourceGroup -o tsv)
@@ -76,7 +76,9 @@ init -upgrade=true                                                              
 echo -e "$green--- Successfully configured the backend "azurerm"! Terraform will automatically use this backend unless the backend configuration changes. ---$reset"
 
 # Fetch values from Terraform State file
-acss_scs_vm_id=$(     terraform -chdir="${__moduleDir}" output scs_vm_ids                  | awk -F\" '{print $2}' | tr -d '\n\r\t[:space:]')
+# have awk only fetch the first line of the output: NR==2
+acss_scs_vm_id=$(     terraform -chdir="${__moduleDir}" output scs_vm_ids                  | awk -F\" 'NR==2{print $2}' | tr -d '\n\r\t[:space:]')
+echo -e "$green--- SCS VM ID: $acss_scs_vm_id ---$reset"
 acss_sid=$(           terraform -chdir="${__moduleDir}" output sid                         | tr -d '"')
 acss_resource_group=$(terraform -chdir="${__moduleDir}" output created_resource_group_name | tr -d '"')
 acss_location=$(      terraform -chdir="${__moduleDir}" output region                      | tr -d '"')

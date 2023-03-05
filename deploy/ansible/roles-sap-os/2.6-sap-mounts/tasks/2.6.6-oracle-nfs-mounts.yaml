@@ -1,5 +1,3 @@
-
-
 - name:                            Mount Install folder when using AFS
   become:                              true
   become_user:                         root

@@ -1,20 +1,20 @@
 ---
 name:    'SUM20SP15'
 target:  'SUM20SP15'
-version: 007
+version: 008
 
 materials:
 
   media:
     # SUM
-    - name:         "Patch 7 for SOFTWARE UPDATE MANAGER 2.0 SP15 (Linux on x86_64)"
-      archive:      SUM20SP15_7-80002456.SAR
-      checksum:     d6539fee2dfc5063066caf76711599b03660b955c0a344d290d2e2afd658f37f
+    - name:         "Patch 8 for SOFTWARE UPDATE MANAGER 2.0 SP15 (Linux on x86_64)"
+      archive:      SUM20SP15_8-80002456.SAR
+      checksum:     c3abeb5232ead04112a0978bf4d1d21cfa0bbbf60e47f70294b0ef834fdfb479
       download:     false
-      url:          https://softwaredownloads.sap.com/file/0020000000050312023
+      url:          https://softwaredownloads.sap.com/file/0020000000150472023
 
-    - name:         "Patch 7 for SOFTWARE UPDATE MANAGER 2.0 SP15 (Windows)"
-      archive:      SUM20SP15_7-80002458.SAR
-      checksum:     666bd1afa415d03fac380f027c5797e7057fc3e84c08b1d769b39e4175eca33d
+    - name:         "Patch 8 for SOFTWARE UPDATE MANAGER 2.0 SP15 (Windows)"
+      archive:      SUM20SP15_8-80002458.SAR
+      checksum:     60d9a8ce38b25c3a6b5dd9e44e3ac2bb321fef4eebe59f7acff0d55495b5eae4
       download:     false
-      url:          https://softwaredownloads.sap.com/file/0020000000050342023
+      url:          https://softwaredownloads.sap.com/file/0020000000150552023

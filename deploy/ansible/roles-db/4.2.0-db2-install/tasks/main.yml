@@ -17,7 +17,7 @@
 - name:                                "SAP DB2 Install: Set BOM facts"
   ansible.builtin.set_fact:
     sap_inifile:                       "{{ bom_base_name }}-dbload-{{ ansible_hostname }}.params"
-    sap_inifile_template:              "{{ bom_base_name }}-dbload-inifile-param.j2"
+    sap_inifile_template:              "{{ bom_base_name }}{{ bom_suffix }}-dbload-inifile-param.j2"
     dir_params:                        "{{ tmp_directory }}/.{{ sap_sid | upper }}-params"
     mem_size:                          "{{ ansible_facts.memory_mb.real.total | int * 0.8 }}"
 
@@ -76,8 +76,6 @@
         tier:                          "db2S"
         db2_memory:                    "{{ mem_size | int }}"
         param_directory:               "{{ dir_params }}"
-      tags:
-        - skip_ansible_lint
     # +--------------------------------4--------------------------------------*/
     #
     # - name:                            "SAP DB2 install: variables"
@@ -106,6 +104,7 @@
 
     - name:                            "DB2 Install - SAPINST DB2 Install"
       ansible.builtin.shell: |
+                                       umask {{ custom_umask | default('022') }};
                                        ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }}     \
                                                  SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.dbl }}                \
                                                  SAPINST_SKIP_DIALOGS=true                                           \
@@ -115,10 +114,9 @@
         creates:                       "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_db2.txt"
       environment:
         TMPDIR:                        "{{ tmp_directory }}/{{ sap_sid | upper }}"
+        DB2TMPDIR:                     "{{ tmp_directory }}"
       register:                        db2_installation
       failed_when:                     db2_installation.rc > 0
-      tags:
-        - skip_ansible_lint
       # 2570458 - DB6: Depooling report RUTPOADAPT fails with SQL -912
 
     - name:                            "DB2 Install - Set LOCK variable for PAS"

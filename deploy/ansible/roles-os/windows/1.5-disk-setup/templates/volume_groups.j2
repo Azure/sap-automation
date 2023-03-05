@@ -26,8 +26,12 @@
 {%     set startlettercharacter = "S" %}
 {% elif disktype == 'log' %}
 {%     set startlettercharacter = "N" %}
-{% else %}
+{% elif disktype == 'data' %}
 {%     set startlettercharacter = "abcdefghijklmnopqrstuvwxyz"[startletter.value - 97]  | upper %}
+{% elif disktype == 'backup' %}
+{%     set startlettercharacter = "T" %}
+{% else %}
+{%     set startlettercharacter = "V" %}
 {% endif %}
 {%     set      os_disk_id = ansible_facts.disks | selectattr('location', 'match', regex_string) | rejectattr('partition_style', 'equalto', 'MBR') | rejectattr('physical_disk.device_id', 'equalto', '0') | map(attribute='unique_id') | list | first %}
 {% if disktype == 'data' %}

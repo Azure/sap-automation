@@ -13,8 +13,12 @@ output "nics_scs_admin" {
   value = azurerm_network_interface.scs_admin
 }
 
-output "scs_ip" {
-  value = azurerm_network_interface.scs[*].private_ip_address
+output "scs_server_ips" {
+  value = try(azurerm_network_interface.scs[*].private_ip_addresses[0],[])
+}
+
+output "scs_server_secondary_ips" {
+  value = var.use_secondary_ips ? try(azurerm_network_interface.scs[*].private_ip_addresses[1],[]) : []
 }
 
 output "scs_admin_ip" {
@@ -38,7 +42,7 @@ output "scs_lb_id" {
 }
 
 output "ers_lb_ip" {
-  value = local.enable_scs_lb_deployment && local.scs_high_availability ? (
+  value = local.enable_scs_lb_deployment && var.application_tier.scs_high_availability ? (
     try(azurerm_lb.scs[0].frontend_ip_configuration[1].private_ip_address, "")
     ) : (
     ""
@@ -46,14 +50,14 @@ output "ers_lb_ip" {
 }
 
 output "cluster_lb_ip" {
-  value = local.enable_scs_lb_deployment && (local.scs_high_availability && upper(var.application_tier.scs_os.os_type) == "WINDOWS") ? (
+  value = local.enable_scs_lb_deployment && (var.application_tier.scs_high_availability && upper(var.application_tier.scs_os.os_type) == "WINDOWS") ? (
     try(azurerm_lb.scs[0].frontend_ip_configuration[2].private_ip_address, "")) : (
     ""
   )
 }
 
 output "fileshare_lb_ip" {
-  value = local.enable_scs_lb_deployment && (local.scs_high_availability && upper(var.application_tier.scs_os.os_type) == "WINDOWS") ? (
+  value = local.enable_scs_lb_deployment && (var.application_tier.scs_high_availability && upper(var.application_tier.scs_os.os_type) == "WINDOWS") ? (
     try(azurerm_lb.scs[0].frontend_ip_configuration[3].private_ip_address, "")) : (
     ""
   )
@@ -94,8 +98,12 @@ output "nics_app_admin" {
   value = azurerm_network_interface.app_admin
 }
 
-output "app_ip" {
-  value = azurerm_network_interface.app[*].private_ip_address
+output "application_server_ips" {
+  value = try(azurerm_network_interface.app[*].private_ip_addresses[0], [])
+}
+
+output "application_server_secondary_ips" {
+  value = var.use_secondary_ips ? try(azurerm_network_interface.app[*].private_ip_addresses[1],[]) : []
 }
 
 output "app_admin_ip" {
@@ -130,8 +138,12 @@ output "nics_web_admin" {
   value = azurerm_network_interface.web_admin
 }
 
-output "web_ip" {
-  value = azurerm_network_interface.web[*].private_ip_address
+output "webdispatcher_server_ips" {
+  value = try(azurerm_network_interface.web[*].private_ip_addresses[0], [])
+}
+
+output "webdispatcher_server_secondary_ips" {
+  value = var.use_secondary_ips ? try(azurerm_network_interface.web[*].private_ip_addresses[1],[]) : []
 }
 
 output "web_admin_ip" {
@@ -203,7 +215,7 @@ output "dns_info_vms" {
 
 output "dns_info_loadbalancers" {
   description = "DNS information for the application tier load balancers"
-  value = !(local.enable_deployment && (var.use_loadbalancers_for_standalone_deployments || local.scs_high_availability)) ? null : (
+  value = !(local.enable_deployment && (var.use_loadbalancers_for_standalone_deployments || var.application_tier.scs_high_availability)) ? null : (
     zipmap(
       compact([
         local.enable_scs_lb_deployment ? format("%s%s%s", local.prefix, var.naming.separator, "scs") : "",
@@ -277,5 +289,5 @@ output "apptier_disks" {
 
 output "scs_ha" {
   description = "Defines if high availability is used"
-  value       = local.scs_high_availability
+  value       = var.application_tier.scs_high_availability
 }

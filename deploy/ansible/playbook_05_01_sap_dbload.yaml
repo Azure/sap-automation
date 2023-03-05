@@ -58,7 +58,6 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-
 - hosts:                               "{{ sap_sid | upper }}_PAS  :
                                         {{ sap_sid | upper }}_SCS :
                                         {{ sap_sid | upper }}_DB"
@@ -70,6 +69,7 @@
     - vars/ansible-input-api.yaml                                              # API Input template with defaults
 
   tasks:
+
 # -------------------------------------+---------------------------------------8
 #
 # Build the list of tasks to be executed in order here.
@@ -87,6 +87,7 @@
             sapbits_sas_token:         "{{ hostvars.localhost.sapbits_sas_token }}"
             bom_processing:            true
             always_upload_jinja_templates: false
+            sa_enabled:                true
           tags:
             - always
 
@@ -119,6 +120,7 @@
                 name:                  roles-sap/5.1-dbload
               vars:
                 scs_instance_number: "{{ sid_to_be_deployed.ascs_inst_no }}"
+                sa_enabled:            true
               loop:                    "{{ all_sids }}"
               loop_control:
                 loop_var:              sid_to_be_deployed
@@ -141,7 +143,7 @@
               vars:
                 suffix:                '_DBLOAD'
                 prefix:                "{{ bom.product_ids.dbl.replace('.', '/').replace('/ABAP', '').split(':')[1] }}"
-                path:                  '/INSTALL/DISTRIBUTED/ABAP/DB'
+                path:                  '/INSTALL/DISTRIBUTED/{{ dbl_bom_instance_type }}/DB'
                 tier:                  'dbload'
 
             - name:                    "DBLoad Playbook: - Get the Error lines from installation output"
@@ -267,7 +269,7 @@
             - 5.1-dbload
 
       when:
-        - platform == 'ORACLE'
+        - platform in ['ORACLE', 'ORACLE-ASM']
         - ansible_os_family != "Windows"
 
 # /*----------------------------------------------------------------------------8
@@ -380,6 +382,8 @@
                 removes:               '{{ log_dir_windows }}\sapinst_logs'
               register:                sapinst_log_name
               failed_when:             sapinst_log_name.rc > 0
+              when:
+                - ansible_os_family == "Windows"
 
           tags:
             - 5.1-dbload

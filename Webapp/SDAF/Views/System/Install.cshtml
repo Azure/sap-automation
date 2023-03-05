@@ -79,7 +79,7 @@
             </div>
 
             <div class="right-input">
-                @Html.TextBox("bom_base_name", "", new { @class = "ms-TextField-field", @onkeyup = $"toggleDisableViaNInputs(['sap_system_configuration_name', 'environment', 'bom_base_name'], 'confirm-install-system-checkbox')" })
+                @Html.TextBox("bom_base_name", Model.SapObject.bom_name, new { @class = "ms-TextField-field", @onkeyup = $"toggleDisableViaNInputs(['sap_system_configuration_name', 'environment', 'bom_base_name'], 'confirm-install-system-checkbox')" })
             </div>
         </div>
 

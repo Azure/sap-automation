@@ -13,11 +13,11 @@
 
     - name:                            "5.6 SCSERS - SUSE - ENSA1 - Configure SAP ASCS/SCS resources"
       ansible.builtin.command: >
-                                       crm configure primitive rsc_sap_{{ sap_sid }}_ASCS{{ scs_instance_number }} SAPInstance \
-                                       operations \$id=rsc_sap_{{ sap_sid }}_ASCS{{ scs_instance_number }}-operations \
+                                       crm configure primitive rsc_sap_{{ sap_sid }}_{{ instance_type | upper }}{{ scs_instance_number }} SAPInstance \
+                                       operations \$id=rsc_sap_{{ sap_sid }}_{{ instance_type | upper }}{{ scs_instance_number }}-operations \
                                        op monitor interval=11 timeout=60 on-fail=restart \
-                                       params InstanceName={{ sap_sid }}_ASCS{{ scs_instance_number }}_{{ scs_virtual_hostname }} \
-                                       START_PROFILE="/sapmnt/{{ sap_sid }}/profile/{{ sap_sid }}_ASCS{{ scs_instance_number }}_{{ scs_virtual_hostname }}" \
+                                       params InstanceName={{ instance_name }} \
+                                       START_PROFILE="/sapmnt/{{ start_profile_path }}" \
                                        AUTOMATIC_RECOVER=false \
                                        meta resource-stickiness=5000 failure-timeout=60 \
                                        migration-threshold=1 priority=10
@@ -38,16 +38,16 @@
 
     - name:                            "5.6 SCSERS - SUSE - ENSA1 - Modify SCS and ERS groups"
       ansible.builtin.shell: |
-                                      crm configure modgroup g-{{ sap_sid }}_ASCS add rsc_sap_{{ sap_sid }}_ASCS{{ scs_instance_number }}
+                                      crm configure modgroup g-{{ sap_sid }}_{{ instance_type | upper }} add rsc_sap_{{ sap_sid }}_{{ instance_type | upper }}{{ scs_instance_number }}
                                       crm configure modgroup g-{{ sap_sid }}_ERS add rsc_sap_{{ sap_sid }}_ERS{{ ers_instance_number }}
       register:                       scs_ers_group
       failed_when:                    scs_ers_group.rc > 1
 
     - name:                           "5.6 SCSERS - SUSE - ENSA1 - Configure Co-location Constraints"
       ansible.builtin.shell: |
-                                      crm configure colocation col_sap_{{ sap_sid }}_no_both -5000: g-{{ sap_sid }}_ERS g-{{ sap_sid }}_ASCS
-                                      crm configure location loc_sap_{{ sap_sid }}_failover_to_ers rsc_sap_{{ sap_sid }}_ASCS{{ scs_instance_number }} rule 2000: runs_ers_{{ sap_sid }} eq 1
-                                      crm configure order ord_sap_{{ sap_sid }}_first_start_ascs Optional: rsc_sap_{{ sap_sid }}_ASCS{{ scs_instance_number }}:start rsc_sap_{{ sap_sid }}_ERS{{ ers_instance_number }}:stop symmetrical=false
+                                      crm configure colocation col_sap_{{ sap_sid }}_no_both -5000: g-{{ sap_sid }}_ERS g-{{ sap_sid }}_{{ instance_type | upper }}
+                                      crm configure location loc_sap_{{ sap_sid }}_failover_to_ers rsc_sap_{{ sap_sid }}_{{ instance_type | upper }}{{ scs_instance_number }} rule 2000: runs_ers_{{ sap_sid }} eq 1
+                                      crm configure order ord_sap_{{ sap_sid }}_first_start_ascs Optional: rsc_sap_{{ sap_sid }}_{{ instance_type | upper }}{{ scs_instance_number }}:start rsc_sap_{{ sap_sid }}_ERS{{ ers_instance_number }}:stop symmetrical=false
       register:                       co_location
       failed_when:                    co_location.rc > 1
 
@@ -72,11 +72,11 @@
 
     - name:                            "5.6 SCSERS - SUSE - ENSA2 - Configure SAP ASCS/SCS resources"
       ansible.builtin.shell: >
-                                       crm configure primitive rsc_sap_{{ sap_sid }}_ASCS{{ scs_instance_number }} SAPInstance \
-                                       operations \$id=rsc_sap_{{ sap_sid }}_ASCS{{ scs_instance_number }}-operations \
+                                       crm configure primitive rsc_sap_{{ sap_sid }}_{{ instance_type | upper }}{{ scs_instance_number }} SAPInstance \
+                                       operations \$id=rsc_sap_{{ sap_sid }}_{{ instance_type | upper }}{{ scs_instance_number }}-operations \
                                        op monitor interval=11 timeout=60 on-fail=restart \
-                                       params InstanceName={{ sap_sid }}_ASCS{{ scs_instance_number }}_{{ scs_virtual_hostname }} \
-                                       START_PROFILE="/sapmnt/{{ sap_sid | upper }}/profile/{{ sap_sid | upper }}_ASCS{{ scs_instance_number }}_{{ scs_virtual_hostname }}" \
+                                       params InstanceName={{ instance_name }} \
+                                       START_PROFILE="{{ start_profile_path }}" \
                                        AUTOMATIC_RECOVER=false \
                                        meta resource-stickiness=5000
       register:                        ascs_rsc_sap
@@ -95,7 +95,7 @@
 
     - name:                            "5.6 SCSERS - SUSE - ENSA2 - Modify SCS and ERS groups"
       ansible.builtin.shell: |
-                                       crm configure modgroup g-{{ sap_sid }}_ASCS add rsc_sap_{{ sap_sid }}_ASCS{{ scs_instance_number }}
+                                       crm configure modgroup g-{{ sap_sid }}_{{ instance_type | upper }} add rsc_sap_{{ sap_sid }}_{{ instance_type | upper }}{{ scs_instance_number }}
                                        crm configure modgroup g-{{ sap_sid }}_ERS add rsc_sap_{{ sap_sid }}_ERS{{ ers_instance_number }}
       register:                        scs_ers_group
       failed_when:                     scs_ers_group.rc > 1
@@ -103,9 +103,9 @@
 
     - name:                            "5.6 SCSERS - SUSE - ENSA2 - Configure Co-location Constraints"
       ansible.builtin.shell: |
-                                       crm configure colocation col_sap_{{ sap_sid }}_no_both -5000: g-{{ sap_sid }}_ERS g-{{ sap_sid }}_ASCS
-                                       crm configure location loc_sap_{{ sap_sid }}_failover_to_ers rsc_sap_{{ sap_sid }}_ASCS{{ scs_instance_number }} rule 2000: runs_ers_{{ sap_sid }} eq 1
-                                       crm configure order ord_sap_{{ sap_sid }}_first_start_ascs Optional: rsc_sap_{{ sap_sid }}_ASCS{{ scs_instance_number }}:start rsc_sap_{{ sap_sid }}_ERS{{ ers_instance_number }}:stop symmetrical=false
+                                       crm configure colocation col_sap_{{ sap_sid }}_no_both -5000: g-{{ sap_sid }}_ERS g-{{ sap_sid }}_{{ instance_type | upper }}
+                                       crm configure location loc_sap_{{ sap_sid }}_failover_to_ers rsc_sap_{{ sap_sid }}_{{ instance_type | upper }}{{ scs_instance_number }} rule 2000: runs_ers_{{ sap_sid }} eq 1
+                                       crm configure order ord_sap_{{ sap_sid }}_first_start_ascs Optional: rsc_sap_{{ sap_sid }}_{{ instance_type | upper }}{{ scs_instance_number }}:start rsc_sap_{{ sap_sid }}_ERS{{ ers_instance_number }}:stop symmetrical=false
       register:                        co_location
       failed_when:                     co_location.rc > 1
 

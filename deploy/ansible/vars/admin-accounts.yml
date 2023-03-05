@@ -127,7 +127,6 @@ admin_groups:
     enabled:      true
     node_tier:    oracle
 
-
 # Admin groups for Oracle ASM
   - name:         dba
     gid:          "{{ dba_gid }}"
@@ -257,49 +256,6 @@ admin_groups:
     tier:         ora
     enabled:      true
     node_tier:    observer
-
-# Admin groups for Oracle ASM
-  - name:         dba
-    gid:          "{{ dba_gid }}"
-    state:        present
-    tier:         ora
-    enabled:      true
-    node_tier:    oracle-asm
-
-  - name:         oper
-    gid:          "{{ oper_gid }}"
-    state:        present
-    tier:         ora
-    enabled:      true
-    node_tier:    oracle-asm
-
-  - name:         asmoper
-    gid:          "{{ asmoper_gid }}"
-    state:        present
-    tier:         ora
-    enabled:      true
-    node_tier:    oracle-asm
-
-  - name:         asmadmin
-    gid:          "{{ asmadmin_gid }}"
-    state:        present
-    tier:         ora
-    enabled:      true
-    node_tier:    oracle-asm
-
-  - name:         asmdba
-    gid:          "{{ asmdba_gid }}"
-    state:        present
-    tier:         ora
-    enabled:      true
-    node_tier:    oracle-asm
-
-  - name:         oinstall
-    gid:          "{{ oinstall_gid }}"
-    state:        present
-    tier:         ora
-    enabled:      true
-    node_tier:    oracle-asm
 
 # -------------------------------------+---------------------------------------8
 #
@@ -473,36 +429,6 @@ admin_users:
     node_tier:    oracle-multi-sid
     enabled:      true
 
-# Admin users for Oracle ASM
-
-  - name:         "ora{{ db_sid | lower }}"
-    comment:      "Oracle Database System Administrator"
-    uid:          "{{ orasid_uid }}"
-    group:        dba
-    groups:       ["oper","sapinst","oinstall","sapsys"]
-    sudoers_role: "admin_no_password"
-    password:     "{{ main_password }}"
-    shell:        /bin/csh
-    state:        present
-    tier:         ora
-    node_tier:    oracle-asm
-    enabled:      true
-
-  - name:         "oracle"
-    comment:      "Oracle Database software Administrator"
-    uid:          "{{ oracle_uid }}"
-    group:        oinstall
-    groups:       ["oper","sapsys","sapinst","asmdba","dba","asmadmin","asmoper","racdba"]
-    sudoers_role: "admin_no_password"
-    password:     "{{ main_password }}"
-    shell:        /bin/csh
-    state:        present
-    tier:         ora
-    node_tier:    oracle-asm
-    enabled:      true
-
-
-
   # Admin users for Oracle ASM
 
   - name:         "ora{{ sap_sid | lower }}"
@@ -546,7 +472,7 @@ admin_users:
     node_tier:    observer
     enabled:      true
 
-  
+
   - name:         "oracle"
     comment:      "Oracle Database software Administrator"
     uid:          "{{ oracle_uid }}"

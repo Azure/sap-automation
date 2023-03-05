@@ -27,19 +27,20 @@
 # Look for template in the storage account first
 #
 # -------------------------------------+---------------------------------------8
-
-- name:                                "3.3 BoM Processing: - Set Python version {{ distribution_id }}"
-  ansible.builtin.set_fact:
-    python_version:                    'python2'
-
-- name:                                "3.3 BoM Processing: - Set Python version {{ distribution_id }}"
-  ansible.builtin.set_fact:
-    python_version:                    'python3'
-  when:                                distribution_id in ['suse15', 'redhat8']
-
 #   0x) Create a directory for parameter files
+
+- name:                                "3.3.1 BoM Processing: - Set the new name"
+  ansible.builtin.set_fact:
+    new_bom_name:                      "{{ bom_base_name }}{{ bom_suffix }}"
+
+- name:                                "3.3.1 BoM Processing: - Show new name"
+  ansible.builtin.debug:
+    msg:
+      - "BoM Name:   {{ new_bom_name }}"
+
+
 - name:                                "3.3 BoM Processing: Create a directory"
-  win_file:
+  ansible.windows.win_file:
     path:                              "{{ param_directory }}"
     state:                             directory
 
@@ -53,10 +54,7 @@
   delegate_to:                         localhost
   become:                              "{{ bom_processing_become }}"
   register:                            result
-  vars:
-    ansible_python_interpreter:        "{{ python_version }}"
   when:
-    - distribution_id in ['suse15', 'redhat8']
     - not always_upload_jinja_templates
 
 - name:                                "3.3.1 BoM Processing: {{ bom_name }} Download: {{ sap_inifile_template }} from the storage account"
@@ -79,7 +77,7 @@
   block:
 
     - name:                            "Create ini file {{ sap_inifile }} from {{ sap_inifile_template }}"
-      win_template:
+      ansible.windows.win_template:
         src:                           "{{ download_directory }}/bom/{{ sap_inifile_template }}"
         dest:                          '{{ param_directory }}\{{ sap_inifile }}'
         force:                         true
@@ -103,7 +101,7 @@
       become:                          "{{ bom_processing_become }}"
 
     - name:                            "{{ task_prefix }} Create ini file {{ sap_inifile }}"
-      win_template:
+      ansible.windows.win_template:
         src:                           "{{ microsoft_supplied_bom_template.stat.path }}"
         dest:                          '{{ param_directory }}\{{ sap_inifile }}'
         force:                         true
@@ -126,7 +124,7 @@
           become:                      "{{ bom_processing_become }}"
 
         - name:                        "{{ task_prefix }} Create ini file {{ sap_inifile }}"
-          win_template:
+          ansible.windows.win_template:
             src:                       "{{ microsoft_supplied_bom_template.stat.path }}"
             dest:                      '{{ param_directory }}\{{ sap_inifile }}'
             force:                     true

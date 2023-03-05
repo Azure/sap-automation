@@ -123,7 +123,7 @@ resource "azurerm_lb_backend_address_pool" "scs" {
 
 resource "azurerm_lb_probe" "scs" {
   provider        = azurerm.main
-  count           = local.enable_scs_lb_deployment ? (local.scs_high_availability ? 2 : 1) : 0
+  count           = local.enable_scs_lb_deployment ? (var.application_tier.scs_high_availability ? 2 : 1) : 0
   loadbalancer_id = azurerm_lb.scs[0].id
   name = format("%s%s%s%s",
     var.naming.resource_prefixes[count.index == 0 ? "scs_alb_hp" : "scs_ers_hp"],
@@ -134,12 +134,12 @@ resource "azurerm_lb_probe" "scs" {
   port                = local.hp_ports[count.index]
   protocol            = "Tcp"
   interval_in_seconds = 5
-  number_of_probes    = local.scs_high_availability && upper(var.application_tier.scs_os.os_type) == "WINDOWS" ? 4 : 2
+  number_of_probes    = var.application_tier.scs_high_availability && upper(var.application_tier.scs_os.os_type) == "WINDOWS" ? 4 : 2
 }
 
 resource "azurerm_lb_probe" "clst" {
   provider        = azurerm.main
-  count           = local.scs_high_availability && upper(var.application_tier.scs_os.os_type) == "WINDOWS" ? 1 : 0
+  count           = var.application_tier.scs_high_availability && upper(var.application_tier.scs_os.os_type) == "WINDOWS" ? 1 : 0
   loadbalancer_id = azurerm_lb.scs[0].id
   name = format("%s%s%s%s",
     var.naming.resource_prefixes.scs_clst_hp,
@@ -150,12 +150,12 @@ resource "azurerm_lb_probe" "clst" {
   port                = local.hp_ports[count.index]
   protocol            = "Tcp"
   interval_in_seconds = 5
-  number_of_probes    = local.scs_high_availability && upper(var.application_tier.scs_os.os_type) == "WINDOWS" ? 4 : 2
+  number_of_probes    = var.application_tier.scs_high_availability && upper(var.application_tier.scs_os.os_type) == "WINDOWS" ? 4 : 2
 }
 
 resource "azurerm_lb_probe" "fs" {
   provider        = azurerm.main
-  count           = local.scs_high_availability && upper(var.application_tier.scs_os.os_type) == "WINDOWS" ? 1 : 0
+  count           = var.application_tier.scs_high_availability && upper(var.application_tier.scs_os.os_type) == "WINDOWS" ? 1 : 0
   loadbalancer_id = azurerm_lb.scs[0].id
   name = format("%s%s%s",
     local.prefix,
@@ -165,7 +165,7 @@ resource "azurerm_lb_probe" "fs" {
   port                = local.hp_ports[count.index]
   protocol            = "Tcp"
   interval_in_seconds = 5
-  number_of_probes    = local.scs_high_availability && upper(var.application_tier.scs_os.os_type) == "WINDOWS" ? 4 : 2
+  number_of_probes    = var.application_tier.scs_high_availability && upper(var.application_tier.scs_os.os_type) == "WINDOWS" ? 4 : 2
 }
 
 # Create the SCS Load Balancer Rules
@@ -198,7 +198,7 @@ resource "azurerm_lb_rule" "scs" {
 # Create the ERS Load balancer rules only in High Availability configurations
 resource "azurerm_lb_rule" "ers" {
   provider        = azurerm.main
-  count           = local.enable_scs_lb_deployment && local.scs_high_availability ? 1 : 0
+  count           = local.enable_scs_lb_deployment && var.application_tier.scs_high_availability ? 1 : 0
   loadbalancer_id = azurerm_lb.scs[0].id
   name = format("%s%s%s%s",
     var.naming.resource_prefixes.scs_ers_rule,
@@ -276,6 +276,7 @@ resource "azurerm_lb_rule" "fs" {
 #
 ##############################################################################################
 resource "azurerm_availability_set" "scs" {
+  provider        = azurerm.main
   count = local.enable_deployment && local.use_scs_avset ? (
     max(length(local.scs_zones), 1)) : (
     0
@@ -387,6 +388,7 @@ resource "azurerm_lb_backend_address_pool" "web" {
 }
 
 resource "azurerm_lb_probe" "web" {
+  provider        = azurerm.main
   count           = local.enable_web_lb_deployment ? 1 : 0
   loadbalancer_id = azurerm_lb.web[0].id
   name = format("%s%s%s%s",
@@ -438,6 +440,7 @@ resource "azurerm_network_interface_backend_address_pool_association" "web" {
 ##############################################################################################
 
 resource "azurerm_availability_set" "web" {
+  provider        = azurerm.main
   count = local.use_web_avset ? max(length(local.web_zones), 1) : 0
   name = format("%s%s%s",
     local.prefix, var.naming.separator,

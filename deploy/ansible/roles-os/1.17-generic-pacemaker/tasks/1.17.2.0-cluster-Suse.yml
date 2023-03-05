@@ -26,34 +26,35 @@
 
 - name:                                "1.17 Generic Pacemaker - Ensure Primary node initiates the Cluster"
   block:
-    # - name:                            "1.17 Generic Pacemaker - Ensure csync2 is configured"
-    #   ansible.builtin.command:         crm cluster init -y csync2 --interface eth0
+#    - name:                            "1.17 Generic Pacemaker - Ensure csync2 is configured"
+#      ansible.builtin.command:         crm cluster init -y csync2 --interface eth0
 
-    # - name:                            "1.17 Generic Pacemaker - Ensure corosync is configured"
-    #   ansible.builtin.command:         crm cluster init -y -u corosync --interface eth0
+    - name:                            "1.17 Generic Pacemaker - Ensure corosync is configured"
+      ansible.builtin.command:         crm cluster init -y -u corosync --interface eth0
 
     - name:                            "1.17 Generic Pacemaker - Ensure cluster (hdb_{{ db_sid | upper }}) is configured"
-      ansible.builtin.command:         "ha-cluster-init -y --name 'hdb_{{ db_sid | upper }}' --interface eth0 --no-overwrite-sshkey"
-      # ansible.builtin.command:         "crm cluster init -y cluster --name 'hdb_{{ db_sid | upper }}' --interface eth0"
+      # ha-cluster-init is not supported in SLES 15 SP4 anymore, crm syntax required
+      # ansible.builtin.command:       "ha-cluster-init -y --name 'hdb_{{ db_sid | upper }}' --interface eth0 --no-overwrite-sshkey"
+      ansible.builtin.command:         "crm cluster init -y --name 'hdb_{{ db_sid | upper }}' --interface eth0 --no-overwrite-sshkey"
       when:                            node_tier == 'hana'
 
     - name:                            "1.17 Generic Pacemaker - Ensure cluster (scs_{{ sap_sid | upper }}) is configured"
-      ansible.builtin.command:         "ha-cluster-init -y --name 'scs_{{ sap_sid | upper }}' --interface eth0 --no-overwrite-sshkey"
-      # ansible.builtin.command:         "crm cluster init -y cluster --name 'scs_{{ sap_sid | upper }}' --interface eth0"
+      ansible.builtin.command:         "crm cluster init -y --name 'scs_{{ sap_sid | upper }}' --interface eth0 --no-overwrite-sshkey"
       when:                            node_tier == 'scs'
 
     - name:                            "1.17 Generic Pacemaker - Ensure cluster (db2_{{ db_sid | upper }}) is configured"
-      ansible.builtin.command:         "ha-cluster-init -y --name 'db2_{{ db_sid | upper }}' --interface eth0 --no-overwrite-sshkey"
-      # ansible.builtin.command:         "crm cluster init -y cluster --name 'db2_{{ db_sid | upper }}' --interface eth0"
+      ansible.builtin.command:         "crm cluster init -y --name 'db2_{{ db_sid | upper }}' --interface eth0 --no-overwrite-sshkey"
       when:                            node_tier == 'db2'
   when:                                ansible_hostname == primary_instance_name
 
 - name:                                "1.17 Generic Pacemaker - Ensure Secondary node joins the Cluster"
   block:
+#    - name:                            Ensure the configuration files are synchronised
+#      ansible.builtin.command:         "crm cluster join -y -c {{ primary_instance_name }} csync2"
     - name:                            "1.17 Generic Pacemaker - Ensure Secondary node joins the Cluster"
-      ansible.builtin.command:         "ha-cluster-join  -y -c {{ primary_instance_name }} --interface eth0"
-      # ansible.builtin.command:         "sudo crm cluster join -y -c {{ primary_instance_name }} --interface eth0"
-
+      # ha-cluster-join is not supported in SLES 15 SP4 anymore, crm syntax required
+      # ansible.builtin.command:       "ha-cluster-join  -y -c {{ primary_instance_name }} --interface eth0"
+      ansible.builtin.command:         "sudo crm cluster join -y -c {{ primary_instance_name }} --interface eth0"
   when:
     - ansible_hostname == secondary_instance_name
 

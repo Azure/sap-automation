@@ -104,6 +104,7 @@
       become:                          true
       when:
         - platform != "ORACLE"
+        - platform != "ORACLE-ASM"
         - ansible_os_family != "Windows"
       block:
 
@@ -119,6 +120,7 @@
             main_password:              "{{ hostvars.localhost.sap_password }}"
             sapbits_location_base_path: "{{ hostvars.localhost.sapbits_location_base_path }}"
             sapbits_sas_token:          "{{ hostvars.localhost.sapbits_sas_token }}"
+            sa_enabled:                 true
           loop:                         "{{ all_sids }}"
           loop_control:
             loop_var:                  sid_to_be_deployed
@@ -128,7 +130,7 @@
     - name:                            Generic Users and Groups for SAP Installation for Oracle SCS High availability
       become:                          true
       when:
-        - platform == "ORACLE"
+        - platform in ['ORACLE', 'ORACLE-ASM']
         - scs_high_availability
       block:
         - name:                        Generic Users and Groups for SAP Installation for Oracle SCS High availability
@@ -235,42 +237,43 @@
                   loop_control:
                     loop_var:              sid_to_be_deployed
 
-                - name:                    "SCS Installation Playbook: - Ensure scs-install-done flag exists"
-                  delegate_to:             localhost
-                  become:                  false
+                - name:                "SCS Installation Playbook: - Ensure scs-install-done flag exists"
+                  delegate_to:         localhost
+                  become:              false
                   ansible.builtin.file:
-                    path:                  "{{ _workspace_directory }}/.progress/scs-install-done"
-                    state:                 touch
-                    mode:                  0755
+                    path:              "{{ _workspace_directory }}/.progress/scs-install-done"
+                    state:             touch
+                    mode:              0755
                   when:
                     - scs_already_installed is defined or (scs_installation.rc is defined and scs_installation.rc == 0)
 
               always:
-                - name:                    "SCS Installation Playbook: - Get the Error lines from installation output"
+                - name:                "SCS Installation Playbook: - Get the Error lines from installation output"
                   ansible.builtin.set_fact:
-                    error_lines:           "{{ error_lines | default([]) + [item] }}"
-                  with_items:              "{{ scs_installation.stdout_lines }}"
+                    error_lines:       "{{ error_lines | default([]) + [item] }}"
+                  with_items:          "{{ scs_installation.stdout_lines }}"
                   when:
                     - scs_installation.stdout_lines is defined
                     - '"ERROR" in item'
                     - scs_installation.rc > 0
 
-                - name:                    "SCS Installation Playbook: - Run post installation routines"
+                - name:                "SCS Installation Playbook: - Run post installation routines"
                   ansible.builtin.include_role:
-                    name:                  roles-sap/7.0.0-post-install
+                    name:              roles-sap/7.0.0-post-install
                   vars:
-                    suffix:                "_SCS"
-                    prefix:                "{{ bom.product_ids.scs.replace('.', '/').replace('/ABAP', '').split(':')[1] }}"
-                    path:                  'INSTALL/DISTRIBUTED/ABAP/ASCS'
-                    tier:                  'scs'
-                    this_sid:              "{{ sid_to_be_deployed.sid | upper }}"
-                  loop:                    "{{ all_sids }}"
-                  loop_control:
-                    loop_var:              sid_to_be_deployed
+                    suffix:            "_SCS"
+                    prefix:            "{{ bom.product_ids.scs.replace('.', '/').replace('/ABAP', '').split(':')[1] }}"
+                    path:              'INSTALL/DISTRIBUTED/{{ scs_bom_instance_type }}/{{ instance_type }}'
+                    tier:              'scs'
+                    this_sid:          "{{ sid_to_be_deployed.sid | upper }}"
 
-                - name:                    "SCS Installation Playbook: - Show errors from HANA installation"
+                  loop:                "{{ all_sids }}"
+                  loop_control:
+                    loop_var:          sid_to_be_deployed
+
+                - name:                "SCS Installation Playbook: - Show errors from HANA installation"
                   ansible.builtin.debug:
-                    msg:                   "{{ error_lines }}"
+                    msg:               "{{ error_lines }}"
                   when:
                     - error_lines is defined
 
@@ -337,6 +340,8 @@
                     removes:           '{{ log_dir_windows }}\sapinst_logs'
                   register:            sapinst_log_name
                   failed_when:         sapinst_log_name.rc > 0
+                  when:
+                    - ansible_os_family == "Windows"
               tags:
                 - 5.0.0-scs-install
 
@@ -356,6 +361,7 @@
   name:                                "SCS HA Install and Pacemaker Resources"
   remote_user:                         "{{ orchestration_ansible_user }}"
   gather_facts:                        true                                    # Important to collect hostvars information
+  # serial:                              1                                       # Run the playbook serially
   vars_files:
     - vars/ansible-input-api.yaml                                              # API Input template with defaults
 
@@ -386,6 +392,7 @@
             secondary_instance_name:    "{{ ansible_play_hosts_all[1] }}"         # Setting up Secondary Instance Name
             sapbits_location_base_path: "{{ hostvars.localhost.sapbits_location_base_path }}"
             sapbits_sas_token:          "{{ hostvars.localhost.sapbits_sas_token }}"
+            sa_enabled:                 true
             scs_virtual_hostname:       "{{ sap_sid | lower }}scs{{ scs_instance_number }}cl1"
             ecs_virtual_hostname:       "{{ sap_sid | lower }}ers{{ ers_instance_number }}cl2"
             fencing_spn_client_id:      "{% if not use_msi_for_clusters %}{{ hostvars.localhost.sap_fencing_spn_client_id }}{% endif %}"
@@ -498,8 +505,8 @@
                 name:                  roles-sap/7.0.0-post-install
               vars:
                 suffix:                "_SCS"
-                prefix:                "{{ scs_bom_id.replace('.', '/').replace('/ABAPHA', '').split(':')[1] }}"
-                path:                  'INSTALL/HA/ABAP/ASCS'
+                prefix:                "{{ scs_bom_id.replace('.', '/').replace('/ABAPHA', '').replace('/HA', '').split(':')[1] }}"
+                path:                  'INSTALL/HA/{{ scs_bom_instance_type }}/{{ instance_type }}'
                 tier:                  'scs'
                 this_sid:              "{{ sap_sid | upper }}"
               when:
@@ -511,8 +518,8 @@
                 name:                  roles-sap/7.0.0-post-install
               vars:
                 suffix:                "_ERS"
-                prefix:                "{{ ers_bom_id.replace('.', '/').replace('/ABAPHA', '').split(':')[1] }}"
-                path:                  'INSTALL/HA/ABAP/ERS'
+                prefix:                "{{ ers_bom_id.replace('.', '/').replace('/ABAPHA', '').replace('/HA', '').split(':')[1] }}"
+                path:                  'INSTALL/HA/{{ ers_bom_instance_type }}/ERS'
                 tier:                  'ers'
                 this_sid:              "{{ sap_sid | upper }}"
               when:

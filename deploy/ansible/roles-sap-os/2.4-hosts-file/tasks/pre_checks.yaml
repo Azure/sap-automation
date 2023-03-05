@@ -4,10 +4,6 @@
 #
 # Description:  Validation for Prerequisites
 #
-- name:                                Check required variables are present and not empty
-  ansible.builtin.debug:
-    msg:                               "{{ sap_fqdn | type_debug }}"
-
 # -------------------------------------+---------------------------------------8
 
 
@@ -18,6 +14,11 @@
       - "sap_fqdn | type_debug != 'NoneType'"    # and given a value
       - "sap_fqdn | string | length != 0 "       # Detect null values
     fail_msg:                          "Please define the sap_fqdn parameter"
+
+- name:                                Check required variables are present and not empty
+  ansible.builtin.debug:
+    msg:                               "SAP FQDN: {{ sap_fqdn }}"
+
 
 # -------------------------------------+---------------------------------------8
 

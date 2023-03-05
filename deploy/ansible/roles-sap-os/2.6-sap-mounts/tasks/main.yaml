@@ -10,6 +10,10 @@
     var:                               MULTI_SIDS
     verbosity:                         4
 
+- name:                                "2.6 SAP Mounts: - set run time facts"
+  ansible.builtin.include_tasks:
+    file:                              "2.6-set_runtime_facts.yaml"
+
 - name:                                "2.6 SAP Mounts: - Check if the shared disk exists"
   ansible.builtin.set_fact:
     shareddisk:                        "{{ disks | selectattr('host', 'defined') |
@@ -98,6 +102,15 @@
     - node_tier == 'hana'
     - (backupdisks_count | int) > 0
 
+- name:                                "2.6 SAP Mounts: - Mount local file systems (backup)"
+  ansible.builtin.file:
+    path:                              /hana/data/backup
+    state:                             directory
+    mode:                              0755
+  when:
+    - node_tier == 'hana'
+    - (backupdisks_count | int) == 0
+
 - name:                                "2.6 SAP Mounts: - Mount local file systems (hana data)"
   ansible.posix.mount:
     src:                               '/dev/vg_hana_data/lv_hana_data'
@@ -129,6 +142,10 @@
     - node_tier == 'scs'
     - MULTI_SIDS is defined
     - sap_trans is undefined
+
+- name:                                "2.6 SAP Mounts: - Debug"
+  ansible.builtin.debug:
+    var:                               usr_sap_install_mountpoint
 
 - name:                                "2.6 SAP Mounts: - Mount local install file system on SCS (when not using AFS)"
   ansible.posix.mount:
@@ -332,30 +349,29 @@
 - name:                                "2.6 SAP Mounts: - Set permissions"
   become:                               true
   become_user:                          root
-  when:
-    - node_tier == "hana"
+  when:                                 node_tier == "hana"
   block:
-    - name:                                "2.6 SAP Mounts: - Set permissions on hana folders"
+    - name:                            "2.6 SAP Mounts: - Set permissions on hana folders"
       ansible.builtin.file:
-        owner:                             "{{ db_sid | lower }}adm"
-        group:                             sapsys
-        state:                             directory
-        recurse:                           true
-        path:                              "{{ item.path }}"
-        mode:                              '{{ item.mode }}'
+        owner:                         "{{ db_sid | lower }}adm"
+        group:                         sapsys
+        state:                         directory
+        recurse:                       true
+        path:                          "{{ item.path }}"
+        mode:                          '{{ item.mode }}'
       loop:
         - { mode: '0755', path: '/hana/data' }
         - { mode: '0755', path: '/hana/log' }
         - { mode: '0755', path: '/hana/shared' }
   rescue:
-    - name:                                "2.6 SAP Mounts: - Set permissions on hana folders"
+    - name:                            "2.6 SAP Mounts: - Set permissions on hana folders"
       ansible.builtin.file:
-        owner:                             '{{ hdbadm_uid }}'
-        group:                             sapsys
-        state:                             directory
-        recurse:                           true
-        path:                              "{{ item.path }}"
-        mode:                              '{{ item.mode }}'
+        owner:                         '{{ hdbadm_uid }}'
+        group:                         sapsys
+        state:                         directory
+        recurse:                       true
+        path:                          "{{ item.path }}"
+        mode:                          '{{ item.mode }}'
       loop:
         - { mode: '0755', path: '/hana/data' }
         - { mode: '0755', path: '/hana/log' }

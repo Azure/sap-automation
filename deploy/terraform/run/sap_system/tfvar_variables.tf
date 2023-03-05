@@ -291,7 +291,7 @@ variable "use_spn" {
 #########################################################################################
 
 variable "database_platform" {
-  description = "Database platform, supported values are HANA, DB2, ORACLE, ASE, SQLSERVER or NONE (in this case no database tier is deployed)"
+  description = "Database platform, supported values are HANA, DB2, ORACLE, ORACLE-ASM, ASE, SQLSERVER or NONE (in this case no database tier is deployed)"
   default     = ""
 }
 
@@ -553,6 +553,16 @@ variable "scs_server_no_ppg" {
   default     = false
 }
 
+variable "scs_shared_disk_size" {
+  description = "The size of the shared disk for the SAP Central Services Windows cluster"
+  default     = 128
+}
+
+variable "scs_shared_disk_lun" {
+  description = "The LUN of the shared disk for the SAP Central Services Windows cluster"
+  default     = 5
+}
+
 #########################################################################################
 #                                                                                       #
 #  Application Server variables                                                         #
@@ -562,6 +572,11 @@ variable "scs_server_no_ppg" {
 variable "application_server_count" {
   description = "The number of application servers"
   default     = 0
+}
+
+variable "pas_instance_number" {
+  description = "The Instance number for PAS"
+  default     = "00"
 }
 
 variable "application_server_app_nic_ips" {
@@ -732,14 +747,14 @@ variable "idle_timeout_scs_ers" {
 }
 
 variable "bom_name" {
-  description = "NAme of the SAP Application Bill of Material file"
+  description = "Name of the SAP Application Bill of Material file"
   default     = ""
 }
 
 variable "Agent_IP" {
   description = "If provided, contains the IP address of the agent"
-  type    = string
-  default = ""
+  type        = string
+  default     = ""
 }
 
 variable "shared_home" {
@@ -923,6 +938,11 @@ variable "use_service_endpoint" {
   type        = bool
 }
 
+variable "ANF_sapmnt_use_existing" {
+  description = "Use existing sapmnt volume"
+  default     = false
+}
+
 variable "ANF_sapmnt" {
   description = "Use existing sapmnt volume"
   default     = false
@@ -1001,4 +1021,15 @@ variable "anchor_vm_accelerated_networking" {
 variable "subscription" {
   description = "Target subscription"
   default     = ""
+}
+
+#########################################################################################
+#                                                                                       #
+#  Configuration values                                                                 #
+#                                                                                       #
+#########################################################################################
+
+variable "configuration_settings" {
+  description = "This is a dictionary that will contain values persisted to the sap-parameters.file"
+  default     = {}
 }

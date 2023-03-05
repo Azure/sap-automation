@@ -594,6 +594,8 @@ if [ 0 == $return_value ] ; then
         save_config_var "keyvault" "${system_config_information}"
         if [ 1 == $called_from_ado ] ; then
 
+            
+
             if [[ "${TF_VAR_use_webapp}" == "true" && $IS_PIPELINE_DEPLOYMENT = "true" ]]; then
                 webapp_url_base=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_url_base | tr -d \")
 
@@ -643,6 +645,19 @@ if [ 0 == $return_value ] ; then
           REMOTE_STATE_SA=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw remote_state_storage_account_name| tr -d \")
 
           get_and_store_sa_details "${REMOTE_STATE_SA}" "${system_config_information}"
+
+          SAPBITS=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw sapbits_storage_account_name| tr -d \")
+
+          if [ -n "${SAPBITS}" ] ; then
+            az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "INSTALLATION_MEDIA_ACCOUNT.value")
+            if [ -z ${az_var} ]; then
+              az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name INSTALLATION_MEDIA_ACCOUNT --value $SAPBITS --output none --only-show-errors
+            else
+              az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name INSTALLATION_MEDIA_ACCOUNT --value $SAPBITS --output none --only-show-errors
+            fi
+          fi
+
+
       fi
     fi
 
@@ -817,6 +832,20 @@ if [ -n "${test}" ] ; then
     fatal_errors=1
 fi
 
+echo "TEST_ONLY: " $TEST_ONLY
+if [ "${TEST_ONLY}" == "True" ]; then
+    echo ""
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo -e "#                                 $cyan Running plan only. $resetformatting                                  #"
+    echo "#                                                                                       #"
+    echo "#                                  No deployment performed.                             #"
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
+    echo ""
+    exit 0
+fi
+
 ok_to_proceed=1
 
 if [ $fatal_errors == 1 ] ; then
@@ -965,6 +994,7 @@ if [ 1 == $ok_to_proceed ]; then
         echo ""
         echo ""
         if [ 1 == $called_from_ado ] ; then
+            echo $TEST_ONLY
             terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -compact-warnings $allParams
         else
             terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" $allParams
@@ -996,6 +1026,8 @@ then
     az deployment group create --resource-group ${created_resource_group_name} --name "ControlPlane_Deployer_${created_resource_group_name}" --template-file "${script_directory}/templates/empty-deployment.json" --output none
     if [ 1 == $called_from_ado ] ; then
 
+        terraform -chdir="${terraform_module_directory}" output -json -no-color deployer_uai
+        
         if [ -n "${created_resource_group_name}" ] ; then
             az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "WEBAPP_RESOURCE_GROUP.value")
             if [ -z ${az_var} ]; then
@@ -1093,6 +1125,8 @@ then
     #         terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" $allParams  2>error.log
     #     fi
     # fi
+
+    az login --service-principal --username $ARM_CLIENT_ID --password=$ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID  --output none
 
     rg_name=$(terraform -chdir="${terraform_module_directory}"  output -no-color -raw created_resource_group_name | tr -d \")
 

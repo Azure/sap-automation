@@ -74,6 +74,22 @@ logical_volumes:
     size:       '100%FREE'
     fstype:     'xfs'
 
+logical_volumes_sapmnt:
+  - tier:       'sapos'
+    node_tier:  'scs'
+    vg:         'vg_sap'
+    lv:         'lv_sapmnt'
+    size:       '32g'
+    fstype:     'xfs'
+
+logical_volumes_install:
+  - tier:       'sapos'
+    node_tier:  'scs'
+    vg:         'vg_sap'
+    lv:         'lv_usrsapinstall'
+    size:       '100%FREE'
+    fstype:     'xfs'
+
 
 # Define a dynamic expression based upon the 'item' fact that can
 # only be used within a loop, that determines the number of PVs

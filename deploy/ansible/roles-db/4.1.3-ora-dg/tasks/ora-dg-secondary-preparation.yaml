@@ -61,8 +61,6 @@
     creates:                           /etc/sap_deployment_automation/dgscripts/createpfile.txt
     chdir:                             /etc/sap_deployment_automation/dgscripts
     executable:                        /bin/csh
-  tags:
-    - skip_ansible_lint
   # when:  current_host == ora_primary
 
 - name:                                "Oracle Data Guard - Preparation (Secondary): Create createpfile.txt"
@@ -90,8 +88,6 @@
     force:                             true
     mode:                              "{{ '0777' | int - (custom_umask | default('022') | int) }}"
   # when: current_host == ora_primary
-  tags:
-    - skip_ansible_lint
 
 - name:                                "Oracle Data Guard - Preparation (Secondary): Copy orapwSID to templocation"
   become:                              true
@@ -105,8 +101,6 @@
     group:                             dba
     mode:                              "{{ '0777' | int - (custom_umask | default('022') | int) }}"
   # when: current_host == ora_primary
-  tags:
-    - skip_ansible_lint
 
 # - name:                                "Oracle Data Guard - Preparation (Secondary)Copy dbs folder to templocation"
 #   become:                              true
@@ -118,8 +112,6 @@
 #     creates:                           /etc/sap_deployment_automation/dgscripts/dbscopied.txt
 #     chdir:                             /oracle/{{ db_sid | upper }}/{{ ora_release }}/dbs
 #     executable:                        /bin/csh
-#   tags:
-#     - skip_ansible_lint
 
 - name:                                "Oracle Data Guard - Preparation (Secondary)Copy dbs folder to templocation"
   become:                              true
@@ -132,8 +124,6 @@
     group:                             oinstall
     force:                             true
     mode:                              "{{ '0777' | int - (custom_umask | default('022') | int) }}"
-
-
 
 - name:                                "Oracle Data Guard - Preparation (Secondary): Create dbscopied.txt"
   become:                              true

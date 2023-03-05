@@ -29,6 +29,13 @@
         path:                          "{{ _workspace_directory }}/.progress/sap-os-configuration-done"
         state:                          absent
 
+    - name:                            Include 0.3.sap-installation-media-storage-details role
+      ansible.builtin.include_role:
+        name:                          roles-misc/0.3.sap-installation-media-storage-details
+        public:                        true
+      vars:
+        tier:                          bom_download
+
     - name:                            "SAP OS configuration playbook: - Read password"
       ansible.builtin.include_role:
         name:                          roles-misc/0.1-passwords
@@ -73,6 +80,9 @@
         - name:                        "SAP OS configuration playbook: - Set sapos fact"
           ansible.builtin.set_fact:
             tier:                      sapos                                     # Actions for HANA DB Serve
+            sapbits_location_base_path: "{{ hostvars.localhost.sapbits_location_base_path }}"
+            sapbits_sas_token:          "{{ hostvars.localhost.sapbits_sas_token }}"
+            sa_enabled:                true
           tags:
             - always
 
@@ -103,7 +113,7 @@
         - name:                        "SAP OS configuration playbook: - Configure volume groups, logical volumes and file systems"
           ansible.builtin.include_role:
             name:                      roles-os/1.5-disk-setup
-          when:                        node_tier not in ["oracle-multi-sid","oracle-asm"]
+          when:                        node_tier not in ["oracle-multi-sid", "oracle-asm"]
           tags:
             - 1.5-disk-setup
 

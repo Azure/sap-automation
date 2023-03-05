@@ -78,7 +78,7 @@
     - name:                            Run the APP installation Playbook
       become:                          true
       when:
-        - platform != 'ORACLE'
+        - platform not in [ "ORACLE", "ORACLE-ASM" ]
         - ansible_os_family != "Windows"
       block:
         - name:                            "APP Installation Playbook: Define this SID"
@@ -144,6 +144,7 @@
         sapbits_sas_token:             "{{ hostvars.localhost.sapbits_sas_token }}"
         app_file_path:                 INSTALL/AS/APPS/
         always_upload_jinja_templates: false
+        sa_enabled:                    true
 
     - name:                            "APP Installation Playbook: Define this SID"
       ansible.builtin.set_fact:
@@ -281,6 +282,8 @@
                 removes:               '{{ log_dir_windows }}\sapinst_logs'
               register:                sapinst_log_name
               failed_when:             sapinst_log_name.rc > 0
+              when:
+                - ansible_os_family == "Windows"
 
             - name:                    "APP Playbook - Install: - Create app-install-done flag"
               delegate_to:             localhost

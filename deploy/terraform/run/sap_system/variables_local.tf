@@ -83,7 +83,7 @@ locals {
     usr_sap_volume_throughput   = var.ANF_usr_sap_throughput
 
     sapmnt_volume_size         = var.sapmnt_volume_size
-    use_existing_sapmnt_volume = var.ANF_sapmnt
+    use_existing_sapmnt_volume = var.ANF_sapmnt_use_existing
     sapmnt_volume_name         = var.ANF_sapmnt_volume_name
     sapmnt_volume_throughput   = var.ANF_sapmnt_volume_throughput
 

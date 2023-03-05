@@ -6,4 +6,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: ansible/ansible-lint-action@v6.8.2
+      - uses: ansible/ansible-lint-action@v6.11.0
+        with:
+          path: deploy/ansible

@@ -51,8 +51,6 @@
     group:                             oinstall
     recurse:                           true
   when:                                not oracle_permissions.stat.exists
-  tags:
-    - skip_ansible_lint
 
 - name:                                Create oracleowner.txt
   become:                              true
@@ -93,8 +91,6 @@
         chdir:                         "{{ target_media_location }}/oraserver/LINUX_X86_64/db_home/SAP"
         creates:                       "/etc/sap_deployment_automation/{{ sap_sid | upper }}/oracle_pre_check_install.txt"
         executable:                    /bin/csh
-      tags:
-        - skip_ansible_lint
 
     # Debug for testing
     - name:                            "ORACLE: Debug: installer prechecks output"
@@ -137,8 +133,6 @@
         executable:                    /bin/csh
         chdir:                         "{{ target_media_location }}/oraserver/LINUX_X86_64/db_home/SAP"
         creates:                       "/etc/sap_deployment_automation/{{ sap_sid | upper }}/oracle_installed.txt"
-      tags:
-        - skip_ansible_lint
 
     - name:                            "ORACLE: Debug: installer output"
       ansible.builtin.debug:
@@ -175,8 +169,6 @@
       args:
         creates:                       "/etc/sap_deployment_automation/{{ sap_sid | upper }}/orainstRoot_executed.txt"
         executable:                    /bin/csh
-      tags:
-        - skip_ansible_lint
 
     - name:                            "ORACLE: Debug: orainstRoot output"
       ansible.builtin.debug:
@@ -204,8 +196,6 @@
       args:
         creates:                       "/etc/sap_deployment_automation/{{ sap_sid | upper }}/rootscripts_executed.txt"
         executable:                    /bin/csh
-      tags:
-        - skip_ansible_lint
 
     - name:                            "ORACLE: Debug: rootscript output"
       ansible.builtin.debug:
@@ -231,8 +221,6 @@
         state:                         file
         owner:                         oracle
         mode:                          '6751'
-      tags:
-        - skip_ansible_lint
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
@@ -397,12 +385,12 @@
 
     - name:                            "ORACLE: backup MOPatch"
       ansible.builtin.copy:
-            src:                           /oracle/GRID/{{ ora_version }}/MOPatch
-            dest:                          /oracle/GRID/{{ ora_version }}/MOPatch.bck
-            remote_src:                    true
-            mode:                          '0755'
-            owner:                         oracle
-            group:                         oinstall
+        src:                           /oracle/GRID/{{ ora_version }}/MOPatch
+        dest:                          /oracle/GRID/{{ ora_version }}/MOPatch.bck
+        remote_src:                    true
+        mode:                          '0755'
+        owner:                         oracle
+        group:                         oinstall
       when:
         - mopatchgrid_stat.stat.exists
 
@@ -426,7 +414,7 @@
         owner:                         oracle
         group:                         oinstall
 
-    #Backup the existing Opatch and then copy the new Opatch from the downloads folder
+    # Backup the existing Opatch and then copy the new Opatch from the downloads folder
 
     - name:                            "ORACLE: Check if 'OPatch.bck' exists for GRID"
       ansible.builtin.stat:
@@ -435,12 +423,12 @@
 
     - name:                            "ORACLE: backup OPatch"
       ansible.builtin.copy:
-            src:                           /oracle/GRID/{{ ora_version }}/OPatch
-            dest:                          /oracle/GRID/{{ ora_version }}/OPatch.bck
-            remote_src:                    true
-            mode:                          '0755'
-            owner:                         oracle
-            group:                         oinstall
+        src:                           /oracle/GRID/{{ ora_version }}/OPatch
+        dest:                          /oracle/GRID/{{ ora_version }}/OPatch.bck
+        remote_src:                    true
+        mode:                          '0755'
+        owner:                         oracle
+        group:                         oinstall
       when:
         - not opatchgrid_stat.stat.exists
 
@@ -479,18 +467,17 @@
         mode:                              '0755'
       when:                                gridpreinstall.rc == 0
 
-
-    #STEP 4.2.2 SBP Patching for Oracle GRID.
+    # STEP 4.2.2 SBP Patching for Oracle GRID.
     - name:                            "ORACLE: Post Processing - GRID SBP Patching"
       become:                          true
       become_user:                     "oracle"
       ansible.builtin.shell:            $OHGRID/MOPatch/mopatch.sh -v -s {{ oraclegrid_sbp_patch }}
       environment:
         OHGRID:                         /oracle/GRID/{{ ora_version }}
-        #ORACLE_BASE:                    /oracle/GRID/
+        # ORACLE_BASE:                    /oracle/GRID/
         ORACLE_HOME:                    /oracle/GRID/{{ ora_version }}
-        #IHRDBMS:                        /oracle/{{ db_sid | upper}}/{{ ora_release }}
-        #ORACLE_SID:                     "{{ db_sid | upper}}"
+        # IHRDBMS:                        /oracle/{{ db_sid | upper}}/{{ ora_release }}
+        # ORACLE_SID:                     "{{ db_sid | upper}}"
       register:                         gridsbpscript_results
       failed_when:                      gridsbpscript_results.rc >= 2
       args:
@@ -516,8 +503,8 @@
         state:                             touch
         mode:                               '0755'
 
-    #STEP 4.2.3 Post-Processing SBP Patching for Oracle GRID.
-    #SAP Note 2893317 - ORA-12547:  TNS:lost contact during SWPM system copy import -NetWeaver
+    # STEP 4.2.3 Post-Processing SBP Patching for Oracle GRID.
+    # SAP Note 2893317 - ORA-12547:  TNS:lost contact during SWPM system copy import -NetWeaver
     # Run the post install script for GRID SBP patching to start the Oracle Cluster service manager, ASMCA and relevant toolset.
 
     - name:                                "SAP Oracle DB ASM: Oracle Post Processing - GRID SBP GRID Patching Post-Processing"
@@ -538,7 +525,7 @@
         path:                             /etc/sap_deployment_automation/{{ sap_sid | upper }}/sbp-grid-postprocess.txt
         state:                            touch
         mode:                             '0755'
-      #when:                               sbppostpro_results.rc >= 2
+      # when:                               sbppostpro_results.rc >= 2
 
     - name:                            "ORACLE: Create sbp_installed.txt"
       ansible.builtin.file:
@@ -554,8 +541,6 @@
         owner:                         oracle
         group:                         oinstall
         mode:                          '6751'
-      tags:
-        - skip_ansible_lint
 
     - name:                            "ORACLE: environment variables to the Bash profile"
       become:                          true
@@ -592,9 +577,6 @@
             setenv  DB_SID {{ db_sid }}
             set path = ($path $ORACLE_HOME/bin)
         mode:                              '0755'
-
-
-
 
   when:
     - not oracle_installed.stat.exists

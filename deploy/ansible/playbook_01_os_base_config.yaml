@@ -194,6 +194,12 @@
           tags:
             - 1.1-swap
 
+        - name:                        "OS configuration playbook: - Memory Dump"
+          ansible.builtin.include_role:
+            name:                      roles-os/windows/1.2-memory-dump
+          tags:
+            - 1.2-memory-dump
+
         - name:                        "OS configuration playbook: - Configure Disks"
           ansible.builtin.include_role:
             name:                      roles-os/windows/1.5-disk-setup
@@ -202,20 +208,21 @@
 
         - name:                        "OS configuration playbook: - Disable the Firewall"
           ansible.builtin.include_role:
-            name:                      roles-os/windows/1.17-firewall
+            name:                      roles-os/windows/1.10-firewall
           tags:
-            - 1.17-firewall
+            - 1.10-firewall
 
         - name:                        "OS configuration playbook: - Join Domain"
           ansible.builtin.include_role:
-            name: roles-sap-os/windows/2.4-sap-domain-join
+            name: roles-os/windows/1.11-domain-join
           vars:
             winadm_password:           "{{ hostvars.localhost.winadm_password }}"
             domain_service_password:   "{{ hostvars.localhost.adsvc_password }}"
             domain_service_account:    "{{ hostvars.localhost.adsvc_account }}"
 
           tags:
-            - 2.4-sap-domain-join
+            - 1.11-domain-join
+
       when:
         - ansible_os_family == "Windows"
 
@@ -227,7 +234,6 @@
 
   tasks:
     - name:                            "OS configuration playbook: - Create os-configuration-done flag"
-      become: true
       ansible.builtin.file:
         path: "{{ _workspace_directory }}/.progress/os-configuration-done"
         state: touch

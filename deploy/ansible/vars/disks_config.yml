@@ -87,7 +87,7 @@ logical_volumes:
     node_tier:  'all'
     vg:         'vg_sap'
     lv:         'lv_usrsap'
-    size:       "{% if sap_mnt is defined %}100%FREE{% else %}32g{% endif %}"
+    size:       "{% if sap_mnt is defined and usr_sap_install_mountpoint is defined %}100%FREE{% elif sap_mnt is defined %}50%FREE{% else %}32g{% endif %}"
     fstype:     'xfs'
   # ---------------------- End - disks required for usrsap --------------------8
 
@@ -331,7 +331,7 @@ logical_volumes:
     lv:         'lv_oracle'
     size:       '100%FREE'
     fstype:     'xfs'
-  
+
   - tier:       'sapos'
     node_tier:  'oracle-asm'
     vg:         'vg_sap'

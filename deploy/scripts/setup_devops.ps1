@@ -229,7 +229,7 @@ if ($confirmation -ne 'y') {
     Add-Content -Path $templatename "    - repository: sap-automation"
     Add-Content -Path $templatename "      type: git"
     Add-Content -Path $templatename "      name: $ADO_Project/sap-automation"
-    Add-Content -Path $templatename "      ref: refs/heads/experimental"
+    Add-Content -Path $templatename "      ref: refs/tags/v3.7.0.0"
 
     $cont = Get-Content -Path $templatename -Raw
 
@@ -277,7 +277,7 @@ if ($confirmation -ne 'y') {
     Add-Content -Path $templatename "    - repository: sap-automation"
     Add-Content -Path $templatename "      type: git"
     Add-Content -Path $templatename "      name: $ADO_Project/sap-automation"
-    Add-Content -Path $templatename "      ref: refs/heads/experimental"
+    Add-Content -Path $templatename "      ref: refs/tags/v3.7.0.0"
     Add-Content -Path $templatename "    - repository: sap-samples"
     Add-Content -Path $templatename "      type: git"
     Add-Content -Path $templatename "      name: $ADO_Project/sap-samples"
@@ -363,7 +363,7 @@ else {
   Add-Content -Path $templatename "      type: GitHub"
   Add-Content -Path $templatename -Value ("      endpoint: " + $ghConn)
   Add-Content -Path $templatename "      name: Azure/sap-automation"
-  Add-Content -Path $templatename "      ref: refs/heads/experimental"
+  Add-Content -Path $templatename "      ref: refs/heads/main"
 
   $cont = Get-Content -Path $templatename -Raw
 
@@ -412,7 +412,7 @@ else {
   Add-Content -Path $templatename "     type: GitHub"
   Add-Content -Path $templatename -Value ("     endpoint: " + $ghConn)
   Add-Content -Path $templatename "     name: Azure/sap-automation"
-  Add-Content -Path $templatename "     ref: refs/heads/experimental"
+  Add-Content -Path $templatename "     ref: refs/heads/main"
   Add-Content -Path $templatename "   - repository: sap-samples"
   Add-Content -Path $templatename "     type: GitHub"
   Add-Content -Path $templatename -Value ("     endpoint: " + $ghConn)
@@ -650,6 +650,21 @@ if ($import_code) {
 }
 
 
+$pipeline_name = 'Update Pipelines'
+$pipeline_id = (az pipelines list --query "[?name=='$pipeline_name'].id | [0]")
+if ($pipeline_id.Length -eq 0) {
+  az pipelines create --name $pipeline_name --branch main --description 'Updates the pipelines' --skip-run --yaml-path "/pipelines/21-update-pipelines.yml" --repository $repo_id --repository-type tfsgit --output none --only-show-errors
+}
+$pipeline_id = (az pipelines list --query "[?name=='$pipeline_name'].id | [0]")
+$this_pipeline_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) + "/_build?definitionId=" + $pipeline_id
+$log = ("[" + $pipeline_name + "](" + $this_pipeline_url + ")")
+Add-Content -Path $fname -Value $log
+$bodyText.pipelines += @{
+  id         = $pipeline_id
+  authorized = $true
+}
+
+
 #endregion
 
 Add-Content -Path $fname -Value ""
@@ -668,11 +683,11 @@ Add-Content -Path $fname -Value ("Web Application:" + $ApplicationName)
 #region App registration
 Write-Host "Creating the App registration in Azure Active Directory" -ForegroundColor Green
 
-$found_appRegistration = (az ad app list --show-mine --query "[?displayName=='$ApplicationName'].displayName | [0]" --only-show-errors)
+$found_appRegistration = (az ad app list --all --query "[?displayName=='$ApplicationName'].displayName | [0]" --only-show-errors)
 
 if ($found_appRegistration.Length -ne 0) {
   Write-Host "Found an existing App Registration:" $ApplicationName
-  $ExistingData = (az ad app list --show-mine --query "[?displayName=='$ApplicationName']| [0]" --only-show-errors) | ConvertFrom-Json
+  $ExistingData = (az ad app list --all --query "[?displayName=='$ApplicationName']| [0]" --only-show-errors) | ConvertFrom-Json
 
   $APP_REGISTRATION_ID = $ExistingData.appId
 
@@ -714,10 +729,10 @@ $CP_ARM_CLIENT_SECRET = "Please update"
 
 $SPN_Created = $false
 
-$found_appName = (az ad sp list --show-mine --query "[?displayName=='$spn_name'].displayName | [0]" --only-show-errors)
+$found_appName = (az ad sp list --all --query "[?displayName=='$spn_name'].displayName | [0]" --only-show-errors)
 if ($found_appName.Length -gt 0) {
   Write-Host "Found an existing Service Principal:" $spn_name
-  $ExistingData = (az ad sp list --show-mine --query "[?displayName=='$spn_name']| [0]" --only-show-errors) | ConvertFrom-Json
+  $ExistingData = (az ad sp list --all --query "[?displayName=='$spn_name']| [0]" --only-show-errors) | ConvertFrom-Json
   Write-Host "Updating the variable group"
 
   $CP_ARM_CLIENT_ID = $ExistingData.appId
@@ -736,7 +751,7 @@ else {
   $SPN_Created = $true
   $Control_plane_SPN_data = (az ad sp create-for-rbac --role "Contributor" --scopes $scopes --name $spn_name --only-show-errors) | ConvertFrom-Json
   $CP_ARM_CLIENT_SECRET = $Control_plane_SPN_data.password
-  $ExistingData = (az ad sp list --show-mine --query "[?displayName=='$spn_name'] | [0]" --only-show-errors) | ConvertFrom-Json
+  $ExistingData = (az ad sp list --all --query "[?displayName=='$spn_name'] | [0]" --only-show-errors) | ConvertFrom-Json
   $CP_ARM_CLIENT_ID = $ExistingData.appId
   $CP_ARM_TENANT_ID = $ExistingData.appOwnerOrganizationId
   $CP_ARM_OBJECT_ID = $ExistingData.Id
@@ -804,11 +819,11 @@ if ($Env:SDAF_WorkloadZone_SPN_NAME.Length -ne 0) {
 }
 
 $SPN_Created = $false
-$found_appName = (az ad sp list --show-mine --query "[?displayName=='$workload_zone_spn_name'].displayName | [0]" --only-show-errors)
+$found_appName = (az ad sp list --all --query "[?displayName=='$workload_zone_spn_name'].displayName | [0]" --only-show-errors)
 
 if ($found_appName.Length -ne 0) {
   Write-Host "Found an existing Service Principal:" $workload_zone_spn_name -ForegroundColor Green
-  $ExistingData = (az ad sp list --show-mine --query "[?displayName=='$workload_zone_spn_name'] | [0]" --only-show-errors) | ConvertFrom-Json
+  $ExistingData = (az ad sp list --all --query "[?displayName=='$workload_zone_spn_name'] | [0]" --only-show-errors) | ConvertFrom-Json
   $ARM_CLIENT_ID = $ExistingData.appId
   $ARM_TENANT_ID = $ExistingData.appOwnerOrganizationId
   $ARM_OBJECT_ID = $ExistingData.Id
@@ -823,7 +838,7 @@ else {
   $SPN_Created = $true
   $Data = (az ad sp create-for-rbac --role="Contributor" --scopes=$workload_zone_scopes --name=$workload_zone_spn_name --only-show-errors) | ConvertFrom-Json
   $ARM_CLIENT_SECRET = $Data.password
-  $ExistingData = (az ad sp list --show-mine --query "[?displayName=='$workload_zone_spn_name'] | [0]" --only-show-errors) | ConvertFrom-Json
+  $ExistingData = (az ad sp list --all --query "[?displayName=='$workload_zone_spn_name'] | [0]" --only-show-errors) | ConvertFrom-Json
   $ARM_CLIENT_ID = $ExistingData.appId
   $ARM_TENANT_ID = $ExistingData.appOwnerOrganizationId
   $ARM_OBJECT_ID = $ExistingData.Id
