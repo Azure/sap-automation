@@ -339,14 +339,12 @@ resource "azurerm_key_vault_access_policy" "kv_user_systemidentity" {
 
 resource "azurerm_key_vault_access_policy" "kv_user_pre_deployer" {
   provider = azurerm.main
-  count    = var.key_vault.kv_exists ? 0 : 1
+  count    = var.key_vault.kv_exists && length(var.spn_id) ? 0 : 1
 
   key_vault_id = azurerm_key_vault.kv_user[0].id
   tenant_id    = azurerm_user_assigned_identity.deployer.tenant_id
   # If running as a normal user use the object ID of the user otherwise use the object_id from AAD
   object_id = coalesce(var.spn_id,
-    data.azurerm_client_config.deployer.object_id,
-    data.azurerm_client_config.deployer.client_id,
     var.arm_client_id
   )
   #application_id = data.azurerm_client_config.deployer.client_id
