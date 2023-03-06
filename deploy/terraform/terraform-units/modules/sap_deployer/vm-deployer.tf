@@ -182,7 +182,7 @@ resource "azurerm_linux_virtual_machine" "deployer" {
 # // Add role to be able to deploy resources
 resource "azurerm_role_assignment" "subscription_contributor_system_identity" {
   provider             = azurerm.main
-  count                = var.assign_subscription_permissions ? var.deployer_vm_count : 0
+  count                = var.assign_subscription_permissions && var.deployer.add_system_assigned_identity ? var.deployer_vm_count : 0
   scope                = data.azurerm_subscription.primary.id
   role_definition_name = "Reader"
   principal_id         = azurerm_linux_virtual_machine.deployer[count.index].identity[0].principal_id
