@@ -837,8 +837,6 @@ variable "use_random_id_for_storageaccounts" {
   default     = false
 }
 
-random_id" "random_id
-
 variable "sapmnt_private_endpoint_id" {
   description = "Azure Resource Identifier for an private endpoint connection"
   type        = string
