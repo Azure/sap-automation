@@ -249,3 +249,16 @@ output "install_path" {
   value       = module.sap_landscape.install_path
 }
 
+
+###############################################################################
+#                                                                             #
+#                            Control Plane                                    #
+#                                                                             #
+###############################################################################
+
+
+output "controlplane_environment" {
+  description = "Control plane environment"
+  value       = data.terraform_remote_state.deployer[0].outputs.environment
+}
+
