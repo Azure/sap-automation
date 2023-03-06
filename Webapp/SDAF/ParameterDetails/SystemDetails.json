@@ -1546,6 +1546,15 @@
         "Display": 3
       },
       {
+        "Name": "use_random_id_for_storageaccounts",
+        "Required": false,
+        "Description": "Defines if the sapmnt storage account name will have a random suffix. (this decreases the risk of name conflicts)",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
         "Name": "sapmnt_private_endpoint_id",
         "Required": false,
         "Description": "Azure Resource Identifier for an private endpoint connection for the sapmnt storage account",

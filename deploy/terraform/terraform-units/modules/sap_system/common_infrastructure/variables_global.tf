@@ -192,6 +192,10 @@ variable "azure_files_sapmnt_id" {
 }
 
 
+variable "use_random_id_for_storageaccounts" {
+  description = "If true, will use random id for storage accounts"
+}
+
 variable "Agent_IP" {
   description = "If provided, contains the IP address of the agent"
   type        = string

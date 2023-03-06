@@ -832,6 +832,13 @@ variable "azure_files_sapmnt_id" {
   default     = ""
 }
 
+variable "use_random_id_for_storageaccounts" {
+  description = "If true, will use random id for storage accounts"
+  default     = false
+}
+
+random_id" "random_id
+
 variable "sapmnt_private_endpoint_id" {
   description = "Azure Resource Identifier for an private endpoint connection"
   type        = string

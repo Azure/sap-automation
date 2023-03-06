@@ -333,6 +333,8 @@ namespace AutomationForm.Models
 
         public string azure_files_sapmnt_id { get; set; }
 
+        public bool? use_random_id_for_storageaccounts  { get; set; } = true;
+
         [PrivateEndpointIdValidator]
         public string sapmnt_private_endpoint_id { get; set; }
 

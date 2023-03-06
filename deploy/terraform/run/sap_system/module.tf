@@ -83,10 +83,13 @@ module "common_infrastructure" {
   database_dual_nics                 = var.database_dual_nics
 
   azure_files_sapmnt_id              = var.azure_files_sapmnt_id
+  use_random_id_for_storageaccounts  = var.use_random_id_for_storageaccounts
+
   hana_ANF_volumes                   = local.hana_ANF_volumes
   sapmnt_private_endpoint_id         = var.sapmnt_private_endpoint_id
   deploy_application_security_groups = var.deploy_application_security_groups
   use_service_endpoint               = var.use_service_endpoint
+
 }
 
 

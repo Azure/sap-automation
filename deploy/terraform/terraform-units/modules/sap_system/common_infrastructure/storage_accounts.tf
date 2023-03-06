@@ -17,9 +17,9 @@ resource "azurerm_storage_account" "sapmnt" {
   )
   name = replace(
     lower(
-      format("%s%s",
+      format("%s%s%s",
         local.prefix,
-        local.resource_suffixes.sapmnt
+        local.resource_suffixes.sapmnt, lower(substr(random_id.random_id, 0, 3))
       )
     ),
     "/[^a-z0-9]/",
