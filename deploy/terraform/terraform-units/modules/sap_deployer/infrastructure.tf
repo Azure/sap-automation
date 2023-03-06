@@ -112,8 +112,7 @@ resource "azurerm_role_assignment" "deployer_boot_diagnostics_contributor_msi" {
 }
 
 resource "azurerm_role_assignment" "resource_group_contributor" {
-  count                = var.assign_subscription_permissions ? 1 : 0
-  count                = var.deployer.add_system_assigned_identity ? var.deployer_vm_count : 0
+  count                = var.assign_subscription_permissions && var.deployer.add_system_assigned_identity ? var.deployer_vm_count : 0
   scope                = local.resource_group_exists ? data.azurerm_resource_group.deployer[0].id : azurerm_resource_group.deployer[0].id
   role_definition_name = "Contributor"
   principal_id         = azurerm_linux_virtual_machine.deployer[count.index].identity[0].principal_id
