@@ -19,7 +19,7 @@ resource "azurerm_storage_account" "sapmnt" {
     lower(
       format("%s%s%s",
         local.prefix,
-        local.resource_suffixes.sapmnt, lower(substr(random_id.random_id, 0, 3))
+        local.resource_suffixes.sapmnt, lower(substr(random_id.random_id.hex, 0, 3))
       )
     ),
     "/[^a-z0-9]/",
