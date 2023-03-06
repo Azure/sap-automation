@@ -24,7 +24,7 @@ module "sap_namegenerator" {
     2 * local.application_tier.scs_server_count) : (
     local.application_tier.scs_server_count
   )
-  app_zones                  = []
+  app_zones                  = try(local.application_tier.app_zones, [])
   scs_zones                  = try(local.application_tier.scs_zones, [])
   web_zones                  = try(local.application_tier.web_zones, [])
   db_zones                   = try(local.database.zones, [])
