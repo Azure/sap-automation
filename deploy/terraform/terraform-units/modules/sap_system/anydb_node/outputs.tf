@@ -59,18 +59,18 @@ output "dns_info_vms" {
     zipmap(
       concat(
         (
-          local.anydb_dual_nics ? slice(var.naming.virtualmachine_names.ANYDB_VMNAME, 0, var.database_server_count) : [""]
+          local.anydb_dual_nics ? slice(var.naming.virtualmachine_names.ANYDB_VMNAME, 0, length(azurerm_linux_virtual_machine.dbserver) + length(azurerm_windows_virtual_machine.dbserver)) : [""]
         ),
         (
-          slice(var.naming.virtualmachine_names.ANYDB_SECONDARY_DNSNAME, 0, var.database_server_count)
+          slice(var.naming.virtualmachine_names.ANYDB_SECONDARY_DNSNAME, 0, length(azurerm_linux_virtual_machine.dbserver) + length(azurerm_windows_virtual_machine.dbserver))
         )
       ),
       concat(
         (
-          local.anydb_dual_nics ? slice(azurerm_network_interface.anydb_admin[*].private_ip_address, 0, var.database_server_count) : [""]
+          local.anydb_dual_nics ? slice(azurerm_network_interface.anydb_admin[*].private_ip_address, 0, length(azurerm_linux_virtual_machine.dbserver) + length(azurerm_windows_virtual_machine.dbserver)) : [""]
         ),
         (
-          slice(azurerm_network_interface.anydb_db[*].private_ip_address, 0, var.database_server_count)
+          slice(azurerm_network_interface.anydb_db[*].private_ip_address, 0, length(azurerm_linux_virtual_machine.dbserver) + length(azurerm_windows_virtual_machine.dbserver))
         )
     ))) : (
     null
