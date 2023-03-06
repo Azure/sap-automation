@@ -126,17 +126,3 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vnet_mgmt_blob" {
   registration_enabled  = false
 }
 
-resource "azurerm_role_assignment" "storage_tfstate_contributor" {
-  provider             = azurerm.main
-  count                = length(try(var.deployer_tfstate.deployer_system_assigned_identity, []))
-  scope                = local.resource_group_exists ? data.azurerm_resource_group.library[0].id : azurerm_resource_group.library[0].id
-  role_definition_name = "Contributor"
-  principal_id         = var.deployer_tfstate.deployer_system_assigned_identity[count.index]
-}
-
-resource "azurerm_role_assignment" "storage_tfstate_contributor_msi" {
-  provider             = azurerm.main
-  scope                = local.resource_group_exists ? data.azurerm_resource_group.library[0].id : azurerm_resource_group.library[0].id
-  role_definition_name = "Contributor"
-  principal_id         = var.deployer_tfstate.deployer_uai.principal_id
-}
