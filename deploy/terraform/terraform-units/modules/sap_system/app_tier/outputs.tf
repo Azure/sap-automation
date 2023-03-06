@@ -182,31 +182,31 @@ output "dns_info_vms" {
     var.application_tier.dual_nics ? (
       zipmap(
         compact(concat(
-          slice(local.full_appserver_names, 0, local.application_server_count),
-          slice(var.naming.virtualmachine_names.APP_SECONDARY_DNSNAME, 0, local.application_server_count),
-          slice(local.full_scsserver_names, 0, local.scs_server_count),
-          slice(var.naming.virtualmachine_names.SCS_SECONDARY_DNSNAME, 0, local.scs_server_count),
-          slice(local.full_webserver_names, 0, local.webdispatcher_count),
-          slice(var.naming.virtualmachine_names.WEB_SECONDARY_DNSNAME, 0, local.webdispatcher_count),
+          slice(local.full_appserver_names, 0, length(azurerm_linux_virtual_machine.app) + length(azurerm_windows_virtual_machine.app))),
+          slice(var.naming.virtualmachine_names.APP_SECONDARY_DNSNAME, 0, length(azurerm_linux_virtual_machine.app) + length(azurerm_windows_virtual_machine.app)),
+          slice(local.full_scsserver_names, 0, length(azurerm_linux_virtual_machine.scs) + length(azurerm_windows_virtual_machine.scs)),
+          slice(var.naming.virtualmachine_names.SCS_SECONDARY_DNSNAME, 0, length(azurerm_linux_virtual_machine.scs) + length(azurerm_windows_virtual_machine.scs)),
+          slice(local.full_webserver_names, 0, length(azurerm_linux_virtual_machine.web) + length(azurerm_windows_virtual_machine.web)),
+          slice(var.naming.virtualmachine_names.WEB_SECONDARY_DNSNAME, 0, length(azurerm_linux_virtual_machine.web) + length(azurerm_windows_virtual_machine.web)),
         )),
         compact(concat(
-          slice(azurerm_network_interface.app_admin[*].private_ip_address, 0, local.application_server_count),
-          slice(azurerm_network_interface.app[*].private_ip_address, 0, local.application_server_count),
-          slice(azurerm_network_interface.scs_admin[*].private_ip_address, 0, local.scs_server_count),
-          slice(azurerm_network_interface.scs[*].private_ip_address, 0, local.scs_server_count),
-          slice(azurerm_network_interface.web_admin[*].private_ip_address, 0, local.webdispatcher_count),
-          slice(azurerm_network_interface.web[*].private_ip_address, 0, local.webdispatcher_count)
+          slice(azurerm_network_interface.app_admin[*].private_ip_address, 0, length(azurerm_linux_virtual_machine.app) + length(azurerm_windows_virtual_machine.app)),
+          slice(azurerm_network_interface.app[*].private_ip_address, 0, length(azurerm_linux_virtual_machine.app) + length(azurerm_windows_virtual_machine.app)),
+          slice(azurerm_network_interface.scs_admin[*].private_ip_address, 0, length(azurerm_linux_virtual_machine.scs) + length(azurerm_windows_virtual_machine.scs)),
+          slice(azurerm_network_interface.scs[*].private_ip_address, 0, length(azurerm_linux_virtual_machine.scs) + length(azurerm_windows_virtual_machine.scs)),
+          slice(azurerm_network_interface.web_admin[*].private_ip_address, 0, length(azurerm_linux_virtual_machine.web) + length(azurerm_windows_virtual_machine.web)),
+          slice(azurerm_network_interface.web[*].private_ip_address, 0, length(azurerm_linux_virtual_machine.web) + length(azurerm_windows_virtual_machine.web))
       )))) : (
       zipmap(
         compact(concat(
-          slice(local.full_appserver_names, 0, local.application_server_count),
-          slice(local.full_scsserver_names, 0, local.scs_server_count),
-          slice(local.full_webserver_names, 0, local.webdispatcher_count),
+          slice(local.full_appserver_names, 0, length(azurerm_linux_virtual_machine.app) + length(azurerm_windows_virtual_machine.app)),
+          slice(local.full_scsserver_names, 0, length(azurerm_linux_virtual_machine.scs) + length(azurerm_windows_virtual_machine.scs)),
+          slice(local.full_webserver_names, 0, length(azurerm_linux_virtual_machine.web) + length(azurerm_windows_virtual_machine.web)),
         )),
         compact(concat(
-          slice(azurerm_network_interface.app[*].private_ip_address, 0, local.application_server_count),
-          slice(azurerm_network_interface.scs[*].private_ip_address, 0, local.scs_server_count),
-          slice(azurerm_network_interface.web[*].private_ip_address, 0, local.webdispatcher_count)
+          slice(azurerm_network_interface.app[*].private_ip_address, 0, length(azurerm_linux_virtual_machine.app) + length(azurerm_windows_virtual_machine.app)),
+          slice(azurerm_network_interface.scs[*].private_ip_address, 0, length(azurerm_linux_virtual_machine.scs) + length(azurerm_windows_virtual_machine.scs)),
+          slice(azurerm_network_interface.web[*].private_ip_address, 0, length(azurerm_linux_virtual_machine.web) + length(azurerm_windows_virtual_machine.web))
     ))))
     ) : (
     null

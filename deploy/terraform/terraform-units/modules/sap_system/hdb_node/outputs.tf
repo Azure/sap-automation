@@ -27,14 +27,14 @@ output "dns_info_vms" {
       zipmap(
         compact(
           concat(
-            slice(var.naming.virtualmachine_names.HANA_VMNAME, 0, var.database_server_count),
-            slice(var.naming.virtualmachine_names.HANA_SECONDARY_DNSNAME, 0, var.database_server_count)
+            slice(var.naming.virtualmachine_names.HANA_VMNAME, 0, length(azurerm_linux_virtual_machine.vm_dbnode))),
+            slice(var.naming.virtualmachine_names.HANA_SECONDARY_DNSNAME, 0, length(azurerm_linux_virtual_machine.vm_dbnode))
           )
         ),
         compact(
           concat(
-            slice(azurerm_network_interface.nics_dbnodes_admin[*].private_ip_address, 0, var.database_server_count),
-            slice(azurerm_network_interface.nics_dbnodes_db[*].private_ip_address, 0, var.database_server_count)
+            slice(azurerm_network_interface.nics_dbnodes_admin[*].private_ip_address, 0, length(azurerm_linux_virtual_machine.vm_dbnode)),
+            slice(azurerm_network_interface.nics_dbnodes_db[*].private_ip_address, 0, length(azurerm_linux_virtual_machine.vm_dbnode))
           )
         )
       )
@@ -42,12 +42,12 @@ output "dns_info_vms" {
       zipmap(
         compact(
           concat(
-            slice(var.naming.virtualmachine_names.HANA_VMNAME, 0, var.database_server_count)
+            slice(var.naming.virtualmachine_names.HANA_VMNAME, 0, length(azurerm_linux_virtual_machine.vm_dbnode))
           )
         ),
         compact(
           concat(
-            slice(azurerm_network_interface.nics_dbnodes_db[*].private_ip_address, 0, var.database_server_count)
+            slice(azurerm_network_interface.nics_dbnodes_db[*].private_ip_address, 0, length(azurerm_linux_virtual_machine.vm_dbnode))
           )
         )
       )
