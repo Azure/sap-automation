@@ -975,8 +975,8 @@ if [ 1 == $ok_to_proceed ]; then
                     resourceID=$(jq -c -r '.summary' <<< "$item" | awk -F'\"' '{print $2}')
                     echo "Trying to import" $resourceID "into" $moduleID
                     allParamsforImport=$(printf " -var-file=%s %s %s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter} " )
-                    echo terraform -chdir="${terraform_module_directory}" import -allow-missing-config  $allParamsforImport $moduleID $resourceID
-                    terraform -chdir="${terraform_module_directory}" import -allow-missing-config  $allParamsforImport $moduleID $resourceID
+                    echo terraform -chdir="${terraform_module_directory}" import  $allParamsforImport $moduleID $resourceID
+                    terraform -chdir="${terraform_module_directory}" import  $allParamsforImport $moduleID $resourceID
                 done
                 rerun_apply=1
             fi
