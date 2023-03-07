@@ -426,7 +426,7 @@ resource "azurerm_private_endpoint" "transport" {
     for_each = range(var.use_private_endpoint && !var.use_custom_dns_a_registration ? 1 : 0)
     content {
       name                 = "privatelink.file.core.windows.net"
-      private_dns_zone_ids = [data.azurerm_private_dns_zone.storage[0].id]
+      private_dns_zone_ids = [data.azurerm_private_dns_zone.file[0].id]
     }
   }
 
@@ -632,10 +632,10 @@ resource "azurerm_private_endpoint" "install" {
   }
 
   dynamic "private_dns_zone_group" {
-    for_each = range(var.use_private_endpoint && !var.use_custom_dns_a_registration ? 1 : 0)
+    for_each = range(var.use_private_endpoint ? 1 : 0)
     content {
       name                 = "privatelink.file.core.windows.net"
-      private_dns_zone_ids = [data.azurerm_private_dns_zone.storage[0].id]
+      private_dns_zone_ids = [data.azurerm_private_dns_zone.file[0].id]
     }
   }
 

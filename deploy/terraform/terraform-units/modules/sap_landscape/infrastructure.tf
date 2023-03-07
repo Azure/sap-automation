@@ -134,7 +134,7 @@ resource "azurerm_route" "admin" {
   depends_on = [
     azurerm_route_table.rt
   ]
-  count    = length(local.firewall_ip) > 0 ? local.vnet_sap_exists ? 0 : 1 : 0
+  count = length(local.firewall_ip) > 0 ? local.vnet_sap_exists ? 0 : 1 : 0
   name = format("%s%s%s%s",
     var.naming.resource_prefixes.fw_route,
     local.prefix,
@@ -155,7 +155,7 @@ resource "azurerm_route" "admin" {
 
 resource "azurerm_private_dns_zone_virtual_network_link" "vnet_sap" {
   provider = azurerm.dnsmanagement
-  count = length(var.dns_label) > 0 && !var.use_custom_dns_a_registration && !local.vnet_sap_exists ? 1 : 0
+  count    = length(var.dns_label) > 0 && !var.use_custom_dns_a_registration && !local.vnet_sap_exists ? 1 : 0
   name = format("%s%s%s%s",
     var.naming.resource_prefixes.dns_link,
     local.prefix,
@@ -177,7 +177,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vnet_sap" {
 
 resource "azurerm_private_dns_zone_virtual_network_link" "vnet_sap_file" {
   provider = azurerm.dnsmanagement
-  count = length(var.dns_label) > 0 && !var.use_custom_dns_a_registration && !local.vnet_sap_exists ? 1 : 0
+  count    = length(var.dns_label) > 0 && !var.use_custom_dns_a_registration && !local.vnet_sap_exists ? 1 : 0
   name = format("%s%s%s%s-file",
     var.naming.resource_prefixes.dns_link,
     local.prefix,
@@ -197,9 +197,22 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vnet_sap_file" {
   registration_enabled  = false
 }
 
+data "azurerm_private_dns_zone" "file" {
+  provider = azurerm.dnsmanagement
+  count    = var.use_private_endpoint ? 1 : 0
+  name     = "privatelink.file.core.windows.net"
+  resource_group_name = length(var.management_dns_subscription_id) == 0 ? (
+    local.resource_group_exists ? (
+      split("/", var.infrastructure.resource_group.arm_id)[4]) : (
+      azurerm_resource_group.resource_group[0].name
+    )) : (
+    var.management_dns_resourcegroup_name
+  )
+}
+
 resource "azurerm_private_dns_zone_virtual_network_link" "storage" {
   provider = azurerm.dnsmanagement
-  count = length(var.dns_label) > 0 && !var.use_custom_dns_a_registration && !local.vnet_sap_exists ? 1 : 0
+  count    = length(var.dns_label) > 0 && !var.use_custom_dns_a_registration && !local.vnet_sap_exists ? 1 : 0
   name = format("%s%s%s%s-blob",
     var.naming.resource_prefixes.dns_link,
     local.prefix,
@@ -218,10 +231,23 @@ resource "azurerm_private_dns_zone_virtual_network_link" "storage" {
   virtual_network_id    = azurerm_virtual_network.vnet_sap[0].id
 }
 
+data "azurerm_private_dns_zone" "storage" {
+  provider = azurerm.dnsmanagement
+  count    = var.use_private_endpoint ? 1 : 0
+  name     = "privatelink.blob.core.windows.net"
+  resource_group_name = length(var.management_dns_subscription_id) == 0 ? (
+    local.resource_group_exists ? (
+      split("/", var.infrastructure.resource_group.arm_id)[4]) : (
+      azurerm_resource_group.resource_group[0].name
+    )) : (
+    var.management_dns_resourcegroup_name
+  )
+}
+
 
 resource "azurerm_private_dns_zone_virtual_network_link" "vault" {
   provider = azurerm.dnsmanagement
-  count = length(var.dns_label) > 0 && !var.use_custom_dns_a_registration && !local.vnet_sap_exists ? 1 : 0
+  count    = length(var.dns_label) > 0 && !var.use_custom_dns_a_registration && !local.vnet_sap_exists ? 1 : 0
   name = format("%s%s%s%s",
     var.naming.resource_prefixes.dns_link,
     local.prefix,
@@ -237,5 +263,19 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vault" {
   )
   private_dns_zone_name = "privatelink.vaultcore.azure.net"
   virtual_network_id    = azurerm_virtual_network.vnet_sap[0].id
-  registration_enabled = false
+  registration_enabled  = false
 }
+
+data "azurerm_private_dns_zone" "vault" {
+  provider = azurerm.dnsmanagement
+  count    = var.use_private_endpoint ? 1 : 0
+  name     = "privatelink.vaultcore.azure.net"
+  resource_group_name = length(var.management_dns_subscription_id) == 0 ? (
+    local.resource_group_exists ? (
+      split("/", var.infrastructure.resource_group.arm_id)[4]) : (
+      azurerm_resource_group.resource_group[0].name
+    )) : (
+    var.management_dns_resourcegroup_name
+  )
+}
+
