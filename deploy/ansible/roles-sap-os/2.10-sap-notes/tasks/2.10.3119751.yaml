@@ -15,5 +15,5 @@
     dest:                              /usr/sap/lib/libstdc++.so.6
     state:                             link
     mode:                              0755
-    owner:                             sapadm
+    owner:                             '{{ sidadm_uid }}'
     group:                             sapsys
