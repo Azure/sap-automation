@@ -4,7 +4,7 @@
     path:                              /usr/sap/lib
     state:                             directory
     mode:                              0755
-    owner:                             sapadm
+    owner:                             '{{ sidadm_uid }}'
     group:                             sapsys
 
 
