@@ -41,6 +41,8 @@ disk_type_to_name_map:
   system:         '{{ node_tier | lower }}_system'
   saptemp:        '{{ node_tier | lower }}_saptemp'
   sapdiag:        '{{ node_tier | lower }}_sapdiag'
+  sybsystem:      '{{ node_tier | lower }}_sybsystem'
+  sybtemp:        '{{ node_tier | lower }}_sybtemp'
   # ------------------- End - disktypes required for ASE ---------------------8
 #
 # Table of possible logical volumes that need to be managed.

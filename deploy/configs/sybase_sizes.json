@@ -2,7 +2,7 @@
     "db": {
       "256": {
         "compute": {
-          "vm_size"                                : "Standard_E4ds_v5"
+          "vm_size"                                : "Standard_E8ds_v5"
         },
         "storage": [
           {
