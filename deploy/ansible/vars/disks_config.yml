@@ -297,8 +297,8 @@ logical_volumes:
 
   - tier:       'sapos'
     node_tier:  'sybase'
-    vg:         'vg_sybase_system'
-    lv:         'lv_sybase_system'
+    vg:         'vg_sybase_sybdb'
+    lv:         'lv_sybase_sybdb'
     size:       '100%FREE'
     fstype:     'xfs'
 

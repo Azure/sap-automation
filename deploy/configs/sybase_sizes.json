@@ -13,7 +13,7 @@
             "caching"                              : "ReadWrite"
             },
           {
-            "name"                                 : "syb",
+            "name"                                 : "sybdb",
             "count"                                : 1,
             "disk_type"                            : "Premium_LRS",
             "size_gb"                              : 32,
