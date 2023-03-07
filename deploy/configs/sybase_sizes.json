@@ -34,10 +34,28 @@
             "name"                                 : "saptemp",
             "count"                                : 1,
             "disk_type"                            : "Premium_LRS",
-            "size_gb"                              : 32,
+            "size_gb"                              : 64,
             "caching"                              : "ReadOnly",
             "write_accelerator"                    : false,
             "lun_start"                            : 2
+          },
+          {
+            "name"                                 : "sybsystem",
+            "count"                                : 1,
+            "disk_type"                            : "Premium_LRS",
+            "size_gb"                              : 32,
+            "caching"                              : "None",
+            "write_accelerator"                    : false,
+            "lun_start"                            : 5
+          },
+          {
+            "name"                                 : "sybtemp",
+            "count"                                : 1,
+            "disk_type"                            : "Premium_LRS",
+            "size_gb"                              : 32,
+            "caching"                              : "None",
+            "write_accelerator"                    : false,
+            "lun_start"                            : 6
           },
           {
             "name"                                 : "sapdata_1",
@@ -46,7 +64,7 @@
             "size_gb"                              : 128,
             "caching"                              : "ReadOnly",
             "write_accelerator"                    : false,
-            "lun_start"                            : 3
+            "lun_start"                            : 7
           },
           {
             "name"                                 : "saplog_1",
@@ -55,7 +73,7 @@
             "size_gb"                              : 128,
             "caching"                              : "None",
             "write_accelerator"                    : false,
-            "lun_start"                            : 8
+            "lun_start"                            : 11
           },
           {
             "name"                                 : "backup",
@@ -64,7 +82,7 @@
             "size_gb"                              : 128,
             "caching"                              : "None",
             "write_accelerator"                    : false,
-            "lun_start"                            : 11
+            "lun_start"                            : 13
           }
         ]
       },

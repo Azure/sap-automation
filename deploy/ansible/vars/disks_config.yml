@@ -310,6 +310,20 @@ logical_volumes:
 
   - tier:       'sapos'
     node_tier:  'sybase'
+    vg:         'vg_sybase_sybsystem'
+    lv:         'lv_sybase_sybsystem'
+    size:       '100%FREE'
+    fstype:     'xfs'
+
+  - tier:       'sapos'
+    node_tier:  'sybase'
+    vg:         'vg_sybase_sybtemp'
+    lv:         'lv_sybase_saptemp'
+    size:       '100%FREE'
+    fstype:     'xfs'
+
+  - tier:       'sapos'
+    node_tier:  'sybase'
     vg:         'vg_sybase_sapdiag'
     lv:         'lv_sybase_sapdiag'
     size:       '100%FREE'
