@@ -378,7 +378,7 @@ data "azurerm_storage_account" "transport" {
 }
 
 resource "azurerm_private_endpoint" "transport" {
-  provider = azurerm.dnsmanagement
+  provider = azurerm.main
   depends_on = [
     azurerm_subnet.app
   ]
@@ -588,7 +588,7 @@ data "azurerm_private_endpoint_connection" "install" {
 }
 
 resource "azurerm_private_endpoint" "install" {
-  provider = azurerm.dnsmanagement
+  provider = azurerm.main
 
   depends_on = [
     azurerm_subnet.app
