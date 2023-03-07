@@ -27,7 +27,7 @@ output "dns_info_vms" {
       zipmap(
         compact(
           concat(
-            slice(var.naming.virtualmachine_names.HANA_VMNAME, 0, length(azurerm_linux_virtual_machine.vm_dbnode))),
+            slice(var.naming.virtualmachine_names.HANA_VMNAME, 0, length(azurerm_linux_virtual_machine.vm_dbnode)),
             slice(var.naming.virtualmachine_names.HANA_SECONDARY_DNSNAME, 0, length(azurerm_linux_virtual_machine.vm_dbnode))
           )
         ),
