@@ -301,7 +301,7 @@ resource "azurerm_private_endpoint" "kv_user" {
   }
 
   dynamic "private_dns_zone_group" {
-    for_each = range(var.use_private_endpoint && !var.use_custom_dns_a_registration && var.bootstrap ? 1 : 0)
+    for_each = range(var.use_private_endpoint && !var.use_custom_dns_a_registration && !var.bootstrap ? 1 : 0)
     content {
       name                 = "privatelink.vaultcore.azure.net"
       private_dns_zone_ids = [data.azurerm_private_dns_zone.keyvault[0].id]
@@ -311,7 +311,7 @@ resource "azurerm_private_endpoint" "kv_user" {
 }
 
 data "azurerm_private_dns_zone" "keyvault" {
-  count               = var.use_private_endpoint && !var.use_custom_dns_a_registration && var.bootstrap ? 1 : 0
+  count               = var.use_private_endpoint && !var.use_custom_dns_a_registration && !var.bootstrap ? 1 : 0
   name                = "privatelink.vaultcore.azure.net"
   resource_group_name = var.management_dns_resourcegroup_name
   provider            = azurerm.dnsmanagement
