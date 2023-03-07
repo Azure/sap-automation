@@ -38,7 +38,7 @@ disk_type_to_name_map:
   # ------------------- Begin - disktypes required for ASE -------------------8
   sapdata_1:      '{{ node_tier | lower }}_sapdata_1'
   saplog_1:       '{{ node_tier | lower }}_saplog_1'
-  system:         '{{ node_tier | lower }}_system'
+  sybdb:          '{{ node_tier | lower }}_sybdb'
   saptemp:        '{{ node_tier | lower }}_saptemp'
   sapdiag:        '{{ node_tier | lower }}_sapdiag'
   sybsystem:      '{{ node_tier | lower }}_sybsystem'
