@@ -1,5 +1,7 @@
 // Create private KV with access policy
-data "azurerm_client_config" "deployer" {}
+data "azurerm_client_config" "deployer" {
+  provider = azurerm.main
+}
 
 
 // Create user KV with access policy
@@ -371,7 +373,8 @@ resource "azurerm_key_vault_access_policy" "kv_user_pre_deployer" {
   key_vault_id = azurerm_key_vault.kv_user[0].id
   tenant_id    = azurerm_user_assigned_identity.deployer.tenant_id
   # If running as a normal user use the object ID of the user otherwise use the object_id from AAD
-  object_id = coalesce(var.spn_id,
+  object_id = coalesce(data.azurerm_client_config.deployer.object_id,
+    var.spn_id,
     var.arm_client_id
   )
   #application_id = data.azurerm_client_config.deployer.client_id
