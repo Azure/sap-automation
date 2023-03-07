@@ -166,7 +166,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vnet_sap" {
   resource_group_name = length(var.management_dns_subscription_id) == 0 ? (
     local.resource_group_exists ? (
       split("/", var.infrastructure.resource_group.arm_id)[4]) : (
-      azurerm_resource_group.library[0].name
+      azurerm_resource_group.resource_group[0].name
     )) : (
     var.management_dns_resourcegroup_name
   )
@@ -188,7 +188,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vnet_sap_file" {
   resource_group_name = length(var.management_dns_subscription_id) == 0 ? (
     local.resource_group_exists ? (
       split("/", var.infrastructure.resource_group.arm_id)[4]) : (
-      azurerm_resource_group.library[0].name
+      azurerm_resource_group.resource_group[0].name
     )) : (
     var.management_dns_resourcegroup_name
   )
@@ -210,7 +210,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "storage" {
   resource_group_name = length(var.management_dns_subscription_id) == 0 ? (
     local.resource_group_exists ? (
       split("/", var.infrastructure.resource_group.arm_id)[4]) : (
-      azurerm_resource_group.library[0].name
+      azurerm_resource_group.resource_group[0].name
     )) : (
     var.management_dns_resourcegroup_name
   )
@@ -231,7 +231,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vault" {
   resource_group_name = length(var.management_dns_subscription_id) == 0 ? (
     local.resource_group_exists ? (
       split("/", var.infrastructure.resource_group.arm_id)[4]) : (
-      azurerm_resource_group.library[0].name
+      azurerm_resource_group.resource_group[0].name
     )) : (
     var.management_dns_resourcegroup_name
   )
