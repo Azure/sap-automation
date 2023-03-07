@@ -61,6 +61,14 @@ resource "azurerm_storage_account_network_rules" "storage_tfstate" {
 
 }
 
+
+resource "azurerm_role_assignment" "storage_tfstate_contributor" {
+  scope                = local.sa_tfstate_exists ? local.sa_tfstate_arm_id : azurerm_storage_account.storage_tfstate[0].id
+  role_definition_name = "Storage Account Contributor"
+  principal_id         = var.deployer_tfstate.deployer_uai.principal_id
+}
+
+
 resource "azurerm_private_dns_a_record" "storage_tfstate_pep_a_record_registry" {
   depends_on = [
     azurerm_private_dns_zone.blob
@@ -162,7 +170,7 @@ resource "azurerm_private_endpoint" "storage_tfstate" {
     )
     is_manual_connection = false
     private_connection_resource_id = local.sa_tfstate_exists ? (
-      data.azurerm_storage_account.storage_tfstate[0].id) : (
+      local.sa_tfstate_arm_id) : (
       azurerm_storage_account.storage_tfstate[0].id
     )
     subresource_names = [

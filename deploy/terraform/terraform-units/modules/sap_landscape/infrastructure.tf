@@ -151,74 +151,89 @@ resource "azurerm_route" "admin" {
   next_hop_in_ip_address = local.firewall_ip
 }
 
+
+
 resource "azurerm_private_dns_zone_virtual_network_link" "vnet_sap" {
   provider = azurerm.dnsmanagement
-  count    = length(var.dns_label) > 0 && !var.use_custom_dns_a_registration  && !local.vnet_sap_exists ? 1 : 0
+  count = length(var.dns_label) > 0 && !var.use_custom_dns_a_registration && !local.vnet_sap_exists ? 1 : 0
   name = format("%s%s%s%s",
     var.naming.resource_prefixes.dns_link,
     local.prefix,
     var.naming.separator,
-    local.resource_suffixes.dns_link
+    var.naming.resource_suffixes.dns_link
   )
-  resource_group_name   = var.dns_resource_group_name
+
+  resource_group_name = length(var.management_dns_subscription_id) == 0 ? (
+    local.resource_group_exists ? (
+      split("/", var.infrastructure.resource_group.arm_id)[4]) : (
+      azurerm_resource_group.library[0].name
+    )) : (
+    var.management_dns_resourcegroup_name
+  )
   private_dns_zone_name = var.dns_label
-  virtual_network_id = local.vnet_sap_exists ? (
-    data.azurerm_virtual_network.vnet_sap[0].id) : (
-    azurerm_virtual_network.vnet_sap[0].id
+  virtual_network_id    = azurerm_virtual_network.vnet_sap[0].id
+  registration_enabled  = true
+}
+
+resource "azurerm_private_dns_zone_virtual_network_link" "vnet_sap_file" {
+  provider = azurerm.dnsmanagement
+  count = length(var.dns_label) > 0 && !var.use_custom_dns_a_registration && !local.vnet_sap_exists ? 1 : 0
+  name = format("%s%s%s%s-file",
+    var.naming.resource_prefixes.dns_link,
+    local.prefix,
+    var.naming.separator,
+    var.naming.resource_suffixes.dns_link
   )
-  registration_enabled = true
+
+  resource_group_name = length(var.management_dns_subscription_id) == 0 ? (
+    local.resource_group_exists ? (
+      split("/", var.infrastructure.resource_group.arm_id)[4]) : (
+      azurerm_resource_group.library[0].name
+    )) : (
+    var.management_dns_resourcegroup_name
+  )
+  private_dns_zone_name = "privatelink.file.core.windows.net"
+  virtual_network_id    = azurerm_virtual_network.vnet_sap[0].id
+  registration_enabled  = false
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "storage" {
   provider = azurerm.dnsmanagement
-  count    = var.create_vaults_and_storage_dns_a_records && !local.vnet_sap_exists ? 1 : 0
-  name = format("%s%s%s%s",
+  count = length(var.dns_label) > 0 && !var.use_custom_dns_a_registration && !local.vnet_sap_exists ? 1 : 0
+  name = format("%s%s%s%s-blob",
     var.naming.resource_prefixes.dns_link,
     local.prefix,
     var.naming.separator,
-    "storage"
+    var.naming.resource_suffixes.dns_link
   )
-  resource_group_name = var.management_dns_resourcegroup_name
-  private_dns_zone_name = "privatelink.file.core.windows.net"
-  virtual_network_id = local.vnet_sap_exists ? (
-    data.azurerm_virtual_network.vnet_sap[0].id) : (
-    azurerm_virtual_network.vnet_sap[0].id
+
+  resource_group_name = length(var.management_dns_subscription_id) == 0 ? (
+    local.resource_group_exists ? (
+      split("/", var.infrastructure.resource_group.arm_id)[4]) : (
+      azurerm_resource_group.library[0].name
+    )) : (
+    var.management_dns_resourcegroup_name
   )
-  registration_enabled = false
+  private_dns_zone_name = "privatelink.blob.core.windows.net"
+  virtual_network_id    = azurerm_virtual_network.vnet_sap[0].id
 }
 
-resource "azurerm_private_dns_zone_virtual_network_link" "blob" {
-  provider = azurerm.dnsmanagement
-  count    = var.create_vaults_and_storage_dns_a_records && !local.vnet_sap_exists ? 1 : 0
-  name = format("%s%s%s%s",
-    var.naming.resource_prefixes.dns_link,
-    local.prefix,
-    var.naming.separator,
-    "blob"
-  )
-  resource_group_name = var.management_dns_resourcegroup_name
-  private_dns_zone_name = "privatelink.blob.core.windows.net"
-  virtual_network_id = local.vnet_sap_exists ? (
-    data.azurerm_virtual_network.vnet_sap[0].id) : (
-    azurerm_virtual_network.vnet_sap[0].id
-  )
-  registration_enabled = false
-}
 
 resource "azurerm_private_dns_zone_virtual_network_link" "vault" {
   provider = azurerm.dnsmanagement
-  count    = var.create_vaults_and_storage_dns_a_records && !local.vnet_sap_exists ? 1 : 0
+  count = length(var.dns_label) > 0 && !var.use_custom_dns_a_registration && !local.vnet_sap_exists ? 1 : 0
   name = format("%s%s%s%s",
     var.naming.resource_prefixes.dns_link,
     local.prefix,
     var.naming.separator,
     "vault"
   )
-  resource_group_name = var.management_dns_resourcegroup_name
-  private_dns_zone_name = "privatelink.vaultcore.azure.net"
-  virtual_network_id = local.vnet_sap_exists ? (
-    data.azurerm_virtual_network.vnet_sap[0].id) : (
-    azurerm_virtual_network.vnet_sap[0].id
+  resource_group_name = length(var.management_dns_subscription_id) == 0 ? (
+    local.resource_group_exists ? (
+      split("/", var.infrastructure.resource_group.arm_id)[4]) : (
+      azurerm_resource_group.library[0].name
+    )) : (
+    var.management_dns_resourcegroup_name
   )
   registration_enabled = false
 }
