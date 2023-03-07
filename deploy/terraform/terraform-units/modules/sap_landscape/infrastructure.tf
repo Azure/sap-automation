@@ -155,7 +155,7 @@ resource "azurerm_route" "admin" {
 
 resource "azurerm_private_dns_zone_virtual_network_link" "vnet_sap" {
   provider = azurerm.dnsmanagement
-  count    = length(var.dns_label) > 0 && !var.use_custom_dns_a_registration && !local.vnet_sap_exists ? 1 : 0
+  count    = local.use_Azure_native_DNS ? 1 : 0
   name = format("%s%s%s%s",
     var.naming.resource_prefixes.dns_link,
     local.prefix,
@@ -177,7 +177,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vnet_sap" {
 
 resource "azurerm_private_dns_zone_virtual_network_link" "vnet_sap_file" {
   provider = azurerm.dnsmanagement
-  count    = length(var.dns_label) > 0 && !var.use_custom_dns_a_registration && !local.vnet_sap_exists ? 1 : 0
+  count    = local.use_Azure_native_DNS ? 1 : 0
   name = format("%s%s%s%s-file",
     var.naming.resource_prefixes.dns_link,
     local.prefix,
@@ -212,7 +212,7 @@ data "azurerm_private_dns_zone" "file" {
 
 resource "azurerm_private_dns_zone_virtual_network_link" "storage" {
   provider = azurerm.dnsmanagement
-  count    = length(var.dns_label) > 0 && !var.use_custom_dns_a_registration && !local.vnet_sap_exists ? 1 : 0
+  count    = local.use_Azure_native_DNS ? 1 : 0
   name = format("%s%s%s%s-blob",
     var.naming.resource_prefixes.dns_link,
     local.prefix,
@@ -247,7 +247,7 @@ data "azurerm_private_dns_zone" "storage" {
 
 resource "azurerm_private_dns_zone_virtual_network_link" "vault" {
   provider = azurerm.dnsmanagement
-  count    = length(var.dns_label) > 0 && !var.use_custom_dns_a_registration && !local.vnet_sap_exists ? 1 : 0
+  count    = local.use_Azure_native_DNS ? 1 : 0
   name = format("%s%s%s%s",
     var.naming.resource_prefixes.dns_link,
     local.prefix,

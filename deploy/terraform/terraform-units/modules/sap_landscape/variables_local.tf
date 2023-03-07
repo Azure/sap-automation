@@ -647,5 +647,6 @@ locals {
     )]
   )
 
+  use_Azure_native_DNS = length(var.dns_label) > 0 && !var.use_custom_dns_a_registration && !local.vnet_sap_exists
 
 }

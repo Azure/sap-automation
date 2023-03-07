@@ -304,7 +304,8 @@ resource "azurerm_storage_account_network_rules" "transport" {
 }
 
 resource "azurerm_private_dns_a_record" "transport" {
-  count = var.create_vaults_and_storage_dns_a_records && var.NFS_provider == "AFS" && length(var.transport_private_endpoint_id) == 0 ? 1 : 0
+  provider = azurerm.dnsmanagement
+  count = local.use_Azure_native_DNS && var.NFS_provider == "AFS" && length(var.transport_private_endpoint_id) == 0 ? 1 : 0
   name = replace(
     lower(
       format("%s", local.landscape_shared_transport_storage_account_name)
@@ -320,8 +321,6 @@ resource "azurerm_private_dns_a_record" "transport" {
     azurerm_private_endpoint.transport[0].private_service_connection[0].private_ip_address
   )]
 
-
-  provider = azurerm.dnsmanagement
 
   lifecycle {
     ignore_changes = [tags]
@@ -423,7 +422,7 @@ resource "azurerm_private_endpoint" "transport" {
     ]
   }
   dynamic "private_dns_zone_group" {
-    for_each = range(var.use_private_endpoint && !var.use_custom_dns_a_registration ? 1 : 0)
+    for_each = range(var.use_private_endpoint ? 1 : 0)
     content {
       name                 = "privatelink.file.core.windows.net"
       private_dns_zone_ids = [data.azurerm_private_dns_zone.file[0].id]
