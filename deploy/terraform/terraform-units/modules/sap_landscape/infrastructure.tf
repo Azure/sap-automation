@@ -235,5 +235,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vault" {
     )) : (
     var.management_dns_resourcegroup_name
   )
+  private_dns_zone_name = "privatelink.vaultcore.azure.net"
+  virtual_network_id    = azurerm_virtual_network.vnet_sap[0].id
   registration_enabled = false
 }
