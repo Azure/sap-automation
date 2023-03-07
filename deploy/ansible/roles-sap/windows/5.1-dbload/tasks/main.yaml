@@ -147,14 +147,11 @@
     sap_db_hostname:                   "{{ db_virtual_host }}"
     sap_ciVirtualHostname:
     sap_appVirtualHostname:
-    tier:                              "{{ tier }}"
     param_directory:                   "{{ dir_params }}"
     sap_sid:                           "{{ sid_to_be_deployed.sid }}"
     sidadm_uid:                        "{{ sid_to_be_deployed.sidadm_uid }}"
     data_disks:                        "{{ vm_data_disks }}"
     log_disks:                         "{{ vm_log_disks }}"
-  tags:
-    - skip_ansible_lint
 
 - name:                                "DBLoad: install variables"
   ansible.builtin.debug:
@@ -211,7 +208,7 @@
       failed_when:                     scs_extraction.rc > 0
 
     - name:                            "DBLoad: - run SAPInst"
-      win_shell: |
+      ansible.windows.win_shell: |
                                        {{ download_directory_windows }}\sap_extract\sapinst.exe SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}\{{ sap_inifile }}  `
                                                                                                 SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.dbl }}             `
                                                                                                 SAPINST_SKIP_DIALOGS=true                                        `
@@ -228,8 +225,6 @@
         ansible_become_password:       "{{ domain_user_password }}"
       register:                        dbload_results
       failed_when:                     dbload_results.rc > 0
-      tags:
-        - skip_ansible_lint
       # async:                           7200
       # poll:                            0
 

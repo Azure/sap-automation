@@ -12,8 +12,6 @@
 #     user:                              "root"
 #     key:                                "{{ lookup('file','/tmp/{{ primary_instance_name }}-id_rsa.pub') }} "
 #   when: ansible_hostname == secondary_instance_name
-#   tags:
-#     - skip_ansible_lint
 
 # - name:                                HSR - Ensure the secondary node public key is on the primary node
 #   become:                              true
@@ -21,8 +19,6 @@
 #     user:                              "root"
 #     key:                                "{{ lookup('file','/tmp/{{ secondary_instance_name }}-id_rsa.pub') }} "
 #   when: ansible_hostname == primary_instance_name
-#   tags:
-#     - skip_ansible_lint
 
 # - name:                                HSR - Ensure trust relationship is working from primary to secondary
 #   ansible.builtin.command:             ssh -oStrictHostKeyChecking=no {{ secondary_instance_name }} "hostname -s"

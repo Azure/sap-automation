@@ -80,8 +80,6 @@
     executable:                        /bin/csh
     chdir:                             "{{ target_media_location }}/oraserver/LINUX_X86_64/db_home/SAP"
     creates:                           /etc/sap_deployment_automation/oracle_installed.txt
-  tags:
-    - skip_ansible_lint
 
 - name:                                "Oracle Data Guard - Observer: installer output"
   ansible.builtin.debug:
@@ -110,27 +108,23 @@
   become:                              true
   become_user:                         "root"
   ansible.builtin.copy:
-    src:                               "{{ target_media_location }}/downloads/{{ db_sid| upper }}/sqlnet.ora"
+    src:                               "{{ target_media_location }}/downloads/{{ db_sid | upper }}/sqlnet.ora"
     dest:                              /oracle/{{ db_sid | upper }}/{{ ora_version }}/network/admin/sqlnet.ora
     remote_src:                        true
     owner:                             oracle
     group:                             oinstall
     mode:                              "{{ '0777' | int - (custom_umask | default('022') | int) }}"
-  tags:
-    - skip_ansible_lint
 
 - name:                                "Oracle Data Guard - Observer: Copy tnsnames.ora TO Observer"
   become:                              true
   become_user:                         "root"
   ansible.builtin.copy:
-    src:                               "{{ target_media_location }}/downloads/{{ db_sid| upper }}/tnsnames.ora"
+    src:                               "{{ target_media_location }}/downloads/{{ db_sid | upper }}/tnsnames.ora"
     dest:                              /oracle/{{ db_sid | upper }}/{{ ora_version }}/network/admin/tnsnames.ora
     remote_src:                        true
     owner:                             oracle
     group:                             oinstall
     mode:                              "{{ '0777' | int - (custom_umask | default('022') | int) }}"
-  tags:
-    - skip_ansible_lint
 
 - name:                                "Oracle Data Guard - Observer: Add environment variables to the Bash profile"
   become:                              true
@@ -201,8 +195,6 @@
   args:
     chdir:                             /oracle/{{ db_sid | upper }}/{{ ora_release }}/bin
     executable:                        /bin/csh
-  tags:
-    - skip_ansible_lint
 
 - name:                                "Oracle Data Guard - Observer: tnsping Secondary output"
   ansible.builtin.debug:

@@ -78,6 +78,7 @@
         path:                          "{{ playbook_dir }}/BOM-catalog/{{ bom_name }}/{{ bom_name }}.yaml"
       register:                        microsoft_supplied_bom
       delegate_to:                     localhost
+      become:                          "{{ bom_processing_become }}"
 
     - name:                            "{{ task_prefix }} Show Microsoft Supplied BOM ({{ bom_base_name }}) result"
       ansible.builtin.debug:
@@ -105,6 +106,7 @@
             path:                      "{{ playbook_dir }}/BOM-catalog/archives/{{ bom_name }}/{{ bom_name }}.yaml"
           register:                    microsoft_supplied_bom_archive
           delegate_to:                 localhost
+          become:                      "{{ bom_processing_become }}"
 
         - name:                        "{{ task_prefix }} Register Microsoft Supplied BOM {{ bom_name }} from archives"
           ansible.builtin.include_vars:

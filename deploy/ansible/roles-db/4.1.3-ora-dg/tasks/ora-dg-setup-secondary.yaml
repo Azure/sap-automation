@@ -27,8 +27,6 @@
     group:                             oinstall
     mode:                              "{{ '0777' | int - (custom_umask | default('022') | int) }}"
   when: current_host == ora_secondary
-  tags:
-    - skip_ansible_lint
 
 - name:                                "Oracle Data Guard - Setup Secondary: Copy orapwSID to Secondary"
   become:                              true
@@ -41,8 +39,6 @@
     group:                             dba
     mode:                              "{{ '0777' | int - (custom_umask | default('022') | int) }}"
   when: current_host == ora_secondary
-  tags:
-    - skip_ansible_lint
 
 # Restart the Listener on Secondary node.
 
@@ -57,8 +53,6 @@
     chdir:                             /etc/sap_deployment_automation/dgscripts
     executable:                        /bin/csh
   when:                                current_host == ora_secondary
-  tags:
-    - skip_ansible_lint
 
 - name:                                "Oracle Data Guard - Setup Secondary: restart lsnrctl on Secondary (Debug)"
   ansible.builtin.debug:
@@ -96,8 +90,6 @@
     chdir:                             /etc/sap_deployment_automation/dgscripts
     executable:                        /bin/csh
   when: current_host == ora_secondary
-  tags:
-    - skip_ansible_lint
 
 - name:                                "Oracle Data Guard - Setup Secondary: startup DG Broker on Secondary (Debug)"
   ansible.builtin.debug:
@@ -170,8 +162,6 @@
         - { directory_to_empty: '/oracle/{{ db_sid | upper }}/origlogB' }
         - { directory_to_empty: '/oracle/{{ db_sid | upper }}/mirrlogA' }
         - { directory_to_empty: '/oracle/{{ db_sid | upper }}/mirrlogB' }
-      tags:
-        - skip_ansible_lint
 
     - name:                            "Oracle Data Guard - Setup Secondary: Startup secondary DB"
       become:                          true
@@ -252,8 +242,6 @@
     chdir:                             /etc/sap_deployment_automation/dgscripts
     executable:                        /bin/csh
   when:                                current_host == ora_secondary
-  tags:
-    - skip_ansible_lint
 
 - name:                                "Oracle Data Guard - Setup Secondary: startup DG Broker on Secondary (Debug)"
   ansible.builtin.debug:

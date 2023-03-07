@@ -48,8 +48,6 @@
     group:                             oinstall
     recurse:                           true
   when:                                not oracle_permissions.stat.exists
-  tags:
-    - skip_ansible_lint
 
 - name:                                Create oracleowner.txt
   become:                              true
@@ -105,8 +103,6 @@
         chdir:                         "{{ target_media_location }}/oraserver/LINUX_X86_64/db_home/SAP"
         creates:                       "/etc/sap_deployment_automation/{{ sap_sid | upper }}/oracle_pre_check_install.txt"
         executable:                    /bin/csh
-      tags:
-        - skip_ansible_lint
 
     # Debug for testing
     - name:                            "ORACLE: Debug: installer prechecks output"
@@ -154,8 +150,6 @@
         executable:                    /bin/csh
         chdir:                         "{{ target_media_location }}/oraserver/LINUX_X86_64/db_home/SAP"
         creates:                       "/etc/sap_deployment_automation/{{ sap_sid | upper }}/oracle_installed.txt"
-      tags:
-        - skip_ansible_lint
 
     - name:                            "ORACLE: Debug: installer output"
       ansible.builtin.debug:
@@ -196,8 +190,6 @@
         DB_SID:                        "{{ db_sid }}"
         CV_ASSUME_DISTID:              OL7
         TMPDIR:                        "{{ tmp_directory }}/{{ sap_sid | upper }}"
-      tags:
-        - skip_ansible_lint
 
     - name:                            "ORACLE: Debug: orainstRoot output"
       ansible.builtin.debug:
@@ -229,8 +221,6 @@
         DB_SID:                        "{{ db_sid }}"
         CV_ASSUME_DISTID:              OL7
         TMPDIR:                        "{{ tmp_directory }}/{{ sap_sid | upper }}"
-      tags:
-        - skip_ansible_lint
 
     - name:                            "ORACLE: Debug: rootscript output"
       ansible.builtin.debug:
@@ -256,8 +246,6 @@
         state:                         file
         owner:                         oracle
         mode:                          06751
-      tags:
-        - skip_ansible_lint
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
