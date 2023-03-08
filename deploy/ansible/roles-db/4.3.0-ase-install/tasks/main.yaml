@@ -72,6 +72,14 @@
         mode:                        0644
         force:                       true
 
+# Template parameter mapping
+      vars:
+        _rsp_install_folder:           "/sybase/{{ db_sid|upper }}"
+        _rsp_install_set:               "full"
+        _rsp_product_edition:           "Enterprise Edition"
+        _rsp_hostname:                 "{{ ansible_hostname }}"
+        pwd_master:                    "{{ main_password }}"
+    
     - name: Find setup.bin files in CD_SYBSERVER
       ansible.builtin.find:
         paths: "{{ target_media_location }}/CD_SYBSERVER/"
@@ -86,15 +94,6 @@
     - name: Save the first file path to a variable
       set_fact:
         setup_file_path: "{{ result.files[0].path }}"
-
-# Template parameter mapping
-      vars:
-        _rsp_install_folder:           "/sybase/{{ db_sid|upper }}"
-        _rsp_install_set:               "full"
-        _rsp_product_edition:           "Enterprise Edition"
-        _rsp_hostname:                 "{{ ansible_hostname }}"
-        pwd_master:                    "{{ main_password }}"
-
     - name:                            "Execute setup.bin on {{ ansible_hostname }}"
       ansible.builtin.command:         ./setup.bin -f '{{ dir_params }}/aseserver_{{ ansible_hostname }}_{{ sap_sid }}_install.rsp' -i silent -DAGREE_TO_SAP_LICENSE=true -DRUN_SILENT=true
       args:
