@@ -1,2 +1,0 @@
-db_virtual_hostname:                   "{{ sap_sid | lower }}{{ db_sid | lower }}db{{ db_instance_number }}cl"
-db_sid_backup_dir:                     "{{ target_media_location }}/backup/{{ db_sid | upper }}"

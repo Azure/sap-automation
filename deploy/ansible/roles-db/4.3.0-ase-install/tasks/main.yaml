@@ -30,19 +30,19 @@
     # path: "{{ sybase.install.server.directory }}/SYBASE.sh"
   register:                           "sybase_installed"
 
-- name:                                "Sybase: Create sybtemp folder"
+- name:                                "Sybase: Create sybtemp folder if it doesnot exist"
   ansible.builtin.file:
     path:                              /sybase/{{ db_sid|upper }}/sybtemp
     mode:                              0755
     state:                             directory
 
-- name:                                "Sybase: Create data folder inside sybtemp folder"
+- name:                                "Sybase: Create data folder inside sybtemp folder if it does not exist"
   ansible.builtin.file:
     path:                              /sybase/{{ db_sid|upper }}/sybtemp/data
     mode:                              0755
     state:                             directory
 
-- name:                                "Sybase: Create sybsystem folder"
+- name:                                "Sybase: Create sybsystem folder if it doesnot exist"
   ansible.builtin.file:
     path:                              /sybase/{{ db_sid|upper }}/sybsystem
     mode:                              0755
