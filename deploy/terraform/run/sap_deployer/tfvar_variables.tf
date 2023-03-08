@@ -446,3 +446,14 @@ variable "enable_firewall_for_keyvaults_and_storage" {
   default     = false
   type        = bool
 }
+
+variable "tfstate_resource_id" {
+  description = "Resource id of tfstate storage account"
+  validation {
+    condition = (
+      length(split("/", var.tfstate_resource_id)) == 9
+    )
+    error_message = "The Azure Resource ID for the storage account containing the Terraform state files must be provided and be in correct format."
+  }
+
+}

@@ -14,6 +14,10 @@ locals {
     )
   )
 
+  saplib_subscription_id       = split("/", var.tfstate_resource_id)[2]
+  saplib_resource_group_name   = split("/", var.tfstate_resource_id)[4]
+
+
   // Default naming of vnet has multiple parts. Taking the second-last part as the name incase the name ends with -vnet
   vnet_mgmt_parts = length(split("-", local.vnet_mgmt_name))
   vnet_mgmt_name_part = substr(upper(local.vnet_mgmt_name), -5, 5) == "-VNET" ? (

@@ -7,7 +7,7 @@ module "sap_deployer" {
   source = "../../terraform-units/modules/sap_deployer/"
   providers = {
     azurerm.dnsmanagement = azurerm.dnsmanagement
-    azurerm.main = azurerm.main
+    azurerm.main          = azurerm.main
   }
   infrastructure = local.infrastructure
   deployer       = local.deployer
@@ -31,7 +31,10 @@ module "sap_deployer" {
   use_private_endpoint = var.use_private_endpoint
   use_service_endpoint = var.use_service_endpoint
 
-  use_custom_dns_a_registration     = var.use_custom_dns_a_registration
+  use_custom_dns_a_registration = var.use_custom_dns_a_registration || !(
+    (var.management_dns_subscription_id != local.saplib_subscription_id) || (var.management_dns_resourcegroup_name != local.saplib_resource_group_name)
+  )
+
   management_dns_subscription_id    = var.management_dns_subscription_id
   management_dns_resourcegroup_name = var.management_dns_resourcegroup_name
 
