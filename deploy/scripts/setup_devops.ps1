@@ -586,7 +586,7 @@ $bodyText.pipelines += @{
   authorized = $true
 }
 
-$pipeline_name = 'Remove System of Workload Zone'
+$pipeline_name = 'Remove System or Workload Zone'
 $pipeline_id = (az pipelines list --query "[?name=='$pipeline_name'].id | [0]")
 if ($pipeline_id.Length -eq 0) {
   az pipelines create --name $pipeline_name --branch main --description 'Removes either the SAP system or the workload zone' --skip-run --yaml-path "/pipelines/10-remover-terraform.yml" --repository $repo_id --repository-type tfsgit --output none --only-show-errors
