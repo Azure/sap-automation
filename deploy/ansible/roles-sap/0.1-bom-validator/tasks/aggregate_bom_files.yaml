@@ -164,60 +164,6 @@
 # Step: 04 - END
 # -------------------------------------+---------------------------------------8
 
-# -------------------------------------+---------------------------------------8
-# Step: 05
-# Description:  Copy the files starting with HANA from the templates folder
-#
-- name:                                 "{{ task_prefix }}: - Original BOM block"
-  block:
-
-# -------------------------------------+---------------------------------------8
-# Step: 05-01
-# Description:
-#
-    - name:                             "{{ task_prefix }}: - Informational"
-      ansible.builtin.debug:
-        msg: |-
-                                        path:             {{ object_stats.stat.path }}
-                                        mimetype:         {{ object_stats.stat.mimetype }}
-                                        sub_path:         {{ sub_path }}
-                                        dir_path:         {{ dir_path }}
-                                        file_name:        {{ file_name }}
-                                        new_file_name:    {{ new_file_name }}
-                                        destination:      {{ destination }}
-        verbosity:                      1
-# Step: 05-01 - END
-# -------------------------------------+---------------------------------------8
-
-# -------------------------------------+---------------------------------------8
-# Step: 05-02
-# Description:
-#
-    - name:                             "{{ task_prefix }}: - copy and rename files"
-      become:                          "{{ bom_processing_become }}"
-      delegate_to:                      localhost
-      ansible.builtin.copy:
-        src:                            "{{ object_stats.stat.path }}"
-        dest:                           "{{ destination }}/{% if dir_path != '' %}{{ dir_path }}/{% endif %}{{ new_file_name }}"
-        force:                          true
-        mode:                           0755
-# Step: 05-02 - END
-# -------------------------------------+---------------------------------------8
-
-  vars:
-    destination:                        "{{ download_directory }}/bom/{{ new_bom_name }}"
-    sub_path:                           "{{ object_stats.stat.path | regex_search('(?:.*\/' + 'HANA' + '\/)(?P<relative_path>.*)', '\\g<relative_path>') | join }}"
-    dir_path:                           "{{ sub_path | dirname }}"
-    file_name:                          "{{ sub_path | basename }}"
-    new_file_name:                      "{{ sub_path | basename | regex_replace(this_bom_name, new_bom_name) }}"
-  when:
-    - object_stats.stat.mimetype  == "text/plain"         or
-      object_stats.stat.mimetype  == "application/pdf"    or
-      object_stats.stat.mimetype  == "text/xml"
-    - file_name                   != this_bom_name + ".yaml"
-# Step: 05 - END
-# -------------------------------------+---------------------------------------8
-
 
 ...
 # /*---------------------------------------------------------------------------8

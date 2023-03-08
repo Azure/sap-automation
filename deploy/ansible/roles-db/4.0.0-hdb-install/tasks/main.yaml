@@ -59,15 +59,14 @@
         path:                          "{{ dir_params }}/{{ sap_inifile }}"
         state:                         absent
 
-    - name:                            "SAP HANA: Include roles-sap/3.3.1-bom-utility role"
-      ansible.builtin.include_role:
-        name:                          roles-sap/3.3.1-bom-utility
-        tasks_from:                    bom-template
+    - name:                            "3.3.1 BoM Template processing: Create ini file {{ sap_inifile }} from {{ HANA_2_00_install.rsp }}"
+      ansible.builtin.template:
+        src:                           "HANA_2_00_install.rsp"
+        dest:                          "{{ param_directory }}/{{ sap_inifile }}"
+        mode:                          0644
+        force:                         true
   # Template parameter mapping
       vars:
-        bom_name:                      "{{ bom_base_name }}{{ bom_suffix }}"
-        always_upload_jinja_templates: false
-        task_prefix:                   "SAP HANA: "
         _rsp_component_root:           "../COMPONENTS"
         _rsp_components:               "{{ hana_components }}"
         _rsp_sapmnt:                   "/hana/shared"                              # Default Value
@@ -75,7 +74,6 @@
         _rsp_sid:                      "{{ db_sid | upper }}"
         _rsp_number:                   "{{ db_instance_number }}"
         _rsp_system_usage:             "custom"
-        param_directory:               "{{ dir_params }}"
 
     - name:                            "SAP HANA: Progress"
       ansible.builtin.debug:
