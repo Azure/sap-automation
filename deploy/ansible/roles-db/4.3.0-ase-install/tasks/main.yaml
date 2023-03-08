@@ -55,7 +55,7 @@
       ansible.builtin.set_fact:
         dir_params:                    "{{ target_media_location }}/.params"
 #   0x) Create hidden directory for parameter files
-    - name:                            "SAP HANA: Create hidden directory"
+    - name:                            "Sybase ASE: Create hidden directory"
       ansible.builtin.file:
         path:                          "{{ item.path }}"
         state:                         directory

@@ -86,7 +86,7 @@ check_outbound:                        false
 asesysadm_gid:                         5000
 asedbadm_gid:                          5001
 asesidadm_uid:                         5004
-asedbuser_uid:                         5005
+asesapsid_uid:                         5005
 
 # Oracle specific parameters
 ora_sid:                               "ORA"

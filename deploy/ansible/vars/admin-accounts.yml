@@ -295,7 +295,7 @@ admin_users:
 
   - name:         "sap"
     comment:      "SAP DB Installation User"
-    uid:          "{{ asedbuser_uid }}"
+    uid:          "{{ asesapsid_uid }}"
     group:        "sapinst"
     groups:       ["sapsys","sapinst"]
     password:     "{{ main_password }}"
