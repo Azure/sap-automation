@@ -36,4 +36,6 @@ locals {
     null
   )
 
+  sa_tfstate_exists = length(var.storage_account_tfstate.arm_id) > 0
+
 }
