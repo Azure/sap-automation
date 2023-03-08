@@ -33,6 +33,7 @@
       ansible.builtin.include_role:
         name:                          roles-misc/0.3.sap-installation-media-storage-details
         public:                        true
+      when:                            not is_run_with_infraCreate_only
       vars:
         tier:                          bom_download
 
@@ -77,14 +78,22 @@
       become_user:                     "root"
       block:
 
-        - name:                        "SAP OS configuration playbook: - Set sapos fact"
+        - name:                        "SAP OS configuration playbook: - Set sapos tier fact"
           ansible.builtin.set_fact:
             tier:                      sapos                                     # Actions for HANA DB Serve
-            sapbits_location_base_path: "{{ hostvars.localhost.sapbits_location_base_path }}"
-            sapbits_sas_token:          "{{ hostvars.localhost.sapbits_sas_token }}"
-            sa_enabled:                true
           tags:
             - always
+
+        - name:                        "SAP OS configuration playbook: - Set sapos storage account facts"
+          ansible.builtin.set_fact:
+            sapbits_location_base_path: "{{ hostvars.localhost.sapbits_location_base_path }}"
+            sapbits_sas_token:          "{{ hostvars.localhost.sapbits_sas_token }}"
+            sa_enabled:                 true
+          when:
+            - not is_run_with_infraCreate_only
+            - hostvars.localhost.sapbits_location_base_path is defined
+          tags:
+            - is_run_with_infraCreate_only
 
         - name:                        "SAP OS configuration playbook: - Create hosts file"
           ansible.builtin.include_role:
