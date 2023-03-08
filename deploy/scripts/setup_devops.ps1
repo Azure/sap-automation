@@ -165,18 +165,26 @@ else {
   $repo_id = (az repos list --query "[?name=='$ADO_Project'].id | [0]").Replace("""", "")
   az devops configure --defaults organization=$ADO_ORGANIZATION project=$ADO_PROJECT
 
-  Write-Host "Importing the repository from GitHub" -ForegroundColor Green
+  $repo_size=(az repos list --query "[].size | [0]")
 
-  Add-Content -Path $fname -Value ""
-  Add-Content -Path $fname -Value "Terraform and Ansible code repository stored in the DevOps project (sap-automation)"
+  if ($repo_size -eq 0) {
 
-  try {
-    az repos import create --git-url https://github.com/Azure/SAP-automation-bootstrap --repository $repo_id --output none
-  }
-  catch {
-    {
-      Write-Host "The repository already exists" -ForegroundColor Yellow
+    Write-Host "Importing the repository from GitHub" -ForegroundColor Green
+
+    Add-Content -Path $fname -Value ""
+    Add-Content -Path $fname -Value "Terraform and Ansible code repository stored in the DevOps project (sap-automation)"
+
+    try {
+      az repos import create --git-url https://github.com/Azure/SAP-automation-bootstrap --repository $repo_id --output none
     }
+    catch {
+      {
+        Write-Host "The repository already exists" -ForegroundColor Yellow
+      }
+    }
+  }
+  else {
+    Write-Host "The repository already exists" -ForegroundColor Yellow
   }
 
   az repos update --repository $repo_id --default-branch main --output none
