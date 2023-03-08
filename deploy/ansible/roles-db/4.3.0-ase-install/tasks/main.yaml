@@ -79,25 +79,11 @@
         _rsp_product_edition:           "Enterprise Edition"
         _rsp_hostname:                 "{{ ansible_hostname }}"
         pwd_master:                    "{{ main_password }}"
-    
-    - name: Find setup.bin files in CD_SYBSERVER
-      ansible.builtin.find:
-        paths: "{{ target_media_location }}/CD_SYBSERVER/"
-        patterns: 'setup.bin'
-      register: result
 
-    - name: Print the file paths
-      ansible.builtin.debug:
-        msg: "{{ item.path }}"
-      loop: "{{ result.files }}"
-
-    - name: Save the first file path to a variable
-      set_fact:
-        setup_file_path: "{{ result.files[0].path }}"
     - name:                            "Execute setup.bin on {{ ansible_hostname }}"
       ansible.builtin.command:         ./setup.bin -f '{{ dir_params }}/aseserver_{{ ansible_hostname }}_{{ sap_sid }}_install.rsp' -i silent -DAGREE_TO_SAP_LICENSE=true -DRUN_SILENT=true
       args:
-        chdir:                         "{{ setup_file_path }}"
+        chdir:                         "{{ target_media_location }}/CD_SYBSERVER/"
         creates:                       /etc/sap_deployment_automation/sap_deployment_ase.txt
       register:                        sybase_installation
       failed_when:                     sybase_installation.rc > 0
