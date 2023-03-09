@@ -82,7 +82,7 @@
 #   ansible.builtin.fail:
 #     msg:                               "Fail after printing lv details"
 
-- name:                                "SYBASE: Make sybase:dbsid as owners for SYBASE
+- name:                                "SYBASE: Make sybsid:sapsys as owners for SYBASE
                                         directories - check flag file"
   ansible.builtin.stat:
     path:                              /etc/sap_deployment_automation/filepermission.txt
@@ -95,6 +95,7 @@
     owner:                             "{{ item.owner }}"
     group:                             "{{ item.group }}"
     recurse:                           true
+    mode:                              u=rwX,g=rX,o=rX
   loop:
     - { path: '/sybase', group: '{{ sapsys_gid }}', owner: '{{ asesidadm_uid }}' }
   when:
