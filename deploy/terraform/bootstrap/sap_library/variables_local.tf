@@ -43,8 +43,8 @@ locals {
     length(var.library_terraform_state_name) > 0 ? (
       var.library_terraform_state_name) : (
       length(var.name_override_file) > 0 ? (
-        try(local.custom_names.prefix.LIBRARY.library_storageaccount_name, "")) : (
-        module.sap_namegenerator.naming.prefix.LIBRARY.library_storageaccount_name
+        try(local.custom_names.prefix.LIBRARY, "")) : (
+        module.sap_namegenerator.naming.prefix.LIBRARY
       )
     )
   )
