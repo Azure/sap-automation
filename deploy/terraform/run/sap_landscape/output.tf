@@ -175,16 +175,15 @@ output "dns_label" {
 }
 
 output "use_custom_dns_a_registration" {
-  sensitive   = false
   description = "Defines if custom DNS is used"
-  value = var.use_custom_dns_a_registration || !(
-    (
-      var.management_dns_subscription_id != data.azurerm_key_vault_secret.subscription_id.value
-      ) || (
-      var.management_dns_resourcegroup_name != (local.saplib_resource_group_name)
-    )
-  )
+  value = var.use_custom_dns_a_registration || !local.is_DNS_info_different
 }
+
+output "is_DNS_info_different" {
+  description = "Defines if custom DNS is used"
+  value = local.is_DNS_info_different
+}
+
 
 output "dns_resource_group_name" {
   description = "DNS resource group"
