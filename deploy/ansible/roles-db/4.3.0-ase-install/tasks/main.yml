@@ -1,0 +1,173 @@
+# /*-----------------------------------------------------------------------------------------------------8
+# |                                                                                                                                         |
+# |                 Perform the SYBASE Instance installation                                                           |
+# |                  SAP: Register BOM                                                                                       |
+# |                  SAP SYBASE :  create .params directory                                                             |
+# |                  Export  environment variables for SYBASE Installation                                      |
+# |                  Run SWPM to Install SYBASE                                                                             |
+# |                   TODO; Mention any OSS notes here                                                            |
+# |                                                                                                                                          |
+# +------------------------------------4--------------------------------------------------------------- */
+
+# TODO: Considerations
+
+---
+
+# Set BOM facts for SAP SYBASE Install - Refer to sap-automation/deploy/ansible/BOM-catalog/ERP6_EHP8_LNX_DB2UDB_11_5_v0001ms
+- name:                                "SAP SYBASE Install: Set BOM facts"
+  ansible.builtin.set_fact:
+    sap_inifile:                       "{{ bom_base_name }}-dbload-{{ ansible_hostname }}.params"
+    sap_inifile_template:              "{{ bom_base_name }}{{ bom_suffix }}-dbload-inifile-param.j2"
+    dir_params:                        "{{ tmp_directory }}/.{{ sap_sid | upper }}-params"
+    mem_size:                          "{{ ansible_facts.memory_mb.real.total | int * 0.8 }}"
+
+- name:                                "SAP SYBASE: Create directories"
+  ansible.builtin.file:
+    path:                              "{{ item.path }}"
+    state:                             directory
+    mode:                              '{{ item.mode }}'
+  loop:
+    - { mode: '0755', path: '{{ dir_params }}' }
+    - { mode: '0777', path: '{{ tmp_directory }}/{{ sap_sid | upper }}' }
+    - { mode: '0755', path: '/etc/sap_deployment_automation/{{ sap_sid | upper }}' }
+
+- name:                                "SAP SYBASE: Install reset"
+  ansible.builtin.file:
+    path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_db2.txt"
+    state:                             absent
+  when:                                reinstall
+
+- name:                                "SAP SYBASE: check if installed"
+  ansible.builtin.stat:
+    path:                              /etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_db2.txt
+  register:                            db2_installed
+  when:                                node_tier == 'sybase'
+
+- name:                                "SYBASE Install"
+  block:
+    - name:                            "SYBASE Install - Include 3.3.1-bom-utility role"
+      ansible.builtin.include_role:
+        name:                          roles-sap/3.3.1-bom-utility
+        tasks_from:                    bom-register
+      vars:
+        bom_name:                      "{{ bom_base_name }}"
+        task_prefix:                   "SYBASE Install: "
+
+    - name:                            "SYBASE Install - Include roles-sap/3.3.1-bom-utility role"
+      ansible.builtin.include_role:
+        name:                          roles-sap/3.3.1-bom-utility
+        tasks_from:                    bom-template
+      vars:
+        bom_name:                      "{{ bom_base_name }}"
+        task_prefix:                   "SYBASE Install: "
+        always_upload_jinja_templates: false
+        syb_archive_path:              "{{ target_media_location }}/sapdb2_software"
+        syb_cd_package_exportcd:       "{{ target_media_location }}/CD_EXPORT/DATA_UNITS"
+        syb_cd_package_db2client:      "{{ db2_archive_path }}/db2client"
+        syb_cd_package_software:       "{{ db2_archive_path }}/db2server/LINUXX86_64"
+        syb_cd_package_kernel:         "{{ target_media_location }}/download_basket/"
+        syb_db_hostname:               "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') | first }}"
+        syb_encryption_algo_type:      "AES"
+        syb_ase_encryption_length:     "256"
+        syb_encryption_keystore_dir:   /db2/db2{{ db_sid }}/keystore
+        syb_sslencryption_label:       "sap_db2{{ db_sid }}_{{ sap_db_hostname }}_ssl_comm_000"
+        sap_scs_hostname:              "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') | first }}"
+        sap_profile_dir:               "/sapmnt/{{ sap_sid | upper }}/profile"
+        tier:                          "db2S"
+        db2_memory:                    "{{ mem_size | int }}"
+        param_directory:               "{{ dir_params }}"
+    # +--------------------------------4--------------------------------------*/
+    #
+    # - name:                            "SAP SYBASE install: variables"
+    - name:                                "SYBASE Install: install variables"
+      ansible.builtin.debug:
+        msg:
+          - "INSTALLED:  {{ db2_installed.stat.exists }}"
+          - "INIFILE:    {{ dir_params }}/{{ sap_inifile }}"
+          - "PRODUCT ID: {{ bom.product_ids.dbl }}"
+          - "MEDIA:      {{ target_media_location }}"
+
+    - name:                            "Create temp directory for sid"
+      ansible.builtin.file:
+        path:                          "{{ tmp_directory }}/{{ sap_sid | upper }}"
+        state:                         directory
+        mode:                          0755
+
+    - name:                            "SYBASE Install: Progress"
+      ansible.builtin.debug:
+        msg:                           "Start SYBASE Installation"
+
+    # *================================4=======================================8
+    #   SAP SYBASE: Install
+    #   2230669 - System Provisioning Using a Parameter Input File
+    #
+
+    - name:                            "SYBASE Install - SAPINST SYBASE Install"
+      ansible.builtin.shell: |
+                                       umask {{ custom_umask | default('022') }};
+                                       ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }}     \
+                                                 SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.dbl }}                \
+                                                 SAPINST_SKIP_DIALOGS=true                                           \
+                                                 SAPINST_START_GUISERVER=false
+      args:
+        chdir:                         "{{ target_media_location }}/SWPM"
+        creates:                       "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_db2.txt"
+      environment:
+        TMPDIR:                        "{{ tmp_directory }}/{{ sap_sid | upper }}"
+        DB2TMPDIR:                     "{{ tmp_directory }}"
+      register:                        db2_installation
+      failed_when:                     db2_installation.rc > 0
+      # 2570458 - DB6: Depooling report RUTPOADAPT fails with SQL -912
+
+    - name:                            "SYBASE Install - Set LOCK variable for PAS"
+      become:                          true
+      become_user:                     db2{{ db_sid | lower }}
+      ansible.builtin.shell:           db2set DB2_AVOID_LOCK_ESCALATION=FALSE
+      args:
+        creates:                       "/etc/sap_deployment_automation/{{ sap_sid | upper }}/lock_escalation_false.txt"
+        executable:                    /bin/csh
+      register:                        db2_lock_escalation
+      environment:
+        PATH:                          "{{ ansible_env.PATH }}:/db2/db2{{ db_sid | lower }}/sqllib/gskit/bin"
+        TMPDIR:                        "{{ tmp_directory }}/{{ sap_sid | upper }}"
+
+    - name:                            "SYBASE Install - Create lock escalation run flag"
+      ansible.builtin.file:
+        path:                          "/etc/sap_deployment_automation/{{ sap_sid | upper }}/lock_escalation_false.txt"
+        state:                         touch
+        mode:                          0755
+      when:                            db2_lock_escalation.rc == 0
+
+    - name:                            "SYBASE Install: Cleanup ini file {{ ansible_hostname }}"
+      ansible.builtin.file:
+        path:                          "{{ dir_params }}/{{ sap_inifile }}"
+        state:                         absent
+
+    - name:                            "SYBASE Install - flag"
+      ansible.builtin.file:
+        path:                          "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_db2.txt"
+        state:                         touch
+        mode:                          0755
+
+  when:
+    - not db2_installed.stat.exists
+# *====================================4=======================================8
+
+- name:                                "SYBASE Install status"
+  block:
+
+    - name:                            "SYBASE Install status"
+      ansible.builtin.debug:
+        msg:                           "SYBASE is already installed"
+
+    - name:                            "SYBASE Install: - return value"
+      ansible.builtin.set_fact:
+        db2_already_installed:         true
+  when:
+    - db2_installed.stat.exists
+
+...
+
+# /*---------------------------------------------------------------------------8
+# |                                   END                                      |
+# +------------------------------------4--------------------------------------*/
