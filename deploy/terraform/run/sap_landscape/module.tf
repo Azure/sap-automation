@@ -27,10 +27,6 @@ module "sap_landscape" {
   ANF_settings                = local.ANF_settings
 
   dns_label = var.dns_label
-  dns_resource_group_name = length(var.dns_resource_group_name) > 0 ? (
-    var.dns_resource_group_name) : (
-    local.saplib_resource_group_name
-  )
   enable_purge_control_for_keyvaults = var.enable_purge_control_for_keyvaults
   use_private_endpoint               = var.use_private_endpoint
   use_service_endpoint               = var.use_service_endpoint
