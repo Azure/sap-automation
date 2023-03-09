@@ -153,10 +153,10 @@ resource "azurerm_storage_account_network_rules" "witness" {
   ])
   virtual_network_subnet_ids = [
     local.database_subnet_defined ? (
-      local.database_subnet_existing ? local.database_subnet_arm_id : azurerm_subnet.db[0].id) : (
+      local.database_subnet_existing ? local.database_subnet_arm_id : try(azurerm_subnet.db[0].id, "")) : (
       ""
       ), local.application_subnet_defined ? (
-      local.application_subnet_existing ? local.application_subnet_arm_id : azurerm_subnet.app[0].id) : (
+      local.application_subnet_existing ? local.application_subnet_arm_id : try(azurerm_subnet.app[0].id, "")) : (
       ""
     ),
     local.deployer_subnet_management_id
@@ -288,13 +288,13 @@ resource "azurerm_storage_account_network_rules" "transport" {
   virtual_network_subnet_ids = compact(
     [
       local.database_subnet_defined ? (
-        local.database_subnet_existing ? local.database_subnet_arm_id : azurerm_subnet.db[0].id) : (
+        local.database_subnet_existing ? local.database_subnet_arm_id : try(azurerm_subnet.db[0].id, "")) : (
         ""
         ), local.application_subnet_defined ? (
-        local.application_subnet_existing ? local.application_subnet_arm_id : azurerm_subnet.app[0].id) : (
+        local.application_subnet_existing ? local.application_subnet_arm_id : try(azurerm_subnet.app[0].id, "")) : (
         ""
         ), local.web_subnet_defined ? (
-        local.web_subnet_existing ? local.web_subnet_arm_id : azurerm_subnet.web[0].id) : (
+        local.web_subnet_existing ? local.web_subnet_arm_id : try(azurerm_subnet.web[0].id, "")) : (
         ""
       ),
       local.deployer_subnet_management_id
@@ -505,13 +505,13 @@ resource "azurerm_storage_account_network_rules" "install" {
   virtual_network_subnet_ids = compact(
     [
       local.database_subnet_defined ? (
-        local.database_subnet_existing ? local.database_subnet_arm_id : azurerm_subnet.db[0].id) : (
+        local.database_subnet_existing ? local.database_subnet_arm_id : try(azurerm_subnet.db[0].id, "")) : (
         ""
         ), local.application_subnet_defined ? (
-        local.application_subnet_existing ? local.application_subnet_arm_id : azurerm_subnet.app[0].id) : (
+        local.application_subnet_existing ? local.application_subnet_arm_id : try(azurerm_subnet.app[0].id, "")) : (
         ""
         ), local.web_subnet_defined ? (
-        local.web_subnet_existing ? local.web_subnet_arm_id : azurerm_subnet.web[0].id) : (
+        local.web_subnet_existing ? local.web_subnet_arm_id : try(azurerm_subnet.web[0].id, "")) : (
         ""
       ),
       local.deployer_subnet_management_id
