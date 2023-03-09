@@ -230,7 +230,7 @@
 
 - name:                               "Show Result"
   ansible.builtin.debug:
-    - var:  zipresult
+    var:  zipresult
 
 #   07) Extract files - EXE
 # - name:                                "3.3 BoM Processing: - Extract File, UNRAR"
