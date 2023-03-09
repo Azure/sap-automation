@@ -104,6 +104,8 @@
       register:                        sybase_installation
       failed_when:                     sybase_installation.rc > 0
 
+    - name:                            "Change the ownership of the file"
+
     - name:                            "SAP SYBASE: Debug: Installation results"
       ansible.builtin.debug:
         var:                           sybase_installation
