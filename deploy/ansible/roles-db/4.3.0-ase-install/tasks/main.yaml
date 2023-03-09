@@ -22,7 +22,7 @@
   when: sidadm_user_status is changed
 
 - name: Create ini files for unattended installation
-  include_tasks: create_ini_files.yml
+  include_tasks: create_ini_file.yml
 
 - name: Install DB Instance
   include_tasks: install_db_instance.yml
