@@ -326,6 +326,12 @@
     - node_tier == 'scs'
     - scs_installed.stat.exists
 
+- name:                                "SCS HA Install: check if installed without issues"
+  ansible.builtin.stat:
+    path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_scs.txt"
+  register:                            scs_installed
+  when:                                node_tier == 'scs'
+
 - name:                                "SCSERS - Enqueue Server Setup"
   block:
     - name:                            "SCSERS - Get the variable to determine ENSA version"
