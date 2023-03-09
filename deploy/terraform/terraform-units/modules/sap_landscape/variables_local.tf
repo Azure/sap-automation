@@ -72,7 +72,7 @@ locals {
   )
   sid_private_key = local.sid_key_exist ? (
     data.azurerm_key_vault_secret.sid_ppk[0].value) : (
-    (file(var.authentication.path_to_private_key), try(tls_private_key.sid[0].private_key_pem, ""))
+    try(file(var.authentication.path_to_private_key), try(tls_private_key.sid[0].private_key_pem, ""))
   )
 
   // Current service principal
