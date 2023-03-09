@@ -158,11 +158,6 @@ output "dns_info_iscsi" {
   value       = module.sap_landscape.dns_info_vms
 }
 
-output "use_custom_dns_a_registration" {
-  description = "Defines if custom DNS is used"
-  value       = var.use_custom_dns_a_registration
-}
-
 output "management_dns_subscription_id" {
   description = "custom DNS subscription"
   value       = var.management_dns_subscription_id
@@ -178,6 +173,13 @@ output "dns_label" {
   description = "DNS label"
   value       = var.dns_label
 }
+
+output "use_custom_dns_a_registration" {
+  sensitive = true
+  description = "Defines if custom DNS is used"
+  value = local.is_DNS_info_different ? local.is_DNS_info_different : var.use_custom_dns_a_registration
+}
+
 
 
 output "dns_resource_group_name" {
@@ -261,4 +263,3 @@ output "controlplane_environment" {
   description = "Control plane environment"
   value       = data.terraform_remote_state.deployer[0].outputs.environment
 }
-
