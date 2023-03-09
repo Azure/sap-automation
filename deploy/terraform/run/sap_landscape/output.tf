@@ -158,11 +158,6 @@ output "dns_info_iscsi" {
   value       = module.sap_landscape.dns_info_vms
 }
 
-output "use_custom_dns_a_registration" {
-  description = "Defines if custom DNS is used"
-  value       = var.use_custom_dns_a_registration
-}
-
 output "management_dns_subscription_id" {
   description = "custom DNS subscription"
   value       = var.management_dns_subscription_id
@@ -179,6 +174,12 @@ output "dns_label" {
   value       = var.dns_label
 }
 
+output "use_custom_dns_a_registration" {
+  description = "Defines if custom DNS is used"
+  value       = var.use_custom_dns_a_registration || !(
+    (var.management_dns_subscription_id != data.azurerm_key_vault_secret.subscription_id[0].value) || (var.management_dns_resourcegroup_name != (local.sa_tfstate_name))
+  )
+}
 
 output "dns_resource_group_name" {
   description = "DNS resource group"
@@ -260,12 +261,4 @@ output "install_path" {
 output "controlplane_environment" {
   description = "Control plane environment"
   value       = data.terraform_remote_state.deployer[0].outputs.environment
-}
-
-
-output "use_custom_dns_a_registration" {
-  description = "Defines if custom DNS is used"
-  value       = var.use_custom_dns_a_registration || !(
-    (var.management_dns_subscription_id != data.azurerm_key_vault_secret.subscription_id[0].value) || (var.management_dns_resourcegroup_name != (local.sa_tfstate_name))
-  )
 }
