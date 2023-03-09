@@ -175,11 +175,13 @@ output "dns_label" {
 }
 
 output "use_custom_dns_a_registration" {
+  sensitive = true
   description = "Defines if custom DNS is used"
   value = var.use_custom_dns_a_registration || !local.is_DNS_info_different
 }
 
 output "is_DNS_info_different" {
+  sensitive = true
   description = "Defines if custom DNS is used"
   value = local.is_DNS_info_different
 }
