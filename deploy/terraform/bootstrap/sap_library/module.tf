@@ -22,8 +22,8 @@ module "sap_library" {
   use_private_endpoint    = var.use_private_endpoint
   use_custom_dns_a_registration = var.use_custom_dns_a_registration || !(
     (var.management_dns_subscription_id != data.azurerm_key_vault_secret.subscription_id[0].value) || (var.management_dns_resourcegroup_name != (local.sa_tfstate_exists ? (
-      split("/", local.storage_account_tfstate.arm_id)[8]) : (
-      length(var.name_override_file) > 0 ? local.custom_names.LIBRARY.library_storageaccount_name : module.sap_namegenerator.naming.LIBRARY.library_storageaccount_name)
+      split("/", local.storage_account_tfstate.arm_id)[8]) : (s
+      length(var.name_override_file) > 0 ? local.custom_names.prefix.LIBRARY.library_storageaccount_name : module.sap_namegenerator.naming.prefix.LIBRARY.library_storageaccount_name)
     ))
   )
   management_dns_subscription_id    = trimspace(var.management_dns_subscription_id)
