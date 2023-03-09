@@ -226,6 +226,8 @@
     - item.extract
     - ( item.filename is undefined and (item.archive | regex_search('[^.]+(?=\\.*$)') | upper=="ZIP") ) or
       ( item.filename is defined   and (item.filename | regex_search('[^.]+(?=\\.*$)') | upper=="ZIP") )
+
+
 - name:                               "Show Result"
   ansible.builtin.debug:
     - var:  zipresult
