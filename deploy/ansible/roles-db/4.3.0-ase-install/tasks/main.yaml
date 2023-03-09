@@ -18,11 +18,8 @@
   include_tasks: check_sap_users.yml
 
 - name: Prepare installation directories
-  include_tasks: create_install_dirrectories.yml
+  include_tasks: create_install_directories.yml
   when: sidadm_user_status is changed
-
-- name: Prepare installation files
-  include_tasks: prepare_sybase_install_files.yml
 
 - name: Create ini files for unattended installation
   include_tasks: create_ini_files.yml
