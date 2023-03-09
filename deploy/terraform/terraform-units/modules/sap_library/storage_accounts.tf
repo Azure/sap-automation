@@ -69,6 +69,13 @@ resource "azurerm_role_assignment" "storage_tfstate_contributor" {
   principal_id         = var.deployer_tfstate.deployer_uai.principal_id
 }
 
+resource "azurerm_role_assignment" "storage_tfstate_contributor" {
+  provider             = azurerm.main
+  count                = length(var.deployer_tfstate.deployer_system_assigned_identity)
+  scope                = local.sa_tfstate_exists ? local.sa_tfstate_arm_id : azurerm_storage_account.storage_tfstate[0].id
+  role_definition_name = "Storage Account Contributor"
+  principal_id         = var.deployer_tfstate.deployer_system_assigned_identity[0].principal_id
+}
 
 resource "azurerm_private_dns_a_record" "storage_tfstate_pep_a_record_registry" {
   depends_on = [
