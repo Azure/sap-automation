@@ -291,7 +291,7 @@ output "saptransport_path" {
   value = var.NFS_provider == "AFS" ? (
     length(var.transport_private_endpoint_id) == 0 ? (
       format("%s:/%s/%s", try(azurerm_private_endpoint.transport[0].custom_dns_configs[0].fqdn,
-        azurerm_private_endpoint.transport[0].private_service_connection[0].private_ip_address),
+        try(azurerm_private_endpoint.transport[0].private_service_connection[0].private_ip_address, "")),
         length(var.transport_storage_account_id) > 0 ? split("/", var.transport_storage_account_id)[8] : replace(
           lower(
             format("%s", local.landscape_shared_transport_storage_account_name)
@@ -331,7 +331,7 @@ output "install_path" {
   value = try(var.NFS_provider == "AFS" ? (
     length(var.install_private_endpoint_id) == 0 ? (
       format("%s:/%s/%s", try(azurerm_private_endpoint.install[0].custom_dns_configs[0].fqdn,
-        azurerm_private_endpoint.install[0].private_service_connection[0].private_ip_address),
+        try(azurerm_private_endpoint.install[0].private_service_connection[0].private_ip_address, "")),
         length(var.install_storage_account_id) > 0 ? split("/", var.install_storage_account_id)[8] : replace(
           lower(
             format("%s", local.landscape_shared_install_storage_account_name)
