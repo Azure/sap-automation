@@ -78,7 +78,7 @@
 
     - name: Save the first file path to a variable
       set_fact:
-        setup_file_path: "{{ result.files[0].path }}"
+        setup_file_path: "{{ result.files[0].path | dirname }}"
 
     # SAP Sybase: deploy setupbin install response file
     - name:                            "SAP SYBASE: deploy install response file"
