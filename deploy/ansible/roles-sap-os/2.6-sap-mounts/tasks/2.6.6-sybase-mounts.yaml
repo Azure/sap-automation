@@ -82,13 +82,13 @@
 #   ansible.builtin.fail:
 #     msg:                               "Fail after printing lv details"
 
-- name:                                "SYBASE: Make sybase:dba as owners for SYBASE
+- name:                                "SYBASE: Make sybase:dbsid as owners for SYBASE
                                         directories - check flag file"
   ansible.builtin.stat:
     path:                              /etc/sap_deployment_automation/filepermission.txt
   register:                            sybase_permissions_set
 
-- name:                                "SYBASE: Make asesid:dba as owners for SYBASE directories"
+- name:                                "SYBASE: Make syb<sid>:sapsys as owners for SYBASE directories"
   ansible.builtin.file:
     path:                              "{{ item.path }}"
     state:                             directory
@@ -96,7 +96,7 @@
     group:                             "{{ item.group }}"
     recurse:                           true
   loop:
-    - { path: '/sybase', group: '{{ asesysadm_gid }}', owner: '{{ asesidadm_uid }}' }
+    - { path: '/sybase', group: '{{ sapsys_gid }}', owner: '{{ asesidadm_uid }}' }
   when:
     - not sybase_permissions_set.stat.exists
 
