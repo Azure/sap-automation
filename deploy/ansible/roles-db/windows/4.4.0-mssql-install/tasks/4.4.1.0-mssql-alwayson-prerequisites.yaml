@@ -29,8 +29,8 @@
     RestartTimeout:                    180
     PsDscRunAsCredential_username:     "{{ domain_service_account }}@{{ domain_name }}"
     PsDscRunAsCredential_password:     "{{ domain_service_password }}"
-  register:                           sql_always_on_service
-  until:                              sql_always_on_service is succeeded
+  register:                            sql_always_on_service
+  until:                               sql_always_on_service is succeeded
   retries:                            6
   delay:                              20
 

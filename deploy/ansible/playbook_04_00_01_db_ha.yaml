@@ -449,122 +449,82 @@
   # -----------------------------------+---------------------------------------8
   tasks:
 
-    - name:                            "SQLServer HA - Install SAP DB2 on both nodes"
+    - name:                            "SQLServer HA - Install SQL4SAP on both nodes"
       when:
         - db_high_availability
-        - platform == 'SQLServer'
+        - platform | upper == 'SQLSERVER'
         - node_tier == 'sqlserver'
       become:                          true
-      become_user:                     root
+      become_user:                     "{{ orchestration_ansible_user }}"
       block:
-        - name:                        "DB2 HA - Setting the DB facts"
+        - name:                        "SQLServer HA - Setting the DB facts"
           ansible.builtin.set_fact:
-            primary_instance_name :    "{{ ansible_play_hosts_all[0] }}"
-            primary_instance_ip_db:    "{{ hostvars[ansible_play_hosts_all[0]]['ansible_eth0']['ipv4']['address'] }}"
-            secondary_instance_name:   "{{ ansible_play_hosts_all[1] }}"
-            secondary_instance_ip_db:  "{{ hostvars[ansible_play_hosts_all[1]]['ansible_eth0']['ipv4']['address'] }}"
+            primary_node:              "{{ ansible_play_hosts_all[0] }}"
+            primary_node_ip_db:        "{{ hostvars[ansible_play_hosts_all[0]]['ansible_eth0']['ipv4']['address'] }}"
+            secondary_node:            "{{ ansible_play_hosts_all[1] }}"
+            secondary_node_ip_db:      "{{ hostvars[ansible_play_hosts_all[1]]['ansible_eth0']['ipv4']['address'] }}"
             domain_user_password:      "{{ hostvars.localhost.winadm_password }}"
           tags:
             - always
 
+        - name:                                "SQLServer HA - Create run flag directory"
+          ansible.windows.win_file:
+            path:                              '{{ sap_deployment_automation }}\{{ sap_sid | upper }}'
+            state:                             directory
+
+        - name:                                "SQLServer HA - check if SQL Server service is started"
+          ansible.windows.win_service_info:
+            name:                              MSSQLServer
+          register:                            sql_service
+
         - name:                        "SQLServer HA - Install cluster (base)"
           when:
+            - sql_service.exists
             - db_high_availability
             - node_tier == 'sqlserver'
           block:
-
-            - name:                    "DB2 HA - Setting the facts"
+            - name:                    "SQLServer HA - Setting the facts"
               ansible.builtin.set_fact:
                 tier:                      ha
-                main_password:             "{{ hostvars.localhost.sap_password }}"
-                password_ha_db_cluster:    "{{ hostvars.localhost.db_cluster_password }}"
-                primary_instance_name:     "{{ ansible_play_hosts_all[0] }}"         # Setting up Primary Instance Name
-                secondary_instance_name:   "{{ ansible_play_hosts_all[1] }}"         # Setting up Secondary Instance Name
+                primary_node:              "{{ ansible_play_hosts_all[0] }}"         # Setting up Primary Instance Name
+                secondary_node:            "{{ ansible_play_hosts_all[1] }}"         # Setting up Secondary Instance Name
+                domain_user_password:      "{{ hostvars.localhost.winadm_password }}"
 
-            - name:                    "DB2 HA - repository check"
-              block:
-                - name:                "DB2 HA - Ensure the correct repositories are set"
-                  ansible.builtin.include_role:
-                    name:              roles-os/1.3-repository
+            - name:                    "SQLServer HA - Windows Cluster Prerequisites"
+              ansible.builtin.include_tasks:
+                file:                  roles-os/windows/1.17-generic-wincluster/tasks/1.17.0-wincluster-prerequisites.yaml
               tags:
-                - 1.3-repository
+                - 1.17.0-wincluster-prerequisites
 
-            - name:                    "DB2 HA - package check"
-              block:
-                - name:                "DB2 HA - Ensure the correct packages are installed"
-                  ansible.builtin.include_role:
-                    name:              roles-os/1.4-packages
+            - name:                    "SQLServer HA - Windows Cluster Configuration"
+              ansible.builtin.include_tasks:
+                file:                  roles-os/windows/1.17-generic-wincluster/tasks/1.17.1-wincluster-createcluster.yaml
               tags:
-                - 1.4-packages
+                - 1.17.1-wincluster-createcluster
 
-            - name:                    "DB2 HA - set kernel parameters"
-              block:
-              # Setup the kernel parameters required for pacemaker cluster VMs
-                - name:                "DB2 HA - Ensure the correct kernel parameters are set"
-                  ansible.builtin.include_role:
-                    name:              roles-os/1.9-kernelparameters
+            - name:                    "SQLServer HA - AlwaysOn Prerequisites"
+              ansible.builtin.include_tasks:
+                file:                  roles-db/windows/4.4.0-mssql-install/tasks/4.4.1.0-mssql-alwayson-prerequisites.yaml
               tags:
-                - 1.9-kernelparameters
+                - 4.4.1.0-mssql-alwayson-prerequisites
 
-            - name:                    "DB2 HA - services check"
-              block:
-                - name:                "DB2 HA - Ensure the needed services are enabled/disabled"
-                  ansible.builtin.include_role:
-                    name:              roles-os/1.16-services
+            - name:                    "SQLServer HA - SQLServer AlwaysOn configuration"
+              ansible.builtin.include_tasks:
+                file:                  roles-db/windows/4.4.0-mssql-install/tasks/4.4.1.1-mssql-alwayson-config.yaml
               tags:
-                - 1.16-services
+                - 4.4.1.1-mssql-alwayson-config
 
-            - name:                    "DB2 HA - accounts check"
-              block:
-                - name:                "DB2 HA - Ensure the accounts are present"
-                  ansible.builtin.include_role:
-                    name:                roles-os/1.11-accounts
-              tags:
-                - 1.11-accounts
+            - name:                    "SQLServer HA - Create alwayson-config-done flag"
+              ansible.windows.win_file:
+                path:                              '{{ sap_deployment_automation }}\{{ sap_sid | upper }}\alwayson-config-done.txt'
+                state:                             touch
+                force:                             yes
 
-            - name:                    "DB2 HA - Generic pacemaker Configuration"
-              ansible.builtin.include_role:
-                name:                  roles-os/1.17-generic-pacemaker                         # Configures the Pacemaker cluster with Azure fence agent
-                apply:
-                  tags:
-                    - 1.17-generic-pacemaker
-                  become:              true
-                  become_user:         root
-              tags:
-                - 1.17-generic-pacemaker
-
-            - name:                    "DB2 HA - Create pacemaker-install-done flag"
-              delegate_to:             localhost
-              become:                  false
-              ansible.builtin.file:
-                path:                  "{{ _workspace_directory }}/.progress/pacemaker-install-done"
-                state:                 touch
-                mode:                  0755
-
-        - name:                        "DB2 HA - Install DB2 Pacemaker resources"
-          block:
-            - name:                    "DB2 HA - Pacemaker - Initialize facts"
-              ansible.builtin.set_fact:
-                tier:                            ha
-                password_ha_db_cluster:          "{{ hostvars.localhost.db_cluster_password }}"
-                main_password:                   "{{ hostvars.localhost.sap_password }}"
-                primary_instance_name:           "{{ ansible_play_hosts_all[0] }}"         # Setting up Primary Instance Name
-                primary_instance_ip_db:          "{{ hostvars[ansible_play_hosts_all[0]]['ansible_eth0']['ipv4']['address'] }}"
-                secondary_instance_name:         "{{ ansible_play_hosts_all[1] }}"         # Setting up Secondary Instance Name
-                secondary_instance_ip_db:        "{{ hostvars[ansible_play_hosts_all[1]]['ansible_eth0']['ipv4']['address'] }}"
-                # sap_hana_fencing_spn_client_id:  "{{ hostvars.localhost.sap_fencing_spn_client_id }}"
-                # sap_hana_fencing_spn_client_pwd: "{{ hostvars.localhost.sap_fencing_spn_pwd }}"
-                # sap_hana_fencing_spn_tenant_id:  "{{ hostvars.localhost.sap_fencing_spn_tenant_id }}"
-              tags:
-                - always
-
-            - name:                    "DB2 HA - Pacemaker - Run the Pacemaker setup"
-              ansible.builtin.include_role:
-                name:                  roles-sap/5.7-db2-pacemaker
-              tags:
-                - 5.7-db2-pacemaker
-
-
+# # /*-------------------------------------------------------------------------8
+# # |                                                                          |
+# # |         Playbook for SQLServer DB   -  High Availability - END           |
+# # |                                                                          |
+# # +------------------------------------4------------------------------------*/
 
 # If the DB HA is configured successfully, we need to create the db-ha-done file
 - hosts:                               localhost

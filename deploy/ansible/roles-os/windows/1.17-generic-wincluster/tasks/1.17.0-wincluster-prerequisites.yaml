@@ -10,6 +10,20 @@
 # +------------------------------------4--------------------------------------*/
 
 # some modules are added in case we come here directly
+- name:                                "WinCluster-PreReq: Calculate clustername for SCS/ERS cluster"
+  ansible.builtin.set_fact:
+    cluster_name:                      "{{ sap_sid | lower }}scs{{ scs_instance_number }}cl"
+    cacheable:                         true
+  when:
+    - node_tier | lower in ['scs','ers']
+
+- name:                                "WinCluster-PreReq: Calculate clustername for DB cluster"
+  ansible.builtin.set_fact:
+    cluster_name:                      "{{ sap_sid | lower }}{{ db_sid | lower }}db{{ db_instance_number }}cl"
+    cacheable:                         true
+  when:
+    - node_tier | lower == 'sqlserver'
+
 - name:                                "WinCluster-PreReq: Ensure DSC modules are installed"
   community.windows.win_psmodule:
     name:                              "{{ item }}"
