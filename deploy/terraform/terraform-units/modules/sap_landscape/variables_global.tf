@@ -241,11 +241,6 @@ variable "dns_label" {
   default     = ""
 }
 
-variable "dns_resource_group_name" {
-  description = "DNS resource group name"
-  default     = ""
-}
-
 variable "create_vaults_and_storage_dns_a_records" {
   description = "Boolean value indicating if dns a records should be created for the vaults and storage accounts"
   type        = bool

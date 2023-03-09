@@ -180,13 +180,10 @@ output "use_custom_dns_a_registration" {
   value = local.is_DNS_info_different ? local.is_DNS_info_different : var.use_custom_dns_a_registration
 }
 
-
-
 output "dns_resource_group_name" {
-  description = "DNS resource group"
-  value       = length(var.dns_resource_group_name) > 0 ? var.dns_resource_group_name : local.saplib_resource_group_name
+  description = "DNS resource group name"
+  value = local.saplib_resource_group_name
 }
-
 
 ###############################################################################
 #                                                                             #
