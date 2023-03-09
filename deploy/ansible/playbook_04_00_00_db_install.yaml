@@ -595,16 +595,6 @@
           ansible.builtin.include_role:
             name:                      roles-db/4.3.0-ase-install
 
-        - name:                        "Database Installation Playbook: - Run post installation routines"
-          ansible.builtin.include_role:
-            name:                      roles-sap/7.0.0-post-install
-          vars:
-            suffix:                    "_DB"
-            tier:                      'sybase'
-            prefix:                    "{{ bom.product_ids.dblha.replace('.', '/').replace('/ABAP', '').split(':')[1] }}"
-            path:                      "INSTALL/DISTRIBUTED/ABAP/DB"
-            this_sid:                  "{{ sap_sid }}"
-
 
 # /*----------------------------------------------------------------------------8
 # |                                                                            |
