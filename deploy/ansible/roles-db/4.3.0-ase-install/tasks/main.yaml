@@ -63,7 +63,23 @@
       loop:
         - { state: 'directory', mode: '0755', path: '{{ target_media_location }}' }
         - { state: 'directory', mode: '0755', path: '{{ dir_params }}' }
-    
+
+    - name: Find setup.bin files in CD_SYBSERVER
+      ansible.builtin.find:
+        paths: "{{ target_media_location }}/CD_SYBSERVER/"
+        patterns: 'setup.bin'
+        recurse: true
+      register: result
+
+    - name: Print the file paths
+      ansible.builtin.debug:
+        msg: "{{ item.path }}"
+      loop: "{{ result.files }}"
+
+    - name: Save the first file path to a variable
+      set_fact:
+        setup_file_path: "{{ result.files[0].path }}"
+
     # SAP Sybase: deploy setupbin install response file
     - name:                            "SAP SYBASE: deploy install response file"
       ansible.builtin.template:
@@ -83,7 +99,7 @@
     - name:                            "Execute setup.bin on {{ ansible_hostname }}"
       ansible.builtin.command:         ./setup.bin -f '{{ dir_params }}/aseserver_{{ ansible_hostname }}_{{ sap_sid }}_install.rsp' -i silent -DAGREE_TO_SAP_LICENSE=true -DRUN_SILENT=true
       args:
-        chdir:                         "{{ target_media_location }}/CD_SYBSERVER/"
+        chdir:                         "{{ setup_file_path }}"
         creates:                       /etc/sap_deployment_automation/sap_deployment_ase.txt
       register:                        sybase_installation
       failed_when:                     sybase_installation.rc > 0
