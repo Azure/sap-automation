@@ -520,29 +520,6 @@ resource "azurerm_storage_account_network_rules" "install" {
 
 }
 
-resource "azurerm_private_dns_a_record" "install" {
-  provider = azurerm.dnsmanagement
-  count    = var.create_vaults_and_storage_dns_a_records && var.NFS_provider == "AFS" && length(var.install_private_endpoint_id) == 0 ? 1 : 0
-  name = replace(
-    lower(
-      format("%s", local.landscape_shared_install_storage_account_name)
-    ),
-    "/[^a-z0-9]/",
-    ""
-  )
-  zone_name           = "privatelink.file.core.windows.net"
-  resource_group_name = var.management_dns_resourcegroup_name
-  ttl                 = 3600
-
-  records = [length(var.install_private_endpoint_id) > 0 ? (
-    data.azurerm_private_endpoint_connection.install[0].private_service_connection[0].private_ip_address) : (
-    azurerm_private_endpoint.kv_user[0].private_service_connection[0].private_ip_address
-  )]
-  lifecycle {
-    ignore_changes = [tags]
-  }
-}
-
 data "azurerm_private_dns_a_record" "install" {
   provider = azurerm.dnsmanagement
   count    = var.use_private_endpoint && length(var.install_private_endpoint_id) > 0 ? 1 : 0
