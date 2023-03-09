@@ -1,0 +1,24 @@
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                Perform the Sybase ASE Software installation                |
+# |                  Step 1: Check for OS Reboot (SLES)                        |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+---
+
+- name: Check if OS reboot is required
+  shell: zypper needs-rebooting
+  register: reboot_output_suse
+  ignore_errors: true
+
+- name: Reboot host
+  reboot:
+    msg: "Reboot initiated by Ansible"
+    connect_timeout: 5
+    reboot_timeout: 600
+    pre_reboot_delay: 0
+    post_reboot_delay: 30
+    test_command: whoami
+  when: ('Reboot is probably not necessary' not in reboot_output_suse.stdout)
+  
+...

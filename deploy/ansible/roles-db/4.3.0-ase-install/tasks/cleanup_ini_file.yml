@@ -1,0 +1,14 @@
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                Perform the Sybase ASE Software installation                |
+# |                  Step 1: Check for OS Reboot (SLES)                        |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+---
+
+  - name:                            "SYBASE Install: Cleanup ini file {{ ansible_hostname }}"
+    ansible.builtin.file:
+      path:                          "{{ dir_params }}/{{ sap_inifile }}"
+      state:                         absent
+      
+...

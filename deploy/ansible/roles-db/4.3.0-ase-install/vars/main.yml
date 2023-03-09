@@ -5,7 +5,9 @@
 #
 # They may be overridden, if required, but normally are not
 
-db_sid_admin_user:                     "syb{{ db_sid | lower }}"
+sidadm_user:                          "syb{{ db_sid | lower }}"
+db_unarchived_folder:                 "{{ target_media_location}}/CD_SYBSERVER"
+kernel_media_folder:                  "{{ target_media_location}}/download_basket"
 db_sid_backup_dir:                     "{{ target_media_location }}/asebackup"
 
 # DB2 utility commands

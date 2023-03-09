@@ -1,0 +1,44 @@
+# /*-----------------------------------------------------------------------------------------------------8
+# |                                                                                                      |
+# |                 Check whether Sybase DB Instance has been installed or not                           |
+# |                  SAP: Register BOM                                                                   |
+# |                  Export  environment variables for Sybase Installation                               |
+# |                  Run SWPM to Install SYBASE                                                          |
+# |                   TODO; Mention any OSS notes here                                                   |
+# |                                                                                                      |
+# +------------------------------------4--------------------------------------------------------------- */
+
+---
+
+
+- name:                                "SAP Sybase: Install reset"
+  ansible.builtin.file:
+    path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_sybase.txt"
+    state:                             absent
+  when: reinstall
+
+- name:                               "Check if Sybase already installed"
+  ansible.builtin.stat:
+    path:                             "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_sybase.txt"
+  # become: true
+  # stat:
+    # path: "{{ sybase.install.server.directory }}/SYBASE.sh"
+  register:                           "sybase_installed"
+
+- name:                                "SYBASE Install status"
+  block:
+
+    - name:                            "SYBASE Install status"
+      ansible.builtin.debug:
+        msg:                           "SYBASE is already installed"
+
+    - name:                            "SYBASE Install: - return value"
+      ansible.builtin.set_fact:
+        sybase_already_installed:         true
+  when:
+    - sybase_installed.stat.exists
+
+...
+# /*---------------------------------------------------------------------------8
+# |                                   END                                      |
+# +------------------------------------4--------------------------------------*/

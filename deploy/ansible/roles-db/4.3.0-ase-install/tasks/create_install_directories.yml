@@ -1,0 +1,44 @@
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                Perform the Sybase ASE Software installation                |
+# |                  Step 3: Create Directories for ASE installation                        |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+---
+
+# Set BOM facts for SAP DB2 Install - Refer to sap-automation/deploy/ansible/BOM-catalog/ERP6_EHP8_LNX_DB2UDB_11_5_v0001ms
+- name:                                "SAP ASE Install: Set BOM facts"
+  ansible.builtin.set_fact:
+    sap_inifile:                       "{{ bom_base_name }}-dbload-{{ ansible_hostname }}.params"
+    sap_inifile_template:              "{{ bom_base_name }}{{ bom_suffix }}-dbload-inifile-param.j2"
+    dir_params:                        "{{ tmp_directory }}/.{{ sap_sid | upper }}-params"
+    mem_size:                          "{{ ansible_facts.memory_mb.real.total | int * 0.8 }}"
+
+- name:                                "SAP ASE: Create directories"
+  ansible.builtin.file:
+    path:                              "{{ item.path }}"
+    state:                             directory
+    mode:                              '{{ item.mode }}'
+  loop:
+    - { mode: '0755', path: '{{ dir_params }}' }
+    - { mode: '0777', path: '{{ tmp_directory }}/{{ sap_sid | upper }}' }
+    - { mode: '0755', path: '/etc/sap_deployment_automation/{{ sap_sid | upper }}' }
+- name:                                "Sybase: Create sybtemp folder if it doesnot exist"
+  ansible.builtin.file:
+    path:                              /sybase/{{ db_sid|upper }}/sybtemp
+    mode:                              0755
+    state:                             directory
+
+- name:                                "Sybase: Create data folder inside sybtemp folder if it does not exist"
+  ansible.builtin.file:
+    path:                              /sybase/{{ db_sid|upper }}/sybtemp/data
+    mode:                              0755
+    state:                             directory
+
+- name:                                "Sybase: Create sybsystem folder if it doesnot exist"
+  ansible.builtin.file:
+    path:                              /sybase/{{ db_sid|upper }}/sybsystem
+    mode:                              0755
+    state:                             directory
+
+...

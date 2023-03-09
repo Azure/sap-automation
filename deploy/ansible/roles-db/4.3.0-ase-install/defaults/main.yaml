@@ -1,0 +1,16 @@
+---
+
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# 
+sap_db_hostname:               "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') | first }}"
+sap_scs_hostname:              "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') | first }}"
+kernel_media_folder:           "{{ target_media_location}}/download_basket"
+param_directory:               "{{ dir_params }}"
+
+db_unarchived_folder:          "{{ target_media_location}}/CD_SYBSERVER"
+dbexport_folder_path:          "{{ target_media_location}}/CD_EXPORT/DATA_UNITS"
+sap_profile_dir:               "/sapmnt/{{ sap_sid | upper }}/profile"
+
+sidadm_user:                    "syb{{ db_sid | lower }}"
+
+db_sid_backup_dir:              "/sybase/{{ db_sid | upper }}/backup"

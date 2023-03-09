@@ -1,0 +1,19 @@
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                Perform the Sybase ASE Software installation                |
+# |                  Step 1: Check for OS Reboot (SLES)                        |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+---
+
+# Check whether the user exists or not for SYBASE DB Install
+- name: Check if user "{{ sidadm_user }}" was already created
+  user:
+    name: "{{ sidadm_user }}"
+    state: present
+  check_mode: yes
+  register: sidadm_user_status
+
+  
+...
+

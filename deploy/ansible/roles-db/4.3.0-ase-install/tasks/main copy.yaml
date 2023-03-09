@@ -1,0 +1,142 @@
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                Perform the Sybase ASE Software installation                    |
+# |                  SAP: Register BOM                                         |
+# |                  create .params directory                                  |
+# |                  Export environment variables for Sybase Installation      |
+# |                  Run the Sybase ASE installer in silent mode.           |
+# |                                                                            |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+---
+
+- name:                                "Sybase: Create sap_deployment_automation folder"
+  ansible.builtin.file:
+    path:                              /etc/sap_deployment_automation
+    mode:                              0755
+    state:                             directory
+
+- name:                                "SAP Sybase: Install reset"
+  ansible.builtin.file:
+    path:                              /etc/sap_deployment_automation/sap_deployment_ase.txt
+    state:                             absent
+  when: reinstall
+
+- name:                               "Check if Sybase already installed"
+  ansible.builtin.stat:
+    path:                             /etc/sap_deployment_automation/sap_deployment_ase.txt
+  # become: true
+  # stat:
+    # path: "{{ sybase.install.server.directory }}/SYBASE.sh"
+  register:                           "sybase_installed"
+
+- name:                                "Sybase: Create sybtemp folder if it doesnot exist"
+  ansible.builtin.file:
+    path:                              /sybase/{{ db_sid|upper }}/sybtemp
+    mode:                              0755
+    state:                             directory
+
+- name:                                "Sybase: Create data folder inside sybtemp folder if it does not exist"
+  ansible.builtin.file:
+    path:                              /sybase/{{ db_sid|upper }}/sybtemp/data
+    mode:                              0755
+    state:                             directory
+
+- name:                                "Sybase: Create sybsystem folder if it doesnot exist"
+  ansible.builtin.file:
+    path:                              /sybase/{{ db_sid|upper }}/sybsystem
+    mode:                              0755
+    state:                             directory
+
+- name:                                "Sybase Install"
+  block:
+# +------------------------------------4--------------------------------------*/
+    - name:                            "SAP SYBASE: Set dir_params fact"
+      ansible.builtin.set_fact:
+        dir_params:                    "{{ target_media_location }}/.params"
+#   0x) Create hidden directory for parameter files
+    - name:                            "Sybase ASE: Create hidden directory"
+      ansible.builtin.file:
+        path:                          "{{ item.path }}"
+        state:                         directory
+        mode:                          '{{ item.mode }}'
+      loop:
+        - { state: 'directory', mode: '0755', path: '{{ target_media_location }}' }
+        - { state: 'directory', mode: '0755', path: '{{ dir_params }}' }
+
+    - name: Find setup.bin files in CD_SYBSERVER
+      ansible.builtin.find:
+        paths: "{{ target_media_location }}/CD_SYBSERVER/"
+        patterns: 'setup.bin'
+        recurse: true
+      register: result
+
+    - name: Print the file paths
+      ansible.builtin.debug:
+        msg: "{{ item.path }}"
+      loop: "{{ result.files }}"
+
+    - name: Save the first file path to a variable
+      set_fact:
+        setup_file_path: "{{ result.files[0].path | dirname }}"
+
+    # SAP Sybase: deploy setupbin install response file
+    - name:                            "SAP SYBASE: deploy install response file"
+      ansible.builtin.template:
+        src:                        sybase_16_03_11_v0_install.rsp.j2
+        dest:                       "{{ dir_params }}/aseserver_{{ ansible_hostname }}_{{ sap_sid }}_install.rsp"
+        mode:                        0644
+        force:                       true
+
+# Template parameter mapping
+      vars:
+        _rsp_install_folder:           "/sybase/{{ db_sid|upper }}"
+        _rsp_install_set:               "full"
+        _rsp_product_edition:           "Enterprise Edition"
+        _rsp_hostname:                 "{{ ansible_hostname }}"
+        pwd_master:                    "{{ main_password }}"
+
+    - name:                            "Execute setup.bin on {{ ansible_hostname }}"
+      ansible.builtin.command:         ./setup.bin -f '{{ dir_params }}/aseserver_{{ ansible_hostname }}_{{ sap_sid }}_install.rsp' -i silent -DAGREE_TO_SAP_LICENSE=true -DRUN_SILENT=true
+      args:
+        chdir:                         "{{ setup_file_path }}"
+        creates:                       /etc/sap_deployment_automation/sap_deployment_ase.txt
+      register:                        sybase_installation
+      failed_when:                     sybase_installation.rc > 0
+
+    - name:                            "Change the ownership of the file"
+
+    - name:                            "SAP SYBASE: Debug: Installation results"
+      ansible.builtin.debug:
+        var:                           sybase_installation
+        verbosity:                     2
+
+    - name:                            "SAP SYBASE: Installation results"
+      ansible.builtin.debug:
+        var:                           sybase_installation
+      when:                          sybase_installation.rc > 0
+
+    - name:                            "SAP SYBASE: Installation results"
+      ansible.builtin.debug:
+        msg:                           "SYBASE Installation succeeded"
+      when:                            sybase_installation.rc == 0
+
+    - name:                            "SAP SYBASE: Sybase Install: flag"
+      ansible.builtin.file:
+        path:                          /etc/sap_deployment_automation/sap_deployment_sybase.txt
+        state:                         touch
+        mode:                          0755
+
+  when:
+    - not sybase_installed.stat.exists
+
+- name:                                "Sybase Install status"
+  ansible.builtin.debug:
+    msg:                               "Sybase is already installed"
+  when:
+    -  sybase_installed.stat.exists
+
+...
+# /*---------------------------------------------------------------------------8
+# |                                   END                                      |
+# +------------------------------------4--------------------------------------*/
