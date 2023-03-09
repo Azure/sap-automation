@@ -267,6 +267,7 @@ data "azurerm_key_vault_secret" "pwd" {
 
 
 resource "azurerm_private_endpoint" "kv_user" {
+  provider = azurerm.main
   count = var.use_private_endpoint && !var.key_vault.kv_exists ? 1 : 0
   name = format("%s%s%s",
     var.naming.resource_prefixes.keyvault_private_link,
