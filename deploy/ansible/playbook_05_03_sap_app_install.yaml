@@ -187,7 +187,7 @@
               delegate_to:             localhost
               become:                  false
               ansible.builtin.file:
-                path:                  "{{ _workspace_directory }}/.progress/app/app-install-done{{ ansible_hostname }}"
+                path:                  "{{ _workspace_directory }}/.progress/app-install-done"
                 state:                 touch
                 mode:                  0755
               when:
