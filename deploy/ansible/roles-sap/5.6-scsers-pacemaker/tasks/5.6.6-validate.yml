@@ -110,6 +110,9 @@
       #                                  cluster_group_moved.stderr is not search('Already in requested state')
       #                                  or cluster_group_moved.stderr is not search('is already active on')
       #                                  )
+    - name:                            "Pause to give cluster time to stabilize"
+      ansible.builtin.pause:
+        seconds:                       30
 
     - name:                            "Validate Cluster resource move and SAP start when the group g-{{ sap_sid }}_{{ instance_type | upper }} has moved"
       block:
