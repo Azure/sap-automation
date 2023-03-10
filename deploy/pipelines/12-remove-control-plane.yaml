@@ -241,6 +241,7 @@ stages:
                 fi
 
                 export STATE_SUBSCRIPTION=$CP_ARM_SUBSCRIPTION_ID ; echo 'Terraform state file subscription' $STATE_SUBSCRIPTION
+                export ARM_SUBSCRIPTION_ID=$CP_ARM_SUBSCRIPTION_ID ;
 
 
               echo -e "$green--- Running the remove region script that destroys deployer VM and SAP library ---$reset"
