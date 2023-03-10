@@ -23,11 +23,11 @@
     paths: "{{ db_unarchived_folder }}"
     file_type: directory
     patterns: 'BD_SYBASE_ASE_*._BS_' 
-  register: sybase_ase_exist
-  failed_when: sybase_ase_exist.matched != 1
+  register: sybase_media_exist
+  failed_when: sybase_media_exist.matched != 1
 
 - name: Store SAP ASE software folder full path
-  set_fact: db_install_media_path="{{ sybase_ase_exist.files[0].path }}"
+  set_fact: db_install_media_path="{{ sybase_media_exist.files[0].path }}"
 
 
 - name:                                "SAP ASE Install: Set BOM facts"
@@ -36,14 +36,5 @@
     sap_inifile_template:              "{{ bom_base_name }}{{ bom_suffix }}-dbload-inifile-param.j2"
     dir_params:                        "{{ tmp_directory }}/.{{ sap_sid | upper }}-params"
     mem_size:                          "{{ ansible_facts.memory_mb.real.total | int * 0.8 }}"
-
-
-# SAP Sybase: deploy setupbin install response file
-- name:                            "SAP SYBASE: deploy install response file"
-  ansible.builtin.template:
-    src:                        "{{sap_inifile_template}}"
-    dest:                       "{{ dir_params }}"
-    mode:                        0644
-    force:                       true
 
 ...
