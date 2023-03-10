@@ -240,7 +240,7 @@ stages:
                   REMOTE_STATE_RG=$(cat ${deployer_environment_file_name}  | grep REMOTE_STATE_RG      | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file resource group' $REMOTE_STATE_RG
                 fi
 
-                export STATE_SUBSCRIPTION=$ARM_SUBSCRIPTION_ID ; echo 'Terraform state file subscription' $STATE_SUBSCRIPTION
+                export STATE_SUBSCRIPTION=$CP_ARM_SUBSCRIPTION_ID ; echo 'Terraform state file subscription' $STATE_SUBSCRIPTION
 
 
               echo -e "$green--- Running the remove region script that destroys deployer VM and SAP library ---$reset"
