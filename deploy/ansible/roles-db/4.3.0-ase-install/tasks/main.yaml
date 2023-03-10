@@ -18,7 +18,6 @@
 
 - name: Prepare installation directories
   include_tasks: 4.3.0.3-create_install_directories.yml
-  when: sidadm_user_status is changed
 
 - name: Create ini files for unattended installation
   include_tasks: 4.3.0.4-create_ini_file.yml
