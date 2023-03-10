@@ -7,7 +7,7 @@
 ---
 
 
-task_prefix:                   "Sybase Install: "
+task_prefix:                   "SYBASE Install"
 sap_db_hostname:               "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') | first }}"
 sap_scs_hostname:              "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') | first }}"
 kernel_media_folder:           "{{ target_media_location}}/download_basket"
