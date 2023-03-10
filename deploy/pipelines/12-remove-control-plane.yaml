@@ -134,6 +134,9 @@ stages:
                   echo "##vso[task.logissue type=error]az login failed."
                   exit $return_code
                 fi
+                export ARM_CLIENT_ID=$CP_ARM_CLIENT_ID
+                export ARM_CLIENT_SECRET=$CP_ARM_CLIENT_SECRET
+                export ARM_TENANT_ID=$CP_ARM_TENANT_ID
 
 
               echo -e "$green--- Convert config files to UX format ---$reset"
@@ -241,8 +244,6 @@ stages:
                 fi
 
                 export STATE_SUBSCRIPTION=$CP_ARM_SUBSCRIPTION_ID ; echo 'Terraform state file subscription' $STATE_SUBSCRIPTION
-                export ARM_SUBSCRIPTION_ID=$CP_ARM_SUBSCRIPTION_ID ;
-
 
               echo -e "$green--- Running the remove region script that destroys deployer VM and SAP library ---$reset"
 
