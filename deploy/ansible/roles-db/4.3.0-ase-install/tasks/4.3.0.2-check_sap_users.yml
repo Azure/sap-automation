@@ -14,17 +14,16 @@
   check_mode: yes
   register: sidadm_user_status
 
-- name: Ensure group "{{ sapinst_user_group_name }}" exists
+- name: Ensure group "{{ sapinst_user_group }}" exists
   group:
     name: "{{ sapinst_user_group }}"
     gid: "{{ sapinst_gid }}"
     state: present
 
-- name: Ensure group "{{ sybadmin_user_group }}" exists
-  group:
-    name: "{{ sybadmin_user_group }}"
-    gid: "{{ asesysadm_gid }}"
-    state: present
+- name: Add current user to "{{ sapinst_user_group }}" group
+  user:
+    name: "{{ ansible_user_id }}"
+    group: "{{ sapinst_user_group }}"
 
 - name: Ensure root user has root as primary group
   user:
