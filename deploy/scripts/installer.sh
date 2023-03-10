@@ -230,6 +230,10 @@ then
     else
         deployer_tfstate_key_parameter=" -var deployer_tfstate_key=${deployer_tfstate_key}"
     fi
+else
+  load_config_vars "${system_config_information}" "keyvault"
+  export TF_VAR_deployer_kv_user_arm_id=$keyvault; echo "Deployer Keyvault: $keyvault"
+
 fi
 
 landscape_tfstate_key_parameter=''
@@ -411,7 +415,7 @@ if [ -f terraform.tfstate ]; then
 
     if [ -n "${key_vault_id}" ]
     then
-      export TF_VAR_deployer_kv_user_arm_id="${key_vault_id}"
+      export TF_VAR_deployer_kv_user_arm_id="${key_vault_id}" ; echo $TF_VAR_deployer_kv_user_arm_id
     fi
 
 
