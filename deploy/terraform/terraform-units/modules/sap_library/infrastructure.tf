@@ -29,11 +29,11 @@ data "azurerm_resource_group" "library" {
 
 
 resource "azurerm_private_dns_zone" "dns" {
+  provider = azurerm.main
+  count    = local.use_local_private_dns ? 1 : 0
   depends_on = [
     azurerm_resource_group.library
   ]
-  provider = azurerm.main
-  count    = local.use_local_private_dns ? 1 : 0
   name     = var.dns_label
   resource_group_name = local.resource_group_exists ? (
     split("/", var.infrastructure.resource_group.arm_id)[4]) : (
@@ -42,11 +42,11 @@ resource "azurerm_private_dns_zone" "dns" {
 }
 
 resource "azurerm_private_dns_zone" "blob" {
+  provider = azurerm.main
+  count    = local.use_local_private_dns && var.use_private_endpoint ? 1 : 0
   depends_on = [
     azurerm_resource_group.library
   ]
-  provider = azurerm.main
-  count    = local.use_local_private_dns && var.use_private_endpoint ? 1 : 0
   name     = "privatelink.blob.core.windows.net"
   resource_group_name = local.resource_group_exists ? (
     split("/", var.infrastructure.resource_group.arm_id)[4]) : (
@@ -55,11 +55,11 @@ resource "azurerm_private_dns_zone" "blob" {
 }
 
 resource "azurerm_private_dns_zone" "vault" {
+  provider = azurerm.main
+  count    = local.use_local_private_dns && var.use_private_endpoint ? 1 : 0
   depends_on = [
     azurerm_resource_group.library
   ]
-  provider = azurerm.main
-  count    = local.use_local_private_dns && var.use_private_endpoint ? 1 : 0
   name     = "privatelink.vaultcore.azure.net"
   resource_group_name = local.resource_group_exists ? (
     split("/", var.infrastructure.resource_group.arm_id)[4]) : (
@@ -68,11 +68,11 @@ resource "azurerm_private_dns_zone" "vault" {
 }
 
 resource "azurerm_private_dns_zone" "file" {
+  provider = azurerm.main
+  count    = local.use_local_private_dns && var.use_private_endpoint ? 1 : 0
   depends_on = [
     azurerm_resource_group.library
   ]
-  provider = azurerm.main
-  count    = local.use_local_private_dns && var.use_private_endpoint ? 1 : 0
   name     = "privatelink.file.core.windows.net"
   resource_group_name = local.resource_group_exists ? (
     split("/", var.infrastructure.resource_group.arm_id)[4]) : (
