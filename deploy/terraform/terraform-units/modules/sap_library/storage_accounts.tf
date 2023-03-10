@@ -378,27 +378,22 @@ resource "azurerm_storage_share" "fileshare_sapbits" {
   quota = 1024
 }
 
-resource "azurerm_key_vault_secret" "saplibrary_access_key" {
-  provider = azurerm.deployer
-  count    = length(var.key_vault.kv_spn_id) > 0 ? 1 : 0
-  name     = "sapbits-access-key"
-  value = local.sa_sapbits_exists ? (
-    data.azurerm_storage_account.storage_sapbits[0].primary_access_key) : (
-    azurerm_storage_account.storage_sapbits[0].primary_access_key
-  )
-  key_vault_id = var.key_vault.kv_spn_id
+resource "azurerm_role_assignment" "storage_sapbits_contributor" {
+  provider             = azurerm.main
+  scope                = local.sa_sapbits_exists ? var.storage_account_sapbits.arm_id : azurerm_storage_account.storage_sapbits[0].id
+  role_definition_name = "Storage Account Contributor"
+  principal_id         = var.deployer_tfstate.deployer_uai.principal_id
 }
 
-resource "azurerm_key_vault_secret" "sapbits_location_base_path" {
-  provider = azurerm.deployer
-  count    = length(var.key_vault.kv_spn_id) > 0 ? 1 : 0
-  name     = "sapbits-location-base-path"
-  value = var.storage_account_sapbits.sapbits_blob_container.is_existing ? (
-    data.azurerm_storage_container.storagecontainer_sapbits[0].id) : (
-    azurerm_storage_container.storagecontainer_sapbits[0].id
-  )
-  key_vault_id = var.key_vault.kv_spn_id
+resource "azurerm_role_assignment" "storage_sapbits_contributor_ssi" {
+  provider             = azurerm.main
+  count                = length(var.deployer_tfstate.deployer_system_assigned_identity)
+  scope                = local.sa_sapbits_exists ? var.storage_account_sapbits.arm_id : azurerm_storage_account.storage_sapbits[0].id
+  role_definition_name = "Storage Account Contributor"
+  principal_id         = var.deployer_tfstate.deployer_system_assigned_identity[count.index]
 }
+
+
 
 data "azurerm_private_dns_zone" "storage" {
   provider = azurerm.dnsmanagement
