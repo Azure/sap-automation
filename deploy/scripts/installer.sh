@@ -139,7 +139,6 @@ if [ "${deployment_system}" == sap_system ]
 then
     load_config_vars "$parameterfile_name" "network_logical_name"
     network_logical_name=$(echo "${network_logical_name}" | tr "[:lower:]" "[:upper:]")
-
 fi
 
 #Persisting the parameters across executions
@@ -232,7 +231,6 @@ then
     fi
 else
   load_config_vars "${system_config_information}" "keyvault"
-  az resource list --resource-group $keyvault --query "[?name=='deployer'].id" --output tsv
   export TF_VAR_deployer_kv_user_arm_id=$(az resource list --name "${keyvault}" --subscription ${STATE_SUBSCRIPTION} --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
 
   echo "Deployer Keyvault: $TF_VAR_deployer_kv_user_arm_id"
