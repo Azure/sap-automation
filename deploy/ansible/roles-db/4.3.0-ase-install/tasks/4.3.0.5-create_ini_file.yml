@@ -29,6 +29,7 @@
 - name: Store SAP ASE software folder full path
   set_fact: db_install_media_path="{{ sybase_ase_exist.files[0].path }}"
 
+
 - name:                                "SAP ASE Install: Set BOM facts"
   ansible.builtin.set_fact:
     sap_inifile:                       "{{ bom_base_name }}-dbload-{{ ansible_hostname }}.params"
@@ -37,25 +38,11 @@
     mem_size:                          "{{ ansible_facts.memory_mb.real.total | int * 0.8 }}"
 
 
-
-- name:                            "SAP SYBASE: Set dir_params fact"
-  ansible.builtin.set_fact:
-    dir_params:                    "{{ target_media_location }}/.params"
-#   0x) Create hidden directory for parameter files
-- name:                            "Sybase ASE: Create hidden directory"
-  ansible.builtin.file:
-    path:                          "{{ item.path }}"
-    state:                         directory
-    mode:                          '{{ item.mode }}'
-  loop:
-        - { state: 'directory', mode: '0755', path: '{{ target_media_location }}' }
-        - { state: 'directory', mode: '0755', path: '{{ dir_params }}' }
-
 # SAP Sybase: deploy setupbin install response file
 - name:                            "SAP SYBASE: deploy install response file"
   ansible.builtin.template:
-    src:                        NW750SPS20_SYBASE_v0001ms-dbload-inifile-param.j2
-    dest:                       "{{ dir_params }}/aseserver_{{ ansible_hostname }}_{{ sap_sid }}_install.rsp"
+    src:                        "{{sap_inifile_template}}"
+    dest:                       "{{ dir_params }}"
     mode:                        0644
     force:                       true
 

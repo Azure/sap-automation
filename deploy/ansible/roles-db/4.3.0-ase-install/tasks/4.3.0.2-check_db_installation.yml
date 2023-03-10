@@ -18,10 +18,8 @@
 - name:                               "Check if Sybase already installed"
   ansible.builtin.stat:
     path:                             "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_sybase.txt"
-  # become: true
-  # stat:
-    # path: "{{ sybase.install.server.directory }}/SYBASE.sh"
   register:                           "sybase_installed"
+  when:                                node_tier == 'sybase'
 
 - name:                                "SYBASE Install status"
   block:
