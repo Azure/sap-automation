@@ -120,8 +120,10 @@ stages:
                                   exit $return_code
                               fi
 
-                              this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
-                              az keyvault network-rule add --name ${key_vault} --ip-address ${this_ip} --only-show-errors --output none
+                              if [ -n "${key_vault}" ]; then
+                                this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
+                                az keyvault network-rule add --name ${key_vault} --ip-address ${this_ip} --only-show-errors --output none
+                              fi
 
                               step=0
                             else
