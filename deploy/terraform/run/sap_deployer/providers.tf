@@ -55,9 +55,9 @@ provider "azurerm" {
   features {}
   alias                      = "dnsmanagement"
   subscription_id            = try(var.management_dns_subscription_id, null)
-  client_id       = local.spn.client_id
-  client_secret   = local.spn.client_secret
-  tenant_id       = local.spn.tenant_id
+  client_id                  = local.spn.client_id
+  client_secret              = local.spn.client_secret
+  tenant_id                  = local.spn.tenant_id
   skip_provider_registration = true
 }
 
