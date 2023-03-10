@@ -192,7 +192,7 @@ resource "azurerm_storage_share" "sapmnt" {
   depends_on = [
     azurerm_storage_account.sapmnt,
     azurerm_private_endpoint.sapmnt,
-    wait_for_private_endpoints
+    time_sleep,wait_for_private_endpoints
   ]
 
   name = format("%s", local.resource_suffixes.sapmnt)
@@ -227,7 +227,7 @@ resource "azurerm_storage_share" "sapmnt_smb" {
   depends_on = [
     azurerm_storage_account.sapmnt,
     azurerm_private_endpoint.sapmnt,
-    wait_for_private_endpoints
+    time_sleep.wait_for_private_endpoints
   ]
 
   name                 = format("%s", local.resource_suffixes.sapmnt_smb)
