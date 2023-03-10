@@ -13,6 +13,19 @@
     state: present
   check_mode: yes
   register: sidadm_user_status
+
+- name: Ensure group "{{ sapinst_user_group_name }}" exists
+  group:
+    name: "{{ sapinst_user_group }}"
+    gid: "{{ sapinst_gid }}"
+    state: present
+
+- name: Ensure group "{{ sybadmin_user_group }}" exists
+  group:
+    name: "{{ sybadmin_user_group }}"
+    gid: "{{ asesysadm_gid }}"
+    state: present
+
 - name: Ensure root user has root as primary group
   user:
     name: root
