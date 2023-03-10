@@ -63,32 +63,32 @@ resource "azurerm_storage_account_network_rules" "sapmnt" {
 
 }
 
-resource "azurerm_private_dns_a_record" "sapmnt" {
-  provider = azurerm.dnsmanagement
-  depends_on = [
-    azurerm_private_endpoint.sapmnt
-  ]
-  count = var.create_storage_dns_a_records ? 1 : 0
-  name = replace(
-    lower(
-      format("%s%s",
-        local.prefix,
-        local.resource_suffixes.sapmnt
-      )
-    ),
-    "/[^a-z0-9]/",
-    ""
-  )
-  zone_name           = "privatelink.file.core.windows.net"
-  resource_group_name = var.management_dns_resourcegroup_name
-  ttl                 = 3600
-  records             = [data.azurerm_network_interface.sapmnt[count.index].ip_configuration[0].private_ip_address]
+# resource "azurerm_private_dns_a_record" "sapmnt" {
+#   provider = azurerm.dnsmanagement
+#   depends_on = [
+#     azurerm_private_endpoint.sapmnt
+#   ]
+#   count = var.create_storage_dns_a_records ? 1 : 0
+#   name = replace(
+#     lower(
+#       format("%s%s",
+#         local.prefix,
+#         local.resource_suffixes.sapmnt
+#       )
+#     ),
+#     "/[^a-z0-9]/",
+#     ""
+#   )
+#   zone_name           = "privatelink.file.core.windows.net"
+#   resource_group_name = var.management_dns_resourcegroup_name
+#   ttl                 = 3600
+#   records             = [data.azurerm_network_interface.sapmnt[count.index].ip_configuration[0].private_ip_address]
 
 
-  lifecycle {
-    ignore_changes = [tags]
-  }
-}
+#   lifecycle {
+#     ignore_changes = [tags]
+#   }
+# }
 
 #Errors can occure when the dns record has not properly been activated, add a wait timer to give
 #it just a little bit more time
@@ -113,9 +113,6 @@ data "azurerm_storage_account" "sapmnt" {
 
 resource "azurerm_private_endpoint" "sapmnt" {
   provider = azurerm.main
-  depends_on = [
-    azurerm_storage_account.sapmnt
-  ]
 
   count = var.NFS_provider == "AFS" ? (
     length(var.azure_files_sapmnt_id) > 0 ? (
@@ -134,12 +131,13 @@ resource "azurerm_private_endpoint" "sapmnt" {
     data.azurerm_resource_group.resource_group[0].location) : (
     azurerm_resource_group.resource_group[0].location
   )
-  subnet_id = try(var.landscape_tfstate.app_subnet_id, "")
+  subnet_id = var.landscape_tfstate.app_subnet_id
+
   private_service_connection {
     name = format("%s%s%s",
-      var.naming.resource_prefixes.storage_private_svc_install,
+      var.naming.resource_prefixes.storage_private_link_sapmnt,
       local.prefix,
-      local.resource_suffixes.storage_private_svc_install
+      local.resource_suffixes.storage_private_link_sapmnt
     )
     is_manual_connection = false
     private_connection_resource_id = length(var.azure_files_sapmnt_id) > 0 ? (
@@ -152,15 +150,16 @@ resource "azurerm_private_endpoint" "sapmnt" {
   }
 
   dynamic "private_dns_zone_group" {
-    for_each = range(var.use_private_endpoint && var.use_custom_dns_a_registration ? 1 : 0)
+    for_each = range(var.use_private_endpoint ? 1 : 0)
     content {
-      name                 = "privatelink.blob.core.windows.net"
-      private_dns_zone_ids = [data.azurerm_private_dns_zone.storage[0].id]
+      name                 = "privatelink.file.core.windows.net"
+      private_dns_zone_ids = [data.azurerm_private_dns_zone.file[0].id]
     }
   }
 
-  lifecycle {
-    ignore_changes = [tags]
+  timeouts {
+    create = "10m"
+    delete = "30m"
   }
 }
 
@@ -234,15 +233,17 @@ resource "azurerm_storage_share" "sapmnt_smb" {
 
 data "azurerm_private_dns_zone" "storage" {
   provider            = azurerm.dnsmanagement
-  count               = var.use_private_endpoint && var.use_custom_dns_a_registration ? 1 : 0
+  count               = var.use_private_endpoint && !var.use_custom_dns_a_registration ? 1 : 0
   name                = "privatelink.blob.core.windows.net"
   resource_group_name = var.management_dns_resourcegroup_name
 
 }
 
-data "azurerm_network_interface" "sapmnt" {
-  provider            = azurerm.main
-  count               = var.use_private_endpoint && length(var.azure_files_sapmnt_id) == 0 && var.NFS_provider == "AFS" ? 1 : 0
-  name                = azurerm_private_endpoint.sapmnt[count.index].network_interface[0].name
-  resource_group_name = split("/", azurerm_private_endpoint.sapmnt[count.index].network_interface[0].id)[4]
+data "azurerm_private_dns_zone" "file" {
+  provider            = azurerm.dnsmanagement
+  count               = var.use_private_endpoint && !var.use_custom_dns_a_registration ? 1 : 0
+  name                = "privatelink.blob.core.windows.net"
+  resource_group_name = var.management_dns_resourcegroup_name
+
 }
+
