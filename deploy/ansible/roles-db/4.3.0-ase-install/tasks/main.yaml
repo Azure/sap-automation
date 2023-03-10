@@ -11,27 +11,27 @@
 ---
 
 - name: Check if reboot is needed (SUSE)
-  include_tasks: check_reboot_is_needed_suse.yml
+  include_tasks: 4.3.0.1-check_reboot_is_needed_suse.yml
   when: ansible_os_family == 'Suse'
-
-- name: Check if users were already created by a sap specific OS configuration
-  include_tasks: check_sap_users.yml
-
-- name: Prepare installation directories
-  include_tasks: create_install_directories.yml
-  when: sidadm_user_status is changed
-
-- name: Create ini files for unattended installation
-  include_tasks: create_ini_file.yml
-
-- name: Install DB Instance
-  include_tasks: install_db_instance.yml
 
 - name: Check if installation finished or you need to reset
   include_tasks: check_db_installation.yml
 
+- name: Check if users were already created by a sap specific OS configuration
+  include_tasks: 4.3.0.3-check_sap_users.yml
+
+- name: Prepare installation directories
+  include_tasks: 4.3.0.4-create_install_directories.yml
+  when: sidadm_user_status is changed
+
+- name: Create ini files for unattended installation
+  include_tasks: 4.3.0.5-create_ini_file.yml
+
+- name: Install DB Instance
+  include_tasks: 4.3.0.6-install_db_instance.yml
+
 - name: Remove parameter file
-  include_tasks: cleanup_ini_file.yml
+  include_tasks: 4.3.0.7-cleanup_ini_file.yml
 
 ...
 # /*---------------------------------------------------------------------------8
