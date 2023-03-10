@@ -297,13 +297,15 @@ stages:
                   git rm -q   --ignore-unmatch  LIBRARY/$(library_folder)/backend-config.tfvars
                   changed=1
                 fi
+                if [ 0 == $return_code ]; then
 
-                if [ 1 == $changed ]; then
-                    git config --global user.email "$(Build.RequestedForEmail)"
-                    git config --global user.name "$(Build.RequestedFor)"
-                    git commit -m "Control Plane $(deployer_folder) removal step 1[skip ci]"
-                    git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --set-upstream origin $(Build.SourceBranchName)
-                    return_code=$?
+                  if [ 1 == $changed ]; then
+                      git config --global user.email "$(Build.RequestedForEmail)"
+                      git config --global user.name "$(Build.RequestedFor)"
+                      git commit -m "Control Plane $(deployer_folder) removal step 1[skip ci]"
+                      git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --set-upstream origin $(Build.SourceBranchName)
+                      return_code=$?
+                  fi
                 fi
 
               exit $return_code
