@@ -155,6 +155,17 @@ resource "azurerm_private_endpoint" "sapmnt" {
   }
 }
 
+#Private endpoint tend to take a while to be created, so we need to wait for it to be ready before we can use it
+resource "time_sleep" "wait_for_private_endpoints" {
+  create_duration = "120s"
+
+  depends_on = [
+    azurerm_private_endpoint.sapmnt
+  ]
+}
+
+
+
 data "azurerm_private_endpoint_connection" "sapmnt" {
   provider = azurerm.main
   count = var.NFS_provider == "AFS" ? (
@@ -169,7 +180,6 @@ data "azurerm_private_endpoint_connection" "sapmnt" {
 
 }
 
-
 #########################################################################################
 #                                                                                       #
 #  NFS share                                                                            #
@@ -182,7 +192,7 @@ resource "azurerm_storage_share" "sapmnt" {
   depends_on = [
     azurerm_storage_account.sapmnt,
     azurerm_private_endpoint.sapmnt,
-    time_sleep.wait_for_dns_refresh
+    wait_for_private_endpoints
   ]
 
   name = format("%s", local.resource_suffixes.sapmnt)
@@ -214,6 +224,11 @@ resource "azurerm_storage_share" "sapmnt_smb" {
     )) : (
     0
   )
+  depends_on = [
+    azurerm_storage_account.sapmnt,
+    azurerm_private_endpoint.sapmnt,
+    wait_for_private_endpoints
+  ]
 
   name                 = format("%s", local.resource_suffixes.sapmnt_smb)
   storage_account_name = var.NFS_provider == "AFS" ? azurerm_storage_account.sapmnt[0].name : ""
