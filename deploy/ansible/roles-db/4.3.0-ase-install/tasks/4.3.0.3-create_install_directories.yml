@@ -8,6 +8,12 @@
 
 # Set BOM facts for SAP SYBASE Install 
 
+- name:                                "Sybase: Create sap_deployment_automation folder"
+  ansible.builtin.file:
+    path:                              /etc/sap_deployment_automation
+    mode:                              0755
+    state:                             directory
+
 - name:                                "SAP ASE: Create directories"
   ansible.builtin.file:
     path:                              "{{ item.path }}"

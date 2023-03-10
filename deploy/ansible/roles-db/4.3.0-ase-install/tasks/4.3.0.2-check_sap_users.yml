@@ -13,7 +13,10 @@
     state: present
   check_mode: yes
   register: sidadm_user_status
-
+- name: Ensure root user has root as primary group
+  user:
+    name: root
+    group: root
   
 ...
 
