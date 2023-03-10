@@ -64,7 +64,7 @@ resource "azurerm_storage_account_network_rules" "storage_tfstate" {
 
 resource "azurerm_role_assignment" "storage_tfstate_contributor" {
   provider             = azurerm.main
-  scope                = local.sa_tfstate_exists ? local.sa_tfstate_arm_id : azurerm_storage_account.storage_tfstate[0].id
+  scope                = local.sa_tfstate_exists ? var.storage_account_tfstate.arm_id : azurerm_storage_account.storage_tfstate[0].id
   role_definition_name = "Storage Account Contributor"
   principal_id         = var.deployer_tfstate.deployer_uai.principal_id
 }
@@ -72,16 +72,17 @@ resource "azurerm_role_assignment" "storage_tfstate_contributor" {
 resource "azurerm_role_assignment" "storage_tfstate_contributor_ssi" {
   provider             = azurerm.main
   count                = length(var.deployer_tfstate.deployer_system_assigned_identity)
-  scope                = local.sa_tfstate_exists ? local.sa_tfstate_arm_id : azurerm_storage_account.storage_tfstate[0].id
+  scope                = local.sa_tfstate_exists ? var.storage_account_tfstate.arm_id : azurerm_storage_account.storage_tfstate[0].id
   role_definition_name = "Storage Account Contributor"
   principal_id         = var.deployer_tfstate.deployer_system_assigned_identity[count.index]
 }
 
 resource "azurerm_private_dns_a_record" "storage_tfstate_pep_a_record_registry" {
+  provider = azurerm.dnsmanagement
+  count     = local.use_local_private_dns && !local.sa_tfstate_exists ? 1 : 0
   depends_on = [
     azurerm_private_dns_zone.blob
   ]
-  count     = local.use_local_private_dns && !local.sa_tfstate_exists ? 1 : 0
   name      = lower(azurerm_storage_account.storage_tfstate[0].name)
   zone_name = "privatelink.blob.core.windows.net"
   resource_group_name = coalesce(
@@ -95,7 +96,6 @@ resource "azurerm_private_dns_a_record" "storage_tfstate_pep_a_record_registry" 
   ttl     = 3600
   records = [data.azurerm_network_interface.storage_tfstate[count.index].ip_configuration[0].private_ip_address]
 
-  provider = azurerm.dnsmanagement
 
   lifecycle {
     ignore_changes = [tags]
@@ -117,8 +117,8 @@ resource "time_sleep" "wait_for_dns_refresh" {
 data "azurerm_storage_account" "storage_tfstate" {
   provider            = azurerm.main
   count               = local.sa_tfstate_exists ? 1 : 0
-  name                = split("/", local.sa_tfstate_arm_id)[8]
-  resource_group_name = split("/", local.sa_tfstate_arm_id)[4]
+  name                = split("/", var.storage_account_tfstate.arm_id)[8]
+  resource_group_name = split("/", var.storage_account_tfstate.arm_id)[4]
 }
 
 
@@ -178,7 +178,7 @@ resource "azurerm_private_endpoint" "storage_tfstate" {
     )
     is_manual_connection = false
     private_connection_resource_id = local.sa_tfstate_exists ? (
-      local.sa_tfstate_arm_id) : (
+      var.storage_account_tfstate.arm_id) : (
       azurerm_storage_account.storage_tfstate[0].id
     )
     subresource_names = [
@@ -253,11 +253,12 @@ resource "azurerm_storage_account_network_rules" "storage_sapbits" {
 }
 
 resource "azurerm_private_dns_a_record" "storage_sapbits_pep_a_record_registry" {
+  provider = azurerm.dnsmanagement
+  count     = local.use_local_private_dns && !local.sa_sapbits_exists ? 1 : 0
   depends_on = [
     azurerm_private_dns_zone.blob
   ]
 
-  count     = local.use_local_private_dns && !local.sa_sapbits_exists ? 1 : 0
   name      = lower(azurerm_storage_account.storage_sapbits[0].name)
   zone_name = "privatelink.blob.core.windows.net"
   resource_group_name = coalesce(
@@ -270,8 +271,6 @@ resource "azurerm_private_dns_a_record" "storage_sapbits_pep_a_record_registry" 
   )
   ttl     = 3600
   records = [data.azurerm_network_interface.storage_sapbits[count.index].ip_configuration[0].private_ip_address]
-
-  provider = azurerm.dnsmanagement
 
   lifecycle {
     ignore_changes = [tags]

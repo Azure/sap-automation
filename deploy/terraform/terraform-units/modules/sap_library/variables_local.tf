@@ -41,8 +41,7 @@ locals {
   )
 
   // Storage account for tfstate
-  sa_tfstate_arm_id = try(var.storage_account_tfstate.arm_id, "")
-  sa_tfstate_exists = length(local.sa_tfstate_arm_id) > 0
+  sa_tfstate_exists = length(var.storage_account_tfstate.arm_id) > 0
 
 
   // Comment out code with users.object_id for the time being.
