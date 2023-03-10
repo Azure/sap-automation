@@ -31,10 +31,10 @@ locals {
   )
 
   spn = {
-    subscription_id = var.use_deployer ? data.azurerm_key_vault_secret.subscription_id[0].value : null,
-    client_id       = var.use_deployer ? data.azurerm_key_vault_secret.client_id[0].value : null,
-    client_secret   = var.use_deployer ? data.azurerm_key_vault_secret.client_secret[0].value : null,
-    tenant_id       = var.use_deployer ? data.azurerm_key_vault_secret.tenant_id[0].value : null
+    subscription_id = data.azurerm_key_vault_secret.subscription_id[0].value,
+    client_id       = data.azurerm_key_vault_secret.client_id[0].value,
+    client_secret   = data.azurerm_key_vault_secret.client_secret[0].value,
+    tenant_id       = data.azurerm_key_vault_secret.tenant_id[0].value
   }
 
 }
