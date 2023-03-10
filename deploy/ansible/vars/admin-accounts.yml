@@ -280,31 +280,31 @@ admin_users:
 
 # SYBASE users and groups will be created as part of the generic install process
   
-  - name:         "sybase"
-    comment:      "SAP System Administrator"
-    uid:          "{{ asesapsid_uid }}"
-    group:        "sybadm"
-    groups:       ["sapsys","sapinst"]
-    password:     "{{ main_password }}"
-    sudoers_role: "admin_no_password"
-    shell:        /bin/csh
-    state:        present
-    tier:         sapos
-    node_tier:    sybase
-    enabled:      true
+#  - name:         "sybase"
+#    comment:      "SAP System Administrator"
+#    uid:          "{{ asesapsid_uid }}"
+#    group:        "sybadm"
+#    groups:       ["sapsys","sapinst"]
+#    password:     "{{ main_password }}"
+#    sudoers_role: "admin_no_password"
+#    shell:        /bin/csh
+#    state:        present
+#    tier:         sapos
+#    node_tier:    sybase
+#    enabled:      true
 
-  - name:         "syb{{ sap_sid | lower }}"
-    comment:      "SAP ASE Database Administrator"
-    uid:          "{{ asesidadm_uid }}"
-    group:        "sapinst"
-    groups:       ["sapsys","sapinst","db{{ db_sid | lower }}adm"]
-    password:     "{{ main_password }}"
-    sudoers_role: "admin_no_password"
-    shell:        /bin/csh
-    state:        present
-    tier:         sapos
-    node_tier:    sybase
-    enabled:      true
+#  - name:         "syb{{ sap_sid | lower }}"
+#    comment:      "SAP ASE Database Administrator"
+#    uid:          "{{ asesidadm_uid }}"
+#    group:        "sapinst"
+#    groups:       ["sapsys","sapinst","db{{ db_sid | lower }}adm"]
+#    password:     "{{ main_password }}"
+#    sudoers_role: "admin_no_password"
+#    shell:        /bin/csh
+#    state:        present
+#    tier:         sapos
+#    node_tier:    sybase
+#    enabled:      true
 
 #  - name:         sapadm
 #   comment:      "SAP Host Agent"
