@@ -180,6 +180,11 @@ fi
 if [ "${deployment_system}" == sap_deployer ]
 then
     deployer_tfstate_key=${key}.terraform.tfstate
+    STATE_SUBSCRIPTION=$ARM_SUBSCRIPTION_ID
+fi
+if [[ -z $STATE_SUBSCRIPTION ]];
+then
+  STATE_SUBSCRIPTION=$ARM_SUBSCRIPTION_ID
 fi
 
 if [[ -z $REMOTE_STATE_SA ]];
