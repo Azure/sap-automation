@@ -63,6 +63,11 @@
         creates:                       "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_sybase.txt"
       register:                        sybase_installation
 
+    - name:                            "SAP SYBASE: Installation results"
+      ansible.builtin.debug:
+        msg:                           "SYBASE Installation succeeded"
+      when:                            sybase_installation.rc == 0
+
     - name: Show errors if they exist
       debug:
         msg: "{{ sybase_installation.stdout_lines }}"
@@ -80,7 +85,22 @@
         mode:                          0755
 
   when:
-    - not sybase_installed.stat.exists  
+    - not sybase_installed.stat.exists
+  
+  # *====================================4=======================================8
+
+- name:                                "Sybase Install status"
+  block:
+
+    - name:                            "Sybase Install status"
+      ansible.builtin.debug:
+        msg:                           "Sybase is already installed"
+
+    - name:                            "Sybase Install: - return value"
+      ansible.builtin.set_fact:
+        sybase_already_installed:        true
+  when:
+    - sybase_installed.stat.exists
 ...
 # /*---------------------------------------------------------------------------8
 # |                                   END                                      |
