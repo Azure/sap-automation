@@ -90,14 +90,6 @@ resource "azurerm_storage_account_network_rules" "sapmnt" {
 #   }
 # }
 
-#Errors can occure when the dns record has not properly been activated, add a wait timer to give
-#it just a little bit more time
-resource "time_sleep" "wait_for_dns_refresh" {
-  create_duration = "120s"
-
-  depends_on = [azurerm_private_dns_a_record.sapmnt]
-}
-
 data "azurerm_storage_account" "sapmnt" {
   provider = azurerm.main
   count = var.NFS_provider == "AFS" ? (
