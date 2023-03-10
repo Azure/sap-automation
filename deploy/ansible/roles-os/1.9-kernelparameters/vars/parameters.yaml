@@ -77,11 +77,12 @@ parameters:
     # Need to disable ASLR for db2: https://www.ibm.com/support/pages/various-db2-failures-may-occur-linux-address-space-layout-randomization-aslr
     # 2781247 - Db2 reports an address space conflict while executing command 'db2gcf'
     - { tier: 'sapos', node_tier: 'db2', name: 'kernel.randomize_va_space',                  value: '0',                    state: 'present' }
-    - { tier: 'sapos', node_tier: 'sybase', name: 'kernel.randomize_va_space',                  value: '0',                    state: 'present' }
+    - { tier: 'sapos', node_tier: 'sybase', name: 'kernel.randomize_va_space',               value: '0',                    state: 'present' }
     - { tier: 'sapos', node_tier: 'hana',name: 'vm.memory_failure_early_kill',               value: '1',                    state: 'present' }
     - { tier: 'sapos', node_tier: 'hana',name: 'vm.max_map_count',                           value: '2147483647',           state: 'present' }
     - { tier: 'sapos', node_tier: 'hana',name: 'kernel.shmmax',                              value: '1073741824',           state: 'present' }
     - { tier: 'sapos', node_tier: 'hana',name: 'kernel.shmmni',                              value: '32768',                state: 'present' }
+    - { tier: 'sapos', node_tier: 'sybase',name: 'kernel.shmmax',                            value: '23136829430',          state: 'present' }
     # This needs to be a calculated parameter: https://help.sap.com/viewer/2c1988d620e04368aa4103bf26f17727/2.0.04/en-US/82e4575eec664846a9918e9ed1d90d41.html
     # - { tier: 'sapos', node_tier: 'hana',name: 'kernel.shmall',                              value: '32768',                state: 'present' }
     - { tier: 'sapos', node_tier: 'hana',name: 'fs.file-max',                                value: '20000000',             state: 'present' }
