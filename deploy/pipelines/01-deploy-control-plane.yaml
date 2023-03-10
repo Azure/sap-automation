@@ -318,24 +318,25 @@ stages:
 
                   displayName: Deploy control plane
                   env:
-                      SYSTEM_ACCESSTOKEN:          $(System.AccessToken)
-                      ARM_SUBSCRIPTION_ID:         $(CP_ARM_SUBSCRIPTION_ID)
-                      ARM_CLIENT_ID:               $(CP_ARM_CLIENT_ID)
-                      ARM_CLIENT_SECRET:           $(CP_ARM_CLIENT_SECRET)
-                      ARM_TENANT_ID:               $(CP_ARM_TENANT_ID)
-                      TF_VAR_agent_ado_url:        $(System.CollectionUri)
-                      TF_VAR_spn_id:               $(CP_ARM_OBJECT_ID)
-                      AZURE_DEVOPS_EXT_PAT:        $(PAT)
-                      IS_PIPELINE_DEPLOYMENT:      true
-                      WEB_APP_CLIENT_SECRET:       $(WEB_APP_CLIENT_SECRET)
-                      APP_REGISTRATION_APP_ID:     $(APP_REGISTRATION_APP_ID)
-                      POOL:                        $(POOL)
-                      SAP_AUTOMATION_REPO_PATH:    ${{ parameters.sap_automation_repo_path }}
-                      CONFIG_REPO_PATH:            ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
-                      TF_VAR_ansible_core_version: $(ansible_core_version)
-                      TF_LOG:                      $(TF_LOG)
-                      TF_IN_AUTOMATION:            true
-                      DEPLOYER_TFSTATE_KEY:        "${{ parameters.deployer }}.terraform.tfstate"
+                      SYSTEM_ACCESSTOKEN:             $(System.AccessToken)
+                      ARM_SUBSCRIPTION_ID:            $(CP_ARM_SUBSCRIPTION_ID)
+                      ARM_CLIENT_ID:                  $(CP_ARM_CLIENT_ID)
+                      ARM_CLIENT_SECRET:              $(CP_ARM_CLIENT_SECRET)
+                      ARM_TENANT_ID:                  $(CP_ARM_TENANT_ID)
+                      TF_VAR_agent_ado_url:           $(System.CollectionUri)
+                      TF_VAR_spn_id:                  $(CP_ARM_OBJECT_ID)
+                      TF_VAR_deployer_kv_user_arm_id: $(Deployer_Key_Vault)
+                      AZURE_DEVOPS_EXT_PAT:           $(PAT)
+                      IS_PIPELINE_DEPLOYMENT:         true
+                      WEB_APP_CLIENT_SECRET:          $(WEB_APP_CLIENT_SECRET)
+                      APP_REGISTRATION_APP_ID:        $(APP_REGISTRATION_APP_ID)
+                      POOL:                           $(POOL)
+                      SAP_AUTOMATION_REPO_PATH:       ${{ parameters.sap_automation_repo_path }}
+                      CONFIG_REPO_PATH:               ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
+                      TF_VAR_ansible_core_version:    $(ansible_core_version)
+                      TF_LOG:                         $(TF_LOG)
+                      TF_IN_AUTOMATION:               true
+                      DEPLOYER_TFSTATE_KEY:           "${{ parameters.deployer }}.terraform.tfstate"
 
                   failOnStderr: false
 
