@@ -66,7 +66,7 @@ output "dns_info_loadbalancers" {
         var.naming.separator,
       local.resource_suffixes.db_alb)
       ], [
-      azurerm_lb.hdb[0].private_ip_addresses[0]
+      try(azurerm_lb.hdb[0].private_ip_addresses[0],"")
     ])) : (
     null
   )
@@ -88,7 +88,7 @@ output "db_ha" {
 output "db_lb_ip" {
   value = [
     local.enable_db_lb_deployment ? (
-      azurerm_lb.hdb[0].frontend_ip_configuration[0].private_ip_address) : (
+      try(azurerm_lb.hdb[0].frontend_ip_configuration[0].private_ip_address, "")) : (
       ""
     )
   ]
@@ -97,7 +97,7 @@ output "db_lb_ip" {
 output "db_lb_id" {
   value = [
     local.enable_db_lb_deployment ? (
-      azurerm_lb.hdb[0].id) : (
+      try(azurerm_lb.hdb[0].id, "")) : (
       ""
     )
   ]
