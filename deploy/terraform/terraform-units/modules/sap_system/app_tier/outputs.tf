@@ -222,7 +222,7 @@ output "dns_info_loadbalancers" {
     zipmap(
       compact([
         slice(local.load_balancer_IP_names, 0, try(length(azurerm_lb.scs[0].private_ip_addresses), 0)),
-        local.web_load_balancer_IP_names
+        slice(local.web_load_balancer_IP_names, 0, try(length(azurerm_lb.web[0].private_ip_addresses), 0))
       ]),
       compact([
         azurerm_lb.scs[0].private_ip_addresses,

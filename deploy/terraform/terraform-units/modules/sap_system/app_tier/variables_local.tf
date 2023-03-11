@@ -621,13 +621,10 @@ locals {
   ]
 
   web_load_balancer_IP_names = local.enable_web_lb_deployment ? (
-    format("%s%s%s%s",
-      var.naming.resource_prefixes.web_alb,
-      local.prefix,
-      var.naming.separator,
-      local.resource_suffixes.web_alb
-    )
+    [
+      format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.web_alb)
+    ]
     ) : (
-    ""
+    [""]
   )
 }
