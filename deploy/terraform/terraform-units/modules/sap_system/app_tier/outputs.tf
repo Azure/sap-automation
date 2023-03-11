@@ -215,6 +215,7 @@ output "dns_info_vms" {
 
 output "dns_info_loadbalancers" {
   description = "DNS information for the application tier load balancers"
+  count = try(length(azurerm_lb.scs[0].private_ip_addresses), 0) + try(length(azurerm_lb.web[0].private_ip_addresses), 0) > 0 ? 1 : 0
   value = zipmap(
     compact([
       slice(local.load_balancer_IP_names, 0, try(length(azurerm_lb.scs[0].private_ip_addresses), 0)),
