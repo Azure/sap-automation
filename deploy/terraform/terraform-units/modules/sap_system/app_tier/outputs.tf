@@ -14,11 +14,11 @@ output "nics_scs_admin" {
 }
 
 output "scs_server_ips" {
-  value = try(azurerm_network_interface.scs[*].private_ip_addresses[0],[])
+  value = try(azurerm_network_interface.scs[*].private_ip_addresses[0], [])
 }
 
 output "scs_server_secondary_ips" {
-  value = var.use_secondary_ips ? try(azurerm_network_interface.scs[*].private_ip_addresses[1],[]) : []
+  value = var.use_secondary_ips ? try(azurerm_network_interface.scs[*].private_ip_addresses[1], []) : []
 }
 
 output "scs_admin_ip" {
@@ -103,7 +103,7 @@ output "application_server_ips" {
 }
 
 output "application_server_secondary_ips" {
-  value = var.use_secondary_ips ? try(azurerm_network_interface.app[*].private_ip_addresses[1],[]) : []
+  value = var.use_secondary_ips ? try(azurerm_network_interface.app[*].private_ip_addresses[1], []) : []
 }
 
 output "app_admin_ip" {
@@ -143,7 +143,7 @@ output "webdispatcher_server_ips" {
 }
 
 output "webdispatcher_server_secondary_ips" {
-  value = var.use_secondary_ips ? try(azurerm_network_interface.web[*].private_ip_addresses[1],[]) : []
+  value = var.use_secondary_ips ? try(azurerm_network_interface.web[*].private_ip_addresses[1], []) : []
 }
 
 output "web_admin_ip" {
@@ -215,54 +215,18 @@ output "dns_info_vms" {
 
 output "dns_info_loadbalancers" {
   description = "DNS information for the application tier load balancers"
-  value = !(local.enable_deployment && (var.use_loadbalancers_for_standalone_deployments || var.application_tier.scs_high_availability)) && length(try(azurerm_lb.scs[0].private_ip_addresses, [])) == 0 ? null : (
-    zipmap(
-      compact([
-        local.enable_scs_lb_deployment ? format("%s%s%s", local.prefix, var.naming.separator, "scs") : "",
-        local.enable_scs_lb_deployment ? format("%s%s%s", local.prefix, var.naming.separator, "ers") : "",
-        local.enable_scs_lb_deployment ? (
-          local.win_ha_scs && length(try(azurerm_lb.scs[0].private_ip_addresses, [])) == 4 ? (
-            format("%s%s%s", local.prefix, var.naming.separator, "clst")) : (
-            ""
-          )) : (
-          ""
-        ),
-        local.enable_scs_lb_deployment ? (
-          local.win_ha_scs && length(try(azurerm_lb.scs[0].private_ip_addresses, [])) == 4 ? (
-            format("%s%s%s", local.prefix, var.naming.separator, "fs")) : (
-            ""
-          )) : (
-          ""
-        ),
-        local.enable_web_lb_deployment ? (
-          format("%s%s%s%s",
-            var.naming.resource_prefixes.web_alb,
-            local.prefix,
-            var.naming.separator,
-            local.resource_suffixes.web_alb
-          )
-          ) : (
-          ""
-        )
-      ]),
-      compact([
-        local.enable_scs_lb_deployment ? try(azurerm_lb.scs[0].private_ip_addresses[0], "") : "",
-        local.enable_scs_lb_deployment ? try(azurerm_lb.scs[0].private_ip_addresses[1], "") : "",
-        local.enable_scs_lb_deployment ? (
-          local.win_ha_scs && length(try(azurerm_lb.scs[0].private_ip_addresses, [])) == 4 ? (
-            azurerm_lb.scs[0].private_ip_addresses[2]) : (
-            ""
-          )) : (
-          ""
-        ),
-        local.enable_scs_lb_deployment ? (
-          local.win_ha_scs && length(try(azurerm_lb.scs[0].private_ip_addresses, [])) == 4 ? try(azurerm_lb.scs[0].private_ip_addresses[3], "") : "") : (
-          ""
-        ),
-        local.enable_web_lb_deployment ? try(azurerm_lb.web[0].private_ip_address, "") : ""
-      ])
-    )
+  value = zipmap(
+    compact([
+      slice(local.load_balancer_IP_names, 0, length(azurerm_lb.scs[0].private_ip_addresses)),
+      web_load_balancer_IP_names
+    ]),
+    compact([
+      azurerm_lb.scs[0].private_ip_addresses,
+      azurerm_lb.web[0].private_ip_addresses
+    ])
+
   )
+
 }
 
 
