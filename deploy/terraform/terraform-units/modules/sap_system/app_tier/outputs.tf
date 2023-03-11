@@ -215,7 +215,7 @@ output "dns_info_vms" {
 
 output "dns_info_loadbalancers" {
   description = "DNS information for the application tier load balancers"
-  value = !(local.enable_deployment && (var.use_loadbalancers_for_standalone_deployments || var.application_tier.scs_high_availability)) && length(azurerm_lb.scs[0].private_ip_addresses) == 0 ? null : (
+  value = !(local.enable_deployment && (var.use_loadbalancers_for_standalone_deployments || var.application_tier.scs_high_availability)) && length(try(azurerm_lb.scs[0].private_ip_addresses, [])) == 0 ? null : (
     zipmap(
       compact([
         local.enable_scs_lb_deployment ? format("%s%s%s", local.prefix, var.naming.separator, "scs") : "",
