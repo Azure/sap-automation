@@ -1,7 +1,7 @@
 ###############################################################################
-#                                                                             # 
-#                             Resource Group                                  # 
-#                                                                             # 
+#                                                                             #
+#                             Resource Group                                  #
+#                                                                             #
 ###############################################################################
 
 output "created_resource_group_id" {
@@ -33,9 +33,9 @@ output "resource_group" {
 }
 
 ###############################################################################
-#                                                                             # 
-#                             Storage accounts                                # 
-#                                                                             # 
+#                                                                             #
+#                             Storage accounts                                #
+#                                                                             #
 ###############################################################################
 
 output "storage_bootdiag_endpoint" {
@@ -43,9 +43,9 @@ output "storage_bootdiag_endpoint" {
 }
 
 ###############################################################################
-#                                                                             # 
-#                             Miscallaneous                                   # 
-#                                                                             # 
+#                                                                             #
+#                             Miscallaneous                                   #
+#                                                                             #
 ###############################################################################
 
 output "random_id" {
@@ -58,9 +58,9 @@ output "ppg" {
 
 
 ###############################################################################
-#                                                                             # 
-#                            Network                                          # 
-#                                                                             # 
+#                                                                             #
+#                            Network                                          #
+#                                                                             #
 ###############################################################################
 
 output "network_location" {
@@ -107,9 +107,9 @@ output "firewall_id" {
 }
 
 ###############################################################################
-#                                                                             # 
-#                            Key Vault                                        # 
-#                                                                             # 
+#                                                                             #
+#                            Key Vault                                        #
+#                                                                             #
 ###############################################################################
 
 output "sid_keyvault_user_id" {
@@ -149,9 +149,9 @@ output "cloudinit_growpart_config" {
 
 
 ###############################################################################
-#                                                                             # 
-#                       Mount info                                            # 
-#                                                                             # 
+#                                                                             #
+#                       Mount info                                            #
+#                                                                             #
 ###############################################################################
 
 output "sapmnt_path" {
@@ -160,7 +160,7 @@ output "sapmnt_path" {
     format("%s:/%s/%s",
 
       length(var.sapmnt_private_endpoint_id) == 0 ? (
-        try(azurerm_private_endpoint.sapmnt[0].custom_dns_configs[0].fqdn,
+        try(azurerm_private_endpoint.sapmnt[0].private_dns_zone_configs[0].record_sets[0].fqdn,
           azurerm_private_endpoint.sapmnt[0].private_service_connection[0].private_ip_address
         )) : (
         data.azurerm_private_endpoint_connection.sapmnt[0].private_service_connection[0].private_ip_address
@@ -211,9 +211,9 @@ output "usrsap_path" {
 
 
 ###############################################################################
-#                                                                             # 
-#                       Anchor VM                                             # 
-#                                                                             # 
+#                                                                             #
+#                       Anchor VM                                             #
+#                                                                             #
 ###############################################################################
 
 

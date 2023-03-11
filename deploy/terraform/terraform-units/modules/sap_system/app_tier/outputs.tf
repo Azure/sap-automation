@@ -65,7 +65,7 @@ output "fileshare_lb_ip" {
 
 output "scs_loadbalancer_ips" {
   value = local.enable_scs_lb_deployment ? (
-    try(azurerm_lb.scs[0].frontend_ip_configuration[*].private_ip_address, "")
+    try(azurerm_lb.scs[0].frontend_ip_configuration[*].private_ip_address, [""])
     ) : (
     [""]
   )
