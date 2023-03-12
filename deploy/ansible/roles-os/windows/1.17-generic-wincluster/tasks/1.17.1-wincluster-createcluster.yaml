@@ -36,6 +36,13 @@
     - domain | type_debug != 'NoneType'
     - domain | trim | length > 1
 
+- name:                                "WinCluster-Create: Get witness account details"
+  ansible.builtin.import_tasks:
+    file:                              "roles-misc/0.2-kv-secrets/tasks/wincluster-witness.yaml"
+  when:
+    - scs_high_availability or db_high_availability
+    - node_tier in ['scs','sqlserver']
+
 - name:                                "WinCluster-Create: Check if cluster is already created"
   ansible.windows.win_powershell:
     script: |
