@@ -145,7 +145,7 @@ resource "azurerm_private_endpoint" "sapmnt" {
     for_each = range(var.use_private_endpoint ? 1 : 0)
     content {
       name                 = "privatelink.file.core.windows.net"
-      private_dns_zone_ids = [data.azurerm_private_dns_zone.file[0].id]
+      private_dns_zone_ids = [var.landscape_tfstate.privatelink_file_id]
     }
   }
 
@@ -235,14 +235,5 @@ resource "azurerm_storage_share" "sapmnt_smb" {
   enabled_protocol     = "SMB"
 
   quota = var.sapmnt_volume_size
-}
-
-
-data "azurerm_private_dns_zone" "file" {
-  provider            = azurerm.dnsmanagement
-  count               = var.use_private_endpoint && var.NFS_provider == "AFS" ? 1 : 0
-  name                = "privatelink.file.core.windows.net"
-  resource_group_name = var.management_dns_resourcegroup_name
-
 }
 
