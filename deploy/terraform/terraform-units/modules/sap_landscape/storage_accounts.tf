@@ -85,7 +85,7 @@ resource "azurerm_private_endpoint" "storage_bootdiag" {
       azurerm_storage_account.storage_bootdiag[0].id
     )
     subresource_names = [
-      "File"
+      "blob"
     ]
   }
   timeouts {
@@ -215,7 +215,7 @@ resource "azurerm_private_endpoint" "witness_storage" {
     is_manual_connection           = false
     private_connection_resource_id = length(var.witness_storage_account.arm_id) > 0 ? var.witness_storage_account.arm_id : azurerm_storage_account.witness_storage[0].id
     subresource_names = [
-      "File"
+      "blob"
     ]
   }
 
