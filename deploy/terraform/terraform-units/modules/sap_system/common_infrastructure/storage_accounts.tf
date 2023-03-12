@@ -109,9 +109,9 @@ resource "azurerm_private_endpoint" "sapmnt" {
   count = var.NFS_provider == "AFS" ? (
     length(var.azure_files_sapmnt_id) > 0 ? (
       0) : (
-      1
+      var.use_private_endpoint ? 1 : 0
     )) : (
-    var.use_private_endpoint && var.NFS_provider == "AFS" ? 1 : 0
+    var.use_private_endpoint
   )
   name = format("%s%s%s",
     var.naming.resource_prefixes.storage_private_link_sapmnt,
@@ -142,7 +142,7 @@ resource "azurerm_private_endpoint" "sapmnt" {
   }
 
   dynamic "private_dns_zone_group" {
-    for_each = range(var.use_private_endpoint ? 1 : 0)
+    for_each = range(length(var.landscape_tfstate.privatelink_file_id) > 0 ? 1 : 0)
     content {
       name                 = "privatelink.file.core.windows.net"
       private_dns_zone_ids = [var.landscape_tfstate.privatelink_file_id]
