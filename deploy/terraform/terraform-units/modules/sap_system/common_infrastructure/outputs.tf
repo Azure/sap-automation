@@ -158,7 +158,6 @@ output "sapmnt_path" {
   description = "Defines the sapmnt mount path"
   value = var.NFS_provider == "AFS" ? (
     format("%s:/%s/%s",
-
       length(var.sapmnt_private_endpoint_id) == 0 ? (
         try(azurerm_private_endpoint.sapmnt[0].private_dns_zone_configs[0].record_sets[0].fqdn,
           azurerm_private_endpoint.sapmnt[0].private_service_connection[0].private_ip_address
@@ -209,7 +208,9 @@ output "usrsap_path" {
 
 }
 
-
+output "test" {
+  value = azurerm_private_endpoint.sapmnt[0].private_dns_zone_configs[0].record_sets[0].fqdn
+}
 ###############################################################################
 #                                                                             #
 #                       Anchor VM                                             #
