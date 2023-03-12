@@ -209,7 +209,7 @@ output "usrsap_path" {
 }
 
 output "test" {
-  value = azurerm_private_endpoint.sapmnt[0].private_dns_zone_configs[0].record_sets[0].fqdn
+  value = try(azurerm_private_endpoint.sapmnt[0].private_dns_zone_configs[0].record_sets[0].fqdn,"")
 }
 ###############################################################################
 #                                                                             #
