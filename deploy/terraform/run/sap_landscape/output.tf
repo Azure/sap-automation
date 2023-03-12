@@ -185,6 +185,12 @@ output "dns_resource_group_name" {
   value = local.saplib_resource_group_name
 }
 
+output "privatelink_file_id" {
+  value = module.sap_landscape.privatelink_file_id
+
+}
+
+
 ###############################################################################
 #                                                                             #
 #                            Storage accounts                                 #
