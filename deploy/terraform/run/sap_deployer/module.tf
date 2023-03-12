@@ -36,7 +36,7 @@ module "sap_deployer" {
   )
 
   management_dns_subscription_id    = var.management_dns_subscription_id
-  management_dns_resourcegroup_name = var.management_dns_resourcegroup_name
+  management_dns_resourcegroup_name = coalesce(var.management_dns_resourcegroup_name, local.saplib_resource_group_name)
 
   use_webapp              = var.use_webapp
   configure               = true
