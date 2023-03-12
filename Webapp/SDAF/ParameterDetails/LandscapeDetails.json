@@ -637,9 +637,22 @@
     "Link": "",
     "Parameters": [
       {
-        "Name": "create_vaults_and_storage_dns_a_records",
+        "Name": "dns_server_list",
         "Required": false,
         "Description": "Boolean value indicating if a custom dns record should be created for the storage account",
+        "Type": "list",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "",
+        "Display": 3
+      },{
+        "Name": "use_custom_dns_a_registration",
+        "Required": false,
+        "Description": "Boolean value indicating if custom dns registration is used",
         "Type": "checkbox",
         "Options": [],
         "Overrules": "",
