@@ -430,4 +430,56 @@ locals {
     local.database_primary_ips
   )
 
+  winha_ips = upper(local.anydb_ostype) == "WINDOWS" ? [
+    {
+      name = format("%s%s%s%s",
+        var.naming.resource_prefixes.scs_clst_feip,
+        local.prefix,
+        var.naming.separator,
+        local.resource_suffixes.scs_clst_feip
+      )
+      subnet_id = var.db_subnet.id
+      private_ip_address = length(try(var.database.loadbalancer.frontend_ips[1], "")) > 0 ? (
+        var.database.loadbalancer.frontend_ips[1]) : (
+        var.database.use_DHCP ? (
+          null) : (
+          cidrhost(
+            var.db_subnet.address_prefixes[0],
+            tonumber(count.index) + local.anydb_ip_offsets.anydb_lb + 1
+        ))
+      )
+      private_ip_address_allocation = length(try(var.database.loadbalancer.frontend_ips[1], "")) > 0 ? "Static" : "Dynamic"
+
+    }
+  ] : []
+
+  std_ips = [
+    {
+      name = format("%s%s%s%s",
+        var.naming.resource_prefixes.db_alb_feip,
+        local.prefix,
+        var.naming.separator,
+        local.resource_suffixes.db_alb_feip
+      )
+      subnet_id = var.db_subnet.id
+      private_ip_address = length(try(var.database.loadbalancer.frontend_ips[0], "")) > 0 ? (
+        var.database.loadbalancer.frontend_ips[0]) : (
+        var.database.use_DHCP ? (
+          null) : (
+          cidrhost(
+            var.db_subnet.address_prefixes[0],
+            tonumber(count.index) + local.anydb_ip_offsets.anydb_lb
+        ))
+      )
+      private_ip_address_allocation = length(try(var.database.loadbalancer.frontend_ips[0], "")) > 0 ? "Static" : "Dynamic"
+      zones                         = ["1", "2", "3"]
+    }
+  ]
+
+  fpips = (var.database.high_availability && upper(local.anydb_ostype) == "WINDOWS") ? (
+    concat(local.std_ips, local.winha_ips)) : (
+    local.std_ips
+  )
+
+
 }
