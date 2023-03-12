@@ -54,6 +54,10 @@ output "deployer_system_assigned_identity" {
   value = module.sap_deployer.deployer_system_assigned_identity
 }
 
+output "add_system_assigned_identity" {
+  value = var.add_system_assigned_identity
+}
+
 ###############################################################################
 #                                                                             #
 #                                  Network                                    #

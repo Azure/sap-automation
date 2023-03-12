@@ -71,7 +71,7 @@ resource "azurerm_role_assignment" "storage_tfstate_contributor" {
 
 resource "azurerm_role_assignment" "storage_tfstate_contributor_ssi" {
   provider             = azurerm.main
-  count                = length(var.deployer_tfstate.deployer_system_assigned_identity)
+  count                = var.deployer_tfstate.add_system_assigned_identity ? length(var.deployer_tfstate.deployer_system_assigned_identity) : 0
   scope                = local.sa_tfstate_exists ? var.storage_account_tfstate.arm_id : azurerm_storage_account.storage_tfstate[0].id
   role_definition_name = "Storage Account Contributor"
   principal_id         = var.deployer_tfstate.deployer_system_assigned_identity[count.index]
