@@ -445,7 +445,7 @@ locals {
           null) : (
           cidrhost(
             var.db_subnet.address_prefixes[0],
-            tonumber(count.index) + local.anydb_ip_offsets.anydb_lb + 1
+            local.anydb_ip_offsets.anydb_lb + 1
         ))
       )
       private_ip_address_allocation = length(try(var.database.loadbalancer.frontend_ips[1], "")) > 0 ? "Static" : "Dynamic"
@@ -468,7 +468,7 @@ locals {
           null) : (
           cidrhost(
             var.db_subnet.address_prefixes[0],
-            tonumber(count.index) + local.anydb_ip_offsets.anydb_lb
+            local.anydb_ip_offsets.anydb_lb
         ))
       )
       private_ip_address_allocation = length(try(var.database.loadbalancer.frontend_ips[0], "")) > 0 ? "Static" : "Dynamic"
