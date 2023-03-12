@@ -238,17 +238,9 @@ resource "azurerm_storage_share" "sapmnt_smb" {
 }
 
 
-data "azurerm_private_dns_zone" "storage" {
-  provider            = azurerm.dnsmanagement
-  count               = var.use_private_endpoint && !var.use_custom_dns_a_registration ? 1 : 0
-  name                = "privatelink.blob.core.windows.net"
-  resource_group_name = var.management_dns_resourcegroup_name
-
-}
-
 data "azurerm_private_dns_zone" "file" {
   provider            = azurerm.dnsmanagement
-  count               = var.use_private_endpoint && !var.use_custom_dns_a_registration ? 1 : 0
+  count               = var.use_private_endpoint && var.NFS_provider == "AFS" ? 1 : 0
   name                = "privatelink.file.core.windows.net"
   resource_group_name = var.management_dns_resourcegroup_name
 

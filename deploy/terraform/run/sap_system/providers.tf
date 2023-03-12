@@ -40,7 +40,6 @@ provider "azurerm" {
   client_secret   = local.cp_spn.client_secret
   tenant_id       = local.cp_spn.tenant_id
 
-  skip_provider_registration = true
 }
 
 provider "azuread" {
