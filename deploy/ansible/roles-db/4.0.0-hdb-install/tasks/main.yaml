@@ -62,7 +62,7 @@
     - name:                            "3.3.1 BoM Template processing: Create ini file {{ sap_inifile }} from {{ HANA_2_00_install.rsp }}"
       ansible.builtin.template:
         src:                           "HANA_2_00_install.rsp"
-        dest:                          "{{ param_directory }}/{{ sap_inifile }}"
+        dest:                          "{{ dir_params }}/{{ sap_inifile }}"
         mode:                          0644
         force:                         true
   # Template parameter mapping
