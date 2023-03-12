@@ -476,10 +476,10 @@ locals {
     }
   ]
 
-  fpips = (var.database.high_availability && upper(local.anydb_ostype) == "WINDOWS") ? (
-    compact(concat(local.std_ips, local.winha_ips))) : (
-    local.std_ips
-  )
+  fpips = compact((var.database.high_availability && upper(local.anydb_ostype) == "WINDOWS") ? (
+    concat(local.std_ips, local.winha_ips)) : (
+    concat(local.std_ips,[])
+  ))
 
 
 }
