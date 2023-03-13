@@ -44,39 +44,6 @@
     - scs_high_availability or db_high_availability
     - node_tier in ['scs','sqlserver']
 
-- name:                                "WinCluster-Create: Check if cluster is already created"
-  ansible.windows.win_powershell:
-    script: |
-                                       if(Get-Cluster -Name . -ErrorAction SilentlyContinue){
-                                           $true
-                                         } else {
-                                           $false
-                                         }
-  register:                            cluster_exists
-  changed_when:                        false
-  ignore_errors:                       true
-  vars:
-    ansible_become:                     true
-    ansible_become_method:              runas
-
-- name:                                "Inspect cluster features"
-  ansible.builtin.debug:
-    msg:                               "{{ cluster_exists }}"
-
-- name:                                "WinCluster-Create: Check if {{ ansible_hostname }} is already a cluster node"
-  ansible.windows.win_powershell:
-    script: |
-                                       "(Get-ClusterNode -Name {{ ansible_hostname }} -ErrorAction SilentlyContinue | `
-                                        Select-Object -ExpandProperty NodeName) -join ','
-                                       "
-  register:                            cluster_node_names
-  when:
-    - cluster_exists.stdout == "True"
-  vars:
-    ansible_become:                     true
-    ansible_become_method:              runas
-
-
 - name:                                "WinCluster-Create: Create windows cluster on the first node"
   ansible.windows.win_dsc:
     resource_name:                     Cluster
@@ -85,7 +52,14 @@
     PsDscRunAsCredential_username:     "{{ domain_service_account }}@{{ domain_name }}"
     PsDscRunAsCredential_password:     "{{ domain_service_password }}"
   when:
-    - cluster_exists.stdout == "False"
+    - ansible_hostname == primary_node
+
+- name:                                "WinCluster-Create: Add {{ ansible_hostname }} to the cluster"
+  ansible.windows.win_dsc:
+    resource_name:                      ClusterNode
+    ClusterName:                        "{{ cluster_name }}"
+    NodeName:                           "{{ ansible_hostname }}"
+  when:
     - ansible_hostname == primary_node
 
 - name:                                "WinCluster-Create: Tasks for secondary nodes"
@@ -96,16 +70,12 @@
         ClusterName:                    "{{ cluster_name }}"
         RetryIntervalSec:               10
         RetryCount:                     60
-      when:
-        - cluster_exists.stdout == "False"
 
     - name:                                "WinCluster-Create: Add {{ ansible_hostname }} to the cluster"
       ansible.windows.win_dsc:
         resource_name:                      ClusterNode
         ClusterName:                        "{{ cluster_name }}"
         NodeName:                           "{{ ansible_hostname }}"
-      when:
-        - ansible_hostname not in cluster_node_names.stdout
   when:
     - ansible_hostname == secondary_node
 
@@ -119,7 +89,6 @@
     PsDscRunAsCredential_username:     "{{ domain_service_account }}@{{ domain_name }}"
     PsDscRunAsCredential_password:     "{{ domain_service_password }}"
   when:
-    - cluster_exists.stdout == "True"
     - ansible_hostname == primary_node
 
 - name:                                "WinCluster-Create: Add shared disk resource to cluster (only execute on scs node)"
