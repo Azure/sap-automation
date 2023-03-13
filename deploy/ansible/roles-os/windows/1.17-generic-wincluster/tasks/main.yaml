@@ -8,6 +8,7 @@
 - name:                                "WinCluster: Prepare for cluster configuration"
   become:                              true
   become_method:                       "runas"
+  become_user:                         '{{ sap_sid }}adm@{{ domain }}'
   when:
     - scs_high_availability
     - ansible_os_family | upper == "WINDOWS"
@@ -19,6 +20,7 @@
 - name:                                "WinCluster: Configure cluster"
   become:                              true
   become_method:                       "runas"
+  become_user:                         '{{ sap_sid }}adm@{{ domain }}'
   when:
     - scs_high_availability
     - ansible_os_family | upper == "WINDOWS"
