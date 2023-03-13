@@ -10,9 +10,19 @@
 
 - name:                                "User Creation: Set BOM facts"
   ansible.builtin.set_fact:
-    sap_inifile_template:              "{{ bom_base_name }}-generic-inifile-param.j2"
+    sap_inifile_template:              "{{ bom_base_name }}{{ bom_suffix }}-generic-inifile-param.j2"
     sap_inifile:                       "{{ bom_base_name }}-generic-{{ sid_to_be_deployed.sid | lower }}-{{ ansible_hostname }}.params"
     dir_params:                        "{{ tmp_directory }}/.{{ sid_to_be_deployed.sid | lower }}-params"
+
+- name:                                "User Creation: Create directories"
+  ansible.builtin.file:
+    path:                              "{{ item.path }}"
+    state:                             directory
+    mode:                              '{{ item.mode }}'
+  loop:
+    - { mode: '0755', path: '{{ dir_params }}' }
+    - { mode: '0755', path: '{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}' }
+    - { mode: '0766', path: '/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}' }
 
 - name:                                "User Creation: Set the Server name list"
   ansible.builtin.set_fact:
@@ -27,30 +37,15 @@
   ansible.builtin.set_fact:
     scs_server:                        "{{ scs_server_temp | first }}"
 
-#   0x) Create hidden directory for parameter files
-- name:                                "User Creation: Create hidden directory"
-  ansible.builtin.file:
-    path:                              "{{ item.path }}"
-    state:                             directory
-    mode:                              '{{ item.mode }}'
-  loop:
-    - { state: 'directory', mode: '0755', path: '{{ dir_params }}' }
-
-- name:                                "User Creation: Create run flag directory"
-  ansible.builtin.file:
-    path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | lower }}"
-    state:                             directory
-    mode:                              0755
-
 - name:                                "User Creation: reset"
   ansible.builtin.file:
-    path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | lower }}/user_created.txt"
+    path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/user_created.txt"
     state:                             absent
   when:                                reinstall
 
 - name:                                "User Creation: check if Completed"
   ansible.builtin.stat:
-    path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | lower }}/user_created.txt"
+    path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/user_created.txt"
   register:                            users_created
 
 - name:                                "User Creation: check if installed"
@@ -65,6 +60,7 @@
   vars:
     bom_name:                          "{{ bom_base_name }}"
     task_prefix:                       "GENERIC: "
+    sa_enabled:                        true
     always_upload_jinja_templates:     false
 
 - name:                                "User Creation: Include roles-sap/3.3.1-bom-utility role"
@@ -74,7 +70,7 @@
   vars:
     always_upload_jinja_templates:     false
     task_prefix:                       "GENERIC: "
-    bom_name:                          "{{ bom_base_name }}"
+    bom_name:                          "{{ bom_base_name }}{{ bom_suffix }}"
     sap_cd_package_cd1:
     sap_cd_package_cd2:
     sap_cd_package_cd3:
@@ -118,24 +114,31 @@
       ansible.builtin.debug:
         msg:                           "Start user creation"
 
-    - name:                            "User Creation: Create temp directory for sid"
-      ansible.builtin.file:
-        path:                          "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
-        state:                         directory
-        mode:                          0755
-
-    - name:                            "User Creation: SAP OS USERS and Group Creation {{ sid_to_be_deployed }}"
+    - name:                            "User Creation: SAP OS USERS and Group Creation Ini file {{ sid_to_be_deployed.sid | upper }}"
       ansible.builtin.shell: |
+                                       cat {{ dir_params }}/{{ sap_inifile }}
+      register:                        generic_user_creation_ini
+
+    - name:                            "User Creation: Progress"
+      ansible.builtin.debug:
+        var:                           generic_user_creation_ini
+        verbosity:                     2
+
+    - name:                            "User Creation: SAP OS USERS and Group Creation {{ sid_to_be_deployed.sid | upper }}"
+      become:                          true
+      become_user:                     root
+      ansible.builtin.shell: |
+                                       umask {{ custom_umask | default('022') }};
                                        ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }} \
-                                                 SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.generic }}                             \
-                                                 SAPINST_SKIP_DIALOGS=true                                                            \
+                                                 SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.generic }}        \
+                                                 SAPINST_SKIP_DIALOGS=true                                       \
                                                  SAPINST_START_GUISERVER=false
       args:
         chdir:                         "{{ target_media_location }}/SWPM"
-        creates:                       "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | lower }}/user_created.txt"
+        creates:                       "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/user_created.txt"
       environment:
         SAPSYSTEMNAME:                 "{{ sid_to_be_deployed.sid | upper }}"
-        TMPDIR:                        "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | lower }}"
+        TMPDIR:                        "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
       register:                        generic_user_creation
       failed_when:                     generic_user_creation.rc > 0
       tags:
@@ -147,9 +150,19 @@
       when:                            generic_user_creation.rc > 0
 
     - name:                            "User Creation: Installation results"
-      ansible.builtin.debug:
-        msg:                           "User Creation succeeded"
+      become:                          true
+      become_user:                     root
       when:                            generic_user_creation.rc == 0
+      block:
+        - name:                        "User Creation: Installation results"
+          ansible.builtin.debug:
+            msg:                       "User Creation succeeded"
+
+        - name:                        "User Creation: flag"
+          ansible.builtin.file:
+            path:                      "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/user_created.txt"
+            state:                     touch
+            mode:                      0755
 
     - name:                            "User Creation: Cleanup ini file {{ ansible_hostname }}"
       ansible.builtin.file:
@@ -157,8 +170,10 @@
         state:                         absent
 
     - name:                            "User Creation: flag"
+      become:                          true
+      become_user:                     root
       ansible.builtin.file:
-        path:                          "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | lower }}/user_created.txt"
+        path:                          "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/user_created.txt"
         state:                         touch
         mode:                          0755
       when:                            generic_user_creation.rc == 0

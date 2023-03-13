@@ -1,0 +1,14 @@
+---
+name:    'SUM20SP14'
+target:  'SUM20SP14'
+version: 007
+
+materials:
+
+  media:
+   # SUM
+    - name:         "Patch 7 for SOFTWARE UPDATE MANAGER 2.0 SP14 (Windows)"
+      archive:      SUM20SP14_7-80002458.SAR
+      checksum:     73c72687e291992f4f0b605c6ee6111e4d0d667d50c310fb6816aaadff700612
+      download:     false
+      url:          https://softwaredownloads.sap.com/file/0020000001246872022

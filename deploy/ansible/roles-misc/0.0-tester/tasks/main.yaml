@@ -10,8 +10,8 @@
 - name:                                "SQL"
   ansible.builtin.debug:
     msg:
-     - "Data {{ sql_disk_list[0] }}"
-     - "Log {{ sql_disk_list[1] }}"
+      - "Data {{ sql_disk_list[0] }}"
+      - "Log {{ sql_disk_list[1] }}"
   vars:
     sql_disk_list: "{{ lookup('template', 'sql_disks.j2') }}"
 
@@ -25,7 +25,7 @@
 - name:                                "SQL"
   ansible.builtin.debug:
     msg:
-     - "Data {{ data_disks }}"
-     - "Log {{ log_disks }}"
+      - "Data {{ data_disks }}"
+      - "Log {{ log_disks }}"
 
 ...

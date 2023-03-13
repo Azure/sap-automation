@@ -1,0 +1,14 @@
+---
+name:    'SUM20SP13'
+target:  'SUM20SP13'
+version: latest
+
+materials:
+
+  media:
+   # SUM
+    - name:         "Patch 4 for SOFTWARE UPDATE MANAGER 2.0 SP13"
+      archive:      SUM20SP13_4-80002456.SAR
+      checksum:     08a3c7090efdc0bbebe375333091a136875128a7a599f8e229bbf4f61c0d5167
+      download:     false
+      url:          https://softwaredownloads.sap.com/file/0020000000610062022

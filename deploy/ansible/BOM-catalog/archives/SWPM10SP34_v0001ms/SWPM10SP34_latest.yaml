@@ -1,0 +1,18 @@
+---
+name:    'SWPM10SP34'
+target:  'SWPM10SP34'
+version: 1
+
+materials:
+
+  media:
+   # SWPM
+    - name:         "SWPM 1.0 SP34 for NW higher than 7.0x ; OS: Linux on x86_64 64bit"
+      archive:      SWPM10SP34_2-20009701.SAR
+      checksum:     622cab32217dac7461b06ee2caff9bffc4eceefc90582ac197687f07644ea484
+      extract:      true
+      extractDir:   SWPM
+      creates:      SIGNATURE.SMF
+      url:          https://softwaredownloads.sap.com/file/0020000000368852022
+
+...

@@ -43,21 +43,14 @@
 # Disable SELinux
 # Disable core file creation
 
-# Disable SELinux
-- name:                                "2.10.1 sap-notes: - Disable SELinux"
-  ansible.posix.selinux:
-    state:                             disabled
-  when:                                node_tier not in ['scs', 'ers', 'pas', 'app']
-  notify:                              "2.10-sap-notes: Reboot after the selinux is configured"
-  tags: ansible_skip_lint
-
 - name:                                "2.10.1 sap-notes: - Disable SELinux"
   ansible.posix.selinux:
     policy:                            targeted
     state:                             permissive
-  when:                                node_tier in ['scs', 'ers', 'pas', 'app']
+  when:
+    - node_tier in ['scs', 'ers', 'pas', 'app']
+    - distribution_id in ['redhat7', 'redhat8', 'oracle8']
   notify:                              "2.10-sap-notes: Reboot after the selinux is configured"
-  tags: ansible_skip_lint
 
 - name:                                "2.10.1 - Force all notified handlers to run now"
   ansible.builtin.meta:                flush_handlers
@@ -68,6 +61,21 @@
   when:
     - node_tier == 'hana'
     - distribution_id == 'redhat8'
+
+
+- name:                                2.10.2 - SAP Note 2777782
+  ansible.builtin.include_tasks:       2.10.2.yaml
+  when:
+    - node_tier == 'oracle' or node_tier == 'oracle-asm'
+    - distribution_id == 'oraclelinux8'
+
+# - name:                                "2.10.1 sap-notes: - Disable SELinux"
+#   selinux:
+#     state:                             disabled
+#   notify:                              "2.10-sap-notes: Reboot after the selinux is configured"
+#   tags: ansible_skip_lint
+#   when:
+#    - distribution_id == 'oraclelinux8'
 
 # ToDo RHEL7 and also the other SAP nodes
 # -------------------------------------+---------------------------------------8

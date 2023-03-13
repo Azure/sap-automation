@@ -1,0 +1,32 @@
+---
+name:    "DB2_UDB_11_5_v0001ms"
+target:  "DB2 11.5"
+platform: "DB2"
+version: 1
+
+materials:
+
+  media:
+    - name:         "DB2 Software"
+      archive:      51055306.ZIP
+      #checksum:     
+      extract:      true
+      extractDir:   sapdb2_software/db2server
+      path:         download_basket
+      download:     true
+      url:          https://softwaredownloads.sap.com/file/0030000000137852022                       #Not all S-users have permissions to download the DB2 software.
+
+    - name:         "DB2 Client"
+      archive:      51055308.ZIP
+      #checksum:     
+      extract:      true
+      download:     true
+      extractDir:   sapdb2_software/db2client
+      path:         download_basket
+      #creates:     SIGNATURE.SMF
+      url:          https://softwaredownloads.sap.com/file/0030000000137992022                       #Not all S-users have permissions to download the DB2 software.
+
+
+
+
+...

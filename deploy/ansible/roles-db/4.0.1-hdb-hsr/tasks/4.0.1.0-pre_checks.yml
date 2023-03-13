@@ -25,12 +25,12 @@
       - "sap_dir | trim | length != 0"
 
 - name:                                HSR - Check that HANA was installed successfully and is running normally
-  import_tasks:                       ../../../roles-misc/0.4-helpers/tasks/04.01-start_hana.yml
+  ansible.builtin.import_tasks:        ../../../roles-misc/0.4-helpers/tasks/04.01-start_hana.yml
 
 - name:                                "HANA HSR: - Check whether replication has already been set up"
   become_user:                         "{{ db_sid_admin_user }}"
   become:                              true
-  ansible.builtin.shell:               hdbnsutil -sr_state
+  ansible.builtin.command:             hdbnsutil -sr_state
   register:                            hana_replication_status
   changed_when:                        false
   failed_when:                         hana_replication_status.rc != 0
@@ -38,6 +38,9 @@
     allow_world_readable_tmpfiles:     true
   tags:
     - skip_ansible_lint
+  environment:
+    ANSIBLE_REMOTE_TEMP:               "{{ tmp_directory }}/{{ db_sid | upper }}"
+    TEMPDIR:                           "{{ tmp_directory }}/{{ db_sid | upper }}"
 
 - name:                                "HANA HSR: - Show replication status"
   ansible.builtin.debug:

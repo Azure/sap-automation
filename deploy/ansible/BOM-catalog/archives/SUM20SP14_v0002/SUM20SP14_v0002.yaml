@@ -1,0 +1,14 @@
+---
+name:    'SUM20SP14'
+target:  'SUM20SP14'
+version: 002
+
+materials:
+
+  media:
+   # SUM
+    - name:         "Patch 2 for SOFTWARE UPDATE MANAGER 2.0 SP14"
+      archive:      SUM20SP14_2-80002456.SAR
+      checksum:     cb8eccb7391f611050b83e6cf45c1f874b94e5e90ef9f8dbdde9f252dfb3ebf8
+      download:     false
+      url:          https://softwaredownloads.sap.com/file/0020000000844352022

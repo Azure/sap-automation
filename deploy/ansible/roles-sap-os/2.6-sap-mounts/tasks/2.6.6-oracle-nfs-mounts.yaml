@@ -1,0 +1,37 @@
+- name:                            Mount Install folder when using AFS
+  become:                              true
+  become_user:                         root
+  ansible.posix.mount:
+    src:                           "{{ usr_sap_install_mountpoint }}/{{ bom_base_name }}"
+    path:                          "{{ target_media_location }}"
+    fstype:                        'nfs4'
+    opts:                          "vers=4,minorversion=1,sec=sys"
+    state:                         mounted
+  when:
+    - node_tier == 'oracle' or node_tier == 'oracle-asm'
+    - use_AFS
+
+
+- name:                                "ORACLE: Make orasid:dba as owners"
+  become:                              true
+  become_user:                         root
+  ansible.builtin.file:
+    path:                              "{{ item.path }}"
+    state:                             directory
+    owner:                             "{{ item.owner }}"
+    group:                             "{{ item.group }}"
+    recurse:                           true
+  loop:
+    - { path: '{{ target_media_location }}/SBP',       group: 'oinstall',   owner: 'oracle'}
+    - { path: '{{ target_media_location }}/oraclient', group: 'oinstall',   owner: 'oracle'}
+    - { path: '{{ target_media_location }}/oraserver', group: 'oinstall',   owner: 'oracle'}
+  when:
+    - node_tier != "observer"
+
+- name:                                "ORACLE: Create filepermission.txt"
+  become:                              true
+  become_user:                         root
+  ansible.builtin.file:
+    path:                              /etc/sap_deployment_automation/filepermission.txt
+    mode:                              '0755'
+    state:                             touch

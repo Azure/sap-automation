@@ -1,0 +1,14 @@
+---
+name:    'SUM20SP12'
+target:  'SUM20SP12'
+version: latest
+
+materials:
+
+  media:
+   # SUM
+    - name:         "Patch 6 for SOFTWARE UPDATE MANAGER 2.0 SP12 ; OS: Linux on x86_64 64bit"
+      archive:      SUM20SP12_6-80002456.SAR
+      checksum:     38fcd4df3db11edecbdee54df9ee88fb8797221177b677f1260fc84f740afd03
+      download:     false
+      url:          https://softwaredownloads.sap.com/file/0020000000070832022

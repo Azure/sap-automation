@@ -1,0 +1,16 @@
+---
+name:    'SWPM20SP11'
+target:  'SWPM20SP11'
+version: 11.2
+
+materials:
+
+  media:
+    # SWPM
+    - name:         "Patch 2 for SWPM 2.0 SP11 ; OS: Linux on x86_64 64bit"
+      archive:      SWPM20SP11_2-80003424.SAR
+      checksum:     24822fe947831f2ee5695417fa65e660d13062f53f14a8beb5cbd077085b7423
+      extract:      true
+      extractDir:   SWPM
+      creates:      SIGNATURE.SMF
+      url:          https://softwaredownloads.sap.com/file/0020000000369162022

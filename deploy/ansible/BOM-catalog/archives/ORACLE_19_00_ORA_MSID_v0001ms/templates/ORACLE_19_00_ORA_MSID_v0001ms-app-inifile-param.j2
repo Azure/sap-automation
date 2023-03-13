@@ -1,0 +1,66 @@
+#   2482103 - Installation with SWPM in unattended mode using parameter input file fails
+#   2393060 - SAPinst Framework 749 Central Note
+
+
+
+########################################################################################################################################################################################################
+#                                                                                                                                                                                                       #
+# Installation service  'SAP NetWeaver 7.5 > Oracle > Installation > Application Server ABAP >'                                                                                                         #
+#                       > Distributed System > ASCS Instance', product id 'NW_ABAP_ASCS:NW750.ORA.ABAP'                                                                                                 #
+#                       > Distributed System > Database Instance', product id 'NW_ABAP_DB:NW750.ORA.ABAP'                                                                                               #
+#                       > Distributed System > Primary Application Server Instance', product id 'NW_ABAP_CI:NW750.ORA.ABAP'                                                                             #
+#                       > Additional SAP System Instances > Additional Application Server Instance', product id 'NW_DI:NW750.ORA.PD'                                                                    #
+#                                                                                                                                                                                                       #
+#########################################################################################################################################################################################################
+
+# Location of Export CD
+SAPINST.CD.PACKAGE.ORACLI                                            = /usr/sap/install/oraclient
+SAPINST.CD.PACKAGE.CD1                                               = /usr/sap/install/EXPORT/DATA_UNITS/EXP1
+SAPINST.CD.PACKAGE.CD2                                               = /usr/sap/install/EXPORT/DATA_UNITS/EXP2
+SAPINST.CD.PACKAGE.CD3                                               = /usr/sap/install/EXPORT/DATA_UNITS/EXP3
+
+
+archives.downloadBasket                                              = /usr/sap/install/download_basket
+
+nwUsers.sapadmUID                                                    = {{ sapadm_uid }}
+nwUsers.sapsysGID                                                    = {{ sapsys_gid }}
+nwUsers.sidAdmUID                                                    = {{ item.sidadm_uid }}
+nwUsers.sidadmPassword                                               = {{ main_password }}
+
+NW_Delete_Sapinst_Users.removeUsers                                  = true
+NW_GetMasterPassword.masterPwd                                       = {{ main_password }}
+NW_GetSidNoProfiles.sid                                              = {{ item.sid | upper }}
+
+NW_AS.instanceNumber                                                  = {{ item.app_inst_no }}
+NW_DI_Instance.virtualHostname                                        = {{ sap_appVirtualHostname }}
+
+
+
+
+NW_adaptProfile.skipSecurityProfileSettings                           = true
+NW_getFQDN.FQDN                                                       = {{ sap_fqdn }}
+
+
+NW_System.installSAPHostAgent                                         = {{ sap_installSAPHostAgent }}
+
+NW_DDIC_Password.needDDICPasswords                                   = false
+NW_GetMasterPassword.masterPwd                                       = {{ main_password }}
+NW_checkMsgServer.abapMSPort                                         = 36{{ item.ascs_inst_no }}
+NW_getDBInfoGeneric.dbhost                                           = {{ sap_db_hostname }}
+NW_getDBInfoGeneric.dbsid                                            = {{ item.sid | upper }}
+NW_getLoadType.loadType                                              = SAP
+NW_readProfileDir.profileDir                                         = /sapmnt/{{ item.sid | upper }}/profile
+NW_getUnicode.isUnicode                                              = true
+#Oracle DB parameters
+MessageServer.configureAclInfo                                       = false
+
+
+
+ora.multitenant.pdbsid                                               = {{ item.sid | upper }}
+ora.whatInstallation                                                 = isSingle
+# ora.whatIsASM                                                      = false
+storageBasedCopy.ora.clientVersion                                   = 19
+storageBasedCopy.ora.serverVersion                                   = 19
+storageBasedCopy.ora.ABAPSchema                                      = SAPSR3
+storageBasedCopy.ora.listenerName                                    = LISTENER
+storageBasedCopy.ora.listenerPort                                    = 1521

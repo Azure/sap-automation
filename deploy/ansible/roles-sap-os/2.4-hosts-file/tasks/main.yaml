@@ -10,7 +10,8 @@
 #
 # Description:  Validation for Prerequisites
 #
-- import_tasks:     pre_checks.yaml
+- name:                                "2.4 Hosts: - import pre_checks"
+  ansible.builtin.import_tasks:        pre_checks.yaml
 # -------------------------------------+---------------------------------------8
 
 #   OS: hosts file, Entries - /etc/hosts

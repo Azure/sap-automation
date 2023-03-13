@@ -1,0 +1,136 @@
+########################################################################################################################################################################################
+#                                                                                                                                                                                      #
+# Installation service 'SAP NetWeaver 7.5 > SAP HANA Database > Installation > Application Server ABAP > Distributed System > ASCS Instance', product id 'NW_ABAP_ASCS:NW750.HDB.ABAP' #
+#                                                                                                                                                                                      #
+########################################################################################################################################################################################
+# IMPORTANT DO NOT DELETE!!! SAPInstDes25Hash=$8x6Br0frFzgv$cm8Zhn6QOYVK0qqufT7feAfPsOMYEjFIxoSRpiipvMuPE63WKtKNgA00fLx4Q5wsXR3YehjFcqZdBLSFGoHgc1VaGkWfQhYz
+
+# Password for the Diagnostics Agent specific <dasid>adm user. Provided value may be encoded.
+# DiagnosticsAgent.dasidAdmPassword = 
+
+# Windows domain in which the Diagnostics Agent users must be created. This is an optional property (Windows only).
+# DiagnosticsAgent.domain = 
+
+# Windows only: Password for the Diagnostics Agent specific 'SAPService<DASID>' user.
+# DiagnosticsAgent.sapServiceDASIDPassword = 
+
+# Specify whether the all operating system users are to be removed from group 'sapinst' after the execution of Software Provisioning Manager has completed.
+NW_Delete_Sapinst_Users.removeUsers = true
+
+# Master password
+NW_GetMasterPassword.masterPwd = des25(HJMqsOQWUhKWLuvqDzSV0aojl3E=)
+
+# Human readable form of the default login language to be preselected in SAPGUI. This Parameter is potentialy prompted in addition in the screen that also asks for the <SAPSID>. It is only prompted in systems that have an ABAP stack. It is prompted for installation but not for system copy. It is asked in those installations, that perform the ABAP load. That could be the database load installation in case of a distributed system szenario, or in case of a standard system installation with all instances on one host. This Parameter is saved in the 'DEFAULT' profile. It is has no influence on language settings in a Java stack. Valid names are stored in a table of subcomponent 'NW_languagesInLoadChecks'. The available languages must be declaired in the 'LANGUAGES_IN_LOAD' parameter of the 'product.xml' file . In this file, the one-character representation of the languages is used. Check the same table in subcomponent 'NW_languagesInLoadChecks'.
+# NW_GetSidNoProfiles.SAP_GUI_DEFAULT_LANGUAGE = 
+
+# Windows only: The drive to use
+# NW_GetSidNoProfiles.sapdrive = 
+
+# Unix only: The SAP mount directory path. Default value is '/sapmnt'.
+# NW_GetSidNoProfiles.sapmnt = /sapmnt
+
+# The SAP system ID <SAPSID> of the system to be installed
+NW_GetSidNoProfiles.sid = X00
+
+# Only use this parameter if recommended by SAP.
+# NW_GetSidNoProfiles.strictSidCheck = true
+
+# Specify whether this system is to be a Unicode system.
+# NW_GetSidNoProfiles.unicode = true
+
+# DEPRECATED, DO NOT USE!
+NW_SAPCrypto.SAPCryptoFile = /usr/sap/install/download_basket/SAPEXE_800-80002573.SAR
+
+# Add gateway process in the (A)SCS instance
+NW_SCS_Instance.ascsInstallGateway = true
+
+# Add Web Dispatcher process in the (A)SCS instance
+# NW_SCS_Instance.ascsInstallWebDispatcher = false
+
+# Dual stack only: Specify the ASCS instance number. Leave empty for default.
+# NW_SCS_Instance.ascsInstanceNumber = 
+
+# Specify whether a 'prxyinfo(.DAT)' file is to be created in the 'global' directory if this file does not yet exist and that the 'gw/prxy_info' in the 'DEFAULT' profile is to be set accordingly. Default is false.
+# NW_SCS_Instance.createGlobalProxyInfoFile = false
+
+# Specify whether a 'reginfo(.DAT)' file is to be created in the 'global' directory. Default is 'false'.
+# NW_SCS_Instance.createGlobalRegInfoFile = false
+
+# The instance number of the (A)SCS instance.  Leave this value empty if you want to use the default instance number or if you want to specify two different numbers for ASCS and SCS instance.
+NW_SCS_Instance.instanceNumber = 00
+
+# Dual stack only: The SCS instance number. Leave empty for default.
+# NW_SCS_Instance.scsInstanceNumber = 
+
+# The (A)SCS message server port. Leave empty for default.
+# NW_SCS_Instance.scsMSPort = 
+
+# You can specify a virtual host name for the ASCS instance. Leave empty for default.
+NW_SCS_Instance.scsVirtualHostname = x00scs00l3c4
+
+# SAP INTERNAL USE ONLY
+# NW_System.installSAPHostAgent = true
+
+# DEPRECATED, DO NOT USE!
+# NW_Unpack.dbaToolsSar = 
+
+# DEPRECATED, DO NOT USE!
+# NW_Unpack.igsExeSar = 
+
+# DEPRECATED, DO NOT USE!
+# NW_Unpack.igsHelperSar = 
+
+# DEPRECATED, DO NOT USE!
+# NW_Unpack.sapExeDbSar = 
+
+# DEPRECATED, DO NOT USE!
+NW_Unpack.sapExeSar = /usr/sap/install/download_basket/SAPEXE_800-80002573.SAR
+
+# DEPRECATED, DO NOT USE!
+# NW_Unpack.sapJvmSar = 
+
+# DEPRECATED, DO NOT USE!
+# NW_Unpack.xs2Sar = 
+
+# SAP INTERNAL USE ONLY
+# NW_adaptProfile.templateFiles = 
+
+# The FQDN of the system
+NW_getFQDN.FQDN = sap.contoso.com
+
+# SAP INTERNAL USE ONLY
+# NW_getFQDN.resolve = true
+
+# Specify whether you want to set FQDN for the system.
+# NW_getFQDN.setFQDN = true
+
+# The ASP device name where the SAP system will be in installed. The property is IBM i only.
+# Values from 1 to 256 can be specified. The default is 1, the System ASP.
+# OS4.DestinationASP = 
+
+# The folder containing all archives that have been downloaded from http://support.sap.com/swdc and are supposed to be used in this procedure
+archives.downloadBasket = /usr/sap/install/download_basket
+
+# Windows only: The domain of the SAP Host Agent user
+# hostAgent.domain = 
+
+# Password for the 'sapadm' user of the SAP Host Agent
+# hostAgent.sapAdmPassword = 
+
+# Windows only: The domain of all users of this SAP system. Leave empty for default.
+# nwUsers.sapDomain = 
+
+# Windows only: The password of the 'SAPServiceSID' user
+# nwUsers.sapServiceSIDPassword = 
+
+# UNIX only: The user ID of the 'sapadm' user, leave empty for default. The ID is ignored if the user already exists.
+nwUsers.sapadmUID = 2100
+
+# UNIX only: The group id of the 'sapsys' group, leave empty for default. The ID is ignored if the group already exists.
+nwUsers.sapsysGID = 2000
+
+# UNIX only: The user id of the <sapsid>adm user, leave empty for default. The ID is ignored if the user already exists.
+# nwUsers.sidAdmUID = 
+
+# The password of the '<sapsid>adm' user
+nwUsers.sidadmPassword = des25(S/ivMgnrno8wRpyT6L9nyEaXmCs=)

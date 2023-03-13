@@ -1,0 +1,254 @@
+###########################################################################################################################################################################################################################
+#                                                                                                                                                                                                                         #
+# Installation service 'SAP BW/4HANA 2021 > SAP BW/4HANA Server > SAP HANA Database > Installation > Application Server ABAP > Distributed System > Database Instance', product id 'NW_ABAP_DB:BW4HANA2021.CORE.HDB.ABAP' #
+#                                                                                                                                                                                                                         #
+###########################################################################################################################################################################################################################
+#
+
+# Password for the Diagnostics Agent specific <dasid>adm user. Provided value may be encoded.
+# DiagnosticsAgent.dasidAdmPassword =
+
+# Windows domain in which the Diagnostics Agent users must be created. This is an optional property (Windows only).
+# DiagnosticsAgent.domain =
+
+# Windows only: Password for the Diagnostics Agent specific 'SAPService<DASID>' user.
+# DiagnosticsAgent.sapServiceDASIDPassword =
+
+# Specify whether Software Provisioning Manager is to drop the schema if it exists.
+# HDB_Schema_Check_Dialogs.dropSchema = false
+
+# The name of the database schema.
+HDB_Schema_Check_Dialogs.schemaName = SAPHANADB
+
+# The password of the database schema.
+HDB_Schema_Check_Dialogs.schemaPassword = 
+
+# Specify whether Software Provisioning Manager is to validate the schema name. The schema name must only contain numbers and capital letters. It  must not start with '_' . It cannot be 'SYS' or 'SYSTEM'.
+# HDB_Schema_Check_Dialogs.validateSchemaName = true
+
+# Use SAP HANA Media on CD, do not ask for SAR archives
+# HDB_Software_Dialogs.useMediaCD = false
+
+# Name for container (folder) for the HANA Userstore files.
+# HDB_Userstore.HDB_USE_IDENT =
+
+# Database hostnames that will be set directly in hdbuserstore without resolving them in HANA. Comma separated. Example (host1,host2)
+# HDB_Userstore.doNotResolveHostnames =
+
+# Alternative port for SystemDB to be used in hdbuserstore
+# HDB_Userstore.systemDBPort =
+
+# Use ABAP secure store instead of HANA userstore. Default: false for HANA user store.
+# HDB_Userstore.useABAPSSFS = false
+
+# System copy AS Java with product instance Process Integration and/or Development Infrastructure: Specify whether the target system should replace the source system. Possible values are  'true' or 'false'.
+# NW_CreateDBandLoad.movePVCforUsagePiAndDi =
+
+# Specify whether the all operating system users are to be removed from group 'sapinst' after the execution of Software Provisioning Manager has completed.
+NW_Delete_Sapinst_Users.removeUsers = true
+
+# Master password
+NW_GetMasterPassword.masterPwd = 
+
+# Human readable form of the default login language to be preselected in SAPGUI. This Parameter is potentialy prompted in addition in the screen that also asks for the <SAPSID>. It is only prompted in systems that have an ABAP stack. It is prompted for installation but not for system copy. It is asked in those installations, that perform the ABAP load. That could be the database load installation in case of a distributed system szenario, or in case of a standard system installation with all instances on one host. This Parameter is saved in the 'DEFAULT' profile. It is has no influence on language settings in a Java stack. Valid names are stored in a table of subcomponent 'NW_languagesInLoadChecks'. The available languages must be declaired in the 'LANGUAGES_IN_LOAD' parameter of the 'product.xml' file . In this file, the one-character representation of the languages is used. Check the same table in subcomponent 'NW_languagesInLoadChecks'.
+# NW_GetSidNoProfiles.SAP_GUI_DEFAULT_LANGUAGE =
+
+# Windows only: The drive to use
+NW_GetSidNoProfiles.sapdrive = undefined
+
+# Unix only: The SAP mount directory path. Default value is '/sapmnt'.
+# NW_GetSidNoProfiles.sapmnt = /sapmnt
+
+# The SAP system ID <SAPSID> of the system to be installed
+NW_GetSidNoProfiles.sid = X00
+
+# Only use this parameter if recommended by SAP.
+# NW_GetSidNoProfiles.strictSidCheck = true
+
+# Specify whether this system is to be a Unicode system.
+# NW_GetSidNoProfiles.unicode = true
+
+# ABAP schema name
+NW_HDB_DB.abapSchemaName = SAPHANADB
+
+# Password of the ABAP schema user
+NW_HDB_DB.abapSchemaPassword = 
+
+# Password of the DBACOCKPIT user
+NW_HDB_DB.dbacockpitPassword = 
+
+# Install SAP Predictive Analytics integrator (PAi). Default value is 'false'.
+# NW_HDB_DB.installPAi = false
+
+# JAVA schema name
+# NW_HDB_DB.javaSchemaName =
+
+# Password of the JAVA schema user
+# NW_HDB_DB.javaSchemaPassword =
+
+# Skip checking if creating a HANA user store is needed. Default value is 'true'. If set to 'false', a valid HANA userstore must exists.
+# NW_HDB_DBClient.checkCreateUserstore = true
+
+# Install the SAP HANA database client in a central or local directory. Possible values are: 'SAPCPE', 'LOCAL'
+# NW_HDB_DBClient.clientPathStrategy = LOCAL
+
+# Data has already been loaded.
+# NW_HDB_getDBInfo.dataAlreadyLoaded = false
+
+# The DB admin user for SAP HANA tenant database. Default value: SYSTEM
+# NW_HDB_getDBInfo.dbadmin = SYSTEM
+
+# Database host
+NW_HDB_getDBInfo.dbhost = x00dhdb00l083
+
+# Database system ID
+NW_HDB_getDBInfo.dbsid = HDB
+
+# The instance number of the SAP HANA database server
+NW_HDB_getDBInfo.instanceNumber = 00
+
+# Password of user 'SYSTEM' within the 'SystemDB' tenant in an SAP HANA MultiDB server
+NW_HDB_getDBInfo.systemDbPassword = 
+
+# Password of  SAP HANA administration database user.'
+NW_HDB_getDBInfo.systemPassword = 
+
+# Password of user 'SYSTEM' inside the SAP HANA database server from a backup
+# NW_HDB_getDBInfo.systemPasswordBackup =
+
+# SAP HANA system ID
+NW_HDB_getDBInfo.systemid = HDB
+
+# A dedicated OS group for the tenant database, required for SAP HANA multitenant database containers with high isolation level.
+# NW_HDB_getDBInfo.tenantOsGroup =
+
+# A dedicated OS user for the tenant database, required for SAP HANA multitenant database containers with high isolation level.
+# NW_HDB_getDBInfo.tenantOsUser =
+
+# The SQL port for SAP HANA tenant database
+# NW_HDB_getDBInfo.tenantPort =
+
+# Connect using SSL/TLS. Default value: false.
+# NW_HDB_getDBInfo.usingSSL = false
+
+# Location for HANA backup files on the HANA database host (as delivered by SAP).
+# NW_Recovery_Install_HDB.backupLocationHANA =
+
+# Location for HANA backup files on the SAP Application Server host.
+# NW_Recovery_Install_HDB.backupLocationSAP =
+
+# NW_Recovery_Install_HDB.checkIntegrity = false
+
+# Location for HANA backup files on the HANA database host (Target location for ABAP export archives). Default value: /usr/sap/<SID>/HDB<nn>/backup/data/<Database_name>
+NW_Recovery_Install_HDB.extractLocation = /usr/sap/HDB/HDB00/backup/data/DB_HDB
+
+# Number of concurrent jobs used to load and/or extract archives to HANA Host
+NW_Recovery_Install_HDB.extractParallelJobs = 7
+
+# Archives or backup files are to be loaded by SWPM or are already available(mounted) on the HANA host. Possible values are: load (default) or mount.
+# NW_Recovery_Install_HDB.loadOrMount = load
+
+# The OS user of the HANA '<dbsid>adm' user
+# NW_Recovery_Install_HDB.sidAdmName =
+
+# The password of the OS HANA '<dbsid>adm' user
+# NW_Recovery_Install_HDB.sidAdmPassword =
+
+# DEPRECATED, DO NOT USE!
+# NW_SAPCrypto.SAPCryptoFile =
+
+# SAP INTERNAL USE ONLY
+NW_System.installSAPHostAgent = false
+
+# DEPRECATED, DO NOT USE!
+# NW_Unpack.dbaToolsSar =
+
+# DEPRECATED, DO NOT USE!
+# NW_Unpack.igsExeSar =
+
+# DEPRECATED, DO NOT USE!
+# NW_Unpack.igsHelperSar =
+
+# DEPRECATED, DO NOT USE!
+NW_Unpack.sapExeDbSar = /usr/sap/install/downloads/SAPEXEDB_50-80005373.SAR
+
+# DEPRECATED, DO NOT USE!
+NW_Unpack.sapExeSar = /usr/sap/install/downloads/SAPEXE_50-80005374.SAR
+
+# DEPRECATED, DO NOT USE!
+# NW_Unpack.sapJvmSar =
+
+# DEPRECATED, DO NOT USE!
+# NW_Unpack.xs2Sar =
+
+# SAP offers the option to skip setting of security profile parameters (NOT recommended) only for compatibility reasons. Set to true and the file with recommended security settings will not be taken into consideration. See SAP Note 2714839 for security recommendations.
+# NW_adaptProfile.skipSecurityProfileSettings = false
+
+# SAP INTERNAL USE ONLY
+# NW_adaptProfile.templateFiles =
+
+# The FQDN of the system
+NW_getFQDN.FQDN = sap.com
+
+# SAP INTERNAL USE ONLY
+# NW_getFQDN.resolve = true
+
+# Specify whether you want to set FQDN for the system.
+# NW_getFQDN.setFQDN = true
+
+# Manual configuration and execution of Migration Monitor or manual native database copy method.
+# NW_getLoadType.importManuallyExecuted = false
+
+# The load type chosen by the user. Valid values are: 'SAP', 'STD', 'OBR', 'HCP', 'MDA', 'HBR', 'SBR'
+NW_getLoadType.loadType = SAP
+
+# Provide  'profile' directory of SAP Netweaver-based system.
+# NW_readProfileDir.profileDir =
+
+# Enter the path of the existing 'profile' directory.
+NW_readProfileDir.profilesAvailable = false
+
+# Windows only: The drive to use
+# NW_readProfileDir.sapdrive =
+
+# The ASP device name where the SAP system will be in installed. The property is IBM i only.
+# Values from 1 to 256 can be specified. The default is 1, the System ASP.
+# OS4.DestinationASP =
+
+# The folder containing all archives that have been downloaded from http://support.sap.com/swdc and are supposed to be used in this procedure
+archives.downloadBasket = /usr/sap/install/download_basket
+
+# DBACOCKPIT user is to be created. Default value is 'false'.
+# hdb.create.dbacockpit.user = false
+
+# Windows only: The domain of the SAP Host Agent user
+# hostAgent.domain =
+
+# Password for the 'sapadm' user of the SAP Host Agent
+# hostAgent.sapAdmPassword =
+
+# installation_export.archivesFolder =
+
+# Windows only: The domain of all users of this SAP system. Leave empty for default.
+# nwUsers.sapDomain =
+
+# Windows only: The password of the 'SAPServiceSID' user
+# nwUsers.sapServiceSIDPassword =
+
+# UNIX only: The user ID of the 'sapadm' user, leave empty for default. The ID is ignored if the user already exists.
+# nwUsers.sapadmUID =
+
+# UNIX only: The group id of the 'sapsys' group, leave empty for default. The ID is ignored if the group already exists.
+nwUsers.sapsysGID = 2000
+
+# UNIX only: The user id of the <sapsid>adm user, leave empty for default. The ID is ignored if the user already exists.
+# nwUsers.sidAdmUID =
+
+# The password of the '<sapsid>adm' user
+nwUsers.sidadmPassword = 
+
+# ABAP schema password
+# storageBasedCopy.abapSchemaPassword =
+
+# Sets the SAP<SAPSID>DB schema password using a  parameter file.
+# storageBasedCopy.javaSchemaPassword =

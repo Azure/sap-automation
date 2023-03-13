@@ -1,0 +1,22 @@
+---
+#
+name:    'SWPM20SP09_v0001ms'
+target:  'S/4 HANA 1909 SPS 03'
+version: 1
+
+materials:
+
+  media:
+  # Format:
+  #   - name:           any value                           (Not Used)
+  #     archive:        filename in library
+  #     filename:       filename when downloaded
+  #     permissions:    octal value quoted
+  #     extract:
+  #     extractDir:
+  #     creates:
+  #     url:            optional download url if known      (Not Used at this time)
+  #
+
+
+...

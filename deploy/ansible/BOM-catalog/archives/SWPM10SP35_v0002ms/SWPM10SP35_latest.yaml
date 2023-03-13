@@ -1,0 +1,18 @@
+---
+name:    'SWPM10SP35'
+target:  'SWPM10SP35'
+version: 35.2
+
+materials:
+
+  media:
+    # SWPM
+    - name:         "SWPM 1.0 SP35 for NW higher than 7.0x ; OS: Linux on x86_64 64bit"
+      archive:      SWPM10SP35_2-20009701.SAR
+      checksum:     9dd67a2cb1ee38cf857e8cdd3deb2c5cb74d76780a0c96801a7103b8d599e991
+      extract:      true
+      extractDir:   SWPM
+      creates:      SIGNATURE.SMF
+      url:          https://softwaredownloads.sap.com/file/0020000000772892022
+
+...

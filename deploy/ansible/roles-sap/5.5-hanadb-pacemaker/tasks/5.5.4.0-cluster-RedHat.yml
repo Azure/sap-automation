@@ -62,16 +62,15 @@
       failed_when:                     sap_hana.rc > 1
       when:                            ansible_distribution_major_version == "8"
 
+    - name:                            Ensure the netcat resource for the Load Balancer Healthprobe is created
+      ansible.builtin.command:         pcs resource create nc_{{ db_sid | upper }}_{{ db_instance_number }} azure-lb port=625{{ db_instance_number }}
+      register:                        netcat
+      failed_when:                     netcat.rc > 1
 
     - name:                            Ensure the Virtual IP resource for the Load Balancer Front End IP is created
       ansible.builtin.command:         pcs resource create vip_{{ db_sid | upper }}_{{ db_instance_number }} IPaddr2 ip="{{ db_lb_ip }}"
       register:                        vip
       failed_when:                     vip.rc > 1
-
-    - name:                            Ensure the netcat resource for the Load Balancer Healthprobe is created
-      ansible.builtin.command:         pcs resource create nc_{{ db_sid | upper }}_{{ db_instance_number }} azure-lb port=625{{ db_instance_number }}
-      register:                        netcat
-      failed_when:                     netcat.rc > 1
 
     - name:                            Ensure the Virtual IP group resource is created
       ansible.builtin.command:         pcs resource group add g_ip_{{ db_sid | upper }}_{{ db_instance_number }} nc_{{ db_sid | upper }}_{{ db_instance_number }} vip_{{ db_sid | upper }}_{{ db_instance_number }}

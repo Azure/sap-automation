@@ -5,4 +5,8 @@
     name:                              waagent
     state:                             restarted
 
+- name:                                "Swap reboot"
+  ansible.builtin.reboot:
+
+
 # ...

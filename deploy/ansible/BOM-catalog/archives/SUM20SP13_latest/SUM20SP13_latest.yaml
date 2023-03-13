@@ -1,0 +1,14 @@
+---
+name:    'SUM20SP13'
+target:  'SUM20SP13'
+version: 13.5
+
+materials:
+
+  media:
+   # SUM
+    - name:         "Patch 5 for SOFTWARE UPDATE MANAGER 2.0 SP13"
+      archive:      SUM20SP13_5-80002456.SAR
+      checksum:     6154f0db049872ccd5a023d916f0964cfdb9f99a0ef0d4c350a7b46650faa986
+      download:     false
+      url:          https://softwaredownloads.sap.com/file/0020000000670232022

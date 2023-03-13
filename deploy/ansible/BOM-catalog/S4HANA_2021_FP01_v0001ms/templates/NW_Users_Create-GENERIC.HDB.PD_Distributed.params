@@ -1,0 +1,14 @@
+##############################################################################################################################################################
+#                                                                                                                                                            #
+# Installation service 'Generic Options > SAP HANA Database > Preparations > Operating System Users and Groups', product id 'NW_Users_Create:GENERIC.HDB.PD' #
+#                                                                                                                                                            #
+##############################################################################################################################################################
+NW_Delete_Sapinst_Users.removeUsers = true
+NW_Users_Create.dbsid = HDB
+NW_Users_Create.hasABAP = true
+NW_Users_Create.sid = X00
+nwUsers.dbtype = ind
+nwUsers.sapadmUID = 2100
+nwUsers.sapsysGID = 2000
+nwUsers.sidAdmUID = 2000
+nwUsers.sidadmPassword = 

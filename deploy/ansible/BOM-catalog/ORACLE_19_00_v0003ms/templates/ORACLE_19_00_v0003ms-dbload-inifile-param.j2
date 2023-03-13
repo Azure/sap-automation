@@ -1,0 +1,290 @@
+#   2482103 - Installation with SWPM in unattended mode using parameter input file fails
+#   2393060 - SAPinst Framework 749 Central Note
+#   2506859 - SAP system Installation on Oracle database with SWPM in unattended mode
+
+###############################################################################################################################################################################
+#                                                                                                                                                                             #
+# Installation service 'SAP NetWeaver 7.5 > Oracle > Installation > Application Server ABAP > Distributed System > Database Instance', product id 'NW_ABAP_DB:NW750.ORA.ABAP' #
+#                                                                                                                                                                             #
+###############################################################################################################################################################################
+# IMPORTANT DO NOT DELETE!!! SAPInstDes25Hash=$XJlWmi43IBjk$6QWrfu1/0dd4NvKa39ApQWh7OG/mW0Ekf1nAkOffh9IG36KjNlTyw/jfYlvEQMt84qkn3bza+AEiCq+De+7VHrG77zKkjMwh
+
+# Location of Export CD
+SAPINST.CD.PACKAGE.ORACLI                                  = {{ target_media_location }}/oraclient
+SAPINST.CD.PACKAGE.CD1                                     = {{ target_media_location }}/EXPORT/DATA_UNITS/EXP1
+SAPINST.CD.PACKAGE.CD2                                     = {{ target_media_location }}/EXPORT/DATA_UNITS/EXP2
+SAPINST.CD.PACKAGE.CD3                                     = {{ target_media_location }}/EXPORT/DATA_UNITS/EXP3
+
+
+# Password for the Diagnostics Agent specific <dasid>adm user. Provided value may be encoded.
+# DiagnosticsAgent.dasidAdmPassword = 
+
+# Windows domain in which the Diagnostics Agent users must be created. This is an optional property (Windows only).
+# DiagnosticsAgent.domain = 
+
+# Windows only: Password for the Diagnostics Agent specific 'SAPService<DASID>' user.
+# DiagnosticsAgent.sapServiceDASIDPassword = 
+
+# Specify whether you want to decluster during the import.
+# InitDeclusteringForImport.decluster = 
+
+# SAP HANA: import tasks to omit. To be used in combination with HDB_IMPORT_WITH_SDI=true.
+# NW_ABAP_Import.hdbOmitTasksForSDI = TPIV
+
+# SAP code page. Value for Unicode is: '4103' on little endian (intel), '4102' on big endian. Value for Non-Unicode is: '1100' or country specific.
+NW_ABAP_Import_Dialog.dbCodepage                           = 4103
+
+# Communication port for the Migration Monitor.
+# NW_ABAP_Import_Dialog.migmonComPort = 
+
+# Communication type for the Migration Monitor. Possible values are: 'EXCHANGE', 'SOCKETS', none
+# NW_ABAP_Import_Dialog.migmonComType = EXCHANGE
+
+# Exchange directory for the Migration Monitor
+# NW_ABAP_Import_Dialog.migmonExchangeDir = 
+
+# Number of parallel Migration Monitor jobs
+NW_ABAP_Import_Dialog.migmonJobNum                         = 20
+
+# Additional 'R3load' arguments for the LOAD phase
+NW_ABAP_Import_Dialog.migmonLoadArgs                       = -stop_on_error -loadprocedure fast
+
+# Additional 'R3load' arguments for the TASK phase
+# NW_ABAP_Import_Dialog.migmonTaskArgs = 
+
+# Migration key.
+# NW_ABAP_Import_Dialog.migrationKey = 
+
+# Enables setting advanced 'R3load' options.
+# NW_ABAP_Import_Dialog.useAdvancedLoadConfig = false
+
+# Enables setting attribues for parallel export/import.
+# NW_ABAP_Import_Dialog.useParallelExportImport = false
+
+# System copy AS Java with product instance Process Integration and/or Development Infrastructure: Specify whether the target system should replace the source system. Possible values are  'true' or 'false'.
+# NW_CreateDBandLoad.movePVCforUsagePiAndDi = 
+
+# Specify whether the all operating system users are to be removed from group 'sapinst' after the execution of Software Provisioning Manager has completed.
+NW_Delete_Sapinst_Users.removeUsers                        = true
+
+# Master password
+NW_GetMasterPassword.masterPwd                             = {{ main_password }}
+
+# DEPRECATED, DO NOT USE!
+# NW_SAPCrypto.SAPCryptoFile = 
+
+# SAP INTERNAL USE ONLY
+# NW_System.installSAPHostAgent = true
+
+# DEPRECATED, DO NOT USE!
+NW_Unpack.dbaToolsSar = /usr/sap/install/download_basket/DBATL740O11_48-80002605.SAR
+
+# DEPRECATED, DO NOT USE!
+# NW_Unpack.igsExeSar = 
+
+# DEPRECATED, DO NOT USE!
+# NW_Unpack.igsHelperSar = 
+
+# DEPRECATED, DO NOT USE!
+NW_Unpack.sapExeDbSar = /usr/sap/install/download_basket/SAPEXEDB_801-80002605.SAR
+
+# DEPRECATED, DO NOT USE!
+# NW_Unpack.sapExeSar = 
+
+# DEPRECATED, DO NOT USE!
+# NW_Unpack.sapJvmSar = 
+
+# DEPRECATED, DO NOT USE!
+# NW_Unpack.xs2Sar = 
+
+# SAP INTERNAL USE ONLY
+# NW_adaptProfile.templateFiles = 
+
+# ABAP message server port for connecting to the message server, leave empty for default
+# NW_checkMsgServer.abapMSPort = 
+
+# The database host
+NW_getDBInfoGeneric.dbhost                                 = {{ sap_db_hostname }}
+
+# The database ID (DBSID)
+NW_getDBInfoGeneric.dbsid                                  = {{ db_sid | upper }}
+
+# Only use this parameter if recommended by SAP.
+# NW_getDBInfoGeneric.strictDbSidCheck = true
+
+# The FQDN of the system
+NW_getFQDN.FQDN                                            = {{ sap_fqdn }}
+
+# SAP INTERNAL USE ONLY
+# NW_getFQDN.resolve = true
+
+# Specify whether you want to set FQDN for the system.
+# NW_getFQDN.setFQDN = true
+
+# Manual configuration and execution of Migration Monitor or manual native database copy method.
+# NW_getLoadType.importManuallyExecuted = false
+
+# The load type chosen by the user. Valid values are: 'SAP', 'STD', 'OBR', 'HCP', 'FLASHCOPY', 'MDA', 'HBR', 'SBR'
+NW_getLoadType.loadType                                    = SAP
+
+# ABAP system is Unicode (true|false), only needed if it cannot be determined from the system.
+NW_getUnicode.isUnicode                                    = true
+
+# Provide  'profile' directory of SAP Netweaver-based system.
+NW_readProfileDir.profileDir                               = /sapmnt/{{ sap_sid | upper }}/profile
+
+# Enter the path of the existing 'profile' directory.
+# NW_readProfileDir.profilesAvailable = true
+
+# Windows only: The drive to use
+# NW_readProfileDir.sapdrive = 
+
+# The folder containing all archives that have been downloaded from http://support.sap.com/swdc and are supposed to be used in this procedure
+archives.downloadBasket                                    = {{ target_media_location }}/download_basket
+
+# Windows only: The domain of the SAP Host Agent user
+# hostAgent.domain = 
+
+# Password for the 'sapadm' user of the SAP Host Agent
+# hostAgent.sapAdmPassword = 
+
+# Windows only: The domain of all users of this SAP system. Leave empty for default.
+# nwUsers.sapDomain = 
+
+# Windows only: The password of the 'SAPServiceSID' user
+# nwUsers.sapServiceSIDPassword = 
+
+# UNIX only: The user ID of the 'sapadm' user, leave empty for default. The ID is ignored if the user already exists.
+nwUsers.sapadmUID                                          = {{ sapadm_uid }}
+
+# UNIX only: The group id of the 'sapsys' group, leave empty for default. The ID is ignored if the group already exists.
+nwUsers.sapsysGID                                          = {{ sapsys_gid}}
+
+# UNIX only: The user id of the <sapsid>adm user, leave empty for default. The ID is ignored if the user already exists.
+nwUsers.sidAdmUID                                          = {{ sidadm_uid }}
+
+# The password of the '<sapsid>adm' user
+nwUsers.sidadmPassword                                     =  {{ main_password }}
+
+# ora.IgnoreClientVersion = false
+
+# Oracle 'SYS' password
+ora.SysPassword                                            =  {{ main_password }}
+
+# Oracle 'SYSTEM' password
+ora.SystemPassword                                         =  {{ main_password }}
+
+# User name of the Windows Service User for Oracle
+# ora.WinServiceUser = oracle
+
+# Password of the Windows Service User for Oracle
+# ora.WinServiceUserPassword = 
+
+# Possible values for the Oracle Windows Service user: 'SERVICEUSER' (default), 'LOCALSYSTEM'
+# ora.WindowsServiceUserValue = SERVICEUSER
+
+# Set Oracle advanced parameters. Default value is 'false'.
+# ora.advanced.parameter = false
+
+# 'CREATE' if database statistics should be created after import, 'SKIP' to skip statistics creation.
+# ora.createStatisticsCodeABAP = CREATE
+
+# 'CREATE' if database statistics should be created after import, 'SKIP' to skip statistics creation.
+# ora.createStatisticsCodeJAVA = CREATE
+
+# Enable oracle database vault
+# ora.databaseVault.enable = false
+
+# SECADMIN password
+# ora.databaseVault.secadminPassword = 
+
+# dbInstanceRam value
+# ora.dbInstanceRam = 
+
+# Path to ORACLE_HOME directory
+ora.dbhome                                                 = /oracle/{{ db_sid | upper }}/19
+
+# Oracle database vault.
+# ora.hasDatabaseVault = false
+
+# Oracle TDE.
+# ora.hasTDE = false
+
+# Set advanced parameter maxDatafileSize in MB. Default value is 2000.
+# ora.maxDatafileSize = 
+
+# Oracle mirrlog drive.
+# ora.mirrlogDrive = 
+
+# Install Multitenant Pluggable DB, possible values are
+#         FALSE:    no pluggable installation (default value)
+#         CDB_PDB:  install CDB and PDB
+#         PDB_ONLY: install PDB only in an existing CDB.
+#         CDB_ONLY: install CDB only.
+# ora.multitenant.installMT = FALSE
+
+# Name of the database ID (DBSID) of the Pluggable Database
+ora.multitenant.pdbsid                                     = {{ db_sid | upper }}
+
+# Oracle oraarch drive.
+# ora.oraarchDrive = 
+
+# Password of the Oracle database software owner
+# ora.oraclePassword = 
+
+# The password of the 'ora<dbsid>' user
+ora.orasidPassword                                         =  {{ main_password }}
+
+# Oracle origlog drive.
+# ora.origlogDrive = 
+
+# Radio button for database creation. Possible values are: 'CREATEDB', 'MCOD', 'PDBINST'
+# ora.rbDatabase = 
+
+# Oracle sapdata drive.
+# ora.sapdataDrive = 
+
+# possible values are
+#         isSingle:  Database on filesystem exist.
+#         isSHOH:    Database installation with SHared Oracle Home.
+#         isASM:     Database on ASM.
+#         isRAC:     Database on RAC.
+#         isRacAsm:  Database on RAC and ASM.
+# ora.whatInstallation = isSingle
+
+# possible values are
+#         true:  Database on ASM.
+#         false: Database not on ASM.
+# ora.whatIsASM = false
+
+# possible values are
+#         true:  Database Software installed as oracle user.
+#         false: Database Software installed as orasid user.
+# ora.whatIsOracleUser = true
+
+# ABAP schema password
+storageBasedCopy.abapSchemaPassword                        =  {{ main_password }}
+
+# Sets the SAP<SAPSID>DB schema password using a parameter file.
+storageBasedCopy.javaSchemaPassword                        =  {{ main_password }}
+
+# ABAP schema
+storageBasedCopy.ora.ABAPSchema                            = SAPSR3
+
+# Java schema, default is 'SAPSR3DB'
+# storageBasedCopy.ora.JavaSchema = 
+
+# Oracle client version: 121, 112, ...
+storageBasedCopy.ora.clientVersion                         = 19
+
+# Name of Oracle Listener. Default value is: LISTENER
+# storageBasedCopy.ora.listenerName = 
+
+# Port of Oracle Listener. Default value ist: 1521
+# storageBasedCopy.ora.listenerPort = 
+
+# Oracle server version
+storageBasedCopy.ora.serverVersion                         = 19
+
+# User name of the Oracle database software owner. Default is 'oracle'.
+# storageBasedCopy.ora.swowner = oracle

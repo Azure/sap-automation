@@ -1,0 +1,3159 @@
+---
+
+name: "ERP6_EHP8_WIN_MSS2016_v0001ms"
+target: "SAP NETWEAVER 7.5"
+
+defaults:
+  target_location: "{{ target_media_location }}/download_basket"
+
+product_ids:
+  scs:
+  scs_ha:
+  dbl:
+  pas:
+  pas_ha:
+  app:
+  app_ha:
+  web:
+  ers:
+  ers_ha:
+
+materials:
+  dependencies:
+    - name: "MSSQLSRV_2016_v0001ms"
+    - name: "SWPM10SP34_latest"
+
+  media:
+
+    # kernel components
+
+    - name: "Kernel Part II (753)"
+      archive: SAPEXEDB_900-80002611.SAR
+      url: https://softwaredownloads.sap.com/file/0020000001557622021
+      path: download_basket
+
+    - name: "Kernel Part I (753)"
+      archive: SAPEXE_900-80002612.SAR
+      url: https://softwaredownloads.sap.com/file/0020000001557182021
+      path: download_basket
+
+    - name: "SAP HOST AGENT 7.22 SP54"
+      archive: SAPHOSTAGENT54_54-80004825.SAR
+      url: https://softwaredownloads.sap.com/file/0020000001542832021
+      path: download_basket
+
+    - name: "Patch 4 for SOFTWARE UPDATE MANAGER 2.0 SP12"
+      archive: SUM20SP12_4-80002458.SAR
+      url: https://softwaredownloads.sap.com/file/0020000001731542021
+      path: download_basket
+
+#    - name: "SWPM 1.0 SP33 for NW higher than 7.0x"
+#      archive: SWPM10SP33_3-20009707.SAR
+#      override_target_filename: "SWPM.SAR"
+#      extract: true
+#      extractDir: SWPM
+#      url: https://softwaredownloads.sap.com/file/0020000001808982021
+#      path: download_basket
+
+    - name: "Installation for SAP IGS integrated in SAP Kernel"
+      archive: igsexe_13-80003241.sar
+      url: https://softwaredownloads.sap.com/file/0020000001223862021
+      path: download_basket
+
+    - name: "SAP IGS Fonts and Textures"
+      archive: igshelper_17-10010245.sar
+      url: https://softwaredownloads.sap.com/file/0020000000703122018
+      path: download_basket
+
+    # other components
+
+    - name: "Attribute Change Package 02 for EA-DFPS 618"
+      archive: EA-DFPS618.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000066042016
+      download: false
+
+    - name: "Attribute Change Package 01 for EA-FINSERV 618"
+      archive: EA-FINSERV618.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000066052016
+      download: false
+
+    - name: "Attribute Change Package 01 for EA-GLTRADE 618"
+      archive: EA-GLTRADE618.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000066062016
+      download: false
+
+    - name: "Attribute Change Package 17 for EA-HR 608"
+      archive: EA-HR608.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000059642016
+      download: false
+
+    - name: "Attribute Change Package 01 for EA-IPPE 618"
+      archive: EA-IPPE618.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000688672016
+      download: false
+
+    - name: "Attribute Change Package 01 for EA-PS 618"
+      archive: EA-PS618.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000066072016
+      download: false
+
+    - name: "Attribute Change Package 04 for EA-RETAIL 618"
+      archive: EA-RETAIL618.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000066082016
+      download: false
+
+    - name: "Attribute Change Package 01 for ECC-DIMP 618"
+      archive: ECC-DIMP618.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000066092016
+      download: false
+
+    - name: "Attribute Change Package 21 for ECC-SE 605"
+      archive: ECC-SE605.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000029932010
+      download: false
+
+    - name: "Attribute Change Package 21 for ERECRUIT 617"
+      archive: ERECRUIT617.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000048372015
+      download: false
+
+    - name: "Attribute Change Package 01 for FI-CA 618"
+      archive: FI-CA618.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000066102016
+      download: false
+
+    - name: "Attribute Change Package 01 for FI-CAX 618"
+      archive: FI-CAX618.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000737522016
+      download: false
+
+    - name: "Attribute Change Package 07 for FINBASIS 748"
+      archive: FINBASIS748.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001063952016
+      download: false
+
+    - name: "Attribute Change Package 04 for FSCM_CCD 618"
+      archive: FSCM_CCD618.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000061432015
+      download: false
+
+    - name: "Attribute Change Package 01 for INSURANCE 618"
+      archive: INSURANCE618.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000066112016
+      download: false
+
+    - name: "Attribute Change Package 01 for IS-CWM 618"
+      archive: IS-CWM618.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000066122016
+      download: false
+
+    - name: "Attribute Change Package 01 for IS-H 618"
+      archive: IS-H618.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000066132016
+      download: false
+
+    - name: "Attribute Change Package 01 for IS-M 618"
+      archive: IS-M618.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000723542016
+      download: false
+
+    - name: "Attribute Change Package 02 for IS-OIL 618"
+      archive: IS-OIL618.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000066142016
+      download: false
+
+    - name: "Attribute Change Package 01 for IS-PRA 618"
+      archive: IS-PRA618.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000688682016
+      download: false
+
+    - name: "Attribute Change Package 02 for IS-PS-CA 618"
+      archive: IS-PS-CA618.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000066152016
+      download: false
+
+    - name: "Attribute Change Package 02 for IS-UT 618"
+      archive: IS-UT618.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000723552016
+      download: false
+
+    - name: "MDG_MDC 100: SP 0003"
+      archive: K-10003INMDGMDC.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000060002016
+      download: false
+
+    - name: "MDG_MDC 100: SP 0004"
+      archive: K-10004INMDGMDC.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000059032016
+      download: false
+
+    - name: "MDG_MDC 100: SP 0005"
+      archive: K-10005INMDGMDC.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000553342016
+      download: false
+
+    - name: "MDG_MDC 100: SP 0006"
+      archive: K-10006INMDGMDC.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000930692016
+      download: false
+
+    - name: "MDG_MDC 100: SP 0007"
+      archive: K-10007INMDGMDC.SAR
+      url: https://softwaredownloads.sap.com/file/0010000014245572017
+      download: false
+
+    - name: "MDG_MDC 100: SP 0008"
+      archive: K-10008INMDGMDC.SAR
+      url: https://softwaredownloads.sap.com/file/0010000019045292017
+      download: false
+
+    - name: "MDG_MDC 100: SP 0009"
+      archive: K-10009INMDGMDC.SAR
+      url: https://softwaredownloads.sap.com/file/0010000019381842017
+      download: false
+
+    - name: "MDG_MDC 100: SP 0010"
+      archive: K-10010INMDGMDC.SAR
+      url: https://softwaredownloads.sap.com/file/0010000020173212017
+      download: false
+
+    - name: "MDG_MDC 100: SP 0011"
+      archive: K-10011INMDGMDC.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000271302018
+      download: false
+
+    - name: "MDG_MDC 100: SP 0012"
+      archive: K-10012INMDGMDC.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001699242018
+      download: false
+
+    - name: "MDG_MDC 100: SP 0013"
+      archive: K-10013INMDGMDC.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000266082019
+      download: false
+
+    - name: "MDG_MDC 100: SP 0014"
+      archive: K-10014INMDGMDC.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001503222019
+      download: false
+
+    - name: "MDG_MDC 100: SP 0015"
+      archive: K-10015INMDGMDC.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000163722020
+      download: false
+
+    - name: "MDG_MDC 100: SP 0016"
+      archive: K-10016INMDGMDC.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001339052020
+      download: false
+
+    - name: "MDG_MDC 100: SP 0017"
+      archive: K-10017INMDGMDC.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000148002021
+      download: false
+
+    - name: "MDG_MDC 100: SP 0018"
+      archive: K-10018INMDGMDC.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001141912021
+      download: false
+
+    - name: "ECC-SE 605: SP 0015"
+      archive: K-60515INECCSE.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000027162016
+      download: false
+
+    - name: "ECC-SE 605: SP 0016"
+      archive: K-60516INECCSE.SAR
+      url: https://softwaredownloads.sap.com/file/0010000018841052017
+      download: false
+
+    - name: "ECC-SE 605: SP 0017"
+      archive: K-60517INECCSE.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000088422018
+      download: false
+
+    - name: "ECC-SE 605: SP 0018"
+      archive: K-60518INECCSE.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000021092019
+      download: false
+
+    - name: "ECC-SE 605: SP 0019"
+      archive: K-60519INECCSE.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000033972020
+      download: false
+
+    - name: "ECC-SE 605: SP 0020"
+      archive: K-60520INECCSE.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000012002021
+      download: false
+
+    - name: "EA-HR 608: SP 0022"
+      archive: K-60822INEAHR.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000052492015
+      download: false
+
+    - name: "EA-HR 608: SP 0023"
+      archive: K-60823INEAHR.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000052682015
+      download: false
+
+    - name: "EA-HR 608: SP 0024"
+      archive: K-60824INEAHR.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000061202016
+      download: false
+
+    - name: "EA-HR 608: SP 0025"
+      archive: K-60825INEAHR.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000061382016
+      download: false
+
+    - name: "EA-HR 608: SP 0026"
+      archive: K-60826INEAHR.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000061592016
+      download: false
+
+    - name: "EA-HR 608: SP 0027"
+      archive: K-60827INEAHR.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000061732016
+      download: false
+
+    - name: "EA-HR 608: SP 0028"
+      archive: K-60828INEAHR.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000061892016
+      download: false
+
+    - name: "EA-HR 608: SP 0029"
+      archive: K-60829INEAHR.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000061902016
+      download: false
+
+    - name: "EA-HR 608: SP 0030"
+      archive: K-60830INEAHR.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000084192016
+      download: false
+
+    - name: "EA-HR 608: SP 0031"
+      archive: K-60831INEAHR.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000425622016
+      download: false
+
+    - name: "EA-HR 608: SP 0032"
+      archive: K-60832INEAHR.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000534152016
+      download: false
+
+    - name: "EA-HR 608: SP 0033"
+      archive: K-60833INEAHR.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000669242016
+      download: false
+
+    - name: "EA-HR 608: SP 0034"
+      archive: K-60834INEAHR.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000825802016
+      download: false
+
+    - name: "EA-HR 608: SP 0035"
+      archive: K-60835INEAHR.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000932722016
+      download: false
+
+    - name: "EA-HR 608: SP 0036"
+      archive: K-60836INEAHR.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000984012016
+      download: false
+
+    - name: "EA-HR 608: SP 0037"
+      archive: K-60837INEAHR.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000035792017
+      download: false
+
+    - name: "EA-HR 608: SP 0038"
+      archive: K-60838INEAHR.SAR
+      url: https://softwaredownloads.sap.com/file/0010000003374332017
+      download: false
+
+    - name: "EA-HR 608: SP 0039"
+      archive: K-60839INEAHR.SAR
+      url: https://softwaredownloads.sap.com/file/0010000005331112017
+      download: false
+
+    - name: "EA-HR 608: SP 0040"
+      archive: K-60840INEAHR.SAR
+      url: https://softwaredownloads.sap.com/file/0010000011896392017
+      download: false
+
+    - name: "EA-HR 608: SP 0041"
+      archive: K-60841INEAHR.SAR
+      url: https://softwaredownloads.sap.com/file/0010000015105102017
+      download: false
+
+    - name: "EA-HR 608: SP 0042"
+      archive: K-60842INEAHR.SAR
+      url: https://softwaredownloads.sap.com/file/0010000018909162017
+      download: false
+
+    - name: "EA-HR 608: SP 0043"
+      archive: K-60843INEAHR.SAR
+      url: https://softwaredownloads.sap.com/file/0010000019165482017
+      download: false
+
+    - name: "EA-HR 608: SP 0044"
+      archive: K-60844INEAHR.SAR
+      url: https://softwaredownloads.sap.com/file/0010000019372792017
+      download: false
+
+    - name: "EA-HR 608: SP 0045"
+      archive: K-60845INEAHR.SAR
+      url: https://softwaredownloads.sap.com/file/0010000019645842017
+      download: false
+
+    - name: "EA-HR 608: SP 0046"
+      archive: K-60846INEAHR.SAR
+      url: https://softwaredownloads.sap.com/file/0010000019853212017
+      download: false
+
+    - name: "EA-HR 608: SP 0047"
+      archive: K-60847INEAHR.SAR
+      url: https://softwaredownloads.sap.com/file/0010000020128452017
+      download: false
+
+    - name: "EA-HR 608: SP 0048"
+      archive: K-60848INEAHR.SAR
+      url: https://softwaredownloads.sap.com/file/0010000020353082017
+      download: false
+
+    - name: "EA-HR 608: SP 0049"
+      archive: K-60849INEAHR.SAR
+      url: https://softwaredownloads.sap.com/file/0010000020453582017
+      download: false
+
+    - name: "EA-HR 608: SP 0050"
+      archive: K-60850INEAHR.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000135632018
+      download: false
+
+    - name: "EA-HR 608: SP 0051"
+      archive: K-60851INEAHR.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000287772018
+      download: false
+
+    - name: "EA-HR 608: SP 0052"
+      archive: K-60852INEAHR.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000484092018
+      download: false
+
+    - name: "EA-HR 608: SP 0053"
+      archive: K-60853INEAHR.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000685442018
+      download: false
+
+    - name: "EA-HR 608: SP 0054"
+      archive: K-60854INEAHR.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000891222018
+      download: false
+
+    - name: "EA-HR 608: SP 0055"
+      archive: K-60855INEAHR.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001145592018
+      download: false
+
+    - name: "EA-HR 608: SP 0056"
+      archive: K-60856INEAHR.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001336822018
+      download: false
+
+    - name: "EA-HR 608: SP 0057"
+      archive: K-60857INEAHR.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001550252018
+      download: false
+
+    - name: "EA-HR 608: SP 0058"
+      archive: K-60858INEAHR.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001784352018
+      download: false
+
+    - name: "EA-HR 608: SP 0059"
+      archive: K-60859INEAHR.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001932542018
+      download: false
+
+    - name: "EA-HR 608: SP 0060"
+      archive: K-60860INEAHR.SAR
+      url: https://softwaredownloads.sap.com/file/0010000002091622018
+      download: false
+
+    - name: "EA-HR 608: SP 0061"
+      archive: K-60861INEAHR.SAR
+      url: https://softwaredownloads.sap.com/file/0010000002344942018
+      download: false
+
+    - name: "EA-HR 608: SP 0062"
+      archive: K-60862INEAHR.SAR
+      url: https://softwaredownloads.sap.com/file/0010000002426102018
+      download: false
+
+    - name: "EA-HR 608: SP 0063"
+      archive: K-60863INEAHR.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000116252019
+      download: false
+
+    - name: "EA-HR 608: SP 0064"
+      archive: K-60864INEAHR.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000246932019
+      download: false
+
+    - name: "EA-HR 608: SP 0065"
+      archive: K-60865INEAHR.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000438012019
+      download: false
+
+    - name: "EA-HR 608: SP 0066"
+      archive: K-60866INEAHR.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000662132019
+      download: false
+
+    - name: "EA-HR 608: SP 0067"
+      archive: K-60867INEAHR.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000817662019
+      download: false
+
+    - name: "EA-HR 608: SP 0068"
+      archive: K-60868INEAHR.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001048172019
+      download: false
+
+    - name: "EA-HR 608: SP 0069"
+      archive: K-60869INEAHR.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001234482019
+      download: false
+
+    - name: "EA-HR 608: SP 0070"
+      archive: K-60870INEAHR.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001408362019
+      download: false
+
+    - name: "EA-HR 608: SP 0071"
+      archive: K-60871INEAHR.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001610262019
+      download: false
+
+    - name: "EA-HR 608: SP 0072"
+      archive: K-60872INEAHR.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001804692019
+      download: false
+
+    - name: "EA-HR 608: SP 0073"
+      archive: K-60873INEAHR.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001982812019
+      download: false
+
+    - name: "EA-HR 608: SP 0074"
+      archive: K-60874INEAHR.SAR
+      url: https://softwaredownloads.sap.com/file/0010000002175012019
+      download: false
+
+    - name: "EA-HR 608: SP 0075"
+      archive: K-60875INEAHR.SAR
+      url: https://softwaredownloads.sap.com/file/0010000002263012019
+      download: false
+
+    - name: "EA-HR 608: SP 0076"
+      archive: K-60876INEAHR.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000079822020
+      download: false
+
+    - name: "EA-HR 608: SP 0077"
+      archive: K-60877INEAHR.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000194132020
+      download: false
+
+    - name: "EA-HR 608: SP 0078"
+      archive: K-60878INEAHR.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000372672020
+      download: false
+
+    - name: "EA-HR 608: SP 0079"
+      archive: K-60879INEAHR.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000565012020
+      download: false
+
+    - name: "EA-HR 608: SP 0080"
+      archive: K-60880INEAHR.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000808832020
+      download: false
+
+    - name: "EA-HR 608: SP 0081"
+      archive: K-60881INEAHR.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000956792020
+      download: false
+
+    - name: "EA-HR 608: SP 0082"
+      archive: K-60882INEAHR.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001129572020
+      download: false
+
+    - name: "EA-HR 608: SP 0083"
+      archive: K-60883INEAHR.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001324782020
+      download: false
+
+    - name: "EA-HR 608: SP 0084"
+      archive: K-60884INEAHR.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001507772020
+      download: false
+
+    - name: "EA-HR 608: SP 0085"
+      archive: K-60885INEAHR.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001676532020
+      download: false
+
+    - name: "EA-HR 608: SP 0086"
+      archive: K-60886INEAHR.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001888832020
+      download: false
+
+    - name: "EA-HR 608: SP 0087"
+      archive: K-60887INEAHR.SAR
+      url: https://softwaredownloads.sap.com/file/0010000002067062020
+      download: false
+
+    - name: "EA-HR 608: SP 0088"
+      archive: K-60888INEAHR.SAR
+      url: https://softwaredownloads.sap.com/file/0010000002135512020
+      download: false
+
+    - name: "EA-HR 608: SP 0089"
+      archive: K-60889INEAHR.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000065512021
+      download: false
+
+    - name: "EA-HR 608: SP 0090"
+      archive: K-60890INEAHR.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000184582021
+      download: false
+
+    - name: "EA-HR 608: SP 0091"
+      archive: K-60891INEAHR.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000340882021
+      download: false
+
+    - name: "EA-HR 608: SP 0092"
+      archive: K-60892INEAHR.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000545472021
+      download: false
+
+    - name: "EA-HR 608: SP 0093"
+      archive: K-60893INEAHR.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000683052021
+      download: false
+
+    - name: "EA-HR 608: SP 0094"
+      archive: K-60894INEAHR.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000817232021
+      download: false
+
+    - name: "EA-HR 608: SP 0095"
+      archive: K-60895INEAHR.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000999642021
+      download: false
+
+    - name: "EA-HR 608: SP 0096"
+      archive: K-60896INEAHR.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001143012021
+      download: false
+
+    - name: "EA-HR 608: SP 0097"
+      archive: K-60897INEAHR.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001272012021
+      download: false
+
+    - name: "LSOFE 617: SP 0009"
+      archive: K-61709INLSOFE.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000085602016
+      download: false
+
+    - name: "LSOFE 617: SP 0010"
+      archive: K-61710INLSOFE.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000877032016
+      download: false
+
+    - name: "LSOFE 617: SP 0011"
+      archive: K-61711INLSOFE.SAR
+      url: https://softwaredownloads.sap.com/file/0010000018853432017
+      download: false
+
+    - name: "LSOFE 617: SP 0012"
+      archive: K-61712INLSOFE.SAR
+      url: https://softwaredownloads.sap.com/file/0010000020282752017
+      download: false
+
+    - name: "LSOFE 617: SP 0013"
+      archive: K-61713INLSOFE.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000282382018
+      download: false
+
+    - name: "LSOFE 617: SP 0014"
+      archive: K-61714INLSOFE.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001738392018
+      download: false
+
+    - name: "LSOFE 617: SP 0015"
+      archive: K-61715INLSOFE.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000212492019
+      download: false
+
+    - name: "LSOFE 617: SP 0016"
+      archive: K-61716INLSOFE.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001539422019
+      download: false
+
+    - name: "LSOFE 617: SP 0017"
+      archive: K-61717INLSOFE.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000202432020
+      download: false
+
+    - name: "LSOFE 617: SP 0018"
+      archive: K-61718INLSOFE.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001301642020
+      download: false
+
+    - name: "LSOFE 617: SP 0019"
+      archive: K-61719INLSOFE.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000194792021
+      download: false
+
+    - name: "LSOFE 617: SP 0020"
+      archive: K-61720INLSOFE.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001159162021
+      download: false
+
+    - name: "EA-IPPE 618: SP 0001"
+      archive: K-61801INEAIPPE.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000065872016
+      download: false
+
+    - name: "EA-DFPS 618: SP 0002"
+      archive: K-61802INEADFPS.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000066512016
+      download: false
+
+    - name: "EA-IPPE 618: SP 0002"
+      archive: K-61802INEAIPPE.SAR
+      url: https://softwaredownloads.sap.com/file/0010000018853452017
+      download: false
+
+    - name: "EA-PS 618: SP 0002"
+      archive: K-61802INEAPS.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000066542016
+      download: false
+
+    - name: "ECC-DIMP 618: SP 0002"
+      archive: K-61802INECCDIMP.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000066562016
+      download: false
+
+    - name: "FI-CA 618: SP 0002"
+      archive: K-61802INFICA.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000066572016
+      download: false
+
+    - name: "FI-CAX 618: SP 0002"
+      archive: K-61802INFICAX.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000066582016
+      download: false
+
+    - name: "FSCM_CCD 618: SP 0002"
+      archive: K-61802INFSCMCCD.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000066592016
+      download: false
+
+    - name: "IS-PS-CA 618: SP 0002"
+      archive: K-61802INISPSCA.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000066662016
+      download: false
+
+    - name: "SAP_APPL 618: SP 0002"
+      archive: K-61802INSAPAPPL.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000066692016
+      download: false
+
+    - name: "SAP_FIN 618: SP 0002"
+      archive: K-61802INSAPFIN.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000066702016
+      download: false
+
+    - name: "EA-DFPS 618: SP 0003"
+      archive: K-61803INEADFPS.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000352462016
+      download: false
+
+    - name: "EA-IPPE 618: SP 0003"
+      archive: K-61803INEAIPPE.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000216242018
+      download: false
+
+    - name: "EA-PS 618: SP 0003"
+      archive: K-61803INEAPS.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000352492016
+      download: false
+
+    - name: "ECC-DIMP 618: SP 0003"
+      archive: K-61803INECCDIMP.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000352542016
+      download: false
+
+    - name: "FI-CA 618: SP 0003"
+      archive: K-61803INFICA.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000352512016
+      download: false
+
+    - name: "FI-CAX 618: SP 0003"
+      archive: K-61803INFICAX.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000352622016
+      download: false
+
+    - name: "FSCM_CCD 618: SP 0003"
+      archive: K-61803INFSCMCCD.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000352592016
+      download: false
+
+    - name: "IS-PS-CA 618: SP 0003"
+      archive: K-61803INISPSCA.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000352602016
+      download: false
+
+    - name: "SAP_APPL 618: SP 0003"
+      archive: K-61803INSAPAPPL.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000081092016
+      download: false
+
+    - name: "SAP_FIN 618: SP 0003"
+      archive: K-61803INSAPFIN.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000352532016
+      download: false
+
+    - name: "EA-DFPS 618: SP 0004"
+      archive: K-61804INEADFPS.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000705682016
+      download: false
+
+    - name: "EA-IPPE 618: SP 0004"
+      archive: K-61804INEAIPPE.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000174512019
+      download: false
+
+    - name: "EA-PS 618: SP 0004"
+      archive: K-61804INEAPS.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000705822016
+      download: false
+
+    - name: "ECC-DIMP 618: SP 0004"
+      archive: K-61804INECCDIMP.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000705742016
+      download: false
+
+    - name: "FI-CA 618: SP 0004"
+      archive: K-61804INFICA.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000705722016
+      download: false
+
+    - name: "FI-CAX 618: SP 0004"
+      archive: K-61804INFICAX.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000705752016
+      download: false
+
+    - name: "FSCM_CCD 618: SP 0004"
+      archive: K-61804INFSCMCCD.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000705732016
+      download: false
+
+    - name: "IS-PS-CA 618: SP 0004"
+      archive: K-61804INISPSCA.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000705792016
+      download: false
+
+    - name: "SAP_APPL 618: SP 0004"
+      archive: K-61804INSAPAPPL.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000706592016
+      download: false
+
+    - name: "SAP_FIN 618: SP 0004"
+      archive: K-61804INSAPFIN.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000705862016
+      download: false
+
+    - name: "EA-DFPS 618: SP 0005"
+      archive: K-61805INEADFPS.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000043592017
+      download: false
+
+    - name: "EA-IPPE 618: SP 0005"
+      archive: K-61805INEAIPPE.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000093602020
+      download: false
+
+    - name: "EA-PS 618: SP 0005"
+      archive: K-61805INEAPS.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000043642017
+      download: false
+
+    - name: "ECC-DIMP 618: SP 0005"
+      archive: K-61805INECCDIMP.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000043722017
+      download: false
+
+    - name: "FI-CA 618: SP 0005"
+      archive: K-61805INFICA.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000043652017
+      download: false
+
+    - name: "FI-CAX 618: SP 0005"
+      archive: K-61805INFICAX.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000043902017
+      download: false
+
+    - name: "FSCM_CCD 618: SP 0005"
+      archive: K-61805INFSCMCCD.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000043662017
+      download: false
+
+    - name: "IS-PS-CA 618: SP 0005"
+      archive: K-61805INISPSCA.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000043802017
+      download: false
+
+    - name: "SAP_APPL 618: SP 0005"
+      archive: K-61805INSAPAPPL.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000043572017
+      download: false
+
+    - name: "SAP_FIN 618: SP 0005"
+      archive: K-61805INSAPFIN.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000043582017
+      download: false
+
+    - name: "EA-DFPS 618: SP 0006"
+      archive: K-61806INEADFPS.SAR
+      url: https://softwaredownloads.sap.com/file/0010000011895712017
+      download: false
+
+    - name: "EA-IPPE 618: SP 0006"
+      archive: K-61806INEAIPPE.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000193402021
+      download: false
+
+    - name: "EA-PS 618: SP 0006"
+      archive: K-61806INEAPS.SAR
+      url: https://softwaredownloads.sap.com/file/0010000011895812017
+      download: false
+
+    - name: "ECC-DIMP 618: SP 0006"
+      archive: K-61806INECCDIMP.SAR
+      url: https://softwaredownloads.sap.com/file/0010000011896822017
+      download: false
+
+    - name: "FI-CA 618: SP 0006"
+      archive: K-61806INFICA.SAR
+      url: https://softwaredownloads.sap.com/file/0010000011895762017
+      download: false
+
+    - name: "FI-CAX 618: SP 0006"
+      archive: K-61806INFICAX.SAR
+      url: https://softwaredownloads.sap.com/file/0010000011896372017
+      download: false
+
+    - name: "FSCM_CCD 618: SP 0006"
+      archive: K-61806INFSCMCCD.SAR
+      url: https://softwaredownloads.sap.com/file/0010000011895782017
+      download: false
+
+    - name: "IS-PS-CA 618: SP 0006"
+      archive: K-61806INISPSCA.SAR
+      url: https://softwaredownloads.sap.com/file/0010000011896422017
+      download: false
+
+    - name: "SAP_APPL 618: SP 0006"
+      archive: K-61806INSAPAPPL.SAR
+      url: https://softwaredownloads.sap.com/file/0010000011895742017
+      download: false
+
+    - name: "SAP_FIN 618: SP 0006"
+      archive: K-61806INSAPFIN.SAR
+      url: https://softwaredownloads.sap.com/file/0010000011896332017
+      download: false
+
+    - name: "EA-DFPS 618: SP 0007"
+      archive: K-61807INEADFPS.SAR
+      url: https://softwaredownloads.sap.com/file/0010000019154672017
+      download: false
+
+    - name: "EA-PS 618: SP 0007"
+      archive: K-61807INEAPS.SAR
+      url: https://softwaredownloads.sap.com/file/0010000019154662017
+      download: false
+
+    - name: "ECC-DIMP 618: SP 0007"
+      archive: K-61807INECCDIMP.SAR
+      url: https://softwaredownloads.sap.com/file/0010000019155522017
+      download: false
+
+    - name: "FI-CA 618: SP 0007"
+      archive: K-61807INFICA.SAR
+      url: https://softwaredownloads.sap.com/file/0010000019154642017
+      download: false
+
+    - name: "FI-CAX 618: SP 0007"
+      archive: K-61807INFICAX.SAR
+      url: https://softwaredownloads.sap.com/file/0010000019155492017
+      download: false
+
+    - name: "FSCM_CCD 618: SP 0007"
+      archive: K-61807INFSCMCCD.SAR
+      url: https://softwaredownloads.sap.com/file/0010000019154652017
+      download: false
+
+    - name: "IS-PS-CA 618: SP 0007"
+      archive: K-61807INISPSCA.SAR
+      url: https://softwaredownloads.sap.com/file/0010000019155552017
+      download: false
+
+    - name: "SAP_APPL 618: SP 0007"
+      archive: K-61807INSAPAPPL.SAR
+      url: https://softwaredownloads.sap.com/file/0010000019178862017
+      download: false
+
+    - name: "SAP_FIN 618: SP 0007"
+      archive: K-61807INSAPFIN.SAR
+      url: https://softwaredownloads.sap.com/file/0010000019154682017
+      download: false
+
+    - name: "EA-DFPS 618: SP 0008"
+      archive: K-61808INEADFPS.SAR
+      url: https://softwaredownloads.sap.com/file/0010000019754982017
+      download: false
+
+    - name: "EA-PS 618: SP 0008"
+      archive: K-61808INEAPS.SAR
+      url: https://softwaredownloads.sap.com/file/0010000019657712017
+      download: false
+
+    - name: "ECC-DIMP 618: SP 0008"
+      archive: K-61808INECCDIMP.SAR
+      url: https://softwaredownloads.sap.com/file/0010000019514472017
+      download: false
+
+    - name: "FI-CA 618: SP 0008"
+      archive: K-61808INFICA.SAR
+      url: https://softwaredownloads.sap.com/file/0010000019514492017
+      download: false
+
+    - name: "FI-CAX 618: SP 0008"
+      archive: K-61808INFICAX.SAR
+      url: https://softwaredownloads.sap.com/file/0010000019514502017
+      download: false
+
+    - name: "FSCM_CCD 618: SP 0008"
+      archive: K-61808INFSCMCCD.SAR
+      url: https://softwaredownloads.sap.com/file/0010000019514512017
+      download: false
+
+    - name: "IS-PS-CA 618: SP 0008"
+      archive: K-61808INISPSCA.SAR
+      url: https://softwaredownloads.sap.com/file/0010000019514562017
+      download: false
+
+    - name: "SAP_APPL 618: SP 0008"
+      archive: K-61808INSAPAPPL.SAR
+      url: https://softwaredownloads.sap.com/file/0010000019514342017
+      download: false
+
+    - name: "SAP_FIN 618: SP 0008"
+      archive: K-61808INSAPFIN.SAR
+      url: https://softwaredownloads.sap.com/file/0010000019657682017
+      download: false
+
+    - name: "EA-DFPS 618: SP 0009"
+      archive: K-61809INEADFPS.SAR
+      url: https://softwaredownloads.sap.com/file/0010000020480812017
+      download: false
+
+    - name: "EA-PS 618: SP 0009"
+      archive: K-61809INEAPS.SAR
+      url: https://softwaredownloads.sap.com/file/0010000020480912017
+      download: false
+
+    - name: "ECC-DIMP 618: SP 0009"
+      archive: K-61809INECCDIMP.SAR
+      url: https://softwaredownloads.sap.com/file/0010000020481112017
+      download: false
+
+    - name: "FI-CA 618: SP 0009"
+      archive: K-61809INFICA.SAR
+      url: https://softwaredownloads.sap.com/file/0010000020480972017
+      download: false
+
+    - name: "FI-CAX 618: SP 0009"
+      archive: K-61809INFICAX.SAR
+      url: https://softwaredownloads.sap.com/file/0010000020481132017
+      download: false
+
+    - name: "FSCM_CCD 618: SP 0009"
+      archive: K-61809INFSCMCCD.SAR
+      url: https://softwaredownloads.sap.com/file/0010000020480992017
+      download: false
+
+    - name: "IS-PS-CA 618: SP 0009"
+      archive: K-61809INISPSCA.SAR
+      url: https://softwaredownloads.sap.com/file/0010000020481342017
+      download: false
+
+    - name: "SAP_APPL 618: SP 0009"
+      archive: K-61809INSAPAPPL.SAR
+      url: https://softwaredownloads.sap.com/file/0010000020480572017
+      download: false
+
+    - name: "SAP_FIN 618: SP 0009"
+      archive: K-61809INSAPFIN.SAR
+      url: https://softwaredownloads.sap.com/file/0010000020480722017
+      download: false
+
+    - name: "EA-DFPS 618: SP 0010"
+      archive: K-61810INEADFPS.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000534352018
+      download: false
+
+    - name: "ECC-DIMP 618: SP 0010"
+      archive: K-61810INECCDIMP.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000534402018
+      download: false
+
+    - name: "FI-CA 618: SP 0010"
+      archive: K-61810INFICA.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000534412018
+      download: false
+
+    - name: "FI-CAX 618: SP 0010"
+      archive: K-61810INFICAX.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000534422018
+      download: false
+
+    - name: "FSCM_CCD 618: SP 0010"
+      archive: K-61810INFSCMCCD.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000534432018
+      download: false
+
+    - name: "SAP_APPL 618: SP 0010"
+      archive: K-61810INSAPAPPL.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000534282018
+      download: false
+
+    - name: "SAP_FIN 618: SP 0010"
+      archive: K-61810INSAPFIN.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000438072018
+      download: false
+
+    - name: "EA-DFPS 618: SP 0011"
+      archive: K-61811INEADFPS.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001846072018
+      download: false
+
+    - name: "ECC-DIMP 618: SP 0011"
+      archive: K-61811INECCDIMP.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001664332018
+      download: false
+
+    - name: "FI-CA 618: SP 0011"
+      archive: K-61811INFICA.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001658062018
+      download: false
+
+    - name: "FI-CAX 618: SP 0011"
+      archive: K-61811INFICAX.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001664242018
+      download: false
+
+    - name: "FSCM_CCD 618: SP 0011"
+      archive: K-61811INFSCMCCD.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001664062018
+      download: false
+
+    - name: "SAP_APPL 618: SP 0011"
+      archive: K-61811INSAPAPPL.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001664082018
+      download: false
+
+    - name: "SAP_FIN 618: SP 0011"
+      archive: K-61811INSAPFIN.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001664232018
+      download: false
+
+    - name: "EA-DFPS 618: SP 0012"
+      archive: K-61812INEADFPS.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000493482019
+      download: false
+
+    - name: "ECC-DIMP 618: SP 0012"
+      archive: K-61812INECCDIMP.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000493782019
+      download: false
+
+    - name: "FI-CA 618: SP 0012"
+      archive: K-61812INFICA.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000493812019
+      download: false
+
+    - name: "FI-CAX 618: SP 0012"
+      archive: K-61812INFICAX.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000493832019
+      download: false
+
+    - name: "FSCM_CCD 618: SP 0012"
+      archive: K-61812INFSCMCCD.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000493602019
+      download: false
+
+    - name: "SAP_APPL 618: SP 0012"
+      archive: K-61812INSAPAPPL.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000492952019
+      download: false
+
+    - name: "SAP_FIN 618: SP 0012"
+      archive: K-61812INSAPFIN.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000493672019
+      download: false
+
+    - name: "EA-DFPS 618: SP 0013"
+      archive: K-61813INEADFPS.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001707412019
+      download: false
+
+    - name: "ECC-DIMP 618: SP 0013"
+      archive: K-61813INECCDIMP.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001707482019
+      download: false
+
+    - name: "FI-CA 618: SP 0013"
+      archive: K-61813INFICA.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001707492019
+      download: false
+
+    - name: "FI-CAX 618: SP 0013"
+      archive: K-61813INFICAX.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001707502019
+      download: false
+
+    - name: "FSCM_CCD 618: SP 0013"
+      archive: K-61813INFSCMCCD.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001707512019
+      download: false
+
+    - name: "SAP_APPL 618: SP 0013"
+      archive: K-61813INSAPAPPL.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001707362019
+      download: false
+
+    - name: "SAP_FIN 618: SP 0013"
+      archive: K-61813INSAPFIN.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001707402019
+      download: false
+
+    - name: "EA-DFPS 618: SP 0014"
+      archive: K-61814INEADFPS.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000371312020
+      download: false
+
+    - name: "ECC-DIMP 618: SP 0014"
+      archive: K-61814INECCDIMP.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000371362020
+      download: false
+
+    - name: "FI-CA 618: SP 0014"
+      archive: K-61814INFICA.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000371372020
+      download: false
+
+    - name: "FI-CAX 618: SP 0014"
+      archive: K-61814INFICAX.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000371382020
+      download: false
+
+    - name: "FSCM_CCD 618: SP 0014"
+      archive: K-61814INFSCMCCD.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000371392020
+      download: false
+
+    - name: "SAP_APPL 618: SP 0014"
+      archive: K-61814INSAPAPPL.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000371502020
+      download: false
+
+    - name: "SAP_FIN 618: SP 0014"
+      archive: K-61814INSAPFIN.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000371542020
+      download: false
+
+    - name: "EA-DFPS 618: SP 0015"
+      archive: K-61815INEADFPS.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001528762020
+      download: false
+
+    - name: "ECC-DIMP 618: SP 0015"
+      archive: K-61815INECCDIMP.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001528812020
+      download: false
+
+    - name: "FI-CA 618: SP 0015"
+      archive: K-61815INFICA.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001528822020
+      download: false
+
+    - name: "FI-CAX 618: SP 0015"
+      archive: K-61815INFICAX.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001528832020
+      download: false
+
+    - name: "FSCM_CCD 618: SP 0015"
+      archive: K-61815INFSCMCCD.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001528842020
+      download: false
+
+    - name: "SAP_APPL 618: SP 0015"
+      archive: K-61815INSAPAPPL.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001528932020
+      download: false
+
+    - name: "SAP_FIN 618: SP 0015"
+      archive: K-61815INSAPFIN.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001528942020
+      download: false
+
+    - name: "EA-DFPS 618: SP 0016"
+      archive: K-61816INEADFPS.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000374602021
+      download: false
+
+    - name: "ECC-DIMP 618: SP 0016"
+      archive: K-61816INECCDIMP.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000374662021
+      download: false
+
+    - name: "FI-CA 618: SP 0016"
+      archive: K-61816INFICA.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000374682021
+      download: false
+
+    - name: "FI-CAX 618: SP 0016"
+      archive: K-61816INFICAX.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000374692021
+      download: false
+
+    - name: "FSCM_CCD 618: SP 0016"
+      archive: K-61816INFSCMCCD.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000374702021
+      download: false
+
+    - name: "SAP_APPL 618: SP 0016"
+      archive: K-61816INSAPAPPL.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000374822021
+      download: false
+
+    - name: "SAP_FIN 618: SP 0016"
+      archive: K-61816INSAPFIN.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000374842021
+      download: false
+
+    - name: "EA-DFPS 618: SP 0017"
+      archive: K-61817INEADFPS.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001296792021
+      download: false
+
+    - name: "ECC-DIMP 618: SP 0017"
+      archive: K-61817INECCDIMP.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001296842021
+      download: false
+
+    - name: "FI-CA 618: SP 0017"
+      archive: K-61817INFICA.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001296852021
+      download: false
+
+    - name: "FI-CAX 618: SP 0017"
+      archive: K-61817INFICAX.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001296862021
+      download: false
+
+    - name: "FSCM_CCD 618: SP 0017"
+      archive: K-61817INFSCMCCD.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001296872021
+      download: false
+
+    - name: "SAP_APPL 618: SP 0017"
+      archive: K-61817INSAPAPPL.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001297402021
+      download: false
+
+    - name: "SAP_FIN 618: SP 0017"
+      archive: K-61817INSAPFIN.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001296962021
+      download: false
+
+    - name: "MDG_APPL 619: SP 0003"
+      archive: K-61903INMDGAPPL.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000062962016
+      download: false
+
+    - name: "MDG_UX 619: SP 0003"
+      archive: K-61903INMDGUX.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000062972016
+      download: false
+
+    - name: "MDG_APPL 619: SP 0004"
+      archive: K-61904INMDGAPPL.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000059122016
+      download: false
+
+    - name: "MDG_UX 619: SP 0004"
+      archive: K-61904INMDGUX.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000059132016
+      download: false
+
+    - name: "MDG_APPL 619: SP 0005"
+      archive: K-61905INMDGAPPL.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000553352016
+      download: false
+
+    - name: "MDG_UX 619: SP 0005"
+      archive: K-61905INMDGUX.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000553362016
+      download: false
+
+    - name: "MDG_APPL 619: SP 0006"
+      archive: K-61906INMDGAPPL.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000930682016
+      download: false
+
+    - name: "MDG_UX 619: SP 0006"
+      archive: K-61906INMDGUX.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000930702016
+      download: false
+
+    - name: "MDG_APPL 619: SP 0007"
+      archive: K-61907INMDGAPPL.SAR
+      url: https://softwaredownloads.sap.com/file/0010000014245552017
+      download: false
+
+    - name: "MDG_UX 619: SP 0007"
+      archive: K-61907INMDGUX.SAR
+      url: https://softwaredownloads.sap.com/file/0010000014245582017
+      download: false
+
+    - name: "MDG_APPL 619: SP 0008"
+      archive: K-61908INMDGAPPL.SAR
+      url: https://softwaredownloads.sap.com/file/0010000019045322017
+      download: false
+
+    - name: "MDG_UX 619: SP 0008"
+      archive: K-61908INMDGUX.SAR
+      url: https://softwaredownloads.sap.com/file/0010000019045302017
+      download: false
+
+    - name: "MDG_APPL 619: SP 0009"
+      archive: K-61909INMDGAPPL.SAR
+      url: https://softwaredownloads.sap.com/file/0010000019381862017
+      download: false
+
+    - name: "MDG_UX 619: SP 0009"
+      archive: K-61909INMDGUX.SAR
+      url: https://softwaredownloads.sap.com/file/0010000019532842017
+      download: false
+
+    - name: "MDG_APPL 619: SP 0010"
+      archive: K-61910INMDGAPPL.SAR
+      url: https://softwaredownloads.sap.com/file/0010000020173232017
+      download: false
+
+    - name: "MDG_UX 619: SP 0010"
+      archive: K-61910INMDGUX.SAR
+      url: https://softwaredownloads.sap.com/file/0010000020173242017
+      download: false
+
+    - name: "MDG_APPL 619: SP 0011"
+      archive: K-61911INMDGAPPL.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000271312018
+      download: false
+
+    - name: "MDG_UX 619: SP 0011"
+      archive: K-61911INMDGUX.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000271332018
+      download: false
+
+    - name: "MDG_APPL 619: SP 0012"
+      archive: K-61912INMDGAPPL.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001699252018
+      download: false
+
+    - name: "MDG_UX 619: SP 0012"
+      archive: K-61912INMDGUX.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001699262018
+      download: false
+
+    - name: "MDG_APPL 619: SP 0013"
+      archive: K-61913INMDGAPPL.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000266112019
+      download: false
+
+    - name: "MDG_UX 619: SP 0013"
+      archive: K-61913INMDGUX.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000266152019
+      download: false
+
+    - name: "MDG_APPL 619: SP 0014"
+      archive: K-61914INMDGAPPL.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001503232019
+      download: false
+
+    - name: "MDG_UX 619: SP 0014"
+      archive: K-61914INMDGUX.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001503242019
+      download: false
+
+    - name: "MDG_APPL 619: SP 0015"
+      archive: K-61915INMDGAPPL.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000163732020
+      download: false
+
+    - name: "MDG_UX 619: SP 0015"
+      archive: K-61915INMDGUX.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000163742020
+      download: false
+
+    - name: "MDG_APPL 619: SP 0016"
+      archive: K-61916INMDGAPPL.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001339062020
+      download: false
+
+    - name: "MDG_UX 619: SP 0016"
+      archive: K-61916INMDGUX.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001339072020
+      download: false
+
+    - name: "MDG_APPL 619: SP 0017"
+      archive: K-61917INMDGAPPL.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000148012021
+      download: false
+
+    - name: "MDG_UX 619: SP 0017"
+      archive: K-61917INMDGUX.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000148032021
+      download: false
+
+    - name: "MDG_APPL 619: SP 0018"
+      archive: K-61918INMDGAPPL.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001141932021
+      download: false
+
+    - name: "MDG_UX 619: SP 0018"
+      archive: K-61918INMDGUX.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001141942021
+      download: false
+
+    - name: "ST-PI 740: SP 0002"
+      archive: K-74002INSTPI.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000057482015
+      download: false
+
+    - name: "ST-PI 740: SP 0003"
+      archive: K-74003INSTPI.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000057492015
+      download: false
+
+    - name: "ST-PI 740: SP 0004"
+      archive: K-74004INSTPI.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000059202016
+      download: false
+
+    - name: "ST-PI 740: SP 0005"
+      archive: K-74005INSTPI.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000841352016
+      download: false
+
+    - name: "ST-PI 740: SP 0006"
+      archive: K-74006INSTPI.SAR
+      url: https://softwaredownloads.sap.com/file/0010000012329692017
+      download: false
+
+    - name: "ST-PI 740: SP 0007"
+      archive: K-74007INSTPI.SAR
+      url: https://softwaredownloads.sap.com/file/0010000019616252017
+      download: false
+
+    - name: "ST-PI 740: SP 0008"
+      archive: K-74008INSTPI.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000623832018
+      download: false
+
+    - name: "ST-PI 740: SP 0009"
+      archive: K-74009INSTPI.SAR
+      url: https://softwaredownloads.sap.com/file/0010000002257102018
+      download: false
+
+    - name: "ST-PI 740: SP 0010"
+      archive: K-74010INSTPI.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000161692019
+      download: false
+
+    - name: "ST-PI 740: SP 0011"
+      archive: K-74011INSTPI.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001051532019
+      download: false
+
+    - name: "ST-PI 740: SP 0012"
+      archive: K-74012INSTPI.SAR
+      url: https://softwaredownloads.sap.com/file/0010000002162182019
+      download: false
+
+    - name: "ST-PI 740: SP 0013"
+      archive: K-74013INSTPI.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000660652020
+      download: false
+
+    - name: "ST-PI 740: SP 0014"
+      archive: K-74014INSTPI.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001984822020
+      download: false
+
+    - name: "ST-PI 740: SP 0015"
+      archive: K-74015INSTPI.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000853222021
+      download: false
+
+    - name: "ST-PI 740: SP 0016"
+      archive: K-74016INSTPI.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001454472021
+      download: false
+
+    - name: "FINBASIS 748: SP 0002"
+      archive: K-74802INFINBASIS.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000066902016
+      download: false
+
+    - name: "PLMWUI 748: SP 0002"
+      archive: K-74802INPLMWUI.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000066912016
+      download: false
+
+    - name: "SAP_BS_FND 748: SP 0002"
+      archive: K-74802INSAPBSFND.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000066922016
+      download: false
+
+    - name: "SEM-BW 748: SP 0002"
+      archive: K-74802INSEMBW.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000066932016
+      download: false
+
+    - name: "WEBCUIF 748: SP 0002"
+      archive: K-74802INWEBCUIF.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000066942016
+      download: false
+
+    - name: "FINBASIS 748: SP 0003"
+      archive: K-74803INFINBASIS.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000084802016
+      download: false
+
+    - name: "PLMWUI 748: SP 0003"
+      archive: K-74803INPLMWUI.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000071622016
+      download: false
+
+    - name: "SAP_BS_FND 748: SP 0003"
+      archive: K-74803INSAPBSFND.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000065902016
+      download: false
+
+    - name: "SEM-BW 748: SP 0003"
+      archive: K-74803INSEMBW.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000084792016
+      download: false
+
+    - name: "WEBCUIF 748: SP 0003"
+      archive: K-74803INWEBCUIF.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000065912016
+      download: false
+
+    - name: "FINBASIS 748: SP 0004"
+      archive: K-74804INFINBASIS.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000669122016
+      download: false
+
+    - name: "PLMWUI 748: SP 0004"
+      archive: K-74804INPLMWUI.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000705672016
+      download: false
+
+    - name: "SAP_BS_FND 748: SP 0004"
+      archive: K-74804INSAPBSFND.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000534612016
+      download: false
+
+    - name: "SEM-BW 748: SP 0004"
+      archive: K-74804INSEMBW.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000705662016
+      download: false
+
+    - name: "WEBCUIF 748: SP 0004"
+      archive: K-74804INWEBCUIF.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000534602016
+      download: false
+
+    - name: "FINBASIS 748: SP 0005"
+      archive: K-74805INFINBASIS.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000971502016
+      download: false
+
+    - name: "PLMWUI 748: SP 0005"
+      archive: K-74805INPLMWUI.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000043682017
+      download: false
+
+    - name: "SAP_BS_FND 748: SP 0005"
+      archive: K-74805INSAPBSFND.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000864492016
+      download: false
+
+    - name: "SEM-BW 748: SP 0005"
+      archive: K-74805INSEMBW.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000043702017
+      download: false
+
+    - name: "WEBCUIF 748: SP 0005"
+      archive: K-74805INWEBCUIF.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000864482016
+      download: false
+
+    - name: "FINBASIS 748: SP 0006"
+      archive: K-74806INFINBASIS.SAR
+      url: https://softwaredownloads.sap.com/file/0010000011895802017
+      download: false
+
+    - name: "PLMWUI 748: SP 0006"
+      archive: K-74806INPLMWUI.SAR
+      url: https://softwaredownloads.sap.com/file/0010000011895752017
+      download: false
+
+    - name: "SAP_BS_FND 748: SP 0006"
+      archive: K-74806INSAPBSFND.SAR
+      url: https://softwaredownloads.sap.com/file/0010000014292032017
+      download: false
+
+    - name: "SEM-BW 748: SP 0006"
+      archive: K-74806INSEMBW.SAR
+      url: https://softwaredownloads.sap.com/file/0010000011895722017
+      download: false
+
+    - name: "WEBCUIF 748: SP 0006"
+      archive: K-74806INWEBCUIF.SAR
+      url: https://softwaredownloads.sap.com/file/0010000014292042017
+      download: false
+
+    - name: "FINBASIS 748: SP 0007"
+      archive: K-74807INFINBASIS.SAR
+      url: https://softwaredownloads.sap.com/file/0010000019083232017
+      download: false
+
+    - name: "PLMWUI 748: SP 0007"
+      archive: K-74807INPLMWUI.SAR
+      url: https://softwaredownloads.sap.com/file/0010000019154482017
+      download: false
+
+    - name: "SAP_BS_FND 748: SP 0007"
+      archive: K-74807INSAPBSFND.SAR
+      url: https://softwaredownloads.sap.com/file/0010000018850952017
+      download: false
+
+    - name: "SEM-BW 748: SP 0007"
+      archive: K-74807INSEMBW.SAR
+      url: https://softwaredownloads.sap.com/file/0010000019154472017
+      download: false
+
+    - name: "WEBCUIF 748: SP 0007"
+      archive: K-74807INWEBCUIF.SAR
+      url: https://softwaredownloads.sap.com/file/0010000018849932017
+      download: false
+
+    - name: "FINBASIS 748: SP 0008"
+      archive: K-74808INFINBASIS.SAR
+      url: https://softwaredownloads.sap.com/file/0010000019755012017
+      download: false
+
+    - name: "PLMWUI 748: SP 0008"
+      archive: K-74808INPLMWUI.SAR
+      url: https://softwaredownloads.sap.com/file/0010000019514582017
+      download: false
+
+    - name: "SAP_BS_FND 748: SP 0008"
+      archive: K-74808INSAPBSFND.SAR
+      url: https://softwaredownloads.sap.com/file/0010000019453332017
+      download: false
+
+    - name: "SEM-BW 748: SP 0008"
+      archive: K-74808INSEMBW.SAR
+      url: https://softwaredownloads.sap.com/file/0010000019513292017
+      download: false
+
+    - name: "WEBCUIF 748: SP 0008"
+      archive: K-74808INWEBCUIF.SAR
+      url: https://softwaredownloads.sap.com/file/0010000019453422017
+      download: false
+
+    - name: "FINBASIS 748: SP 0009"
+      archive: K-74809INFINBASIS.SAR
+      url: https://softwaredownloads.sap.com/file/0010000020480342017
+      download: false
+
+    - name: "PLMWUI 748: SP 0009"
+      archive: K-74809INPLMWUI.SAR
+      url: https://softwaredownloads.sap.com/file/0010000020480352017
+      download: false
+
+    - name: "SAP_BS_FND 748: SP 0009"
+      archive: K-74809INSAPBSFND.SAR
+      url: https://softwaredownloads.sap.com/file/0010000020118942017
+      download: false
+
+    - name: "SEM-BW 748: SP 0009"
+      archive: K-74809INSEMBW.SAR
+      url: https://softwaredownloads.sap.com/file/0010000020480362017
+      download: false
+
+    - name: "WEBCUIF 748: SP 0009"
+      archive: K-74809INWEBCUIF.SAR
+      url: https://softwaredownloads.sap.com/file/0010000020118992017
+      download: false
+
+    - name: "FINBASIS 748: SP 0010"
+      archive: K-74810INFINBASIS.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000534522018
+      download: false
+
+    - name: "PLMWUI 748: SP 0010"
+      archive: K-74810INPLMWUI.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000534532018
+      download: false
+
+    - name: "SAP_BS_FND 748: SP 0010"
+      archive: K-74810INSAPBSFND.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000228772018
+      download: false
+
+    - name: "SEM-BW 748: SP 0010"
+      archive: K-74810INSEMBW.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000534542018
+      download: false
+
+    - name: "WEBCUIF 748: SP 0010"
+      archive: K-74810INWEBCUIF.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000228702018
+      download: false
+
+    - name: "FINBASIS 748: SP 0011"
+      archive: K-74811INFINBASIS.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001664142018
+      download: false
+
+    - name: "PLMWUI 748: SP 0011"
+      archive: K-74811INPLMWUI.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001658112018
+      download: false
+
+    - name: "SAP_BS_FND 748: SP 0011"
+      archive: K-74811INSAPBSFND.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001612742018
+      download: false
+
+    - name: "SEM-BW 748: SP 0011"
+      archive: K-74811INSEMBW.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001789462018
+      download: false
+
+    - name: "WEBCUIF 748: SP 0011"
+      archive: K-74811INWEBCUIF.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001612722018
+      download: false
+
+    - name: "FINBASIS 748: SP 0012"
+      archive: K-74812INFINBASIS.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000493692019
+      download: false
+
+    - name: "PLMWUI 748: SP 0012"
+      archive: K-74812INPLMWUI.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000493702019
+      download: false
+
+    - name: "SAP_BS_FND 748: SP 0012"
+      archive: K-74812INSAPBSFND.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000215002019
+      download: false
+
+    - name: "SEM-BW 748: SP 0012"
+      archive: K-74812INSEMBW.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000493712019
+      download: false
+
+    - name: "WEBCUIF 748: SP 0012"
+      archive: K-74812INWEBCUIF.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000214982019
+      download: false
+
+    - name: "FINBASIS 748: SP 0013"
+      archive: K-74813INFINBASIS.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001707602019
+      download: false
+
+    - name: "PLMWUI 748: SP 0013"
+      archive: K-74813INPLMWUI.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001707612019
+      download: false
+
+    - name: "SAP_BS_FND 748: SP 0013"
+      archive: K-74813INSAPBSFND.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001465572019
+      download: false
+
+    - name: "SEM-BW 748: SP 0013"
+      archive: K-74813INSEMBW.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001707622019
+      download: false
+
+    - name: "WEBCUIF 748: SP 0013"
+      archive: K-74813INWEBCUIF.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001465552019
+      download: false
+
+    - name: "FINBASIS 748: SP 0014"
+      archive: K-74814INFINBASIS.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000371552020
+      download: false
+
+    - name: "PLMWUI 748: SP 0014"
+      archive: K-74814INPLMWUI.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000371562020
+      download: false
+
+    - name: "SAP_BS_FND 748: SP 0014"
+      archive: K-74814INSAPBSFND.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000123342020
+      download: false
+
+    - name: "SEM-BW 748: SP 0014"
+      archive: K-74814INSEMBW.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000371572020
+      download: false
+
+    - name: "WEBCUIF 748: SP 0014"
+      archive: K-74814INWEBCUIF.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000123322020
+      download: false
+
+    - name: "FINBASIS 748: SP 0015"
+      archive: K-74815INFINBASIS.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001528952020
+      download: false
+
+    - name: "PLMWUI 748: SP 0015"
+      archive: K-74815INPLMWUI.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001528962020
+      download: false
+
+    - name: "SAP_BS_FND 748: SP 0015"
+      archive: K-74815INSAPBSFND.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001297602020
+      download: false
+
+    - name: "SEM-BW 748: SP 0015"
+      archive: K-74815INSEMBW.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001528972020
+      download: false
+
+    - name: "WEBCUIF 748: SP 0015"
+      archive: K-74815INWEBCUIF.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001297622020
+      download: false
+
+    - name: "FINBASIS 748: SP 0016"
+      archive: K-74816INFINBASIS.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000374852021
+      download: false
+
+    - name: "PLMWUI 748: SP 0016"
+      archive: K-74816INPLMWUI.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000374862021
+      download: false
+
+    - name: "SAP_BS_FND 748: SP 0016"
+      archive: K-74816INSAPBSFND.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000154202021
+      download: false
+
+    - name: "SEM-BW 748: SP 0016"
+      archive: K-74816INSEMBW.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000374872021
+      download: false
+
+    - name: "WEBCUIF 748: SP 0016"
+      archive: K-74816INWEBCUIF.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000154172021
+      download: false
+
+    - name: "FINBASIS 748: SP 0017"
+      archive: K-74817INFINBASIS.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001296972021
+      download: false
+
+    - name: "PLMWUI 748: SP 0017"
+      archive: K-74817INPLMWUI.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001296982021
+      download: false
+
+    - name: "SAP_BS_FND 748: SP 0017"
+      archive: K-74817INSAPBSFND.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001107272021
+      download: false
+
+    - name: "SEM-BW 748: SP 0017"
+      archive: K-74817INSEMBW.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001296992021
+      download: false
+
+    - name: "WEBCUIF 748: SP 0017"
+      archive: K-74817INWEBCUIF.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001107252021
+      download: false
+
+    - name: "MDG_FND 749: SP 0003"
+      archive: K-74903INMDGFND.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000063502016
+      download: false
+
+    - name: "MDG_FND 749: SP 0004"
+      archive: K-74904INMDGFND.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000059212016
+      download: false
+
+    - name: "MDG_FND 749: SP 0005"
+      archive: K-74905INMDGFND.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000553372016
+      download: false
+
+    - name: "MDG_FND 749: SP 0006"
+      archive: K-74906INMDGFND.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000930712016
+      download: false
+
+    - name: "MDG_FND 749: SP 0007"
+      archive: K-74907INMDGFND.SAR
+      url: https://softwaredownloads.sap.com/file/0010000014245562017
+      download: false
+
+    - name: "MDG_FND 749: SP 0008"
+      archive: K-74908INMDGFND.SAR
+      url: https://softwaredownloads.sap.com/file/0010000019045312017
+      download: false
+
+    - name: "MDG_FND 749: SP 0009"
+      archive: K-74909INMDGFND.SAR
+      url: https://softwaredownloads.sap.com/file/0010000019381872017
+      download: false
+
+    - name: "MDG_FND 749: SP 0010"
+      archive: K-74910INMDGFND.SAR
+      url: https://softwaredownloads.sap.com/file/0010000020173252017
+      download: false
+
+    - name: "MDG_FND 749: SP 0011"
+      archive: K-74911INMDGFND.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000271342018
+      download: false
+
+    - name: "MDG_FND 749: SP 0012"
+      archive: K-74912INMDGFND.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001699272018
+      download: false
+
+    - name: "MDG_FND 749: SP 0013"
+      archive: K-74913INMDGFND.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000266332019
+      download: false
+
+    - name: "MDG_FND 749: SP 0014"
+      archive: K-74914INMDGFND.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001503252019
+      download: false
+
+    - name: "MDG_FND 749: SP 0015"
+      archive: K-74915INMDGFND.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000163752020
+      download: false
+
+    - name: "MDG_FND 749: SP 0016"
+      archive: K-74916INMDGFND.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001339082020
+      download: false
+
+    - name: "MDG_FND 749: SP 0017"
+      archive: K-74917INMDGFND.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000148052021
+      download: false
+
+    - name: "MDG_FND 749: SP 0018"
+      archive: K-74918INMDGFND.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001141952021
+      download: false
+
+    - name: "SAP_AP 750: SP 0001"
+      archive: K-75001INSAPAP.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000030012016
+      download: false
+
+    - name: "SAP_ABA 750: SP 0002"
+      archive: K-75002INSAPABA.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000066952016
+      download: false
+
+    - name: "SAP_AP 750: SP 0002"
+      archive: K-75002INSAPAP.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000555122016
+      download: false
+
+    - name: "SAP_BASIS 750: SP 0002"
+      archive: K-75002INSAPBASIS.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000062292015
+      download: false
+
+    - name: "SAP_BW 750: SP 0002"
+      archive: K-75002INSAPBW.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000066962016
+      download: false
+
+    - name: "SAP_GWFND 750: SP 0002"
+      archive: K-75002INSAPGWFND.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000066972016
+      download: false
+
+    - name: "SAP_ABA 750: SP 0003"
+      archive: K-75003INSAPABA.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000066982016
+      download: false
+
+    - name: "SAP_AP 750: SP 0003"
+      archive: K-75003INSAPAP.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000864472016
+      download: false
+
+    - name: "SAP_BASIS 750: SP 0003"
+      archive: K-75003INSAPBASIS.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000066992016
+      download: false
+
+    - name: "SAP_BW 750: SP 0003"
+      archive: K-75003INSAPBW.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000067002016
+      download: false
+
+    - name: "SAP_GWFND 750: SP 0003"
+      archive: K-75003INSAPGWFND.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000067012016
+      download: false
+
+    - name: "SAP_ABA 750: SP 0004"
+      archive: K-75004INSAPABA.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000065922016
+      download: false
+
+    - name: "SAP_AP 750: SP 0004"
+      archive: K-75004INSAPAP.SAR
+      url: https://softwaredownloads.sap.com/file/0010000014292052017
+      download: false
+
+    - name: "SAP_BASIS 750: SP 0004"
+      archive: K-75004INSAPBASIS.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000065932016
+      download: false
+
+    - name: "SAP_BW 750: SP 0004"
+      archive: K-75004INSAPBW.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000065942016
+      download: false
+
+    - name: "SAP_GWFND 750: SP 0004"
+      archive: K-75004INSAPGWFND.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000065952016
+      download: false
+
+    - name: "SAP_ABA 750: SP 0005"
+      archive: K-75005INSAPABA.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000508142016
+      download: false
+
+    - name: "SAP_AP 750: SP 0005"
+      archive: K-75005INSAPAP.SAR
+      url: https://softwaredownloads.sap.com/file/0010000018849032017
+      download: false
+
+    - name: "SAP_BASIS 750: SP 0005"
+      archive: K-75005INSAPBASIS.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000508152016
+      download: false
+
+    - name: "SAP_BW 750: SP 0005"
+      archive: K-75005INSAPBW.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000508182016
+      download: false
+
+    - name: "SAP_GWFND 750: SP 0005"
+      archive: K-75005INSAPGWFND.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000508162016
+      download: false
+
+    - name: "SAP_ABA 750: SP 0006"
+      archive: K-75006INSAPABA.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000869062016
+      download: false
+
+    - name: "SAP_AP 750: SP 0006"
+      archive: K-75006INSAPAP.SAR
+      url: https://softwaredownloads.sap.com/file/0010000019453592017
+      download: false
+
+    - name: "SAP_BASIS 750: SP 0006"
+      archive: K-75006INSAPBASIS.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000869072016
+      download: false
+
+    - name: "SAP_BW 750: SP 0006"
+      archive: K-75006INSAPBW.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000869102016
+      download: false
+
+    - name: "SAP_GWFND 750: SP 0006"
+      archive: K-75006INSAPGWFND.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000869082016
+      download: false
+
+    - name: "SAP_ABA 750: SP 0007"
+      archive: K-75007INSAPABA.SAR
+      url: https://softwaredownloads.sap.com/file/0010000004963902017
+      download: false
+
+    - name: "SAP_AP 750: SP 0007"
+      archive: K-75007INSAPAP.SAR
+      url: https://softwaredownloads.sap.com/file/0010000020119982017
+      download: false
+
+    - name: "SAP_BASIS 750: SP 0007"
+      archive: K-75007INSAPBASIS.SAR
+      url: https://softwaredownloads.sap.com/file/0010000004963522017
+      download: false
+
+    - name: "SAP_BW 750: SP 0007"
+      archive: K-75007INSAPBW.SAR
+      url: https://softwaredownloads.sap.com/file/0010000004963602017
+      download: false
+
+    - name: "SAP_GWFND 750: SP 0007"
+      archive: K-75007INSAPGWFND.SAR
+      url: https://softwaredownloads.sap.com/file/0010000004966192017
+      download: false
+
+    - name: "SAP_ABA 750: SP 0008"
+      archive: K-75008INSAPABA.SAR
+      url: https://softwaredownloads.sap.com/file/0010000018731672017
+      download: false
+
+    - name: "SAP_AP 750: SP 0008"
+      archive: K-75008INSAPAP.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000228672018
+      download: false
+
+    - name: "SAP_BASIS 750: SP 0008"
+      archive: K-75008INSAPBASIS.SAR
+      url: https://softwaredownloads.sap.com/file/0010000018731682017
+      download: false
+
+    - name: "SAP_BW 750: SP 0008"
+      archive: K-75008INSAPBW.SAR
+      url: https://softwaredownloads.sap.com/file/0010000018731712017
+      download: false
+
+    - name: "SAP_GWFND 750: SP 0008"
+      archive: K-75008INSAPGWFND.SAR
+      url: https://softwaredownloads.sap.com/file/0010000018731692017
+      download: false
+
+    - name: "SAP_ABA 750: SP 0009"
+      archive: K-75009INSAPABA.SAR
+      url: https://softwaredownloads.sap.com/file/0010000019379412017
+      download: false
+
+    - name: "SAP_AP 750: SP 0009"
+      archive: K-75009INSAPAP.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001612682018
+      download: false
+
+    - name: "SAP_BASIS 750: SP 0009"
+      archive: K-75009INSAPBASIS.SAR
+      url: https://softwaredownloads.sap.com/file/0010000019379502017
+      download: false
+
+    - name: "SAP_BW 750: SP 0009"
+      archive: K-75009INSAPBW.SAR
+      url: https://softwaredownloads.sap.com/file/0010000019379582017
+      download: false
+
+    - name: "SAP_GWFND 750: SP 0009"
+      archive: K-75009INSAPGWFND.SAR
+      url: https://softwaredownloads.sap.com/file/0010000019379602017
+      download: false
+
+    - name: "SAP_ABA 750: SP 0010"
+      archive: K-75010INSAPABA.SAR
+      url: https://softwaredownloads.sap.com/file/0010000019960222017
+      download: false
+
+    - name: "SAP_AP 750: SP 0010"
+      archive: K-75010INSAPAP.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000223652019
+      download: false
+
+    - name: "SAP_BASIS 750: SP 0010"
+      archive: K-75010INSAPBASIS.SAR
+      url: https://softwaredownloads.sap.com/file/0010000019960242017
+      download: false
+
+    - name: "SAP_BW 750: SP 0010"
+      archive: K-75010INSAPBW.SAR
+      url: https://softwaredownloads.sap.com/file/0010000019960282017
+      download: false
+
+    - name: "SAP_GWFND 750: SP 0010"
+      archive: K-75010INSAPGWFND.SAR
+      url: https://softwaredownloads.sap.com/file/0010000019960292017
+      download: false
+
+    - name: "SAP_ABA 750: SP 0011"
+      archive: K-75011INSAPABA.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000174662018
+      download: false
+
+    - name: "SAP_AP 750: SP 0011"
+      archive: K-75011INSAPAP.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001463772019
+      download: false
+
+    - name: "SAP_BASIS 750: SP 0011"
+      archive: K-75011INSAPBASIS.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000174692018
+      download: false
+
+    - name: "SAP_BW 750: SP 0011"
+      archive: K-75011INSAPBW.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000174712018
+      download: false
+
+    - name: "SAP_GWFND 750: SP 0011"
+      archive: K-75011INSAPGWFND.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000174722018
+      download: false
+
+    - name: "SAP_ABA 750: SP 0012"
+      archive: K-75012INSAPABA.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000940002018
+      download: false
+
+    - name: "SAP_AP 750: SP 0012"
+      archive: K-75012INSAPAP.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000123312020
+      download: false
+
+    - name: "SAP_BASIS 750: SP 0012"
+      archive: K-75012INSAPBASIS.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000940032018
+      download: false
+
+    - name: "SAP_BW 750: SP 0012"
+      archive: K-75012INSAPBW.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000940052018
+      download: false
+
+    - name: "SAP_GWFND 750: SP 0012"
+      archive: K-75012INSAPGWFND.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000940072018
+      download: false
+
+    - name: "SAP_ABA 750: SP 0013"
+      archive: K-75013INSAPABA.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001555712018
+      download: false
+
+    - name: "SAP_AP 750: SP 0013"
+      archive: K-75013INSAPAP.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001297492020
+      download: false
+
+    - name: "SAP_BASIS 750: SP 0013"
+      archive: K-75013INSAPBASIS.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001555662018
+      download: false
+
+    - name: "SAP_BW 750: SP 0013"
+      archive: K-75013INSAPBW.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001555672018
+      download: false
+
+    - name: "SAP_GWFND 750: SP 0013"
+      archive: K-75013INSAPGWFND.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001555682018
+      download: false
+
+    - name: "SAP_ABA 750: SP 0014"
+      archive: K-75014INSAPABA.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000002622019
+      download: false
+
+    - name: "SAP_AP 750: SP 0014"
+      archive: K-75014INSAPAP.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000219122021
+      download: false
+
+    - name: "SAP_BASIS 750: SP 0014"
+      archive: K-75014INSAPBASIS.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000134642019
+      download: false
+
+    - name: "SAP_BW 750: SP 0014"
+      archive: K-75014INSAPBW.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000134652019
+      download: false
+
+    - name: "SAP_GWFND 750: SP 0014"
+      archive: K-75014INSAPGWFND.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000134662019
+      download: false
+
+    - name: "SAP_ABA 750: SP 0015"
+      archive: K-75015INSAPABA.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000794332019
+      download: false
+
+    - name: "SAP_AP 750: SP 0015"
+      archive: K-75015INSAPAP.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001107222021
+      download: false
+
+    - name: "SAP_BASIS 750: SP 0015"
+      archive: K-75015INSAPBASIS.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000794362019
+      download: false
+
+    - name: "SAP_BW 750: SP 0015"
+      archive: K-75015INSAPBW.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000794372019
+      download: false
+
+    - name: "SAP_GWFND 750: SP 0015"
+      archive: K-75015INSAPGWFND.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000794382019
+      download: false
+
+    - name: "SAP_ABA 750: SP 0016"
+      archive: K-75016INSAPABA.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001417012019
+      download: false
+
+    - name: "SAP_BASIS 750: SP 0016"
+      archive: K-75016INSAPBASIS.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001417142019
+      download: false
+
+    - name: "SAP_BW 750: SP 0016"
+      archive: K-75016INSAPBW.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001428782019
+      download: false
+
+    - name: "SAP_GWFND 750: SP 0016"
+      archive: K-75016INSAPGWFND.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001417282019
+      download: false
+
+    - name: "SAP_ABA 750: SP 0017"
+      archive: K-75017INSAPABA.SAR
+      url: https://softwaredownloads.sap.com/file/0010000002325032019
+      download: false
+
+    - name: "SAP_BASIS 750: SP 0017"
+      archive: K-75017INSAPBASIS.SAR
+      url: https://softwaredownloads.sap.com/file/0010000002325042019
+      download: false
+
+    - name: "SAP_BW 750: SP 0017"
+      archive: K-75017INSAPBW.SAR
+      url: https://softwaredownloads.sap.com/file/0010000002325072019
+      download: false
+
+    - name: "SAP_GWFND 750: SP 0017"
+      archive: K-75017INSAPGWFND.SAR
+      url: https://softwaredownloads.sap.com/file/0010000002325082019
+      download: false
+
+    - name: "SAP_ABA 750: SP 0018"
+      archive: K-75018INSAPABA.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000673222020
+      download: false
+
+    - name: "SAP_BASIS 750: SP 0018"
+      archive: K-75018INSAPBASIS.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000673242020
+      download: false
+
+    - name: "SAP_BW 750: SP 0018"
+      archive: K-75018INSAPBW.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000673272020
+      download: false
+
+    - name: "SAP_GWFND 750: SP 0018"
+      archive: K-75018INSAPGWFND.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000673282020
+      download: false
+
+    - name: "SAP_ABA 750: SP 0019"
+      archive: K-75019INSAPABA.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001250502020
+      download: false
+
+    - name: "SAP_BASIS 750: SP 0019"
+      archive: K-75019INSAPBASIS.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001250512020
+      download: false
+
+    - name: "SAP_BW 750: SP 0019"
+      archive: K-75019INSAPBW.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001250522020
+      download: false
+
+    - name: "SAP_GWFND 750: SP 0019"
+      archive: K-75019INSAPGWFND.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001250532020
+      download: false
+
+    - name: "SAP_ABA 750: SP 0020"
+      archive: K-75020INSAPABA.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000074672021
+      download: false
+
+    - name: "SAP_BASIS 750: SP 0020"
+      archive: K-75020INSAPBASIS.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000074682021
+      download: false
+
+    - name: "SAP_BW 750: SP 0020"
+      archive: K-75020INSAPBW.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000074692021
+      download: false
+
+    - name: "SAP_GWFND 750: SP 0020"
+      archive: K-75020INSAPGWFND.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000074702021
+      download: false
+
+    - name: "SAP_ABA 750: SP 0021"
+      archive: K-75021INSAPABA.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000618092021
+      download: false
+
+    - name: "SAP_BASIS 750: SP 0021"
+      archive: K-75021INSAPBASIS.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000618132021
+      download: false
+
+    - name: "SAP_BW 750: SP 0021"
+      archive: K-75021INSAPBW.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000618142021
+      download: false
+
+    - name: "SAP_GWFND 750: SP 0021"
+      archive: K-75021INSAPGWFND.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000618152021
+      download: false
+
+    - name: "SAP_ABA 750: SP 0022"
+      archive: K-75022INSAPABA.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001100722021
+      download: false
+
+    - name: "SAP_BASIS 750: SP 0022"
+      archive: K-75022INSAPBASIS.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001198852021
+      download: false
+
+    - name: "SAP_BW 750: SP 0022"
+      archive: K-75022INSAPBW.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001100762021
+      download: false
+
+    - name: "SAP_GWFND 750: SP 0022"
+      archive: K-75022INSAPGWFND.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001100772021
+      download: false
+
+    - name: "SAP_UI 754: SP 0001"
+      archive: K-75401INSAPUI.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001661402019
+      download: false
+
+    - name: "SAP_UI 754: SP 0002"
+      archive: K-75402INSAPUI.SAR
+      url: https://softwaredownloads.sap.com/file/0010000002197612019
+      download: false
+
+    - name: "SAP_UI 754: SP 0003"
+      archive: K-75403INSAPUI.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000380882020
+      download: false
+
+    - name: "SAP_UI 754: SP 0004"
+      archive: K-75404INSAPUI.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000876572020
+      download: false
+
+    - name: "SAP_UI 754: SP 0005"
+      archive: K-75405INSAPUI.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001523772020
+      download: false
+
+    - name: "SAP_UI 754: SP 0006"
+      archive: K-75406INSAPUI.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000325802021
+      download: false
+
+    - name: "SAP_UI 754: SP 0007"
+      archive: K-75407INSAPUI.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000771642021
+      download: false
+
+    - name: "SAP_UI 754: SP 0008"
+      archive: K-75408INSAPUI.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001264832021
+      download: false
+
+    - name: "SAP_UI 754 Update: Meta-Commandfile"
+      archive: K-754BHINSAPUI.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000183702019
+      download: false
+
+    - name: "SPAM/SAINT Update - Version 750/0079"
+      archive: KD75079.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001440202021
+      download: false
+
+    - name: "SAP_HR 608: SP 0022"
+      archive: KE60822.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000060052015
+      download: false
+
+    - name: "SAP_HR 608: SP 0023"
+      archive: KE60823.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000060062015
+      download: false
+
+    - name: "SAP_HR 608: SP 0024"
+      archive: KE60824.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000064042016
+      download: false
+
+    - name: "SAP_HR 608: SP 0025"
+      archive: KE60825.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000064052016
+      download: false
+
+    - name: "SAP_HR 608: SP 0026"
+      archive: KE60826.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000064062016
+      download: false
+
+    - name: "SAP_HR 608: SP 0027"
+      archive: KE60827.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000064072016
+      download: false
+
+    - name: "SAP_HR 608: SP 0028"
+      archive: KE60828.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000064082016
+      download: false
+
+    - name: "SAP_HR 608: SP 0029"
+      archive: KE60829.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000064092016
+      download: false
+
+    - name: "SAP_HR 608: SP 0030"
+      archive: KE60830.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000084182016
+      download: false
+
+    - name: "SAP_HR 608: SP 0031"
+      archive: KE60831.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000425612016
+      download: false
+
+    - name: "SAP_HR 608: SP 0032"
+      archive: KE60832.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000534132016
+      download: false
+
+    - name: "SAP_HR 608: SP 0033"
+      archive: KE60833.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000669232016
+      download: false
+
+    - name: "SAP_HR 608: SP 0034"
+      archive: KE60834.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000825792016
+      download: false
+
+    - name: "SAP_HR 608: SP 0035"
+      archive: KE60835.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000932512016
+      download: false
+
+    - name: "SAP_HR 608: SP 0036"
+      archive: KE60836.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000984092016
+      download: false
+
+    - name: "SAP_HR 608: SP 0037"
+      archive: KE60837.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000035742017
+      download: false
+
+    - name: "SAP_HR 608: SP 0038"
+      archive: KE60838.SAR
+      url: https://softwaredownloads.sap.com/file/0010000003374322017
+      download: false
+
+    - name: "SAP_HR 608: SP 0039"
+      archive: KE60839.SAR
+      url: https://softwaredownloads.sap.com/file/0010000005331092017
+      download: false
+
+    - name: "SAP_HR 608: SP 0040"
+      archive: KE60840.SAR
+      url: https://softwaredownloads.sap.com/file/0010000011896382017
+      download: false
+
+    - name: "SAP_HR 608: SP 0041"
+      archive: KE60841.SAR
+      url: https://softwaredownloads.sap.com/file/0010000015105112017
+      download: false
+
+    - name: "SAP_HR 608: SP 0042"
+      archive: KE60842.SAR
+      url: https://softwaredownloads.sap.com/file/0010000018909152017
+      download: false
+
+    - name: "SAP_HR 608: SP 0043"
+      archive: KE60843.SAR
+      url: https://softwaredownloads.sap.com/file/0010000019165472017
+      download: false
+
+    - name: "SAP_HR 608: SP 0044"
+      archive: KE60844.SAR
+      url: https://softwaredownloads.sap.com/file/0010000019372762017
+      download: false
+
+    - name: "SAP_HR 608: SP 0045"
+      archive: KE60845.SAR
+      url: https://softwaredownloads.sap.com/file/0010000019645632017
+      download: false
+
+    - name: "SAP_HR 608: SP 0046"
+      archive: KE60846.SAR
+      url: https://softwaredownloads.sap.com/file/0010000019853182017
+      download: false
+
+    - name: "SAP_HR 608: SP 0047"
+      archive: KE60847.SAR
+      url: https://softwaredownloads.sap.com/file/0010000020128412017
+      download: false
+
+    - name: "SAP_HR 608: SP 0048"
+      archive: KE60848.SAR
+      url: https://softwaredownloads.sap.com/file/0010000020352992017
+      download: false
+
+    - name: "SAP_HR 608: SP 0049"
+      archive: KE60849.SAR
+      url: https://softwaredownloads.sap.com/file/0010000020453562017
+      download: false
+
+    - name: "SAP_HR 608: SP 0050"
+      archive: KE60850.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000139062018
+      download: false
+
+    - name: "SAP_HR 608: SP 0051"
+      archive: KE60851.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000287812018
+      download: false
+
+    - name: "SAP_HR 608: SP 0052"
+      archive: KE60852.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000484102018
+      download: false
+
+    - name: "SAP_HR 608: SP 0053"
+      archive: KE60853.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000685472018
+      download: false
+
+    - name: "SAP_HR 608: SP 0054"
+      archive: KE60854.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000891112018
+      download: false
+
+    - name: "SAP_HR 608: SP 0055"
+      archive: KE60855.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001132962018
+      download: false
+
+    - name: "SAP_HR 608: SP 0056"
+      archive: KE60856.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001336812018
+      download: false
+
+    - name: "SAP_HR 608: SP 0057"
+      archive: KE60857.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001550262018
+      download: false
+
+    - name: "SAP_HR 608: SP 0058"
+      archive: KE60858.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001782192018
+      download: false
+
+    - name: "SAP_HR 608: SP 0059"
+      archive: KE60859.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001976222018
+      download: false
+
+    - name: "SAP_HR 608: SP 0060"
+      archive: KE60860.SAR
+      url: https://softwaredownloads.sap.com/file/0010000002091612018
+      download: false
+
+    - name: "SAP_HR 608: SP 0061"
+      archive: KE60861.SAR
+      url: https://softwaredownloads.sap.com/file/0010000002336502018
+      download: false
+
+    - name: "SAP_HR 608: SP 0062"
+      archive: KE60862.SAR
+      url: https://softwaredownloads.sap.com/file/0010000002426052018
+      download: false
+
+    - name: "SAP_HR 608: SP 0063"
+      archive: KE60863.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000116222019
+      download: false
+
+    - name: "SAP_HR 608: SP 0064"
+      archive: KE60864.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000246962019
+      download: false
+
+    - name: "SAP_HR 608: SP 0065"
+      archive: KE60865.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000438002019
+      download: false
+
+    - name: "SAP_HR 608: SP 0066"
+      archive: KE60866.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000662122019
+      download: false
+
+    - name: "SAP_HR 608: SP 0067"
+      archive: KE60867.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000817612019
+      download: false
+
+    - name: "SAP_HR 608: SP 0068"
+      archive: KE60868.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001048162019
+      download: false
+
+    - name: "SAP_HR 608: SP 0069"
+      archive: KE60869.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001234472019
+      download: false
+
+    - name: "SAP_HR 608: SP 0070"
+      archive: KE60870.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001408342019
+      download: false
+
+    - name: "SAP_HR 608: SP 0071"
+      archive: KE60871.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001610232019
+      download: false
+
+    - name: "SAP_HR 608: SP 0072"
+      archive: KE60872.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001804682019
+      download: false
+
+    - name: "SAP_HR 608: SP 0073"
+      archive: KE60873.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001982832019
+      download: false
+
+    - name: "SAP_HR 608: SP 0074"
+      archive: KE60874.SAR
+      url: https://softwaredownloads.sap.com/file/0010000002175002019
+      download: false
+
+    - name: "SAP_HR 608: SP 0075"
+      archive: KE60875.SAR
+      url: https://softwaredownloads.sap.com/file/0010000002263022019
+      download: false
+
+    - name: "SAP_HR 608: SP 0076"
+      archive: KE60876.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000079812020
+      download: false
+
+    - name: "SAP_HR 608: SP 0077"
+      archive: KE60877.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000194122020
+      download: false
+
+    - name: "SAP_HR 608: SP 0078"
+      archive: KE60878.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000372662020
+      download: false
+
+    - name: "SAP_HR 608: SP 0079"
+      archive: KE60879.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000565022020
+      download: false
+
+    - name: "SAP_HR 608: SP 0080"
+      archive: KE60880.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000801662020
+      download: false
+
+    - name: "SAP_HR 608: SP 0081"
+      archive: KE60881.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000956782020
+      download: false
+
+    - name: "SAP_HR 608: SP 0082"
+      archive: KE60882.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001129562020
+      download: false
+
+    - name: "SAP_HR 608: SP 0083"
+      archive: KE60883.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001324772020
+      download: false
+
+    - name: "SAP_HR 608: SP 0084"
+      archive: KE60884.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001507762020
+      download: false
+
+    - name: "SAP_HR 608: SP 0085"
+      archive: KE60885.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001676522020
+      download: false
+
+    - name: "SAP_HR 608: SP 0086"
+      archive: KE60886.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001888812020
+      download: false
+
+    - name: "SAP_HR 608: SP 0087"
+      archive: KE60887.SAR
+      url: https://softwaredownloads.sap.com/file/0010000002067072020
+      download: false
+
+    - name: "SAP_HR 608: SP 0088"
+      archive: KE60888.SAR
+      url: https://softwaredownloads.sap.com/file/0010000002135522020
+      download: false
+
+    - name: "SAP_HR 608: SP 0089"
+      archive: KE60889.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000065492021
+      download: false
+
+    - name: "SAP_HR 608: SP 0090"
+      archive: KE60890.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000184572021
+      download: false
+
+    - name: "SAP_HR 608: SP 0091"
+      archive: KE60891.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000340862021
+      download: false
+
+    - name: "SAP_HR 608: SP 0092"
+      archive: KE60892.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000545482021
+      download: false
+
+    - name: "SAP_HR 608: SP 0093"
+      archive: KE60893.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000679612021
+      download: false
+
+    - name: "SAP_HR 608: SP 0094"
+      archive: KE60894.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000817222021
+      download: false
+
+    - name: "SAP_HR 608: SP 0095"
+      archive: KE60895.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000999632021
+      download: false
+
+    - name: "SAP_HR 608: SP 0096"
+      archive: KE60896.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001143002021
+      download: false
+
+    - name: "SAP_HR 608: SP 0097"
+      archive: KE60897.SAR
+      url: https://softwaredownloads.sap.com/file/0010000001272002021
+      download: false
+
+    - name: "Attribute Change Package 13 for LSOFE 617"
+      archive: LSOFE617.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000048522015
+      download: false
+
+    - name: "Attribute Change Package 05 for MDG_APPL 619"
+      archive: MDG_APPL619.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000048532015
+      download: false
+
+    - name: "Attribute Change Package 24 for MDG_FND 749"
+      archive: MDG_FND749.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000048562015
+      download: false
+
+    - name: "Attribute Change Package 07 for MDG_MDC 100"
+      archive: MDG_MDC100.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000048582015
+      download: false
+
+    - name: "Attribute Change Package 05 for MDG_UX 619"
+      archive: MDG_UX619.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000048592015
+      download: false
+
+    - name: "Attribute Change Package 01 for PLMWUI 748"
+      archive: PLMWUI748.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000066192016
+      download: false
+
+    - name: "Attribute Change Package 31 for SAP_AP 750"
+      archive: SAP_AP750.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000067372016
+      download: false
+
+    - name: "Attribute Change Package 14 for SAP_APPL 618"
+      archive: SAP_APPL618.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000835622016
+      download: false
+
+    - name: "Attribute Change Package 13 for SAP_BS_FND 748"
+      archive: SAP_BS_FND748.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000062592015
+      download: false
+
+    - name: "Attribute Change Package 07 for SAP_BW 750"
+      archive: SAP_BW750.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000067382016
+      download: false
+
+    - name: "Attribute Change Package 03 for SAP_FIN 618"
+      archive: SAP_FIN618.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000067392016
+      download: false
+
+    - name: "Attribute Change Package 03 for SAP_GWFND 750"
+      archive: SAP_GWFND750.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000067402016
+      download: false
+
+    - name: "Attribute Change Package 35 for SAP_HR 608"
+      archive: SAP_HR608.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000249512014
+      download: false
+
+    - name: "Attribute Change Package 06 for SAP_UI 754"
+      archive: SAP_UI754.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000031692020
+      download: false
+
+    - name: "Attribute Change Package 15 for SEM-BW 748"
+      archive: SEM-BW748.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000067452016
+      download: false
+
+    - name: "Attribute Change Package 45 for ST-PI 740"
+      archive: ST-PI740.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000297212015
+      download: false
+
+    - name: "Attribute Change Package 14 for WEBCUIF 748"
+      archive: WEBCUIF748.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000827482016
+      download: false
+
+  templates:
+    - name: "EHP8_FOR_SAP_ERP_6_0 ini file"
+      file: "EHP8_FOR_SAP_ERP_6_0.inifile.params"
+      override_target_location: "{{ target_media_location }}/config"
+
+  stackfiles:
+    - name: "Download Basket JSON Manifest"
+      file: "downloadbasket.json"
+      override_target_location: "{{ target_media_location }}/config"
+
+    - name: "Download Basket Spreadsheet"
+      file: "MP_Excel_1001333487_20211217_SWC.xls"
+      override_target_location: "{{ target_media_location }}/config"
+
+    - name: "Download Basket Plan"
+      file: "MP_Plan_1001333487_20211217_.pdf"
+      override_target_location: "{{ target_media_location }}/config"
+
+    - name: "Download Basket Stack text"
+      file: "MP_Stack_1001333487_20211217_.txt"
+      override_target_location: "{{ target_media_location }}/config"
+
+    - name: "Download Basket Stack text"
+      file: "MP_Stack_1001333487_20211217_.txt"
+      override_target_location: "{{ target_media_location }}/config"
+
+    - name: "Download Basket Stack XML"
+      file: "MP_Stack_1001333487_20211217_.xml"
+      override_target_location: "{{ target_media_location }}/config"
+
+    - name: "Download Basket permalinks"
+      file: "myDownloadBasketFiles.txt"
+      override_target_location: "{{ target_media_location }}/config"
+
+...

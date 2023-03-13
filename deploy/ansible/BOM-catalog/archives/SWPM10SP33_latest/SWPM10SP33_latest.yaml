@@ -1,0 +1,16 @@
+---
+name:    'SWPM10SP33'
+target:  'SWPM10SP33'
+version: 6
+
+materials:
+
+  media:
+   # SWPM
+    - name:         "SWPM 1.0 SP33 for NW higher than 7.0x ; OS: Linux on x86_64 64bit"
+      archive:      SWPM10SP33_6-20009701.SAR
+      checksum:     7ac775ae8263ffdfd3867f07562002fe13bf4bda1ee93ce0aa9c984981662b0f
+      extract:      true
+      extractDir:   SWPM
+      creates:      SIGNATURE.SMF
+      url:          https://softwaredownloads.sap.com/file/0020000000174682022
