@@ -241,6 +241,11 @@ variable "dns_label" {
   default     = ""
 }
 
+variable "dns_server_list" {
+  description = "DNS server list"
+  default     = []
+}
+
 variable "create_vaults_and_storage_dns_a_records" {
   description = "Boolean value indicating if dns a records should be created for the vaults and storage accounts"
   type        = bool
