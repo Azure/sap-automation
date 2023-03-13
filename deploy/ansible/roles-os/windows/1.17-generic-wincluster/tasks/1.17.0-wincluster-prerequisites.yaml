@@ -34,7 +34,6 @@
     - PSDesiredStateConfiguration
     - ServerManager
     - StorageDsc
-    - FailoverCluster
 
 - name:                                "WinCluster-PreReq: Add the windows cluster features"
   ansible.windows.win_feature:
