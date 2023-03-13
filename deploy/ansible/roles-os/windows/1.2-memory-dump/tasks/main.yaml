@@ -85,7 +85,7 @@
 # -------------------------------------+---------------------------------------8
 # Start Remote Registry Service
 # -------------------------------------+---------------------------------------8
-- name:                               "Start Remote Registery Service"
+- name:                               "Start Remote Registry Service"
   ansible.windows.win_service:
     name:                             RemoteRegistry
     state:                            started

@@ -48,7 +48,7 @@
     - RSAT-Clustering-CmdInterface
   register: cluster_features
 
-- name:                                "WinCluster-PreReq: Ensure Registery Services is Running"
+- name:                                "WinCluster-PreReq: Ensure Registry Services is Running"
   ansible.windows.win_dsc:
     resource_name:                    Service
     Name:                             "{{ item }}"
