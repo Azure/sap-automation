@@ -37,6 +37,7 @@
     - domain | trim | length > 1
 
 - name:                                "WinCluster-Create: Get witness account details"
+  delegate_to:                         localhost
   ansible.builtin.import_tasks:
     file:                              "roles-misc/0.2-kv-secrets/tasks/wincluster-witness.yaml"
   when:
