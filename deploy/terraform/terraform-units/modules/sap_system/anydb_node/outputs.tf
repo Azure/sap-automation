@@ -41,8 +41,8 @@ output "db_lb_ip" {
 }
 
 output "db_clst_lb_ip" {
-  value = local.enable_db_lb_deployment && (var.use_loadbalancers_for_standalone_deployments && local.winHA || local.anydb_ha && local.winHA) ? (
-    try(azurerm_lb.anydb[0].frontend_ip_configuration[1].private_ip_address, "")) : (
+  value = (local.enable_db_lb_deployment && (var.use_loadbalancers_for_standalone_deployments && local.winHA || local.anydb_ha) && local.winHA) ? (
+    try(azurerm_lb.anydb[0].frontend_ip_configuration.private_ip_addresses[1], "")) : (
     ""
   )
 
