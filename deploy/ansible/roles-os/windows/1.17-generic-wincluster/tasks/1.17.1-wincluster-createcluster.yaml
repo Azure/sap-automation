@@ -35,7 +35,7 @@
   tags:
     - 0.1-win-passwords
 
-- name:                                "WinCluster-Create: Print the domain variables from {{ ansible_domain }}"
+- name:                                "WinCluster-Create: Print the variables from {{ domain_name }}"
   ansible.builtin.debug:
     msg:
       - "ClusterName is {{ cluster_name }}"

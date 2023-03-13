@@ -381,10 +381,10 @@ module "output_files" {
   webdispatcher_server_secondary_ips = module.app_tier.webdispatcher_server_secondary_ips
   nics_web_admin                     = module.app_tier.nics_web_admin
 
-  scs_ha    = module.app_tier.scs_ha
-  scs_lb_ip = module.app_tier.scs_lb_ip
-  ers_lb_ip = module.app_tier.ers_lb_ip
-
+  scs_ha                = module.app_tier.scs_ha
+  scs_lb_ip             = module.app_tier.scs_lb_ip
+  ers_lb_ip             = module.app_tier.ers_lb_ip
+  scs_clst_lb_ip        = module.app_tier.cluster_lb_ip
   use_local_credentials = module.common_infrastructure.use_local_credentials
 
   sid_keyvault_user_id = module.common_infrastructure.sid_keyvault_user_id

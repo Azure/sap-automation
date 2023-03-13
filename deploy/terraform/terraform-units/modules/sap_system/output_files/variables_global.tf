@@ -271,5 +271,9 @@ variable "configuration_settings" {
 }
 
 variable "db_clst_lb_ip" {
-  description = "This is a Cluster IP address for Windows load balancer"
+  description = "This is a Cluster IP address for Windows load balancer for the database"
+}
+
+variable "scs_clst_lb_ip" {
+  description = "This is a Cluster IP address for Windows load balancer for central services"
 }
