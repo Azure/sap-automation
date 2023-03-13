@@ -13,9 +13,17 @@
     msg:
       - "SID:        {{ sid_to_be_deployed.sid | upper }}"
 
-- name:                                "SCS Install: Set the SCS Server name"
+- name:                                Get the SCS Server name list
   ansible.builtin.set_fact:
-    scs_server:                        "{{ virtual_host }}"
+    scs_server_temp: "{{ scs_server_temp | default([]) + [item] }}"
+
+  with_items:
+    - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') }}"
+    - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
+
+- name:                                "Set the SCS Server name"
+  ansible.builtin.set_fact:
+    scs_server: "{{ hostvars[scs_server_temp | first]['virtual_host'] }}"
 
 - name:                                "SCS Install: Set BOM facts"
   ansible.builtin.set_fact:
