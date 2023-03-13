@@ -454,10 +454,10 @@ locals {
     },
     {
       name = format("%s%s%s%s",
-        var.naming.resource_prefixes.scs_clst_feip,
+        var.naming.resource_prefixes.db_clst_feip,
         local.prefix,
         var.naming.separator,
-        local.resource_suffixes.scs_clst_feip
+        local.resource_suffixes.db_clst_feip
       )
       subnet_id = var.db_subnet.id
       private_ip_address = length(try(var.database.loadbalancer.frontend_ips[1], "")) > 0 ? (
