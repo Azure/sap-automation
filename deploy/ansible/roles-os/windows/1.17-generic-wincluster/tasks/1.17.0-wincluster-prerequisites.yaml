@@ -82,6 +82,6 @@
 - name:                                "WinCluster-PreReq: Reboot '{{ ansible_hostname }}' if needed"
   ansible.windows.win_reboot:
     post_reboot_delay: 60
-  when: (cluster_features | json_query('results[*].reboot_required')) | any
+  when: (cluster_features | selectattr('reboot_required', 'equalto', 'true')) | list | count > 0
 
 ...
