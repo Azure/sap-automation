@@ -74,6 +74,11 @@
     type:                              dword
     state:                             present
 
+- name:                                "Inspect cluster features"
+  ansible.builtin.debug:
+    msg:                               "{{ cluster_features }}"
+
+
 - name:                                "WinCluster-PreReq: Reboot '{{ ansible_hostname }}' if needed"
   ansible.windows.win_reboot:
     post_reboot_delay: 60
