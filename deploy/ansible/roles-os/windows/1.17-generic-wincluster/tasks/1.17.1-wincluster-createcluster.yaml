@@ -32,7 +32,7 @@
       - "ClusterIPAddress is {{ cluster_ip_address }}"
       - "DomainName is {{ domain_name }}"
       - "Domain Service Account is {{ domain_service_account }}"
-      - "Witness Storage Account Name is {{ hostvars.localhost.witness_storage_account_name }}"
+      - "Witness Storage Account Name is {{ witness_storage_account_name }}"
   when:
     - domain is defined
     - domain | type_debug != 'NoneType'
