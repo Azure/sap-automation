@@ -112,6 +112,25 @@
     post_reboot_delay:                 120
   when: vcredist2013_output.reboot_required or vcredist2017_output.reboot_required
 
+# Start: call cluster configuration only if cluster is enabled
+- name:                                "SCS Install: High availability tasks"
+  when:
+    - "'scs' in supported_tiers"
+    - scs_high_availability
+    - ansible_os_family | upper == 'WINDOWS'
+  block:
+    - name:                           "SCS Install: High availability tasks"
+      ansible.builtin.import_role:
+        name:                         roles-os/windows/1.17-generic-wincluster
+        tasks_from:                   main
+      register:                       cluster_output
+
+    - name:                           "SCS Install: High availability flag"
+      ansible.windows.win_file:
+        path:                          '{{ sap_deployment_automation }}\{{ sid_to_be_deployed.sid | upper }}\cluster_config_done.txt'
+        state:                         touch
+# End: call cluster configuration only if cluster is enabled
+
 - name:                                "SCS Install: Include 3.3.1-bom-utility role"
   ansible.builtin.include_role:
     name:                              roles-sap/windows/3.3.1-bom-utility

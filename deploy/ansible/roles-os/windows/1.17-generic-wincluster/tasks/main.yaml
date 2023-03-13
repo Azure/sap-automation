@@ -6,6 +6,9 @@
 ---
 
 - name:                                "WinCluster: Prepare for cluster configuration"
+  when:
+    - scs_high_availability
+    - ansible_os_family | upper == "WINDOWS"
   ansible.builtin.import_tasks:
     file:                              "1.17.0-wincluster-prerequisites.yaml"
     apply:
@@ -15,6 +18,9 @@
         -                              "win_cluster_prepare"
 
 - name:                                "WinCluster: Configure cluster"
+  when:
+    - scs_high_availability
+    - ansible_os_family | upper == "WINDOWS"
   ansible.builtin.import_tasks:
     file:                              "1.17.1-wincluster-createcluster.yaml"
     apply:
