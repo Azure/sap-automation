@@ -25,16 +25,6 @@
     - domain_name | trim | length > 1
     - domain is not defined
 
-- name:                            "OS configuration playbook: - Read password"
-  ansible.builtin.include_role:
-    name:                          roles-misc/0.1-passwords
-    tasks_from:                    windows.yaml
-    public:                        true
-  when:
-    - platform == "SQLSERVER"
-  tags:
-    - 0.1-win-passwords
-
 - name:                                "WinCluster-Create: Print the variables from {{ domain_name }}"
   ansible.builtin.debug:
     msg:
