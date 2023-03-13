@@ -58,14 +58,6 @@
   when:
     - ansible_hostname == primary_node
 
-- name:                                "WinCluster-Create: Add {{ ansible_hostname }} to the cluster"
-  ansible.windows.win_dsc:
-    resource_name:                      ClusterNode
-    Name:                               "{{ cluster_name }}"
-    NodeName:                           "{{ ansible_hostname }}"
-  when:
-    - ansible_hostname == primary_node
-
 - name:                                "WinCluster-Create: Tasks for secondary nodes"
   block:
     - name:                            "WinCluster-Create: Wait for cluster to be created"
@@ -75,11 +67,16 @@
         RetryIntervalSec:               10
         RetryCount:                     60
 
-    - name:                                "WinCluster-Create: Add {{ ansible_hostname }} to the cluster"
+    - name:                                "WinCluster-Create: Create windows cluster on the first node"
+      become:                              true
+      become_method:                       "runas"
+      become_user:                         '{{ sap_sid }}adm@{{ domain }}'
       ansible.windows.win_dsc:
-        resource_name:                      ClusterNode
-        Name:                               "{{ cluster_name }}"
-        NodeName:                           "{{ ansible_hostname }}"
+        resource_name:                     Cluster
+        StaticIPAddress:                   "{{ cluster_ip_address }}"
+        Name:                              "{{ cluster_name }}"
+        PsDscRunAsCredential_username:     "{{ domain_service_account }}@{{ domain_name }}"
+        PsDscRunAsCredential_password:     "{{ domain_service_password }}"
   when:
     - ansible_hostname == secondary_node
 
