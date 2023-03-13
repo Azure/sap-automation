@@ -25,7 +25,7 @@
     - domain_name | trim | length > 1
     - domain is not defined
 
-- name:                                "WinCluster-Create: Calculating the domain value from {{ ansible_domain }}"
+- name:                                "WinCluster-Create: Calculating the domain value from {{ domain_name }}"
   ansible.builtin.debug:
     msg:
       - "ClusterName is {{ cluster_name }}"
