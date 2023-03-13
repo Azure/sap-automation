@@ -64,7 +64,7 @@
   when:
     - platform | upper == "SQLSERVER"
     - scs_high_availability or db_high_availability
-    - not use_msi_for_clusters
+
 ...
 # /*---------------------------------------------------------------------------8
 # |                                   END                                     |
