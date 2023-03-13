@@ -562,7 +562,7 @@
           tags:
             - 5.6-scsers-pacemaker
 
-    - name:                        "Run the SCS Installation on Windows"
+    - name:                            "SCS HA Installation Playbook: - Run HA SCS Installation on Windows"
       become:                      false
       when: ansible_os_family == "Windows"
       block:
@@ -575,6 +575,11 @@
                 scs_instance_number:   "{{ sid_to_be_deployed.ascs_inst_no }}"
                 domain_user_password:  "{{ hostvars.localhost.winadm_password }}"
                 svc_password:          "{{ hostvars.localhost.svcadm_password }}"
+                primary_node:          "{{ ansible_play_hosts_all[0] }}"
+                secondary_node:        "{{ ansible_play_hosts_all[1] }}"
+                primary_node_ip_scs:   "{{ hostvars[ansible_play_hosts_all[0]]['ansible_eth0']['ipv4']['address'] }}"
+                secondary_node_ip_ers: "{{ hostvars[ansible_play_hosts_all[1]]['ansible_eth0']['ipv4']['address'] }}"
+
               loop:                    "{{ all_sids }}"
               loop_control:
                 loop_var:              sid_to_be_deployed
