@@ -199,7 +199,7 @@ namespace AutomationForm.Models
 
         public string management_dns_subscription_id { get; set; }
 
-        public bool? create_vaults_and_storage_dns_a_records { get; set; }
+        public bool? use_custom_dns_a_registration { get; set; }
 
 
         [KeyvaultIdValidator]
@@ -221,6 +221,8 @@ namespace AutomationForm.Models
 
         public string dns_resource_group_name { get; set; }
 
+        [IpAddressValidator]
+        public string[] dns_server_list { get; set; }
 
         public string NFS_provider { get; set; }
 

@@ -16,31 +16,22 @@ resource "azurerm_lb" "anydb" {
   resource_group_name = var.resource_group[0].name
   location            = var.resource_group[0].location
 
-  frontend_ip_configuration {
-    name = format("%s%s%s%s",
-      var.naming.resource_prefixes.db_alb_feip,
-      local.prefix,
-      var.naming.separator,
-      local.resource_suffixes.db_alb_feip
-    )
-    subnet_id = var.db_subnet.id
-    private_ip_address = length(try(var.database.loadbalancer.frontend_ips[0], "")) > 0 ? (
-      var.database.loadbalancer.frontend_ips[0]) : (
-      var.database.use_DHCP ? (
-        null) : (
-        cidrhost(
-          var.db_subnet.address_prefixes[0],
-          tonumber(count.index) + local.anydb_ip_offsets.anydb_lb
-      ))
-    )
-    private_ip_address_allocation = length(try(var.database.loadbalancer.frontend_ips[0], "")) > 0 ? "Static" : "Dynamic"
-    zones                         = ["1", "2", "3"]
+  dynamic "frontend_ip_configuration" {
+    iterator = pub
+    for_each = (var.database.high_availability && upper(local.anydb_ostype) == "WINDOWS") ? concat(local.std_ips, local.winha_ips) : local.std_ips
+    content {
+      name                          = pub.value.name
+      subnet_id                     = pub.value.subnet_id
+      private_ip_address            = pub.value.private_ip_address
+      private_ip_address_allocation = pub.value.private_ip_address_allocation
+      zones                         = ["1", "2", "3"]
+    }
   }
 }
 
 resource "azurerm_lb_backend_address_pool" "anydb" {
-  provider = azurerm.main
-  count    = local.enable_db_lb_deployment ? 1 : 0
+  provider        = azurerm.main
+  count = local.enable_db_lb_deployment ? 1 : 0
   name = format("%s%s%s%s",
     var.naming.resource_prefixes.db_alb_bepool,
     local.prefix,
@@ -80,17 +71,12 @@ resource "azurerm_lb_rule" "anydb" {
   protocol      = "All"
   frontend_port = 0
   backend_port  = 0
-  dynamic "frontend_ip_configuration" {
-    iterator = pub
-    for_each = local.fpips
-    content {
-      name                          = pub.value.name
-      subnet_id                     = pub.value.subnet_id
-      private_ip_address            = pub.value.private_ip_address
-      private_ip_address_allocation = pub.value.private_ip_address_allocation
-      zones                         = ["1", "2", "3"]
-    }
-  }
+  frontend_ip_configuration_name = format("%s%s%s%s",
+    var.naming.resource_prefixes.db_alb_feip,
+    local.prefix,
+    var.naming.separator,
+    local.resource_suffixes.db_alb_feip
+  )
   probe_id                 = azurerm_lb_probe.anydb[0].id
   backend_address_pool_ids = [azurerm_lb_backend_address_pool.anydb[0].id]
   enable_floating_ip       = true
@@ -109,7 +95,7 @@ resource "azurerm_network_interface_backend_address_pool_association" "anydb" {
 # AVAILABILITY SET ================================================================================================
 
 resource "azurerm_availability_set" "anydb" {
-  provider = azurerm.main
+  provider        = azurerm.main
   count = local.enable_deployment && local.use_avset && !local.availabilitysets_exist ? (
     max(length(local.zones), 1)) : (
     0
