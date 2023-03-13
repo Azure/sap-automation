@@ -18,7 +18,7 @@ resource "azurerm_lb" "anydb" {
 
   dynamic "frontend_ip_configuration" {
     iterator = pub
-    for_each = (var.database.high_availability && upper(local.anydb_ostype) == "WINDOWS") ? concat(local.std_ips, local.winha_ips) : local.std_ips
+    for_each = local.fpips
     content {
       name                          = pub.value.name
       subnet_id                     = pub.value.subnet_id
