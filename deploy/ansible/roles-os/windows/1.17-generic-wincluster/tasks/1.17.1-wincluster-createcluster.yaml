@@ -52,7 +52,7 @@
     PsDscRunAsCredential_username:     "{{ domain_service_account }}@{{ domain_name }}"
     PsDscRunAsCredential_password:     "{{ domain_service_password }}"
   when:
-    - ansible_hostname == primary_node
+    - ansible_hostname == primary_instance_name
 
 - name:                                "WinCluster-Create: Add {{ ansible_hostname }} to the cluster"
   ansible.windows.win_dsc:
@@ -60,7 +60,7 @@
     ClusterName:                        "{{ cluster_name }}"
     NodeName:                           "{{ ansible_hostname }}"
   when:
-    - ansible_hostname == primary_node
+    - ansible_hostname == primary_instance_name
 
 - name:                                "WinCluster-Create: Tasks for secondary nodes"
   block:
@@ -77,7 +77,7 @@
         ClusterName:                        "{{ cluster_name }}"
         NodeName:                           "{{ ansible_hostname }}"
   when:
-    - ansible_hostname == secondary_node
+    - ansible_hostname == secondary_instance_name
 
 - name:                                "WinCluster-Create: Create quorum resource"
   ansible.windows.win_dsc:
@@ -89,14 +89,14 @@
     PsDscRunAsCredential_username:     "{{ domain_service_account }}@{{ domain_name }}"
     PsDscRunAsCredential_password:     "{{ domain_service_password }}"
   when:
-    - ansible_hostname == primary_node
+    - ansible_hostname == primary_instance_name
 
 - name:                                "WinCluster-Create: Add shared disk resource to cluster (only execute on scs node)"
   when:
     - scs_high_availability
     - node_tier in ['scs']
     - cluster_exists.stdout == "True"
-    - ansible_hostname == primary_node
+    - ansible_hostname == primary_instance_name
   block:
     # We expect to see only one disk added, so get the first disk number.
     - name:                            "WinCluster-Create: Get shared disk resource"
