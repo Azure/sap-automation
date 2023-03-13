@@ -25,7 +25,17 @@
     - domain_name | trim | length > 1
     - domain is not defined
 
-- name:                                "WinCluster-Create: Calculating the domain value from {{ ansible_domain }}"
+- name:                            "OS configuration playbook: - Read password"
+  ansible.builtin.include_role:
+    name:                          roles-misc/0.1-passwords
+    tasks_from:                    windows.yaml
+    public:                        true
+  when:
+    - platform == "SQLSERVER"
+  tags:
+    - 0.1-win-passwords
+
+- name:                                "WinCluster-Create: Print the domain variables from {{ ansible_domain }}"
   ansible.builtin.debug:
     msg:
       - "ClusterName is {{ cluster_name }}"
