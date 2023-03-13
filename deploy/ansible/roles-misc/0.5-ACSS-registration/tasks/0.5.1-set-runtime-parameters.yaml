@@ -68,9 +68,10 @@
     acss_sid:                           "{{ sap_sid | upper }}"
     acss_instance_type:                 "{{ instance_type }}"
 
---sap-virtual-instance-name  "${acss_sid}"            \
---resource-group             "${acss_resource_group}" \
---location                   "${acss_location}"       \
---environment                "${acss_environment}"    \
---sap-product                "${acss_sap_product}"    \
---configuration              "${acss_configuration}"
+# --sap-virtual-instance-name  "${acss_sid}"            \
+# --resource-group             "${acss_resource_group}" \
+# --location                   "${acss_location}"       \
+# --environment                "${acss_environment}"    \
+# --sap-product                "${acss_sap_product}"    \
+# --configuration              "${acss_configuration}"
+...
