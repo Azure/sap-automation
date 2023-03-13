@@ -85,8 +85,8 @@
     resource_name:                     ClusterQuorum
     Type:                              "NodeAndCloudMajority"
     IsSingleInstance:                  "Yes"
-    Resouce:                           "{{ witness_storage_account_name }}"
-    StorageAccountAccessKey:           "{{ witness_storage_account_key }}"
+    Resouce:                           "{{ hostvars.localhost.witness_storage_account_name }}"
+    StorageAccountAccessKey:           "{{ hostvars.localhost.witness_storage_account_key }}"
     PsDscRunAsCredential_username:     "{{ domain_service_account }}@{{ domain_name }}"
     PsDscRunAsCredential_password:     "{{ domain_service_password }}"
   when:
