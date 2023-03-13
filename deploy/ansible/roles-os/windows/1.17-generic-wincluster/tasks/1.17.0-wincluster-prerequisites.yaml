@@ -33,6 +33,8 @@
     - FailOverClusterDsc
     - PSDesiredStateConfiguration
     - ServerManager
+    - StorageDsc
+    - FailoverCluster
 
 - name:                                "WinCluster-PreReq: Add the windows cluster features"
   ansible.windows.win_feature:
@@ -56,6 +58,22 @@
   loop:
     - TermService
     - RemoteRegistry
+
+- name:                                "WinCluster-PreReq: add registry key to set keepalive interval"
+  ansible.windows.win_regedit:
+    path:                              HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters
+    name:                              KeepAliveTime
+    data:                              120000
+    type:                              dword
+    state:                             present
+
+- name:                                "WinCluster-PreReq: add registry key to set keepalive interval"
+  ansible.windows.win_regedit:
+    path:                              HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters
+    name:                              KeepAliveInterval
+    data:                              120000
+    type:                              dword
+    state:                             present
 
 - name:                                "WinCluster-PreReq: Reboot '{{ ansible_hostname }}' if needed"
   ansible.windows.win_reboot:

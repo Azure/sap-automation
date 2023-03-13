@@ -7,4 +7,6 @@ witness_storage_account_name: "{{ sap_sid | lower }}{{ node_tier }}witness" #pla
 # delegate task to localhost to get the information
 witness_storage_account_key: ""
 
+shared_disk_drive_letter: "Y"
+
 ...
