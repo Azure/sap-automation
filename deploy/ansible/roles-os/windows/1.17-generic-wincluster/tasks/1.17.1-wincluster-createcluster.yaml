@@ -41,9 +41,9 @@
   delegate_to:                         localhost
   ansible.builtin.import_tasks:
     file:                              "roles-misc/0.2-kv-secrets/tasks/wincluster-witness.yaml"
-  when:
-    - scs_high_availability or db_high_availability
-    - "'scs' in node_tier or 'ers' in node_tier or 'sqlserver' in node_tier"
+#  when:
+#    - scs_high_availability or db_high_availability
+#    - "'scs' in node_tier or 'ers' in node_tier or 'sqlserver' in node_tier"
 
 - name:                                "WinCluster-Create: Create windows cluster on the first node"
   become:                              true
@@ -67,7 +67,7 @@
         RetryIntervalSec:               10
         RetryCount:                     60
 
-    - name:                                "WinCluster-Create: Create windows cluster on the first node"
+    - name:                                "WinCluster-Create: Create windows cluster on the second node"
       become:                              true
       become_method:                       "runas"
       become_user:                         '{{ sap_sid }}adm@{{ domain }}'
@@ -85,10 +85,13 @@
     resource_name:                     ClusterQuorum
     Type:                              "NodeAndCloudMajority"
     IsSingleInstance:                  "Yes"
-    Resouce:                           "{{ hostvars.localhost.witness_storage_account_name }}"
-    StorageAccountAccessKey:           "{{ hostvars.localhost.witness_storage_account_key }}"
+    Resouce:                           "{{ witness_storage_account_name }}"
+    StorageAccountAccessKey:           "{{ witness_storage_account_key }}"
     PsDscRunAsCredential_username:     "{{ domain_service_account }}@{{ domain_name }}"
     PsDscRunAsCredential_password:     "{{ domain_service_password }}"
+  vars:
+    witness_storage_account_name:     "{{ hostvars.localhost.witness_storage_account_name }}"
+    witness_storage_account_key:      "{{ hostvars.localhost.witness_storage_account_key }}"
   when:
     - ansible_hostname == primary_node
 
