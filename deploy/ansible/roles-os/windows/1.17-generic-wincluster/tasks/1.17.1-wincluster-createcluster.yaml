@@ -31,6 +31,7 @@
       - "ClusterName is {{ cluster_name }}"
       - "ClusterIPAddress is {{ cluster_ip_address }}"
       - "DomainName is {{ domain_name }}"
+      - "Domain Service Account is {{ domain_service_account }}"
   when:
     - domain is defined
     - domain | type_debug != 'NoneType'
@@ -47,8 +48,8 @@
 - name:                                "WinCluster-Create: Create windows cluster on the first node"
   ansible.windows.win_dsc:
     resource_name:                     Cluster
-    ClusterIPAddress:                  "{{ cluster_ip_address }}"
-    ClusterName:                       "{{ cluster_name }}"
+    StaticIPAddress:                  "{{ cluster_ip_address }}"
+    Name:                              "{{ cluster_name }}"
     PsDscRunAsCredential_username:     "{{ domain_service_account }}@{{ domain_name }}"
     PsDscRunAsCredential_password:     "{{ domain_service_password }}"
   when:
@@ -57,7 +58,7 @@
 - name:                                "WinCluster-Create: Add {{ ansible_hostname }} to the cluster"
   ansible.windows.win_dsc:
     resource_name:                      ClusterNode
-    ClusterName:                        "{{ cluster_name }}"
+    Name:                               "{{ cluster_name }}"
     NodeName:                           "{{ ansible_hostname }}"
   when:
     - ansible_hostname == primary_node
@@ -67,14 +68,14 @@
     - name:                            "WinCluster-Create: Wait for cluster to be created"
       ansible.windows.win_dsc:
         resource_name:                  WaitForCluster
-        ClusterName:                    "{{ cluster_name }}"
+        Name:                           "{{ cluster_name }}"
         RetryIntervalSec:               10
         RetryCount:                     60
 
     - name:                                "WinCluster-Create: Add {{ ansible_hostname }} to the cluster"
       ansible.windows.win_dsc:
         resource_name:                      ClusterNode
-        ClusterName:                        "{{ cluster_name }}"
+        Name:                               "{{ cluster_name }}"
         NodeName:                           "{{ ansible_hostname }}"
   when:
     - ansible_hostname == secondary_node
