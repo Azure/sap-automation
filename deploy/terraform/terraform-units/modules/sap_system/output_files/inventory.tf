@@ -119,6 +119,7 @@ resource "local_file" "sap-parameters_yml" {
     scs_lb_ip          = var.scs_lb_ip
     ers_lb_ip          = var.ers_lb_ip
     db_lb_ip           = var.db_lb_ip
+    db_clst_lb_ip      = var.db_clst_lb_ip
     db_ha              = var.db_ha
     db_instance_number = try(var.database.instance.instance_number, "00")
     dns                = local.dns_label

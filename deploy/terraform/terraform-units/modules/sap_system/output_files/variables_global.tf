@@ -269,3 +269,7 @@ variable "management_dns_resourcegroup_name" {
 variable "configuration_settings" {
   description = "This is a dictionary that will contain values persisted to the sap-parameters.file"
 }
+
+variable "db_clst_lb_ip" {
+  description = "This is a Cluster IP address for Windows load balancer"
+}
