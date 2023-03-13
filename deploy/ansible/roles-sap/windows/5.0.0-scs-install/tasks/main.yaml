@@ -73,6 +73,8 @@
   ansible.windows.win_file:
     path:                              '{{ download_directory_windows }}\sap_extract'
     state:                             directory
+  when:
+    - "'scs' in supported_tiers"
 
 - name:                                "SCS Install: Create log Directory"
   ansible.windows.win_file:
