@@ -25,6 +25,15 @@
     - domain_name | trim | length > 1
     - domain is not defined
 
+- name:                                "WinCluster-Create: Get witness account details"
+  delegate_to:                         localhost
+  ansible.builtin.include_role:
+    name:                      roles-misc/0.2-kv-secrets
+    tasks_from:                wincluster-witness.yaml
+#  when:
+#    - scs_high_availability or db_high_availability
+#    - "'scs' in node_tier or 'ers' in node_tier or 'sqlserver' in node_tier"
+
 - name:                                "WinCluster-Create: Print the variables from {{ domain_name }}"
   ansible.builtin.debug:
     msg:
@@ -32,18 +41,13 @@
       - "ClusterIPAddress is {{ cluster_ip_address }}"
       - "DomainName is {{ domain_name }}"
       - "Domain Service Account is {{ domain_service_account }}"
+      - "Witness Storage Account Name is {{ hostvars.localhost.witness_storage_account_name }}"
   when:
     - domain is defined
     - domain | type_debug != 'NoneType'
     - domain | trim | length > 1
 
-- name:                                "WinCluster-Create: Get witness account details"
-  delegate_to:                         localhost
-  ansible.builtin.import_tasks:
-    file:                              "roles-misc/0.2-kv-secrets/tasks/wincluster-witness.yaml"
-#  when:
-#    - scs_high_availability or db_high_availability
-#    - "'scs' in node_tier or 'ers' in node_tier or 'sqlserver' in node_tier"
+
 
 - name:                                "WinCluster-Create: Create windows cluster on the first node"
   become:                              true
