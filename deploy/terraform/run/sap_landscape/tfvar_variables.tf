@@ -422,6 +422,11 @@ variable "create_vaults_and_storage_dns_a_records" {
   type        = bool
 }
 
+variable "dns_server_list" {
+  description = "DNS server list"
+  default     = []
+}
+
 
 #########################################################################################
 #                                                                                       #

@@ -26,15 +26,16 @@ module "sap_landscape" {
   use_deployer                = length(var.deployer_tfstate_key) > 0
   ANF_settings                = local.ANF_settings
 
-  dns_label = var.dns_label
+  dns_label                          = var.dns_label
+  dns_server_list                    = var.dns_server_list
   enable_purge_control_for_keyvaults = var.enable_purge_control_for_keyvaults
   use_private_endpoint               = var.use_private_endpoint
   use_service_endpoint               = var.use_service_endpoint
   keyvault_private_endpoint_id       = var.keyvault_private_endpoint_id
 
   create_vaults_and_storage_dns_a_records = var.create_vaults_and_storage_dns_a_records
-  use_custom_dns_a_registration = var.use_custom_dns_a_registration
-  management_dns_subscription_id = coalesce(var.management_dns_subscription_id, local.saplib_subscription_id)
+  use_custom_dns_a_registration           = var.use_custom_dns_a_registration
+  management_dns_subscription_id          = coalesce(var.management_dns_subscription_id, local.saplib_subscription_id)
   management_dns_resourcegroup_name = length(var.management_dns_resourcegroup_name) > 0 ? (
     var.management_dns_resourcegroup_name) : (
     local.saplib_resource_group_name

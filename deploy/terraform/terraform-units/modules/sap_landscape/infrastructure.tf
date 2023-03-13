@@ -50,6 +50,12 @@ data "azurerm_virtual_network" "vnet_sap" {
   resource_group_name = split("/", local.vnet_sap_arm_id)[4]
 }
 
+resource "azurerm_virtual_network_dns_servers" "vnet_sap_dns_servers" {
+  count = local.vnet_sap_exists ? 0 : 1
+  virtual_network_id = azurerm_virtual_network.vnet_sap[0].id
+  dns_servers        = var.dns_server_list
+}
+
 # // Peers management VNET to SAP VNET
 resource "azurerm_virtual_network_peering" "peering_management_sap" {
   provider = azurerm.peering
