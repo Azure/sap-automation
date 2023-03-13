@@ -125,7 +125,7 @@
 # Start: call cluster configuration only if cluster is enabled
 - name:                                "SCS Install: High availability tasks"
   when:
-    - supported_tiers in ['scs', 'ers']
+    - "'scs' in supported_tiers or 'ers' in supported_tiers "
     - scs_high_availability
     - ansible_os_family | upper == 'WINDOWS'
   block:
