@@ -572,15 +572,16 @@
               ansible.builtin.include_role:
                 name:              roles-sap/windows/5.0.0-scs-install
               vars:
-                scs_instance_number:    "{{ sid_to_be_deployed.ascs_inst_no }}"
-                domain_user_password:   "{{ hostvars.localhost.winadm_password }}"
-                svc_password:           "{{ hostvars.localhost.svcadm_password }}"
-                domain_service_account: "{{ hostvars.localhost.adsvc_account }}"
-                primary_node:           "{{ ansible_play_hosts_all[0] }}"
-                secondary_node:         "{{ ansible_play_hosts_all[1] }}"
-                primary_node_ip_scs:    "{{ hostvars[ansible_play_hosts_all[0]]['ansible_eth0']['ipv4']['address'] }}"
-                secondary_node_ip_ers:  "{{ hostvars[ansible_play_hosts_all[1]]['ansible_eth0']['ipv4']['address'] }}"
-                sap_cluster_ip_address: "{{ scs_clst_lb_ip }}"
+                scs_instance_number:     "{{ sid_to_be_deployed.ascs_inst_no }}"
+                domain_user_password:    "{{ hostvars.localhost.winadm_password }}"
+                svc_password:            "{{ hostvars.localhost.svcadm_password }}"
+                domain_service_account:  "{{ hostvars.localhost.adsvc_account }}"
+                domain_service_password: "{{ hostvars.localhost.adsvc_password }}"
+                primary_node:            "{{ ansible_play_hosts_all[0] }}"
+                secondary_node:          "{{ ansible_play_hosts_all[1] }}"
+                primary_node_ip_scs:     "{{ hostvars[ansible_play_hosts_all[0]]['ansible_eth0']['ipv4']['address'] }}"
+                secondary_node_ip_ers:   "{{ hostvars[ansible_play_hosts_all[1]]['ansible_eth0']['ipv4']['address'] }}"
+                sap_cluster_ip_address:  "{{ scs_clst_lb_ip }}"
 
               loop:                    "{{ all_sids }}"
               loop_control:
