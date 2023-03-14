@@ -102,7 +102,7 @@
 
     - name:                            "WinCluster-Create: Set Shared disk number fact"
       ansible.builtin.set_fact:
-        shared_disk_number:            "{{ shared_disk.output[0]] }}"
+        shared_disk_number:            "{{ shared_disk.output[0] }}"
         cacheable:                     true
       when:
         - shared_disk is defined
