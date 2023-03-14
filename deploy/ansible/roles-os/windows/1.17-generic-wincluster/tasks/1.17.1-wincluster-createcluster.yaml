@@ -118,8 +118,6 @@
       ansible.builtin.set_fact:
         disk_label:                    "{{ sap_sid | upper }}SharedDisk"
         cacheable:                     true
-      when:
-        - shared_disk_number is defined
 
     # # PartitionStyle defaults to GPT, so not passing it along
     # - name:                            "WinCluster-Create: Format the shared Disk"
