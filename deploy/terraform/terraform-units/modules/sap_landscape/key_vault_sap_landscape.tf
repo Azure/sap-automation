@@ -55,22 +55,6 @@ resource "azurerm_key_vault" "kv_user" {
 
 }
 
-resource "azurerm_private_dns_a_record" "kv_user" {
-  provider            = azurerm.dnsmanagement
-  count               = var.use_private_endpoint && var.create_vaults_and_storage_dns_a_records ? 1 : 0
-  name                = lower(local.user_keyvault_name)
-  zone_name           = "privatelink.vaultcore.azure.net"
-  resource_group_name = var.management_dns_resourcegroup_name
-  ttl                 = 3600
-  records = [length(var.keyvault_private_endpoint_id) > 0 ? (
-    data.azurerm_private_endpoint_connection.kv_user[0].private_service_connection[0].private_ip_address) : (
-    azurerm_private_endpoint.kv_user[0].private_service_connection[0].private_ip_address
-  )]
-
-  lifecycle {
-    ignore_changes = [tags]
-  }
-}
 
 data "azurerm_private_dns_a_record" "kv_user" {
   provider            = azurerm.dnsmanagement
@@ -363,7 +347,8 @@ resource "azurerm_private_endpoint" "kv_user" {
   provider = azurerm.main
   depends_on = [
     azurerm_key_vault_access_policy.kv_user_msi[0],
-    azurerm_key_vault_access_policy.kv_user
+    azurerm_key_vault_access_policy.kv_user,
+    azurerm_private_dns_zone_virtual_network_link.vault[0]
   ]
 
   count = (

@@ -97,7 +97,7 @@ if ($Env:SDAF_APP_NAME.Length -ne 0) {
 
 $ControlPlanePrefix = "SDAF-" + $Control_plane_code
 $WorkloadZonePrefix = "SDAF-" + $Workload_zone_code
-$Pool_Name = $ADO_Project.ToUpper() + "-POOL"
+$Pool_Name = $ControlPlanePrefix + "-POOL"
 
 $url = ( az devops project list --organization $ADO_Organization --query "value | [0].url")
 if ($url.Length -eq 0) {
@@ -190,13 +190,11 @@ else {
   az repos update --repository $repo_id --default-branch main --output none
 
 }
-Write-Host
-Write-Host "You can optionally import the Terraform and Ansible code from GitHub into Azure DevOps, however, this should only be done if you cannot access github from the Azure DevOps agent or if you intend to customize the code." -ForegroundColor White
-Write-Host
-$confirmation = Read-Host "Do you want to use the code directly from GitHub y/n?"
+
+$confirmation = Read-Host "You can optionally import the Terraform and Ansible code from GitHub into Azure DevOps, however, this should only be done if you cannot access github from the Azure DevOps agent or if you intend to customize the code. Do you want to run the code from GitHub y/n?"
 if ($confirmation -ne 'y') {
   Add-Content -Path $fname -Value ""
-  Add-Content -Path $fname -Value "Using the code from the sap-automation repository on GitHub."
+  Add-Content -Path $fname -Value "Using the code from the sap-automation repository"
 
   $import_code = $true
   $repo_name = "sap-automation"
@@ -686,18 +684,18 @@ Add-Content -Path $fname -Value $WorkloadZonePrefix
 
 Add-Content -Path $fname -Value "### Credentials"
 Add-Content -Path $fname -Value ""
-Add-Content -Path $fname -Value ("Web Application: " + $ApplicationName)
+Add-Content -Path $fname -Value ("Web Application:" + $ApplicationName)
 
 
 
 #region App registration
 Write-Host "Creating the App registration in Azure Active Directory" -ForegroundColor Green
 
-$found_appRegistration = (az ad app list --all --query "[?displayName=='$ApplicationName'].displayName | [0]" --only-show-errors)
+$found_appRegistration = (az ad app list --all --filter "startswith(displayName,'$ApplicationName')" --query  "[?displayName=='$ApplicationName'].displayName | [0]" --only-show-errors)
 
 if ($found_appRegistration.Length -ne 0) {
   Write-Host "Found an existing App Registration:" $ApplicationName
-  $ExistingData = (az ad app list --all --query "[?displayName=='$ApplicationName']| [0]" --only-show-errors) | ConvertFrom-Json
+  $ExistingData = (az ad app list --all --filter "startswith(displayName,'$ApplicationName')" --query  "[?displayName=='$ApplicationName']| [0]" --only-show-errors) | ConvertFrom-Json
 
   $APP_REGISTRATION_ID = $ExistingData.appId
 
@@ -726,7 +724,7 @@ if ($Env:SDAF_MGMT_SPN_NAME.Length -ne 0) {
   $spn_name = $Env:SDAF_MGMT_SPN_NAME
 }
 
-Add-Content -Path $fname -Value ("Control Plane Service Principal: " + $spn_name)
+Add-Content -Path $fname -Value ("Control Plane Service Principal:" + $spn_name)
 
 $scopes = "/subscriptions/" + $Control_plane_subscriptionID
 
@@ -739,10 +737,10 @@ $CP_ARM_CLIENT_SECRET = "Please update"
 
 $SPN_Created = $false
 
-$found_appName = (az ad sp list --all --query "[?displayName=='$spn_name'].displayName | [0]" --only-show-errors)
+$found_appName = (az ad sp list --all --filter "startswith(displayName,'$spn_name')" --query "[?displayName=='$spn_name'].displayName | [0]" --only-show-errors)
 if ($found_appName.Length -gt 0) {
   Write-Host "Found an existing Service Principal:" $spn_name
-  $ExistingData = (az ad sp list --all --query "[?displayName=='$spn_name']| [0]" --only-show-errors) | ConvertFrom-Json
+  $ExistingData = (az ad sp list --all --filter "startswith(displayName,'$spn_name')" --query  "[?displayName=='$spn_name']| [0]" --only-show-errors) | ConvertFrom-Json
   Write-Host "Updating the variable group"
 
   $CP_ARM_CLIENT_ID = $ExistingData.appId
@@ -761,7 +759,7 @@ else {
   $SPN_Created = $true
   $Control_plane_SPN_data = (az ad sp create-for-rbac --role "Contributor" --scopes $scopes --name $spn_name --only-show-errors) | ConvertFrom-Json
   $CP_ARM_CLIENT_SECRET = $Control_plane_SPN_data.password
-  $ExistingData = (az ad sp list --all --query "[?displayName=='$spn_name'] | [0]" --only-show-errors) | ConvertFrom-Json
+  $ExistingData = (az ad sp list --all --filter "startswith(displayName,'$spn_name')" --query  "[?displayName=='$spn_name'] | [0]" --only-show-errors) | ConvertFrom-Json
   $CP_ARM_CLIENT_ID = $ExistingData.appId
   $CP_ARM_TENANT_ID = $ExistingData.appOwnerOrganizationId
   $CP_ARM_OBJECT_ID = $ExistingData.Id
@@ -823,16 +821,20 @@ $ARM_OBJECT_ID = ""
 
 $workload_zone_scopes = "/subscriptions/" + $Workload_zone_subscriptionID
 $workload_zone_spn_name = $Workload_zonePrefix + " Deployment credential"
+
+Add-Content -path $fname -value ("Workload zone Service Principal:" + $workload_zone_spn_name)
+
+
 if ($Env:SDAF_WorkloadZone_SPN_NAME.Length -ne 0) {
   $workload_zone_spn_name = $Env:SDAF_WorkloadZone_SPN_NAME
 }
 
 $SPN_Created = $false
-$found_appName = (az ad sp list --all --query "[?displayName=='$workload_zone_spn_name'].displayName | [0]" --only-show-errors)
+$found_appName = (az ad sp list --all --filter "startswith(displayName,'$workload_zone_spn_name')" --query  "[?displayName=='$workload_zone_spn_name'].displayName | [0]" --only-show-errors)
 
 if ($found_appName.Length -ne 0) {
   Write-Host "Found an existing Service Principal:" $workload_zone_spn_name -ForegroundColor Green
-  $ExistingData = (az ad sp list --all --query "[?displayName=='$workload_zone_spn_name'] | [0]" --only-show-errors) | ConvertFrom-Json
+  $ExistingData = (az ad sp list --all --filter "startswith(displayName,'$workload_zone_spn_name')" --query  "[?displayName=='$workload_zone_spn_name'] | [0]" --only-show-errors) | ConvertFrom-Json
   $ARM_CLIENT_ID = $ExistingData.appId
   $ARM_TENANT_ID = $ExistingData.appOwnerOrganizationId
   $ARM_OBJECT_ID = $ExistingData.Id
@@ -847,15 +849,12 @@ else {
   $SPN_Created = $true
   $Data = (az ad sp create-for-rbac --role="Contributor" --scopes=$workload_zone_scopes --name=$workload_zone_spn_name --only-show-errors) | ConvertFrom-Json
   $ARM_CLIENT_SECRET = $Data.password
-  $ExistingData = (az ad sp list --all --query "[?displayName=='$workload_zone_spn_name'] | [0]" --only-show-errors) | ConvertFrom-Json
+  $ExistingData = (az ad sp list --all --filter "startswith(displayName,'$workload_zone_spn_name')" --query  "[?displayName=='$workload_zone_spn_name'] | [0]" --only-show-errors) | ConvertFrom-Json
   $ARM_CLIENT_ID = $ExistingData.appId
   $ARM_TENANT_ID = $ExistingData.appOwnerOrganizationId
   $ARM_OBJECT_ID = $ExistingData.Id
 
 }
-
-Add-Content -path $fname -value ("Workload zone Service Principal: " + $workload_zone_spn_name)
-
 
 Write-Host "Assigning reader permissions to the control plane subscription" -ForegroundColor Green
 az role assignment create --assignee $ARM_CLIENT_ID --role "Reader" --subscription $Control_plane_subscriptionID --output none
@@ -906,7 +905,7 @@ else {
   Write-Host ""
   Write-Host "The browser will now open, please create a Personal Access Token. Ensure that Read & manage is selected for Agent Pools, Read & write is selected for Code, Read & execute is selected for Build, and Read, create, & manage is selected for Variable Groups"
   Start-Process $pat_url
-  $PAT = Read-Host -Prompt "Please enter the PAT token"
+  $PAT = Read-Host -Prompt "Please enter the PAT token: "
   az pipelines variable-group variable update --group-id $Control_plane_groupID --name "PAT" --value $PAT --secret true --only-show-errors --output none
   az pipelines variable-group variable update --group-id $GroupID --name "PAT" --value $PAT --secret true --only-show-errors --output none
   # Create header with PAT

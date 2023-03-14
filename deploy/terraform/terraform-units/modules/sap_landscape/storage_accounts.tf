@@ -190,6 +190,7 @@ resource "azurerm_private_endpoint" "witness_storage" {
   provider = azurerm.main
   depends_on = [
     azurerm_subnet.db,
+    azurerm_private_dns_zone_virtual_network_link.storage[0]
   ]
   count = var.use_private_endpoint && local.admin_subnet_defined && (length(var.witness_storage_account.arm_id) == 0) ? 1 : 0
   name = format("%s%s%s",
@@ -380,7 +381,8 @@ data "azurerm_storage_account" "transport" {
 resource "azurerm_private_endpoint" "transport" {
   provider = azurerm.main
   depends_on = [
-    azurerm_subnet.app
+    azurerm_subnet.app,
+    azurerm_private_dns_zone_virtual_network_link.vnet_sap_file[0]
   ]
   count = var.NFS_provider == "AFS" ? (
     length(var.transport_storage_account_id) > 0 ? (
@@ -568,7 +570,9 @@ resource "azurerm_private_endpoint" "install" {
   provider = azurerm.main
 
   depends_on = [
-    azurerm_subnet.app
+    azurerm_subnet.app,
+    azurerm_storage_account.install[0],
+    azurerm_private_dns_zone_virtual_network_link.vnet_sap_file[0]
   ]
   count = var.NFS_provider == "AFS" ? (
     length(var.install_private_endpoint_id) > 0 ? (
