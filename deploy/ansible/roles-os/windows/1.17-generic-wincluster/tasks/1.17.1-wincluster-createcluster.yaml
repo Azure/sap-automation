@@ -138,16 +138,25 @@
       ansible.windows.win_powershell:
         script: |
                                        Get-ClusterAvailableDisk -All | Select-Object -ExpandProperty Number -First 1
-      register:                        clu_shared_disk_number
+      register:                        clu_shared_disk_details
 
-    - name:                            "WinCluster-Create: Fail here on purpose"
-      ansible.builtin.fail:
-        msg:                           "Cluster Shared disk number is {{ clu_shared_disk_number.output[0] }}"
+    - name:                            "WinCluster-Create: Set Shared disk number fact"
+      ansible.builtin.set_fact:
+        clu_shared_disk_number:         "{{ clu_shared_disk_details.output[0] }}"
+        cacheable:                      true
+      when:
+        - clu_shared_disk_details is defined
+        - clu_shared_disk_details | type_debug != 'NoneType'
+        - clu_shared_disk_details | trim | length >= 1
+
+    - name:                            "WinCluster-Create: print cluster shared disk number"
+      ansible.builtin.debug:
+        msg:                           "Cluster Shared disk number is {{ clu_shared_disk_number }}"
 
     - name:                            "WinCluster-Create: Initialize shared disk resource"
       ansible.windows.win_dsc:
         resource_name:                 ClusterDisk
-        number:                        "{{ clu_shared_disk_number.output }}"
+        Number:                        "{{ clu_shared_disk_number }}"
         Label:                         "{{ disk_label }}"
         Ensure:                        "Present"
         PsDscRunAsCredential_username: "{{ domain_service_account }}@{{ domain_name }}"
