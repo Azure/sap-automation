@@ -167,13 +167,13 @@ namespace AutomationForm.Models
 
         public string ANF_qos_type { get; set; }
 
-        public bool? use_private_endpoint { get; set; }
+        public bool? use_private_endpoint { get; set; } = true;
 
         public bool? use_service_endpoint { get; set; } = true;
 
         public bool? peer_with_control_plane_vnet { get; set; } = true;
 
-        public bool? enable_firewall_for_keyvaults_and_storage { get; set; }
+        public bool? enable_firewall_for_keyvaults_and_storage { get; set; } = true;
 
         public bool? ANF_use_existing_pool { get; set; }
 
@@ -199,13 +199,13 @@ namespace AutomationForm.Models
 
         public string management_dns_subscription_id { get; set; }
 
-        public bool? use_custom_dns_a_registration { get; set; }
+        public bool? use_custom_dns_a_registration { get; set; } = false;
 
 
         [KeyvaultIdValidator]
         public string user_keyvault_id { get; set; }
 
-        public bool? enable_purge_control_for_keyvaults { get; set; }
+        public bool? enable_purge_control_for_keyvaults { get; set; } = false;
 
         [KeyvaultIdValidator]
         public string spn_keyvault_id { get; set; }
@@ -246,7 +246,7 @@ namespace AutomationForm.Models
         [StorageAccountIdValidator]
         public string install_storage_account_id { get; set; }
 
-        public int? install_volume_size { get; set; }
+        public int? install_volume_size { get; set; } = 1024;
 
         [PrivateEndpointIdValidator]
         public string install_private_endpoint_id { get; set; }
@@ -255,7 +255,7 @@ namespace AutomationForm.Models
 
         public string utility_vm_size { get; set; }
 
-        public bool? utility_vm_useDHCP { get; set; }
+        public bool? utility_vm_useDHCP { get; set; } = true;
 
         public Image utility_vm_image { get; set; }
 

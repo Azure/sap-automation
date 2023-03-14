@@ -1465,21 +1465,6 @@
     ]
   },
   {
-    "Section": "DNS",
-    "Link": "",
-    "Parameters": [
-      {
-        "Name": "create_storage_dns_a_records",
-        "Required": false,
-        "Description": "Boolean value indicating if a custom dns record should be created for the storage accounts",
-        "Type": "checkbox",
-        "Options": [],
-        "Overrules": "",
-        "Display": 3
-      }
-    ]
-  },
-  {
     "Section": "NFS and Shared Files Settings",
     "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#nfs-support",
     "Parameters": [
