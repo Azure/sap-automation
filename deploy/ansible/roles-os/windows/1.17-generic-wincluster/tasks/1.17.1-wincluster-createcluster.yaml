@@ -140,6 +140,10 @@
                                        Get-ClusterAvailableDisk -All | Select-Object -ExpandProperty Number -First 1
       register:                        clu_shared_disk_number
 
+    - name:                            "WinCluster-Create: Fail here on purpose"
+      ansible.builtin.fail:
+        msg:                           "Cluster Shared disk number is {{ clu_shared_disk_number }}"
+
     - name:                            "WinCluster-Create: Initialize shared disk resource"
       ansible.windows.win_dsc:
         resource_name:                 ClusterDisk
