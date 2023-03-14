@@ -98,11 +98,21 @@
       ansible.windows.win_powershell:
         script: |
                                        Get-Disk | Where-Object PartitionStyle -eq 'RAW' | Select-Object -ExpandProperty Number -First 1
-      register:                        shared_disk_number
+      register:                        shared_disk
+
+    - name:                            "WinCluster-Create: Set Shared disk number fact"
+      ansible.builtin.set_fact:
+        shared_disk_number:            "{{ shared_disk.output }}"
+        cacheable:                     true
+      when:
+        - shared_disk is defined
+        - shared_disk | type_debug != 'NoneType'
+        - shared_disk | trim | length > 1
 
     - name:                            "WinCluster-Create: Print the shared disk number"
       ansible.builtin.debug:
         msg:                          "Shared disk number is {{ shared_disk_number }}"
+
 
     - name:                            "WinCluster-Create: Create disk label"
       ansible.builtin.set_fact:
@@ -110,8 +120,6 @@
         cacheable:                     true
       when:
         - shared_disk_number is defined
-        - shared_disk_number | type_debug != 'NoneType'
-        - shared_disk_number | trim | length > 1
 
     # PartitionStyle defaults to GPT, so not passing it along
     - name:                            "WinCluster-Create: Format the shared Disk"
