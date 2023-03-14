@@ -16,7 +16,7 @@
 
 - name:                                "2.6 SAP Mounts (Oracle shared home): - Load logical volumes"
   ansible.builtin.set_fact:
-    logical_volume_groups: "{{ lookup('template', 'roles-os/1.5.2-disk-setup-ora-multi-sid/templates/logical_volume_group.j2') }}"
+    logical_volume_groups: "{{ lookup('template', '../../roles-os/1.5.2-disk-setup-ora-multi-sid/templates/logical_volume_group.j2') }}"
 
 - name:                                "2.6 SAP Mounts (Oracle shared home): Check if LVs exists."
   ansible.builtin.stat:

@@ -40,7 +40,7 @@
   register: monitor_repo
 
 - name: Add monitoring repository if it does not exist
-  zypper_repository:
+  community.general.zypper_repository:
     repo: "https://download.opensuse.org/repositories/server:/monitoring/{{ distro }}/server:monitoring.repo"
     state: present
   when: not monitor_repo.stat.exists
@@ -51,7 +51,7 @@
   when: not (add_repo_status.failed is defined and add_repo_status.failed)
   block:
     - name: Install Prometheus with Node and HA Cluster exporters
-      ansible.builtin.zypper:
+      community.general.zypper_repository:
         name: "{{ item }}"
         disable_gpg_check: true
       loop:

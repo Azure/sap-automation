@@ -7,7 +7,7 @@
 - name:                                Ensure the Cluster STONITH is configured
   block:
     - name:                            Ensure maintenance mode is enabled
-      ansible.builtin.command:         "crm configure property maintenance-mode=true"
+      ansible.builtin.command:         crm configure property maintenance-mode=true
 
     - name:                            Ensure CIB Bootstrap Options are set
       ansible.builtin.command: >

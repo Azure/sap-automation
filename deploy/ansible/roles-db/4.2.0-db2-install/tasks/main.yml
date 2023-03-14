@@ -17,22 +17,19 @@
 - name:                                "SAP DB2 Install: Set BOM facts"
   ansible.builtin.set_fact:
     sap_inifile:                       "{{ bom_base_name }}-dbload-{{ ansible_hostname }}.params"
-    sap_inifile_template:              "{{ bom_base_name }}-dbload-inifile-param.j2"
+    sap_inifile_template:              "{{ bom_base_name }}{{ bom_suffix }}-dbload-inifile-param.j2"
     dir_params:                        "{{ tmp_directory }}/.{{ sap_sid | upper }}-params"
     mem_size:                          "{{ ansible_facts.memory_mb.real.total | int * 0.8 }}"
 
-- name:                                "SAP DB2: Create run flag directory"
+- name:                                "SAP DB2: Create directories"
   ansible.builtin.file:
-    path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}"
+    path:                              "{{ item.path }}"
     state:                             directory
-    mode:                              0755
-
-#   0x) Create hidden directory for parameter files
-- name:                                "SAP DB2: Create hidden directory"
-  ansible.builtin.file:
-    path:                              "{{ dir_params }}"
-    state:                             directory
-    mode:                              0755
+    mode:                              '{{ item.mode }}'
+  loop:
+    - { mode: '0755', path: '{{ dir_params }}' }
+    - { mode: '0777', path: '{{ tmp_directory }}/{{ sap_sid | upper }}' }
+    - { mode: '0755', path: '/etc/sap_deployment_automation/{{ sap_sid | upper }}' }
 
 - name:                                "SAP DB2: Install reset"
   ansible.builtin.file:
@@ -54,7 +51,6 @@
         tasks_from:                    bom-register
       vars:
         bom_name:                      "{{ bom_base_name }}"
-        tier:                          "{{ tier }}"
         task_prefix:                   "DB2 Install: "
 
     - name:                            "DB2 Install - Include roles-sap/3.3.1-bom-utility role"
@@ -76,7 +72,8 @@
         db2_encryption_keystore_dir:   /db2/db2{{ db_sid }}/keystore
         db2_sslencryption_label:       "sap_db2{{ db_sid }}_{{ sap_db_hostname }}_ssl_comm_000"
         sap_scs_hostname:              "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') | first }}"
-        tier:                          "{{ tier }}"
+        sap_profile_dir:               "/sapmnt/{{ sap_sid | upper }}/profile"
+        tier:                          "db2S"
         db2_memory:                    "{{ mem_size | int }}"
         param_directory:               "{{ dir_params }}"
       tags:
@@ -88,9 +85,15 @@
       ansible.builtin.debug:
         msg:
           - "INSTALLED:  {{ db2_installed.stat.exists }}"
-          - "INIFILE:    {{ sap_inifile }}"
+          - "INIFILE:    {{ dir_params }}/{{ sap_inifile }}"
           - "PRODUCT ID: {{ bom.product_ids.dbl }}"
           - "MEDIA:      {{ target_media_location }}"
+
+    - name:                            "Create temp directory for sid"
+      ansible.builtin.file:
+        path:                          "{{ tmp_directory }}/{{ sap_sid | upper }}"
+        state:                         directory
+        mode:                          0755
 
     - name:                            "DB2 Install: Progress"
       ansible.builtin.debug:
@@ -103,7 +106,7 @@
 
     - name:                            "DB2 Install - SAPINST DB2 Install"
       ansible.builtin.shell: |
-                                       export TMPDIR={{ tmp_directory }}
+                                       umask {{ custom_umask | default('022') }};
                                        ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }}     \
                                                  SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.dbl }}                \
                                                  SAPINST_SKIP_DIALOGS=true                                           \
@@ -112,7 +115,7 @@
         chdir:                         "{{ target_media_location }}/SWPM"
         creates:                       "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_db2.txt"
       environment:
-        TMPDIR:                        "/etc/sap_deployment_automation/{{ sap_sid | upper }}"
+        TMPDIR:                        "{{ tmp_directory }}/{{ sap_sid | upper }}"
       register:                        db2_installation
       failed_when:                     db2_installation.rc > 0
       tags:
@@ -129,7 +132,7 @@
       register:                        db2_lock_escalation
       environment:
         PATH:                          "{{ ansible_env.PATH }}:/db2/db2{{ db_sid | lower }}/sqllib/gskit/bin"
-        ANSIBLE_REMOTE_TEMP:           "/tmp"
+        TMPDIR:                        "{{ tmp_directory }}/{{ sap_sid | upper }}"
 
     - name:                            "DB2 Install - Create lock escalation run flag"
       ansible.builtin.file:

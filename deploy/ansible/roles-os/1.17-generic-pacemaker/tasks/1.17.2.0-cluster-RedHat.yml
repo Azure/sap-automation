@@ -18,7 +18,7 @@
     password:                         "{{ password_ha_db_cluster | password_hash('sha512', 65534 | random(seed=inventory_hostname) | string) }}"
 
 - name:                                "1.17 Generic Pacemaker - Ensure the firewall service is configured to allow High Availability traffic"
-  ansible.builtin.firewalld:
+  ansible.posix.firewalld:
     service:                          high-availability
     state:                            enabled
     permanent:                        true
@@ -62,6 +62,10 @@
 
     - name:                            "1.17 Generic Pacemaker - Ensure the cluster is starting on all nodes"
       ansible.builtin.command:         pcs cluster start --all
+      changed_when:                    false
+
+    - name:                            "1.17 Generic Pacemaker - Enable cluster to auto-start after reboot"
+      ansible.builtin.command:         pcs cluster enable --all
       changed_when:                    false
 
     - name:                            "1.17 Generic Pacemaker - Allow Concurrent Fencing"

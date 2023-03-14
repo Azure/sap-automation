@@ -13,13 +13,15 @@
         az keyvault secret show
           --vault-name {{ deployer_kv_name }}
           --name "S-Username"
+          --query value
+          --output tsv
       changed_when:                    false
       register:                        keyvault_secret_show_s_user
 
     - name:                            "0.2 Key Vault - S-User: - Extract S User secret details"
       ansible.builtin.set_fact:
-        s_user: >-
-          {{ (keyvault_secret_show_s_user.stdout | from_json).value }}
+        s_user:                        "{{ keyvault_secret_show_s_user.stdout }}"
+        cacheable:                     true
       no_log:                          true
 
   when:

@@ -1,0 +1,66 @@
+---
+vars:
+  entry:
+    Id:                       "{{ item.Id }}"
+    Title:                    "{{ item.Title }}"
+    Description:              "{{ item.Description }}"
+    Infotype:                 "{{ item.Infotype }}"
+    Fastkey:                  "{{ item.Fastkey }}"
+    SubtreeEvent:             "{{ item.SubtreeEvent }}"
+    DownloadDirectLink:       "{{ item.DownloadDirectLink }}"
+    ApplicationLink:          "{{ item.ApplicationLink }}"
+    PackApplicationLink:      "{{ item.PackApplicationLink }}"
+    InfoObjectLink:           "{{ item.InfoObjectLink }}"
+    ContentInfoLink:          "{{ item.ContentInfoLink }}"
+    SideEffectsLink:          "{{ item.SideEffectsLink }}"
+    DependenciesLink:         "{{ item.DependenciesLink }}"
+    SearchResultDescr:        "{{ item.SearchResultDescr }}"
+
+keys:
+  entry:
+    value:                    "{{ entry }}"
+    top:                      '{http://www.w3.org/2005/Atom}entry/{http://www.w3.org/2005/Atom}content/{http://schemas.microsoft.com/ado/2007/08/dataservices/metadata}properties'
+    items:
+      Id:                     '{http://schemas.microsoft.com/ado/2007/08/dataservices}Id'
+      Title:                  '{http://schemas.microsoft.com/ado/2007/08/dataservices}Title'
+      Description:            '{http://schemas.microsoft.com/ado/2007/08/dataservices}Description'
+      Infotype:               '{http://schemas.microsoft.com/ado/2007/08/dataservices}Infotype'
+      Fastkey:                '{http://schemas.microsoft.com/ado/2007/08/dataservices}Fastkey'
+      SubtreeEvent:           '{http://schemas.microsoft.com/ado/2007/08/dataservices}SubtreeEvent'
+      DownloadDirectLink:     '{http://schemas.microsoft.com/ado/2007/08/dataservices}DownloadDirectLink'
+      ApplicationLink:        '{http://schemas.microsoft.com/ado/2007/08/dataservices}ApplicationLink'
+      PackApplicationLink:    '{http://schemas.microsoft.com/ado/2007/08/dataservices}PackApplicationLink'
+      InfoObjectLink:         '{http://schemas.microsoft.com/ado/2007/08/dataservices}InfoObjectLink'
+      ContentInfoLink:        '{http://schemas.microsoft.com/ado/2007/08/dataservices}ContentInfoLink'
+      SideEffectsLink:        '{http://schemas.microsoft.com/ado/2007/08/dataservices}SideEffectsLink'
+      DependenciesLink:       '{http://schemas.microsoft.com/ado/2007/08/dataservices}DependenciesLink'
+      SearchResultDescr:      '{http://schemas.microsoft.com/ado/2007/08/dataservices}SearchResultDescr'
+
+
+
+# <entry>
+#   <id>https://launchpad.support.sap.com/services/odata/svt/swdcuisrv/SearchResultSet('000001')</id>
+#   <title type="text">SearchResultSet('000001')</title>
+#   <updated>2022-11-29T20:19:23Z</updated>
+#   <category term="SVT_SWDC_UI_SRV.SearchResult" scheme="http://schemas.microsoft.com/ado/2007/08/dataservices/scheme"/>
+#   <link href="SearchResultSet('000001')" rel="self" title="SearchResult"/>
+#   <content type="application/xml">
+#     <m:properties xmlns:m="http://schemas.microsoft.com/ado/2007/08/dataservices/metadata" xmlns:d="http://schemas.microsoft.com/ado/2007/08/dataservices">
+#       <d:Id>000001</d:Id>
+#       <d:Title>SWPM20SP13_2-70003174.SAR</d:Title>
+#       <d:Description>SWPM20SP13</d:Description>
+#       <d:Infotype>Support Package SOFTWARE PROVISIONING MGR 2.0 AIX 64bit</d:Infotype>
+#       <d:Fastkey>0020000001603662022</d:Fastkey>
+#       <d:SubtreeEvent></d:SubtreeEvent>
+#       <d:DownloadDirectLink>https://softwaredownloads.sap.com/file/0020000001603662022</d:DownloadDirectLink>
+#       <d:ApplicationLink></d:ApplicationLink>
+#       <d:PackApplicationLink></d:PackApplicationLink>
+#       <d:InfoObjectLink></d:InfoObjectLink>
+#       <d:ContentInfoLink>https://launchpad.support.sap.com/#/softwarecenter/object/0020000001603662022</d:ContentInfoLink>
+#       <d:SideEffectsLink></d:SideEffectsLink>
+#       <d:DependenciesLink></d:DependenciesLink>
+#       <d:SearchResultDescr>Search results 1 - 11 of maximum 66. The actual number of the search results depends on your licenses.</d:SearchResultDescr>
+#     </m:properties>
+#   </content>
+# </entry>
+...

@@ -10,21 +10,35 @@
 
 ---
 
-- name:                                "SAP HANA: Create run flag directory"
+# +------------------------------------4--------------------------------------*/
+- name:                                "SAP HANA: Set BOM facts"
+  ansible.builtin.set_fact:
+    sap_inifile:                       "hdbserver_{{ ansible_hostname }}_{{ sap_sid }}_install.rsp"
+    sap_inifile_template:              "HANA_2_00_install.rsp.j2"
+    hana_host:                         "{% if db_high_availability %}{{ ansible_hostname }}{% else %}{{ virtual_host }}{% endif %}"
+    dir_params:                        "{{ tmp_directory }}/.params"
+
+#   0x) Create hidden directory for parameter files
+- name:                                "SAP HANA: Create directories"
   ansible.builtin.file:
-    path:                              /etc/sap_deployment_automation
+    path:                              "{{ item.path }}"
     state:                             directory
-    mode:                              0755
+    mode:                              '{{ item.mode }}'
+  loop:
+    - { mode: '0755', path: '{{ dir_params }}' }
+    - { mode: '0755', path: '{{ tmp_directory }}/{{ db_sid | upper }}' }
+    - { mode: '0755', path: '/etc/sap_deployment_automation/{{ db_sid | upper }}' }
+
 
 - name:                                "SAP HANA: Install reset"
   ansible.builtin.file:
-    path:                              /etc/sap_deployment_automation/sap_deployment_hdb.txt
+    path:                              "/etc/sap_deployment_automation/{{ db_sid | upper }}/sap_deployment_hdb.txt"
     state:                             absent
   when: reinstall
 
 - name:                                "SAP HANA: check if installed"
   ansible.builtin.stat:
-    path:                              /etc/sap_deployment_automation/sap_deployment_hdb.txt
+    path:                              "/etc/sap_deployment_automation/{{ db_sid | upper }}/sap_deployment_hdb.txt"
   register:                            hana_installed
 
 - name:                                "SAP HANA: check media exists"
@@ -40,28 +54,7 @@
 - name:                                "HANA Install"
   block:
 
-# +------------------------------------4--------------------------------------*/
-    - name:                            "SAP HANA: Set dir_params fact"
-      ansible.builtin.set_fact:
-        dir_params:                    "{{ tmp_directory }}/.params"
-
-#   0x) Create hidden directory for parameter files
-    - name:                            "SAP HANA: Create hidden directory"
-      ansible.builtin.file:
-        path:                          "{{ item.path }}"
-        state:                         directory
-        mode:                          '{{ item.mode }}'
-      loop:
-        - { state: 'directory', mode: '0755', path: '{{ dir_params }}' }
-
-
-    - name:                            "SAP HANA: Set BOM facts"
-      ansible.builtin.set_fact:
-        sap_inifile:                   "hdbserver_{{ ansible_hostname }}_{{ sap_sid }}_install.rsp"
-        sap_inifile_template:          "HANA_2_00_install.rsp.j2"
-        hana_host:                     "{% if db_high_availability %}{{ ansible_hostname }}{% else %}{{ virtual_host }}{% endif %}"
-
-    - name:                            "SAP HANA: remove install response file"
+    - name:                            "SAP HANA: remove install response file if exists"
       ansible.builtin.file:
         path:                          "{{ dir_params }}/{{ sap_inifile }}"
         state:                         absent
@@ -72,7 +65,7 @@
         tasks_from:                    bom-template
   # Template parameter mapping
       vars:
-        bom_name:                      "{{ bom_base_name }}"
+        bom_name:                      "{{ bom_base_name }}{{ bom_suffix }}"
         always_upload_jinja_templates: false
         task_prefix:                   "SAP HANA: "
         _rsp_component_root:           "../COMPONENTS"
@@ -95,7 +88,9 @@
                                        ./hdblcm --batch --action=install --hostname {{ hana_host }} --configfile='{{ dir_params }}/{{ sap_inifile }}'
       args:
         chdir:                         "{{ target_media_location }}/CD_HDBSERVER/SAP_HANA_DATABASE"
-        creates:                       /etc/sap_deployment_automation/sap_deployment_hdb.txt
+        creates:                       "/etc/sap_deployment_automation/{{ db_sid | upper }}/sap_deployment_hdb.txt"
+      environment:
+        TMPDIR:                        "{{ tmp_directory }}/{{ db_sid | upper }}"
       register:                        hana_installation
       failed_when:                     hana_installation.rc > 0
 
@@ -115,7 +110,6 @@
         - hana_installation.rc is defined
         - hana_installation.rc > 0
 
-
     - name:                            "SAP HANA: Installation results"
       ansible.builtin.debug:
         msg:                           "HANA Installation succeeded"
@@ -130,7 +124,7 @@
 
     - name:                            "SAP HANA: Create backup folder"
       ansible.builtin.file:
-        path:                          "/hana/backup"
+        path:                          "{{ hana_backup_path }}"
         state:                         directory
         group:                         sapsys
         owner:                         "{{ db_sid | lower }}adm"
@@ -138,9 +132,12 @@
 
     - name:                            "SAP HANA: HANA Install: flag"
       ansible.builtin.file:
-        path:                          /etc/sap_deployment_automation/sap_deployment_hdb.txt
+        path:                          "/etc/sap_deployment_automation/{{ db_sid | upper }}/sap_deployment_hdb.txt"
         state:                         touch
         mode:                          0755
+      when:
+        - hana_installation.rc is defined
+        - hana_installation.rc == 0
 
   when:
     - not hana_installed.stat.exists
@@ -158,7 +155,7 @@
 
     - name:                            "SAP HANA: Create backup folder"
       ansible.builtin.file:
-        path:                          "/hana/backup"
+        path:                          "{{ hana_backup_path }}"
         state:                         directory
         group:                         sapsys
         owner:                         "{{ db_sid | lower }}adm"

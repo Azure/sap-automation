@@ -11,47 +11,47 @@
     daemon_reload:                     true
 
 # SSH access between nodes is only required on SUSE for crm_clustering
-- name:                                    "1.17 Generic Pacemaker - SUSE specific network and SSH configuration"
+- name:                                "1.17 Generic Pacemaker - SUSE specific network and SSH configuration"
   block:
     # Change the configuration file for the network interface to prevent the cloud
     # network plugin from removing the virtual IP address (Pacemaker must control
     # the VIP assignment)
     # Refer to: https://www.suse.com/support/kb/doc/?id=7023633 for more information
-    - name:                                "1.17 Generic Pacemaker - Ensure that network interface is not managed by cloud network plugin"
-      become:                              true
+    - name:                            "1.17 Generic Pacemaker - Ensure that network interface is not managed by cloud network plugin"
+      become:                          true
       ansible.builtin.lineinfile:
-        path:                              /etc/sysconfig/network/ifcfg-eth0
-        backup:                            true
-        regexp:                            '^CLOUD_NETCONFIG_MANAGE='
-        line:                              CLOUD_NETCONFIG_MANAGE='no'
+        path:                          /etc/sysconfig/network/ifcfg-eth0
+        backup:                        true
+        regexp:                        '^CLOUD_NETCONFIG_MANAGE='
+        line:                          CLOUD_NETCONFIG_MANAGE='no'
       tags:
         - cloudnetmanage
 
-    - name:                                "1.17 Generic Pacemaker - Ensure the Primary Node public key is authorized on all nodes, required for crm_clustering"
+    - name:                            "1.17 Generic Pacemaker - Ensure the Primary Node public key is authorized on all nodes, required for crm_clustering"
       ansible.posix.authorized_key:
-        user:                              root
-        key:                               "{{ hostvars[primary_instance_name].cluster_public_ssh_key }}"
-      when:                                ansible_hostname != primary_instance_name
+        user:                          root
+        key:                           "{{ hostvars[primary_instance_name].cluster_public_ssh_key }}"
+      when:                            ansible_hostname != primary_instance_name
 
-    - name:                                "1.17 Generic Pacemaker - Ensure the Secondary Node public key is authorized on all nodes, required for crm_clustering"
+    - name:                            "1.17 Generic Pacemaker - Ensure the Secondary Node public key is authorized on all nodes, required for crm_clustering"
       ansible.posix.authorized_key:
-        user:                              root
-        key:                               "{{ hostvars[secondary_instance_name].cluster_public_ssh_key }}"
-      when:                                ansible_hostname != secondary_instance_name
+        user:                          root
+        key:                           "{{ hostvars[secondary_instance_name].cluster_public_ssh_key }}"
+      when:                            ansible_hostname != secondary_instance_name
 
-    - name:                                1.17 Generic Pacemaker - Ensure trust relationship is working from primary to secondary
-      ansible.builtin.command:             ssh -oStrictHostKeyChecking=no {{ secondary_instance_name }} "hostname -s"
-      register:                            primary_to_secondary_ssh_result
-      changed_when:                        false
-      failed_when:                         primary_to_secondary_ssh_result.stdout_lines[0] != secondary_instance_name
-      when:                                ansible_hostname == primary_instance_name
+    - name:                            1.17 Generic Pacemaker - Ensure trust relationship is working from primary to secondary
+      ansible.builtin.command:         ssh -oStrictHostKeyChecking=no {{ secondary_instance_name }} "hostname -s"
+      register:                        primary_to_secondary_ssh_result
+      changed_when:                    false
+      failed_when:                     primary_to_secondary_ssh_result.stdout_lines[0] != secondary_instance_name
+      when:                            ansible_hostname == primary_instance_name
 
-    - name:                                1.17 Generic Pacemaker - Ensure trust relationship is working from secondary to primary"
-      ansible.builtin.command:             ssh -oStrictHostKeyChecking=no {{ primary_instance_name }} "hostname -s"
-      register:                            secondary_to_primary_ssh_result
-      changed_when:                        false
-      failed_when:                         secondary_to_primary_ssh_result.stdout_lines[0] != primary_instance_name
-      when:                                ansible_hostname == secondary_instance_name
+    - name:                            1.17 Generic Pacemaker - Ensure trust relationship is working from secondary to primary"
+      ansible.builtin.command:         ssh -oStrictHostKeyChecking=no {{ primary_instance_name }} "hostname -s"
+      register:                        secondary_to_primary_ssh_result
+      changed_when:                    false
+      failed_when:                     secondary_to_primary_ssh_result.stdout_lines[0] != primary_instance_name
+      when:                            ansible_hostname == secondary_instance_name
   when: ansible_os_family | upper == "SUSE"
 
 # Clustering commands are based on the Host OS

@@ -1,0 +1,41 @@
+# Install the DSC modules
+- name:                                "Ensure DSC modules are installed"
+  community.windows.win_psmodule:
+    name:                              SecurityPolicyDsc
+    state:                             present
+
+- name:                                "WIN: Calculating the domain value from {{ domain_name }}"
+  ansible.builtin.set_fact:
+    domain:                            "{{ domain_name | split('.') | first }}"
+    cacheable:                         true
+  when:
+    - domain_name is defined
+    - domain_name | type_debug != 'NoneType'
+    - domain_name | trim | length > 1
+    - domain is not defined
+
+
+- name:                                "Assign Local Security Policies for {{ sap_sid }}adm"
+  ansible.windows.win_dsc:
+    resource_name:                     UserRightsAssignment
+    Policy:                            "{{ item }}"
+    Identity:                          '{{ sap_sid }}adm@{{ domain_name }}'
+  loop:
+    - Act_as_part_of_the_operating_system
+    - Adjust_memory_quotas_for_a_process
+    - Replace_a_process_level_token
+    - Allow_log_on_through_Remote_Desktop_Services
+    - Allow_log_on_locally
+    - Enable_computer_and_user_accounts_to_be_trusted_for_delegation
+  notify:                                   reboot
+
+- name:                                "Assign Local Security Policies for sap_services_sid"
+  ansible.windows.win_dsc:
+    resource_name:                     UserRightsAssignment
+    Policy:                            "{{ item }}"
+    Identity:                          '{{ domain }}\SAPService{{ sap_sid | upper }}'
+  loop:
+    - Deny_log_on_through_Remote_Desktop_Services
+    - Deny_log_on_locally
+    - Restore_files_and_directories
+  notify:                              reboot

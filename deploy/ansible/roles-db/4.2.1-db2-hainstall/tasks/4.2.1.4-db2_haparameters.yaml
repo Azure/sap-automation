@@ -77,7 +77,7 @@
             db2 update db cfg for {{ db_sid }} using HADR_LOCAL_SVC {{ db_sid | upper }}_HADR_1 immediate
             db2 update db cfg for {{ db_sid }} using HADR_REMOTE_HOST {{ db_hadr_remote_host }} immediate
             db2 update db cfg for {{ db_sid }} using HADR_REMOTE_SVC {{ db_sid | upper }}_HADR_2 immediate
-            db2 update db cfg for {{ db_sid }} using HADR_REMOTE_INST db2{{ db_sid | lower  }} immediate
+            db2 update db cfg for {{ db_sid }} using HADR_REMOTE_INST db2{{ db_sid | lower }} immediate
             db2 update db cfg for {{ db_sid }} using HADR_TIMEOUT 45 immediate
             db2 update db cfg for {{ db_sid }} using HADR_SYNCMODE NEARSYNC immediate
             db2 update db cfg for {{ db_sid }} using HADR_SPOOL_LIMIT 1000 immediate
