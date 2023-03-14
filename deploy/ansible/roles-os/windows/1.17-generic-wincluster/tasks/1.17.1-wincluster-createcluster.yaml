@@ -142,12 +142,12 @@
 
     - name:                            "WinCluster-Create: Fail here on purpose"
       ansible.builtin.fail:
-        msg:                           "Cluster Shared disk number is {{ clu_shared_disk_number }}"
+        msg:                           "Cluster Shared disk number is {{ clu_shared_disk_number.output[0] }}"
 
     - name:                            "WinCluster-Create: Initialize shared disk resource"
       ansible.windows.win_dsc:
         resource_name:                 ClusterDisk
-        number:                        "{{ clu_shared_disk_number.output[0] }}"
+        number:                        "{{ clu_shared_disk_number.output }}"
         Label:                         "{{ disk_label }}"
         Ensure:                        "Present"
         PsDscRunAsCredential_username: "{{ domain_service_account }}@{{ domain_name }}"
