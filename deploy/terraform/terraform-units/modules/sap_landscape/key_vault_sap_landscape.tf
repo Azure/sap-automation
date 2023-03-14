@@ -55,23 +55,6 @@ resource "azurerm_key_vault" "kv_user" {
 
 }
 
-
-data "azurerm_private_dns_a_record" "kv_user" {
-  provider            = azurerm.dnsmanagement
-  count               = var.use_private_endpoint && length(var.keyvault_private_endpoint_id) > 0 ? 1 : 0
-  name                = lower(local.user_keyvault_name)
-  zone_name           = "privatelink.vaultcore.azure.net"
-  resource_group_name = var.management_dns_resourcegroup_name
-}
-
-#Errors can occure when the dns record has not properly been activated, add a wait timer to give
-#it just a little bit more time
-resource "time_sleep" "wait_for_dns_refresh" {
-  create_duration = "120s"
-
-  depends_on = [azurerm_private_dns_a_record.kv_user]
-}
-
 // Import an existing user Key Vault
 data "azurerm_key_vault" "kv_user" {
   provider            = azurerm.main
