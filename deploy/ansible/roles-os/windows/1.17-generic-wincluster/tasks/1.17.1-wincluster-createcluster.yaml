@@ -97,7 +97,7 @@
     - name:                            "WinCluster-Create: Get shared disk resource"
       ansible.windows.win_powershell:
         script: |
-                                       "Get-Disk | Where-Object PartitionStyle -eq 'RAW' | Select-Object -ExpandProperty Number -First 1"
+                                       Get-Disk | Where-Object PartitionStyle -eq 'RAW' | Select-Object -ExpandProperty Number -First 1
       register:                        shared_disk_number
 
     - name:                            "WinCluster-Create: Print the shared disk number"
@@ -129,7 +129,7 @@
     - name:                           "WinCluster-Create: Get shared disk resource"
       ansible.windows.win_powershell:
         script: |
-                                       "Get-ClusterAvailableDisk -All | Select-Object -ExpandProperty Number -First 1"
+                                       Get-ClusterAvailableDisk -All | Select-Object -ExpandProperty Number -First 1
       register:                        shared_disk_number
 
     - name:                            "WinCluster-Create: Initialize shared disk resource"
