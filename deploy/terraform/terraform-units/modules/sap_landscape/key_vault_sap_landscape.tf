@@ -130,8 +130,7 @@ resource "azurerm_key_vault_secret" "sid_ppk" {
   provider = azurerm.main
   depends_on = [
     azurerm_key_vault_access_policy.kv_user,
-    azurerm_role_assignment.role_assignment_spn,
-    time_sleep.wait_for_private_endpoints
+    azurerm_role_assignment.role_assignment_spn
   ]
   count        = !local.sid_key_exist ? 1 : 0
   content_type = ""
@@ -151,8 +150,7 @@ resource "azurerm_key_vault_secret" "sid_pk" {
   provider = azurerm.main
   depends_on = [
     azurerm_key_vault_access_policy.kv_user,
-    azurerm_role_assignment.role_assignment_spn,
-    time_sleep.wait_for_private_endpoints
+    azurerm_role_assignment.role_assignment_spn
   ]
   count        = !local.sid_key_exist ? 1 : 0
   content_type = ""
@@ -175,7 +173,6 @@ resource "azurerm_key_vault_secret" "sid_username" {
   depends_on = [
     azurerm_key_vault_access_policy.kv_user,
     azurerm_role_assignment.role_assignment_spn,
-    time_sleep.wait_for_private_endpoints
   ]
   count        = (!local.sid_credentials_secret_exist) ? 1 : 0
   content_type = ""
@@ -195,8 +192,7 @@ resource "azurerm_key_vault_secret" "sid_password" {
   provider = azurerm.main
   depends_on = [
     azurerm_key_vault_access_policy.kv_user,
-    azurerm_role_assignment.role_assignment_spn,
-    time_sleep.wait_for_private_endpoints
+    azurerm_role_assignment.role_assignment_spn
   ]
   count        = (!local.sid_credentials_secret_exist) ? 1 : 0
   name         = local.sid_password_secret_name
@@ -218,8 +214,7 @@ resource "azurerm_key_vault_secret" "witness_access_key" {
   provider = azurerm.main
   depends_on = [
     azurerm_key_vault_access_policy.kv_user,
-    azurerm_role_assignment.role_assignment_spn,
-    time_sleep.wait_for_private_endpoints
+    azurerm_role_assignment.role_assignment_spn
   ]
   count        = 1
   content_type = ""
@@ -247,8 +242,7 @@ resource "azurerm_key_vault_secret" "witness_name" {
   provider = azurerm.main
   depends_on = [
     azurerm_key_vault_access_policy.kv_user,
-    azurerm_role_assignment.role_assignment_spn,
-    time_sleep.wait_for_private_endpoints
+    azurerm_role_assignment.role_assignment_spn
   ]
   count        = 1
   content_type = ""
@@ -302,8 +296,7 @@ resource "azurerm_key_vault_access_policy" "kv_user_msi" {
 resource "azurerm_key_vault_secret" "deployer_keyvault_user_name" {
   provider = azurerm.main
   depends_on = [
-    azurerm_key_vault_access_policy.kv_user,
-    time_sleep.wait_for_private_endpoints
+    azurerm_key_vault_access_policy.kv_user
   ]
   content_type = ""
   name         = "deployer-kv-name"
