@@ -94,24 +94,24 @@
     - ansible_hostname == primary_node
   block:
     # We expect to see only one disk added, so get the first disk number.
-    # - name:                            "WinCluster-Create: Get shared disk resource"
-    #   ansible.windows.win_powershell:
-    #     script: |
-    #                                    Get-Disk | Where-Object PartitionStyle -eq 'RAW' | Select-Object -ExpandProperty Number -First 1
-    #   register:                        shared_disk
+    - name:                            "WinCluster-Create: Get shared disk resource"
+      ansible.windows.win_powershell:
+        script: |
+                                       Get-Disk | Where-Object PartitionStyle -eq 'RAW' | Select-Object -ExpandProperty Number -First 1
+      register:                        shared_disk
 
-    # - name:                            "WinCluster-Create: Set Shared disk number fact"
-    #   ansible.builtin.set_fact:
-    #     shared_disk_number:            "{{ shared_disk.output[0] }}"
-    #     cacheable:                     true
-    #   when:
-    #     - shared_disk is defined
-    #     - shared_disk | type_debug != 'NoneType'
-    #     - shared_disk | trim | length > 1
+    - name:                            "WinCluster-Create: Set Shared disk number fact"
+      ansible.builtin.set_fact:
+        shared_disk_number:            "{{ shared_disk.output[0] }}"
+        cacheable:                     true
+      when:
+        - shared_disk is defined
+        - shared_disk | type_debug != 'NoneType'
+        - shared_disk | trim | length > 1
 
-    # - name:                            "WinCluster-Create: Print the shared disk number"
-    #   ansible.builtin.debug:
-    #     msg:                          "Shared disk number is {{ shared_disk_number }}"
+    - name:                            "WinCluster-Create: Print the shared disk number"
+      ansible.builtin.debug:
+        msg:                          "Shared disk number is {{ shared_disk_number }}"
 
 
     - name:                            "WinCluster-Create: Create disk label"
@@ -119,15 +119,15 @@
         disk_label:                    "{{ sap_sid | upper }}SharedDisk"
         cacheable:                     true
 
-    # # PartitionStyle defaults to GPT, so not passing it along
-    # - name:                            "WinCluster-Create: Format the shared Disk"
-    #   ansible.windows.win_dsc:
-    #     resource_name:                 Disk
-    #     DiskId:                        "{{ shared_disk_number }}"
-    #     DriveLetter:                   "{{ shared_disk_drive_letter }}"
-    #     FSFormat:                      "ReFS"
-    #     FSLabel:                       "{{ disk_label }}"
-    #     AllocationUnitSize:            "4096"
+    # PartitionStyle defaults to GPT, so not passing it along
+    - name:                            "WinCluster-Create: Format the shared Disk"
+      ansible.windows.win_dsc:
+        resource_name:                 Disk
+        DiskId:                        "{{ shared_disk_number }}"
+        DriveLetter:                   "{{ shared_disk_drive_letter }}"
+        FSFormat:                      "ReFS"
+        FSLabel:                       "{{ disk_label }}"
+        AllocationUnitSize:            "4096"
 
     # Get the disk number using cluster cmdlets
     # Note: If the disk is already in the cluster. we need to be careful
