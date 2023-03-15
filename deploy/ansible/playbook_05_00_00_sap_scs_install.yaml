@@ -590,9 +590,9 @@
                 domain_service_password:      "{{ hostvars.localhost.adsvc_password }}"
                 witness_storage_account_name: "{{ hostvars.localhost.witness_storage_account_name }}"
                 witness_storage_account_key:  "{{ hostvars.localhost.witness_storage_account_key }}"
-                sapbits_location_base_path: "{{ hostvars.localhost.sapbits_location_base_path }}"
-                sapbits_sas_token:          "{{ hostvars.localhost.sapbits_sas_token }}"
-                sa_enabled:                 true
+                sapbits_location_base_path:   "{{ hostvars.localhost.sapbits_location_base_path }}"
+                sapbits_sas_token:            "{{ hostvars.localhost.sapbits_sas_token }}"
+                sa_enabled:                   true
                 primary_node:                 "{{ ansible_play_hosts_all[0] }}"
                 secondary_node:               "{{ ansible_play_hosts_all[1] }}"
                 primary_node_ip_scs:          "{{ hostvars[ansible_play_hosts_all[0]]['ansible_eth0']['ipv4']['address'] }}"

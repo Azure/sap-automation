@@ -154,6 +154,9 @@ win_sql_svc_account:                    'NT SERVICE\MSSQLSERVER'
 win_sqlagent_svc_account:               'NT Service\SQLSERVERAGENT'
 win_cluster_svc_account:                'NT SERVICE\ClusSvc'
 
+# "CSD"  if you are using the cluster shared drive or Choose "FS" if you are using the File Share.
+win_cluster_share_type:                     'CSD'
+
 # ------------------- Begin - SAP SWAP settings variables --------------------8
 sap_swap:
   - { tier: "scs",                swap_size_mb: "4096"  }

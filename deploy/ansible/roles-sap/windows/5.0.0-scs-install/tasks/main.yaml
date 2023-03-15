@@ -26,7 +26,6 @@
 - name:                                Get the SCS Server name list
   ansible.builtin.set_fact:
     scs_server_temp: "{{ scs_server_temp | default([]) + [item] }}"
-
   with_items:
     - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') }}"
     - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
@@ -34,6 +33,15 @@
 - name:                                "Set the SCS Server name"
   ansible.builtin.set_fact:
     scs_server: "{{ hostvars[scs_server_temp | first]['virtual_host'] }}"
+  when:
+    - not scs_high_availability
+
+- name:                                "5.6 SCSERS - Set the SCS and ERS Virtual Instance hostname"
+  ansible.builtin.set_fact:
+    scs_virtual_hostname:              "{{ sap_sid | lower }}scs{{ scs_instance_number }}cl1"
+    ers_virtual_hostname:              "{{ sap_sid | lower }}ers{{ ers_instance_number }}cl2"
+  when:
+    - scs_high_availability
 
 - name:                                "SCS Install: Set BOM facts"
   ansible.builtin.set_fact:
@@ -134,6 +142,9 @@
         name:                         roles-os/windows/1.17-generic-wincluster
         tasks_from:                   main
       register:                       cluster_output
+      vars:
+        scs_cluster_hostname:         "{{ scs_virtual_hostname }}"
+        ers_cluster_hostname:         "{{ ers_virtual_hostname }}"
 
     - name:                           "SCS Install: High availability flag"
       ansible.windows.win_file:
@@ -208,10 +219,11 @@
 - name:                                "SCS Install"
   block:
 
-# *====================================4=======================================8
-# |  SAP SCS: Install                                                          |
-# | 2230669 - System Provisioning Using a Parameter Input File                 |
-# *====================================4=======================================8
+    # *====================================4=======================================8
+    # |  SAP SCS: Install                                                          |
+    # | 2230669 - System Provisioning Using a Parameter Input File                 |
+    # *====================================4=======================================8
+
     - name:                            "SCS Install: Progress"
       ansible.builtin.debug:
         msg:                           "Start SCS Installation media extraction"
@@ -322,6 +334,23 @@
         - scs_installation.rc == 0
         - scs_installed_according_to_sapinst is defined
         - scs_installed_according_to_sapinst.matched > 0
+
+    - name:                                "SCS Install: High availability tasks"
+      when:
+        - "'scs' in supported_tiers "
+        - scs_high_availability
+        - scs_installation.rc == 0
+        - scs_installed_according_to_sapinst.matched > 0
+        - ansible_os_family | upper == 'WINDOWS'
+      block:
+        - name:                           "SCS Install: High availability post installation tasks"
+          ansible.builtin.import_role:
+            name:                         roles-os/windows/1.17-generic-wincluster
+            tasks_from:                   1.17.2-wincluster-postconfig.yaml
+          register:                       cluster_post_config_output
+          vars:
+            scs_cluster_hostname:         "{{ scs_virtual_hostname }}"
+            ers_cluster_hostname:         "{{ ers_virtual_hostname }}"
 
   when:
     - "'scs' in supported_tiers"
