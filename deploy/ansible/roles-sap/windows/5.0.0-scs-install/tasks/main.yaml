@@ -34,7 +34,7 @@
   ansible.builtin.set_fact:
     scs_server:                        "{{ hostvars[scs_server_temp | first]['virtual_host'] }}"
     ha_identifier:                     ""
-
+    dir_params:                        '{{ tmp_directory_windows }}\{{ sid_to_be_deployed.sid | lower }}-params'
 
 - name:                                "5.6 SCSERS - Set the SCS and ERS Virtual Instance hostname"
   ansible.builtin.set_fact:
