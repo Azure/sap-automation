@@ -74,7 +74,7 @@ resource "azurerm_private_endpoint" "storage_bootdiag" {
     var.naming.resource_prefixes.storage_private_link_diag,
     local.prefix,
     local.resource_suffixes.storage_private_link_diag,
-    var.naming.resource_prefixes.nic
+    var.naming.resource_suffixes.nic
   )
 
   resource_group_name = local.rg_name
@@ -418,7 +418,7 @@ resource "azurerm_private_endpoint" "transport" {
     var.naming.resource_prefixes.storage_private_link_transport,
     local.prefix,
     local.resource_suffixes.storage_private_link_transport,
-    var.naming.resource_prefixes.nic
+    var.naming.resource_suffixes.nic
   )
 
   resource_group_name = local.rg_name
@@ -615,7 +615,7 @@ resource "azurerm_private_endpoint" "install" {
     var.naming.resource_prefixes.storage_private_link_install,
     local.prefix,
     local.resource_suffixes.storage_private_link_install,
-    var.naming.resource_prefixes.nic
+    var.naming.resource_suffixes.nic
   )
 
   resource_group_name = local.rg_name

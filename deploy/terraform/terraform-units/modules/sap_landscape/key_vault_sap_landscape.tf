@@ -369,8 +369,8 @@ resource "azurerm_private_endpoint" "kv_user" {
       local.prefix) : (
       var.infrastructure.environment
     ),
-    local.resource_suffixes.keyvault_private_link,
-    var.naming.resource_prefixes.nic
+    var.naming.resource_suffixes.keyvault_private_link,
+    var.naming.resource_suffixes.nic
   )
 
   private_service_connection {
