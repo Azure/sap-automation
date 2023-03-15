@@ -27,6 +27,7 @@ resource "azurerm_storage_account" "storage_bootdiag" {
   enable_https_traffic_only       = true
   min_tls_version                 = "TLS1_2"
   allow_nested_items_to_be_public = false
+  storage_use_azuread             = true
 
   lifecycle {
     ignore_changes = [tags]
@@ -135,6 +136,7 @@ resource "azurerm_storage_account" "witness_storage" {
   enable_https_traffic_only       = true
   min_tls_version                 = "TLS1_2"
   allow_nested_items_to_be_public = false
+  storage_use_azuread             = true
 
   lifecycle {
     ignore_changes = [tags]
@@ -347,8 +349,8 @@ data "azurerm_private_dns_a_record" "transport" {
 resource "azurerm_storage_share" "transport" {
   provider = azurerm.main
   count = var.NFS_provider == "AFS" ? (
-    length(var.transport_storage_account_id) > 0   ? (
-      var.install_always_create_fileshares ? 1 : 0 ) : (
+    length(var.transport_storage_account_id) > 0 ? (
+      var.install_always_create_fileshares ? 1 : 0) : (
       1
     )) : (
     0
@@ -629,8 +631,8 @@ resource "azurerm_private_endpoint" "install" {
 resource "azurerm_storage_share" "install" {
   provider = azurerm.main
   count = var.NFS_provider == "AFS" ? (
-    length(var.install_storage_account_id) > 0   ? (
-      var.install_always_create_fileshares ? 1 : 0 ) : (
+    length(var.install_storage_account_id) > 0 ? (
+      var.install_always_create_fileshares ? 1 : 0) : (
       1
     )) : (
     0
@@ -653,14 +655,14 @@ resource "azurerm_storage_share" "install" {
 resource "azurerm_storage_share" "install_smb" {
   provider = azurerm.main
   count = var.NFS_provider == "AFS" ? (
-    length(var.install_storage_account_id) > 0   ? (
-      var.install_always_create_fileshares ? 1 : 0 ) : (
+    length(var.install_storage_account_id) > 0 ? (
+      var.install_always_create_fileshares ? 1 : 0) : (
       1
     )) : (
     0
   )
 
-  name                 = format("%s", local.resource_suffixes.install_volume_smb)
+  name = format("%s", local.resource_suffixes.install_volume_smb)
   storage_account_name = var.NFS_provider == "AFS" ? (
     length(var.install_storage_account_id) > 0 ? (
       split("/", var.install_storage_account_id)[8]
@@ -669,7 +671,7 @@ resource "azurerm_storage_share" "install_smb" {
     )) : (
     ""
   )
-  enabled_protocol     = "SMB"
+  enabled_protocol = "SMB"
 
   quota = var.install_volume_size
 }
