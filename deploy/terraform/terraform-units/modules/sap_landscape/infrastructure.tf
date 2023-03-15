@@ -119,6 +119,9 @@ resource "azurerm_virtual_network_peering" "peering_sap_management" {
 resource "azurerm_route_table" "rt" {
   provider = azurerm.main
   count    = local.vnet_sap_exists ? 0 : 1
+  depends_on = [
+    azurerm_virtual_network.vnet_sap
+  ]
   name = format("%s%s%s%s",
     var.naming.resource_prefixes.routetable,
     local.prefix,
@@ -162,6 +165,9 @@ resource "azurerm_route" "admin" {
 
 resource "azurerm_private_dns_zone_virtual_network_link" "vnet_sap" {
   provider = azurerm.dnsmanagement
+  depends_on = [
+    azurerm_virtual_network.vnet_sap
+  ]
   count    = local.use_Azure_native_DNS ? 1 : 0
   name = format("%s%s%s%s",
     var.naming.resource_prefixes.dns_link,
@@ -180,6 +186,9 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vnet_sap" {
 resource "azurerm_private_dns_zone_virtual_network_link" "vnet_sap_file" {
   provider = azurerm.dnsmanagement
   count    = local.use_Azure_native_DNS ? 1 : 0
+  depends_on = [
+    azurerm_virtual_network.vnet_sap
+  ]
   name = format("%s%s%s%s-file",
     var.naming.resource_prefixes.dns_link,
     local.prefix,
@@ -203,6 +212,9 @@ data "azurerm_private_dns_zone" "file" {
 
 resource "azurerm_private_dns_zone_virtual_network_link" "storage" {
   provider = azurerm.dnsmanagement
+  depends_on = [
+    azurerm_virtual_network.vnet_sap
+  ]
   count    = local.use_Azure_native_DNS ? 1 : 0
   name = format("%s%s%s%s-blob",
     var.naming.resource_prefixes.dns_link,
@@ -226,6 +238,9 @@ data "azurerm_private_dns_zone" "storage" {
 
 resource "azurerm_private_dns_zone_virtual_network_link" "vault" {
   provider = azurerm.dnsmanagement
+  depends_on = [
+    azurerm_virtual_network.vnet_sap
+  ]
   count    = local.use_Azure_native_DNS ? 1 : 0
   name = format("%s%s%s%s",
     var.naming.resource_prefixes.dns_link,
