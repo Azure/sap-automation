@@ -406,6 +406,8 @@ version_parameter=""
 
 export TF_DATA_DIR="${param_dirname}/.terraform"
 
+terraform --version
+
 check_output=0
 if [ -f terraform.tfstate ]; then
 
