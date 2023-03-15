@@ -70,6 +70,13 @@ resource "azurerm_private_endpoint" "storage_bootdiag" {
     local.prefix,
     local.resource_suffixes.storage_private_link_diag
   )
+  custom_network_interface_name = format("%s%s%s%s",
+    var.naming.resource_prefixes.storage_private_link_diag,
+    local.prefix,
+    local.resource_suffixes.storage_private_link_diag,
+    var.naming.resource_prefixes.nic
+  )
+
   resource_group_name = local.rg_name
   location            = local.resource_group_exists ? data.azurerm_resource_group.resource_group[0].location : azurerm_resource_group.resource_group[0].location
   subnet_id           = local.application_subnet_existing ? local.application_subnet_arm_id : azurerm_subnet.app[0].id
@@ -200,6 +207,14 @@ resource "azurerm_private_endpoint" "witness_storage" {
     local.prefix,
     local.resource_suffixes.storage_private_link_witness
   )
+
+  custom_network_interface_name = format("%s%s%s%s",
+    var.naming.resource_prefixes.storage_private_link_witness,
+    local.prefix,
+    local.resource_suffixes.storage_private_link_witness,
+    local.resource_suffixes.nic
+  )
+
   resource_group_name = local.rg_name
   location = local.resource_group_exists ? (
     data.azurerm_resource_group.resource_group[0].location) : (
@@ -399,6 +414,12 @@ resource "azurerm_private_endpoint" "transport" {
     local.prefix,
     local.resource_suffixes.storage_private_link_transport
   )
+  custom_network_interface_name = format("%s%s%s%s",
+    var.naming.resource_prefixes.storage_private_link_transport,
+    local.prefix,
+    local.resource_suffixes.storage_private_link_transport,
+    var.naming.resource_prefixes.nic
+  )
 
   resource_group_name = local.rg_name
   location = local.resource_group_exists ? (
@@ -590,6 +611,13 @@ resource "azurerm_private_endpoint" "install" {
     local.prefix,
     local.resource_suffixes.storage_private_link_install
   )
+  custom_network_interface_name = format("%s%s%s%s",
+    var.naming.resource_prefixes.storage_private_link_install,
+    local.prefix,
+    local.resource_suffixes.storage_private_link_install,
+    var.naming.resource_prefixes.nic
+  )
+
   resource_group_name = local.rg_name
   location = local.resource_group_exists ? (
     data.azurerm_resource_group.resource_group[0].location) : (
