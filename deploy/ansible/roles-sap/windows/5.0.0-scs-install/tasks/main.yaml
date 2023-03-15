@@ -32,21 +32,17 @@
 
 - name:                                "Set the SCS Server name"
   ansible.builtin.set_fact:
-    scs_server: "{{ hostvars[scs_server_temp | first]['virtual_host'] }}"
+    scs_server:                        "{{ hostvars[scs_server_temp | first]['virtual_host'] }}"
+    ha_identifier:                     ""
+
 
 - name:                                "5.6 SCSERS - Set the SCS and ERS Virtual Instance hostname"
   ansible.builtin.set_fact:
     scs_virtual_hostname:              "{{ sap_sid | lower }}scs{{ scs_instance_number }}cl1"
     ers_virtual_hostname:              "{{ sap_sid | lower }}ers{{ ers_instance_number }}cl2"
+    ha_identifier:                     "_ha"
   when:
     - scs_high_availability
-
-- name:                                "SCS Install: Set BOM facts"
-  ansible.builtin.set_fact:
-    sap_inifile:                       "{{ bom_base_name }}-scs-{{ sid_to_be_deployed.sid | lower }}-{{ ansible_hostname }}.params"
-    sap_inifile_template:              "{{ bom_base_name }}{{ bom_suffix }}-scs-inifile-param.j2"
-    dir_params:                        '{{ tmp_directory_windows }}\{{ sid_to_be_deployed.sid | lower }}-params'
-    product_catalog:                   '{{ download_directory_windows }}\SWPM\product.catalog'
 
 - name:                                "SCS Install: Create run flag directory"
   ansible.windows.win_file:
@@ -160,6 +156,25 @@
     task_prefix:                       "SCS Install: "
     sa_enabled:                        true
 
+- name:                                "SCS Install: Set BOM facts"
+  ansible.builtin.set_fact:
+    sap_inifile:                       "{{ bom_base_name }}-scs-{{ sid_to_be_deployed.sid | lower }}-{{ ansible_hostname }}.params"
+    sap_inifile_template:              "{{ bom_base_name }}{{ bom_suffix }}-scs{{ ha_identifier }}-inifile-param.j2"
+    dir_params:                        '{{ tmp_directory_windows }}\{{ sid_to_be_deployed.sid | lower }}-params'
+    product_catalog:                   '{{ download_directory_windows }}\SWPM\product.catalog'
+    product_id:                        "{% if scs_high_availability %}{{ bom.product_ids.scs_ha }}{% else %}{{ bom.product_ids.scs }}{% endif %}"
+  when: ansible_hostname == primary_node
+
+- name:                                "SCS Install: Set BOM facts"
+  ansible.builtin.set_fact:
+    sap_inifile:                       "{{ bom_base_name }}-ers-{{ sid_to_be_deployed.sid | lower }}-{{ ansible_hostname }}.params"
+    sap_inifile_template:              "{{ bom_base_name }}{{ bom_suffix }}-ers-inifile-param.j2"
+    dir_params:                        '{{ tmp_directory_windows }}\{{ sid_to_be_deployed.sid | lower }}-params'
+    product_catalog:                   '{{ download_directory_windows }}\SWPM\product.catalog'
+    product_id:                        '{{ bom.product_ids.ers }}'
+  when: ansible_hostname == secondary_node
+
+- name
 - name:                                "SCS Install: Include roles-sap/windows/3.3.1-bom-utility role"
   ansible.builtin.include_role:
     name:                              roles-sap/windows/3.3.1-bom-utility
@@ -194,7 +209,7 @@
     msg:
       - "INSTALLED:  {{ scs_installed.stat.exists }}"
       - "INIFILE:    {{ sap_inifile }}"
-      - "PRODUCT ID: {{ bom.product_ids.scs }}"
+      - "PRODUCT ID: {{ product_id }}"
       - "INSTANCE:   {{ sid_to_be_deployed.ascs_inst_no }}"
       - "MEDIA:      {{ sap_drive }}"
       - "HOST:       {{ virtual_host }}"
@@ -252,7 +267,7 @@
           become_user:                 '{{ sap_sid }}adm@{{ domain_name }}'
           ansible.windows.win_shell: |
                                        {{ download_directory_windows }}\sap_extract\sapinst.exe SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}\{{ sap_inifile }}   `
-                                                                                                 SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.scs }}             `
+                                                                                                 SAPINST_EXECUTE_PRODUCT_ID={{ product_id }}             `
                                                                                                  SAPINST_SKIP_DIALOGS=true                                        `
                                                                                                  SAPINST_START_GUI=false                                          `
                                                                                                  SAPINST_CONTROL_URL={{ product_catalog }}                        `
