@@ -15,16 +15,17 @@ resource "azurerm_storage_account" "sapmnt" {
     )) : (
     0
   )
-  name = replace(
+  name = substr(replace(
     lower(
       format("%s%s%s",
         local.prefix,
-        local.resource_suffixes.sapmnt, lower(substr(random_id.random_id.hex, 0, 3))
+        local.resource_suffixes.sapmnt, substr(random_id.random_id.hex, 0, 3)
       )
     ),
     "/[^a-z0-9]/",
     ""
-  )
+  ), 0, 24)
+
   resource_group_name = local.resource_group_exists ? (
     data.azurerm_resource_group.resource_group[0].name) : (
     azurerm_resource_group.resource_group[0].name
