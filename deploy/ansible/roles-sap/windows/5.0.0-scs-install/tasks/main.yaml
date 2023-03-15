@@ -174,7 +174,6 @@
     product_id:                        '{{ bom.product_ids.ers }}'
   when: ansible_hostname == secondary_node
 
-- name
 - name:                                "SCS Install: Include roles-sap/windows/3.3.1-bom-utility role"
   ansible.builtin.include_role:
     name:                              roles-sap/windows/3.3.1-bom-utility
