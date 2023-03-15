@@ -27,7 +27,7 @@ resource "azurerm_storage_account" "storage_bootdiag" {
   enable_https_traffic_only       = true
   min_tls_version                 = "TLS1_2"
   allow_nested_items_to_be_public = false
-  storage_use_azuread             = true
+
 
   lifecycle {
     ignore_changes = [tags]
@@ -136,7 +136,7 @@ resource "azurerm_storage_account" "witness_storage" {
   enable_https_traffic_only       = true
   min_tls_version                 = "TLS1_2"
   allow_nested_items_to_be_public = false
-  storage_use_azuread             = true
+
 
   lifecycle {
     ignore_changes = [tags]
