@@ -363,6 +363,15 @@ resource "azurerm_private_endpoint" "kv_user" {
     azurerm_subnet.app[0].id
   )
 
+  custom_network_interface_name=format("%s%s%s-nic",
+    var.naming.resource_prefixes.keyvault_private_link,
+    length(local.prefix) > 0 ? (
+      local.prefix) : (
+      var.infrastructure.environment
+    ),
+    local.resource_suffixes.keyvault_private_link
+  )
+
   private_service_connection {
     name = format("%s%s%s",
       var.naming.resource_prefixes.keyvault_private_svc,
