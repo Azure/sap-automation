@@ -322,9 +322,9 @@ data "azurerm_private_endpoint_connection" "kv_user" {
 resource "azurerm_private_endpoint" "kv_user" {
   provider = azurerm.main
   depends_on = [
-    azurerm_key_vault_access_policy.kv_user_msi[0],
+    azurerm_key_vault_access_policy.kv_user_msi,
     azurerm_key_vault_access_policy.kv_user,
-    azurerm_private_dns_zone_virtual_network_link.vault[0],
+    azurerm_private_dns_zone_virtual_network_link.vault,
     azurerm_key_vault_secret.sid_ppk,
     azurerm_key_vault_secret.sid_pk,
     azurerm_key_vault_secret.sid_username,

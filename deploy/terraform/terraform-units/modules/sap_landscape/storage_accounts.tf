@@ -573,8 +573,10 @@ resource "azurerm_private_endpoint" "install" {
 
   depends_on = [
     azurerm_subnet.app,
-    azurerm_storage_account.install[0],
-    azurerm_private_dns_zone_virtual_network_link.vnet_sap_file[0]
+    azurerm_storage_account.install,
+    azurerm_private_dns_zone_virtual_network_link.vnet_sap_file,
+    azurerm_storage_share.install,
+    azurerm_storage_share.install_smb
   ]
   count = var.NFS_provider == "AFS" ? (
     length(var.install_private_endpoint_id) > 0 ? (
