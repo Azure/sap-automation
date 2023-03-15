@@ -33,8 +33,6 @@
 - name:                                "Set the SCS Server name"
   ansible.builtin.set_fact:
     scs_server: "{{ hostvars[scs_server_temp | first]['virtual_host'] }}"
-  when:
-    - not scs_high_availability
 
 - name:                                "5.6 SCSERS - Set the SCS and ERS Virtual Instance hostname"
   ansible.builtin.set_fact:
