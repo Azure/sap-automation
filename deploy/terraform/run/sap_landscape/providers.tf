@@ -95,7 +95,7 @@ terraform {
     }
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "~> 3.3"
+      version = "~>3.40.0"
     }
     tls = {
       source = "hashicorp/tls"
