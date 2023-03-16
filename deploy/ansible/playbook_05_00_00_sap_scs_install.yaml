@@ -584,6 +584,7 @@
                 name:              roles-sap/windows/5.0.0-scs-install
               vars:
                 scs_instance_number:          "{{ sid_to_be_deployed.ascs_inst_no }}"
+                main_password:                "{{ hostvars.localhost.sap_password }}"
                 domain_user_password:         "{{ hostvars.localhost.winadm_password }}"
                 svc_password:                 "{{ hostvars.localhost.svcadm_password }}"
                 domain_service_account:       "{{ hostvars.localhost.adsvc_account }}"
