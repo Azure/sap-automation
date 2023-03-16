@@ -217,4 +217,6 @@ step=0
 save_config_var "step" "${deployer_config_information}"
 
 unset TF_DATA_DIR
+
+echo "Return from remove_deployer.sh"
 exit $return_value
