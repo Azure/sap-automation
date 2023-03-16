@@ -172,10 +172,11 @@ fi
 
 terraform -chdir="${terraform_module_directory}"  destroy ${approve} -lock=false -parallelism="${parallelism}" -var-file="${var_file}" $extra_vars | tee -a  destroy_output.json
 return_value=$?
-
+echo "1"
 if [ -f destroy_output.json ]
 then
     errors_occurred=$(jq 'select(."@level" == "error") | length' destroy_output.json)
+    echo "2"
 
     if [[ -n $errors_occurred ]]
     then
