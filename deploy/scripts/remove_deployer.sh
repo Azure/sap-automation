@@ -170,7 +170,7 @@ if [[ -n "${TF_PARALLELLISM}" ]]; then
     parallelism=$TF_PARALLELLISM
 fi
 
-terraform -chdir="${terraform_module_directory}"  destroy ${approve} -lock=false -parallelism="${parallelism}" -var-file="${var_file}" $extra_vars | tee -a  destroy_output.json
+terraform -chdir="${terraform_module_directory}"  destroy ${approve} -lock=false -parallelism="${parallelism}" -json  -var-file="${var_file}" $extra_vars | tee -a  destroy_output.json
 return_value=$?
 echo "1"
 if [ -f destroy_output.json ]
