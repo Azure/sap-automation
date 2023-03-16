@@ -105,13 +105,15 @@
         shared_disk_number:            "{{ shared_disk.output[0] }}"
         cacheable:                     true
       when:
-        - shared_disk is defined
-        - shared_disk | type_debug != 'NoneType'
-        - shared_disk | trim | length > 1
+        - shared_disk.output[0] is defined
+        - shared_disk.output[0] | type_debug != 'NoneType'
+        - shared_disk.output[0] | trim | length > 1
 
     - name:                            "WinCluster-Create: Print the shared disk number"
       ansible.builtin.debug:
         msg:                          "Shared disk number is {{ shared_disk_number }}"
+      when:
+        - shared_disk_number is defined
 
 
     - name:                            "WinCluster-Create: Create disk label"
@@ -128,6 +130,7 @@
         FSFormat:                      "ReFS"
         FSLabel:                       "{{ disk_label }}"
         AllocationUnitSize:            "4096"
+      when: shared_disk_number is defined
 
     # Get the disk number using cluster cmdlets
     # Note: If the disk is already in the cluster. we need to be careful
@@ -143,13 +146,14 @@
         clu_shared_disk_number:         "{{ clu_shared_disk_details.output[0] }}"
         cacheable:                      true
       when:
-        - clu_shared_disk_details is defined
-        - clu_shared_disk_details | type_debug != 'NoneType'
-        - clu_shared_disk_details | trim | length >= 1
+        - clu_shared_disk_details.outptu[0] is defined
+        - clu_shared_disk_details.output[0] | type_debug != 'NoneType'
+        - clu_shared_disk_details.output[0] | trim | length >= 1
 
     - name:                            "WinCluster-Create: print cluster shared disk number"
       ansible.builtin.debug:
         msg:                           "Cluster Shared disk number is {{ clu_shared_disk_number }}"
+      when: clu_shared_disk_number is defined
 
     - name:                            "WinCluster-Create: Initialize shared disk resource"
       ansible.windows.win_dsc:
