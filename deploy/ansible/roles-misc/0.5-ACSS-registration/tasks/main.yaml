@@ -8,8 +8,6 @@
     python_version: "python3"
   when: (ansible_distribution | lower ~ ansible_distribution_major_version) in ['suse15', 'redhat8', 'sles_sap15']
 
-
-
 - name:                                "Determine if SCS is running on {{ ansible_hostname }}"
   become_user:                         "{{ sap_sid | lower }}adm"
   become:                              true
@@ -29,7 +27,7 @@
       when:
         - sapcontrol_file | length > 0
 
-    #{{ sapcontrol_path }} -nr {{ scs_instance_number }} -function GetProcessList | grep MessageServer | awk '{split($0,result,", "); print result[1],result[3] }'
+    # {{ sapcontrol_path }} -nr {{ scs_instance_number }} -function GetProcessList | grep MessageServer | awk '{split($0,result,", "); print result[1],result[3] }'
     - name:                            "Determine if SCS is running on {{ ansible_hostname }}"
       ansible.builtin.command:         "{{ sapcontrol_path }} -nr {{ scs_instance_number }} -function GetProcessList"
       changed_when:                    false
