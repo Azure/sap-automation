@@ -554,15 +554,22 @@ stages:
 
                 if [ 0 == $return_code ] ; then
                   cd $CONFIG_REPO_PATH
+                  ls
                   changed=0
                   echo "##vso[build.updatebuildnumber]Removing control plane $(deployer_folder) $(library_folder)"
+                    if [ -f "DEPLOYER/$(deployer_folder)/.terraform/terraform.tfstate" ]; then
+                      git rm -q -f --ignore-unmatch DEPLOYER/$(deployer_folder)/.terraform/terraform.tfstate
+                      changed=1
+                    fi
+
+
                     if [ -d "DEPLOYER/$(deployer_folder)/.terraform" ]; then
                       git rm -q -r  --ignore-unmatch DEPLOYER/$(deployer_folder)/.terraform
                       changed=1
                     fi
 
                     if [ -f "DEPLOYER/$(deployer_folder)/state.zip" ]; then
-                      git rm -q  --ignore-unmatch DEPLOYER/$(deployer_folder)/state.zip
+                      git rm -q -f --ignore-unmatch DEPLOYER/$(deployer_folder)/state.zip
                       changed=1
                     fi
 
@@ -572,7 +579,7 @@ stages:
                     fi
 
                     if [ -f LIBRARY/$(library_folder)/state.zip ]; then
-                      git rm -q  --ignore-unmatch LIBRARY/$(library_folder)/state.zip
+                      git rm -q -f --ignore-unmatch LIBRARY/$(library_folder)/state.zip
                       changed=1
                     fi
 
