@@ -36,7 +36,6 @@ parameters:
 
 stages:
   - stage:                             Remove_control_plane_remote
-    condition:                         false   # and(not(failed()), not(canceled()))
     displayName:                       "Control plane removal (on agent)"
     variables:
       - template:                      variables/12-remove-control-plane-variables.yaml
