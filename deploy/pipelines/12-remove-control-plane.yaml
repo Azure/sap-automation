@@ -554,7 +554,6 @@ stages:
 
                 if [ 0 == $return_code ] ; then
                   cd $CONFIG_REPO_PATH
-                  ls
                   changed=0
                   echo "##vso[build.updatebuildnumber]Removing control plane $(deployer_folder) $(library_folder)"
                     if [ -f "DEPLOYER/$(deployer_folder)/.terraform/terraform.tfstate" ]; then
