@@ -520,11 +520,14 @@ stages:
                   key_vault=$(cat ${deployer_environment_file_name} | grep keyvault= -m1 | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer Key Vault' ${key_vault}
                 fi
 
+                key_vault_id=$(az resource list --name "${key_vault}"  --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
+                if [ -n "${key_vault_id}" ]; then
 
-                if [ "azure pipelines" = "$(this_agent)" ]; then
-                    this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
-                    az keyvault network-rule add --name ${key_vault} --ip-address ${this_ip} --only-show-errors --output none
-                    ip_added=1
+                  if [ "azure pipelines" = "$(this_agent)" ]; then
+                      this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
+                      az keyvault network-rule add --name ${key_vault} --ip-address ${this_ip} --only-show-errors --output none
+                      ip_added=1
+                  fi
                 fi
 
               echo -e "$green--- Running the remove_deployer script that destroys deployer VM ---$reset"
