@@ -337,7 +337,7 @@ stages:
       name:                             $(Agent)
     dependsOn:
       - Remove_control_plane_remote
-    condition:                          eq(dependencies.Remove_control_plane_remote.result, 'Succeeded')
+    condition:                          in(dependencies.Remove_control_plane_remote.result, 'Succeeded', 'Skipped')
     jobs:
       - job:                            Remove_control_plane
         displayName:                    "Finalize control plane removal"
