@@ -149,7 +149,6 @@
 - name:                                "SCS Install: Execute SAPINST on Central Services node {{ primary_node }}"
   when:
     - "'scs' in supported_tiers "
-    - scs_high_availability
     - ansible_os_family | upper == 'WINDOWS'
   block:
     - name:                                "SCS Install: Include 3.3.1-bom-utility role"
@@ -315,10 +314,10 @@
                 - find_sys_exe_uc_result is defined
                 - find_sys_exe_uc_result | length > 0
 
-        - name:                            "SCS Install: Cleanup ini file {{ ansible_hostname }}"
-          ansible.windows.win_file:
-            path:                          '{{ dir_params }}\{{ sap_inifile }}'
-            state:                         absent
+        #- name:                            "SCS Install: Cleanup ini file {{ ansible_hostname }}"
+          # ansible.windows.win_file:
+          #   path:                          '{{ dir_params }}\{{ sap_inifile }}'
+          #   state:                         absent
 
         - name:                            "SCS Install: Installation Failed"
           ansible.builtin.debug:
