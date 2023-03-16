@@ -132,8 +132,7 @@
             http_agent:                'SAP Software Download'
             timeout:                   60
             mode:                      0644
-          # become:                      "{{ bom_processing_become }}"
-          # become_user:                 root
+          become:                      "{{ bom_processing_become }}"
           register:                    result
           until:                       result is succeeded or not result.changed
           retries:                     2
