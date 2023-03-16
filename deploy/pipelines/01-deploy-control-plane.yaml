@@ -120,11 +120,15 @@ stages:
                                   exit $return_code
                               fi
 
-                              if [ -n "${key_vault}" ]; then
-                                this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
-                                az keyvault network-rule add --name ${key_vault} --ip-address ${this_ip} --only-show-errors --output none
-                              fi
+                              key_vault_id=$(az resource list --name "${key_vault}"  --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
+                              if [ -n "${key_vault_id}" ]; then
 
+                                if [ "azure pipelines" = "$(this_agent)" ]; then
+                                    this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
+                                    az keyvault network-rule add --name ${key_vault} --ip-address ${this_ip} --only-show-errors --output none
+                                    ip_added=1
+                                fi
+                              fi
                               step=0
                             else
                               if [ -f ${deployer_environment_file_name} ]; then
