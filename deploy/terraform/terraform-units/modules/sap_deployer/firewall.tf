@@ -58,7 +58,7 @@ resource "azurerm_firewall" "firewall" {
     data.azurerm_resource_group.deployer[0].location) : (
     azurerm_resource_group.deployer[0].location
   )
-  sku_tier = "Basic"
+  sku_tier = "Standard"
   sku_name = "AZFW_VNet"
 
   ip_configuration {
