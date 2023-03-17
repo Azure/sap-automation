@@ -122,8 +122,9 @@
 
       when:                            not microsoft_supplied_bom.stat.exists
 
-  when:                                result is failed or always_upload_jinja_templates
-
+  when:
+    - result is failed or always_upload_jinja_templates
+    - bom_file not defined
 
 # Validate that BoM was found
 

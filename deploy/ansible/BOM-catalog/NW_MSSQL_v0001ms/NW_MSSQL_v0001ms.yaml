@@ -20,7 +20,7 @@ product_ids:
   app:                          NW_DI:NW750.MSS.PD
   app_ha:                       NW_DI:NW750.MSS.ABAPHA
   web:
-  ers:                          NW_SecondClusterNode:NW750.DB6.ABAP
+  ers:                          NW_SecondClusterNode:NW750.MSS.ABAPHA
   ers_ha:                       NW_SecondClusterNode:NW750.MSS.ABAPHA
 
 materials:

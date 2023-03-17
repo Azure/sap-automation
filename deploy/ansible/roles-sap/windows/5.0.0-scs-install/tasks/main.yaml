@@ -450,6 +450,7 @@
         bom_name:                          "{{ bom_base_name }}"
         tier:                              "ers"
         task_prefix:                       "ERS Install: "
+        always_upload_jinja_templates:     false
         sa_enabled:                        true
 
     - name:                                "ERS Install: BOM Product Ids"
