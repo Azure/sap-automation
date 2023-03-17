@@ -117,6 +117,7 @@
           - "INSTANCE:   {{ web_instance_number }}"
           - "SCSHOST:    {{ scs_server }}"
           - "WHOAMI :    {{ whoami.stdout }}"
+          - "LOCATION:   {{ target_media_location }}/SWPM"
 # *====================================4=======================================8
 #   SAP Web Dispatcher: Install
 # 2230669 - System Provisioning Using a Parameter Input File
