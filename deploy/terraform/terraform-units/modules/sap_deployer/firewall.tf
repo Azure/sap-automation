@@ -39,7 +39,7 @@ resource "azurerm_public_ip" "firewall" {
     azurerm_resource_group.deployer[0].location
   )
   allocation_method = "Static"
-  sku               = "Basic"
+  sku               = "Standard"
 }
 
 resource "azurerm_firewall" "firewall" {
@@ -58,7 +58,7 @@ resource "azurerm_firewall" "firewall" {
     data.azurerm_resource_group.deployer[0].location) : (
     azurerm_resource_group.deployer[0].location
   )
-  sku_tier = "Standard"
+  sku_tier = "Basic"
   sku_name = "AZFW_VNet"
 
   ip_configuration {
