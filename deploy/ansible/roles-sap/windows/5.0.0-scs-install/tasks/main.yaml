@@ -523,7 +523,7 @@
     - name:                                "ERS Install"
       when:
         - "'ers' in supported_tiers"
-        - not ers_already_installed
+        - not ers_installed.stat.exists
       block:
 
         # *====================================4=======================================8
