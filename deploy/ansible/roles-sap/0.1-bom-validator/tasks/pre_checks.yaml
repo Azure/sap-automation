@@ -213,6 +213,7 @@
 # Description:  Ensure download_directory exists
 #
     - name:                            "{{ task_prefix }} - Create BOM download directories"
+      become:                          "{{ bom_processing_become }}"
       ansible.builtin.file:
         path:                          "{{ item.path }}"
         state:                         directory
@@ -223,6 +224,7 @@
         - { mode: '0755', path: '{{ download_directory }}' }
         - { mode: '0755', path: '{{ download_directory }}/tmp' }
         - { mode: '0755', path: '{{ download_directory }}/files' }
+        - { mode: '0755', path: '{{ download_directory }}/bom' }
 
 
 # Step: 07-01 - END
