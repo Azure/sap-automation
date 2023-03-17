@@ -61,7 +61,6 @@
 - hosts:                               "{{ sap_sid | upper }}_WEB"
 
   name:                                SAP Installation - WebDispatcher
-  serial:                              1
   remote_user:                         "{{ orchestration_ansible_user }}"
   become:                              true
   gather_facts:                        true                                    # Important to collect hostvars information

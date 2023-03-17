@@ -25,7 +25,7 @@
     mode:                              '{{ item.mode }}'
   loop:
     - { mode: '0755', path: '{{ dir_params }}' }
-    - { mode: '0755', path: '{{ tmp_directory }}/{{ web_sid | upper }}' }
+    - { mode: '0755', path: '{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}' }
     - { mode: '0755', path: '/etc/sap_deployment_automation/{{ web_sid | upper }}' }
 
 - name:                                "Web Install: reset"
@@ -110,7 +110,7 @@
       ansible.builtin.debug:
         msg:
           - "INSTALLED:  {{ web_installed.stat.exists }}"
-          - "INIFILE:    {{ sap_inifile }}"
+          - "INIFILE:    {{ dir_params }}/{{ sap_inifile }}"
           - "SID:        {{ web_sid }}"
           - "SAPSID:     {{ sap_sid }}"
           - "PRODUCT ID: {{ web_bom_id }}"
