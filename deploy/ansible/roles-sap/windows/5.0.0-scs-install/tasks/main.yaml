@@ -610,10 +610,10 @@
                 - find_sys_exe_uc_result is defined
                 - find_sys_exe_uc_result | length > 0
 
-        - name:                            "ERS Install: Cleanup ini file {{ ansible_hostname }}"
-          ansible.windows.win_file:
-            path:                          '{{ dir_params }}\{{ sap_inifile }}'
-            state:                         absent
+        # - name:                            "ERS Install: Cleanup ini file {{ ansible_hostname }}"
+        #   ansible.windows.win_file:
+        #     path:                          '{{ dir_params }}\{{ sap_inifile }}'
+        #     state:                         absent
 
         - name:                            "ERS Install: Installation Failed"
           ansible.builtin.debug:

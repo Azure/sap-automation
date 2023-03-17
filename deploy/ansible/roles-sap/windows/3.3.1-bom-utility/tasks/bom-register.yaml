@@ -124,7 +124,7 @@
 
   when:
     - result is failed or always_upload_jinja_templates
-    - bom_file not defined
+    - bom_file is undefined
 
 # Validate that BoM was found
 
