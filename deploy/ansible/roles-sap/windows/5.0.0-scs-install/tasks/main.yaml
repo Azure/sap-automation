@@ -630,7 +630,7 @@
 
         - name:                            "ERS Install: Installation results"
           ansible.builtin.debug:
-            msg:                           "SCS Installation succeeded"
+            msg:                           "ERS Installation succeeded"
           when:
             - ers_installation.rc == 0
             - ers_installed_according_to_sapinst.matched > 0
