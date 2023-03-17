@@ -35,9 +35,8 @@ parameters:
     type:                              string
 
 stages:
-  - stage: Remove_control_plane_remote
-    condition: and(not(failed()), not(canceled()))
-    displayName: "Control plane removal (on agent)"
+  - stage:                             Remove_control_plane_remote
+    displayName:                       "Control plane removal (on agent)"
     variables:
       - template:                      variables/12-remove-control-plane-variables.yaml
         parameters:
@@ -337,7 +336,7 @@ stages:
       name:                             $(Agent)
     dependsOn:
       - Remove_control_plane_remote
-    condition:                          eq(dependencies.Remove_control_plane_remote.result, 'Succeeded')
+    condition:                          in(dependencies.Remove_control_plane_remote.result, 'Succeeded', 'Skipped')
     jobs:
       - job:                            Remove_control_plane
         displayName:                    "Finalize control plane removal"
@@ -520,11 +519,14 @@ stages:
                   key_vault=$(cat ${deployer_environment_file_name} | grep keyvault= -m1 | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer Key Vault' ${key_vault}
                 fi
 
+                key_vault_id=$(az resource list --name "${key_vault}"  --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
+                if [ -n "${key_vault_id}" ]; then
 
-                if [ "azure pipelines" = "$(this_agent)" ]; then
-                    this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
-                    az keyvault network-rule add --name ${key_vault} --ip-address ${this_ip} --only-show-errors --output none
-                    ip_added=1
+                  if [ "azure pipelines" = "$(this_agent)" ]; then
+                      this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
+                      az keyvault network-rule add --name ${key_vault} --ip-address ${this_ip} --only-show-errors --output none
+                      ip_added=1
+                  fi
                 fi
 
               echo -e "$green--- Running the remove_deployer script that destroys deployer VM ---$reset"
@@ -553,13 +555,19 @@ stages:
                   cd $CONFIG_REPO_PATH
                   changed=0
                   echo "##vso[build.updatebuildnumber]Removing control plane $(deployer_folder) $(library_folder)"
+                    if [ -f "DEPLOYER/$(deployer_folder)/.terraform/terraform.tfstate" ]; then
+                      git rm -q -f --ignore-unmatch DEPLOYER/$(deployer_folder)/.terraform/terraform.tfstate
+                      changed=1
+                    fi
+
+
                     if [ -d "DEPLOYER/$(deployer_folder)/.terraform" ]; then
                       git rm -q -r  --ignore-unmatch DEPLOYER/$(deployer_folder)/.terraform
                       changed=1
                     fi
 
                     if [ -f "DEPLOYER/$(deployer_folder)/state.zip" ]; then
-                      git rm -q  --ignore-unmatch DEPLOYER/$(deployer_folder)/state.zip
+                      git rm -q -f --ignore-unmatch DEPLOYER/$(deployer_folder)/state.zip
                       changed=1
                     fi
 
@@ -569,7 +577,7 @@ stages:
                     fi
 
                     if [ -f LIBRARY/$(library_folder)/state.zip ]; then
-                      git rm -q  --ignore-unmatch LIBRARY/$(library_folder)/state.zip
+                      git rm -q -f --ignore-unmatch LIBRARY/$(library_folder)/state.zip
                       changed=1
                     fi
 
@@ -616,22 +624,22 @@ stages:
 
                       variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Deployer_State_FileName.value" )
                       if [ ${#variable_value} != 0 ]; then
-                        az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Deployer_State_FileName               --yes --only-show-errors
+                        az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Deployer_State_FileName              --yes --only-show-errors
                       fi
 
                       variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Deployer_Key_Vault.value" )
                       if [ ${#variable_value} != 0 ]; then
-                        az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Deployer_Key_Vault                    --yes --only-show-errors
+                        az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Deployer_Key_Vault                   --yes --only-show-errors
                       fi
 
                       variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "WEBAPP_URL_BASE.value" )
                       if [ ${#variable_value} != 0 ]; then
-                        az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_URL_BASE                       --yes --only-show-errors
+                        az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_URL_BASE                      --yes --only-show-errors
                       fi
 
                       variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "WEBAPP_IDENTITY.value" )
                       if [ ${#variable_value} != 0 ]; then
-                        az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_IDENTITY                       --yes --only-show-errors
+                        az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_IDENTITY                      --yes --only-show-errors
                       fi
 
                       variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "WEBAPP_ID.value" )
@@ -643,6 +651,12 @@ stages:
                       if [ ${#variable_value} != 0 ]; then
                         az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_RESOURCE_GROUP                --yes --only-show-errors
                       fi
+
+                      variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "INSTALLATION_MEDIA_ACCOUNT.value" )
+                      if [ ${#variable_value} != 0 ]; then
+                        az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name INSTALLATION_MEDIA_ACCOUNT           --yes --only-show-errors
+                      fi
+
 
 
                     fi
