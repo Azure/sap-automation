@@ -63,7 +63,7 @@
       ansible.builtin.set_fact:
         scs_server:                     "{% if scs_high_availability %}{{ sap_sid | lower }}scs{{ scs_instance_number }}cl1{% else %}{{ scs_server_temp | first }}{% endif %}"
 
-    - name:                            "SCS Install: check media exists"
+    - name:                            "Web Install: check media exists"
       ansible.builtin.stat:
         path:                          "{{ target_media_location }}/SWPM/sapinst"
       register:                        sapinst_found
