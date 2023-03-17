@@ -129,4 +129,4 @@ function Set-AzureLoadBalancerHealthCheckProbePortOnSAPClusterIPResource {
      END {}
  }
 
-Set-AzureLoadBalancerHealthCheckProbePortOnSAPClusterIPResource -SAPSID {{ sap_sid | upper }} -ProbePort {{ scs_instance_number }}
+Set-AzureLoadBalancerHealthCheckProbePortOnSAPClusterIPResource -SAPSID {{ sap_sid | upper }} -ProbePort 620{{ scs_instance_number }}

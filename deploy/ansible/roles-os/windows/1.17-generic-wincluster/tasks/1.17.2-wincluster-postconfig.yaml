@@ -77,7 +77,7 @@
   when:
     - ansible_hostname == primary_node
 
-- name:                                "WinCluster-PostConfig: Copy probe port setup script"
+- name:                                "WinCluster-PostConfig: Execute probe port setup script"
   become:                              true
   become_method:                       "runas"
   become_user:                         '{{ sap_sid }}adm@{{ domain }}'
