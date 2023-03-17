@@ -555,7 +555,7 @@
 
         - name:                            "ERS Installation"
           block:
-            - name:                        "ERS Install: SAP SCS Install on {{ ansible_hostname }}"
+            - name:                        "ERS Install: SAP ERS Install on {{ ansible_hostname }}"
               become:                      true
               become_method:               runas
               become_user:                 '{{ sap_sid }}adm@{{ domain_name }}'
@@ -578,7 +578,7 @@
               ansible.windows.win_stat:
                 path:                      '{{ sap_drive }}\usr\sap\{{ sap_sid | upper }}\SYS\exe\uc\NTAMD64'
               register:                    stat_sys_exe_uc
-              when:                        node_tier == 'scs'
+              when:                        node_tier == 'ers'
 
             - name:                        'RESCUE - ERS Install: Check Check {{ sap_drive }}\usr\sap\{{ sap_sid | upper }}\SYS\exe\uc\NTAMD64 is empty'
               ansible.windows.win_find:

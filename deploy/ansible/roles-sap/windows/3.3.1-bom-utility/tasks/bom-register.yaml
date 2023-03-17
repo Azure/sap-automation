@@ -42,6 +42,7 @@
     url:                               "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ new_bom_name }}/{{ new_bom_name }}.yaml\
                                        {% if sapbits_sas_token is not undefined %}?{{ sapbits_sas_token }}{% endif %}"
     dest:                              "{{ download_directory }}/bom/{{ new_bom_name }}.yaml"
+    force:                             true
     mode:                              0644
   delegate_to:                         localhost
   become:                              "{{ bom_processing_become }}"
