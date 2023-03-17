@@ -103,13 +103,11 @@
       ansible.builtin.set_fact:
         all_sids:                      "{% if MULTI_SIDS is defined %}{{ MULTI_SIDS }}{% else %}{{ all_sids | default([]) + [this_sid] }}{% endif %}"
 
-
     - name:                            Run the WEB installation Playbook
+      become:                          true
+      become_user:                     "root"
       block:
-
         - name:                        "WEB Installation Playbook: - run SAPInst"
-          become:                      true
-          become_user:                 "root"
           ansible.builtin.include_role:
             name:                      roles-sap/5.4-web-install
           loop:                        "{{ all_sids }}"
