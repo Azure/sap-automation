@@ -50,6 +50,7 @@
     sa_enabled:                        true
 
 - name:                                "Web Install"
+  become:                              true
   block:
 
     - name:                            "Web Install: Get the SCS Server name list"
