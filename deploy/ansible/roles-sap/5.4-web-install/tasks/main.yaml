@@ -14,9 +14,9 @@
 
 - name:                                "Web Install: Set BOM facts"
   ansible.builtin.set_fact:
-    sap_inifile:                       "{{ bom_base_name }}-web-{{ sid_to_be_deployed.sid | upper }}-{{ ansible_hostname }}.params"
+    sap_inifile:                       "{{ bom_base_name }}-web-{{ sid_to_be_deployed.sid | lower }}-{{ ansible_hostname }}.params"
     sap_inifile_template:              "{{ bom_base_name }}{{ bom_suffix }}-web-inifile-param.j2"
-    dir_params:                        "{{ tmp_directory }}/.{{ sid_to_be_deployed.sid | upper }}-params"
+    dir_params:                        "{{ tmp_directory }}/.{{ sid_to_be_deployed.sid | lower }}-params"
 
 - name:                                "Web Install: Create directories"
   ansible.builtin.file:
@@ -118,6 +118,7 @@
           - "SCSHOST:    {{ scs_server }}"
           - "WHOAMI :    {{ whoami.stdout }}"
           - "LOCATION:   {{ target_media_location }}/SWPM"
+          - "TMPDIR:     {{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
 # *====================================4=======================================8
 #   SAP Web Dispatcher: Install
 # 2230669 - System Provisioning Using a Parameter Input File
