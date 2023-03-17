@@ -452,6 +452,11 @@
         task_prefix:                       "ERS Install: "
         sa_enabled:                        true
 
+    - name:                                "ERS Install: BOM Product Ids"
+      ansible.builtin.debug:
+        msg:
+          - "BOM_PRODUCT_IDS:              {{ bom.product_ids }}"
+
     - name:                                "ERS Install: Set BOM facts"
       ansible.builtin.set_fact:
         sap_inifile:                       "{{ bom_base_name }}-ers-{{ sid_to_be_deployed.sid | lower }}-{{ ansible_hostname }}.params"
