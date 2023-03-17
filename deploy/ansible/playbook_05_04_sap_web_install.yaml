@@ -106,14 +106,16 @@
 
     - name:                            Run the WEB installation Playbook
       block:
-      become:                          true
-      become_user:                     root
+
         - name:                        "WEB Installation Playbook: - run SAPInst"
           ansible.builtin.include_role:
             name:                      roles-sap/5.4-web-install
           loop:                        "{{ all_sids }}"
           loop_control:
             loop_var:                  sid_to_be_deployed
+          apply:
+            become:                  true
+            become_user:             root
       always:
         - name:                        "WEB Installation Playbook: - Get the Error lines from installation output"
           ansible.builtin.set_fact:
