@@ -414,6 +414,31 @@ data "azurerm_private_dns_zone" "keyvault" {
 
 }
 
+resource "azurerm_private_dns_zone_virtual_network_link" "vault" {
+  provider = azurerm.dnsmanagement
+  depends_on = [
+    azurerm_virtual_network.vnet_sap
+  ]
+  count    = local.use_Azure_native_DNS ? 1 : 0
+  name = format("%s%s%s%s",
+    var.naming.resource_prefixes.dns_link,
+    local.prefix,
+    var.naming.separator,
+    "vault"
+  )
+  resource_group_name   = var.management_dns_resourcegroup_name
+  private_dns_zone_name = "privatelink.vaultcore.azure.net"
+  virtual_network_id    = azurerm_virtual_network.vnet_sap[0].id
+  registration_enabled  = false
+}
+
+data "azurerm_private_dns_zone" "vault" {
+  provider            = azurerm.dnsmanagement
+  count               = var.use_private_endpoint ? 1 : 0
+  name                = "privatelink.vaultcore.azure.net"
+  resource_group_name = var.management_dns_resourcegroup_name
+}
+
 
 ###############################################################################
 #                                                                             #

@@ -8,6 +8,12 @@ resource "azurerm_storage_account" "storage_bootdiag" {
   provider = azurerm.main
   count    = length(var.diagnostics_storage_account.arm_id) > 0 ? 0 : 1
   name     = local.storageaccount_name
+  depends_on = [
+    azurerm_subnet.app,
+    azurerm_subnet.db,
+    azurerm_subnet.web,
+  ]
+
   resource_group_name = local.resource_group_exists ? (
     data.azurerm_resource_group.resource_group[0].name) : (
     azurerm_resource_group.resource_group[0].name
@@ -16,11 +22,6 @@ resource "azurerm_storage_account" "storage_bootdiag" {
     data.azurerm_resource_group.resource_group[0].location) : (
     azurerm_resource_group.resource_group[0].location
   )
-  depends_on = [
-    azurerm_subnet.app,
-    azurerm_subnet.db,
-    azurerm_subnet.web,
-  ]
 
   account_replication_type        = "LRS"
   account_tier                    = "Standard"
@@ -228,7 +229,7 @@ resource "azurerm_private_endpoint" "witness_storage" {
     name = format("%s%s%s",
       var.naming.resource_prefixes.storage_private_svc_witness,
       local.prefix,
-      local.resource_suffixes.storage_private_svc_witness
+      var.naming.resource_prefixes.storage_private_svc_witness
     )
     is_manual_connection           = false
     private_connection_resource_id = length(var.witness_storage_account.arm_id) > 0 ? var.witness_storage_account.arm_id : azurerm_storage_account.witness_storage[0].id
@@ -399,7 +400,7 @@ resource "azurerm_private_endpoint" "transport" {
   provider = azurerm.main
   depends_on = [
     azurerm_subnet.app,
-    azurerm_private_dns_zone_virtual_network_link.vnet_sap_file[0]
+    azurerm_private_dns_zone_virtual_network_link.vnet_sap_file
   ]
   count = var.NFS_provider == "AFS" ? (
     length(var.transport_storage_account_id) > 0 ? (
