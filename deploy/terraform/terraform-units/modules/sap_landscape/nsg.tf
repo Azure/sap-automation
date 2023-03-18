@@ -71,163 +71,71 @@ resource "azurerm_subnet_network_security_group_association" "web" {
 }
 
 
-// Add SSH network security rule
-resource "azurerm_network_security_rule" "nsr_ssh_app" {
+// Add network security rule
+resource "azurerm_network_security_rule" "nsr_controlplane_app" {
   provider = azurerm.main
   depends_on = [
     azurerm_network_security_group.app
   ]
   count = local.application_subnet_nsg_exists ? 0 : 1
-  name  = "ssh"
+  name  = "Add Connectivity to SAP Application Subnet from Control Plane [SSH, RDP, WINRM]"
   resource_group_name = local.vnet_sap_exists ? (
     data.azurerm_virtual_network.vnet_sap[0].resource_group_name) : (
     azurerm_virtual_network.vnet_sap[0].resource_group_name
   )
   network_security_group_name  = azurerm_network_security_group.app[0].name
-  priority                     = 101
+  priority                     = 100
   direction                    = "Inbound"
   access                       = "Allow"
   protocol                     = "Tcp"
   source_port_range            = "*"
-  destination_port_range       = 22
-  source_address_prefixes      = compact(var.deployer_tfstate.subnet_mgmt_address_prefixes, var.deployer_tfstat.subnet_bastion_address_prefixes)
-  destination_address_prefixes = azurerm_subnet.app[0].address_prefixes
-}
-
-// Add RDP network security rule
-resource "azurerm_network_security_rule" "nsr_rdp_app" {
-  provider = azurerm.main
-  depends_on = [
-    azurerm_network_security_group.app
-  ]
-  count = local.application_subnet_nsg_exists ? 0 : 1
-  name  = "rdp"
-  resource_group_name = local.vnet_sap_exists ? (
-    data.azurerm_virtual_network.vnet_sap[0].resource_group_name) : (
-    azurerm_virtual_network.vnet_sap[0].resource_group_name
-  )
-  network_security_group_name  = azurerm_network_security_group.app[0].name
-  priority                     = 102
-  direction                    = "Inbound"
-  access                       = "Allow"
-  protocol                     = "Tcp"
-  source_port_range            = "*"
-  destination_port_range       = 3389
-  source_address_prefixes      = compact(var.deployer_tfstate.subnet_mgmt_address_prefixes, var.deployer_tfstat.subnet_bastion_address_prefixes)
-  destination_address_prefixes = azurerm_subnet.app[0].address_prefixes
-}
-
-// Add WinRM network security rule
-resource "azurerm_network_security_rule" "nsr_winrm_app" {
-  provider = azurerm.main
-  depends_on = [
-    azurerm_network_security_group.app
-  ]
-  count = local.application_subnet_nsg_exists ? 0 : 1
-  name  = "winrm"
-  resource_group_name = local.vnet_sap_exists ? (
-    data.azurerm_virtual_network.vnet_sap[0].resource_group_name) : (
-    azurerm_virtual_network.vnet_sap[0].resource_group_name
-  )
-  network_security_group_name  = azurerm_network_security_group.app[0].name
-  priority                     = 103
-  direction                    = "Inbound"
-  access                       = "Allow"
-  protocol                     = "Tcp"
-  source_port_range            = "*"
-  destination_port_ranges      = [5985, 5986]
+  destination_port_range       = [22, 3389, 5985, 5986]
   source_address_prefixes      = compact(var.deployer_tfstate.subnet_mgmt_address_prefixes, var.deployer_tfstat.subnet_bastion_address_prefixes)
   destination_address_prefixes = azurerm_subnet.app[0].address_prefixes
 }
 
 // Add SSH network security rule
-resource "azurerm_network_security_rule" "nsr_ssh_web" {
+resource "azurerm_network_security_rule" "nsr_controlplane_web" {
   provider = azurerm.main
   depends_on = [
     azurerm_network_security_group.web
   ]
   count = local.web_subnet_nsg_exists ? 0 : 1
-  name  = "ssh"
+  name  = "Add Connectivity to SAP Application Subnet from Control Plane [SSH, RDP, WINRM]"
   resource_group_name = local.vnet_sap_exists ? (
     data.azurerm_virtual_network.vnet_sap[0].resource_group_name) : (
     azurerm_virtual_network.vnet_sap[0].resource_group_name
   )
   network_security_group_name  = azurerm_network_security_group.web[0].name
-  priority                     = 101
+  priority                     = 100
   direction                    = "Inbound"
   access                       = "Allow"
   protocol                     = "Tcp"
   source_port_range            = "*"
-  destination_port_range       = 22
-  source_address_prefixes      = compact(var.deployer_tfstate.subnet_mgmt_address_prefixes, var.deployer_tfstat.subnet_bastion_address_prefixes)
-  destination_address_prefixes = azurerm_subnet.web[0].address_prefixes
-}
-
-// Add RDP network security rule
-resource "azurerm_network_security_rule" "nsr_rdp_web" {
-  provider = azurerm.main
-  depends_on = [
-    azurerm_network_security_group.web
-  ]
-  count = local.web_subnet_nsg_exists ? 0 : 1
-  name  = "rdp"
-  resource_group_name = local.vnet_sap_exists ? (
-    data.azurerm_virtual_network.vnet_sap[0].resource_group_name) : (
-    azurerm_virtual_network.vnet_sap[0].resource_group_name
-  )
-  network_security_group_name  = azurerm_network_security_group.web[0].name
-  priority                     = 102
-  direction                    = "Inbound"
-  access                       = "Allow"
-  protocol                     = "Tcp"
-  source_port_range            = "*"
-  destination_port_range       = 3389
-  source_address_prefixes      = compact(var.deployer_tfstate.subnet_mgmt_address_prefixes, var.deployer_tfstat.subnet_bastion_address_prefixes)
-  destination_address_prefixes = azurerm_subnet.web[0].address_prefixes
-}
-
-// Add WinRM network security rule
-resource "azurerm_network_security_rule" "nsr_winrm_web" {
-  provider = azurerm.main
-  depends_on = [
-    azurerm_network_security_group.web
-  ]
-  count = local.web_subnet_nsg_exists ? 0 : 1
-  name  = "winrm"
-  resource_group_name = local.vnet_sap_exists ? (
-    data.azurerm_virtual_network.vnet_sap[0].resource_group_name) : (
-    azurerm_virtual_network.vnet_sap[0].resource_group_name
-  )
-  network_security_group_name  = azurerm_network_security_group.web[0].name
-  priority                     = 103
-  direction                    = "Inbound"
-  access                       = "Allow"
-  protocol                     = "Tcp"
-  source_port_range            = "*"
-  destination_port_ranges      = [5985, 5986]
+  destination_port_range       = [22, 3389, 5985, 5986]
   source_address_prefixes      = compact(var.deployer_tfstate.subnet_mgmt_address_prefixes, var.deployer_tfstat.subnet_bastion_address_prefixes)
   destination_address_prefixes = azurerm_subnet.web[0].address_prefixes
 }
 
 // Add SSH network security rule
-resource "azurerm_network_security_rule" "nsr_ssh_db" {
+resource "azurerm_network_security_rule" "nsr_controlplane_web" {
   provider = azurerm.main
   depends_on = [
     azurerm_network_security_group.db
   ]
   count = local.database_subnet_nsg_exists ? 0 : 1
-  name  = "ssh"
+  name  = "Add Connectivity to SAP Application Subnet from Control Plane [SSH, RDP, WINRM]"
   resource_group_name = local.vnet_sap_exists ? (
     data.azurerm_virtual_network.vnet_sap[0].resource_group_name) : (
     azurerm_virtual_network.vnet_sap[0].resource_group_name
   )
   network_security_group_name  = azurerm_network_security_group.db[0].name
-  priority                     = 101
+  priority                     = 100
   direction                    = "Inbound"
   access                       = "Allow"
   protocol                     = "Tcp"
   source_port_range            = "*"
-  destination_port_range       = 22
+  destination_port_range       = [22, 3389, 5985, 5986]
   source_address_prefixes      = compact(var.deployer_tfstate.subnet_mgmt_address_prefixes, var.deployer_tfstat.subnet_bastion_address_prefixes)
   destination_address_prefixes = azurerm_subnet.db[0].address_prefixes
 }
