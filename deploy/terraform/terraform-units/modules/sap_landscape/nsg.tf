@@ -73,6 +73,7 @@ resource "azurerm_subnet_network_security_group_association" "web" {
 
 // Add SSH network security rule
 resource "azurerm_network_security_rule" "nsr_ssh_app" {
+  provider                  = azurerm.main
   depends_on = [
     azurerm_network_security_group.app
   ]
@@ -92,6 +93,7 @@ resource "azurerm_network_security_rule" "nsr_ssh_app" {
 
 // Add RDP network security rule
 resource "azurerm_network_security_rule" "nsr_rdp_app" {
+  provider                  = azurerm.main
   depends_on = [
     azurerm_network_security_group.app
   ]
@@ -111,6 +113,7 @@ resource "azurerm_network_security_rule" "nsr_rdp_app" {
 
 // Add WinRM network security rule
 resource "azurerm_network_security_rule" "nsr_winrm_app" {
+  provider                  = azurerm.main
   depends_on = [
     azurerm_network_security_group.app
   ]
@@ -130,6 +133,7 @@ resource "azurerm_network_security_rule" "nsr_winrm_app" {
 
 // Add SSH network security rule
 resource "azurerm_network_security_rule" "nsr_ssh_web" {
+  provider                  = azurerm.main
   depends_on = [
     azurerm_network_security_group.web
   ]
@@ -149,6 +153,7 @@ resource "azurerm_network_security_rule" "nsr_ssh_web" {
 
 // Add RDP network security rule
 resource "azurerm_network_security_rule" "nsr_rdp_web" {
+  provider                  = azurerm.main
   depends_on = [
     azurerm_network_security_group.web
   ]
@@ -168,6 +173,7 @@ resource "azurerm_network_security_rule" "nsr_rdp_web" {
 
 // Add WinRM network security rule
 resource "azurerm_network_security_rule" "nsr_winrm_web" {
+  provider                  = azurerm.main
   depends_on = [
     azurerm_network_security_group.web
   ]
@@ -187,6 +193,7 @@ resource "azurerm_network_security_rule" "nsr_winrm_web" {
 
 // Add SSH network security rule
 resource "azurerm_network_security_rule" "nsr_ssh_db" {
+  provider                  = azurerm.main
   depends_on = [
     azurerm_network_security_group.db
   ]
@@ -206,6 +213,7 @@ resource "azurerm_network_security_rule" "nsr_ssh_db" {
 
 // Add RDP network security rule
 resource "azurerm_network_security_rule" "nsr_rdp_db" {
+  provider                  = azurerm.main
   depends_on = [
     azurerm_network_security_group.db
   ]
@@ -225,6 +233,7 @@ resource "azurerm_network_security_rule" "nsr_rdp_db" {
 
 // Add WinRM network security rule
 resource "azurerm_network_security_rule" "nsr_winrm_db" {
+  provider                  = azurerm.main
   depends_on = [
     azurerm_network_security_group.db
   ]
