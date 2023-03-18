@@ -90,7 +90,7 @@ resource "azurerm_network_security_rule" "nsr_controlplane_app" {
   protocol                     = "Tcp"
   source_port_range            = "*"
   destination_port_range       = [22, 3389, 5985, 5986]
-  source_address_prefixes      = compact(var.deployer_tfstate.subnet_mgmt_address_prefixes, var.deployer_tfstate.subnet_bastion_address_prefixes)
+  source_address_prefixes      = compact(concat(var.deployer_tfstate.subnet_mgmt_address_prefixes, var.deployer_tfstate.subnet_bastion_address_prefixes))
   destination_address_prefixes = azurerm_subnet.app[0].address_prefixes
 }
 
@@ -113,7 +113,7 @@ resource "azurerm_network_security_rule" "nsr_controlplane_web" {
   protocol                     = "Tcp"
   source_port_range            = "*"
   destination_port_range       = [22, 3389, 5985, 5986]
-  source_address_prefixes      = compact(var.deployer_tfstate.subnet_mgmt_address_prefixes, var.deployer_tfstate.subnet_bastion_address_prefixes)
+  source_address_prefixes      = compact(concat(var.deployer_tfstate.subnet_mgmt_address_prefixes, var.deployer_tfstate.subnet_bastion_address_prefixes))
   destination_address_prefixes = azurerm_subnet.web[0].address_prefixes
 }
 
@@ -136,7 +136,7 @@ resource "azurerm_network_security_rule" "nsr_controlplane_db" {
   protocol                     = "Tcp"
   source_port_range            = "*"
   destination_port_range       = [22, 3389, 5985, 5986]
-  source_address_prefixes      = compact(var.deployer_tfstate.subnet_mgmt_address_prefixes, var.deployer_tfstate.subnet_bastion_address_prefixes)
+  source_address_prefixes      = compact(concat(var.deployer_tfstate.subnet_mgmt_address_prefixes, var.deployer_tfstate.subnet_bastion_address_prefixes))
   destination_address_prefixes = azurerm_subnet.db[0].address_prefixes
 }
 
@@ -159,7 +159,7 @@ resource "azurerm_network_security_rule" "nsr_rdp_db" {
   protocol                     = "Tcp"
   source_port_range            = "*"
   destination_port_range       = 3389
-  source_address_prefixes      = compact(var.deployer_tfstate.subnet_mgmt_address_prefixes, var.deployer_tfstate.subnet_bastion_address_prefixes)
+  source_address_prefixes      = compact(concat(var.deployer_tfstate.subnet_mgmt_address_prefixes, var.deployer_tfstate.subnet_bastion_address_prefixes))
   destination_address_prefixes = azurerm_subnet.db[0].address_prefixes
 }
 
@@ -182,6 +182,6 @@ resource "azurerm_network_security_rule" "nsr_winrm_db" {
   protocol                     = "Tcp"
   source_port_range            = "*"
   destination_port_ranges      = [5985, 5986]
-  source_address_prefixes      = compact(var.deployer_tfstate.subnet_mgmt_address_prefixes, var.deployer_tfstate.subnet_bastion_address_prefixes)
+  source_address_prefixes      = compact(concat(var.deployer_tfstate.subnet_mgmt_address_prefixes, var.deployer_tfstate.subnet_bastion_address_prefixes))
   destination_address_prefixes = azurerm_subnet.db[0].address_prefixes
 }
