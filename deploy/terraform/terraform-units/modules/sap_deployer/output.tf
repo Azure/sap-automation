@@ -191,7 +191,7 @@ output "subnet_bastion_address_prefixes" {
       azurerm_subnet.bastion[0].address_prefixes) : (
       data.azurerm_subnet.bastion[0].address_prefixes
     )) : (
-    ""
+    [""]
   )
 }
 
