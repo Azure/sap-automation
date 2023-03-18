@@ -35,21 +35,21 @@ resource "azurerm_storage_account" "storage_bootdiag" {
   }
 }
 
-# resource "azurerm_private_dns_a_record" "storage_bootdiag" {
-#   provider = azurerm.dnsmanagement
+resource "azurerm_private_dns_a_record" "storage_bootdiag" {
+  provider = azurerm.dnsmanagement
 
-#   count = var.create_vaults_and_storage_dns_a_records ? 1 : 0
-#   name  = lower(local.storageaccount_name)
+  count = var.use_custom_dns_a_registration ? 0 : 1
+  name  = lower(local.storageaccount_name)
 
-#   zone_name           = "privatelink.blob.core.windows.net"
-#   resource_group_name = var.management_dns_resourcegroup_name
-#   ttl                 = 3600
-#   records             = [data.azurerm_network_interface.storage_bootdiag[count.index].ip_configuration[0].private_ip_address]
+  zone_name           = "privatelink.blob.core.windows.net"
+  resource_group_name = var.management_dns_resourcegroup_name
+  ttl                 = 3600
+  records             = [data.azurerm_network_interface.storage_bootdiag[count.index].ip_configuration[0].private_ip_address]
 
-#   lifecycle {
-#     ignore_changes = [tags]
-#   }
-# }
+  lifecycle {
+    ignore_changes = [tags]
+  }
+}
 
 data "azurerm_storage_account" "storage_bootdiag" {
   provider            = azurerm.main
@@ -177,20 +177,20 @@ resource "azurerm_storage_account_network_rules" "witness" {
 
 }
 
-# resource "azurerm_private_dns_a_record" "witness_storage" {
-#   count               = var.create_vaults_and_storage_dns_a_records ? 1 : 0
-#   name                = lower(local.witness_storageaccount_name)
-#   zone_name           = "privatelink.blob.core.windows.net"
-#   resource_group_name = var.management_dns_resourcegroup_name
-#   ttl                 = 3600
-#   records             = [data.azurerm_network_interface.witness_storage[count.index].ip_configuration[0].private_ip_address]
+resource "azurerm_private_dns_a_record" "witness_storage" {
+  count               = var.use_custom_dns_a_registration ? 0 : 1
+  name                = lower(local.witness_storageaccount_name)
+  zone_name           = "privatelink.blob.core.windows.net"
+  resource_group_name = var.management_dns_resourcegroup_name
+  ttl                 = 3600
+  records             = [data.azurerm_network_interface.witness_storage[count.index].ip_configuration[0].private_ip_address]
 
-#   provider = azurerm.dnsmanagement
+  provider = azurerm.dnsmanagement
 
-#   lifecycle {
-#     ignore_changes = [tags]
-#   }
-# }
+  lifecycle {
+    ignore_changes = [tags]
+  }
+}
 
 data "azurerm_storage_account" "witness_storage" {
   provider            = azurerm.main
@@ -732,19 +732,19 @@ resource "time_sleep" "wait_for_private_endpoints" {
 }
 
 
-# data "azurerm_network_interface" "storage_bootdiag" {
-#   provider            = azurerm.main
-#   count               = var.use_private_endpoint && length(var.diagnostics_storage_account.arm_id) == 0 && length(try(azurerm_private_endpoint.storage_bootdiag[0].network_interface[0].id, "")) > 0 ? 1 : 0
-#   name                = azurerm_private_endpoint.storage_bootdiag[count.index].network_interface[0].name
-#   resource_group_name = split("/", azurerm_private_endpoint.storage_bootdiag[count.index].network_interface[0].id)[4]
-# }
+data "azurerm_network_interface" "storage_bootdiag" {
+  provider            = azurerm.main
+  count               = var.use_private_endpoint && length(var.diagnostics_storage_account.arm_id) == 0 && length(try(azurerm_private_endpoint.storage_bootdiag[0].network_interface[0].id, "")) > 0 ? 1 : 0
+  name                = azurerm_private_endpoint.storage_bootdiag[count.index].network_interface[0].name
+  resource_group_name = split("/", azurerm_private_endpoint.storage_bootdiag[count.index].network_interface[0].id)[4]
+}
 
-# data "azurerm_network_interface" "witness_storage" {
-#   provider            = azurerm.main
-#   count               = var.use_private_endpoint && length(var.witness_storage_account.arm_id) == 0 && length(try(azurerm_private_endpoint.witness_storage[0].network_interface[0].id, "")) > 0 ? 1 : 0
-#   name                = azurerm_private_endpoint.witness_storage[count.index].network_interface[0].name
-#   resource_group_name = split("/", azurerm_private_endpoint.witness_storage[count.index].network_interface[0].id)[4]
-# }
+data "azurerm_network_interface" "witness_storage" {
+  provider            = azurerm.main
+  count               = var.use_private_endpoint && length(var.witness_storage_account.arm_id) == 0 && length(try(azurerm_private_endpoint.witness_storage[0].network_interface[0].id, "")) > 0 ? 1 : 0
+  name                = azurerm_private_endpoint.witness_storage[count.index].network_interface[0].name
+  resource_group_name = split("/", azurerm_private_endpoint.witness_storage[count.index].network_interface[0].id)[4]
+}
 
 # data "azurerm_network_interface" "install" {
 #   provider            = azurerm.main
