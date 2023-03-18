@@ -65,7 +65,7 @@ resource "azurerm_private_endpoint" "storage_bootdiag" {
     azurerm_subnet.db,
     azurerm_subnet.web,
   ]
-  count = var.use_private_endpoint && local.admin_subnet_defined && (length(var.diagnostics_storage_account.arm_id) == 0) ? 1 : 0
+  count = var.use_private_endpoint && local.admin_subnet_defined && (length(var.diagnostics_storage_account.arm_id) == 0) ? 0 : 0
   name = format("%s%s%s",
     var.naming.resource_prefixes.storage_private_link_diag,
     local.prefix,
@@ -205,7 +205,7 @@ resource "azurerm_private_endpoint" "witness_storage" {
     azurerm_subnet.db,
     azurerm_private_dns_zone_virtual_network_link.storage[0]
   ]
-  count = var.use_private_endpoint && local.admin_subnet_defined && (length(var.witness_storage_account.arm_id) == 0) ? 1 : 0
+  count = var.use_private_endpoint && local.admin_subnet_defined && (length(var.witness_storage_account.arm_id) == 0) ? 0 : 0
   name = format("%s%s%s",
     var.naming.resource_prefixes.storage_private_link_witness,
     local.prefix,
