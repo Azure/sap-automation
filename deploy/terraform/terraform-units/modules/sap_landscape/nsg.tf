@@ -118,7 +118,7 @@ resource "azurerm_network_security_rule" "nsr_controlplane_web" {
 }
 
 // Add SSH network security rule
-resource "azurerm_network_security_rule" "nsr_controlplane_web" {
+resource "azurerm_network_security_rule" "nsr_controlplane_db" {
   provider = azurerm.main
   depends_on = [
     azurerm_network_security_group.db
