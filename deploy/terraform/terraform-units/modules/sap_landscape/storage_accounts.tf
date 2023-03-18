@@ -152,8 +152,11 @@ resource "azurerm_storage_account" "witness_storage" {
 }
 
 resource "azurerm_storage_account_network_rules" "witness" {
-  provider           = azurerm.main
-  count              = var.enable_firewall_for_keyvaults_and_storage && length(var.witness_storage_account.arm_id) == 0 ? 1 : 0
+  provider = azurerm.main
+  count    = var.enable_firewall_for_keyvaults_and_storage && length(var.witness_storage_account.arm_id) == 0 ? 1 : 0
+  depends_on = [
+    azurerm_storage_account.witness_storage
+  ]
   storage_account_id = azurerm_storage_account.witness_storage[0].id
   default_action     = "Deny"
   bypass             = ["AzureServices", "Logging", "Metrics"]
@@ -296,8 +299,11 @@ resource "azurerm_storage_account" "transport" {
 }
 
 resource "azurerm_storage_account_network_rules" "transport" {
-  provider           = azurerm.main
-  count              = var.NFS_provider == "AFS" && var.enable_firewall_for_keyvaults_and_storage && length(var.transport_storage_account_id) == 0 ? 1 : 0
+  provider = azurerm.main
+  count    = var.NFS_provider == "AFS" && var.enable_firewall_for_keyvaults_and_storage && length(var.transport_storage_account_id) == 0 ? 1 : 0
+  depends_on = [
+    azurerm_storage_account.transport
+  ]
   storage_account_id = azurerm_storage_account.transport[0].id
   default_action     = "Deny"
 
@@ -520,7 +526,12 @@ resource "azurerm_storage_account" "install" {
 }
 
 resource "azurerm_storage_account_network_rules" "install" {
-  provider           = azurerm.main
+  provider = azurerm.main
+  depends_on = [
+    azurerm_subnet.app,
+    azurerm_subnet.db
+  ]
+
   count              = var.NFS_provider == "AFS" && var.enable_firewall_for_keyvaults_and_storage && length(var.install_storage_account_id) == 0 ? 1 : 0
   storage_account_id = azurerm_storage_account.install[0].id
   default_action     = "Deny"
