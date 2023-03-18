@@ -79,6 +79,11 @@ output "subnet_webapp_id" {
   value = module.sap_deployer.subnet_webapp_id
 }
 
+output "subnet_bastion_address_prefixes" {
+  value = module.sap_deployer.subnet_bastion_address_prefixes
+}
+
+
 ###############################################################################
 #                                                                             #
 #                                 Key Vault                                   #

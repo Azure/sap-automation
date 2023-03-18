@@ -77,6 +77,11 @@ output "subnet_mgmt_address_prefixes" {
   value = module.sap_deployer.subnet_mgmt_address_prefixes
 }
 
+output "subnet_bastion_address_prefixes" {
+  value = module.sap_deployer.subnet_bastion_address_prefixes
+}
+
+
 output "subnet_webapp_id" {
   value = module.sap_deployer.subnet_webapp_id
 }
