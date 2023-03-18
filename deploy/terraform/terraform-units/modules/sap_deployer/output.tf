@@ -74,6 +74,11 @@ output "subnet_mgmt_id" {
   value = local.management_subnet_exists ? data.azurerm_subnet.subnet_mgmt[0].id : azurerm_subnet.subnet_mgmt[0].id
 }
 
+// Details of management subnet that is deployed/imported
+output "subnet_mgmt_address_prefixes" {
+  value = local.management_subnet_exists ? data.azurerm_subnet.subnet_mgmt[0].address_prefixes : azurerm_subnet.subnet_mgmt[0].address_prefixes
+}
+
 // Deatils of webapp subnet that is deployed/imported
 output "subnet_webapp_id" {
   value = var.use_webapp ? (local.webapp_subnet_exists ? data.azurerm_subnet.webapp[0].id : azurerm_subnet.webapp[0].id) : ""
