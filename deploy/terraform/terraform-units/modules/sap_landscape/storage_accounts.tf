@@ -38,7 +38,7 @@ resource "azurerm_storage_account" "storage_bootdiag" {
 resource "azurerm_private_dns_a_record" "storage_bootdiag" {
   provider = azurerm.dnsmanagement
 
-  count = var.use_custom_dns_a_registration ? 0 : 1
+  count = var.use_custom_dns_a_registration ? 0 : 0
   name  = lower(local.storageaccount_name)
 
   zone_name           = "privatelink.blob.core.windows.net"
@@ -178,7 +178,7 @@ resource "azurerm_storage_account_network_rules" "witness" {
 }
 
 resource "azurerm_private_dns_a_record" "witness_storage" {
-  count               = var.use_custom_dns_a_registration ? 0 : 1
+  count               = var.use_custom_dns_a_registration ? 0 : 0
   name                = lower(local.witness_storageaccount_name)
   zone_name           = "privatelink.blob.core.windows.net"
   resource_group_name = var.management_dns_resourcegroup_name
