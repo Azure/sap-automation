@@ -13,7 +13,7 @@
     that:
       - domain_name is defined
       - domain_service_account is defined
-      - domain_service_account_password is defined
+      - domain_service_password is defined
     fail_msg:
       - "Domain name is not defined"
       - "Domain service account is not defined"
