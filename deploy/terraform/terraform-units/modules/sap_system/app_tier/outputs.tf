@@ -74,8 +74,8 @@ output "scs_loadbalancer_ips" {
 output "app_subnet_netmask" {
   value = local.enable_deployment ? (
     local.application_subnet_exists ? (
-      cidrnetmask(data.azurerm_subnet.subnet_sap_app[0].address_prefixes[0])) : (
-      cidrnetmask(azurerm_subnet.subnet_sap_app[0].address_prefixes[0])
+      split("/", data.azurerm_subnet.subnet_sap_app[0].address_prefixes[0])[1]) : (
+      split("/", azurerm_subnet.subnet_sap_app[0].address_prefixes[0])[1]
     )) : (
     null
   )
