@@ -204,20 +204,20 @@ variable "deployer_use_DHCP" {
 
 variable "deployer_image" {
   default = {
-    "source_image_id" = ""
-    "publisher"       = "Canonical"
-    "offer"           = "0001-com-ubuntu-server-focal"
-    "sku"             = "20_04-lts-gen2"
-    "version"         = "latest"
+    source_image_id = ""
+    publisher       = "Canonical"
+    offer           = "0001-com-ubuntu-server-focal"
+    sku             = "20_04-lts-gen2"
+    version         = "latest"
   }
 }
 
 variable "plan" {
   default = {
     use         = false
-    "name"      = ""
-    "publisher" = ""
-    "product"   = ""
+    name      = ""
+    publisher = ""
+    product   = ""
   }
 }
 
