@@ -130,7 +130,7 @@ resource "azurerm_linux_virtual_machine" "deployer" {
   source_image_id = var.deployer.os.source_image_id != "" ? var.deployer.os.source_image_id : null
 
   dynamic "source_image_reference" {
-    for_each = range(var.deployer.os.type == "marketplace" ? 1 : 0)
+    for_each = range(var.deployer.os.type == "marketplace" || var.deployer.os.type == "marketplace_with_plan" ? 1 : 0)
     content {
       publisher = var.deployer.os.publisher
       offer     = var.deployer.os.offer
