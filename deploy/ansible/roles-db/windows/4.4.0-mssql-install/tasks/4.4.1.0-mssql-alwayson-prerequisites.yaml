@@ -51,12 +51,14 @@
     ServerName:                        "{{ ansible_hostname }}"
     InstanceName:                      "{{ mssql_instance_name }}"
     Permission:
-      - State: Grant
-      - Permission: ConnectSql
-          # - ViewServerState
-          # - AlterAnyEndpoint
-          # - AlterAnyAvailabilityGroup
-    Name:                              "{{ win_cluster_svc_account }}"
+      - DatabasePermission:
+        - State: Grant
+        - Permission
+          - ConnectSql
+          - ViewServerState
+          - AlterAnyEndpoint
+          - AlterAnyAvailabilityGroup
+    Name:                              "{{ item }}"
     # PsDscRunAsCredential_username:     "{{ domain_service_account }}@{{ domain_name }}"
     # PsDscRunAsCredential_password:     "{{ domain_service_password }}"
   loop:
