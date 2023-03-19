@@ -395,7 +395,7 @@
     ensa2:                         true
   when:
    - platform == 'HANA'
-   - InstanceType == 'ABAP'
+   - scs_bom_instance_type == 'ABAP'
    - not ensa1
    - not ensa2
    - inventory_hostname == primary_instance_name
@@ -406,7 +406,7 @@
     ensa1:                         true
   when:
    - platform == 'HANA'
-   - InstanceType == 'JAVA'
+   - scs_bom_instance_type == 'JAVA'
    - not ensa1
    - not ensa2
    - inventory_hostname == primary_instance_name
