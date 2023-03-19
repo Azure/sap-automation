@@ -332,6 +332,11 @@
   register:                            scs_installed
   when:                                node_tier == 'scs'
 
+- name:                                "ENSA1/ENSA2 set defaults"
+  ansible.builtin.set_fact:
+    ensa1:                             false
+    ensa2:                             false
+
 - name:                                "SCSERS - Enqueue Server Setup"
   block:
     - name:                            "SCSERS - Get the variable to determine ENSA version"
@@ -354,12 +359,6 @@
       ansible.builtin.set_fact:
         ensa1:                         "{{ enq_server.stdout_lines | select('search', 'enserver') | length > 0 }}"
 
-    # logic added to identify java based installations
-    - name:                            "SCSERS - Is ENSA1 - JAVA"
-      ansible.builtin.set_fact:
-        ensa1:                         "{{ enq_server.stdout_lines | select('search', 'enrepserver') | length > 0 }}"
-      when:
-        - not ensa1
 
     # enq_server, Enqueue Server 2
     - name:                            "SCSERS - Is ENSA2"
@@ -385,6 +384,26 @@
   when:
     - inventory_hostname == primary_instance_name
     - scs_installed.stat.exists
+
+- name:                            "SCSERS - set default to ENSA2 for HANA if message server is down"
+  ansible.builtin.set_fact:
+    ensa2:                         true
+  when:
+   - platform == 'HANA'
+   - not ensa1
+   - not ensa2
+   - inventory_hostname == primary_instance_name
+   - scs_installed.stat.exists
+
+- name:                            "SCSERS - set default to ENSA1 for AnyDB if message server is down"
+  ansible.builtin.set_fact:
+    ensa1:                         true
+  when:
+   - platform != 'HANA'
+   - not ensa1
+   - not ensa2
+   - inventory_hostname == primary_instance_name
+   - scs_installed.stat.exists
 
 ...
 # /*---------------------------------------------------------------------------8
