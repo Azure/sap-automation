@@ -204,6 +204,8 @@ variable "deployer_use_DHCP" {
 
 variable "deployer_image" {
   default = {
+    os_type         = "LINUX"
+    type            = "marketplace"
     source_image_id = ""
     publisher       = "Canonical"
     offer           = "0001-com-ubuntu-server-focal"
