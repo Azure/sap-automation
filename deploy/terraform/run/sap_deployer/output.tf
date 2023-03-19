@@ -153,3 +153,7 @@ output "webapp_id" {
 output "deployer_extension_ids" {
   value = module.sap_deployer.extension_ids
 }
+
+output "deployer" {
+  value = local.deployer
+}

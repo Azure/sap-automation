@@ -205,23 +205,25 @@ variable "deployer_use_DHCP" {
 variable "deployer_image" {
   default = {
     os_type         = "LINUX"
-    type            = "marketplace"
     source_image_id = ""
+    type            = "marketplace"
     publisher       = "Canonical"
     offer           = "0001-com-ubuntu-server-focal"
     sku             = "20_04-lts-gen2"
     version         = "latest"
+    type            = "marketplace"
   }
 }
 
 variable "plan" {
   default = {
     use         = false
-    name      = ""
-    publisher = ""
-    product   = ""
+    "name"      = ""
+    "publisher" = ""
+    "product"   = ""
   }
 }
+
 
 variable "deployer_private_ip_address" {
   default = ""
