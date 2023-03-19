@@ -142,9 +142,9 @@ resource "azurerm_linux_virtual_machine" "deployer" {
   dynamic "plan" {
     for_each = range(var.deployer.os.type == "marketplace_with_plan" ? 1 : 1)
     content {
-      name      = var.deployer.plan.offer
+      name      = var.deployer.plan.name
       publisher = var.deployer.plan.publisher
-      product   = var.deployer.plan.sku
+      product   = var.deployer.plan.product
     }
   }
 
