@@ -27,7 +27,7 @@
       ansible.builtin.pip:
         name:                          netaddr
         state:                         present
-    
+
     - name:                            "0.0 Validations - ensure credssp is installed in the controller"
       ansible.builtin.pip:
         name:                          'pywinrm[credssp]'
