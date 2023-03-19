@@ -52,7 +52,7 @@
     InstanceName:                      "{{ mssql_instance_name }}"
     Permission:
       - State: Grant
-        Permission:
+      - Permission:
           - ConnectSql
           - ViewServerState
           - AlterAnyEndpoint
