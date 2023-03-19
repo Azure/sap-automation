@@ -140,3 +140,25 @@ resource "azurerm_network_security_rule" "nsr_controlplane_db" {
   destination_address_prefixes = azurerm_subnet.db[0].address_prefixes
 }
 
+// Add network security rule
+resource "azurerm_network_security_rule" "nsr_controlplane_admin" {
+  provider = azurerm.main
+  depends_on = [
+    azurerm_network_security_group.admin
+  ]
+  count = local.admin_subnet_nsg_exists ? 0 : 1
+  name  = "ConnectivityToSAPApplicationSubnetFromControlPlane-ssh-rdp-winrm"
+  resource_group_name = local.vnet_sap_exists ? (
+    data.azurerm_virtual_network.vnet_sap[0].resource_group_name) : (
+    azurerm_virtual_network.vnet_sap[0].resource_group_name
+  )
+  network_security_group_name  = azurerm_network_security_group.admin[0].name
+  priority                     = 100
+  direction                    = "Inbound"
+  access                       = "Allow"
+  protocol                     = "Tcp"
+  source_port_range            = "*"
+  destination_port_ranges      = [22, 3389, 5985, 5986]
+  source_address_prefixes      = compact(concat(var.deployer_tfstate.subnet_mgmt_address_prefixes, var.deployer_tfstate.subnet_bastion_address_prefixes))
+  destination_address_prefixes = azurerm_subnet.admin[0].address_prefixes
+}
