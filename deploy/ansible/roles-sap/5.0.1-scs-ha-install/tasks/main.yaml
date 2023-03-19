@@ -332,10 +332,15 @@
   register:                            scs_installed
   when:                                node_tier == 'scs'
 
-- name:                                "ENSA1/ENSA2 set defaults"
+- name:                                "ENSA1 set defaults"
   ansible.builtin.set_fact:
     ensa1:                             false
+  when: ensa1 is not defined
+
+- name:                                "ENSA2 set defaults"
+  ansible.builtin.set_fact:
     ensa2:                             false
+  when: ensa2 is not defined
 
 - name:                                "SCSERS - Enqueue Server Setup"
   block:
