@@ -66,7 +66,7 @@
         InstanceName:                  "{{ mssql_instance_name }}"
         AvailabilityGroup:             "{{ mssql_ag_name }}"
         Port:                          5022
-        IpAddress:                     "{{ ansible_default_ipv4.address/ansible_default_ipv4.netmask }}"
+        IpAddress:                     "{{ db_lb_ip/ansible_default_ipv4.netmask }}"
         PsDscRunAsCredential_username: "{{ domain_service_account }}@{{ domain_name }}"
         PsDscRunAsCredential_password: "{{ domain_service_password }}"
       register:                        sql_ag_listener_creation

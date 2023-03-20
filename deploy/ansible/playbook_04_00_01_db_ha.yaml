@@ -529,17 +529,26 @@
                 witness_storage_account_name: "{{ hostvars.localhost.witness_storage_account_name }}"
                 witness_storage_account_key:  "{{ hostvars.localhost.witness_storage_account_key }}"
 
-            - name:                    "SQLServer HA - AlwaysOn Prerequisites"
-              ansible.builtin.include_tasks:
-                file:                  roles-db/windows/4.4.0-mssql-install/tasks/4.4.1.0-mssql-alwayson-prerequisites.yaml
+            - name:                           "SQL Server HA config: Base cluster tasks"
+              ansible.builtin.import_role:
+                name:                         roles-db/windows/4.4.0-mssql-install
+                tasks_from:                   main
+              register:                       cluster_output
+              vars:
+                tier:                         "sqlserverha"
+                sap_cluster_ip_address:       "{{ db_clst_lb_ip }}"
+                primary_node:                 "{{ ansible_play_hosts_all[0] }}"         # Setting up Primary Instance Name
+                secondary_node:               "{{ ansible_play_hosts_all[1] }}"         # Setting up Secondary Instance Name
+                mssql_primary_node:           "{{ ansible_play_hosts_all[0] }}"         # Setting up Primary Instance Name
+                mssql_secondary_node:         "{{ ansible_play_hosts_all[1] }}"         # Setting up Secondary Instance Name
+                domain_user_password:         "{{ hostvars.localhost.winadm_password }}"
+                svc_password:                 "{{ hostvars.localhost.svcadm_password }}"
+                domain_service_account:       "{{ hostvars.localhost.adsvc_account }}"
+                domain_service_password:      "{{ hostvars.localhost.adsvc_password }}"
+                witness_storage_account_name: "{{ hostvars.localhost.witness_storage_account_name }}"
+                witness_storage_account_key:  "{{ hostvars.localhost.witness_storage_account_key }}"
               tags:
-                - 4.4.1.0-mssql-alwayson-prerequisites
-
-            - name:                    "SQLServer HA - SQLServer AlwaysOn configuration"
-              ansible.builtin.include_tasks:
-                file:                  roles-db/windows/4.4.0-mssql-install/tasks/4.4.1.1-mssql-alwayson-config.yaml
-              tags:
-                - 4.4.1.1-mssql-alwayson-config
+                - 4.4.1.0-mssql-alwayson
 
             - name:                    "SQLServer HA - Create alwayson-config-done flag"
               ansible.windows.win_file:
