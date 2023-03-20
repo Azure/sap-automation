@@ -121,7 +121,8 @@
 
 - name:                                "PAS Install: Set the SCS Server name"
   ansible.builtin.set_fact:
-    scs_server:                        "{% if scs_high_availability %}{{ sid_to_be_deployed.sid | lower }}scs{{ scs_instance_number }}cl1{% else %}{{ hostvars[scs_server_temp | first]['virtual_host'] }}{% endif %}"
+    scs_server:                        "{{ hostvars[scs_server_temp | first]['virtual_host'] }}"
+    scs_sapmnt_server:                 "{% if scs_high_availability %}{{ sid_to_be_deployed.sid | lower }}scs{{ scs_instance_number }}cl1{% else %}{{ hostvars[scs_server_temp | first]['virtual_host'] }}{% endif %}"
     db_virtual_host:                   "{{ hostvars[db_server_temp | first]['virtual_host'] }}"
     instance_number:                   "{% if node_tier == 'pas' %}'00'{% else %}'01'{% endif %}"
     file_path:                         "{% if scs_high_availability %}INSTALL/HA/ABAP/APP1{% else %}INSTALL/DISTRIBUTED/ABAP/APP1{% endif %}"
@@ -156,8 +157,8 @@
     sap_ciDialogWPNumber:              12
     sap_ciBtcWPNumber:                 8
     sap_installSAPHostAgent:           "false"
-    sap_profile_dir:                   '\\{{ scs_server }}\sapmnt\{{ sid_to_be_deployed.sid | upper }}\SYS\profile'
-    sap_scs_hostname:                  "{{ scs_server }}"
+    sap_profile_dir:                   '\\{{ scs_sapmnt_server }}\sapmnt\{{ sid_to_be_deployed.sid | upper }}\SYS\profile'
+    sap_scs_hostname:                  "{{ scs_sapmnt_server }}"
     sap_db_hostname:                   "{{ db_virtual_host }}"
     sap_ciVirtualHostname:
     sap_appVirtualHostname:
