@@ -8,6 +8,12 @@ resource "azurerm_storage_account" "storage_bootdiag" {
   provider = azurerm.main
   count    = length(var.diagnostics_storage_account.arm_id) > 0 ? 0 : 1
   name     = local.storageaccount_name
+  depends_on = [
+    azurerm_subnet.app,
+    azurerm_subnet.db,
+    azurerm_subnet.web,
+  ]
+
   resource_group_name = local.resource_group_exists ? (
     data.azurerm_resource_group.resource_group[0].name) : (
     azurerm_resource_group.resource_group[0].name
@@ -16,11 +22,6 @@ resource "azurerm_storage_account" "storage_bootdiag" {
     data.azurerm_resource_group.resource_group[0].location) : (
     azurerm_resource_group.resource_group[0].location
   )
-  depends_on = [
-    azurerm_subnet.app,
-    azurerm_subnet.db,
-    azurerm_subnet.web,
-  ]
 
   account_replication_type        = "LRS"
   account_tier                    = "Standard"
@@ -34,21 +35,21 @@ resource "azurerm_storage_account" "storage_bootdiag" {
   }
 }
 
-# resource "azurerm_private_dns_a_record" "storage_bootdiag" {
-#   provider = azurerm.dnsmanagement
+resource "azurerm_private_dns_a_record" "storage_bootdiag" {
+  provider = azurerm.dnsmanagement
 
-#   count = var.create_vaults_and_storage_dns_a_records ? 1 : 0
-#   name  = lower(local.storageaccount_name)
+  count = var.use_custom_dns_a_registration ? 0 : 0
+  name  = lower(local.storageaccount_name)
 
-#   zone_name           = "privatelink.blob.core.windows.net"
-#   resource_group_name = var.management_dns_resourcegroup_name
-#   ttl                 = 3600
-#   records             = [data.azurerm_network_interface.storage_bootdiag[count.index].ip_configuration[0].private_ip_address]
+  zone_name           = "privatelink.blob.core.windows.net"
+  resource_group_name = var.management_dns_resourcegroup_name
+  ttl                 = 3600
+  records             = [data.azurerm_network_interface.storage_bootdiag[count.index].ip_configuration[0].private_ip_address]
 
-#   lifecycle {
-#     ignore_changes = [tags]
-#   }
-# }
+  lifecycle {
+    ignore_changes = [tags]
+  }
+}
 
 data "azurerm_storage_account" "storage_bootdiag" {
   provider            = azurerm.main
@@ -64,7 +65,7 @@ resource "azurerm_private_endpoint" "storage_bootdiag" {
     azurerm_subnet.db,
     azurerm_subnet.web,
   ]
-  count = var.use_private_endpoint && local.admin_subnet_defined && (length(var.diagnostics_storage_account.arm_id) == 0) ? 1 : 0
+  count = var.use_private_endpoint && local.admin_subnet_defined && (length(var.diagnostics_storage_account.arm_id) == 0) ? 0 : 0
   name = format("%s%s%s",
     var.naming.resource_prefixes.storage_private_link_diag,
     local.prefix,
@@ -151,8 +152,11 @@ resource "azurerm_storage_account" "witness_storage" {
 }
 
 resource "azurerm_storage_account_network_rules" "witness" {
-  provider           = azurerm.main
-  count              = var.enable_firewall_for_keyvaults_and_storage && length(var.witness_storage_account.arm_id) == 0 ? 1 : 0
+  provider = azurerm.main
+  count    = var.enable_firewall_for_keyvaults_and_storage && length(var.witness_storage_account.arm_id) == 0 ? 1 : 0
+  depends_on = [
+    azurerm_storage_account.witness_storage
+  ]
   storage_account_id = azurerm_storage_account.witness_storage[0].id
   default_action     = "Deny"
   bypass             = ["AzureServices", "Logging", "Metrics"]
@@ -173,20 +177,20 @@ resource "azurerm_storage_account_network_rules" "witness" {
 
 }
 
-# resource "azurerm_private_dns_a_record" "witness_storage" {
-#   count               = var.create_vaults_and_storage_dns_a_records ? 1 : 0
-#   name                = lower(local.witness_storageaccount_name)
-#   zone_name           = "privatelink.blob.core.windows.net"
-#   resource_group_name = var.management_dns_resourcegroup_name
-#   ttl                 = 3600
-#   records             = [data.azurerm_network_interface.witness_storage[count.index].ip_configuration[0].private_ip_address]
+resource "azurerm_private_dns_a_record" "witness_storage" {
+  count               = var.use_custom_dns_a_registration ? 0 : 0
+  name                = lower(local.witness_storageaccount_name)
+  zone_name           = "privatelink.blob.core.windows.net"
+  resource_group_name = var.management_dns_resourcegroup_name
+  ttl                 = 3600
+  records             = [data.azurerm_network_interface.witness_storage[count.index].ip_configuration[0].private_ip_address]
 
-#   provider = azurerm.dnsmanagement
+  provider = azurerm.dnsmanagement
 
-#   lifecycle {
-#     ignore_changes = [tags]
-#   }
-# }
+  lifecycle {
+    ignore_changes = [tags]
+  }
+}
 
 data "azurerm_storage_account" "witness_storage" {
   provider            = azurerm.main
@@ -201,7 +205,7 @@ resource "azurerm_private_endpoint" "witness_storage" {
     azurerm_subnet.db,
     azurerm_private_dns_zone_virtual_network_link.storage[0]
   ]
-  count = var.use_private_endpoint && local.admin_subnet_defined && (length(var.witness_storage_account.arm_id) == 0) ? 1 : 0
+  count = var.use_private_endpoint && local.admin_subnet_defined && (length(var.witness_storage_account.arm_id) == 0) ? 0 : 0
   name = format("%s%s%s",
     var.naming.resource_prefixes.storage_private_link_witness,
     local.prefix,
@@ -228,7 +232,7 @@ resource "azurerm_private_endpoint" "witness_storage" {
     name = format("%s%s%s",
       var.naming.resource_prefixes.storage_private_svc_witness,
       local.prefix,
-      local.resource_suffixes.storage_private_svc_witness
+      var.naming.resource_prefixes.storage_private_svc_witness
     )
     is_manual_connection           = false
     private_connection_resource_id = length(var.witness_storage_account.arm_id) > 0 ? var.witness_storage_account.arm_id : azurerm_storage_account.witness_storage[0].id
@@ -295,8 +299,11 @@ resource "azurerm_storage_account" "transport" {
 }
 
 resource "azurerm_storage_account_network_rules" "transport" {
-  provider           = azurerm.main
-  count              = var.NFS_provider == "AFS" && var.enable_firewall_for_keyvaults_and_storage && length(var.transport_storage_account_id) == 0 ? 1 : 0
+  provider = azurerm.main
+  count    = var.NFS_provider == "AFS" && var.enable_firewall_for_keyvaults_and_storage && length(var.transport_storage_account_id) == 0 ? 1 : 0
+  depends_on = [
+    azurerm_storage_account.transport
+  ]
   storage_account_id = azurerm_storage_account.transport[0].id
   default_action     = "Deny"
 
@@ -399,7 +406,7 @@ resource "azurerm_private_endpoint" "transport" {
   provider = azurerm.main
   depends_on = [
     azurerm_subnet.app,
-    azurerm_private_dns_zone_virtual_network_link.vnet_sap_file[0]
+    azurerm_private_dns_zone_virtual_network_link.vnet_sap_file
   ]
   count = var.NFS_provider == "AFS" ? (
     length(var.transport_storage_account_id) > 0 ? (
@@ -519,7 +526,12 @@ resource "azurerm_storage_account" "install" {
 }
 
 resource "azurerm_storage_account_network_rules" "install" {
-  provider           = azurerm.main
+  provider = azurerm.main
+  depends_on = [
+    azurerm_subnet.app,
+    azurerm_subnet.db
+  ]
+
   count              = var.NFS_provider == "AFS" && var.enable_firewall_for_keyvaults_and_storage && length(var.install_storage_account_id) == 0 ? 1 : 0
   storage_account_id = azurerm_storage_account.install[0].id
   default_action     = "Deny"
@@ -720,19 +732,19 @@ resource "time_sleep" "wait_for_private_endpoints" {
 }
 
 
-# data "azurerm_network_interface" "storage_bootdiag" {
-#   provider            = azurerm.main
-#   count               = var.use_private_endpoint && length(var.diagnostics_storage_account.arm_id) == 0 && length(try(azurerm_private_endpoint.storage_bootdiag[0].network_interface[0].id, "")) > 0 ? 1 : 0
-#   name                = azurerm_private_endpoint.storage_bootdiag[count.index].network_interface[0].name
-#   resource_group_name = split("/", azurerm_private_endpoint.storage_bootdiag[count.index].network_interface[0].id)[4]
-# }
+data "azurerm_network_interface" "storage_bootdiag" {
+  provider            = azurerm.main
+  count               = var.use_private_endpoint && length(var.diagnostics_storage_account.arm_id) == 0 && length(try(azurerm_private_endpoint.storage_bootdiag[0].network_interface[0].id, "")) > 0 ? 1 : 0
+  name                = azurerm_private_endpoint.storage_bootdiag[count.index].network_interface[0].name
+  resource_group_name = split("/", azurerm_private_endpoint.storage_bootdiag[count.index].network_interface[0].id)[4]
+}
 
-# data "azurerm_network_interface" "witness_storage" {
-#   provider            = azurerm.main
-#   count               = var.use_private_endpoint && length(var.witness_storage_account.arm_id) == 0 && length(try(azurerm_private_endpoint.witness_storage[0].network_interface[0].id, "")) > 0 ? 1 : 0
-#   name                = azurerm_private_endpoint.witness_storage[count.index].network_interface[0].name
-#   resource_group_name = split("/", azurerm_private_endpoint.witness_storage[count.index].network_interface[0].id)[4]
-# }
+data "azurerm_network_interface" "witness_storage" {
+  provider            = azurerm.main
+  count               = var.use_private_endpoint && length(var.witness_storage_account.arm_id) == 0 && length(try(azurerm_private_endpoint.witness_storage[0].network_interface[0].id, "")) > 0 ? 1 : 0
+  name                = azurerm_private_endpoint.witness_storage[count.index].network_interface[0].name
+  resource_group_name = split("/", azurerm_private_endpoint.witness_storage[count.index].network_interface[0].id)[4]
+}
 
 # data "azurerm_network_interface" "install" {
 #   provider            = azurerm.main
