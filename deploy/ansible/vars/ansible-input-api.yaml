@@ -22,22 +22,12 @@ check_storage_account:                  true
 bom_processing_become:                  true                                    # BOM processing as root user
 deployer_free_temp_disk_space:          100                                     # Free disk space requirement on deployer
 is_run_with_infraCreate_only:           false                                   # For situations when you want to run the playbooks 01 & 02 without a BOM
-# -------------------------------------+---------------------------------------8
-
-# Default BoM Processing variables for Windows
-target_media_location_windows:         'C:\sap'                                # Default
-sap_drive:                             'S:'
-download_directory_windows:            '\\{{ scs_server }}\SAP'
-download_directory_Drive:              'Z:'
-sap_deployment_automation:             'C:\sap_deployment_automation'
-tmp_directory_windows:                 '{{ sap_deployment_automation }}\tmp'
-log_dir_windows:                       '{{ sap_deployment_automation }}\logs'
-mssserver_version:                     'mssserver2019'
-# log_file_windows:                       'C:\Program Files'
 
 BOM_directory:                         "{{ playbook_dir }}/BOM-catalog"
 
 always_upload_jinja_templates:         true
+
+# -------------------------------------+---------------------------------------8
 
 # SAP Configuration for templates and install
 hana_backup_path:                      /hana/backup
@@ -125,13 +115,17 @@ password_db_xsa_admin:                 ""
 download_templates:                     false
 prometheus:                             false                                   # Install Prometheus Monitoring Agent
 
-# Keyvault
-deployer_kv_name_secret:                "deployer-kv-name"                      # Name of secret containing the deployer keyvault name in the workload zone keyvault
-sapbits_location_secret:                "sapbits-location-base-path"            # Name of secret containing the SAP Binaries storage account container URL
-sapbits_sas_token_secret:               "sapbits-sas-token"                     # Name of secret containing the SAP Binaries storage account SAS token
-
-# NFS
-NFS_provider:                           "NONE"
+# ------------------- Begin - Windows Processing variables -------------------8
+# Default BoM Processing variables for Windows
+target_media_location_windows:         'C:\sap'                                # Default
+sap_drive:                             'S:'
+download_directory_windows:            '\\{{ scs_server }}\SAP'
+download_directory_Drive:              'Z:'
+sap_deployment_automation:             'C:\sap_deployment_automation'
+tmp_directory_windows:                 '{{ sap_deployment_automation }}\tmp'
+log_dir_windows:                       '{{ sap_deployment_automation }}\logs'
+mssserver_version:                     'mssserver2019'
+# log_file_windows:                       'C:\Program Files'
 
 # Windows AD specific parameters
 domain_name:
@@ -153,9 +147,20 @@ win_mapped_drive:                       Z
 win_sql_svc_account:                    'NT SERVICE\MSSQLSERVER'
 win_sqlagent_svc_account:               'NT Service\SQLSERVERAGENT'
 win_cluster_svc_account:                'NT SERVICE\ClusSvc'
+mssql_instance_name:                    'MSSQLSERVER'
 
 # "CSD"  if you are using the cluster shared drive or Choose "FS" if you are using the File Share.
-win_cluster_share_type:                     'CSD'
+win_cluster_share_type:                 'CSD'
+
+# -------------------------------------+---------------------------------------8
+
+# Keyvault
+deployer_kv_name_secret:                "deployer-kv-name"                      # Name of secret containing the deployer keyvault name in the workload zone keyvault
+sapbits_location_secret:                "sapbits-location-base-path"            # Name of secret containing the SAP Binaries storage account container URL
+sapbits_sas_token_secret:               "sapbits-sas-token"                     # Name of secret containing the SAP Binaries storage account SAS token
+
+# NFS
+NFS_provider:                           "NONE"
 
 # ------------------- Begin - SAP SWAP settings variables --------------------8
 sap_swap:
