@@ -516,18 +516,20 @@
             - name:                    "SQLServer HA - Windows Cluster Prerequisites"
               ansible.builtin.include_tasks:
                 file:                  roles-os/windows/1.17-generic-wincluster/tasks/1.17.0-wincluster-prerequisites.yaml
-              vars:
-                sap_cluster_ip_address:    "{{ db_clst_lb_ip }}"
-              tags:
-                - 1.17.0-wincluster-prerequisites
+                apply:
+                  vars:
+                    sap_cluster_ip_address:    "{{ db_clst_lb_ip }}"
+                  tags:
+                    - 1.17.0-wincluster-prerequisites
 
             - name:                    "SQLServer HA - Windows Cluster Configuration"
               ansible.builtin.include_tasks:
                 file:                  roles-os/windows/1.17-generic-wincluster/tasks/1.17.1-wincluster-createcluster.yaml
-              vars:
-                sap_cluster_ip_address:    "{{ db_clst_lb_ip }}"
-              tags:
-                - 1.17.1-wincluster-createcluster
+                apply:
+                  vars:
+                    sap_cluster_ip_address:    "{{ db_clst_lb_ip }}"
+                  tags:
+                    - 1.17.1-wincluster-createcluster
 
             - name:                    "SQLServer HA - AlwaysOn Prerequisites"
               ansible.builtin.include_tasks:
