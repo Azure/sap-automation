@@ -306,19 +306,6 @@ admin_users:
 #    node_tier:    sybase
 #    enabled:      true
 
-#  - name:         sapadm
-#   comment:      "SAP Host Agent"
-#    uid:          "{{ sapadm_uid }}"
-#    group:        sapsys
-#    groups:       ["sapsys"]
-#    password:     "some_password_string"
-#    sudoers_role: "admin_no_password"
-#    shell:        /bin/csh
-#    state:        present
-#    tier:         sapos
-#    node_tier:    all
-#    enabled:      true
-
 #  - name:         "{{ sap_sid | lower }}adm"
 #    comment:      "SAP System Administrator"
 #    uid:          "{{ sidadm_uid }}"
