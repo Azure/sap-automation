@@ -42,22 +42,23 @@
           tags:
             - kv-secrets
       when:                            db_high_availability
+# +------------------------------------4--------------------------------------*/
 
 - hosts:                               "{{ sap_sid | upper }}_DB"
   name:                                DB HA Configuration
   remote_user:                         "{{ orchestration_ansible_user }}"
-  become:                              true
   gather_facts:                        true                                    # Important to collect hostvars information
   vars_files:
     - vars/ansible-input-api.yaml                                              # API Input template with defaults
 
   tasks:
-# -------------------------------------+---------------------------------------8
-#
-# Build the list of tasks to be executed in order here.
-#
-# -------------------------------------+---------------------------------------8
+  # -------------------------------------+---------------------------------------8
+  #
+  # Build the list of tasks to be executed in order here.
+  #
+  # -------------------------------------+---------------------------------------8
     - name:                            "HANA HA Setup"
+      become:                              true
       block:
         - name:                        "Install HANA System Replication"
           block:
@@ -230,13 +231,13 @@
 
   name:                                Observer Playbook
   remote_user:                         "{{ orchestration_ansible_user }}"
-  become:                              true
   gather_facts:                        true                                    # Important to collect hostvars information
   vars_files:
     - vars/ansible-input-api.yaml                                              # API Input template with defaults
 
   tasks:
     - name:                            "Oracle: Observer setup"
+      become:                          true
       when:
         - db_high_availability
         - platform in ['ORACLE', 'ORACLE-ASM']
