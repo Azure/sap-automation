@@ -10,7 +10,7 @@
   become_method:                       "runas"
   become_user:                         '{{ sap_sid }}adm@{{ domain }}'
   when:
-    - scs_high_availability
+    - scs_high_availability or db_high_availability
     - ansible_os_family | upper == "WINDOWS"
   ansible.builtin.import_tasks:
     file:                              "1.17.0-wincluster-prerequisites.yaml"
@@ -22,7 +22,7 @@
   become_method:                       "runas"
   become_user:                         '{{ sap_sid }}adm@{{ domain }}'
   when:
-    - scs_high_availability
+    - scs_high_availability or db_high_availability
     - ansible_os_family | upper == "WINDOWS"
   ansible.builtin.import_tasks:
     file:                              "1.17.1-wincluster-createcluster.yaml"

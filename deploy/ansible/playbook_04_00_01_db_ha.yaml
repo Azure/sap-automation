@@ -513,23 +513,16 @@
                 domain_user_password:      "{{ hostvars.localhost.winadm_password }}"
                 sap_cluster_ip_address:    "{{ db_clst_lb_ip }}"
 
-            - name:                    "SQLServer HA - Windows Cluster Prerequisites"
-              ansible.builtin.include_tasks:
-                file:                  roles-os/windows/1.17-generic-wincluster/tasks/1.17.0-wincluster-prerequisites.yaml
-                apply:
-                  vars:
-                    sap_cluster_ip_address:    "{{ db_clst_lb_ip }}"
-                  tags:
-                    - 1.17.0-wincluster-prerequisites
-
-            - name:                    "SQLServer HA - Windows Cluster Configuration"
-              ansible.builtin.include_tasks:
-                file:                  roles-os/windows/1.17-generic-wincluster/tasks/1.17.1-wincluster-createcluster.yaml
-                apply:
-                  vars:
-                    sap_cluster_ip_address:    "{{ db_clst_lb_ip }}"
-                  tags:
-                    - 1.17.1-wincluster-createcluster
+            - name:                           "SQL Server HA config: Base cluster tasks"
+              ansible.builtin.import_role:
+                name:                         roles-os/windows/1.17-generic-wincluster
+                tasks_from:                   main
+              register:                       cluster_output
+              vars:
+                sap_cluster_ip_address:       "{{ db_clst_lb_ip }}"
+                primary_node:                 "{{ ansible_play_hosts_all[0] }}"         # Setting up Primary Instance Name
+                secondary_node:               "{{ ansible_play_hosts_all[1] }}"         # Setting up Secondary Instance Name
+                domain_user_password:         "{{ hostvars.localhost.winadm_password }}"
 
             - name:                    "SQLServer HA - AlwaysOn Prerequisites"
               ansible.builtin.include_tasks:
