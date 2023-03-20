@@ -6,7 +6,7 @@
       - "Domain:                       {{ domain_name }}"
       - "domain_svc_account:           {{ domain_service_account }}"
       - "hostname:                     {{ ansible_hostname }}"
-    verbosity:                         2
+    # verbosity:                         2
 
 - name:                                "Assert domain user name and other details are available"
   ansible.builtin.assert:
