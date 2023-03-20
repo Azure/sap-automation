@@ -4,6 +4,15 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 ---
+- name:                                "WinCluster-Create: Calculating the domain value from {{ domain_name }}"
+  ansible.builtin.set_fact:
+    domain:                            "{{ domain_name | split('.') | first }}"
+    cacheable:                         true
+  when:
+    - domain_name is defined
+    - domain_name | type_debug != 'NoneType'
+    - domain_name | trim | length > 1
+    - domain is not defined
 
 - name:                                "WinCluster: Prepare for cluster configuration"
   become:                              true
