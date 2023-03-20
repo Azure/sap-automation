@@ -443,7 +443,7 @@
 - hosts:                               "{{ sap_sid| upper }}_DB"
   name:                                "DB HA Installation - SAP SQLServer"
   remote_user:                         "{{ orchestration_ansible_user }}"
-  gather_facts:                        false
+  gather_facts:                        true
   vars_files:
     - vars/ansible-input-api.yaml             # API Input template with defaults
 
