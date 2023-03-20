@@ -236,46 +236,50 @@
     - vars/ansible-input-api.yaml                                              # API Input template with defaults
 
   tasks:
-
-    - name:                            "Observer Playbook: Setting the DB facts"
-      ansible.builtin.set_fact:
-        node_tier:                     observer
-        action:                        3
-        main_password:                 "{{ hostvars.localhost.sap_password }}"
-      tags:
-        - always
-
-    # Specify the active tier for this playbook run
-    - name:                            "Observer Playbook: Setting the os tier facts"
-      ansible.builtin.set_fact:
-        tier:                          os
-      tags:
-        - always
-
-    - name:                            "Observer Play"
-      become:                          true
+    - name:                            "Oracle: Observer setup"
+      when:
+        - db_high_availability
+        - platform in ['ORACLE', 'ORACLE-ASM']
       block:
-        - name:                        "Observer Playbook: Check if the mounts place"
-          ansible.builtin.include_role:
-            name:                      roles-sap-os/2.6-sap-mounts
+        - name:                            "Observer Playbook: Setting the DB facts"
+          ansible.builtin.set_fact:
+            node_tier:                     observer
+            action:                        3
+            main_password:                 "{{ hostvars.localhost.sap_password }}"
+          tags:
+            - always
 
-    - name:                            "Observer Play"
-      become:                          true
-      block:
-        - name:                        "Observer Playbook: Check if the mounts place"
-          ansible.builtin.include_role:
-            name:                      roles-sap-os/2.6-sap-mounts
+        # Specify the active tier for this playbook run
+        - name:                            "Observer Playbook: Setting the os tier facts"
+          ansible.builtin.set_fact:
+            tier:                          os
+          tags:
+            - always
 
-        - name:                        "Observer Playbook: Oracle Observer setup"
-          ansible.builtin.include_role:
-            name:                      roles-db/4.1.3-ora-dg
+        - name:                            "Observer Play"
+          become:                          true
+          block:
+            - name:                        "Observer Playbook: Check if the mounts place"
+              ansible.builtin.include_role:
+                name:                      roles-sap-os/2.6-sap-mounts
 
-        - name:                        "Observer Playbook: - Run post installation routines"
-          ansible.builtin.include_role:
-            name:                      roles-sap/7.0.0-post-install
-          vars:
-            suffix:                    "_OBSERVER"
-            tier:                      'oracle'
+        - name:                            "Observer Play"
+          become:                          true
+          block:
+            - name:                        "Observer Playbook: Check if the mounts place"
+              ansible.builtin.include_role:
+                name:                      roles-sap-os/2.6-sap-mounts
+
+            - name:                        "Observer Playbook: Oracle Observer setup"
+              ansible.builtin.include_role:
+                name:                      roles-db/4.1.3-ora-dg
+
+            - name:                        "Observer Playbook: - Run post installation routines"
+              ansible.builtin.include_role:
+                name:                      roles-sap/7.0.0-post-install
+              vars:
+                suffix:                    "_OBSERVER"
+                tier:                      'oracle'
 
 # # /*-------------------------------------------------------------------------8
 # # |                                                                          |
