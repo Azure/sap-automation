@@ -465,9 +465,7 @@
         - name:                        "SQLServer HA - Setting the DB facts"
           ansible.builtin.set_fact:
             primary_node:              "{{ ansible_play_hosts_all[0] }}"
-            primary_node_ip_db:        "{{ hostvars[ansible_play_hosts_all[0]]['ansible_eth0']['ipv4']['address'] }}"
             secondary_node:            "{{ ansible_play_hosts_all[1] }}"
-            secondary_node_ip_db:      "{{ hostvars[ansible_play_hosts_all[1]]['ansible_eth0']['ipv4']['address'] }}"
             domain_user_password:      "{{ hostvars.localhost.winadm_password }}"
           tags:
             - always
