@@ -523,6 +523,11 @@
                 primary_node:                 "{{ ansible_play_hosts_all[0] }}"         # Setting up Primary Instance Name
                 secondary_node:               "{{ ansible_play_hosts_all[1] }}"         # Setting up Secondary Instance Name
                 domain_user_password:         "{{ hostvars.localhost.winadm_password }}"
+                svc_password:                 "{{ hostvars.localhost.svcadm_password }}"
+                domain_service_account:       "{{ hostvars.localhost.adsvc_account }}"
+                domain_service_password:      "{{ hostvars.localhost.adsvc_password }}"
+                witness_storage_account_name: "{{ hostvars.localhost.witness_storage_account_name }}"
+                witness_storage_account_key:  "{{ hostvars.localhost.witness_storage_account_key }}"
 
             - name:                    "SQLServer HA - AlwaysOn Prerequisites"
               ansible.builtin.include_tasks:
