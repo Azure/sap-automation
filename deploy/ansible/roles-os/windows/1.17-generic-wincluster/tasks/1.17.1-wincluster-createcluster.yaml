@@ -101,7 +101,7 @@
                                        Get-Disk | Where-Object PartitionStyle -eq 'RAW' | Select-Object -ExpandProperty Number -First 1
       register:                        shared_disk
 
-    - name:                            "WinCluster-Create: Print the shared disk number"
+    - name:                            "WinCluster-Create: Print the shared disk output"
       ansible.builtin.debug:
         msg:                          "Shared disk output is {{ shared_disk }}"
 
