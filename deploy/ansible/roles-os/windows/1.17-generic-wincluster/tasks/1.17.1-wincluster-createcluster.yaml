@@ -41,9 +41,6 @@
 
 
 - name:                                "WinCluster-Create: Create windows cluster on the first node"
-  become:                              true
-  become_method:                       "runas"
-  become_user:                         '{{ sap_sid }}adm@{{ domain }}'
   ansible.windows.win_dsc:
     resource_name:                     Cluster
     StaticIPAddress:                   "{{ cluster_ip_address }}"
@@ -63,9 +60,6 @@
         RetryCount:                     60
 
     - name:                                "WinCluster-Create: Create windows cluster on the second node"
-      become:                              true
-      become_method:                       "runas"
-      become_user:                         '{{ sap_sid }}adm@{{ domain }}'
       ansible.windows.win_dsc:
         resource_name:                     Cluster
         StaticIPAddress:                   "{{ cluster_ip_address }}"
