@@ -21,10 +21,10 @@
   when: tier | lower == 'sqlserverha'
   block:
     - name:                                "WIN-SQL-HA: AlwaysOn Prerequisites"
-      ansible.builtin.import_tasks:        4.4.1.0-mssql-alwayson-prerequisites.yaml
+      ansible.builtin.import_tasks:        roles-db/windows/4.4.0-mssql-install/tasks/4.4.1.0-mssql-alwayson-prerequisites.yaml
 
     - name:                                "WIN-SQL-HA: AlwaysOn Prerequisites"
-      ansible.builtin.import_tasks:        4.4.1.0-mssql-alwayson-config.yaml
+      ansible.builtin.import_tasks:        roles-db/windows/4.4.0-mssql-install/tasks/4.4.1.0-mssql-alwayson-prerequisites.yaml
 
 ...
 # /*---------------------------------------------------------------------------8
