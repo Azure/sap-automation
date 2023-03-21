@@ -112,7 +112,7 @@
       when:
         - shared_disk.output[0] is defined
         - shared_disk.output[0] | type_debug != 'NoneType'
-        - shared_disk.output[0] | trim | length > 1
+        - shared_disk.output[0] | trim | length >= 1
 
     - name:                            "WinCluster-Create: Print the shared disk number"
       ansible.builtin.debug:
