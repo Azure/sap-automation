@@ -599,6 +599,8 @@
                 primary_node_ip_scs:          "{{ hostvars[ansible_play_hosts_all[0]]['ansible_eth0']['ipv4']['address'] }}"
                 secondary_node_ip_ers:        "{{ hostvars[ansible_play_hosts_all[1]]['ansible_eth0']['ipv4']['address'] }}"
                 sap_cluster_ip_address:       "{{ scs_clst_lb_ip }}"
+                ansible_winrm_transport:              credssp
+                ansible_winrm_server_cert_validation: ignore
 
               loop:                    "{{ all_sids }}"
               loop_control:
