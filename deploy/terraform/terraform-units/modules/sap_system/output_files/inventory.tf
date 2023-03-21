@@ -118,7 +118,7 @@ resource "local_file" "sap-parameters_yml" {
     scs_ha         = var.scs_ha
     scs_lb_ip      = var.scs_lb_ip
     ers_lb_ip      = var.ers_lb_ip
-    scs_clst_lb_ip = try(format("%s/%s", var.scs_clst_lb_ip, var.app_subnet_mask), "")
+    scs_clst_lb_ip = try(format("%s/%s", var.scs_clst_lb_ip, var.app_subnet_netmask), "")
 
     db_lb_ip           = var.db_lb_ip
     db_clst_lb_ip      = try(format("%s/%s", var.db_clst_lb_ip, var.db_subnet_netmask), "")
