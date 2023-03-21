@@ -71,6 +71,16 @@ output "scs_loadbalancer_ips" {
   )
 }
 
+output "app_subnet_netmask" {
+  value = local.enable_deployment ? (
+    local.application_subnet_exists ? (
+      cidrnetmask(data.azurerm_subnet.subnet_sap_app[0].address_prefixes)) : (
+      cidrnetmask(azurerm_subnet.subnet_sap_app[0].address_prefixes)
+    )) : (
+    null
+  )
+}
+
 output "scs_vm_ids" {
   description = "SCS virtual machine resource IDs"
   value = local.enable_deployment ? (

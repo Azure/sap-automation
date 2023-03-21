@@ -52,6 +52,14 @@ variable "db_server_secondary_ips" {
   description = "List of secondary IP addresses for the database servers"
 }
 
+variable "db_subnet_netmask" {
+  description = "netmask for the database subnet"
+}
+
+variable "app_subnet_netmask" {
+  description = "netmask for the SAP application subnet"
+}
+
 variable "nics_scs_admin" {
   description = "List of NICs for the SCS Application VMs"
 }

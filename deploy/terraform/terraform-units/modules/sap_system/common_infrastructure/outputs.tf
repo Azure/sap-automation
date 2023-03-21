@@ -86,6 +86,15 @@ output "db_subnet" {
   #local.database_subnet_exists ? data.azurerm_subnet.db[0] : azurerm_subnet.db[0]
 }
 
+output "db_subnet_netmask" {
+  value = local.enable_db_deployment ? (
+    local.database_subnet_exists ? (
+      cidrnetmask(data.azurerm_subnet.db[0].address_prefixes)) : (
+      cidrnetmask(azurerm_subnet.db[0].address_prefixes)
+    )) : (
+    null
+  )
+}
 output "storage_subnet" {
   value = local.enable_db_deployment && local.enable_storage_subnet ? (
     local.sub_storage_exists ? (
@@ -209,7 +218,7 @@ output "usrsap_path" {
 }
 
 output "test" {
-  value = try(azurerm_private_endpoint.sapmnt[0].private_dns_zone_configs[0].record_sets[0].fqdn,"")
+  value = try(azurerm_private_endpoint.sapmnt[0].private_dns_zone_configs[0].record_sets[0].fqdn, "")
 }
 ###############################################################################
 #                                                                             #

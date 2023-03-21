@@ -344,6 +344,8 @@ module "output_files" {
   db_auth_type = try(local.database.authentication.type, "key")
 
   db_clst_lb_ip = module.anydb_node.db_clst_lb_ip
+  
+  db_subnet_netmask = module.common_infrastructure.db_subnet_netmask
 
   #########################################################################################
   #  SAP Application information                                                          #
@@ -385,6 +387,7 @@ module "output_files" {
   scs_lb_ip             = module.app_tier.scs_lb_ip
   ers_lb_ip             = module.app_tier.ers_lb_ip
   scs_clst_lb_ip        = module.app_tier.cluster_lb_ip
+  app_subnet_netmask    = module.app_tier.app_subnet_netmask
   use_local_credentials = module.common_infrastructure.use_local_credentials
 
   sid_keyvault_user_id = module.common_infrastructure.sid_keyvault_user_id
