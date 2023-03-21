@@ -45,7 +45,7 @@
     PsDscRunAsCredential_username:     "{{ domain_service_account }}@{{ domain_name }}"
     PsDscRunAsCredential_password:     "{{ domain_service_password }}"
   loop:
-    - "{{ win_cluster_svc_account: }}"
+    - "{{ win_cluster_svc_account }}"
     - "{{ win_sql_svc_account }}"
     - "{{ win_sqlagent_svc_account }}"
   register:                           sql_login
@@ -68,7 +68,7 @@
     PsDscRunAsCredential_username:     "{{ domain_service_account }}@{{ domain_name }}"
     PsDscRunAsCredential_password:     "{{ domain_service_password }}"
   loop:
-    - "{{ win_cluster_svc_account: }}"
+    - "{{ win_cluster_svc_account }}"
     - "{{ win_sql_svc_account }}"
     - "{{ win_sqlagent_svc_account }}"
   register:                           sql_server_permission
