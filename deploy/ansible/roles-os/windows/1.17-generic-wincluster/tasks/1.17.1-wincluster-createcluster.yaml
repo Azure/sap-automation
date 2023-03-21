@@ -143,7 +143,7 @@
     - name:                           "WinCluster-Create: Get clustered shared disk resource"
       ansible.windows.win_powershell:
         script: |
-                                       Get-ClusterAvailableDisk -All | Select-Object -ExpandProperty Number -First 1
+                                       Get-ClusterAvailableDisk -All -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Number -First 1
       register:                        clu_shared_disk_details
 
     - name:                            "WinCluster-Create: Set Shared disk number fact"
@@ -151,7 +151,7 @@
         clu_shared_disk_number:         "{{ clu_shared_disk_details.output[0] }}"
         cacheable:                      true
       when:
-        - clu_shared_disk_details.outptu[0] is defined
+        - clu_shared_disk_details.output[0] is defined
         - clu_shared_disk_details.output[0] | type_debug != 'NoneType'
         - clu_shared_disk_details.output[0] | trim | length >= 1
 
