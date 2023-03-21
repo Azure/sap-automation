@@ -95,6 +95,8 @@
       vars:
         scs_cluster_hostname:                 "{{ scs_virtual_hostname }}"
         ers_cluster_hostname:                 "{{ ers_virtual_hostname }}"
+        ansible_winrm_transport:              credssp
+        ansible_winrm_server_cert_validation: ignore
 
     - name:                           "SCS Install: High availability flag"
       ansible.windows.win_file:
