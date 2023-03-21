@@ -89,9 +89,6 @@
     - ansible_hostname == primary_node
 
 - name:                                "WinCluster-Create: Add shared disk resource to cluster (only execute on scs node)"
-  become:                              true
-  become_method:                       "runas"
-  become_user:                         '{{ sap_sid }}adm@{{ domain }}'
   when:
     - scs_high_availability
     - "'scs' in supported_tiers"
