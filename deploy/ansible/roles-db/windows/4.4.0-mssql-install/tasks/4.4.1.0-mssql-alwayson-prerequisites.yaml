@@ -1,5 +1,13 @@
 ---
 # +------------------------------------4--------------------------------------*/
+- name:                                "WIN-SQL: Ensure DSC modules are installed"
+  community.windows.win_psmodule:
+    name:                              "{{ item }}"
+    state:                             present
+  loop:
+    - PSDesiredStateConfiguration
+    - SqlServerDsc
+
 - name:                                "WIN: Joining the domain {{ domain }}"
   ansible.builtin.debug:
     msg:
