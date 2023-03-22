@@ -1,7 +1,5 @@
-# -------------------------------------+---------------------------------------8
-#
-# Description:  Run SQL Server for Prerequisites
-#
+---
+
 - name:                                "WIN-SQL: Print Tier information"
   ansible.builtin.debug:
     msg:
@@ -13,13 +11,6 @@
   ansible.builtin.import_tasks:        4.4.0.0-mssql-prerequisites.yaml
   when:
     - tier | lower == 'sqlserver'
-
-
-# -------------------------------------+---------------------------------------8
-#
-# Description:  Run SQL Server Installation
-#
-# -------------------------------------+---------------------------------------8
 
 - name:                                "WIN-SQL: Run SQL Server Installation"
   ansible.builtin.import_tasks:        4.4.0.1-mssql-main.yaml
