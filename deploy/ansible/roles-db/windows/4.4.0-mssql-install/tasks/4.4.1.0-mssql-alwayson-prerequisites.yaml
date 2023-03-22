@@ -57,6 +57,10 @@
           - ViewServerState
           - AlterAnyEndpoint
           - AlterAnyAvailabilityGroup
+      - State: GrantWithGrant
+        Permission:
+      - State: Deny
+        Permission:
     Name:                              "{{ item }}"
     # PsDscRunAsCredential_username:     "{{ domain_service_account }}@{{ domain_name }}"
     # PsDscRunAsCredential_password:     "{{ domain_service_password }}"
