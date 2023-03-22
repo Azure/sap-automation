@@ -538,7 +538,7 @@
               ansible.builtin.import_role:
                 name:                         roles-db/windows/4.4.0-mssql-install
                 tasks_from:                   main
-              register:                       cluster_output
+              register:                       alwayson_output
               vars:
                 config_tier:                  "sqlserverha"
                 sap_cluster_ip_address:       "{{ db_clst_lb_ip }}"
