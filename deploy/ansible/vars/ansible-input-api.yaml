@@ -145,7 +145,7 @@ log_disks:                              J:\{{ sap_sid | upper }}LOG1\{{ sap_sid 
 win_mapped_drive:                       Z
 
 win_sql_svc_account:                    'NT SERVICE\MSSQLSERVER'
-win_sqlagent_svc_account:               'NT Service\SQLSERVERAGENT'
+win_sqlagent_svc_account:               'NT SERVICE\SQLSERVERAGENT'
 win_cluster_svc_account:                'NT SERVICE\ClusSvc'
 mssql_instance_name:                    'MSSQLSERVER'
 
