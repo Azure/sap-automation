@@ -6,7 +6,6 @@
       - "Domain:                       {{ domain_name }}"
       - "domain_svc_account:           {{ domain_service_account }}"
       - "hostname:                     {{ ansible_hostname }}"
-    verbosity:                         2
 
 - name:                                "Assert domain user name and other details are available"
   ansible.builtin.assert:
@@ -34,6 +33,20 @@
         PsDscRunAsCredential_username: "{{ domain_service_account }}@{{ domain_name }}"
         PsDscRunAsCredential_password: "{{ domain_service_password }}"
       register:                        sql_always_on_endpoint_permission
+
+    - name:                                "Enable SQL Server Always On Service"
+      ansible.windows.win_dsc:
+        resource_name:                     SqlAlwaysOnService
+        Ensure:                            Present
+        ServerName:                        "{{ ansible_hostname }}"
+        InstanceName:                      "{{ mssql_instance_name }}"
+        RestartTimeout:                    180
+        PsDscRunAsCredential_username:     "{{ domain_service_account }}@{{ domain_name }}"
+        PsDscRunAsCredential_password:     "{{ domain_service_password }}"
+      register:                            sql_always_on_service
+      until:                               sql_always_on_service is succeeded
+      retries:                            6
+      delay:                              20
 
     - name:                            "Create AG for SQL Server"
       ansible.windows.win_dsc:
@@ -76,6 +89,20 @@
 
 - name:                                "HADR: Tasks on secondary node"
   block:
+    - name:                                "Enable SQL Server Always On Service"
+      ansible.windows.win_dsc:
+        resource_name:                     SqlAlwaysOnService
+        Ensure:                            Present
+        ServerName:                        "{{ ansible_hostname }}"
+        InstanceName:                      "{{ mssql_instance_name }}"
+        RestartTimeout:                    180
+        PsDscRunAsCredential_username:     "{{ domain_service_account }}@{{ domain_name }}"
+        PsDscRunAsCredential_password:     "{{ domain_service_password }}"
+      register:                            sql_always_on_service
+      until:                               sql_always_on_service is succeeded
+      retries:                            6
+      delay:                              20
+
     - name:                            "Wait for AvailabilityGroup to be available on secondary node"
       ansible.windows.win_dsc:
         resource_name:                 SqlWaitForAG
