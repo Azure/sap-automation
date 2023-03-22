@@ -13,19 +13,19 @@
   when:
     - tier == 'sqlserver'
 
-- name:                                "WIN-SQL: Run SQL Server Prerequisites"
+- name:                                "WIN-SQL: Run SQL Server Installation"
   ansible.builtin.include_tasks:
     file:                              "4.4.0.1-mssql-main.yaml"
   when: tier == 'sqlserver'
 
-- name:                                "WIN-SQL: Run SQL Server Prerequisites"
+- name:                                "WIN-SQL: Run SQL Server Always On Prerequisites"
   ansible.builtin.include_tasks:
     file:                              "4.4.1.0-mssql-alwayson-prerequisites.yaml"
   when:
     - tier == 'ha'
     - config_tier == 'sqlserverha'
 
-- name:                                "WIN-SQL: Run SQL Server Prerequisites"
+- name:                                "WIN-SQL: Run SQL Server Always On config"
   ansible.builtin.include_tasks:
     file:                              "4.4.1.1-mssql-alwayson-config.yaml"
   when:
