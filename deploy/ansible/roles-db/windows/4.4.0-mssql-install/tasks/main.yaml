@@ -12,24 +12,25 @@
   when:
     - tier | lower == 'sqlserver'
 
-- name:                                "WIN-SQL: Run SQL Server Installation"
+- name:                                "WIN-SQL: Run SQL Server Prerequisites"
   ansible.builtin.import_tasks:        4.4.0.1-mssql-main.yaml
   when:
     - tier | lower == 'sqlserver'
 
-- name:                                "WIN-SQL: Run SQL Server Installation"
+- name:                                "WIN-SQL: Run SQL Server Prerequisites"
   ansible.builtin.import_tasks:        4.4.1.0-mssql-alwayson-prerequisites.yaml
   when:
     - tier | lower == 'ha'
     - config_tier | lower == 'sqlserverha'
 
-- name:                                "WIN-SQL: Run SQL Server Installation"
+- name:                                "WIN-SQL: Run SQL Server Prerequisites"
   ansible.builtin.import_tasks:        4.4.1.1-mssql-alwayson-config.yaml
   when:
     - tier | lower == 'ha'
     - config_tier | lower == 'sqlserverha'
 
 ...
+
 # /*---------------------------------------------------------------------------8
 # |                                   END                                      |
 # +------------------------------------4--------------------------------------*/
