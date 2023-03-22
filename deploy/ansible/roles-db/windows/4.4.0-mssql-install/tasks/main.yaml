@@ -1,6 +1,6 @@
 ---
 
-- name:                                "WIN-SQL: Print Tier information"
+- name:                                "WIN-SQL: Print Tier information - 001"
   ansible.builtin.debug:
     msg:
       - "Current execution tier:  {{ tier }}"
@@ -12,16 +12,37 @@
   when:
     - tier | lower == 'sqlserver'
 
+- name:                                "WIN-SQL: Print Tier information - 002"
+  ansible.builtin.debug:
+    msg:
+      - "Current execution tier:  {{ tier }}"
+      - "Current config tier:     {{ config_tier }}"
+      - "Current execution host:  {{ inventory_hostname }}"
+
 - name:                                "WIN-SQL: Run SQL Server Prerequisites"
   ansible.builtin.import_tasks:        4.4.0.1-mssql-main.yaml
   when:
     - tier | lower == 'sqlserver'
+
+- name:                                "WIN-SQL: Print Tier information - 003"
+  ansible.builtin.debug:
+    msg:
+      - "Current execution tier:  {{ tier }}"
+      - "Current config tier:     {{ config_tier }}"
+      - "Current execution host:  {{ inventory_hostname }}"
 
 - name:                                "WIN-SQL: Run SQL Server Prerequisites"
   ansible.builtin.import_tasks:        4.4.1.0-mssql-alwayson-prerequisites.yaml
   when:
     - tier | lower == 'ha'
     - config_tier | lower == 'sqlserverha'
+
+- name:                                "WIN-SQL: Print Tier information - 004"
+  ansible.builtin.debug:
+    msg:
+      - "Current execution tier:  {{ tier }}"
+      - "Current config tier:     {{ config_tier }}"
+      - "Current execution host:  {{ inventory_hostname }}"
 
 - name:                                "WIN-SQL: Run SQL Server Prerequisites"
   ansible.builtin.import_tasks:        4.4.1.1-mssql-alwayson-config.yaml
