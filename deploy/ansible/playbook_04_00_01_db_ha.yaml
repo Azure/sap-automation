@@ -499,6 +499,11 @@
             name:                              MSSQLServer
           register:                            sql_service
 
+        - name:                                "WIN-SQL: Print SQL Server service status"
+          ansible.builtin.debug:
+            msg:
+              - "SQL Server Service status: {{ sql_service }}"
+
         - name:                        "SQLServer HA - Install cluster (base)"
           when:
             - sql_service.exists
@@ -529,7 +534,7 @@
                 witness_storage_account_name: "{{ hostvars.localhost.witness_storage_account_name }}"
                 witness_storage_account_key:  "{{ hostvars.localhost.witness_storage_account_key }}"
 
-            - name:                           "SQL Server HA config: Base cluster tasks"
+            - name:                           "SQL Server HA config: Always On tasks"
               ansible.builtin.import_role:
                 name:                         roles-db/windows/4.4.0-mssql-install
                 tasks_from:                   main

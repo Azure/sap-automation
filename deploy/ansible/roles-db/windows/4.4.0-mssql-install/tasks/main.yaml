@@ -2,7 +2,12 @@
 #
 # Description:  Run SQL Server for Prerequisites
 #
-
+- name:                                "WIN-SQL: Print Tier information"
+  ansible.builtin.debug:
+    msg:
+      - "Current execution tier:  {{ tier }}"
+      - "Current execution host:  {{ inventory_hostname }}"
+      
 - name:                                "WIN-SQL: Run SQL Server Prerequisites"
   ansible.builtin.import_tasks:        4.4.0.0-mssql-prerequisites.yaml
   when: tier | lower == 'sqlserver'
@@ -17,14 +22,13 @@
   ansible.builtin.import_tasks:        4.4.0.1-mssql-main.yaml
   when: tier | lower == 'sqlserver'
 
-- name:                                "Invoke SQL Server Always On configuration"
+- name:                                "WIN-SQL: Run SQL Server Installation"
+  ansible.builtin.import_tasks:        4.4.1.0-mssql-alwayson-prerequisites.yaml
   when: tier | lower == 'sqlserverha'
-  block:
-    - name:                                "WIN-SQL-HA: AlwaysOn Prerequisites"
-      ansible.builtin.import_tasks:        roles-db/windows/4.4.0-mssql-install/tasks/4.4.1.0-mssql-alwayson-prerequisites.yaml
 
-    - name:                                "WIN-SQL-HA: AlwaysOn Prerequisites"
-      ansible.builtin.import_tasks:        roles-db/windows/4.4.0-mssql-install/tasks/4.4.1.0-mssql-alwayson-prerequisites.yaml
+- name:                                "WIN-SQL: Run SQL Server Installation"
+  ansible.builtin.import_tasks:        4.4.1.1-mssql-alwayson-config.yaml
+  when: tier | lower == 'sqlserverha'
 
 ...
 # /*---------------------------------------------------------------------------8

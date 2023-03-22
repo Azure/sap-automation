@@ -20,11 +20,6 @@
     name:                              MSSQLServer
   register:                            sql_service
 
-- name:                                "WIN-SQL: Print SQL Server service status"
-  ansible.builtin.debug:
-    msg:
-      - "SQL Server Service status: {{ sql_service }}"
-
 - name:                                "WIN-SQL: SQL4SAP Install || Flag File"
   ansible.windows.win_file:
     path:                              '{{ sap_deployment_automation }}\{{ sap_sid | upper }}\sap_deployment_sqldb.txt'
