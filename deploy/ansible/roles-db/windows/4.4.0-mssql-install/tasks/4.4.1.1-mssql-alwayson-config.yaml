@@ -19,6 +19,10 @@
       - "Domain service account password is not defined"
     quiet:                            true
 
+- name:                                "HADR: Define SQL Server AG name"
+  ansible.builtin.set_fact:
+    mssql_ag_name:                    "SDAF-{{ sap_sid | upper }}AG"
+
 - name:                                "HADR: Tasks on primary node"
   block:
     - name:                            "Set SQL Server Always On Endpoint Permission"
