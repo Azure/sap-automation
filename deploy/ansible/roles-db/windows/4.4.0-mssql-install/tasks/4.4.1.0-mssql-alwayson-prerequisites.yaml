@@ -52,11 +52,11 @@
     InstanceName:                      "{{ mssql_instance_name }}"
     Permission:
       - State: Grant
-      - Permission:
-        - ConnectSql
-        - ViewServerState
-        - AlterAnyEndpoint
-        - AlterAnyAvailabilityGroup
+        Permission:
+          - ConnectSql
+          - ViewServerState
+          - AlterAnyEndpoint
+          - AlterAnyAvailabilityGroup
     Name:                              "{{ item }}"
     # PsDscRunAsCredential_username:     "{{ domain_service_account }}@{{ domain_name }}"
     # PsDscRunAsCredential_password:     "{{ domain_service_password }}"
