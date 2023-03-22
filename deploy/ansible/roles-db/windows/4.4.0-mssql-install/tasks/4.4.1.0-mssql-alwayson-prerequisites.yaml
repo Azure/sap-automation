@@ -47,7 +47,7 @@
 # maybe split to two tasks, and assign lesser perms to cluster service account
 - name:                                "Give permissions on the SQL Server to cluster service account"
   ansible.windows.win_dsc:
-    resource_name:                     SqlServerPermission
+    resource_name:                     SqlPermission
     Ensure:                            Present
     ServerName:                        "{{ ansible_hostname }}"
     InstanceName:                      "{{ mssql_instance_name }}"
