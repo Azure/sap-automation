@@ -6,11 +6,14 @@
   ansible.builtin.debug:
     msg:
       - "Current execution tier:  {{ tier }}"
+      - "Current config tier:     {{ config_tier }}"
       - "Current execution host:  {{ inventory_hostname }}"
-      
+
 - name:                                "WIN-SQL: Run SQL Server Prerequisites"
   ansible.builtin.import_tasks:        4.4.0.0-mssql-prerequisites.yaml
-  when: tier | lower == 'sqlserver'
+  when: 
+    - tier | lower == 'sqlserver'
+    - config_tier | lower != 'sqlserverha'
 
 # -------------------------------------+---------------------------------------8
 #
@@ -20,15 +23,22 @@
 
 - name:                                "WIN-SQL: Run SQL Server Installation"
   ansible.builtin.import_tasks:        4.4.0.1-mssql-main.yaml
-  when: tier | lower == 'sqlserver'
+  when: 
+    - tier | lower == 'sqlserver'
+    - config_tier | lower != 'sqlserverha'
+
 
 - name:                                "WIN-SQL: Run SQL Server Installation"
   ansible.builtin.import_tasks:        4.4.1.0-mssql-alwayson-prerequisites.yaml
-  when: tier | lower == 'sqlserverha'
+  when: 
+    - tier | lower == 'ha'
+    - config_tier | lower == 'sqlserverha'
 
 - name:                                "WIN-SQL: Run SQL Server Installation"
   ansible.builtin.import_tasks:        4.4.1.1-mssql-alwayson-config.yaml
-  when: tier | lower == 'sqlserverha'
+  when: 
+    - tier | lower == 'ha'
+    - config_tier | lower == 'sqlserverha'
 
 ...
 # /*---------------------------------------------------------------------------8

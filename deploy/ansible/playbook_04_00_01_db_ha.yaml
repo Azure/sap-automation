@@ -540,7 +540,7 @@
                 tasks_from:                   main
               register:                       cluster_output
               vars:
-                tier:                         "sqlserverha"
+                config_tier:                  "sqlserverha"
                 sap_cluster_ip_address:       "{{ db_clst_lb_ip }}"
                 primary_node:                 "{{ ansible_play_hosts_all[0] }}"         # Setting up Primary Instance Name
                 secondary_node:               "{{ ansible_play_hosts_all[1] }}"         # Setting up Secondary Instance Name
