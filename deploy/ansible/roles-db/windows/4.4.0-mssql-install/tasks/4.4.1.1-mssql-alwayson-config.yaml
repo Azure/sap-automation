@@ -22,6 +22,7 @@
 - name:                                "HADR: Define SQL Server AG name"
   ansible.builtin.set_fact:
     mssql_ag_name:                    "SDAF-{{ sap_sid | upper }}AG"
+    mssql_ag_listener_name:           "SDAF{{ sap_sid | upper }}AG"
 
 - name:                                "HADR: Tasks on primary node"
   block:
