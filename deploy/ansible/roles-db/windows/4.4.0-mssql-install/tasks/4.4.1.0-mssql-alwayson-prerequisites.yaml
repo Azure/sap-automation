@@ -51,12 +51,8 @@
     ServerName:                        "{{ ansible_hostname }}"
     InstanceName:                      "{{ mssql_instance_name }}"
     Permission:
-      - State: Grant
-      - Permission:
-        - ConnectSql
-        - ViewServerState
-        - AlterAnyEndpoint
-        - AlterAnyAvailabilityGroup
+      - ServerPermission:
+        - { Permission: "ConnectSql, ViewServerState, AlterAnyEndpoint, AlterAnyAvailabilityGroup", State: "Grant" }
     Name:                              "{{ item }}"
     # PsDscRunAsCredential_username:     "{{ domain_service_account }}@{{ domain_name }}"
     # PsDscRunAsCredential_password:     "{{ domain_service_password }}"
