@@ -1,7 +1,7 @@
 {% set sql_disks = [] %}
 {% set sql_data_disks_names = [] %}
 {% set sql_log_disks_names = [] %}
-{% set sid = upper(sap_sid) %}
+{% set sid = scs_sid %}
 {% set data_part = '.MDF\\' ~  sid  ~ 'DATA' %}
 {% set log_part  = '.LDF\\' ~ sid ~ 'LOG' %}
 {% set diskformat = 'aaa' ~ 'DATA.mdf' %}

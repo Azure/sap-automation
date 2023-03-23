@@ -24,6 +24,7 @@
     mssql_ag_name:                    "SDAF-{{ sap_sid | upper }}AG"
     mssql_ag_listener_name:           "SDAF{{ sap_sid | upper }}AG"
     mssql_backup_path:                "\\\\{{ scs_server_name }}\\SAP"
+    scs_sid:                          "{{ sap_sid | upper }}"
 
 - name:                                "HADR: Tasks on primary node"
   when:
@@ -100,27 +101,6 @@
           - "LB IP with subnet prefix: {{ db_lb_ipv4 }}"
           - "Subnet mask: {{ db_subnet_mask }}"
 
-    - name:                                "SQL Disks"
-      ansible.builtin.set_fact:
-        vm_data_disks: '{{ sql_disk_list[0] | join(",") }}'
-        vm_log_disks: '{{ sql_disk_list[1] | join(",") }}'
-      vars:
-        sql_disk_list: "{{ lookup('template', 'sql_disks.j2') }}"
-
-    - name:                                "Print SQL Disks"
-      ansible.builtin.debug:
-        msg:
-          - "SQL DATA Disks:               {{ vm_data_disks }}"
-          - "SQL LOG Disks:                {{ vm_log_disks }}"
-
-    - name:                            "create the directory for SQL Server data and log files"
-      ansible.windows.win_file:
-        path:                          "{{ item }}"
-        state:                         directory
-      loop:
-        - "{{ vm_data_disks }}"
-        - "{{ vm_log_disks }}"
-
     - name:                            "Create AG Listener for SQL Server"
       ansible.windows.win_dsc:
         resource_name:                 SqlAGListener
@@ -154,6 +134,27 @@
   when:
     - ansible_hostname == mssql_secondary_node
   block:
+    - name:                                "SQL Disks"
+      ansible.builtin.set_fact:
+        vm_data_disks: '{{ sql_disk_list[0] | join(",") }}'
+        vm_log_disks: '{{ sql_disk_list[1] | join(",") }}'
+      vars:
+        sql_disk_list: "{{ lookup('template', 'sql_disks.j2') }}"
+
+    - name:                                "Print SQL Disks"
+      ansible.builtin.debug:
+        msg:
+          - "SQL DATA Disks:               {{ vm_data_disks }}"
+          - "SQL LOG Disks:                {{ vm_log_disks }}"
+
+    - name:                            "create the directory for SQL Server data and log files"
+      ansible.windows.win_file:
+        path:                          "{{ item }}"
+        state:                         directory
+      loop:
+        - "{{ vm_data_disks }}"
+        - "{{ vm_log_disks }}"
+
     - name:                                "Enable SQL Server Always On Service"
       ansible.windows.win_dsc:
         resource_name:                     SqlAlwaysOnService
