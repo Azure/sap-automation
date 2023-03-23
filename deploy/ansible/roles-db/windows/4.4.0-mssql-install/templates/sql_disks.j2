@@ -2,8 +2,8 @@
 {% set sql_data_disks_names = [] %}
 {% set sql_log_disks_names = [] %}
 {% set sid = scs_sid %}
-{% set data_part = '.MDF\\' ~  sid  ~ 'DATA' %}
-{% set log_part  = '.LDF\\' ~ sid ~ 'LOG' %}
+{% set data_part = '.MDF\' ~  sid  ~ 'DATA' %}
+{% set log_part  = '.LDF\' ~ sid ~ 'LOG' %}
 {% set diskformat = 'aaa' ~ 'DATA.mdf' %}
 {% for disk in disks %}
 {%   if (disk.type == 'data' and disk.host == ansible_hostname ) %}
