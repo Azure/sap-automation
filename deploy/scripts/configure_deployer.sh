@@ -367,24 +367,39 @@ else
 
     case "$(get_distro_name)" in
     (ubuntu|sles)
-    rel=$(lsb_release -a | grep Release | cut -d':' -f2 | xargs)
-    # Ubuntu 20.04 (Focal Fossa) and 20.10 (Groovy Gorilla) include an azure-cli package with version 2.0.81 provided by the universe repository.
-    # This package is outdated and not recommended. If this package is installed, remove the package
-    if [ "$rel" == "20.04" ]; then
-      echo "Removing Azure CLI"
-      sudo apt remove azure-cli -y
-      sudo apt autoremove -y
-      sudo apt update -y
-    fi
-        )
-        ;;
+      rel=$(lsb_release -a | grep Release | cut -d':' -f2 | xargs)
+      # Ubuntu 20.04 (Focal Fossa) and 20.10 (Groovy Gorilla) include an azure-cli package with version 2.0.81 provided by the universe repository.
+      # This package is outdated and not recommended. If this package is installed, remove the package
+      if [ "$rel" == "20.04" ]; then
+        echo "Removing Azure CLI"
+        sudo apt remove azure-cli -y
+        sudo apt autoremove -y
+        sudo apt update -y
+      fi
+      ;;
     esac
 
     #
     # Install az cli using provided scripting
     #
 
-    curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash > /dev/null
+    case "$(get_distro_name)" in
+    (ubuntu|sles)
+        echo "Getting the Microsoft Key"
+        sudo mkdir -p /etc/apt/keyrings
+        curl -sLS https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor | sudo tee /etc/apt/keyrings/microsoft.gpg > /dev/null
+        sudo chmod go+r /etc/apt/keyrings/microsoft.gpg
+
+        AZ_REPO=$(lsb_release -cs)
+        echo "deb [arch=`dpkg --print-architecture` signed-by=/etc/apt/keyrings/microsoft.gpg] https://packages.microsoft.com/repos/azure-cli/ $AZ_REPO main" |
+            sudo tee /etc/apt/sources.list.d/azure-cli.list
+        ;;
+     (rhel*)
+        sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc
+        sudo dnf install -y https://packages.microsoft.com/config/rhel/8/packages-microsoft-prod.rpm
+        sudo dnf install azure-cli
+        ;;
+  esac
 
     az config set extension.use_dynamic_install=yes_without_prompt
 

@@ -371,7 +371,9 @@ else
             sudo tee /etc/apt/sources.list.d/azure-cli.list
         ;;
      (rhel*)
-        echo "$${distro_name_version} is supported."
+        sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc
+        sudo dnf install -y https://packages.microsoft.com/config/rhel/8/packages-microsoft-prod.rpm
+        sudo dnf install azure-cli
         ;;
   esac
 
