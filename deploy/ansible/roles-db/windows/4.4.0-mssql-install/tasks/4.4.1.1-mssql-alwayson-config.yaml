@@ -182,17 +182,17 @@
 
     - name:                            "Test"
       ansible.windows.win_file:
-        path:                          'F:\DATA'
+        path:                          'G:\\DATA'
         state:                         directory
 
     - name:                            "Test 2"
       ansible.windows.win_file:
-        path:                          'F:\DATA\DATA1.MDF'
+        path:                          'G:\\DATA\\DATA1.MDF'
         state:                         directory
 
     - name:                            "Test 3"
       ansible.windows.win_file:
-        path:                          'F:\DATA\DATA1.MDF\WI1DATA1'
+        path:                          'G:\\DATA\\DATA1.MDF\\WI1DATA1'
         state:                         directory
 
     - name:                            "create the directory for SQL Server data files"
