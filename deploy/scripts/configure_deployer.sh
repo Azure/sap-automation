@@ -225,11 +225,11 @@ pkg_mgr_install()
 
 # Ansible installation directories
 ansible_base=/opt/ansible
-ansible_bin=$${ansible_base}/bin
-ansible_venv=$${ansible_base}/venv/$${ansible_version}
-ansible_venv_bin=$${ansible_venv}/bin
-ansible_collections=$${ansible_base}/collections
-ansible_pip3=$${ansible_venv_bin}/pip3
+ansible_bin=${ansible_base}/bin
+ansible_venv=${ansible_base}/venv/${ansible_version}
+ansible_venv_bin=${ansible_venv}/bin
+ansible_collections=${ansible_base}/collections
+ansible_pip3=${ansible_venv_bin}/pip3
 
 # Azure SAP Automated Deployment directories
 asad_home="${HOME}/Azure_SAP_Automated_Deployment"
@@ -241,9 +241,9 @@ asad_sample_dir="${asad_home}/$(basename ${asad_sample_repo} .git)"
 
 # Terraform installation directories
 tf_base=/opt/terraform
-tf_dir=$${tf_base}/terraform_$${tfversion}
-tf_bin=$${tf_base}/bin
-tf_zip=terraform_$${tfversion}_linux_amd64.zip
+tf_dir=${tf_base}/terraform_${tfversion}
+tf_bin=${tf_base}/bin
+tf_zip=terraform_${tfversion}_linux_amd64.zip
 
 #
 #Don't re-run the following if the script is already installed
