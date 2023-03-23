@@ -134,6 +134,7 @@
   when:
     - ansible_hostname == mssql_secondary_node
   block:
+
     - name:                                "SQL Disks"
       ansible.builtin.set_fact:
         vm_data_disks: '{{ sql_disk_list[0] | join(",") }}'
@@ -152,8 +153,8 @@
         path:                          "{{ item }}"
         state:                         directory
       loop:
-        - "{{ vm_data_disks }}"
-        - "{{ vm_log_disks }}"
+        - "{{ sql_disk_list[0] }}"
+        - "{{ sql_disk_list[1] }}"
 
     - name:                                "Enable SQL Server Always On Service"
       ansible.windows.win_dsc:
