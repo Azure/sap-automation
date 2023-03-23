@@ -273,7 +273,7 @@ else
             echo "#########################################################################################"
 
             if [ $approve == "--auto-approve" ] ; then
-                terraform -chdir="${terraform_module_directory}" init -upgrade=true -migrate-state -force-copy -backend-config "path=${param_dirname}/terraform.tfstate"
+                terraform -chdir="${terraform_module_directory}" init -upgrade=true -reconfigure  -backend-config "path=${param_dirname}/terraform.tfstate"
                 terraform -chdir="${terraform_module_directory}" refresh -var-file="${var_file}"
             else
 

@@ -344,10 +344,9 @@ else
     # Install Azure CLI
     case "$(get_distro_name)" in
     (ubuntu|sles)
+        echo "Getting the Microsoft Key"
         sudo mkdir -p /etc/apt/keyrings
-        curl -sLS https://packages.microsoft.com/keys/microsoft.asc |
-          gpg --dearmor |
-          sudo tee /etc/apt/keyrings/microsoft.gpg > /dev/null
+        curl -sLS https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor | sudo tee /etc/apt/keyrings/microsoft.gpg > /dev/null
         sudo chmod go+r /etc/apt/keyrings/microsoft.gpg
 
         AZ_REPO=$(lsb_release -cs)
