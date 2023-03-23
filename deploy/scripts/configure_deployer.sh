@@ -315,6 +315,8 @@ else
         ;;
     esac
 
+    echo "$(get_distro_name_version)"
+
     # Upgrade packages
     pkg_mgr_upgrade
 
