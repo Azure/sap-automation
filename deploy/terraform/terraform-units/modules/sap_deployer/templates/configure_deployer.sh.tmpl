@@ -285,8 +285,6 @@ else
         unzip
         ca-certificates
         curl
-        apt-transport-https
-        lsb-release
         gnupg
         sshpass
         dos2unix
@@ -303,6 +301,8 @@ else
         required_pkgs+=(
             python3-pip
             python3-virtualenv
+            apt-transport-https
+            lsb-release
         )
         ;;
     esac
@@ -373,7 +373,6 @@ else
      (rhel*)
         sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc
         sudo dnf install -y https://packages.microsoft.com/config/rhel/8/packages-microsoft-prod.rpm
-        sudo dnf install -y azure-cli
         ;;
   esac
 
