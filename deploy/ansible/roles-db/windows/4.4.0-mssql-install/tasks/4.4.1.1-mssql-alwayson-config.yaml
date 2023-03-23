@@ -137,24 +137,24 @@
 
     - name:                                "SQL Disks"
       ansible.builtin.set_fact:
-        vm_data_disks: '{{ sql_disk_list[0] }}'
-        vm_log_disks: '{{ sql_disk_list[1] }}'
+        vm_data_disks: '{{ sql_disk_list[0] | join(",") }}'
+        vm_log_disks: '{{ sql_disk_list[1] | join(",") }}'
       vars:
         sql_disk_list: "{{ lookup('template', 'sql_disks.j2') }}"
 
     - name:                                "Print SQL Disks"
       ansible.builtin.debug:
         msg:
-          - "SQL DATA Disks:               {{ vm_data_disks | join(",") }}"
-          - "SQL LOG Disks:                {{ vm_log_disks | join(",") }}"
+          - "SQL DATA Disks:               {{ vm_data_disks }}"
+          - "SQL LOG Disks:                {{ vm_log_disks }}"
 
     - name:                            "create the directory for SQL Server data and log files"
       ansible.windows.win_file:
         path:                          "{{ item }}"
         state:                         directory
       loop:
-        - "{{ vm_data_disks }}"
-        - "{{ vm_log_disks }}"
+        - "{{ vm_data_disks | split(',') }}"
+        - "{{ vm_log_disks | split(',') }}"
 
     - name:                                "Enable SQL Server Always On Service"
       ansible.windows.win_dsc:
