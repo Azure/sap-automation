@@ -133,8 +133,12 @@ pkg_mgr_init()
         pkg_mgr="zypper"
         pkg_type="rpm"
         ;;
+    (rhel|centos|fedora)
+        pkg_mgr="yum"
+        pkg_type="rpm"
+        ;;
     (*)
-        error "Unsupported distibution: '${distro_name}'"
+        error "Unsupported distibution: '$${distro_name}'"
         exit 1
         ;;
     esac
@@ -144,20 +148,23 @@ pkg_mgr_refresh()
 {
     typeset -g pkg_mgr pkg_mgr_refreshed
 
-    if [[ -z "${pkg_mgr:-}" ]]; then
+    if [[ -z "$${pkg_mgr:-}" ]]; then
         pkg_mgr_init
     fi
 
-    if [[ -n "${pkg_mgr_refreshed:-}" ]]; then
+    if [[ -n "$${pkg_mgr_refreshed:-}" ]]; then
         return
     fi
 
-    case "${pkg_mgr}" in
+    case "$${pkg_mgr}" in
     (apt-get)
-        sudo ${pkg_mgr} update --quiet
+        sudo $${pkg_mgr} update --quiet
         ;;
     (zypper)
-        sudo ${pkg_mgr} --gpg-auto-import-keys --quiet refresh
+        sudo $${pkg_mgr} --gpg-auto-import-keys --quiet refresh
+        ;;
+    (yum)
+        sudo $${pkg_mgr} update --quiet
         ;;
     esac
 
@@ -169,20 +176,23 @@ pkg_mgr_upgrade()
 {
     typeset -g pkg_mgr pkg_mgr_upgraded
 
-    if [[ -z "${pkg_mgr:-}" ]]; then
+    if [[ -z "$${pkg_mgr:-}" ]]; then
         pkg_mgr_init
     fi
 
-    if [[ -n "${pkg_mgr_upgraded:-}" ]]; then
+    if [[ -n "$${pkg_mgr_upgraded:-}" ]]; then
         return
     fi
 
-    case "${pkg_mgr}" in
+    case "$${pkg_mgr}" in
     (apt-get)
-        sudo ${pkg_mgr} upgrade --quiet -y
+        sudo $${pkg_mgr} upgrade --quiet -y
         ;;
     (zypper)
-        sudo ${pkg_mgr} --gpg-auto-import-keys --quiet upgrade
+        sudo $${pkg_mgr} --gpg-auto-import-keys --quiet upgrade
+        ;;
+    (yum)
+        sudo $${pkg_mgr} upgrade --quiet -y
         ;;
     esac
 
@@ -195,12 +205,15 @@ pkg_mgr_install()
 
     pkg_mgr_refresh
 
-    case "${pkg_mgr}" in
+    case "$${pkg_mgr}" in
     (apt-get)
-        sudo env DEBIAN_FRONTEND=noninteractive ${pkg_mgr} --quiet --yes install "${@}"
+        sudo env DEBIAN_FRONTEND=noninteractive $${pkg_mgr} --quiet --yes install "$${@}"
         ;;
     (zypper)
-        sudo ${pkg_mgr} --gpg-auto-import-keys --quiet --non-interactive install --no-confirm "${@}"
+        sudo $${pkg_mgr} --gpg-auto-import-keys --quiet --non-interactive install --no-confirm "$${@}"
+        ;;
+    (yum)
+        sudo $${pkg_mgr} --nogpgcheck --quiet  install --assumeyes "$${@}"
         ;;
     esac
 }
@@ -212,32 +225,31 @@ pkg_mgr_install()
 
 # Ansible installation directories
 ansible_base=/opt/ansible
-ansible_bin=${ansible_base}/bin
-ansible_venv=${ansible_base}/venv/${ansible_version}
-ansible_venv_bin=${ansible_venv}/bin
-ansible_collections=${ansible_base}/collections
-ansible_pip3=${ansible_venv_bin}/pip3
+ansible_bin=$${ansible_base}/bin
+ansible_venv=$${ansible_base}/venv/$${ansible_version}
+ansible_venv_bin=$${ansible_venv}/bin
+ansible_collections=$${ansible_base}/collections
+ansible_pip3=$${ansible_venv_bin}/pip3
 
 # Azure SAP Automated Deployment directories
-asad_home="${HOME}/Azure_SAP_Automated_Deployment"
-asad_ws="${asad_home}/WORKSPACES"
+asad_home="/home/$${local_user}/Azure_SAP_Automated_Deployment"
+asad_ws="$${asad_home}/WORKSPACES"
 asad_repo="https://github.com/Azure/sap-automation.git"
-asad_sample_repo="https://github.com/Azure/sap-automation-samples.git"
-asad_dir="${asad_home}/$(basename ${asad_repo} .git)"
-asad_sample_dir="${asad_home}/$(basename ${asad_sample_repo} .git)"
+asad_dir="$${asad_home}/$(basename $${asad_repo} .git)"
 
 # Terraform installation directories
 tf_base=/opt/terraform
-tf_dir=${tf_base}/terraform_${tfversion}
-tf_bin=${tf_base}/bin
-tf_zip=terraform_${tfversion}_linux_amd64.zip
+tf_dir=$${tf_base}/terraform_$${tfversion}
+tf_bin=$${tf_base}/bin
+tf_zip=terraform_$${tfversion}_linux_amd64.zip
 
 #
 #Don't re-run the following if the script is already installed
 #
 
 if [ -f /etc/profile.d/deploy_server.sh ] ; then
-    echo Deployer already configured
+    echo
+    echo ##vso[task.logissue type=warning]Deployer already configured
     exit 0
 else
     #
@@ -247,14 +259,17 @@ else
     # Check for supported distro
     case "$(get_distro_name_version)" in
     (sles_12*)
-        error "Unsupported distro: ${distro_name_version} doesn't provide virtualenv in standard repos."
+        error "Unsupported distro: $${distro_name_version} doesn't provide virtualenv in standard repos."
         exit 1
         ;;
     (ubuntu*|sles*)
-        echo "${distro_name_version} is supported."
+        echo "$${distro_name_version} is supported."
+        ;;
+    (rhel*)
+        echo "$${distro_name_version} is supported."
         ;;
     (*)
-        error "Unsupported distro: ${distro_name_version} not currently supported."
+        error "Unsupported distro: $${distro_name_version} not currently supported."
         exit 1
         ;;
     esac
@@ -262,6 +277,7 @@ else
 
     # List of required packages whose names are common to all supported distros
     required_pkgs=(
+        git
         jq
         unzip
         ca-certificates
