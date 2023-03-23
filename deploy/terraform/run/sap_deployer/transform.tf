@@ -170,7 +170,6 @@ locals {
         var.deployer_image.version,
         try(var.deployers[0].sku, "")
       ), "")
-      type = "marketplace"
     }
 
 
