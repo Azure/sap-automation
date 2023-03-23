@@ -82,7 +82,10 @@
 
     - name:                            "print subnet mask"
       ansible.builtin.debug:
-        msg:                          "Subnet prefix: {{ db_subnet_prefix }}"
+        msg:
+          - "Subnet prefix: {{ db_subnet_prefix }}"
+          - "LB IP: {{ db_lb_ip }}"
+          - "LB IP with subnet prefix: {{ db_lb_ip }}/{{ db_subnet_prefix }}"
 
     - name:                            "Create AG Listener for SQL Server"
       ansible.windows.win_dsc:
@@ -93,7 +96,7 @@
         InstanceName:                  "{{ mssql_instance_name }}"
         AvailabilityGroup:             "{{ mssql_ag_name }}"
         Port:                          5022
-        IpAddress:                     "{{ db_lb_ip/db_subnet_prefix }}"
+        IpAddress:                     "{{ db_lb_ip }}/{{ db_subnet_prefix }}"
         PsDscRunAsCredential_username: "{{ domain_service_account }}@{{ domain_name }}"
         PsDscRunAsCredential_password: "{{ domain_service_password }}"
       register:                        sql_ag_listener_creation
