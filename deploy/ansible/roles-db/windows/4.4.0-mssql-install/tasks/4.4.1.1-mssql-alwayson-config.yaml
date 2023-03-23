@@ -177,9 +177,6 @@
         ProcessOnlyOnActiveNode:       true
         PsDscRunAsCredential_username: "{{ domain_service_account }}@{{ domain_name }}"
         PsDscRunAsCredential_password: "{{ domain_service_password }}"
-      when:
-        - sql_wait_for_ag is changed
-        - sql_always_on_service is changed
       register:                        sql_ag_replica_creation
 
     - name:                                "Add DB {{ db_sid | upper }} to AG: {{ mssql_ag_name }}"
