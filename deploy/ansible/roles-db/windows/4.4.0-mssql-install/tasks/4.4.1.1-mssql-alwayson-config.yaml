@@ -148,6 +148,14 @@
           - "SQL DATA Disks:           {{ vm_data_disks }}"
           - "SQL LOG Disks:            {{ vm_log_disks }}"
 
+    - name:                            "Print SQL Disks"
+      ansible.builtin.debug:
+        msg:
+          - "SQL DATA Disks:           {{ item }}"
+      loop:
+        - "{{ vm_data_disks | split(',') | list }}"
+
+
     - name:                            "create the directory for SQL Server data files"
       ansible.windows.win_file:
         path:                          "{{ item.replace('\\\\','\\') }}"
