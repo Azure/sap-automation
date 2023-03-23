@@ -148,13 +148,19 @@
           - "SQL DATA Disks:               {{ vm_data_disks }}"
           - "SQL LOG Disks:                {{ vm_log_disks }}"
 
-    - name:                            "create the directory for SQL Server data and log files"
+    - name:                            "create the directory for SQL Server data files"
       ansible.windows.win_file:
         path:                          "{{ item.replace('\\\\','\\') }}"
         state:                         directory
       loop:
-        - "{{ vm_data_disks | split(',') }}"
-        - "{{ vm_log_disks | split(',') }}"
+        - "{{ vm_data_disks.replace('\\\\','\\') | split(',') | list }}"
+
+    - name:                            "create the directory for SQL Server log files"
+        ansible.windows.win_file:
+          path:                          "{{ item.replace('\\\\','\\') }}"
+          state:                         directory
+        loop:
+          - "{{ vm_log_disks.replace('\\\\','\\') | split(',') | list }}"
 
     - name:                                "Enable SQL Server Always On Service"
       ansible.windows.win_dsc:
