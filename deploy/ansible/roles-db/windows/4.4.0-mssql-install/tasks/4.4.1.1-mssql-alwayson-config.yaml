@@ -76,9 +76,11 @@
         PsDscRunAsCredential_password: "{{ domain_service_password }}"
       register:                        sql_ag_creation
 
+    # The assumption is that the system has only one network adapter
+    # and the load balancer is in the same subnet as the db machine.
     - name:                            "calculate subnet prefix"
       ansible.builtin.set_fact:
-        db_subnet_prefix:                "{{ ansible_interfaces[0].ipv4.prefix }}"
+        db_subnet_prefix:                "{{ ansible_interfaces[0].ipv4[0].prefix }}"
 
     - name:                            "calculate LB IP with subnet prefix"
       ansible.builtin.set_fact:
@@ -135,7 +137,7 @@
         Name:                          "{{ mssql_ag_name }}"
         RetryIntervalSec:              20
         RetryCount:                    30
-        ServerName:                    "{{ ansible_hostname }}"
+        ServerName:                    "{{ mssql_primary_node }}"
         InstanceName:                  "{{ mssql_instance_name }}"
         PsDscRunAsCredential_username: "{{ domain_service_account }}@{{ domain_name }}"
         PsDscRunAsCredential_password: "{{ domain_service_password }}"

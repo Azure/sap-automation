@@ -1,0 +1,29 @@
+function Set-DatabaseHealthProbe {
+    param (
+        [Parameter(Mandatory = $true)]
+        [string]$SQLAGName,
+        [Parameter(Mandatory = $true)]
+        [Int]$ProbePort,
+        [Parameter(Mandatory = $true)]
+        [string]$IPAddress,
+        [Parameter(Mandatory = $true)]
+        [string]$SubnetMask,
+        [Parameter(Mandatory = $false)]
+        [string]$ClusterNetworkName = "Cluster Network 1"
+    )
+
+    # Calculate IP resource name
+    $AGIPResourceName = $SQLAGName + "_" + $IPAddress
+
+    Get-ClusterResource $AGIPResourceName | `
+    Set-ClusterParameter -Multiple @{
+        "Address"="$IPAddress";
+        "ProbePort"=$ProbePort;
+        "SubnetMask"="$SubnetMask";
+        "Network"="$ClusterNetworkName";
+        "EnableDhcp"=0
+    }
+}
+
+# Set database healthprobe for SQL Server always on cluster
+Set-DatabaseHealthProbe -SQLAGName "{{ mssql_ag_name }}" -ProbePort {{ mssql_lb_probeport }} -IPAddress "{{ db_lb_ip}}" -SubnetMask "{{ db_subnet_mask }}"
