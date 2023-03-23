@@ -702,6 +702,9 @@ if ($found_appRegistration.Length -ne 0) {
   $confirmation = Read-Host "Reset the app registration secret y/n?"
   if ($confirmation -eq 'y') {
     $WEB_APP_CLIENT_SECRET = (az ad app credential reset --id $APP_REGISTRATION_ID --append --query "password" --out tsv --only-show-errors)
+  else
+  {
+    $WEB_APP_CLIENT_SECRET = Read-Host "Please enter the app registration secret"
   }
 
 }
@@ -751,6 +754,10 @@ if ($found_appName.Length -gt 0) {
   if ($confirmation -eq 'y') {
 
     $CP_ARM_CLIENT_SECRET = (az ad sp credential reset --id $CP_ARM_CLIENT_ID --append --query "password" --out tsv --only-show-errors).Replace("""", "")
+  }
+  else
+  {
+    $CP_ARM_CLIENT_SECRET = Read-Host "Please enter the Control Plane Service Principal password"
   }
 
 }
@@ -843,6 +850,10 @@ if ($found_appName.Length -ne 0) {
   if ($confirmation -eq 'y') {
     $ARM_CLIENT_SECRET = (az ad sp credential reset --id $ARM_CLIENT_ID --append --query "password" --out tsv --only-show-errors)
   }
+  else {
+    $ARM_CLIENT_SECRET = Read-Host "Enter the Workload zone Service Principal password"
+  }
+
 }
 else {
   Write-Host "Creating the Service Principal" $workload_zone_spn_name -ForegroundColor Green
