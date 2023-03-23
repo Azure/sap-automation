@@ -374,19 +374,22 @@ else
         sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc
         sudo dnf install -y https://packages.microsoft.com/config/rhel/8/packages-microsoft-prod.rpm
         ;;
-  esac
+    esac
 
 
-
-    rel=$(lsb_release -a | grep Release | cut -d':' -f2 | xargs)
-    # Ubuntu 20.04 (Focal Fossa) and 20.10 (Groovy Gorilla) include an azure-cli package with version 2.0.81 provided by the universe repository.
-    # This package is outdated and not recommended. If this package is installed, remove the package
-    if [ "$rel" == "20.04" ]; then
-      echo "Removing Azure CLI"
-      sudo apt remove azure-cli -y
-      sudo apt autoremove -y
-      sudo apt update -y
-    fi
+    case "$(get_distro_name)" in
+    (ubuntu|sles)
+      rel=$(lsb_release -a | grep Release | cut -d':' -f2 | xargs)
+      # Ubuntu 20.04 (Focal Fossa) and 20.10 (Groovy Gorilla) include an azure-cli package with version 2.0.81 provided by the universe repository.
+      # This package is outdated and not recommended. If this package is installed, remove the package
+      if [ "$rel" == "20.04" ]; then
+        echo "Removing Azure CLI"
+        sudo apt remove azure-cli -y
+        sudo apt autoremove -y
+        sudo apt update -y
+      fi
+      ;;
+    esac
 
     set +o errexit
     pkg_mgr_install "$${cli_pkgs[@]}"
