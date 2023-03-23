@@ -232,8 +232,8 @@ ansible_collections=$${ansible_base}/collections
 ansible_pip3=$${ansible_venv_bin}/pip3
 
 # Azure SAP Automated Deployment directories
-asad_home="/home/$${local_user}/Azure_SAP_Automated_Deployment"
-asad_ws="$${asad_home}/WORKSPACES"
+asad_home="${HOME}/Azure_SAP_Automated_Deployment"
+asad_ws="${asad_home}/WORKSPACES"
 asad_repo="https://github.com/Azure/sap-automation.git"
 asad_sample_repo="https://github.com/Azure/sap-automation-samples.git"
 asad_dir="${asad_home}/$(basename ${asad_repo} .git)"
