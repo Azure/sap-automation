@@ -365,7 +365,8 @@ else
     sudo unzip -o /tmp/${tf_zip} -d ${tf_dir}
     sudo ln -vfs ../$(basename ${tf_dir})/terraform ${tf_bin}/terraform
 
-
+    case "$(get_distro_name)" in
+    (ubuntu|sles)
     rel=$(lsb_release -a | grep Release | cut -d':' -f2 | xargs)
     # Ubuntu 20.04 (Focal Fossa) and 20.10 (Groovy Gorilla) include an azure-cli package with version 2.0.81 provided by the universe repository.
     # This package is outdated and not recommended. If this package is installed, remove the package
@@ -375,6 +376,10 @@ else
       sudo apt autoremove -y
       sudo apt update -y
     fi
+        )
+        ;;
+    esac
+
     #
     # Install az cli using provided scripting
     #
