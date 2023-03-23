@@ -150,7 +150,7 @@
 
     - name:                            "create the directory for SQL Server data and log files"
       ansible.windows.win_file:
-        path:                          "{{ item }}"
+        path:                          "{{ item.replace('\\\\','\\') }}"
         state:                         directory
       loop:
         - "{{ vm_data_disks | split(',') }}"
