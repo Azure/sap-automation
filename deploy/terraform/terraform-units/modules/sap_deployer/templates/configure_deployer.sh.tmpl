@@ -305,8 +305,13 @@ else
             lsb-release
         )
         ;;
+    (rhel)
+        required_pkgs+=(
+            python36
+            python3-pip
+        )
+        ;;
     esac
-
     # Include distro version specific packages into required packages list
     case "$(get_distro_name_version)" in
     (ubuntu_18.04)
@@ -408,6 +413,20 @@ else
     # Fail if any command exits with a non-zero exit status
     set -o errexit
 
+
+    case "$(get_distro_name)" in
+    (rhel)
+        python3.6 -m venv $${ansible_venv}
+        ;;
+    (ubuntu|sles)
+        # Create a Python3 based venv into which we will install Ansible.
+        if [[ ! -e "$${ansible_venv_bin}/activate" ]]; then
+            sudo rm -rf $${ansible_venv}
+            sudo virtualenv --python python3 $${ansible_venv}
+        fi
+        ;;
+    esac
+
     # Ensure our package metadata cache is up to date
     # pkg_mgr_refresh
     # pkg_mgr_upgrade
@@ -417,11 +436,6 @@ else
     sudo mkdir -p \
         $${ansible_bin}
 
-    # Create a Python3 based venv into which we will install Ansible.
-    if [[ ! -e "$${ansible_venv_bin}/activate" ]]; then
-        sudo rm -rf $${ansible_venv}
-        sudo virtualenv --python python3 $${ansible_venv}
-    fi
 
     # Fail if pip3 doesn't exist in the venv
     if [[ ! -x "$${ansible_venv_bin}/pip3" ]]; then
