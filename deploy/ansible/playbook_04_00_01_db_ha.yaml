@@ -510,13 +510,24 @@
             - db_high_availability
             - node_tier == 'sqlserver'
           block:
+            - name:                    "SQLServer HA - Set the SCS Server name list"
+              ansible.builtin.set_fact:
+                scs_server_temp:       "{{ scs_server_temp | default([]) + [item] }}"
+              with_items:
+                - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') }}"
+                - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
+
+            - name:                    "SQLServer HA -  Set the server facts"
+              ansible.builtin.set_fact:
+                scs_server:            "{{ hostvars[scs_server_temp | first]['virtual_host'] }}"
+
             - name:                    "SQLServer HA - Setting the facts"
               ansible.builtin.set_fact:
-                tier:                      ha
-                primary_node:              "{{ ansible_play_hosts_all[0] }}"         # Setting up Primary Instance Name
-                secondary_node:            "{{ ansible_play_hosts_all[1] }}"         # Setting up Secondary Instance Name
-                domain_user_password:      "{{ hostvars.localhost.winadm_password }}"
-                sap_cluster_ip_address:    "{{ db_clst_lb_ip }}"
+                tier:                   ha
+                primary_node:           "{{ ansible_play_hosts_all[0] }}"         # Setting up Primary Instance Name
+                secondary_node:         "{{ ansible_play_hosts_all[1] }}"         # Setting up Secondary Instance Name
+                domain_user_password:   "{{ hostvars.localhost.winadm_password }}"
+                sap_cluster_ip_address: "{{ db_clst_lb_ip }}"
 
             - name:                           "SQL Server HA config: Base cluster tasks"
               ansible.builtin.include_role:
@@ -550,6 +561,7 @@
                 domain_service_password:      "{{ hostvars.localhost.adsvc_password }}"
                 witness_storage_account_name: "{{ hostvars.localhost.witness_storage_account_name }}"
                 witness_storage_account_key:  "{{ hostvars.localhost.witness_storage_account_key }}"
+                scs_server_name:              "{{ scs_server }}"
               tags:
                 - 4.4.1.0-mssql-alwayson
 
