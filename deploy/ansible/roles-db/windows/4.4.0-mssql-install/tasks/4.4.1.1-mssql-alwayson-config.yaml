@@ -147,6 +147,10 @@
         msg:
           - 'SQL DATA Disks:           {{ vm_data_disks }}'
           - 'SQL LOG Disks:            {{ vm_log_disks }}'
+          - 'SQL DATA Disks length:    {{ vm_data_disks | length }}'
+          - 'SQL LOG Disks length:     {{ vm_log_disks | length }}'
+          - 'SQL DATA Disks item:      {{ vm_data_disks | first }}'
+          - 'SQL LOG Disks item:       {{ vm_log_disks | first }}'
 
     - name:                            "Print SQL Disks (loop)"
       ansible.builtin.debug:
