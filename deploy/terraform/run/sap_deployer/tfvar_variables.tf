@@ -217,10 +217,10 @@ variable "deployer_image" {
 
 variable "plan" {
   default = {
-    use         = false
-    "name"      = ""
-    "publisher" = ""
-    "product"   = ""
+    use       = false
+    name      = ""
+    publisher = ""
+    product   = ""
   }
 }
 
