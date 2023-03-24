@@ -146,6 +146,7 @@
       ansible.builtin.debug:
         msg:
           - 'SQL DATA Disks:           {{ vm_data_disks }}'
+          - 'SQL DATA Disks flatten:   {{ vm_data_disks | flatten(levels=1) }}'
           - 'SQL LOG Disks:            {{ vm_log_disks }}'
           - 'SQL DATA Disks length:    {{ vm_data_disks | length }}'
           - 'SQL LOG Disks length:     {{ vm_log_disks | length }}'
