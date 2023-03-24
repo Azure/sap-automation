@@ -83,7 +83,7 @@
     # and the load balancer is in the same subnet as the db machine.
     - name:                            "what is the current host IP"
       ansible.builtin.debug:
-        msg:                           "{{ hostvars[inventory_hostname][ansible_host] }}"
+        msg:                           "{{ hostvars[inventory_hostname].ansible_host }}"
 
     - name:                            "calculate subnet prefix"
       ansible.builtin.set_fact:
