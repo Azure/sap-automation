@@ -61,8 +61,6 @@
           - AlterAnyEndpoint
           - AlterAnyAvailabilityGroup
     Name:                              "{{ item }}"
-    PsDscRunAsCredential_username:     "{{ domain_service_account }}@{{ domain_name }}"
-    PsDscRunAsCredential_password:     "{{ domain_service_password }}"
   loop:
     - "{{ win_cluster_svc_account }}"
     - "{{ win_sql_svc_account }}"
