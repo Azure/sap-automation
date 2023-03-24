@@ -161,7 +161,7 @@
         path:                          '{{ item }}'
         state:                         directory
       loop:
-        - '{{ vm_data_disks }}'
+        - '{{ vm_data_disks | list }}'
 
     - name:                            "create the directory for SQL Server log files"
       ansible.windows.win_file:
