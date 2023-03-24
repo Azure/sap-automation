@@ -57,6 +57,7 @@ services:
   sles_sap12:
     - { tier: 'os',          service: 'fstrim.timer', node_tier: 'all',     state: 'stopped'   }
     - { tier: 'os',          service: 'fstrim.timer', node_tier: 'all',     state: 'disabled'  }
+
   sles_sap15:
     - { tier: 'os',          service: 'fstrim.timer', node_tier: 'all',     state: 'stopped'   }
     - { tier: 'os',          service: 'fstrim.timer', node_tier: 'all',     state: 'disabled'  }

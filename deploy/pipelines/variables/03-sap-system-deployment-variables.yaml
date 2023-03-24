@@ -7,6 +7,7 @@
 parameters:
   sap_system: ''
   environment: ''
+  test: false
 
 variables:
   - group:                             "SDAF-General"
@@ -42,3 +43,6 @@ variables:
 
   - name:                              key_vault
     value:                             $[variables['Deployer_Key_Vault']]
+
+  - name:                              test_only
+    value:                             ${{ parameters.test }}

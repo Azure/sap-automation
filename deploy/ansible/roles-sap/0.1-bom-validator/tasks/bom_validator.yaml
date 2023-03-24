@@ -1,5 +1,5 @@
 ---
-# /*----------------------------------------------------------------------------8
+# /*---------------------------------------------------------------------------8
 # |                                                                            |
 # |         BOM Validation role                                                |
 # |                                                                            |
@@ -8,33 +8,56 @@
 # |                                                                            |
 # | Inputs:                                                                    |
 # |   target_media_location             Default     {{ target_media_location }}|
-# | download_directory                                                         |
-# | bom_name                                                                   |
-# | sapbits_location_base_path                                                 |
-# | sapbits_bom_files                                                          |
-# | sapbits_sas_token                                                          |
-# | sapbits_access_key                                                         |
-# | S_user                                                                     |
-# | S_password:                                                                |
-# | download_directory:               Default /mnt/downloads                   |
+# |   download_directory                                                       |
+# |   bom_name                                                                 |
+# |   sapbits_location_base_path                                               |
+# |   sapbits_bom_files                                                        |
+# |   sapbits_sas_token                                                        |
+# |   sapbits_access_key                                                       |
+# |   S_user                                                                   |
+# |   S_password:                                                              |
+# |   download_directory:               Default /mnt/downloads                 |
 # |                                                                            |
-# |Locals:                                                                     |
-# | _bom                                                                       |
-# | item                                                                       |
-# | result                                                                     |
+# | Locals:                                                                    |
+# |   _bom                                                                     |
+# |   item                                                                     |
+# |   result                                                                   |
 # |                                                                            |
 # | BOM Fields:                                                                |
-# | download                                                                   |
-# | archive                                                                    |
-# | permissions                                                                |
+# |   download                                                                 |
+# |   archive                                                                  |
+# |   permissions                                                              |
 # |                                                                            |
 # |                                                                            |
 # | Steps:                                                                     |
-#   01) Register BOM                                                           |
-#   02) Download media                                                         |
+# |   01) Register BOM                                                         |
+# |   02) Download media                                                       |
 # +------------------------------------4--------------------------------------*/
 
-- name:                                "0.1 BoM Validator: - Run the bom-register"
+# -------------------------------------+---------------------------------------8
+# Step: 01
+# Description:  Informational
+#
+- name:                             "Informational"
+  ansible.builtin.debug:
+    var:                            bom_name
+    verbosity:                      1
+# Step: 01 - END
+# -------------------------------------+---------------------------------------8
+
+
+# -------------------------------------+---------------------------------------8
+# Step: 02
+# Description:  Register BOM
+#
+# - name:                                 "TROUBLESHOOTING: bom-registration.yaml"
+#   pause:
+#     prompt: "Press enter to continue..."
+#     echo: yes
+#   when:
+#     - pause|default(false)                                                      # when true; if not defined, then value is false
+
+- name:                                "Call BOM registration"
   ansible.builtin.include_role:
     name:                              roles-sap/3.3.1-bom-utility
     tasks_from:                        bom-register
@@ -42,114 +65,211 @@
     inventory_dir:                     "{{ download_directory }}/bom"
     task_prefix:                       "Validation: "
     source:                            "disk"
+# Step: 02 - END
+# -------------------------------------+---------------------------------------8
 
-- name:                                "Combine dependent BoMs"
-  ansible.builtin.set_fact:
-    root_media_list:                   "{{ root_media_list + bom.materials.media | flatten(levels=1) }}"
-  when: root_media_list is defined
-
-# ------------------<DEBUGGING>-------------------
-# - name:                                "Show BOM Info"
-#   ansible.builtin.debug:
-#     msg:
-#       - "BOM: {{ item.archive }} Url: {{ item.url }} Dest: {{ download_directory }}/{{ item.archive }}"
-#       - "URL: {{ item.url }} Destination: {{ download_directory }}/files/{{ item.archive }}"
-#     verbosity:                         2
-#   loop:                                "{{ bom.materials.media|flatten(levels=1) }}"
-#   when:                                item.url is defined
-
-# - name:                                "BOM: {{ bom_name }} Files without URLS"
-#   ansible.builtin.debug:
-#     msg:                               "Archive: {{ item.archive }} Dest: {{ download_directory }}/{{ item.archive }}"
-#     verbosity:                         2
-#   loop:                                "{{ bom.materials.media|flatten(levels=1) }}"
-#   when:                                item.url is not defined
-
-# ------------------</DEBUGGING>------------------
+# -------------------------------------+---------------------------------------8
+# Step: 03
+# Description:  Dynamic Processing - Iterate over BOM dictionary to find Dynamic
+#               entries.
+#
+- name:                                 "Reconcile dynamic entries of BOM"
+  ansible.builtin.include_tasks:        "dynamic_bom_processing.yaml"
+  loop:                                 "{{ bom.materials.media | flatten(levels=1) }}"
+  loop_control:
+    loop_var:                           bom_media_entry
+    index_var:                          bom_media_index
+  when:
+    - bom_media_entry.dynamic is defined
+    - bom_media_entry.dynamic
+# Step: 03 - END
+# -------------------------------------+---------------------------------------8
 
 
-#   02) Validate media from SAP
-#   Loop through BOM media URLs
-
-- name:                                "BoM Validator: - Extract SAP Binaries Storage Account SAS secret"
+# -------------------------------------+---------------------------------------8
+# Step: 04
+# Description:  Generate SAS token block
+#
+- name:                                 "Generate SAS token block"
   block:
 
-    - name:                            "BoM Validator: - Set Expiry"
-      ansible.builtin.command:         "date +'%Y-%m-%d' -d '+3 days'"
-      register: expiry
+# -------------------------------------+---------------------------------------8
+# Step: 04-01
+# Description:
+#
+    - name:                             "{{ task_prefix }} - Informational"
+      ansible.builtin.debug:
+        msg: |-
+                                        Entering SAS token block...
+        verbosity:                      1
+# Step: 04-01 - END
+# -------------------------------------+---------------------------------------8
 
-    - name:                            "BoM Validator: - Create SAP Binaries Storage Account SAS"
-      ansible.builtin.shell: >-
-                                       az storage account generate-sas \
-                                         --services b \
-                                         --resource-types sco \
-                                         --permissions cdlrw \
-                                         --account-name {{ sapbits_location_base_path.rpartition('//')[2].split('.')[0] }} \
-                                         --account-key {{ sapbits_access_key }} \
-                                         --expiry {{ expiry.stdout }} \
-                                         | tr -d \"
-      changed_when:                    false
-      register:                        az_sapbits_sas_token
-
-    - name:                            "BoM Validator: - Extract SAP Binaries Storage Account SAS (temp)"
+# -------------------------------------+---------------------------------------8
+# Step: 04-02
+# Description:
+#
+    - name:                             "{{ task_prefix }} - Caculate expiration date (+3 Days)"
       ansible.builtin.set_fact:
-        sapbits_sas_token: >-
-                                       {{ az_sapbits_sas_token.stdout }}
+        expiry:                         "{{ '%Y-%m-%d' | strftime((ansible_date_time.epoch | int) + (86400 * 3)) }}"
+# Step: 04-02 - END
+# -------------------------------------+---------------------------------------8
 
+# -------------------------------------+---------------------------------------8
+# Step: 04-03
+# Description:
+#
+    - name:                             "{{ task_prefix }} - Create SAP Binaries Storage Account SAS"
+      ansible.builtin.shell: >-
+                                        az storage account generate-sas                                                     \
+                                          --services b                                                                      \
+                                          --resource-types sco                                                              \
+                                          --permissions cdlrw                                                               \
+                                          --account-name {{ sapbits_location_base_path.rpartition('//')[2].split('.')[0] }} \
+                                          --account-key {{ sapbits_access_key }}                                            \
+                                          --expiry {{ expiry }}                                                             \
+                                          | tr -d \"
+      changed_when:                     false
+      register:                         az_sapbits_sas_token
+# Step: 04-03 - END
+# -------------------------------------+---------------------------------------8
+
+# -------------------------------------+---------------------------------------8
+# Step: 04-04
+# Description:
+#
+    - name:                             "{{ task_prefix }} - Extract SAP Binaries Storage Account SAS (temp)"
+      ansible.builtin.set_fact:
+        sapbits_sas_token:              "{{ az_sapbits_sas_token.stdout }}"
+# Step: 04-04 - END
+# -------------------------------------+---------------------------------------8
+
+  vars:
+    task_prefix:                        Generate SAS token block
+  when:
+    - sa_enabled
+# Step: 04 - END
+# -------------------------------------+---------------------------------------8
+
+
+# -------------------------------------+---------------------------------------8
+# Step: 05
+# Description:  Check and download files
+#
 - name:                                "0.1 BoM Validator: - BOM: {{ bom_name }} Check and Download Files"
   ansible.builtin.include_tasks:       bom_download.yaml
   loop:                                "{{ bom.materials.media | flatten(levels=1) }}"
+  loop_control:
+    loop_var:                           bom_media_entry
+    index_var:                          bom_media_index
   no_log:                              false
+# Step: 05 - END
+# -------------------------------------+---------------------------------------8
 
+# -------------------------------------+---------------------------------------8
+# Step: 06
+# Description:  Combine dependent BoMs block
+#
+- name:                                 "Combine dependent BoMs block"
+  block:
+
+# -------------------------------------+---------------------------------------8
+# Step: 06-01
+# Description:
+#
+    - name:                             "{{ task_prefix }} - Combine dependent BoMs"
+      ansible.builtin.set_fact:
+        root_media_list:                "{{ root_media_list + bom.materials.media | flatten(levels=1) }}"
+# Step: 06-01 - END
+# -------------------------------------+---------------------------------------8
+
+# -------------------------------------+---------------------------------------8
+# Step: 06-02
+# Description:
+#
+    - name:                             "{{ task_prefix }} - Informational"
+      ansible.builtin.debug:
+        msg: |-
+                                        {{ root_media_list }}
+        verbosity:                      1
+# Step: 06-02 - END
+# -------------------------------------+---------------------------------------8
+
+  vars:
+    task_prefix:                        Combine dependent BoMs block
+  when: root_media_list is defined
+# Step: 06 - END
+# -------------------------------------+---------------------------------------8
+
+
+# -------------------------------------+---------------------------------------8
+# Step: 07
+# Description:
+#
 - name:                                "0.1 BoM Validator: - BOM: {{ bom_name }} Folder"
   ansible.builtin.debug:
     msg:                               "FOLDERNAME : {{ bom_file.rpartition('/')[0] }}"
-
-- name:                                "0.1 BoM Validator: - delete old versions of templates"
-  ansible.builtin.command: >-
-                                       az storage blob delete-batch
-                                         --account-name {{ sapbits_location_base_path.rpartition('//')[2].split('.')[0] }}
-                                         --sas-token {{ sapbits_sas_token }}
-                                         --source {{ sapbits_location_base_path.rpartition('//')[2].split('/')[1] }}
-                                         --pattern "{{ sapbits_bom_files }}/boms/{{ bom_base_name }}/templates/*"
-  delegate_to:                         localhost
-  ignore_errors:                       false
-  changed_when:                        false
-  when:
-    - upload is defined
-    - upload
-
-- name:                                "0.1 BoM Validator: - BOM: {{ bom_name }} Upload Folder"
-  vars:
-    bom_container_name:               "{{ sapbits_location_base_path.rpartition('//')[2].split('/')[1] }}/{{ sapbits_bom_files }}/boms"
-  ansible.builtin.command: >-
-                                       az storage blob upload-batch
-                                         --account-name {{ account }}
-                                         --account-key {{ sapbits_access_key }}
-                                         --destination "{{ bom_container_name }}/{{ bom_name }}/templates"
-                                         --source "{{ bom_file.rpartition('/')[0] }}/templates"
-                                         --overwrite true
-                                         --if-none-match "*"
-                                         --no-progress
-  delegate_to:                         localhost
-  register:                            bom_upload_azresult
-  changed_when:                        false
-  ignore_errors:                       false
-  failed_when:
-    - bom_upload_azresult.rc != 0
-    - bom_upload_azresult.stderr is defined
-    - bom_upload_azresult.stderr.find("BlobAlreadyExists") == -1
-  when:
-    - upload is defined
-    - upload
-
-# ------------------<DEBUGGING>-------------------
-# - name: "List error codes"
-#   debug:
-#     var: azresult
-# ------------------</DEBUGGING>------------------
-
+# Step: 07 - END
 # -------------------------------------+---------------------------------------8
+
+
+# # -------------------------------------+---------------------------------------8
+# # Step: 08
+# # Description:
+# #
+# - name: "Upload"
+#   block:
+
+# # -------------------------------------+---------------------------------------8
+# # Step: 08-01
+# # Description:
+# #
+#     - name:                                "0.1 BoM Validator: - delete old versions of templates"
+#       ansible.builtin.command: >-
+#                                           az storage blob delete-batch
+#                                             --account-name {{ sapbits_location_base_path.rpartition('//')[2].split('.')[0] }}
+#                                             --sas-token {{ sapbits_sas_token }}
+#                                             --source {{ sapbits_location_base_path.rpartition('//')[2].split('/')[1] }}
+#                                             --pattern "{{ sapbits_bom_files }}/boms/{{ bom_base_name }}/templates/*"
+#       delegate_to:                         localhost
+#       ignore_errors:                       false
+#       changed_when:                        false
+# # Step: 08-01 - END
+# # -------------------------------------+---------------------------------------8
+
+# # -------------------------------------+---------------------------------------8
+# # Step: 08-02
+# # Description:
+# #
+#     - name:                                "0.1 BoM Validator: - BOM: {{ bom_name }} Upload Folder"
+#       vars:
+#         bom_container_name:               "{{ sapbits_location_base_path.rpartition('//')[2].split('/')[1] }}/{{ sapbits_bom_files }}/boms"
+#       ansible.builtin.command: >-
+#                                           az storage blob upload-batch
+#                                             --account-name {{ account }}
+#                                             --account-key {{ sapbits_access_key }}
+#                                             --destination "{{ bom_container_name }}/{{ bom_name }}/templates"
+#                                             --source "{{ bom_file.rpartition('/')[0] }}/templates"
+#                                             --overwrite true
+#                                             --if-none-match "*"
+#                                             --no-progress
+#       delegate_to:                         localhost
+#       register:                            bom_upload_azresult
+#       changed_when:                        false
+#       ignore_errors:                       false
+#       failed_when:
+#         - bom_upload_azresult.rc != 0
+#         - bom_upload_azresult.stderr is defined
+#         - bom_upload_azresult.stderr.find("BlobAlreadyExists") == -1
+# # Step: 08-02 - END
+# # -------------------------------------+---------------------------------------8
+
+#   when:
+#     - upload is defined
+#     - upload
+#     - sa_enabled                                              # and Storage Account is enabled
+# # Step: 08 - END
+# # -------------------------------------+---------------------------------------8
 
 ...
 # /*---------------------------------------------------------------------------8

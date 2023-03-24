@@ -37,8 +37,39 @@
     gid:                               "{{ item.gid }}"
     state:                             present
   loop:
-    - { group: 'sapsys',  gid: '{{ sapsys_gid }}' }
-    - { group: 'sapinst', gid: '{{ sapinst_gid }}' }
+    - { group: 'sapsys',    gid: '{{ sapsys_gid }}'  }
+    - { group: 'sapinst',   gid: '{{ sapinst_gid }}' }
+
+# Create Groups for Oracle ASM.
+- name:                                "2.5.1 SAP Users: - Create SAP Groups for Oracle ASM"
+  ansible.builtin.group:
+    name:                              "{{ item.group }}"
+    gid:                               "{{ item.gid }}"
+    state:                             present
+  loop:
+    - { group: 'asmoper',   gid: '{{ asmoper_gid }}'   }
+    - { group: 'asmadmin',  gid: '{{ asmadmin_gid }}'  }
+    - { group: 'asmdba',    gid: '{{ asmdba_gid }}'    }
+    - { group: 'backupdba', gid: '{{ backupdba_gid }}' }
+    - { group: 'dgdba',     gid: '{{ dgdba_gid }}'     }
+    - { group: 'kmdba',     gid: '{{ kmdba_gid }}'     }
+    - { group: 'racdba',    gid: '{{ racdba_gid }}'    }
+  when:
+    - node_tier == "oracle-asm"
+
+
+- name:                                "2.5.1 SAP Users: - Create SAP Groups for Oracle ASM on observer"
+  ansible.builtin.group:
+    name:                              "{{ item.group }}"
+    gid:                               "{{ item.gid }}"
+    state:                             present
+  loop:
+    - { group: 'dgdba',     gid: '{{ dgdba_gid }}'     }
+    - { group: 'kmdba',     gid: '{{ kmdba_gid }}'     }
+    - { group: 'racdba',    gid: '{{ racdba_gid }}'    }
+    - { group: 'backupdba', gid: '{{ backupdba_gid }}' }
+  when:
+    - node_tier == "observer"
 
 # *=====================================4=======================================8
 #
@@ -70,7 +101,27 @@
   loop:
     - { tier: 'sapos', user: 'sapadm', uid: '{{ sapadm_uid }}', group: 'sapsys', home: '/home/sapadm', comment: 'SAP Host Agent' }
     # TODO: add user for WebDisp Functionality
-    # - { tier: 'WEB', user: 'webadm', uid: '32002', group: 'sapsys', home: '/home/webadm', comment: 'SAP WebDisp Admin' }
+    # - { tier: 'WEB',         user: 'webadm',                   uid: '32002',            group: 'sapsys', home: '/home/webadm',                 comment: 'SAP WebDisp Admin' }
   when:
-    - item.tier == "all" or item.tier == tier
-    - node_tier != "observer"
+    - item.tier == "all"
+    - item.tier != "observer"
+
+
+# Create User assignment for Oracle ASM
+- name:                                "2.5.1 SAP Users: -  Create Oracle ASM Users Assignment"
+  ansible.builtin.user:
+    name:                              "oracle"
+    group:                             "oinstall"
+    groups:                            asmoper,asmadmin,asmdba,dba,oper,backupdba,dgdba,kmdba,racdba
+    append:                            true
+    shell:                             /bin/csh
+    # create_home:                       true
+    # home:                              "{{ item.home }}"
+  # loop:
+  #   - { user: 'oracle',                   uid: '{{ asmoper_gid }}',  group: 'oinstall', home: '/home/oracle',                 comment: 'ASM Oper Group assignment' }
+  #   - { user: 'oracle',                   uid: '{{ asmadmin_gid }}', group: 'oinstall', home: '/home/oracle',                 comment: 'ASM Oper Group assignment' }
+  #   - { user: 'oracle',                   uid: '{{ asmdba_gid }}',   group: 'oinstall', home: '/home/oracle',                 comment: 'ASM Oper Group assignment' }
+  #   # TODO: add user for WebDisp Functionality
+    # - { tier: 'WEB',         user: 'webadm',                   uid: '32002',            group: 'sapsys', home: '/home/webadm',                 comment: 'SAP WebDisp Admin' }
+  when:
+    - node_tier == "oracle-asm" or node_tier == "observer"

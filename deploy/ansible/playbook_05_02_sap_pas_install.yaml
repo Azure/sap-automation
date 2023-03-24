@@ -1,13 +1,14 @@
+---
+
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
 # |                       Prepare for SAP PAS Install                          |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
----
 
 - hosts:                               localhost
   name:                                "PAS Installation Playbook: - Initialization"
-  gather_facts:                        false
+  gather_facts:                        true
   vars_files:
     - vars/ansible-input-api.yaml                               # API Input template with defaults
 
@@ -33,9 +34,17 @@
       ansible.builtin.include_role:
         name:                          roles-misc/0.1-passwords
         public:                        true
-
       tags:
         - 0.1-passwords
+
+    - name:                            "OS configuration playbook: - Read password"
+      ansible.builtin.include_role:
+        name:                          roles-misc/0.1-passwords
+        tasks_from:                    windows.yaml
+        public:                        true
+      when: platform == "SQLSERVER"
+      tags:
+        - 0.1-win-passwords
 
     - name:                            "PAS Installation Playbook: - Read/Create key vault secrets"
       ansible.builtin.include_role:
@@ -64,7 +73,6 @@
   name:                                SAP Generic OS Groups and User Creation
   serial:                              1
   remote_user:                         "{{ orchestration_ansible_user }}"
-  become:                              true
   gather_facts:                        true                                    # Important to collect hostvars information
   vars_files:
     - vars/ansible-input-api.yaml                                              # API Input template with defaults
@@ -86,10 +94,15 @@
       ansible.builtin.set_fact:
         all_sids:                      "{% if MULTI_SIDS is defined %}{{ MULTI_SIDS }}{% else %}{{ all_sids | default([]) + [this_sid] }}{% endif %}"
 
-    - name:                            Generic Users and Groups for SAP Installation
+    - name:                            "Generic Users and Groups for SAP Installation"
       ansible.builtin.include_role:
         name:                          roles-sap-os/2.5-sap-users
         tasks_from:                    user_nw.yaml
+        apply:
+          tags:
+            - 2.5-sap-users
+          become:                      true
+          become_user:                 root
       vars:
         scs_instance_number:           "{{ sid_to_be_deployed.ascs_inst_no }}"
         tier:                          generic
@@ -99,7 +112,9 @@
       loop:                            "{{ all_sids }}"
       loop_control:
         loop_var:                      sid_to_be_deployed
-      when:                            platform != 'ORACLE'
+      when:
+        - platform not in [ "ORACLE", "ORACLE-ASM" ]
+        - ansible_os_family != "Windows"
       tags:
         - 2.5-sap-users
 
@@ -117,7 +132,6 @@
 
   name:                                "PAS Installation Playbook"
   remote_user:                         "{{ orchestration_ansible_user }}"
-  become:                              true
   gather_facts:                        true                                    # Important to collect hostvars information
   vars_files:
     - vars/ansible-input-api.yaml                                              # API Input template with defaults
@@ -137,6 +151,7 @@
         sapbits_sas_token:             "{{ hostvars.localhost.sapbits_sas_token }}"
         pas_file_path:                 INSTALL/DISTRIBUTED/ABAP/APP1
         always_upload_jinja_templates: false
+        sa_enabled:                    true
       tags:
         - always
 
@@ -163,7 +178,11 @@
 #
 # -------------------------------------+---------------------------------------8
 
-    - name:                            "PAS Installation Playbook: - Run PAS Installation"
+    - name:                            "PAS Installation Playbook: - Run PAS Installation on Linux"
+      when:
+        - "'pas' in supported_tiers"
+        - ansible_os_family != "Windows"
+      become:                          true
       block:
 
         - name:                        "PAS Installation Playbook: - Assertions"
@@ -184,6 +203,13 @@
 
         - name:                        Run the PAS installation Playbook
           block:
+
+            - name:                    "APP Playbook - Install: Include 2.6-sap-mounts role"
+              ansible.builtin.include_role:
+                name:                  roles-sap-os/2.6-sap-mounts
+              tags:
+                - 2.6-sap-mounts
+
             - name:                    "PAS Installation Playbook: - Install SAPInst"
               ansible.builtin.include_role:
                 name:                  roles-sap/5.2-pas-install
@@ -216,8 +242,8 @@
                 name:                  roles-sap/7.0.0-post-install
               vars:
                 suffix:                "_PAS"
-                prefix:                "{{ bom.product_ids.pas.replace('.', '/').replace('/ABAP', '').split(':')[1] }}"
-                path:                  "{{ pas_file_path.replace('//', '/') }}"
+                prefix:                "{{ bom.product_ids.pas.replace('.', '/').replace('/ABAP', '').replace('/PD', '').split(':')[1] }}"
+                path:                  'INSTALL/DISTRIBUTED/{{ pas_bom_instance_type }}/APP1'
                 tier:                  'pas'
                 this_sid:              "{{ sid_to_be_deployed.sid | upper }}"
               loop:                    "{{ all_sids }}"
@@ -232,9 +258,94 @@
 
           tags:
             - 5.2-pas-install
-
+    - name:                            "PAS Installation Playbook: - Run PAS Installation on Windows"
       when:
         - "'pas' in supported_tiers"
+        - ansible_os_family == "Windows"
+      block:
+
+        - name:                        "PAS Installation Playbook: - Assertions"
+          block:
+            - name:                    "PAS Installation Playbook: - Show instance numbers"
+              ansible.builtin.debug:
+                msg:
+                  - "pas_instance_number: {{ pas_instance_number }}"
+                  - "scs_instance_number: {{ scs_instance_number }}"
+                  - "{{ ansible_play_hosts_all | length }} hosts in inventory"
+
+            - name:                    "PAS Installation Playbook: - Assert instance numbers"
+              ansible.builtin.assert:
+                that:
+                  - "pas_instance_number is defined"
+                  - "scs_instance_number != pas_instance_number"
+                fail_msg:              "Please ensure that the scs_instance_number is different from the pas_instance_number"
+
+          when:                        (ansible_play_hosts_all | length) <= 2
+
+        - name:                        "PAS Installation Playbook: - Ensure Sharing Data Folder"
+          ansible.builtin.include_role:
+            name:                      roles-sap-os/windows/2.3-sap-exports
+
+        - name:                        Run the PAS installation Playbook
+          block:
+            - name:                    "PAS Installation Playbook: - Install SAPInst"
+              ansible.builtin.include_role:
+                name:                  roles-sap/windows/5.2-pas-install
+              vars:
+                instance_number:       "{% if pas_instance_number is defined %}{{ pas_instance_number }}{% else %}00{% endif %}"
+                domain_user_password:  "{{ hostvars.localhost.winadm_password }}"
+                svc_password:          "{{ hostvars.localhost.svcadm_password }}"
+              loop:                    "{{ all_sids }}"
+              loop_control:
+                loop_var:              sid_to_be_deployed
+
+            - name:                    "PAS Installation Playbook: - Create pas-install-done flag"
+              delegate_to:             localhost
+              become:                  false
+              ansible.builtin.file:
+                path:                  "{{ _workspace_directory }}/.progress/pas-install-done"
+                state:                 touch
+                mode:                  0755
+              when:
+                - pas_already_installed is defined or (pas_installation.rc is defined and pas_installation.rc == 0)
+
+          always:
+            - name:                    "PAS Installation Playbook: - Get the Error lines from installation output"
+              ansible.builtin.set_fact:
+                error_lines:           "{{ error_lines | default([]) + [item] }}"
+              with_items:              "{{ pas_installation.stdout_lines }}"
+              when:
+                - pas_installation.stdout_lines is defined
+                - '"ERROR" in item'
+                - pas_installation.rc > 0
+
+            - name:                    "PAS Installation Playbook: - Run post installation routines"
+              ansible.builtin.include_role:
+                name:                  roles-sap/windows/7.0.0-post-install
+              vars:
+                suffix:                "_PAS"
+                tier:                  'pas'
+
+            - name:                    "PAS Installation Playbook: - Show errors from PAS installation"
+              ansible.builtin.debug:
+                msg:                   "{{ error_lines }}"
+              when:
+                - error_lines is defined
+
+            - name:                    "SCS Install: Rename sapinst_logs Folder with TimeStamp"
+              ansible.windows.win_shell: |
+                                        Rename-Item -Path .\sapinst_logs -NewName "sapinst_logs_$(get-date -f yyyy_MM_dd_HH_mm_ss)"
+              args:
+                chdir:                 '{{ log_dir_windows }}'
+                removes:               '{{ log_dir_windows }}\sapinst_logs'
+              register:                sapinst_log_name
+              failed_when:             sapinst_log_name.rc > 0
+              when:
+                - ansible_os_family == "Windows"
+
+          tags:
+            - 5.2-pas-install
+
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
@@ -243,10 +354,8 @@
 # +------------------------------------4--------------------------------------*/
 - hosts:                               "{{ sap_sid | upper }}_DB"
 
-  name:                                "Restting the DB2 LOCK escalationparameters"
+  name:                                "Resetting the DB2 LOCK escalationparameters"
   serial:                              1
-  become:                              true
-  become_user:                         root
   gather_facts:                        true
   vars_files:
     - vars/ansible-input-api.yaml                               # API Input template with defaults
@@ -270,8 +379,3 @@
       when:
         - platform == "DB2"
         - db2_lock_escalation.stat.exists
-
-...
-# /*---------------------------------------------------------------------------8
-# |                                    END                                     |
-# +------------------------------------4--------------------------------------*/

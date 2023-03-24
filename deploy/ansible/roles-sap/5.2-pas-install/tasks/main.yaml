@@ -7,11 +7,26 @@
 # +------------------------------------4--------------------------------------*/
 
 ---
+
+- name:                                "PAS Install: Set the SCS Server name list"
+  ansible.builtin.set_fact:
+    scs_server_temp:                   "{{ scs_server_temp | default([]) + [item] }}"
+  with_items:
+    - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') }}"
+    - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
+
+- name:                                "PAS Install: -  Set the DB Server name list"
+  ansible.builtin.set_fact:
+    db_server_temp:                    "{{ db_server_temp | default([]) + [item] }}"
+  with_items:
+    - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
+
 - name:                                "PAS Install: Set BOM facts"
   ansible.builtin.set_fact:
     sap_inifile:                       "{{ bom_base_name }}-pas-{{ sid_to_be_deployed.sid | lower }}-{{ ansible_hostname }}.params"
-    sap_inifile_template:              "{{ bom_base_name }}-pas-inifile-param.j2"
+    sap_inifile_template:              "{{ bom_base_name }}{{ bom_suffix }}-pas-inifile-param.j2"
     dir_params:                        "{{ tmp_directory }}/.{{ sid_to_be_deployed.sid | lower }}-params"
+    db_lb_virtual_host:                "{% if db_high_availability %}{{ sid_to_be_deployed.sid | lower }}{{ db_sid | lower }}db{{ db_instance_number }}cl{% else %}{{ hostvars[db_server_temp | first]['virtual_host'] }}{% endif %}"
 
 - name:                                "PAS Install: -  Create directories"
   ansible.builtin.file:
@@ -34,96 +49,34 @@
     path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_pas.txt"
   register:                            pas_installed
 
-- name:                                "PAS Install: Set the SCS Server name list"
-  ansible.builtin.set_fact:
-    scs_server_temp:                   "{{ scs_server_temp | default([]) + [item] }}"
-  with_items:
-    - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') }}"
-    - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
-
-- name:                                "PAS Install: -  Set the DB Server name list"
-  ansible.builtin.set_fact:
-    db_server_temp:                    "{{ db_server_temp | default([]) + [item] }}"
-  with_items:
-    - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
-
-- name:                                "PAS Install: Set the SCS Server name"
-  ansible.builtin.set_fact:
-    scs_server:                        "{% if scs_high_availability %}{{ sid_to_be_deployed.sid | lower }}scs{{ scs_instance_number }}cl1{% else %}{{ hostvars[scs_server_temp | first]['virtual_host'] }}{% endif %}"
-    db_virtual_host:                   "{{ hostvars[db_server_temp | first]['virtual_host'] }}"
-    instance_number:                   "{% if node_tier == 'pas' %}'00'{% else %}'01'{% endif %}"
-    file_path:                         "{% if scs_high_availability %}INSTALL/HA/ABAP/APP1{% else %}INSTALL/DISTRIBUTED/ABAP/APP1{% endif %}"
-    DB:                                "{% if MULTI_SIDS is defined %}{{ sid_to_be_deployed.sid | upper }}/HDB{{ db_instance_number }}{% else %}{{ db_sid | upper }}/HDB{{ db_instance_number }}{% endif %}"
-    db_lb_virtual_host:                "{% if db_high_availability %}{{ sid_to_be_deployed.sid | lower }}{{ db_sid | lower }}db{{ db_instance_number }}cl{% else %}{{ hostvars[db_server_temp | first]['virtual_host'] }}{% endif %}"
-
-- name:                                "SCS Install: check media exists"
-  ansible.builtin.stat:
-    path:                              "{{ target_media_location }}/SWPM/sapinst"
-  register:                            sapinst_found
-
-- name:                                "ErrorHandling"
-  ansible.builtin.fail:
-    msg:                               "INSTALL:0006:Unable to find sapinst, please check that the installation media is mounted"
-  when: not sapinst_found.stat.exists
-
-- name:                                "PAS Install: Include 3.3.1-bom-utility role"
+# Returns bom object
+- name:                                "PAS Install: Register BoM"
   ansible.builtin.include_role:
     name:                              roles-sap/3.3.1-bom-utility
     tasks_from:                        bom-register
   vars:
     bom_name:                          "{{ bom_base_name }}"
     task_prefix:                       "PAS Install: "
+    sa_enabled:                        true
 
-- name:                                "PAS Install: Include roles-sap/3.3.1-bom-utility role"
-  ansible.builtin.include_role:
-    name:                              roles-sap/3.3.1-bom-utility
-    tasks_from:                        bom-template
-  vars:
-    task_prefix:                       "PAS Install: "
-    always_upload_jinja_templates:     false
-    bom_name:                          "{{ bom_base_name }}"
-    sap_cd_package_hdbclient:          "{{ target_media_location }}/CD_HDBCLIENT/SAP_HANA_CLIENT"
-    sap_cd_package_cd1:                "{{ target_media_location }}/CD_EXPORT"
-    sap_cd_package_cd2:
-    sap_cd_package_cd3:
-    sap_cd_package_cd4:
-    sap_cd_package_cd5:
-    sap_ciInstanceNumber:              "{{ instance_number }}"
-    app_instance_number:
-    sap_ciDialogWPNumber:              12
-    sap_ciBtcWPNumber:                 8
-    sap_installSAPHostAgent:           "false"
-    sap_profile_dir:                   /sapmnt/{{ sid_to_be_deployed.sid | upper }}/profile
-    sap_scs_hostname:                  "{{ scs_server }}"
-    sap_db_hostname:                   "{{ db_lb_virtual_host }}"
-    sap_ciVirtualHostname:
-    sap_appVirtualHostname:
-    tier:                              "{{ tier }}"
-    param_directory:                   "{{ dir_params }}"
-    sap_sid:                           "{{ sid_to_be_deployed.sid }}"
-    scs_instance_number:               "{{ sid_to_be_deployed.ascs_inst_no }}"
-    sidadm_uid:                        "{{ sid_to_be_deployed.sidadm_uid }}"
-    virt_do_not_resolve_hostname:      "{{ db_lb_virtual_host }}"
-    # support older app inifile templates where hdb_instance_number was used
-    hdb_instance_number:               "{{ db_instance_number }}"
-  tags:
-    - skip_ansible_lint
+# - name:                                "PAS Install: Default instance type"
+#   ansible.builtin.set_fact:
+#     instance_type:                     "ASCS"
+#     public:                            true
+#   when:                                bom.InstanceType is not defined
+
+# - name:                                "PAS Install: register instance type if JAVA"
+#   ansible.builtin.set_fact:
+#     instance_type:                     "JAVA"
+#     public:                            true
+#   when:
+#     - bom.InstanceType is defined
+#     - bom.InstanceType | upper == 'JAVA'
 
 - name:                                "PAS Install: register variables"
   ansible.builtin.set_fact:
-    pas_bom_id:                        "{{ bom.product_ids.pas }}"
-
-- name:                                "PAS Install: install variables"
-  ansible.builtin.debug:
-    msg:
-      - "INSTALLED:  {{ pas_installed.stat.exists }}"
-      - "INIFILE:    {{ sap_inifile }}"
-      - "PRODUCT ID: {{ pas_bom_id }}"
-      - "INSTANCE:   {{ instance_number }}"
-      - "DBHOST:     {{ db_virtual_host }}"
-      - "HOST:       {{ virtual_host }}"
-      - "SID:        {{ sid_to_be_deployed.sid | upper }}"
-
+    pas_bom_instance_type:             "{% if bom.InstanceType is defined %}{{ bom.InstanceType }}{% else %}ABAP{% endif %}"
+    public:                            true
 
 - name:                                "PAS Install"
   block:
@@ -134,9 +87,75 @@
 # |                                                                            |
 # *====================================4=======================================8
 
+    - name:                            "PAS Install: Set the SCS Server name"
+      ansible.builtin.set_fact:
+        scs_server:                    "{% if scs_high_availability %}{{ sid_to_be_deployed.sid | lower }}scs{{ scs_instance_number }}cl1{% else %}{{ hostvars[scs_server_temp | first]['virtual_host'] }}{% endif %}"
+        db_virtual_host:               "{{ hostvars[db_server_temp | first]['virtual_host'] }}"
+        instance_number:               "{% if node_tier == 'pas' %}'00'{% else %}'01'{% endif %}"
+        file_path:                     "{% if scs_high_availability %}INSTALL/HA/ABAP/APP1{% else %}INSTALL/DISTRIBUTED/ABAP/APP1{% endif %}"
+        DB:                            "{% if MULTI_SIDS is defined %}{{ sid_to_be_deployed.sid | upper }}/HDB{{ db_instance_number }}{% else %}{{ db_sid | upper }}/HDB{{ db_instance_number }}{% endif %}"
+
+    - name:                            "SCS Install: check media exists"
+      ansible.builtin.stat:
+        path:                          "{{ target_media_location }}/SWPM/sapinst"
+      register:                        sapinst_found
+
+    - name:                            "ErrorHandling"
+      ansible.builtin.fail:
+        msg:                           "INSTALL:0006:Unable to find sapinst, please check that the installation media is mounted"
+      when: not sapinst_found.stat.exists
+
+    - name:                            "PAS Install: Include roles-sap/3.3.1-bom-utility role"
+      ansible.builtin.include_role:
+        name:                          roles-sap/3.3.1-bom-utility
+        tasks_from:                    bom-template
+      vars:
+        task_prefix:                   "PAS Install: "
+        always_upload_jinja_templates: false
+        bom_name:                      "{{ bom_base_name }}{{ bom_suffix }}"
+        sap_cd_package_hdbclient:      "{{ target_media_location }}/CD_HDBCLIENT/SAP_HANA_CLIENT"
+        sap_cd_package_cd1:            "{{ target_media_location }}/CD_EXPORT"
+        sap_cd_package_cd2:
+        sap_cd_package_cd3:
+        sap_cd_package_cd4:
+        sap_cd_package_cd5:
+        sap_ciInstanceNumber:          "{{ instance_number }}"
+        app_instance_number:
+        sap_ciDialogWPNumber:          12
+        sap_ciBtcWPNumber:             8
+        sap_installSAPHostAgent:       "false"
+        sap_profile_dir:               /sapmnt/{{ sid_to_be_deployed.sid | upper }}/profile
+        sap_scs_hostname:              "{{ scs_server }}"
+        sap_db_hostname:               "{{ db_lb_virtual_host }}"
+        sap_ciVirtualHostname:
+        sap_appVirtualHostname:
+        param_directory:               "{{ dir_params }}"
+        sap_sid:                       "{{ sid_to_be_deployed.sid }}"
+        scs_instance_number:           "{{ sid_to_be_deployed.ascs_inst_no }}"
+        sidadm_uid:                    "{{ sid_to_be_deployed.sidadm_uid }}"
+        virt_do_not_resolve_hostname:  "{{ db_lb_virtual_host }}"
+        # support older app inifile templates where hdb_instance_number was used
+        hdb_instance_number:           "{{ db_instance_number }}"
+
+    - name:                            "PAS Install: register variables"
+      ansible.builtin.set_fact:
+        pas_bom_id:                    "{{ bom.product_ids.pas }}"
+
+    - name:                            "PAS Install: install variables"
+      ansible.builtin.debug:
+        msg:
+          - "INSTALLED:  {{ pas_installed.stat.exists }}"
+          - "INIFILE:    {{ sap_inifile }}"
+          - "PRODUCT ID: {{ pas_bom_id }}"
+          - "INSTANCE:   {{ instance_number }}"
+          - "DBHOST:     {{ db_virtual_host }}"
+          - "HOST:       {{ virtual_host }}"
+          - "SID:        {{ sid_to_be_deployed.sid | upper }}"
 
     - name:                            "PAS Install: HANA HSR - Update Profile"
       ansible.builtin.import_tasks:    ../../../roles-db/4.0.1-hdb-hsr/tasks/4.0.1.7-sap-profile-changes.yml
+      vars:
+        instance_type:                 "{{ pas_bom_instance_type }}"
       when:
         - db_high_availability
         - platform == "HANA"
@@ -167,8 +186,6 @@
         SAPSYSTEMNAME:                 "{{ sid_to_be_deployed.sid | upper }}"
       register:                        pas_installation
       failed_when:                     pas_installation.rc > 0
-      tags:
-        - skip_ansible_lint
 
     - name:                            "PAS Install: Installation results"
       ansible.builtin.debug:
@@ -232,14 +249,16 @@
 
     - name:                            "PAS Install: Set DB Virtual Host name ({{ db_lb_virtual_host }})"
       become:                          true
+      become_user:                     "{{ sid_to_be_deployed.sid | lower }}adm"
       ansible.builtin.shell: |
                                        {{ hdbuserstore_path }} SET DEFAULT {{ db_lb_virtual_host }}:30313@{{ db_sid | upper }} {{ hana_schema }} {{ main_password }}
       environment:
         SAPSYSTEMNAME:                 "{{ sid_to_be_deployed.sid | upper }}"
         TMPDIR:                        "{{ hdbuserstore_path }}"
+        ssfs_connect:                  "1"
       register:                        hdbuserstore
-      tags:
-        - skip_ansible_lint
+      vars:
+        allow_world_readable_tmpfiles: true
       when:
         - db_high_availability
         - platform == 'HANA'
@@ -309,13 +328,15 @@
                                        {{ hdbuserstore_path }} SET DEFAULT {{ db_lb_virtual_host }}:3{{ db_instance_number }}13@{{ db_sid | upper }} {{ hana_schema }} {{ main_password }}
       environment:
         SAPSYSTEMNAME:                 "{{ sid_to_be_deployed.sid | upper }}"
+        ssfs_connect:                  "1"
       register:                        hdbuserstore
       become:                          true
+      become_user:                     "{{ sid_to_be_deployed.sid | lower }}adm"
+      vars:
+        allow_world_readable_tmpfiles: true
       when:
         - db_high_availability
         - platform == 'HANA'
-      tags:
-        - skip_ansible_lint
 
 
   when:

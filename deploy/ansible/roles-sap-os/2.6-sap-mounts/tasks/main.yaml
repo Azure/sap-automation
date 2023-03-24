@@ -1,5 +1,4 @@
 ---
-
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
 # |                Perform the Disk system mounts                              |
@@ -10,6 +9,10 @@
   ansible.builtin.debug:
     var:                               MULTI_SIDS
     verbosity:                         4
+
+- name:                                "2.6 SAP Mounts: - set run time facts"
+  ansible.builtin.include_tasks:
+    file:                              "2.6-set_runtime_facts.yaml"
 
 - name:                                "2.6 SAP Mounts: - Check if the shared disk exists"
   ansible.builtin.set_fact:
@@ -91,13 +94,22 @@
 - name:                                "2.6 SAP Mounts: - Mount local file systems (backup)"
   ansible.posix.mount:
     src:                               '/dev/vg_hana_backup/lv_hana_backup'
-    path:                              '/hana/backup'
+    path:                              '{{ hana_backup_path }}'
     fstype:                            'xfs'
     opts:                              defaults
     state:                             mounted
   when:
     - node_tier == 'hana'
     - (backupdisks_count | int) > 0
+
+- name:                                "2.6 SAP Mounts: - Mount local file systems (backup)"
+  ansible.builtin.file:
+    path:                              /hana/data/backup
+    state:                             directory
+    mode:                              0755
+  when:
+    - node_tier == 'hana'
+    - (backupdisks_count | int) == 0
 
 - name:                                "2.6 SAP Mounts: - Mount local file systems (hana data)"
   ansible.posix.mount:
@@ -131,6 +143,10 @@
     - MULTI_SIDS is defined
     - sap_trans is undefined
 
+- name:                                "2.6 SAP Mounts: - Debug"
+  ansible.builtin.debug:
+    var:                               usr_sap_install_mountpoint
+
 - name:                                "2.6 SAP Mounts: - Mount local install file system on SCS (when not using AFS)"
   ansible.posix.mount:
     src:                               '/dev/vg_sap/lv_usrsapinstall'
@@ -159,6 +175,8 @@
     - "'scs' in supported_tiers"
 
 - name:                                "2.6 SAP Mounts: - Create SAP Directories (sapmnt)"
+  become:                               true
+  become_user:                          root
   ansible.builtin.file:
     owner:                             '{{ sidadm_uid }}'
     group:                             sapsys
@@ -166,6 +184,8 @@
     path:                              "/sapmnt/{{ sap_sid | upper }}"
     state:                             directory
     recurse:                           true
+  when:
+    - node_tier != "oracle-asm"
 
 - name:                                "2.6 SAP Mounts: - sapmnt"
   block:
@@ -264,11 +284,29 @@
 
 # Import this task only if the tier is ora.
 - name:                                "2.6 SAP Mounts: - Import Oracle tasks"
-  ansible.builtin.import_tasks:        "oracle.yaml"
+  ansible.builtin.import_tasks:        "2.6.2-oracle-mounts.yaml"
   when:
     - node_tier == "oracle"
 
-- name:                                "2.6 SAP Mounts: - Import Oracle multi sid tasks"
+# Import this task only if the tier is ora for oracle-asm.
+- name:                                "2.6 SAP Mounts: - Import Oracle ASM pre-requisite tasks"
+  ansible.builtin.import_tasks:        "oracle-asm-prereq.yaml"
+  when:
+    - node_tier == "oracle-asm"
+
+# Import this task only if the tier is ora for oracle-asm.
+- name:                                "2.6 SAP Mounts: - Import Oracle ASM tasks"
+  ansible.builtin.import_tasks:        "2.6.3-oracle-asm-mounts.yaml"
+  when:
+    - node_tier == "oracle-asm"
+    # - tier == "ora"
+
+- name:                                "2.6 SAP Mounts: - Import Oracle observer tasks"
+  ansible.builtin.import_tasks:        "oracle-observer.yaml"
+  when:
+    - node_tier == "observer"
+
+- name:                                "2.6 SAP Mounts: - Import Oracle shared home tasks"
   ansible.builtin.import_tasks:        "oracle-multi-sid.yaml"
   when:
     - node_tier == "oracle-multi-sid"
@@ -284,44 +322,50 @@
 - name:                                "2.6 SAP Mounts: - Import AFS tasks"
   ansible.builtin.import_tasks:        2.6.0-afs-mounts.yaml
   when:
-    - sap_mnt is defined or sap_trans is defined
+    - sap_mnt is defined or sap_trans is defined or usr_sap_install_mountpoint is defined
     - NFS_provider == 'AFS'
+
 
 # Import this task only if the sap_mnt is defined, i.e. ANF is used
 - name:                                "2.6 SAP Mounts: - Import ANF tasks"
   ansible.builtin.import_tasks:        2.6.1-anf-mounts.yaml
   when:
-    - sap_mnt is defined or sap_trans is defined
+    - sap_mnt is defined or sap_trans is defined or usr_sap_install_mountpoint is defined
     - NFS_provider == 'ANF'
+
+# Import NFS mounts and permissions changes for oracle and oracle-asm installation.
+- name:                                "2.6 SAP Mounts: - Import Oracle NFS tasks"
+  ansible.builtin.import_tasks:        "2.6.6-oracle-nfs-mounts.yaml"
+  when:
+    - node_tier in ['oracle','oracle-asm','observer']
 
 
 - name:                                "2.6 SAP Mounts: - Set permissions"
   become:                               true
   become_user:                          root
-  when:
-    - node_tier == "hana"
+  when:                                 node_tier == "hana"
   block:
-    - name:                                "2.6 SAP Mounts: - Set permissions on hana folders"
+    - name:                            "2.6 SAP Mounts: - Set permissions on hana folders"
       ansible.builtin.file:
-        owner:                             "{{ db_sid | lower }}adm"
-        group:                             sapsys
-        state:                             directory
-        recurse:                           true
-        path:                              "{{ item.path }}"
-        mode:                              '{{ item.mode }}'
+        owner:                         "{{ db_sid | lower }}adm"
+        group:                         sapsys
+        state:                         directory
+        recurse:                       true
+        path:                          "{{ item.path }}"
+        mode:                          '{{ item.mode }}'
       loop:
         - { mode: '0755', path: '/hana/data' }
         - { mode: '0755', path: '/hana/log' }
         - { mode: '0755', path: '/hana/shared' }
   rescue:
-    - name:                                "2.6 SAP Mounts: - Set permissions on hana folders"
+    - name:                            "2.6 SAP Mounts: - Set permissions on hana folders"
       ansible.builtin.file:
-        owner:                             '{{ hdbadm_uid }}'
-        group:                             sapsys
-        state:                             directory
-        recurse:                           true
-        path:                              "{{ item.path }}"
-        mode:                              '{{ item.mode }}'
+        owner:                         '{{ hdbadm_uid }}'
+        group:                         sapsys
+        state:                         directory
+        recurse:                       true
+        path:                          "{{ item.path }}"
+        mode:                          '{{ item.mode }}'
       loop:
         - { mode: '0755', path: '/hana/data' }
         - { mode: '0755', path: '/hana/log' }

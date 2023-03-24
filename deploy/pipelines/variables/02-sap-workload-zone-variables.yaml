@@ -72,11 +72,17 @@ parameters:
       - WEIN
       - WEUS
       - WUS2
+      - WUS3
 
   - name:                              inherit_settings
     displayName:                       Inherit Terraform state file information from control plane
     type:                              boolean
     default:                           true
+
+  - name:                              test
+    displayName:                       Test only
+    type:                              boolean
+    default:                           false
 
 variables:
   - group:                             "SDAF-General"
@@ -111,3 +117,6 @@ variables:
 
   - name:                              this_agent
     value:                             $[lower(coalesce(variables['POOL'], variables['Agent']))]
+
+  - name:                              test
+    value:                             ${{ parameters.test }}

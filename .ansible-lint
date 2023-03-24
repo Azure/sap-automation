@@ -3,8 +3,6 @@ exclude_paths:
   - deploy/ansible/BOM-catalog
   - deploy/terraform
   - .github
-  # added ansible_skip_lint tag to exclude the task rather than the whole file.
-  # - deploy/ansible/roles-sap-os/2.10-sap-notes/tasks/2.10.1.1.yaml # Has to be excluded as there is a pipe sign in the regex that Ansible sees as filter
 
 warn_list:
   # FIXME: Experimental violations should be fixed in separate PR

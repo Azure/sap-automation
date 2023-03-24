@@ -147,7 +147,7 @@ output "firewall_id" {
 
 
 output "webapp_url_base" {
-  value = var.use_webapp ? (var.configure ? try(azurerm_windows_web_app.webapp[0].name,"") : "") : ""
+  value = var.use_webapp ? (var.configure ? try(azurerm_windows_web_app.webapp[0].name, "") : "") : ""
 }
 
 output "webapp_identity" {

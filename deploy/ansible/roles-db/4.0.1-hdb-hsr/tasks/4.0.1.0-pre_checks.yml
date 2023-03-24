@@ -36,8 +36,6 @@
   failed_when:                         hana_replication_status.rc != 0
   vars:
     allow_world_readable_tmpfiles:     true
-  tags:
-    - skip_ansible_lint
   environment:
     ANSIBLE_REMOTE_TEMP:               "{{ tmp_directory }}/{{ db_sid | upper }}"
     TEMPDIR:                           "{{ tmp_directory }}/{{ db_sid | upper }}"

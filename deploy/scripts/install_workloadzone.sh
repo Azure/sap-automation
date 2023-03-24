@@ -345,7 +345,8 @@ then
 fi
 
 #setting the user environment variables
-set_executing_user_environment_variables "none"
+set_executing_user_environment_variables "${spn_secret}"
+
 if [[ -z ${REMOTE_STATE_SA} ]]; then
     load_config_vars "${workload_config_information}" "REMOTE_STATE_SA"
 fi
@@ -411,46 +412,37 @@ fi
 
 if [ -n "${keyvault}" ]
 then
-    secretname="${environment}"-client-id
-    echo "Setting secrets"
+    echo "Setting the secrets"
 
-    secret_value=$(az keyvault secret show --name "$secretname" --vault "$keyvault" --only-show-errors --query id 2>error.log)
-    if [ -f error.log ]
+    save_config_var "client_id" "${workload_config_information}"
+    save_config_var "tenant_id" "${workload_config_information}"
+
+    if [ -n "$spn_secret" ]
     then
-        save_config_var "client_id" "${workload_config_information}"
-        save_config_var "tenant_id" "${workload_config_information}"
+        allParams=$(printf " --workload --environment %s --region %s --vault %s --spn_secret %s --subscription %s --spn_id %s --tenant_id %s " "${environment}" "${region_code}" "${keyvault}" "${spn_secret}" "${subscription}" "${client_id}" "${tenant_id}" )
 
-        if [ -n "$spn_secret" ]
-        then
-            allParams=$(printf " --workload --environment %s --region %s --vault %s --spn_secret %s --subscription %s --spn_id %s --tenant_id %s " "${environment}" "${region_code}" "${keyvault}" "${spn_secret}" "${subscription}" "${client_id}" "${tenant_id}" )
+        echo "Calling set_secrets with " $allParams
 
-            echo $allParams
+        "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/set_secrets.sh $allParams
 
-            "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/set_secrets.sh $allParams
+        if [ -f secret.err ]; then
+            error_message=$(cat secret.err)
+            echo "##vso[task.logissue type=error]${error_message}"
 
-            if [ -f secret.err ]; then
-                error_message=$(cat secret.err)
-                echo "##vso[task.logissue type=error]${error_message}"
+            exit 65
+        fi
+    else
+        read -p "Do you want to specify the Workload SPN Details Y/N?"  ans
+        answer=${ans^^}
+        if [ $answer == 'Y' ]; then
+            allParams=$(printf " --workload --environment %s --region %s --vault %s --subscription %s  --spn_id %s " "${environment}" "${region_code}" "${keyvault}" "${subscription}" "${client_id}" )
 
-                exit 65
-            fi
-        else
-            read -p "Do you want to specify the Workload SPN Details Y/N?"  ans
-            answer=${ans^^}
-            if [ $answer == 'Y' ]; then
-                allParams=$(printf " --workload --environment %s --region %s --vault %s --subscription %s  --spn_id %s " "${environment}" "${region_code}" "${keyvault}" "${subscription}" "${client_id}" )
-
-                "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/set_secrets.sh ${allParams}
-                if [ $? -eq 255 ]
-                then
-                    exit $?
-                fi
+            "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/set_secrets.sh ${allParams}
+            if [ $? -eq 255 ]
+            then
+                exit $?
             fi
         fi
-    fi
-    if [ -f error.log ]
-    then
-        rm error.log
     fi
 
     if [ -f kv.log ]
@@ -600,7 +592,7 @@ echo -e "#       $cyan Changing the subscription to: ${subscription} $resetforma
 echo "#                                                                                       #"
 echo "#########################################################################################"
 echo ""
-az account set --sub "${subscription}"
+#az account set --sub "${subscription}"
 
 save_config_var "REMOTE_STATE_SA" "${workload_config_information}"
 save_config_var "subscription" "${workload_config_information}"
@@ -732,7 +724,6 @@ fi
 
 ok_to_proceed=0
 if [ -f plan_output.log ]; then
-    echo "2"
     cat plan_output.log
     LASTERROR=$(grep -m1 'Error: ' plan_output.log )
 
@@ -748,13 +739,6 @@ if [ -f plan_output.log ]; then
 fi
 
 if [ 0 == $return_value ] ; then
-    echo ""
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo -e "#                          $cyan Infrastructure is up to date $resetformatting                               #"
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
-    echo ""
     if [ -f plan_output.log ]
     then
         rm plan_output.log
@@ -981,15 +965,13 @@ then
 
 fi
 
-
-workload_zone_prefix=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw workload_zone_prefix | tr -d \")
-save_config_var "workload_zone_prefix" "${workload_config_information}"
-
 if [ -f apply_output.json ]
 then
      rm apply_output.json
 fi
 
+workload_zone_prefix=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw workload_zone_prefix | tr -d \")
+save_config_var "workload_zone_prefix" "${workload_config_information}"
 save_config_var "landscape_tfstate_key" "${workload_config_information}"
 
 if [ 0 == $return_value ] ; then
@@ -1033,8 +1015,15 @@ echo "#                                                                         
 echo "#########################################################################################"
 echo ""
 
+if [ -n "${spn_secret}" ]
+    then
+        az logout
+        echo "Login as SPN"
+        az login --service-principal --username "${client_id}" --password="${spn_secret}" --tenant "${tenant_id}" --output none
+fi
+
 rg_name=$(terraform -chdir="${terraform_module_directory}"  output -no-color -raw created_resource_group_name | tr -d \")
-az deployment group create --resource-group "${rg_name}" --name "SAP-WORKLOAD-ZONE_${rg_name}" --subscription  ${subscription} --template-file "${script_directory}/templates/empty-deployment.json" --output none
+az deployment group create --resource-group "${rg_name}" --name "SAP-WORKLOAD-ZONE_${rg_name}" --subscription "${subscription}" --template-file "${script_directory}/templates/empty-deployment.json" --output none
 
 now=$(date)
 cat <<EOF > "${workload_config_information}".md

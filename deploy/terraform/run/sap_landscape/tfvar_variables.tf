@@ -369,10 +369,16 @@ variable "install_private_endpoint_id" {
   default     = ""
 }
 
+variable "install_always_create_fileshares" {
+  description = "Value indicating if file shares are created ehen using existing storage accounts"
+  default     = false
+}
+
+
 variable "Agent_IP" {
   description = "If provided, contains the IP address of the agent"
-  type    = string
-  default = ""
+  type        = string
+  default     = ""
 }
 
 
@@ -385,7 +391,7 @@ variable "Agent_IP" {
 
 variable "use_custom_dns_a_registration" {
   description = "Boolean value indicating if a custom dns a record should be created when using private endpoints"
-  default     = false
+  default     = true
   type        = bool
 }
 

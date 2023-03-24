@@ -7,9 +7,6 @@ variable "nics_dbnodes_admin" {
   description = "Admin NICs of HANA database nodes"
 }
 
-variable "nics_dbnodes_db" {
-  description = "NICs of HANA database nodes"
-}
 
 variable "loadbalancers" {
   description = "List of LoadBalancers created for HANA Databases"
@@ -23,21 +20,36 @@ variable "db_sid" {
   description = "Database SID"
 }
 
-variable "nics_scs" {
-  description = "List of NICs for the SCS Application VMs"
+variable "scs_server_ips" {
+  description = "List of IP addresses for the SCS Servers"
 }
 
-variable "nics_app" {
-  description = "List of NICs for the Application Instance VMs"
+variable "scs_server_secondary_ips" {
+  description = "List of secondary IP addresses for the SCS Servers"
 }
 
-variable "nics_web" {
-  description = "List of NICs for the Web dispatcher VMs"
+variable "application_server_ips" {
+  description = "List of IP addresses for the Application Servers"
 }
 
-# Any DB
-variable "nics_anydb" {
-  description = "List of NICs for the AnyDB VMs"
+variable "application_server_secondary_ips" {
+  description = "List of secondary IP addresses for the Application Servers"
+}
+
+variable "webdispatcher_server_ips" {
+  description = "List of IP addresses for the Web dispatchers"
+}
+
+variable "webdispatcher_server_secondary_ips" {
+  description = "List of secondary IP addresses for the Web dispatchers"
+}
+
+variable "db_server_ips" {
+  description = "List of IP addresses for the database servers"
+}
+
+variable "db_server_secondary_ips" {
+  description = "List of secondary IP addresses for the database servers"
 }
 
 variable "nics_scs_admin" {
@@ -160,6 +172,10 @@ variable "ers_instance_number" {
   default = "02"
 }
 
+variable "pas_instance_number" {
+  default = "00"
+}
+
 variable "platform" {
   default = "HANA"
 }
@@ -230,4 +246,26 @@ variable "use_msi_for_clusters" {
 variable "dns" {
   description = "The DNS label"
   default     = ""
+}
+
+variable "use_custom_dns_a_registration" {
+  description = "Boolean value indicating if a custom dns a record should be created when using private endpoints"
+  default     = false
+  type        = bool
+}
+
+variable "management_dns_subscription_id" {
+  description = "String value giving the possibility to register custom dns a records in a separate subscription"
+  default     = null
+  type        = string
+}
+
+variable "management_dns_resourcegroup_name" {
+  description = "String value giving the possibility to register custom dns a records in a separate resourcegroup"
+  default     = null
+  type        = string
+}
+
+variable "configuration_settings" {
+  description = "This is a dictionary that will contain values persisted to the sap-parameters.file"
 }

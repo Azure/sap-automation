@@ -1,5 +1,6 @@
 // AVAILABILITY SET
 resource "azurerm_availability_set" "hdb" {
+  provider        = azurerm.main
   count = local.enable_deployment && local.use_avset && !local.availabilitysets_exist ? (
     max(length(local.zones), 1)) : (
     0
@@ -114,6 +115,7 @@ resource "azurerm_lb_probe" "hdb" {
 # Current behavior, it will try to add all VMs in the cluster into the backend pool, which would not work since we do not have availability sets created yet.
 # In a scale-out scenario, we need to rewrite this code according to the scale-out + HA reference architecture.
 resource "azurerm_network_interface_backend_address_pool_association" "hdb" {
+  provider        = azurerm.main
   count                   = local.enable_db_lb_deployment ? var.database_server_count : 0
   network_interface_id    = azurerm_network_interface.nics_dbnodes_db[count.index].id
   ip_configuration_name   = azurerm_network_interface.nics_dbnodes_db[count.index].ip_configuration[0].name

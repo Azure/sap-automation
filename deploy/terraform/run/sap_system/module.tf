@@ -44,8 +44,8 @@ module "sap_namegenerator" {
 module "common_infrastructure" {
   source = "../../terraform-units/modules/sap_system/common_infrastructure"
   providers = {
-    azurerm.main          = azurerm
-    azurerm.deployer      = azurerm.deployer
+    azurerm.deployer      = azurerm
+    azurerm.main          = azurerm.system
     azurerm.dnsmanagement = azurerm.dnsmanagement
   }
   is_single_node_hana                = "true"
@@ -75,9 +75,9 @@ module "common_infrastructure" {
   Agent_IP             = var.Agent_IP
   use_private_endpoint = var.use_private_endpoint
 
-  use_custom_dns_a_registration     = try(data.terraform_remote_state.landscape.outputs.use_custom_dns_a_registration, false)
+  use_custom_dns_a_registration     = try(data.terraform_remote_state.landscape.outputs.use_custom_dns_a_registration, true)
   management_dns_subscription_id    = try(data.terraform_remote_state.landscape.outputs.management_dns_subscription_id, null)
-  management_dns_resourcegroup_name = try(data.terraform_remote_state.landscape.outputs.management_dns_resourcegroup_name, local.saplib_resource_group_name)
+  management_dns_resourcegroup_name = coalesce(data.terraform_remote_state.landscape.outputs.management_dns_resourcegroup_name, local.saplib_resource_group_name)
 
   database_dual_nics                 = var.database_dual_nics
   azure_files_sapmnt_id              = var.azure_files_sapmnt_id
@@ -97,8 +97,8 @@ module "common_infrastructure" {
 module "hdb_node" {
   source = "../../terraform-units/modules/sap_system/hdb_node"
   providers = {
-    azurerm.main          = azurerm
-    azurerm.deployer      = azurerm.deployer
+    azurerm.deployer      = azurerm
+    azurerm.main          = azurerm.system
     azurerm.dnsmanagement = azurerm.dnsmanagement
   }
   depends_on = [module.common_infrastructure]
@@ -130,7 +130,7 @@ module "hdb_node" {
   cloudinit_growpart_config                    = null # This needs more consideration module.common_infrastructure.cloudinit_growpart_config
   license_type                                 = var.license_type
   use_loadbalancers_for_standalone_deployments = var.use_loadbalancers_for_standalone_deployments
-  database_dual_nics                           = module.common_infrastructure.admin_subnet == null ? false : var.database_dual_nics
+  database_dual_nics                           = try(module.common_infrastructure.admin_subnet, null) == null ? false : var.database_dual_nics
   database_vm_db_nic_ips                       = var.database_vm_db_nic_ips
   database_vm_db_nic_secondary_ips             = var.database_vm_db_nic_secondary_ips
   database_vm_admin_nic_ips                    = var.database_vm_admin_nic_ips
@@ -152,7 +152,7 @@ module "hdb_node" {
 
   use_custom_dns_a_registration     = data.terraform_remote_state.landscape.outputs.use_custom_dns_a_registration
   management_dns_subscription_id    = try(data.terraform_remote_state.landscape.outputs.management_dns_subscription_id, null)
-  management_dns_resourcegroup_name = data.terraform_remote_state.landscape.outputs.management_dns_resourcegroup_name
+  management_dns_resourcegroup_name = coalesce(data.terraform_remote_state.landscape.outputs.management_dns_resourcegroup_name, local.saplib_resource_group_name)
 }
 
 
@@ -165,11 +165,11 @@ module "hdb_node" {
 module "app_tier" {
   source = "../../terraform-units/modules/sap_system/app_tier"
   providers = {
-    azurerm.main          = azurerm
-    azurerm.deployer      = azurerm.deployer
+    azurerm.deployer      = azurerm
+    azurerm.main          = azurerm.system
     azurerm.dnsmanagement = azurerm.dnsmanagement
   }
-  depends_on = [module.common_infrastructure]
+  depends_on       = [module.common_infrastructure]
   order_deployment = null
 
   application_tier                             = local.application_tier
@@ -203,7 +203,7 @@ module "app_tier" {
   fencing_role_name                            = var.fencing_role_name
   use_custom_dns_a_registration                = data.terraform_remote_state.landscape.outputs.use_custom_dns_a_registration
   management_dns_subscription_id               = try(data.terraform_remote_state.landscape.outputs.management_dns_subscription_id, null)
-  management_dns_resourcegroup_name            = data.terraform_remote_state.landscape.outputs.management_dns_resourcegroup_name
+  management_dns_resourcegroup_name            = coalesce(data.terraform_remote_state.landscape.outputs.management_dns_resourcegroup_name, local.saplib_resource_group_name)
 
 }
 
@@ -216,8 +216,8 @@ module "app_tier" {
 module "anydb_node" {
   source = "../../terraform-units/modules/sap_system/anydb_node"
   providers = {
-    azurerm.main          = azurerm
-    azurerm.deployer      = azurerm.deployer
+    azurerm.deployer      = azurerm
+    azurerm.main          = azurerm.system
     azurerm.dnsmanagement = azurerm.dnsmanagement
   }
   depends_on = [module.common_infrastructure]
@@ -236,7 +236,7 @@ module "anydb_node" {
   sid_keyvault_user_id                         = module.common_infrastructure.sid_keyvault_user_id
   naming                                       = length(var.name_override_file) > 0 ? local.custom_names : module.sap_namegenerator.naming
   custom_disk_sizes_filename                   = try(coalesce(var.custom_disk_sizes_filename, var.db_disk_sizes_filename), "")
-  admin_subnet                                 = module.common_infrastructure.admin_subnet
+  admin_subnet                                 = try(module.common_infrastructure.admin_subnet, null)
   db_subnet                                    = module.common_infrastructure.db_subnet
   anchor_vm                                    = module.common_infrastructure.anchor_vm // Workaround to create dependency from anchor to db to app
   sid_password                                 = module.common_infrastructure.sid_password
@@ -263,7 +263,7 @@ module "anydb_node" {
   fencing_role_name                  = var.fencing_role_name
   use_custom_dns_a_registration      = data.terraform_remote_state.landscape.outputs.use_custom_dns_a_registration
   management_dns_subscription_id     = try(data.terraform_remote_state.landscape.outputs.management_dns_subscription_id, null)
-  management_dns_resourcegroup_name  = data.terraform_remote_state.landscape.outputs.management_dns_resourcegroup_name
+  management_dns_resourcegroup_name  = coalesce(data.terraform_remote_state.landscape.outputs.management_dns_resourcegroup_name, local.saplib_resource_group_name)
 
 }
 
@@ -276,29 +276,37 @@ module "anydb_node" {
 module "output_files" {
   source = "../../terraform-units/modules/sap_system/output_files"
   providers = {
-    azurerm.main     = azurerm
-    azurerm.deployer = azurerm.deployer
+    azurerm.deployer      = azurerm
+    azurerm.main          = azurerm.system
+    azurerm.dnsmanagement = azurerm.dnsmanagement
   }
   database            = local.database
   infrastructure      = local.infrastructure
   authentication      = local.authentication
   authentication_type = try(local.application_tier.authentication.type, "key")
   nics_dbnodes_admin  = module.hdb_node.nics_dbnodes_admin
-  nics_dbnodes_db     = module.hdb_node.nics_dbnodes_db
-  loadbalancers       = module.hdb_node.loadbalancers
-  sap_sid             = local.sap_sid
-  db_sid              = local.db_sid
-  nics_scs            = module.app_tier.nics_scs
-  nics_app            = module.app_tier.nics_app
-  nics_web            = module.app_tier.nics_web
-  nics_anydb          = module.anydb_node.nics_anydb
-  nics_scs_admin      = module.app_tier.nics_scs_admin
-  nics_app_admin      = module.app_tier.nics_app_admin
-  nics_web_admin      = module.app_tier.nics_web_admin
-  nics_anydb_admin    = module.anydb_node.nics_anydb_admin
-  anydb_loadbalancers = module.anydb_node.anydb_loadbalancers
-  random_id           = module.common_infrastructure.random_id
-  landscape_tfstate   = data.terraform_remote_state.landscape.outputs
+  db_server_ips = upper(try(local.database.platform, "HANA")) == "HANA" ? (module.hdb_node.db_server_ips
+    ) : (module.anydb_node.db_server_ips
+  )
+  db_server_secondary_ips = upper(try(local.database.platform, "HANA")) == "HANA" ? (module.hdb_node.db_server_secondary_ips
+    ) : (module.anydb_node.db_server_secondary_ips
+  )
+  loadbalancers                      = module.hdb_node.loadbalancers
+  sap_sid                            = local.sap_sid
+  db_sid                             = local.db_sid
+  scs_server_ips                     = module.app_tier.scs_server_ips
+  application_server_ips             = module.app_tier.application_server_ips
+  webdispatcher_server_ips           = module.app_tier.webdispatcher_server_ips
+  scs_server_secondary_ips           = module.app_tier.scs_server_secondary_ips
+  application_server_secondary_ips   = module.app_tier.application_server_secondary_ips
+  webdispatcher_server_secondary_ips = module.app_tier.webdispatcher_server_secondary_ips
+  nics_scs_admin                     = module.app_tier.nics_scs_admin
+  nics_app_admin                     = module.app_tier.nics_app_admin
+  nics_web_admin                     = module.app_tier.nics_web_admin
+  nics_anydb_admin                   = module.anydb_node.nics_anydb_admin
+  anydb_loadbalancers                = module.anydb_node.anydb_loadbalancers
+  random_id                          = module.common_infrastructure.random_id
+  landscape_tfstate                  = data.terraform_remote_state.landscape.outputs
   naming = length(var.name_override_file) > 0 ? (
     local.custom_names) : (
     module.sap_namegenerator.naming
@@ -322,30 +330,35 @@ module "output_files" {
     module.anydb_node.db_lb_ip[0]
   )
   database_admin_ips = upper(try(local.database.platform, "HANA")) == "HANA" ? (
-    module.hdb_node.db_ip) : (
-    module.anydb_node.anydb_db_ip
+    module.hdb_node.db_admin_ip) : (
+    module.anydb_node.anydb_admin_ip
   ) #TODO Change to use Admin IP
-  sap_mnt                 = module.common_infrastructure.sapmnt_path
-  sap_transport           = try(data.terraform_remote_state.landscape.outputs.saptransport_path, "")
-  ers_lb_ip               = module.app_tier.ers_lb_ip
-  bom_name                = var.bom_name
-  scs_instance_number     = var.scs_instance_number
-  ers_instance_number     = var.ers_instance_number
-  platform                = upper(try(local.database.platform, "HANA"))
-  db_auth_type            = try(local.database.authentication.type, "key")
-  tfstate_resource_id     = var.tfstate_resource_id
-  install_path            = try(data.terraform_remote_state.landscape.outputs.install_path, "")
-  NFS_provider            = var.NFS_provider
-  observer_ips            = module.anydb_node.observer_ips
-  observer_vms            = module.anydb_node.observer_vms
-  shared_home             = var.shared_home
-  hana_data               = [module.hdb_node.hana_data_primary, module.hdb_node.hana_data_secondary]
-  hana_log                = [module.hdb_node.hana_log_primary, module.hdb_node.hana_log_secondary]
-  hana_shared             = [module.hdb_node.hana_shared_primary, module.hdb_node.hana_shared_secondary]
-  usr_sap                 = module.common_infrastructure.usrsap_path
-  save_naming_information = var.save_naming_information
-  use_secondary_ips       = var.use_secondary_ips
-  web_sid                 = var.web_sid
-  use_msi_for_clusters    = var.use_msi_for_clusters
-  dns                     = try(data.terraform_remote_state.landscape.outputs.dns_label, "")
+  sap_mnt                           = module.common_infrastructure.sapmnt_path
+  sap_transport                     = try(data.terraform_remote_state.landscape.outputs.saptransport_path, "")
+  ers_lb_ip                         = module.app_tier.ers_lb_ip
+  bom_name                          = var.bom_name
+  scs_instance_number               = var.scs_instance_number
+  ers_instance_number               = var.ers_instance_number
+  pas_instance_number               = var.pas_instance_number
+  platform                          = upper(try(local.database.platform, "HANA"))
+  db_auth_type                      = try(local.database.authentication.type, "key")
+  tfstate_resource_id               = var.tfstate_resource_id
+  install_path                      = try(data.terraform_remote_state.landscape.outputs.install_path, "")
+  NFS_provider                      = var.NFS_provider
+  observer_ips                      = module.anydb_node.observer_ips
+  observer_vms                      = module.anydb_node.observer_vms
+  shared_home                       = var.shared_home
+  hana_data                         = [module.hdb_node.hana_data_primary, module.hdb_node.hana_data_secondary]
+  hana_log                          = [module.hdb_node.hana_log_primary, module.hdb_node.hana_log_secondary]
+  hana_shared                       = [module.hdb_node.hana_shared_primary, module.hdb_node.hana_shared_secondary]
+  usr_sap                           = module.common_infrastructure.usrsap_path
+  save_naming_information           = var.save_naming_information
+  use_secondary_ips                 = var.use_secondary_ips
+  web_sid                           = var.web_sid
+  use_msi_for_clusters              = var.use_msi_for_clusters
+  dns                               = try(data.terraform_remote_state.landscape.outputs.dns_label, "")
+  configuration_settings            = var.configuration_settings
+  use_custom_dns_a_registration     = data.terraform_remote_state.landscape.outputs.use_custom_dns_a_registration
+  management_dns_subscription_id    = try(data.terraform_remote_state.landscape.outputs.management_dns_subscription_id, null)
+  management_dns_resourcegroup_name = coalesce(data.terraform_remote_state.landscape.outputs.management_dns_resourcegroup_name, local.saplib_resource_group_name)
 }

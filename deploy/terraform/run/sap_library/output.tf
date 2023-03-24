@@ -73,5 +73,5 @@ output "sa_connection_string" {
 
 output "automation_version" {
   description = "Defines the version of the terraform templates used in the deloyment"
-  value = local.version_label
+  value       = local.version_label
 }

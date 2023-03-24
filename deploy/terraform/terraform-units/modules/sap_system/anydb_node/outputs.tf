@@ -23,8 +23,12 @@ output "anydb_admin_ip" {
   ) : []
 }
 
-output "anydb_db_ip" {
-  value = local.enable_deployment ? azurerm_network_interface.anydb_db[*].private_ip_address : []
+output "db_server_ips" {
+  value = local.enable_deployment ? azurerm_network_interface.anydb_db[*].private_ip_addresses[0] : []
+}
+
+output "db_server_secondary_ips" {
+  value = local.enable_deployment && var.use_secondary_ips ? azurerm_network_interface.anydb_db[*].private_ip_addresses[1] : []
 }
 
 output "db_lb_ip" {

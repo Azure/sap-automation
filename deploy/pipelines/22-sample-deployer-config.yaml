@@ -60,6 +60,7 @@ parameters:
       - WEIN
       - WEUS
       - WUS2
+      - WUS3
 
 variables:
   - name:                              deployer_environment
@@ -151,6 +152,7 @@ stages:
                         "WEIN" { "westindia" }
                         "WEUS" { "westus" }
                         "WUS2" { "westus2" }
+                        "WUS3" { "westus3" }
                     }
 
                     $Full = Join-Path -Path $($FolderName) -ChildPath (Join-Path -Path "DEPLOYER" -ChildPath $(deployer_folder))

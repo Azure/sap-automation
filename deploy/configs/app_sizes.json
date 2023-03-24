@@ -80,7 +80,7 @@
         "Default": {
             "compute": {
                 "vm_size"                        : "Standard_D4s_v3",
-                "accelerated_networking"         : false
+                "accelerated_networking"         : true
             },
             "storage": [
                 {
@@ -157,7 +157,7 @@
         "Default": {
             "compute": {
                 "vm_size"                        : "Standard_D4s_v3",
-                "accelerated_networking"         : false
+                "accelerated_networking"         : true
             },
             "storage": [
                 {
@@ -234,7 +234,7 @@
         "Default": {
             "compute": {
                 "vm_size"                        : "Standard_E4s_v3",
-                "accelerated_networking"         : false
+                "accelerated_networking"         : true
             },
             "storage": [
                 {

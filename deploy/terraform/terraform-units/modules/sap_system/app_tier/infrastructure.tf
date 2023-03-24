@@ -276,6 +276,7 @@ resource "azurerm_lb_rule" "fs" {
 #
 ##############################################################################################
 resource "azurerm_availability_set" "scs" {
+  provider        = azurerm.main
   count = local.enable_deployment && local.use_scs_avset ? (
     max(length(local.scs_zones), 1)) : (
     0
@@ -387,6 +388,7 @@ resource "azurerm_lb_backend_address_pool" "web" {
 }
 
 resource "azurerm_lb_probe" "web" {
+  provider        = azurerm.main
   count           = local.enable_web_lb_deployment ? 1 : 0
   loadbalancer_id = azurerm_lb.web[0].id
   name = format("%s%s%s%s",
@@ -438,6 +440,7 @@ resource "azurerm_network_interface_backend_address_pool_association" "web" {
 ##############################################################################################
 
 resource "azurerm_availability_set" "web" {
+  provider        = azurerm.main
   count = local.use_web_avset ? max(length(local.web_zones), 1) : 0
   name = format("%s%s%s",
     local.prefix, var.naming.separator,

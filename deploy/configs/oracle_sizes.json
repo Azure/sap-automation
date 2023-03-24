@@ -2,7 +2,9 @@
     "db": {
         "512": {
             "compute": {
-                "vm_size"               : "Standard_E8ds_v4"
+                "vm_size"               : "Standard_E8ds_v5",
+                "accelerated_networking"       : true
+                
             },
             "storage": [
                 {
@@ -25,8 +27,8 @@
                     "name"              : "sapdata1",
                     "count"             : 1,
                     "disk_type"         : "Premium_LRS",
-                    "size_gb"           : 128,
-                    "caching"           : "None",
+                    "size_gb"           : 64,
+                    "caching"           : "ReadOnly",
                     "write_accelerator" : false,
                     "lun_start"         : 5
                 },
@@ -34,8 +36,8 @@
                     "name"              : "sapdata2",
                     "count"             : 1,
                     "disk_type"         : "Premium_LRS",
-                    "size_gb"           : 128,
-                    "caching"           : "None",
+                    "size_gb"           : 64,
+                    "caching"           : "ReadOnly",
                     "write_accelerator" : false,
                     "lun_start"         : 10
                 },
@@ -43,8 +45,8 @@
                     "name"              : "sapdata3",
                     "count"             : 1,
                     "disk_type"         : "Premium_LRS",
-                    "size_gb"           : 128,
-                    "caching"           : "None",
+                    "size_gb"           : 64,
+                    "caching"           : "ReadOnly",
                     "write_accelerator" : false,
                     "lun_start"         : 15
                 },
@@ -52,8 +54,8 @@
                     "name"              : "sapdata4",
                     "count"             : 1,
                     "disk_type"         : "Premium_LRS",
-                    "size_gb"           : 128,
-                    "caching"           : "None",
+                    "size_gb"           : 64,
+                    "caching"           : "ReadOnly",
                     "write_accelerator" : false,
                     "lun_start"         : 20
                 },
@@ -115,7 +117,8 @@
         },
         "1024": {
             "compute": {
-                "vm_size"               : "Standard_E32s_v3"
+                "vm_size"               : "Standard_E16ds_v5",
+                "accelerated_networking"       : true
             },
             "storage": [
                 {
@@ -139,7 +142,7 @@
                     "count"             : 2,
                     "disk_type"         : "Premium_LRS",
                     "size_gb"           : 128,
-                    "caching"           : "None",
+                    "caching"           : "ReadOnly",
                     "write_accelerator" : false,
                     "lun_start"         : 5
                 },
@@ -148,7 +151,7 @@
                     "count"             : 2,
                     "disk_type"         : "Premium_LRS",
                     "size_gb"           : 128,
-                    "caching"           : "None",
+                    "caching"           : "ReadOnly",
                     "write_accelerator" : false,
                     "lun_start"         : 10
                 },
@@ -157,7 +160,7 @@
                     "count"             : 2,
                     "disk_type"         : "Premium_LRS",
                     "size_gb"           : 128,
-                    "caching"           : "None",
+                    "caching"           : "ReadOnly",
                     "write_accelerator" : false,
                     "lun_start"         : 15
                 },
@@ -166,7 +169,7 @@
                     "count"             : 2,
                     "disk_type"         : "Premium_LRS",
                     "size_gb"           : 128,
-                    "caching"           : "None",
+                    "caching"           : "ReadOnly",
                     "write_accelerator" : false,
                     "lun_start"         : 20
                 },
@@ -228,7 +231,8 @@
         },
         "2048": {
             "compute": {
-                "vm_size"               : "Standard_E32s_v3"
+                "vm_size"               : "Standard_E32ds_v5",
+                "accelerated_networking"       : true
             },
             "storage": [
                 {
@@ -252,7 +256,7 @@
                     "count"             : 2,
                     "disk_type"         : "Premium_LRS",
                     "size_gb"           : 256,
-                    "caching"           : "None",
+                    "caching"           : "ReadOnly",
                     "write_accelerator" : false,
                     "lun_start"         : 5
                 },
@@ -261,7 +265,7 @@
                     "count"             : 2,
                     "disk_type"         : "Premium_LRS",
                     "size_gb"           : 256,
-                    "caching"           : "None",
+                    "caching"           : "ReadOnly",
                     "write_accelerator" : false,
                     "lun_start"         : 10
                 },
@@ -270,7 +274,7 @@
                     "count"             : 2,
                     "disk_type"         : "Premium_LRS",
                     "size_gb"           : 256,
-                    "caching"           : "None",
+                    "caching"           : "ReadOnly",
                     "write_accelerator" : false,
                     "lun_start"         : 15
                 },
@@ -279,7 +283,7 @@
                     "count"             : 2,
                     "disk_type"         : "Premium_LRS",
                     "size_gb"           : 256,
-                    "caching"           : "None",
+                    "caching"           : "ReadOnly",
                     "write_accelerator" : false,
                     "lun_start"         : 20
                 },
@@ -341,7 +345,8 @@
         },
         "4096": {
             "compute": {
-                "vm_size"              : "Standard_E32s_v3"
+                "vm_size"              : "Standard_E32ds_v5",
+                "accelerated_networking"       : true
             },
             "storage": [
                 {
@@ -365,7 +370,7 @@
                     "count"             : 2,
                     "disk_type"         : "Premium_LRS",
                     "size_gb"           : 512,
-                    "caching"           : "None",
+                    "caching"           : "ReadOnly",
                     "write_accelerator" : false,
                     "lun_start"         : 5
                 },
@@ -374,7 +379,7 @@
                     "count"             : 2,
                     "disk_type"         : "Premium_LRS",
                     "size_gb"           : 512,
-                    "caching"           : "None",
+                    "caching"           : "ReadOnly",
                     "write_accelerator" : false,
                     "lun_start"         : 10
                 },
@@ -383,7 +388,7 @@
                     "count"             : 2,
                     "disk_type"         : "Premium_LRS",
                     "size_gb"           : 512,
-                    "caching"           : "None",
+                    "caching"           : "ReadOnly",
                     "write_accelerator" : false,
                     "lun_start"         : 15
                 },
@@ -392,7 +397,7 @@
                     "count"             : 2,
                     "disk_type"         : "Premium_LRS",
                     "size_gb"           : 512,
-                    "caching"           : "None",
+                    "caching"           : "ReadOnly",
                     "write_accelerator" : false,
                     "lun_start"         : 20
                 },

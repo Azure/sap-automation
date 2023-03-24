@@ -1,5 +1,6 @@
 
 resource "azurerm_netapp_volume" "hanadata" {
+  provider        = azurerm.main
 
   count = var.hana_ANF_volumes.use_for_data ? (
     var.hana_ANF_volumes.use_existing_data_volume ? (
@@ -40,6 +41,7 @@ resource "azurerm_netapp_volume" "hanadata" {
 }
 
 data "azurerm_netapp_volume" "hanadata" {
+  provider        = azurerm.main
 
   count = var.hana_ANF_volumes.use_for_data ? (
     var.hana_ANF_volumes.use_existing_data_volume ? (
@@ -58,6 +60,7 @@ data "azurerm_netapp_volume" "hanadata" {
 
 
 resource "azurerm_netapp_volume" "hanalog" {
+  provider        = azurerm.main
 
   count = var.hana_ANF_volumes.use_for_log ? (
     var.hana_ANF_volumes.use_existing_log_volume ? (
@@ -98,6 +101,7 @@ resource "azurerm_netapp_volume" "hanalog" {
 }
 
 data "azurerm_netapp_volume" "hanalog" {
+  provider        = azurerm.main
 
   count = var.hana_ANF_volumes.use_for_log ? (
     var.hana_ANF_volumes.use_existing_log_volume ? (
@@ -115,6 +119,7 @@ data "azurerm_netapp_volume" "hanalog" {
 }
 
 resource "azurerm_netapp_volume" "hanashared" {
+  provider        = azurerm.main
 
   count = var.hana_ANF_volumes.use_for_shared ? (
     var.hana_ANF_volumes.use_existing_shared_volume ? (
@@ -155,6 +160,7 @@ resource "azurerm_netapp_volume" "hanashared" {
 }
 
 data "azurerm_netapp_volume" "hanashared" {
+  provider        = azurerm.main
 
   count = var.hana_ANF_volumes.use_for_shared ? (
     var.hana_ANF_volumes.use_existing_shared_volume ? (

@@ -12,7 +12,7 @@ variable "database" {
     condition = (
       length(trimspace(try(var.database.platform, ""))) != 7
     )
-    error_message = "The platform (HANA, SQLSERVER, ORACLE, DB2) must be specified."
+    error_message = "The platform (HANA, SQLSERVER, ORACLE, ORACLE-ASM, DB2) must be specified."
   }
 
   validation {
@@ -193,8 +193,8 @@ variable "azure_files_sapmnt_id" {
 
 variable "Agent_IP" {
   description = "If provided, contains the IP address of the agent"
-  type    = string
-  default = ""
+  type        = string
+  default     = ""
 }
 
 variable "use_private_endpoint" {

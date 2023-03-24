@@ -238,7 +238,9 @@ resource "azurerm_storage_account_network_rules" "storage_sapbits" {
     [var.deployer_tfstate.subnet_webapp_id, var.deployer_tfstate.subnet_mgmt_id]) : (
     [var.deployer_tfstate.subnet_mgmt_id]
   )
-
+  lifecycle {
+    ignore_changes = [virtual_network_subnet_ids]
+  }
 }
 
 resource "azurerm_private_dns_a_record" "storage_sapbits_pep_a_record_registry" {

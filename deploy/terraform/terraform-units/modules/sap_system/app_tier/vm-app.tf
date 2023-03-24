@@ -105,12 +105,12 @@ resource "azurerm_network_interface" "app_admin" {
 # Create the Linux Application VM(s)
 resource "azurerm_linux_virtual_machine" "app" {
   provider   = azurerm.main
-  depends_on = [azurerm_linux_virtual_machine.scs,azurerm_windows_virtual_machine.scs]
+  depends_on = [azurerm_linux_virtual_machine.scs, azurerm_windows_virtual_machine.scs]
   count = local.enable_deployment && upper(var.application_tier.app_os.os_type) == "LINUX" ? (
     local.application_server_count) : (
     0
   )
-  
+
   name = format("%s%s%s%s%s",
     var.naming.resource_prefixes.vm,
     local.prefix,
@@ -439,6 +439,8 @@ resource "azurerm_virtual_machine_extension" "configure_ansible_app" {
     local.application_server_count) : (
     0
   )
+
+  depends_on = [azurerm_virtual_machine_data_disk_attachment.app]
 
   name                 = "configure_ansible"
   virtual_machine_id   = azurerm_windows_virtual_machine.app[count.index].id

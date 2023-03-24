@@ -1,12 +1,12 @@
 # Boilerplate
 
-The sap-automation repository is a framework that offers you automation to deploy a SAP certified installation. To use the sap-automation framework you need to create a repository of your own and reference the sap-automation repository. This way you keep your organisation specific configuration and the sap-automation framework separate. Having the configuration separate prevents you from making uninted changes to the sap-automation framework and gives you the possibility to add your own processes and configuration on top of the sap-automation framework by including additional pipelines.
+The sap-automation repository is a framework that offers you automation to deploy a SAP certified installation. To use the sap-automation framework you need to create a repository of your own and reference the sap-automation repository. This way you keep your organization specific configuration and the sap-automation framework separate. Having the configuration separate prevents you from making unintended changes to the sap-automation framework and gives you the possibility to add your own processes and configuration on top of the sap-automation framework by including additional pipelines.
 
 ## Getting started
 
 To get started with your own configuration repository we added this boilerplate with the most basic configuration for the pipelines already configured. Just copy the content of the boilerplate folder into the root of your configuration repository and change the following configuration.
 
-In the resouces.yml configure the following configuration by replacing ```<MyGithubConnector>``` with the name of your Github connector.
+In the resources.yml configure the following configuration by replacing ```<MyGithubConnector>``` with the name of your Github connector.
 
 ``` yaml
     - repository: sap-automation
@@ -20,12 +20,12 @@ The procedure to create a service connection is described [here](https://learn.m
 
 ## How it works
 
-During pipeline execustion the two repositories will be present on the deployer-agent. Each of the repositories will be mapped using the following:
+During pipeline execution the two repositories will be present on the deployer-agent. Each of the repositories will be mapped using the following:
 
 - sap-automation will be mapped to ```/sap-automation```
 - customer configuration repository will be mapped to ```/config```
 
-During execution the repositories will interact with eachother by using the following:
+During execution the repositories will interact with each other by using the following:
 
 ```mermaid
 flowchart LR

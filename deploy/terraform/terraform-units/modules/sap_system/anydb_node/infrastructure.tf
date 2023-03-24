@@ -39,6 +39,7 @@ resource "azurerm_lb" "anydb" {
 }
 
 resource "azurerm_lb_backend_address_pool" "anydb" {
+  provider        = azurerm.main
   count = local.enable_db_lb_deployment ? 1 : 0
   name = format("%s%s%s%s",
     var.naming.resource_prefixes.db_alb_bepool,
@@ -103,6 +104,7 @@ resource "azurerm_network_interface_backend_address_pool_association" "anydb" {
 # AVAILABILITY SET ================================================================================================
 
 resource "azurerm_availability_set" "anydb" {
+  provider        = azurerm.main
   count = local.enable_deployment && local.use_avset && !local.availabilitysets_exist ? (
     max(length(local.zones), 1)) : (
     0

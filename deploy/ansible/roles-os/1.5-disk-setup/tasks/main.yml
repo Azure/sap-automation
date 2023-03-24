@@ -42,6 +42,7 @@
 - name:                                "1.5 Disk setup - Load the disk configuration settings"
   ansible.builtin.include_vars:        disks_config.yml
 
+
 - name:                                "1.5 Disk setup - Check if the shared disk exists"
   ansible.builtin.set_fact:
     shareddisk:                        "{{ disks | selectattr('host', 'defined') |
@@ -52,7 +53,7 @@
 
 - name:                                "1.5 Disk setup - Append 'sapmnt' if neeeded"
   ansible.builtin.set_fact:
-    logical_volumes:                   "{{ logical_volumes + logical_volumes_sapmnt }}"
+    logical_volumes:                   "{{ logical_volumes_sapmnt + logical_volumes }}"
   when: sap_mnt is not defined
 
 - name:                                "1.5 Disk setup - Append 'install' if needed"
@@ -66,6 +67,9 @@
       - "Unique disks:    {{ disktypes }} "
       - "Volume groups:   {{ volume_groups }} "
       - "Logical volumes: {{ logical_volumes }} "
+      - "sap mount:       {{ sap_mnt is defined }}"
+      - "sap trans:       {{ sap_trans is defined }}"
+      - "usr install:     {{ usr_sap_install_mountpoint is defined }}"
     verbosity:                         2
 
 # CREATE VOLUME GROUPS BASED ON sap-parameters.yaml
