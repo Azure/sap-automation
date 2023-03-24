@@ -115,6 +115,21 @@
         PsDscRunAsCredential_password: "{{ domain_service_password }}"
       register:                        sql_ag_listener_creation
 
+    - name:                             "Copy probe port setup script"
+      become:                           true
+      become_method:                    "runas"
+      become_user:                      '{{ sap_sid }}adm@{{ domain }}'
+      ansible.windows.win_template:
+        src:                            "Set-AzLBHealthProbeSQL.j2"
+        dest:                           "{{ sap_deployment_automation }}\\Set-AzLBHealthProbeSQL.j2"
+        force:                          true
+
+    - name:                             "Execute probe port setup script"
+      become:                           true
+      become_method:                    "runas"
+      become_user:                      '{{ sap_sid }}adm@{{ domain }}'
+      ansible.windows.win_shell:        "{{ sap_deployment_automation }}\\Set-AzLBHealthProbeSQL.j2"
+
     - name:                                "Add DB {{ db_sid | upper }} to AG: {{ mssql_ag_name }}"
       ansible.windows.win_dsc:
         resource_name:                     SqlAGDatabase
