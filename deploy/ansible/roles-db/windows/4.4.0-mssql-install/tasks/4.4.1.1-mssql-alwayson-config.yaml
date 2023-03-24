@@ -145,8 +145,8 @@
         DatabaseName:                      "{{ db_sid | upper }}"
         ProcessOnlyOnActiveNode:           true
         BackupPath:                        "{{ mssql_backup_path }}"
-        PsDscRunAsCredential_username:     '{{ sap_sid }}adm@{{ domain_name }}'
-        PsDscRunAsCredential_password:     "{{ domain_user_password }}"
+        # PsDscRunAsCredential_username:     "{{ domain_service_account }}@{{ domain_name }}"
+        # PsDscRunAsCredential_password:     "{{ domain_service_password }}"
       register:                            sql_ag_db_creation
 
 
@@ -247,8 +247,8 @@
         DatabaseName:                      "{{ db_sid | upper }}"
         ProcessOnlyOnActiveNode:           true
         BackupPath:                        "{{ mssql_backup_path }}"
-        PsDscRunAsCredential_username:     '{{ sap_sid }}adm@{{ domain_name }}'
-        PsDscRunAsCredential_password:     "{{ domain_user_password }}"
+        # PsDscRunAsCredential_username:     "{{ domain_service_account }}@{{ domain_name }}"
+        # PsDscRunAsCredential_password:     "{{ domain_service_password }}"
       register:                            sql_ag_db_creation
 
 
