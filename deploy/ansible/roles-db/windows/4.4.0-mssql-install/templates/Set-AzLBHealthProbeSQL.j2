@@ -36,6 +36,7 @@ try {
 
 try {
     Start-ClusterResource -Name "{{ mssql_ag_name }}_{{ db_lb_ip }}"
+    Start-ClusterResource -Name "{{ mssql_ag_name }}"
 }catch {
     Write-Error "Failed to Start SQL Server Always On IP resource"
 }
