@@ -81,6 +81,10 @@
 
     # The assumption is that the system has only one network adapter
     # and the load balancer is in the same subnet as the db machine.
+    - name:                            "what is the current host IP"
+      ansible.builtin.debug:
+        msg:                           "{{ hostvars[inventory_hostname][ansible_host] }}"
+
     - name:                            "calculate subnet prefix"
       ansible.builtin.set_fact:
         db_subnet_prefix:              "{{ ansible_interfaces[0].ipv4.prefix }}"
@@ -171,7 +175,7 @@
     - name:                            "Print SQL Disks (loop)"
       ansible.builtin.debug:
         msg:
-          - 'SQL DATA Disks[disk_index]:           {{ disk[disk_index] }}'
+          - 'SQL DATA Disks-"{{disk_index}}":           {{ disk[disk_index] }}'
       loop:
         - '{{ vm_data_disks }}'
       loop_control:
