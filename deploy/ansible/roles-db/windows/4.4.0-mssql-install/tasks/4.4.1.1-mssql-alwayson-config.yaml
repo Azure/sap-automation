@@ -171,9 +171,12 @@
     - name:                            "Print SQL Disks (loop)"
       ansible.builtin.debug:
         msg:
-          - 'SQL DATA Disks:           {{ item }}'
+          - 'SQL DATA Disks[disk_index]:           {{ disk[disk_index] }}'
       loop:
         - '{{ vm_data_disks }}'
+      loop_control:
+        loop_var:                       disk
+        index_var:                      disk_index
 
     - name:                            "create the directory for SQL Server data files"
       ansible.windows.win_file:
