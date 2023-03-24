@@ -153,7 +153,7 @@
         msg:
           - "SQL DATA Disks:           {{ item }}"
       loop:
-        - "{{ vm_data_disks }}"
+        - '{{ vm_data_disks }}'
 
 
     - name:                            "create the directory for SQL Server data files"
@@ -161,14 +161,14 @@
         path:                          '{{ item }}'
         state:                         directory
       loop:
-        - "{{ vm_data_disks }}"
+        - '{{ vm_data_disks }}'
 
     - name:                            "create the directory for SQL Server log files"
       ansible.windows.win_file:
         path:                        '{{ item }}'
         state:                       directory
       loop:
-        - "{{ vm_log_disks  }}"
+        - '{{ vm_log_disks  }}'
 
     - name:                                "Enable SQL Server Always On Service"
       ansible.windows.win_dsc:
