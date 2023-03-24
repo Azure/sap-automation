@@ -133,6 +133,9 @@
       ansible.windows.win_shell:        "{{ sap_deployment_automation }}\\Set-AzLBHealthProbeSQL.ps1 -verbose"
 
     - name:                                "Add DB {{ db_sid | upper }} to AG: {{ mssql_ag_name }}"
+      become:                              true
+      become_method:                       "runas"
+      become_user:                         '{{ orchestration_ansible_user }}'
       ansible.windows.win_dsc:
         resource_name:                     SqlAGDatabase
         Ensure:                            Present
@@ -232,6 +235,9 @@
       register:                        sql_ag_replica_creation
 
     - name:                                "Add DB {{ db_sid | upper }} to AG: {{ mssql_ag_name }}"
+      become:                              true
+      become_method:                       "runas"
+      become_user:                         '{{ orchestration_ansible_user }}'
       ansible.windows.win_dsc:
         resource_name:                     SqlAGDatabase
         Ensure:                            Present
