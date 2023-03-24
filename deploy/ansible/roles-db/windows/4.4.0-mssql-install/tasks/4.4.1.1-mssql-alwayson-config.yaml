@@ -81,9 +81,9 @@
 
     # The assumption is that the system has only one network adapter
     # and the load balancer is in the same subnet as the db machine.
-    - name:                            "what is the current host IP"
+    - name:                            "what is the current host IP subnet"
       ansible.builtin.debug:
-        msg:                           "{{ hostvars[inventory_hostname].ansible_host }}"
+        msg:                           "{{ sap_cluster_ip_address.split('/')[1] }}"
 
     - name:                            "calculate subnet prefix"
       ansible.builtin.set_fact:
@@ -180,33 +180,33 @@
         - '{{ vm_data_disks }}'
 
 
-    - name:                            "Test"
-      ansible.windows.win_file:
-        path:                          'F:\DATA'
-        state:                         directory
+    # - name:                            "Test"
+    #   ansible.windows.win_file:
+    #     path:                          'F:\DATA'
+    #     state:                         directory
 
-    - name:                            "Test 2"
-      ansible.windows.win_file:
-        path:                          'F:\DATA\DATA1.MDF'
-        state:                         directory
+    # - name:                            "Test 2"
+    #   ansible.windows.win_file:
+    #     path:                          'F:\DATA\DATA1.MDF'
+    #     state:                         directory
 
-    - name:                            "Test 3"
-      ansible.windows.win_file:
-        path:                          'F:\DATA\DATA1.MDF\WI1DATA1'
-        state:                         directory
+    # - name:                            "Test 3"
+    #   ansible.windows.win_file:
+    #     path:                          'F:\DATA\DATA1.MDF\WI1DATA1'
+    #     state:                         directory
 
     - name:                            "create the directory for SQL Server data files"
       ansible.windows.win_file:
-        path:                          '{{ item }}'
+        path:                          '{{ item.1 }}'
         state:                         directory
-      loop:
-        - '{{ vm_data_disks | flatten(levels=1) }}'
+      with_indexed_items:
+        - '{{ vm_data_disks }}'
 
     - name:                            "create the directory for SQL Server log files"
       ansible.windows.win_file:
-        path:                        '{{ item }}'
+        path:                        '{{ item.1 }}'
         state:                       directory
-      loop:
+      with_indexed_items:
         - '{{ vm_log_disks  }}'
 
     - name:                                "Enable SQL Server Always On Service"
