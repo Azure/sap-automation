@@ -30,6 +30,7 @@ Set-DatabaseHealthProbe -SQLAGName "{{ mssql_ag_name }}" -ProbePort {{ mssql_lb_
 
 try {
     Stop-ClusterResource -Name "{{ mssql_ag_name }}_{{ db_lb_ip }}"
+    Start-Sleep -Seconds 60
 }catch {
     Write-Error "Failed to Stop SQL Server Always On IP resource"
 }
