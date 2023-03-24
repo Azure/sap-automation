@@ -171,29 +171,7 @@
           - 'SQL LOG Disks length:     {{ vm_log_disks | length }}'
           - 'SQL DATA Disks item:      {{ vm_data_disks | first }}'
           - 'SQL LOG Disks item:       {{ vm_log_disks | first }}'
-
-    - name:                            "Print SQL Disks (loop)"
-      ansible.builtin.debug:
-        msg:
-          - 'SQL DATA Disks-"{{ item.0 }}":           {{ item.1 }}'
-      with_indexed_items:
-        - '{{ vm_data_disks }}'
-
-
-    # - name:                            "Test"
-    #   ansible.windows.win_file:
-    #     path:                          'G:\\DATA'
-    #     state:                         directory
-
-    # - name:                            "Test 2"
-    #   ansible.windows.win_file:
-    #     path:                          'G:\\DATA\\DATA1.MDF'
-    #     state:                         directory
-
-    # - name:                            "Test 3"
-    #   ansible.windows.win_file:
-    #     path:                          'G:\\DATA\\DATA1.MDF\\WI1DATA1'
-    #     state:                         directory
+      verbosity:                       2
 
     - name:                            "create the directory for SQL Server data files"
       ansible.windows.win_file:
