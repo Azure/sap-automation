@@ -42,6 +42,8 @@
     - "{{ win_cluster_svc_account }}"
     - "{{ win_sql_svc_account }}"
     - "{{ win_sqlagent_svc_account }}"
+    - '{{ domain | upper }}\{{ mssql_primary_node }}$'
+    - '{{ domain | upper }}\{{ mssql_secondary_node }}$'
   register:                           sql_login
 
 # maybe split to two tasks, and assign lesser perms to cluster service account
@@ -59,13 +61,15 @@
           - AlterAnyEndpoint
           - AlterAnyAvailabilityGroup
     Name:                              "{{ item }}"
-    # PsDscRunAsCredential_username:     "{{ domain_service_account }}@{{ domain_name }}"
-    # PsDscRunAsCredential_password:     "{{ domain_service_password }}"
+    PsDscRunAsCredential_username:     "{{ domain_service_account }}@{{ domain_name }}"
+    PsDscRunAsCredential_password:     "{{ domain_service_password }}"
   loop:
     - "{{ win_cluster_svc_account }}"
     - "{{ win_sql_svc_account }}"
     - "{{ win_sqlagent_svc_account }}"
-    - 'SAP\{{ domain_service_account }}'
+    - '{{ domain | upper }}\{{ domain_service_account }}'
+    - '{{ domain | upper }}\{{ mssql_primary_node }}$'
+    - '{{ domain | upper }}\{{ mssql_secondary_node }}$'
   register:                           sql_server_permission
 
 - name:                                "Create SQL Server Availability Group Endpoint"
