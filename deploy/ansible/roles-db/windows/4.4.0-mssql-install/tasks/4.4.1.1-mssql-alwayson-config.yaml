@@ -81,13 +81,9 @@
 
     # The assumption is that the system has only one network adapter
     # and the load balancer is in the same subnet as the db machine.
-    - name:                            "what is the current host IP subnet"
-      ansible.builtin.debug:
-        msg:                           "{{ sap_cluster_ip_address.split('/')[1] }}"
-
     - name:                            "calculate subnet prefix"
       ansible.builtin.set_fact:
-        db_subnet_prefix:              "{{ ansible_interfaces[0].ipv4.prefix }}"
+        db_subnet_prefix:              "{{ sap_cluster_ip_address.split('/')[1] }}"
 
     - name:                            "calculate LB IP with subnet prefix"
       ansible.builtin.set_fact:
@@ -171,7 +167,7 @@
           - 'SQL LOG Disks length:     {{ vm_log_disks | length }}'
           - 'SQL DATA Disks item:      {{ vm_data_disks | first }}'
           - 'SQL LOG Disks item:       {{ vm_log_disks | first }}'
-      verbosity:                       2
+        verbosity:                       2
 
     - name:                            "create the directory for SQL Server data files"
       ansible.windows.win_file:
@@ -243,8 +239,8 @@
         DatabaseName:                      "{{ db_sid | upper }}"
         ProcessOnlyOnActiveNode:           true
         BackupPath:                        "{{ mssql_backup_path }}"
-        PsDscRunAsCredential_username:     "{{ domain_service_account }}@{{ domain_name }}"
-        PsDscRunAsCredential_password:     "{{ domain_service_password }}"
+        # PsDscRunAsCredential_username:     "{{ domain_service_account }}@{{ domain_name }}"
+        # PsDscRunAsCredential_password:     "{{ domain_service_password }}"
       register:                            sql_ag_db_creation
 
 
