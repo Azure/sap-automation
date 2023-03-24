@@ -26,7 +26,7 @@ function Set-DatabaseHealthProbe {
 }
 
 # Set database healthprobe for SQL Server always on cluster
-Set-DatabaseHealthProbe -SQLAGName "{{ mssql_ag_name }}" -ProbePort { { mssql_lb_probeport } } -IPAddress "{{ db_lb_ip}}" -SubnetMask "{{ db_subnet_mask }}"
+Set-DatabaseHealthProbe -SQLAGName "{{ mssql_ag_name }}" -ProbePort {{ mssql_lb_probeport }} -IPAddress "{{ db_lb_ip}}" -SubnetMask "{{ db_subnet_mask }}"
 
 try {
     Stop-ClusterResource -Name "{{ mssql_ag_name }}_{{ db_lb_ip }}"
