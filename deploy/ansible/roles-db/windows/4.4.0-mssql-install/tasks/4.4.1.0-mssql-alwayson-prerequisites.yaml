@@ -65,6 +65,7 @@
     - "{{ win_cluster_svc_account }}"
     - "{{ win_sql_svc_account }}"
     - "{{ win_sqlagent_svc_account }}"
+    - '{{ domain_name }}\{{ domain_service_account }}'
   register:                           sql_server_permission
 
 - name:                                "Create SQL Server Availability Group Endpoint"
