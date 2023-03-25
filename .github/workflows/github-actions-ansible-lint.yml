@@ -14,11 +14,11 @@ jobs:
       - name: Install Ansible-Galaxy Requirements
         run: ansible-galaxy install -r deploy/ansible/requirements.yml
 
-      - name: Install Ansible
+      - name: Install Ansible Lint
         run: sudo apt-get install -y ansible-lint
       
-      - name: Run Lint
-        run: find ./ -name "*.yaml" | xargs ansible-lint 
+      - name: Run Lint on yaml files
+        run: find ./deploy/ansible -name "*.yaml" | xargs ansible-lint -c ./ansible-lint 
 
-      - name: Run Lint
-        run: find ./ -name "*.yml" | xargs ansible-lint 
+      - name: Run Lint on yml files
+        run: find ./deploy/ansible -name "*.yml" | xargs ansible-lint  -c ./ansible-lint
