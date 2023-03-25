@@ -14,6 +14,6 @@ jobs:
       - name: Install Ansible-Galaxy Requirements
         run: ansible-galaxy install -r deploy/ansible/requirements.yml
       
-      - uses: ansible/ansible-lint-action@v6.11.0
+      - uses: ansible/ansible-lint-action@main
         with:
           path: deploy/ansible
