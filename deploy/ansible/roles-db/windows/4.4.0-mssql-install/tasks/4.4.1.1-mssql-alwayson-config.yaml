@@ -132,19 +132,6 @@
       become_user:                     '{{ sap_sid }}adm@{{ domain }}'
       ansible.windows.win_shell:       "{{ sap_deployment_automation }}\\Set-AzLBHealthProbeSQL.ps1 -verbose"
 
-    - name:                            "Add DB {{ db_sid | upper }} to AG: {{ mssql_ag_name }}"
-      ansible.windows.win_dsc:
-        resource_name:                 SqlAGDatabase
-        Ensure:                        Present
-        AvailabilityGroupName:         "{{ mssql_ag_name }}"
-        ServerName:                    "{{ ansible_hostname }}"
-        InstanceName:                  "{{ mssql_instance_name }}"
-        DatabaseName:                  "{{ db_sid | upper }}"
-        ProcessOnlyOnActiveNode:       true
-        BackupPath:                    "{{ mssql_backup_path }}"
-        PsDscRunAsCredential_username: "{{ domain_service_account }}@{{ domain_name }}"
-        PsDscRunAsCredential_password: "{{ domain_service_password }}"
-      register:                        sql_ag_db_creation
 
 
 - name:                                "HADR: Tasks on secondary node"
@@ -231,34 +218,35 @@
         PsDscRunAsCredential_password: "{{ domain_service_password }}"
       register:                        sql_ag_replica_creation
 
-    - name:                            "Add DB {{ db_sid | upper }} to AG: {{ mssql_ag_name }}"
-      ansible.windows.win_dsc:
-        resource_name:                 SqlAGDatabase
-        Ensure:                        Present
-        AvailabilityGroupName:         "{{ mssql_ag_name }}"
-        ServerName:                    "{{ ansible_hostname }}"
-        InstanceName:                  "{{ mssql_instance_name }}"
-        DatabaseName:                  "{{ db_sid | upper }}"
-        ProcessOnlyOnActiveNode:       true
-        BackupPath:                    "{{ mssql_backup_path }}"
-        PsDscRunAsCredential_username: "{{ domain_service_account }}@{{ domain_name }}"
-        PsDscRunAsCredential_password: "{{ domain_service_password }}"
-      register:                            sql_ag_db_creation
+    # - name:                            "Add DB {{ db_sid | upper }} to AG: {{ mssql_ag_name }}"
+    #   ansible.windows.win_dsc:
+    #     resource_name:                 SqlAGDatabase
+    #     Ensure:                        Present
+    #     AvailabilityGroupName:         "{{ mssql_ag_name }}"
+    #     ServerName:                    "{{ ansible_hostname }}"
+    #     InstanceName:                  "{{ mssql_instance_name }}"
+    #     DatabaseName:                  "{{ db_sid | upper }}"
+    #     ProcessOnlyOnActiveNode:       true
+    #     BackupPath:                    "{{ mssql_backup_path }}"
+    #     PsDscRunAsCredential_username: "{{ domain_service_account }}@{{ domain_name }}"
+    #     PsDscRunAsCredential_password: "{{ domain_service_password }}"
+    #   register:                            sql_ag_db_creation
 
 
 
-# - name:                                "Add DB {{ db_sid | upper }} to AG: {{ mssql_ag_name }}"
-#   ansible.windows.win_dsc:
-#     resource_name:                     SqlAGDatabase
-#     Ensure:                            Present
-#     AvailabilityGroupName:             "{{ mssql_ag_name }}"
-#     ServerName:                        "{{ mssql_primary_node }}"
-#     InstanceName:                      "{{ mssql_instance_name }}"
-#     DatabaseName:                      "{{ db_sid | upper }}"
-#     ProcessOnlyOnActiveNode:           true
-#     BackupPath:                        "{{ mssql_backup_path }}"
-#     PsDscRunAsCredential_username:     "{{ domain_service_account }}@{{ domain_name }}"
-#     PsDscRunAsCredential_password:     "{{ domain_service_password }}"
-#   register:                            sql_ag_db_creation
+- name:                            "Add DB {{ db_sid | upper }} to AG: {{ mssql_ag_name }}"
+  ansible.windows.win_dsc:
+    resource_name:                 SqlAGDatabase
+    Ensure:                        Present
+    AvailabilityGroupName:         "{{ mssql_ag_name }}"
+    ServerName:                    "{{ mssql_primary_node }}"
+    InstanceName:                  "{{ mssql_instance_name }}"
+    DatabaseName:                  "{{ db_sid | upper }}"
+    ProcessOnlyOnActiveNode:       true
+    BackupPath:                    "{{ mssql_backup_path }}"
+    PsDscRunAsCredential_username: "{{ domain_service_account }}@{{ domain_name }}"
+    PsDscRunAsCredential_password: "{{ domain_service_password }}"
+  register:                        sql_ag_db_creation
+
 
 ...
