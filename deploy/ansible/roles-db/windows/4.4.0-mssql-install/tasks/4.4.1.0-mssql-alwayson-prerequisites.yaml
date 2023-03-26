@@ -75,29 +75,20 @@
     'setspn -A MSSQLSvc/{{ mssql_secondary_node }}.{{ domain_name }} {{ win_sql_svc_account }}'
     'setspn -A MSSQLSvc/{{ mssql_secondary_node }}.{{ domain_name }}:1433 {{ win_sql_svc_account }}'
 
-- name:                                "Convert SQL Server service from running with local account to domain account"
-  ansible.windows.win_dsc:
-    resource_name:                     SqlServiceAccount
-    ServerName:                        "{{ ansible_hostname }}"
-    InstanceName:                      "{{ mssql_instance_name }}"
-    ServiceAccount_username:           "{{ win_sql_svc_account }}"
-    ServiceAccount_password:           "{{ dummy_password | default('') }}"
-    ServiceType:                       'DatabaseEngine'
-    RestartService:                    true
-    PsDscRunAsCredential_username:     "{{ domain_service_account }}@{{ domain_name }}"
-    PsDscRunAsCredential_password:     "{{ domain_service_password }}"
-
 - name:                                "Convert SQL Server agent service from running with local account to domain account"
-  ansible.windows.win_dsc:
-    resource_name:                     SqlServiceAccount
-    ServerName:                        "{{ ansible_hostname }}"
-    InstanceName:                      "{{ mssql_instance_name }}"
-    ServiceAccount_username:           "{{ win_sqlagent_svc_account }}"
-    ServiceAccount_password:           "{{ dummy_password | default('') }}"
-    ServiceType:                       'SQLServerAgent'
-    RestartService:                    true
-    PsDscRunAsCredential_username:     "{{ domain_service_account }}@{{ domain_name }}"
-    PsDscRunAsCredential_password:     "{{ domain_service_password }}"
+  ansible.windows.win_service:
+    name:                              SQLSERVERAGENT
+    state:                             restarted
+    username:                          "{{ win_sql_svc_account }}"
+    password:                          ""
+
+- name:                                "Convert SQL Server service from running with local account to domain account"
+  ansible.windows.win_service:
+    name:                              MSSQLSERVER
+    state:                             restarted
+    username:                          "{{ win_sql_svc_account }}"
+    password:                          ""
+    force_dependent_services:          true
 
 - name:                                "Add required users to SQL Server"
   ansible.windows.win_dsc:
