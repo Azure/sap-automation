@@ -81,9 +81,9 @@
     ServerName:                        "{{ ansible_hostname }}"
     InstanceName:                      "{{ mssql_instance_name }}"
     ServiceAccount_username:           "{{ win_sql_svc_account }}"
-    ServiceAccount_password:           "{{ win_gMSA_dummy_password }}"
+    ServiceAccount_password:           "{{ dummy_password | default('') }}"
     ServiceType:                       'DatabaseEngine'
-    RestartService:                           true
+    RestartService:                    true
     PsDscRunAsCredential_username:     "{{ domain_service_account }}@{{ domain_name }}"
     PsDscRunAsCredential_password:     "{{ domain_service_password }}"
 
@@ -93,7 +93,7 @@
     ServerName:                        "{{ ansible_hostname }}"
     InstanceName:                      "{{ mssql_instance_name }}"
     ServiceAccount_username:           "{{ win_sql_svc_account }}"
-    ServiceAccount_password:           "{{ win_gMSA_dummy_password }}"
+    ServiceAccount_password:           "{{ dummy_password | default('') }}"
     ServiceType:                       'SQLServerAgent'
     RestartService:                    true
     PsDscRunAsCredential_username:     "{{ domain_service_account }}@{{ domain_name }}"
