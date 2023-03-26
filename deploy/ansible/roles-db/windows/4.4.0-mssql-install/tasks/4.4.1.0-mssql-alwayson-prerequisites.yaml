@@ -75,19 +75,25 @@
     'setspn -A MSSQLSvc/{{ mssql_secondary_node }}.{{ domain_name }} {{ win_sql_svc_account }}'
     'setspn -A MSSQLSvc/{{ mssql_secondary_node }}.{{ domain_name }}:1433 {{ win_sql_svc_account }}'
 
-- name:                                "Convert SQL Server agent service from running with local account to domain account"
-  ansible.windows.win_service:
-    name:                              SQLSERVERAGENT
-    state:                             restarted
-    username:                          "{{ win_sql_svc_account }}"
-    password:                          ""
-
 - name:                                "Convert SQL Server service from running with local account to domain account"
   ansible.windows.win_service:
     name:                              MSSQLSERVER
-    state:                             restarted
+    state:                             stopped
     username:                          "{{ win_sql_svc_account }}"
     password:                          ""
+    force_dependent_services:          true
+
+- name:                                "Convert SQL Server agent service from running with local account to domain account"
+  ansible.windows.win_service:
+    name:                              SQLSERVERAGENT
+    state:                             stopped
+    username:                          "{{ win_sqlagent_svc_account }}"
+    password:                          ""
+
+- name:                                "Start SQL Server service from running with local account to domain account"
+  ansible.windows.win_service:
+    name:                              MSSQLSERVER
+    state:                             started
     force_dependent_services:          true
 
 - name:                                "Add required users to SQL Server"
