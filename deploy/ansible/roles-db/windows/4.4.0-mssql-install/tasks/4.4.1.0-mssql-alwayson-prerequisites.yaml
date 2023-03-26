@@ -35,8 +35,7 @@
   ansible.windows.win_user_right:
     name:                              '{{ privilege_constant }}'
     user:                              '{{ win_sql_svc_account }}'
-    state:                             present
-    system:                            yes
+    action:                            add
   loop:
     - SeServiceLogonRight
     - SeAssignPrimaryTokenPrivilege
