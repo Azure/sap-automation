@@ -242,6 +242,7 @@
     ServerName:                    "{{ mssql_primary_node }}"
     InstanceName:                  "{{ mssql_instance_name }}"
     DatabaseName:                  "{{ db_sid | upper }}"
+    MatchDatabaseOwner:            true
     ProcessOnlyOnActiveNode:       true
     BackupPath:                    "{{ mssql_backup_path }}"
     PsDscRunAsCredential_username: "{{ domain_service_account }}@{{ domain_name }}"
