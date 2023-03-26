@@ -65,7 +65,7 @@
 
 - name:                                "Create dummy account pass for gMSA accounts"
   ansible.builtin.set_fact:
-    win_gMSA_dummy_password:           "{{ win_gMSA_dummy_password | default('') | password_hash('sha512') }}"
+    win_gMSA_dummy_password:           "{{ win_gMSA_dummy_password | default('') | password_hash('sha256') }}"
   when:                                win_gMSA_dummy_password is not defined
 
 - name:                                "Add SPNs for the gMSA account"
