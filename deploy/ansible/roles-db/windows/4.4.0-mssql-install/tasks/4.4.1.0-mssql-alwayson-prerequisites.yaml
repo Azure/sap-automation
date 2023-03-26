@@ -90,11 +90,16 @@
     username:                          "{{ win_sqlagent_svc_account }}"
     password:                          ""
 
-- name:                                "Start SQL Server service from running with local account to domain account"
+- name:                                "Start SQL Server service "
   ansible.windows.win_service:
     name:                              MSSQLSERVER
     state:                             started
     force_dependent_services:          true
+
+- name:                                "Start SQL Server agent service"
+  ansible.windows.win_service:
+    name:                              SQLSERVERAGENT
+    state:                             started
 
 - name:                                "Add required users to SQL Server"
   ansible.windows.win_dsc:

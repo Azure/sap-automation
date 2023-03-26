@@ -45,19 +45,19 @@
         PsDscRunAsCredential_password: "{{ domain_service_password }}"
       register:                        sql_always_on_endpoint_permission
 
-    - name:                                "Enable SQL Server Always On Service"
+    - name:                            "Enable SQL Server Always On Service"
       ansible.windows.win_dsc:
-        resource_name:                     SqlAlwaysOnService
-        Ensure:                            Present
-        ServerName:                        "{{ ansible_hostname }}"
-        InstanceName:                      "{{ mssql_instance_name }}"
-        RestartTimeout:                    180
-        PsDscRunAsCredential_username:     "{{ domain_service_account }}@{{ domain_name }}"
-        PsDscRunAsCredential_password:     "{{ domain_service_password }}"
-      register:                            sql_always_on_service
-      until:                               sql_always_on_service is succeeded
-      retries:                            6
-      delay:                              20
+        resource_name:                 SqlAlwaysOnService
+        Ensure:                        Present
+        ServerName:                    "{{ ansible_hostname }}"
+        InstanceName:                  "{{ mssql_instance_name }}"
+        RestartTimeout:                180
+        PsDscRunAsCredential_username: "{{ domain_service_account }}@{{ domain_name }}"
+        PsDscRunAsCredential_password: "{{ domain_service_password }}"
+      register:                        sql_always_on_service
+      until:                           sql_always_on_service is succeeded
+      retries:                         6
+      delay:                           20
 
     - name:                            "Create AG for SQL Server"
       ansible.windows.win_dsc:
@@ -117,37 +117,34 @@
         PsDscRunAsCredential_password: "{{ domain_service_password }}"
       register:                        sql_ag_listener_creation
 
-    - name:                             "Copy probe port setup script"
-      become:                           true
-      become_method:                    "runas"
-      become_user:                      '{{ sap_sid }}adm@{{ domain }}'
+    - name:                            "Copy probe port setup script"
+      become:                          true
+      become_method:                   "runas"
+      become_user:                     '{{ sap_sid }}adm@{{ domain }}'
       ansible.windows.win_template:
-        src:                            "Set-AzLBHealthProbeSQL.j2"
-        dest:                           "{{ sap_deployment_automation }}\\Set-AzLBHealthProbeSQL.ps1"
-        force:                          true
+        src:                           "Set-AzLBHealthProbeSQL.j2"
+        dest:                          "{{ sap_deployment_automation }}\\Set-AzLBHealthProbeSQL.ps1"
+        force:                         true
 
-    - name:                             "Execute probe port setup script"
-      become:                           true
-      become_method:                    "runas"
-      become_user:                      '{{ sap_sid }}adm@{{ domain }}'
-      ansible.windows.win_shell:        "{{ sap_deployment_automation }}\\Set-AzLBHealthProbeSQL.ps1 -verbose"
+    - name:                            "Execute probe port setup script"
+      become:                          true
+      become_method:                   "runas"
+      become_user:                     '{{ sap_sid }}adm@{{ domain }}'
+      ansible.windows.win_shell:       "{{ sap_deployment_automation }}\\Set-AzLBHealthProbeSQL.ps1 -verbose"
 
-    - name:                                "Add DB {{ db_sid | upper }} to AG: {{ mssql_ag_name }}"
-      become:                              true
-      become_method:                       "runas"
-      become_user:                         '{{ orchestration_ansible_user }}'
+    - name:                            "Add DB {{ db_sid | upper }} to AG: {{ mssql_ag_name }}"
       ansible.windows.win_dsc:
-        resource_name:                     SqlAGDatabase
-        Ensure:                            Present
-        AvailabilityGroupName:             "{{ mssql_ag_name }}"
-        ServerName:                        "{{ ansible_hostname }}"
-        InstanceName:                      "{{ mssql_instance_name }}"
-        DatabaseName:                      "{{ db_sid | upper }}"
-        ProcessOnlyOnActiveNode:           true
-        BackupPath:                        "{{ mssql_backup_path }}"
-        # PsDscRunAsCredential_username:     "{{ domain_service_account }}@{{ domain_name }}"
-        # PsDscRunAsCredential_password:     "{{ domain_service_password }}"
-      register:                            sql_ag_db_creation
+        resource_name:                 SqlAGDatabase
+        Ensure:                        Present
+        AvailabilityGroupName:         "{{ mssql_ag_name }}"
+        ServerName:                    "{{ ansible_hostname }}"
+        InstanceName:                  "{{ mssql_instance_name }}"
+        DatabaseName:                  "{{ db_sid | upper }}"
+        ProcessOnlyOnActiveNode:       true
+        BackupPath:                    "{{ mssql_backup_path }}"
+        PsDscRunAsCredential_username: "{{ domain_service_account }}@{{ domain_name }}"
+        PsDscRunAsCredential_password: "{{ domain_service_password }}"
+      register:                        sql_ag_db_creation
 
 
 - name:                                "HADR: Tasks on secondary node"
@@ -183,24 +180,24 @@
 
     - name:                            "create the directory for SQL Server log files"
       ansible.windows.win_file:
-        path:                        '{{ item.1 }}'
-        state:                       directory
+        path:                          '{{ item.1 }}'
+        state:                         directory
       with_indexed_items:
         - '{{ vm_log_disks  }}'
 
-    - name:                                "Enable SQL Server Always On Service"
+    - name:                            "Enable SQL Server Always On Service"
       ansible.windows.win_dsc:
-        resource_name:                     SqlAlwaysOnService
-        Ensure:                            Present
-        ServerName:                        "{{ ansible_hostname }}"
-        InstanceName:                      "{{ mssql_instance_name }}"
-        RestartTimeout:                    180
-        PsDscRunAsCredential_username:     "{{ domain_service_account }}@{{ domain_name }}"
-        PsDscRunAsCredential_password:     "{{ domain_service_password }}"
-      register:                            sql_always_on_service
-      until:                               sql_always_on_service is succeeded
-      retries:                            6
-      delay:                              20
+        resource_name:                 SqlAlwaysOnService
+        Ensure:                        Present
+        ServerName:                    "{{ ansible_hostname }}"
+        InstanceName:                  "{{ mssql_instance_name }}"
+        RestartTimeout:                180
+        PsDscRunAsCredential_username: "{{ domain_service_account }}@{{ domain_name }}"
+        PsDscRunAsCredential_password: "{{ domain_service_password }}"
+      register:                        sql_always_on_service
+      until:                           sql_always_on_service is succeeded
+      retries:                         6
+      delay:                           20
 
     - name:                            "Wait for AvailabilityGroup to be available on secondary node"
       ansible.windows.win_dsc:
@@ -234,21 +231,18 @@
         PsDscRunAsCredential_password: "{{ domain_service_password }}"
       register:                        sql_ag_replica_creation
 
-    - name:                                "Add DB {{ db_sid | upper }} to AG: {{ mssql_ag_name }}"
-      become:                              true
-      become_method:                       "runas"
-      become_user:                         '{{ orchestration_ansible_user }}'
+    - name:                            "Add DB {{ db_sid | upper }} to AG: {{ mssql_ag_name }}"
       ansible.windows.win_dsc:
-        resource_name:                     SqlAGDatabase
-        Ensure:                            Present
-        AvailabilityGroupName:             "{{ mssql_ag_name }}"
-        ServerName:                        "{{ ansible_hostname }}"
-        InstanceName:                      "{{ mssql_instance_name }}"
-        DatabaseName:                      "{{ db_sid | upper }}"
-        ProcessOnlyOnActiveNode:           true
-        BackupPath:                        "{{ mssql_backup_path }}"
-        # PsDscRunAsCredential_username:     "{{ domain_service_account }}@{{ domain_name }}"
-        # PsDscRunAsCredential_password:     "{{ domain_service_password }}"
+        resource_name:                 SqlAGDatabase
+        Ensure:                        Present
+        AvailabilityGroupName:         "{{ mssql_ag_name }}"
+        ServerName:                    "{{ ansible_hostname }}"
+        InstanceName:                  "{{ mssql_instance_name }}"
+        DatabaseName:                  "{{ db_sid | upper }}"
+        ProcessOnlyOnActiveNode:       true
+        BackupPath:                    "{{ mssql_backup_path }}"
+        PsDscRunAsCredential_username: "{{ domain_service_account }}@{{ domain_name }}"
+        PsDscRunAsCredential_password: "{{ domain_service_password }}"
       register:                            sql_ag_db_creation
 
 
