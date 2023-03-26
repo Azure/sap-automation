@@ -198,6 +198,10 @@
         - name:                        "SAP OS configuration playbook: - Sharing Data Folder"
           ansible.builtin.include_role:
             name:                      roles-sap-os/windows/2.3-sap-exports
+          vars:
+            winadm_password:           "{{ hostvars.localhost.winadm_password }}"
+            domain_service_password:   "{{ hostvars.localhost.adsvc_password }}"
+            domain_service_account:    "{{ hostvars.localhost.adsvc_account }}"
 
         - name:                        "SAP OS configuration playbook: - Mounting Shared Folder"
           ansible.builtin.include_role:
