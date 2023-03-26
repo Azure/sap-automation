@@ -26,7 +26,7 @@
     mssql_backup_path:                "\\\\{{ scs_server_name }}\\SAP"
     mssql_full_backup_name:           "SDAF-{{ sap_sid | upper }}-FULL.bak"
     mssql_log_backup_name:            "SDAF-{{ sap_sid | upper }}-LOG.bak"
-    scs_sid:                          "{{ sap_sid | upper }}"
+    sid_for_disks:                    "{% if not db_sid %}{{ sap_sid | upper }}{% else %}{{ db_sid | upper }}{% endif %}"
 
 - name:                                "HADR: Tasks on primary node"
   when:
