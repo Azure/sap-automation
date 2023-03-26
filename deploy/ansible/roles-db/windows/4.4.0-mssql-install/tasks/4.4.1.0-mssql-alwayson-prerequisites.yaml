@@ -34,7 +34,7 @@
   become_user:                         '{{ orchestration_ansible_user }}'
   ansible.windows.win_user_right:
     name:                              '{{ privilege_constant }}'
-    user:                              '{{ win_sql_svc_account }}'
+    users:                              '{{ win_sql_svc_account }}'
     action:                            add
   loop:
     - SeServiceLogonRight
@@ -53,9 +53,8 @@
   become_user:                         '{{ orchestration_ansible_user }}'
   ansible.windows.win_user_right:
     name:                              '{{ privilege_constant }}'
-    user:                              '{{ win_sqlagent_svc_account }}'
-    state:                             present
-    system:                            yes
+    users:                              '{{ win_sqlagent_svc_account }}'
+    action:                            add
   loop:
     - SeServiceLogonRight
     - SeAssignPrimaryTokenPrivilege
