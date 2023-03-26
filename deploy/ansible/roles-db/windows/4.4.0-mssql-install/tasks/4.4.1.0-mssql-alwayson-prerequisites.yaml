@@ -68,6 +68,16 @@
     win_gMSA_dummy_password:           "{{ win_gMSA_dummy_password | default('') | password_hash('sha512') }}"
   when:                                win_gMSA_dummy_password is not defined
 
+- name:                                "Add SPNs for the gMSA account"
+  ansible.windows.win_shell:
+    cmd:                              "{{ item }}"
+    executable:                       'powershell.exe'
+  with_items:
+    - 'setspn -A MSSQLSvc/{{ mssql_primary_node }}.{{ domain_name }} {{ win_sql_svc_account }}'
+    - 'setspn -A MSSQLSvc/{{ mssql_primary_node }}.{{ domain_name }}:1433 {{ win_sql_svc_account }}'
+    - 'setspn -A MSSQLSvc/{{ mssql_secondary_node }}.{{ domain_name }} {{ win_sql_svc_account }}'
+    - 'setspn -A MSSQLSvc/{{ mssql_secondary_node }}.{{ domain_name }}:1433 {{ win_sql_svc_account }}'
+
 - name:                                "Convert SQL Server service from running with local account to domain account"
   ansible.windows.win_dsc:
     resource_name:                     SqlServiceAccount
