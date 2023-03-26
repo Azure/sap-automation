@@ -28,6 +28,67 @@
       - "Domain service account password is not defined"
     quiet:                            true
 
+- name:                                "Grant required privileges to the SQL Server account"
+  become:                              true
+  become_method:                       'runas'
+  become_user:                         '{{ orchestration_ansible_user }}'
+  ansible.windows.win_user_right:
+    name:                              '{{ privilege_constant }}'
+    user:                              '{{ win_sql_svc_account }}'
+    state:                             present
+    system:                            yes
+  loop:
+    - SeServiceLogonRight
+    - SeAssignPrimaryTokenPrivilege
+    - SeChangeNotifyPrivilege
+    - SeIncreaseQuotaPrivilege
+    - SeIncreaseWorkingSetPrivilege
+    - SeManageVolumePrivilege
+    - SeLockMemoryPrivilege
+  loop_control:
+    loop_var:                         privilege_constant
+
+- name:                                "Grant required privileges to the SQL Server agent account"
+  become:                              true
+  become_method:                       'runas'
+  become_user:                         '{{ orchestration_ansible_user }}'
+  ansible.windows.win_user_right:
+    name:                              '{{ privilege_constant }}'
+    user:                              '{{ win_sqlagent_svc_account }}'
+    state:                             present
+    system:                            yes
+  loop:
+    - SeServiceLogonRight
+    - SeAssignPrimaryTokenPrivilege
+    - SeChangeNotifyPrivilege
+    - SeIncreaseQuotaPrivilege
+  loop_control:
+    loop_var:                         privilege_constant
+
+- name:                                "Convert SQL Server service from running with local account to domain account"
+  ansible.windows.win_dsc:
+    resource_name:                     SqlServiceAccount
+    Ensure:                            Present
+    ServerName:                        "{{ ansible_hostname }}"
+    InstanceName:                      "{{ mssql_instance_name }}"
+    ServiceAccount:                    "{{ win_sql_svc_account }}"
+    ServiceType:                       'DatabaseEngine'
+    Restart:                           true
+    PsDscRunAsCredential_username:     "{{ domain_service_account }}@{{ domain_name }}"
+    PsDscRunAsCredential_password:     "{{ domain_service_password }}"
+
+- name:                                "Convert SQL Server agent service from running with local account to domain account"
+  ansible.windows.win_dsc:
+    resource_name:                     SqlServiceAccount
+    Ensure:                            Present
+    ServerName:                        "{{ ansible_hostname }}"
+    InstanceName:                      "{{ mssql_instance_name }}"
+    ServiceAccount:                    "{{ win_sql_svc_account }}"
+    ServiceType:                       'SQLServerAgent'
+    Restart:                           true
+    PsDscRunAsCredential_username:     "{{ domain_service_account }}@{{ domain_name }}"
+    PsDscRunAsCredential_password:     "{{ domain_service_password }}"
+
 - name:                                "Add required users to SQL Server"
   ansible.windows.win_dsc:
     resource_name:                     SqlLogin
@@ -42,8 +103,6 @@
     - "{{ win_cluster_svc_account }}"
     - "{{ win_sql_svc_account }}"
     - "{{ win_sqlagent_svc_account }}"
-    - '{{ domain | upper }}\{{ mssql_primary_node }}$'
-    - '{{ domain | upper }}\{{ mssql_secondary_node }}$'
   register:                           sql_login
 
 # maybe split to two tasks, and assign lesser perms to cluster service account
@@ -66,8 +125,6 @@
     - "{{ win_sql_svc_account }}"
     - "{{ win_sqlagent_svc_account }}"
     - '{{ domain | upper }}\{{ domain_service_account }}'
-    - '{{ domain | upper }}\{{ mssql_primary_node }}$'
-    - '{{ domain | upper }}\{{ mssql_secondary_node }}$'
   register:                           sql_server_permission
 
 - name:                                "Create SQL Server Availability Group Endpoint"

@@ -149,6 +149,7 @@ win_sqlagent_svc_account:               'NT SERVICE\SQLSERVERAGENT'
 win_cluster_svc_account:                'NT SERVICE\ClusSvc'
 mssql_instance_name:                    'MSSQLSERVER'
 mssql_lb_probeport:                     59999
+mssql_collation:                        'SQL_Latin1_General_CP850_BIN2'
 
 # "CSD"  if you are using the cluster shared drive or Choose "FS" if you are using the File Share.
 win_cluster_share_type:                 'CSD'
