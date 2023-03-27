@@ -12,6 +12,10 @@
     svcsidadm_password_id:             "{{ secret_prefix }}-{{ sap_sid }}-svc-sidadm-password"
     adsvcadm_account_id:               "{{ secret_prefix }}-ad-svc-account"
     adsvcadm_password_id:              "{{ secret_prefix }}-ad-svc-account-password"
+    sql_account_id:                    "{{ secret_prefix }}-{{ sap_sid }| upper }}-sql-svc-account"
+    sql_account_password_id:           "{{ secret_prefix }}-{{ sap_sid }| upper }}-sql-svc-password"
+    sql_agent_account_id:              "{{ secret_prefix }}-{{ sap_sid }| upper }}-sql-agent-account"
+    sql_agent_account_password_id:     "{{ secret_prefix }}-{{ sap_sid }| upper }}-sql-agent-password"
 
 - name:                                "0.1 Password: - Get All secrets from key vault"
   ansible.builtin.command: >-
@@ -188,5 +192,142 @@
   when:
     - not adsvc_account_secret_exists
     - platform == 'SQLSERVER'
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                         Retrieve SQL service account from keyvault         |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+- name:                                "0.1 Password: - Check for secret availability"
+  ansible.builtin.set_fact:
+    sql_account_secret_exists:       "{{ (sql_account_id in keyvault_secrets.stdout) | bool }}"
+
+- name:                                "0.1 Password: - Retrieve Service Account"
+  block:
+    - name:                            "0.1 Password: - Get Service Account from key vault"
+      ansible.builtin.command: >-
+        az keyvault secret show
+          --vault-name {{ kv_name }}
+          --name {{ sql_account_id }}
+          --query value
+          --output tsv
+      changed_when:                    false
+      register:                        sqlsvc_keyvault_secret_show_sap_account_value
+      no_log:                          true
+
+    - name:                            "0.1 Password: - Extract Service Account secret"
+      ansible.builtin.set_fact:
+        sqlsvc_account:                "{{ sqlsvc_keyvault_secret_show_sap_account_value.stdout }}"
+        cacheable:                     true
+
+    - name:                            "0.1 Password: - Show SQL Service Agent Account"
+      ansible.builtin.debug:
+        var:                           sqlsvc_account
+        verbosity:                     4
+  when:                                sql_account_secret_exists
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                Retrieve SQL service account password from keyvault         |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+- name:                                "0.1 Password: - Check for secret availability"
+  ansible.builtin.set_fact:
+    sql_account_password_secret_exists: "{{ (sql_account_password_id in keyvault_secrets.stdout) | bool }}"
+
+- name:                                "0.1 Password: - Retrieve Service Account"
+  block:
+    - name:                            "0.1 Password: - Get Service Account from key vault"
+      ansible.builtin.command: >-
+        az keyvault secret show
+          --vault-name {{ kv_name }}
+          --name {{ sql_account_password_id }}
+          --query value
+          --output tsv
+      changed_when:                    false
+      register:                        sqlsvc_password_keyvault_secret_show_value
+      no_log:                          true
+
+    - name:                            "0.1 Password: - Extract Service Account secret"
+      ansible.builtin.set_fact:
+        sqlsvc_account_password:       "{{ sqlsvc_password_keyvault_secret_show_value.stdout }}"
+        cacheable:                     true
+
+    - name:                            "0.1 Password: - Show SQL Service Agent Account"
+      ansible.builtin.debug:
+        var:                           sqlsvc_account_password
+        verbosity:                     4
+  when:                                sql_account_password_secret_exists
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                         Retrieve SQL agent account from keyvault           |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+- name:                                "0.1 Password: - Check for secret availability"
+  ansible.builtin.set_fact:
+    sql_agent_account_secret_exists:         "{{ (sql_agent_account_id in keyvault_secrets.stdout) | bool }}"
+
+- name:                                "0.1 Password: - Retrieve Service Account"
+  block:
+    - name:                            "0.1 Password: - Get Service Account from key vault"
+      ansible.builtin.command: >-
+        az keyvault secret show
+          --vault-name {{ kv_name }}
+          --name {{ sql_agent_account_id }}
+          --query value
+          --output tsv
+      changed_when:                    false
+      register:                        sqlagent_keyvault_secret_show_sap_account_value
+      no_log:                          true
+
+    - name:                            "0.1 Password: - Extract Service Account secret"
+      ansible.builtin.set_fact:
+        sqlagent_account:                "{{ sqlagent_keyvault_secret_show_sap_account_value.stdout }}"
+        cacheable:                     true
+
+    - name:                            "0.1 Password: - Show SQL Service Account"
+      ansible.builtin.debug:
+        var:                           sqlagent_account
+        verbosity:                     4
+  when:                                sql_agent_account_secret_exists
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                Retrieve SQL agent account password from keyvault           |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+- name:                                "0.1 Password: - Check for secret availability"
+  ansible.builtin.set_fact:
+    sql_agent_password_secret_exists: "{{ (sql_agent_account_password_id in keyvault_secrets.stdout) | bool }}"
+
+- name:                                "0.1 Password: - Retrieve Service Account"
+  block:
+    - name:                            "0.1 Password: - Get Service Account from key vault"
+      ansible.builtin.command: >-
+        az keyvault secret show
+          --vault-name {{ kv_name }}
+          --name {{ sql_agent_account_password_id }}
+          --query value
+          --output tsv
+      changed_when:                    false
+      register:                        sqlagent_password_keyvault_secret_show_value
+      no_log:                          true
+
+    - name:                            "0.1 Password: - Extract Service Account secret"
+      ansible.builtin.set_fact:
+        sqlagent_account_password:     "{{ sqlagent_password_keyvault_secret_show_value.stdout }}"
+        cacheable:                     true
+
+    - name:                            "0.1 Password: - Show SQL Service Agent Account"
+      ansible.builtin.debug:
+        var:                           sqlagent_account_password
+        verbosity:                     4
+  when:                                sql_agent_password_secret_exists
+
 
 ...
