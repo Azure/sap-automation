@@ -12,10 +12,10 @@
     svcsidadm_password_id:             "{{ secret_prefix }}-{{ sap_sid }}-svc-sidadm-password"
     adsvcadm_account_id:               "{{ secret_prefix }}-ad-svc-account"
     adsvcadm_password_id:              "{{ secret_prefix }}-ad-svc-account-password"
-    sql_account_id:                    "{{ secret_prefix }}-{{ sap_sid }| upper }}-sql-svc-account"
-    sql_account_password_id:           "{{ secret_prefix }}-{{ sap_sid }| upper }}-sql-svc-password"
-    sql_agent_account_id:              "{{ secret_prefix }}-{{ sap_sid }| upper }}-sql-agent-account"
-    sql_agent_account_password_id:     "{{ secret_prefix }}-{{ sap_sid }| upper }}-sql-agent-password"
+    sql_account_id:                    "{{ secret_prefix }}-{{ sap_sid | upper }}-sql-svc-account"
+    sql_account_password_id:           "{{ secret_prefix }}-{{ sap_sid | upper }}-sql-svc-password"
+    sql_agent_account_id:              "{{ secret_prefix }}-{{ sap_sid | upper }}-sql-agent-account"
+    sql_agent_account_password_id:     "{{ secret_prefix }}-{{ sap_sid | upper }}-sql-agent-password"
 
 - name:                                "0.1 Password: - Get All secrets from key vault"
   ansible.builtin.command: >-

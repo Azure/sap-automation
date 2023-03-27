@@ -14,30 +14,43 @@ function Set-DatabaseHealthProbe {
 
     # Calculate IP resource name
     $AGIPResourceName = $SQLAGName + "_" + $IPAddress
+    $currentProbePort = (Get-ClusterResource -Name $AGIPResourceName | Get-ClusterParameter | Where-Object -FilterScript { $_.Name -eq 'ProbePort' }).Value
+    if ($currentProbePort -ne $ProbePort) {
+        try {
+            Get-ClusterResource $AGIPResourceName | `
+                Set-ClusterParameter -Multiple @{
+                "Address"    = "$IPAddress";
+                "ProbePort"  = $ProbePort;
+                "SubnetMask" = "$SubnetMask";
+                "Network"    = "$ClusterNetworkName";
+                "EnableDhcp" = 0
+            }
+            Write-Information "Successfully set ProbePort to '$ProbePort' for $AGIPResourceName"
+        }
+        catch {
+            Write-Error "Failed to set ProbePort on $AGIPResourceName"
+        }
 
-    Get-ClusterResource $AGIPResourceName | `
-        Set-ClusterParameter -Multiple @{
-        "Address"    = "$IPAddress";
-        "ProbePort"  = $ProbePort;
-        "SubnetMask" = "$SubnetMask";
-        "Network"    = "$ClusterNetworkName";
-        "EnableDhcp" = 0
+        try {
+            Stop-ClusterResource -Name "{{ mssql_ag_name }}_{{ db_lb_ip }}"
+            Start-Sleep -Seconds 60
+        }
+        catch {
+            Write-Error "Failed to Stop $AGIPResourceName"
+        }
+
+        try {
+            Start-ClusterResource -Name "{{ mssql_ag_name }}_{{ db_lb_ip }}"
+            Start-ClusterResource -Name "{{ mssql_ag_name }}"
+        }
+        catch {
+            Write-Error "Failed to Start SQL Server Always On Group"
+        }
+    }else {
+        Write-Information "ProbePort is already set for SQL Server Always On IP resource"
     }
 }
-
 # Set database healthprobe for SQL Server always on cluster
-Set-DatabaseHealthProbe -SQLAGName "{{ mssql_ag_name }}" -ProbePort {{ mssql_lb_probeport }} -IPAddress "{{ db_lb_ip}}" -SubnetMask "{{ db_subnet_mask }}"
+Set-DatabaseHealthProbe -SQLAGName "{{ mssql_ag_name }}" -ProbePort "{{ mssql_lb_probeport }}" -IPAddress "{{ db_lb_ip}}" -SubnetMask "{{ db_subnet_mask }}"
 
-try {
-    Stop-ClusterResource -Name "{{ mssql_ag_name }}_{{ db_lb_ip }}"
-    Start-Sleep -Seconds 60
-}catch {
-    Write-Error "Failed to Stop SQL Server Always On IP resource"
-}
 
-try {
-    Start-ClusterResource -Name "{{ mssql_ag_name }}_{{ db_lb_ip }}"
-    Start-ClusterResource -Name "{{ mssql_ag_name }}"
-}catch {
-    Write-Error "Failed to Start SQL Server Always On IP resource"
-}
