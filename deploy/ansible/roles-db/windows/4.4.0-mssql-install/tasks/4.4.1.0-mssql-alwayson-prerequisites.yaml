@@ -118,6 +118,21 @@
     - '{{ domain | upper }}\{{ domain_service_account }}'
   register:                           sql_login
 
+- name:                                "Add required users to server role in SQL Server"
+  ansible.windows.win_dsc:
+    resource_name:                     SqlRole
+    Ensure:                            Present
+    ServerName:                        "{{ ansible_hostname }}"
+    InstanceName:                      "{{ mssql_instance_name }}"
+    ServerRoleName:                    "sysadmin"
+    MembersToInclude:
+      - "{{ win_sql_svc_account }}"
+      - "{{ win_sqlagent_svc_account }}"
+      - '{{ domain | upper }}\{{ domain_service_account }}'
+    PsDscRunAsCredential_username:     '{{ sap_sid }}adm@{{ domain_name }}'
+    PsDscRunAsCredential_password:     '{{ domain_user_password }}'
+  register:                           sql_role_addition
+
 # maybe split to two tasks, and assign lesser perms to cluster service account
 - name:                                "Give permissions on the SQL Server to cluster service account"
   become:                              true
