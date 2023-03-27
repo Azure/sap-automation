@@ -115,6 +115,7 @@
     - "{{ win_cluster_svc_account }}"
     - "{{ win_sql_svc_account }}"
     - "{{ win_sqlagent_svc_account }}"
+    - '{{ domain | upper }}\{{ domain_service_account }}'
   register:                           sql_login
 
 # maybe split to two tasks, and assign lesser perms to cluster service account
