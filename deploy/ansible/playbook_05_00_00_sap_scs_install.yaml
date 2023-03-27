@@ -283,7 +283,7 @@
                   loop_control:
                     loop_var:          sid_to_be_deployed
 
-                - name:                "SCS Installation Playbook: - Show errors from HANA installation"
+                - name:                "SCS Installation Playbook: - Show errors from SCS installation"
                   ansible.builtin.debug:
                     msg:               "{{ error_lines }}"
                   when:
