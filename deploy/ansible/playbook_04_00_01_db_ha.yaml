@@ -543,6 +543,8 @@
                 domain_service_password:      "{{ hostvars.localhost.adsvc_password }}"
                 witness_storage_account_name: "{{ hostvars.localhost.witness_storage_account_name }}"
                 witness_storage_account_key:  "{{ hostvars.localhost.witness_storage_account_key }}"
+                win_sql_svc_account:          "{% if hostvars.localhost.sqlsvc_account is defined %}{{ hostvars.localhost.sqlsvc_account }}{% endif %}"
+                win_sqlagent_svc_account:     "{% if hostvars.localhost.sqlagent_account is defined %}{{ hostvars.localhost.sqlagent_account }}{% endif %}"
 
             - name:                           "SQL Server HA config: Always On tasks"
               ansible.builtin.include_role:
@@ -561,6 +563,8 @@
                 domain_service_password:      "{{ hostvars.localhost.adsvc_password }}"
                 witness_storage_account_name: "{{ hostvars.localhost.witness_storage_account_name }}"
                 witness_storage_account_key:  "{{ hostvars.localhost.witness_storage_account_key }}"
+                win_sql_svc_account:          "{% if hostvars.localhost.sqlsvc_account is defined %}{{ hostvars.localhost.sqlsvc_account }}{% endif %}"
+                win_sqlagent_svc_account:     "{% if hostvars.localhost.sqlagent_account is defined %}{{ hostvars.localhost.sqlagent_account }}{% endif %}"
                 scs_server_name:              "{{ scs_server }}"
               tags:
                 - 4.4.1.0-mssql-alwayson
