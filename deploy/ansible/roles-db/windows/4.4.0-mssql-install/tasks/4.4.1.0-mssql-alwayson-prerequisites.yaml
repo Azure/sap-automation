@@ -14,7 +14,7 @@
       - "Domain:                       {{ domain_name }}"
       - "domain_svc_account:           {{ domain_service_account }}"
       - "hostname:                     {{ ansible_hostname }}"
-    # verbosity:                         2
+    verbosity:                         2
 
 - name:                                "Assert domain user name and other details are available"
   ansible.builtin.assert:
@@ -63,11 +63,6 @@
   loop_control:
     loop_var:                         privilege_constant
 
-- name:                                "Create dummy account pass for gMSA accounts"
-  ansible.builtin.set_fact:
-    win_gMSA_dummy_password:           "{{ win_gMSA_dummy_password | default('') | password_hash('sha256') }}"
-  when:                                win_gMSA_dummy_password is not defined
-
 - name:                                "Add SPNs for the gMSA account"
   ansible.windows.win_shell: |
     'setspn -A MSSQLSvc/{{ mssql_primary_node }}.{{ domain_name }} {{ win_sql_svc_account }}'
@@ -80,7 +75,7 @@
     name:                              MSSQLSERVER
     state:                             stopped
     username:                          "{{ win_sql_svc_account }}"
-    password:                          ""
+    password:                          '{{ win_sql_svc_password }}'
     force_dependent_services:          true
 
 - name:                                "Convert SQL Server agent service from running with local account to domain account"
@@ -88,7 +83,7 @@
     name:                              SQLSERVERAGENT
     state:                             stopped
     username:                          "{{ win_sqlagent_svc_account }}"
-    password:                          ""
+    password:                          '{{ win_sqlagent_svc_password }}'
 
 - name:                                "Start SQL Server service "
   ansible.windows.win_service:

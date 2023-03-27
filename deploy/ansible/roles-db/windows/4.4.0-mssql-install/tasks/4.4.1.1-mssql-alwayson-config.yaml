@@ -59,6 +59,13 @@
       retries:                         6
       delay:                           20
 
+    # restart SQL Server service
+    - name:                            "ReStart SQL Server service on {{ ansible_hostname }}"
+      ansible.windows.win_service:
+        name:                          MSSQLSERVER
+        state:                         restarted
+        force_dependent_services:      true
+
     - name:                            "Create AG for SQL Server"
       ansible.windows.win_dsc:
         resource_name:                 SqlAG
@@ -184,6 +191,13 @@
       retries:                         6
       delay:                           20
 
+    # restart SQL Server service
+    - name:                            "ReStart SQL Server service on {{ ansible_hostname }}"
+      ansible.windows.win_service:
+        name:                          MSSQLSERVER
+        state:                         restarted
+        force_dependent_services:      true
+
     - name:                            "Set SQL Server Always On Endpoint Permission"
       ansible.windows.win_dsc:
         resource_name:                 SqlEndpointPermission
@@ -242,7 +256,6 @@
     #     PsDscRunAsCredential_username: "{{ domain_service_account }}@{{ domain_name }}"
     #     PsDscRunAsCredential_password: "{{ domain_service_password }}"
     #   register:                            sql_ag_db_creation
-
 
 
 - name:                            "Add DB {{ db_sid | upper }} to AG: {{ mssql_ag_name }}"
