@@ -81,7 +81,7 @@
       delay:                           20
 
     # restart SQL Server service
-    - name:                            "ReStart SQL Server service on {{ ansible_hostname }}"
+    - name:                            "Restart SQL Server service on {{ ansible_hostname }}"
       ansible.windows.win_service:
         name:                          MSSQLSERVER
         state:                         restarted
@@ -119,7 +119,7 @@
       ansible.builtin.set_fact:
         db_lb_ipv4:                    "{{ db_lb_ip }}/{{ db_subnet_prefix }}"
 
-    - name:                            "calcualte subnet mask"
+    - name:                            "calculate subnet mask"
       ansible.builtin.set_fact:
         db_subnet_mask:                "{{ db_lb_ipv4 | ansible.utils.ipaddr('host/prefix') | ansible.utils.ipaddr('netmask') }}"
 
@@ -130,6 +130,13 @@
           - "LB IP: {{ db_lb_ip }}"
           - "LB IP with subnet prefix: {{ db_lb_ipv4 }}"
           - "Subnet mask: {{ db_subnet_mask }}"
+
+    # restart SQL Server service
+    - name:                            "Restart SQL Server service on {{ ansible_hostname }}"
+      ansible.windows.win_service:
+        name:                          MSSQLSERVER
+        state:                         restarted
+        force_dependent_services:      true
 
     - name:                            "Create AG Listener for SQL Server"
       ansible.windows.win_dsc:
