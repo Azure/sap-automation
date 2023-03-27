@@ -42,7 +42,7 @@ output "db_lb_ip" {
 
 output "db_clst_lb_ip" {
   value = local.anydb_ha && local.winHA ? (
-    azurerm_lb.anydb[0].frontend_ip_configuration[1].private_ip_address) : (
+    try(azurerm_lb.anydb[0].frontend_ip_configuration[1].private_ip_address, "")) : (
     ""
   )
 
@@ -92,7 +92,7 @@ output "dns_info_loadbalancers" {
       local.prefix,
       var.naming.separator,
       local.resource_suffixes.db_alb
-    )], [azurerm_lb.anydb[0].private_ip_addresses[0]])) : (
+    )], [try(azurerm_lb.anydb[0].private_ip_addresses[0], "")])) : (
     null
   )
 }
