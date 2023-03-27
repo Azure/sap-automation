@@ -8,6 +8,26 @@
     - PSDesiredStateConfiguration
     - SqlServerDsc
 
+- name:                                "WIN: Calculating the domain value from {{ domain_name }}"
+  ansible.builtin.set_fact:
+    domain:                            "{{ domain_name | split('.') | first }}"
+    cacheable:                         true
+  when:
+    - domain_name is defined
+    - domain_name | type_debug != 'NoneType'
+    - domain_name | trim | length > 1
+    - domain is not defined
+
+- name:                                'WIN: Calculating the domain\service account names'
+  ansible.builtin.set_fact:
+    domain_sqlsvc_account:            '{{ domain | lower }}\{{ win_sql_svc_account }}'
+    domain_sqlagent_account:          '{{ domain | lower }}\{{ win_sqlagent_svc_account }}'
+    cacheable:                         true
+  when:
+    - domain is defined
+    - domain_sqlsvc_account is not defined
+    - domain_sqlagent_account is not defined
+
 - name:                                "WIN: Joining the domain {{ domain }}"
   ansible.builtin.debug:
     msg:
@@ -34,7 +54,7 @@
   become_user:                         '{{ orchestration_ansible_user }}'
   ansible.windows.win_user_right:
     name:                              '{{ privilege_constant }}'
-    users:                             '{{ win_sql_svc_account }}'
+    users:                             '{{ domain_sqlsvc_account }}'
     action:                            add
   loop:
     - SeServiceLogonRight
@@ -53,7 +73,7 @@
   become_user:                         '{{ orchestration_ansible_user }}'
   ansible.windows.win_user_right:
     name:                              '{{ privilege_constant }}'
-    users:                             '{{ win_sqlagent_svc_account }}'
+    users:                             '{{ domain_sqlagent_account }}'
     action:                            add
   loop:
     - SeServiceLogonRight
@@ -65,16 +85,16 @@
 
 - name:                                "Add SPNs for the gMSA account"
   ansible.windows.win_shell: |
-    'setspn -A MSSQLSvc/{{ mssql_primary_node }}.{{ domain_name }} {{ win_sql_svc_account }}'
-    'setspn -A MSSQLSvc/{{ mssql_primary_node }}.{{ domain_name }}:1433 {{ win_sql_svc_account }}'
-    'setspn -A MSSQLSvc/{{ mssql_secondary_node }}.{{ domain_name }} {{ win_sql_svc_account }}'
-    'setspn -A MSSQLSvc/{{ mssql_secondary_node }}.{{ domain_name }}:1433 {{ win_sql_svc_account }}'
+    'setspn -A MSSQLSvc/{{ mssql_primary_node }}.{{ domain_name }} {{ domain_sqlsvc_account }}'
+    'setspn -A MSSQLSvc/{{ mssql_primary_node }}.{{ domain_name }}:1433 {{ domain_sqlsvc_account }}'
+    'setspn -A MSSQLSvc/{{ mssql_secondary_node }}.{{ domain_name }} {{ domain_sqlsvc_account }}'
+    'setspn -A MSSQLSvc/{{ mssql_secondary_node }}.{{ domain_name }}:1433 {{ domain_sqlsvc_account }}'
 
 - name:                                "Convert SQL Server service from running with local account to domain account"
   ansible.windows.win_service:
     name:                              MSSQLSERVER
     state:                             stopped
-    username:                          "{{ win_sql_svc_account }}"
+    username:                          "{{ domain_sqlsvc_account }}"
     password:                          '{{ win_sql_svc_password }}'
     force_dependent_services:          true
 
@@ -82,7 +102,7 @@
   ansible.windows.win_service:
     name:                              SQLSERVERAGENT
     state:                             stopped
-    username:                          "{{ win_sqlagent_svc_account }}"
+    username:                          "{{ domain_sqlagent_account }}"
     password:                          '{{ win_sqlagent_svc_password }}'
 
 - name:                                "Start SQL Server service "
@@ -108,8 +128,8 @@
     PsDscRunAsCredential_password:     "{{ domain_service_password }}"
   loop:
     - "{{ win_cluster_svc_account }}"
-    - "{{ win_sql_svc_account }}"
-    - "{{ win_sqlagent_svc_account }}"
+    - "{{ domain_sqlsvc_account }}"
+    - "{{ domain_sqlagent_account }}"
     - '{{ domain | upper }}\{{ domain_service_account }}'
   register:                           sql_login
 
@@ -121,8 +141,8 @@
     InstanceName:                      "{{ mssql_instance_name }}"
     ServerRoleName:                    "sysadmin"
     MembersToInclude:
-      - "{{ win_sql_svc_account }}"
-      - "{{ win_sqlagent_svc_account }}"
+      - "{{ domain_sqlsvc_account }}"
+      - "{{ domain_sqlagent_account }}"
       - '{{ domain | upper }}\{{ domain_service_account }}'
     PsDscRunAsCredential_username:     '{{ sap_sid }}adm@{{ domain_name }}'
     PsDscRunAsCredential_password:     '{{ domain_user_password }}'
@@ -145,8 +165,8 @@
     Name:                              "{{ item }}"
   loop:
     - "{{ win_cluster_svc_account }}"
-    - "{{ win_sql_svc_account }}"
-    - "{{ win_sqlagent_svc_account }}"
+    - "{{ domain_sqlsvc_account }}"
+    - "{{ domain_sqlagent_account }}"
     - '{{ domain | upper }}\{{ domain_service_account }}'
   register:                           sql_server_permission
 

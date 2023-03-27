@@ -1,5 +1,16 @@
 ---
 # +------------------------------------4--------------------------------------*/
+
+- name:                                "WIN: Calculating the domain value from {{ domain_name }}"
+  ansible.builtin.set_fact:
+    domain:                            "{{ domain_name | split('.') | first }}"
+    cacheable:                         true
+  when:
+    - domain_name is defined
+    - domain_name | type_debug != 'NoneType'
+    - domain_name | trim | length > 1
+    - domain is not defined
+
 - name:                                "WIN: validating the domain is defined {{ domain }}"
   ansible.builtin.debug:
     msg:
@@ -18,6 +29,16 @@
       - "Domain service account is not defined"
       - "Domain service account password is not defined"
     quiet:                            true
+
+- name:                                'WIN: Calculating the domain\service account names'
+  ansible.builtin.set_fact:
+    domain_sqlsvc_account:            '{{ domain | lower }}\{{ win_sql_svc_account }}'
+    domain_sqlagent_account:          '{{ domain | lower }}\{{ win_sqlagent_svc_account }}'
+    cacheable:                         true
+  when:
+    - domain is defined
+    - domain_sqlsvc_account is not defined
+    - domain_sqlagent_account is not defined
 
 - name:                                "HADR: Define SQL Server AG name"
   ansible.builtin.set_fact:
@@ -39,7 +60,7 @@
         ServerName:                    "{{ ansible_hostname }}"
         InstanceName:                  "{{ mssql_instance_name }}"
         Name:                          "SDAF-HADR"
-        Principal:                     "{{ win_sql_svc_account }}"
+        Principal:                     "{{ domain_sqlsvc_account }}"
         Permission:                    "CONNECT"
         PsDscRunAsCredential_username: "{{ domain_service_account }}@{{ domain_name }}"
         PsDscRunAsCredential_password: "{{ domain_service_password }}"
@@ -205,7 +226,7 @@
         ServerName:                    "{{ ansible_hostname }}"
         InstanceName:                  "{{ mssql_instance_name }}"
         Name:                          "SDAF-HADR"
-        Principal:                     "{{ win_sql_svc_account }}"
+        Principal:                     "{{ domain_sqlsvc_account }}"
         Permission:                    "CONNECT"
         PsDscRunAsCredential_username: "{{ domain_service_account }}@{{ domain_name }}"
         PsDscRunAsCredential_password: "{{ domain_service_password }}"
