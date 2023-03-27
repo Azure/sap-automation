@@ -146,7 +146,7 @@
         ServerName:                    "{{ ansible_hostname }}"
         InstanceName:                  "{{ mssql_instance_name }}"
         AvailabilityGroup:             "{{ mssql_ag_name }}"
-        Port:                          5022
+        Port:                          1433
         IpAddress:                     "{{ db_lb_ip }}/{{ db_subnet_mask }}"
         PsDscRunAsCredential_username: "{{ domain_service_account }}@{{ domain_name }}"
         PsDscRunAsCredential_password: "{{ domain_service_password }}"
