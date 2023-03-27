@@ -186,6 +186,19 @@
       retries:                         6
       delay:                           20
 
+    - name:                            "Set SQL Server Always On Endpoint Permission"
+      ansible.windows.win_dsc:
+        resource_name:                 SqlEndpointPermission
+        Ensure:                        Present
+        ServerName:                    "{{ ansible_hostname }}"
+        InstanceName:                  "{{ mssql_instance_name }}"
+        Name:                          "SDAF-HADR"
+        Principal:                     "{{ win_sql_svc_account }}"
+        Permission:                    "CONNECT"
+        PsDscRunAsCredential_username: "{{ domain_service_account }}@{{ domain_name }}"
+        PsDscRunAsCredential_password: "{{ domain_service_password }}"
+      register:                        sql_always_on_endpoint_permission
+
     - name:                            "Wait for AvailabilityGroup to be available on secondary node"
       ansible.windows.win_dsc:
         resource_name:                 SqlWaitForAG
