@@ -238,7 +238,7 @@
             winadm_password:           "{{ hostvars.localhost.winadm_password }}"
             domain_service_password:   "{{ hostvars.localhost.adsvc_password }}"
             domain_service_account:    "{{ hostvars.localhost.adsvc_account }}"
-            sql_svc_account:           "{{ domain_sqlsvc_account }}"
+            sql_svc_account:           "{{ sql_svc_account_name }}"
             win_sql_svc_account:       "{{ sql_svc_account_name }}"
 
         - name:                        "SAP OS configuration playbook: - Mounting Shared Folder"
