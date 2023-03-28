@@ -5,7 +5,20 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: ansible/ansible-lint-action@v6.11.0
-        with:
-          path: deploy/ansible
+      - name: Checkout Sources
+        uses: actions/checkout@v3
+
+      - name: Install Ansible
+        run: sudo apt-get install -y ansible
+
+      - name: Install Ansible-Galaxy Requirements
+        run: ansible-galaxy install -r deploy/ansible/requirements.yml
+
+      - name: Install Ansible Lint
+        run: sudo apt-get install -y ansible-lint
+      
+      - name: Run Lint on yaml files
+        run: find ./deploy/ansible -name "*.yaml" | xargs ansible-lint -c ./.ansible-lint 
+
+      - name: Run Lint on yml files
+        run: find ./deploy/ansible -name "*.yml" | xargs ansible-lint  -c ./.ansible-lint
