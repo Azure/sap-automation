@@ -577,11 +577,11 @@
               tags:
                 - 4.4.1.0-mssql-alwayson
 
-            - name:                    "SQLServer HA - Create alwayson-config-done flag"
+            - name:                           "SQLServer HA - Create alwayson-config-done flag"
               ansible.windows.win_file:
-                path:                              '{{ sap_deployment_automation }}\{{ sap_sid | upper }}\alwayson-config-done.txt'
-                state:                             touch
-                force:                             yes
+                path:                         '{{ sap_deployment_automation }}\{{ sap_sid | upper }}\alwayson-config-done.txt'
+                state:                        touch
+                force:                        yes
 
 # # /*-------------------------------------------------------------------------8
 # # |                                                                          |

@@ -37,10 +37,10 @@
 
 - name:                                "WinCluster-PreReq: Add the windows cluster features"
   ansible.windows.win_feature:
-    name: "{{ item }}"
-    state: present
-    include_management_tools: true
-    include_sub_features: true
+    name:                              "{{ item }}"
+    state:                             present
+    include_management_tools:          true
+    include_sub_features:              true
   with_items:
     - Failover-Clustering
     - RSAT-Clustering
@@ -50,10 +50,10 @@
 
 - name:                                "WinCluster-PreReq: Ensure Registry Services is Running"
   ansible.windows.win_dsc:
-    resource_name:                    Service
-    Name:                             "{{ item }}"
-    State:                            Running
-    StartupType:                      Automatic
+    resource_name:                     Service
+    Name:                              "{{ item }}"
+    State:                             Running
+    StartupType:                       Automatic
   loop:
     - TermService
     - RemoteRegistry

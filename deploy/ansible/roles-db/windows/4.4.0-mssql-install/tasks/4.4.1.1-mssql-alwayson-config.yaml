@@ -298,9 +298,9 @@
   when:
     - ansible_hostname == mssql_secondary_node
   block:
-    - name:                            "Wait for configuration on mssql_secondary_node to finish"
+    - name:                            "Wait for configuration on {{ mssql_primary_node }} to finish"
       ansible.builtin.set_fact:
-        is_db_added_to_ag_primary:   "{{ hostvars[mssql_primary_node].sql_ag_db_creation is defined }}"
+        is_db_added_to_ag_primary:     "{{ hostvars[mssql_primary_node].sql_ag_db_creation is defined }}"
       retries:                         30
       delay:                           60
       until:                           is_db_added_to_ag_primary
@@ -320,6 +320,62 @@
       register:                        sql_ag_db_creation
       when:
         - is_db_added_to_ag_primary
+
+- name:                                "Set environment variables required for SAP"
+  become:                              true
+  become_method:                       runas
+  block:
+    - name:                            "Calculate the SCS Virtual Instance hostname"
+      ansible.builtin.set_fact:
+        scs_virtual_hostname:          "{{ sap_sid | lower }}scs{{ scs_instance_number }}cl1"
+
+    - name:                            "Set environment variables required for AlwaysON required by SAP"
+      ansible.windows.win_environment:
+        name:                          "{{ item.varname }}"
+        value:                         "{{ item.value }}"
+        state:                         present
+        level:                         user
+      with_items:
+        - { varname: 'SAPSYSTEMNAME',  value: "{{ sap_sid | upper }}" }
+        - { varname: 'DBMS_TYPE',      value: "mss" }
+        - { varname: 'MSSQL_SERVER',   value: "{{ mssql_ag_listener_name }}" }
+        - { varname: 'SAPEXE',         value: '\\{{ scs_virtual_hostname }}\sapmnt\{{ sap_sid | upper }}\SYS\exe\uc\NTAMD64' }
+      vars:
+        ansible_become_user:           '{{ sap_sid }}adm@{{ domain_name }}'
+        ansible_become_password:       '{{ domain_user_password }}'
+
+    - name:                            "Update DEFAULT.PFL - change SAPDBHOST"
+      ansible.builtin.win_lineinfile:
+        backup:                        true
+        path:                          '\\{{ scs_virtual_hostname }}\sapmnt\{{ sap_sid | upper }}\SYS\profile\DEFAULT.PFL'
+        regexp:                        '^SAPDBHOST ='
+        line:                          'SAPDBHOST = {{ mssql_ag_listener_name }}'
+        state:                         present
+      vars:
+        ansible_become_user:           '{{ sap_sid }}adm@{{ domain_name }}'
+        ansible_become_password:       '{{ domain_user_password }}'
+
+    - name:                            'Update DEFAULT.PFL - change dbs/mss/server'
+      ansible.builtin.win_lineinfile:
+        backup:                        true
+        path:                          '\\{{ scs_virtual_hostname }}\sapmnt\{{ sap_sid | upper }}\SYS\profile\DEFAULT.PFL'
+        regexp:                        '^dbs/mss/server = '
+        line:                          'dbs/mss/server = {{ mssql_ag_listener_name }}'
+        state:                         present
+      vars:
+        ansible_become_user:           '{{ sap_sid }}adm@{{ domain_name }}'
+        ansible_become_password:       '{{ domain_user_password }}'
+
+    - name:                            'Update DEFAULT.PFL - change j2ee/dbhost'
+      ansible.builtin.win_lineinfile:
+        backup:                        true
+        path:                          '\\{{ scs_virtual_hostname }}\sapmnt\{{ sap_sid | upper }}\SYS\profile\DEFAULT.PFL'
+        regexp:                        '^j2ee/dbhost = '
+        line:                          'j2ee/dbhost = {{ mssql_ag_listener_name }}'
+        state:                         present
+      vars:
+        ansible_become_user:           '{{ sap_sid }}adm@{{ domain_name }}'
+        ansible_become_password:       '{{ domain_user_password }}'
 
 
 ...
