@@ -205,11 +205,6 @@
             - hostvars.localhost.sqlsvc_account is defined or win_sql_svc_account is defined
             - sql_svc_account_name is not defined
 
-        - name:                        "SAP OS configuration playbook: - display accounts 001"
-          ansible.builtin.debug:
-            msg:
-              - "sql_svc_account_name: {{ sql_svc_account_name }}"
-
         - name:                                'SAP OS configuration playbook: - Calculating the domain service account names'
           ansible.builtin.set_fact:
             domain_sqlsvc_account:            '{{ domain | lower }}\{{ sql_svc_account_name }}'
@@ -226,11 +221,6 @@
             - domain is defined
             - sql_svc_account_name is not defined
 
-        - name:                        "SAP OS configuration playbook: - display accounts 002"
-          ansible.builtin.debug:
-            msg:
-              - "sql_svc_account_name: {{ sql_svc_account_name }}"
-
         - name:                        "SAP OS configuration playbook: - Add local groups and Permissions"
           ansible.builtin.include_role:
             name:                      roles-sap-os/windows/2.5-sap-users
@@ -246,8 +236,7 @@
             winadm_password:           "{{ hostvars.localhost.winadm_password }}"
             domain_service_password:   "{{ hostvars.localhost.adsvc_password }}"
             domain_service_account:    "{{ hostvars.localhost.adsvc_account }}"
-            sql_svc_account:           "{{ sql_svc_account_name }}"
-            win_sql_svc_account:       "{{ sql_svc_account_name }}"
+            sql_svc_account:           "{{ domain_sqlsvc_account }}"
 
         - name:                        "SAP OS configuration playbook: - Mounting Shared Folder"
           ansible.builtin.include_role:
