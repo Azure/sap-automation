@@ -213,14 +213,6 @@
             - domain is defined
             - domain_sqlsvc_account is not defined
 
-        - name:                        'SAP OS Configuration playbook: - calculate domain account'
-          ansible.builtin.set_fact:
-            sql_svc_account_name:      '{% if hostvars.localhost.sqlsvc_account is defined %}{{ domain | lower }}\{{ hostvars.localhost.sqlsvc_account }}{% else %}{{ win_sql_svc_account }}{% endif %}'
-            cacheable:                 true
-          when:
-            - domain is defined
-            - sql_svc_account_name is not defined
-
         - name:                        "SAP OS configuration playbook: - Add local groups and Permissions"
           ansible.builtin.include_role:
             name:                      roles-sap-os/windows/2.5-sap-users
