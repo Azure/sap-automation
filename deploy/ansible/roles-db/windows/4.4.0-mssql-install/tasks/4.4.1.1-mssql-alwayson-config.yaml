@@ -270,7 +270,7 @@
         PsDscRunAsCredential_password: "{{ domain_service_password }}"
       register:                        sql_ag_replica_creation
 
-- name:                                "Add database to SQL AG"
+- name:                                "Add database to SQL AG - {{ mssql_primary_node }}"
   when:
     - ansible_hostname == mssql_primary_node
   block:
@@ -296,6 +296,33 @@
       register:                        sql_ag_db_creation
       when:
         - is_sql_secondary_configured
+
+- name:                                "Add database to SQL AG - {{ mssql_secondary_node }}"
+  when:
+    - ansible_hostname == mssql_secondary_node
+  block:
+    - name:                            "Wait for configuration on mssql_secondary_node to finish"
+      ansible.builtin.set_fact:
+        is_db_added_to_ag_primary:   "{{ hostvars[mssql_primary_node].sql_ag_db_creation is defined }}"
+      retries:                         30
+      delay:                           60
+      until:                           is_db_added_to_ag_primary
+
+    - name:                            "Add DB {{ db_sid | upper }} to AG: {{ mssql_ag_name }}"
+      ansible.windows.win_dsc:
+        resource_name:                 SqlAGDatabase
+        Ensure:                        Present
+        AvailabilityGroupName:         "{{ mssql_ag_name }}"
+        ServerName:                    "{{ mssql_secondary_node }}"
+        InstanceName:                  "{{ mssql_instance_name }}"
+        DatabaseName:                  "{{ db_sid | upper }}"
+        ProcessOnlyOnActiveNode:       true
+        BackupPath:                    "{{ mssql_backup_path }}"
+        PsDscRunAsCredential_username: "{{ domain_service_account }}@{{ domain_name }}"
+        PsDscRunAsCredential_password: "{{ domain_service_password }}"
+      register:                        sql_ag_db_creation
+      when:
+        - is_db_added_to_ag_primary
 
 
 ...
