@@ -22,11 +22,9 @@
   ansible.builtin.set_fact:
     domain_sqlsvc_account:            '{{ domain | upper }}\{{ win_sql_svc_account }}'
     domain_sqlagent_account:          '{{ domain | upper }}\{{ win_sqlagent_svc_account }}'
-    cacheable:                         true
   when:
     - domain is defined
-    - domain_sqlsvc_account is not defined
-    - domain_sqlagent_account is not defined
+
 
 - name:                                "WIN: Joining the domain {{ domain }}"
   ansible.builtin.debug:
