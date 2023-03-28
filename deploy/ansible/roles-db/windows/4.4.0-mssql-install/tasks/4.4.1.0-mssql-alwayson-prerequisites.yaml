@@ -20,8 +20,8 @@
 
 - name:                                'WIN: Calculating the domain\service account names'
   ansible.builtin.set_fact:
-    domain_sqlsvc_account:            '{{ domain | lower }}\{{ win_sql_svc_account }}'
-    domain_sqlagent_account:          '{{ domain | lower }}\{{ win_sqlagent_svc_account }}'
+    domain_sqlsvc_account:            '{{ domain | upper }}\{{ win_sql_svc_account }}'
+    domain_sqlagent_account:          '{{ domain | upper }}\{{ win_sqlagent_svc_account }}'
     cacheable:                         true
   when:
     - domain is defined

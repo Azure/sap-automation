@@ -207,7 +207,7 @@
 
         - name:                                'SAP OS configuration playbook: - Calculating the domain service account names'
           ansible.builtin.set_fact:
-            domain_sqlsvc_account:            '{{ domain | lower }}\{{ sql_svc_account_name }}'
+            domain_sqlsvc_account:            '{{ domain | upper }}\{{ sql_svc_account_name }}'
             cacheable:                         true
           when:
             - domain is defined
