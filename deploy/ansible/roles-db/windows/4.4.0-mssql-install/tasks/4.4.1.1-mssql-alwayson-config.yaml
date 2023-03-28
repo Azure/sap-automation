@@ -313,7 +313,7 @@
         resource_name:                 SqlAGDatabase
         Ensure:                        Present
         AvailabilityGroupName:         "{{ mssql_ag_name }}"
-        ServerName:                    "{{ mssql_secondary_node }}"
+        ServerName:                    "{{ mssql_primary_node }}"
         InstanceName:                  "{{ mssql_instance_name }}"
         DatabaseName:                  "{{ db_sid | upper }}"
         ProcessOnlyOnActiveNode:       true
