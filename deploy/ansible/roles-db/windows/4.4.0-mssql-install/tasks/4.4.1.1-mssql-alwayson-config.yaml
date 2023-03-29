@@ -336,10 +336,22 @@
         state:                         present
         level:                         user
       with_items:
-        - { varname: 'SAPSYSTEMNAME',  value: "{{ sap_sid | upper }}" }
-        - { varname: 'DBMS_TYPE',      value: "mss" }
-        - { varname: 'MSSQL_SERVER',   value: "{{ mssql_ag_listener_name }}" }
+        - { varname: 'SAPSYSTEMNAME',  value: "{{ sap_sid | upper }}"                                                        }
+        - { varname: 'DBMS_TYPE',      value: "mss"                                                                          }
+        - { varname: 'MSSQL_SERVER',   value: "{{ mssql_ag_listener_name }}"                                                 }
         - { varname: 'SAPEXE',         value: '\\{{ scs_virtual_hostname }}\sapmnt\{{ sap_sid | upper }}\SYS\exe\uc\NTAMD64' }
+      vars:
+        ansible_become_user:           '{{ sap_sid }}adm@{{ domain_name }}'
+        ansible_become_password:       '{{ domain_user_password }}'
+
+    - name:                            "Update path variables required on the machines"
+      ansible.windows.win_path:
+        name:                          '{{ item.value }}'
+        state:                         present
+        scope:                         '{{ item.scope }}'
+      with_items:
+        - { scope: 'machine',          value: '\\{{ scs_virtual_hostname }}\sapmnt\{{ sap_sid | upper }}\SYS\exe\uc\NTAMD64' }
+        - { scope: 'user',             value: '\\{{ scs_virtual_hostname }}\sapmnt\{{ sap_sid | upper }}\SYS\exe\uc\NTAMD64' }
       vars:
         ansible_become_user:           '{{ sap_sid }}adm@{{ domain_name }}'
         ansible_become_password:       '{{ domain_user_password }}'
