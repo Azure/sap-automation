@@ -33,7 +33,7 @@
       - physical_disk
       - virtual_disk
       - win32_disk_drive
-      - partitions"
+      - partitions
 
 - name:                                "1.5 Disk setup - Show disk info"
   ansible.builtin.debug:
