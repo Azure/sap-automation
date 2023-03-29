@@ -348,34 +348,18 @@
       ansible.builtin.win_lineinfile:
         backup:                        true
         path:                          '\\{{ scs_virtual_hostname }}\sapmnt\{{ sap_sid | upper }}\SYS\profile\DEFAULT.PFL'
-        regexp:                        '^SAPDBHOST ='
-        line:                          'SAPDBHOST = {{ mssql_ag_listener_name }}'
+        regexp:                        '{{ item.regex }}'
+        line:                          '{{ item.value }}'
         state:                         present
+      with_items:
+        - { regex: '^SAPDBHOST =',     value: 'SAPDBHOST = {{ mssql_ag_listener_name }}'      }
+        - { regex: '^dbs/mss/server =',value: 'dbs/mss/server = {{ mssql_ag_listener_name }}' }
+        - { regex: '^j2ee/dbhost = ',  value: 'j2ee/dbhost = {{ mssql_ag_listener_name }}'    }
       vars:
         ansible_become_user:           '{{ sap_sid }}adm@{{ domain_name }}'
         ansible_become_password:       '{{ domain_user_password }}'
-
-    - name:                            'Update DEFAULT.PFL - change dbs/mss/server'
-      ansible.builtin.win_lineinfile:
-        backup:                        true
-        path:                          '\\{{ scs_virtual_hostname }}\sapmnt\{{ sap_sid | upper }}\SYS\profile\DEFAULT.PFL'
-        regexp:                        '^dbs/mss/server = '
-        line:                          'dbs/mss/server = {{ mssql_ag_listener_name }}'
-        state:                         present
-      vars:
-        ansible_become_user:           '{{ sap_sid }}adm@{{ domain_name }}'
-        ansible_become_password:       '{{ domain_user_password }}'
-
-    - name:                            'Update DEFAULT.PFL - change j2ee/dbhost'
-      ansible.builtin.win_lineinfile:
-        backup:                        true
-        path:                          '\\{{ scs_virtual_hostname }}\sapmnt\{{ sap_sid | upper }}\SYS\profile\DEFAULT.PFL'
-        regexp:                        '^j2ee/dbhost = '
-        line:                          'j2ee/dbhost = {{ mssql_ag_listener_name }}'
-        state:                         present
-      vars:
-        ansible_become_user:           '{{ sap_sid }}adm@{{ domain_name }}'
-        ansible_become_password:       '{{ domain_user_password }}'
+      when:
+        - ansible_hostname == mssql_primary_node
 
 
 ...
