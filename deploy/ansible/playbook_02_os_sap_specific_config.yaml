@@ -218,18 +218,6 @@
             - domain is defined
             - domain_sqlsvc_account is not defined
 
-        - name:                        "SAP OS configuration playbook: - Add packages"
-          ansible.builtin.include_role:
-            name:                      roles-os/windows/1.4-packages
-          tags:
-            - 1.4-packages
-          vars:
-            winadm_password:           "{{ hostvars.localhost.winadm_password }}"
-            domain_service_password:   "{{ hostvars.localhost.adsvc_password }}"
-            domain_service_account:    "{{ hostvars.localhost.adsvc_account }}"
-            domain_user_password:      "{{ hostvars.localhost.winadm_password }}"
-
-
         - name:                        "SAP OS configuration playbook: - Add local groups and Permissions"
           ansible.builtin.include_role:
             name:                      roles-sap-os/windows/2.5-sap-users

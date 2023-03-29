@@ -299,6 +299,19 @@
           block:
             - name:                    "SCS Installation - Windows based systems"
               block:
+
+                - name:                "SCS Installation - Add packages"
+                  ansible.builtin.include_role:
+                    name:                      roles-os/windows/1.4-packages
+                  tags:
+                    - 1.4-packages
+                  vars:
+                    winadm_password:           "{{ hostvars.localhost.winadm_password }}"
+                    domain_service_password:   "{{ hostvars.localhost.adsvc_password }}"
+                    domain_service_account:    "{{ hostvars.localhost.adsvc_account }}"
+                    domain_user_password:      "{{ hostvars.localhost.winadm_password }}"
+                    tier:                      app_tier
+
                 - name:                "SCS Installation Playbook: - Install using sapinst"
                   ansible.builtin.include_role:
                     name:              roles-sap/windows/5.0.0-scs-install

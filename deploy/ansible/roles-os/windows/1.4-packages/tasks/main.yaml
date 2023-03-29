@@ -85,7 +85,7 @@
 - name:                                "Component Install"
   when:                                
    - node_tier in ['scs','ers','app','pas']
-   - tier == 'sapos'
+   - tier == 'app_tier'
   block:
 
 #   2x) Install vcredist package then reboot.
