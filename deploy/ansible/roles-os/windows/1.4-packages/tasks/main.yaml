@@ -50,6 +50,7 @@
   ansible.windows.win_shell:           Install-Module PowerShellGet -AllowClobber -Force
   when:
     - not powershell_get_installed.stat.exists
+    - tier == 'os'
 
 - name:                                "PowerShellGet || Flag File"
   ansible.windows.win_file:
@@ -71,6 +72,8 @@
     - WindowsDefender
     - ServerManager
     - SecurityPolicyDsc
+  when:
+    - tier == 'os'
 
 - name:                                "Disable UAC for admin accounts"
   ansible.windows.win_dsc:
