@@ -80,7 +80,9 @@
   notify:                              reboot
 
 - name:                                "Component Install"
-  when:                                node_tier in ['scs','ers','app','pas']
+  when:                                
+   - node_tier in ['scs','ers','app','pas']
+   - tier == 'sapos'
   block:
 
 #   2x) Install vcredist package then reboot.
