@@ -170,6 +170,8 @@
     - name:                            "PAS Installation Playbook: Define list of SIDs"
       ansible.builtin.set_fact:
         all_sids:                      "{% if MULTI_SIDS is defined %}{{ MULTI_SIDS }}{% else %}{{ all_sids | default([]) + [this_sid] }}{% endif %}"
+      when:
+        - "'pas' in supported_tiers"
 
 # -------------------------------------+---------------------------------------8
 # Role: 5.2-PAS Installation
