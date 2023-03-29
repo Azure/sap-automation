@@ -702,6 +702,7 @@ if ($found_appRegistration.Length -ne 0) {
   $confirmation = Read-Host "Reset the app registration secret y/n?"
   if ($confirmation -eq 'y') {
     $WEB_APP_CLIENT_SECRET = (az ad app credential reset --id $APP_REGISTRATION_ID --append --query "password" --out tsv --only-show-errors)
+  }
   else
   {
     $WEB_APP_CLIENT_SECRET = Read-Host "Please enter the app registration secret"
