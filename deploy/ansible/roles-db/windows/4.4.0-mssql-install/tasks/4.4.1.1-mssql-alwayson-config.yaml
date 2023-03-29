@@ -344,7 +344,7 @@
         ansible_become_user:           '{{ sap_sid }}adm@{{ domain_name }}'
         ansible_become_password:       '{{ domain_user_password }}'
 
-    - name:                            "Update DEFAULT.PFL - change SAPDBHOST"
+    - name:                            "Update DEFAULT.PFL - make changes for HA"
       ansible.builtin.win_lineinfile:
         backup:                        true
         path:                          '\\{{ scs_virtual_hostname }}\sapmnt\{{ sap_sid | upper }}\SYS\profile\DEFAULT.PFL'
