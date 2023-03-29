@@ -38,11 +38,6 @@
 
 - name:                                "1.5 Disk setup - Get disk facts"
   community.windows.win_disk_facts:
-    filter:
-      - physical_disk
-      - virtual_disk
-      - win32_disk_drive
-      - partitions
 
 - name:                                "1.5 Disk setup - Show disk info"
   ansible.builtin.debug:
