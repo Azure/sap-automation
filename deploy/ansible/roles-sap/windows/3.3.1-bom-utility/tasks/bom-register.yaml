@@ -54,6 +54,7 @@
     msg:
       - "{{ result }}"
       - "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ bom_name }}/{{ bom_name }}.yaml{{ sapbits_sas_token }}"
+    verbosity:                         2
 
 - name:                                "3.3.1 BoM Processing: Register BOM ({{ bom_name }}) from Storage Account"
   block:
