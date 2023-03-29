@@ -177,6 +177,10 @@
 
     - name:                            OS Configuration - Windows based systems
       block:
+        - name:                        "OS configuration playbook: - Set os fact"
+          ansible.builtin.set_fact:
+            tier: os
+
         - name:                        "OS configuration playbook: - Debug"
           ansible.builtin.debug:
             var:                       hostvars.localhost
