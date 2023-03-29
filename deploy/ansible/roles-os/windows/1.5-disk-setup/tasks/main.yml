@@ -28,9 +28,9 @@
 #
 - name: "update the community.windows to fix the win_disk_facts module"
   delegate_to: localhost
-  ansible.builtin.shell: |
+  become: true
+  ansible.builtin.raw: |
     source /opt/ansible/venv/2.13/bin/activate
-    export ANSIBLE_COLLECTIONS_PATHS=/opt/ansible/collections
     ansible-galaxy collection install git+https://github.com/ansible-collections/community.windows,main --force --collections-path /opt/ansible/collections
     deactivate
 
