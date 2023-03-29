@@ -155,7 +155,9 @@ resource "azurerm_storage_account_network_rules" "witness" {
   provider = azurerm.main
   count    = var.enable_firewall_for_keyvaults_and_storage && length(var.witness_storage_account.arm_id) == 0 ? 1 : 0
   depends_on = [
-    azurerm_storage_account.witness_storage
+    azurerm_storage_account.witness_storage,
+    azurerm_subnet.db,
+    azurerm_subnet.app
   ]
   storage_account_id = azurerm_storage_account.witness_storage[0].id
   default_action     = "Deny"
