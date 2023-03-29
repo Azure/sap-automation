@@ -114,7 +114,7 @@ resource "azurerm_subnet_route_table_association" "admin" {
   ]
 
   count          = local.admin_subnet_defined && !local.vnet_sap_exists && !local.admin_subnet_existing ? 1 : 0
-  subnet_id      = local.admin_subnet_existing ? local.admin_subnet_arm_id : azurerm_subnet.admin[0].id
+  subnet_id      = local.admin_subnet_existing ? var.infrastructure.vnets.sap.subnet_admin.arm_id : azurerm_subnet.admin[0].id
   route_table_id = azurerm_route_table.rt[0].id
 }
 
@@ -126,7 +126,7 @@ resource "azurerm_subnet_route_table_association" "db" {
   ]
 
   count          = local.database_subnet_defined && !local.vnet_sap_exists && !local.database_subnet_existing ? 1 : 0
-  subnet_id      = local.database_subnet_existing ? local.database_subnet_arm_id : azurerm_subnet.db[0].id
+  subnet_id      = local.database_subnet_existing ? var.infrastructure.vnets.sap.subnet_db.arm_id : azurerm_subnet.db[0].id
   route_table_id = azurerm_route_table.rt[0].id
 }
 
@@ -137,7 +137,7 @@ resource "azurerm_subnet_route_table_association" "app" {
     azurerm_subnet.db
   ]
   count          = local.application_subnet_defined && !local.vnet_sap_exists && !local.application_subnet_existing ? 1 : 0
-  subnet_id      = local.application_subnet_existing ? local.application_subnet_arm_id : azurerm_subnet.app[0].id
+  subnet_id      = local.application_subnet_existing ? var.infrastructure.vnets.sap.subnet_app.arm_id : azurerm_subnet.app[0].id
   route_table_id = azurerm_route_table.rt[0].id
 }
 
@@ -148,7 +148,7 @@ resource "azurerm_subnet_route_table_association" "web" {
      azurerm_subnet.web
   ]
   count          = local.web_subnet_defined && !local.vnet_sap_exists && !local.web_subnet_existing ? 1 : 0
-  subnet_id      = local.web_subnet_existing ? local.web_subnet_arm_id : azurerm_subnet.web[0].id
+  subnet_id      = local.web_subnet_existing ? var.infrastructure.vnets.sap.subnet_web.arm_id : azurerm_subnet.web[0].id
   route_table_id = azurerm_route_table.rt[0].id
 }
 

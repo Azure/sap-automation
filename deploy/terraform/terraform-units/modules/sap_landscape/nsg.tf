@@ -12,7 +12,7 @@ resource "azurerm_subnet_network_security_group_association" "admin" {
   provider = azurerm.main
   count    = local.admin_subnet_defined && !local.admin_subnet_nsg_exists ? 1 : 0
 
-  subnet_id                 = local.admin_subnet_existing ? local.admin_subnet_arm_id : azurerm_subnet.admin[0].id
+  subnet_id                 = local.admin_subnet_existing ? var.infrastructure.vnets.sap.subnet_admin.arm_id : azurerm_subnet.admin[0].id
   network_security_group_id = azurerm_network_security_group.admin[0].id
 }
 
@@ -30,7 +30,7 @@ resource "azurerm_network_security_group" "db" {
 resource "azurerm_subnet_network_security_group_association" "db" {
   provider                  = azurerm.main
   count                     = local.database_subnet_defined && !local.database_subnet_nsg_exists ? 1 : 0
-  subnet_id                 = local.database_subnet_existing ? local.database_subnet_arm_id : azurerm_subnet.db[0].id
+  subnet_id                 = local.database_subnet_existing ? var.infrastructure.vnets.sap.subnet_db.arm_id : azurerm_subnet.db[0].id
   network_security_group_id = azurerm_network_security_group.db[0].id
 }
 
@@ -48,7 +48,7 @@ resource "azurerm_network_security_group" "app" {
 resource "azurerm_subnet_network_security_group_association" "app" {
   provider                  = azurerm.main
   count                     = local.application_subnet_defined && !local.application_subnet_nsg_exists ? 1 : 0
-  subnet_id                 = local.application_subnet_existing ? local.application_subnet_arm_id : azurerm_subnet.app[0].id
+  subnet_id                 = local.application_subnet_existing ? var.infrastructure.vnets.sap.subnet_app.arm_id : azurerm_subnet.app[0].id
   network_security_group_id = azurerm_network_security_group.app[0].id
 }
 
@@ -66,7 +66,7 @@ resource "azurerm_network_security_group" "web" {
 resource "azurerm_subnet_network_security_group_association" "web" {
   provider                  = azurerm.main
   count                     = local.web_subnet_defined && !local.web_subnet_nsg_exists ? 1 : 0
-  subnet_id                 = local.web_subnet_existing ? local.web_subnet_arm_id : azurerm_subnet.web[0].id
+  subnet_id                 = local.web_subnet_existing ? var.infrastructure.vnets.sap.subnet_web.arm_id : azurerm_subnet.web[0].id
   network_security_group_id = azurerm_network_security_group.web[0].id
 }
 

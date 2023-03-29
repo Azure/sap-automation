@@ -34,10 +34,10 @@ resource "azurerm_key_vault" "kv_user" {
       virtual_network_subnet_ids = compact(
         [
           local.database_subnet_defined ? (
-            local.database_subnet_existing ? local.database_subnet_arm_id : azurerm_subnet.db[0].id) : (
+            local.database_subnet_existing ? var.infrastructure.vnets.sap.subnet_db.arm_id : azurerm_subnet.db[0].id) : (
             ""
             ), local.application_subnet_defined ? (
-            local.application_subnet_existing ? local.application_subnet_arm_id : azurerm_subnet.app[0].id) : (
+            local.application_subnet_existing ? var.infrastructure.vnets.sap.subnet_app.arm_id : azurerm_subnet.app[0].id) : (
             ""
           ),
           local.deployer_subnet_management_id
@@ -359,7 +359,7 @@ resource "azurerm_private_endpoint" "kv_user" {
     azurerm_resource_group.resource_group[0].location
   )
   subnet_id = local.application_subnet_existing ? (
-    local.application_subnet_arm_id) : (
+    var.infrastructure.vnets.sap.subnet_app.arm_id) : (
     azurerm_subnet.app[0].id
   )
 
@@ -419,7 +419,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vault" {
   depends_on = [
     azurerm_virtual_network.vnet_sap
   ]
-  count    = local.use_Azure_native_DNS ? 1 : 0
+  count = local.use_Azure_native_DNS ? 1 : 0
   name = format("%s%s%s%s",
     var.naming.resource_prefixes.dns_link,
     local.prefix,

@@ -53,7 +53,7 @@ output "route_table_id" {
 output "admin_subnet_id" {
   description = "Azure resource identifier for the admin subnet"
   value = local.admin_subnet_defined ? (
-    local.admin_subnet_existing ? local.admin_subnet_arm_id : try(azurerm_subnet.admin[0].id, "")) : (
+    local.admin_subnet_existing ? var.infrastructure.vnets.sap.subnet_admin.arm_id : try(azurerm_subnet.admin[0].id, "")) : (
     ""
   )
 }
@@ -61,7 +61,7 @@ output "admin_subnet_id" {
 output "app_subnet_id" {
   description = "Azure resource identifier for the app subnet"
   value = local.application_subnet_defined ? (
-    local.application_subnet_existing ? local.application_subnet_arm_id : try(azurerm_subnet.app[0].id, "")) : (
+    local.application_subnet_existing ? var.infrastructure.vnets.sap.subnet_app.arm_id : try(azurerm_subnet.app[0].id, "")) : (
     ""
   )
 }
@@ -69,7 +69,7 @@ output "app_subnet_id" {
 output "db_subnet_id" {
   description = "Azure resource identifier for the db subnet"
   value = local.database_subnet_defined ? (
-    local.database_subnet_existing ? local.database_subnet_arm_id : try(azurerm_subnet.db[0].id, "")) : (
+    local.database_subnet_existing ? var.infrastructure.vnets.sap.subnet_db.arm_id : try(azurerm_subnet.db[0].id, "")) : (
     ""
   )
 }
@@ -77,7 +77,7 @@ output "db_subnet_id" {
 output "web_subnet_id" {
   description = "Azure resource identifier for the web subnet"
   value = local.web_subnet_defined ? (
-    local.web_subnet_existing ? local.web_subnet_arm_id : try(azurerm_subnet.web[0].id, "")) : (
+    local.web_subnet_existing ? var.infrastructure.vnets.sap.subnet_web.arm_id : try(azurerm_subnet.web[0].id, "")) : (
     ""
   )
 }
@@ -86,7 +86,7 @@ output "web_subnet_id" {
 output "anf_subnet_id" {
   description = "Azure resource identifier for the anf subnet"
   value = var.NFS_provider == "ANF" && local.ANF_subnet_defined ? (
-    local.ANF_subnet_existing ? local.ANF_subnet_arm_id : try(azurerm_subnet.anf[0].id, "")) : (
+    local.ANF_subnet_existing ? var.infrastructure.vnets.sap.subnet_anf.arm_id : try(azurerm_subnet.anf[0].id, "")) : (
     ""
   )
 }
@@ -94,7 +94,7 @@ output "anf_subnet_id" {
 output "admin_nsg_id" {
   description = "Azure resource identifier for the admin subnet network security group"
   value = local.admin_subnet_defined ? (
-    local.admin_subnet_nsg_exists ? local.admin_subnet_nsg_arm_id : try(azurerm_network_security_group.admin[0].id, "")) : (
+    local.admin_subnet_nsg_exists ? var.infrastructure.vnets.sap.subnet_admin.nsg.arm_id : try(azurerm_network_security_group.admin[0].id, "")) : (
     ""
   )
 }
@@ -102,7 +102,7 @@ output "admin_nsg_id" {
 output "app_nsg_id" {
   description = "Azure resource identifier for the app subnet network security group"
   value = local.application_subnet_defined ? (
-    local.application_subnet_nsg_exists ? local.application_subnet_nsg_arm_id : try(azurerm_network_security_group.app[0].id, "")) : (
+    local.application_subnet_nsg_exists ? var.infrastructure.vnets.sap.subnet_admin.nsg.arm_id : try(azurerm_network_security_group.app[0].id, "")) : (
     ""
   )
 }
@@ -110,7 +110,7 @@ output "app_nsg_id" {
 output "db_nsg_id" {
   description = "Azure resource identifier for the database subnet network security group"
   value = local.database_subnet_defined ? (
-    local.database_subnet_nsg_exists ? local.database_subnet_nsg_arm_id : try(azurerm_network_security_group.db[0].id, "")) : (
+    local.database_subnet_nsg_exists ? var.infrastructure.vnets.sap.subnet_db.nsg.arm_id : try(azurerm_network_security_group.db[0].id, "")) : (
     ""
   )
 }
@@ -118,7 +118,7 @@ output "db_nsg_id" {
 output "web_nsg_id" {
   description = "Azure resource identifier for the web subnet network security group"
   value = local.web_subnet_defined ? (
-    local.web_subnet_nsg_exists ? local.web_subnet_nsg_arm_id : try(azurerm_network_security_group.web[0].id, "")) : (
+    local.web_subnet_nsg_exists ? var.infrastructure.vnets.sap.subnet_web.nsg.arm_id : try(azurerm_network_security_group.web[0].id, "")) : (
     ""
   )
 }
@@ -266,7 +266,7 @@ output "ANF_pool_settings" {
     )
 
     subnet_id = local.ANF_subnet_defined ? (
-      local.ANF_subnet_existing ? local.ANF_subnet_arm_id : try(azurerm_subnet.anf[0].id, "")) : (
+      local.ANF_subnet_existing ? var.infrastructure.vnets.sap.subnet_anf.arm_id : try(azurerm_subnet.anf[0].id, "")) : (
       ""
     )
 
