@@ -14,4 +14,3 @@ sapcontrol_command:                    "sapcontrol -nr {{ scs_instance_number }}
 acss_cli_extension_url:                "https://aka.ms/ACSSCLI"
 
 ...
-

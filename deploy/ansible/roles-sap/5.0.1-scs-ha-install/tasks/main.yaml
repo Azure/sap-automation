@@ -394,33 +394,33 @@
   ansible.builtin.set_fact:
     ensa2:                             true
   when:
-   - platform == 'HANA'
-   - scs_bom_instance_type == 'ABAP'
-   - not ensa1
-   - not ensa2
-   - inventory_hostname == primary_instance_name
-   - scs_installed.stat.exists
+    - platform == 'HANA'
+    - scs_bom_instance_type == 'ABAP'
+    - not ensa1
+    - not ensa2
+    - inventory_hostname == primary_instance_name
+    - scs_installed.stat.exists
 
 - name:                                "SCSERS - set default to ENSA for HANA (JAVA) if message server is down"
   ansible.builtin.set_fact:
     ensa1:                             true
   when:
-   - platform == 'HANA'
-   - scs_bom_instance_type == 'JAVA'
-   - not ensa1
-   - not ensa2
-   - inventory_hostname == primary_instance_name
-   - scs_installed.stat.exists
+    - platform == 'HANA'
+    - scs_bom_instance_type == 'JAVA'
+    - not ensa1
+    - not ensa2
+    - inventory_hostname == primary_instance_name
+    - scs_installed.stat.exists
 
 - name:                                "SCSERS - set default to ENSA1 for AnyDB if message server is down"
   ansible.builtin.set_fact:
     ensa1:                             true
   when:
-   - platform != 'HANA'
-   - not ensa1
-   - not ensa2
-   - inventory_hostname == primary_instance_name
-   - scs_installed.stat.exists
+    - platform != 'HANA'
+    - not ensa1
+    - not ensa2
+    - inventory_hostname == primary_instance_name
+    - scs_installed.stat.exists
 
 - name:                                "SCSERS - Print the value of ENSA1/ENSA2"
   ansible.builtin.debug:

@@ -143,14 +143,14 @@
     - name:                            "APP Install: - return value"
       ansible.builtin.set_fact:
         pas_already_installed:         true
-  when:
-    - app_installed.stat.exists
+      when:
+        - app_installed.stat.exists
 
-# *====================================4=======================================8
-# |  SAP APP: Install                                                          |
-# | 2230669 - System Provisioning Using a Parameter Input File                 |
-# |                                                                            |
-# *====================================4=======================================8
+    # *====================================4=======================================8
+    # |  SAP APP: Install                                                          |
+    # | 2230669 - System Provisioning Using a Parameter Input File                 |
+    # |                                                                            |
+    # *====================================4=======================================8
 
     - name:                            "APP Install: progress"
       ansible.builtin.debug:
