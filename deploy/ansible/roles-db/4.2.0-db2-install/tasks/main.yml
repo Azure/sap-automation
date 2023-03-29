@@ -141,21 +141,21 @@
 
         - name:                        "Extract details"
           ansible.builtin.set_fact:
-            subscription_id:           "{{ json_azure_data | json_query('compute.subscriptionId') }}"
-            resource_group_name:       "{{ json_azure_data | json_query('compute.resourceGroupName') }}"
+            subscription_id_tmp:           "{{ json_azure_data | json_query('compute.subscriptionId') }}"
+            resource_group_name_tmp:       "{{ json_azure_data | json_query('compute.resourceGroupName') }}"
 
         - name:                        "Show the subscription and resource group"
           ansible.builtin.debug:
             msg:
-              - "Subscription ID: {{ subscription_id }}"
-              - "Resource Group Name: {{ resource_group_name }}"
+              - "Subscription ID:     {{ subscription_id_tmp }}"
+              - "Resource Group Name: {{ resource_group_name_tmp }}"
 
         - name:                        "Include deploy/ansible/roles-misc/0.6-ARM-Deployment"
           ansible.builtin.include_role:
             name:                      roles-misc/0.6-ARM-Deployment
           vars:
-            subscription_id:           "{{ subscription_id }}"
-            resource_group_name:       "{{ resource_group_name }}"
+            subscription_id:           "{{ subscription_id_tmp }}"
+            resource_group_name:       "{{ resource_group_name_tmp }}"
 
         - name:                        "DB2 Install: ARM Deployment flag"
           ansible.builtin.file:

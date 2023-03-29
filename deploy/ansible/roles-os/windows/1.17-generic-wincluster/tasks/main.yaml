@@ -21,7 +21,7 @@
   ansible.builtin.import_tasks:
     file:                              "1.17.0-wincluster-prerequisites.yaml"
   tags:
-    -                                  "win_cluster_prepare"
+    - "win_cluster_prepare"
 
 - name:                                "WinCluster: Configure cluster"
   when:
@@ -30,5 +30,5 @@
   ansible.builtin.import_tasks:
     file:                              "1.17.1-wincluster-createcluster.yaml"
   tags:
-    -                                  "win_cluster_configure"
+    - "win_cluster_configure"
 ...

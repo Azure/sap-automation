@@ -58,4 +58,3 @@
           changed_when:                false
 
   when:                                on_deployer.stat.exists
-

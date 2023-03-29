@@ -1,3 +1,5 @@
+---
+
 # Validate that the SCS cluster is working as expected
 - name:                                "0.0 Validations: - Set Python version {{ distribution_id }}"
   ansible.builtin.set_fact:
@@ -100,15 +102,4 @@
       tags:
         - skip_ansible_lint
 
-# set -x
-
-# az workloads sap-virtual-instance create              \
-# --sap-virtual-instance-name  "${acss_sid}"            \
-# --resource-group             "${acss_resource_group}" \
-# --location                   "${acss_location}"       \
-# --environment                "${acss_environment}"    \
-# --sap-product                "${acss_sap_product}"    \
-# --configuration              "${acss_configuration}"  \
-#   || exit 1
-
-# set +x
+...

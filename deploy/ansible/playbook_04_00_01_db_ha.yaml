@@ -581,7 +581,7 @@
               ansible.windows.win_file:
                 path:                         '{{ sap_deployment_automation }}\{{ sap_sid | upper }}\alwayson-config-done.txt'
                 state:                        touch
-                force:                        yes
+                force:                        true
 
 # # /*-------------------------------------------------------------------------8
 # # |                                                                          |
