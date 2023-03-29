@@ -30,7 +30,7 @@
   delegate_to: localhost
   become: true
   ansible.builtin.raw: |
-    source /opt/ansible/venv/2.13/bin/activate
+    source /opt/ansible/venv/2.11/bin/activate
     ansible-galaxy collection install git+https://github.com/ansible-collections/community.windows,main --force --collections-path /opt/ansible/collections
     deactivate
   args:
