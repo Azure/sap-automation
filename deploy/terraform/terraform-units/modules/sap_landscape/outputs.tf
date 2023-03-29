@@ -8,7 +8,7 @@ output "created_resource_group_id" {
   description = "Created resource group ID"
   value = local.resource_group_exists ? (
     data.azurerm_resource_group.resource_group[0].id) : (
-    azurerm_resource_group.resource_group[0].id
+    try(azurerm_resource_group.resource_group[0].id, "")
   )
 }
 
@@ -16,7 +16,7 @@ output "created_resource_group_name" {
   description = "Created resource group name"
   value = local.resource_group_exists ? (
     data.azurerm_resource_group.resource_group[0].name) : (
-    azurerm_resource_group.resource_group[0].name
+    try(azurerm_resource_group.resource_group[0].name, "")
   )
 }
 
@@ -24,7 +24,7 @@ output "created_resource_group_subscription_id" {
   description = "Created resource group' subscription ID"
   value = local.resource_group_exists ? (
     split("/", data.azurerm_resource_group.resource_group[0].id))[2] : (
-    split("/", azurerm_resource_group.resource_group[0].id)[2]
+    try(split("/", azurerm_resource_group.resource_group[0].id)[2], "")
   )
 }
 
@@ -230,6 +230,11 @@ output "dns_info_vms" {
   )
 }
 
+output "privatelink_file_id" {
+  value = data.azurerm_private_dns_zone.file[0].id
+
+}
+
 ###############################################################################
 #                                                                             #
 #                   Azure NetApp Files output                                 #
@@ -288,57 +293,71 @@ output "ANF_pool_settings" {
 ###############################################################################
 
 output "saptransport_path" {
-  value = try(var.NFS_provider == "AFS" ? (
-    format("%s:/%s/%s",
-      length(var.transport_private_endpoint_id) == 0 ? (
-        try(azurerm_private_endpoint.transport[0].custom_dns_configs[0].fqdn,
-          azurerm_private_endpoint.transport[0].private_service_connection[0].private_ip_address
-        )) : (
-        data.azurerm_private_endpoint_connection.transport[0].private_service_connection[0].private_ip_address
-
-      ),
-      length(var.transport_storage_account_id) == 0 ? (
-        azurerm_storage_account.transport[0].name) : (
-        split("/", var.transport_storage_account_id)[8]
-      ),
-      try(azurerm_storage_share.transport[0].name, "")
-    )
-    ) : (
+  value = var.NFS_provider == "AFS" ? (
+    length(var.transport_private_endpoint_id) == 0 ? (
+      format("%s:/%s/%s", try(azurerm_private_endpoint.transport[0].private_dns_zone_configs[0].record_sets[0].fqdn,
+        try(azurerm_private_endpoint.transport[0].private_service_connection[0].private_ip_address, "")),
+        length(var.transport_storage_account_id) > 0 ? split("/", var.transport_storage_account_id)[8] : replace(
+          lower(
+            format("%s", local.landscape_shared_transport_storage_account_name)
+          ),
+          "/[^a-z0-9]/",
+        ""),
+        local.resource_suffixes.transport_volume
+      )) : (
+      format("%s:/%s/%s", trimsuffix(data.azurerm_private_dns_a_record.transport[0].fqdn, "."),
+        length(var.transport_storage_account_id) > 0 ? split("/", var.transport_storage_account_id)[8] : replace(
+          lower(
+            format("%s", local.landscape_shared_transport_storage_account_name)
+          ),
+          "/[^a-z0-9]/",
+          ""
+        ),
+      try(azurerm_storage_share.transport[0].name, ""))
+    )) : (
     var.NFS_provider == "ANF" ? (
-      format("%s:/%s",
+      format("%s:/%s/%s",
         var.ANF_settings.use_existing_transport_volume ? (
-          data.azurerm_netapp_volume.transport[0].mount_ip_addresses[0]
-          ) : (
+          data.azurerm_netapp_volume.transport[0].mount_ip_addresses[0]) : (
           azurerm_netapp_volume.transport[0].mount_ip_addresses[0]
         ),
         var.ANF_settings.use_existing_transport_volume ? (
-          data.azurerm_netapp_volume.transport[0].volume_path
-          ) : (
+          data.azurerm_netapp_volume.transport[0].volume_path) : (
           azurerm_netapp_volume.transport[0].volume_path
         )
       )
       ) : (
       ""
     )
-  ), "")
+  )
 }
 
 output "install_path" {
   value = try(var.NFS_provider == "AFS" ? (
-    format("%s:/%s/%s",
-      length(var.install_private_endpoint_id) == 0 ? (
-        try(azurerm_private_endpoint.install[0].custom_dns_configs[0].fqdn,
-          azurerm_private_endpoint.install[0].private_service_connection[0].private_ip_address
-        )) : (
-        data.azurerm_private_endpoint_connection.install[0].private_service_connection[0].private_ip_address
-      ),
-      length(var.install_storage_account_id) == 0 ? (
-        azurerm_storage_account.install[0].name) : (
-        split("/", var.install_storage_account_id)[8]
-      ),
-      try(azurerm_storage_share.install[0].name, "")
-    )
-    ) : (
+    length(var.install_private_endpoint_id) == 0 ? (
+      format("%s:/%s/%s", try(azurerm_private_endpoint.install[0].private_dns_zone_configs[0].record_sets[0].fqdn,
+        try(azurerm_private_endpoint.install[0].private_service_connection[0].private_ip_address, "")),
+        length(var.install_storage_account_id) > 0 ? split("/", var.install_storage_account_id)[8] : replace(
+          lower(
+            format("%s", local.landscape_shared_install_storage_account_name)
+          ),
+          "/[^a-z0-9]/",
+          ""
+        ),
+        local.resource_suffixes.install_volume
+      )
+      ) : (
+      format("%s:/%s/%s",
+        trimsuffix(data.azurerm_private_dns_a_record.install[0].fqdn, "."),
+        length(var.install_storage_account_id) > 0 ? split("/", var.install_storage_account_id)[8] : replace(
+          lower(
+            format("%s", local.landscape_shared_install_storage_account_name)
+          ),
+          "/[^a-z0-9]/",
+          ""
+        ),
+      local.resource_suffixes.install_volume)
+    )) : (
     var.NFS_provider == "ANF" ? (
       format("%s:/%s",
         var.ANF_settings.use_existing_install_volume ? (

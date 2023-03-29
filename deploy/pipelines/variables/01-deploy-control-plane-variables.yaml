@@ -35,6 +35,7 @@ parameters:
     type:                              string
     default:                           Control_Plane_Service_Connection
 
+
 variables:
   - group:                             "SDAF-General"
 

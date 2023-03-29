@@ -1,0 +1,60 @@
+- name:                                "SDAF: Check if running on deployer"
+  become:                              true
+  become_user:                         "{{ orchestration_ansible_user }}"
+  delegate_to:                         localhost
+  ansible.builtin.stat:
+    path:                              /etc/profile.d/deploy_server.sh
+  register:                            on_deployer
+
+- name:                                "SDAF: Perform ARM Deployment"
+  block:
+
+    - name:                            "SDAF: Set Deployment Type"
+      delegate_to:                     localhost
+      ansible.builtin.set_fact:
+        deployment_type:               "STANDALONE"
+
+    - name:                            "SDAF: Set Deployment Type"
+      delegate_to:                     localhost
+      ansible.builtin.set_fact:
+        deployment_type:               "HA"
+      when:                            db_high_availability
+
+    - name:                            "SDAF: Create ARM deployment name"
+      delegate_to:                     localhost
+      ansible.builtin.set_fact:
+        deployment_name:               "SDAF-{{ platform | upper }}-{{ sap_sid | upper }}-{{ deployment_type }}"
+
+    - name:                            "SDAF: ARM deployment debug"
+      delegate_to:                     localhost
+      ansible.builtin.debug:
+        msg:
+          - "Deployment name: {{ deployment_name }}"
+          - "resourceGroupName: {{ resourceGroupName }}"
+          - "subscriptionId: {{ subscriptionId }}"
+
+    - name:                            "SDAF: Create ARM deployment"
+      block:
+        - name:                        "SDAF: Create ARM deployment"
+          delegate_to:                 localhost
+          become:                      true
+          become_user:                 "{{ orchestration_ansible_user }}"
+          ansible.builtin.command: >-
+                                       az deployment group create --resource-group {{ resourceGroupName }} --subscription {{ subscriptionId }} --name {{ deployment_name }} --template-file './templates/empty-deployment.json' --output none --no-prompt --no-wait --only-show-errors
+          register:                    arm_deployment
+          changed_when:                false
+      rescue:
+        - name:                        "SDAF: Create ARM deployment rescue - perform az login"
+          ansible.builtin.command: >-
+                                       az login --identity --allow-no-subscriptions --output none
+          changed_when:                false
+        - name:                        "SDAF: Create ARM deployment"
+          delegate_to:                 localhost
+          become:                      true
+          become_user:                 "{{ orchestration_ansible_user }}"
+          ansible.builtin.command: >-
+                                       az deployment group create --resource-group {{ resourceGroupName }} --subscription {{ subscriptionId }} --name {{ deployment_name }} --template-file './templates/empty-deployment.json' --output none --no-prompt --no-wait --only-show-errors
+          register:                    arm_deployment
+          changed_when:                false
+
+  when:                                on_deployer.stat.exists

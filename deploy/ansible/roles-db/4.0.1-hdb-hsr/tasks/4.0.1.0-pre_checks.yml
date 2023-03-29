@@ -4,14 +4,14 @@
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
-# |     0  Last webmethod call successful
-# |     1  Last webmethod call failed, invalid parameter
-# |     2  StartWait, StopWait, WaitforStarted, WaitforStopped, RestartServiceWait
-# |        timed out
-# |        CheckSystemCertificates detected warnings
-# |     3  GetProcessList succeeded, all processes running correctly
-# |        CheckSystemCertificates detected errors
-# |     4  GetProcessList succeeded, all processes stopped
+# |     0  Last webmethod call successful                                      |
+# |     1  Last webmethod call failed, invalid parameter                       |
+# |     2  StartWait, StopWait, WaitforStarted, WaitforStopped,                |
+# |        RestartServiceWait timed out                                        |
+# |        CheckSystemCertificates detected warnings                           |
+# |     3  GetProcessList succeeded, all processes running correctly           |
+# |        CheckSystemCertificates detected errors                             |
+# |     4  GetProcessList succeeded, all processes stopped                     |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
@@ -102,7 +102,7 @@
         msg: |
                                        Automated HANA System Replication configuration is only supported for systems with a SYSTEMDB
                                        and multi-container systems where the tenant database is named as {{ db_sid | upper }}.
-                                       If your requirements differ, please raise a GitHub issue: https://github.com/Azure/sap-hana/issues/new/choose
+                                       If your requirements differ, please raise a GitHub issue: https://github.com/Azure/sap-automation/issues/new/choose
       # At the moment it's sufficient to check for a missing SYSTEMDB, since the
       # code will cope with a missing tenant DB.
       when: not hana_has_system_db

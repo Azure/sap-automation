@@ -47,6 +47,16 @@ output "deployer_public_ip_address" {
   value = module.sap_deployer.deployer_public_ip_address
 }
 
+
+output "deployer_system_assigned_identity" {
+  value = module.sap_deployer.deployer_system_assigned_identity
+}
+
+output "add_system_assigned_identity" {
+  value = var.add_system_assigned_identity
+}
+
+
 ###############################################################################
 #                                                                             #
 #                                  Network                                    #
@@ -61,9 +71,18 @@ output "subnet_mgmt_id" {
   value = module.sap_deployer.subnet_mgmt_id
 }
 
+output "subnet_mgmt_address_prefixes" {
+  value = module.sap_deployer.subnet_mgmt_address_prefixes
+}
+
 output "subnet_webapp_id" {
   value = module.sap_deployer.subnet_webapp_id
 }
+
+output "subnet_bastion_address_prefixes" {
+  value = module.sap_deployer.subnet_bastion_address_prefixes
+}
+
 
 ###############################################################################
 #                                                                             #
@@ -133,4 +152,8 @@ output "webapp_id" {
 
 output "deployer_extension_ids" {
   value = module.sap_deployer.extension_ids
+}
+
+output "deployer" {
+  value = local.deployer
 }

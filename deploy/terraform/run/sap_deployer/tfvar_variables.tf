@@ -145,6 +145,11 @@ variable "bastion_deployment" {
   default     = false
 }
 
+variable "bastion_sku" {
+  description = "The SKU of the Bastion Host. Accepted values are Basic or Standard"
+  default     = "Basic"
+}
+
 ###############################################################################
 #                                                                             #
 #                            Management NSG                                   #
@@ -199,27 +204,36 @@ variable "deployer_use_DHCP" {
 
 variable "deployer_image" {
   default = {
-    "source_image_id" = ""
-    "publisher"       = "Canonical"
-    "offer"           = "0001-com-ubuntu-server-focal"
-    "sku"             = "20_04-lts-gen2"
-    "version"         = "latest"
+    os_type         = "LINUX"
+    source_image_id = ""
+    type            = "marketplace"
+    publisher       = "Canonical"
+    offer           = "0001-com-ubuntu-server-focal"
+    sku             = "20_04-lts-gen2"
+    version         = "latest"
+    type            = "marketplace"
   }
 }
 
 variable "plan" {
   default = {
-    use         = false
-    "name"      = ""
-    "publisher" = ""
-    "product"   = ""
+    use       = false
+    name      = ""
+    publisher = ""
+    product   = ""
   }
 }
+
 
 variable "deployer_private_ip_address" {
   default = ""
 }
 
+variable "add_system_assigned_identity" {
+  description = "Boolean flag indicating if a system assigned identity should be added to the deployer"
+  default     = false
+  type        = bool
+}
 
 ###############################################################################
 #                                                                             #
@@ -289,6 +303,11 @@ variable "additional_users_to_add_to_keyvault_policies" {
   default     = [""]
 }
 
+variable "deployer_kv_user_arm_id" {
+  description = "Azure resource identifier for the deployer user Azure Key Vault"
+  default     = ""
+}
+
 #########################################################################################
 #                                                                                       #
 #  Miscallaneous settings                                                               #
@@ -313,6 +332,39 @@ variable "use_service_endpoint" {
   type        = bool
 }
 
+
+variable "deployer_diagnostics_account_arm_id" {
+  description = "Azure resource identifier for an existing storage accout that will be used for diagnostic logs"
+  default     = ""
+}
+
+
+variable "tf_version" {
+  description = "Terraform version to install on deployer"
+  default     = "1.4.1"
+}
+
+variable "name_override_file" {
+  description = "If provided, contains a json formatted file defining the name overrides"
+  default     = ""
+}
+
+variable "auto_configure_deployer" {
+  description = "Value indicating if the deployer should be configured automatically"
+  default     = true
+}
+
+variable "spn_id" {
+  description = "SPN ID to be used for the deployment"
+  default     = ""
+}
+
+#########################################################################################
+#                                                                                       #
+#  DSN settings                                                                         #
+#                                                                                       #
+#########################################################################################
+
 variable "use_custom_dns_a_registration" {
   description = "Boolean value indicating if a custom dns a record should be created when using private endpoints"
   default     = false
@@ -330,28 +382,6 @@ variable "management_dns_resourcegroup_name" {
   default     = null
   type        = string
 }
-
-variable "deployer_diagnostics_account_arm_id" {
-  description = "Azure resource identifier for an existing storage accout that will be used for diagnostic logs"
-  default     = ""
-}
-
-
-variable "tf_version" {
-  description = "Terraform version to install on deployer"
-  default     = "1.2.6"
-}
-
-variable "name_override_file" {
-  description = "If provided, contains a json formatted file defining the name overrides"
-  default     = ""
-}
-
-variable "auto_configure_deployer" {
-  description = "Value indicating if the deployer should be configured automatically"
-  default     = true
-}
-
 
 #########################################################################################
 #                                                                                       #
@@ -419,4 +449,15 @@ variable "enable_firewall_for_keyvaults_and_storage" {
   description = "Boolean value indicating if firewall should be enabled for key vaults and storage"
   default     = false
   type        = bool
+}
+
+variable "tfstate_resource_id" {
+  description = "Resource id of tfstate storage account"
+  validation {
+    condition = (
+      length(split("/", var.tfstate_resource_id)) == 9
+    )
+    error_message = "The Azure Resource ID for the storage account containing the Terraform state files must be provided and be in correct format."
+  }
+
 }

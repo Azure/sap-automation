@@ -1,0 +1,105 @@
+---
+
+# Validate that the SCS cluster is working as expected
+- name:                                "0.0 Validations: - Set Python version {{ distribution_id }}"
+  ansible.builtin.set_fact:
+    python_version: "python2"
+
+- name:                            "0.0 Validations: - Set Python version {{ distribution_id }}"
+  ansible.builtin.set_fact:
+    python_version: "python3"
+  when: (ansible_distribution | lower ~ ansible_distribution_major_version) in ['suse15', 'redhat8', 'sles_sap15']
+
+- name:                                "Determine if SCS is running on {{ ansible_hostname }}"
+  become_user:                         "{{ sap_sid | lower }}adm"
+  become:                              true
+  block:
+    - name:                            "PAS Install: Get sapcontrol path"
+      ansible.builtin.find:
+        paths:                         "/usr/sap/{{ sap_sid | upper }}"
+        file_type:                     file
+        patterns:                      'sapcontrol'
+        recurse:                       true
+        follow:                        true
+      register:                        sapcontrol_file
+
+    - name:                            "PAS Install: Set sapcontrol path"
+      ansible.builtin.set_fact:
+        sapcontrol_path:               "{{ sapcontrol_file.files[0].path }}"
+      when:
+        - sapcontrol_file | length > 0
+
+    # {{ sapcontrol_path }} -nr {{ scs_instance_number }} -function GetProcessList | grep MessageServer | awk '{split($0,result,", "); print result[1],result[3] }'
+    - name:                            "Determine if SCS is running on {{ ansible_hostname }}"
+      ansible.builtin.command:         "{{ sapcontrol_path }} -nr {{ scs_instance_number }} -function GetProcessList"
+      changed_when:                    false
+      failed_when:                     false
+      register:                        is_running
+      vars:
+        allow_world_readable_tmpfiles: true
+        ansible_python_interpreter:    "{{ python_version }}"
+      args:
+        chdir:                         "{{ sapcontrol_path | dirname }}"
+      environment:
+        ANSIBLE_REMOTE_TEMP:           "{{ tmp_directory }}/{{ sap_sid | upper }}"
+        TEMPDIR:                       "{{ tmp_directory }}/{{ sap_sid | upper }}"
+        PATH:                          /usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/usr/sap/{{ sap_sid | upper }}/SYS/exe/uc/linuxx86_64:/usr/sap/{{ sap_sid | upper }}/SYS/exe/run:/home/{{ sap_sid | lower }}adm
+        DIR_LIBRARY:                   /usr/sap/{{ sap_sid | upper }}/SYS/exe/run
+        LD_LIBRARY_PATH:               /usr/sap/{{ sap_sid | upper }}/SYS/exe/run:/usr/sap/{ sap_sid | upper }}/SYS/exe/uc/linuxx86_64
+        SAPSYSTEMNAME:                 "{{ sap_sid | upper }}"
+      tags:
+        - skip_ansible_lint
+
+    - name:                                "Show if SCS is running on {{ ansible_hostname }}"
+      ansible.builtin.debug:
+        var: is_running
+
+    # when the rc is 3, the SCS is running on ansible_hostname.
+    # if the ansible_hostname is not the primary_instance_name, then failover cluster resources for ASCS/SCS
+    # start the SAP instance on primary_instance_name. This is a failover scenario.
+    - name:                            "Validate that SCS is running on {{ ansible_hostname }}"
+      ansible.builtin.set_fact:
+        scs_running_on:               "{{ ansible_hostname }}"
+      when:
+        - is_running.rc == 3
+        - is_running.stdout | regex_search('MessageServer')
+
+    - name:                            "Check where the cluster group g-{{ sap_sid }}_{{ instance_type | upper }} is running"
+      become:                          true
+      become_user:                     root
+      ansible.builtin.shell: >-
+        set -o pipefail;
+        crm_resource --resource g-{{ sap_sid }}_{{ instance_type | upper }} --locate | cut -d ':' -f 2| cut -d " " -f 2
+      when:
+        - ansible_hostname == primary_instance_name
+      failed_when:                     false
+      register:                        cluster_group_location
+      tags:
+        - skip_ansible_lint
+
+    - name:                            "Download [ACSS] cli extension"
+      delegate_to:                     localhost
+      ansible.builtin.get_url:
+        url:                          "{{ acss_cli_extension_url }}"
+        dest:                         "{{ tmp_directory }}/workloads-0.1.0-py3-none-any.whl"
+        mode:                         0755
+        validate_certs:               false
+      tags:
+        - skip_ansible_lint
+
+    - name:                            "Install [ACSS] cli extension"
+      delegate_to:                     localhost
+      ansible.builtin.command: >-
+              "az extension add --source={{ tmp_directory }}/workloads-0.1.0-py3-none-any.whl --yes || exit 1"
+      tags:
+        - skip_ansible_lint
+
+    - name:                            "Create [ACSS] virtual instance"
+      ansible.builtin.command:         "az workloads sap-virtual-instance create --sap-virtual-instance-name {{ acss_sid }} --resource-group {{ acss_resource_group }} --location {{ acss_location }} --environment {{ acss_environment }} --sap-product {{ acss_sap_product }} --configuration {{ acss_configuration }}"
+      when:
+        - ansible_hostname == primary_instance_name
+        - cluster_group_location.stdout != ansible_hostname
+      tags:
+        - skip_ansible_lint
+
+...

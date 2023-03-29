@@ -16,29 +16,29 @@ data "terraform_remote_state" "deployer" {
 }
 
 data "azurerm_key_vault_secret" "subscription_id" {
-  count        = var.use_deployer ? 1 : 0
   provider     = azurerm.deployer
+  count        = var.use_deployer ? 1 : 0
   name         = format("%s-subscription-id", upper(local.infrastructure.environment))
   key_vault_id = local.spn_key_vault_arm_id
 }
 
 data "azurerm_key_vault_secret" "client_id" {
-  count        = var.use_deployer ? 1 : 0
   provider     = azurerm.deployer
+  count        = var.use_deployer ? 1 : 0
   name         = format("%s-client-id", upper(local.infrastructure.environment))
   key_vault_id = local.spn_key_vault_arm_id
 }
 
 data "azurerm_key_vault_secret" "client_secret" {
-  count        = var.use_deployer ? 1 : 0
   provider     = azurerm.deployer
+  count        = var.use_deployer ? 1 : 0
   name         = format("%s-client-secret", upper(local.infrastructure.environment))
   key_vault_id = local.spn_key_vault_arm_id
 }
 
 data "azurerm_key_vault_secret" "tenant_id" {
-  count        = var.use_deployer ? 1 : 0
   provider     = azurerm.deployer
+  count        = var.use_deployer ? 1 : 0
   name         = format("%s-tenant-id", upper(local.infrastructure.environment))
   key_vault_id = local.spn_key_vault_arm_id
 }

@@ -53,6 +53,11 @@ output "deployer_private_ip_address" {
   value = azurerm_network_interface.deployer[*].private_ip_address
 }
 
+output "deployer_system_assigned_identity" {
+  value = azurerm_linux_virtual_machine.deployer[*].identity[0].principal_id
+}
+
+
 ###############################################################################
 #                                                                             #
 #                                  Network                                    #
@@ -67,6 +72,11 @@ output "vnet_mgmt_id" {
 // Details of management subnet that is deployed/imported
 output "subnet_mgmt_id" {
   value = local.management_subnet_exists ? data.azurerm_subnet.subnet_mgmt[0].id : azurerm_subnet.subnet_mgmt[0].id
+}
+
+// Details of management subnet that is deployed/imported
+output "subnet_mgmt_address_prefixes" {
+  value = local.management_subnet_exists ? data.azurerm_subnet.subnet_mgmt[0].address_prefixes : azurerm_subnet.subnet_mgmt[0].address_prefixes
 }
 
 // Deatils of webapp subnet that is deployed/imported
@@ -167,3 +177,22 @@ output "webapp_id" {
 output "extension_ids" {
   value = azurerm_virtual_machine_extension.configure[*].id
 }
+
+###############################################################################
+#                                                                             #
+#                                   Bastion                                   #
+#                                                                             #
+###############################################################################
+
+
+output "subnet_bastion_address_prefixes" {
+  value = var.bastion_deployment ? (
+    length(var.infrastructure.vnets.management.subnet_bastion.arm_id) == 0 ? (
+      azurerm_subnet.bastion[0].address_prefixes) : (
+      data.azurerm_subnet.bastion[0].address_prefixes
+    )) : (
+    [""]
+  )
+}
+
+

@@ -637,9 +637,31 @@
     "Link": "",
     "Parameters": [
       {
+        "Name": "dns_label",
+        "Required": false,
+        "Description": "Provides the DNS label to use for the Virtual Network.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "dns_server_list",
+        "Required": false,
+        "Description": "Boolean value indicating if a custom dns record should be created for the storage account",
+        "Type": "list",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "",
+        "Display": 3
+      },{
         "Name": "use_custom_dns_a_registration",
         "Required": false,
-        "Description": "Boolean value indicating if a custom dns a record should be created when using private endpoints",
+        "Description": "Boolean value indicating if custom dns registration is used",
         "Type": "checkbox",
         "Options": [],
         "Overrules": "",
@@ -873,30 +895,6 @@
     ]
   },
   {
-    "Section": "Private DNS support",
-    "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#private-dns",
-    "Parameters": [
-      {
-        "Name": "dns_label",
-        "Required": false,
-        "Description": "Provides the DNS label to use for the Virtual Network.",
-        "Type": "field",
-        "Options": [],
-        "Overrules": "",
-        "Display": 2
-      },
-      {
-        "Name": "dns_resource_group_name",
-        "Required": false,
-        "Description": "Provides the name of the resource group hosting the Private DNS zone",
-        "Type": "field",
-        "Options": [],
-        "Overrules": "",
-        "Display": 3
-      }
-    ]
-  },
-  {
     "Section": "Utility VM",
     "Link": "",
     "Parameters": [
@@ -1006,6 +1004,24 @@
         ],
         "Overrules": "",
         "Display": 3
+      },
+      {
+        "Name": "storage_account_replication_type",
+        "Required": false,
+        "Description": "Defines the replication type for Azure Files for NFS install account.",
+        "Type": "lookup",
+        "Options": [
+          {
+            "Text": "LRS",
+            "Value": "LRS"
+          },
+          {
+            "Text": "ZRS",
+            "Value": "ZRS"
+          }
+        ],
+        "Overrules": "",
+        "Display": 2
       },
       {
         "Name": "diagnostics_storage_account_arm_id",

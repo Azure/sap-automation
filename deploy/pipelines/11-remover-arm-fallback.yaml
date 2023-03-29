@@ -71,7 +71,6 @@ parameters:
   - name:                              workload_zone_connection
     displayName:                       Service Connection Name for Workload Zone
     type:                              string
-    default:                           WorkloadZone_Service_Connection
 
 stages:
   - stage:                             Remove_SAP_systems
@@ -321,20 +320,20 @@ stages:
                 fi
 
               echo -e "$green--- az login ---$reset"
-                if [ -z $ARM_SUBSCRIPTION_ID ]; then
-                  echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined."
+                if [ -z $(CP_ARM_SUBSCRIPTION_ID) ]; then
+                  echo "##vso[task.logissue type=error]Variable CP_ARM_SUBSCRIPTION_ID was not defined."
                   exit 2
                 fi
-                if [ -z $ARM_CLIENT_ID ]; then
-                  echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined."
+                if [ -z $(CP_ARM_CLIENT_ID) ]; then
+                  echo "##vso[task.logissue type=error]Variable CP_ARM_CLIENT_ID was not defined."
                   exit 2
                 fi
-                if [ -z $ARM_CLIENT_SECRET ]; then
-                  echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined."
+                if [ -z $(CP_ARM_CLIENT_SECRET) ]; then
+                  echo "##vso[task.logissue type=error]Variable CP_ARM_CLIENT_SECRET was not defined."
                   exit 2
                 fi
-                if [ -z $ARM_TENANT_ID ]; then
-                  echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined."
+                if [ -z $(CP_ARM_TENANT_ID) ]; then
+                  echo "##vso[task.logissue type=error]Variable CP_ARM_TENANT_ID was not defined."
                   exit 2
                 fi
 

@@ -148,7 +148,7 @@ fi
 
 dir=$(pwd)
 
-terraform -chdir="${terraform_module_directory}" init -backend-config "path=${dir}/terraform.tfstate"
+terraform -chdir="${terraform_module_directory}" init -reconfigure -backend-config "path=${dir}/terraform.tfstate"
 extra_vars=""
 
 if [ -f terraform.tfvars ]; then
@@ -170,9 +170,8 @@ if [[ -n "${TF_PARALLELLISM}" ]]; then
     parallelism=$TF_PARALLELLISM
 fi
 
-terraform -chdir="${terraform_module_directory}"  destroy ${approve} -lock=false -parallelism="${parallelism}" -var-file="${var_file}" $extra_vars | tee -a  destroy_output.json
+terraform -chdir="${terraform_module_directory}"  destroy ${approve} -lock=false -parallelism="${parallelism}" -json  -var-file="${var_file}" $extra_vars | tee -a  destroy_output.json
 return_value=$?
-
 if [ -f destroy_output.json ]
 then
     errors_occurred=$(jq 'select(."@level" == "error") | length' destroy_output.json)
@@ -217,4 +216,6 @@ step=0
 save_config_var "step" "${deployer_config_information}"
 
 unset TF_DATA_DIR
+
+echo "Return from remove_deployer.sh"
 exit $return_value

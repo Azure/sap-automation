@@ -146,13 +146,13 @@ namespace AutomationForm.Controllers
                 if (img.IsInitialized)
                 {
                     str.AppendLine(property.Name + " = {");
-                    str.AppendLine("  os_type=" + $"\"{img.os_type}\",");
-                    str.AppendLine("  source_image_id=" + $"\"{img.source_image_id}\",");
-                    str.AppendLine("  publisher=" + $"\"{img.publisher}\",");
-                    str.AppendLine("  offer=" + $"\"{img.offer}\",");
-                    str.AppendLine("  sku=" + $"\"{img.sku}\",");
-                    str.AppendLine("  version=" + $"\"{img.version}\",");
-                    str.AppendLine("  type=" + $"\"{img.type}\"");
+                    str.AppendLine("  os_type = " + $"\"{img.os_type}\",");
+                    str.AppendLine("  source_image_id = " + $"\"{img.source_image_id}\",");
+                    str.AppendLine("  publisher = " + $"\"{img.publisher}\",");
+                    str.AppendLine("  offer = " + $"\"{img.offer}\",");
+                    str.AppendLine("  sku = " + $"\"{img.sku}\",");
+                    str.AppendLine("  version = " + $"\"{img.version}\",");
+                    str.AppendLine("  type = " + $"\"{img.type}\"");
                     str.Append("}");
                 }
                 else
@@ -277,7 +277,7 @@ namespace AutomationForm.Controllers
             // the file name, HTML-encode the value.
             var trustedFileNameForDisplay = WebUtility.HtmlEncode(formFile.FileName);
 
-            // Check the file length. This check doesn't catch files that only have 
+            // Check the file length. This check doesn't catch files that only have
             // a BOM as their content.
             if (formFile.Length == 0)
             {

@@ -1,3 +1,4 @@
+---
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
 # |                Perform the MSSQL DB Instance installation                  |
@@ -8,7 +9,7 @@
 
 # Draft version
 # Data file in a different disk
----
+
 
 - name:                                "WIN-SQL: Create run flag directory"
   ansible.windows.win_file:

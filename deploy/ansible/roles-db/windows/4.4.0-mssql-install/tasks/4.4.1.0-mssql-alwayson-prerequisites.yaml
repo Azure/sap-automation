@@ -1,0 +1,184 @@
+---
+# +------------------------------------4--------------------------------------*/
+- name:                                "WIN-SQL: Ensure DSC modules are installed"
+  community.windows.win_psmodule:
+    name:                              "{{ item }}"
+    state:                             present
+  loop:
+    - PSDesiredStateConfiguration
+    - SqlServerDsc
+
+- name:                                "WIN: Calculating the domain value from {{ domain_name }}"
+  ansible.builtin.set_fact:
+    domain:                            "{{ domain_name | split('.') | first }}"
+    cacheable:                         true
+  when:
+    - domain_name is defined
+    - domain_name | type_debug != 'NoneType'
+    - domain_name | trim | length > 1
+    - domain is not defined
+
+- name:                                'WIN: Calculating the domain\service account names'
+  ansible.builtin.set_fact:
+    domain_sqlsvc_account:            '{{ domain | upper }}\{{ win_sql_svc_account }}'
+    domain_sqlagent_account:          '{{ domain | upper }}\{{ win_sqlagent_svc_account }}'
+  when:
+    - domain is defined
+
+
+- name:                                "WIN: Joining the domain {{ domain }}"
+  ansible.builtin.debug:
+    msg:
+      - "Domain:                       {{ domain_name }}"
+      - "domain_svc_account:           {{ domain_service_account }}"
+      - "hostname:                     {{ ansible_hostname }}"
+    verbosity:                         2
+
+- name:                                "Assert domain user name and other details are available"
+  ansible.builtin.assert:
+    that:
+      - domain_name is defined
+      - domain_service_account is defined
+      - domain_service_password is defined
+    fail_msg:
+      - "Domain name is not defined"
+      - "Domain service account is not defined"
+      - "Domain service account password is not defined"
+    quiet:                            true
+
+- name:                                "Grant required privileges to the SQL Server account"
+  become:                              true
+  become_method:                       'runas'
+  become_user:                         '{{ orchestration_ansible_user }}'
+  ansible.windows.win_user_right:
+    name:                              '{{ privilege_constant }}'
+    users:                             '{{ domain_sqlsvc_account }}'
+    action:                            add
+  loop:
+    - SeServiceLogonRight
+    - SeAssignPrimaryTokenPrivilege
+    - SeChangeNotifyPrivilege
+    - SeIncreaseQuotaPrivilege
+    - SeIncreaseWorkingSetPrivilege
+    - SeManageVolumePrivilege
+    - SeLockMemoryPrivilege
+  loop_control:
+    loop_var:                         privilege_constant
+
+- name:                                "Grant required privileges to the SQL Server agent account"
+  become:                              true
+  become_method:                       'runas'
+  become_user:                         '{{ orchestration_ansible_user }}'
+  ansible.windows.win_user_right:
+    name:                              '{{ privilege_constant }}'
+    users:                             '{{ domain_sqlagent_account }}'
+    action:                            add
+  loop:
+    - SeServiceLogonRight
+    - SeAssignPrimaryTokenPrivilege
+    - SeChangeNotifyPrivilege
+    - SeIncreaseQuotaPrivilege
+  loop_control:
+    loop_var:                         privilege_constant
+
+- name:                                "Add SPNs for the gMSA account"
+  ansible.windows.win_shell: |
+    'setspn -A MSSQLSvc/{{ mssql_primary_node }}.{{ domain_name }} {{ domain_sqlsvc_account }}'
+    'setspn -A MSSQLSvc/{{ mssql_primary_node }}.{{ domain_name }}:1433 {{ domain_sqlsvc_account }}'
+    'setspn -A MSSQLSvc/{{ mssql_secondary_node }}.{{ domain_name }} {{ domain_sqlsvc_account }}'
+    'setspn -A MSSQLSvc/{{ mssql_secondary_node }}.{{ domain_name }}:1433 {{ domain_sqlsvc_account }}'
+
+- name:                                "Convert SQL Server service from running with local account to domain account"
+  ansible.windows.win_service:
+    name:                              MSSQLSERVER
+    state:                             stopped
+    username:                          "{{ domain_sqlsvc_account }}"
+    password:                          '{{ win_sql_svc_password }}'
+    force_dependent_services:          true
+
+- name:                                "Convert SQL Server agent service from running with local account to domain account"
+  ansible.windows.win_service:
+    name:                              SQLSERVERAGENT
+    state:                             stopped
+    username:                          "{{ domain_sqlagent_account }}"
+    password:                          '{{ win_sqlagent_svc_password }}'
+
+- name:                                "Start SQL Server service "
+  ansible.windows.win_service:
+    name:                              MSSQLSERVER
+    state:                             started
+    force_dependent_services:          true
+
+- name:                                "Start SQL Server agent service"
+  ansible.windows.win_service:
+    name:                              SQLSERVERAGENT
+    state:                             started
+
+- name:                                "Add required users to SQL Server"
+  ansible.windows.win_dsc:
+    resource_name:                     SqlLogin
+    Ensure:                            Present
+    ServerName:                        "{{ ansible_hostname }}"
+    InstanceName:                      "{{ mssql_instance_name }}"
+    LoginType:                         WindowsUser
+    Name:                              "{{ item }}"
+    PsDscRunAsCredential_username:     "{{ domain_service_account }}@{{ domain_name }}"
+    PsDscRunAsCredential_password:     "{{ domain_service_password }}"
+  loop:
+    - "{{ win_cluster_svc_account }}"
+    - "{{ domain_sqlsvc_account }}"
+    - "{{ domain_sqlagent_account }}"
+    - '{{ domain | upper }}\{{ domain_service_account }}'
+  register:                           sql_login
+
+- name:                                "Add required users to server role in SQL Server"
+  ansible.windows.win_dsc:
+    resource_name:                     SqlRole
+    Ensure:                            Present
+    ServerName:                        "{{ ansible_hostname }}"
+    InstanceName:                      "{{ mssql_instance_name }}"
+    ServerRoleName:                    "sysadmin"
+    MembersToInclude:
+      - "{{ domain_sqlsvc_account }}"
+      - "{{ domain_sqlagent_account }}"
+      - '{{ domain | upper }}\{{ domain_service_account }}'
+    PsDscRunAsCredential_username:     '{{ sap_sid }}adm@{{ domain_name }}'
+    PsDscRunAsCredential_password:     '{{ domain_user_password }}'
+  register:                           sql_role_addition
+
+# maybe split to two tasks, and assign lesser perms to cluster service account
+- name:                                "Give permissions on the SQL Server to cluster service account"
+  become:                              true
+  ansible.windows.win_dsc:
+    resource_name:                     SqlPermission
+    ServerName:                        "{{ ansible_hostname }}"
+    InstanceName:                      "{{ mssql_instance_name }}"
+    PermissionToInclude:
+      - State: Grant
+        Permission:
+          - ConnectSql
+          - ViewServerState
+          - AlterAnyEndpoint
+          - AlterAnyAvailabilityGroup
+    Name:                              "{{ item }}"
+  loop:
+    - "{{ win_cluster_svc_account }}"
+    - "{{ domain_sqlsvc_account }}"
+    - "{{ domain_sqlagent_account }}"
+    - '{{ domain | upper }}\{{ domain_service_account }}'
+  register:                           sql_server_permission
+
+- name:                                "Create SQL Server Availability Group Endpoint"
+  ansible.windows.win_dsc:
+    resource_name:                     SqlEndpoint
+    Ensure:                            Present
+    EndpointName:                      "SDAF-HADR"
+    EndpointType:                      DatabaseMirroring
+    State:                             Started
+    Port:                              5022
+    ServerName:                        "{{ ansible_hostname }}"
+    InstanceName:                      "{{ mssql_instance_name }}"
+    PsDscRunAsCredential_username:     "{{ domain_service_account }}@{{ domain_name }}"
+    PsDscRunAsCredential_password:     "{{ domain_service_password }}"
+
+...

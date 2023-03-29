@@ -1,0 +1,17 @@
+{% set sql_disks = [] %}
+{% set sql_data_disks_names = [] %}
+{% set sql_log_disks_names = [] %}
+{% set sid = sid_for_disks %}
+{% for disk in disks %}
+{%   if (disk.type == 'data' and disk.host == ansible_hostname ) %}
+{%     set _ = sql_data_disks_names.append('%s:\DATA\DATA%s.MDF\%sDATA%s' | format("EFGHIJKLMNOP"[disk.LUN], disk.LUN, sid_for_disks, disk.LUN)) %}
+{%   endif %}
+{%   if (disk.type == 'log' and disk.host == ansible_hostname ) %}
+{%     set _ = sql_log_disks_names.append('%s:\LOG\LOG%s.LDF\%sLOG%s' | format("NOP"[disk.LUN-16], disk.LUN, sid_for_disks, disk.LUN-15)) %}
+{%   endif %}
+{% endfor %}
+{% set _ = sql_disks.append(sql_data_disks_names) %}
+{% set _ = sql_disks.append(sql_log_disks_names) %}
+{{ sql_disks }}
+
+

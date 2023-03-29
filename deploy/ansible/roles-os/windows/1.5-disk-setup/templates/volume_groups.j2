@@ -33,7 +33,7 @@
 {% else %}
 {%     set startlettercharacter = "V" %}
 {% endif %}
-{%     set      os_disk_id = ansible_facts.disks | selectattr('location', 'match', regex_string) | rejectattr('partition_style', 'equalto', 'MBR') | rejectattr('physical_disk.device_id', 'equalto', '0') | map(attribute='unique_id') | list | first %}
+{%     set      os_disk_id = ansible_facts.disks | selectattr('location', 'match', regex_string) | rejectattr('partition_style', 'equalto', 'MBR') | map(attribute='unique_id') | list | first %}
 {% if disktype == 'data' %}
 {%         set _ = pvlist.append({'diskname':'SQL' ~ disktype ~  loop.index, 'LUN':disk.LUN, 'driveletter' : startlettercharacter, 'sector_size': size, 'disk_type' : disktype, 'osdisk_id': os_disk_id }) %}
 {% elif disktype == 'log' %}

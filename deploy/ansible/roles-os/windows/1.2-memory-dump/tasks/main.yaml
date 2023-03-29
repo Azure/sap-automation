@@ -83,9 +83,9 @@
     msg:                              "MemoryDump Location changed to {{ memory_dump_location.stdout_lines[3].split()[0] }}"
 
 # -------------------------------------+---------------------------------------8
-# Start Registry Service
+# Start Remote Registry Service
 # -------------------------------------+---------------------------------------8
-- name:                               "Start Registery Service"
+- name:                               "Start Remote Registry Service"
   ansible.windows.win_service:
     name:                             RemoteRegistry
     state:                            started

@@ -613,4 +613,18 @@ locals {
     local.web_dispatcher_primary_ips
   )
 
+  load_balancer_IP_names = [
+    format("%s%s%s", local.prefix, var.naming.separator, "scs"),
+    format("%s%s%s", local.prefix, var.naming.separator, "ers"),
+    format("%s%s%s", local.prefix, var.naming.separator, "clst"),
+    format("%s%s%s", local.prefix, var.naming.separator, "fs")
+  ]
+
+  web_load_balancer_IP_names = local.enable_web_lb_deployment ? (
+    [
+      format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.web_alb)
+    ]
+    ) : (
+    [""]
+  )
 }
