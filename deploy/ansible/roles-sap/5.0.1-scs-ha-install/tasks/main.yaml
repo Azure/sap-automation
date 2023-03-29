@@ -252,7 +252,7 @@
             mode:                          0755
 
         - name:                        "RESCUE - SCS HA Install: SAPINST"
-          ansible.builtin.command: |
+          ansible.builtin.shell: |
                                        umask {{ custom_umask | default('022') }};
                                        ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }}     \
                                                  SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.scs_ha }}             \
