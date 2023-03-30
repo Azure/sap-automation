@@ -336,7 +336,7 @@ resource "azurerm_private_endpoint" "kv_user" {
 
   ]
 
-  count = (
+  count = (length(var.keyvault_private_endpoint_id) == 0 &&
     local.admin_subnet_defined &&
     var.use_private_endpoint &&
     local.enable_landscape_kv &&
@@ -406,13 +406,34 @@ resource "azurerm_private_endpoint" "kv_user" {
   }
 }
 
+
 data "azurerm_private_dns_zone" "keyvault" {
   provider            = azurerm.dnsmanagement
   count               = var.use_private_endpoint && !var.use_custom_dns_a_registration ? 1 : 0
   name                = "privatelink.vaultcore.azure.net"
   resource_group_name = var.management_dns_resourcegroup_name
-
 }
+
+resource "azurerm_private_dns_a_record" "keyvault" {
+  provider = azurerm.dnsmanagement
+  count    = local.use_Azure_native_DNS ? 1 : 0
+  name = lower(
+    format("%s", local.user_keyvault_name)
+  )
+  zone_name           = "privatelink.vaultcore.azure.net"
+  resource_group_name = var.management_dns_resourcegroup_name
+  ttl                 = 3600
+  records = [length(var.keyvault_private_endpoint_id) > 0 ? (
+    data.azurerm_private_endpoint_connection.kv_user[0].private_service_connection[0].private_ip_address) : (
+    azurerm_private_endpoint.kv_user[0].private_service_connection[0].private_ip_address
+  )]
+
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
+}
+
 
 resource "azurerm_private_dns_zone_virtual_network_link" "vault" {
   provider = azurerm.dnsmanagement
