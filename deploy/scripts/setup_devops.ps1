@@ -237,7 +237,7 @@ if ($confirmation -ne 'y') {
     Add-Content -Path $templatename "    - repository: sap-automation"
     Add-Content -Path $templatename "      type: git"
     Add-Content -Path $templatename "      name: $ADO_Project/sap-automation"
-    Add-Content -Path $templatename "      ref: refs/tags/v3.7.0.0"
+    Add-Content -Path $templatename "      ref: refs/tags/v3.8.0.0"
 
     $cont = Get-Content -Path $templatename -Raw
 
@@ -285,7 +285,7 @@ if ($confirmation -ne 'y') {
     Add-Content -Path $templatename "    - repository: sap-automation"
     Add-Content -Path $templatename "      type: git"
     Add-Content -Path $templatename "      name: $ADO_Project/sap-automation"
-    Add-Content -Path $templatename "      ref: refs/tags/v3.7.0.0"
+    Add-Content -Path $templatename "      ref: refs/tags/v3.8.0.0"
     Add-Content -Path $templatename "    - repository: sap-samples"
     Add-Content -Path $templatename "      type: git"
     Add-Content -Path $templatename "      name: $ADO_Project/sap-samples"
@@ -684,7 +684,7 @@ Add-Content -Path $fname -Value $WorkloadZonePrefix
 
 Add-Content -Path $fname -Value "### Credentials"
 Add-Content -Path $fname -Value ""
-Add-Content -Path $fname -Value ("Web Application:" + $ApplicationName)
+Add-Content -Path $fname -Value ("Web Application: " + $ApplicationName)
 
 
 
@@ -728,7 +728,7 @@ if ($Env:SDAF_MGMT_SPN_NAME.Length -ne 0) {
   $spn_name = $Env:SDAF_MGMT_SPN_NAME
 }
 
-Add-Content -Path $fname -Value ("Control Plane Service Principal:" + $spn_name)
+Add-Content -Path $fname -Value ("Control Plane Service Principal: " + $spn_name)
 
 $scopes = "/subscriptions/" + $Control_plane_subscriptionID
 
@@ -828,14 +828,12 @@ $ARM_CLIENT_SECRET = "Please update"
 $ARM_OBJECT_ID = ""
 
 $workload_zone_scopes = "/subscriptions/" + $Workload_zone_subscriptionID
-$workload_zone_spn_name = $Workload_zonePrefix + " Deployment credential"
-
-Add-Content -path $fname -value ("Workload zone Service Principal:" + $workload_zone_spn_name)
-
-
+$workload_zone_spn_name = $WorkloadZonePrefix + " Deployment credential"
 if ($Env:SDAF_WorkloadZone_SPN_NAME.Length -ne 0) {
   $workload_zone_spn_name = $Env:SDAF_WorkloadZone_SPN_NAME
 }
+
+Add-Content -path $fname -value ("Workload zone Service Principal: " + $workload_zone_spn_name)
 
 $SPN_Created = $false
 $found_appName = (az ad sp list --all --filter "startswith(displayName,'$workload_zone_spn_name')" --query  "[?displayName=='$workload_zone_spn_name'].displayName | [0]" --only-show-errors)
