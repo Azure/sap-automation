@@ -89,7 +89,7 @@ resource "azurerm_network_security_rule" "nsr_controlplane_app" {
   access                       = "Allow"
   protocol                     = "Tcp"
   source_port_range            = "*"
-  destination_port_ranges      = [22, 3389, 5985, 5986]
+  destination_port_ranges      = [22, 443, 3389, 5985, 5986]
   source_address_prefixes      = compact(concat(var.deployer_tfstate.subnet_mgmt_address_prefixes, var.deployer_tfstate.subnet_bastion_address_prefixes))
   destination_address_prefixes = azurerm_subnet.app[0].address_prefixes
 }
@@ -112,7 +112,7 @@ resource "azurerm_network_security_rule" "nsr_controlplane_web" {
   access                       = "Allow"
   protocol                     = "Tcp"
   source_port_range            = "*"
-  destination_port_ranges      = [22, 3389, 5985, 5986]
+  destination_port_ranges      = [22, 443, 3389, 5985, 5986]
   source_address_prefixes      = compact(concat(var.deployer_tfstate.subnet_mgmt_address_prefixes, var.deployer_tfstate.subnet_bastion_address_prefixes))
   destination_address_prefixes = azurerm_subnet.web[0].address_prefixes
 }
@@ -135,7 +135,7 @@ resource "azurerm_network_security_rule" "nsr_controlplane_db" {
   access                       = "Allow"
   protocol                     = "Tcp"
   source_port_range            = "*"
-  destination_port_ranges      = [22, 3389, 5985, 5986]
+  destination_port_ranges      = [22, 443, 3389, 5985, 5986]
   source_address_prefixes      = compact(concat(var.deployer_tfstate.subnet_mgmt_address_prefixes, var.deployer_tfstate.subnet_bastion_address_prefixes))
   destination_address_prefixes = azurerm_subnet.db[0].address_prefixes
 }
@@ -158,7 +158,7 @@ resource "azurerm_network_security_rule" "nsr_controlplane_admin" {
   access                       = "Allow"
   protocol                     = "Tcp"
   source_port_range            = "*"
-  destination_port_ranges      = [22, 3389, 5985, 5986]
+  destination_port_ranges      = [22, 443, 3389, 5985, 5986]
   source_address_prefixes      = compact(concat(var.deployer_tfstate.subnet_mgmt_address_prefixes, var.deployer_tfstate.subnet_bastion_address_prefixes))
   destination_address_prefixes = azurerm_subnet.admin[0].address_prefixes
 }
