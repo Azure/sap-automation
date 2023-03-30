@@ -137,7 +137,7 @@ resource "azurerm_netapp_volume" "transport" {
     local.resource_suffixes.transport_volume
   )
   service_level = var.ANF_settings.service_level
-  subnet_id     = local.ANF_subnet_existing ? local.ANF_subnet_arm_id : azurerm_subnet.anf[0].id
+  subnet_id     = local.ANF_subnet_existing ? var.infrastructure.vnets.sap.subnet_anf.arm_id : azurerm_subnet.anf[0].id
 
   protocols = ["NFSv4.1"]
   export_policy_rule {
@@ -239,7 +239,7 @@ resource "azurerm_netapp_volume" "install" {
     local.resource_suffixes.install_volume
   )
   service_level = var.ANF_settings.service_level
-  subnet_id     = local.ANF_subnet_existing ? local.ANF_subnet_arm_id : azurerm_subnet.anf[0].id
+  subnet_id     = local.ANF_subnet_existing ? var.infrastructure.vnets.sap.subnet_anf.arm_id : azurerm_subnet.anf[0].id
 
   protocols = ["NFSv4.1"]
   export_policy_rule {

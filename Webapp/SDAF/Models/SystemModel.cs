@@ -80,7 +80,7 @@ namespace AutomationForm.Models
         public string custom_prefix { get; set; }
 
         public bool? use_prefix { get; set; } = true;
-        public bool? use_secondary_ips { get; set; }
+        public bool? use_secondary_ips { get; set; } = false;
 
         public bool? use_zonal_markers { get; set; } = true;
 
@@ -148,7 +148,7 @@ namespace AutomationForm.Models
         [DatabasePlatformValidator]
         public string database_platform { get; set; }
 
-        public bool? database_high_availability { get; set; }
+        public bool? database_high_availability { get; set; } = false;
 
         public int? database_server_count { get; set; } = 1;
 
@@ -252,11 +252,11 @@ namespace AutomationForm.Models
 
         public bool? scs_high_availability { get; set; } = false;
 
-        public string scs_instance_number { get; set; }
+        public string scs_instance_number { get; set; } = "00";
 
-        public string ers_instance_number { get; set; }
+        public string ers_instance_number { get; set; } = "01";
 
-        public string pas_instance_number { get; set; }
+        public string pas_instance_number { get; set; } = "00";
 
         public Image scs_server_image { get; set; }
 
@@ -322,6 +322,7 @@ namespace AutomationForm.Models
 
         public bool? nsg_asg_with_vnet { get; set; } = false;
 
+
         // NFS Support
 
         public string NFS_provider { get; set; }
@@ -329,6 +330,8 @@ namespace AutomationForm.Models
         public int? sapmnt_volume_size { get; set; }
 
         public string azure_files_sapmnt_id { get; set; }
+
+        public bool? use_random_id_for_storageaccounts  { get; set; } = true;
 
         [PrivateEndpointIdValidator]
         public string sapmnt_private_endpoint_id { get; set; }

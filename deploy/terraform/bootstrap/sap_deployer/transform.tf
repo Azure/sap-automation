@@ -144,8 +144,10 @@ locals {
         try(var.deployers[0].authentication.type, "")
       )
     }
+    add_system_assigned_identity = var.add_system_assigned_identity
     os = {
       os_type = "LINUX"
+      type = try(var.deployer_image.type, "marketplace")
       source_image_id = try(coalesce(
         var.deployer_image.source_image_id,
         try(var.deployers[0].os.source_image_id, "")
@@ -168,7 +170,6 @@ locals {
         var.deployer_image.version,
         try(var.deployers[0].sku, "")
       ), "")
-      type = "marketplace"
     }
 
     plan = var.plan

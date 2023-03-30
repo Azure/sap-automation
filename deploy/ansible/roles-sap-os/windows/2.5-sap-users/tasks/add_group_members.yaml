@@ -16,5 +16,6 @@
     name:                                   "Administrators"
     members:
       - '{{ sap_sid }}adm@{{ domain_name }}'
+      - '{{ domain_service_account }}@{{ domain_name }}'
     state:                                  present
   notify:                                   reboot

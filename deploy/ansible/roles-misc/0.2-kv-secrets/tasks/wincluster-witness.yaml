@@ -1,0 +1,71 @@
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                         Key Vault helpers - fencing                        |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+---
+# -------------------------------------+---------------------------------------8
+#
+# Task: 0.2     - kv-secrets
+#
+# -------------------------------------+---------------------------------------8
+
+# -------------------------------------+---------------------------------------8
+#
+# Tasks for retrieving the SPN details
+#
+# -------------------------------------+---------------------------------------8
+
+# -------------------------------------+---------------------------------------8
+#
+
+- name:                                "0.2 Key Vault - WinCluster: - Witness Account Details"
+  block:
+
+    - name:                            "0.2 Key Vault - WinCluster: - Construct Witness key details"
+      ansible.builtin.set_fact:
+        wincluster_witness_key:        "{{ secret_prefix }}-witness-accesskey"
+        wincluster_witness_name:       "{{ secret_prefix }}-witness-name"
+
+    - name:                            "0.2 Key Vault - WinCluster: - Retrieve witness storage account key details"
+      ansible.builtin.command: >-
+        az keyvault secret show
+          --vault-name {{ kv_name }}
+          --name {{ wincluster_witness_key }}
+          --query value
+          --output tsv
+      changed_when:                    false
+      register:                        kv_secret_show_wincluster_witness_key_value
+      no_log:                          false
+
+    - name:                            "0.2 Key Vault - WinCluster: - Extract witness storage account key"
+      ansible.builtin.set_fact:
+        witness_storage_account_key:   "{{ kv_secret_show_wincluster_witness_key_value.stdout }}"
+        cacheable:                     true
+      no_log:                          false
+
+    - name:                            "0.2 Key Vault - WinCluster: - Retrieve witness storage account details"
+      ansible.builtin.command: >-
+        az keyvault secret show
+          --vault-name {{ kv_name }}
+          --name {{ wincluster_witness_name }}
+          --query value
+          --output tsv
+      changed_when:                    false
+      register:                        kv_secret_show_wincluster_witness_name
+      no_log:                          true
+
+    - name:                            "0.2 Key Vault - WinCluster: - Extract witness storage account"
+      ansible.builtin.set_fact:
+        witness_storage_account_name:  "{{ kv_secret_show_wincluster_witness_name.stdout }}"
+        cacheable:                     true
+      no_log:                          true
+
+  when:
+    - platform | upper == "SQLSERVER"
+    - scs_high_availability or db_high_availability
+
+...
+# /*---------------------------------------------------------------------------8
+# |                                   END                                     |
+# +------------------------------------4--------------------------------------*/

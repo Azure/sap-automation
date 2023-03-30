@@ -48,6 +48,9 @@ parameters:
     displayName:                       Service Connection Name
     type:                              string
 
+  - name:                              force_reset
+    displayName:                       Force a re-install - may require multiple re-runs
+    type:                              boolean
 stages:
     - stage: Prepare_Deployer
       condition: and(not(failed()), not(canceled()))
@@ -84,13 +87,7 @@ stages:
                             ENVIRONMENT=$(echo $(deployerfolder) | awk -F'-' '{print $1}' | xargs) ; echo Environment ${ENVIRONMENT}
                             LOCATION=$(echo $(deployerfolder) | awk -F'-' '{print $2}' | xargs) ;    echo Location ${LOCATION}
                             deployer_environment_file_name=$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}
-                            if [ -f ${deployer_environment_file_name} ]; then
-                              step=$(cat ${deployer_environment_file_name}  | grep step= | awk -F'=' '{print $2}' | xargs) ; echo 'Step' ${step}
-                              if [ "0" != ${step} ]; then
-                                exit 0
-                              fi
-                            fi
-                            echo "Agent: " $(this_agent)
+
                         echo -e "$green--- Checkout $(Build.SourceBranchName) ---$reset"
                             cd $CONFIG_REPO_PATH
                             git checkout -q $(Build.SourceBranchName)
@@ -100,6 +97,48 @@ stages:
                             az devops configure --defaults organization=$(System.CollectionUri) project='$(System.TeamProject)' --output none
                             export VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(variable_group)'].id | [0]")
                             echo "$(variable_group) id: ${VARIABLE_GROUP_ID}"
+
+                            echo ${{ parameters.force_reset }}
+                            if [ ${{ parameters.force_reset }} == "True" ]; then
+                              echo "##vso[task.logissue type=warning]Forcing a re-install"
+                              sed -i 's/step=1/step=0/' $deployer_environment_file_name
+                              sed -i 's/step=2/step=0/' $deployer_environment_file_name
+                              sed -i 's/step=3/step=0/' $deployer_environment_file_name
+                              az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Deployer_Key_Vault.value" | tr -d \")
+                              if [ -n "${az_var}" ]; then
+                                key_vault="${az_var}" ; echo 'Deployer Key Vault' ${key_vault}
+                              else
+                                echo "Reading key vault from environment file"
+                                key_vault=$(cat ${deployer_environment_file_name} | grep keyvault= -m1 | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer Key Vault' ${key_vault}
+                              fi
+
+                              az login --service-principal --username $ARM_CLIENT_ID --password=$ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID --output none
+                              return_code=$?
+                              if [ 0 != $return_code ]; then
+                                  echo -e "$boldred--- Login failed ---$reset"
+                                  echo "##vso[task.logissue type=error]az login failed."
+                                  exit $return_code
+                              fi
+
+                              key_vault_id=$(az resource list --name "${key_vault}"  --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
+                              if [ -n "${key_vault_id}" ]; then
+
+                                if [ "azure pipelines" = "$(this_agent)" ]; then
+                                    this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
+                                    az keyvault network-rule add --name ${key_vault} --ip-address ${this_ip} --only-show-errors --output none
+                                    ip_added=1
+                                fi
+                              fi
+                              step=0
+                            else
+                              if [ -f ${deployer_environment_file_name} ]; then
+                                step=$(cat ${deployer_environment_file_name}  | grep step= | awk -F'=' '{print $2}' | xargs) ; echo 'Step' ${step}
+                                if [ "0" != ${step} ]; then
+                                  exit 0
+                                fi
+                              fi
+                            fi
+                            echo "Agent: " $(this_agent)
                             if [ -z ${VARIABLE_GROUP_ID} ]; then
                                 echo "##vso[task.logissue type=error]Variable group $(variable_group) could not be found."
                                 exit 2
@@ -184,6 +223,7 @@ stages:
                                     echo "##vso[task.logissue type=warning]Agent Pool $(POOL) does not exist."
                                     exit 2
                                 fi
+                                echo 'Deployer Agent Pool found' $POOL_NAME
                                 export TF_VAR_agent_pool=$(POOL)
                                 export TF_VAR_agent_pat=$(PAT)
                             fi
@@ -221,6 +261,9 @@ stages:
                                --auto-approve --ado --only_deployer
                             return_code=$?
                             echo "Return code from deploy_controlplane $return_code."
+
+                            this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
+                            az keyvault network-rule remove --name ${key_vault} --ip-address ${this_ip} --only-show-errors --output none
 
                             set -eu
 
@@ -281,24 +324,25 @@ stages:
 
                   displayName: Deploy control plane
                   env:
-                      SYSTEM_ACCESSTOKEN:          $(System.AccessToken)
-                      ARM_SUBSCRIPTION_ID:         $(CP_ARM_SUBSCRIPTION_ID)
-                      ARM_CLIENT_ID:               $(CP_ARM_CLIENT_ID)
-                      ARM_CLIENT_SECRET:           $(CP_ARM_CLIENT_SECRET)
-                      ARM_TENANT_ID:               $(CP_ARM_TENANT_ID)
-                      TF_VAR_agent_ado_url:        $(System.CollectionUri)
-                      TF_VAR_agent_pool:           $(POOL)
-                      AZURE_DEVOPS_EXT_PAT:        $(PAT)
-                      IS_PIPELINE_DEPLOYMENT:      true
-                      WEB_APP_CLIENT_SECRET:       $(WEB_APP_CLIENT_SECRET)
-                      APP_REGISTRATION_APP_ID:     $(APP_REGISTRATION_APP_ID)
-                      POOL:                        $(POOL)
-                      SAP_AUTOMATION_REPO_PATH:    ${{ parameters.sap_automation_repo_path }}
-                      CONFIG_REPO_PATH:            ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
-                      TF_VAR_ansible_core_version: $(ansible_core_version)
-                      TF_LOG:                      $(TF_LOG)
-                      TF_IN_AUTOMATION:            true
-                      DEPLOYER_TFSTATE_KEY:        "${{ parameters.deployer }}.terraform.tfstate"
+                      SYSTEM_ACCESSTOKEN:             $(System.AccessToken)
+                      ARM_SUBSCRIPTION_ID:            $(CP_ARM_SUBSCRIPTION_ID)
+                      ARM_CLIENT_ID:                  $(CP_ARM_CLIENT_ID)
+                      ARM_CLIENT_SECRET:              $(CP_ARM_CLIENT_SECRET)
+                      ARM_TENANT_ID:                  $(CP_ARM_TENANT_ID)
+                      TF_VAR_agent_ado_url:           $(System.CollectionUri)
+                      TF_VAR_spn_id:                  $(CP_ARM_OBJECT_ID)
+                      TF_VAR_deployer_kv_user_arm_id: $(Deployer_Key_Vault)
+                      AZURE_DEVOPS_EXT_PAT:           $(PAT)
+                      IS_PIPELINE_DEPLOYMENT:         true
+                      WEB_APP_CLIENT_SECRET:          $(WEB_APP_CLIENT_SECRET)
+                      APP_REGISTRATION_APP_ID:        $(APP_REGISTRATION_APP_ID)
+                      POOL:                           $(POOL)
+                      SAP_AUTOMATION_REPO_PATH:       ${{ parameters.sap_automation_repo_path }}
+                      CONFIG_REPO_PATH:               ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
+                      TF_VAR_ansible_core_version:    $(ansible_core_version)
+                      TF_LOG:                         $(TF_LOG)
+                      TF_IN_AUTOMATION:               true
+                      DEPLOYER_TFSTATE_KEY:           "${{ parameters.deployer }}.terraform.tfstate"
 
                   failOnStderr: false
 
@@ -397,23 +441,23 @@ stages:
                           if [ -z ${TF_VAR_ansible_core_version} ]; then
                               export TF_VAR_ansible_core_version=2.13
                           fi
-                          if [ -z ${ARM_SUBSCRIPTION_ID} ]; then
-                              echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined."
+                          if [ -z ${CP_ARM_SUBSCRIPTION_ID} ]; then
+                              echo "##vso[task.logissue type=error]Variable CP_ARM_SUBSCRIPTION_ID was not defined."
                               exit 2
                           fi
 
-                          if [ -z ${ARM_CLIENT_ID} ]; then
-                              echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined."
+                          if [ -z ${CP_ARM_CLIENT_ID} ]; then
+                              echo "##vso[task.logissue type=error]Variable CP_ARM_CLIENT_ID was not defined."
                               exit 2
                           fi
 
-                          if [ -z ${ARM_CLIENT_SECRET} ]; then
-                              echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined."
+                          if [ -z ${CP_ARM_CLIENT_SECRET} ]; then
+                              echo "##vso[task.logissue type=error]Variable CP_ARM_CLIENT_SECRET was not defined."
                               exit 2
                           fi
 
-                          if [ -z ${ARM_TENANT_ID} ]; then
-                              echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined."
+                          if [ -z ${CP_ARM_TENANT_ID} ]; then
+                              echo "##vso[task.logissue type=error]Variable CP_ARM_TENANT_ID was not defined."
                               exit 2
                           fi
 
@@ -502,6 +546,26 @@ stages:
                           rm -f terraform_$(tf_version)_linux_amd64.zip
 
                           az extension add --name storage-blob-preview >/dev/null
+                          echo -e "$green--- az login ---$reset"
+                          az login --service-principal --username $CP_ARM_CLIENT_ID --password=$CP_ARM_CLIENT_SECRET --tenant $CP_ARM_TENANT_ID --output none
+                          return_code=$?
+                          if [ 0 != $return_code ]; then
+                              echo -e "$boldred--- Login failed ---$reset"
+                              echo "##vso[task.logissue type=error]az login failed."
+                              exit $return_code
+                          fi
+
+                          az account set --subscription $CP_ARM_SUBSCRIPTION_ID
+
+                      else
+                          source /etc/profile.d/deploy_server.sh
+                          # az login --service-principal --username $CP_ARM_CLIENT_ID --password=$CP_ARM_CLIENT_SECRET --tenant $CP_ARM_TENANT_ID --output none
+                          # return_code=$?
+                          # if [ 0 != $return_code ]; then
+                          #     echo -e "$boldred--- Login failed ---$reset"
+                          #     echo "##vso[task.logissue type=error]az login failed."
+                          #     exit $return_code
+                          # fi
                       fi
 
                       echo -e "$green--- Configure parameters ---$reset"
@@ -522,26 +586,18 @@ stages:
                                   export key_vault=$(cat ${deployer_environment_file_name} | grep key_vault | awk -F'=' '{print $2}' | xargs) ; echo "Key Vault: $key_vault"
                                   if [ -n "${key_vault}" ]; then
                                       echo 'Deployer Key Vault' ${key_vault}
+                                      key_vault_id=$(az resource list --name "${key_vault}"  --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
+                                      if [ -n "${key_vault_id}" ]; then
 
-                                      if [ "azure pipelines" = "$(this_agent)" ]; then
-                                          this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
-                                          az keyvault network-rule add --name ${key_vault} --ip-address ${this_ip} --only-show-errors --output none
-                                          ip_added=1
+                                        if [ "azure pipelines" = "$(this_agent)" ]; then
+                                            this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
+                                            az keyvault network-rule add --name ${key_vault} --ip-address ${this_ip} --only-show-errors --output none
+                                            ip_added=1
+                                        fi
                                       fi
                                   fi
                               fi
                           fi
-
-                      echo -e "$green--- az login ---$reset"
-                          az login --service-principal --username $ARM_CLIENT_ID --password=$ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID --output none
-                          return_code=$?
-                          if [ 0 != $return_code ]; then
-                              echo -e "$boldred--- Login failed ---$reset"
-                              echo "##vso[task.logissue type=error]az login failed."
-                              exit $return_code
-                          fi
-
-                          az account set --subscription $ARM_SUBSCRIPTION_ID
 
                           echo -e "$green--- Deploy the Control Plane ---$reset"
 
@@ -563,13 +619,13 @@ stages:
                           fi
 
                           if [ -f ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/state.zip ]; then
-                              pass=$(echo $ARM_CLIENT_SECRET | sed 's/-//g')
+                              pass=$(echo $CP_ARM_CLIENT_SECRET | sed 's/-//g')
                               unzip  -qq -o -P "${pass}" ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/state.zip -d ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)
                           fi
 
                           if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip ]; then
-                            pass=$(echo $ARM_CLIENT_SECRET | sed 's/-//g')
-                              unzip -qq -o -P "${pass}" ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip -d ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)
+                            pass=$(echo $CP_ARM_CLIENT_SECRET | sed 's/-//g')
+                            unzip -qq -o -P "${pass}" ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip -d ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)
                           fi
 
                           export TF_LOG_PATH=${CONFIG_REPO_PATH}/.sap_deployment_automation/terraform.log
@@ -579,8 +635,8 @@ stages:
                           $SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh                               \
                              --deployer_parameter_file ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/$(deployerconfig) \
                              --library_parameter_file ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/$(libraryconfig)     \
-                             --subscription $ARM_SUBSCRIPTION_ID --spn_id $ARM_CLIENT_ID                                \
-                             --spn_secret $ARM_CLIENT_SECRET --tenant_id $ARM_TENANT_ID                                 \
+                             --subscription $CP_ARM_SUBSCRIPTION_ID --spn_id $CP_ARM_CLIENT_ID                                \
+                             --spn_secret $CP_ARM_CLIENT_SECRET --tenant_id $CP_ARM_TENANT_ID                                 \
                              --auto-approve --ado                                                                       \
                              ${storage_account_parameter}
                           return_code=$?
@@ -636,7 +692,7 @@ stages:
                               if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/terraform.tfstate ]; then
                                   sudo apt install zip
                                   echo "Compressing the deployer state file"
-                                  pass=$(echo $ARM_CLIENT_SECRET | sed 's/-//g')
+                                  pass=$(echo $CP_ARM_CLIENT_SECRET | sed 's/-//g')
                                   zip -j -P "${pass}" ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/terraform.tfstate
                                   git add -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip
                                   added=1
@@ -660,7 +716,7 @@ stages:
                               if [ -f ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/terraform.tfstate ]; then
                                   sudo apt install zip
                                   echo "Compressing the library state file"
-                                  pass=$(echo $ARM_CLIENT_SECRET | sed 's/-//g')
+                                  pass=$(echo $CP_ARM_CLIENT_SECRET | sed 's/-//g')
                                   zip -j -P "${pass}" ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/state ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/terraform.tfstate
                                   git add -f ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/state.zip
                                   added=1
@@ -737,9 +793,10 @@ stages:
                   env:
                       SYSTEM_ACCESSTOKEN:          $(System.AccessToken)
                       ARM_SUBSCRIPTION_ID:         $(CP_ARM_SUBSCRIPTION_ID)
-                      ARM_CLIENT_ID:               $(CP_ARM_CLIENT_ID)
-                      ARM_CLIENT_SECRET:           $(CP_ARM_CLIENT_SECRET)
-                      ARM_TENANT_ID:               $(CP_ARM_TENANT_ID)
+                      CP_ARM_CLIENT_ID:            $(CP_ARM_CLIENT_ID)
+                      CP_ARM_CLIENT_SECRET:        $(CP_ARM_CLIENT_SECRET)
+                      CP_ARM_TENANT_ID:            $(CP_ARM_TENANT_ID)
+                      TF_VAR_spn_id:               $(CP_ARM_OBJECT_ID)
                       TF_VAR_agent_pool:           $(POOL)
                       TF_VAR_agent_ado_url:        $(System.CollectionUri)
                       AZURE_DEVOPS_EXT_PAT:        $(PAT)

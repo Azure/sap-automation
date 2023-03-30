@@ -129,6 +129,13 @@ variable "fencing_role_name" {
   description = "If specified the role name to use for the fencing"
 }
 
+
+#########################################################################################
+#                                                                                       #
+#  DNS settings                                                                         #
+#                                                                                       #
+#########################################################################################
+
 variable "use_custom_dns_a_registration" {
   description = "Boolean value indicating if a custom dns a record should be created when using private endpoints"
   default     = false

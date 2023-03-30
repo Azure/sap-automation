@@ -381,6 +381,8 @@ $$webdispatcher_server_zones$$
 # in this case os_type must also be specified
 $$webdispatcher_server_image$$
 
+
+
 #########################################################################################
 #                                                                                       #
 #  Miscellaneous settings                                                               #
@@ -420,6 +422,8 @@ $$azure_files_sapmnt_id$$
 # sapmnt_private_endpoint_id defines the Resource identifier for the private endpoint for Azure Files for NFS storage account for sapmnt
 $$sapmnt_private_endpoint_id$$
 
+# use_random_id_for_storageaccounts defines if the sapmnt storage account name will have a random suffix
+$$use_random_id_for_storageaccounts$$
 #########################################################################################
 #                                                                                       #
 #  HANA Data                                                                            #

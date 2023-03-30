@@ -41,55 +41,6 @@
     ansible_become_user:               '{{ sap_sid }}adm@{{ domain_name }}'
     ansible_become_password:           "{{ domain_user_password }}"
 
-#   2x) Install vcredist package then reboot.
-- name:                                "Install Visual C++ 2013 Redistributable package"
-  ansible.windows.win_package:
-    path:                              '{{ download_directory_windows }}\SWPM\NTPATCH\VCREDIST2013\vcredist_x64.exe'
-    product_id:                        '{CF2BEA3C-26EA-32F8-AA9B-331F7E34BA97}'
-    state:                             present
-    arguments:                         '/norestart /log vcredist_x64.log /quiet'
-  vars:
-    ansible_become:                    true
-    ansible_become_method:             runas
-    ansible_become_user:               '{{ sap_sid }}adm@{{ domain_name }}'
-    ansible_become_password:           "{{ domain_user_password }}"
-  register:                            vcredist2013_output
-
-- name:                                "Install Visual C++ 2017 Redistributable package"
-  ansible.windows.win_package:
-    path:                              '{{ download_directory_windows }}\SWPM\NTPATCH\VCREDIST2017\VC_redist.x64.exe'
-    product_id:                        '{CF2BEA3C-26EA-32F8-AA9B-331F7E34BA97}'
-    state:                             present
-    arguments:                         '/norestart /log vcredist_x64.log /quiet'
-  vars:
-    ansible_become:                    true
-    ansible_become_method:             runas
-    ansible_become_user:               '{{ sap_sid }}adm@{{ domain_name }}'
-    ansible_become_password:           "{{ domain_user_password }}"
-  register:                            vcredist2017_output
-
-- name:                                "Reboot after package installation"
-  ansible.windows.win_reboot:
-    reboot_timeout:                    600
-    post_reboot_delay:                 120
-  when: vcredist2013_output.reboot_required or vcredist2017_output.reboot_required
-
-#   3x) download SQL server ODBC 17 on windows.
-- name:                                "Download SQL Server ODBC Driver 17"
-  ansible.windows.win_get_url:
-    url:                               https://download.microsoft.com/download/6/f/f/6ffefc73-39ab-4cc0-bb7c-4093d64c2669/en-US/17.10.1.1/x64/msodbcsql.msi
-    dest:                              "{{ tmp_directory_windows }}"
-    validate_certs:                    true
-
-- name:                                "Install SQL Server ODBC Driver 17"
-  ansible.windows.win_shell: |
-                                       MsiExec.exe /i {{ tmp_directory_windows }}\msodbcsql.msi IACCEPTMSODBCSQLLICENSETERMS=YES /qn
-  vars:
-    ansible_become:                    true
-    ansible_become_method:             runas
-    ansible_become_user:               '{{ sap_sid }}adm@{{ domain_name }}'
-    ansible_become_password:           "{{ domain_user_password }}"
-
 - name:                                "APP Install: Create log Directory"
   ansible.windows.win_file:
     path:                              '{{ log_dir_windows }}\sapinst_logs'
@@ -121,7 +72,8 @@
 
 - name:                                "APP Install: Set the SCS Server name"
   ansible.builtin.set_fact:
-    scs_server:                        "{% if scs_high_availability %}{{ sid_to_be_deployed.sid | lower }}scs{{ scs_instance_number }}cl1{% else %}{{ hostvars[scs_server_temp | first]['virtual_host'] }}{% endif %}"
+    scs_server:                        "{{ hostvars[scs_server_temp | first]['virtual_host'] }}"
+    scs_sapmnt_server:                 "{% if scs_high_availability %}{{ sid_to_be_deployed.sid | lower }}scs{{ scs_instance_number }}cl1{% else %}{{ hostvars[scs_server_temp | first]['virtual_host'] }}{% endif %}"
     db_virtual_host:                   "{{ hostvars[db_server_temp | first]['virtual_host'] }}"
     file_path:                         "{% if scs_high_availability %}INSTALL/HA/ABAP/APP1{% else %}INSTALL/DISTRIBUTED/ABAP/APP1{% endif %}"
     db_lb_virtual_host:                "{% if db_high_availability %}{{ sid_to_be_deployed.sid | lower }}{{ db_sid | lower }}db{{ db_instance_number }}cl{% else %}{{ hostvars[db_server_temp | first]['virtual_host'] }}{% endif %}"
@@ -155,8 +107,8 @@
     sap_ciDialogWPNumber:              12
     sap_ciBtcWPNumber:                 8
     sap_installSAPHostAgent:           "false"
-    sap_profile_dir:                   '\\{{ scs_server }}\sapmnt\{{ sid_to_be_deployed.sid | upper }}\SYS\profile'
-    sap_scs_hostname:                  "{{ scs_server }}"
+    sap_profile_dir:                   '\\{{ scs_sapmnt_server }}\sapmnt\{{ sid_to_be_deployed.sid | upper }}\SYS\profile'
+    sap_scs_hostname:                  "{{ scs_sapmnt_server }}"
     sap_db_hostname:                   "{{ db_virtual_host }}"
     sap_ciVirtualHostname:
     sap_appVirtualHostname:            "{{ virtual_host }}"
@@ -191,17 +143,14 @@
     - name:                            "APP Install: - return value"
       ansible.builtin.set_fact:
         pas_already_installed:         true
-  when:
-    - app_installed.stat.exists
+      when:
+        - app_installed.stat.exists
 
-- name:                                "APP Install"
-  block:
-
-# *====================================4=======================================8
-# |  SAP APP: Install                                                          |
-# | 2230669 - System Provisioning Using a Parameter Input File                 |
-# |                                                                            |
-# *====================================4=======================================8
+    # *====================================4=======================================8
+    # |  SAP APP: Install                                                          |
+    # | 2230669 - System Provisioning Using a Parameter Input File                 |
+    # |                                                                            |
+    # *====================================4=======================================8
 
     - name:                            "APP Install: progress"
       ansible.builtin.debug:

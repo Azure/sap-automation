@@ -95,4 +95,10 @@ locals {
 
   }
 
+  is_DNS_info_different = (
+    var.management_dns_subscription_id != data.azurerm_key_vault_secret.subscription_id.value
+    ) || (
+    var.management_dns_resourcegroup_name != (local.saplib_resource_group_name)
+  )
+
 }

@@ -51,6 +51,17 @@
       tags:
         - 0.1-win-passwords
 
+    - name:                                "WinCluster-Create: Get witness account details"
+      ansible.builtin.include_role:
+        name:                      roles-misc/0.2-kv-secrets
+        tasks_from:                wincluster-witness.yaml
+        public:                    true
+      when:
+        - platform | upper == "SQLSERVER"
+        - scs_high_availability or db_high_availability
+      tags:
+        - 0.2-wincluster-witness
+
     - name:                            "SCS Installation Playbook: - Read/Create key vault secrets"
       ansible.builtin.include_role:
         name:                          roles-misc/0.2-kv-secrets
@@ -215,6 +226,7 @@
             sapbits_location_base_path: "{{ hostvars.localhost.sapbits_location_base_path }}"
             sapbits_sas_token:         "{{ hostvars.localhost.sapbits_sas_token }}"
             always_upload_jinja_templates: false
+            sa_enabled:                 true
           tags:
             - always
 
@@ -271,7 +283,7 @@
                   loop_control:
                     loop_var:          sid_to_be_deployed
 
-                - name:                "SCS Installation Playbook: - Show errors from HANA installation"
+                - name:                "SCS Installation Playbook: - Show errors from SCS installation"
                   ansible.builtin.debug:
                     msg:               "{{ error_lines }}"
                   when:
@@ -287,6 +299,19 @@
           block:
             - name:                    "SCS Installation - Windows based systems"
               block:
+
+                - name:                "SCS Installation - Add packages"
+                  ansible.builtin.include_role:
+                    name:                      roles-os/windows/1.4-packages
+                  tags:
+                    - 1.4-packages
+                  vars:
+                    winadm_password:           "{{ hostvars.localhost.winadm_password }}"
+                    domain_service_password:   "{{ hostvars.localhost.adsvc_password }}"
+                    domain_service_account:    "{{ hostvars.localhost.adsvc_account }}"
+                    domain_user_password:      "{{ hostvars.localhost.winadm_password }}"
+                    tier:                      app_tier
+
                 - name:                "SCS Installation Playbook: - Install using sapinst"
                   ansible.builtin.include_role:
                     name:              roles-sap/windows/5.0.0-scs-install
@@ -374,6 +399,7 @@
     - name:                            "SCS HA Installation Playbook: - HA SCS Setup"
       become:                          true
       when:
+        - ansible_os_family != "Windows"
         - scs_high_availability
         - "'scs' in supported_tiers or 'ers' in supported_tiers "
       block:
@@ -394,7 +420,7 @@
             sapbits_sas_token:          "{{ hostvars.localhost.sapbits_sas_token }}"
             sa_enabled:                 true
             scs_virtual_hostname:       "{{ sap_sid | lower }}scs{{ scs_instance_number }}cl1"
-            ecs_virtual_hostname:       "{{ sap_sid | lower }}ers{{ ers_instance_number }}cl2"
+            ers_virtual_hostname:       "{{ sap_sid | lower }}ers{{ ers_instance_number }}cl2"
             fencing_spn_client_id:      "{% if not use_msi_for_clusters %}{{ hostvars.localhost.sap_fencing_spn_client_id }}{% endif %}"
             fencing_spn_client_pwd:     "{% if not use_msi_for_clusters %}{{ hostvars.localhost.sap_fencing_spn_pwd }}{% endif %}"
             fencing_spn_tenant_id:      "{% if not use_msi_for_clusters %}{{ hostvars.localhost.sap_fencing_spn_tenant_id }}{% endif %}"
@@ -559,6 +585,86 @@
 
           tags:
             - 5.6-scsers-pacemaker
+
+    - name:                            "SCS HA Installation Playbook: - Run HA SCS Installation on Windows"
+      become:                          false
+      when: ansible_os_family == "Windows"
+      block:
+        - name:                    "SCS Installation - Windows based systems"
+          block:
+            - name:                "SCS Installation Playbook: - Install using sapinst"
+              ansible.builtin.include_role:
+                name:              roles-sap/windows/5.0.0-scs-install
+              vars:
+                scs_instance_number:          "{{ sid_to_be_deployed.ascs_inst_no }}"
+                main_password:                "{{ hostvars.localhost.sap_password }}"
+                domain_user_password:         "{{ hostvars.localhost.winadm_password }}"
+                svc_password:                 "{{ hostvars.localhost.svcadm_password }}"
+                domain_service_account:       "{{ hostvars.localhost.adsvc_account }}"
+                domain_service_password:      "{{ hostvars.localhost.adsvc_password }}"
+                witness_storage_account_name: "{{ hostvars.localhost.witness_storage_account_name }}"
+                witness_storage_account_key:  "{{ hostvars.localhost.witness_storage_account_key }}"
+                sapbits_location_base_path:   "{{ hostvars.localhost.sapbits_location_base_path }}"
+                sapbits_sas_token:            "{{ hostvars.localhost.sapbits_sas_token }}"
+                sa_enabled:                   true
+                primary_node:                 "{{ ansible_play_hosts_all[0] }}"
+                secondary_node:               "{{ ansible_play_hosts_all[1] }}"
+                primary_node_ip_scs:          "{{ hostvars[ansible_play_hosts_all[0]]['ansible_eth0']['ipv4']['address'] }}"
+                secondary_node_ip_ers:        "{{ hostvars[ansible_play_hosts_all[1]]['ansible_eth0']['ipv4']['address'] }}"
+                sap_cluster_ip_address:       "{{ scs_clst_lb_ip }}"
+                ansible_winrm_transport:              credssp
+                ansible_winrm_server_cert_validation: ignore
+
+              loop:                    "{{ all_sids }}"
+              loop_control:
+                loop_var:              sid_to_be_deployed
+
+            - name:                "SCS Installation Playbook: - Ensure scs-install-done flag exists"
+              delegate_to:         localhost
+              become:              false
+              ansible.builtin.file:
+                path:              "{{ _workspace_directory }}/.progress/scs-install-done"
+                state:             touch
+                mode:              0755
+              when:
+                - scs_already_installed is defined or (scs_installation.rc is defined and scs_installation.rc == 0)
+
+          always:
+            - name:                "SCS Installation Playbook: - Get the Error lines from installation output"
+              ansible.builtin.set_fact:
+                error_lines:       "{{ error_lines | default([]) + [item] }}"
+              with_items:          "{{ scs_installation.stdout_lines }}"
+              when:
+                - scs_installation.stdout_lines is defined
+                - '"ERROR" or "html" in item'
+                - scs_installation.rc > 0
+
+            - name:                "SCS Installation Playbook: - Run post installation routines"
+              ansible.builtin.include_role:
+                name:              roles-sap/windows/7.0.0-post-install
+              vars:
+                suffix:            "_SCS"
+                tier:              'scs'
+                domain_user_password:  "{{ hostvars.localhost.winadm_password }}"
+
+            - name:                "SCS Installation Playbook: - Show errors from the installation"
+              ansible.builtin.debug:
+                msg:               "{{ error_lines }}"
+              when:
+                - error_lines is defined
+
+            - name:                "SCS Install: Rename sapinst_logs Folder with TimeStamp"
+              ansible.windows.win_shell: |
+                                    Rename-Item -Path .\sapinst_logs -NewName "sapinst_logs_$(get-date -f yyyy_MM_dd_HH_mm_ss)"
+              args:
+                chdir:             '{{ log_dir_windows }}'
+                removes:           '{{ log_dir_windows }}\sapinst_logs'
+              register:            sapinst_log_name
+              failed_when:         sapinst_log_name.rc > 0
+              when:
+                - ansible_os_family == "Windows"
+          tags:
+            - 5.0.0-scs-install
 
 ...
 

@@ -9,12 +9,16 @@
       vars:
         bom_name:                      "{{ bom_base_name }}"
         task_prefix:                   "SCS HA Install: "
-      when:                            bom is not defined
+      when:
+        - bom is not defined
+        - not is_run_with_infraCreate_only
 
+    # default to ASCS instance when BOM is not defined or instance type in BOM is not defined
     - name:                            "2.6 SCS HA Install: Default instance type"
       ansible.builtin.set_fact:
         instance_type:                 "ASCS"
-      when:                            bom.InstanceType is not defined
+      when:                            bom is not defined or bom.InstanceType is not defined
+
 
     - name:                            "2.6 SCS HA Install: register instance type"
       ansible.builtin.set_fact:

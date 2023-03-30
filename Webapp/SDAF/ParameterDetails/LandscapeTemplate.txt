@@ -201,7 +201,7 @@ $$management_dns_resourcegroup_name$$
 # custom dns subscription
 $$management_dns_subscription_id$$
 
-# Defines if a custom dns a record should be created when using private endpoints
+# Defines if a custom dns solution is used
 $$use_custom_dns_a_registration$$
 
 #########################################################################################
@@ -275,6 +275,8 @@ $$diagnostics_storage_account_arm_id$$
 # witness_storage_account_arm_id defines the Azure resource id for the witness storage accounts
 $$witness_storage_account_arm_id$$
 
+# storage_account_replication_type defines the replication type for Azure Files for NFS storage accounts
+$$storage_account_replication_type$$
 
 
 #########################################################################################
@@ -298,10 +300,11 @@ $$resourcegroup_arm_id$$
 #                                                                                       #
 #########################################################################################
 
-# If defined provides the DNS label for the Virtual Network$$dns_label$$
+# If defined provides the DNS label for the Virtual Network
+$$dns_label$$
 
-# If defined provides the name of the resource group hosting the Private DNS zone
-$$dns_resource_group_name$$
+#If defined provides the lsit of DNS servers to attach to the Virtual NEtwork
+$$dns_server_list$$
 
 #########################################################################################
 #                                                                                       #

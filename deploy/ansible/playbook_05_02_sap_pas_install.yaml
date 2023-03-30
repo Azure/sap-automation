@@ -170,6 +170,8 @@
     - name:                            "PAS Installation Playbook: Define list of SIDs"
       ansible.builtin.set_fact:
         all_sids:                      "{% if MULTI_SIDS is defined %}{{ MULTI_SIDS }}{% else %}{{ all_sids | default([]) + [this_sid] }}{% endif %}"
+      when:
+        - "'pas' in supported_tiers"
 
 # -------------------------------------+---------------------------------------8
 # Role: 5.2-PAS Installation
@@ -288,7 +290,19 @@
 
         - name:                        Run the PAS installation Playbook
           block:
-            - name:                    "PAS Installation Playbook: - Install SAPInst"
+            - name:                    "PAS Installation - Add packages"
+              ansible.builtin.include_role:
+                name:                  roles-os/windows/1.4-packages
+              tags:
+                - 1.4-packages
+              vars:
+                winadm_password:           "{{ hostvars.localhost.winadm_password }}"
+                domain_service_password:   "{{ hostvars.localhost.adsvc_password }}"
+                domain_service_account:    "{{ hostvars.localhost.adsvc_account }}"
+                domain_user_password:      "{{ hostvars.localhost.winadm_password }}"
+                tier:                  app_tier
+
+            - name:                    "PAS Installation Playbook: - Install using SAPInst"
               ansible.builtin.include_role:
                 name:                  roles-sap/windows/5.2-pas-install
               vars:

@@ -110,19 +110,23 @@ resource "local_file" "ansible_inventory_new_yml" {
 
 resource "local_file" "sap-parameters_yml" {
   content = templatefile(format("%s/sap-parameters.yml.tmpl", path.module), {
-    sid                = var.sap_sid,
-    db_sid             = var.db_sid
-    kv_name            = local.kv_name,
-    secret_prefix      = local.secret_prefix,
-    disks              = var.disks
-    scs_ha             = var.scs_ha
-    scs_lb_ip          = var.scs_lb_ip
-    ers_lb_ip          = var.ers_lb_ip
+    sid            = var.sap_sid,
+    db_sid         = var.db_sid
+    kv_name        = local.kv_name,
+    secret_prefix  = local.secret_prefix,
+    disks          = var.disks
+    scs_ha         = var.scs_ha
+    scs_lb_ip      = var.scs_lb_ip
+    ers_lb_ip      = var.ers_lb_ip
+    scs_clst_lb_ip = try(format("%s/%s", var.scs_clst_lb_ip, var.app_subnet_netmask), "")
+
     db_lb_ip           = var.db_lb_ip
+    db_clst_lb_ip      = try(format("%s/%s", var.db_clst_lb_ip, var.db_subnet_netmask), "")
     db_ha              = var.db_ha
     db_instance_number = try(var.database.instance.instance_number, "00")
-    dns                = local.dns_label
-    bom                = local.bom
+
+    dns = local.dns_label
+    bom = local.bom
     sap_mnt = length(trimspace(var.sap_mnt)) > 0 ? (
       format("sap_mnt:                       %s", var.sap_mnt)) : (
       ""

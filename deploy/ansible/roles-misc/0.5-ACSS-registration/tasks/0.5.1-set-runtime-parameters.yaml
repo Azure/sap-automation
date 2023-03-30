@@ -1,0 +1,77 @@
+---
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |      Set Runtime Parameters - e.g Sub ID , Resource group name             |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+# Validate that the SCS cluster is working as expected
+- name:                                "0.5.1 acss registration: - Set Python version {{ distribution_id }}"
+  ansible.builtin.set_fact:
+    python_version: "python2"
+
+- name:                            "0.5.1 acss registration: - Set Python version {{ distribution_id }}"
+  ansible.builtin.set_fact:
+    python_version: "python3"
+  when: (ansible_distribution | lower ~ ansible_distribution_major_version) in ['suse15', 'redhat8', 'sles_sap15']
+
+# Get BOM bom object
+- name:                                "0.5.1 acss registration: SCS HA Install - Register BoM"
+  ansible.builtin.include_role:
+    name:                              roles-sap/3.3.1-bom-utility
+    tasks_from:                        bom-register
+  vars:
+    bom_name:                          "{{ bom_base_name }}"
+    task_prefix:                       "acss registration: "
+    sa_enabled:                        true
+    ansible_python_interpreter:        "{{ python_version }}"
+  when:                                bom is not defined
+
+- name:                                "0.5.1 acss registration: Default instance type"
+  ansible.builtin.set_fact:
+    instance_type:                      "ASCS"
+  when:                                bom.InstanceType is not defined
+
+- name:                                "0.5.1 acss registration: register instance type"
+  ansible.builtin.set_fact:
+    instance_type:  >-
+                                        {%- set _instance_type = 'ASCS' -%}
+                                        {%- if bom.InstanceType == 'JAVA' -%}
+                                        {%- set _instance_type = 'SCS' -%}
+                                        {%- elif bom.InstanceType == 'ABAP' -%}
+                                        {%- set _instance_type = 'ASCS' -%}
+                                        {%- else -%}
+                                        {%- set _instance_type = 'ASCS' -%}
+                                        {%- endif -%}
+                                        {{- _instance_type -}}
+    public:                            true
+  when:                                bom.InstanceType is defined
+
+- name:                                "0.5.1 acss registration: Get Azure instance metadata"
+  ansible.builtin.command:             curl -H Metadata:true --noproxy "*" "http://169.254.169.254/metadata/instance?api-version=2021-02-01"
+  register:                            azure_metadata
+  no_log:                              true
+  changed_when:                        false
+  args:
+    warn:                              false
+
+- name:                                "0.5.1 acss registration: Set Azure instance metadata"
+  ansible.builtin.set_fact:
+    azure_instance_metadata:            "{{ azure_metadata.stdout | from_json }}"
+  no_log:                              true
+
+- name:                                "0.5.1 acss registration: Set variables from Azure IMDS"
+  ansible.builtin.set_fact:
+    acss_resource_group:                "{{ azure_instance_metadata.compute.resourceGroupName }}"
+    acss_location:                      "{{ azure_instance_metadata.compute.location }}"
+    acss_sid:                           "{{ sap_sid | upper }}"
+    acss_instance_type:                 "{{ instance_type }}"
+
+# --sap-virtual-instance-name  "${acss_sid}"            \
+# --resource-group             "${acss_resource_group}" \
+# --location                   "${acss_location}"       \
+# --environment                "${acss_environment}"    \
+# --sap-product                "${acss_sap_product}"    \
+# --configuration              "${acss_configuration}"
+...

@@ -287,6 +287,11 @@ variable "additional_users_to_add_to_keyvault_policies" {
   default     = [""]
 }
 
+variable "keyvault_private_endpoint_id" {
+  description = "Existing private endpoint for key vault"
+  default     = ""
+}
+
 #########################################################################################
 #                                                                                       #
 #  Authentication variables                                                             #
@@ -381,6 +386,10 @@ variable "Agent_IP" {
   default     = ""
 }
 
+variable "storage_account_replication_type" {
+  description = "Storage account replication type"
+  default     = "ZRS"
+}
 
 #########################################################################################
 #                                                                                       #
@@ -405,6 +414,17 @@ variable "management_dns_resourcegroup_name" {
   description = "String value giving the possibility to register custom dns a records in a separate resourcegroup"
   default     = ""
   type        = string
+}
+
+variable "create_vaults_and_storage_dns_a_records" {
+  description = "Boolean value indicating if dns a records should be created for the vaults and storage accounts"
+  default     = false
+  type        = bool
+}
+
+variable "dns_server_list" {
+  description = "DNS server list"
+  default     = []
 }
 
 

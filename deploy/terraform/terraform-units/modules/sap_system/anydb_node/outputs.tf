@@ -40,6 +40,14 @@ output "db_lb_ip" {
   ]
 }
 
+output "db_clst_lb_ip" {
+  value = local.anydb_ha && local.winHA ? (
+    try(azurerm_lb.anydb[0].frontend_ip_configuration[1].private_ip_address, "")) : (
+    ""
+  )
+
+}
+
 output "db_lb_id" {
   value = [
     local.enable_db_lb_deployment && (var.use_loadbalancers_for_standalone_deployments || local.anydb_ha) ? (
@@ -59,18 +67,18 @@ output "dns_info_vms" {
     zipmap(
       concat(
         (
-          local.anydb_dual_nics ? slice(var.naming.virtualmachine_names.ANYDB_VMNAME, 0, var.database_server_count) : [""]
+          local.anydb_dual_nics ? slice(var.naming.virtualmachine_names.ANYDB_VMNAME, 0, length(azurerm_linux_virtual_machine.dbserver) + length(azurerm_windows_virtual_machine.dbserver)) : [""]
         ),
         (
-          slice(var.naming.virtualmachine_names.ANYDB_SECONDARY_DNSNAME, 0, var.database_server_count)
+          slice(var.naming.virtualmachine_names.ANYDB_SECONDARY_DNSNAME, 0, length(azurerm_linux_virtual_machine.dbserver) + length(azurerm_windows_virtual_machine.dbserver))
         )
       ),
       concat(
         (
-          local.anydb_dual_nics ? slice(azurerm_network_interface.anydb_admin[*].private_ip_address, 0, var.database_server_count) : [""]
+          local.anydb_dual_nics ? slice(azurerm_network_interface.anydb_admin[*].private_ip_address, 0, length(azurerm_linux_virtual_machine.dbserver) + length(azurerm_windows_virtual_machine.dbserver)) : [""]
         ),
         (
-          slice(azurerm_network_interface.anydb_db[*].private_ip_address, 0, var.database_server_count)
+          slice(azurerm_network_interface.anydb_db[*].private_ip_address, 0, length(azurerm_linux_virtual_machine.dbserver) + length(azurerm_windows_virtual_machine.dbserver))
         )
     ))) : (
     null
@@ -84,7 +92,7 @@ output "dns_info_loadbalancers" {
       local.prefix,
       var.naming.separator,
       local.resource_suffixes.db_alb
-    )], [azurerm_lb.anydb[0].private_ip_addresses[0]])) : (
+    )], [try(azurerm_lb.anydb[0].private_ip_addresses[0], "")])) : (
     null
   )
 }
