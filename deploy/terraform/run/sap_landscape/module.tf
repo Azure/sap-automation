@@ -36,10 +36,10 @@ module "sap_landscape" {
   create_vaults_and_storage_dns_a_records = var.create_vaults_and_storage_dns_a_records
   use_custom_dns_a_registration           = var.use_custom_dns_a_registration
   management_dns_subscription_id          = coalesce(var.management_dns_subscription_id, local.saplib_subscription_id)
-  management_dns_resourcegroup_name = length(var.management_dns_resourcegroup_name) > 0 ? (
+  management_dns_resourcegroup_name = lower(length(var.management_dns_resourcegroup_name) > 0 ? (
     var.management_dns_resourcegroup_name) : (
     local.saplib_resource_group_name
-  )
+  ))
 
   Agent_IP = var.Agent_IP
 
