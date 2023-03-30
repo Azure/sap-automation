@@ -235,6 +235,7 @@ locals {
     length(try(var.infrastructure.vnets.sap.subnet_db.prefix, ""))
   ) > 0
   
+  database_subnet_existing = length(var.infrastructure.vnets.sap.subnet_db.arm_id) > 0
   database_subnet_name = local.database_subnet_existing ? (
     try(split("/", var.infrastructure.vnets.sap.subnet_db.arm_id)[10], "")) : (
     length(try(var.infrastructure.vnets.sap.subnet_db.name, "")) > 0 ? (
@@ -318,7 +319,7 @@ locals {
   #
   ##############################################################################################
 
-  application_subnet_nsg_exists = length(local.var.infrastructure.vnets.sap.subnet_admin.nsg.arm_id) > 0
+  application_subnet_nsg_exists = length(var.infrastructure.vnets.sap.subnet_admin.nsg.arm_id) > 0
   application_subnet_nsg_name = local.application_subnet_nsg_exists ? (
     try(split("/", var.infrastructure.vnets.sap.subnet_admin.nsg.arm_id)[8], "")) : (
     length(try(var.infrastructure.vnets.sap.subnet_app.nsg.name, "")) > 0 ? (
