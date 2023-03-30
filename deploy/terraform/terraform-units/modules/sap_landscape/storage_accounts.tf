@@ -753,9 +753,8 @@ resource "time_sleep" "wait_for_private_endpoints" {
   create_duration = "120s"
 
   depends_on = [
-    azurerm_private_endpoint.storage_bootdiag,
-    azurerm_private_endpoint.witness_storage,
     azurerm_private_endpoint.install,
+    azurerm_private_endpoint.transport,
     azurerm_private_endpoint.kv_user
 
   ]
