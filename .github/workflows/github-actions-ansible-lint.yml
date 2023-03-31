@@ -15,7 +15,7 @@ jobs:
         run: ansible-galaxy install -r deploy/ansible/requirements.yml
 
       - name: Install Ansible Lint
-        run: sudo apt-get install -y ansible-lint
+        run: python3 -m pip3 install ansible-lint
       
       - name: Run Lint on yaml files
         run: find ./deploy/ansible -name "*.yaml" -type f -print0 | xargs -0 ansible-lint -vv  -c .ansible-lint
