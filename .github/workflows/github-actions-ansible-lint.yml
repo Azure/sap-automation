@@ -9,6 +9,3 @@ jobs:
       - uses: ansible/ansible-lint-action@v6.11.0
         with:
           path: deploy/ansible
-
-        
-        
