@@ -1,0 +1,34 @@
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                     Windows Base Cluster Configuration                     |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+---
+- name:                                "WinCluster-Create: Calculating the domain value from {{ domain_name }}"
+  ansible.builtin.set_fact:
+    domain:                            "{{ domain_name | split('.') | first }}"
+    cacheable:                         true
+  when:
+    - domain_name is defined
+    - domain_name | type_debug != 'NoneType'
+    - domain_name | trim | length > 1
+    - domain is not defined
+
+- name:                                "WinCluster: Prepare for cluster configuration"
+  when:
+    - scs_high_availability or db_high_availability
+    - ansible_os_family | upper == "WINDOWS"
+  ansible.builtin.import_tasks:
+    file:                              "1.17.0-wincluster-prerequisites.yaml"
+  tags:
+    - "win_cluster_prepare"
+
+- name:                                "WinCluster: Configure cluster"
+  when:
+    - scs_high_availability or db_high_availability
+    - ansible_os_family | upper == "WINDOWS"
+  ansible.builtin.import_tasks:
+    file:                              "1.17.1-wincluster-createcluster.yaml"
+  tags:
+    - "win_cluster_configure"
+...

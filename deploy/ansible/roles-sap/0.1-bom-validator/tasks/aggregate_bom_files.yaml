@@ -43,7 +43,6 @@
     - name:                             "{{ task_prefix }}: - consolidate_bom: - Create temporary BOM directories"
       delegate_to:                      localhost
       become:                          "{{ bom_processing_become }}"
-      become_user:                     "{{ orchestration_ansible_user }}"
       ansible.builtin.file:
         path:                           "{{ destination }}/{{ sub_path }}"
         state:                          directory
@@ -91,7 +90,6 @@
     - name:                             "{{ task_prefix }}: - copy and rename original BOM"
       delegate_to:                      localhost
       become:                          "{{ bom_processing_become }}"
-      become_user:                     "{{ orchestration_ansible_user }}"
       ansible.builtin.copy:
         src:                            "{{ object_stats.stat.path }}"
         dest:                           "{{ destination }}/{% if dir_path != '' %}{{ dir_path }}/{% endif %}{{ new_file_name }}"
@@ -143,7 +141,6 @@
 #
     - name:                             "{{ task_prefix }}: - copy and rename files"
       become:                          "{{ bom_processing_become }}"
-      become_user:                     "{{ orchestration_ansible_user }}"
       delegate_to:                      localhost
       ansible.builtin.copy:
         src:                            "{{ object_stats.stat.path }}"

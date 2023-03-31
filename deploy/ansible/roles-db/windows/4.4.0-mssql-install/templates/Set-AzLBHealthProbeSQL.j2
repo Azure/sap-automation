@@ -1,0 +1,106 @@
+function Set-DatabaseHealthProbe {
+  param (
+    [Parameter(Mandatory = $true)]
+    [string]$SQLAGName,
+    [Parameter(Mandatory = $true)]
+    [string]$SQLAGListenerName,
+    [Parameter(Mandatory = $true)]
+    [Int]$ProbePort,
+    [Parameter(Mandatory = $true)]
+    [string]$IPAddress,
+    [Parameter(Mandatory = $true)]
+    [string]$SubnetMask,
+    [Parameter(Mandatory = $false)]
+    [string]$ClusterNetworkName = "Cluster Network 1"
+  )
+
+  # Calculate IP resource name
+  $AGIPResourceName = $SQLAGName + "_" + $IPAddress
+  $AGNetworkName = $SQLAGName + "_" + $SQLAGListenerName
+  $currentProbePort = (Get-ClusterResource -Name $AGIPResourceName | Get-ClusterParameter | Where-Object -FilterScript { $_.Name -eq 'ProbePort' }).Value
+  $currentHostRecordTTL = (Get-ClusterResource -Name $AGNetworkName | Get-ClusterParameter | Where-Object -FilterScript { $_.Name -eq 'HostRecordTTL' }).Value
+  $currentRegisterAllProvidersIP = (Get-ClusterResource -Name $AGNetworkName | Get-ClusterParameter | Where-Object -FilterScript { $_.Name -eq 'RegisterAllProvidersIP' }).Value
+  $isAnyChange = $false
+
+  if ($currentProbePort -ne $ProbePort) {
+    try {
+      Get-ClusterResource $AGIPResourceName | `
+        Set-ClusterParameter -Multiple @{
+        "Address"    = "$IPAddress";
+        "ProbePort"  = $ProbePort;
+        "SubnetMask" = "$SubnetMask";
+        "Network"    = "$ClusterNetworkName";
+        "EnableDhcp" = 0
+      }
+      Write-Information "Successfully set ProbePort to '$ProbePort' for $AGIPResourceName"
+      $isAnyChange = $true
+    }
+    catch {
+      Write-Error "Failed to set ProbePort on $AGIPResourceName"
+    }
+  }
+  else {
+    Write-Information "ProbePort is already set for SQL Server Always On IP resource"
+  }
+
+  # should be set to '300' for both HA and DR scenarios
+  if ($currentHostRecordTTL -ne 300) {
+    try {
+      Get-ClusterResource $AGNetworkName | `
+        Set-ClusterParameter -Multiple @{
+        "HostRecordTTL" = 300
+      }
+      Write-Information "Successfully set HostRecordTTL to '300' for $AGNetworkName"
+      $isAnyChange = $true
+    }
+    catch {
+      Write-Error "Failed to set HostRecordTTL on $AGNetworkName"
+    }
+  }
+  else {
+    Write-Information "HostRecordTTL is already set for SQL Server Always On Network resource"
+  }
+
+  # should be set to '0' for both HA and DR scenarios
+  if ($currentRegisterAllProvidersIP -ne 0) {
+    try {
+      Get-ClusterResource $AGNetworkName | `
+        Set-ClusterParameter -Multiple @{
+        "RegisterAllProvidersIP" = 0
+      }
+      Write-Information "Successfully set RegisterAllProvidersIP to '0' for $AGNetworkName"
+      $isAnyChange = $true
+    }
+    catch {
+      Write-Error "Failed to set RegisterAllProvidersIP on $AGNetworkName"
+    }
+  }
+  else {
+    Write-Information "RegisterAllProvidersIP is already set for SQL Server Always On Network resource"
+  }
+
+  if ($isAnyChange) {
+    try {
+      Stop-ClusterResource -Name "$AGIPResourceName"
+      Stop-ClusterResource -Name "$AGNetworkName"
+      Start-Sleep -Seconds 60
+    }
+    catch {
+      Write-Error "Failed to Stop $AGIPResourceName"
+    }
+
+    try {
+      Start-ClusterResource -Name "$AGIPResourceName"
+      Start-ClusterResource -Name "$AGNetworkName"
+      Start-ClusterResource -Name "$SQLAGName"
+    }
+    catch {
+      Write-Error "Failed to Start SQL Server Always On Group"
+    }
+  }
+}
+
+# Set database healthprobe for SQL Server always on cluster
+Set-DatabaseHealthProbe -SQLAGName "{{ mssql_ag_name }}" -SQLAGListenerName "{{ mssql_ag_listener_name }}" -ProbePort "{{ mssql_lb_probeport }}" -IPAddress "{{ db_lb_ip}}" -SubnetMask "{{ db_subnet_mask }}"
+
+

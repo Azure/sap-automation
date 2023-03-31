@@ -16,25 +16,16 @@ resource "azurerm_lb" "anydb" {
   resource_group_name = var.resource_group[0].name
   location            = var.resource_group[0].location
 
-  frontend_ip_configuration {
-    name = format("%s%s%s%s",
-      var.naming.resource_prefixes.db_alb_feip,
-      local.prefix,
-      var.naming.separator,
-      local.resource_suffixes.db_alb_feip
-    )
-    subnet_id = var.db_subnet.id
-    private_ip_address = length(try(var.database.loadbalancer.frontend_ips[0], "")) > 0 ? (
-      var.database.loadbalancer.frontend_ips[0]) : (
-      var.database.use_DHCP ? (
-        null) : (
-        cidrhost(
-          var.db_subnet.address_prefixes[0],
-          tonumber(count.index) + local.anydb_ip_offsets.anydb_lb
-      ))
-    )
-    private_ip_address_allocation = length(try(var.database.loadbalancer.frontend_ips[0], "")) > 0 ? "Static" : "Dynamic"
-    zones                         = ["1", "2", "3"]
+  dynamic "frontend_ip_configuration" {
+    iterator = pub
+    for_each = local.fpips
+    content {
+      name                          = pub.value.name
+      subnet_id                     = pub.value.subnet_id
+      private_ip_address            = pub.value.private_ip_address
+      private_ip_address_allocation = pub.value.private_ip_address_allocation
+      zones                         = ["1", "2", "3"]
+    }
   }
 }
 

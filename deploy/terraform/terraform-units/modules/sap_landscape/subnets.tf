@@ -103,119 +103,52 @@ resource "azurerm_subnet" "anf" {
 }
 
 
-# Creates admin subnet nsg
-resource "azurerm_network_security_group" "admin" {
-  provider            = azurerm.main
-  count               = local.admin_subnet_defined && !local.admin_subnet_nsg_exists ? 1 : 0
-  name                = local.admin_subnet_nsg_name
-  resource_group_name = local.vnet_sap_exists ? data.azurerm_virtual_network.vnet_sap[0].resource_group_name : azurerm_virtual_network.vnet_sap[0].resource_group_name
-  location            = local.vnet_sap_exists ? data.azurerm_virtual_network.vnet_sap[0].location : azurerm_virtual_network.vnet_sap[0].location
-}
-
-# Associates admin nsg to admin subnet
-resource "azurerm_subnet_network_security_group_association" "admin" {
-  provider = azurerm.main
-  count    = local.admin_subnet_defined && !local.admin_subnet_nsg_exists ? 1 : 0
-
-  subnet_id                 = local.admin_subnet_existing ? local.admin_subnet_arm_id : azurerm_subnet.admin[0].id
-  network_security_group_id = azurerm_network_security_group.admin[0].id
-}
-
-
-# Creates SAP db subnet nsg
-resource "azurerm_network_security_group" "db" {
-  provider            = azurerm.main
-  count               = local.database_subnet_defined && !local.database_subnet_nsg_exists ? 1 : 0
-  name                = local.database_subnet_nsg_name
-  resource_group_name = local.vnet_sap_exists ? data.azurerm_virtual_network.vnet_sap[0].resource_group_name : azurerm_virtual_network.vnet_sap[0].resource_group_name
-  location            = local.vnet_sap_exists ? data.azurerm_virtual_network.vnet_sap[0].location : azurerm_virtual_network.vnet_sap[0].location
-}
-
-# Associates SAP db nsg to SAP db subnet
-resource "azurerm_subnet_network_security_group_association" "db" {
-  provider                  = azurerm.main
-  count                     = local.database_subnet_defined && !local.database_subnet_nsg_exists ? 1 : 0
-  subnet_id                 = local.database_subnet_existing ? local.database_subnet_arm_id : azurerm_subnet.db[0].id
-  network_security_group_id = azurerm_network_security_group.db[0].id
-}
-
-
-# Creates SAP app subnet nsg
-resource "azurerm_network_security_group" "app" {
-  provider            = azurerm.main
-  count               = local.application_subnet_defined && !local.application_subnet_nsg_exists ? 1 : 0
-  name                = local.application_subnet_nsg_name
-  resource_group_name = local.vnet_sap_exists ? data.azurerm_virtual_network.vnet_sap[0].resource_group_name : azurerm_virtual_network.vnet_sap[0].resource_group_name
-  location            = local.vnet_sap_exists ? data.azurerm_virtual_network.vnet_sap[0].location : azurerm_virtual_network.vnet_sap[0].location
-}
-
-# Associates app nsg to app subnet
-resource "azurerm_subnet_network_security_group_association" "app" {
-  provider                  = azurerm.main
-  count                     = local.application_subnet_defined && !local.application_subnet_nsg_exists ? 1 : 0
-  subnet_id                 = local.application_subnet_existing ? local.application_subnet_arm_id : azurerm_subnet.app[0].id
-  network_security_group_id = azurerm_network_security_group.app[0].id
-}
-
-
-# Creates SAP web subnet nsg
-resource "azurerm_network_security_group" "web" {
-  provider            = azurerm.main
-  count               = local.web_subnet_defined && !local.web_subnet_nsg_exists ? 1 : 0
-  name                = local.web_subnet_nsg_name
-  resource_group_name = local.vnet_sap_exists ? data.azurerm_virtual_network.vnet_sap[0].resource_group_name : azurerm_virtual_network.vnet_sap[0].resource_group_name
-  location            = local.vnet_sap_exists ? data.azurerm_virtual_network.vnet_sap[0].location : azurerm_virtual_network.vnet_sap[0].location
-}
-
-# Associates SAP web nsg to SAP web subnet
-resource "azurerm_subnet_network_security_group_association" "web" {
-  provider                  = azurerm.main
-  count                     = local.web_subnet_defined && !local.web_subnet_nsg_exists ? 1 : 0
-  subnet_id                 = local.web_subnet_existing ? local.web_subnet_arm_id : azurerm_subnet.web[0].id
-  network_security_group_id = azurerm_network_security_group.web[0].id
-}
 
 #Associate the subnets to the route table
 
 resource "azurerm_subnet_route_table_association" "admin" {
   provider       = azurerm.main
   depends_on = [
-    azurerm_route_table.rt
+    azurerm_route_table.rt,
+    azurerm_subnet.admin
   ]
 
   count          = local.admin_subnet_defined && !local.vnet_sap_exists && !local.admin_subnet_existing ? 1 : 0
-  subnet_id      = local.admin_subnet_existing ? local.admin_subnet_arm_id : azurerm_subnet.admin[0].id
+  subnet_id      = local.admin_subnet_existing ? var.infrastructure.vnets.sap.subnet_admin.arm_id : azurerm_subnet.admin[0].id
   route_table_id = azurerm_route_table.rt[0].id
 }
 
 resource "azurerm_subnet_route_table_association" "db" {
   provider       = azurerm.main
   depends_on = [
-    azurerm_route_table.rt
+    azurerm_route_table.rt,
+    azurerm_subnet.db
   ]
 
   count          = local.database_subnet_defined && !local.vnet_sap_exists && !local.database_subnet_existing ? 1 : 0
-  subnet_id      = local.database_subnet_existing ? local.database_subnet_arm_id : azurerm_subnet.db[0].id
+  subnet_id      = local.database_subnet_existing ? var.infrastructure.vnets.sap.subnet_db.arm_id : azurerm_subnet.db[0].id
   route_table_id = azurerm_route_table.rt[0].id
 }
 
 resource "azurerm_subnet_route_table_association" "app" {
   provider       = azurerm.main
   depends_on = [
-    azurerm_route_table.rt
+    azurerm_route_table.rt,
+    azurerm_subnet.db
   ]
   count          = local.application_subnet_defined && !local.vnet_sap_exists && !local.application_subnet_existing ? 1 : 0
-  subnet_id      = local.application_subnet_existing ? local.application_subnet_arm_id : azurerm_subnet.app[0].id
+  subnet_id      = local.application_subnet_existing ? var.infrastructure.vnets.sap.subnet_app.arm_id : azurerm_subnet.app[0].id
   route_table_id = azurerm_route_table.rt[0].id
 }
 
 resource "azurerm_subnet_route_table_association" "web" {
   provider       = azurerm.main
   depends_on = [
-    azurerm_route_table.rt
+    azurerm_route_table.rt,
+     azurerm_subnet.web
   ]
   count          = local.web_subnet_defined && !local.vnet_sap_exists && !local.web_subnet_existing ? 1 : 0
-  subnet_id      = local.web_subnet_existing ? local.web_subnet_arm_id : azurerm_subnet.web[0].id
+  subnet_id      = local.web_subnet_existing ? var.infrastructure.vnets.sap.subnet_web.arm_id : azurerm_subnet.web[0].id
   route_table_id = azurerm_route_table.rt[0].id
 }
 

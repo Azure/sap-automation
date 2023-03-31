@@ -168,7 +168,6 @@ else {
   $repo_size=(az repos list --query "[].size | [0]")
 
   if ($repo_size -eq 0) {
-
     Write-Host "Importing the repository from GitHub" -ForegroundColor Green
 
     Add-Content -Path $fname -Value ""
@@ -237,7 +236,7 @@ if ($confirmation -ne 'y') {
     Add-Content -Path $templatename "    - repository: sap-automation"
     Add-Content -Path $templatename "      type: git"
     Add-Content -Path $templatename "      name: $ADO_Project/sap-automation"
-    Add-Content -Path $templatename "      ref: refs/tags/v3.7.0.0"
+    Add-Content -Path $templatename "      ref: refs/tags/v3.8.0.0"
 
     $cont = Get-Content -Path $templatename -Raw
 
@@ -285,7 +284,7 @@ if ($confirmation -ne 'y') {
     Add-Content -Path $templatename "    - repository: sap-automation"
     Add-Content -Path $templatename "      type: git"
     Add-Content -Path $templatename "      name: $ADO_Project/sap-automation"
-    Add-Content -Path $templatename "      ref: refs/tags/v3.7.0.0"
+    Add-Content -Path $templatename "      ref: refs/tags/v3.8.0.0"
     Add-Content -Path $templatename "    - repository: sap-samples"
     Add-Content -Path $templatename "      type: git"
     Add-Content -Path $templatename "      name: $ADO_Project/sap-samples"
@@ -483,7 +482,7 @@ Write-Host "Creating the variable group SDAF-General" -ForegroundColor Green
 
 $general_group_id = (az pipelines variable-group list --query "[?name=='SDAF-General'].id | [0]" --only-show-errors)
 if ($general_group_id.Length -eq 0) {
-  az pipelines variable-group create --name SDAF-General --variables ANSIBLE_HOST_KEY_CHECKING=false Deployment_Configuration_Path=WORKSPACES Branch=main tf_version="1.3.4" ansible_core_version="2.13" S-Username=$SUserName S-Password=$SPassword --output yaml --authorize true --output none
+  az pipelines variable-group create --name SDAF-General --variables ANSIBLE_HOST_KEY_CHECKING=false Deployment_Configuration_Path=WORKSPACES Branch=main tf_version="1.4.1" ansible_core_version="2.13" S-Username=$SUserName S-Password=$SPassword --output yaml --authorize true --output none
   $general_group_id = (az pipelines variable-group list --query "[?name=='SDAF-General'].id | [0]" --only-show-errors)
   az pipelines variable-group variable update --group-id $general_group_id --name "S-Password" --value $SPassword --secret true --output none --only-show-errors
 
@@ -684,7 +683,7 @@ Add-Content -Path $fname -Value $WorkloadZonePrefix
 
 Add-Content -Path $fname -Value "### Credentials"
 Add-Content -Path $fname -Value ""
-Add-Content -Path $fname -Value ("Web Application:" + $ApplicationName)
+Add-Content -Path $fname -Value ("Web Application: " + $ApplicationName)
 
 
 
@@ -702,6 +701,10 @@ if ($found_appRegistration.Length -ne 0) {
   $confirmation = Read-Host "Reset the app registration secret y/n?"
   if ($confirmation -eq 'y') {
     $WEB_APP_CLIENT_SECRET = (az ad app credential reset --id $APP_REGISTRATION_ID --append --query "password" --out tsv --only-show-errors)
+  }
+  else
+  {
+    $WEB_APP_CLIENT_SECRET = Read-Host "Please enter the app registration secret"
   }
 
 }
@@ -724,7 +727,7 @@ if ($Env:SDAF_MGMT_SPN_NAME.Length -ne 0) {
   $spn_name = $Env:SDAF_MGMT_SPN_NAME
 }
 
-Add-Content -Path $fname -Value ("Control Plane Service Principal:" + $spn_name)
+Add-Content -Path $fname -Value ("Control Plane Service Principal: " + $spn_name)
 
 $scopes = "/subscriptions/" + $Control_plane_subscriptionID
 
@@ -751,6 +754,10 @@ if ($found_appName.Length -gt 0) {
   if ($confirmation -eq 'y') {
 
     $CP_ARM_CLIENT_SECRET = (az ad sp credential reset --id $CP_ARM_CLIENT_ID --append --query "password" --out tsv --only-show-errors).Replace("""", "")
+  }
+  else
+  {
+    $CP_ARM_CLIENT_SECRET = Read-Host "Please enter the Control Plane Service Principal password"
   }
 
 }
@@ -820,14 +827,12 @@ $ARM_CLIENT_SECRET = "Please update"
 $ARM_OBJECT_ID = ""
 
 $workload_zone_scopes = "/subscriptions/" + $Workload_zone_subscriptionID
-$workload_zone_spn_name = $Workload_zonePrefix + " Deployment credential"
-
-Add-Content -path $fname -value ("Workload zone Service Principal:" + $workload_zone_spn_name)
-
-
+$workload_zone_spn_name = $WorkloadZonePrefix + " Deployment credential"
 if ($Env:SDAF_WorkloadZone_SPN_NAME.Length -ne 0) {
   $workload_zone_spn_name = $Env:SDAF_WorkloadZone_SPN_NAME
 }
+
+Add-Content -path $fname -value ("Workload zone Service Principal: " + $workload_zone_spn_name)
 
 $SPN_Created = $false
 $found_appName = (az ad sp list --all --filter "startswith(displayName,'$workload_zone_spn_name')" --query  "[?displayName=='$workload_zone_spn_name'].displayName | [0]" --only-show-errors)
@@ -843,6 +848,10 @@ if ($found_appName.Length -ne 0) {
   if ($confirmation -eq 'y') {
     $ARM_CLIENT_SECRET = (az ad sp credential reset --id $ARM_CLIENT_ID --append --query "password" --out tsv --only-show-errors)
   }
+  else {
+    $ARM_CLIENT_SECRET = Read-Host "Enter the Workload zone Service Principal password"
+  }
+
 }
 else {
   Write-Host "Creating the Service Principal" $workload_zone_spn_name -ForegroundColor Green

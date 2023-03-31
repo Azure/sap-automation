@@ -33,6 +33,7 @@
       ansible.builtin.include_role:
         name:                          roles-misc/0.3.sap-installation-media-storage-details
         public:                        true
+      when:                            not is_run_with_infraCreate_only
       vars:
         tier:                          bom_download
 
@@ -77,14 +78,22 @@
       become_user:                     "root"
       block:
 
-        - name:                        "SAP OS configuration playbook: - Set sapos fact"
+        - name:                        "SAP OS configuration playbook: - Set sapos tier fact"
           ansible.builtin.set_fact:
             tier:                      sapos                                     # Actions for HANA DB Serve
-            sapbits_location_base_path: "{{ hostvars.localhost.sapbits_location_base_path }}"
-            sapbits_sas_token:          "{{ hostvars.localhost.sapbits_sas_token }}"
-            sa_enabled:                true
           tags:
             - always
+
+        - name:                        "SAP OS configuration playbook: - Set sapos storage account facts"
+          ansible.builtin.set_fact:
+            sapbits_location_base_path: "{{ hostvars.localhost.sapbits_location_base_path }}"
+            sapbits_sas_token:          "{{ hostvars.localhost.sapbits_sas_token }}"
+            sa_enabled:                 true
+          when:
+            - not is_run_with_infraCreate_only
+            - hostvars.localhost.sapbits_location_base_path is defined
+          tags:
+            - is_run_with_infraCreate_only
 
         - name:                        "SAP OS configuration playbook: - Create hosts file"
           ansible.builtin.include_role:
@@ -178,13 +187,53 @@
 
     - name:                            "SAP OS configuration - Windows based systems"
       block:
+        - name:                        "SAP OS configuration playbook: - Calculating the domain value from {{ domain_name }}"
+          ansible.builtin.set_fact:
+            domain:                    "{{ domain_name | split('.') | first }}"
+            cacheable:                 true
+          when:
+            - domain_name is defined
+            - domain_name | type_debug != 'NoneType'
+            - domain_name | trim | length > 1
+            - domain is not defined
+
+        - name:                        'SAP OS Configuration playbook: - calculate domain account'
+          ansible.builtin.set_fact:
+            sql_svc_account_name:      '{% if hostvars.localhost.sqlsvc_account is defined %}{{ hostvars.localhost.sqlsvc_account }}{% else %}{{ win_sql_svc_account }}{% endif %}'
+            cacheable:                 true
+          when:
+            - hostvars.localhost.sqlsvc_account is defined or win_sql_svc_account is defined
+            - sql_svc_account_name is not defined
+
+        - name:                        "SAP OS configuration playbook: - Set sapos tier fact"
+          ansible.builtin.set_fact:
+            tier:                      sapos                                     # Actions for HANA DB Serve
+          tags:
+            - always
+
+        - name:                                'SAP OS configuration playbook: - Calculating the domain service account names'
+          ansible.builtin.set_fact:
+            domain_sqlsvc_account:            '{{ domain | upper }}\{{ sql_svc_account_name }}'
+          when:
+            - domain is defined
+            - domain_sqlsvc_account is not defined
+
         - name:                        "SAP OS configuration playbook: - Add local groups and Permissions"
           ansible.builtin.include_role:
             name:                      roles-sap-os/windows/2.5-sap-users
+          vars:
+            winadm_password:           "{{ hostvars.localhost.winadm_password }}"
+            domain_service_password:   "{{ hostvars.localhost.adsvc_password }}"
+            domain_service_account:    "{{ hostvars.localhost.adsvc_account }}"
 
         - name:                        "SAP OS configuration playbook: - Sharing Data Folder"
           ansible.builtin.include_role:
             name:                      roles-sap-os/windows/2.3-sap-exports
+          vars:
+            winadm_password:           "{{ hostvars.localhost.winadm_password }}"
+            domain_service_password:   "{{ hostvars.localhost.adsvc_password }}"
+            domain_service_account:    "{{ hostvars.localhost.adsvc_account }}"
+            sql_svc_account:           "{{ domain_sqlsvc_account }}"
 
         - name:                        "SAP OS configuration playbook: - Mounting Shared Folder"
           ansible.builtin.include_role:

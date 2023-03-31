@@ -487,8 +487,41 @@ resource "azurerm_virtual_machine_extension" "configure_ansible_scs" {
   type_handler_version = "1.9"
   settings             = <<SETTINGS
         {
-          "fileUris": ["https://raw.githubusercontent.com/ansible/ansible/devel/examples/scripts/ConfigureRemotingForAnsible.ps1"],
-          "commandToExecute": "powershell.exe -ExecutionPolicy Unrestricted -File ConfigureRemotingForAnsible.ps1 -Verbose"
+          "fileUris": ["https://raw.githubusercontent.com/KimForss/sap-automation/experimental/deploy/scripts/configure_ansible.ps1"],
+          "commandToExecute": "powershell.exe -ExecutionPolicy Unrestricted -File configure_ansible.ps1 -Verbose"
         }
     SETTINGS
+}
+
+
+resource "azurerm_managed_disk" "cluster" {
+  provider = azurerm.main
+  count    = local.enable_deployment && upper(var.application_tier.scs_os.os_type) == "WINDOWS" && var.application_tier.scs_high_availability ? 1 : 0
+  name = format("%s%s%s%s",
+    var.naming.resource_prefixes.cluster_disk,
+    local.prefix,
+    var.naming.separator,
+    var.naming.resource_suffixes.cluster_disk
+  )
+  location               = var.resource_group[0].location
+  resource_group_name    = var.resource_group[0].name
+  create_option          = "Empty"
+  storage_account_type   = "Premium_LRS"
+  disk_size_gb           = var.scs_shared_disk_size
+  disk_encryption_set_id = try(var.options.disk_encryption_set_id, null)
+  max_shares             = local.scs_server_count
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
+}
+
+resource "azurerm_virtual_machine_data_disk_attachment" "cluster" {
+  provider           = azurerm.main
+  count              = local.enable_deployment && upper(var.application_tier.scs_os.os_type) == "WINDOWS" && var.application_tier.scs_high_availability ? local.scs_server_count : 0
+  managed_disk_id    = azurerm_managed_disk.cluster[0].id
+  virtual_machine_id = azurerm_windows_virtual_machine.scs[count.index].id
+  caching            = "None"
+  lun                = var.scs_shared_disk_lun
+
 }

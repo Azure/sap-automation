@@ -26,8 +26,17 @@
 
 # -------------------------------------+---------------------------------------8
 #
+# - name: "update the community.windows to fix the win_disk_facts module"
+#   delegate_to: localhost
+#   become: true
+#   ansible.builtin.raw: |
+#     source /opt/ansible/venv/2.13/bin/activate
+#     ansible-galaxy collection install git+https://github.com/ansible-collections/community.windows,main --force --collections-path /opt/ansible/collections
+#     deactivate
+#   args:
+#     executable: /bin/bash
 
-- name: get disk facts
+- name:                                "1.5 Disk setup - Get disk facts"
   community.windows.win_disk_facts:
 
 - name:                                "1.5 Disk setup - Show disk info"

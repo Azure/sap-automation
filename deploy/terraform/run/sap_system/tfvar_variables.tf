@@ -553,6 +553,16 @@ variable "scs_server_no_ppg" {
   default     = false
 }
 
+variable "scs_shared_disk_size" {
+  description = "The size of the shared disk for the SAP Central Services Windows cluster"
+  default     = 128
+}
+
+variable "scs_shared_disk_lun" {
+  description = "The LUN of the shared disk for the SAP Central Services Windows cluster"
+  default     = 5
+}
+
 #########################################################################################
 #                                                                                       #
 #  Application Server variables                                                         #
@@ -768,6 +778,14 @@ variable "use_private_endpoint" {
   type        = bool
 }
 
+
+#########################################################################################
+#                                                                                       #
+#  DNS settings                                                                         #
+#                                                                                       #
+#########################################################################################
+
+
 variable "use_custom_dns_a_registration" {
   description = "Boolean value indicating if a custom dns a record should be created when using private endpoints"
   default     = false
@@ -785,6 +803,13 @@ variable "management_dns_resourcegroup_name" {
   default     = null
   type        = string
 }
+
+variable "create_storage_dns_a_records" {
+  description = "Boolean value indicating if dns a records should be created for the storage accounts"
+  default     = false
+  type        = bool
+}
+
 #########################################################################################
 #                                                                                       #
 #  NFS and Shared Filed settings                                                        #
@@ -807,12 +832,16 @@ variable "azure_files_sapmnt_id" {
   default     = ""
 }
 
+variable "use_random_id_for_storageaccounts" {
+  description = "If true, will use random id for storage accounts"
+  default     = false
+}
+
 variable "sapmnt_private_endpoint_id" {
   description = "Azure Resource Identifier for an private endpoint connection"
   type        = string
   default     = ""
 }
-
 
 #########################################################################################
 #                                                                                       #

@@ -576,6 +576,7 @@
           ansible.builtin.set_fact:
             tier:                      sqlserver                               # Actions for sql Servers
             main_password:             "{{ hostvars.localhost.sap_password }}"
+            config_tier:               "sqlserver"
           tags:
             - always
 

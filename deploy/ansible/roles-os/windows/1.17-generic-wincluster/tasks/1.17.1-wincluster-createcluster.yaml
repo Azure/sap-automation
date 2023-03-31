@@ -1,0 +1,176 @@
+---
+
+# This user must have the permission to create the CNO (Cluster Name Object)
+# in Active Directory. This need not be a domain admin account.
+
+# ClusterIPAddress            = '192.168.100.20/24'
+# ClusterName                 = 'Cluster1'
+
+# If the CNO is prestaged, then the computer object must be disabled for the
+# resource Cluster to be able to create the cluster.
+# If the CNO is not prestaged, then the credential used in the Cluster resource
+# must have the permission in Active Directory to create the CNO (Cluster Name
+# Object).
+
+# by default the cluster is created with nostorage option
+# https://github.com/dsccommunity/FailoverClusterDsc/blob/main/source/DSCResources/DSC_Cluster/DSC_Cluster.psm1#L204
+
+- name:                                "WinCluster-Create: Calculating the domain value from {{ domain_name }}"
+  ansible.builtin.set_fact:
+    domain:                            "{{ domain_name | split('.') | first }}"
+    cacheable:                         true
+  when:
+    - domain_name is defined
+    - domain_name | type_debug != 'NoneType'
+    - domain_name | trim | length > 1
+    - domain is not defined
+
+- name:                                "WinCluster-Create: Print the variables from {{ domain_name }}"
+  ansible.builtin.debug:
+    msg:
+      - "ClusterName is {{ cluster_name }}"
+      - "ClusterIPAddress is {{ cluster_ip_address }}"
+      - "DomainName is {{ domain_name }}"
+      - "Domain Service Account is {{ domain_service_account }}"
+      - "Witness Storage Account Name is {{ witness_storage_account_name }}"
+  when:
+    - domain is defined
+    - domain | type_debug != 'NoneType'
+    - domain | trim | length > 1
+
+- name:                                "WinCluster-Create: Create windows cluster on the first node"
+  become:                              true
+  become_method:                       "runas"
+  become_user:                         '{{ sap_sid }}adm@{{ domain }}'
+  ansible.windows.win_dsc:
+    resource_name:                     Cluster
+    StaticIPAddress:                   "{{ cluster_ip_address }}"
+    Name:                              "{{ cluster_name }}"
+    PsDscRunAsCredential_username:     "{{ domain_service_account }}@{{ domain_name }}"
+    PsDscRunAsCredential_password:     "{{ domain_service_password }}"
+  when:
+    - ansible_hostname == primary_node
+
+- name:                                "WinCluster-Create: Tasks for secondary nodes"
+  become:                              true
+  become_method:                       "runas"
+  become_user:                         '{{ sap_sid }}adm@{{ domain }}'
+  block:
+    - name:                            "WinCluster-Create: Wait for cluster to be created"
+      ansible.windows.win_dsc:
+        resource_name:                  WaitForCluster
+        Name:                           "{{ cluster_name }}"
+        RetryIntervalSec:               10
+        RetryCount:                     60
+
+    - name:                                "WinCluster-Create: Create windows cluster on the second node"
+      ansible.windows.win_dsc:
+        resource_name:                     Cluster
+        StaticIPAddress:                   "{{ cluster_ip_address }}"
+        Name:                              "{{ cluster_name }}"
+        PsDscRunAsCredential_username:     "{{ domain_service_account }}@{{ domain_name }}"
+        PsDscRunAsCredential_password:     "{{ domain_service_password }}"
+  when:
+    - ansible_hostname == secondary_node
+
+- name:                                "WinCluster-Create: Create quorum resource"
+  become:                              true
+  become_method:                       "runas"
+  become_user:                         '{{ sap_sid }}adm@{{ domain }}'
+  ansible.windows.win_dsc:
+    resource_name:                     ClusterQuorum
+    Type:                              "NodeAndCloudMajority"
+    IsSingleInstance:                  "Yes"
+    Resource:                          "{{ witness_storage_account_name }}"
+    StorageAccountAccessKey:           "{{ witness_storage_account_key }}"
+    PsDscRunAsCredential_username:     "{{ domain_service_account }}@{{ domain_name }}"
+    PsDscRunAsCredential_password:     "{{ domain_service_password }}"
+  when:
+    - ansible_hostname == primary_node
+
+- name:                                "WinCluster-Create: Add shared disk resource to cluster (only execute on scs node)"
+  when:
+    - scs_high_availability
+    - "'scs' in supported_tiers"
+    - ansible_hostname == primary_node
+  block:
+    # We expect to see only one disk added, so get the first disk number.
+    - name:                            "WinCluster-Create: Get shared disk resource"
+      ansible.windows.win_powershell:
+        script: |
+                                       Get-Disk | Where-Object PartitionStyle -eq 'RAW' | Select-Object -ExpandProperty Number -First 1
+      register:                        shared_disk
+
+    - name:                            "WinCluster-Create: Print the shared disk output"
+      ansible.builtin.debug:
+        msg:                          "Shared disk output is {{ shared_disk }}"
+
+    - name:                            "WinCluster-Create: Set Shared disk number fact"
+      ansible.builtin.set_fact:
+        shared_disk_number:            "{{ shared_disk.output[0] }}"
+        cacheable:                     true
+      when:
+        - shared_disk.output[0] is defined
+        - shared_disk.output[0] | type_debug != 'NoneType'
+        - shared_disk.output[0] | trim | length >= 1
+
+    - name:                            "WinCluster-Create: Print the shared disk number"
+      ansible.builtin.debug:
+        msg:                          "Shared disk number is {{ shared_disk_number }}"
+      when:
+        - shared_disk_number is defined
+
+
+    - name:                            "WinCluster-Create: Create disk label"
+      ansible.builtin.set_fact:
+        disk_label:                    "{{ sap_sid | upper }}SharedDisk"
+        cacheable:                     true
+
+    # PartitionStyle defaults to GPT, so not passing it along
+    - name:                            "WinCluster-Create: Format the shared Disk"
+      ansible.windows.win_dsc:
+        resource_name:                 Disk
+        DiskId:                        "{{ shared_disk_number }}"
+        DriveLetter:                   "{{ shared_disk_drive_letter }}"
+        FSFormat:                      "ReFS"
+        FSLabel:                       "{{ disk_label }}"
+        AllocationUnitSize:            "4096"
+      when: shared_disk_number is defined
+
+    # Get the disk number using cluster cmdlets
+    # Note: If the disk is already in the cluster. we need to be careful
+    # Todo: make this a bit more robust.
+    - name:                           "WinCluster-Create: Get clustered shared disk resource"
+      ansible.windows.win_powershell:
+        script: |
+                                       Get-ClusterAvailableDisk -All -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Number -First 1
+      register:                        clu_shared_disk_details
+
+    - name:                            "WinCluster-Create: Set Shared disk number fact"
+      ansible.builtin.set_fact:
+        clu_shared_disk_number:         "{{ clu_shared_disk_details.output[0] }}"
+        cacheable:                      true
+      when:
+        - clu_shared_disk_details.output[0] is defined
+        - clu_shared_disk_details.output[0] | type_debug != 'NoneType'
+        - clu_shared_disk_details.output[0] | trim | length >= 1
+
+    - name:                            "WinCluster-Create: print cluster shared disk number"
+      ansible.builtin.debug:
+        msg:                           "Cluster Shared disk number is {{ clu_shared_disk_number }}"
+      when: clu_shared_disk_number is defined
+
+    - name:                            "WinCluster-Create: Initialize shared disk resource"
+      ansible.windows.win_dsc:
+        resource_name:                 ClusterDisk
+        Number:                        "{{ clu_shared_disk_number }}"
+        Label:                         "{{ disk_label }}"
+        Ensure:                        "Present"
+        PsDscRunAsCredential_username: "{{ domain_service_account }}@{{ domain_name }}"
+        PsDscRunAsCredential_password: "{{ domain_service_password }}"
+      when:
+        - clu_shared_disk_number is defined
+        - clu_shared_disk_number | type_debug != 'NoneType'
+        - clu_shared_disk_number | trim | length >= 1
+
+...

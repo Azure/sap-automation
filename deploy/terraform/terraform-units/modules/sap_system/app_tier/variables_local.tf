@@ -217,9 +217,8 @@ locals {
   enable_deployment        = var.application_tier.enable_deployment && length(try(var.landscape_tfstate.vnet_sap_arm_id, "")) > 0
   scs_instance_number      = var.application_tier.scs_instance_number
   ers_instance_number      = var.application_tier.ers_instance_number
-  scs_high_availability    = var.application_tier.scs_high_availability
   application_server_count = var.application_tier.application_server_count
-  scs_server_count         = var.application_tier.scs_server_count * (local.scs_high_availability ? 2 : 1)
+  scs_server_count         = var.application_tier.scs_server_count * (var.application_tier.scs_high_availability ? 2 : 1)
   enable_scs_lb_deployment = local.enable_deployment ? (
     (
       local.scs_server_count > 0 &&
@@ -279,7 +278,7 @@ locals {
     web_vm = local.web_subnet_defined ? (10) : 50
   }
 
-  win_ha_scs = local.scs_server_count > 0 && (local.scs_high_availability && upper(var.application_tier.scs_os.os_type) == "WINDOWS")
+  win_ha_scs = local.scs_server_count > 0 && (var.application_tier.scs_high_availability && upper(var.application_tier.scs_os.os_type) == "WINDOWS")
 
   ip_offsets = var.application_tier.scs_os.type == "WINDOWS" ? local.windows_ip_offsets : local.linux_ip_offsets
 
@@ -297,7 +296,7 @@ locals {
   )
 
   scs_sizing = local.enable_deployment ? (
-    local.scs_high_availability ? lookup(local.sizes.scsha, local.vm_sizing_dictionary_key) : lookup(local.sizes.scs, local.vm_sizing_dictionary_key)
+    var.application_tier.scs_high_availability ? lookup(local.sizes.scsha, local.vm_sizing_dictionary_key) : lookup(local.sizes.scs, local.vm_sizing_dictionary_key)
     ) : (
     null
   )
@@ -493,7 +492,7 @@ locals {
     },
   ]
 
-  fpips = (local.scs_high_availability && upper(var.application_tier.scs_os.os_type) == "WINDOWS") ? (
+  fpips = (var.application_tier.scs_high_availability && upper(var.application_tier.scs_os.os_type) == "WINDOWS") ? (
     concat(local.std_ips, local.winha_ips)) : (
     local.std_ips
   )
@@ -614,4 +613,18 @@ locals {
     local.web_dispatcher_primary_ips
   )
 
+  load_balancer_IP_names = [
+    format("%s%s%s", local.prefix, var.naming.separator, "scs"),
+    format("%s%s%s", local.prefix, var.naming.separator, "ers"),
+    format("%s%s%s", local.prefix, var.naming.separator, "clst"),
+    format("%s%s%s", local.prefix, var.naming.separator, "fs")
+  ]
+
+  web_load_balancer_IP_names = local.enable_web_lb_deployment ? (
+    [
+      format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.web_alb)
+    ]
+    ) : (
+    [""]
+  )
 }

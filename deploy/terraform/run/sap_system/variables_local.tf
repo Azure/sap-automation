@@ -40,6 +40,13 @@ locals {
     tenant_id       = var.use_spn ? data.azurerm_key_vault_secret.tenant_id[0].value : null
   }
 
+  cp_spn = {
+    subscription_id = try(data.azurerm_key_vault_secret.cp_subscription_id[0].value, null)
+    client_id       = var.use_spn ? try(coalesce(data.azurerm_key_vault_secret.cp_client_id[0].value, data.azurerm_key_vault_secret.client_id[0].value), null) : null,
+    client_secret   = var.use_spn ? try(coalesce(data.azurerm_key_vault_secret.cp_client_secret[0].value, data.azurerm_key_vault_secret.client_secret[0].value), null) : null,
+    tenant_id       = var.use_spn ? try(coalesce(data.azurerm_key_vault_secret.cp_tenant_id[0].value, data.azurerm_key_vault_secret.tenant_id[0].value), null) : null
+  }
+
   service_principal = {
     subscription_id = local.spn.subscription_id,
     tenant_id       = local.spn.tenant_id,

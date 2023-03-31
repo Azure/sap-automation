@@ -123,7 +123,6 @@
 - hosts:                               "{{ sap_sid | upper }}_APP"
 
   name:                                SAP Installation - APP
-  serial:                              1                                        # Cause App Servers to install sequentially
   remote_user:                         "{{ orchestration_ansible_user }}"
   gather_facts:                        true                                    # Important to collect hostvars information
   vars_files:
@@ -187,7 +186,7 @@
               delegate_to:             localhost
               become:                  false
               ansible.builtin.file:
-                path:                  "{{ _workspace_directory }}/.progress/app/app-install-done{{ ansible_hostname }}"
+                path:                  "{{ _workspace_directory }}/.progress/app-install-done"
                 state:                 touch
                 mode:                  0755
               when:
@@ -239,6 +238,18 @@
 
         - name:                        Run the APP installation Playbook
           block:
+            - name:                    "APP Installation - Add packages"
+              ansible.builtin.include_role:
+                name:                  roles-os/windows/1.4-packages
+              tags:
+                - 1.4-packages
+              vars:
+                winadm_password:           "{{ hostvars.localhost.winadm_password }}"
+                domain_service_password:   "{{ hostvars.localhost.adsvc_password }}"
+                domain_service_account:    "{{ hostvars.localhost.adsvc_account }}"
+                domain_user_password:      "{{ hostvars.localhost.winadm_password }}"
+                tier:                  app_tier
+
             - name:                    "APP Installation Playbook: - Install SAPInst"
               ansible.builtin.include_role:
                 name:                  roles-sap/windows/5.3-app-install

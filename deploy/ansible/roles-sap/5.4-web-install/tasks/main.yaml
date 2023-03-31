@@ -101,6 +101,11 @@
       ansible.builtin.set_fact:
         web_bom_id:                    "{{ bom.product_ids.web }}"
 
+    - name:                            "Web install: Who am I"
+      ansible.builtin.command:         "whoami"
+      register:                        whoami
+
+
     - name:                            "Web Install: install variables"
       ansible.builtin.debug:
         msg:
@@ -111,6 +116,9 @@
           - "PRODUCT ID: {{ web_bom_id }}"
           - "INSTANCE:   {{ web_instance_number }}"
           - "SCSHOST:    {{ scs_server }}"
+          - "WHOAMI :    {{ whoami.stdout }}"
+          - "LOCATION:   {{ target_media_location }}/SWPM"
+          - "TMPDIR:     {{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
 # *====================================4=======================================8
 #   SAP Web Dispatcher: Install
 # 2230669 - System Provisioning Using a Parameter Input File

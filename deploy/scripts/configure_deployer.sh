@@ -55,7 +55,7 @@ set -o pipefail
 #
 
 if [ -z "${TF_VERSION}" ]; then
-  TF_VERSION="1.3.4"
+  TF_VERSION="1.4.1"
 fi
 
 
@@ -133,8 +133,12 @@ pkg_mgr_init()
         pkg_mgr="zypper"
         pkg_type="rpm"
         ;;
+    (rhel|centos|fedora)
+        pkg_mgr="yum"
+        pkg_type="rpm"
+        ;;
     (*)
-        error "Unsupported distibution: '${distro_name}'"
+        error "Unsupported distibution: '$${distro_name}'"
         exit 1
         ;;
     esac
@@ -144,20 +148,23 @@ pkg_mgr_refresh()
 {
     typeset -g pkg_mgr pkg_mgr_refreshed
 
-    if [[ -z "${pkg_mgr:-}" ]]; then
+    if [[ -z "$${pkg_mgr:-}" ]]; then
         pkg_mgr_init
     fi
 
-    if [[ -n "${pkg_mgr_refreshed:-}" ]]; then
+    if [[ -n "$${pkg_mgr_refreshed:-}" ]]; then
         return
     fi
 
-    case "${pkg_mgr}" in
+    case "$${pkg_mgr}" in
     (apt-get)
-        sudo ${pkg_mgr} update --quiet
+        sudo $${pkg_mgr} update --quiet
         ;;
     (zypper)
-        sudo ${pkg_mgr} --gpg-auto-import-keys --quiet refresh
+        sudo $${pkg_mgr} --gpg-auto-import-keys --quiet refresh
+        ;;
+    (yum)
+        sudo $${pkg_mgr} update --quiet
         ;;
     esac
 
@@ -169,20 +176,23 @@ pkg_mgr_upgrade()
 {
     typeset -g pkg_mgr pkg_mgr_upgraded
 
-    if [[ -z "${pkg_mgr:-}" ]]; then
+    if [[ -z "$${pkg_mgr:-}" ]]; then
         pkg_mgr_init
     fi
 
-    if [[ -n "${pkg_mgr_upgraded:-}" ]]; then
+    if [[ -n "$${pkg_mgr_upgraded:-}" ]]; then
         return
     fi
 
-    case "${pkg_mgr}" in
+    case "$${pkg_mgr}" in
     (apt-get)
-        sudo ${pkg_mgr} upgrade --quiet -y
+        sudo $${pkg_mgr} upgrade --quiet -y
         ;;
     (zypper)
-        sudo ${pkg_mgr} --gpg-auto-import-keys --quiet upgrade
+        sudo $${pkg_mgr} --gpg-auto-import-keys --non-interactive patch
+        ;;
+    (yum)
+        sudo $${pkg_mgr} upgrade --quiet -y
         ;;
     esac
 
@@ -195,12 +205,15 @@ pkg_mgr_install()
 
     pkg_mgr_refresh
 
-    case "${pkg_mgr}" in
+    case "$${pkg_mgr}" in
     (apt-get)
-        sudo env DEBIAN_FRONTEND=noninteractive ${pkg_mgr} --quiet --yes install "${@}"
+        sudo env DEBIAN_FRONTEND=noninteractive $${pkg_mgr} --quiet --yes install "$${@}"
         ;;
     (zypper)
-        sudo ${pkg_mgr} --gpg-auto-import-keys --quiet --non-interactive install --no-confirm "${@}"
+        sudo $${pkg_mgr} --gpg-auto-import-keys --quiet --non-interactive install --no-confirm "$${@}"
+        ;;
+    (yum)
+        sudo $${pkg_mgr} --nogpgcheck --quiet  install --assumeyes "$${@}"
         ;;
     esac
 }
@@ -237,7 +250,8 @@ tf_zip=terraform_${tfversion}_linux_amd64.zip
 #
 
 if [ -f /etc/profile.d/deploy_server.sh ] ; then
-    echo Deployer already configured
+    echo
+    echo ##vso[task.logissue type=warning]Deployer already configured
     exit 0
 else
     #
@@ -247,14 +261,17 @@ else
     # Check for supported distro
     case "$(get_distro_name_version)" in
     (sles_12*)
-        error "Unsupported distro: ${distro_name_version} doesn't provide virtualenv in standard repos."
+        error "Unsupported distro: $${distro_name_version} doesn't provide virtualenv in standard repos."
         exit 1
         ;;
     (ubuntu*|sles*)
-        echo "${distro_name_version} is supported."
+        echo "$${distro_name_version} is supported."
+        ;;
+    (rhel*)
+        echo "$${distro_name_version} is supported."
         ;;
     (*)
-        error "Unsupported distro: ${distro_name_version} not currently supported."
+        error "Unsupported distro: $${distro_name_version} not currently supported."
         exit 1
         ;;
     esac
@@ -262,6 +279,7 @@ else
 
     # List of required packages whose names are common to all supported distros
     required_pkgs=(
+        git
         jq
         unzip
         ca-certificates
@@ -280,10 +298,28 @@ else
 
     # Include distro version agnostic packages into required packages list
     case "$(get_distro_name)" in
-    (ubuntu|sles)
+    (ubuntu)
         required_pkgs+=(
+            sshpass
             python3-pip
             python3-virtualenv
+            apt-transport-https
+            lsb-release
+        )
+        ;;
+    (sles)
+        required_pkgs+=(
+            curl
+            python3-pip
+            python3-virtualenv
+            lsb-release
+        )
+        ;;
+    (rhel)
+        required_pkgs+=(
+            sshpass
+            python36
+            python3-pip
         )
         ;;
     esac
@@ -296,6 +332,8 @@ else
         )
         ;;
     esac
+
+    echo "$(get_distro_name_version)"
 
     # Upgrade packages
     pkg_mgr_upgrade
@@ -347,21 +385,43 @@ else
     sudo unzip -o /tmp/${tf_zip} -d ${tf_dir}
     sudo ln -vfs ../$(basename ${tf_dir})/terraform ${tf_bin}/terraform
 
+    case "$(get_distro_name)" in
+    (ubuntu|sles)
+      rel=$(lsb_release -a | grep Release | cut -d':' -f2 | xargs)
+      # Ubuntu 20.04 (Focal Fossa) and 20.10 (Groovy Gorilla) include an azure-cli package with version 2.0.81 provided by the universe repository.
+      # This package is outdated and not recommended. If this package is installed, remove the package
+      if [ "$rel" == "20.04" ]; then
+        echo "Removing Azure CLI"
+        sudo apt remove azure-cli -y
+        sudo apt autoremove -y
+        sudo apt update -y
+      fi
+      ;;
+    esac
 
-    rel=$(lsb_release -a | grep Release | cut -d':' -f2 | xargs)
-    # Ubuntu 20.04 (Focal Fossa) and 20.10 (Groovy Gorilla) include an azure-cli package with version 2.0.81 provided by the universe repository.
-    # This package is outdated and not recommended. If this package is installed, remove the package
-    if [ "$rel" == "20.04" ]; then
-      echo "Removing Azure CLI"
-      sudo apt remove azure-cli -y
-      sudo apt autoremove -y
-      sudo apt update -y
-    fi
-    #
-    # Install az cli using provided scripting
-    #
+    # Install Azure CLI
+    case "$(get_distro_name)" in
+    (ubuntu)
+        echo "Getting the Microsoft Key"
+        sudo mkdir -p /etc/apt/keyrings
+        curl -sLS https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor | sudo tee /etc/apt/keyrings/microsoft.gpg > /dev/null
+        sudo chmod go+r /etc/apt/keyrings/microsoft.gpg
 
-    curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash > /dev/null
+        AZ_REPO=$(lsb_release -cs)
+        echo "deb [arch=`dpkg --print-architecture` signed-by=/etc/apt/keyrings/microsoft.gpg] https://packages.microsoft.com/repos/azure-cli/ $AZ_REPO main" |
+            sudo tee /etc/apt/sources.list.d/azure-cli.list
+        ;;
+    (sles)
+        echo "Getting the Microsoft Key"
+        sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc
+        sudo zypper addrepo --name 'Azure CLI' --check https://packages.microsoft.com/yumrepos/azure-cli azure-cli
+        sudo zypper install --from azure-cli azure-cli
+        ;;
+     (rhel*)
+        sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc
+        sudo dnf install -y https://packages.microsoft.com/config/rhel/8/packages-microsoft-prod.rpm
+        ;;
+    esac
 
     az config set extension.use_dynamic_install=yes_without_prompt
 

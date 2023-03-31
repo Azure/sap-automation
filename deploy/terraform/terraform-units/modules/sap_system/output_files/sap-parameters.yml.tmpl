@@ -24,6 +24,7 @@ sap_sid:                       ${sid}
 # web_sid is the Web Dispatcher SID (if applicable)
 web_sid:                       ${web_sid}
 
+web_instance_number:
 
 # scs_high_availability is a boolean flag indicating
 # if the SAP Central Services are deployed using high availability
@@ -42,6 +43,10 @@ ers_instance_number:           "${ers_instance_number}"
 # ecs_lb_ip is the ERS IP address of the load balancer for
 # the SAP Central Services virtual machines
 ers_lb_ip:                     ${ers_lb_ip}
+
+# scs_clst_lb_ip is the IP address of the load balancer for the scs cluster in Windows
+scs_clst_lb_ip:                 ${scs_clst_lb_ip}
+
 
 # PAS Instance Number
 pas_instance_number:           "${pas_instance_number}"
@@ -72,6 +77,9 @@ db_high_availability:          ${db_ha}
 
 # db_lb_ip is the IP address of the load balancer for the database virtual machines
 db_lb_ip:                      ${db_lb_ip}
+
+# db_clst_lb_ip is the IP address of the load balancer for the database cluster in Windows
+db_clst_lb_ip:                 ${db_clst_lb_ip}
 
 #############################################################################
 #                                                                           #

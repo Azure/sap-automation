@@ -72,7 +72,7 @@ AGENTNAME=$(hostname)
 #
 # Ansible Version settings
 #
-ansible_version="$${ansible_version:-2.11}"
+ansible_version="$${ansible_version:-2.13}"
 ansible_major="$${ansible_version%%.*}"
 ansible_minor=$(echo "$${ansible_version}." | cut -d . -f 2)
 
@@ -136,6 +136,10 @@ pkg_mgr_init()
         pkg_mgr="zypper"
         pkg_type="rpm"
         ;;
+    (rhel|centos|fedora)
+        pkg_mgr="yum"
+        pkg_type="rpm"
+        ;;
     (*)
         error "Unsupported distibution: '$${distro_name}'"
         exit 1
@@ -162,6 +166,9 @@ pkg_mgr_refresh()
     (zypper)
         sudo $${pkg_mgr} --gpg-auto-import-keys --quiet refresh
         ;;
+    (yum)
+        sudo $${pkg_mgr} update --quiet
+        ;;
     esac
 
     pkg_mgr_refreshed=true
@@ -185,7 +192,10 @@ pkg_mgr_upgrade()
         sudo $${pkg_mgr} upgrade --quiet -y
         ;;
     (zypper)
-        sudo $${pkg_mgr} --gpg-auto-import-keys --quiet upgrade
+        sudo $${pkg_mgr} --gpg-auto-import-keys --non-interactive patch
+        ;;
+    (yum)
+        sudo $${pkg_mgr} upgrade --quiet -y
         ;;
     esac
 
@@ -204,6 +214,9 @@ pkg_mgr_install()
         ;;
     (zypper)
         sudo $${pkg_mgr} --gpg-auto-import-keys --quiet --non-interactive install --no-confirm "$${@}"
+        ;;
+    (yum)
+        sudo $${pkg_mgr} --nogpgcheck --quiet  install --assumeyes "$${@}"
         ;;
     esac
 }
@@ -255,6 +268,9 @@ else
     (ubuntu*|sles*)
         echo "$${distro_name_version} is supported."
         ;;
+    (rhel*)
+        echo "$${distro_name_version} is supported."
+        ;;
     (*)
         error "Unsupported distro: $${distro_name_version} not currently supported."
         exit 1
@@ -264,14 +280,12 @@ else
 
     # List of required packages whose names are common to all supported distros
     required_pkgs=(
+        git
         jq
         unzip
         ca-certificates
         curl
-        apt-transport-https
-        lsb-release
         gnupg
-        sshpass
         dos2unix
     )
 
@@ -282,14 +296,31 @@ else
 
     # Include distro version agnostic packages into required packages list
     case "$(get_distro_name)" in
-    (ubuntu|sles)
+    (ubuntu)
         required_pkgs+=(
+            sshpass
             python3-pip
             python3-virtualenv
+            apt-transport-https
+            lsb-release
+        )
+        ;;
+    (sles)
+        required_pkgs+=(
+            curl
+            python3-pip
+            python3-virtualenv
+            lsb-release
+        )
+        ;;
+    (rhel)
+        required_pkgs+=(
+            sshpass
+            python36
+            python3-pip
         )
         ;;
     esac
-
     # Include distro version specific packages into required packages list
     case "$(get_distro_name_version)" in
     (ubuntu_18.04)
@@ -307,7 +338,10 @@ else
     pkg_mgr_refresh
 
     # Install required packages as determined above
+    set +o errexit
     pkg_mgr_install "$${required_pkgs[@]}"
+
+    set -o errexit
 
 
     # Prepare Azure SAP Automated Deployment folder structure
@@ -338,21 +372,50 @@ else
     sudo unzip -o /tmp/$${tf_zip} -d $${tf_dir}
     sudo ln -vfs ../$(basename $${tf_dir})/terraform $${tf_bin}/terraform
 
+    # Install Azure CLI
+    case "$(get_distro_name)" in
+    (ubuntu)
+        echo "Getting the Microsoft Key"
+        sudo mkdir -p /etc/apt/keyrings
+        curl -sLS https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor | sudo tee /etc/apt/keyrings/microsoft.gpg > /dev/null
+        sudo chmod go+r /etc/apt/keyrings/microsoft.gpg
 
-    rel=$(lsb_release -a | grep Release | cut -d':' -f2 | xargs)
-    # Ubuntu 20.04 (Focal Fossa) and 20.10 (Groovy Gorilla) include an azure-cli package with version 2.0.81 provided by the universe repository.
-    # This package is outdated and not recommended. If this package is installed, remove the package
-    if [ "$rel" == "20.04" ]; then
-    echo "Removing Azure CLI"
-    sudo apt remove azure-cli -y
-    sudo apt autoremove -y
-    sudo apt update -y
-    fi
-    #
-    # Install az cli using provided scripting
-    #
+        AZ_REPO=$(lsb_release -cs)
+        echo "deb [arch=`dpkg --print-architecture` signed-by=/etc/apt/keyrings/microsoft.gpg] https://packages.microsoft.com/repos/azure-cli/ $AZ_REPO main" |
+            sudo tee /etc/apt/sources.list.d/azure-cli.list
+        ;;
+    (sles)
+        echo "Getting the Microsoft Key"
+        sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc
+        sudo zypper addrepo --name 'Azure CLI' --check https://packages.microsoft.com/yumrepos/azure-cli azure-cli
+        sudo zypper install --from azure-cli azure-cli
+        ;;
+     (rhel*)
+        sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc
+        sudo dnf install -y https://packages.microsoft.com/config/rhel/8/packages-microsoft-prod.rpm
+        ;;
+    esac
 
-    curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash > /dev/null
+
+    case "$(get_distro_name)" in
+    (ubuntu|sles)
+      rel=$(lsb_release -a | grep Release | cut -d':' -f2 | xargs)
+      # Ubuntu 20.04 (Focal Fossa) and 20.10 (Groovy Gorilla) include an azure-cli package with version 2.0.81 provided by the universe repository.
+      # This package is outdated and not recommended. If this package is installed, remove the package
+      if [ "$rel" == "20.04" ]; then
+        echo "Removing Azure CLI"
+        sudo apt remove azure-cli -y
+        sudo apt autoremove -y
+        sudo apt update -y
+      fi
+      ;;
+    esac
+
+    set +o errexit
+    pkg_mgr_install "$${cli_pkgs[@]}"
+
+    set -o errexit
+
 
     # If the deployer will be an ADO agent install the devops cli
     if [[ -n $${TOKEN} ]];
@@ -365,6 +428,20 @@ else
     # Fail if any command exits with a non-zero exit status
     set -o errexit
 
+
+    case "$(get_distro_name)" in
+    (rhel)
+        python3.6 -m venv $${ansible_venv}
+        ;;
+    (ubuntu|sles)
+        # Create a Python3 based venv into which we will install Ansible.
+        if [[ ! -e "$${ansible_venv_bin}/activate" ]]; then
+            sudo rm -rf $${ansible_venv}
+            sudo virtualenv --python python3 $${ansible_venv}
+        fi
+        ;;
+    esac
+
     # Ensure our package metadata cache is up to date
     # pkg_mgr_refresh
     # pkg_mgr_upgrade
@@ -374,11 +451,6 @@ else
     sudo mkdir -p \
         $${ansible_bin}
 
-    # Create a Python3 based venv into which we will install Ansible.
-    if [[ ! -e "$${ansible_venv_bin}/activate" ]]; then
-        sudo rm -rf $${ansible_venv}
-        sudo virtualenv --python python3 $${ansible_venv}
-    fi
 
     # Fail if pip3 doesn't exist in the venv
     if [[ ! -x "$${ansible_venv_bin}/pip3" ]]; then

@@ -114,6 +114,11 @@ variable "enable_rbac_authorization_for_keyvault" {
   description = "Enables RBAC authorization for Azure keyvault"
 }
 
+variable "keyvault_private_endpoint_id" {
+  description = "Existing private endpoint for key vault"
+}
+
+
 #########################################################################################
 #                                                                                       #
 #  Storage Account Variables                                                            #
@@ -171,6 +176,10 @@ variable "install_always_create_fileshares" {
   default     = false
 }
 
+variable "storage_account_replication_type" {
+  description = "Storage account replication type"
+  default     = "ZRS"
+}
 
 #########################################################################################
 #                                                                                       #
@@ -232,20 +241,13 @@ variable "dns_label" {
   default     = ""
 }
 
-variable "dns_resource_group_name" {
-  description = "DNS resource group name"
-  default     = ""
+variable "dns_server_list" {
+  description = "DNS server list"
+  default     = []
 }
 
-variable "use_private_endpoint" {
-  description = "Boolean value indicating if private endpoint should be used for the deployment"
-  default     = false
-  type        = bool
-}
-
-variable "use_service_endpoint" {
-  description = "Boolean value indicating if service endpoints should be used for the deployment"
-  default     = false
+variable "create_vaults_and_storage_dns_a_records" {
+  description = "Boolean value indicating if dns a records should be created for the vaults and storage accounts"
   type        = bool
 }
 
@@ -266,6 +268,19 @@ variable "management_dns_resourcegroup_name" {
   default     = null
   type        = string
 }
+
+variable "use_private_endpoint" {
+  description = "Boolean value indicating if private endpoint should be used for the deployment"
+  default     = false
+  type        = bool
+}
+
+variable "use_service_endpoint" {
+  description = "Boolean value indicating if service endpoints should be used for the deployment"
+  default     = false
+  type        = bool
+}
+
 
 variable "NFS_provider" {
   description = "Describes the NFS solution used"

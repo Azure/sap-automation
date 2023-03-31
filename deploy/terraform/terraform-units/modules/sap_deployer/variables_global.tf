@@ -77,8 +77,6 @@ variable "enable_firewall_for_keyvaults_and_storage" {
   type        = bool
 }
 
-
-
 variable "use_custom_dns_a_registration" {
   description = "Boolean value indicating if a custom dns a record should be created when using private endpoints"
   default     = false
@@ -110,6 +108,11 @@ variable "tf_version" {
 variable "bastion_deployment" {
   description = "Value indicating if Azure Bastion should be deployed"
   default     = false
+}
+
+variable "bastion_sku" {
+  description = "The SKU of the Bastion Host. Accepted values are Basic or Standard"
+  default     = "Basic"
 }
 
 ###############################################################################
@@ -163,5 +166,11 @@ variable "ansible_core_version" {
 variable "Agent_IP" {
   description = "If provided, contains the IP address of the agent"
   type        = string
+  default     = ""
+}
+
+
+variable "spn_id" {
+  description = "SPN ID to be used for the deployment"
   default     = ""
 }

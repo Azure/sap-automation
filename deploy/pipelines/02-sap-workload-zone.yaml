@@ -370,6 +370,12 @@ stages:
                 unzip -qq terraform_$(tf_version)_linux_amd64.zip ; sudo mv terraform /bin/
                 rm -f terraform_$(tf_version)_linux_amd64.zip
 
+                export ARM_CLIENT_ID=$WL_ARM_CLIENT_ID
+                export ARM_CLIENT_SECRET=$WL_ARM_CLIENT_SECRET
+                export ARM_TENANT_ID=$WL_ARM_TENANT_ID
+                export ARM_SUBSCRIPTION_ID=$WL_ARM_SUBSCRIPTION_ID
+                export ARM_USE_MSI=false
+
                 echo -e "$green--- az login ---$reset"
                   az login --service-principal --username $CP_ARM_CLIENT_ID --password=$CP_ARM_CLIENT_SECRET --tenant $CP_ARM_TENANT_ID --output none
                   return_code=$?
@@ -458,8 +464,22 @@ stages:
                 cd $CONFIG_REPO_PATH/LANDSCAPE/$(workload_zone_folder)
                 if [ -f /etc/profile.d/deploy_server.sh ]; then
                   az logout --output none
-                  az login --identity --output none
+                  az login --identity --allow-no-subscriptions --output none
                   export ARM_USE_MSI=true
+                else
+                  export ARM_CLIENT_ID=$WL_ARM_CLIENT_ID
+                  export ARM_CLIENT_SECRET=$WL_ARM_CLIENT_SECRET
+                  export ARM_TENANT_ID=$WL_ARM_TENANT_ID
+                  export ARM_SUBSCRIPTION_ID=$WL_ARM_SUBSCRIPTION_ID
+                  export ARM_USE_MSI=false
+                  az login --service-principal --username $WL_ARM_CLIENT_ID --password=$WL_ARM_CLIENT_SECRET --tenant $WL_ARM_TENANT_ID --output none
+                  return_code=$?
+                  if [ 0 != $return_code ]; then
+                    echo -e "$boldred--- Login failed ---$reset"
+                    echo "##vso[task.logissue type=error]az login failed."
+                    exit $return_code
+                  fi
+
                 fi
 
                 $SAP_AUTOMATION_REPO_PATH/deploy/scripts/install_workloadzone.sh --parameterfile $(workload_zone_configuration_file)       \

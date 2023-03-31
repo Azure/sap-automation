@@ -69,6 +69,13 @@
     - node_tier == 'oracle' or node_tier == 'oracle-asm'
     - distribution_id == 'oraclelinux8'
 
+
+- name:                                2.10.3119751 - SAP Note 3119751
+  ansible.builtin.include_tasks:       2.10.3119751.yaml
+  when:
+    - platform == 'HANA'
+    - distribution_id == 'redhat8'
+
 # - name:                                "2.10.1 sap-notes: - Disable SELinux"
 #   selinux:
 #     state:                             disabled

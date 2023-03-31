@@ -114,7 +114,7 @@
                                                                 '\\g<second_part>'
                                                               )
                                                 | join
-                                                | parse_xml(role_path + '/templates/sap_search.yaml')
+                                                | parse_xml(role_path + '/templates/sap_search.tmpl')
                                             }}"
         platformNumber_list:                "{{ item.Title | regex_search('(?P<prefix>^.*)[-](?P<hwid>.*)[.](?P<suffix>.*$)', '\\g<prefix>', '\\g<hwid>', '\\g<suffix>')}}"
                                             # setting the checksum value to true is used durring download to update field with correct checksum.
