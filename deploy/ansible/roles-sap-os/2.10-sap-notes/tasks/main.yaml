@@ -29,7 +29,7 @@
   ansible.builtin.include_tasks:       2.10.0.yaml
   when:
     - node_tier == 'hana'
-    - distribution_id == 'suse12'
+    - distribution_id == ['suse12', 'suse15', 'sles_sap12', 'sles_sap15']
 # -------------------------------------+---------------------------------------8
 
 # -------------------------------------+---------------------------------------8
