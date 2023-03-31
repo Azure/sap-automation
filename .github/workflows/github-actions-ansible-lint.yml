@@ -18,7 +18,7 @@ jobs:
         run: sudo apt-get install -y ansible-lint
       
       - name: Run Lint on yaml files
-        run: find ./deploy/ansible -name "*.yaml" | xargs ansible-lint -vv
+        run: find ./deploy/ansible -name "*.yaml" | xargs ansible-lint -vv  -c .ansible-lint
 
       - name: Run Lint on yml files
         run: find ./deploy/ansible -name "*.yml" | xargs ansible-lint  -c .ansible-lint
