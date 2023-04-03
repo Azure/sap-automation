@@ -965,7 +965,8 @@ if [ 1 == $ok_to_proceed ]; then
                         echo -e "#                          $boldreduscore  $string_to_report $resetformatting"
                         if [ 1 == $called_from_ado ] ; then
                             roleAssignmentExists=$(echo ${string_to_report} | grep -m1 "RoleAssignmentExists")
-                            if [ -z ${roleAssignmentExists} ] ; then
+                            if [ -z ${roleAssignmentExists} ]
+                            then
                                 echo "##vso[task.logissue type=error]${string_to_report}"
                             fi
                         fi
