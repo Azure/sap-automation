@@ -14,7 +14,6 @@
 - name:                                "SAP HANA: Set BOM facts"
   ansible.builtin.set_fact:
     sap_inifile:                       "hdbserver_{{ ansible_hostname }}_{{ sap_sid }}_install.rsp"
-    sap_inifile_template:              "HANA_2_00_install.rsp.j2"
     hana_host:                         "{% if db_high_availability %}{{ ansible_hostname }}{% else %}{{ virtual_host }}{% endif %}"
     dir_params:                        "{{ tmp_directory }}/.params"
 
