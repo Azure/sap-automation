@@ -422,7 +422,7 @@ resource "azurerm_private_dns_a_record" "keyvault" {
   )
   zone_name           = "privatelink.vaultcore.azure.net"
   resource_group_name = var.management_dns_resourcegroup_name
-  ttl                 = 3600
+  ttl                 = 10
   records = [length(var.keyvault_private_endpoint_id) > 0 ? (
     data.azurerm_private_endpoint_connection.kv_user[0].private_service_connection[0].private_ip_address) : (
     azurerm_private_endpoint.kv_user[0].private_service_connection[0].private_ip_address
