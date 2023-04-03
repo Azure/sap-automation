@@ -68,7 +68,7 @@ resource "azurerm_network_interface" "deployer" {
       "Dynamic"
     )
 
-    public_ip_address_id = local.enable_deployer_public_ip ? azurerm_public_ip.deployer[count.index].id : ""
+    public_ip_address_id = local.enable_deployer_public_ip ? azurerm_public_ip.deployer[count.index].id : null
   }
 }
 
