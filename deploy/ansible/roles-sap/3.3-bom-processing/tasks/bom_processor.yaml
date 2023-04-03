@@ -220,14 +220,11 @@
     creates:                           "{{ target_media_location }}/{{ item.extractDir }}/{% if item.creates is defined %}\
                                         {{ item.creates }}{% else %}NOT_DEFINED{% endif %}"
   loop:                                "{{ bom.materials.media | flatten(levels=1) }}"
-  register: zipresult
   when:
     - item.extract is not undefined
     - item.extract
     - ( item.filename is undefined and (item.archive | regex_search('[^.]+(?=\\.*$)') | upper=="ZIP") ) or
       ( item.filename is defined   and (item.filename | regex_search('[^.]+(?=\\.*$)') | upper=="ZIP") )
-
-
 
 #   07) Extract files - EXE
 # - name:                                "3.3 BoM Processing: - Extract File, UNRAR"
