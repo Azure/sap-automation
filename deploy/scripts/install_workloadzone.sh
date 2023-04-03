@@ -842,7 +842,8 @@ then
                     roleAssignmentExists=$(echo ${report} | grep -m1 "RoleAssignmentExists")
                     resourceExists=$(echo ${report} | grep -m1 "A resource with the ID")
                     if [ -z ${roleAssignmentExists} ] ; then
-                        if [ -z ${resourceExists} ] ; then
+                        if [ -z ${resourceExists} ] 
+                        then
                             echo "##vso[task.logissue type=warning]${report}"
                         else
                             echo "##vso[task.logissue type=error]${report}"
@@ -856,7 +857,8 @@ then
                     resourceExists=$(echo ${string_to_report} | grep -m1 "A resource with the ID")
                     if [ -z ${roleAssignmentExists} ]
                     then
-                        if [ -z ${resourceExists} ] ; then
+                        if [ -z ${resourceExists} ] 
+                        then
                             echo "##vso[task.logissue type=warning]${string_to_report}"
                         else
                             echo "##vso[task.logissue type=error]${string_to_report}"
