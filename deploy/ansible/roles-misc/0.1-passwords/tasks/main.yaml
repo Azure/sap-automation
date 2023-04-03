@@ -49,7 +49,7 @@
     - name:                            "0.1 Password: - Extract SAP password"
       ansible.builtin.set_fact:
         sap_password:                  "{{ keyvault_secret_show_sap_password_value.stdout }}"
-        cacheable:                     true
+      no_log:                          true
 
   when:                                secret_exists
 
@@ -61,40 +61,47 @@
         path:                          /tmp/sappasswordfile
         state:                         absent
 
-    - name:                                "0.1 Password: - Create Password prefix"
+    - name:                            "0.1 Password: - Create Password prefix"
       ansible.builtin.set_fact:
-        sap_password_pre:                  "{{ sap_password_pre | default([]) +
-                                                [lookup('password',
-                                                  '/dev/null
-                                                  length=1
-                                                  chars=' ~item)]
-                                              }}"
+        sap_password_pre:              "{{ sap_password_pre | default([]) +
+                                            [lookup('password',
+                                              '/dev/null
+                                              length=1
+                                              chars=' ~item)]
+                                          }}"
       loop:
         - ascii_lowercase
         - ascii_uppercase
         - digits
+      no_log:                          true
 
-    - name:                                "0.1 Password: - Construct SAP system password"
+    - name:                            "0.1 Password: - Construct SAP system password"
       ansible.builtin.set_fact:
-        sap_password:                      "{{ sap_password_pre | join('')
-                                              + lookup('password',
-                                              '/tmp/sappasswordfile
-                                              length=9
-                                              chars=ascii_lowercase,ascii_uppercase,digits')
-                                            }}"
-
+        sap_password:                  "{{ sap_password_pre | join('')
+                                          + lookup('password',
+                                          '/tmp/sappasswordfile
+                                          length=9
+                                          chars=ascii_lowercase,ascii_uppercase,digits')
+                                        }}"
+      no_log:                          true
 #    - name:                            "0.1 Password: - Construct SAP system password"
 #      ansible.builtin.set_fact:
 #        sap_password:                  "S3{{ lookup('password', '/tmp/sappasswordfile length=10 chars=ascii_lowercase,ascii_uppercase,digits') }}"
-
-    - name:                            "0.1 Password: - Show SAP Password"
-      ansible.builtin.debug:
-        var:                           sap_password
 
     - name:                            "0.1 Password: - Create Password secret"
       ansible.builtin.command:         az keyvault secret set --vault-name {{ kv_name }} --name {{ sap_password_id }} --value "{{ sap_password }}"
 
   when:                                not secret_exists
+
+
+- name:                                "0.1 Password: - Ensure the password is set"
+  ansible.builtin.assert:
+    that:
+      - "{{ sap_password is defined }}" # Has the variable been defined
+      - "{{ sap_password  | type_debug != 'NoneType' }}" # Is the variable not empty"
+      - "{{ sap_password  | trim | length > 8 }}"
+    fail_msg: "The SAP main password was not set in key vault"
+
 
 - name:                                "0.1 Password: - Show SAP Password"
   ansible.builtin.debug:
