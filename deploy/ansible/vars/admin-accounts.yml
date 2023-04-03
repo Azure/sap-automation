@@ -77,7 +77,7 @@ admin_groups:
     enabled:      true
     node_tier:    sybase
 
-  - name:         db{{db_sid | lower}}adm
+  - name:         db{{ db_sid | lower }}adm
     gid:          "{{ asedbadm_gid }}"
     state:        present
     tier:         sapos

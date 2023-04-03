@@ -34,7 +34,7 @@ disk_type_to_name_map:
   offline_log_dir: '{{ node_tier | lower }}_offline_logdir'
   saptmp:          '{{ node_tier | lower }}_saptmp'
   # ------------------- End - disktypes required for DB2 ---------------------8
-  
+
   # ------------------- Begin - disktypes required for ASE -------------------8
   sapdata_1:      '{{ node_tier | lower }}_sapdata_1'
   saplog_1:       '{{ node_tier | lower }}_saplog_1'
@@ -330,7 +330,7 @@ logical_volumes:
     lv:         'lv_sybase_sapdiag'
     size:       '100%FREE'
     fstype:     'xfs'
-  
+
   - tier:       'sapos'
     node_tier:  'sybase'
     vg:         'vg_sybase_backup'

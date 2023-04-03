@@ -12,7 +12,7 @@
     name:                              "{{ sidadm_user }}"
     state:                             present
   check_mode:                          true
-  register:                             sidadm_user_status
+  register:                            sidadm_user_status
 
 - name:                                "SAP Sybase: Ensure group '{{ sapinst_user_group }} exists"
   ansible.builtin.group:
@@ -29,6 +29,6 @@
   ansible.builtin.user:
     name:                              root
     group:                             root
-  
+
 ...
 
