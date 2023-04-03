@@ -411,8 +411,7 @@ resource "azurerm_private_endpoint" "transport" {
   provider = azurerm.main
   depends_on = [
     azurerm_subnet.app,
-    azurerm_private_dns_zone_virtual_network_link.vnet_sap_file,
-    azurerm_private_dns_a_record.install
+    azurerm_private_dns_zone_virtual_network_link.vnet_sap_file
   ]
   count = var.NFS_provider == "AFS" ? (
     length(var.transport_storage_account_id) > 0 ? (
@@ -640,8 +639,7 @@ resource "azurerm_private_endpoint" "install" {
     azurerm_storage_account.install,
     azurerm_private_dns_zone_virtual_network_link.vnet_sap_file,
     azurerm_storage_share.install,
-    azurerm_storage_share.install_smb,
-    azurerm_private_dns_a_record.install
+    azurerm_storage_share.install_smb
   ]
   count = var.NFS_provider == "AFS" ? (
     length(var.install_private_endpoint_id) > 0 ? (
