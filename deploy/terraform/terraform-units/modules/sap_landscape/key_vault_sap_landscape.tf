@@ -337,6 +337,7 @@ resource "azurerm_private_endpoint" "kv_user" {
     azurerm_key_vault_secret.witness_access_key,
     azurerm_key_vault_secret.sid_password,
     azurerm_key_vault_secret.sid_username,
+    azurerm_private_dns_a_record.keyvault
 
   ]
 
