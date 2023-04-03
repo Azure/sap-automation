@@ -27,7 +27,7 @@
   register:                            sybase_media_exist
   failed_when:                         sybase_media_exist.matched != 1
 
-- name:                                "SAP Sybase: Store SAP ASE software folder full path
+- name:                                "SAP Sybase: Store SAP ASE software folder full path"
   set_fact:                            
     db_install_media_path:             "{{ sybase_media_exist.files[0].path }}"
 

@@ -73,7 +73,7 @@
         msg:                           "{{ sybase_installation.stdout_lines }}"
       when: sybase_installation is defined and sybase_installation.rc != 0
 
-    - name:                           "SAP Sybase: Abort execution when there are installation errors
+    - name:                           "SAP Sybase: Abort execution when there are installation errors"
       ansible.builtin.fail:
         msg:                          "SAP Sybase: Execution interrupted due to errors"
       when: sybase_installation is defined and sybase_installation.rc != 0
