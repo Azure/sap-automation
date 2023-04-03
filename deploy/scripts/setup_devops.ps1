@@ -168,7 +168,6 @@ else {
   $repo_size=(az repos list --query "[].size | [0]")
 
   if ($repo_size -eq 0) {
-
     Write-Host "Importing the repository from GitHub" -ForegroundColor Green
 
     Add-Content -Path $fname -Value ""
