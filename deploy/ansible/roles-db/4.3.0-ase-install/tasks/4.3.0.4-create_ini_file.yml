@@ -8,27 +8,28 @@
 
 # Search for Kernel executables and DB software media
 
-- name: Search for Kernel files
+- name:                                "SAP Sybase: Search for Kernel files"
   find:
-    paths: "{{ kernel_media_folder }}"
-    patterns: 'SAPEXE_*SAR'
-  register: sapexe_exist
-  failed_when: sapexe_exist.matched != 1
+    paths:                             "{{ kernel_media_folder }}"
+    patterns:                          'SAPEXE_*SAR'
+  register:                            sapexe_exist
+  failed_when:                         sapexe_exist.matched != 1
 
-- name: Store Kernel folder full path
-  set_fact: sap_exe_full_path="{{ sapexe_exist.files[0].path }}"
+- name:                                "SAP Sybase: Store Kernel folder full path"
+  set_fact:                             
+    sap_exe_full_path:                 "{{ sapexe_exist.files[0].path }}"
 
-- name: Search SAP ASE Software location
+- name:                                "SAP Sybase: Search SAP ASE Software location"
   find:
-    paths: "{{ db_unarchived_folder }}"
-    file_type: directory
-    patterns: 'BD_SYBASE_ASE_*._BS_' 
-  register: sybase_media_exist
-  failed_when: sybase_media_exist.matched != 1
+    paths:                             "{{ db_unarchived_folder }}"
+    file_type:                         directory
+    patterns:                          'BD_SYBASE_ASE_*._BS_' 
+  register:                            sybase_media_exist
+  failed_when:                         sybase_media_exist.matched != 1
 
-- name: Store SAP ASE software folder full path
-  set_fact: db_install_media_path="{{ sybase_media_exist.files[0].path }}"
-
+- name:                                "SAP Sybase: Store SAP ASE software folder full path
+  set_fact:                            
+    db_install_media_path:             "{{ sybase_media_exist.files[0].path }}"
 
 - name:                                "SAP ASE Install: Set BOM facts"
   ansible.builtin.set_fact:

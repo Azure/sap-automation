@@ -68,14 +68,14 @@
         msg:                           "SYBASE Installation succeeded"
       when:                            sybase_installation.rc == 0
 
-    - name: Show errors if they exist
-      debug:
-        msg: "{{ sybase_installation.stdout_lines }}"
+    - name:                            "SAP Sybase: Show errors if they exist"
+      ansible.builtin.debug:
+        msg:                           "{{ sybase_installation.stdout_lines }}"
       when: sybase_installation is defined and sybase_installation.rc != 0
 
-    - name: Abort execution when there are installation errors
-      fail:
-        msg: "Execution interrupted due to errors"
+    - name:                           "SAP Sybase: Abort execution when there are installation errors
+      ansible.builtin.fail:
+        msg:                          "SAP Sybase: Execution interrupted due to errors"
       when: sybase_installation is defined and sybase_installation.rc != 0
 
     - name:                            "SYBASE Install - flag"
@@ -87,7 +87,7 @@
   when:
     - not sybase_installed.stat.exists
   
-  # *====================================4=======================================8
+  # *==================================4=======================================8
 
 - name:                                "Sybase Install status"
   block:
