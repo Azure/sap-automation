@@ -7,6 +7,10 @@
 // Create user KV with access policy
 resource "azurerm_key_vault" "kv_user" {
   provider                   = azurerm.main
+  depends_on = [
+    azurerm_virtual_network_peering.peering_management_sap,
+    azurerm_virtual_network_peering.peering_sap_management
+  ]
   count                      = (local.enable_landscape_kv && !local.user_keyvault_exist) ? 1 : 0
   name                       = local.user_keyvault_name
   location                   = local.region
