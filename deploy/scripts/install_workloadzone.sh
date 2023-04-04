@@ -824,7 +824,7 @@ then
     echo -e "#                          $boldreduscore!Errors during the apply phase!$resetformatting                              #"
 
     return_value=2
-    all_errors=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary, detail: .diagnostic.detail}' apply_output.json)
+    all_errors=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary, detail: .diagnostic.detail} | select(.summary | startswith("A resource with the ID")) | not ' apply_output.json)
     if [[ -n ${all_errors} ]]
         then
         readarray -t errors_strings < <(echo ${all_errors} | jq -c '.' )
@@ -840,27 +840,17 @@ then
                 if [ 1 == $called_from_ado ] ; then
                     
                     roleAssignmentExists=$(echo ${report} | grep -m1 "RoleAssignmentExists")
-                    resourceExists=$(echo ${report} | grep -m1 "A resource with the ID")
                     if [ -z ${roleAssignmentExists} ] ; then
-                        if [ -z ${resourceExists} ] ; then
-                            echo "##vso[task.logissue type=warning]${report}"
-                        else
-                            echo "##vso[task.logissue type=error]${report}"
-                        fi
+                        echo "##vso[task.logissue type=error]${report}"
                     fi
                 fi
             else
                 echo -e "#                          $boldreduscore  $string_to_report $resetformatting"
                 if [ 1 == $called_from_ado ] ; then
                     roleAssignmentExists=$(echo ${string_to_report} | grep -m1 "RoleAssignmentExists")
-                    resourceExists=$(echo ${string_to_report} | grep -m1 "A resource with the ID")
                     if [ -z ${roleAssignmentExists} ]
                     then
-                        if [ -z ${resourceExists} ] ; then
-                            echo "##vso[task.logissue type=warning]${string_to_report}"
-                        else
-                            echo "##vso[task.logissue type=error]${string_to_report}"
-                        fi
+                        echo "##vso[task.logissue type=error]${string_to_report}"
                     fi
                 fi
             fi

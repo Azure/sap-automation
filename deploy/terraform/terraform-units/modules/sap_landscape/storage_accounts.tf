@@ -168,10 +168,10 @@ resource "azurerm_storage_account_network_rules" "witness" {
   ])
   virtual_network_subnet_ids = [
     local.database_subnet_defined ? (
-      local.database_subnet_existing ? var.infrastructure.vnets.sap.subnet_db.arm_id : try(azurerm_subnet.db[0].id, "")) : (
+      local.database_subnet_existing ? var.infrastructure.vnets.sap.subnet_db.arm_id : azurerm_subnet.db[0].id) : (
       ""
       ), local.application_subnet_defined ? (
-      local.application_subnet_existing ? var.infrastructure.vnets.sap.subnet_app.arm_id : try(azurerm_subnet.app[0].id, "")) : (
+      local.application_subnet_existing ? var.infrastructure.vnets.sap.subnet_app.arm_id : azurerm_subnet.app[0].id) : (
       ""
     ),
     local.deployer_subnet_management_id
@@ -303,12 +303,6 @@ resource "azurerm_storage_account" "transport" {
 resource "azurerm_storage_account_network_rules" "transport" {
   provider = azurerm.main
   count    = var.NFS_provider == "AFS" && var.enable_firewall_for_keyvaults_and_storage && length(var.transport_storage_account_id) == 0 ? 1 : 0
-  depends_on = [
-    azurerm_storage_account.transport,
-    azurerm_subnet.db,
-    azurerm_subnet.app,
-    azurerm_subnet.web
-  ]
   storage_account_id = azurerm_storage_account.transport[0].id
   default_action     = "Deny"
 
@@ -319,13 +313,13 @@ resource "azurerm_storage_account_network_rules" "transport" {
   virtual_network_subnet_ids = compact(
     [
       local.database_subnet_defined ? (
-        local.database_subnet_existing ? var.infrastructure.vnets.sap.subnet_db.arm_id : try(azurerm_subnet.db[0].id, "")) : (
+        local.database_subnet_existing ? var.infrastructure.vnets.sap.subnet_db.arm_id : azurerm_subnet.db[0].id) : (
         ""
         ), local.application_subnet_defined ? (
-        local.application_subnet_existing ? var.infrastructure.vnets.sap.subnet_app.arm_id : try(azurerm_subnet.app[0].id, "")) : (
+        local.application_subnet_existing ? var.infrastructure.vnets.sap.subnet_app.arm_id : azurerm_subnet.app[0].id) : (
         ""
         ), local.web_subnet_defined ? (
-        local.web_subnet_existing ? var.infrastructure.vnets.sap.subnet_web.arm_id : try(azurerm_subnet.web[0].id, "")) : (
+        local.web_subnet_existing ? var.infrastructure.vnets.sap.subnet_web.arm_id : azurerm_subnet.web[0].id) : (
         ""
       ),
       local.deployer_subnet_management_id
@@ -548,13 +542,13 @@ resource "azurerm_storage_account_network_rules" "install" {
   virtual_network_subnet_ids = compact(
     [
       local.database_subnet_defined ? (
-        local.database_subnet_existing ? var.infrastructure.vnets.sap.subnet_db.arm_id : try(azurerm_subnet.db[0].id, "")) : (
+        local.database_subnet_existing ? var.infrastructure.vnets.sap.subnet_db.arm_id : azurerm_subnet.db[0].id) : (
         ""
         ), local.application_subnet_defined ? (
-        local.application_subnet_existing ? var.infrastructure.vnets.sap.subnet_app.arm_id : try(azurerm_subnet.app[0].id, "")) : (
+        local.application_subnet_existing ? var.infrastructure.vnets.sap.subnet_app.arm_id : azurerm_subnet.app[0].id) : (
         ""
         ), local.web_subnet_defined ? (
-        local.web_subnet_existing ? var.infrastructure.vnets.sap.subnet_web.arm_id : try(azurerm_subnet.web[0].id, "")) : (
+        local.web_subnet_existing ? var.infrastructure.vnets.sap.subnet_web.arm_id : azurerm_subnet.web[0].id) : (
         ""
       ),
       local.deployer_subnet_management_id
