@@ -242,7 +242,7 @@ packages:
   sles_sap12.5:
   # --------------------------- Begin - Packages required for SYBASE -----------------------------------------8
     # 2371942 - Error Executing isql or dscp on SAP ASE or SAP HANA Accelerator for SAP ASE
-    - { tier: 'os',    package: 'glibc-32bit',                                  node_tier: 'sybase',     state: 'present' } 
+    - { tier: 'os',    package: 'glibc-32bit',                                  node_tier: 'sybase',     state: 'present' }
     # --------------------------- End - Packages required for SYBASE -------------------------------------------8
   sles_sap15:
     - { tier: 'os',    package: 'chrony',                                       node_tier: 'all',     state: 'present' }
