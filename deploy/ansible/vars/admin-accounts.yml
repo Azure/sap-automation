@@ -279,7 +279,7 @@ admin_users:
     node_tier:    none
 
 # SYBASE users and groups will be created as part of the generic install process
-  
+
 #  - name:         "sybase"
 #    comment:      "SAP System Administrator"
 #    uid:          "{{ asesapsid_uid }}"
