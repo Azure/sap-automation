@@ -35,9 +35,8 @@ parameters:
     type:                              string
 
 stages:
-  - stage: Remove_control_plane_remote
-    condition: and(not(failed()), not(canceled()))
-    displayName: "Control plane removal (on agent)"
+  - stage:                             Remove_control_plane_remote
+    displayName:                       "Control plane removal (on agent)"
     variables:
       - template:                      variables/12-remove-control-plane-variables.yaml
         parameters:
@@ -125,9 +124,20 @@ stages:
                     fi
                     unzip -qq terraform_$(tf_version)_linux_amd64.zip ; sudo mv terraform /bin/
                     rm -f terraform_$(tf_version)_linux_amd64.zip
-                else
-                  source /etc/profile.d/deploy_server.sh
                 fi
+
+                az login --service-principal --username $CP_ARM_CLIENT_ID --password=$CP_ARM_CLIENT_SECRET --tenant $CP_ARM_TENANT_ID --output none
+                return_code=$?
+                if [ 0 != $return_code ]; then
+                  echo -e "$boldred--- Login failed ---$reset"
+                  echo "##vso[task.logissue type=error]az login failed."
+                  exit $return_code
+                fi
+                export ARM_CLIENT_ID=$CP_ARM_CLIENT_ID
+                export ARM_CLIENT_SECRET=$CP_ARM_CLIENT_SECRET
+                export ARM_TENANT_ID=$CP_ARM_TENANT_ID
+                export ARM_SUBSCRIPTION_ID=$CP_ARM_SUBSCRIPTION_ID
+
 
               echo -e "$green--- Convert config files to UX format ---$reset"
                 dos2unix -q $CONFIG_REPO_PATH/DEPLOYER/$(deployer_folder)/$(deployer_configuration_file)
@@ -233,8 +243,7 @@ stages:
                   REMOTE_STATE_RG=$(cat ${deployer_environment_file_name}  | grep REMOTE_STATE_RG      | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file resource group' $REMOTE_STATE_RG
                 fi
 
-                export STATE_SUBSCRIPTION=$ARM_SUBSCRIPTION_ID ; echo 'Terraform state file subscription' $STATE_SUBSCRIPTION
-
+                export STATE_SUBSCRIPTION=$CP_ARM_SUBSCRIPTION_ID ; echo 'Terraform state file subscription' $STATE_SUBSCRIPTION
 
               echo -e "$green--- Running the remove region script that destroys deployer VM and SAP library ---$reset"
 
@@ -288,13 +297,15 @@ stages:
                   git rm -q   --ignore-unmatch  LIBRARY/$(library_folder)/backend-config.tfvars
                   changed=1
                 fi
+                if [ 0 == $return_code ]; then
 
-                if [ 1 == $changed ]; then
-                    git config --global user.email "$(Build.RequestedForEmail)"
-                    git config --global user.name "$(Build.RequestedFor)"
-                    git commit -m "Control Plane $(deployer_folder) removal step 1[skip ci]"
-                    git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --set-upstream origin $(Build.SourceBranchName)
-                    return_code=$?
+                  if [ 1 == $changed ]; then
+                      git config --global user.email "$(Build.RequestedForEmail)"
+                      git config --global user.name "$(Build.RequestedFor)"
+                      git commit -m "Control Plane $(deployer_folder) removal step 1[skip ci]"
+                      git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --set-upstream origin $(Build.SourceBranchName)
+                      return_code=$?
+                  fi
                 fi
 
               exit $return_code
@@ -325,7 +336,7 @@ stages:
       name:                             $(Agent)
     dependsOn:
       - Remove_control_plane_remote
-    condition:                          eq(dependencies.Remove_control_plane_remote.result, 'Succeeded')
+    condition:                          in(dependencies.Remove_control_plane_remote.result, 'Succeeded', 'Skipped')
     jobs:
       - job:                            Remove_control_plane
         displayName:                    "Finalize control plane removal"
@@ -500,6 +511,24 @@ stages:
                 fi
                 az account set --subscription $ARM_SUBSCRIPTION_ID
 
+                az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Deployer_Key_Vault.value" | tr -d \")
+                if [ -n "${az_var}" ]; then
+                  key_vault="${az_var}" ; echo 'Deployer Key Vault' ${key_vault}
+                else
+                  echo "Reading key vault from environment file"
+                  key_vault=$(cat ${deployer_environment_file_name} | grep keyvault= -m1 | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer Key Vault' ${key_vault}
+                fi
+
+                key_vault_id=$(az resource list --name "${key_vault}"  --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
+                if [ -n "${key_vault_id}" ]; then
+
+                  if [ "azure pipelines" = "$(this_agent)" ]; then
+                      this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
+                      az keyvault network-rule add --name ${key_vault} --ip-address ${this_ip} --only-show-errors --output none
+                      ip_added=1
+                  fi
+                fi
+
               echo -e "$green--- Running the remove_deployer script that destroys deployer VM ---$reset"
                 if [ -f $CONFIG_REPO_PATH/DEPLOYER/$(deployer_folder)/state.zip ]; then
                     echo "Unzipping state.zip"
@@ -526,13 +555,19 @@ stages:
                   cd $CONFIG_REPO_PATH
                   changed=0
                   echo "##vso[build.updatebuildnumber]Removing control plane $(deployer_folder) $(library_folder)"
+                    if [ -f "DEPLOYER/$(deployer_folder)/.terraform/terraform.tfstate" ]; then
+                      git rm -q -f --ignore-unmatch DEPLOYER/$(deployer_folder)/.terraform/terraform.tfstate
+                      changed=1
+                    fi
+
+
                     if [ -d "DEPLOYER/$(deployer_folder)/.terraform" ]; then
                       git rm -q -r  --ignore-unmatch DEPLOYER/$(deployer_folder)/.terraform
                       changed=1
                     fi
 
                     if [ -f "DEPLOYER/$(deployer_folder)/state.zip" ]; then
-                      git rm -q  --ignore-unmatch DEPLOYER/$(deployer_folder)/state.zip
+                      git rm -q -f --ignore-unmatch DEPLOYER/$(deployer_folder)/state.zip
                       changed=1
                     fi
 
@@ -542,7 +577,7 @@ stages:
                     fi
 
                     if [ -f LIBRARY/$(library_folder)/state.zip ]; then
-                      git rm -q  --ignore-unmatch LIBRARY/$(library_folder)/state.zip
+                      git rm -q -f --ignore-unmatch LIBRARY/$(library_folder)/state.zip
                       changed=1
                     fi
 
@@ -589,28 +624,40 @@ stages:
 
                       variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Deployer_State_FileName.value" )
                       if [ ${#variable_value} != 0 ]; then
-                        az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Deployer_State_FileName               --yes --only-show-errors
+                        az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Deployer_State_FileName              --yes --only-show-errors
                       fi
 
                       variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Deployer_Key_Vault.value" )
                       if [ ${#variable_value} != 0 ]; then
-                        az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Deployer_Key_Vault                    --yes --only-show-errors
+                        az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Deployer_Key_Vault                   --yes --only-show-errors
                       fi
 
                       variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "WEBAPP_URL_BASE.value" )
                       if [ ${#variable_value} != 0 ]; then
-                        az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_URL_BASE                       --yes --only-show-errors
+                        az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_URL_BASE                      --yes --only-show-errors
                       fi
 
                       variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "WEBAPP_IDENTITY.value" )
                       if [ ${#variable_value} != 0 ]; then
-                        az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_IDENTITY                       --yes --only-show-errors
+                        az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_IDENTITY                      --yes --only-show-errors
                       fi
 
                       variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "WEBAPP_ID.value" )
                       if [ ${#variable_value} != 0 ]; then
                         az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_ID                            --yes --only-show-errors
                       fi
+
+                      variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "WEBAPP_RESOURCE_GROUP.value" )
+                      if [ ${#variable_value} != 0 ]; then
+                        az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_RESOURCE_GROUP                --yes --only-show-errors
+                      fi
+
+                      variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "INSTALLATION_MEDIA_ACCOUNT.value" )
+                      if [ ${#variable_value} != 0 ]; then
+                        az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name INSTALLATION_MEDIA_ACCOUNT           --yes --only-show-errors
+                      fi
+
+
 
                     fi
 

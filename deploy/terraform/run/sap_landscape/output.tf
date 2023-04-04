@@ -158,11 +158,6 @@ output "dns_info_iscsi" {
   value       = module.sap_landscape.dns_info_vms
 }
 
-output "use_custom_dns_a_registration" {
-  description = "Defines if custom DNS is used"
-  value       = var.use_custom_dns_a_registration
-}
-
 output "management_dns_subscription_id" {
   description = "custom DNS subscription"
   value       = var.management_dns_subscription_id
@@ -179,10 +174,20 @@ output "dns_label" {
   value       = var.dns_label
 }
 
+output "use_custom_dns_a_registration" {
+  sensitive = true
+  description = "Defines if custom DNS is used"
+  value = var.use_custom_dns_a_registration
+}
 
 output "dns_resource_group_name" {
-  description = "DNS resource group"
-  value       = length(var.dns_resource_group_name) > 0 ? var.dns_resource_group_name : local.saplib_resource_group_name
+  description = "DNS resource group name"
+  value = local.saplib_resource_group_name
+}
+
+output "privatelink_file_id" {
+  value = module.sap_landscape.privatelink_file_id
+
 }
 
 
@@ -249,3 +254,15 @@ output "install_path" {
   value       = module.sap_landscape.install_path
 }
 
+
+###############################################################################
+#                                                                             #
+#                            Control Plane                                    #
+#                                                                             #
+###############################################################################
+
+
+output "controlplane_environment" {
+  description = "Control plane environment"
+  value       = data.terraform_remote_state.deployer[0].outputs.environment
+}

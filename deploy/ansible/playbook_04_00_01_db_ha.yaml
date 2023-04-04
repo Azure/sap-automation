@@ -35,6 +35,25 @@
             public:                    true
           tags:
             - 0.1-passwords
+        - name:                            "OS configuration playbook: - Read password"
+          ansible.builtin.include_role:
+            name:                          roles-misc/0.1-passwords
+            tasks_from:                    windows.yaml
+            public:                        true
+          when: platform == "SQLSERVER"
+          tags:
+            - 0.1-win-passwords
+
+        - name:                                "WinCluster-Create: Get witness account details"
+          ansible.builtin.include_role:
+            name:                      roles-misc/0.2-kv-secrets
+            tasks_from:                wincluster-witness.yaml
+            public:                    true
+          when:
+            - platform | upper == "SQLSERVER"
+            - scs_high_availability or db_high_availability
+          tags:
+            - 0.2-wincluster-witness
 
         - name:                        Run the keyvault role
           ansible.builtin.include_role:
@@ -42,22 +61,23 @@
           tags:
             - kv-secrets
       when:                            db_high_availability
+# +------------------------------------4--------------------------------------*/
 
 - hosts:                               "{{ sap_sid | upper }}_DB"
   name:                                DB HA Configuration
   remote_user:                         "{{ orchestration_ansible_user }}"
-  become:                              true
   gather_facts:                        true                                    # Important to collect hostvars information
   vars_files:
     - vars/ansible-input-api.yaml                                              # API Input template with defaults
 
   tasks:
-# -------------------------------------+---------------------------------------8
-#
-# Build the list of tasks to be executed in order here.
-#
-# -------------------------------------+---------------------------------------8
+  # -------------------------------------+---------------------------------------8
+  #
+  # Build the list of tasks to be executed in order here.
+  #
+  # -------------------------------------+---------------------------------------8
     - name:                            "HANA HA Setup"
+      become:                              true
       block:
         - name:                        "Install HANA System Replication"
           block:
@@ -230,52 +250,56 @@
 
   name:                                Observer Playbook
   remote_user:                         "{{ orchestration_ansible_user }}"
-  become:                              true
   gather_facts:                        true                                    # Important to collect hostvars information
   vars_files:
     - vars/ansible-input-api.yaml                                              # API Input template with defaults
 
   tasks:
-
-    - name:                            "Observer Playbook: Setting the DB facts"
-      ansible.builtin.set_fact:
-        node_tier:                     observer
-        action:                        3
-        main_password:                 "{{ hostvars.localhost.sap_password }}"
-      tags:
-        - always
-
-    # Specify the active tier for this playbook run
-    - name:                            "Observer Playbook: Setting the os tier facts"
-      ansible.builtin.set_fact:
-        tier:                          os
-      tags:
-        - always
-
-    - name:                            "Observer Play"
+    - name:                            "Oracle: Observer setup"
       become:                          true
+      when:
+        - db_high_availability
+        - platform in ['ORACLE', 'ORACLE-ASM']
       block:
-        - name:                        "Observer Playbook: Check if the mounts place"
-          ansible.builtin.include_role:
-            name:                      roles-sap-os/2.6-sap-mounts
+        - name:                            "Observer Playbook: Setting the DB facts"
+          ansible.builtin.set_fact:
+            node_tier:                     observer
+            action:                        3
+            main_password:                 "{{ hostvars.localhost.sap_password }}"
+          tags:
+            - always
 
-    - name:                            "Observer Play"
-      become:                          true
-      block:
-        - name:                        "Observer Playbook: Check if the mounts place"
-          ansible.builtin.include_role:
-            name:                      roles-sap-os/2.6-sap-mounts
+        # Specify the active tier for this playbook run
+        - name:                            "Observer Playbook: Setting the os tier facts"
+          ansible.builtin.set_fact:
+            tier:                          os
+          tags:
+            - always
 
-        - name:                        "Observer Playbook: Oracle Observer setup"
-          ansible.builtin.include_role:
-            name:                      roles-db/4.1.3-ora-dg
+        - name:                            "Observer Play"
+          become:                          true
+          block:
+            - name:                        "Observer Playbook: Check if the mounts place"
+              ansible.builtin.include_role:
+                name:                      roles-sap-os/2.6-sap-mounts
 
-        - name:                        "Observer Playbook: - Run post installation routines"
-          ansible.builtin.include_role:
-            name:                      roles-sap/7.0.0-post-install
-          vars:
-            suffix:                    "_OBSERVER"
-            tier:                      'oracle'
+        - name:                            "Observer Play"
+          become:                          true
+          block:
+            - name:                        "Observer Playbook: Check if the mounts place"
+              ansible.builtin.include_role:
+                name:                      roles-sap-os/2.6-sap-mounts
+
+            - name:                        "Observer Playbook: Oracle Observer setup"
+              ansible.builtin.include_role:
+                name:                      roles-db/4.1.3-ora-dg
+
+            - name:                        "Observer Playbook: - Run post installation routines"
+              ansible.builtin.include_role:
+                name:                      roles-sap/7.0.0-post-install
+              vars:
+                suffix:                    "_OBSERVER"
+                tier:                      'oracle'
 
 # # /*-------------------------------------------------------------------------8
 # # |                                                                          |
@@ -428,6 +452,142 @@
       when:
         - db_high_availability
         - platform == 'DB2'
+
+# # /*-------------------------------------------------------------------------8
+# # |                                                                          |
+# # |           Playbook for SQLServer DB   -  High Availability               |
+# # |                                                                          |
+# # +------------------------------------4------------------------------------*/
+
+- hosts:                               "{{ sap_sid| upper }}_DB"
+  name:                                "DB HA Installation - SAP SQLServer"
+  remote_user:                         "{{ orchestration_ansible_user }}"
+  gather_facts:                        true
+  vars_files:
+    - vars/ansible-input-api.yaml             # API Input template with defaults
+
+  # -----------------------------------+---------------------------------------8
+  #
+  # Build the list of tasks to be executed in order here.
+  #
+  # -----------------------------------+---------------------------------------8
+  tasks:
+
+    - name:                            "SQLServer HA - Install SQL4SAP on both nodes"
+      when:
+        - db_high_availability
+        - platform | upper == 'SQLSERVER'
+        - node_tier == 'sqlserver'
+      become:                          true
+      become_user:                     "{{ orchestration_ansible_user }}"
+      block:
+        - name:                        "SQLServer HA - Setting the DB facts"
+          ansible.builtin.set_fact:
+            primary_node:              "{{ ansible_play_hosts_all[0] }}"
+            secondary_node:            "{{ ansible_play_hosts_all[1] }}"
+            domain_user_password:      "{{ hostvars.localhost.winadm_password }}"
+          tags:
+            - always
+
+        - name:                                "SQLServer HA - Create run flag directory"
+          ansible.windows.win_file:
+            path:                              '{{ sap_deployment_automation }}\{{ sap_sid | upper }}'
+            state:                             directory
+
+        - name:                                "SQLServer HA - check if SQL Server service is started"
+          ansible.windows.win_service_info:
+            name:                              MSSQLServer
+          register:                            sql_service
+
+        - name:                                "WIN-SQL: Print SQL Server service status"
+          ansible.builtin.debug:
+            msg:
+              - "SQL Server Service status: {{ sql_service }}"
+
+        - name:                        "SQLServer HA - Install cluster (base)"
+          when:
+            - sql_service.exists
+            - db_high_availability
+            - node_tier == 'sqlserver'
+          block:
+            - name:                    "SQLServer HA - Set the SCS Server name list"
+              ansible.builtin.set_fact:
+                scs_server_temp:       "{{ scs_server_temp | default([]) + [item] }}"
+              with_items:
+                - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') }}"
+                - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
+
+            - name:                    "SQLServer HA -  Set the server facts"
+              ansible.builtin.set_fact:
+                scs_server:            "{{ hostvars[scs_server_temp | first]['virtual_host'] }}"
+
+            - name:                    "SQLServer HA - Setting the facts"
+              ansible.builtin.set_fact:
+                tier:                   ha
+                primary_node:           "{{ ansible_play_hosts_all[0] }}"         # Setting up Primary Instance Name
+                secondary_node:         "{{ ansible_play_hosts_all[1] }}"         # Setting up Secondary Instance Name
+                domain_user_password:   "{{ hostvars.localhost.winadm_password }}"
+                sap_cluster_ip_address: "{{ db_clst_lb_ip }}"
+                sql_svc_account:        "{% if hostvars.localhost.sqlsvc_account is defined %}{{ hostvars.localhost.sqlsvc_account }}{% else %}{{ win_sql_svc_account }}{% endif %}"
+                sql_svc_password:       "{% if hostvars.localhost.sqlsvc_account_password is defined %}{{ hostvars.localhost.sqlsvc_account_password }}{% else %}{{ sql_svc_password | default('') }}{% endif %}"
+                sql_agent_account:      "{% if hostvars.localhost.sqlagent_account is defined %}{{ hostvars.localhost.sqlagent_account }}{% else %}{{ win_sqlagent_svc_account }}{% endif %}"
+                sql_agent_password:     "{% if hostvars.localhost.sqlagent_account_password is defined %}{{ hostvars.localhost.sqlagent_account_password }}{% else %}{{ sql_agent_password | default('') }}{% endif %}"
+
+            - name:                           "SQL Server HA config: Base cluster tasks"
+              ansible.builtin.include_role:
+                name:                         roles-os/windows/1.17-generic-wincluster
+              register:                       cluster_output
+              vars:
+                sap_cluster_ip_address:       "{{ db_clst_lb_ip }}"
+                primary_node:                 "{{ ansible_play_hosts_all[0] }}"         # Setting up Primary Instance Name
+                secondary_node:               "{{ ansible_play_hosts_all[1] }}"         # Setting up Secondary Instance Name
+                domain_user_password:         "{{ hostvars.localhost.winadm_password }}"
+                svc_password:                 "{{ hostvars.localhost.svcadm_password }}"
+                domain_service_account:       "{{ hostvars.localhost.adsvc_account }}"
+                domain_service_password:      "{{ hostvars.localhost.adsvc_password }}"
+                witness_storage_account_name: "{{ hostvars.localhost.witness_storage_account_name }}"
+                witness_storage_account_key:  "{{ hostvars.localhost.witness_storage_account_key }}"
+                win_sql_svc_account:          '{{ sql_svc_account }}'
+                win_sql_svc_password:         '{{ sql_svc_password }}'
+                win_sqlagent_svc_account:     '{{ sql_agent_account }}'
+                win_sqlagent_svc_password:    '{{ sql_agent_password }}'
+
+            - name:                           "SQL Server HA config: Always On tasks"
+              ansible.builtin.include_role:
+                name:                         roles-db/windows/4.4.0-mssql-install
+              register:                       alwayson_output
+              vars:
+                config_tier:                  "sqlserverha"
+                sap_cluster_ip_address:       "{{ db_clst_lb_ip }}"
+                primary_node:                 "{{ ansible_play_hosts_all[0] }}"         # Setting up Primary Instance Name
+                secondary_node:               "{{ ansible_play_hosts_all[1] }}"         # Setting up Secondary Instance Name
+                mssql_primary_node:           "{{ ansible_play_hosts_all[0] }}"         # Setting up Primary Instance Name
+                mssql_secondary_node:         "{{ ansible_play_hosts_all[1] }}"         # Setting up Secondary Instance Name
+                domain_user_password:         "{{ hostvars.localhost.winadm_password }}"
+                svc_password:                 "{{ hostvars.localhost.svcadm_password }}"
+                domain_service_account:       "{{ hostvars.localhost.adsvc_account }}"
+                domain_service_password:      "{{ hostvars.localhost.adsvc_password }}"
+                witness_storage_account_name: "{{ hostvars.localhost.witness_storage_account_name }}"
+                witness_storage_account_key:  "{{ hostvars.localhost.witness_storage_account_key }}"
+                win_sql_svc_account:          '{{ sql_svc_account }}'
+                win_sql_svc_password:         '{{ sql_svc_password }}'
+                win_sqlagent_svc_account:     '{{ sql_agent_account }}'
+                win_sqlagent_svc_password:    '{{ sql_agent_password }}'
+                scs_server_name:              "{{ scs_server }}"
+              tags:
+                - 4.4.1.0-mssql-alwayson
+
+            - name:                           "SQLServer HA - Create alwayson-config-done flag"
+              ansible.windows.win_file:
+                path:                         '{{ sap_deployment_automation }}\{{ sap_sid | upper }}\alwayson-config-done.txt'
+                state:                        touch
+                force:                        true
+
+# # /*-------------------------------------------------------------------------8
+# # |                                                                          |
+# # |         Playbook for SQLServer DB   -  High Availability - END           |
+# # |                                                                          |
+# # +------------------------------------4------------------------------------*/
 
 # If the DB HA is configured successfully, we need to create the db-ha-done file
 - hosts:                               localhost

@@ -42,17 +42,19 @@
     url:                               "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ new_bom_name }}/{{ new_bom_name }}.yaml\
                                        {% if sapbits_sas_token is not undefined %}?{{ sapbits_sas_token }}{% endif %}"
     dest:                              "{{ download_directory }}/bom/{{ new_bom_name }}.yaml"
+    force:                             true
     mode:                              0644
   delegate_to:                         localhost
   become:                              "{{ bom_processing_become }}"
   ignore_errors:                       true
   register:                            result
 
-# - name:                                "BOM: Show blob status"
-#   ansible.builtin.debug:
-#     msg:
-#       - "{{ result }}"
-#       - "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ bom_name }}/{{ bom_name }}.yaml{{ sapbits_sas_token }}"
+- name:                                "BOM: Show blob status"
+  ansible.builtin.debug:
+    msg:
+      - "{{ result }}"
+      - "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ bom_name }}/{{ bom_name }}.yaml{{ sapbits_sas_token }}"
+    verbosity:                         2
 
 - name:                                "3.3.1 BoM Processing: Register BOM ({{ bom_name }}) from Storage Account"
   block:
@@ -121,8 +123,9 @@
 
       when:                            not microsoft_supplied_bom.stat.exists
 
-  when:                                result is failed or always_upload_jinja_templates
-
+  when:
+    - result is failed or always_upload_jinja_templates
+    - bom_file is undefined
 
 # Validate that BoM was found
 

@@ -156,13 +156,32 @@
           register:                    stat_sys_exe_uc
           when:                        node_tier == 'ers'
 
-        - name:                            "RESCUE - ERS Install: Assign ownership"
+        - name:                        "RESCUE - ERS Install: Check '/usr/sap/<SAPSID>/SYS/exe/uc/linuxx86_64' is empty"
+          ansible.builtin.find:
+            path:                      '/usr/sap/{{ sid_to_be_deployed.sid | upper }}/SYS/exe/uc/linuxx86_64'
+            patterns:                  "*"
+            file_type:                 directory
+          register:                    find_sys_exe_uc_result
+          when:
+            - node_tier == 'ers'
+            - stat_sys_exe_uc.stat.exists
+
+        - name:                        "RESCUE - ERS Install: Cleanup '/usr/sap/{{ sid_to_be_deployed.sid | upper }}/SYS/exe/uc/linuxx86_64'"
           ansible.builtin.file:
-            path:                          "{{ item.path }}"
-            owner:                         "{{ sid_to_be_deployed.sid | lower }}adm"
-            group:                         sapsys
-            recurse:                       true
-            state:                         directory
+            path:                      "/usr/sap/{{ sid_to_be_deployed.sid | upper }}/SYS/exe/uc/linuxx86_64"
+            state:                     absent
+          when:
+            - node_tier == 'ers'
+            - find_sys_exe_uc_result is defined
+            - find_sys_exe_uc_result | length > 0
+
+        - name:                        "RESCUE - ERS Install: Assign ownership"
+          ansible.builtin.file:
+            path:                      "{{ item.path }}"
+            owner:                     "{{ sid_to_be_deployed.sid | lower }}adm"
+            group:                     sapsys
+            recurse:                   true
+            state:                     directory
           loop:
             - { path: '/sapmnt/{{ sid_to_be_deployed.sid | upper }}' }
             - { path: '/usr/sap/{{ sid_to_be_deployed.sid | upper }}/SYS' }
@@ -171,11 +190,11 @@
         # Add IS_HOST_LOCAL_USING_STRING_COMPARE=true to fix The host with the
         # name <host> is not a valid virtual host on the local host
         # SAP Note# 2279110
-        - name:                            "Create temp directory for sid"
+        - name:                        "Create temp directory for sid"
           ansible.builtin.file:
-            path:                          "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
-            state:                         directory
-            mode:                          0755
+            path:                      "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
+            state:                     directory
+            mode:                      0755
 
         - name:                        "RESCUE - ERS Install: SAPInst"
           ansible.builtin.shell: |

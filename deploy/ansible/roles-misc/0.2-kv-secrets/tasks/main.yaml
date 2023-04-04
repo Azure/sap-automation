@@ -88,6 +88,13 @@
     - (scs_high_availability or db_high_availability)
     - not use_msi_for_clusters
 
+- name:                                "0.2 Key Vault: - Import witness account detials"
+  ansible.builtin.import_tasks:        "wincluster-witness.yaml"
+  when:
+    - platform | upper == "SQLSERVER"
+    - (scs_high_availability or db_high_availability)
+    - not use_msi_for_clusters
+
 ...
 # /*---------------------------------------------------------------------------8
 # |                                   END                                     |

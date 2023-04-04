@@ -277,7 +277,7 @@
 # |                      Playbook for SQLSERVER DB Load                        |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
-- hosts:                               "{{ sap_sid | upper }}_DB"
+- hosts:                               "{{ sap_sid | upper }}_DB[0]"
 
   name:                                DB Load
   remote_user:                         "{{ orchestration_ansible_user }}"

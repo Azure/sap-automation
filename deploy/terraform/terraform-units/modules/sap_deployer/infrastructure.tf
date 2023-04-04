@@ -96,3 +96,36 @@ data "azurerm_storage_account" "deployer" {
   resource_group_name = split("/", var.deployer.deployer_diagnostics_account_arm_id)[4]
 
 }
+
+resource "azurerm_role_assignment" "deployer_boot_diagnostics_contributor" {
+  provider             = azurerm.main
+  count                = var.assign_subscription_permissions && var.deployer.add_system_assigned_identity ? var.deployer_vm_count : 0
+  scope                = length(var.deployer.deployer_diagnostics_account_arm_id) > 0 ? var.deployer.deployer_diagnostics_account_arm_id : azurerm_storage_account.deployer[0].id
+  role_definition_name = "Storage Account Contributor"
+  principal_id         = azurerm_linux_virtual_machine.deployer[count.index].identity[0].principal_id
+}
+
+resource "azurerm_role_assignment" "deployer_boot_diagnostics_contributor_msi" {
+  provider             = azurerm.main
+  count                = var.assign_subscription_permissions ? 1 : 0
+  scope                = length(var.deployer.deployer_diagnostics_account_arm_id) > 0 ? var.deployer.deployer_diagnostics_account_arm_id : azurerm_storage_account.deployer[0].id
+  role_definition_name = "Storage Account Contributor"
+  principal_id         = azurerm_user_assigned_identity.deployer.principal_id
+}
+
+resource "azurerm_role_assignment" "resource_group_contributor" {
+  provider             = azurerm.main
+  count                = var.assign_subscription_permissions && var.deployer.add_system_assigned_identity ? var.deployer_vm_count : 0
+  scope                = local.resource_group_exists ? data.azurerm_resource_group.deployer[0].id : azurerm_resource_group.deployer[0].id
+  role_definition_name = "Contributor"
+  principal_id         = azurerm_linux_virtual_machine.deployer[count.index].identity[0].principal_id
+}
+
+resource "azurerm_role_assignment" "resource_group_contributor_contributor_msi" {
+  provider             = azurerm.main
+  count                = var.assign_subscription_permissions ? 1 : 0
+  scope                = local.resource_group_exists ? data.azurerm_resource_group.deployer[0].id : azurerm_resource_group.deployer[0].id
+  role_definition_name = "Contributor"
+  principal_id         = azurerm_user_assigned_identity.deployer.principal_id
+}
+

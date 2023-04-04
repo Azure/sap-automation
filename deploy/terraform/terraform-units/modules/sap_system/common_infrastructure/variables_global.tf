@@ -191,6 +191,11 @@ variable "azure_files_sapmnt_id" {
   default = ""
 }
 
+
+variable "use_random_id_for_storageaccounts" {
+  description = "If true, will use random id for storage accounts"
+}
+
 variable "Agent_IP" {
   description = "If provided, contains the IP address of the agent"
   type        = string
@@ -208,6 +213,14 @@ variable "use_service_endpoint" {
   default     = false
   type        = bool
 }
+
+
+#########################################################################################
+#                                                                                       #
+#  DNS settings                                                                         #
+#                                                                                       #
+#########################################################################################
+
 
 variable "use_custom_dns_a_registration" {
   description = "Boolean value indicating if a custom dns a record should be created when using private endpoints"

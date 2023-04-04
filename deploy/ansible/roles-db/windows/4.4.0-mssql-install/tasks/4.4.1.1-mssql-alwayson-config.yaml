@@ -1,0 +1,364 @@
+---
+# +------------------------------------4--------------------------------------*/
+
+- name:                                "WIN: Calculating the domain value from {{ domain_name }}"
+  ansible.builtin.set_fact:
+    domain:                            "{{ domain_name | split('.') | first }}"
+    cacheable:                         true
+  when:
+    - domain_name is defined
+    - domain_name | type_debug != 'NoneType'
+    - domain_name | trim | length > 1
+    - domain is not defined
+
+- name:                                "WIN: validating the domain is defined {{ domain }}"
+  ansible.builtin.debug:
+    msg:
+      - "Domain:                       {{ domain_name }}"
+      - "domain_svc_account:           {{ domain_service_account }}"
+      - "hostname:                     {{ ansible_hostname }}"
+
+- name:                                "Assert domain user name and other details are available"
+  ansible.builtin.assert:
+    that:
+      - domain_name is defined
+      - domain_service_account is defined
+      - domain_service_password is defined
+    fail_msg:
+      - "Domain name is not defined"
+      - "Domain service account is not defined"
+      - "Domain service account password is not defined"
+    quiet:                            true
+
+- name:                                'WIN: Calculating the domain\service account names'
+  ansible.builtin.set_fact:
+    domain_sqlsvc_account:            '{{ domain | upper }}\{{ win_sql_svc_account }}'
+    domain_sqlagent_account:          '{{ domain | upper }}\{{ win_sqlagent_svc_account }}'
+  when:
+    - domain is defined
+
+- name:                                "HADR: Define SQL Server AG name"
+  ansible.builtin.set_fact:
+    mssql_ag_name:                    "SDAF-{{ sap_sid | upper }}AG"
+    mssql_ag_listener_name:           "SDAF{{ sap_sid | upper }}AG"
+    mssql_backup_path:                "\\\\{{ scs_server_name }}\\SAP"
+    mssql_full_backup_name:           "SDAF-{{ sap_sid | upper }}-FULL.bak"
+    mssql_log_backup_name:            "SDAF-{{ sap_sid | upper }}-LOG.bak"
+    sid_for_disks:                    "{% if not db_sid %}{{ sap_sid | upper }}{% else %}{{ db_sid | upper }}{% endif %}"
+
+- name:                                "HADR: Tasks on primary node"
+  when:
+    - ansible_hostname == mssql_primary_node
+  block:
+    - name:                            "Set SQL Server Always On Endpoint Permission"
+      ansible.windows.win_dsc:
+        resource_name:                 SqlEndpointPermission
+        Ensure:                        Present
+        ServerName:                    "{{ ansible_hostname }}"
+        InstanceName:                  "{{ mssql_instance_name }}"
+        Name:                          "SDAF-HADR"
+        Principal:                     "{{ domain_sqlsvc_account }}"
+        Permission:                    "CONNECT"
+        PsDscRunAsCredential_username: "{{ domain_service_account }}@{{ domain_name }}"
+        PsDscRunAsCredential_password: "{{ domain_service_password }}"
+      register:                        sql_always_on_endpoint_permission
+
+    - name:                            "Enable SQL Server Always On Service"
+      ansible.windows.win_dsc:
+        resource_name:                 SqlAlwaysOnService
+        Ensure:                        Present
+        ServerName:                    "{{ ansible_hostname }}"
+        InstanceName:                  "{{ mssql_instance_name }}"
+        RestartTimeout:                180
+        PsDscRunAsCredential_username: "{{ domain_service_account }}@{{ domain_name }}"
+        PsDscRunAsCredential_password: "{{ domain_service_password }}"
+      register:                        sql_always_on_service
+      until:                           sql_always_on_service is succeeded
+      retries:                         6
+      delay:                           20
+
+    # restart SQL Server service
+    - name:                            "Restart SQL Server service on {{ ansible_hostname }}"
+      ansible.windows.win_service:
+        name:                          MSSQLSERVER
+        state:                         restarted
+        force_dependent_services:      true
+
+    - name:                            "Create AG for SQL Server"
+      ansible.windows.win_dsc:
+        resource_name:                 SqlAG
+        Ensure:                        Present
+        Name:                          "{{ mssql_ag_name }}"
+        ServerName:                    "{{ ansible_hostname }}"
+        InstanceName:                  "{{ mssql_instance_name }}"
+        ProcessOnlyOnActiveNode:       true
+        AutomatedBackupPreference:     Primary
+        AvailabilityMode:              SynchronousCommit
+        BackupPriority:                50
+        ConnectionModeInPrimaryRole:   AllowAllConnections
+        ConnectionModeInSecondaryRole: AllowNoConnections
+        FailoverMode:                  Automatic
+        HealthCheckTimeout:            15000
+        BasicAvailabilityGroup:        false
+        DatabaseHealthTrigger:         true
+        DtcSupportEnabled:             true
+        PsDscRunAsCredential_username: "{{ domain_service_account }}@{{ domain_name }}"
+        PsDscRunAsCredential_password: "{{ domain_service_password }}"
+      register:                        sql_ag_creation
+
+    # The assumption is that the system has only one network adapter
+    # and the load balancer is in the same subnet as the db machine.
+    - name:                            "calculate subnet prefix"
+      ansible.builtin.set_fact:
+        db_subnet_prefix:              "{{ sap_cluster_ip_address.split('/')[1] }}"
+
+    - name:                            "calculate LB IP with subnet prefix"
+      ansible.builtin.set_fact:
+        db_lb_ipv4:                    "{{ db_lb_ip }}/{{ db_subnet_prefix }}"
+
+    - name:                            "calculate subnet mask"
+      ansible.builtin.set_fact:
+        db_subnet_mask:                "{{ db_lb_ipv4 | ansible.utils.ipaddr('host/prefix') | ansible.utils.ipaddr('netmask') }}"
+
+    - name:                            "print subnet mask"
+      ansible.builtin.debug:
+        msg:
+          - "Subnet prefix: {{ db_subnet_prefix }}"
+          - "LB IP: {{ db_lb_ip }}"
+          - "LB IP with subnet prefix: {{ db_lb_ipv4 }}"
+          - "Subnet mask: {{ db_subnet_mask }}"
+
+    # restart SQL Server service
+    - name:                            "Restart SQL Server service on {{ ansible_hostname }}"
+      ansible.windows.win_service:
+        name:                          MSSQLSERVER
+        state:                         restarted
+        force_dependent_services:      true
+
+    - name:                            "Create AG Listener for SQL Server"
+      ansible.windows.win_dsc:
+        resource_name:                 SqlAGListener
+        Ensure:                        Present
+        Name:                          "{{ mssql_ag_listener_name }}"
+        ServerName:                    "{{ ansible_hostname }}"
+        InstanceName:                  "{{ mssql_instance_name }}"
+        AvailabilityGroup:             "{{ mssql_ag_name }}"
+        Port:                          1433
+        IpAddress:                     "{{ db_lb_ip }}/{{ db_subnet_mask }}"
+        PsDscRunAsCredential_username: "{{ domain_service_account }}@{{ domain_name }}"
+        PsDscRunAsCredential_password: "{{ domain_service_password }}"
+      register:                        sql_ag_listener_creation
+
+    - name:                            "Copy probe port setup script"
+      become:                          true
+      become_method:                   "runas"
+      ansible.windows.win_template:
+        src:                           "Set-AzLBHealthProbeSQL.j2"
+        dest:                          "{{ sap_deployment_automation }}\\Set-AzLBHealthProbeSQL.ps1"
+        force:                         true
+
+    - name:                            "Execute probe port setup script"
+      become:                          true
+      become_method:                   "runas"
+      ansible.windows.win_shell:       "{{ sap_deployment_automation }}\\Set-AzLBHealthProbeSQL.ps1 -verbose"
+
+
+- name:                                "HADR: Tasks on secondary node"
+  when:
+    - ansible_hostname == mssql_secondary_node
+  block:
+
+    - name:                            "SQL Disks"
+      ansible.builtin.set_fact:
+        vm_data_disks: '{{ sql_disk_list[0] | list }}'
+        vm_log_disks:  '{{ sql_disk_list[1] | list }}'
+      vars:
+        sql_disk_list: '{{ lookup("template", "sql_disks.j2") }}'
+
+    - name:                            "create the directory for SQL Server data files"
+      ansible.windows.win_file:
+        path:                          '{{ item.1 }}'
+        state:                         directory
+      with_indexed_items:
+        - '{{ vm_data_disks }}'
+
+    - name:                            "create the directory for SQL Server log files"
+      ansible.windows.win_file:
+        path:                          '{{ item.1 }}'
+        state:                         directory
+      with_indexed_items:
+        - '{{ vm_log_disks }}'
+
+    - name:                            "Enable SQL Server Always On Service"
+      ansible.windows.win_dsc:
+        resource_name:                 SqlAlwaysOnService
+        Ensure:                        Present
+        ServerName:                    "{{ ansible_hostname }}"
+        InstanceName:                  "{{ mssql_instance_name }}"
+        RestartTimeout:                180
+        PsDscRunAsCredential_username: "{{ domain_service_account }}@{{ domain_name }}"
+        PsDscRunAsCredential_password: "{{ domain_service_password }}"
+      register:                        sql_always_on_service
+      until:                           sql_always_on_service is succeeded
+      retries:                         6
+      delay:                           20
+
+    # restart SQL Server service
+    - name:                            "ReStart SQL Server service on {{ ansible_hostname }}"
+      ansible.windows.win_service:
+        name:                          MSSQLSERVER
+        state:                         restarted
+        force_dependent_services:      true
+
+    - name:                            "Set SQL Server Always On Endpoint Permission"
+      ansible.windows.win_dsc:
+        resource_name:                 SqlEndpointPermission
+        Ensure:                        Present
+        ServerName:                    "{{ ansible_hostname }}"
+        InstanceName:                  "{{ mssql_instance_name }}"
+        Name:                          "SDAF-HADR"
+        Principal:                     "{{ domain_sqlsvc_account }}"
+        Permission:                    "CONNECT"
+        PsDscRunAsCredential_username: "{{ domain_service_account }}@{{ domain_name }}"
+        PsDscRunAsCredential_password: "{{ domain_service_password }}"
+      register:                        sql_always_on_endpoint_permission
+
+    - name:                            "Wait for AvailabilityGroup to be available on secondary node"
+      ansible.windows.win_dsc:
+        resource_name:                 SqlWaitForAG
+        Name:                          "{{ mssql_ag_name }}"
+        RetryIntervalSec:              20
+        RetryCount:                    30
+        ServerName:                    "{{ mssql_primary_node }}"
+        InstanceName:                  "{{ mssql_instance_name }}"
+        PsDscRunAsCredential_username: "{{ domain_service_account }}@{{ domain_name }}"
+        PsDscRunAsCredential_password: "{{ domain_service_password }}"
+      register:                        sql_wait_for_ag
+
+    - name:                            "Add replica to AG: {{ mssql_ag_name }}"
+      ansible.windows.win_dsc:
+        resource_name:                 SqlAGReplica
+        Ensure:                        Present
+        AvailabilityGroupName:         "{{ mssql_ag_name }}"
+        Name:                          "{{ ansible_hostname }}"
+        ServerName:                    "{{ ansible_hostname }}"
+        InstanceName:                  "{{ mssql_instance_name }}"
+        PrimaryReplicaServerName:      "{{ mssql_primary_node }}"
+        PrimaryReplicaInstanceName:    "{{ mssql_instance_name }}"
+        AvailabilityMode:              SynchronousCommit
+        BackupPriority:                50
+        ConnectionModeInPrimaryRole:   AllowAllConnections
+        ConnectionModeInSecondaryRole: AllowNoConnections
+        FailoverMode:                  Automatic
+        ProcessOnlyOnActiveNode:       true
+        PsDscRunAsCredential_username: "{{ domain_service_account }}@{{ domain_name }}"
+        PsDscRunAsCredential_password: "{{ domain_service_password }}"
+      register:                        sql_ag_replica_creation
+
+- name:                                "Add database to SQL AG - {{ mssql_primary_node }}"
+  when:
+    - ansible_hostname == mssql_primary_node
+  block:
+    - name:                            "Wait for configuration on mssql_secondary_node to finish"
+      ansible.builtin.set_fact:
+        is_sql_secondary_configured:   "{{ hostvars[mssql_secondary_node].sql_ag_replica_creation is defined }}"
+      retries:                         30
+      delay:                           60
+      until:                           is_sql_secondary_configured
+
+    - name:                            "Add DB {{ db_sid | upper }} to AG: {{ mssql_ag_name }}"
+      ansible.windows.win_dsc:
+        resource_name:                 SqlAGDatabase
+        Ensure:                        Present
+        AvailabilityGroupName:         "{{ mssql_ag_name }}"
+        ServerName:                    "{{ mssql_primary_node }}"
+        InstanceName:                  "{{ mssql_instance_name }}"
+        DatabaseName:                  "{{ db_sid | upper }}"
+        ProcessOnlyOnActiveNode:       true
+        BackupPath:                    "{{ mssql_backup_path }}"
+        PsDscRunAsCredential_username: "{{ domain_service_account }}@{{ domain_name }}"
+        PsDscRunAsCredential_password: "{{ domain_service_password }}"
+      register:                        sql_ag_db_creation
+      when:
+        - is_sql_secondary_configured
+
+- name:                                "Add database to SQL AG - {{ mssql_secondary_node }}"
+  when:
+    - ansible_hostname == mssql_secondary_node
+  block:
+    - name:                            "Wait for configuration on {{ mssql_primary_node }} to finish"
+      ansible.builtin.set_fact:
+        is_db_added_to_ag_primary:     "{{ hostvars[mssql_primary_node].sql_ag_db_creation is defined }}"
+      retries:                         30
+      delay:                           60
+      until:                           is_db_added_to_ag_primary
+
+    - name:                            "Add DB {{ db_sid | upper }} to AG: {{ mssql_ag_name }}"
+      ansible.windows.win_dsc:
+        resource_name:                 SqlAGDatabase
+        Ensure:                        Present
+        AvailabilityGroupName:         "{{ mssql_ag_name }}"
+        ServerName:                    "{{ mssql_primary_node }}"
+        InstanceName:                  "{{ mssql_instance_name }}"
+        DatabaseName:                  "{{ db_sid | upper }}"
+        ProcessOnlyOnActiveNode:       true
+        BackupPath:                    "{{ mssql_backup_path }}"
+        PsDscRunAsCredential_username: "{{ domain_service_account }}@{{ domain_name }}"
+        PsDscRunAsCredential_password: "{{ domain_service_password }}"
+      register:                        sql_ag_db_creation
+      when:
+        - is_db_added_to_ag_primary
+
+- name:                                "Set environment variables required for SAP"
+  become:                              true
+  become_method:                       runas
+  block:
+    - name:                            "Calculate the SCS Virtual Instance hostname"
+      ansible.builtin.set_fact:
+        scs_virtual_hostname:          "{{ sap_sid | lower }}scs{{ scs_instance_number }}cl1"
+
+    - name:                            "Set environment variables required for AlwaysON required by SAP"
+      ansible.windows.win_environment:
+        name:                          "{{ item.varname }}"
+        value:                         "{{ item.value }}"
+        state:                         present
+        level:                         user
+      with_items:
+        - { varname: 'SAPSYSTEMNAME',  value: "{{ sap_sid | upper }}"                                                        }
+        - { varname: 'DBMS_TYPE',      value: "mss"                                                                          }
+        - { varname: 'MSSQL_SERVER',   value: "{{ mssql_ag_listener_name }}"                                                 }
+        - { varname: 'SAPEXE',         value: '\\{{ scs_virtual_hostname }}\sapmnt\{{ sap_sid | upper }}\SYS\exe\uc\NTAMD64' }
+      vars:
+        ansible_become_user:           '{{ sap_sid }}adm@{{ domain_name }}'
+        ansible_become_password:       '{{ domain_user_password }}'
+
+    - name:                            "Update path variables required on the machines"
+      ansible.windows.win_path:
+        name:                          '{{ item.value }}'
+        state:                         present
+        scope:                         '{{ item.scope }}'
+      with_items:
+        - { scope: 'machine',          value: '\\{{ scs_virtual_hostname }}\sapmnt\{{ sap_sid | upper }}\SYS\exe\uc\NTAMD64' }
+        - { scope: 'user',             value: '\\{{ scs_virtual_hostname }}\sapmnt\{{ sap_sid | upper }}\SYS\exe\uc\NTAMD64' }
+      vars:
+        ansible_become_user:           '{{ sap_sid }}adm@{{ domain_name }}'
+        ansible_become_password:       '{{ domain_user_password }}'
+
+    - name:                            "Update DEFAULT.PFL - make changes for HA"
+      ansible.builtin.win_lineinfile:
+        backup:                        true
+        path:                          '\\{{ scs_virtual_hostname }}\sapmnt\{{ sap_sid | upper }}\SYS\profile\DEFAULT.PFL'
+        regexp:                        '{{ item.regex }}'
+        line:                          '{{ item.value }}'
+        state:                         present
+      with_items:
+        - { regex: '^SAPDBHOST =',     value: 'SAPDBHOST = {{ mssql_ag_listener_name }}'      }
+        - { regex: '^dbs/mss/server =',value: 'dbs/mss/server = {{ mssql_ag_listener_name }}' }
+        - { regex: '^j2ee/dbhost = ',  value: 'j2ee/dbhost = {{ mssql_ag_listener_name }}'    }
+      vars:
+        ansible_become_user:           '{{ sap_sid }}adm@{{ domain_name }}'
+        ansible_become_password:       '{{ domain_user_password }}'
+      when:
+        - ansible_hostname == mssql_primary_node
+
+...

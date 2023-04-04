@@ -142,7 +142,7 @@ output "anydb_vm_ids" {
 
 output "db_vm_ips" {
   description = "Database Virtual Machine IPs"
-  value       =   upper(try(local.database.platform, "HANA")) == "HANA" ? (
+  value = upper(try(local.database.platform, "HANA")) == "HANA" ? (
     module.hdb_node.db_server_ips) : (
     module.anydb_node.db_server_ips
   ) #TODO Change to use Admin IP
@@ -179,3 +179,13 @@ output "configuration_settings" {
 }
 
 
+
+output "use_custom_dns_a_registration" {
+  value = try(data.terraform_remote_state.landscape.outputs.use_custom_dns_a_registration, true)
+}
+output "management_dns_subscription_id" {
+  value = try(data.terraform_remote_state.landscape.outputs.management_dns_subscription_id, null)
+}
+output "management_dns_resourcegroup_name" {
+  value = coalesce(data.terraform_remote_state.landscape.outputs.management_dns_resourcegroup_name, local.saplib_resource_group_name)
+}

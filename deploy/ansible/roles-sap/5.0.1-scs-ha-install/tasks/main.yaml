@@ -252,7 +252,7 @@
             mode:                          0755
 
         - name:                        "RESCUE - SCS HA Install: SAPINST"
-          ansible.builtin.command: |
+          ansible.builtin.shell: |
                                        umask {{ custom_umask | default('022') }};
                                        ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }}     \
                                                  SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.scs_ha }}             \
@@ -326,6 +326,22 @@
     - node_tier == 'scs'
     - scs_installed.stat.exists
 
+- name:                                "SCS HA Install: check if installed without issues"
+  ansible.builtin.stat:
+    path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_scs.txt"
+  register:                            scs_installed
+  when:                                node_tier == 'scs'
+
+- name:                                "ENSA1 set defaults"
+  ansible.builtin.set_fact:
+    ensa1:                             false
+  when: ensa1 is not defined
+
+- name:                                "ENSA2 set defaults"
+  ansible.builtin.set_fact:
+    ensa2:                             false
+  when: ensa2 is not defined
+
 - name:                                "SCSERS - Enqueue Server Setup"
   block:
     - name:                            "SCSERS - Get the variable to determine ENSA version"
@@ -348,12 +364,6 @@
       ansible.builtin.set_fact:
         ensa1:                         "{{ enq_server.stdout_lines | select('search', 'enserver') | length > 0 }}"
 
-    # logic added to identify java based installations
-    - name:                            "SCSERS - Is ENSA1 - JAVA"
-      ansible.builtin.set_fact:
-        ensa1:                         "{{ enq_server.stdout_lines | select('search', 'enrepserver') | length > 0 }}"
-      when:
-        - not ensa1
 
     # enq_server, Enqueue Server 2
     - name:                            "SCSERS - Is ENSA2"
@@ -363,8 +373,8 @@
     - name:                            "SCSERS - Print the value of ENSA1/ENSA2"
       ansible.builtin.debug:
         msg:
-          - "{{ ensa1 }}"
-          - "{{ ensa2 }}"
+          - "ENSA1: {{ ensa1 }}"
+          - "ENSA2: {{ ensa2 }}"
   rescue:
     - name:                            "SCSERS - set default to ENSA2 for HANA if message server is down"
       ansible.builtin.set_fact:
@@ -379,6 +389,44 @@
   when:
     - inventory_hostname == primary_instance_name
     - scs_installed.stat.exists
+
+- name:                                "SCSERS - set default to ENSA2 for HANA if message server is down"
+  ansible.builtin.set_fact:
+    ensa2:                             true
+  when:
+    - platform == 'HANA'
+    - scs_bom_instance_type == 'ABAP'
+    - not ensa1
+    - not ensa2
+    - inventory_hostname == primary_instance_name
+    - scs_installed.stat.exists
+
+- name:                                "SCSERS - set default to ENSA for HANA (JAVA) if message server is down"
+  ansible.builtin.set_fact:
+    ensa1:                             true
+  when:
+    - platform == 'HANA'
+    - scs_bom_instance_type == 'JAVA'
+    - not ensa1
+    - not ensa2
+    - inventory_hostname == primary_instance_name
+    - scs_installed.stat.exists
+
+- name:                                "SCSERS - set default to ENSA1 for AnyDB if message server is down"
+  ansible.builtin.set_fact:
+    ensa1:                             true
+  when:
+    - platform != 'HANA'
+    - not ensa1
+    - not ensa2
+    - inventory_hostname == primary_instance_name
+    - scs_installed.stat.exists
+
+- name:                                "SCSERS - Print the value of ENSA1/ENSA2"
+  ansible.builtin.debug:
+    msg:
+      - "ENSA1: {{ ensa1 }}"
+      - "ENSA2: {{ ensa2 }}"
 
 ...
 # /*---------------------------------------------------------------------------8

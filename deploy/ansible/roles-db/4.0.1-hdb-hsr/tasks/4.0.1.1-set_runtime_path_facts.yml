@@ -16,6 +16,21 @@
   ansible.builtin.set_fact:
     hana_global_dir: "                 {{ global_path_status.stdout_lines[0] }}"
 
+- name:                                "HANA HSR: - Load the disk configuration settings"
+  ansible.builtin.include_vars:        disks_config.yml
+
+- name:                                "HANA HSR: - Check if the backup disk exists on DB Server"
+  ansible.builtin.set_fact:
+    backupdisks_count:             "{{ disks | selectattr('host', 'defined') |
+      selectattr('host', 'equalto', inventory_hostname) |
+      selectattr('type', 'equalto', 'backup') |
+      map(attribute='type') | sort | unique |
+      list | length | int }}"
+
+- name:                                "HANA HSR: -  Set the hana backup facts"
+  ansible.builtin.set_fact:
+    db_sid_backup_dir:                 "{% if (backupdisks_count | int) == 0 %}/hana/data/backup{% else %}{{ hana_backup_path }}{% endif %}"
+
 - name:                                "HANA HSR: - Ensure associated SAP global directory facts are set"
   ansible.builtin.set_fact:
     path_global_ini:                   "{{ hana_global_dir }}/hdb/custom/config/global.ini"
@@ -49,7 +64,7 @@
 
     - name:                            "HANA HSR: - Check HANA DB Version and register"
       become_user:                     "{{ db_sid_admin_user }}"
-      ansible.builtin.command:         /hana/shared/{{ db_sid | upper }}/HDB00/HDB version
+      ansible.builtin.command:         /hana/shared/{{ db_sid | upper }}/HDB{{ db_instance_number }}/HDB version
       register:                        hdbversion
       changed_when:                    false
 

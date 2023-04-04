@@ -37,6 +37,8 @@ provider "azurerm" {
   tenant_id       = var.use_spn ? local.spn.tenant_id : null
   use_msi         = var.use_spn ? false : true
 
+  storage_use_azuread = true
+
   partner_id = "25c87b5f-716a-4067-bcd8-116956916dd6"
   alias      = "workload"
 
@@ -50,6 +52,7 @@ provider "azurerm" {
   client_secret              = var.use_spn ? local.cp_spn.client_secret : null
   tenant_id                  = var.use_spn ? local.cp_spn.tenant_id : null
   use_msi                    = var.use_spn ? false : true
+  storage_use_azuread        = true
   skip_provider_registration = true
 }
 
@@ -92,7 +95,7 @@ terraform {
     }
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "~> 3.3"
+      version = ">=3.3"
     }
     tls = {
       source = "hashicorp/tls"
