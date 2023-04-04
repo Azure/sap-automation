@@ -1,0 +1,34 @@
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                Perform the Sybase ASE Software installation                    |
+# |                  SAP: Register BOM                                         |
+# |                  create .params directory                                  |
+# |                  Export environment variables for Sybase Installation      |
+# |                  Run the Sybase ASE installer in silent mode.           |
+# |                                                                            |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+---
+
+- name:                                "SAP Sybase: Check if installation finished or you need to reset"
+  ansible.builtin.include_tasks:       4.3.0.1-check_db_installation.yml
+
+- name:                                "SAP Sybase: Check if users were already created by a sap specific OS configuration"
+  ansible.builtin.include_tasks:       4.3.0.2-check_sap_users.yml
+
+- name:                                "SAP Sybase: Prepare installation directories"
+  ansible.builtin.include_tasks:       4.3.0.3-create_install_directories.yml
+
+- name:                                "SAP Sybase: Create ini files for unattended installation"
+  ansible.builtin.include_tasks:       4.3.0.4-create_ini_file.yml
+
+- name:                                "SAP Sybase: Install DB Instance"
+  ansible.builtin.include_tasks:       4.3.0.5-install_db_instance.yml
+
+- name:                                "SAP Sybase: Remove parameter file"
+  ansible.builtin.include_tasks:       4.3.0.6-cleanup_ini_file.yml
+
+# /*---------------------------------------------------------------------------8
+# |                                   END                                      |
+# +------------------------------------4--------------------------------------*/
+...
