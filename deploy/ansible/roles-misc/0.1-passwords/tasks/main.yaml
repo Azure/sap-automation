@@ -102,7 +102,6 @@
       - "{{ sap_password | trim | length > 8 }}"
     fail_msg: "The SAP main password was not set in key vault"
 
-
 - name:                                "0.1 Password: - Show SAP Password"
   ansible.builtin.debug:
     var:                               sap_password
