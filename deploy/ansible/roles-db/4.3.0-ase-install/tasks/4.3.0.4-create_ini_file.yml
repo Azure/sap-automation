@@ -12,6 +12,7 @@
   ansible.builtin.find:
     paths:                             "{{ kernel_media_folder }}"
     patterns:                          'SAPEXE_*SAR'
+    recurse:                           true
   register:                            sapexe_exist
   failed_when:                         sapexe_exist.matched != 1
 
@@ -24,6 +25,7 @@
     paths:                             "{{ db_unarchived_folder }}"
     file_type:                         directory
     patterns:                          'BD_SYBASE_ASE_*._BS_'
+    recurse:                           true
   register:                            sybase_media_exist
   failed_when:                         sybase_media_exist.matched != 1
 
