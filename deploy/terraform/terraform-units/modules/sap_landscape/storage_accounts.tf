@@ -174,7 +174,10 @@ resource "azurerm_storage_account_network_rules" "witness" {
       local.application_subnet_existing ? var.infrastructure.vnets.sap.subnet_app.arm_id : azurerm_subnet.app[0].id) : (
       ""
     ),
-    local.deployer_subnet_management_id
+    data.azurerm_resource_group.mgmt[0].location == (local.resource_group_exists ? (
+      azurerm_resource_group.resource_group[0].location) : (
+      data.azurerm_resource_group.resource_group[0].location
+    )) ? local.deployer_subnet_management_id : null
   ]
 
 }
@@ -301,8 +304,8 @@ resource "azurerm_storage_account" "transport" {
 }
 
 resource "azurerm_storage_account_network_rules" "transport" {
-  provider = azurerm.main
-  count    = var.NFS_provider == "AFS" && var.enable_firewall_for_keyvaults_and_storage && length(var.transport_storage_account_id) == 0 ? 1 : 0
+  provider           = azurerm.main
+  count              = var.NFS_provider == "AFS" && var.enable_firewall_for_keyvaults_and_storage && length(var.transport_storage_account_id) == 0 ? 1 : 0
   storage_account_id = azurerm_storage_account.transport[0].id
   default_action     = "Deny"
 
@@ -322,7 +325,11 @@ resource "azurerm_storage_account_network_rules" "transport" {
         local.web_subnet_existing ? var.infrastructure.vnets.sap.subnet_web.arm_id : azurerm_subnet.web[0].id) : (
         ""
       ),
-      local.deployer_subnet_management_id
+      data.azurerm_resource_group.mgmt[0].location == (local.resource_group_exists ? (
+        azurerm_resource_group.resource_group[0].location) : (
+        data.azurerm_resource_group.resource_group[0].location
+      )) ? local.deployer_subnet_management_id : null
+
     ]
   )
 
@@ -330,7 +337,7 @@ resource "azurerm_storage_account_network_rules" "transport" {
 
 resource "azurerm_private_dns_a_record" "transport" {
   provider = azurerm.dnsmanagement
-  count = local.use_Azure_native_DNS && var.NFS_provider == "AFS" && length(var.transport_private_endpoint_id) == 0 ? 1 : 0
+  count    = local.use_Azure_native_DNS && var.NFS_provider == "AFS" && length(var.transport_private_endpoint_id) == 0 ? 1 : 0
   name = replace(
     lower(
       format("%s", local.landscape_shared_transport_storage_account_name)
@@ -551,7 +558,11 @@ resource "azurerm_storage_account_network_rules" "install" {
         local.web_subnet_existing ? var.infrastructure.vnets.sap.subnet_web.arm_id : azurerm_subnet.web[0].id) : (
         ""
       ),
-      local.deployer_subnet_management_id
+      data.azurerm_resource_group.mgmt[0].location == (local.resource_group_exists ? (
+        azurerm_resource_group.resource_group[0].location) : (
+        data.azurerm_resource_group.resource_group[0].location
+      )) ? local.deployer_subnet_management_id : null
+
     ]
   )
 
@@ -559,7 +570,7 @@ resource "azurerm_storage_account_network_rules" "install" {
 
 resource "azurerm_private_dns_a_record" "install" {
   provider = azurerm.dnsmanagement
-  count = local.use_Azure_native_DNS && var.NFS_provider == "AFS" && length(var.install_private_endpoint_id) == 0 ? 1 : 0
+  count    = local.use_Azure_native_DNS && var.NFS_provider == "AFS" && length(var.install_private_endpoint_id) == 0 ? 1 : 0
   name = replace(
     lower(
       format("%s", local.landscape_shared_install_storage_account_name)
