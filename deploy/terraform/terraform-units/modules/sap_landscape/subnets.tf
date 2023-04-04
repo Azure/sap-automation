@@ -191,9 +191,9 @@ resource "azurerm_network_security_rule" "nsr_external_db" {
 
 
 data "azurerm_resource_group" "mgmt" {
-  provider             = azurerm.deployer
-  count                = length(local.deployer_subnet_management_id) > 0 ? 1 : 0
-  resource_group_name  = split("/", local.deployer_subnet_management_id)[4]
+  provider = azurerm.deployer
+  count    = length(local.deployer_subnet_management_id) > 0 ? 1 : 0
+  name     = split("/", local.deployer_subnet_management_id)[4]
 }
 
 
