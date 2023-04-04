@@ -10,6 +10,9 @@ resource "azurerm_network_security_group" "admin" {
 # Associates admin nsg to admin subnet
 resource "azurerm_subnet_network_security_group_association" "admin" {
   provider = azurerm.main
+  depends_on = [
+    azurerm_subnet.admin
+  ]
   count    = local.admin_subnet_defined && !local.admin_subnet_nsg_exists ? 1 : 0
 
   subnet_id                 = local.admin_subnet_existing ? var.infrastructure.vnets.sap.subnet_admin.arm_id : azurerm_subnet.admin[0].id
@@ -29,6 +32,9 @@ resource "azurerm_network_security_group" "db" {
 # Associates SAP db nsg to SAP db subnet
 resource "azurerm_subnet_network_security_group_association" "db" {
   provider                  = azurerm.main
+  depends_on = [
+    azurerm_subnet.db
+  ]
   count                     = local.database_subnet_defined && !local.database_subnet_nsg_exists ? 1 : 0
   subnet_id                 = local.database_subnet_existing ? var.infrastructure.vnets.sap.subnet_db.arm_id : azurerm_subnet.db[0].id
   network_security_group_id = azurerm_network_security_group.db[0].id
@@ -47,6 +53,9 @@ resource "azurerm_network_security_group" "app" {
 # Associates app nsg to app subnet
 resource "azurerm_subnet_network_security_group_association" "app" {
   provider                  = azurerm.main
+  depends_on = [
+    azurerm_subnet.app
+  ]
   count                     = local.application_subnet_defined && !local.application_subnet_nsg_exists ? 1 : 0
   subnet_id                 = local.application_subnet_existing ? var.infrastructure.vnets.sap.subnet_app.arm_id : azurerm_subnet.app[0].id
   network_security_group_id = azurerm_network_security_group.app[0].id
@@ -56,6 +65,9 @@ resource "azurerm_subnet_network_security_group_association" "app" {
 # Creates SAP web subnet nsg
 resource "azurerm_network_security_group" "web" {
   provider            = azurerm.main
+  depends_on = [
+    azurerm_subnet.web
+  ]
   count               = local.web_subnet_defined && !local.web_subnet_nsg_exists ? 1 : 0
   name                = local.web_subnet_nsg_name
   resource_group_name = local.vnet_sap_exists ? data.azurerm_virtual_network.vnet_sap[0].resource_group_name : azurerm_virtual_network.vnet_sap[0].resource_group_name

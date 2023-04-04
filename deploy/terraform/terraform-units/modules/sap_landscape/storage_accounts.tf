@@ -346,7 +346,7 @@ resource "azurerm_private_dns_a_record" "transport" {
   )
   zone_name           = "privatelink.file.core.windows.net"
   resource_group_name = var.management_dns_resourcegroup_name
-  ttl                 = 3600
+  ttl                 = 10
   records = [length(var.transport_private_endpoint_id) > 0 ? (
     data.azurerm_private_endpoint_connection.transport[0].private_service_connection[0].private_ip_address) : (
     azurerm_private_endpoint.transport[0].private_service_connection[0].private_ip_address
@@ -575,7 +575,7 @@ resource "azurerm_private_dns_a_record" "install" {
   )
   zone_name           = "privatelink.file.core.windows.net"
   resource_group_name = var.management_dns_resourcegroup_name
-  ttl                 = 3600
+  ttl                 = 10
   records = [length(var.install_private_endpoint_id) > 0 ? (
     data.azurerm_private_endpoint_connection.install[0].private_service_connection[0].private_ip_address) : (
     azurerm_private_endpoint.install[0].private_service_connection[0].private_ip_address
