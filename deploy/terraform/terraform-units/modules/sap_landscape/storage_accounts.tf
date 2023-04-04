@@ -175,8 +175,8 @@ resource "azurerm_storage_account_network_rules" "witness" {
       ""
     ),
     data.azurerm_resource_group.mgmt[0].location == (local.resource_group_exists ? (
-      azurerm_resource_group.resource_group[0].location) : (
-      data.azurerm_resource_group.resource_group[0].location
+      data.azurerm_resource_group.resource_group[0].location) : (
+      azurerm_resource_group.resource_group[0].location
     )) ? local.deployer_subnet_management_id : null
   ]
 
@@ -326,8 +326,8 @@ resource "azurerm_storage_account_network_rules" "transport" {
         ""
       ),
       data.azurerm_resource_group.mgmt[0].location == (local.resource_group_exists ? (
-        azurerm_resource_group.resource_group[0].location) : (
-        data.azurerm_resource_group.resource_group[0].location
+        data.azurerm_resource_group.resource_group[0].location) : (
+        azurerm_resource_group.resource_group[0].location
       )) ? local.deployer_subnet_management_id : null
 
     ]
@@ -559,8 +559,8 @@ resource "azurerm_storage_account_network_rules" "install" {
         ""
       ),
       data.azurerm_resource_group.mgmt[0].location == (local.resource_group_exists ? (
-        azurerm_resource_group.resource_group[0].location) : (
-        data.azurerm_resource_group.resource_group[0].location
+        data.azurerm_resource_group.resource_group[0].location) : (
+        azurerm_resource_group.resource_group[0].location
       )) ? local.deployer_subnet_management_id : null
 
     ]

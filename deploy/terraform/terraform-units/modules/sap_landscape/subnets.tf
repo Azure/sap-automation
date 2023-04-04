@@ -177,7 +177,6 @@ resource "azurerm_network_security_rule" "nsr_external_db" {
   name                = "deny-inbound-traffic"
   resource_group_name = local.vnet_sap_exists ? data.azurerm_virtual_network.vnet_sap[0].resource_group_name : azurerm_virtual_network.vnet_sap[0].resource_group_name
 
-
   network_security_group_name  = azurerm_network_security_group.db[0].name
   priority                     = 102
   direction                    = "Inbound"
