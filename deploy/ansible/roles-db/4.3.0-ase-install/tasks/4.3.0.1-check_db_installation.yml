@@ -15,10 +15,10 @@
     state:                             absent
   when: reinstall
 
-- name:                               "Check if Sybase already installed"
+- name:                                "SAP Sybase: Check if Sybase already installed"
   ansible.builtin.stat:
-    path:                             "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_sybase.txt"
-  register:                           "sybase_installed"
+    path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_sybase.txt"
+  register:                            "sybase_installed"
   when:                                node_tier == 'sybase'
 
 - name:                                "SYBASE Install status"
@@ -30,11 +30,11 @@
 
     - name:                            "SYBASE Install: - return value"
       ansible.builtin.set_fact:
-        sybase_already_installed:         true
+        sybase_already_installed:      true
   when:
     - sybase_installed.stat.exists
-
-...
 # /*---------------------------------------------------------------------------8
 # |                                   END                                      |
 # +------------------------------------4--------------------------------------*/
+
+...

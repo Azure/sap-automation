@@ -955,12 +955,30 @@ if [ 1 == $ok_to_proceed ]; then
                     if [[ -n ${report} ]] ; then
                         echo -e "#                          $boldreduscore  $report $resetformatting"
                         if [ 1 == $called_from_ado ] ; then
-                            echo "##vso[task.logissue type=error]${report}"
+                            
+                            roleAssignmentExists=$(echo ${report} | grep -m1 "RoleAssignmentExists")
+                            resourceExists=$(echo ${report} | grep -m1 "A resource with the ID")
+                            if [ -z ${roleAssignmentExists} ] ; then
+                                if [ -z ${resourceExists} ] ; then
+                                    echo "##vso[task.logissue type=warning]${report}"
+                                else
+                                    echo "##vso[task.logissue type=error]${report}"
+                                fi
+                            fi
                         fi
                     else
                         echo -e "#                          $boldreduscore  $string_to_report $resetformatting"
                         if [ 1 == $called_from_ado ] ; then
-                            echo "##vso[task.logissue type=error]${string_to_report}"
+                            roleAssignmentExists=$(echo ${string_to_report} | grep -m1 "RoleAssignmentExists")
+                            resourceExists=$(echo ${string_to_report} | grep -m1 "A resource with the ID")
+                            if [ -z ${roleAssignmentExists} ]
+                            then
+                                if [ -z ${resourceExists} ] ; then
+                                    echo "##vso[task.logissue type=warning]${string_to_report}"
+                                else
+                                    echo "##vso[task.logissue type=error]${string_to_report}"
+                                fi
+                            fi
                         fi
                     fi
                     echo -e "#                          $boldreduscore  $string_to_report $resetformatting"

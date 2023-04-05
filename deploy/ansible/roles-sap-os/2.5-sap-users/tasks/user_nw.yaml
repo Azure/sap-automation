@@ -108,6 +108,16 @@
 
 
 #
+    - name:                            "User Creation: check media exists"
+      ansible.builtin.stat:
+        path:                          "{{ target_media_location }}/SWPM/sapinst"
+      register:                        sapinst_found
+
+    - name:                            "ErrorHandling"
+      ansible.builtin.fail:
+        msg:                           "INSTALL:0001:Unable to find sapinst, please check that the installation media is mounted"
+      when: not sapinst_found.stat.exists
+
     - name:                            "User Creation: Progress"
       ansible.builtin.debug:
         msg:                           "Start user creation"

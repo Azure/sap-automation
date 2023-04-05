@@ -209,5 +209,4 @@ locals {
   firewall_rule_subnets        = try(var.firewall_rule_subnets, [])
   firewall_allowed_ipaddresses = try(var.firewall_allowed_ipaddresses, [])
 
-  assign_subscription_permissions = try(var.deployer_assign_subscription_permissions, false)
 }

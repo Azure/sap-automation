@@ -20,7 +20,7 @@ module "sap_deployer" {
     module.sap_namegenerator.naming
   )
   firewall_deployment                = local.firewall_deployment
-  assign_subscription_permissions    = local.assign_subscription_permissions
+  assign_subscription_permissions    = var.deployer_assign_subscription_permissions
   bootstrap                          = true
   enable_purge_control_for_keyvaults = var.enable_purge_control_for_keyvaults
   arm_client_id                      = var.arm_client_id

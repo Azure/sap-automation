@@ -826,7 +826,7 @@ then
     return_value=2
     all_errors=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary, detail: .diagnostic.detail}' apply_output.json)
     if [[ -n ${all_errors} ]]
-    then
+        then
         readarray -t errors_strings < <(echo ${all_errors} | jq -c '.' )
         for errors_string in "${errors_strings[@]}"; do
             string_to_report=$(jq -c -r '.detail '  <<< "$errors_string" )
@@ -834,14 +834,39 @@ then
             then
                 string_to_report=$(jq -c -r '.summary '  <<< "$errors_string" )
             fi
-
-            echo -e "#                          $boldreduscore  $string_to_report $resetformatting"
-            if [ 1 == $called_from_ado ] ; then
-                echo "##vso[task.logissue type=error]${string_to_report}"
+            report=$(echo $string_to_report | grep -m1 "Message=" "${var_file}" | cut -d'=' -f2-  | tr -d ' ' | tr -d '"')
+            if [[ -n ${report} ]] ; then
+                echo -e "#                          $boldreduscore  $report $resetformatting"
+                if [ 1 == $called_from_ado ] ; then
+                    
+                    roleAssignmentExists=$(echo ${report} | grep -m1 "RoleAssignmentExists")
+                    resourceExists=$(echo ${report} | grep -m1 "A resource with the ID")
+                    if [ -z ${roleAssignmentExists} ] ; then
+                        if [ -z ${resourceExists} ] ; then
+                            echo "##vso[task.logissue type=warning]${report}"
+                        else
+                            echo "##vso[task.logissue type=error]${report}"
+                        fi
+                    fi
+                fi
+            else
+                echo -e "#                          $boldreduscore  $string_to_report $resetformatting"
+                if [ 1 == $called_from_ado ] ; then
+                    roleAssignmentExists=$(echo ${string_to_report} | grep -m1 "RoleAssignmentExists")
+                    resourceExists=$(echo ${string_to_report} | grep -m1 "A resource with the ID")
+                    if [ -z ${roleAssignmentExists} ]
+                    then
+                        if [ -z ${resourceExists} ] ; then
+                            echo "##vso[task.logissue type=warning]${string_to_report}"
+                        else
+                            echo "##vso[task.logissue type=error]${string_to_report}"
+                        fi
+                    fi
+                fi
             fi
+            echo -e "#                          $boldreduscore  $string_to_report $resetformatting"
 
         done
-
     fi
     echo "#                                                                                       #"
     echo "#########################################################################################"

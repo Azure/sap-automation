@@ -7,6 +7,10 @@
 // Create user KV with access policy
 resource "azurerm_key_vault" "kv_user" {
   provider                   = azurerm.main
+  depends_on = [
+    azurerm_virtual_network_peering.peering_management_sap,
+    azurerm_virtual_network_peering.peering_sap_management
+  ]
   count                      = (local.enable_landscape_kv && !local.user_keyvault_exist) ? 1 : 0
   name                       = local.user_keyvault_name
   location                   = local.region
@@ -332,7 +336,7 @@ resource "azurerm_private_endpoint" "kv_user" {
     azurerm_key_vault_secret.witness_name,
     azurerm_key_vault_secret.witness_access_key,
     azurerm_key_vault_secret.sid_password,
-    azurerm_key_vault_secret.sid_username,
+    azurerm_key_vault_secret.sid_username
 
   ]
 
@@ -422,7 +426,7 @@ resource "azurerm_private_dns_a_record" "keyvault" {
   )
   zone_name           = "privatelink.vaultcore.azure.net"
   resource_group_name = var.management_dns_resourcegroup_name
-  ttl                 = 3600
+  ttl                 = 10
   records = [length(var.keyvault_private_endpoint_id) > 0 ? (
     data.azurerm_private_endpoint_connection.kv_user[0].private_service_connection[0].private_ip_address) : (
     azurerm_private_endpoint.kv_user[0].private_service_connection[0].private_ip_address

@@ -7,28 +7,27 @@
 ---
 
 # Check whether the user exists or not for SYBASE DB Install
-- name: Check if user "{{ sidadm_user }}" was already created
-  user:
-    name: "{{ sidadm_user }}"
-    state: present
-  check_mode: yes
-  register: sidadm_user_status
+- name:                                "SAP Sybase: Check if user '{{ sidadm_user }}' was already created"
+  ansible.builtin.user:
+    name:                              "{{ sidadm_user }}"
+    state:                             present
+  check_mode:                          true
+  register:                            sidadm_user_status
 
-- name: Ensure group "{{ sapinst_user_group }}" exists
-  group:
-    name: "{{ sapinst_user_group }}"
-    gid: "{{ sapinst_gid }}"
-    state: present
+- name:                                "SAP Sybase: Ensure group '{{ sapinst_user_group }} exists"
+  ansible.builtin.group:
+    name:                              "{{ sapinst_user_group }}"
+    gid:                               "{{ sapinst_gid }}"
+    state:                             present
 
-- name: Add current user to "{{ sapinst_user_group }}" group
-  user:
-    name: "{{ ansible_user_id }}"
-    group: "{{ sapinst_user_group }}"
+- name:                                "SAP Sybase: Add current user to '{{ sapinst_user_group }}' group"
+  ansible.builtin.user:
+    name:                              "{{ ansible_user_id }}"
+    group:                             "{{ sapinst_user_group }}"
 
-- name: Ensure root user has root as primary group
-  user:
-    name: root
-    group: root
-  
+- name:                                "SAP Sybase: Ensure root user has root as primary group"
+  ansible.builtin.user:
+    name:                              root
+    group:                             root
+
 ...
-

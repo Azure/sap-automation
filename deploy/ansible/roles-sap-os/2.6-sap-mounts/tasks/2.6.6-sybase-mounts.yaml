@@ -94,7 +94,7 @@
     state:                             directory
     owner:                             "{{ item.owner }}"
     group:                             "{{ item.group }}"
-    recurse:                            yes
+    recurse:                           true
     mode:                              u=rwX,g=rX,o=rX
   loop:
     - { path: '/sybase', group: '{{ sapsys_gid }}', owner: '{{ asesidadm_uid }}' }
