@@ -45,7 +45,7 @@ locals {
   // Dual network cards
   anydb_dual_nics = try(var.database.dual_nics, false) && length(try(var.admin_subnet.id, "")) > 0
 
-  enable_deployment = contains(["ORACLE", "ORACLE-ASM", "DB2", "SQLSERVER", "ASE"], var.database.platform)
+  enable_deployment = contains(["ORACLE", "ORACLE-ASM", "DB2", "SQLSERVER", "SYBASE"], var.database.platform)
 
   // Enable deployment based on length of local.anydb_databases
 
@@ -110,7 +110,7 @@ locals {
 
   // Default values in case not provided
   os_defaults = {
-    ASE = {
+    SYBASE = {
       "publisher" = "SUSE",
       "offer"     = "sles-sap-15-sp3",
       "sku"       = "gen2"
@@ -208,7 +208,7 @@ locals {
 
   // Ports used for specific DB Versions
   lb_ports = {
-    "ASE" = [
+    "SYBASE" = [
       "63500"
     ]
     "ORACLE" = [

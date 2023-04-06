@@ -70,7 +70,7 @@ locals {
 
 
   enable_hdb_deployment = var.database.platform == "HANA"
-  enable_xdb_deployment = contains(["ORACLE", "ORACLE-ASM", "DB2", "SQLSERVER", "ASE"], upper(var.database.platform))
+  enable_xdb_deployment = contains(["ORACLE", "ORACLE-ASM", "DB2", "SQLSERVER", "SYBASE"], upper(var.database.platform))
   enable_db_deployment  = local.enable_xdb_deployment || local.enable_hdb_deployment
 
   dbnode_per_site = length(try(var.database.dbnodes, [{}]))

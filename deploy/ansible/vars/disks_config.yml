@@ -35,6 +35,15 @@ disk_type_to_name_map:
   saptmp:          '{{ node_tier | lower }}_saptmp'
   # ------------------- End - disktypes required for DB2 ---------------------8
 
+  # ------------------- Begin - disktypes required for ASE -------------------8
+  sapdata_1:      '{{ node_tier | lower }}_sapdata_1'
+  saplog_1:       '{{ node_tier | lower }}_saplog_1'
+  sybdb:          '{{ node_tier | lower }}_sybdb'
+  saptemp:        '{{ node_tier | lower }}_saptemp'
+  sapdiag:        '{{ node_tier | lower }}_sapdiag'
+  sybsystem:      '{{ node_tier | lower }}_sybsystem'
+  sybtemp:        '{{ node_tier | lower }}_sybtemp'
+  # ------------------- End - disktypes required for ASE ---------------------8
 #
 # Table of possible logical volumes that need to be managed.
 #
@@ -268,6 +277,67 @@ logical_volumes:
     stripesize: 128
     fstype:     'xfs'
   # ----------------------- End - disks required for DB2 ----------------------8
+
+  # --------------------- Begin - disks required for ASE ---------------------8
+  - tier:       'sapos'
+    node_tier:  'sybase'
+    vg:         'vg_sybase_sapdata_1'
+    lv:         'lv_sybase_sapdata_1'
+    size:       '100%VG'
+    stripesize: 256
+    fstype:     'xfs'
+
+  - tier:       'sapos'
+    node_tier:  'sybase'
+    vg:         'vg_sybase_saplog_1'
+    lv:         'lv_sybase_saplog_1'
+    size:       '100%FREE'
+    stripesize: 64
+    fstype:     'xfs'
+
+  - tier:       'sapos'
+    node_tier:  'sybase'
+    vg:         'vg_sybase_sybdb'
+    lv:         'lv_sybase_sybdb'
+    size:       '100%FREE'
+    fstype:     'xfs'
+
+  - tier:       'sapos'
+    node_tier:  'sybase'
+    vg:         'vg_sybase_saptemp'
+    lv:         'lv_sybase_saptemp'
+    size:       '100%FREE'
+    stripesize: 128
+    fstype:     'xfs'
+
+  - tier:       'sapos'
+    node_tier:  'sybase'
+    vg:         'vg_sybase_sybsystem'
+    lv:         'lv_sybase_sybsystem'
+    size:       '100%FREE'
+    fstype:     'xfs'
+
+  - tier:       'sapos'
+    node_tier:  'sybase'
+    vg:         'vg_sybase_sybtemp'
+    lv:         'lv_sybase_sybtemp'
+    size:       '100%FREE'
+    fstype:     'xfs'
+
+  - tier:       'sapos'
+    node_tier:  'sybase'
+    vg:         'vg_sybase_sapdiag'
+    lv:         'lv_sybase_sapdiag'
+    size:       '100%FREE'
+    fstype:     'xfs'
+
+  - tier:       'sapos'
+    node_tier:  'sybase'
+    vg:         'vg_sybase_backup'
+    lv:         'lv_sybase_backup'
+    size:       '100%FREE'
+    fstype:     'xfs'
+  # ----------------------- End - disks required for ASE ----------------------8
 
   # ---------------------- Begin - disks required for SCS ---------------------8
 

@@ -60,6 +60,14 @@ resource "azurerm_virtual_network_dns_servers" "vnet_sap_dns_servers" {
 # // Peers management VNET to SAP VNET
 resource "azurerm_virtual_network_peering" "peering_management_sap" {
   provider = azurerm.peering
+  depends_on = [
+    azurerm_subnet.app,
+    azurerm_subnet.db,
+    azurerm_subnet.web,
+    azurerm_subnet.admin
+
+  ]
+
   count = var.peer_with_control_plane_vnet ? (
     local.vnet_sap_exists || !var.use_deployer ? 0 : 1) : (
     0
@@ -88,6 +96,13 @@ resource "azurerm_virtual_network_peering" "peering_management_sap" {
 // Peers SAP VNET to management VNET
 resource "azurerm_virtual_network_peering" "peering_sap_management" {
   provider = azurerm.main
+  depends_on = [
+    azurerm_subnet.app,
+    azurerm_subnet.db,
+    azurerm_subnet.web,
+    azurerm_subnet.admin
+
+  ]
   count = var.peer_with_control_plane_vnet ? (
     local.vnet_sap_exists || !var.use_deployer ? 0 : 1) : (
     0
@@ -232,5 +247,4 @@ data "azurerm_private_dns_zone" "storage" {
   name                = "privatelink.blob.core.windows.net"
   resource_group_name = var.management_dns_resourcegroup_name
 }
-
 

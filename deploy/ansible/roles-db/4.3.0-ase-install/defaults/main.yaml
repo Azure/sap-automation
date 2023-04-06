@@ -1,0 +1,26 @@
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                Perform the Sybase ASE Software installation                |
+# |                   Declare default values of the variabls                   |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+---
+
+
+task_prefix:                   "SYBASE Install"
+sap_db_hostname:               "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') | first }}"
+sap_scs_hostname:              "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') | first }}"
+kernel_media_folder:           "{{ target_media_location }}/download_basket"
+dir_params:                    "{{ target_media_location }}/.params"
+param_directory:               "{{ dir_params }}"
+
+db_unarchived_folder:          "{{ target_media_location }}/CD_SYBSERVER"
+dbexport_folder_path:          "{{ target_media_location }}/CD_EXPORT/DATA_UNITS"
+sap_profile_dir:               "/sapmnt/{{ sap_sid | upper }}/profile"
+sybase_memory:                 "{{ mem_size | int }}"
+sidadm_user:                   "{{ db_sid | lower }}adm"
+sapinst_user_group:            "sapinst"
+db_sid_backup_dir:              "/sybase/{{ db_sid | upper }}/backup"
+bom_name:                      "{{ bom_base_name }}"
+
+...

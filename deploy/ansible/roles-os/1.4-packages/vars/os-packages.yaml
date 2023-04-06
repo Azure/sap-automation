@@ -54,6 +54,10 @@ packages:
     - { tier: 'os',    package: 'unzip',                                        node_tier: 'db2',     state: 'present' }
     - { tier: 'os',    package: 'libpam.so.0',                                  node_tier: 'db2',     state: 'present' }
     # --------------------------- End - Packages required for DB2 -------------------------------------------8
+      # --------------------------- Begin - Packages required for SYBASE -----------------------------------------8
+    # 2371942 - Error Executing isql or dscp on SAP ASE or SAP HANA Accelerator for SAP ASE
+    - { tier: 'os',    package: 'glibc.i686',                                  node_tier: 'sybase',     state: 'present' }
+    # --------------------------- End - Packages required for SYBASE -------------------------------------------8
     - { tier: 'sapos', package: 'autofs',                                       node_tier: 'all',     state: 'present' }
     - { tier: 'sapos', package: 'nfs4-acl-tools',                               node_tier: 'all',     state: 'present' }
     - { tier: 'sapos', package: 'tuned-profiles-sap*',                          node_tier: 'all',     state: 'present' }
@@ -74,20 +78,48 @@ packages:
     # Install Right Version of Azure Fence Agent
     # https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-rhel-pacemaker
     - { tier: 'ha',    package: 'fence-agents-azure-arm-4.0.11-66.el7_4.12',    node_tier: 'all',state: 'present' }
+        # --------------------------- Begin - Packages required for SYBASE -----------------------------------------8
+    # 2371942 - Error Executing isql or dscp on SAP ASE or SAP HANA Accelerator for SAP ASE
+    - { tier: 'os',    package: 'glibc.i686',                                  node_tier: 'sybase',     state: 'present' }
+    # --------------------------- End - Packages required for SYBASE -------------------------------------------8
   redhat7.5:
     # Install Right Version of Azure Fence Agent
     # https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-rhel-pacemaker
     - { tier: 'ha',    package: 'fence-agents-azure-arm-4.0.11-86.el7_5.8',     node_tier: 'all',     state: 'present' }
+        # --------------------------- Begin - Packages required for SYBASE -----------------------------------------8
+    # 2371942 - Error Executing isql or dscp on SAP ASE or SAP HANA Accelerator for SAP ASE
+    - { tier: 'os',    package: 'glibc.i686',                                  node_tier: 'sybase',     state: 'present' }
+    # --------------------------- End - Packages required for SYBASE -------------------------------------------8
+        # --------------------------- Begin - Packages required for SYBASE -----------------------------------------8
+    # 2371942 - Error Executing isql or dscp on SAP ASE or SAP HANA Accelerator for SAP ASE
+    - { tier: 'os',    package: 'glibc.i686',                                  node_tier: 'sybase',     state: 'present' }
+    # --------------------------- End - Packages required for SYBASE -------------------------------------------8
   redhat7.6:
     # Install Right Version of Azure Fence Agent
     # https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-rhel-pacemaker
     - { tier: 'ha',    package: 'fence-agents-azure-arm-4.2.1-11.el7_6.8',      node_tier: 'all',     state: 'present' }
+        # --------------------------- Begin - Packages required for SYBASE -----------------------------------------8
+    # 2371942 - Error Executing isql or dscp on SAP ASE or SAP HANA Accelerator for SAP ASE
+    - { tier: 'os',    package: 'glibc.i686',                                  node_tier: 'sybase',     state: 'present' }
+    # --------------------------- End - Packages required for SYBASE -------------------------------------------8
   redhat7.7:
     - { tier: 'ha',    package: 'fence-agents-azure-arm',                       node_tier: 'all',     state: 'present' }
+        # --------------------------- Begin - Packages required for SYBASE -----------------------------------------8
+    # 2371942 - Error Executing isql or dscp on SAP ASE or SAP HANA Accelerator for SAP ASE
+    - { tier: 'os',    package: 'glibc.i686',                                  node_tier: 'sybase',     state: 'present' }
+    # --------------------------- End - Packages required for SYBASE -------------------------------------------8
   redhat7.8:
     - { tier: 'ha',    package: 'fence-agents-azure-arm',                       node_tier: 'all',     state: 'present' }
+        # --------------------------- Begin - Packages required for SYBASE -----------------------------------------8
+    # 2371942 - Error Executing isql or dscp on SAP ASE or SAP HANA Accelerator for SAP ASE
+    - { tier: 'os',    package: 'glibc.i686',                                  node_tier: 'sybase',     state: 'present' }
+    # --------------------------- End - Packages required for SYBASE -------------------------------------------8
   redhat7.9:
     - { tier: 'ha',    package: 'fence-agents-azure-arm',                       node_tier: 'all',     state: 'present' }
+    # --------------------------- Begin - Packages required for SYBASE -----------------------------------------8
+    # 2371942 - Error Executing isql or dscp on SAP ASE or SAP HANA Accelerator for SAP ASE
+    - { tier: 'os',    package: 'glibc.i686',                                  node_tier: 'sybase',     state: 'present' }
+    # --------------------------- End - Packages required for SYBASE -------------------------------------------8
   redhat8:
     - { tier: 'os',    package: '@base',                                        node_tier: 'all',     state: 'present' }
     - { tier: 'os',    package: 'gtk2',                                         node_tier: 'all',     state: 'present' }
@@ -203,7 +235,15 @@ packages:
     - { tier: 'ha',    package: 'sap-suse-cluster-connector',                   node_tier: 'ers',     state: 'present' }
   # -------------------------- End - packages required for Clustering ------------------------------------8
   sles_sap12.4:
+  # --------------------------- Begin - Packages required for SYBASE -----------------------------------------8
+    # 2371942 - Error Executing isql or dscp on SAP ASE or SAP HANA Accelerator for SAP ASE
+    - { tier: 'os',    package: 'glibc-32bit',                                  node_tier: 'sybase',     state: 'present' }
+    # --------------------------- End - Packages required for SYBASE -------------------------------------------8
   sles_sap12.5:
+  # --------------------------- Begin - Packages required for SYBASE -----------------------------------------8
+    # 2371942 - Error Executing isql or dscp on SAP ASE or SAP HANA Accelerator for SAP ASE
+    - { tier: 'os',    package: 'glibc-32bit',                                  node_tier: 'sybase',     state: 'present' }
+    # --------------------------- End - Packages required for SYBASE -------------------------------------------8
   sles_sap15:
     - { tier: 'os',    package: 'chrony',                                       node_tier: 'all',     state: 'present' }
 #   - { tier: 'os',    package: 'libyui-qt-pkg11',                              node_tier: 'all',     state: 'present' }

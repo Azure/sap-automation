@@ -107,7 +107,7 @@ resource "azurerm_subnet" "anf" {
 #Associate the subnets to the route table
 
 resource "azurerm_subnet_route_table_association" "admin" {
-  provider       = azurerm.main
+  provider = azurerm.main
   depends_on = [
     azurerm_route_table.rt,
     azurerm_subnet.admin
@@ -119,7 +119,7 @@ resource "azurerm_subnet_route_table_association" "admin" {
 }
 
 resource "azurerm_subnet_route_table_association" "db" {
-  provider       = azurerm.main
+  provider = azurerm.main
   depends_on = [
     azurerm_route_table.rt,
     azurerm_subnet.db
@@ -131,7 +131,7 @@ resource "azurerm_subnet_route_table_association" "db" {
 }
 
 resource "azurerm_subnet_route_table_association" "app" {
-  provider       = azurerm.main
+  provider = azurerm.main
   depends_on = [
     azurerm_route_table.rt,
     azurerm_subnet.db
@@ -142,10 +142,10 @@ resource "azurerm_subnet_route_table_association" "app" {
 }
 
 resource "azurerm_subnet_route_table_association" "web" {
-  provider       = azurerm.main
+  provider = azurerm.main
   depends_on = [
     azurerm_route_table.rt,
-     azurerm_subnet.web
+    azurerm_subnet.web
   ]
   count          = local.web_subnet_defined && !local.vnet_sap_exists && !local.web_subnet_existing ? 1 : 0
   subnet_id      = local.web_subnet_existing ? var.infrastructure.vnets.sap.subnet_web.arm_id : azurerm_subnet.web[0].id
@@ -177,7 +177,6 @@ resource "azurerm_network_security_rule" "nsr_external_db" {
   name                = "deny-inbound-traffic"
   resource_group_name = local.vnet_sap_exists ? data.azurerm_virtual_network.vnet_sap[0].resource_group_name : azurerm_virtual_network.vnet_sap[0].resource_group_name
 
-
   network_security_group_name  = azurerm_network_security_group.db[0].name
   priority                     = 102
   direction                    = "Inbound"
@@ -188,3 +187,12 @@ resource "azurerm_network_security_rule" "nsr_external_db" {
   source_address_prefix        = "*"
   destination_address_prefixes = azurerm_subnet.db[0].address_prefixes
 }
+
+
+data "azurerm_resource_group" "mgmt" {
+  provider = azurerm.deployer
+  count    = length(local.deployer_subnet_management_id) > 0 ? 1 : 0
+  name     = split("/", local.deployer_subnet_management_id)[4]
+}
+
+

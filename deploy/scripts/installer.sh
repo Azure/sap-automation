@@ -941,7 +941,7 @@ if [ 1 == $ok_to_proceed ]; then
             echo -e "#                          $boldreduscore!Errors during the apply phase!$resetformatting                              #"
 
             return_value=2
-            all_errors=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary, detail: .diagnostic.detail}' apply_output.json)
+            all_errors=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary, detail: .diagnostic.detail} | select(.summary | startswith("A resource with the ID")) | not ' apply_output.json)
             if [[ -n ${all_errors} ]]
                 then
                 readarray -t errors_strings < <(echo ${all_errors} | jq -c '.' )
@@ -955,12 +955,20 @@ if [ 1 == $ok_to_proceed ]; then
                     if [[ -n ${report} ]] ; then
                         echo -e "#                          $boldreduscore  $report $resetformatting"
                         if [ 1 == $called_from_ado ] ; then
-                            echo "##vso[task.logissue type=error]${report}"
+                            
+                            roleAssignmentExists=$(echo ${report} | grep -m1 "RoleAssignmentExists")
+                            if [ -z ${roleAssignmentExists} ] ; then
+                                echo "##vso[task.logissue type=error]${report}"
+                            fi
                         fi
                     else
                         echo -e "#                          $boldreduscore  $string_to_report $resetformatting"
                         if [ 1 == $called_from_ado ] ; then
-                            echo "##vso[task.logissue type=error]${string_to_report}"
+                            roleAssignmentExists=$(echo ${string_to_report} | grep -m1 "RoleAssignmentExists")
+                            if [ -z ${roleAssignmentExists} ]
+                            then
+                                echo "##vso[task.logissue type=error]${string_to_report}"
+                            fi
                         fi
                     fi
                     echo -e "#                          $boldreduscore  $string_to_report $resetformatting"
@@ -972,7 +980,7 @@ if [ 1 == $ok_to_proceed ]; then
             echo ""
 
             # Check for resource that can be imported
-            existing=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary}  | select(.summary | startswith("A resource with the ID"))' apply_output.json)
+            existing=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary} | select(.summary | startswith("A resource with the ID"))' apply_output.json)
             if [[ -n ${existing} ]]
             then
 
