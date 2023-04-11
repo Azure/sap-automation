@@ -99,7 +99,7 @@
           when:                        hana_installation.rc == 1
 
 
-        - name:                        "SAP HANA: Execute hdblcm on {{ (hana_host) }}"
+        - name:                        "SAP HANA: Re-execute hdblcm on {{ (hana_host) }}"
           ansible.builtin.shell: |
                                        umask {{ custom_umask | default('022') }};
                                        chmod 755 /usr/sap;
