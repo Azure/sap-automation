@@ -402,7 +402,7 @@
 
     - name:                            "0.0 Validations - Check internet connectivity"
       ansible.builtin.uri:
-        url: "https://management.azure.com/subscriptions/{{ subscription_id }}/providers/Microsoft.Web/sites?api-version=2022-03-01
+        url: "https://management.azure.com/subscriptions/{{ subscription_id }}/providers/Microsoft.Web/sites?api-version=2022-03-01"
         headers:
           Authorization: "Bearer {{ access_token }}"
           Content-Type: application/json
@@ -421,7 +421,7 @@
 
     - name:                            "0.0 Validations - Check internet connectivity"
       ansible.builtin.uri:
-        url: "https://management.azure.com/subscriptions/{{ subscription_id }}/providers/Microsoft.Web/sites?api-version=2022-03-01
+        url: "https://management.azure.com/subscriptions/{{ subscription_id }}/providers/Microsoft.Web/sites?api-version=2022-03-01"
         headers:
           Authorization: "Bearer {{ access_token }}"
           Content-Type: application/json
@@ -540,6 +540,7 @@
           when:
             - "'scs' in supported_tiers"
             - usr_sap_mounted is defined
+            - ansible_os_family != "Windows"
           block:
             - name:                    "0.0 Validations - Disk space details"
               ansible.builtin.set_fact:
