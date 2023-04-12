@@ -31,13 +31,13 @@
       ansible.posix.authorized_key:
         user:                          root
         key:                           "{{ hostvars[primary_instance_name].cluster_public_ssh_key }}"
-      when:                            ansible_hostname != primary_instance_name
+      when:                            ansible_hostname == secondary_instance_name
 
     - name:                            "1.17 Generic Pacemaker - Ensure the Secondary Node public key is authorized on all nodes, required for crm_clustering"
       ansible.posix.authorized_key:
         user:                          root
         key:                           "{{ hostvars[secondary_instance_name].cluster_public_ssh_key }}"
-      when:                            ansible_hostname != secondary_instance_name
+      when:                            ansible_hostname == primary_instance_name
 
     - name:                            1.17 Generic Pacemaker - Ensure trust relationship is working from primary to secondary
       ansible.builtin.command:         ssh -oStrictHostKeyChecking=no {{ secondary_instance_name }} "hostname -s"

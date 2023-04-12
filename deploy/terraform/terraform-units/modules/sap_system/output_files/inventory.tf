@@ -101,6 +101,11 @@ resource "local_file" "ansible_inventory_new_yml" {
 
     )
 
+    db_os_type = var.platform == "SQLSERVER" ? "windows" : "linux"
+    scs_os_type = upper(var.app_tier_os_types["scs"]) == "WINDOWS" ? "windows" : "linux"
+    app_os_type = upper(var.app_tier_os_types["app"]) == "WINDOWS" ? "windows" : "linux"
+    web_os_type = upper(var.app_tier_os_types["web"]) == "WINDOWS" ? "windows" : "linux"
+
     }
   )
   filename             = format("%s/%s_hosts.yaml", path.cwd, var.sap_sid)
