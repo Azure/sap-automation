@@ -128,7 +128,9 @@
         }
       loop_control:
         loop_var:                      item_to_check
-      when: scs_high_availability
+      when:
+        - scs_high_availability
+        - platform != "SQLSERVER"
 
     - name:                            "0.0 Validations - Check required SCS HA fencing variables are present and not empty"
       ansible.builtin.assert:
