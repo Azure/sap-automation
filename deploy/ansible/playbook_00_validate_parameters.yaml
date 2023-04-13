@@ -32,6 +32,7 @@
       ansible.builtin.pip:
         name:                          'pywinrm[credssp]'
         state:                         present
+      failed_when:                     false
 
     - name:                            "0.0 Validations - Create Progress folder"
       ansible.builtin.file:
