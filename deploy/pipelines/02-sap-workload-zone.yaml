@@ -628,7 +628,7 @@ stages:
               FENCING_SPN_PWD:         $(FENCING_SPN_PWD)
               SAPBITS:                 $(INSTALLATION_MEDIA_ACCOUNT)
               TEST_ONLY:               ${{ parameters.test }}
-              PAT:                     $(PAT)
+              PAT:                     $(WZ_PAT)
               TF_LOG:                  $(TF_LOG)
               TF_IN_AUTOMATION:        true
               SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
