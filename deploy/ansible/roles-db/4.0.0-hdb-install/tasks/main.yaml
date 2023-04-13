@@ -181,6 +181,12 @@
           ansible.builtin.debug:
             msg:                       "HANA Installation succeeded"
 
+        - name:                        "SAP HANA: HANA Install: flag"
+          ansible.builtin.file:
+            path:                      "/etc/sap_deployment_automation/{{ db_sid | upper }}/sap_deployment_hdb.txt"
+            state:                     touch
+            mode:                      0755
+
         - name:                        "Retrieve Subscription ID and Resource Group Name"
           ansible.builtin.command:     curl -H Metadata:true --noproxy "*" "http://169.254.169.254/metadata/instance?api-version=2021-02-01"
           register:                    azure_metadata
@@ -237,14 +243,6 @@
         owner:                         "{{ db_sid | lower }}adm"
         mode:                          0755
 
-    - name:                            "SAP HANA: HANA Install: flag"
-      ansible.builtin.file:
-        path:                          "/etc/sap_deployment_automation/{{ db_sid | upper }}/sap_deployment_hdb.txt"
-        state:                         touch
-        mode:                          0755
-      when:
-        - hana_installation.rc is defined
-        - hana_installation.rc < 1
 
   when:
     - not hana_installed.stat.exists
