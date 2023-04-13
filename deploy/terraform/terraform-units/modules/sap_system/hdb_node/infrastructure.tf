@@ -146,6 +146,7 @@ resource "azurerm_lb_rule" "hdb" {
   enable_floating_ip       = true
   idle_timeout_in_minutes  = 30
 }
+/*
 resource "azurerm_private_dns_a_record" "db" {
   provider            = azurerm.dnsmanagement
   count               = local.enable_db_lb_deployment && length(local.dns_label) > 0 ? 1 : 0
@@ -156,3 +157,4 @@ resource "azurerm_private_dns_a_record" "db" {
   records             = [try(azurerm_lb.hdb[0].frontend_ip_configuration[0].private_ip_address, "")]
 }
 
+*/

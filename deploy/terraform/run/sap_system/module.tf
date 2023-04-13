@@ -103,7 +103,7 @@ module "hdb_node" {
   providers = {
     azurerm.deployer      = azurerm
     azurerm.main          = azurerm.system
-    azurerm.dnsmanagement = azurerm.dnsmanagement
+//    azurerm.dnsmanagement = azurerm.dnsmanagement
   }
   depends_on = [module.common_infrastructure]
   order_deployment = local.enable_db_deployment ? (
@@ -344,7 +344,7 @@ module "output_files" {
   db_auth_type = try(local.database.authentication.type, "key")
 
   db_clst_lb_ip = module.anydb_node.db_clst_lb_ip
-  
+
   db_subnet_netmask = module.common_infrastructure.db_subnet_netmask
 
   #########################################################################################
