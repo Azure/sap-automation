@@ -449,7 +449,7 @@ resource "azurerm_virtual_machine_extension" "configure_ansible_app" {
   type_handler_version = "1.9"
   settings             = <<SETTINGS
         {
-          "fileUris": ["https://raw.githubusercontent.com/KimForss/sap-automation/experimental/deploy/scripts/configure_ansible.ps1"],
+          "fileUris": ["https://raw.githubusercontent.com/main/sap-automation/main/deploy/scripts/configure_ansible.ps1"],
           "commandToExecute": "powershell.exe -ExecutionPolicy Unrestricted -File configure_ansible.ps1 -Verbose"
         }
     SETTINGS
