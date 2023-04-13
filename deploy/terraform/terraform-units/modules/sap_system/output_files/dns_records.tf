@@ -1,4 +1,3 @@
-/*
 resource "azurerm_private_dns_a_record" "app_secondary" {
   count               = var.use_secondary_ips && !var.use_custom_dns_a_registration && length(var.dns) > 0 ? length(var.naming.virtualmachine_names.APP_SECONDARY_DNSNAME) : 0
   name                = var.naming.virtualmachine_names.APP_SECONDARY_DNSNAME[count.index]
@@ -58,4 +57,3 @@ resource "azurerm_private_dns_a_record" "db_secondary" {
     ignore_changes = [tags]
   }
 }
-*/

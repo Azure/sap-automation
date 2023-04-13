@@ -128,7 +128,7 @@ data "azurerm_availability_set" "anydb" {
   name                = split("/", local.availabilityset_arm_ids[count.index])[8]
   resource_group_name = split("/", local.availabilityset_arm_ids[count.index])[4]
 }
-/*
+
 resource "azurerm_private_dns_a_record" "db" {
   provider            = azurerm.dnsmanagement
   count               = local.enable_db_lb_deployment && length(local.dns_label) > 0 ? 1 : 0
@@ -138,5 +138,3 @@ resource "azurerm_private_dns_a_record" "db" {
   ttl                 = 300
   records             = [azurerm_lb.anydb[0].frontend_ip_configuration[0].private_ip_address]
 }
-
-*/
