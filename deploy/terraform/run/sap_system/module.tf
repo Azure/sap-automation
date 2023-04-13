@@ -46,7 +46,7 @@ module "common_infrastructure" {
   providers = {
     azurerm.deployer      = azurerm
     azurerm.main          = azurerm.system
-    azurerm.dnsmanagement = azurerm.dnsmanagement
+    //azurerm.dnsmanagement = azurerm.dnsmanagement
   }
   is_single_node_hana                = "true"
   application_tier                   = local.application_tier
@@ -171,7 +171,7 @@ module "app_tier" {
   providers = {
     azurerm.deployer      = azurerm
     azurerm.main          = azurerm.system
-    azurerm.dnsmanagement = azurerm.dnsmanagement
+//    azurerm.dnsmanagement = azurerm.dnsmanagement
   }
   depends_on       = [module.common_infrastructure]
   order_deployment = null
@@ -231,7 +231,7 @@ module "anydb_node" {
   providers = {
     azurerm.deployer      = azurerm
     azurerm.main          = azurerm.system
-    azurerm.dnsmanagement = azurerm.dnsmanagement
+  //  azurerm.dnsmanagement = azurerm.dnsmanagement
   }
   depends_on = [module.common_infrastructure]
   order_deployment = local.enable_db_deployment ? (
@@ -292,7 +292,7 @@ module "output_files" {
   providers = {
     azurerm.deployer      = azurerm
     azurerm.main          = azurerm.system
-    azurerm.dnsmanagement = azurerm.dnsmanagement
+    //azurerm.dnsmanagement = azurerm.dnsmanagement
   }
   database            = local.database
   infrastructure      = local.infrastructure
