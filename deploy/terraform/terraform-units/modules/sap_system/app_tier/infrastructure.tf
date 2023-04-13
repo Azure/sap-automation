@@ -535,7 +535,7 @@ resource "azurerm_subnet_route_table_association" "subnet_sap_web" {
   subnet_id      = azurerm_subnet.subnet_sap_web[0].id
   route_table_id = var.route_table_id
 }
-
+/*
 resource "azurerm_private_dns_a_record" "scs" {
   provider = azurerm.dnsmanagement
   count    = local.enable_scs_lb_deployment && length(local.dns_label) > 0 ? 1 : 0
@@ -562,3 +562,4 @@ resource "azurerm_private_dns_a_record" "ers" {
   records             = [azurerm_lb.scs[0].frontend_ip_configuration[1].private_ip_address]
 }
 
+*/
