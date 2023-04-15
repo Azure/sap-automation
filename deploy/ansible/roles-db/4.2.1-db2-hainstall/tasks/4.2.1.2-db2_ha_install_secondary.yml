@@ -66,6 +66,7 @@
         tasks_from:                    bom-register
       vars:
         bom_name:                      "{{ bom_base_name }}"
+        sa_enabled:                    true
 
     - name:                            "DB2 Install secondary DB: Include roles-sap/3.3.1-bom-utility role"
       ansible.builtin.include_role:
