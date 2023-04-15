@@ -266,6 +266,11 @@
               register:                scs_installation
               failed_when:             scs_installation.rc > 0
           rescue:
+            - name:                    "RESCUE - SCS Install: Show installation result"
+              ansible.builtin.debug:
+                var:                   scs_installation
+              when:                    scs_installation is defined
+
             - name:                    'RESCUE - SCS Install: Check {{ sap_drive }}\usr\sap\{{ sap_sid | upper }}\SYS\exe\uc\NTAMD64 exists'
               ansible.windows.win_stat:
                 path:                  '{{ sap_drive }}\usr\sap\{{ sap_sid | upper }}\SYS\exe\uc\NTAMD64'
@@ -282,21 +287,17 @@
                 - node_tier == 'scs'
                 - stat_sys_exe_uc.stat.exists
 
-            - name:                        "RESCUE - SCS Install: Show installation result"
-              ansible.builtin.debug:
-                var:                       scs_installation
-              when:                        scs_installation is defined
 
-            - name:                        'RESCUE - SCS Install: Cleanup {{ sap_drive }}\usr\sap\{{ sap_sid | upper }}\SYS\exe\uc\NTAMD64'
+            - name:                    'RESCUE - SCS Install: Cleanup {{ sap_drive }}\usr\sap\{{ sap_sid | upper }}\SYS\exe\uc\NTAMD64'
               ansible.windows.win_file:
-                path:                      '{{ sap_drive }}\usr\sap\{{ sap_sid | upper }}\SYS\exe\uc\NTAMD64'
-                state:                     absent
+                path:                  '{{ sap_drive }}\usr\sap\{{ sap_sid | upper }}\SYS\exe\uc\NTAMD64'
+                state:                 absent
               when:
                 - node_tier == 'scs'
                 - find_sys_exe_uc_result is defined
                 - find_sys_exe_uc_result | length > 0
 
-            - name:                    "SCS Install: SAP SCS Install on {{ ansible_hostname }}"
+            - name:                    "RESCUE - SCS Install: SAP SCS Install on {{ ansible_hostname }}"
               become:                  true
               become_method:           runas
               become_user:             '{{ sap_sid }}adm@{{ domain_name }}'
@@ -313,13 +314,18 @@
               vars:
                 ansible_become_password:   "{{ domain_user_password }}"
               register:                scs_installation
-              failed_when:             scs_installation.rc > 0
+
+        - name:                        "RESCUE - SCS Install: Show installation result"
+          ansible.builtin.debug:
+            var:                       scs_installation
+          when:
+           - scs_installation is defined
+           - scs_installation.rc > 0
 
         - name:                        "SCS Install: Failure on {{ ansible_hostname }}"
           ansible.builtin.fail:
             msg:                       "SCS Installation failed on {{ ansible_hostname }}"
           when:                        scs_installation.rc > 0
-
 
         - name:                        "SCS Install: Cleanup ini file {{ ansible_hostname }}"
           ansible.windows.win_file:
@@ -364,7 +370,7 @@
             - scs_installed_according_to_sapinst is defined
             - scs_installed_according_to_sapinst.matched > 0
 
-        - name:                                "SCS Install: High availability tasks"
+        - name:                        "SCS Install: High availability tasks"
           when:
             - "'scs' in supported_tiers "
             - scs_high_availability
@@ -372,14 +378,14 @@
             - scs_installed_according_to_sapinst.matched > 0
             - ansible_os_family | upper == 'WINDOWS'
           block:
-            - name:                           "SCS Install: High availability post installation tasks"
+            - name:                    "SCS Install: High availability post installation tasks"
               ansible.builtin.import_role:
-                name:                         roles-os/windows/1.17-generic-wincluster
-                tasks_from:                   1.17.2-wincluster-postconfig.yaml
-              register:                       cluster_post_config_output
+                name:                  roles-os/windows/1.17-generic-wincluster
+                tasks_from:            1.17.2-wincluster-postconfig.yaml
+              register:                cluster_post_config_output
               vars:
-                scs_cluster_hostname:         "{{ scs_virtual_hostname }}"
-                ers_cluster_hostname:         "{{ ers_virtual_hostname }}"
+                scs_cluster_hostname:  "{{ scs_virtual_hostname }}"
+                ers_cluster_hostname:  "{{ ers_virtual_hostname }}"
 
 # /*---------------------------------------------------------------------------8
 # |                            SCS Install : END                               |
