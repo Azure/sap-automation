@@ -69,6 +69,12 @@
       ansible.windows.win_file:
         path:                          '{{ sap_deployment_automation }}\{{ sid_to_be_deployed.sid | upper }}\cluster_config_done.txt'
         state:                         touch
+
+    - name:                            "SCS Install: High availability flag"
+      ansible.windows.win_reboot:
+        reboot_timeout:                600
+        post_reboot_delay:             120
+
 # End: call cluster configuration only if cluster is enabled
 # /*---------------------------------------------------------------------------8
 # |                    Windows cluster configuration : END                     |
