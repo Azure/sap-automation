@@ -412,6 +412,27 @@ namespace AutomationForm.Controllers
                             value = value.Trim(',');
                             value += "],";
                         }
+                        else if (key.EndsWith("configuration_settings"))
+                        {
+                            value += "[";
+                            currLine = stringReader.ReadLine();
+                            while (!currLine.StartsWith("}"))
+                            {
+                                equalIndex = currLine.IndexOf("=");
+                                var tagKey = currLine.Substring(0, equalIndex).Trim();
+                                if (!tagKey.StartsWith("\""))
+                                {
+                                    tagKey = "\"" + tagKey + "\"";
+                                }
+                                var tagValue = currLine.Substring(equalIndex + 1, currLine.Length - (equalIndex + 1)).Trim();
+                                value += "{";
+                                value += "\"Key\":" + tagKey + "," + "\"Value\":" + tagValue.Trim(',');
+                                value += "},";
+                                currLine = stringReader.ReadLine();
+                            }
+                            value = value.Trim(',');
+                            value += "],";
+                        }
                         else
                         {
                             value = currLine.Substring(equalIndex + 1, currLine.Length - (equalIndex + 1)).Trim();

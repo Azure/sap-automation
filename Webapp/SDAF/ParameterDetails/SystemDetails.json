@@ -264,8 +264,8 @@
             "Value": "ORACLE-ASM"
           },
           {
-            "Text": "ASE",
-            "Value": "ASE"
+            "Text": "SYBASE",
+            "Value": "SYBASE"
           },
           {
             "Text": "SQL SERVER",
