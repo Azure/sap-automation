@@ -83,89 +83,89 @@
     - "'scs' in supported_tiers "
     - ansible_os_family | upper == 'WINDOWS'
   block:
-    - name:                                "SCS Install: Create run flag directory"
+    - name:                            "SCS Install: Create run flag directory"
       ansible.windows.win_file:
-        path:                              '{{ sap_deployment_automation }}\{{ sid_to_be_deployed.sid | upper }}'
-        state:                             directory
+        path:                          '{{ sap_deployment_automation }}\{{ sid_to_be_deployed.sid | upper }}'
+        state:                         directory
 
-    - name:                                "SCS Install: reset"
+    - name:                            "SCS Install: reset"
       ansible.windows.win_file:
-        path:                              '{{ sap_deployment_automation }}\{{ sid_to_be_deployed.sid | upper }}\sap_deployment_scs.txt'
-        state:                             absent
-      when:                                reinstall
+        path:                          '{{ sap_deployment_automation }}\{{ sid_to_be_deployed.sid | upper }}\sap_deployment_scs.txt'
+        state:                         absent
+      when:                            reinstall
 
-    - name:                                "SCS Install: check if {{ sid_to_be_deployed.sid | upper }} is installed"
+    - name:                            "SCS Install: check if {{ sid_to_be_deployed.sid | upper }} is installed"
       ansible.windows.win_stat:
-        path:                              '{{ sap_deployment_automation }}\{{ sid_to_be_deployed.sid | upper }}\sap_deployment_scs.txt'
-      register:                            scs_installed
-      when:                                "'scs' in supported_tiers"
+        path:                          '{{ sap_deployment_automation }}\{{ sid_to_be_deployed.sid | upper }}\sap_deployment_scs.txt'
+      register:                        scs_installed
+      when:                            "'scs' in supported_tiers"
 
-    - name:                                "SCS Install: check if installed"
+    - name:                            "SCS Install: check if installed"
       ansible.builtin.debug:
-        var:                               scs_installed
-        verbosity:                         2
+        var:                           scs_installed
+        verbosity:                     2
 
 
     #   0x) Create directory for parameter files
-    - name:                                "SCS Install: Create params directory"
+    - name:                            "SCS Install: Create params directory"
       ansible.windows.win_file:
-        path:                              "{{ dir_params }}"
-        state:                             directory
+        path:                          "{{ dir_params }}"
+        state:                         directory
 
-    - name:                                "SCS Install: Create temp directory for sid"
+    - name:                            "SCS Install: Create temp directory for sid"
       ansible.windows.win_file:
-        path:                              '{{ tmp_directory_windows }}\{{ sid_to_be_deployed.sid | upper }}'
-        state:                             directory
+        path:                          '{{ tmp_directory_windows }}\{{ sid_to_be_deployed.sid | upper }}'
+        state:                         directory
 
     #   1x) Create directories for sapinst_extraction and logs
-    - name:                                "SCS Install: Create sapinst Extraction Directory"
+    - name:                            "SCS Install: Create sapinst Extraction Directory"
       ansible.windows.win_file:
-        path:                              '{{ download_directory_windows }}\sap_extract'
-        state:                             directory
+        path:                          '{{ download_directory_windows }}\sap_extract'
+        state:                         directory
       when:
         - "'scs' in supported_tiers"
 
-    - name:                                "SCS Install: Create log Directory"
+    - name:                            "SCS Install: Create log Directory"
       ansible.windows.win_file:
-        path:                              '{{ log_dir_windows }}\sapinst_logs'
-        state:                             directory
+        path:                          '{{ log_dir_windows }}\sapinst_logs'
+        state:                         directory
 
-    - name:                                "SCS Install: Include 3.3.1-bom-utility role"
+    - name:                            "SCS Install: Include 3.3.1-bom-utility role"
       ansible.builtin.include_role:
-        name:                              roles-sap/windows/3.3.1-bom-utility
-        tasks_from:                        bom-register
+        name:                          roles-sap/windows/3.3.1-bom-utility
+        tasks_from:                    bom-register
       vars:
-        bom_name:                          "{{ bom_base_name }}"
-        tier:                              "scs"
-        task_prefix:                       "SCS Install: "
-        sa_enabled:                        true
+        bom_name:                      "{{ bom_base_name }}"
+        tier:                          "scs"
+        task_prefix:                   "SCS Install: "
+        sa_enabled:                    true
 
-    - name:                                "SCS Install: Set BOM facts"
+    - name:                            "SCS Install: Set BOM facts"
       ansible.builtin.set_fact:
-        sap_inifile:                       "{{ bom_base_name }}-scs-{{ sid_to_be_deployed.sid | lower }}-{{ ansible_hostname }}.params"
-        sap_inifile_template:              "{{ bom_base_name }}{{ bom_suffix }}-scs{{ ha_identifier }}-inifile-param.j2"
-        dir_params:                        '{{ tmp_directory_windows }}\{{ sid_to_be_deployed.sid | lower }}-params'
-        product_catalog:                   '{{ download_directory_windows }}\SWPM\product.catalog'
-        product_id:                        "{% if scs_high_availability %}{{ bom.product_ids.scs_ha }}{% else %}{{ bom.product_ids.scs }}{% endif %}"
+        sap_inifile:                   "{{ bom_base_name }}-scs-{{ sid_to_be_deployed.sid | lower }}-{{ ansible_hostname }}.params"
+        sap_inifile_template:          "{{ bom_base_name }}{{ bom_suffix }}-scs{{ ha_identifier }}-inifile-param.j2"
+        dir_params:                    '{{ tmp_directory_windows }}\{{ sid_to_be_deployed.sid | lower }}-params'
+        product_catalog:               '{{ download_directory_windows }}\SWPM\product.catalog'
+        product_id:                    "{% if scs_high_availability %}{{ bom.product_ids.scs_ha }}{% else %}{{ bom.product_ids.scs }}{% endif %}"
       when: ansible_hostname == primary_node
 
-    - name:                                "SCS Install: Set BOM facts"
+    - name:                            "SCS Install: Set BOM facts"
       ansible.builtin.set_fact:
-        sap_inifile:                       "{{ bom_base_name }}-ers-{{ sid_to_be_deployed.sid | lower }}-{{ ansible_hostname }}.params"
-        sap_inifile_template:              "{{ bom_base_name }}{{ bom_suffix }}-ers-inifile-param.j2"
-        dir_params:                        '{{ tmp_directory_windows }}\{{ sid_to_be_deployed.sid | lower }}-params'
-        product_catalog:                   '{{ download_directory_windows }}\SWPM\product.catalog'
-        product_id:                        '{{ bom.product_ids.ers }}'
+        sap_inifile:                   "{{ bom_base_name }}-ers-{{ sid_to_be_deployed.sid | lower }}-{{ ansible_hostname }}.params"
+        sap_inifile_template:          "{{ bom_base_name }}{{ bom_suffix }}-ers-inifile-param.j2"
+        dir_params:                    '{{ tmp_directory_windows }}\{{ sid_to_be_deployed.sid | lower }}-params'
+        product_catalog:               '{{ download_directory_windows }}\SWPM\product.catalog'
+        product_id:                    '{{ bom.product_ids.ers }}'
       when: ansible_hostname == secondary_node
 
-    - name:                                "SCS Install: Include roles-sap/windows/3.3.1-bom-utility role"
+    - name:                            "SCS Install: Include roles-sap/windows/3.3.1-bom-utility role"
       ansible.builtin.include_role:
-        name:                              roles-sap/windows/3.3.1-bom-utility
-        tasks_from:                        bom-template
+        name:                          roles-sap/windows/3.3.1-bom-utility
+        tasks_from:                    bom-template
       vars:
-        task_prefix:                       "SCS Install: "
-        always_upload_jinja_templates:     false
-        bom_name:                          "{{ bom_base_name }}"
+        task_prefix:                   "SCS Install: "
+        always_upload_jinja_templates: false
+        bom_name:                      "{{ bom_base_name }}"
         sap_cd_package_cd1:
         sap_cd_package_cd2:
         sap_cd_package_cd3:
@@ -178,16 +178,16 @@
         sap_ciBtcWPNumber:
         sap_installSAPHostAgent:
         sap_profile_dir:
-        sap_scs_hostname:                  "{{ virtual_host }}"
+        sap_scs_hostname:              "{{ virtual_host }}"
         sap_db_hostname:
         sap_ciVirtualHostname:
         sap_appVirtualHostname:
-        param_directory:                   "{{ dir_params }}"
-        sap_sid:                           "{{ sid_to_be_deployed.sid }}"
-        scs_instance_number:               "{{ sid_to_be_deployed.ascs_inst_no }}"
-        sidadm_uid:                        "{{ sid_to_be_deployed.sidadm_uid }}"
+        param_directory:               "{{ dir_params }}"
+        sap_sid:                       "{{ sid_to_be_deployed.sid }}"
+        scs_instance_number:           "{{ sid_to_be_deployed.ascs_inst_no }}"
+        sidadm_uid:                    "{{ sid_to_be_deployed.sidadm_uid }}"
 
-    - name:                                "SCS Install: install variables"
+    - name:                            "SCS Install: install variables"
       ansible.builtin.debug:
         msg:
           - "INSTALLED:  {{ scs_installed.stat.exists }}"
@@ -199,20 +199,20 @@
           - "SID:        {{ sid_to_be_deployed.sid | upper }}"
 
 
-    - name:                                "SCS Install status"
+    - name:                            "SCS Install status"
       block:
 
-        - name:                            "SCS Install status"
+        - name:                        "SCS Install status"
           ansible.builtin.debug:
-            msg:                           "SCS is already installed"
+            msg:                       "SCS is already installed"
 
-        - name:                            "SCS: - return value"
+        - name:                        "SCS: - return value"
           ansible.builtin.set_fact:
-            scs_already_installed:         true
+            scs_already_installed:     true
       when:
         - scs_installed.stat.exists
 
-    - name:                                "SCS Install"
+    - name:                            "SCS Install"
       when:
         - "'scs' in supported_tiers"
         - not scs_installed.stat.exists
