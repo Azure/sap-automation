@@ -311,7 +311,7 @@
                     domain_service_account:    "{{ hostvars.localhost.adsvc_account }}"
                     domain_user_password:      "{{ hostvars.localhost.winadm_password }}"
                     tier:                      app_tier
-                    scs_server:                ansible_hostname
+                    scs_server:                "{{ ansible_hostname }}"
 
                 - name:                "SCS Installation Playbook: - Install using sapinst"
                   ansible.builtin.include_role:
