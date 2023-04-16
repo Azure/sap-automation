@@ -1,4 +1,4 @@
-﻿using AutomationForm.Models;
+using AutomationForm.Models;
 using AutomationForm.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -412,7 +412,7 @@ namespace AutomationForm.Controllers
                             value = value.Trim(',');
                             value += "],";
                         }
-                        else if (key.EndsWith("configuration_settings"))
+                        else if (key.EndsWith("configuration_settings\""))
                         {
                             value += "[";
                             currLine = stringReader.ReadLine();
