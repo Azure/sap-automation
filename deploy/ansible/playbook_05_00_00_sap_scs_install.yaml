@@ -311,6 +311,7 @@
                     domain_service_account:    "{{ hostvars.localhost.adsvc_account }}"
                     domain_user_password:      "{{ hostvars.localhost.winadm_password }}"
                     tier:                      app_tier
+                    scs_server:                ansible_hostname
 
                 - name:                "SCS Installation Playbook: - Install using sapinst"
                   ansible.builtin.include_role:
@@ -590,9 +591,9 @@
       become:                          false
       when: ansible_os_family == "Windows"
       block:
-        - name:                    "SCS Installation - Windows based systems"
+        - name:                        "SCS Installation - Windows based systems"
           block:
-            - name:                "SCS Installation Playbook: - Install using sapinst"
+            - name:                    "SCS Installation Playbook: - Install using sapinst"
               ansible.builtin.include_role:
                 name:              roles-sap/windows/5.0.0-scs-install
               vars:
