@@ -131,12 +131,12 @@
     - name:                            "Download SQL Server ODBC Driver 17"
       ansible.windows.win_get_url:
         url:                           https://download.microsoft.com/download/6/f/f/6ffefc73-39ab-4cc0-bb7c-4093d64c2669/en-US/17.10.1.1/x64/msodbcsql.msi
-        dest:                          "{{ tempdir }}"
+        dest:                          "{{ tempdir.path }}"
         validate_certs:                true
 
     - name:                            "Install SQL Server ODBC Driver 17"
       ansible.windows.win_shell: |
-                                       MsiExec.exe /i {{ tempdir }}\msodbcsql.msi IACCEPTMSODBCSQLLICENSETERMS=YES /qn
+                                       MsiExec.exe /i {{ tempdir.path }}\msodbcsql.msi IACCEPTMSODBCSQLLICENSETERMS=YES /qn
       vars:
         ansible_become:                true
         ansible_become_method:         runas
