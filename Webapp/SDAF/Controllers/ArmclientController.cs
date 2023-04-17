@@ -1,4 +1,4 @@
-﻿using Azure;
+using Azure;
 using Azure.Core;
 using Azure.ResourceManager;
 using Azure.ResourceManager.Compute;
@@ -290,9 +290,9 @@ namespace AutomationForm.Controllers
             try
             {
                 SubscriptionResource subscription = _armClient.GetSubscriptionResource(new ResourceIdentifier(subscriptionId));
-                Pageable<VaultResource> keyVaults = subscription.GetVaults();
+                Pageable<KeyVaultResource> keyVaults = subscription.GetKeyVaults();
 
-                foreach (VaultResource kv in keyVaults)
+                foreach (KeyVaultResource kv in keyVaults)
                 {
                     options.Add(new SelectListItem
                     {

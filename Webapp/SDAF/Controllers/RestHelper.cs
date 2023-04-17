@@ -111,7 +111,7 @@ namespace AutomationForm.Controllers
 
             string postUri = $"{collectionUri}{project}/_apis/pipelines/{pipelineId}/runs?api-version=6.0-preview.1";
 
-            string requestJson = JsonSerializer.Serialize(requestBody, typeof(PipelineRequestBody), new JsonSerializerOptions() { IgnoreNullValues = true });
+            string requestJson = JsonSerializer.Serialize(requestBody, typeof(PipelineRequestBody), new JsonSerializerOptions() { });
             StringContent content = new StringContent(requestJson, Encoding.ASCII, "application/json");
 
             HttpResponseMessage response = await client.PostAsync(postUri, content);
@@ -314,7 +314,7 @@ namespace AutomationForm.Controllers
                     }
                 };
 
-            string requestJson = JsonSerializer.Serialize(environment, typeof(EnvironmentModel), new JsonSerializerOptions() { IgnoreNullValues = true });
+            string requestJson = JsonSerializer.Serialize(environment, typeof(EnvironmentModel), new JsonSerializerOptions() { });
             StringContent content = new StringContent(requestJson, Encoding.ASCII, "application/json");
 
             HttpResponseMessage response = await client.PostAsync(postUri, content);
