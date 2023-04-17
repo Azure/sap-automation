@@ -1,4 +1,4 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using static AutomationForm.Models.CustomValidators;
 
@@ -421,9 +421,15 @@ namespace AutomationForm.Models
         public bool? enable_purge_control_for_keyvaults { get; set; } = false;
 
         public bool? deploy_application_security_groups { get; set; } = true;
-    }
 
-    public class Tag
+        [DisplayName("Web SID")]
+        public string web_sid { get; set; }
+
+        public string web_instance_number { get; set; } = "00";
+
+  }
+
+  public class Tag
     {
         public string Key { get; set; }
         public string Value { get; set; }

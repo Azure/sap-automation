@@ -993,6 +993,25 @@
         "Display": 1
       },
       {
+        "Name": "web_sid",
+        "Required": false,
+        "Description": "Web Dispatcher SID",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+
+      {
+        "Name": "web_instance_number",
+        "Required": false,
+        "Description": "Defines the web instance number. Default is 00.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
         "Name": "webdispatcher_server_zones",
         "Required": false,
         "Description": "Defines the availability zones to which deploy the web dispatchers",
