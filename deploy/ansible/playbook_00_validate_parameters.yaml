@@ -28,6 +28,12 @@
         name:                          netaddr
         state:                         present
 
+    # - name:                            "0.0 Validations - ensure credssp is installed in the controller"
+    #   ansible.builtin.pip:
+    #     name:                          'pywinrm[credssp]'
+    #     state:                         present
+    #   failed_when:                     false
+
     - name:                            "0.0 Validations - Create Progress folder"
       ansible.builtin.file:
         path:                          "{{ _workspace_directory }}/.progress"
@@ -128,7 +134,9 @@
         }
       loop_control:
         loop_var:                      item_to_check
-      when: scs_high_availability
+      when:
+        - scs_high_availability
+        - platform != "SQLSERVER"
 
     - name:                            "0.0 Validations - Check required SCS HA fencing variables are present and not empty"
       ansible.builtin.assert:
@@ -400,11 +408,12 @@
 
     - name:                            "0.0 Validations - Check internet connectivity"
       ansible.builtin.uri:
-        url: "https://management.azure.com/subscriptions/{{ subscription_id }}/providers/Microsoft.Web/sites?api-version=2016-08-01"
-        headers:
-          Authorization: "Bearer {{ access_token }}"
-          Content-Type: application/json
-          Accept: application/json
+        #url: "https://management.azure.com/subscriptions/{{ subscription_id }}/providers/Microsoft.Web/sites?api-version=2022-03-01"
+        url: "https://azure.status.microsoft/en-us/status"
+        # headers:
+        #   Authorization: "Bearer {{ access_token }}"
+        #   Content-Type: application/json
+        #   Accept: application/json
         status_code:
           - 200
           - 403
@@ -419,7 +428,7 @@
 
     - name:                            "0.0 Validations - Check internet connectivity"
       ansible.builtin.uri:
-        url: "https://management.azure.com/subscriptions/{{ subscription_id }}/providers/Microsoft.Web/sites?api-version=2016-08-01"
+        url: "https://management.azure.com/subscriptions/{{ subscription_id }}/providers/Microsoft.Web/sites?api-version=2022-03-01"
         headers:
           Authorization: "Bearer {{ access_token }}"
           Content-Type: application/json
@@ -538,6 +547,7 @@
           when:
             - "'scs' in supported_tiers"
             - usr_sap_mounted is defined
+            - ansible_os_family != "Windows"
           block:
             - name:                    "0.0 Validations - Disk space details"
               ansible.builtin.set_fact:

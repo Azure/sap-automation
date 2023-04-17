@@ -138,4 +138,3 @@ resource "azurerm_private_dns_a_record" "db" {
   ttl                 = 300
   records             = [azurerm_lb.anydb[0].frontend_ip_configuration[0].private_ip_address]
 }
-

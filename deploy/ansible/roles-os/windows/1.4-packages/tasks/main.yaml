@@ -121,16 +121,22 @@
         post_reboot_delay:             120
       when: vcredist2013_output.reboot_required or vcredist2017_output.reboot_required
 
+    - name:                                'Create temporary extract directory {{ item.archive }}'
+      ansible.windows.win_tempfile:
+        state:                             directory
+        suffix:                            extract
+      register:                            tempdir
+
     #   3x) download SQL server ODBC 17 on windows.
     - name:                            "Download SQL Server ODBC Driver 17"
       ansible.windows.win_get_url:
         url:                           https://download.microsoft.com/download/6/f/f/6ffefc73-39ab-4cc0-bb7c-4093d64c2669/en-US/17.10.1.1/x64/msodbcsql.msi
-        dest:                          "{{ tmp_directory_windows }}"
+        dest:                          "{{ tempdir.path }}"
         validate_certs:                true
 
     - name:                            "Install SQL Server ODBC Driver 17"
       ansible.windows.win_shell: |
-                                       MsiExec.exe /i {{ tmp_directory_windows }}\msodbcsql.msi IACCEPTMSODBCSQLLICENSETERMS=YES /qn
+                                       MsiExec.exe /i {{ tempdir.path }}\msodbcsql.msi IACCEPTMSODBCSQLLICENSETERMS=YES /qn
       vars:
         ansible_become:                true
         ansible_become_method:         runas

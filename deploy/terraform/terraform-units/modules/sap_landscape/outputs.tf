@@ -231,7 +231,7 @@ output "dns_info_vms" {
 }
 
 output "privatelink_file_id" {
-  value = data.azurerm_private_dns_zone.file[0].id
+  value = try(data.azurerm_private_dns_zone.file[0].id, "")
 
 }
 

@@ -53,6 +53,10 @@
       failed_when:                     not post_ers_install.stat.exists
       when:                            ansible_hostname == secondary_instance_name
 
+    - name:                            "5.6 SCSERS: SCS cluster group validation check only"
+      ansible.builtin.set_fact:
+        perform_check:                 false
+
     - name:                            "5.6 SCSERS: SCS cluster group validation"
       ansible.builtin.include_tasks:
         file:                          "5.6.6-validate.yml"
@@ -79,6 +83,21 @@
           become_user:                 root
           tags:
             - "5.6.4.2-sap-resources"
+
+    - name:                            "5.6 SCSERS: SCS cluster group validation check only"
+      ansible.builtin.set_fact:
+        perform_check:                 true
+
+    - name:                            "5.6 SCSERS: SCS cluster group validation"
+      ansible.builtin.include_tasks:
+        file:                          "5.6.6-validate.yml"
+        apply:
+          become:                      true
+          become_user:                 root
+          tags:
+            - "5.6.6-validate"
+
+
   # when:
   #   - ersservicehalib.rc == 0
   #   - scsservicehalib.rc == 0

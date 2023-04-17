@@ -240,7 +240,7 @@
       {
         "Name": "database_platform",
         "Required": true,
-        "Description": "The type of database backend. Valid choices are 'HANA', 'DB2', 'ORACLE', 'SQLSERVER','ASE'",
+        "Description": "The type of database backend. Valid choices are 'HANA', 'DB2', 'ORACLE', 'SQLSERVER','SYBASE'",
         "Type": "lookup",
         "Options": [
           {
@@ -264,8 +264,8 @@
             "Value": "ORACLE-ASM"
           },
           {
-            "Text": "ASE",
-            "Value": "ASE"
+            "Text": "SYBASE",
+            "Value": "SYBASE"
           },
           {
             "Text": "SQL SERVER",
@@ -991,6 +991,25 @@
         "Options": [],
         "Overrules": "",
         "Display": 1
+      },
+      {
+        "Name": "web_sid",
+        "Required": false,
+        "Description": "Web Dispatcher SID",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+
+      {
+        "Name": "web_instance_number",
+        "Required": false,
+        "Description": "Defines the web instance number. Default is 00.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
       },
       {
         "Name": "webdispatcher_server_zones",

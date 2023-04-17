@@ -65,7 +65,7 @@ resource "azurerm_virtual_network_peering" "peering_management_sap" {
     azurerm_subnet.db,
     azurerm_subnet.web,
     azurerm_subnet.admin
-    
+
   ]
 
   count = var.peer_with_control_plane_vnet ? (
@@ -101,7 +101,7 @@ resource "azurerm_virtual_network_peering" "peering_sap_management" {
     azurerm_subnet.db,
     azurerm_subnet.web,
     azurerm_subnet.admin
-    
+
   ]
   count = var.peer_with_control_plane_vnet ? (
     local.vnet_sap_exists || !var.use_deployer ? 0 : 1) : (
@@ -247,5 +247,4 @@ data "azurerm_private_dns_zone" "storage" {
   name                = "privatelink.blob.core.windows.net"
   resource_group_name = var.management_dns_resourcegroup_name
 }
-
 

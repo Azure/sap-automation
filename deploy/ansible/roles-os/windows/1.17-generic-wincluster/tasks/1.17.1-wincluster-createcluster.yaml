@@ -25,7 +25,7 @@
     - domain_name | trim | length > 1
     - domain is not defined
 
-- name:                                "WinCluster-Create: Print the variables from {{ domain_name }}"
+- name:                                "WinCluster-Create: Print the variables for {{ cluster_name }}"
   ansible.builtin.debug:
     msg:
       - "ClusterName is {{ cluster_name }}"

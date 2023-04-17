@@ -85,7 +85,7 @@ resource "azurerm_network_interface" "web_admin" {
   )
   location                      = var.resource_group[0].location
   resource_group_name           = var.resource_group[0].name
-  enable_accelerated_networking = local.app_sizing.compute.accelerated_networking
+  enable_accelerated_networking = local.web_sizing.compute.accelerated_networking
 
   ip_configuration {
     name      = "IPConfig1"
@@ -464,7 +464,7 @@ resource "azurerm_virtual_machine_extension" "configure_ansible_web" {
   type_handler_version = "1.9"
   settings             = <<SETTINGS
         {
-          "fileUris": ["https://raw.githubusercontent.com/KimForss/sap-automation/experimental/deploy/scripts/configure_ansible.ps1"],
+          "fileUris": ["https://raw.githubusercontent.com/Azure/sap-automation/main/deploy/scripts/configure_ansible.ps1"],
           "commandToExecute": "powershell.exe -ExecutionPolicy Unrestricted -File configure_ansible.ps1 -Verbose"
         }
     SETTINGS

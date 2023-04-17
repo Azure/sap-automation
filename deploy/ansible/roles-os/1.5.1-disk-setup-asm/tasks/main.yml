@@ -313,7 +313,7 @@
       when:
         - item.type == "reco-asm"
         - item.host == current_host
-      register:                        "ORACLE ASM: recogroup"
+      register:                        recogroup
       args:
         chdir:                         "/dev/disk/azure/scsi1"
 

@@ -105,7 +105,7 @@ $$database_sid$$
 # - HANA
 # - DB2
 # - ORACLE
-# - ASE
+# - SYBASE
 # - SQLSERVER
 # - NONE (in this case no database tier is deployed)
 $$database_platform$$
@@ -344,6 +344,13 @@ $$application_server_vm_avset_arm_ids$$
 
 # webdispatcher_server_count defines how many web dispatchers to deploy
 $$webdispatcher_server_count$$
+
+# web_sid is the Web Dispatcher SID
+$$web_sid$$
+
+# web_instance_number defines the web instance number
+web_instance_number$$
+
 
 # webdispatcher_server_app_nic_ips, if provided provides the static IP addresses
 # for the network interface cards connected to the application subnet

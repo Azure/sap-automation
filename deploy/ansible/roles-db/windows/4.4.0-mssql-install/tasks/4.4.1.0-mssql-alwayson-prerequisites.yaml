@@ -95,6 +95,12 @@
     username:                          "{{ domain_sqlsvc_account }}"
     password:                          '{{ win_sql_svc_password }}'
     force_dependent_services:          true
+  register:                            sql_svc_stopped
+
+- name:                                "Show results"
+  ansible.builtin.debug:
+    msg:                               "{{ sql_svc_stopped }}"
+    verbosity:                         2
 
 - name:                                "Convert SQL Server agent service from running with local account to domain account"
   ansible.windows.win_service:
@@ -102,17 +108,23 @@
     state:                             stopped
     username:                          "{{ domain_sqlagent_account }}"
     password:                          '{{ win_sqlagent_svc_password }}'
+  register:                            sql_agent_svc_stopped
+
+- name:                                "Show results (Agent)"
+  ansible.builtin.debug:
+    msg:                               "{{ sql_agent_svc_stopped }}"
+    verbosity:                         2
+
+- name:                                "Start SQL Server agent service"
+  ansible.windows.win_service:
+    name:                              SQLSERVERAGENT
+    state:                             started
 
 - name:                                "Start SQL Server service "
   ansible.windows.win_service:
     name:                              MSSQLSERVER
     state:                             started
     force_dependent_services:          true
-
-- name:                                "Start SQL Server agent service"
-  ansible.windows.win_service:
-    name:                              SQLSERVERAGENT
-    state:                             started
 
 - name:                                "Add required users to SQL Server"
   ansible.windows.win_dsc:

@@ -334,7 +334,7 @@
 
     - name:                            "Update path variables required on the machines"
       ansible.windows.win_path:
-        name:                          '{{ item.value }}'
+        elements:                      '{{ item.value }}'
         state:                         present
         scope:                         '{{ item.scope }}'
       with_items:

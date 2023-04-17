@@ -99,6 +99,7 @@ stages:
                   rm -f terraform_$(tf_version)_linux_amd64.zip
               else
                 source /etc/profile.d/deploy_server.sh
+                export AZURE_DEVOPS_EXT_PAT=$PAT
 
               fi
 
@@ -390,7 +391,7 @@ stages:
               SYSTEM_ACCESSTOKEN:       $(System.AccessToken)
               SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
               CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}
-              AZURE_DEVOPS_EXT_PAT:     $(WZ_PAT)
+              PAT:                      $(WZ_PAT)
               TEST_ONLY:                ${{ parameters.test }}
               TF_LOG:                   $(TF_LOG)
               TF_IN_AUTOMATION:         true

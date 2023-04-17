@@ -79,7 +79,7 @@ resource "azurerm_role_assignment" "storage_tfstate_contributor_ssi" {
 
 resource "azurerm_private_dns_a_record" "storage_tfstate_pep_a_record_registry" {
   provider = azurerm.dnsmanagement
-  count    = local.use_local_private_dns && !local.sa_tfstate_exists ? 1 : 0
+  count    = var.use_private_endpoint && var.use_custom_dns_a_registration && !local.sa_tfstate_exists ? 1 : 0
   depends_on = [
     azurerm_private_dns_zone.blob
   ]
@@ -254,7 +254,7 @@ resource "azurerm_storage_account_network_rules" "storage_sapbits" {
 
 resource "azurerm_private_dns_a_record" "storage_sapbits_pep_a_record_registry" {
   provider = azurerm.dnsmanagement
-  count    = local.use_local_private_dns && !local.sa_sapbits_exists ? 1 : 0
+  count    = var.use_private_endpoint && var.use_custom_dns_a_registration && !local.sa_sapbits_exists ? 1 : 0
   depends_on = [
     azurerm_private_dns_zone.blob
   ]
