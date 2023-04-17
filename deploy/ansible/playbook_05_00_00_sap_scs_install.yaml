@@ -611,7 +611,7 @@
                 sapbits_sas_token:            "{{ hostvars.localhost.sapbits_sas_token }}"
                 sa_enabled:                   true
                 primary_node:                 "{{ ansible_play_hosts_all[0] }}"
-                secondary_node:               "{% {{ ansible_play_hosts_all | length > 0 }} %}{{ ansible_play_hosts_all[1] }}{% else %} '' {% endif %}"
+                secondary_node:               "{% {{ ansible_play_hosts_all | length > 1 }} %}{{ ansible_play_hosts_all[1] }}{% else %} '' {% endif %}"
                 sap_cluster_ip_address:       "{{ scs_clst_lb_ip }}"
                 primary_node_ip_scs:          "{{ hostvars[ansible_play_hosts_all[0]]['ansible_eth0']['ipv4']['address'] }}"
                 secondary_node_ip_ers:        "{{ hostvars[ansible_play_hosts_all[1]]['ansible_eth0']['ipv4']['address'] }}"
