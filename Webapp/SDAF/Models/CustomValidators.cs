@@ -259,7 +259,7 @@ namespace AutomationForm.Models
                     "DB2",
                     "ORACLE",
                     "ORACLE-ASM",
-                    "ASE",
+                    "SYBASE",
                     "SQLSERVER",
                     "NONE"
                 };

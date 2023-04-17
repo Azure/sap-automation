@@ -13,7 +13,7 @@ namespace AutomationForm.Models
             RowKey = landscape.Id;
             PartitionKey = landscape.environment;
             IsDefault = landscape.IsDefault;
-            Landscape = JsonSerializer.Serialize(landscape, new JsonSerializerOptions() { IgnoreNullValues = true });
+            Landscape = JsonSerializer.Serialize(landscape, new JsonSerializerOptions() { });
         }
 
         public string RowKey { get; set; } = default!;

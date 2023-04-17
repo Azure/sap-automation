@@ -14,7 +14,7 @@ namespace AutomationForm.Models
             RowKey = system.Id;
             PartitionKey = system.environment;
             IsDefault = system.IsDefault;
-            System = JsonSerializer.Serialize(system, new JsonSerializerOptions() { IgnoreNullValues = true });
+            System = JsonSerializer.Serialize(system, new JsonSerializerOptions() { });
         }
 
         public string RowKey { get; set; } = default!;

@@ -240,7 +240,7 @@
       {
         "Name": "database_platform",
         "Required": true,
-        "Description": "The type of database backend. Valid choices are 'HANA', 'DB2', 'ORACLE', 'SQLSERVER','ASE'",
+        "Description": "The type of database backend. Valid choices are 'HANA', 'DB2', 'ORACLE', 'SQLSERVER','SYBASE'",
         "Type": "lookup",
         "Options": [
           {
