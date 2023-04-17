@@ -371,11 +371,6 @@
             - scs_installed_according_to_sapinst is defined
             - scs_installed_according_to_sapinst.matched > 0
 
-          when:
-            - scs_installation.rc == 0
-            - scs_installed_according_to_sapinst is defined
-            - scs_installed_according_to_sapinst.matched > 0
-
         - name:                        "SCS Install: High availability tasks"
           when:
             - "'scs' in supported_tiers "
