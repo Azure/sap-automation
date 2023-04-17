@@ -113,10 +113,16 @@
 
 
     #   0x) Create directory for parameter files
+    - name:                            "SCS Install: check if {{ dir_params }} exists"
+      ansible.windows.win_stat:
+        path:                          "{{ dir_params }}"
+      register:                        dir_params_exists
+
     - name:                            "SCS Install: Create params directory"
       ansible.windows.win_file:
         path:                          "{{ dir_params }}"
         state:                         directory
+      when:                            not dir_params_exists.stat.exists
 
     - name:                            "SCS Install: Create temp directory for sid"
       ansible.windows.win_file:
