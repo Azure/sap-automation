@@ -320,6 +320,8 @@
                     scs_instance_number:   "{{ sid_to_be_deployed.ascs_inst_no }}"
                     domain_user_password:  "{{ hostvars.localhost.winadm_password }}"
                     svc_password:          "{{ hostvars.localhost.svcadm_password }}"
+                    primary_node:          "{{ ansible_play_hosts_all[0] }}"
+                    secondary_node:        ""
                   loop:                    "{{ all_sids }}"
                   loop_control:
                     loop_var:              sid_to_be_deployed
