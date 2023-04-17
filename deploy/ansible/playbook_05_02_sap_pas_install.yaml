@@ -113,7 +113,6 @@
       loop_control:
         loop_var:                      sid_to_be_deployed
       when:
-        - platform not in [ "ORACLE", "ORACLE-ASM" ]
         - ansible_os_family != "Windows"
       tags:
         - 2.5-sap-users
