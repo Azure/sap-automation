@@ -591,7 +591,9 @@
 
     - name:                            "SCS HA Installation Playbook: - Run HA SCS Installation on Windows"
       become:                          false
-      when: ansible_os_family == "Windows"
+      when:
+        - ansible_os_family == "Windows"
+        - scs_high_availability
       block:
         - name:                        "SCS Installation - Windows based systems"
           block:
