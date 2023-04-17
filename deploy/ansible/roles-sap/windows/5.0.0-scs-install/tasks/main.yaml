@@ -33,7 +33,7 @@
   ansible.builtin.set_fact:
     scs_server:                        "{{ hostvars[scs_server_temp | first]['virtual_host'] }}"
     ha_identifier:                     ""
-    dir_params:                        '{{ tmp_directory_windows }}\{{ sid_to_be_deployed.sid | lower }}-params'
+    dir_params:                        '{{ tmp_directory_windows }}\{{ sid_to_be_deployed.sid | lower }}-params\'
 
 - name:                                "5.6 SCSERS - Set the SCS and ERS Virtual Instance hostname"
   ansible.builtin.set_fact:
@@ -91,7 +91,7 @@
   block:
     - name:                            "SCS Install: Create run flag directory"
       ansible.windows.win_file:
-        path:                          '{{ sap_deployment_automation }}\{{ sid_to_be_deployed.sid | upper }}'
+        path:                          '{{ sap_deployment_automation }}\{{ sid_to_be_deployed.sid | upper }}\'
         state:                         directory
 
     - name:                            "SCS Install: reset"
@@ -126,7 +126,7 @@
 
     - name:                            "SCS Install: Create temp directory for sid"
       ansible.windows.win_file:
-        path:                          '{{ tmp_directory_windows }}\{{ sid_to_be_deployed.sid | upper }}'
+        path:                          '{{ tmp_directory_windows }}\{{ sid_to_be_deployed.sid | upper }}\'
         state:                         directory
 
     #   1x) Create directories for sapinst_extraction and logs
