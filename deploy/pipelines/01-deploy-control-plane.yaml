@@ -322,7 +322,7 @@ stages:
                             fi
                         exit $return_code
 
-                  displayName: Deploy control plane
+                  displayName: Prepare control plane
                   env:
                       SYSTEM_ACCESSTOKEN:             $(System.AccessToken)
                       ARM_SUBSCRIPTION_ID:            $(CP_ARM_SUBSCRIPTION_ID)

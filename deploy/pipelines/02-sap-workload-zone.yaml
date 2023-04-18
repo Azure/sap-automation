@@ -122,6 +122,7 @@ stages:
                 if [ ! -f /etc/profile.d/deploy_server.sh ]; then
                   echo -e "$green --- Install dos2unix ---$reset"
                   sudo apt-get -qq install dos2unix
+                  export AZURE_DEVOPS_EXT_PAT=$PAT
                 else
                   source /etc/profile.d/deploy_server.sh
                   export AZURE_DEVOPS_EXT_PAT=$PAT
