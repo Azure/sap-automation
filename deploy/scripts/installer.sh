@@ -613,8 +613,6 @@ if [ 0 == $return_value ] ; then
         save_config_var "keyvault" "${system_config_information}"
         if [ 1 == $called_from_ado ] ; then
 
-
-
             if [[ "${TF_VAR_use_webapp}" == "true" && $IS_PIPELINE_DEPLOYMENT = "true" ]]; then
                 webapp_url_base=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_url_base | tr -d \")
 
@@ -1153,7 +1151,18 @@ then
         az resource delete --ids ${deployer_extension_ids}
     fi
 
-    save_config_var "keyvault" "${system_config_information}"
+   if valid_kv_name "$keyvault" ; then
+        save_config_var "keyvault" "${system_config_information}"
+    else
+        printf -v val %-40.40s "$keyvault"
+        echo "#########################################################################################"
+        echo "#                                                                                       #"
+        echo -e "#       The provided keyvault is not valid:$boldred ${val} $resetformatting  #"
+        echo "#                                                                                       #"
+        echo "#########################################################################################"
+        echo "The provided keyvault is not valid " "${val}"  > secret.err
+    fi
+
     save_config_var "deployer_public_ip_address" "${system_config_information}"
 fi
 
@@ -1222,7 +1231,7 @@ fi
 
 if [ "${deployment_system}" == sap_library ]
 then
-    REMOTE_STATE_SA=$(terraform -chdir="${terraform_module_directory}" output remote_state_storage_account_name| tr -d \")
+    REMOTE_STATE_SA=$(terraform -chdir="${terraform_module_directory}" output  -no-color -raw remote_state_storage_account_name | tr -d \")
     sapbits_storage_account_name=$(terraform -chdir="${terraform_module_directory}"  output -no-color -raw sapbits_storage_account_name | tr -d \")
     if [ 1 == $called_from_ado ] ; then
 
