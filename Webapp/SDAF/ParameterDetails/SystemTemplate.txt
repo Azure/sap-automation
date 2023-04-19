@@ -349,7 +349,7 @@ $$webdispatcher_server_count$$
 $$web_sid$$
 
 # web_instance_number defines the web instance number
-web_instance_number$$
+$$web_instance_number$$
 
 
 # webdispatcher_server_app_nic_ips, if provided provides the static IP addresses
