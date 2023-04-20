@@ -583,11 +583,13 @@ fi
 allParams=$(printf " -var-file=%s %s %s %s %s %s %s" "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter}" )
 
 terraform -chdir="$terraform_module_directory" plan -no-color -detailed-exitcode $allParams | tee -a plan_output.log
+echo "Plan returned $return_value"
 
 errors=$(grep -m1 "^Error:" plan_output.log)
 
 if [ -z $errors ]
 then
+    cat $errors
     return_value=1
 else
     return_value=$?
@@ -607,6 +609,7 @@ then
     echo "Error when running Terraform plan" > "${system_config_information}".err
 
     unset TF_DATA_DIR
+    rm
     exit $return_value
 fi
 
