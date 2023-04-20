@@ -44,6 +44,7 @@ resource "azurerm_netapp_volume" "sapmnt" {
 }
 
 data "azurerm_netapp_volume" "sapmnt" {
+  provider        = azurerm.main
   count = var.NFS_provider == "ANF" ? (
     var.hana_ANF_volumes.use_existing_sapmnt_volume ? (
       1
@@ -106,6 +107,7 @@ resource "azurerm_netapp_volume" "usrsap" {
 }
 
 data "azurerm_netapp_volume" "usrsap" {
+  provider        = azurerm.main
   count = var.hana_ANF_volumes.use_for_usr_sap ? (
     var.hana_ANF_volumes.use_existing_usr_sap_volume ? (
       1
