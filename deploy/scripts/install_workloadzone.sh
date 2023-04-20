@@ -830,14 +830,7 @@ then
         done
 
         rerun_apply=1
-    fi
-
-    if [ -f apply_output.json ]
-    then
         rm apply_output.json
-    fi
-
-    if [ $rerun_apply == 1 ] ; then
         echo ""
         echo ""
         echo "#########################################################################################"
@@ -853,6 +846,7 @@ then
             terraform -chdir="${terraform_module_directory}" apply ${approve} -parallelism="${parallelism}" -var-file=${var_file} $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter -json  | tee -a  apply_output.json
         fi
         return_value=$?
+
     fi
 
     if [ -f apply_output.json ]
