@@ -351,11 +351,12 @@ module "output_files" {
   #  SAP Application information                                                          #
   #########################################################################################
 
-  sap_sid  = local.sap_sid
-  db_sid   = local.db_sid
-  bom_name = var.bom_name
-  platform = upper(try(local.database.platform, "HANA"))
-  web_sid  = var.web_sid
+  sap_sid             = local.sap_sid
+  db_sid              = local.db_sid
+  bom_name            = var.bom_name
+  platform            = upper(try(local.database.platform, "HANA"))
+  web_sid             = var.web_sid
+  web_instance_number = var.web_instance_number
 
   observer_ips = module.anydb_node.observer_ips
   observer_vms = module.anydb_node.observer_vms

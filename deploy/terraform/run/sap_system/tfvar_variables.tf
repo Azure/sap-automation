@@ -652,6 +652,10 @@ variable "web_sid" {
   default     = ""
 }
 
+variable "web_instance_number" {
+  description = "The Instance number for the Web dispatcher"
+  default     = "00"
+}
 
 variable "webdispatcher_server_zones" {
   description = "The zones for the web dispatchers"
