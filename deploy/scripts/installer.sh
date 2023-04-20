@@ -585,18 +585,6 @@ allParams=$(printf " -var-file=%s %s %s %s %s %s %s" "${var_file}" "${extra_vars
 terraform -chdir="$terraform_module_directory" plan -no-color -detailed-exitcode $allParams | tee -a plan_output.log
 echo "Plan returned $return_value"
 
-errors=$(grep -m1 "^Error:" plan_output.log)
-
-if [ -z $errors ]
-then
-    cat $errors
-    return_value=1
-else
-    return_value=$?
-fi
-
-
-echo "Plan returned $return_value"
 if [ 0 != $return_value ]
 then
     echo ""
