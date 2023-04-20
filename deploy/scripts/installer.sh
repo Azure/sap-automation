@@ -989,15 +989,9 @@ if [ 1 == $ok_to_proceed ]; then
                     echo terraform -chdir="${terraform_module_directory}" import  $allParamsforImport $moduleID $resourceID
                     terraform -chdir="${terraform_module_directory}" import  $allParamsforImport $moduleID $resourceID
                 done
-                rerun_apply=1
-            fi
 
-            if [ -f apply_output.json ]
-            then
                 rm apply_output.json
-            fi
 
-            if [ $rerun_apply == 1 ] ; then
                 echo ""
                 echo ""
                 echo "#########################################################################################"
@@ -1014,11 +1008,11 @@ if [ 1 == $ok_to_proceed ]; then
                 fi
                 return_value=$?
             fi
+
         fi
 
         if [ -f apply_output.json ]
         then
-            errors_occurred=$(jq 'select(."@level" == "error") | length' apply_output.json)
 
             if [[ -n $errors_occurred ]]
             then
