@@ -945,32 +945,27 @@ if [ 1 == $ok_to_proceed ]; then
                 echo terraform -chdir="${terraform_module_directory}" import  $allParamsforImport $moduleID $resourceID
                 terraform -chdir="${terraform_module_directory}" import  $allParamsforImport $moduleID $resourceID
             done
-            rerun_apply=1
-        fi
-
-        if [ -f apply_output.json ]
-        then
             rm apply_output.json
-        fi
 
-        if [ $rerun_apply == 1 ] ; then
-            rerun_apply=0
+            if [ $rerun_apply == 1 ] ; then
+                rerun_apply=0
 
-            echo ""
-            echo ""
-            echo "#########################################################################################"
-            echo "#                                                                                       #"
-            echo -e "#                          $cyan Re running Terraform apply$resetformatting                                  #"
-            echo "#                                                                                       #"
-            echo "#########################################################################################"
-            echo ""
-            echo ""
-            if [ 1 == $called_from_ado ] ; then
-                terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings -json $allParams | tee -a apply_output.json
-            else
-                terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -json $allParams | tee -a  apply_output.json
+                echo ""
+                echo ""
+                echo "#########################################################################################"
+                echo "#                                                                                       #"
+                echo -e "#                          $cyan Re running Terraform apply$resetformatting                                  #"
+                echo "#                                                                                       #"
+                echo "#########################################################################################"
+                echo ""
+                echo ""
+                if [ 1 == $called_from_ado ] ; then
+                    terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings -json $allParams | tee -a apply_output.json
+                else
+                    terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -json $allParams | tee -a  apply_output.json
+                fi
+                return_value=$?
             fi
-            return_value=$?
         fi
 
         if [ -f apply_output.json ]
