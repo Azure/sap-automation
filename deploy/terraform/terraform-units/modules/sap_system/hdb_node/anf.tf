@@ -38,6 +38,8 @@ resource "azurerm_netapp_volume" "hanadata" {
 
   snapshot_directory_visible = true
 
+  zone = local.db_zone_count > 0 ? try(local.zones[count.index], null) : null
+
 }
 
 data "azurerm_netapp_volume" "hanadata" {
@@ -98,6 +100,8 @@ resource "azurerm_netapp_volume" "hanalog" {
   throughput_in_mibps = var.hana_ANF_volumes.log_volume_throughput
 
   snapshot_directory_visible = true
+
+  zone = local.db_zone_count > 0 ? try(local.zones[count.index], null) : null
 }
 
 data "azurerm_netapp_volume" "hanalog" {
