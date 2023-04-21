@@ -815,7 +815,6 @@ stages:
                   failOnStderr: false
 
     - stage:                           Web_App_Deployment
-      condition:                       eq(dependencies.Deploy_controlplane.result, 'Succeeded')
       pool:                            $(this_agent)
       variables:
           - template:                  variables/01-deploy-control-plane-variables.yaml
