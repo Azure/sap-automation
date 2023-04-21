@@ -373,10 +373,17 @@ variable "database_instance_number" {
   description = "The Instance number for the database server"
   default     = "00"
 }
+
 variable "database_no_avset" {
   description = "If true, the database tier will not use an availability set"
-  default     = false
+  default     = null
 }
+
+variable "database_use_avset" {
+  description = "If true, the database tier will use an availability set"
+  default     = true
+}
+
 
 variable "database_dual_nics" {
   description = "If true, the database tier will have two NICs"
@@ -384,8 +391,13 @@ variable "database_dual_nics" {
 }
 
 variable "database_no_ppg" {
-  description = "If provided, the database tier will not use a proximity placement group"
-  default     = false
+  description = "If provided, the database tier will not be placed in a proximity placement group"
+  default     = null
+}
+
+variable "database_use_ppg" {
+  description = "If provided, the database tier will be placed in a proximity placement group"
+  default     = true
 }
 
 variable "database_loadbalancer_ips" {
@@ -878,6 +890,12 @@ variable "ANF_HANA_data_volume_throughput" {
   description = "If defined provides the throughput of the data volume"
   default     = 128
 }
+
+variable "ANF_HANA_use_AVG" {
+  description = "Use Application Volume Group for data volume"
+  default     = false
+}
+
 
 variable "ANF_HANA_log" {
   description = "If defined, will create ANF volumes for HANA log"

@@ -84,10 +84,12 @@ locals {
     platform      = var.database_platform
     db_sizing_key = coalesce(var.db_sizing_dictionary_key, var.database_size, try(var.databases[0].size, ""))
 
-    use_ANF   = var.database_HANA_use_ANF_scaleout_scenario || try(var.databases[0].use_ANF, false)
-    dual_nics = var.database_dual_nics || try(var.databases[0].dual_nics, false)
-    no_ppg    = var.database_no_ppg || try(var.databases[0].no_ppg, false)
-    no_avset  = var.database_no_avset || try(var.databases[0].no_avset, false)
+    use_ANF    = var.database_HANA_use_ANF_scaleout_scenario || try(var.databases[0].use_ANF, false)
+    dual_nics  = var.database_dual_nics || try(var.databases[0].dual_nics, false)
+
+
+    use_ppg    = tobool(var.database_no_ppg) == null ? var.database_use_ppg : var.database_no_ppg
+    use_avset  = tobool(var.database_no_avset) == null ? var.database_use_avset : var.database_no_avset
 
   }
 
