@@ -199,10 +199,10 @@ $$database_vm_authentication_type$$
 $$database_vm_avset_arm_ids$$
 
 # Optional, Defines the that the database virtual machines will not be placed in a proximity placement group
-$$database_no_ppg$$
+$$database_use_ppg$$
 
 # Optional, Defines the that the database virtual machines will not be placed in an availability set
-$$database_no_avset$$
+$$database_use_avset$$
 
 # Optional, Defines if the tags for the database virtual machines
 $$database_tags$$

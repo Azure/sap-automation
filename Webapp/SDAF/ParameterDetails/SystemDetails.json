@@ -512,18 +512,18 @@
         "Display": 3
       },
       {
-        "Name": "database_no_ppg",
+        "Name": "database_use_ppg",
         "Required": false,
-        "Description": "Defines that the database virtual machines will not be placed in a proximity placement group.",
+        "Description": "Defines that the database virtual machines will be placed in a proximity placement group.",
         "Type": "checkbox",
         "Options": [],
         "Overrules": "",
         "Display": 3
       },
       {
-        "Name": "database_no_avset",
+        "Name": "database_use_avset",
         "Required": false,
-        "Description": "Defines that the database virtual machines will not be placed in an availability set.",
+        "Description": "Defines that the database virtual machines will be placed in an availability set.",
         "Type": "checkbox",
         "Options": [],
         "Overrules": "",

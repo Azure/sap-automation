@@ -173,9 +173,9 @@ namespace AutomationForm.Models
         [AvSetIdValidator]
         public string[] database_vm_avset_arm_ids { get; set; }
 
-        public bool? database_no_ppg { get; set; } = false;
+        public bool? database_use_ppg { get; set; } = true;
 
-        public bool? database_no_avset { get; set; } = false;
+        public bool? database_use_avset { get; set; } = false;
 
         public Tag[] database_tags { get; set; }
 
