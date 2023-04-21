@@ -396,7 +396,7 @@ locals {
   web_zonal_deployment = length(local.web_zones) > 0 ? true : false
   web_zone_count       = length(local.web_zones)
   //If we deploy more than one server in zone put them in an availability set
-  use_web_avset = local.webdispatcher_count > 0 && !var.application_tier.web_no_avset ? (
+  use_web_avset = local.webdispatcher_count > 0 && var.application_tier.web_use_avset ? (
     local.enable_deployment && (!local.web_zonal_deployment || local.webdispatcher_count != local.web_zone_count)) : (
     false
   )
@@ -496,9 +496,6 @@ locals {
     concat(local.std_ips, local.winha_ips)) : (
     local.std_ips
   )
-
-
-  web_no_ppg = var.application_tier.web_no_ppg
 
   dns_label = try(var.landscape_tfstate.dns_label, "")
 

@@ -174,8 +174,9 @@ locals {
       0
     )
     web_sku      = try(coalesce(var.webdispatcher_server_sku, var.application_tier.web_sku), "")
-    web_no_ppg   = var.webdispatcher_server_no_ppg || try(var.application_tier.web_no_ppg, false)
-    web_no_avset = var.webdispatcher_server_no_avset || try(var.application_tier.web_no_avset, false)
+
+    web_use_ppg    = tobool(var.webdispatcher_server_no_ppg) == null ? var.webdispatcher_server_use_ppg : !var.webdispatcher_server_no_ppg
+    web_use_avset  = tobool(var.webdispatcher_server_no_avset) == null ? var.webdispatcher_server_use_avset : !var.webdispatcher_server_no_avset
 
   }
 

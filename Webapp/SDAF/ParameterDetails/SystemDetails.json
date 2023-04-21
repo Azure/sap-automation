@@ -1126,18 +1126,18 @@
         "Display": 3
       },
       {
-        "Name": "webdispatcher_server_no_avset",
+        "Name": "webdispatcher_server_use_avset",
         "Required": false,
-        "Description": "If defined, the Web Dispatcher tier will not use an availability set",
+        "Description": "If defined, the Web Dispatcher tier will be placed in an availability set",
         "Type": "checkbox",
         "Options": [],
         "Overrules": "",
         "Display": 3
       },
       {
-        "Name": "webdispatcher_server_no_ppg",
+        "Name": "webdispatcher_server_use_ppg",
         "Required": false,
-        "Description": "If defined, the web dispatchers will not be placed in a proximity placement group",
+        "Description": "If defined, the web dispatchers will be placed in a proximity placement group",
         "Type": "checkbox",
         "Options": [],
         "Overrules": "",

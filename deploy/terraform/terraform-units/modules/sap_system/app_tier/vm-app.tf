@@ -122,13 +122,13 @@ resource "azurerm_linux_virtual_machine" "app" {
   location            = var.resource_group[0].location
   resource_group_name = var.resource_group[0].name
 
-  proximity_placement_group_id = var.application_tier.scs_use_ppg ? (
+  proximity_placement_group_id = var.application_tier.app_use_ppg ? (
     local.app_zonal_deployment ? var.ppg[count.index % max(local.app_zone_count, 1)].id : var.ppg[0].id) : (
     null
   )
 
   //If more than one servers are deployed into a single zone put them in an availability set and not a zone
-  availability_set_id = var.application_tier.app_use_avset ? (
+  availability_set_id = local.use_app_avset ? (
     length(var.application_tier.avset_arm_ids) > 0 ? (
       var.application_tier.avset_arm_ids[count.index % max(local.app_zone_count, 1)]) : (
       azurerm_availability_set.app[count.index % max(local.app_zone_count, 1)].id
@@ -254,13 +254,13 @@ resource "azurerm_windows_virtual_machine" "app" {
   location            = var.resource_group[0].location
   resource_group_name = var.resource_group[0].name
 
-  proximity_placement_group_id = var.application_tier.scs_use_ppg ? (
+  proximity_placement_group_id = var.application_tier.app_use_ppg ? (
     local.app_zonal_deployment ? var.ppg[count.index % max(local.app_zone_count, 1)].id : var.ppg[0].id) : (
     null
   )
 
   //If more than one servers are deployed into a single zone put them in an availability set and not a zone
-  availability_set_id = var.application_tier.app_use_avset ? (
+  availability_set_id = local.use_app_avset ? (
     length(var.application_tier.avset_arm_ids) > 0 ? (
       var.application_tier.avset_arm_ids[count.index % max(local.app_zone_count, 1)]) : (
       azurerm_availability_set.app[count.index % max(local.app_zone_count, 1)].id

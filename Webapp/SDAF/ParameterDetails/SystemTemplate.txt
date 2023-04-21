@@ -371,11 +371,11 @@ $$webdispatcher_server_loadbalancer_ips$$
 # webdispatcher_server_sku, if defined provides the SKU to use for the web dispatchers
 $$webdispatcher_server_sku$$
 
-# webdispatcher_server_no_ppg defines the that the Web dispatcher virtual machines will not be placed in a proximity placement group
-$$webdispatcher_server_no_ppg$$
+# webdispatcher_server_use_ppg defines the that the Web dispatcher virtual machines will be placed in a proximity placement group
+$$webdispatcher_server_use_ppg$$
 
-#webdispatcher_server_no_avset defines the that the Web dispatcher virtual machines will not be placed in an availability set
-$$webdispatcher_server_no_avset$$
+#webdispatcher_server_use_avset defines the that the Web dispatcher virtual machines will be placed in an availability set
+$$webdispatcher_server_use_avset$$
 
 # webdispatcher_server_tags, if defined provides the tags to be associated to the web dispatchers
 $$webdispatcher_server_tags$$

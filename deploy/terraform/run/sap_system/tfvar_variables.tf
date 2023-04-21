@@ -738,13 +738,23 @@ variable "webdispatcher_server_tags" {
 }
 
 variable "webdispatcher_server_no_avset" {
-  description = "If true, the Web Dispatcher tier will not use an availability set"
-  default     = false
+  description = "[OBSOLUTE]If true, the Web Dispatcher tier will not use an availability set"
+  default     = null
+}
+
+variable "webdispatcher_server_use_avset" {
+  description = "If true, the Web Dispatcher tier will will be placed in an availability set"
+  default     = true
 }
 
 variable "webdispatcher_server_no_ppg" {
-  description = "If provided, the web dispatchers will not be placed in a proximity placement group"
-  default     = false
+  description = "[OBSOLUTE]If provided, the web dispatchers will not be placed in a proximity placement group"
+  default     = null
+}
+
+variable "webdispatcher_server_use_ppg" {
+  description = "If provided, the web dispatchers will be placed in a proximity placement group"
+  default     = true
 }
 
 #########################################################################################
