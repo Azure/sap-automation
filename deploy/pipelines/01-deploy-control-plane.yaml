@@ -850,6 +850,7 @@ stages:
                   inputs:
                     packageType:    'runtime'
                     version:        '6.x'
+                - task:                DotNetCoreCLI@2
                   displayName:         "Build the Configuration Web Application"
                   inputs:
                       command:         "build"
