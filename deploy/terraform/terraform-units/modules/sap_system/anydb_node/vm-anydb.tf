@@ -276,7 +276,6 @@ resource "azurerm_windows_virtual_machine" "dbserver" {
     var.ppg[count.index].id) : (
     null
   )
-
   //If more than one servers are deployed into a single zone put them in an availability set and not a zone
   availability_set_id = local.use_avset ? (
     local.availabilitysets_exist ? (
