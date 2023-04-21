@@ -604,6 +604,9 @@ else
     echo "export ANSIBLE_COLLECTIONS_PATHS=${ansible_collections}" | tee -a /tmp/deploy_server.sh
     echo "export BOM_CATALOG=${asad_sample_dir}/SAP" | tee -a /tmp/deploy_server.sh
 
+    echo "export DOTNET_ROOT=/snap/bin/dotnet" | tee -a /tmp/deploy_server.sh
+
+
     # Set env for MSI
     echo "export ARM_USE_MSI=true" | tee -a /tmp/deploy_server.sh
 
@@ -642,9 +645,6 @@ else
     /usr/bin/az login --identity --output none
     echo "${USER} account ready for use with Azure SAP Automated Deployment"
 
-    # Install dotnet
-    sudo snap install dotnet-sdk --classic --channel=3.1
-    sudo snap alias dotnet-sdk.dotnet dotnet
 
 
 fi
