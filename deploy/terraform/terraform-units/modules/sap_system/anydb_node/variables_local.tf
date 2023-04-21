@@ -382,9 +382,11 @@ locals {
   zonal_deployment = local.db_zone_count > 0 || local.enable_ultradisk ? true : false
 
   //If we deploy more than one server in zone put them in an availability set
-  use_avset = local.zonal_deployment ? (
-    false) : (
-    var.database_server_count > 0 && try(!var.database.no_avset, false)
+  use_avset = local.availabilitysets_exist ? (
+    true) : (var.database.use_avset && !local.enable_ultradisk ? (
+      !local.zonal_deployment || (var.database_server_count != local.db_zone_count)) : (
+      false
+    )
   )
 
   full_observer_names = flatten([for vm in var.naming.virtualmachine_names.OBSERVER_VMNAME :

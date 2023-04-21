@@ -302,7 +302,7 @@ locals {
   //If we deploy more than one server in zone put them in an availability set
 
   use_avset = local.availabilitysets_exist ? (
-    true) : (!var.database.no_avset && !local.enable_ultradisk ? (
+    true) : (var.database.use_avset && !local.enable_ultradisk ? (
       !local.zonal_deployment || (var.database_server_count != local.db_zone_count)) : (
       false
     )
