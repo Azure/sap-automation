@@ -110,8 +110,6 @@
         - not db_arm_deployment_done.stat.exists
         - sybase_installation.rc == 0
 
-
-
     - name:                            "SAP Sybase: Show errors if they exist"
       ansible.builtin.debug:
         msg:                           "{{ sybase_installation.stdout_lines }}"
