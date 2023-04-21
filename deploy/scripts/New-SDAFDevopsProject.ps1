@@ -935,9 +935,6 @@ else {
   $POOL_NAME_FOUND = (az pipelines pool list --query "[?name=='$Pool_Name'].name | [0]")
   if ($POOL_NAME_FOUND.Length -gt 0) {
     Write-Host "Agent pool" $Pool_Name "already exists" -ForegroundColor Yellow
-    $POOL_ID = (az pipelines pool list --query "[?name=='$Pool_Name'].id | [0]" --output tsv).Replace("""", "")
-    Set-Content -Path pool.json -Value (ConvertTo-Json @{name = $Pool_Name; pool = @{ id = $POOL_ID }; projectID = $Project_ID })
-    az devops invoke --area distributedtask --resource queues --http-method POST --api-version "7.1-preview" --in-file .\pool.json --query-parameters authorizePipelines=true --route-parameters project=$Project_ID --output none --only-show-errors
 
   }
   else {
