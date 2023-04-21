@@ -851,7 +851,7 @@ stages:
                     packageType:       'runtime'
                     version:           '6.x'
                     installationPath:  $(Agent.ToolsDirectory)/dotnet
-                - script:              $(Agent.ToolsDirectory)/dotnet/dotnet -h
+                - script:              dir $(Agent.ToolsDirectory)/dotnet
                   displayName:         DotNet
                 - task:                DotNetCoreCLI@2
                   displayName:         "Build the Configuration Web Application"
