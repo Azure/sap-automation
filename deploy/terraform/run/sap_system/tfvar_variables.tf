@@ -639,7 +639,7 @@ variable "application_server_vm_avset_arm_ids" {
 
 variable "application_server_no_avset" {
   description = "[Obsolete]If true, the application tier will not be placed availability set"
-  default     = false
+  default     = null
 }
 
 variable "application_server_use_avset" {
