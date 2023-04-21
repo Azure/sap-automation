@@ -423,6 +423,22 @@ else
         ;;
     esac
 
+    # Install dotNet
+    case "$(get_distro_name)" in
+    (ubuntu)
+        sudo snap install dotnet-runtime-70 --classic --channel=7.0
+        sudo snap alias dotnet-runtime-70.dotnet dotnet
+        ;;
+    (sles)
+        sudo snap install dotnet-runtime-70 --classic --channel=7.0
+        sudo snap alias dotnet-runtime-70.dotnet dotnet
+        ;;
+     (rhel*)
+        sudo snap install dotnet-runtime-70 --classic --channel=7.0
+        sudo snap alias dotnet-runtime-70.dotnet dotnet
+        ;;
+    esac
+
     az config set extension.use_dynamic_install=yes_without_prompt
 
     devops_extension_installed=$(az extension list --query [].path | grep azure-devops)
