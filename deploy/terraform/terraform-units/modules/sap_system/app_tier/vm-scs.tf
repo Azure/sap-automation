@@ -128,7 +128,7 @@ resource "azurerm_linux_virtual_machine" "scs" {
   resource_group_name = var.resource_group[0].name
 
   //If no ppg defined do not put the scs servers in a proximity placement group
-  proximity_placement_group_id = var.application_tier.scs_use_ppg.scs_no_ppg ? (
+  proximity_placement_group_id = var.application_tier.scs_use_ppg ? (
     local.scs_zonal_deployment ? var.ppg[count.index % max(local.scs_zone_count, 1)].id : var.ppg[0].id) : (
     null
   )
