@@ -426,16 +426,16 @@ else
     # Install dotNet
     case "$(get_distro_name)" in
     (ubuntu)
-        sudo snap install dotnet-runtime-70 --classic --channel=7.0
-        sudo snap alias dotnet-runtime-70.dotnet dotnet
+        sudo snap install dotnet-sdk --classic --channel=7.0
+        sudo snap alias dotnet-sdk.dotnet dotnet dotnet
         ;;
     (sles)
-        sudo snap install dotnet-runtime-70 --classic --channel=7.0
-        sudo snap alias dotnet-runtime-70.dotnet dotnet
+        sudo snap install dotnet-sdk --classic --channel=7.0
+        sudo snap alias dotnet-sdk.dotnet dotnet dotnet
         ;;
      (rhel*)
-        sudo snap install dotnet-runtime-70 --classic --channel=7.0
-        sudo snap alias dotnet-runtime-70.dotnet dotnet
+        sudo snap install dotnet-sdk --classic --channel=7.0
+        sudo snap alias dotnet-sdk.dotnet dotnet dotnet
         ;;
     esac
 
@@ -604,7 +604,7 @@ else
     echo "export ANSIBLE_COLLECTIONS_PATHS=${ansible_collections}" | tee -a /tmp/deploy_server.sh
     echo "export BOM_CATALOG=${asad_sample_dir}/SAP" | tee -a /tmp/deploy_server.sh
 
-    echo "export DOTNET_ROOT=/snap/bin/dotnet" | tee -a /tmp/deploy_server.sh
+    echo "export DOTNET_ROOT=/snap/dotnet-sdk/current" | tee -a /tmp/deploy_server.sh
 
 
     # Set env for MSI
