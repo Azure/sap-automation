@@ -318,7 +318,7 @@ namespace AutomationForm.Models
 
         public bool? webdispatcher_server_use_avset { get; set; }
 
-        public bool? webdispatcher_server_use_ppg { get; set; } = true
+        public bool? webdispatcher_server_use_ppg { get; set; } = true;
 
 
         public bool? webdispatcher_server_no_avset { get; set; }
