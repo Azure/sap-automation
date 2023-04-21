@@ -330,8 +330,8 @@
           ansible.builtin.debug:
             var:                       scs_installation
           when:
-           - scs_installation is defined
-           - scs_installation.rc > 0
+            - scs_installation is defined
+            - scs_installation.rc > 0
 
         - name:                        "SCS Install: Failure on {{ ansible_hostname }}"
           ansible.builtin.fail:

@@ -583,8 +583,9 @@ fi
 allParams=$(printf " -var-file=%s %s %s %s %s %s %s" "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter}" )
 
 terraform -chdir="$terraform_module_directory" plan -no-color -detailed-exitcode $allParams | tee -a plan_output.log
-return_value=$?
-if [ 1 == $return_value ]
+echo "Plan returned $return_value"
+
+if [ 0 != $return_value ]
 then
     echo ""
     echo "#########################################################################################"
@@ -596,6 +597,7 @@ then
     echo "Error when running Terraform plan" > "${system_config_information}".err
 
     unset TF_DATA_DIR
+    rm
     exit $return_value
 fi
 
@@ -610,8 +612,6 @@ if [ 0 == $return_value ] ; then
         keyvault=$(terraform -chdir="${terraform_module_directory}"  output -no-color -raw deployer_kv_user_name | tr -d \")
         save_config_var "keyvault" "${system_config_information}"
         if [ 1 == $called_from_ado ] ; then
-
-
 
             if [[ "${TF_VAR_use_webapp}" == "true" && $IS_PIPELINE_DEPLOYMENT = "true" ]]; then
                 webapp_url_base=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_url_base | tr -d \")
@@ -945,59 +945,11 @@ if [ 1 == $ok_to_proceed ]; then
                 echo terraform -chdir="${terraform_module_directory}" import  $allParamsforImport $moduleID $resourceID
                 terraform -chdir="${terraform_module_directory}" import  $allParamsforImport $moduleID $resourceID
             done
-            rerun_apply=1
-        fi
-
-        if [ -f apply_output.json ]
-        then
             rm apply_output.json
-        fi
-
-        if [ $rerun_apply == 1 ] ; then
-            rerun_apply=0
-
-            echo ""
-            echo ""
-            echo "#########################################################################################"
-            echo "#                                                                                       #"
-            echo -e "#                          $cyan Re running Terraform apply$resetformatting                                  #"
-            echo "#                                                                                       #"
-            echo "#########################################################################################"
-            echo ""
-            echo ""
-            if [ 1 == $called_from_ado ] ; then
-                terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings -json $allParams | tee -a apply_output.json
-            else
-                terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -json $allParams | tee -a  apply_output.json
-            fi
-            return_value=$?
-        fi
-
-        if [ -f apply_output.json ]
-        then
-            # Check for resource that can be imported
-            existing=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary} | select(.summary | startswith("A resource with the ID"))' apply_output.json)
-            if [[ -n ${existing} ]]
-            then
-
-                readarray -t existing_resources < <(echo ${existing} | jq -c '.' )
-                for item in "${existing_resources[@]}"; do
-                    moduleID=$(jq -c -r '.address '  <<< "$item")
-                    resourceID=$(jq -c -r '.summary' <<< "$item" | awk -F'\"' '{print $2}')
-                    echo "Trying to import" $resourceID "into" $moduleID
-                    allParamsforImport=$(printf " -var-file=%s %s %s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter} " )
-                    echo terraform -chdir="${terraform_module_directory}" import  $allParamsforImport $moduleID $resourceID
-                    terraform -chdir="${terraform_module_directory}" import  $allParamsforImport $moduleID $resourceID
-                done
-                rerun_apply=1
-            fi
-
-            if [ -f apply_output.json ]
-            then
-                rm apply_output.json
-            fi
 
             if [ $rerun_apply == 1 ] ; then
+                rerun_apply=0
+
                 echo ""
                 echo ""
                 echo "#########################################################################################"
@@ -1018,7 +970,44 @@ if [ 1 == $ok_to_proceed ]; then
 
         if [ -f apply_output.json ]
         then
-            errors_occurred=$(jq 'select(."@level" == "error") | length' apply_output.json)
+            # Check for resource that can be imported
+            existing=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary} | select(.summary | startswith("A resource with the ID"))' apply_output.json)
+            if [[ -n ${existing} ]]
+            then
+
+                readarray -t existing_resources < <(echo ${existing} | jq -c '.' )
+                for item in "${existing_resources[@]}"; do
+                    moduleID=$(jq -c -r '.address '  <<< "$item")
+                    resourceID=$(jq -c -r '.summary' <<< "$item" | awk -F'\"' '{print $2}')
+                    echo "Trying to import" $resourceID "into" $moduleID
+                    allParamsforImport=$(printf " -var-file=%s %s %s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter} " )
+                    echo terraform -chdir="${terraform_module_directory}" import  $allParamsforImport $moduleID $resourceID
+                    terraform -chdir="${terraform_module_directory}" import  $allParamsforImport $moduleID $resourceID
+                done
+
+                rm apply_output.json
+
+                echo ""
+                echo ""
+                echo "#########################################################################################"
+                echo "#                                                                                       #"
+                echo -e "#                          $cyan Re running Terraform apply$resetformatting                                  #"
+                echo "#                                                                                       #"
+                echo "#########################################################################################"
+                echo ""
+                echo ""
+                if [ 1 == $called_from_ado ] ; then
+                    terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings -json $allParams | tee -a apply_output.json
+                else
+                    terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -json $allParams | tee -a  apply_output.json
+                fi
+                return_value=$?
+            fi
+
+        fi
+
+        if [ -f apply_output.json ]
+        then
 
             if [[ -n $errors_occurred ]]
             then
@@ -1151,7 +1140,18 @@ then
         az resource delete --ids ${deployer_extension_ids}
     fi
 
-    save_config_var "keyvault" "${system_config_information}"
+   if valid_kv_name "$keyvault" ; then
+        save_config_var "keyvault" "${system_config_information}"
+    else
+        printf -v val %-40.40s "$keyvault"
+        echo "#########################################################################################"
+        echo "#                                                                                       #"
+        echo -e "#       The provided keyvault is not valid:$boldred ${val} $resetformatting  #"
+        echo "#                                                                                       #"
+        echo "#########################################################################################"
+        echo "The provided keyvault is not valid " "${val}"  > secret.err
+    fi
+
     save_config_var "deployer_public_ip_address" "${system_config_information}"
 fi
 
@@ -1220,7 +1220,7 @@ fi
 
 if [ "${deployment_system}" == sap_library ]
 then
-    REMOTE_STATE_SA=$(terraform -chdir="${terraform_module_directory}" output remote_state_storage_account_name| tr -d \")
+    REMOTE_STATE_SA=$(terraform -chdir="${terraform_module_directory}" output  -no-color -raw remote_state_storage_account_name | tr -d \")
     sapbits_storage_account_name=$(terraform -chdir="${terraform_module_directory}"  output -no-color -raw sapbits_storage_account_name | tr -d \")
     if [ 1 == $called_from_ado ] ; then
 

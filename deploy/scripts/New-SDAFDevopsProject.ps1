@@ -99,6 +99,11 @@ $ControlPlanePrefix = "SDAF-" + $Control_plane_code
 $WorkloadZonePrefix = "SDAF-" + $Workload_zone_code
 $Pool_Name = $ControlPlanePrefix + "-POOL"
 
+$confirmation = Read-Host "Use Agent pool with name '$Pool_Name' y/n?"
+if ($confirmation -ne 'y') {
+  $Pool_Name = Read-Host "Enter the name of the agent pool"
+}
+
 $url = ( az devops project list --organization $ADO_Organization --query "value | [0].url")
 if ($url.Length -eq 0) {
   Write-Error "Could not get the DevOps organization URL"

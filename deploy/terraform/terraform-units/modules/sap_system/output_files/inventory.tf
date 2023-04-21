@@ -176,6 +176,8 @@ resource "local_file" "sap-parameters_yml" {
 
     web_sid = var.web_sid
 
+    web_instance_number = var.web_instance_number
+
     use_msi_for_clusters = var.use_msi_for_clusters
 
     dns = var.dns
