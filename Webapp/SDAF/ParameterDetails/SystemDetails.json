@@ -937,9 +937,18 @@
         "Display": 3
       },
       {
-        "Name": "application_server_no_avset",
+        "Name": "application_server_use_avset",
         "Required": false,
-        "Description": "If defined, the application servers will not use an availability set",
+        "Description": "If defined, the application servers will be placed in an availability set",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "application_server_use_ppg",
+        "Required": false,
+        "Description": "If defined, the application servers will be placed in a proximity placement group.",
         "Type": "checkbox",
         "Options": [],
         "Overrules": "",
@@ -956,15 +965,6 @@
             "Value": ""
           }
         ],
-        "Overrules": "",
-        "Display": 3
-      },
-      {
-        "Name": "application_server_no_ppg",
-        "Required": false,
-        "Description": "If defined, the application servers will not be placed in a proximity placement group.",
-        "Type": "checkbox",
-        "Options": [],
         "Overrules": "",
         "Display": 3
       },

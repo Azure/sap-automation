@@ -241,12 +241,16 @@ namespace AutomationForm.Models
         [IpAddressValidator]
         public string[] application_server_nic_secondary_ips { get; set; }
 
-        public bool? application_server_no_avset { get; set; } = false;
-
         [AvSetIdValidator]
         public string[] application_server_vm_avset_arm_ids { get; set; }
 
+        public bool? application_server_no_avset { get; set; } = false;
+
+        public bool? application_server_use_avset { get; set; } = true;
+
         public bool? application_server_no_ppg { get; set; } = false;
+
+        public bool? application_server_use_ppg { get; set; } = true;
 
         // SAP Central Services
 

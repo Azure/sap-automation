@@ -320,11 +320,11 @@ $$app_disk_sizes_filename$$
 # Optional, Defines the default authentication model for the Applicatiuon tier VMs (key/password)
 $$app_tier_authentication_type$$
 
-# application_server_no_ppg defines the that the application server virtual machines will not be placed in a proximity placement group
-$$application_server_no_ppg$$
+# application_server_use_ppg defines the that the application server virtual machines will be placed in a proximity placement group
+$$application_server_use_ppg$$
 
-# application_server_no_avset defines the that the application server virtual machines will not be placed in an availability set
-$$application_server_no_avset$$
+# application_server_use_avset defines the that the application server virtual machines will be placed in an availability set
+$$application_server_use_avset$$
 
 # application_server_tags, if defined provides the tags to be associated to the application servers
 $$application_server_tags$$

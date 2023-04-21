@@ -631,19 +631,30 @@ variable "application_server_zones" {
   default     = []
 }
 
-variable "application_server_no_avset" {
-  description = "If true, the application tier will not use an availability set"
-  default     = false
-}
 
 variable "application_server_vm_avset_arm_ids" {
   description = "If provided, Azure resource ids for the availability sets to use for the application servers"
   default     = []
 }
 
-variable "application_server_no_ppg" {
-  description = "If provided, the application servers will not be placed in a proximity placement group"
+variable "application_server_no_avset" {
+  description = "[Obsolete]If true, the application tier will not be placed availability set"
   default     = false
+}
+
+variable "application_server_use_avset" {
+  description = "If true, the application tier will be placed in an availability set"
+  default     = true
+}
+
+variable "application_server_no_ppg" {
+  description = "[Obsolete]If provided, the application servers will not be placed in a proximity placement group"
+  default     = null
+}
+
+variable "application_server_use_ppg" {
+  description = "If provided, the application servers will be placed in a proximity placement group"
+  default     = true
 }
 
 variable "application_server_image" {

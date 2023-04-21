@@ -145,8 +145,9 @@ locals {
       0
     )
     app_sku       = try(coalesce(var.application_server_sku, var.application_tier.app_sku), "")
-    app_no_ppg    = var.application_server_no_ppg || try(var.application_tier.app_no_ppg, false)
-    app_no_avset  = var.application_server_no_avset || try(var.application_tier.app_no_avset, false)
+    app_use_ppg    = tobool(var.application_server_no_ppg) == null ? var.application_server_use_ppg : var.application_server_no_ppg
+    app_use_avset  = tobool(var.application_server_no_avset) == null ? var.application_server_use_avset : var.application_server_no_avset
+
     avset_arm_ids = var.application_server_vm_avset_arm_ids
 
     scs_server_count = local.enable_app_tier_deployment ? (
