@@ -786,18 +786,18 @@
         "Display": 3
       },
       {
-        "Name": "scs_server_no_avset",
+        "Name": "scs_server_use_avset",
         "Required": false,
-        "Description": "Defines if the SAP Central Services tier will not use an availability set.",
+        "Description": "Defines if the SAP Central Services tier will be placed in an availability set.",
         "Type": "checkbox",
         "Options": [],
         "Overrules": "",
         "Display": 3
       },
       {
-        "Name": "scs_server_no_ppg",
+        "Name": "scs_server_use_ppg",
         "Required": false,
-        "Description": "Defines if the Central Services will not be placed in a proximity placement group.",
+        "Description": "Defines if the Central Services will be placed in a proximity placement group.",
         "Type": "checkbox",
         "Options": [],
         "Overrules": "",

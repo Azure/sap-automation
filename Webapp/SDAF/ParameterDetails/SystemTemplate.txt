@@ -259,11 +259,11 @@ $$scs_server_sku$$
 # in this case os_type must also be specified
 $$scs_server_image$$
 
-# scs_server_no_ppg defines the that the SCS virtual machines will not be placed in a proximity placement group
-$$scs_server_no_ppg$$
+# scs_server_use_ppg defines the that the SCS virtual machines will be placed in a proximity placement group
+$$scs_server_use_ppg$$
 
-# scs_server_no_avset defines the that the SCS virtual machines will not be placed in an availability set
-$$scs_server_no_avset$$
+# scs_server_use_avset defines the that the SCS virtual machines will be placed in an availability set
+$$scs_server_use_avset$$
 
 # scs_server_app_nic_ips, if provided provides the static IP addresses
 # for the network interface cards connected to the application subnet

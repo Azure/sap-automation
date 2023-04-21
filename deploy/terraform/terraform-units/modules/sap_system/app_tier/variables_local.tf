@@ -500,7 +500,6 @@ locals {
 
   //PPG control flags
   app_no_ppg = var.application_tier.app_no_ppg
-  scs_no_ppg = var.application_tier.scs_no_ppg
   web_no_ppg = var.application_tier.web_no_ppg
 
   dns_label = try(var.landscape_tfstate.dns_label, "")

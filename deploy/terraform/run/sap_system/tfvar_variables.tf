@@ -375,7 +375,7 @@ variable "database_instance_number" {
 }
 
 variable "database_no_avset" {
-  description = "If true, the database tier will not use an availability set"
+  description = "[Obsolete] If true, the database tier will not use an availability set"
   default     = null
 }
 
@@ -391,7 +391,7 @@ variable "database_dual_nics" {
 }
 
 variable "database_no_ppg" {
-  description = "If provided, the database tier will not be placed in a proximity placement group"
+  description = "[Obsolete] If provided, the database tier will not be placed in a proximity placement group"
   default     = null
 }
 
@@ -556,13 +556,23 @@ variable "scs_server_tags" {
 }
 
 variable "scs_server_no_avset" {
-  description = "If true, the SAP Central Services tier will not use an availability set"
+  description = "[Obsolete] If true, the SAP Central Services tier will not use an availability set"
+  default     = null
+}
+
+variable "scs_server_use_avset" {
+  description = "If true, the SAP Central Services tier will be placed in an availability set"
   default     = false
 }
 
 variable "scs_server_no_ppg" {
-  description = "If provided, the Central Services will not be placed in a proximity placement group"
-  default     = false
+  description = "[Obsolete] If provided, the Central Services will not be placed in a proximity placement group"
+  default     = null
+}
+
+variable "scs_server_use_ppg" {
+  description = "If provided, the Central Services will be placed in a proximity placement group"
+  default     = true
 }
 
 variable "scs_shared_disk_size" {

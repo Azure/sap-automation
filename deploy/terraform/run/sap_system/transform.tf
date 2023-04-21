@@ -87,7 +87,6 @@ locals {
     use_ANF    = var.database_HANA_use_ANF_scaleout_scenario || try(var.databases[0].use_ANF, false)
     dual_nics  = var.database_dual_nics || try(var.databases[0].dual_nics, false)
 
-
     use_ppg    = tobool(var.database_no_ppg) == null ? var.database_use_ppg : var.database_no_ppg
     use_avset  = tobool(var.database_no_avset) == null ? var.database_use_avset : var.database_no_avset
 
@@ -164,8 +163,9 @@ locals {
     ers_instance_number = coalesce(var.ers_instance_number, try(var.application_tier.ers_instance_number, "02"))
 
     scs_sku      = try(coalesce(var.scs_server_sku, var.application_tier.scs_sku), "")
-    scs_no_ppg   = var.scs_server_no_ppg || try(var.application_tier.scs_no_ppg, false)
-    scs_no_avset = var.scs_server_no_avset || try(var.application_tier.scs_no_avset, false)
+
+    scs_use_ppg    = tobool(var.scs_server_no_ppg) == null ? var.scs_server_use_ppg : var.scs_server_no_ppg
+    scs_use_avset  = tobool(var.scs_server_no_avset) == null ? var.scs_server_use_avset : var.scs_server_no_avset
 
     webdispatcher_count = local.enable_app_tier_deployment ? (
       max(var.webdispatcher_server_count, try(var.application_tier.webdispatcher_count, 0))
