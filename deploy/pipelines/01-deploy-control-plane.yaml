@@ -815,8 +815,6 @@ stages:
                   failOnStderr: false
 
     - stage:                           Web_App_Deployment
-      dependsOn:
-          - Deploy_controlplane
       condition:                       eq(dependencies.Deploy_controlplane.result, 'Succeeded')
       pool:                            $(this_agent)
       variables:
@@ -849,6 +847,7 @@ stages:
                 - template:            templates\download.yaml
                 - task:                PostBuildCleanup@3
                 - task:                UseDotNet@2
+                  displayName:         "Publish the Configuration Web Application"
                   inputs:
                     packageType:    'runtime'
                     version:        '6.x'
