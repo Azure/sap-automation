@@ -845,14 +845,6 @@ stages:
             steps:
                 - template:            templates\download.yaml
                 - task:                PostBuildCleanup@3
-                - task:                UseDotNet@2
-                  displayName:         "Install Dotnet"
-                  inputs:
-                    packageType:       'runtime'
-                    version:           '6.x'
-                    installationPath:  $(Agent.ToolsDirectory)/dotnet
-                - script:              dir $(Agent.ToolsDirectory)/dotnet
-                  displayName:         DotNet
                 - task:                DotNetCoreCLI@2
                   displayName:         "Build the Configuration Web Application"
                   inputs:
