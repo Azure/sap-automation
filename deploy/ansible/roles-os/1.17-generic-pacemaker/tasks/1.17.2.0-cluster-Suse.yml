@@ -148,7 +148,7 @@
     - name:                            "1.17 Generic Pacemaker - Ensure Pacemaker resources for the Azure agent is created"
       ansible.builtin.shell:           crm configure primitive rsc_azure-events ocf:heartbeat:azure-events op monitor interval=10s
 
-    - name:                            "1.17 Generic Pacemaker - Ensure clone resource azure-events is configure"
+    - name:                            "1.17 Generic Pacemaker - Ensure clone resource azure-events is configured"
       ansible.builtin.shell:           crm configure clone cln_azure-events rsc_azure-events
 
     - name:                            "1.17 Generic Pacemaker - Remove false positives"
