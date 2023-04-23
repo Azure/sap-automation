@@ -214,8 +214,6 @@
             - name:                        "PAS Installation playbook: - Ensure the kernel parameters are set"
               ansible.builtin.include_role:
                 name:                      roles-os/1.9-kernelparameters
-              vars:
-                tier:                      ha
               when:                        is_ha
               tags:
                 - 1.9-kernelparameters

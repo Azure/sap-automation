@@ -61,7 +61,7 @@ parameters:
     - { tier: 'os',    node_tier: 'all',     name: 'net.ipv4.tcp_keepalive_intvl',               value: '75',                   state: 'present' }
     - { tier: 'os',    node_tier: 'all',     name: 'net.ipv4.tcp_keepalive_probes',              value: '9',                    state: 'present' }
 
-  suse15:
+  sles_sap15:
     - { tier: 'os',    node_tier: 'all',     name: 'fs.protected_hardlinks',                     value: '1',                    state: 'present' }
     - { tier: 'os',    node_tier: 'all',     name: 'fs.protected_fifos',                         value: '2',                    state: 'present' }
     - { tier: 'os',    node_tier: 'all',     name: 'fs.protected_regular',                       value: '2',                    state: 'present' }
@@ -93,22 +93,16 @@ parameters:
     - { tier: 'ha',    node_tier: 'all',     name: 'vm.dirty_background_bytes',                  value: '314572800',            state: 'present' }
     # SAP note: 1410736 - TCP/IP: setting keepalive interval
     - { tier: 'ha',    node_tier: 'all',     name: 'net.ipv4.tcp_keepalive_time',                value: '300',                  state: 'present' }
+    - { tier: 'app',   node_tier: 'app',     name: 'net.ipv4.tcp_keepalive_time',                value: '300',                  state: 'present' }
+    - { tier: 'pas',   node_tier: 'pas',     name: 'net.ipv4.tcp_keepalive_time',                value: '300',                  state: 'present' }
     - { tier: 'ha',    node_tier: 'all',     name: 'net.ipv4.tcp_keepalive_intvl',               value: '75',                   state: 'present' }
     - { tier: 'ha',    node_tier: 'all',     name: 'net.ipv4.tcp_keepalive_probes',              value: '9',                    state: 'present' }
-    - { tier: 'ha',    node_tier: 'hana',    name: 'net.ipv4.tcp_timestamps',                    value: '0',                    state: 'present' }
-    - { tier: 'ha',    node_tier: 'scs',     name: 'net.ipv4.tcp_timestamps',                    value: '0',                    state: 'present' }
-    - { tier: 'ha',    node_tier: 'ers',     name: 'net.ipv4.tcp_timestamps',                    value: '0',                    state: 'present' }
-    - { tier: 'ha',    node_tier: 'sybase',  name: 'net.ipv4.tcp_timestamps',                    value: '0',                    state: 'present' }
-    - { tier: 'ha',    node_tier: 'db2',     name: 'net.ipv4.tcp_timestamps',                    value: '0',                    state: 'present' }
+    - { tier: 'ha',    node_tier: 'all',     name: 'net.ipv4.tcp_timestamps',                    value: '0',                    state: 'present' }
     # this is not required in newer kernels as per 2382421
     # - { tier: 'os', name: 'net.ipv4.tcp_tw_recycle',                       value: '0',                      state: 'present' }
-    - { tier: 'ha',    node_tier: 'hana',    name: 'net.ipv4.tcp_tw_reuse',                      value: '0',                    state: 'present' }
-    - { tier: 'ha',    node_tier: 'scs',     name: 'net.ipv4.tcp_tw_reuse',                      value: '0',                    state: 'present' }
-    - { tier: 'ha',    node_tier: 'ers',     name: 'net.ipv4.tcp_tw_reuse',                      value: '0',                    state: 'present' }
-    - { tier: 'ha',    node_tier: 'sybase',  name: 'net.ipv4.tcp_tw_reuse',                      value: '0',                    state: 'present' }
-    - { tier: 'ha',    node_tier: 'db2',     name: 'net.ipv4.tcp_tw_reuse',                      value: '0',                    state: 'present' }
+    - { tier: 'ha',    node_tier: 'all',     name: 'net.ipv4.tcp_tw_reuse',                      value: '0',                    state: 'present' }
 
-  suse12:
+  sles_sap12:
     - { tier: 'os',    node_tier: 'all',     name: 'fs.protected_hardlinks',                     value: '1',                    state: 'present' }
     - { tier: 'os',    node_tier: 'all',     name: 'fs.protected_fifos',                         value: '2',                    state: 'present' }
     - { tier: 'os',    node_tier: 'all',     name: 'fs.protected_regular',                       value: '2',                    state: 'present' }
@@ -138,20 +132,14 @@ parameters:
     - { tier: 'ha',    node_tier: 'all',     name: 'vm.dirty_background_bytes',                  value: '314572800',            state: 'present' }
     # SAP note: 1410736 - TCP/IP: setting keepalive interval
     - { tier: 'ha',    node_tier: 'all',     name: 'net.ipv4.tcp_keepalive_time',                value: '300',                  state: 'present' }
+    - { tier: 'app',   node_tier: 'app',     name: 'net.ipv4.tcp_keepalive_time',                value: '300',                  state: 'present' }
+    - { tier: 'pas',   node_tier: 'pas',     name: 'net.ipv4.tcp_keepalive_time',                value: '300',                  state: 'present' }
     - { tier: 'ha',    node_tier: 'all',     name: 'net.ipv4.tcp_keepalive_intvl',               value: '75',                   state: 'present' }
     - { tier: 'ha',    node_tier: 'all',     name: 'net.ipv4.tcp_keepalive_probes',              value: '9',                    state: 'present' }
-    - { tier: 'ha',    node_tier: 'hana',    name: 'net.ipv4.tcp_timestamps',                    value: '0',                    state: 'present' }
-    - { tier: 'ha',    node_tier: 'scs',     name: 'net.ipv4.tcp_timestamps',                    value: '0',                    state: 'present' }
-    - { tier: 'ha',    node_tier: 'ers',     name: 'net.ipv4.tcp_timestamps',                    value: '0',                    state: 'present' }
-    - { tier: 'ha',    node_tier: 'sybase',  name: 'net.ipv4.tcp_timestamps',                    value: '0',                    state: 'present' }
-    - { tier: 'ha',    node_tier: 'db2',     name: 'net.ipv4.tcp_timestamps',                    value: '0',                    state: 'present' }
+    - { tier: 'ha',    node_tier: 'all',     name: 'net.ipv4.tcp_timestamps',                    value: '0',                    state: 'present' }
     # this is not required in newer kernels as per 2382421
     # - { tier: 'os', name: 'net.ipv4.tcp_tw_recycle',                       value: '0',                      state: 'present' }
-    - { tier: 'ha',    node_tier: 'hana',    name: 'net.ipv4.tcp_tw_reuse',                      value: '0',                    state: 'present' }
-    - { tier: 'ha',    node_tier: 'scs',     name: 'net.ipv4.tcp_tw_reuse',                      value: '0',                    state: 'present' }
-    - { tier: 'ha',    node_tier: 'ers',     name: 'net.ipv4.tcp_tw_reuse',                      value: '0',                    state: 'present' }
-    - { tier: 'ha',    node_tier: 'sybase',  name: 'net.ipv4.tcp_tw_reuse',                      value: '0',                    state: 'present' }
-    - { tier: 'ha',    node_tier: 'db2',     name: 'net.ipv4.tcp_tw_reuse',                      value: '0',                    state: 'present' }
+    - { tier: 'ha',    node_tier: 'all',     name: 'net.ipv4.tcp_tw_reuse',                      value: '0',                    state: 'present' }
 
   redhat7:
     - { tier: 'os',    node_tier: 'all',     name: 'kernel.yama.ptrace_scope',                   value: '1',                    state: 'present' }
@@ -179,20 +167,14 @@ parameters:
     - { tier: 'sapos', node_tier: 'hana',    name: 'fs.aio-max-nr',                              value: '18446744073709551615', state: 'present' }
     # SAP note: 1410736 - TCP/IP: setting keepalive interval
     - { tier: 'ha',    node_tier: 'all',     name: 'net.ipv4.tcp_keepalive_time',                value: '300',                  state: 'present' }
+    - { tier: 'pas',   node_tier: 'pas',     name: 'net.ipv4.tcp_keepalive_time',                value: '300',                  state: 'present' }
+    - { tier: 'app',   node_tier: 'app',     name: 'net.ipv4.tcp_keepalive_time',                value: '300',                  state: 'present' }
     - { tier: 'ha',    node_tier: 'all',     name: 'net.ipv4.tcp_keepalive_intvl',               value: '75',                   state: 'present' }
     - { tier: 'ha',    node_tier: 'all',     name: 'net.ipv4.tcp_keepalive_probes',              value: '9',                    state: 'present' }
-    - { tier: 'ha',    node_tier: 'hana',    name: 'net.ipv4.tcp_timestamps',                    value: '0',                    state: 'present' }
-    - { tier: 'ha',    node_tier: 'scs',     name: 'net.ipv4.tcp_timestamps',                    value: '0',                    state: 'present' }
-    - { tier: 'ha',    node_tier: 'ers',     name: 'net.ipv4.tcp_timestamps',                    value: '0',                    state: 'present' }
-    - { tier: 'ha',    node_tier: 'sybase',  name: 'net.ipv4.tcp_timestamps',                    value: '0',                    state: 'present' }
-    - { tier: 'ha',    node_tier: 'db2',     name: 'net.ipv4.tcp_timestamps',                    value: '0',                    state: 'present' }
+    - { tier: 'ha',    node_tier: 'all',     name: 'net.ipv4.tcp_timestamps',                    value: '0',                    state: 'present' }
     # this is not required in newer kernels as per 2382421
     # - { tier: 'os', name: 'net.ipv4.tcp_tw_recycle',                       value: '0',                      state: 'present' }
-    - { tier: 'ha',    node_tier: 'hana',    name: 'net.ipv4.tcp_tw_reuse',                      value: '0',                    state: 'present' }
-    - { tier: 'ha',    node_tier: 'scs',     name: 'net.ipv4.tcp_tw_reuse',                      value: '0',                    state: 'present' }
-    - { tier: 'ha',    node_tier: 'ers',     name: 'net.ipv4.tcp_tw_reuse',                      value: '0',                    state: 'present' }
-    - { tier: 'ha',    node_tier: 'sybase',  name: 'net.ipv4.tcp_tw_reuse',                      value: '0',                    state: 'present' }
-    - { tier: 'ha',    node_tier: 'db2',     name: 'net.ipv4.tcp_tw_reuse',                      value: '0',                    state: 'present' }
+    - { tier: 'ha',    node_tier: 'all',     name: 'net.ipv4.tcp_tw_reuse',                      value: '0',                    state: 'present' }
 
   redhat8:
     - { tier: 'os',    node_tier: 'all',     name: 'fs.protected_fifos',                         value: '2',                    state: 'present' }
@@ -220,20 +202,14 @@ parameters:
     - { tier: 'sapos', node_tier: 'hana',    name: 'fs.aio-max-nr',                              value: '18446744073709551615', state: 'present' }
     # SAP note: 1410736 - TCP/IP: setting keepalive interval
     - { tier: 'ha',    node_tier: 'all',     name: 'net.ipv4.tcp_keepalive_time',                value: '300',                  state: 'present' }
+    - { tier: 'pas',   node_tier: 'pas',     name: 'net.ipv4.tcp_keepalive_time',                value: '300',                  state: 'present' }
+    - { tier: 'app',   node_tier: 'app',     name: 'net.ipv4.tcp_keepalive_time',                value: '300',                  state: 'present' }
     - { tier: 'ha',    node_tier: 'all',     name: 'net.ipv4.tcp_keepalive_intvl',               value: '75',                   state: 'present' }
     - { tier: 'ha',    node_tier: 'all',     name: 'net.ipv4.tcp_keepalive_probes',              value: '9',                    state: 'present' }
-    - { tier: 'ha',    node_tier: 'hana',    name: 'net.ipv4.tcp_timestamps',                    value: '0',                    state: 'present' }
-    - { tier: 'ha',    node_tier: 'scs',     name: 'net.ipv4.tcp_timestamps',                    value: '0',                    state: 'present' }
-    - { tier: 'ha',    node_tier: 'ers',     name: 'net.ipv4.tcp_timestamps',                    value: '0',                    state: 'present' }
-    - { tier: 'ha',    node_tier: 'sybase',  name: 'net.ipv4.tcp_timestamps',                    value: '0',                    state: 'present' }
-    - { tier: 'ha',    node_tier: 'db2',     name: 'net.ipv4.tcp_timestamps',                    value: '0',                    state: 'present' }
+    - { tier: 'ha',    node_tier: 'all',     name: 'net.ipv4.tcp_timestamps',                    value: '0',                    state: 'present' }
     # this is not required in newer kernels as per 2382421
     # - { tier: 'os', name: 'net.ipv4.tcp_tw_recycle',                       value: '0',                      state: 'present' }
-    - { tier: 'ha',    node_tier: 'hana',    name: 'net.ipv4.tcp_tw_reuse',                      value: '0',                    state: 'present' }
-    - { tier: 'ha',    node_tier: 'scs',     name: 'net.ipv4.tcp_tw_reuse',                      value: '0',                    state: 'present' }
-    - { tier: 'ha',    node_tier: 'ers',     name: 'net.ipv4.tcp_tw_reuse',                      value: '0',                    state: 'present' }
-    - { tier: 'ha',    node_tier: 'sybase',  name: 'net.ipv4.tcp_tw_reuse',                      value: '0',                    state: 'present' }
-    - { tier: 'ha',    node_tier: 'db2',     name: 'net.ipv4.tcp_tw_reuse',                      value: '0',                    state: 'present' }
+    - { tier: 'ha',    node_tier: 'all',    name: 'net.ipv4.tcp_tw_reuse',                      value: '0',                    state: 'present' }
 
   oraclelinux8:
     - { tier: 'os',    node_tier: 'all',     name: 'kernel.sem',                                value: '32000 1024000000 500 32000',    state: 'present' }
