@@ -11,6 +11,8 @@
 - name:                                "5.6 SCS/ERS Validation: Determine if SCS is running on {{ ansible_hostname }}"
   become_user:                         "{{ sap_sid | lower }}adm"
   become:                              true
+  when:
+    - ansible_hostname == primary_instance_name
   block:
     - name:                            "5.6 SCS/ERS Validation: Get sapcontrol path"
       ansible.builtin.find:
