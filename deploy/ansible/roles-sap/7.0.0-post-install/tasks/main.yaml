@@ -31,7 +31,7 @@
   ansible.builtin.find:
     paths:                             "{{ tmp_directory}}/{{ this_sid }}/sapinst_instdir/{{ prefix }}/{{ path }}"
     file_type:                         file
-    patterns                           'sa*.log,ini*.*,Hd*.log'
+    patterns:                          'sa*.log,ini*.*,Hd*.log'
     recurse:                           false
   register:                            sapinst_log_files
   when:
