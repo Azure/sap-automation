@@ -231,7 +231,7 @@ output "dns_info_vms" {
 }
 
 output "privatelink_file_id" {
-  value = data.azurerm_private_dns_zone.file[0].id
+  value = try(data.azurerm_private_dns_zone.file[0].id, "")
 
 }
 
@@ -316,7 +316,7 @@ output "saptransport_path" {
       try(azurerm_storage_share.transport[0].name, ""))
     )) : (
     var.NFS_provider == "ANF" ? (
-      format("%s:/%s/%s",
+      format("%s:/%s",
         var.ANF_settings.use_existing_transport_volume ? (
           data.azurerm_netapp_volume.transport[0].mount_ip_addresses[0]) : (
           azurerm_netapp_volume.transport[0].mount_ip_addresses[0]

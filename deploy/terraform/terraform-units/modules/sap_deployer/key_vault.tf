@@ -42,7 +42,7 @@ resource "azurerm_key_vault" "kv_user" {
         [data.azurerm_subnet.subnet_mgmt[0].id, data.azurerm_subnet.webapp[0].id]) : (
         [data.azurerm_subnet.subnet_mgmt[0].id])
         ) : (var.use_webapp ? (
-          [azurerm_subnet.subnet_mgmt[0].id, azurerm_subnet.webapp[0].id]) : (
+          compact([azurerm_subnet.subnet_mgmt[0].id, try(azurerm_subnet.webapp[0].id, null)])) : (
           [azurerm_subnet.subnet_mgmt[0].id]
         )
       ))

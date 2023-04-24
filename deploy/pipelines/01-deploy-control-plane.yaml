@@ -62,7 +62,7 @@ stages:
                 environment:           ${{ parameters.environment }}
                 use_webapp_param:      ${{ parameters.use_webapp_param }}
                 use_deployer:          ${{ parameters.use_deployer }}
-      displayName:                     Deploy the control plane
+      displayName:                     Prepare the self hosted agent(s)
 
       jobs:
           - job:                       Prepare_Deployer
@@ -322,7 +322,7 @@ stages:
                             fi
                         exit $return_code
 
-                  displayName: Deploy control plane
+                  displayName: Prepare control plane
                   env:
                       SYSTEM_ACCESSTOKEN:             $(System.AccessToken)
                       ARM_SUBSCRIPTION_ID:            $(CP_ARM_SUBSCRIPTION_ID)
@@ -815,6 +815,7 @@ stages:
                   failOnStderr: false
 
     - stage:                           Web_App_Deployment
+      pool:                            $(this_agent)
       variables:
           - template:                  variables/01-deploy-control-plane-variables.yaml
             parameters:
@@ -849,7 +850,7 @@ stages:
                   inputs:
                       command:         "build"
                       projects:        "$(System.DefaultWorkingDirectory)/sap-automation/Webapp/SDAF/*.csproj"
-
+                      workingDirectory: $(Agent.ToolsDirectory)/dotnet
                 - task:                DotNetCoreCLI@2
                   displayName:         "Publish the Configuration Web Application"
                   inputs:
@@ -859,6 +860,7 @@ stages:
                       arguments:          "--output $(Build.ArtifactStagingDirectory)/WebApp"
                       zipAfterPublish:    true
                       modifyOutputPath:   true
+                      workingDirectory:  $(Agent.ToolsDirectory)/dotnet
 
                 - task:                  AzureWebApp@1
                   displayName:           "Deploy the Configuration Web Application"

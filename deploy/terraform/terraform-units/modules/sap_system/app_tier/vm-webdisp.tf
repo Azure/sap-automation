@@ -123,18 +123,15 @@ resource "azurerm_linux_virtual_machine" "web" {
   location            = var.resource_group[0].location
   resource_group_name = var.resource_group[0].name
 
-  //If no ppg defined do not put the web dispatchers in a proximity placement group
-  proximity_placement_group_id = local.web_no_ppg ? (
-    null) : (
-    local.web_zonal_deployment ? (
-      var.ppg[count.index % max(local.web_zone_count, 1)].id) : (
-      var.ppg[0].id
-    )
+  proximity_placement_group_id = var.application_tier.web_use_ppg ? (
+    local.web_zonal_deployment ? var.ppg[count.index % max(local.web_zone_count, 1)].id : var.ppg[0].id) : (
+    null
   )
 
   //If more than one servers are deployed into a single zone put them in an availability set and not a zone
   availability_set_id = local.use_web_avset ? (
-    azurerm_availability_set.web[count.index % max(local.web_zone_count, 1)].id) : (
+      azurerm_availability_set.web[count.index % max(local.web_zone_count, 1)].id
+    ) : (
     null
   )
 
@@ -258,21 +255,17 @@ resource "azurerm_windows_virtual_machine" "web" {
   location            = var.resource_group[0].location
   resource_group_name = var.resource_group[0].name
 
-  //If no ppg defined do not put the web dispatchers in a proximity placement group
-  proximity_placement_group_id = local.web_no_ppg ? (
-    null) : (
-    local.web_zonal_deployment ? (
-      var.ppg[count.index % max(local.web_zone_count, 1)].id) : (
-      var.ppg[0].id
-    )
+  proximity_placement_group_id = var.application_tier.web_use_ppg ? (
+    local.web_zonal_deployment ? var.ppg[count.index % max(local.web_zone_count, 1)].id : var.ppg[0].id) : (
+    null
   )
 
   //If more than one servers are deployed into a single zone put them in an availability set and not a zone
   availability_set_id = local.use_web_avset ? (
-    azurerm_availability_set.web[count.index % max(local.web_zone_count, 1)].id) : (
+      azurerm_availability_set.web[count.index % max(local.web_zone_count, 1)].id
+    ) : (
     null
   )
-
   //If length of zones > 1 distribute servers evenly across zones
   zone = local.use_web_avset ? (
     null) : (
@@ -464,7 +457,7 @@ resource "azurerm_virtual_machine_extension" "configure_ansible_web" {
   type_handler_version = "1.9"
   settings             = <<SETTINGS
         {
-          "fileUris": ["https://raw.githubusercontent.com/main/sap-automation/main/deploy/scripts/configure_ansible.ps1"],
+          "fileUris": ["https://raw.githubusercontent.com/Azure/sap-automation/main/deploy/scripts/configure_ansible.ps1"],
           "commandToExecute": "powershell.exe -ExecutionPolicy Unrestricted -File configure_ansible.ps1 -Verbose"
         }
     SETTINGS

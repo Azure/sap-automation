@@ -105,7 +105,7 @@ $$database_sid$$
 # - HANA
 # - DB2
 # - ORACLE
-# - ASE
+# - SYBASE
 # - SQLSERVER
 # - NONE (in this case no database tier is deployed)
 $$database_platform$$
@@ -199,10 +199,10 @@ $$database_vm_authentication_type$$
 $$database_vm_avset_arm_ids$$
 
 # Optional, Defines the that the database virtual machines will not be placed in a proximity placement group
-$$database_no_ppg$$
+$$database_use_ppg$$
 
 # Optional, Defines the that the database virtual machines will not be placed in an availability set
-$$database_no_avset$$
+$$database_use_avset$$
 
 # Optional, Defines if the tags for the database virtual machines
 $$database_tags$$
@@ -259,11 +259,11 @@ $$scs_server_sku$$
 # in this case os_type must also be specified
 $$scs_server_image$$
 
-# scs_server_no_ppg defines the that the SCS virtual machines will not be placed in a proximity placement group
-$$scs_server_no_ppg$$
+# scs_server_use_ppg defines the that the SCS virtual machines will be placed in a proximity placement group
+$$scs_server_use_ppg$$
 
-# scs_server_no_avset defines the that the SCS virtual machines will not be placed in an availability set
-$$scs_server_no_avset$$
+# scs_server_use_avset defines the that the SCS virtual machines will be placed in an availability set
+$$scs_server_use_avset$$
 
 # scs_server_app_nic_ips, if provided provides the static IP addresses
 # for the network interface cards connected to the application subnet
@@ -320,11 +320,11 @@ $$app_disk_sizes_filename$$
 # Optional, Defines the default authentication model for the Applicatiuon tier VMs (key/password)
 $$app_tier_authentication_type$$
 
-# application_server_no_ppg defines the that the application server virtual machines will not be placed in a proximity placement group
-$$application_server_no_ppg$$
+# application_server_use_ppg defines the that the application server virtual machines will be placed in a proximity placement group
+$$application_server_use_ppg$$
 
-# application_server_no_avset defines the that the application server virtual machines will not be placed in an availability set
-$$application_server_no_avset$$
+# application_server_use_avset defines the that the application server virtual machines will be placed in an availability set
+$$application_server_use_avset$$
 
 # application_server_tags, if defined provides the tags to be associated to the application servers
 $$application_server_tags$$
@@ -345,6 +345,13 @@ $$application_server_vm_avset_arm_ids$$
 # webdispatcher_server_count defines how many web dispatchers to deploy
 $$webdispatcher_server_count$$
 
+# web_sid is the Web Dispatcher SID
+$$web_sid$$
+
+# web_instance_number defines the web instance number
+$$web_instance_number$$
+
+
 # webdispatcher_server_app_nic_ips, if provided provides the static IP addresses
 # for the network interface cards connected to the application subnet
 $$webdispatcher_server_app_nic_ips$$
@@ -364,11 +371,11 @@ $$webdispatcher_server_loadbalancer_ips$$
 # webdispatcher_server_sku, if defined provides the SKU to use for the web dispatchers
 $$webdispatcher_server_sku$$
 
-# webdispatcher_server_no_ppg defines the that the Web dispatcher virtual machines will not be placed in a proximity placement group
-$$webdispatcher_server_no_ppg$$
+# webdispatcher_server_use_ppg defines the that the Web dispatcher virtual machines will be placed in a proximity placement group
+$$webdispatcher_server_use_ppg$$
 
-#webdispatcher_server_no_avset defines the that the Web dispatcher virtual machines will not be placed in an availability set
-$$webdispatcher_server_no_avset$$
+#webdispatcher_server_use_avset defines the that the Web dispatcher virtual machines will be placed in an availability set
+$$webdispatcher_server_use_avset$$
 
 # webdispatcher_server_tags, if defined provides the tags to be associated to the web dispatchers
 $$webdispatcher_server_tags$$

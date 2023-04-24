@@ -42,6 +42,12 @@ variable "sap_sid" {
   default     = ""
 }
 
+variable "web_sid" {
+  description = "Web Dispatcher SID"
+  default     = ""
+}
+
+
 variable "db_sid" {
   description = "Database SID"
   default     = ""

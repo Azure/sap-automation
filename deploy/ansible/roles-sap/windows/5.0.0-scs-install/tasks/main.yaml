@@ -16,7 +16,6 @@
 - name:                                "SCS Install: Calculating the domain value from {{ domain_name }}"
   ansible.builtin.set_fact:
     domain:                            "{{ domain_name | split('.') | first }}"
-    cacheable:                         true
   when:
     - domain_name is defined
     - domain_name | type_debug != 'NoneType'
@@ -34,12 +33,12 @@
   ansible.builtin.set_fact:
     scs_server:                        "{{ hostvars[scs_server_temp | first]['virtual_host'] }}"
     ha_identifier:                     ""
-    dir_params:                        '{{ tmp_directory_windows }}\{{ sid_to_be_deployed.sid | lower }}-params'
+    dir_params:                        '{{ tmp_directory_windows }}\{{ sid_to_be_deployed.sid | lower }}-params\'
 
 - name:                                "5.6 SCSERS - Set the SCS and ERS Virtual Instance hostname"
   ansible.builtin.set_fact:
     scs_virtual_hostname:              "{{ sap_sid | lower }}scs{{ scs_instance_number }}cl1"
-    # ers_virtual_hostname:              "{{ sap_sid | lower }}ers{{ ers_instance_number }}cl2"
+    ers_virtual_hostname:              "{{ sap_sid | lower }}ers{{ ers_instance_number }}cl2"
     ha_identifier:                     "_ha"
   when:
     - scs_high_availability
@@ -55,21 +54,27 @@
     - scs_high_availability
     - ansible_os_family | upper == 'WINDOWS'
   block:
-    - name:                           "SCS Install: High availability tasks"
+    - name:                            "SCS Install: High availability tasks"
       ansible.builtin.import_role:
-        name:                         roles-os/windows/1.17-generic-wincluster
-        tasks_from:                   main
-      register:                       cluster_output
+        name:                          roles-os/windows/1.17-generic-wincluster
+        tasks_from:                    main
+      register:                        cluster_output
       vars:
         scs_cluster_hostname:                 "{{ scs_virtual_hostname }}"
         ers_cluster_hostname:                 "{{ ers_virtual_hostname }}"
         ansible_winrm_transport:              credssp
         ansible_winrm_server_cert_validation: ignore
 
-    - name:                           "SCS Install: High availability flag"
+    - name:                            "SCS Install: High availability flag"
       ansible.windows.win_file:
         path:                          '{{ sap_deployment_automation }}\{{ sid_to_be_deployed.sid | upper }}\cluster_config_done.txt'
         state:                         touch
+
+    - name:                            "SCS Install: High availability flag"
+      ansible.windows.win_reboot:
+        reboot_timeout:                600
+        post_reboot_delay:             120
+
 # End: call cluster configuration only if cluster is enabled
 # /*---------------------------------------------------------------------------8
 # |                    Windows cluster configuration : END                     |
@@ -84,89 +89,94 @@
     - "'scs' in supported_tiers "
     - ansible_os_family | upper == 'WINDOWS'
   block:
-    - name:                                "SCS Install: Create run flag directory"
+    - name:                            "SCS Install: Create run flag directory"
       ansible.windows.win_file:
-        path:                              '{{ sap_deployment_automation }}\{{ sid_to_be_deployed.sid | upper }}'
-        state:                             directory
+        path:                          '{{ sap_deployment_automation }}\{{ sid_to_be_deployed.sid | upper }}\'
+        state:                         directory
 
-    - name:                                "SCS Install: reset"
+    - name:                            "SCS Install: reset"
       ansible.windows.win_file:
-        path:                              '{{ sap_deployment_automation }}\{{ sid_to_be_deployed.sid | upper }}\sap_deployment_scs.txt'
-        state:                             absent
-      when:                                reinstall
+        path:                          '{{ sap_deployment_automation }}\{{ sid_to_be_deployed.sid | upper }}\sap_deployment_scs.txt'
+        state:                         absent
+      when:                            reinstall
 
-    - name:                                "SCS Install: check if {{ sid_to_be_deployed.sid | upper }} is installed"
+    - name:                            "SCS Install: check if {{ sid_to_be_deployed.sid | upper }} is installed"
       ansible.windows.win_stat:
-        path:                              '{{ sap_deployment_automation }}\{{ sid_to_be_deployed.sid | upper }}\sap_deployment_scs.txt'
-      register:                            scs_installed
-      when:                                "'scs' in supported_tiers"
+        path:                          '{{ sap_deployment_automation }}\{{ sid_to_be_deployed.sid | upper }}\sap_deployment_scs.txt'
+      register:                        scs_installed
+      when:                            "'scs' in supported_tiers"
 
-    - name:                                "SCS Install: check if installed"
+    - name:                            "SCS Install: check if installed"
       ansible.builtin.debug:
-        var:                               scs_installed
-        verbosity:                         2
+        var:                           scs_installed
+        verbosity:                     2
 
 
     #   0x) Create directory for parameter files
-    - name:                                "SCS Install: Create params directory"
+    - name:                            "SCS Install: reset"
       ansible.windows.win_file:
-        path:                              "{{ dir_params }}"
-        state:                             directory
+        path:                          "{{ dir_params }}"
+        state:                         absent
 
-    - name:                                "SCS Install: Create temp directory for sid"
+    - name:                            "SCS Install: Create params directory"
       ansible.windows.win_file:
-        path:                              '{{ tmp_directory_windows }}\{{ sid_to_be_deployed.sid | upper }}'
-        state:                             directory
+        path:                          "{{ dir_params }}"
+        state:                         directory
+
+    - name:                            "SCS Install: Create temp directory for sid"
+      ansible.windows.win_file:
+        path:                          '{{ tmp_directory_windows }}\{{ sid_to_be_deployed.sid | upper }}\'
+        state:                         directory
 
     #   1x) Create directories for sapinst_extraction and logs
-    - name:                                "SCS Install: Create sapinst Extraction Directory"
+    - name:                            "SCS Install: Create sapinst Extraction Directory"
       ansible.windows.win_file:
-        path:                              '{{ download_directory_windows }}\sap_extract'
-        state:                             directory
+        path:                          '{{ download_directory_windows }}\sap_extract'
+        state:                         directory
       when:
         - "'scs' in supported_tiers"
 
-    - name:                                "SCS Install: Create log Directory"
+    - name:                            "SCS Install: Create log Directory"
       ansible.windows.win_file:
-        path:                              '{{ log_dir_windows }}\sapinst_logs'
-        state:                             directory
+        path:                          '{{ log_dir_windows }}\sapinst_logs'
+        state:                         directory
 
-    - name:                                "SCS Install: Include 3.3.1-bom-utility role"
+    - name:                            "SCS Install: Include 3.3.1-bom-utility role"
       ansible.builtin.include_role:
-        name:                              roles-sap/windows/3.3.1-bom-utility
-        tasks_from:                        bom-register
+        name:                          roles-sap/windows/3.3.1-bom-utility
+        tasks_from:                    bom-register
       vars:
-        bom_name:                          "{{ bom_base_name }}"
-        tier:                              "scs"
-        task_prefix:                       "SCS Install: "
-        sa_enabled:                        true
+        bom_name:                      "{{ bom_base_name }}"
+        tier:                          "scs"
+        task_prefix:                   "SCS Install: "
+        sa_enabled:                    true
 
-    - name:                                "SCS Install: Set BOM facts"
+    - name:                            "SCS Install: Set BOM facts"
       ansible.builtin.set_fact:
-        sap_inifile:                       "{{ bom_base_name }}-scs-{{ sid_to_be_deployed.sid | lower }}-{{ ansible_hostname }}.params"
-        sap_inifile_template:              "{{ bom_base_name }}{{ bom_suffix }}-scs{{ ha_identifier }}-inifile-param.j2"
-        dir_params:                        '{{ tmp_directory_windows }}\{{ sid_to_be_deployed.sid | lower }}-params'
-        product_catalog:                   '{{ download_directory_windows }}\SWPM\product.catalog'
-        product_id:                        "{% if scs_high_availability %}{{ bom.product_ids.scs_ha }}{% else %}{{ bom.product_ids.scs }}{% endif %}"
+        sap_inifile:                   "{{ bom_base_name }}-scs-{{ sid_to_be_deployed.sid | lower }}-{{ ansible_hostname }}.params"
+        sap_inifile_template:          "{{ bom_base_name }}{{ bom_suffix }}-scs{{ ha_identifier }}-inifile-param.j2"
+        dir_params:                    '{{ tmp_directory_windows }}\{{ sid_to_be_deployed.sid | lower }}-params'
+        product_catalog:               '{{ download_directory_windows }}\SWPM\product.catalog'
+        product_id:                    "{% if scs_high_availability %}{{ bom.product_ids.scs_ha }}{% else %}{{ bom.product_ids.scs }}{% endif %}"
       when: ansible_hostname == primary_node
 
-    - name:                                "SCS Install: Set BOM facts"
+    - name:                            "SCS Install: Set BOM facts"
       ansible.builtin.set_fact:
-        sap_inifile:                       "{{ bom_base_name }}-ers-{{ sid_to_be_deployed.sid | lower }}-{{ ansible_hostname }}.params"
-        sap_inifile_template:              "{{ bom_base_name }}{{ bom_suffix }}-ers-inifile-param.j2"
-        dir_params:                        '{{ tmp_directory_windows }}\{{ sid_to_be_deployed.sid | lower }}-params'
-        product_catalog:                   '{{ download_directory_windows }}\SWPM\product.catalog'
-        product_id:                        '{{ bom.product_ids.ers }}'
+        sap_inifile:                   "{{ bom_base_name }}-ers-{{ sid_to_be_deployed.sid | lower }}-{{ ansible_hostname }}.params"
+        sap_inifile_template:          "{{ bom_base_name }}{{ bom_suffix }}-ers-inifile-param.j2"
+        dir_params:                    '{{ tmp_directory_windows }}\{{ sid_to_be_deployed.sid | lower }}-params'
+        product_catalog:               '{{ download_directory_windows }}\SWPM\product.catalog'
+        product_id:                    '{{ bom.product_ids.ers }}'
       when: ansible_hostname == secondary_node
 
-    - name:                                "SCS Install: Include roles-sap/windows/3.3.1-bom-utility role"
+    - name:                            "SCS Install: Include roles-sap/windows/3.3.1-bom-utility role"
       ansible.builtin.include_role:
-        name:                              roles-sap/windows/3.3.1-bom-utility
-        tasks_from:                        bom-template
+        name:                          roles-sap/windows/3.3.1-bom-utility
+        tasks_from:                    bom-template
       vars:
-        task_prefix:                       "SCS Install: "
-        always_upload_jinja_templates:     false
-        bom_name:                          "{{ bom_base_name }}"
+        task_prefix:                   "SCS Install: "
+        always_upload_jinja_templates: false
+        bom_name:                      "{{ bom_base_name }}"
         sap_cd_package_cd1:
         sap_cd_package_cd2:
         sap_cd_package_cd3:
@@ -179,16 +189,16 @@
         sap_ciBtcWPNumber:
         sap_installSAPHostAgent:
         sap_profile_dir:
-        sap_scs_hostname:                  "{{ virtual_host }}"
+        sap_scs_hostname:              "{{ virtual_host }}"
         sap_db_hostname:
         sap_ciVirtualHostname:
         sap_appVirtualHostname:
-        param_directory:                   "{{ dir_params }}"
-        sap_sid:                           "{{ sid_to_be_deployed.sid }}"
-        scs_instance_number:               "{{ sid_to_be_deployed.ascs_inst_no }}"
-        sidadm_uid:                        "{{ sid_to_be_deployed.sidadm_uid }}"
+        param_directory:               "{{ dir_params }}"
+        sap_sid:                       "{{ sid_to_be_deployed.sid }}"
+        scs_instance_number:           "{{ sid_to_be_deployed.ascs_inst_no }}"
+        sidadm_uid:                    "{{ sid_to_be_deployed.sidadm_uid }}"
 
-    - name:                                "SCS Install: install variables"
+    - name:                            "SCS Install: install variables"
       ansible.builtin.debug:
         msg:
           - "INSTALLED:  {{ scs_installed.stat.exists }}"
@@ -200,20 +210,20 @@
           - "SID:        {{ sid_to_be_deployed.sid | upper }}"
 
 
-    - name:                                "SCS Install status"
+    - name:                            "SCS Install status"
       block:
 
-        - name:                            "SCS Install status"
+        - name:                        "SCS Install status"
           ansible.builtin.debug:
-            msg:                           "SCS is already installed"
+            msg:                       "SCS is already installed"
 
-        - name:                            "SCS: - return value"
+        - name:                        "SCS: - return value"
           ansible.builtin.set_fact:
-            scs_already_installed:         true
+            scs_already_installed:     true
       when:
         - scs_installed.stat.exists
 
-    - name:                                "SCS Install"
+    - name:                            "SCS Install"
       when:
         - "'scs' in supported_tiers"
         - not scs_installed.stat.exists
@@ -224,34 +234,84 @@
         # | 2230669 - System Provisioning Using a Parameter Input File                 |
         # *====================================4=======================================8
 
-        - name:                            "SCS Install: Progress"
+        - name:                        "SCS Install: Progress"
           ansible.builtin.debug:
-            msg:                           "Start SCS Installation media extraction"
+            msg:                       "Start SCS Installation media extraction"
 
-        - name:                            "SCS Install: sapinst Extraction"
+        - name:                        "SCS Install: sapinst Extraction"
           ansible.windows.win_shell: |
-                                          {{ download_directory_windows }}\SWPM\sapinst.exe -extract
+                                      {{ download_directory_windows }}\SWPM\sapinst.exe -extract
           args:
-            chdir:                         '{{ download_directory_windows }}\sap_extract'
-            creates:                       '{{ download_directory_windows }}\sap_extract\sapinst.exe'
-          become:                          true
-          become_method:                   runas
-          become_user:                     '{{ sap_sid }}adm@{{ domain_name }}'
+            chdir:                     '{{ download_directory_windows }}\sap_extract'
+            creates:                   '{{ download_directory_windows }}\sap_extract\sapinst.exe'
+          become:                      true
+          become_method:               runas
+          become_user:                 '{{ sap_sid }}adm@{{ domain_name }}'
           vars:
-            ansible_become_password:       "{{ domain_user_password }}"
-          register:                        scs_extraction
-          failed_when:                     scs_extraction.rc > 0
+            ansible_become_password:   "{{ domain_user_password }}"
+          register:                    scs_extraction
+          failed_when:                 scs_extraction.rc > 0
 
-        - name:                            "SCS Install: progress"
+        - name:                        "SCS Install: progress"
           ansible.builtin.debug:
-            msg:                           "Starting SCS Installation for {{ sid_to_be_deployed.sid | upper }}. Please wait"
+            msg:                       "Starting SCS Installation for {{ sid_to_be_deployed.sid | upper }}. Please wait"
 
-        - name:                            "SCS Installation"
+        - name:                        "SCS Installation"
           block:
-            - name:                        "SCS Install: SAP SCS Install on {{ ansible_hostname }}"
-              become:                      true
-              become_method:               runas
-              become_user:                 '{{ sap_sid }}adm@{{ domain_name }}'
+            - name:                    "SCS Install: SAP SCS Install on {{ ansible_hostname }}"
+              become:                  true
+              become_method:           runas
+              become_user:             '{{ sap_sid }}adm@{{ domain_name }}'
+              ansible.windows.win_shell: |
+                                          {{ download_directory_windows }}\sap_extract\sapinst.exe SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}\{{ sap_inifile }}   `
+                                                                                                    SAPINST_EXECUTE_PRODUCT_ID={{ product_id }}                      `
+                                                                                                    SAPINST_SKIP_DIALOGS=true                                        `
+                                                                                                    SAPINST_START_GUI=false                                          `
+                                                                                                    SAPINST_CONTROL_URL={{ product_catalog }}                        `
+                                                                                                    SAPINST_START_GUISERVER=false
+              args:
+                chdir:                 '{{ log_dir_windows }}\sapinst_logs'
+                creates:               '{{ sap_deployment_automation }}\{{ sid_to_be_deployed.sid | upper }}\sap_deployment_scs.txt'
+              vars:
+                ansible_become_password:   "{{ domain_user_password }}"
+              register:                scs_installation
+              failed_when:             scs_installation.rc > 0
+          rescue:
+            - name:                    "RESCUE - SCS Install: Show installation result"
+              ansible.builtin.debug:
+                var:                   scs_installation
+              when:                    scs_installation is defined
+
+            - name:                    'RESCUE - SCS Install: Check {{ sap_drive }}\usr\sap\{{ sap_sid | upper }}\SYS\exe\uc\NTAMD64 exists'
+              ansible.windows.win_stat:
+                path:                  '{{ sap_drive }}\usr\sap\{{ sap_sid | upper }}\SYS\exe\uc\NTAMD64'
+              register:                stat_sys_exe_uc
+              when:                    node_tier == 'scs'
+
+            - name:                    'RESCUE - SCS Install: Check Check {{ sap_drive }}\usr\sap\{{ sap_sid | upper }}\SYS\exe\uc\NTAMD64 is empty'
+              ansible.windows.win_find:
+                paths:                 '{{ sap_drive }}\usr\sap\{{ sap_sid | upper }}\SYS\exe\uc\NTAMD64'
+                patterns:              "*"
+                file_type:             directory
+              register:                find_sys_exe_uc_result
+              when:
+                - node_tier == 'scs'
+                - stat_sys_exe_uc.stat.exists
+
+
+            - name:                    'RESCUE - SCS Install: Cleanup {{ sap_drive }}\usr\sap\{{ sap_sid | upper }}\SYS\exe\uc\NTAMD64'
+              ansible.windows.win_file:
+                path:                  '{{ sap_drive }}\usr\sap\{{ sap_sid | upper }}\SYS\exe\uc\NTAMD64'
+                state:                 absent
+              when:
+                - node_tier == 'scs'
+                - find_sys_exe_uc_result is defined
+                - find_sys_exe_uc_result | length > 0
+
+            - name:                    "RESCUE - SCS Install: SAP SCS Install on {{ ansible_hostname }}"
+              become:                  true
+              become_method:           runas
+              become_user:             '{{ sap_sid }}adm@{{ domain_name }}'
               ansible.windows.win_shell: |
                                           {{ download_directory_windows }}\sap_extract\sapinst.exe SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}\{{ sap_inifile }}   `
                                                                                                     SAPINST_EXECUTE_PRODUCT_ID={{ product_id }}             `
@@ -260,82 +320,63 @@
                                                                                                     SAPINST_CONTROL_URL={{ product_catalog }}                        `
                                                                                                     SAPINST_START_GUISERVER=false
               args:
-                chdir:                     '{{ log_dir_windows }}\sapinst_logs'
-                creates:                   '{{ sap_deployment_automation }}\{{ sid_to_be_deployed.sid | upper }}\sap_deployment_scs.txt'
+                chdir:                 '{{ log_dir_windows }}\sapinst_logs'
+                creates:               '{{ sap_deployment_automation }}\{{ sid_to_be_deployed.sid | upper }}\sap_deployment_scs.txt'
               vars:
                 ansible_become_password:   "{{ domain_user_password }}"
-              register:                    scs_installation
-              failed_when:                 scs_installation.rc > 0
-          rescue:
-            - name:                        'RESCUE - SCS Install: Check {{ sap_drive }}\usr\sap\{{ sap_sid | upper }}\SYS\exe\uc\NTAMD64 exists'
-              ansible.windows.win_stat:
-                path:                      '{{ sap_drive }}\usr\sap\{{ sap_sid | upper }}\SYS\exe\uc\NTAMD64'
-              register:                    stat_sys_exe_uc
-              when:                        node_tier == 'scs'
+              register:                scs_installation
 
-            - name:                        'RESCUE - SCS Install: Check Check {{ sap_drive }}\usr\sap\{{ sap_sid | upper }}\SYS\exe\uc\NTAMD64 is empty'
-              ansible.windows.win_find:
-                paths:                     '{{ sap_drive }}\usr\sap\{{ sap_sid | upper }}\SYS\exe\uc\NTAMD64'
-                patterns:                  "*"
-                file_type:                 directory
-              register:                    find_sys_exe_uc_result
-              when:
-                - node_tier == 'scs'
-                - stat_sys_exe_uc.stat.exists
+        - name:                        "RESCUE - SCS Install: Show installation result"
+          ansible.builtin.debug:
+            var:                       scs_installation
+          when:
+            - scs_installation is defined
+            - scs_installation.rc > 0
 
-            - name:                        "RESCUE - SCS Install: Show installation result"
-              ansible.builtin.debug:
-                var:                       scs_installation
-              when:                        scs_installation is defined
+        - name:                        "SCS Install: Failure on {{ ansible_hostname }}"
+          ansible.builtin.fail:
+            msg:                       "SCS Installation failed on {{ ansible_hostname }}"
+          when:                        scs_installation.rc > 0
 
-            - name:                        'RESCUE - SCS Install: Cleanup {{ sap_drive }}\usr\sap\{{ sap_sid | upper }}\SYS\exe\uc\NTAMD64'
-              ansible.windows.win_file:
-                path:                      '{{ sap_drive }}\usr\sap\{{ sap_sid | upper }}\SYS\exe\uc\NTAMD64'
-                state:                     absent
-              when:
-                - node_tier == 'scs'
-                - find_sys_exe_uc_result is defined
-                - find_sys_exe_uc_result | length > 0
-
-        - name:                            "SCS Install: Cleanup ini file {{ ansible_hostname }}"
+        - name:                        "SCS Install: Cleanup ini file {{ ansible_hostname }}"
           ansible.windows.win_file:
-            path:                          '{{ dir_params }}\{{ sap_inifile }}'
-            state:                         absent
+            path:                      '{{ dir_params }}\{{ sap_inifile }}'
+            state:                     absent
 
-        - name:                            "SCS Install: Installation Failed"
+        - name:                        "SCS Install: Installation Failed"
           ansible.builtin.debug:
-            var:                           scs_installation
-          when:                            scs_installation.rc > 0
+            var:                       scs_installation
+          when:                        scs_installation.rc > 0
 
-        - name:                            Find the installationSuccesfullyFinished.dat (SAPINST)
+        - name:                        Find the installationSuccesfullyFinished.dat (SAPINST)
           ansible.windows.win_find:
-            paths:                         '{{ log_dir_windows }}\sapinst_logs'
-            file_type:                     file
-            patterns:                      'installationSuccesfullyFinished.dat'
-            recurse:                       true
-          register:                        scs_installed_according_to_sapinst
+            paths:                     '{{ log_dir_windows }}\sapinst_logs'
+            file_type:                 file
+            patterns:                  'installationSuccesfullyFinished.dat'
+            recurse:                   true
+          register:                    scs_installed_according_to_sapinst
 
-        - name:                            "SCS Install: Installation results"
+        - name:                        "SCS Install: Installation results"
           ansible.builtin.debug:
-            msg:                           "SCS Installation succeeded"
+            msg:                       "SCS Installation succeeded"
           when:
             - scs_installation.rc == 0
             - scs_installed_according_to_sapinst.matched > 0
 
-        - name:                            "SCS Install: show"
+        - name:                        "SCS Install: show"
           ansible.builtin.debug:
-            var:                           scs_installed_according_to_sapinst
+            var:                       scs_installed_according_to_sapinst
 
-        - name:                            "SCS Install: flag"
+        - name:                        "SCS Install: flag"
           ansible.windows.win_file:
-            path:                          '{{ sap_deployment_automation }}\{{ sid_to_be_deployed.sid | upper }}\sap_deployment_scs.txt'
-            state:                         touch
+            path:                      '{{ sap_deployment_automation }}\{{ sid_to_be_deployed.sid | upper }}\sap_deployment_scs.txt'
+            state:                     touch
           when:
             - scs_installation.rc == 0
             - scs_installed_according_to_sapinst is defined
             - scs_installed_according_to_sapinst.matched > 0
 
-        - name:                                "SCS Install: High availability tasks"
+        - name:                        "SCS Install: High availability tasks"
           when:
             - "'scs' in supported_tiers "
             - scs_high_availability
@@ -343,14 +384,14 @@
             - scs_installed_according_to_sapinst.matched > 0
             - ansible_os_family | upper == 'WINDOWS'
           block:
-            - name:                           "SCS Install: High availability post installation tasks"
+            - name:                    "SCS Install: High availability post installation tasks"
               ansible.builtin.import_role:
-                name:                         roles-os/windows/1.17-generic-wincluster
-                tasks_from:                   1.17.2-wincluster-postconfig.yaml
-              register:                       cluster_post_config_output
+                name:                  roles-os/windows/1.17-generic-wincluster
+                tasks_from:            1.17.2-wincluster-postconfig.yaml
+              register:                cluster_post_config_output
               vars:
-                scs_cluster_hostname:         "{{ scs_virtual_hostname }}"
-                ers_cluster_hostname:         "{{ ers_virtual_hostname }}"
+                scs_cluster_hostname:  "{{ scs_virtual_hostname }}"
+                ers_cluster_hostname:  "{{ ers_virtual_hostname }}"
 
 # /*---------------------------------------------------------------------------8
 # |                            SCS Install : END                               |
@@ -365,89 +406,89 @@
     - "'ers' in supported_tiers "
     - ansible_os_family | upper == 'WINDOWS'
   block:
-    - name:                                "ERS Install: Create run flag directory"
+    - name:                            "ERS Install: Create run flag directory"
       ansible.windows.win_file:
-        path:                              '{{ sap_deployment_automation }}\{{ sid_to_be_deployed.sid | upper }}'
-        state:                             directory
+        path:                          '{{ sap_deployment_automation }}\{{ sid_to_be_deployed.sid | upper }}'
+        state:                         directory
 
-    - name:                                "ERS Install: reset"
+    - name:                            "ERS Install: reset"
       ansible.windows.win_file:
-        path:                              '{{ sap_deployment_automation }}\{{ sid_to_be_deployed.sid | upper }}\sap_deployment_ers.txt'
-        state:                             absent
-      when:                                reinstall
+        path:                          '{{ sap_deployment_automation }}\{{ sid_to_be_deployed.sid | upper }}\sap_deployment_ers.txt'
+        state:                         absent
+      when:                            reinstall
 
-    - name:                                "ERS Install: check if {{ sid_to_be_deployed.sid | upper }} is installed"
+    - name:                            "ERS Install: check if {{ sid_to_be_deployed.sid | upper }} is installed"
       ansible.windows.win_stat:
-        path:                              '{{ sap_deployment_automation }}\{{ sid_to_be_deployed.sid | upper }}\sap_deployment_ers.txt'
-      register:                            ers_installed
-      when:                                "'ers' in supported_tiers"
+        path:                          '{{ sap_deployment_automation }}\{{ sid_to_be_deployed.sid | upper }}\sap_deployment_ers.txt'
+      register:                        ers_installed
+      when:                            "'ers' in supported_tiers"
 
-    - name:                                "ERS Install: check if installed"
+    - name:                            "ERS Install: check if installed"
       ansible.builtin.debug:
-        var:                               ers_installed
-        verbosity:                         2
+        var:                           ers_installed
+        verbosity:                     2
 
 
     #   0x) Create directory for parameter files
-    - name:                                "ERS Install: Create params directory"
+    - name:                            "ERS Install: Create params directory"
       ansible.windows.win_file:
-        path:                              "{{ dir_params }}"
-        state:                             directory
+        path:                          "{{ dir_params }}"
+        state:                         directory
 
-    - name:                                "ERS Install: Create temp directory for sid"
+    - name:                            "ERS Install: Create temp directory for sid"
       ansible.windows.win_file:
-        path:                              '{{ tmp_directory_windows }}\{{ sid_to_be_deployed.sid | upper }}'
-        state:                             directory
+        path:                          '{{ tmp_directory_windows }}\{{ sid_to_be_deployed.sid | upper }}'
+        state:                         directory
 
     #   1x) Create directories for sapinst_extraction and logs
-    - name:                                "ERS Install: Create sapinst Extraction Directory"
+    - name:                            "ERS Install: Create sapinst Extraction Directory"
       ansible.windows.win_file:
-        path:                              '{{ download_directory_windows }}\sap_extract'
-        state:                             directory
+        path:                          '{{ download_directory_windows }}\sap_extract'
+        state:                         directory
       when:
-        - "'scs' in supported_tiers"
+        - "'ers' in supported_tiers"
 
-    - name:                                "ERS Install: Create log Directory"
+    - name:                            "ERS Install: Create log Directory"
       ansible.windows.win_file:
-        path:                              '{{ log_dir_windows }}\sapinst_logs'
-        state:                             directory
+        path:                          '{{ log_dir_windows }}\sapinst_logs'
+        state:                         directory
 
-    - name:                                "ERS Install: Include 3.3.1-bom-utility role"
+    - name:                            "ERS Install: Include 3.3.1-bom-utility role"
       ansible.builtin.include_role:
-        name:                              roles-sap/windows/3.3.1-bom-utility
-        tasks_from:                        bom-register
+        name:                          roles-sap/windows/3.3.1-bom-utility
+        tasks_from:                    bom-register
       vars:
-        bom_name:                          "{{ bom_base_name }}"
-        tier:                              "ers"
-        task_prefix:                       "ERS Install: "
-        always_upload_jinja_templates:     false
-        sa_enabled:                        true
+        bom_name:                      "{{ bom_base_name }}"
+        tier:                          "ers"
+        task_prefix:                   "ERS Install: "
+        always_upload_jinja_templates: false
+        sa_enabled:                    true
 
-    - name:                                "ERS Install: BOM Product Ids"
+    - name:                            "ERS Install: BOM Product Ids"
       ansible.builtin.debug:
         msg:
-          - "BOM_PRODUCT_IDS:              {{ bom.product_ids }}"
+          - "BOM_PRODUCT_IDS:          {{ bom.product_ids }}"
 
-    - name:                                "ERS Install: Set BOM facts"
+    - name:                            "ERS Install: Set BOM facts"
       ansible.builtin.set_fact:
-        sap_inifile:                       "{{ bom_base_name }}-ers-{{ sid_to_be_deployed.sid | lower }}-{{ ansible_hostname }}.params"
-        sap_inifile_template:              "{{ bom_base_name }}{{ bom_suffix }}-ers-inifile-param.j2"
-        dir_params:                        '{{ tmp_directory_windows }}\{{ sid_to_be_deployed.sid | lower }}-params'
-        product_catalog:                   '{{ download_directory_windows }}\SWPM\product.catalog'
-        product_id:                        '{{ bom.product_ids.ers }}'
+        sap_inifile:                   "{{ bom_base_name }}-ers-{{ sid_to_be_deployed.sid | lower }}-{{ ansible_hostname }}.params"
+        sap_inifile_template:          "{{ bom_base_name }}{{ bom_suffix }}-ers-inifile-param.j2"
+        dir_params:                    '{{ tmp_directory_windows }}\{{ sid_to_be_deployed.sid | lower }}-params'
+        product_catalog:               '{{ download_directory_windows }}\SWPM\product.catalog'
+        product_id:                    '{{ bom.product_ids.ers }}'
       when: ansible_hostname == secondary_node or ( 'ers' in supported_tiers )
 
     # Notes: We currently support only ENSA1 with standalone enqueue replication servers
     #        When we support ENSA2 we need to change the ers_virtual_hostname to reflect
     #        the VCO that would be used to run ERS.
-    - name:                                "ERS Install: Include roles-sap/windows/3.3.1-bom-utility role"
+    - name:                            "ERS Install: Include roles-sap/windows/3.3.1-bom-utility role"
       ansible.builtin.include_role:
-        name:                              roles-sap/windows/3.3.1-bom-utility
-        tasks_from:                        bom-template
+        name:                          roles-sap/windows/3.3.1-bom-utility
+        tasks_from:                    bom-template
       vars:
-        task_prefix:                       "ERS Install: "
-        always_upload_jinja_templates:     false
-        bom_name:                          "{{ bom_base_name }}"
+        task_prefix:                   "ERS Install: "
+        always_upload_jinja_templates: false
+        bom_name:                      "{{ bom_base_name }}"
         sap_cd_package_cd1:
         sap_cd_package_cd2:
         sap_cd_package_cd3:
@@ -460,17 +501,17 @@
         sap_ciBtcWPNumber:
         sap_installSAPHostAgent:
         sap_profile_dir:
-        sap_scs_hostname:                  "{{ virtual_host }}"
-        ers_virtual_hostname:              "{{ ansible_hostname }}"
+        sap_scs_hostname:              "{{ virtual_host }}"
+        ers_virtual_hostname:          "{{ ansible_hostname }}"
         sap_db_hostname:
         sap_ciVirtualHostname:
         sap_appVirtualHostname:
-        param_directory:                   "{{ dir_params }}"
-        sap_sid:                           "{{ sid_to_be_deployed.sid }}"
-        scs_instance_number:               "{{ sid_to_be_deployed.ascs_inst_no }}"
-        sidadm_uid:                        "{{ sid_to_be_deployed.sidadm_uid }}"
+        param_directory:               "{{ dir_params }}"
+        sap_sid:                       "{{ sid_to_be_deployed.sid }}"
+        scs_instance_number:           "{{ sid_to_be_deployed.ascs_inst_no }}"
+        sidadm_uid:                    "{{ sid_to_be_deployed.sidadm_uid }}"
 
-    - name:                                "ERS Install: install variables"
+    - name:                            "ERS Install: install variables"
       ansible.builtin.debug:
         msg:
           - "INSTALLED:  {{ ers_installed.stat.exists }}"
@@ -482,99 +523,99 @@
           - "SID:        {{ sid_to_be_deployed.sid | upper }}"
 
 
-    - name:                                "ERS Install status"
+    - name:                            "ERS Install status"
       when:
         - ers_installed.stat.exists
       block:
 
-        - name:                            "ERS Install status"
+        - name:                        "ERS Install status"
           ansible.builtin.debug:
-            msg:                           "ERS is already installed"
+            msg:                       "ERS is already installed"
 
-        - name:                            "ERS: - return value"
+        - name:                        "ERS: - return value"
           ansible.builtin.set_fact:
-            ers_already_installed:         true
+            ers_already_installed:     true
 
 
-    - name:                                "ERS Install"
+    - name:                            "ERS Install"
       when:
         - "'ers' in supported_tiers"
         - not ers_installed.stat.exists
       block:
 
-        # *====================================4=======================================8
-        # |  SAP SCS: Install                                                          |
-        # | 2230669 - System Provisioning Using a Parameter Input File                 |
-        # *====================================4=======================================8
+# *====================================4=======================================8
+# |  SAP ERS: Install                                                          |
+# | 2230669 - System Provisioning Using a Parameter Input File                 |
+# *====================================4=======================================8
 
-        - name:                            "ERS Install: Progress"
+        - name:                        "ERS Install: Progress"
           ansible.builtin.debug:
-            msg:                           "Start ERS Installation media extraction"
+            msg:                       "Start ERS Installation media extraction"
 
-        - name:                            "ERS Install: sapinst Extraction"
+        - name:                        "ERS Install: sapinst Extraction"
           ansible.windows.win_shell: |
                                           {{ download_directory_windows }}\SWPM\sapinst.exe -extract
           args:
-            chdir:                         '{{ download_directory_windows }}\sap_extract'
-            creates:                       '{{ download_directory_windows }}\sap_extract\sapinst.exe'
-          become:                          true
-          become_method:                   runas
-          become_user:                     '{{ sap_sid }}adm@{{ domain_name }}'
+            chdir:                     '{{ download_directory_windows }}\sap_extract'
+            creates:                   '{{ download_directory_windows }}\sap_extract\sapinst.exe'
+          become:                      true
+          become_method:               runas
+          become_user:                 '{{ sap_sid }}adm@{{ domain_name }}'
           vars:
-            ansible_become_password:       "{{ domain_user_password }}"
-          register:                        ers_extraction
-          failed_when:                     ers_extraction.rc > 0
+            ansible_become_password:   "{{ domain_user_password }}"
+          register:                    ers_extraction
+          failed_when:                 ers_extraction.rc > 0
 
-        - name:                            "ERS Install: progress"
+        - name:                        "ERS Install: progress"
           ansible.builtin.debug:
-            msg:                           "Starting ERS Installation for {{ sid_to_be_deployed.sid | upper }}. Please wait"
+            msg:                       "Starting ERS Installation for {{ sid_to_be_deployed.sid | upper }}. Please wait"
 
-        - name:                            "ERS Installation"
+        - name:                        "ERS Installation"
           block:
-            - name:                        "ERS Install: SAP ERS Install on {{ ansible_hostname }}"
-              become:                      true
-              become_method:               runas
-              become_user:                 '{{ sap_sid }}adm@{{ domain_name }}'
+            - name:                    "ERS Install: SAP ERS Install on {{ ansible_hostname }}"
+              become:                  true
+              become_method:           runas
+              become_user:             '{{ sap_sid }}adm@{{ domain_name }}'
               ansible.windows.win_shell: |
-                                          {{ download_directory_windows }}\sap_extract\sapinst.exe SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}\{{ sap_inifile }}   `
+                                         {{ download_directory_windows }}\sap_extract\sapinst.exe SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}\{{ sap_inifile }}   `
                                                                                                     SAPINST_EXECUTE_PRODUCT_ID={{ product_id }}             `
                                                                                                     SAPINST_SKIP_DIALOGS=true                                        `
                                                                                                     SAPINST_START_GUI=false                                          `
                                                                                                     SAPINST_CONTROL_URL={{ product_catalog }}                        `
                                                                                                     SAPINST_START_GUISERVER=false
               args:
-                chdir:                     '{{ log_dir_windows }}\sapinst_logs'
-                creates:                   '{{ sap_deployment_automation }}\{{ sid_to_be_deployed.sid | upper }}\sap_deployment_ers.txt'
+                chdir:                 '{{ log_dir_windows }}\sapinst_logs'
+                creates:               '{{ sap_deployment_automation }}\{{ sid_to_be_deployed.sid | upper }}\sap_deployment_ers.txt'
               vars:
                 ansible_become_password:   "{{ domain_user_password }}"
               register:                    ers_installation
               failed_when:                 ers_installation.rc > 0
           rescue:
-            - name:                        'RESCUE - ERS Install: Check {{ sap_drive }}\usr\sap\{{ sap_sid | upper }}\SYS\exe\uc\NTAMD64 exists'
+            - name:                    'RESCUE - ERS Install: Check {{ sap_drive }}\usr\sap\{{ sap_sid | upper }}\SYS\exe\uc\NTAMD64 exists'
               ansible.windows.win_stat:
-                path:                      '{{ sap_drive }}\usr\sap\{{ sap_sid | upper }}\SYS\exe\uc\NTAMD64'
-              register:                    stat_sys_exe_uc
-              when:                        node_tier == 'ers'
+                path:                  '{{ sap_drive }}\usr\sap\{{ sap_sid | upper }}\SYS\exe\uc\NTAMD64'
+              register:                stat_sys_exe_uc
+              when:                    node_tier == 'ers'
 
-            - name:                        'RESCUE - ERS Install: Check Check {{ sap_drive }}\usr\sap\{{ sap_sid | upper }}\SYS\exe\uc\NTAMD64 is empty'
+            - name:                    'RESCUE - ERS Install: Check Check {{ sap_drive }}\usr\sap\{{ sap_sid | upper }}\SYS\exe\uc\NTAMD64 is empty'
               ansible.windows.win_find:
-                paths:                     '{{ sap_drive }}\usr\sap\{{ sap_sid | upper }}\SYS\exe\uc\NTAMD64'
-                patterns:                  "*"
-                file_type:                 directory
-              register:                    find_sys_exe_uc_result
+                paths:                 '{{ sap_drive }}\usr\sap\{{ sap_sid | upper }}\SYS\exe\uc\NTAMD64'
+                patterns:              "*"
+                file_type:             directory
+              register:                find_sys_exe_uc_result
               when:
                 - node_tier == 'ers'
                 - stat_sys_exe_uc.stat.exists
 
-            - name:                        "RESCUE - ERS Install: Show installation result"
+            - name:                    "RESCUE - ERS Install: Show installation result"
               ansible.builtin.debug:
-                var:                       ers_installation
-              when:                        ers_installation is defined
+                var:                   ers_installation
+              when:                    ers_installation is defined
 
-            - name:                        'RESCUE - ERS Install: Cleanup {{ sap_drive }}\usr\sap\{{ sap_sid | upper }}\SYS\exe\uc\NTAMD64'
+            - name:                    'RESCUE - ERS Install: Cleanup {{ sap_drive }}\usr\sap\{{ sap_sid | upper }}\SYS\exe\uc\NTAMD64'
               ansible.windows.win_file:
-                path:                      '{{ sap_drive }}\usr\sap\{{ sap_sid | upper }}\SYS\exe\uc\NTAMD64'
-                state:                     absent
+                path:                  '{{ sap_drive }}\usr\sap\{{ sap_sid | upper }}\SYS\exe\uc\NTAMD64'
+                state:                 absent
               when:
                 - node_tier == 'ers'
                 - find_sys_exe_uc_result is defined
@@ -585,34 +626,34 @@
         #     path:                          '{{ dir_params }}\{{ sap_inifile }}'
         #     state:                         absent
 
-        - name:                            "ERS Install: Installation Failed"
+        - name:                        "ERS Install: Installation Failed"
           ansible.builtin.debug:
-            var:                           ers_installation
-          when:                            ers_installation.rc > 0
+            var:                       ers_installation
+          when:                        ers_installation.rc > 0
 
-        - name:                            Find the installationSuccesfullyFinished.dat (SAPINST)
+        - name:                        Find the installationSuccesfullyFinished.dat (SAPINST)
           ansible.windows.win_find:
-            paths:                         '{{ log_dir_windows }}\sapinst_logs'
-            file_type:                     file
-            patterns:                      'installationSuccesfullyFinished.dat'
-            recurse:                       true
-          register:                        ers_installed_according_to_sapinst
+            paths:                     '{{ log_dir_windows }}\sapinst_logs'
+            file_type:                 file
+            patterns:                  'installationSuccesfullyFinished.dat'
+            recurse:                   true
+          register:                    ers_installed_according_to_sapinst
 
-        - name:                            "ERS Install: Installation results"
+        - name:                        "ERS Install: Installation results"
           ansible.builtin.debug:
-            msg:                           "ERS Installation succeeded"
+            msg:                       "ERS Installation succeeded"
           when:
             - ers_installation.rc == 0
             - ers_installed_according_to_sapinst.matched > 0
 
-        - name:                            "ERS Install: show"
+        - name:                        "ERS Install: show"
           ansible.builtin.debug:
-            var:                           ers_installed_according_to_sapinst
+            var:                       ers_installed_according_to_sapinst
 
-        - name:                            "ERS Install: flag"
+        - name:                        "ERS Install: flag"
           ansible.windows.win_file:
-            path:                          '{{ sap_deployment_automation }}\{{ sid_to_be_deployed.sid | upper }}\sap_deployment_ers.txt'
-            state:                         touch
+            path:                      '{{ sap_deployment_automation }}\{{ sid_to_be_deployed.sid | upper }}\sap_deployment_ers.txt'
+            state:                     touch
           when:
             - ers_installation.rc == 0
             - ers_installed_according_to_sapinst is defined

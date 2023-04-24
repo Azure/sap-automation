@@ -111,9 +111,9 @@ resource "azurerm_availability_set" "anydb" {
   platform_fault_domain_count  = local.faultdomain_count
   proximity_placement_group_id = local.zonal_deployment ? (
     null) : (
-    local.no_ppg ? (
-      null) : (
-      var.ppg[0].id
+    var.database.use_ppg ? (
+      var.ppg[count.index].id) : (
+      null
     )
   )
   managed = true
@@ -138,4 +138,3 @@ resource "azurerm_private_dns_a_record" "db" {
   ttl                 = 300
   records             = [azurerm_lb.anydb[0].frontend_ip_configuration[0].private_ip_address]
 }
-

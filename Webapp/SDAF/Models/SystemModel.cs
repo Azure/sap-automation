@@ -1,4 +1,4 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using static AutomationForm.Models.CustomValidators;
 
@@ -173,7 +173,11 @@ namespace AutomationForm.Models
         [AvSetIdValidator]
         public string[] database_vm_avset_arm_ids { get; set; }
 
-        public bool? database_no_ppg { get; set; } = false;
+        public bool? database_use_ppg { get; set; } = true;
+
+        public bool? database_use_avset { get; set; } = false;
+
+        public bool? database_no_ppg { get; set; } = true;
 
         public bool? database_no_avset { get; set; } = false;
 
@@ -237,12 +241,16 @@ namespace AutomationForm.Models
         [IpAddressValidator]
         public string[] application_server_nic_secondary_ips { get; set; }
 
-        public bool? application_server_no_avset { get; set; } = false;
-
         [AvSetIdValidator]
         public string[] application_server_vm_avset_arm_ids { get; set; }
 
+        public bool? application_server_no_avset { get; set; } = false;
+
+        public bool? application_server_use_avset { get; set; } = true;
+
         public bool? application_server_no_ppg { get; set; } = false;
+
+        public bool? application_server_use_ppg { get; set; } = true;
 
         // SAP Central Services
 
@@ -276,7 +284,11 @@ namespace AutomationForm.Models
         [IpAddressValidator]
         public string[] scs_server_nic_secondary_ips { get; set; }
 
+        public bool? scs_server_use_avset { get; set; } = false;
+
         public bool? scs_server_no_avset { get; set; } = false;
+
+        public bool? scs_server_use_ppg { get; set; } = true;
 
         public bool? scs_server_no_ppg { get; set; } = false;
 
@@ -303,6 +315,11 @@ namespace AutomationForm.Models
 
         [IpAddressValidator]
         public string[] webdispatcher_server_nic_secondary_ips { get; set; }
+
+        public bool? webdispatcher_server_use_avset { get; set; }
+
+        public bool? webdispatcher_server_use_ppg { get; set; } = true;
+
 
         public bool? webdispatcher_server_no_avset { get; set; }
 
@@ -421,9 +438,15 @@ namespace AutomationForm.Models
         public bool? enable_purge_control_for_keyvaults { get; set; } = false;
 
         public bool? deploy_application_security_groups { get; set; } = true;
-    }
 
-    public class Tag
+        [DisplayName("Web SID")]
+        public string web_sid { get; set; }
+
+        public string web_instance_number { get; set; } = "00";
+
+  }
+
+  public class Tag
     {
         public string Key { get; set; }
         public string Value { get; set; }

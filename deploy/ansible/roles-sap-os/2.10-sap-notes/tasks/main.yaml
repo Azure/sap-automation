@@ -69,6 +69,11 @@
     - node_tier == 'oracle' or node_tier == 'oracle-asm'
     - distribution_id == 'oraclelinux8'
 
+- name:                                2.10.3 - SAP Note 1275776
+  ansible.builtin.include_tasks:       2.10.3.yaml
+  when:
+    - node_tier == 'sybase'
+    - distribution_id == 'redhat8'
 
 - name:                                2.10.3119751 - SAP Note 3119751
   ansible.builtin.include_tasks:       2.10.3119751.yaml

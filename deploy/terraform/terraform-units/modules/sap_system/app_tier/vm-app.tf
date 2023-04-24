@@ -122,10 +122,9 @@ resource "azurerm_linux_virtual_machine" "app" {
   location            = var.resource_group[0].location
   resource_group_name = var.resource_group[0].name
 
-  //If no ppg defined do not put the application servers in a proximity placement group
-  proximity_placement_group_id = local.app_no_ppg ? (
-    null) : (
-    local.app_zonal_deployment ? var.ppg[count.index % max(local.app_zone_count, 1)].id : var.ppg[0].id
+  proximity_placement_group_id = var.application_tier.app_use_ppg ? (
+    local.app_zonal_deployment ? var.ppg[count.index % max(local.app_zone_count, 1)].id : var.ppg[0].id) : (
+    null
   )
 
   //If more than one servers are deployed into a single zone put them in an availability set and not a zone
@@ -138,7 +137,7 @@ resource "azurerm_linux_virtual_machine" "app" {
   )
 
   //If length of zones > 1 distribute servers evenly across zones
-  zone = local.use_app_avset ? null : try(local.app_zones[count.index % max(local.app_zone_count, 1)], null)
+  zone = var.application_tier.app_use_avset  ? null : try(local.app_zones[count.index % max(local.app_zone_count, 1)], null)
 
   network_interface_ids = var.application_tier.dual_nics ? (
     var.options.legacy_nic_order ? (
@@ -255,10 +254,9 @@ resource "azurerm_windows_virtual_machine" "app" {
   location            = var.resource_group[0].location
   resource_group_name = var.resource_group[0].name
 
-  //If no ppg defined do not put the application servers in a proximity placement group
-  proximity_placement_group_id = local.app_no_ppg ? (
-    null) : (
-    local.app_zonal_deployment ? var.ppg[count.index % max(local.app_zone_count, 1)].id : var.ppg[0].id
+  proximity_placement_group_id = var.application_tier.app_use_ppg ? (
+    local.app_zonal_deployment ? var.ppg[count.index % max(local.app_zone_count, 1)].id : var.ppg[0].id) : (
+    null
   )
 
   //If more than one servers are deployed into a single zone put them in an availability set and not a zone
@@ -269,8 +267,9 @@ resource "azurerm_windows_virtual_machine" "app" {
     )) : (
     null
   )
+
   //If length of zones > 1 distribute servers evenly across zones
-  zone = local.use_app_avset ? null : try(local.app_zones[count.index % max(local.app_zone_count, 1)], null)
+  zone = var.application_tier.app_use_avset ? null : try(local.app_zones[count.index % max(local.app_zone_count, 1)], null)
 
   network_interface_ids = var.application_tier.dual_nics ? (
     var.options.legacy_nic_order ? (
@@ -449,7 +448,7 @@ resource "azurerm_virtual_machine_extension" "configure_ansible_app" {
   type_handler_version = "1.9"
   settings             = <<SETTINGS
         {
-          "fileUris": ["https://raw.githubusercontent.com/main/sap-automation/main/deploy/scripts/configure_ansible.ps1"],
+          "fileUris": ["https://raw.githubusercontent.com/Azure/sap-automation/main/deploy/scripts/configure_ansible.ps1"],
           "commandToExecute": "powershell.exe -ExecutionPolicy Unrestricted -File configure_ansible.ps1 -Verbose"
         }
     SETTINGS

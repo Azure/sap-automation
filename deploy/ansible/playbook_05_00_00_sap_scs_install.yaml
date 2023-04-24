@@ -311,6 +311,7 @@
                     domain_service_account:    "{{ hostvars.localhost.adsvc_account }}"
                     domain_user_password:      "{{ hostvars.localhost.winadm_password }}"
                     tier:                      app_tier
+                    scs_server:                "{{ ansible_hostname }}"
 
                 - name:                "SCS Installation Playbook: - Install using sapinst"
                   ansible.builtin.include_role:
@@ -319,6 +320,8 @@
                     scs_instance_number:   "{{ sid_to_be_deployed.ascs_inst_no }}"
                     domain_user_password:  "{{ hostvars.localhost.winadm_password }}"
                     svc_password:          "{{ hostvars.localhost.svcadm_password }}"
+                    primary_node:          "{{ ansible_play_hosts_all[0] }}"
+                    secondary_node:        ""
                   loop:                    "{{ all_sids }}"
                   loop_control:
                     loop_var:              sid_to_be_deployed
@@ -588,11 +591,13 @@
 
     - name:                            "SCS HA Installation Playbook: - Run HA SCS Installation on Windows"
       become:                          false
-      when: ansible_os_family == "Windows"
+      when:
+        - ansible_os_family == "Windows"
+        - scs_high_availability
       block:
-        - name:                    "SCS Installation - Windows based systems"
+        - name:                        "SCS Installation - Windows based systems"
           block:
-            - name:                "SCS Installation Playbook: - Install using sapinst"
+            - name:                    "SCS Installation Playbook: - Install using sapinst"
               ansible.builtin.include_role:
                 name:              roles-sap/windows/5.0.0-scs-install
               vars:
@@ -609,9 +614,9 @@
                 sa_enabled:                   true
                 primary_node:                 "{{ ansible_play_hosts_all[0] }}"
                 secondary_node:               "{{ ansible_play_hosts_all[1] }}"
+                sap_cluster_ip_address:       "{{ scs_clst_lb_ip }}"
                 primary_node_ip_scs:          "{{ hostvars[ansible_play_hosts_all[0]]['ansible_eth0']['ipv4']['address'] }}"
                 secondary_node_ip_ers:        "{{ hostvars[ansible_play_hosts_all[1]]['ansible_eth0']['ipv4']['address'] }}"
-                sap_cluster_ip_address:       "{{ scs_clst_lb_ip }}"
                 ansible_winrm_transport:              credssp
                 ansible_winrm_server_cert_validation: ignore
 

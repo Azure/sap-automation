@@ -113,7 +113,7 @@ resource "azurerm_private_endpoint" "sapmnt" {
       0) : (
       1
     )) : (
-    var.use_private_endpoint ? 1 : 0
+    0
   )
   name = format("%s%s%s%s",
     var.naming.resource_prefixes.storage_private_link_sapmnt,
@@ -146,7 +146,7 @@ resource "azurerm_private_endpoint" "sapmnt" {
   }
 
   dynamic "private_dns_zone_group" {
-    for_each = range(length(var.landscape_tfstate.privatelink_file_id) > 0 ? 1 : 0)
+    for_each = range(length(try(var.landscape_tfstate.privatelink_file_id, "")) > 0 ? 1 : 0)
     content {
       name                 = "privatelink.file.core.windows.net"
       private_dns_zone_ids = [var.landscape_tfstate.privatelink_file_id]

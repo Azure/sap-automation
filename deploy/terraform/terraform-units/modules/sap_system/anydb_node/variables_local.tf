@@ -45,7 +45,7 @@ locals {
   // Dual network cards
   anydb_dual_nics = try(var.database.dual_nics, false) && length(try(var.admin_subnet.id, "")) > 0
 
-  enable_deployment = contains(["ORACLE", "ORACLE-ASM", "DB2", "SQLSERVER", "ASE"], var.database.platform)
+  enable_deployment = contains(["ORACLE", "ORACLE-ASM", "DB2", "SQLSERVER", "SYBASE"], var.database.platform)
 
   // Enable deployment based on length of local.anydb_databases
 
@@ -110,7 +110,7 @@ locals {
 
   // Default values in case not provided
   os_defaults = {
-    ASE = {
+    SYBASE = {
       "publisher" = "SUSE",
       "offer"     = "sles-sap-15-sp3",
       "sku"       = "gen2"
@@ -208,7 +208,7 @@ locals {
 
   // Ports used for specific DB Versions
   lb_ports = {
-    "ASE" = [
+    "SYBASE" = [
       "63500"
     ]
     "ORACLE" = [
@@ -382,9 +382,11 @@ locals {
   zonal_deployment = local.db_zone_count > 0 || local.enable_ultradisk ? true : false
 
   //If we deploy more than one server in zone put them in an availability set
-  use_avset = local.zonal_deployment ? (
-    false) : (
-    var.database_server_count > 0 && try(!var.database.no_avset, false)
+  use_avset = local.availabilitysets_exist ? (
+    true) : (var.database.use_avset && !local.enable_ultradisk ? (
+      !local.zonal_deployment || (var.database_server_count != local.db_zone_count)) : (
+      false
+    )
   )
 
   full_observer_names = flatten([for vm in var.naming.virtualmachine_names.OBSERVER_VMNAME :
@@ -397,8 +399,6 @@ locals {
     )]
   )
 
-  //PPG control flag
-  no_ppg = var.database.no_ppg
 
   dns_label               = try(var.landscape_tfstate.dns_label, "")
   dns_resource_group_name = try(var.landscape_tfstate.dns_resource_group_name, "")

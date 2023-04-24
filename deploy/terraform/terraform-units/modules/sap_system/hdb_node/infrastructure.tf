@@ -1,6 +1,6 @@
 // AVAILABILITY SET
 resource "azurerm_availability_set" "hdb" {
-  provider        = azurerm.main
+  provider = azurerm.main
   count = local.enable_deployment && local.use_avset && !local.availabilitysets_exist ? (
     max(length(local.zones), 1)) : (
     0
@@ -16,9 +16,9 @@ resource "azurerm_availability_set" "hdb" {
   platform_fault_domain_count  = local.faultdomain_count
   proximity_placement_group_id = local.zonal_deployment ? (
     null) : (
-    local.no_ppg ? (
-      null) : (
-      var.ppg[0].id
+    var.database.use_ppg ? (
+      var.ppg[count.index].id) : (
+      null
     )
   )
   managed = true
@@ -115,7 +115,7 @@ resource "azurerm_lb_probe" "hdb" {
 # Current behavior, it will try to add all VMs in the cluster into the backend pool, which would not work since we do not have availability sets created yet.
 # In a scale-out scenario, we need to rewrite this code according to the scale-out + HA reference architecture.
 resource "azurerm_network_interface_backend_address_pool_association" "hdb" {
-  provider        = azurerm.main
+  provider                = azurerm.main
   count                   = local.enable_db_lb_deployment ? var.database_server_count : 0
   network_interface_id    = azurerm_network_interface.nics_dbnodes_db[count.index].id
   ip_configuration_name   = azurerm_network_interface.nics_dbnodes_db[count.index].ip_configuration[0].name
@@ -146,6 +146,7 @@ resource "azurerm_lb_rule" "hdb" {
   enable_floating_ip       = true
   idle_timeout_in_minutes  = 30
 }
+
 resource "azurerm_private_dns_a_record" "db" {
   provider            = azurerm.dnsmanagement
   count               = local.enable_db_lb_deployment && length(local.dns_label) > 0 ? 1 : 0

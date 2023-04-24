@@ -417,6 +417,23 @@ else
     set -o errexit
 
 
+    # Install dotNet
+    case "$(get_distro_name)" in
+    (ubuntu)
+        sudo snap install dotnet-sdk --classic --channel=7.0
+        sudo snap alias dotnet-sdk.dotnet dotnet
+        ;;
+    (sles)
+        sudo snap install dotnet-sdk --classic --channel=7.0
+        sudo snap alias dotnet-sdk.dotnet dotnet
+        ;;
+     (rhel*)
+        sudo snap install dotnet-sdk --classic --channel=7.0
+        sudo snap alias dotnet-sdk.dotnet dotnet
+        ;;
+    esac
+
+
     # If the deployer will be an ADO agent install the devops cli
     if [[ -n $${TOKEN} ]];
     then
@@ -483,7 +500,8 @@ else
         argcomplete \
         'pywinrm>=0.3.0' \
         netaddr  \
-        jmespath
+        jmespath \
+        pywinrm[credssp]
 
 
     # Create symlinks for all relevant commands that were installed in the Ansible
@@ -555,9 +573,9 @@ else
 
     echo export DEPLOYMENT_REPO_PATH='$${HOME}/Azure_SAP_Automated_Deployment/sap-automation' | sudo tee -a /etc/profile.d/deploy_server.sh
 
-    if [[ -n $${TOKEN} ]]; then
-        echo export AZURE_DEVOPS_EXT_PAT=$${TOKEN} | sudo tee -a /etc/profile.d/deploy_server.sh
-    fi
+    # if [[ -n $${TOKEN} ]]; then
+    #     echo export AZURE_DEVOPS_EXT_PAT=$${TOKEN} | sudo tee -a /etc/profile.d/deploy_server.sh
+    # fi
 
     # Add new /opt bin directories to start of PATH to ensure the versions we installed
     # are preferred over any installed standard system versions.

@@ -28,9 +28,10 @@
     path:                              "{{ item.path }}"
     state:                             directory
     mode:                              0755
+    owner:                              "{{ orchestration_ansible_user }}"
   delegate_to:                         localhost
   become:                              "{{ bom_processing_become }}"
-  become_user:                         root
+  become_user:                         "{{ orchestration_ansible_user }}"
   loop:
     - path: "{{ download_directory }}"
     - path: "{{ download_directory }}/tmp"

@@ -34,7 +34,9 @@
     - name:                            "DB2 Primary System Install: result"
       ansible.builtin.fail:
         msg:                           db2_installation.stdout_lines
-      when:                            db2_installation.rc != 0
+      when:
+        - db2_installation.rc is defined
+        - db2_installation.rc != 0
 
   when:
     - ansible_hostname == primary_instance_name
@@ -56,7 +58,9 @@
     - name:                            "DB2 Primary System Install: result"
       ansible.builtin.fail:
         msg:                           db2_installation.stdout_lines
-      when:                            db2_installation.rc != 0
+      when:
+        - db2_installation.rc is defined
+        - db2_installation.rc != 0
   when:
     - ansible_hostname == secondary_instance_name
 

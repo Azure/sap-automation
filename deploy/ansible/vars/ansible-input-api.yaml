@@ -72,6 +72,13 @@ tmp_directory:                         "/var/tmp"
 url_internet:                          "http://www.github.com"                 # URL to use for internet access checks"
 check_outbound:                        false
 
+# ASE specific parameters
+# ase_sid:                     "ASE"
+asesysadm_gid:                         5000
+asedbadm_gid:                          5001
+asesidadm_uid:                         5002
+asesapsid_uid:                         5003
+
 # Oracle specific parameters
 ora_sid:                               "ORA"
 dba_gid:                               3100
@@ -122,8 +129,8 @@ sap_drive:                             'S:'
 download_directory_windows:            '\\{{ scs_server }}\SAP'
 download_directory_Drive:              'Z:'
 sap_deployment_automation:             'C:\sap_deployment_automation'
-tmp_directory_windows:                 '{{ sap_deployment_automation }}\tmp'
-log_dir_windows:                       '{{ sap_deployment_automation }}\logs'
+tmp_directory_windows:                 '{{ sap_deployment_automation }}\tmp\'
+log_dir_windows:                       '{{ sap_deployment_automation }}\logs\'
 mssserver_version:                     'mssserver2019'
 # log_file_windows:                       'C:\Program Files'
 
@@ -173,6 +180,7 @@ sap_swap:
   - { tier: "web",                swap_size_mb: "4096"  }
   - { tier: "hana",               swap_size_mb: "2048"  }
   - { tier: "db2",                swap_size_mb: "20480" }
+  - { tier: "sybase",             swap_size_mb: "20480" }
   - { tier: "oracle",             swap_size_mb: "20480" }
   - { tier: "oracle-asm",         swap_size_mb: "20480" }
   - { tier: "oracle-multi-sid",   swap_size_mb: "20480" }

@@ -84,10 +84,11 @@ locals {
     platform      = var.database_platform
     db_sizing_key = coalesce(var.db_sizing_dictionary_key, var.database_size, try(var.databases[0].size, ""))
 
-    use_ANF   = var.database_HANA_use_ANF_scaleout_scenario || try(var.databases[0].use_ANF, false)
-    dual_nics = var.database_dual_nics || try(var.databases[0].dual_nics, false)
-    no_ppg    = var.database_no_ppg || try(var.databases[0].no_ppg, false)
-    no_avset  = var.database_no_avset || try(var.databases[0].no_avset, false)
+    use_ANF    = var.database_HANA_use_ANF_scaleout_scenario || try(var.databases[0].use_ANF, false)
+    dual_nics  = var.database_dual_nics || try(var.databases[0].dual_nics, false)
+
+    use_ppg    = tobool(var.database_no_ppg) == null ? var.database_use_ppg : !var.database_no_ppg
+    use_avset  = tobool(var.database_no_avset) == null ? var.database_use_avset : !var.database_no_avset
 
   }
 
@@ -144,8 +145,9 @@ locals {
       0
     )
     app_sku       = try(coalesce(var.application_server_sku, var.application_tier.app_sku), "")
-    app_no_ppg    = var.application_server_no_ppg || try(var.application_tier.app_no_ppg, false)
-    app_no_avset  = var.application_server_no_avset || try(var.application_tier.app_no_avset, false)
+    app_use_ppg    = tobool(var.application_server_no_ppg) == null ? var.application_server_use_ppg : !var.application_server_no_ppg
+    app_use_avset  = tobool(var.application_server_no_avset) == null ? var.application_server_use_avset : !var.application_server_no_avset
+
     avset_arm_ids = var.application_server_vm_avset_arm_ids
 
     scs_server_count = local.enable_app_tier_deployment ? (
@@ -162,8 +164,9 @@ locals {
     ers_instance_number = coalesce(var.ers_instance_number, try(var.application_tier.ers_instance_number, "02"))
 
     scs_sku      = try(coalesce(var.scs_server_sku, var.application_tier.scs_sku), "")
-    scs_no_ppg   = var.scs_server_no_ppg || try(var.application_tier.scs_no_ppg, false)
-    scs_no_avset = var.scs_server_no_avset || try(var.application_tier.scs_no_avset, false)
+
+    scs_use_ppg    = tobool(var.scs_server_no_ppg) == null ? var.scs_server_use_ppg : !var.scs_server_no_ppg
+    scs_use_avset  = tobool(var.scs_server_no_avset) == null ? var.scs_server_use_avset : !var.scs_server_no_avset
 
     webdispatcher_count = local.enable_app_tier_deployment ? (
       max(var.webdispatcher_server_count, try(var.application_tier.webdispatcher_count, 0))
@@ -171,8 +174,9 @@ locals {
       0
     )
     web_sku      = try(coalesce(var.webdispatcher_server_sku, var.application_tier.web_sku), "")
-    web_no_ppg   = var.webdispatcher_server_no_ppg || try(var.application_tier.web_no_ppg, false)
-    web_no_avset = var.webdispatcher_server_no_avset || try(var.application_tier.web_no_avset, false)
+
+    web_use_ppg    = tobool(var.webdispatcher_server_no_ppg) == null ? var.webdispatcher_server_use_ppg : !var.webdispatcher_server_no_ppg
+    web_use_avset  = tobool(var.webdispatcher_server_no_avset) == null ? var.webdispatcher_server_use_avset : !var.webdispatcher_server_no_avset
 
   }
 

@@ -240,7 +240,7 @@
       {
         "Name": "database_platform",
         "Required": true,
-        "Description": "The type of database backend. Valid choices are 'HANA', 'DB2', 'ORACLE', 'SQLSERVER','ASE'",
+        "Description": "The type of database backend. Valid choices are 'HANA', 'DB2', 'ORACLE', 'SQLSERVER','SYBASE'",
         "Type": "lookup",
         "Options": [
           {
@@ -264,8 +264,8 @@
             "Value": "ORACLE-ASM"
           },
           {
-            "Text": "ASE",
-            "Value": "ASE"
+            "Text": "SYBASE",
+            "Value": "SYBASE"
           },
           {
             "Text": "SQL SERVER",
@@ -512,18 +512,18 @@
         "Display": 3
       },
       {
-        "Name": "database_no_ppg",
+        "Name": "database_use_ppg",
         "Required": false,
-        "Description": "Defines that the database virtual machines will not be placed in a proximity placement group.",
+        "Description": "Defines that the database virtual machines will be placed in a proximity placement group.",
         "Type": "checkbox",
         "Options": [],
         "Overrules": "",
         "Display": 3
       },
       {
-        "Name": "database_no_avset",
+        "Name": "database_use_avset",
         "Required": false,
-        "Description": "Defines that the database virtual machines will not be placed in an availability set.",
+        "Description": "Defines that the database virtual machines will be placed in an availability set.",
         "Type": "checkbox",
         "Options": [],
         "Overrules": "",
@@ -786,18 +786,18 @@
         "Display": 3
       },
       {
-        "Name": "scs_server_no_avset",
+        "Name": "scs_server_use_avset",
         "Required": false,
-        "Description": "Defines if the SAP Central Services tier will not use an availability set.",
+        "Description": "Defines if the SAP Central Services tier will be placed in an availability set.",
         "Type": "checkbox",
         "Options": [],
         "Overrules": "",
         "Display": 3
       },
       {
-        "Name": "scs_server_no_ppg",
+        "Name": "scs_server_use_ppg",
         "Required": false,
-        "Description": "Defines if the Central Services will not be placed in a proximity placement group.",
+        "Description": "Defines if the Central Services will be placed in a proximity placement group.",
         "Type": "checkbox",
         "Options": [],
         "Overrules": "",
@@ -937,9 +937,18 @@
         "Display": 3
       },
       {
-        "Name": "application_server_no_avset",
+        "Name": "application_server_use_avset",
         "Required": false,
-        "Description": "If defined, the application servers will not use an availability set",
+        "Description": "If defined, the application servers will be placed in an availability set",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "application_server_use_ppg",
+        "Required": false,
+        "Description": "If defined, the application servers will be placed in a proximity placement group.",
         "Type": "checkbox",
         "Options": [],
         "Overrules": "",
@@ -956,15 +965,6 @@
             "Value": ""
           }
         ],
-        "Overrules": "",
-        "Display": 3
-      },
-      {
-        "Name": "application_server_no_ppg",
-        "Required": false,
-        "Description": "If defined, the application servers will not be placed in a proximity placement group.",
-        "Type": "checkbox",
-        "Options": [],
         "Overrules": "",
         "Display": 3
       },
@@ -991,6 +991,25 @@
         "Options": [],
         "Overrules": "",
         "Display": 1
+      },
+      {
+        "Name": "web_sid",
+        "Required": false,
+        "Description": "Web Dispatcher SID",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+
+      {
+        "Name": "web_instance_number",
+        "Required": false,
+        "Description": "Defines the web instance number. Default is 00.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
       },
       {
         "Name": "webdispatcher_server_zones",
@@ -1107,18 +1126,18 @@
         "Display": 3
       },
       {
-        "Name": "webdispatcher_server_no_avset",
+        "Name": "webdispatcher_server_use_avset",
         "Required": false,
-        "Description": "If defined, the Web Dispatcher tier will not use an availability set",
+        "Description": "If defined, the Web Dispatcher tier will be placed in an availability set",
         "Type": "checkbox",
         "Options": [],
         "Overrules": "",
         "Display": 3
       },
       {
-        "Name": "webdispatcher_server_no_ppg",
+        "Name": "webdispatcher_server_use_ppg",
         "Required": false,
-        "Description": "If defined, the web dispatchers will not be placed in a proximity placement group",
+        "Description": "If defined, the web dispatchers will be placed in a proximity placement group",
         "Type": "checkbox",
         "Options": [],
         "Overrules": "",

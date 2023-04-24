@@ -583,8 +583,9 @@ fi
 allParams=$(printf " -var-file=%s %s %s %s %s %s %s" "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter}" )
 
 terraform -chdir="$terraform_module_directory" plan -no-color -detailed-exitcode $allParams | tee -a plan_output.log
-return_value=$?
-if [ 1 == $return_value ]
+echo "Plan returned $return_value"
+
+if [ 0 != $return_value ]
 then
     echo ""
     echo "#########################################################################################"
@@ -596,6 +597,7 @@ then
     echo "Error when running Terraform plan" > "${system_config_information}".err
 
     unset TF_DATA_DIR
+    rm
     exit $return_value
 fi
 
@@ -610,8 +612,6 @@ if [ 0 == $return_value ] ; then
         keyvault=$(terraform -chdir="${terraform_module_directory}"  output -no-color -raw deployer_kv_user_name | tr -d \")
         save_config_var "keyvault" "${system_config_information}"
         if [ 1 == $called_from_ado ] ; then
-
-
 
             if [[ "${TF_VAR_use_webapp}" == "true" && $IS_PIPELINE_DEPLOYMENT = "true" ]]; then
                 webapp_url_base=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_url_base | tr -d \")
@@ -945,122 +945,117 @@ if [ 1 == $ok_to_proceed ]; then
                 echo terraform -chdir="${terraform_module_directory}" import  $allParamsforImport $moduleID $resourceID
                 terraform -chdir="${terraform_module_directory}" import  $allParamsforImport $moduleID $resourceID
             done
-            rerun_apply=1
+            rm apply_output.json
+
+            if [ $rerun_apply == 1 ] ; then
+                rerun_apply=0
+
+                echo ""
+                echo ""
+                echo "#########################################################################################"
+                echo "#                                                                                       #"
+                echo -e "#                          $cyan Re running Terraform apply$resetformatting                                  #"
+                echo "#                                                                                       #"
+                echo "#########################################################################################"
+                echo ""
+                echo ""
+                if [ 1 == $called_from_ado ] ; then
+                    terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings -json $allParams | tee -a apply_output.json
+                else
+                    terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -json $allParams | tee -a  apply_output.json
+                fi
+                return_value=$?
+            fi
         fi
 
         if [ -f apply_output.json ]
         then
-            rm apply_output.json
-        fi
+            # Check for resource that can be imported
+            existing=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary} | select(.summary | startswith("A resource with the ID"))' apply_output.json)
+            if [[ -n ${existing} ]]
+            then
 
-        if [ $rerun_apply == 1 ] ; then
-            rerun_apply=0
-
-            echo ""
-            echo ""
-            echo "#########################################################################################"
-            echo "#                                                                                       #"
-            echo -e "#                          $cyan Re running Terraform apply$resetformatting                                  #"
-            echo "#                                                                                       #"
-            echo "#########################################################################################"
-            echo ""
-            echo ""
-            if [ 1 == $called_from_ado ] ; then
-                terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings -json $allParams | tee -a apply_output.json
-            else
-                terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -json $allParams | tee -a  apply_output.json
-            fi
-            return_value=$?
-        fi
-
-        # Check for resource that can be imported
-        existing=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary} | select(.summary | startswith("A resource with the ID"))' apply_output.json)
-        if [[ -n ${existing} ]]
-        then
-
-            readarray -t existing_resources < <(echo ${existing} | jq -c '.' )
-            for item in "${existing_resources[@]}"; do
-                moduleID=$(jq -c -r '.address '  <<< "$item")
-                resourceID=$(jq -c -r '.summary' <<< "$item" | awk -F'\"' '{print $2}')
-                echo "Trying to import" $resourceID "into" $moduleID
-                allParamsforImport=$(printf " -var-file=%s %s %s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter} " )
-                echo terraform -chdir="${terraform_module_directory}" import  $allParamsforImport $moduleID $resourceID
-                terraform -chdir="${terraform_module_directory}" import  $allParamsforImport $moduleID $resourceID
-            done
-            rerun_apply=1
-        fi
-
-        if [ -f apply_output.json ]
-        then
-            rm apply_output.json
-        fi
-
-        if [ $rerun_apply == 1 ] ; then
-            echo ""
-            echo ""
-            echo "#########################################################################################"
-            echo "#                                                                                       #"
-            echo -e "#                          $cyan Re running Terraform apply$resetformatting                                  #"
-            echo "#                                                                                       #"
-            echo "#########################################################################################"
-            echo ""
-            echo ""
-            if [ 1 == $called_from_ado ] ; then
-                terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings -json $allParams | tee -a apply_output.json
-            else
-                terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -json $allParams | tee -a  apply_output.json
-            fi
-            return_value=$?
-        fi
-
-        errors_occurred=$(jq 'select(."@level" == "error") | length' apply_output.json)
-
-        if [[ -n $errors_occurred ]]
-        then
-            echo ""
-            echo "#########################################################################################"
-            echo "#                                                                                       #"
-            echo -e "#                          $boldreduscore!Errors during the apply phase!$resetformatting                              #"
-
-            return_value=2
-            all_errors=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary, detail: .diagnostic.detail} ' apply_output.json)
-            if [[ -n ${all_errors} ]]
-                then
-                readarray -t errors_strings < <(echo ${all_errors} | jq -c '.' )
-                for errors_string in "${errors_strings[@]}"; do
-                    string_to_report=$(jq -c -r '.detail '  <<< "$errors_string" )
-                    if [[ -z ${string_to_report} ]]
-                    then
-                        string_to_report=$(jq -c -r '.summary '  <<< "$errors_string" )
-                    fi
-                    report=$(echo $string_to_report | grep -m1 "Message=" "${var_file}" | cut -d'=' -f2-  | tr -d ' ' | tr -d '"')
-                    if [[ -n ${report} ]] ; then
-                        echo -e "#                          $boldreduscore  $report $resetformatting"
-                        if [ 1 == $called_from_ado ] ; then
-
-                            roleAssignmentExists=$(echo ${report} | grep -m1 "RoleAssignmentExists")
-                            if [ -z ${roleAssignmentExists} ] ; then
-                                echo "##vso[task.logissue type=error]${report}"
-                            fi
-                        fi
-                    else
-                        echo -e "#                          $boldreduscore  $string_to_report $resetformatting"
-                        if [ 1 == $called_from_ado ] ; then
-                            roleAssignmentExists=$(echo ${string_to_report} | grep -m1 "RoleAssignmentExists")
-                            if [ -z ${roleAssignmentExists} ]
-                            then
-                                echo "##vso[task.logissue type=error]${string_to_report}"
-                            fi
-                        fi
-                    fi
-                    echo -e "#                          $boldreduscore  $string_to_report $resetformatting"
-
+                readarray -t existing_resources < <(echo ${existing} | jq -c '.' )
+                for item in "${existing_resources[@]}"; do
+                    moduleID=$(jq -c -r '.address '  <<< "$item")
+                    resourceID=$(jq -c -r '.summary' <<< "$item" | awk -F'\"' '{print $2}')
+                    echo "Trying to import" $resourceID "into" $moduleID
+                    allParamsforImport=$(printf " -var-file=%s %s %s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter} " )
+                    echo terraform -chdir="${terraform_module_directory}" import  $allParamsforImport $moduleID $resourceID
+                    terraform -chdir="${terraform_module_directory}" import  $allParamsforImport $moduleID $resourceID
                 done
-            fi
-            echo "#                                                                                       #"
-            echo "#########################################################################################"
-            echo ""
 
+                rm apply_output.json
+
+                echo ""
+                echo ""
+                echo "#########################################################################################"
+                echo "#                                                                                       #"
+                echo -e "#                          $cyan Re running Terraform apply$resetformatting                                  #"
+                echo "#                                                                                       #"
+                echo "#########################################################################################"
+                echo ""
+                echo ""
+                if [ 1 == $called_from_ado ] ; then
+                    terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings -json $allParams | tee -a apply_output.json
+                else
+                    terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -json $allParams | tee -a  apply_output.json
+                fi
+                return_value=$?
+            fi
+
+        fi
+
+        if [ -f apply_output.json ]
+        then
+
+            if [[ -n $errors_occurred ]]
+            then
+                echo ""
+                echo "#########################################################################################"
+                echo "#                                                                                       #"
+                echo -e "#                          $boldreduscore!Errors during the apply phase!$resetformatting                              #"
+
+                return_value=2
+                all_errors=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary, detail: .diagnostic.detail} ' apply_output.json)
+                if [[ -n ${all_errors} ]]
+                    then
+                    readarray -t errors_strings < <(echo ${all_errors} | jq -c '.' )
+                    for errors_string in "${errors_strings[@]}"; do
+                        string_to_report=$(jq -c -r '.detail '  <<< "$errors_string" )
+                        if [[ -z ${string_to_report} ]]
+                        then
+                            string_to_report=$(jq -c -r '.summary '  <<< "$errors_string" )
+                        fi
+                        report=$(echo $string_to_report | grep -m1 "Message=" "${var_file}" | cut -d'=' -f2-  | tr -d ' ' | tr -d '"')
+                        if [[ -n ${report} ]] ; then
+                            echo -e "#                          $boldreduscore  $report $resetformatting"
+                            if [ 1 == $called_from_ado ] ; then
+
+                                roleAssignmentExists=$(echo ${report} | grep -m1 "RoleAssignmentExists")
+                                if [ -z ${roleAssignmentExists} ] ; then
+                                    echo "##vso[task.logissue type=error]${report}"
+                                fi
+                            fi
+                        else
+                            echo -e "#                          $boldreduscore  $string_to_report $resetformatting"
+                            if [ 1 == $called_from_ado ] ; then
+                                roleAssignmentExists=$(echo ${string_to_report} | grep -m1 "RoleAssignmentExists")
+                                if [ -z ${roleAssignmentExists} ]
+                                then
+                                    echo "##vso[task.logissue type=error]${string_to_report}"
+                                fi
+                            fi
+                        fi
+                        echo -e "#                          $boldreduscore  $string_to_report $resetformatting"
+
+                    done
+                fi
+                echo "#                                                                                       #"
+                echo "#########################################################################################"
+                echo ""
+
+            fi
         fi
 
     fi
@@ -1145,7 +1140,18 @@ then
         az resource delete --ids ${deployer_extension_ids}
     fi
 
-    save_config_var "keyvault" "${system_config_information}"
+   if valid_kv_name "$keyvault" ; then
+        save_config_var "keyvault" "${system_config_information}"
+    else
+        printf -v val %-40.40s "$keyvault"
+        echo "#########################################################################################"
+        echo "#                                                                                       #"
+        echo -e "#       The provided keyvault is not valid:$boldred ${val} $resetformatting  #"
+        echo "#                                                                                       #"
+        echo "#########################################################################################"
+        echo "The provided keyvault is not valid " "${val}"  > secret.err
+    fi
+
     save_config_var "deployer_public_ip_address" "${system_config_information}"
 fi
 
@@ -1214,7 +1220,7 @@ fi
 
 if [ "${deployment_system}" == sap_library ]
 then
-    REMOTE_STATE_SA=$(terraform -chdir="${terraform_module_directory}" output remote_state_storage_account_name| tr -d \")
+    REMOTE_STATE_SA=$(terraform -chdir="${terraform_module_directory}" output  -no-color -raw remote_state_storage_account_name | tr -d \")
     sapbits_storage_account_name=$(terraform -chdir="${terraform_module_directory}"  output -no-color -raw sapbits_storage_account_name | tr -d \")
     if [ 1 == $called_from_ado ] ; then
 

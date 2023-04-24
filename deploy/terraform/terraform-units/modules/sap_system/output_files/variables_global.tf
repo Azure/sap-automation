@@ -247,6 +247,12 @@ variable "web_sid" {
   default     = ""
 }
 
+variable "web_instance_number" {
+  description = "The Instance number for Web Dispatcher"
+  default     = "00"
+}
+
+
 variable "use_msi_for_clusters" {
   description = "If true, the Pacemaker cluser will use a managed identity"
 }
