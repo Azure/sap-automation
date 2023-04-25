@@ -371,6 +371,15 @@ logical_volumes_install:
     size:       '100%FREE'
     fstype:     'xfs'
 
+logical_volumes_hanashared:
+  - tier:       'sapos'
+    node_tier:  'hana'
+    vg:         "{% if shareddisk == '1' %}vg_hana_shared{% else %}vg_sap{% endif %}"
+    lv:         'lv_hana_shared'
+    size:       "{% if shareddisk == '1' %}100%FREE{% else %}32g{% endif %}"
+    fstype:     'xfs'
+
+
 # Adding Tier and disk types for Oracle installation ASM.
 
 
