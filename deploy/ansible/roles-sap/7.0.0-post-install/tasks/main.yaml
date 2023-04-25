@@ -29,7 +29,7 @@
   become_user:                         root
   become:                              true
   ansible.builtin.find:
-    paths:                             "{{ tmp_directory}}/{{ this_sid }}/sapinst_instdir/{{ prefix }}/{{ path }}"
+    paths:                             "{{ tmp_directory }}/{{ this_sid }}/sapinst_instdir/{{ prefix }}/{{ path }}"
     file_type:                         file
     patterns:                          'sa*.log,ini*.*,Hd*.log'
     recurse:                           false
