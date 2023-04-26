@@ -60,7 +60,7 @@ resource "azurerm_netapp_volume" "sapmnt_secondary" {
   )
 
   name = format("%s%s",
-    azurerm_netapp_volume.sapmnt[0].id,
+    azurerm_netapp_volume.sapmnt[0].name,
     "-secondary"
   )
 
