@@ -120,7 +120,7 @@ output "db_server_secondary_ips" {
 
 
 output "hana_data_primary" {
-  value = var.hana_ANF_volumes.use_for_data ? (
+  value = try(var.hana_ANF_volumes.use_for_data ? (
     format("%s:/%s",
       var.hana_ANF_volumes.use_existing_data_volume ? (
         data.azurerm_netapp_volume.hanadata[0].mount_ip_addresses[0]) : (
@@ -133,11 +133,11 @@ output "hana_data_primary" {
     )
     ) : (
     ""
-  )
+  ),"")
 }
 
 output "hana_data_secondary" {
-  value = var.hana_ANF_volumes.use_for_data && local.hdb_ha ? (
+  value = try(var.hana_ANF_volumes.use_for_data && local.hdb_ha ? (
     format("%s:/%s",
       var.hana_ANF_volumes.use_existing_data_volume ? (
         data.azurerm_netapp_volume.hanadata[1].mount_ip_addresses[0]) : (
@@ -150,7 +150,7 @@ output "hana_data_secondary" {
     )
     ) : (
     ""
-  )
+  ),"")
 }
 
 # output "hana_data" {
@@ -191,7 +191,7 @@ output "hana_data_secondary" {
 #   [""])
 # }
 output "hana_log_primary" {
-  value = var.hana_ANF_volumes.use_for_log ? (
+  value = try(var.hana_ANF_volumes.use_for_log ? (
     format("%s:/%s",
       var.hana_ANF_volumes.use_existing_log_volume ? (
         data.azurerm_netapp_volume.hanalog[0].mount_ip_addresses[0]) : (
@@ -204,11 +204,11 @@ output "hana_log_primary" {
     )
     ) : (
     ""
-  )
+  ),"")
 }
 
 output "hana_log_secondary" {
-  value = var.hana_ANF_volumes.use_for_log && local.hdb_ha ? (
+  value = try(var.hana_ANF_volumes.use_for_log && local.hdb_ha ? (
     format("%s:/%s",
       var.hana_ANF_volumes.use_existing_log_volume ? (
         data.azurerm_netapp_volume.hanalog[1].mount_ip_addresses[0]) : (
@@ -221,11 +221,11 @@ output "hana_log_secondary" {
     )
     ) : (
     ""
-  )
+  ),"")
 }
 
 output "hana_shared_primary" {
-  value = var.hana_ANF_volumes.use_for_shared ? (
+  value = try(var.hana_ANF_volumes.use_for_shared ? (
     format("%s:/%s",
       var.hana_ANF_volumes.use_existing_shared_volume ? (
         data.azurerm_netapp_volume.hanashared[0].mount_ip_addresses[0]) : (
@@ -238,11 +238,11 @@ output "hana_shared_primary" {
     )
     ) : (
     ""
-  )
+  ),"")
 }
 
 output "hana_shared_secondary" {
-  value = var.hana_ANF_volumes.use_for_shared && local.hdb_ha ? (
+  value = try(var.hana_ANF_volumes.use_for_shared && local.hdb_ha ? (
     format("%s:/%s",
       var.hana_ANF_volumes.use_existing_shared_volume ? (
         data.azurerm_netapp_volume.hanashared[1].mount_ip_addresses[0]) : (
@@ -255,5 +255,5 @@ output "hana_shared_secondary" {
     )
     ) : (
     ""
-  )
+  ), "")
 }
