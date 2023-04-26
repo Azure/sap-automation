@@ -55,7 +55,7 @@ resource "azurerm_netapp_volume" "sapmnt_secondary" {
   )
 
   name = format("%s%s",
-    azurerm_netapp_volume.sapmnt.id,
+    azurerm_netapp_volume.sapmnt[0].id,
     "-secondary"
   )
 
@@ -83,7 +83,7 @@ resource "azurerm_netapp_volume" "sapmnt_secondary" {
   data_protection_replication {
     endpoint_type             = "dst"
     remote_volume_location    = local.ANF_pool_settings.location
-    remote_volume_resource_id = azurerm_netapp_volume.sapmnt.id
+    remote_volume_resource_id = azurerm_netapp_volume.sapmnt[0].id
     replication_frequency     = "10minutes"
   }
 
