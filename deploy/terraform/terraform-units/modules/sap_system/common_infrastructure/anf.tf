@@ -41,6 +41,8 @@ resource "azurerm_netapp_volume" "sapmnt" {
   storage_quota_in_gb = var.hana_ANF_volumes.sapmnt_volume_size
   throughput_in_mibps = var.hana_ANF_volumes.sapmnt_volume_throughput
 
+  zone = local.db_zone_count > 0 ? try(local.zones[0], null) : null
+
 }
 
 resource "azurerm_netapp_volume" "sapmnt_secondary" {
@@ -64,7 +66,7 @@ resource "azurerm_netapp_volume" "sapmnt_secondary" {
   location            = local.ANF_pool_settings.location
   account_name        = local.ANF_pool_settings.account_name
   pool_name           = local.ANF_pool_settings.pool_name
-  volume_path         = format("%s%s", local.sid, local.resource_suffixes.sapmnt2)
+  volume_path         = format("%s%s2", local.sid, local.resource_suffixes.sapmnt)
   service_level       = local.ANF_pool_settings.service_level
   subnet_id           = local.ANF_pool_settings.subnet_id
   protocols           = ["NFSv4.1"]
@@ -86,6 +88,8 @@ resource "azurerm_netapp_volume" "sapmnt_secondary" {
     remote_volume_resource_id = azurerm_netapp_volume.sapmnt[0].id
     replication_frequency     = "10minutes"
   }
+
+  zone = local.db_zone_count > 1 ? try(local.zones[1], null) : null
 
 
 }
