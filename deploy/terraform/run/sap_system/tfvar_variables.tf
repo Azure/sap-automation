@@ -1015,6 +1015,11 @@ variable "ANF_sapmnt_use_existing" {
   default     = false
 }
 
+variable "ANF_sapmnt_use_clone_in_secondary_zone" {
+  description = "Create a clone in the secondary region"
+  default     = false
+}
+
 variable "ANF_sapmnt" {
   description = "Use existing sapmnt volume"
   default     = false
