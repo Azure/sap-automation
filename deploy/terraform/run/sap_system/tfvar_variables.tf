@@ -572,7 +572,7 @@ variable "scs_server_no_ppg" {
 
 variable "scs_server_use_ppg" {
   description = "If provided, the Central Services will be placed in a proximity placement group"
-  default     = false
+  default     = true
 }
 
 variable "scs_shared_disk_size" {
@@ -654,7 +654,7 @@ variable "application_server_no_ppg" {
 
 variable "application_server_use_ppg" {
   description = "If provided, the application servers will be placed in a proximity placement group"
-  default     = false
+  default     = true
 }
 
 variable "application_server_image" {
