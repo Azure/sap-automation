@@ -157,7 +157,7 @@ resource "azurerm_linux_virtual_machine" "dbserver" {
   }
 
   proximity_placement_group_id = var.database.use_ppg ? (
-    var.ppg[count.index].id) : (
+    var.ppg[count.index % max(local.db_zone_count, 1)].id) : (
     null
   )
   //If more than one servers are deployed into a single zone put them in an availability set and not a zone
@@ -273,7 +273,7 @@ resource "azurerm_windows_virtual_machine" "dbserver" {
   }
 
   proximity_placement_group_id = var.database.use_ppg ? (
-    var.ppg[count.index].id) : (
+    var.ppg[count.index % max(local.db_zone_count, 1)].id) : (
     null
   )
   //If more than one servers are deployed into a single zone put them in an availability set and not a zone
