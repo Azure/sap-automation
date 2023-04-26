@@ -168,7 +168,7 @@ resource "azurerm_linux_virtual_machine" "dbserver" {
     )
   ) : null
 
-  zone = local.zonal_deployment ? try(local.zones[count.index % max(local.db_zone_count, 1)], null) : null
+  zone = local.zonal_deployment && !local.use_avset ? try(local.zones[count.index % max(local.db_zone_count, 1)], null) : null
 
   network_interface_ids = local.anydb_dual_nics ? (
     var.options.legacy_nic_order ? (
@@ -284,7 +284,7 @@ resource "azurerm_windows_virtual_machine" "dbserver" {
     )
   ) : null
 
-  zone = local.zonal_deployment ? try(local.zones[count.index % max(local.db_zone_count, 1)], null) : null
+  zone = local.zonal_deployment  && !local.use_avset ? try(local.zones[count.index % max(local.db_zone_count, 1)], null) : null
 
   network_interface_ids = local.anydb_dual_nics ? (
     var.options.legacy_nic_order ? (
