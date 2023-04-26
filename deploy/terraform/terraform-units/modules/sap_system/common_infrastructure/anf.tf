@@ -28,7 +28,10 @@ resource "azurerm_netapp_volume" "sapmnt" {
   volume_path         = format("%s%s", local.sid, local.resource_suffixes.sapmnt)
   service_level       = local.ANF_pool_settings.service_level
   subnet_id           = local.ANF_pool_settings.subnet_id
+
+  network_features    = "Standard"
   protocols           = ["NFSv4.1"]
+
   export_policy_rule {
     allowed_clients     = ["0.0.0.0/0"]
     protocols_enabled   = ["NFSv4.1"]
@@ -69,7 +72,10 @@ resource "azurerm_netapp_volume" "sapmnt_secondary" {
   volume_path         = format("%s%s2", local.sid, local.resource_suffixes.sapmnt)
   service_level       = local.ANF_pool_settings.service_level
   subnet_id           = local.ANF_pool_settings.subnet_id
+
   protocols           = ["NFSv4.1"]
+  network_features    = "Standard"
+
   export_policy_rule {
     allowed_clients     = ["0.0.0.0/0"]
     protocols_enabled   = ["NFSv4.1"]
@@ -143,7 +149,10 @@ resource "azurerm_netapp_volume" "usrsap" {
   volume_path         = format("%s%s", local.sid, local.resource_suffixes.usrsap)
   service_level       = local.ANF_pool_settings.service_level
   subnet_id           = local.ANF_pool_settings.subnet_id
+
   protocols           = ["NFSv4.1"]
+  network_features    = "Standard"
+
   export_policy_rule {
     allowed_clients     = ["0.0.0.0/0"]
     protocols_enabled   = ["NFSv4.1"]

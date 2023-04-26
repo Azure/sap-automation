@@ -139,7 +139,9 @@ resource "azurerm_netapp_volume" "transport" {
   service_level = var.ANF_settings.service_level
   subnet_id     = local.ANF_subnet_existing ? var.infrastructure.vnets.sap.subnet_anf.arm_id : azurerm_subnet.anf[0].id
 
-  protocols = ["NFSv4.1"]
+  protocols        = ["NFSv4.1"]
+  network_features = "Standard"
+
   export_policy_rule {
     allowed_clients     = ["0.0.0.0/0"]
     protocols_enabled   = ["NFSv4.1"]
@@ -187,9 +189,9 @@ data "azurerm_netapp_volume" "transport" {
 }
 
 ################################################################################
-#                                                                              # 
+#                                                                              #
 #                                Install media                                 #
-#                                                                              # 
+#                                                                              #
 ################################################################################
 
 resource "azurerm_netapp_volume" "install" {
@@ -241,7 +243,9 @@ resource "azurerm_netapp_volume" "install" {
   service_level = var.ANF_settings.service_level
   subnet_id     = local.ANF_subnet_existing ? var.infrastructure.vnets.sap.subnet_anf.arm_id : azurerm_subnet.anf[0].id
 
-  protocols = ["NFSv4.1"]
+  protocols        = ["NFSv4.1"]
+  network_features = "Standard"
+
   export_policy_rule {
     allowed_clients     = ["0.0.0.0/0"]
     protocols_enabled   = ["NFSv4.1"]
