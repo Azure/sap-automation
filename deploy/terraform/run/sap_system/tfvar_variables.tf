@@ -781,7 +781,7 @@ variable "webdispatcher_server_no_avset" {
 
 variable "webdispatcher_server_use_avset" {
   description = "If true, the Web Dispatcher tier will will be placed in an availability set"
-  default     = null
+  default     = false
 }
 
 variable "webdispatcher_server_no_ppg" {
