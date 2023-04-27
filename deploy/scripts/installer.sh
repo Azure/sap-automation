@@ -601,23 +601,6 @@ then
     exit $return_value
 fi
 
-test=$(grep 'Error: Invalid value for variable' plan_output.log )
-if [ -n "${test}" ] ; then
-    echo ""
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo -e "#                             $boldreduscore Errors during the plan phase $resetformatting                              #"
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
-    echo ""
-    unset TF_DATA_DIR
-    rm plan_output.log
-    exit 2
-
-fi
-
-
-
 if [ 0 == $return_value ] ; then
 
     if [ "${deployment_system}" == sap_deployer ]
