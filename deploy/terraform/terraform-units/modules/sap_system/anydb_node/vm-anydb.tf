@@ -370,7 +370,7 @@ resource "azurerm_managed_disk" "disks" {
     null
   )
 
-  zone = local.zonal_deployment ? (
+  zone = local.zonal_deployment  && !local.use_avset ? (
     upper(local.anydb_ostype) == "LINUX" ? (
       azurerm_linux_virtual_machine.dbserver[local.anydb_disks[count.index].vm_index].zone) : (
       azurerm_windows_virtual_machine.dbserver[local.anydb_disks[count.index].vm_index].zone
