@@ -2,7 +2,7 @@
   "db": {
     "Default": {
       "compute": {
-        "vm_size"                                : "Standard_E4s_v3"
+        "vm_size"                                : "Standard_E4ds_v3"
       },
       "storage": [
         {
@@ -13,13 +13,21 @@
           "caching"                              : "ReadWrite"
         },
         {
+          "name"                                 : "sap",
+          "count"                                : 1,
+          "disk_type"                            : "Premium_LRS",
+          "size_gb"                              : 64,
+          "caching"                              : "ReadWrite",
+          "lun_start"                            : 0
+        },
+        {
           "name"                                 : "data",
           "count"                                : 1,
           "disk_type"                            : "Premium_LRS",
           "size_gb"                              : 256,
           "caching"                              : "None",
           "write_accelerator"                    : false,
-          "lun_start"                            : 0
+          "lun_start"                            : 1
         },
         {
           "name"                                 : "log",
@@ -28,7 +36,7 @@
           "size_gb"                              : 128,
           "caching"                              : "None",
           "write_accelerator"                    : false,
-          "lun_start"                            : 9
+          "lun_start"                            : 16
         }
       ]
     },
