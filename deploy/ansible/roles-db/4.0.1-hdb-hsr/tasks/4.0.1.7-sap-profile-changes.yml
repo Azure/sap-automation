@@ -6,10 +6,10 @@
 # virtual IP address that you defined and configured for the Azure Load Balancer                             #
 ##############################################################################################################
 
-- name:                                " 4.0.1.7 - SAP Profile changes - HANA Installations"
+- name:                                "HSR 4.0.1.7 - SAP Profile changes - HANA Installations"
   block:
 
-    - name:                            "HSR: Set the DB Server name list"
+    - name:                            "HSR 4.0.1.7 - SAP Profile changes - Set the DB Server name list"
       ansible.builtin.set_fact:
         db_server_temp:                "{{ db_server_temp | default([]) + [item] }}"
       with_items:
@@ -17,7 +17,7 @@
       when:
         - db_high_availability
 
-    - name:                            "HSR Install: Set the DB virtual_host name"
+    - name:                            "HSR 4.0.1.7 - SAP Profile changes - Set the DB virtual_host name"
       ansible.builtin.set_fact:
         db_lb_virtual_host:            "{% if db_high_availability %}{{ sap_sid | lower }}{{ db_sid | lower }}db{{ db_instance_number }}cl{% else %}{{ hostvars[db_server_temp | first]['virtual_host'] }}{% endif %}"
       when:
