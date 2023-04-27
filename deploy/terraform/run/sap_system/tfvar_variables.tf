@@ -384,7 +384,7 @@ variable "database_use_avset" {
   default     = null
   validation {
     condition = (
-      tobool(var.database_use_avset) == null
+      tobool(var.database_use_avset) != null
     )
     error_message = "database_use_avset is not defined, please define it in your tfvars file."
   }
@@ -406,7 +406,7 @@ variable "database_use_ppg" {
   default     = null
   validation {
     condition = (
-      tobool(var.database_use_ppg) == null
+      tobool(var.database_use_ppg) != null
     )
     error_message = "database_use_ppg is not defined, please define it in your tfvars file."
   }
@@ -578,7 +578,7 @@ variable "scs_server_use_avset" {
   default     = null
   validation {
     condition = (
-      tobool(var.scs_server_use_avset) == null
+      tobool(var.scs_server_use_avset) != null
     )
     error_message = "scs_server_use_avset is not defined, please define it in your tfvars file."
   }
@@ -594,7 +594,7 @@ variable "scs_server_use_ppg" {
   default     = null
   validation {
     condition = (
-      tobool(var.scs_server_use_ppg) == null
+      tobool(var.scs_server_use_ppg) != null
     )
     error_message = "scs_server_use_ppg is not defined, please define it in your tfvars file."
   }
@@ -672,7 +672,7 @@ variable "application_server_use_avset" {
   default     = null
   validation {
     condition = (
-      tobool(var.application_server_use_avset) == null
+      tobool(var.application_server_use_avset) != null
     )
     error_message = "application_server_use_avset is not defined, please define it in your tfvars file."
   }
@@ -688,7 +688,7 @@ variable "application_server_use_ppg" {
   default     = null
   validation {
     condition = (
-      tobool(var.application_server_use_ppg) == null
+      tobool(var.application_server_use_ppg) != null
     )
     error_message = "application_server_use_ppg is not defined, please define it in your tfvars file."
   }
