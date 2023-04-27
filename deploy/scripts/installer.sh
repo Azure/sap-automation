@@ -597,9 +597,26 @@ then
     echo "Error when running Terraform plan" > "${system_config_information}".err
 
     unset TF_DATA_DIR
-    rm
+    rm plan_output.log
     exit $return_value
 fi
+
+test=$(grep vm_dbnode plan_output.log | grep -m1 'Error: Invalid value for variable')
+if [ -n "${test}" ] ; then
+    echo ""
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo -e "#                             $boldreduscore Errors during the plan phase $resetformatting                              #"
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
+    echo ""
+    unset TF_DATA_DIR
+    rm plan_output.log
+    exit 2
+
+fi
+
+
 
 if [ 0 == $return_value ] ; then
 
