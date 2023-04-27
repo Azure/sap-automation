@@ -241,8 +241,9 @@ stages:
                   exit $return_code
                 fi
               else
-                echo -e "$green --- Running on deployer ---$reset"
+                echo -e "$green--- Running on deployer ---$reset"
                 if [ $(Logon_Using_SPN) == "true" ]; then
+                  echo "Using SPN"
                   export ARM_CLIENT_ID=$WL_ARM_CLIENT_ID
                   export ARM_CLIENT_SECRET=$WL_ARM_CLIENT_SECRET
                   export ARM_TENANT_ID=$WL_ARM_TENANT_ID
