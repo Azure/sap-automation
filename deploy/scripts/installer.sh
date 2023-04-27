@@ -601,7 +601,7 @@ then
     exit $return_value
 fi
 
-test=$(grep vm_dbnode plan_output.log | grep -m1 'Error: Invalid value for variable')
+test=$(grep 'Error: Invalid value for variable' plan_output.log )
 if [ -n "${test}" ] ; then
     echo ""
     echo "#########################################################################################"
