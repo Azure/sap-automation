@@ -850,7 +850,6 @@ stages:
                   inputs:
                       command:         "build"
                       projects:        "$(System.DefaultWorkingDirectory)/sap-automation/Webapp/SDAF/*.csproj"
-                      workingDirectory: $(Agent.ToolsDirectory)/dotnet
                 - task:                DotNetCoreCLI@2
                   displayName:         "Publish the Configuration Web Application"
                   inputs:
@@ -860,7 +859,6 @@ stages:
                       arguments:          "--output $(Build.ArtifactStagingDirectory)/WebApp"
                       zipAfterPublish:    true
                       modifyOutputPath:   true
-                      workingDirectory:  $(Agent.ToolsDirectory)/dotnet
 
                 - task:                  AzureWebApp@1
                   displayName:           "Deploy the Configuration Web Application"
