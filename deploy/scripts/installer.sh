@@ -1133,12 +1133,6 @@ then
         fi
 
     fi
-    deployer_extension_ids=$(terraform -chdir="${terraform_module_directory}"  output -no-color -json deployer_extension_ids | jq -r '.[]')
-
-    if [[ -n ${deployer_extension_ids} ]]
-    then
-        az resource delete --ids ${deployer_extension_ids}
-    fi
 
    if valid_kv_name "$keyvault" ; then
         save_config_var "keyvault" "${system_config_information}"
