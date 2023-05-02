@@ -422,14 +422,22 @@
             sapbits_location_base_path: "{{ hostvars.localhost.sapbits_location_base_path }}"
             sapbits_sas_token:          "{{ hostvars.localhost.sapbits_sas_token }}"
             sa_enabled:                 true
-            scs_virtual_hostname:       "{{ sap_sid | lower }}scs{{ scs_instance_number }}cl1"
-            ers_virtual_hostname:       "{{ sap_sid | lower }}ers{{ ers_instance_number }}cl2"
             fencing_spn_client_id:      "{% if not use_msi_for_clusters %}{{ hostvars.localhost.sap_fencing_spn_client_id }}{% endif %}"
             fencing_spn_client_pwd:     "{% if not use_msi_for_clusters %}{{ hostvars.localhost.sap_fencing_spn_pwd }}{% endif %}"
             fencing_spn_tenant_id:      "{% if not use_msi_for_clusters %}{{ hostvars.localhost.sap_fencing_spn_tenant_id }}{% endif %}"
             always_upload_jinja_templates:    false
           tags:
             - always
+
+        - name:                        "SCS HA Installation Playbook: - Initialize facts"
+          ansible.builtin.set_fact:
+            scs_virtual_hostname:       "{{ sap_sid | lower }}scs{{ scs_instance_number }}cl1"
+          when:                         scs_virtual_hostname is not defined
+
+        - name:                        "SCS HA Installation Playbook: - Initialize facts"
+          ansible.builtin.set_fact:
+            ers_virtual_hostname:       "{{ sap_sid | lower }}ers{{ ers_instance_number }}cl2"
+          when:                         ers_virtual_hostname is not defined
 
         - name:                        "SCS HA Installation Playbook: - Ensure the repositories are registered"
           ansible.builtin.include_role:

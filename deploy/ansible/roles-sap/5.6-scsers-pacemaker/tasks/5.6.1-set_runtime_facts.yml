@@ -16,10 +16,15 @@
     primary_instance_ip:               "{{ hostvars[primary_instance_name]['ansible_eth0']['ipv4']['address'] }}"
     secondary_instance_ip:             "{{ hostvars[secondary_instance_name]['ansible_eth0']['ipv4']['address'] }}"
 
-- name:                                "5.6 SCSERS - Set the SCS and ERS Virtual Instance hostname"
+- name:                                "5.6 SCSERS - Set the SCS Virtual Instance hostname"
   ansible.builtin.set_fact:
     scs_virtual_hostname:              "{{ sap_sid | lower }}scs{{ scs_instance_number }}cl1"
+  when:                                scs_virtual_hostname is not defined
+
+- name:                                "5.6 SCSERS - Set the ERS Virtual Instance hostname"
+  ansible.builtin.set_fact:
     ers_virtual_hostname:              "{{ sap_sid | lower }}ers{{ ers_instance_number }}cl2"
+  when:                                ers_virtual_hostname is not defined
 
 - name:                                "5.6 SCSERS - Print - Virtual Instance hostnames"
   ansible.builtin.debug:
