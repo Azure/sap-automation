@@ -52,8 +52,8 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-- hosts:                               "{{ sap_sid | upper }}_DB  :
-                                        {{ sap_sid | upper }}_SCS :
+- hosts:                               "{{ sap_sid | upper }}_SCS :
+                                        {{ sap_sid | upper }}_DB  :
                                         {{ sap_sid | upper }}_ERS :
                                         {{ sap_sid | upper }}_PAS :
                                         {{ sap_sid | upper }}_APP :
@@ -64,6 +64,7 @@
   remote_user:                         "{{ orchestration_ansible_user }}"
   gather_facts:                        true                                    # Important to collect hostvars information
   any_errors_fatal:                    true
+  serial:                              1                                       # Run on 1 host at a time
   vars_files:
     - vars/ansible-input-api.yaml                                              # API Input template with defaults
 

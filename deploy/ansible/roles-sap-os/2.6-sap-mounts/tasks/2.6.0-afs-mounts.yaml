@@ -155,7 +155,7 @@
       'mount':              '{{ usr_sap_install_mountpoint }}',
       'opts':               'rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp',
       'path':               '/usr/sap/install',
-      'permissions':        '0775',
+      'permissions':        '0777',
       'set_chattr_on_dir':  false,
       'target_nodes':       ['all'],
       'create_temp_folders': true

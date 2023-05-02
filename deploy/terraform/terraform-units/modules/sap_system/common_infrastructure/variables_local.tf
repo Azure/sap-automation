@@ -116,7 +116,7 @@ locals {
 
   //ANF support
   use_ANF = try(var.database.use_ANF, false)
-  //Scalout subnet is needed if ANF is used and there are more than one hana node 
+  //Scalout subnet is needed if ANF is used and there are more than one hana node
   enable_storage_subnet = local.use_ANF && local.dbnode_per_site > 1
 
   //Anchor VM
@@ -409,7 +409,7 @@ locals {
     )
   )
 
-  // If the user specifies arm id of key vaults in input, 
+  // If the user specifies arm id of key vaults in input,
   // the key vault will be imported instead of using the landscape key vault
   user_key_vault_id = length(try(var.key_vault.kv_user_id, "")) > 0 ? (
     var.key_vault.kv_user_id) : (
@@ -476,7 +476,7 @@ locals {
   )
 
 
-  # This needs more though as changing of it is a destructive action 
+  # This needs more though as changing of it is a destructive action
   # try(data.template_cloudinit_config.config_growpart.rendered, "Cg==")
   // 'Cg==` is empty string, base64 encoded.
   cloudinit_growpart_config = null

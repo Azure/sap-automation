@@ -184,7 +184,7 @@ variable "deployer_enable_public_ip" {
 
 variable "deployer_size" {
   description = "The size of the deployer VM"
-  default     = ""
+  default     = "Standard_D4ds_v4"
 }
 
 variable "deployer_count" {
@@ -341,7 +341,7 @@ variable "deployer_diagnostics_account_arm_id" {
 
 variable "tf_version" {
   description = "Terraform version to install on deployer"
-  default     = "1.4.1"
+  default     = "1.4.5"
 }
 
 variable "name_override_file" {

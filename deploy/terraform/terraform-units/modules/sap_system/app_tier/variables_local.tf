@@ -378,7 +378,7 @@ locals {
   app_zonal_deployment = length(local.app_zones) > 0 ? true : false
   app_zone_count       = length(local.app_zones)
   //If we deploy more than one server in zone put them in an availability set unless specified otherwise
-  use_app_avset = local.application_server_count > 0 && !var.application_tier.app_no_avset ? (
+  use_app_avset = local.application_server_count > 0 && var.application_tier.app_use_avset ? (
     true && local.enable_deployment) : (
     false && local.enable_deployment
   )
@@ -387,7 +387,7 @@ locals {
   scs_zonal_deployment = length(local.scs_zones) > 0 ? true : false
   scs_zone_count       = length(local.scs_zones)
   //If we deploy more than one server in zone put them in an availability set
-  use_scs_avset = local.scs_server_count > 0 && (!var.application_tier.scs_no_avset) ? (
+  use_scs_avset = local.scs_server_count > 0 && (var.application_tier.scs_use_avset) ? (
     !local.scs_zonal_deployment || local.scs_server_count != local.scs_zone_count) : (
     false
   )
@@ -396,7 +396,7 @@ locals {
   web_zonal_deployment = length(local.web_zones) > 0 ? true : false
   web_zone_count       = length(local.web_zones)
   //If we deploy more than one server in zone put them in an availability set
-  use_web_avset = local.webdispatcher_count > 0 && !var.application_tier.web_no_avset ? (
+  use_web_avset = local.webdispatcher_count > 0 && var.application_tier.web_use_avset ? (
     local.enable_deployment && (!local.web_zonal_deployment || local.webdispatcher_count != local.web_zone_count)) : (
     false
   )
@@ -496,12 +496,6 @@ locals {
     concat(local.std_ips, local.winha_ips)) : (
     local.std_ips
   )
-
-
-  //PPG control flags
-  app_no_ppg = var.application_tier.app_no_ppg
-  scs_no_ppg = var.application_tier.scs_no_ppg
-  web_no_ppg = var.application_tier.web_no_ppg
 
   dns_label = try(var.landscape_tfstate.dns_label, "")
 

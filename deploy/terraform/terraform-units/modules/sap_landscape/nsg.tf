@@ -112,13 +112,13 @@ resource "azurerm_network_security_rule" "nsr_controlplane_web" {
   depends_on = [
     azurerm_network_security_group.web
   ]
-  count = local.web_subnet_nsg_exists ? 0 : 1
+  count = local.web_subnet_defined ? local.web_subnet_nsg_exists ? 0 : 1 : 0
   name  = "ConnectivityToSAPApplicationSubnetFromControlPlane-ssh-rdp-winrm"
   resource_group_name = local.vnet_sap_exists ? (
     data.azurerm_virtual_network.vnet_sap[0].resource_group_name) : (
     azurerm_virtual_network.vnet_sap[0].resource_group_name
   )
-  network_security_group_name  = azurerm_network_security_group.web[0].name
+  network_security_group_name  = try(azurerm_network_security_group.web[0].name, azurerm_network_security_group.app[0].name)
   priority                     = 100
   direction                    = "Inbound"
   access                       = "Allow"

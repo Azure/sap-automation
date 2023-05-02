@@ -300,13 +300,14 @@ locals {
   zonal_deployment = local.db_zone_count > 0 || local.enable_ultradisk ? true : false
 
   //If we deploy more than one server in zone put them in an availability set
-  use_avset = var.database_server_count > 0 && !var.database.no_avset && !local.enable_ultradisk ? (
-    !local.zonal_deployment || (var.database_server_count != local.db_zone_count)) : (
-    false
+
+  use_avset = local.availabilitysets_exist ? (
+    true) : (var.database.use_avset && !local.enable_ultradisk ? (
+      !local.zonal_deployment || (var.database_server_count != local.db_zone_count)) : (
+      false
+    )
   )
 
-  //PPG control flag
-  no_ppg = var.database.no_ppg
 
   dns_label = try(var.landscape_tfstate.dns_label, "")
 

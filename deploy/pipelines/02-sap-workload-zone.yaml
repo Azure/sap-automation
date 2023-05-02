@@ -122,6 +122,7 @@ stages:
                 if [ ! -f /etc/profile.d/deploy_server.sh ]; then
                   echo -e "$green --- Install dos2unix ---$reset"
                   sudo apt-get -qq install dos2unix
+                  export AZURE_DEVOPS_EXT_PAT=$PAT
                 else
                   source /etc/profile.d/deploy_server.sh
                   export AZURE_DEVOPS_EXT_PAT=$PAT
@@ -388,7 +389,13 @@ stages:
 
               else
                 echo -e "$green--- az login ---$reset"
-                  az login --identity --allow-no-subscriptions --output none
+
+                  if [ $(Logon_Using_SPN) == "true" ]; then
+                    echo "Using SPN"
+                    az login --service-principal --username $CP_ARM_CLIENT_ID --password=$CP_ARM_CLIENT_SECRET --tenant $CP_ARM_TENANT_ID --output none
+                  else
+                    az login --identity --allow-no-subscriptions --output none
+                  fi
 
                   return_code=$?
                   if [ 0 != $return_code ]; then
@@ -465,8 +472,19 @@ stages:
                 cd $CONFIG_REPO_PATH/LANDSCAPE/$(workload_zone_folder)
                 if [ -f /etc/profile.d/deploy_server.sh ]; then
                   az logout --output none
-                  az login --identity --allow-no-subscriptions --output none
-                  export ARM_USE_MSI=true
+                  if [ $(Logon_Using_SPN) == "true" ]; then
+                    echo "Using SPN"
+
+                    export ARM_CLIENT_ID=$WL_ARM_CLIENT_ID
+                    export ARM_CLIENT_SECRET=$WL_ARM_CLIENT_SECRET
+                    export ARM_TENANT_ID=$WL_ARM_TENANT_ID
+                    export ARM_SUBSCRIPTION_ID=$WL_ARM_SUBSCRIPTION_ID
+                    export ARM_USE_MSI=false
+                    az login --service-principal --username $WL_ARM_CLIENT_ID --password=$WL_ARM_CLIENT_SECRET --tenant $WL_ARM_TENANT_ID --output none
+                  else
+                    export ARM_USE_MSI=true
+                    az login --identity --allow-no-subscriptions --output none
+                  fi
                 else
                   export ARM_CLIENT_ID=$WL_ARM_CLIENT_ID
                   export ARM_CLIENT_SECRET=$WL_ARM_CLIENT_SECRET

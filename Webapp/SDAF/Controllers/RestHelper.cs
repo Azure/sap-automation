@@ -13,6 +13,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
+#pragma warning disable SYSLIB0020
 namespace AutomationForm.Controllers
 {
     public class RestHelper : Controller
@@ -398,3 +399,4 @@ namespace AutomationForm.Controllers
 
     }
 }
+#pragma warning restore SYSLIB0020

@@ -8,6 +8,16 @@
     - PSDesiredStateConfiguration
     - SqlServerDsc
 
+# This is needed to override the default SQLPS module that comes with the
+# SqlServer installation as a backward compatibility component
+- name:                                "WIN-SQL: Ensure SqlServer module is installed"
+  community.windows.win_psmodule:
+    name:                              "{{ item }}"
+    state:                             present
+    allow_clobber:                     true
+  loop:
+    - SqlServer
+
 - name:                                "WIN: Calculating the domain value from {{ domain_name }}"
   ansible.builtin.set_fact:
     domain:                            "{{ domain_name | split('.') | first }}"
