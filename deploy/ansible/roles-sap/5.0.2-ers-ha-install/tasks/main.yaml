@@ -212,7 +212,7 @@
             SAPSYSTEMNAME:             "{{ sid_to_be_deployed.sid | upper }}"
             TMPDIR:                    "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
           register:                    ers_installation
-          failed_when:                 false
+          failed_when:                 ers_installation.rc > 0
 
     - name:                            "ERS Install: Installation results"
       block:
@@ -228,7 +228,6 @@
         - name:                        "ERS Install: Installation results"
           ansible.builtin.fail:
             msg:                       ERS installation failed"
-
       when:                            ers_installation.rc > 0
 
     - name:                            "ERS Install: Cleanup ini file {{ ansible_hostname }}"
