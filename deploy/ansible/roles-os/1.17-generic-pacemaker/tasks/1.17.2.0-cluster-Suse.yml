@@ -127,7 +127,7 @@
                                        pcmk_host_map="{{ primary_instance_name }}:{{ hostvars[primary_instance_name]['primary_vm_name'] }};{{ secondary_instance_name }}:{{ hostvars[secondary_instance_name]['secondary_vm_name'] }}"
       when:
         - use_msi_for_clusters
-        - distribution_full_id in ["sles_sap15.1","sles_sap15.2", "sles_sap15.3"]
+        - distribution_full_id in ["sles_sap15.1","sles_sap15.2", "sles_sap15.3", "sles_sap15.4"]
 
 
     - name:                            "1.17 Generic Pacemaker - Stonith Timeout Property"
@@ -142,14 +142,17 @@
   # WARNING: cib-bootstrap-options: unknown attribute 'azure-events_globalPullState'
   # WARNING: cib-bootstrap-options: unknown attribute 'hostName_ hostname'
   # These warning messages can be ignored.
-    - name:                            "1.17 Generic Pacemaker - Ensure Pacemaker resources for the Azure agent is created"
-      ansible.builtin.command:         crm configure primitive rsc_azure-events ocf:heartbeat:azure-events op monitor interval=10s
+    - name:                            "1.17 Generic Pacemaker - Ensure maintenance mode"
+      ansible.builtin.command:         crm configure property maintenance-mode=true
 
-    - name:                            "1.17 Generic Pacemaker - Ensure clone resource azure-events is configure"
-      ansible.builtin.command:         crm configure clone cln_azure-events rsc_azure-events
+    - name:                            "1.17 Generic Pacemaker - Ensure Pacemaker resources for the Azure agent is created"
+      ansible.builtin.shell:           crm configure primitive rsc_azure-events ocf:heartbeat:azure-events op monitor interval=10s
+
+    - name:                            "1.17 Generic Pacemaker - Ensure clone resource azure-events is configured"
+      ansible.builtin.shell:           crm configure clone cln_azure-events rsc_azure-events
 
     - name:                            "1.17 Generic Pacemaker - Remove false positives"
-      ansible.builtin.command:         crm_resource -C
+      ansible.builtin.shell:           crm_resource -C
 
     - name:                            "1.17 Generic Pacemaker - Ensure maintenance mode is disabled"
       ansible.builtin.command:         crm configure property maintenance-mode=false

@@ -166,6 +166,14 @@
         state:                         directory
         mode:                          0755
 
+    - name:                            "PAS Install: debug"
+      ansible.builtin.command:         "cat {{ dir_params }}/{{ sap_inifile }}"
+      register:                        debug_inifile
+
+    - name:                            "PAS Install: progress"
+      ansible.builtin.debug:
+        var:                           debug_inifile
+
     - name:                            "PAS Install: progress"
       ansible.builtin.debug:
         msg:                           "Starting PAS installation ({{ sid_to_be_deployed.sid | upper }})"

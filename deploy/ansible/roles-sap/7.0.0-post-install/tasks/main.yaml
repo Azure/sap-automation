@@ -31,8 +31,8 @@
   ansible.builtin.find:
     paths:                             "{{ tmp_directory }}/{{ this_sid }}/sapinst_instdir/{{ prefix }}/{{ path }}"
     file_type:                         file
-    patterns:                          'sa*.log,Hd*.log'
-    recurse:                           true
+    patterns:                          'sa*.log,ini*.*,Hd*.log'
+    recurse:                           false
   register:                            sapinst_log_files
   when:
     - tier != 'hana'
@@ -157,13 +157,13 @@
       when:
         - oracle_log_files is defined
 
-    - name:                                "Post Installation: Copy installation logs (Oracle)"
+    - name:                            "Post Installation: Copy installation logs (Oracle)"
       become_user:                     root
       become:                          true
       ansible.builtin.fetch:
-        src:                               "/etc/sap_deployment_automation{{ ansible_hostname }}.zip"
-        dest:                              "{{ _workspace_directory }}/logs/{{ sap_sid }}Oracle{{ ansible_hostname }}.zip"
-        flat:                              true
+        src:                           "/etc/sap_deployment_automation{{ ansible_hostname }}.zip"
+        dest:                          "{{ _workspace_directory }}/logs/{{ sap_sid }}Oracle{{ ansible_hostname }}.zip"
+        flat:                          true
       when:
         - oracle_log_files is defined
   when:

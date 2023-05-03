@@ -55,7 +55,7 @@ resource "azurerm_storage_account_network_rules" "storage_tfstate" {
     []
   )
   virtual_network_subnet_ids = var.use_webapp ? (
-    [var.deployer_tfstate.subnet_webapp_id, var.deployer_tfstate.subnet_mgmt_id]) : (
+    compact([var.deployer_tfstate.subnet_mgmt_id, try(var.deployer_tfstate.subnet_webapp_id, null)])) : (
     [var.deployer_tfstate.subnet_mgmt_id]
   )
 
@@ -244,7 +244,7 @@ resource "azurerm_storage_account_network_rules" "storage_sapbits" {
     []
   )
   virtual_network_subnet_ids = var.use_webapp ? (
-    [var.deployer_tfstate.subnet_webapp_id, var.deployer_tfstate.subnet_mgmt_id]) : (
+    [var.deployer_tfstate.subnet_mgmt_id, try(var.deployer_tfstate.subnet_webapp_id, null)]) : (
     [var.deployer_tfstate.subnet_mgmt_id]
   )
   lifecycle {

@@ -373,10 +373,23 @@ variable "database_instance_number" {
   description = "The Instance number for the database server"
   default     = "00"
 }
+
 variable "database_no_avset" {
-  description = "If true, the database tier will not use an availability set"
-  default     = false
+  description = "[Obsolete] If true, the database tier will not use an availability set"
+  default     = null
 }
+
+variable "database_use_avset" {
+  description = "If true, the database tier will use an availability set"
+  default     = null
+  validation {
+    condition = (
+      tobool(var.database_use_avset) != null
+    )
+    error_message = "database_use_avset is not defined, please define it in your tfvars file."
+  }
+}
+
 
 variable "database_dual_nics" {
   description = "If true, the database tier will have two NICs"
@@ -384,8 +397,20 @@ variable "database_dual_nics" {
 }
 
 variable "database_no_ppg" {
-  description = "If provided, the database tier will not use a proximity placement group"
-  default     = false
+  description = "[Obsolete] If provided, the database tier will not be placed in a proximity placement group"
+  default     = null
+}
+
+variable "database_use_ppg" {
+  description = "If provided, the database tier will be placed in a proximity placement group"
+  default     = null
+  validation {
+    condition = (
+      tobool(var.database_use_ppg) != null
+    )
+    error_message = "database_use_ppg is not defined, please define it in your tfvars file."
+  }
+
 }
 
 variable "database_loadbalancer_ips" {
@@ -544,13 +569,35 @@ variable "scs_server_tags" {
 }
 
 variable "scs_server_no_avset" {
-  description = "If true, the SAP Central Services tier will not use an availability set"
-  default     = false
+  description = "[Obsolete] If true, the SAP Central Services tier will not use an availability set"
+  default     = null
+}
+
+variable "scs_server_use_avset" {
+  description = "If true, the SAP Central Services tier will be placed in an availability set"
+  default     = null
+  validation {
+    condition = (
+      tobool(var.scs_server_use_avset) != null
+    )
+    error_message = "scs_server_use_avset is not defined, please define it in your tfvars file."
+  }
 }
 
 variable "scs_server_no_ppg" {
-  description = "If provided, the Central Services will not be placed in a proximity placement group"
-  default     = false
+  description = "[Obsolete] If provided, the Central Services will not be placed in a proximity placement group"
+  default     = null
+}
+
+variable "scs_server_use_ppg" {
+  description = "If provided, the Central Services will be placed in a proximity placement group"
+  default     = null
+  validation {
+    condition = (
+      tobool(var.scs_server_use_ppg) != null
+    )
+    error_message = "scs_server_use_ppg is not defined, please define it in your tfvars file."
+  }
 }
 
 variable "scs_shared_disk_size" {
@@ -609,19 +656,42 @@ variable "application_server_zones" {
   default     = []
 }
 
-variable "application_server_no_avset" {
-  description = "If true, the application tier will not use an availability set"
-  default     = false
-}
 
 variable "application_server_vm_avset_arm_ids" {
   description = "If provided, Azure resource ids for the availability sets to use for the application servers"
   default     = []
 }
 
+variable "application_server_no_avset" {
+  description = "[Obsolete]If true, the application tier will not be placed availability set"
+  default     = null
+}
+
+variable "application_server_use_avset" {
+  description = "If true, the application tier will be placed in an availability set"
+  default     = null
+  validation {
+    condition = (
+      tobool(var.application_server_use_avset) != null
+    )
+    error_message = "application_server_use_avset is not defined, please define it in your tfvars file."
+  }
+}
+
 variable "application_server_no_ppg" {
-  description = "If provided, the application servers will not be placed in a proximity placement group"
-  default     = false
+  description = "[Obsolete]If provided, the application servers will not be placed in a proximity placement group"
+  default     = null
+}
+
+variable "application_server_use_ppg" {
+  description = "If provided, the application servers will be placed in a proximity placement group"
+  default     = null
+  validation {
+    condition = (
+      tobool(var.application_server_use_ppg) != null
+    )
+    error_message = "application_server_use_ppg is not defined, please define it in your tfvars file."
+  }
 }
 
 variable "application_server_image" {
@@ -652,6 +722,10 @@ variable "web_sid" {
   default     = ""
 }
 
+variable "web_instance_number" {
+  description = "The Instance number for the Web dispatcher"
+  default     = "00"
+}
 
 variable "webdispatcher_server_zones" {
   description = "The zones for the web dispatchers"
@@ -701,13 +775,23 @@ variable "webdispatcher_server_tags" {
 }
 
 variable "webdispatcher_server_no_avset" {
-  description = "If true, the Web Dispatcher tier will not use an availability set"
+  description = "[OBSOLUTE]If true, the Web Dispatcher tier will not use an availability set"
+  default     = null
+}
+
+variable "webdispatcher_server_use_avset" {
+  description = "If true, the Web Dispatcher tier will will be placed in an availability set"
   default     = false
 }
 
 variable "webdispatcher_server_no_ppg" {
-  description = "If provided, the web dispatchers will not be placed in a proximity placement group"
-  default     = false
+  description = "[OBSOLUTE]If provided, the web dispatchers will not be placed in a proximity placement group"
+  default     = null
+}
+
+variable "webdispatcher_server_use_ppg" {
+  description = "If provided, the web dispatchers will be placed in a proximity placement group"
+  default     = null
 }
 
 #########################################################################################
@@ -794,13 +878,13 @@ variable "use_custom_dns_a_registration" {
 
 variable "management_dns_subscription_id" {
   description = "String value giving the possibility to register custom dns a records in a separate subscription"
-  default     = null
+  default     = ""
   type        = string
 }
 
 variable "management_dns_resourcegroup_name" {
   description = "String value giving the possibility to register custom dns a records in a separate resourcegroup"
-  default     = null
+  default     = ""
   type        = string
 }
 
@@ -874,6 +958,12 @@ variable "ANF_HANA_data_volume_throughput" {
   description = "If defined provides the throughput of the data volume"
   default     = 128
 }
+
+variable "ANF_HANA_use_AVG" {
+  description = "Use Application Volume Group for data volume"
+  default     = false
+}
+
 
 variable "ANF_HANA_log" {
   description = "If defined, will create ANF volumes for HANA log"
@@ -959,6 +1049,11 @@ variable "use_service_endpoint" {
 
 variable "ANF_sapmnt_use_existing" {
   description = "Use existing sapmnt volume"
+  default     = false
+}
+
+variable "ANF_sapmnt_use_clone_in_secondary_zone" {
+  description = "Create a clone in the secondary region"
   default     = false
 }
 

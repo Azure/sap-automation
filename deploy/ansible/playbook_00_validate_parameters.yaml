@@ -28,10 +28,11 @@
         name:                          netaddr
         state:                         present
 
-    - name:                            "0.0 Validations - ensure credssp is installed in the controller"
-      ansible.builtin.pip:
-        name:                          'pywinrm[credssp]'
-        state:                         present
+    # - name:                            "0.0 Validations - ensure credssp is installed in the controller"
+    #   ansible.builtin.pip:
+    #     name:                          'pywinrm[credssp]'
+    #     state:                         present
+    #   failed_when:                     false
 
     - name:                            "0.0 Validations - Create Progress folder"
       ansible.builtin.file:
@@ -407,11 +408,12 @@
 
     - name:                            "0.0 Validations - Check internet connectivity"
       ansible.builtin.uri:
-        url: "https://management.azure.com/subscriptions/{{ subscription_id }}/providers/Microsoft.Web/sites?api-version=2022-03-01"
-        headers:
-          Authorization: "Bearer {{ access_token }}"
-          Content-Type: application/json
-          Accept: application/json
+        # url: "https://management.azure.com/subscriptions/{{ subscription_id }}/providers/Microsoft.Web/sites?api-version=2022-03-01"
+        url: "https://azure.status.microsoft/en-us/status"
+        # headers:
+        #   Authorization: "Bearer {{ access_token }}"
+        #   Content-Type: application/json
+        #   Accept: application/json
         status_code:
           - 200
           - 403

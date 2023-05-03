@@ -12,7 +12,7 @@
 # some modules are added in case we come here directly
 - name:                                "WinCluster-PreReq: Calculate clustername for SCS/ERS cluster"
   ansible.builtin.set_fact:
-    cluster_name:                      "{{ sap_sid | lower }}scs{{ scs_instance_number }}cle5"
+    cluster_name:                      "{{ sap_sid | lower }}scs{{ scs_instance_number }}cl"
     cacheable:                         true
   when:
     - node_tier | lower in ['scs','ers']

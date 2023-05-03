@@ -113,7 +113,6 @@
       loop_control:
         loop_var:                      sid_to_be_deployed
       when:
-        - platform not in [ "ORACLE", "ORACLE-ASM" ]
         - ansible_os_family != "Windows"
       tags:
         - 2.5-sap-users
@@ -206,7 +205,20 @@
         - name:                        Run the PAS installation Playbook
           block:
 
-            - name:                    "APP Playbook - Install: Include 2.6-sap-mounts role"
+            - name:                        "PAS Installation playbook: - Determine if part of high availablity deployment"
+              ansible.builtin.set_fact:
+                is_ha:                      "{{ db_high_availability | default(false) }}"
+              tags:
+                - always
+
+            - name:                        "PAS Installation playbook: - Ensure the kernel parameters are set"
+              ansible.builtin.include_role:
+                name:                      roles-os/1.9-kernelparameters
+              when:                        is_ha
+              tags:
+                - 1.9-kernelparameters
+
+            - name:                    "PAS Installation Playbook - Install: Include 2.6-sap-mounts role"
               ansible.builtin.include_role:
                 name:                  roles-sap-os/2.6-sap-mounts
               tags:

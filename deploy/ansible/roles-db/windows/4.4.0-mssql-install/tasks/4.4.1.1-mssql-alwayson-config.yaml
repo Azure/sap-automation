@@ -32,8 +32,8 @@
 
 - name:                                'WIN: Calculating the domain\service account names'
   ansible.builtin.set_fact:
-    domain_sqlsvc_account:            '{{ domain | upper }}\{{ win_sql_svc_account }}'
-    domain_sqlagent_account:          '{{ domain | upper }}\{{ win_sqlagent_svc_account }}'
+    domain_sqlsvc_account:            '{% if win_sql_svc_account != "NT SERVICE\MSSQLSERVER" %}{{ domain | upper }}\{{ win_sql_svc_account }}{% else %}{{ win_sql_svc_account }}{% endif %}'
+    domain_sqlagent_account:          '{% if win_sql_svc_account != "NT SERVICE\SQLSERVERAGENT" %}{{ domain | upper }}\{{ win_sqlagent_svc_account }}{% else %}{{ win_sqlagent_svc_account }}{% endif %}'
   when:
     - domain is defined
 
@@ -334,7 +334,7 @@
 
     - name:                            "Update path variables required on the machines"
       ansible.windows.win_path:
-        name:                          '{{ item.value }}'
+        elements:                      '{{ item.value }}'
         state:                         present
         scope:                         '{{ item.scope }}'
       with_items:

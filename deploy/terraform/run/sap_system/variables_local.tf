@@ -12,6 +12,7 @@ locals {
 
   db_sid  = upper(try(local.database.instance.sid, "HDB"))
   sap_sid = upper(try(local.application_tier.sid, local.db_sid))
+  web_sid = upper(try(var.web_sid, local.sap_sid))
 
   enable_db_deployment = length(local.database.platform) > 0
 
@@ -89,10 +90,12 @@ locals {
     usr_sap_volume_name         = var.ANF_usr_sap_volume_name
     usr_sap_volume_throughput   = var.ANF_usr_sap_throughput
 
-    sapmnt_volume_size         = var.sapmnt_volume_size
-    use_existing_sapmnt_volume = var.ANF_sapmnt_use_existing
-    sapmnt_volume_name         = var.ANF_sapmnt_volume_name
-    sapmnt_volume_throughput   = var.ANF_sapmnt_volume_throughput
+    sapmnt_volume_size                 = var.sapmnt_volume_size
+    use_for_sapmnt                     = var.ANF_sapmnt
+    use_existing_sapmnt_volume         = var.ANF_sapmnt_use_existing
+    sapmnt_volume_name                 = var.ANF_sapmnt_volume_name
+    sapmnt_volume_throughput           = var.ANF_sapmnt_volume_throughput
+    sapmnt_use_clone_in_secondary_zone = var.ANF_sapmnt_use_clone_in_secondary_zone
 
   }
 

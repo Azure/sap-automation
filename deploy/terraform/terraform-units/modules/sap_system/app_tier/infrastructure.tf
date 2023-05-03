@@ -561,4 +561,3 @@ resource "azurerm_private_dns_a_record" "ers" {
   ttl                 = 300
   records             = [azurerm_lb.scs[0].frontend_ip_configuration[1].private_ip_address]
 }
-

@@ -13,6 +13,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
+#pragma warning disable SYSLIB0020
 namespace AutomationForm.Controllers
 {
     public class RestHelper : Controller
@@ -111,7 +112,7 @@ namespace AutomationForm.Controllers
 
             string postUri = $"{collectionUri}{project}/_apis/pipelines/{pipelineId}/runs?api-version=6.0-preview.1";
 
-            string requestJson = JsonSerializer.Serialize(requestBody, typeof(PipelineRequestBody), new JsonSerializerOptions() { IgnoreNullValues = true });
+            string requestJson = JsonSerializer.Serialize(requestBody, typeof(PipelineRequestBody), new JsonSerializerOptions() { IgnoreNullValues = true});
             StringContent content = new StringContent(requestJson, Encoding.ASCII, "application/json");
 
             HttpResponseMessage response = await client.PostAsync(postUri, content);
@@ -398,3 +399,4 @@ namespace AutomationForm.Controllers
 
     }
 }
+#pragma warning restore SYSLIB0020

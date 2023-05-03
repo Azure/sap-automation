@@ -166,19 +166,20 @@ resource "azurerm_storage_account_network_rules" "witness" {
   ip_rules = compact([
     length(local.deployer_public_ip_address) > 0 ? local.deployer_public_ip_address : ""
   ])
-  virtual_network_subnet_ids = [
+  virtual_network_subnet_ids = compact([
     local.database_subnet_defined ? (
       local.database_subnet_existing ? var.infrastructure.vnets.sap.subnet_db.arm_id : azurerm_subnet.db[0].id) : (
-      ""
+      null
       ), local.application_subnet_defined ? (
       local.application_subnet_existing ? var.infrastructure.vnets.sap.subnet_app.arm_id : azurerm_subnet.app[0].id) : (
-      ""
+      null
     ),
     data.azurerm_resource_group.mgmt[0].location == (local.resource_group_exists ? (
       data.azurerm_resource_group.resource_group[0].location) : (
       azurerm_resource_group.resource_group[0].location
     )) ? local.deployer_subnet_management_id : null
-  ]
+    ]
+  )
 
 }
 

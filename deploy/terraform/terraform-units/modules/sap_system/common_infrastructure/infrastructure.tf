@@ -72,7 +72,7 @@ data "azurerm_subnet" "admin" {
 
 resource "azurerm_subnet" "db" {
   provider             = azurerm.main
-  count                = local.enable_db_deployment ? (local.database_subnet_exists ? 0 : 1) : 0
+  count                = length(trimspace(local.database_subnet_arm_id)) == 0 ? 1 : 0
   name                 = local.database_subnet_name
   resource_group_name  = data.azurerm_virtual_network.vnet_sap.resource_group_name
   virtual_network_name = data.azurerm_virtual_network.vnet_sap.name
@@ -82,7 +82,7 @@ resource "azurerm_subnet" "db" {
 // Imports data of existing db subnet
 data "azurerm_subnet" "db" {
   provider             = azurerm.main
-  count                = local.enable_db_deployment ? (local.database_subnet_exists ? 1 : 0) : 0
+  count                = length(local.database_subnet_arm_id) > 0 ? 1 : 0
   name                 = split("/", local.database_subnet_arm_id)[10]
   resource_group_name  = split("/", local.database_subnet_arm_id)[4]
   virtual_network_name = split("/", local.database_subnet_arm_id)[8]

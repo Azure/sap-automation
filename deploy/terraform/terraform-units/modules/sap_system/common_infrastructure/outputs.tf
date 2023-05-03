@@ -79,10 +79,7 @@ output "admin_subnet" {
 }
 
 output "db_subnet" {
-  value = local.enable_db_deployment ? (
-    local.database_subnet_exists ? data.azurerm_subnet.db[0] : azurerm_subnet.db[0]) : (
-    null
-  )
+  value = local.database_subnet_exists ? data.azurerm_subnet.db[0] : azurerm_subnet.db[0]
   #local.database_subnet_exists ? data.azurerm_subnet.db[0] : azurerm_subnet.db[0]
 }
 

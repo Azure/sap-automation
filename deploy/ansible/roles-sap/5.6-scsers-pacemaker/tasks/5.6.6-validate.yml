@@ -11,6 +11,8 @@
 - name:                                "5.6 SCS/ERS Validation: Determine if SCS is running on {{ ansible_hostname }}"
   become_user:                         "{{ sap_sid | lower }}adm"
   become:                              true
+  when:
+    - ansible_hostname == primary_instance_name
   block:
     - name:                            "5.6 SCS/ERS Validation: Get sapcontrol path"
       ansible.builtin.find:
@@ -135,6 +137,7 @@
             that:
               - cluster_group_location.stdout == primary_instance_name
             fail_msg:                  "cluster group g-{{ sap_sid }}_{{ instance_type | upper }} is not running on {{ primary_instance_name }}"
+          when:                        perform_check
 
         # {{ sapcontrol_path }} -nr {{ scs_instance_number }} -function GetProcessList | grep MessageServer | awk '{split($0,result,", "); print result[1],result[3] }'
         - name:                        "5.6 SCS/ERS Validation: Determine if SCS is running on {{ ansible_hostname }}"

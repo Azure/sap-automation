@@ -205,14 +205,31 @@
       async:                           7200
       poll:                            0
 
-    - name:                            "DBLoad Install -Wait for asynchronous job to end"
-      ansible.builtin.async_status:
-        jid:                           "{{ dbload_results.ansible_job_id }}"
-      register:                        job_result
-      until:                           job_result.finished
-      retries:                         120
-      delay:                           60
-      when:                            dbload_results.ansible_job_id is defined
+    - name:                            "DBLoad Install"
+      block:
+        - name:                        "DBLoad Install -Wait for asynchronous job to end"
+          ansible.builtin.async_status:
+            jid:                       "{{ dbload_results.ansible_job_id }}"
+          register:                    job_result
+          until:                       job_result.finished
+          retries:                     120
+          delay:                       60
+          when:                        dbload_results.ansible_job_id is defined
+
+      rescue:
+        - name:                        "Error Handling: Try to modify error message for message server offline"
+          ansible.builtin.debug:
+            msg:                       "{{ job_result.stdout | try_get_error_code }}"
+          register:                    modified_error_message
+
+        - name:                        "Error Handling: Try to modify error message for db offline"
+          ansible.builtin.debug:
+            msg:                       "{{ modified_error_message | try_get_error_code(task_tag='dbload_db_offline') }}"
+          register:                    modified_error_message
+
+        - name:                        "Error Handling: Fail with the modified error message "
+          ansible.builtin.fail:
+            msg:                       "{{ modified_error_message }}"
 
     - name:                            "DBLoad: Installation results"
       ansible.builtin.debug:

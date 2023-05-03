@@ -8,6 +8,16 @@
     - PSDesiredStateConfiguration
     - SqlServerDsc
 
+# This is needed to override the default SQLPS module that comes with the
+# SqlServer installation as a backward compatibility component
+- name:                                "WIN-SQL: Ensure SqlServer module is installed"
+  community.windows.win_psmodule:
+    name:                              "{{ item }}"
+    state:                             present
+    allow_clobber:                     true
+  loop:
+    - SqlServer
+
 - name:                                "WIN: Calculating the domain value from {{ domain_name }}"
   ansible.builtin.set_fact:
     domain:                            "{{ domain_name | split('.') | first }}"
@@ -95,6 +105,12 @@
     username:                          "{{ domain_sqlsvc_account }}"
     password:                          '{{ win_sql_svc_password }}'
     force_dependent_services:          true
+  register:                            sql_svc_stopped
+
+- name:                                "Show results"
+  ansible.builtin.debug:
+    msg:                               "{{ sql_svc_stopped }}"
+    verbosity:                         2
 
 - name:                                "Convert SQL Server agent service from running with local account to domain account"
   ansible.windows.win_service:
@@ -102,17 +118,23 @@
     state:                             stopped
     username:                          "{{ domain_sqlagent_account }}"
     password:                          '{{ win_sqlagent_svc_password }}'
+  register:                            sql_agent_svc_stopped
+
+- name:                                "Show results (Agent)"
+  ansible.builtin.debug:
+    msg:                               "{{ sql_agent_svc_stopped }}"
+    verbosity:                         2
+
+- name:                                "Start SQL Server agent service"
+  ansible.windows.win_service:
+    name:                              SQLSERVERAGENT
+    state:                             started
 
 - name:                                "Start SQL Server service "
   ansible.windows.win_service:
     name:                              MSSQLSERVER
     state:                             started
     force_dependent_services:          true
-
-- name:                                "Start SQL Server agent service"
-  ansible.windows.win_service:
-    name:                              SQLSERVERAGENT
-    state:                             started
 
 - name:                                "Add required users to SQL Server"
   ansible.windows.win_dsc:

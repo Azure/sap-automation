@@ -52,6 +52,7 @@
       vars:
         bom_name:                      "{{ bom_base_name }}"
         task_prefix:                   "DB2 Install: "
+        sa_enabled:                    true
 
     - name:                            "DB2 Install - Include roles-sap/3.3.1-bom-utility role"
       ansible.builtin.include_role:
@@ -141,27 +142,22 @@
 
         - name:                        "Extract details"
           ansible.builtin.set_fact:
-            subscription_id_tmp:           "{{ json_azure_data | json_query('compute.subscriptionId') }}"
-            resource_group_name_tmp:       "{{ json_azure_data | json_query('compute.resourceGroupName') }}"
+            subscription_id:           "{{ json_azure_data | json_query('compute.subscriptionId') }}"
+            resource_group_name:       "{{ json_azure_data | json_query('compute.resourceGroupName') }}"
 
         - name:                        "Show the subscription and resource group"
           ansible.builtin.debug:
             msg:
-              - "Subscription ID:     {{ subscription_id_tmp }}"
-              - "Resource Group Name: {{ resource_group_name_tmp }}"
+              - "Subscription ID: {{ subscription_id }}"
+              - "Resource Group Name: {{ resource_group_name }}"
 
         - name:                        "Include deploy/ansible/roles-misc/0.6-ARM-Deployment"
           ansible.builtin.include_role:
             name:                      roles-misc/0.6-ARM-Deployment
           vars:
-            subscription_id:           "{{ subscription_id_tmp }}"
-            resource_group_name:       "{{ resource_group_name_tmp }}"
+            subscriptionId:           "{{ subscription_id }}"
+            resourceGroupName:       "{{ resource_group_name }}"
 
-        - name:                        "DB2 Install: ARM Deployment flag"
-          ansible.builtin.file:
-            path:                      "/etc/sap_deployment_automation/{{ db_sid | upper }}/sap_deployment_db_arm.txt"
-            state:                     touch
-            mode:                      0755
       when:
         - not db_arm_deployment_done.stat.exists
 

@@ -94,8 +94,8 @@ locals {
 
   web_server_vm_names = [for idx in range(var.web_server_count) :
     length(var.web_zones) > 0 && var.use_zonal_markers ? (
-      format("%sweb%sz%s%s%02d%s%s", lower(var.sap_sid), local.separator, var.web_zones[idx % max(length(var.web_zones), 1)], local.separator, idx + var.resource_offset, local.app_oscode, local.random_id_vm_verified)) : (
-      format("%sweb%02d%s%s", lower(var.sap_sid), idx + var.resource_offset, local.app_oscode, local.random_id_vm_verified)
+      format("%sweb%sz%s%s%02d%s%s", lower(var.web_sid), local.separator, var.web_zones[idx % max(length(var.web_zones), 1)], local.separator, idx + var.resource_offset, local.app_oscode, local.random_id_vm_verified)) : (
+      format("%sweb%02d%s%s", lower(var.web_sid), idx + var.resource_offset, local.app_oscode, local.random_id_vm_verified)
     )
   ]
 
@@ -140,7 +140,7 @@ locals {
   ]
 
   web_secondary_dnsnames = [for idx in range(var.web_server_count) :
-    format("v%sweb%02d%s%s", lower(var.sap_sid), idx + var.resource_offset, local.app_oscode, local.random_id_virt_vm_verified)
+    format("v%sweb%02d%s%s", lower(var.web_sid), idx + var.resource_offset, local.app_oscode, local.random_id_virt_vm_verified)
   ]
 
   utility_vm_names = [for idx in range(var.utility_vm_count) :

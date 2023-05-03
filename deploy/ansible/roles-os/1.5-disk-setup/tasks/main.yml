@@ -39,9 +39,6 @@
     mode:                              0775
   when: not tmp_dir.stat.isdir
 
-- name:                                "1.5 Disk setup - Load the disk configuration settings"
-  ansible.builtin.include_vars:        disks_config.yml
-
 - name:                                "1.5 Disk setup - Check if the shared disk exists"
   ansible.builtin.set_fact:
     shareddisk:                        "{{ disks | selectattr('host', 'defined') |
@@ -50,6 +47,8 @@
       map(attribute='type') | sort | unique |
       list | length }}"
 
+- name:                                "1.5 Disk setup - Load the disk configuration settings"
+  ansible.builtin.include_vars:        disks_config.yml
 
 - name:                                "1.5 Disk setup - Append 'sapmnt' if neeeded"
   ansible.builtin.set_fact:
@@ -60,6 +59,12 @@
   ansible.builtin.set_fact:
     logical_volumes:                   "{{ logical_volumes + logical_volumes_install }}"
   when: usr_sap_install_mountpoint is not defined
+
+- name:                                "1.5 Disk setup - Append 'hanashared' if needed"
+  ansible.builtin.set_fact:
+    logical_volumes:                   "{{ logical_volumes_hanashared + logical_volumes }}"
+  when: hana_shared_mountpoint is not defined
+
 
 - name:                                "1.5 Disk setup - Show disk info"
   ansible.builtin.debug:
