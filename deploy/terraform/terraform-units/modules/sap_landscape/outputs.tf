@@ -301,6 +301,11 @@ output "ANF_pool_settings" {
 ###############################################################################
 
 output "saptransport_path" {
+  count = var.ANF_settings.use_existing_transport_volume ? (
+    length(data.azurerm_netapp_volume.transport)) : (
+    length(azurerm_netapp_volume.transport)
+  )
+
   value = var.NFS_provider == "AFS" ? (
     length(var.transport_private_endpoint_id) == 0 ? (
       format("%s:/%s/%s", try(azurerm_private_endpoint.transport[0].private_dns_zone_configs[0].record_sets[0].fqdn,
