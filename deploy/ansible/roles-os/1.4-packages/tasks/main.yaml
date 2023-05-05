@@ -298,7 +298,7 @@
     state:                             latest
     exclude:                           kernel*
   when:
-    - ansible_os_family | upper == 'REDHAT'
+    - ansible_os_family | upper in ['REDHAT', 'ORACLELINUX8']
     - upgrade_packages is defined
     - upgrade_packages
 
