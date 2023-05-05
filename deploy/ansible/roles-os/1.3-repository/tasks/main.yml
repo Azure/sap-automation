@@ -227,6 +227,7 @@
   ansible.builtin.dnf:
     name:                              "{{ item.url }}"
     state:                             "{{ item.state }}"
+    disable_gpg_check:                 true
   loop:                                "{{ repos_for_tier }}"
   register:                            zypresult
   ignore_errors:                       true
