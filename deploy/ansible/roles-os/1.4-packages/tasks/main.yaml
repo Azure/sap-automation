@@ -287,7 +287,7 @@
     name:                              '*'
     state:                             latest
   when:
-    - ansible_os_family == 'Suse'
+    - ansible_os_family | upper == 'SUSE'
     - upgrade_packages is defined
     - upgrade_packages
 
@@ -298,7 +298,7 @@
     state:                             latest
     exclude:                           kernel*
   when:
-    - ansible_os_family == 'Redhat'
+    - ansible_os_family | upper == 'REDHAT'
     - upgrade_packages is defined
     - upgrade_packages
 
