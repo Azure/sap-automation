@@ -297,6 +297,7 @@
     name:                              '*'
     state:                             latest
     exclude:                           kernel*
+    skip_broken:                       true
   when:
     - ansible_os_family | upper in ['REDHAT', 'ORACLELINUX8']
     - upgrade_packages is defined
