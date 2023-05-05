@@ -1,3 +1,4 @@
+/*
 resource "azapi_resource" "avg_HANA" {
   count = var.hana_ANF_volumes.use_AVG_for_data ? local.db_zone_count : 0
   type  = "Microsoft.NetApp/netAppAccounts/volumeGroups@2022-03-01"
@@ -78,3 +79,5 @@ locals {
   }
 
 }
+
+*/
