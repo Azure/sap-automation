@@ -290,6 +290,7 @@
     - ansible_os_family | upper == 'SUSE'
     - upgrade_packages is defined
     - upgrade_packages
+    - tier == 'os'
 
 - name:                                "1.4 Packages: - Upgrade all: {{ distribution_full_id }}"  # noqa package-latest
   become:                              true
@@ -302,6 +303,7 @@
     - ansible_os_family | upper in ['REDHAT', 'ORACLELINUX8']
     - upgrade_packages is defined
     - upgrade_packages
+    - tier == 'os'
 
 # /*----------------------------------------------------------------------------8
 # |                                    END                                      |
