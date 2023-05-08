@@ -385,6 +385,7 @@ else
     sudo unzip -o /tmp/${tf_zip} -d ${tf_dir}
     sudo ln -vfs ../$(basename ${tf_dir})/terraform ${tf_bin}/terraform
 
+    # Uninstall Azure CLI - For some platforms
     case "$(get_distro_name)" in
     (ubuntu|sles)
       rel=$(lsb_release -a | grep Release | cut -d':' -f2 | xargs)
@@ -423,6 +424,7 @@ else
      (rhel*)
         sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc
         sudo dnf install -y https://packages.microsoft.com/config/rhel/8/packages-microsoft-prod.rpm
+        sudo dnf install azure-cli
         ;;
     esac
 
