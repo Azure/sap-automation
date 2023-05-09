@@ -24,6 +24,33 @@ resource "azapi_resource" "avg_HANA" {
   })
 }
 
+data "azurerm_netapp_pool" "workload_netapp_pool" {
+  provider = azurerm.main
+  count = var.ANF_settings.use ? (
+    var.ANF_settings.use_existing_pool ? (
+      1) : (
+      0
+    )) : (
+    0
+  )
+  resource_group_name = split("/", var.ANF_settings.arm_id)[4]
+  name = length(var.ANF_settings.pool_name) > 0 ? (
+    var.ANF_settings.pool_name) : (
+    format("%s%s%s%s",
+      var.naming.resource_prefixes.netapp_pool,
+      local.prefix,
+      var.naming.separator,
+      local.resource_suffixes.netapp_pool
+    )
+  )
+  account_name = var.ANF_settings.use && length(var.ANF_settings.arm_id) > 0 ? (
+    data.azurerm_netapp_account.workload_netapp_account[0].name) : (
+    azurerm_netapp_account.workload_netapp_account[0].name
+  )
+
+}
+
+
 locals {
 
   hana_data = {
@@ -34,7 +61,7 @@ locals {
       local.resource_suffixes.hanadata, 1
     )
     properties = {
-      capacityPoolResourceId = local.ANF_pool_settings.pool_name
+      capacityPoolResourceId = data.azurerm_netapp_pool.workload_netapp_pool[0].id
       creationToken          = format("%s%s%s%s%d",
         var.naming.resource_prefixes.hanadata,
         local.prefix,
@@ -67,7 +94,7 @@ locals {
       securityStyle            = "string"
       serviceLevel             = "string"
       snapshotDirectoryVisible = true
-      subnetId                 = local.ANF_pool_settings.subnet_id
+      subnetId                 = try(local.ANF_pool_settings.subnet_id, "")
       throughputMibps          = var.hana_ANF_volumes.sapmnt_volume_throughput
       unixPermissions          = "string"
       usageThreshold           = var.hana_ANF_volumes.sapmnt_volume_size*1024*1024*1024
