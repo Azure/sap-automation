@@ -190,7 +190,6 @@
             SAPSYSTEMNAME:             "{{ sid_to_be_deployed.sid | upper }}"
             TMPDIR:                    "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
           register:                    scs_installation
-          failed_when:                 scs_installation.rc > 0
           when:                        node_tier == 'scs'
       rescue:
         # ToDO: cleanup file systems on failed install.
