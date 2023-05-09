@@ -34,11 +34,11 @@ provider "azurerm" {
 
 provider "azurerm" {
   features {}
-  alias           = "dnsmanagement"
-  subscription_id = length(local.deployer_subscription_id) > 0 ? local.deployer_subscription_id : null //length(var.management_dns_subscription_id) > 1 ? var.management_dns_subscription_id : length(local.deployer_subscription_id) > 0 ? local.deployer_subscription_id : null
-  client_id       = local.cp_spn.client_id
-  client_secret   = local.cp_spn.client_secret
-  tenant_id       = local.cp_spn.tenant_id
+  alias                      = "dnsmanagement"
+  subscription_id            = length(local.deployer_subscription_id) > 0 ? local.deployer_subscription_id : null //length(var.management_dns_subscription_id) > 1 ? var.management_dns_subscription_id : length(local.deployer_subscription_id) > 0 ? local.deployer_subscription_id : null
+  client_id                  = local.cp_spn.client_id
+  client_secret              = local.cp_spn.client_secret
+  tenant_id                  = local.cp_spn.tenant_id
   skip_provider_registration = true
 
 }
@@ -50,7 +50,11 @@ provider "azuread" {
 }
 
 provider "azapi" {
-  alias = "apivalue"
+  alias           = "api"
+  subscription_id = local.spn.subscription_id
+  client_id       = local.spn.client_id
+  client_secret   = local.spn.client_secret
+  tenant_id       = local.spn.tenant_id
 }
 
 terraform {
