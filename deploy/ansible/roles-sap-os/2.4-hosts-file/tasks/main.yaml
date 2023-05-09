@@ -41,21 +41,18 @@
     scs_virtual_hostname:              "{{ sap_sid | lower }}scs{{ scs_instance_number }}cl1"
   when:
     - scs_high_availability
-    - scs_virtual_hostname is not defined
 
 - name:                                "2.4 Hosts - Set the ERS Virtual Instance hostname"
   ansible.builtin.set_fact:
     ers_virtual_hostname:              "{{ sap_sid | lower }}ers{{ ers_instance_number }}cl2"
   when:
     - scs_high_availability
-    - ers_virtual_hostname is not defined
 
 - name:                                "2.4 Hosts: - Set the DB Virtual Instance hostname"
   ansible.builtin.set_fact:
     db_virtual_hostname:               "{{ sap_sid | lower }}{{ db_sid | lower }}db{{ db_instance_number }}cl"
   when:
     - db_high_availability
-    - db_virtual_hostname is not defined
 
 - name:                                "2.4 Hosts: - Get the Server name list"
   ansible.builtin.set_fact:
