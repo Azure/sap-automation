@@ -190,6 +190,7 @@
             SAPSYSTEMNAME:             "{{ sid_to_be_deployed.sid | upper }}"
             TMPDIR:                    "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
           register:                    scs_installation
+          failed_when:                 scs_installation.rc > 0
           when:                        node_tier == 'scs'
       rescue:
         # ToDO: cleanup file systems on failed install.
@@ -244,11 +245,11 @@
         # Add IS_HOST_LOCAL_USING_STRING_COMPARE=true to fix The host with the
         # name <host> is not a valid virtual host on the local host
         # SAP Note# 2279110
-        - name:                            "Create temp directory for sid"
+        - name:                        "Create temp directory for sid"
           ansible.builtin.file:
-            path:                          "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
-            state:                         directory
-            mode:                          0755
+            path:                      "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
+            state:                     directory
+            mode:                      0755
 
         - name:                        "RESCUE - SCS HA Install: SAPINST"
           ansible.builtin.shell: |
@@ -266,7 +267,7 @@
             SAPSYSTEMNAME:             "{{ sid_to_be_deployed.sid | upper }}"
             TMPDIR:                    "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
           register:                    scs_installation
-          failed_when:                 false
+          failed_when:                 scs_installation.rc > 0
           when:                        node_tier == 'scs'
 
     - name:                            "SCS HA Install: Installation results"
