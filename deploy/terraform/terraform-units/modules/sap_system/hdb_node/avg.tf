@@ -35,8 +35,6 @@ locals {
     )
     properties = {
       capacityPoolResourceId = local.ANF_pool_settings.pool_name
-      coolAccess             = bool
-      coolnessPeriod         = int
       creationToken          = format("%s%s%s%s%d",
         var.naming.resource_prefixes.hanadata,
         local.prefix,
