@@ -49,6 +49,10 @@ provider "azuread" {
   tenant_id     = local.spn.tenant_id
 }
 
+provider "azapi" {
+  alias = "apivalue"
+}
+
 terraform {
   required_version = ">= 1.0"
   required_providers {
@@ -74,6 +78,9 @@ terraform {
     azurerm = {
       source  = "hashicorp/azurerm"
       version = ">=3.3"
+    }
+    azapi = {
+      source = "Azure/azapi"
     }
   }
 }

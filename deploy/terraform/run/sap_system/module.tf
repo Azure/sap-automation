@@ -109,7 +109,10 @@ module "hdb_node" {
     azurerm.deployer      = azurerm
     azurerm.main          = azurerm.system
     azurerm.dnsmanagement = azurerm.dnsmanagement
+    azapi.api             = azapi.api
+
   }
+
   depends_on = [module.common_infrastructure]
   order_deployment = local.enable_db_deployment ? (
     local.db_zonal_deployment && local.application_tier.enable_deployment ? (
