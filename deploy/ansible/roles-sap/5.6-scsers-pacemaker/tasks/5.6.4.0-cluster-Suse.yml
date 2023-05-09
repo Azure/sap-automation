@@ -66,16 +66,19 @@
       vars:
         sap_scs_hostname:              "{{ scs_virtual_hostname }}"
 
-    - name:                            "5.6 SCSERS - SUSE - SCS - Check if installation succeeded"
-      ansible.builtin.stat:
-        path:                          "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_scs.txt"
-      register:                        scs_installed
+  when: inventory_hostname == primary_instance_name
 
-    - name:                            "ErrorHandling"
-      ansible.builtin.fail:
-        msg:                           "INSTALL:0014:SCS HA installation failed"
-      when:
-        - not scs_installed.stat.exists
+- name:                                "5.6 SCSERS - SUSE - SCS - Check if installation succeeded"
+  ansible.builtin.stat:
+    path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_scs.txt"
+  register:                            scs_installed
+  when: inventory_hostname == primary_instance_name
+
+- name:                                "ErrorHandling"
+  ansible.builtin.fail:
+    msg:                               "INSTALL:0014:SCS HA installation failed"
+  when:
+    - not scs_installed.stat.exists
   when: inventory_hostname == primary_instance_name
 
 # [1] Create a virtual IP resource and health-probe for the ERS instance
