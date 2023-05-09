@@ -18,7 +18,7 @@ resource "azapi_resource" "avg_HANA" {
         deploymentSpecId      = uuid()
         groupDescription = "Foo"
       }
-      volumes = [ locals.hana_data
+      volumes = [ local.hana_data
       ]
     }
   })
