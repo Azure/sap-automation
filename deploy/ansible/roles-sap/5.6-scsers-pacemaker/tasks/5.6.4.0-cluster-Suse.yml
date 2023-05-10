@@ -72,14 +72,14 @@
   ansible.builtin.stat:
     path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_scs.txt"
   register:                            scs_installed
-  when: inventory_hostname == primary_instance_name
+  when: ansible_hostname == primary_instance_name
 
 - name:                                "ErrorHandling"
   ansible.builtin.fail:
     msg:                               "INSTALL:0014:SCS HA installation failed"
   when:
+    - ansible_hostname == primary_instance_name
     - not scs_installed.stat.exists
-    - inventory_hostname == primary_instance_name
 
 # [1] Create a virtual IP resource and health-probe for the ERS instance
 
@@ -126,7 +126,7 @@
                                        vip_{{ sap_sid }}_ERS meta resource-stickiness=3000
       register:                        ers_hp
       failed_when:                     ers_hp.rc > 1
-  when: inventory_hostname == secondary_instance_name
+  when: ansible_hostname == secondary_instance_name
 
     # [2] Install SAP NetWeaver ERS - Create a new playbook for Installation of ERS - done
 - name:                                "5.6 SCSERS - SUSE - ERS - Install ERS on Secondary host"
@@ -164,7 +164,7 @@
       when:
         - not ers_installed.stat.exists
 
-  when: inventory_hostname == secondary_instance_name
+  when: ansible_hostname == secondary_instance_name
 
 
 # END of playbook.
