@@ -127,7 +127,7 @@
                                        pcmk_host_map="{{ primary_instance_name }}:{{ hostvars[primary_instance_name]['primary_vm_name'] }};{{ secondary_instance_name }}:{{ hostvars[secondary_instance_name]['secondary_vm_name'] }}"
       when:
         - use_msi_for_clusters
-        - distribution_full_id in ["sles_sap15.1","sles_sap15.2", "sles_sap15.3", "sles_sap15.4"]
+        - distribution_full_id in ["sles_sap12.5", "sles_sap15.1","sles_sap15.2", "sles_sap15.3", "sles_sap15.4"]
 
 
     - name:                            "1.17 Generic Pacemaker - Stonith Timeout Property"
