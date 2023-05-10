@@ -156,24 +156,24 @@
           register:                    stat_sys_exe_uc
           when:                        node_tier == 'ers'
 
-        - name:                        "RESCUE - ERS Install: Check '/usr/sap/<SAPSID>/SYS/exe/uc/linuxx86_64' is empty"
-          ansible.builtin.find:
-            path:                      '/usr/sap/{{ sid_to_be_deployed.sid | upper }}/SYS/exe/uc/linuxx86_64'
-            patterns:                  "*"
-            file_type:                 directory
-          register:                    find_sys_exe_uc_result
-          when:
-            - node_tier == 'ers'
-            - stat_sys_exe_uc.stat.exists
+        # - name:                        "RESCUE - ERS Install: Check '/usr/sap/<SAPSID>/SYS/exe/uc/linuxx86_64' is empty"
+        #   ansible.builtin.find:
+        #     path:                      '/usr/sap/{{ sid_to_be_deployed.sid | upper }}/SYS/exe/uc/linuxx86_64'
+        #     patterns:                  "*"
+        #     file_type:                 directory
+        #   register:                    find_sys_exe_uc_result
+        #   when:
+        #     - node_tier == 'ers'
+        #     - stat_sys_exe_uc.stat.exists
 
-        - name:                        "RESCUE - ERS Install: Cleanup '/usr/sap/{{ sid_to_be_deployed.sid | upper }}/SYS/exe/uc/linuxx86_64'"
-          ansible.builtin.file:
-            path:                      "/usr/sap/{{ sid_to_be_deployed.sid | upper }}/SYS/exe/uc/linuxx86_64"
-            state:                     absent
-          when:
-            - node_tier == 'ers'
-            - find_sys_exe_uc_result is defined
-            - find_sys_exe_uc_result | length > 0
+        # - name:                        "RESCUE - ERS Install: Cleanup '/usr/sap/{{ sid_to_be_deployed.sid | upper }}/SYS/exe/uc/linuxx86_64'"
+        #   ansible.builtin.file:
+        #     path:                      "/usr/sap/{{ sid_to_be_deployed.sid | upper }}/SYS/exe/uc/linuxx86_64"
+        #     state:                     absent
+        #   when:
+        #     - node_tier == 'ers'
+        #     - find_sys_exe_uc_result is defined
+        #     - find_sys_exe_uc_result | length > 0
 
         - name:                        "RESCUE - ERS Install: Assign ownership"
           ansible.builtin.file:
