@@ -118,7 +118,7 @@
 #   loop_control:
 #     loop_var:                         privilege_constant
 
-- name:                                "Add SPNs for the gMSA account"
+- name:                                "Add SPNs for SQL Server"
   ansible.windows.win_shell: |
     'setspn -A MSSQLSvc/{{ mssql_primary_node }}.{{ domain_name }} {{ domain_sqlsvc_account }}'
     'setspn -A MSSQLSvc/{{ mssql_primary_node }}.{{ domain_name }}:1433 {{ domain_sqlsvc_account }}'

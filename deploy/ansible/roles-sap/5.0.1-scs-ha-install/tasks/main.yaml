@@ -182,7 +182,8 @@
                                                  SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.scs_ha }}             \
                                                  SAPINST_SKIP_DIALOGS=true                                           \
                                                  SAPINST_START_GUISERVER=false                                       \
-                                                 SAPINST_USE_HOSTNAME={{ scs_virtual_hostname }}
+                                                 SAPINST_USE_HOSTNAME={{ scs_virtual_hostname }}                     \
+                                                 IS_HOST_LOCAL_USING_STRING_COMPARE=true
           args:
             chdir:                     "{{ target_media_location }}/SWPM"
             creates:                   "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_scs.txt"
