@@ -1,7 +1,7 @@
 ---
 - name:                                "2.2 SAP Permissions : check SAP users are created"
   ansible.builtin.stat:
-    path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/user_created.txt"
+    path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}/user_created.txt"
   register:                            users_created
 
 - name:                                "2.2 SAP Permissions: - Directory Permissions"
