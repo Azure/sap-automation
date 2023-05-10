@@ -39,12 +39,6 @@
     state:                             absent
   when:                                reinstall
 
-- name:                                "SCS HA Install: check if installed"
-  ansible.builtin.stat:
-    path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_scs.txt"
-  register:                            scs_installed
-  when:                                node_tier == 'scs'
-
     # Returns bom object
 - name:                                "SCS HA Install: Register BoM"
   ansible.builtin.include_role:
@@ -61,6 +55,31 @@
     scs_bom_id:                        "{{ bom.product_ids.scs_ha }}"
     scs_bom_instance_type:             "{% if bom.InstanceType is defined %}{{ bom.InstanceType }}{% else %}ABAP{% endif %}"
     public:                            true
+    file_path:                         "INSTALL/HA/{% if bom.InstanceType is defined %}{{ bom.InstanceType }}{% else %}ABAP{% endif %}/ASCS"
+
+- name:                                "SCS HA Install: Find the installationSuccesfullyFinished.dat (SAPINST)"
+  ansible.builtin.find:
+    paths:                             "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}/sapinst_instdir/{{ bom.product_ids.scs_ha.replace('.', '/').replace('/ABAP', '').split(':')[1] }}/{{ file_path }}"
+    file_type:                         file
+    patterns:                          'installationSuccesfullyFinished.dat'
+    recurse:                           true
+  register:                            scs_installed_according_to_sapinst
+
+- name:                                "SCS HA Install: flag"
+  ansible.builtin.file:
+    path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_scs.txt"
+    state:                             touch
+    mode:                              0755
+  when:
+    - scs_installed_according_to_sapinst is defined
+    - scs_installed_according_to_sapinst | length > 0
+
+- name:                                "SCS HA Install: check if installed"
+  ansible.builtin.stat:
+    path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_scs.txt"
+  register:                            scs_installed
+  when:                                node_tier == 'scs'
+
 
 - name:                                "SCS HA Install"
   block:
