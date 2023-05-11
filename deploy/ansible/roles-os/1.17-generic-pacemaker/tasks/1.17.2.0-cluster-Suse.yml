@@ -112,7 +112,7 @@
                                        pcmk_reboot_timeout=900
                                        pcmk_host_map="{{ primary_instance_name }}:{{ hostvars[primary_instance_name]['primary_vm_name'] }};{{ secondary_instance_name }}:{{ hostvars[secondary_instance_name]['secondary_vm_name'] }}"
       when:
-        - not use_msi_for_clusters or distribution_full_id in ["sles_sap12.4","sles_sap12.5"]
+        - not use_msi_for_clusters or distribution_full_id in ["sles_sap12.4"]
 
     - name:                            "1.17 Generic Pacemaker - Create Azure Fencing Agent (MSI)"
       ansible.builtin.command: >
@@ -143,15 +143,6 @@
   #   WARNING: cib-bootstrap-options: unknown attribute 'azure-events_globalPullState'
   #   WARNING: cib-bootstrap-options: unknown attribute 'hostName_ hostname'
   # These warning messages can be ignored.
-    - name:                            "1.17 Generic Pacemaker - Get the cluster maintenance mode status"
-      ansible.builtin.command:         crm configure get_property maintenance-mode
-      register:                        get_status_maintenance_mode
-      changed_when:                    false
-
-    - name:                            "1.17 Generic Pacemaker - Ensure maintenance mode"
-      ansible.builtin.command:         crm configure property maintenance-mode=true
-      when:                            get_status_maintenance_mode.stdout == "false"
-
     - name:                            "1.17 Generic Pacemaker - Ensure Pacemaker resources for the Azure agent is created"
       ansible.builtin.shell:           crm configure primitive rsc_azure-events ocf:heartbeat:azure-events op monitor interval=10s
 
@@ -165,16 +156,4 @@
       ansible.builtin.command:         crm configure property maintenance-mode=false
   when:                                inventory_hostname == primary_instance_name
 
-- name:                                "1.17 Generic Pacemaker - Set the cluster maintenance mode"
-  block:
-    - name:                            "1.17 Generic Pacemaker - Get the cluster maintenance mode status"
-      ansible.builtin.command:         crm configure get_property maintenance-mode
-      register:                        get_status_maintenance_mode
-      changed_when:                    false
-
-    - name:                            "1.17 Generic Pacemaker - Set the cluster maintenance mode"
-      ansible.builtin.command:         crm configure property maintenance-mode=true
-      when:
-        - get_status_maintenance_mode.stdout == 'false'
-  when:                                ansible_hostname == primary_instance_name
 # END of Generic Pacemaker Tasks
