@@ -17,11 +17,11 @@ repos:
   redhat7.9:
   redhat8.1:
   redhat8.2:
-   - { tier:   'os', repo: 'epel', url: 'https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm', state: 'present' }
+    - { tier:   'os', repo: 'epel', url: 'https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm', state: 'present' }
   redhat8.4:
-   - { tier:   'os', repo: 'epel', url: 'https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm', state: 'present' }
+    - { tier:   'os', repo: 'epel', url: 'https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm', state: 'present' }
   redhat8.6:
-   - { tier:   'os', repo: 'epel', url: 'https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm', state: 'present' }
+    - { tier:   'os', repo: 'epel', url: 'https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm', state: 'present' }
   redhat8.7:
   # do not have any repos that are needed for RedHat at the moment.
   sles_sap12.3:
@@ -36,18 +36,18 @@ repos:
 
   # Adding the entries for Oracle-Linux for testing. cat /etc/oracle-release is the command to get the os version info in Oracle linux.
   oraclelinux8.1:
-   - { tier:   'os', repo: 'OL8', url: 'http://yum.oracle.com/repo/OracleLinux/OL8/addons/x86_64', state: 'present' }
+    - { tier:   'os', repo: 'OL8', url: 'http://yum.oracle.com/repo/OracleLinux/OL8/addons/x86_64', state: 'present' }
   oraclelinux8.2:
-   - { tier:   'os', repo: 'OL8', url: 'http://yum.oracle.com/repo/OracleLinux/OL8/addons/x86_64', state: 'present' }
+    - { tier:   'os', repo: 'OL8', url: 'http://yum.oracle.com/repo/OracleLinux/OL8/addons/x86_64', state: 'present' }
   oraclelinux8.3:
-   - { tier:   'os', repo: 'OL8', url: 'http://yum.oracle.com/repo/OracleLinux/OL8/addons/x86_64', state: 'present' }
+    - { tier:   'os', repo: 'OL8', url: 'http://yum.oracle.com/repo/OracleLinux/OL8/addons/x86_64', state: 'present' }
   oraclelinux8.4:
-   - { tier:   'os', repo: 'OL8', url: 'http://yum.oracle.com/repo/OracleLinux/OL8/addons/x86_64', state: 'present' }
+    - { tier:   'os', repo: 'OL8', url: 'http://yum.oracle.com/repo/OracleLinux/OL8/addons/x86_64', state: 'present' }
   oraclelinux8.5:
-   - { tier:   'os', repo: 'OL8', url: 'http://yum.oracle.com/repo/OracleLinux/OL8/addons/x86_64', state: 'present' }
+    - { tier:   'os', repo: 'OL8', url: 'http://yum.oracle.com/repo/OracleLinux/OL8/addons/x86_64', state: 'present' }
   oraclelinux8.6:
-   - { tier:   'os', repo: 'OL8', url: 'http://yum.oracle.com/repo/OracleLinux/OL8/addons/x86_64', state: 'present' }
+    - { tier:   'os', repo: 'OL8', url: 'http://yum.oracle.com/repo/OracleLinux/OL8/addons/x86_64', state: 'present' }
   oraclelinux8.7:
-   - { tier:   'os', repo: 'OL8', url: 'http://yum.oracle.com/repo/OracleLinux/OL8/addons/x86_64', state: 'present' }
+    - { tier:   'os', repo: 'OL8', url: 'http://yum.oracle.com/repo/OracleLinux/OL8/addons/x86_64', state: 'present' }
   oraclelinux8.8:
-   - { tier:   'os', repo: 'OL8', url: 'http://yum.oracle.com/repo/OracleLinux/OL8/addons/x86_64', state: 'present' }
+    - { tier:   'os', repo: 'OL8', url: 'http://yum.oracle.com/repo/OracleLinux/OL8/addons/x86_64', state: 'present' }
