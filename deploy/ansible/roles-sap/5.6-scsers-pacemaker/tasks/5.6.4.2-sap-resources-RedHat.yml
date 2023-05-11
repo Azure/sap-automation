@@ -8,19 +8,8 @@
 
 - name:                                "5.6 SCSERS - RHEL - ENSA1 - SAP Resources - Cluster Configuration after Install"
   block:
-    - name:                            "5.6 SCSERS - RHEL - ENSA1 - Get the cluster maintenance mode status"
-      ansible.builtin.command:         pcs property config maintenance-mode
-      register:                        get_status_maintenance_mode
-      changed_when:                    false
-
     - name:                            "5.6 SCSERS - RHEL - ENSA1 - Enable Maintenance mode for the cluster"
       ansible.builtin.command:         pcs property set maintenance-mode=true
-      when: >-
-        'maintenance-mode' not in get_status_maintenance_mode.stdout or
-        'maintenance-mode: false' in get_status_maintenance_mode.stdout
-
-    # - name:                            "5.6 SCSERS - RHEL - ENSA1 - Enable Maintenance mode for the cluster"
-    #   ansible.builtin.command:         pcs property set maintenance-mode=true
 
     - name:                            "5.6 SCSERS - RHEL - ENSA1 - Configure SAP ASCS/SCS resources"
       ansible.builtin.command: >
@@ -70,19 +59,8 @@
 # Use the following if using ENSA2
 - name:                                "5.6 SCSERS - RHEL - SAP Resources - Cluster Configuration after Install"
   block:
-    - name:                            "5.6 SCSERS - RHEL - ENSA2 - Get the cluster maintenance mode status"
-      ansible.builtin.command:         pcs property config maintenance-mode
-      register:                        get_status_maintenance_mode
-      changed_when:                    false
-
     - name:                            "5.6 SCSERS - RHEL - ENSA2 - Enable Maintenance mode for the cluster"
       ansible.builtin.command:         pcs property set maintenance-mode=true
-      when: >-
-        'maintenance-mode' not in get_status_maintenance_mode.stdout or
-        'maintenance-mode: false' in get_status_maintenance_mode.stdout
-
-    # - name:                            "5.6 SCSERS - RHEL - ENSA2 - Enable Maintenance mode for the cluster"
-    #   ansible.builtin.command:         pcs property set maintenance-mode=true
 
     - name:                            "5.6 SCSERS - RHEL - ENSA2 - Configure SAP ASCS/SCS resources"
       ansible.builtin.command: >
@@ -112,7 +90,7 @@
       failed_when:                     ers_rsc_sap.rc > 1
 
     - name:                            "5.6 SCSERS - RHEL - ENSA2 - Set the ERS resource stickiness"
-      ansible.builtin.command:         pcs resource meta rsc_sap_{{ sap_sid }}_ERS{{ ers_instance_number }} resource-stickiness=3000
+      ansible.builtin.command:         pcs resource meta rsc_sap_{{ sap_sid }}_ERS{{ ers_instance_number }}  resource-stickiness=3000
 
     - name:                            "5.6 SCSERS - RHEL - ENSA2 - Configure Co-location Constraints"
       ansible.builtin.shell: |
@@ -121,18 +99,6 @@
                                        pcs constraint order start g-{{ sap_sid }}_{{ instance_type | upper }} then stop g-{{ sap_sid }}_ERS kind=Optional symmetrical=false
       register:                        co_location
       failed_when:                     co_location.rc > 1
-
-    # - name:                            "5.6 SCS ERS disable scs resource g-{{ sap_sid }}_{{ instance_type | upper }}"
-    #   ansible.builtin.shell:           "pcs resource disable g-{{ sap_sid }}_{{ instance_type | upper }}"
-
-    # - name:                            "5.6 SCS ERS enable scs resource g-{{ sap_sid }}_{{ instance_type | upper }}"
-    #   ansible.builtin.shell:           "pcs resource enable g-{{ sap_sid }}_{{ instance_type | upper }}"
-
-    # - name:                            "5.6 SCS ERS disable ers resource g-{{ sap_sid }}_ERS"
-    #   ansible.builtin.shell:           "pcs resource disable g-{{ sap_sid }}_ERS"
-
-    # - name:                            "5.6 SCS ERS enable ers resource g-{{ sap_sid }}_ERS"
-    #   ansible.builtin.shell:           "pcs resource enable g-{{ sap_sid }}_ERS"
 
     - name:                            "5.6 SCSERS - RHEL - ENSA2 - Set the Cluster out of maintenance mode"
       ansible.builtin.command:         pcs property set maintenance-mode=false
