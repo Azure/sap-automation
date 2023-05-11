@@ -33,12 +33,6 @@
     - { mode: '0755', path: '{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}' }
     - { mode: '0755', path: '/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}' }
 
-- name:                                "SCS HA Install: reset"
-  ansible.builtin.file:
-    path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_scs.txt"
-    state:                             absent
-  when:                                reinstall
-
     # Returns bom object
 - name:                                "SCS HA Install: Register BoM"
   ansible.builtin.include_role:
@@ -67,7 +61,7 @@
     paths:                             "{{ file_path }}"
     file_type:                         file
     patterns:                          'installationSuccesfullyFinished.dat'
-    recurse:                           true
+    recurse:                           false
   register:                            scs_installed_according_to_sapinst
   when:                                scs_installation_tried.stat.exists
 
@@ -77,8 +71,15 @@
     state:                             touch
     mode:                              0755
   when:
+    - scs_installation_tried.stat.exists
     - scs_installed_according_to_sapinst is defined
-    - scs_installed_according_to_sapinst | length > 0
+    - scs_installed_according_to_sapinst | length == 1
+
+- name:                                "SCS HA Install: reset"
+  ansible.builtin.file:
+    path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_scs.txt"
+    state:                             absent
+  when:                                reinstall
 
 - name:                                "SCS HA Install: check if installed"
   ansible.builtin.stat:

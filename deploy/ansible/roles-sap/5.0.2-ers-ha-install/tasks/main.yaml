@@ -24,12 +24,6 @@
     - { mode: '0755', path: '{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}' }
     - { mode: '0755', path: '/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}' }
 
-- name:                                "ERS Install: reset"
-  ansible.builtin.file:
-    path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_ers.txt"
-    state:                             absent
-  when:                                reinstall
-
 # Returns bom object
 - name:                                "ERS Install: Register BoM"
   ansible.builtin.include_role:
@@ -57,7 +51,7 @@
     paths:                             "{{ file_path }}"
     file_type:                         file
     patterns:                          'installationSuccesfullyFinished.dat'
-    recurse:                           true
+    recurse:                           false
   register:                            ers_installed_according_to_sapinst
   when:                                ers_installation_tried.stat.exists
 
@@ -67,8 +61,15 @@
     state:                             touch
     mode:                              0755
   when:
+    - ers_installation_tried.stat.exists
     - ers_installed_according_to_sapinst is defined
-    - ers_installed_according_to_sapinst | length > 0
+    - ers_installed_according_to_sapinst | length == 1
+
+- name:                                "ERS Install: reset"
+  ansible.builtin.file:
+    path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_ers.txt"
+    state:                             absent
+  when:                                reinstall
 
 - name:                                "ERS Install: check if installed"
   ansible.builtin.stat:
