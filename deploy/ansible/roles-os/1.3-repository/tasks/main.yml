@@ -85,7 +85,6 @@
 #                  'command' or 'shell'?
 # ----------------------------------------
 
-
 # ----------------------------------------
 # BEGIN
 #
@@ -103,6 +102,12 @@
         warn:                          false  # quieten warning about using yum directly
 
   when:     ansible_os_family | upper == 'REDHAT'
+
+# KFO 08/05/2023 this is broken
+# - name:                                "1.3 Repository - Ensure repos is configured on {{ ansible_distribution_major_version }}"
+#   ansible.builtin.shell:      |
+#                                        subscription-manager repos --enable codeready-builder-for-rhel-8-x86_64-rpms
+#   when: (ansible_distribution | lower ~ ansible_distribution_major_version) == 'redhat8'
 
 # ----------------------------------------
 # END
@@ -217,20 +222,17 @@
   failed_when:
     - zypresult.rc != 0
     - zypresult.rc != 4
-  when:     ansible_os_family | upper == 'SUSE'
+  when:                                ansible_os_family | upper == 'SUSE'
 
 - name:                                "1.3 Repos: Add the repositories {{ ansible_os_family }}"
-  ansible.builtin.yum_repository:
-    name:                              "{{ item.repo }}"
-    description:                       "{{ item.repo }}"
-    baseurl:                           "{{ item.url }}"
+  ansible.builtin.dnf:
+    name:                              "{{ item.url }}"
     state:                             "{{ item.state }}"
+    disable_gpg_check:                 true
   loop:                                "{{ repos_for_tier }}"
   register:                            zypresult
   ignore_errors:                       true
-  when:
-    - ansible_os_family | upper != 'SUSE'
-    - item.node_tier == node.tier
+  when:                                ansible_os_family | upper != 'SUSE'
 
 - name:                                "1.3 Repos: Add the repositories result"
   ansible.builtin.debug:

@@ -35,13 +35,24 @@
     block:                             "{{ lookup('template', 'hosts.j2') }}"
     marker:                            "# {mark} ANSIBLE MANAGED BLOCK - {{ sap_sid | upper }}"
 
-- name:                                "2.4 Hosts: - Set the SCS and ERS Virtual Instance hostname"
+
+- name:                                "2.4 Hosts - Set the SCS Virtual Instance hostname"
   ansible.builtin.set_fact:
     scs_virtual_hostname:              "{{ sap_sid | lower }}scs{{ scs_instance_number }}cl1"
+  when:
+    - scs_high_availability
+
+- name:                                "2.4 Hosts - Set the ERS Virtual Instance hostname"
+  ansible.builtin.set_fact:
     ers_virtual_hostname:              "{{ sap_sid | lower }}ers{{ ers_instance_number }}cl2"
+  when:
+    - scs_high_availability
+
+- name:                                "2.4 Hosts: - Set the DB Virtual Instance hostname"
+  ansible.builtin.set_fact:
     db_virtual_hostname:               "{{ sap_sid | lower }}{{ db_sid | lower }}db{{ db_instance_number }}cl"
   when:
-    - scs_high_availability or db_high_availability
+    - db_high_availability
 
 - name:                                "2.4 Hosts: - Get the Server name list"
   ansible.builtin.set_fact:

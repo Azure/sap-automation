@@ -109,7 +109,7 @@ resource "azurerm_private_endpoint" "sapmnt" {
   provider = azurerm.main
 
   count = var.NFS_provider == "AFS" ? (
-    length(var.azure_files_sapmnt_id) > 0 ? (
+    length(var.sapmnt_private_endpoint_id) > 0 ? (
       0) : (
       1
     )) : (

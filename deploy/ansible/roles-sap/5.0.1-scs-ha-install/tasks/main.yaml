@@ -33,6 +33,48 @@
     - { mode: '0755', path: '{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}' }
     - { mode: '0755', path: '/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}' }
 
+    # Returns bom object
+- name:                                "SCS HA Install: Register BoM"
+  ansible.builtin.include_role:
+    name:                              roles-sap/3.3.1-bom-utility
+    tasks_from:                        bom-register
+  vars:
+    bom_name:                          "{{ bom_base_name }}"
+    task_prefix:                       "SCS HA Install: "
+    sa_enabled:                        true
+
+- name:                                "SCS HA Install: register variables"
+  ansible.builtin.set_fact:
+    scs_bom_id:                        "{{ bom.product_ids.scs_ha }}"
+    scs_bom_instance_type:             "{% if bom.InstanceType is defined %}{{ bom.InstanceType }}{% else %}ABAP{% endif %}"
+    public:                            true
+    file_path:                         "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}/sapinst_instdir/{{ bom.product_ids.scs_ha.replace('.', '/').replace('/HA', '').replace('/ABAPHA', '').split(':')[1] }}/INSTALL/HA/{% if bom.InstanceType is defined %}{{ bom.InstanceType }}{% else %}ABAP{% endif %}/ASCS"
+
+- name:                                "SCS HA Install: check if installation has been tried"
+  ansible.builtin.stat:
+    path:                              "{{ file_path }}"
+  register:                            scs_installation_tried
+  when:                                node_tier == 'scs'
+
+- name:                                "SCS HA Install: Find the installationSuccesfullyFinished.dat (SAPINST)"
+  ansible.builtin.find:
+    paths:                             "{{ file_path }}"
+    file_type:                         file
+    patterns:                          'installationSuccesfullyFinished.dat'
+    recurse:                           false
+  register:                            scs_installed_according_to_sapinst
+  when:                                scs_installation_tried.stat.exists
+
+- name:                                "SCS HA Install: flag"
+  ansible.builtin.file:
+    path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_scs.txt"
+    state:                             touch
+    mode:                              0755
+  when:
+    - scs_installation_tried.stat.exists
+    - scs_installed_according_to_sapinst is defined
+    - scs_installed_according_to_sapinst | length == 1
+
 - name:                                "SCS HA Install: reset"
   ansible.builtin.file:
     path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_scs.txt"
@@ -45,22 +87,6 @@
   register:                            scs_installed
   when:                                node_tier == 'scs'
 
-    # Returns bom object
-- name:                                "SCS HA Install: Register BoM"
-  ansible.builtin.include_role:
-    name:                              roles-sap/3.3.1-bom-utility
-    tasks_from:                        bom-register
-  vars:
-    bom_name:                          "{{ bom_base_name }}"
-    task_prefix:                       "SCS HA Install: "
-    sa_enabled:                        true
-
-
-- name:                                "SCS HA Install: register variables"
-  ansible.builtin.set_fact:
-    scs_bom_id:                        "{{ bom.product_ids.scs_ha }}"
-    scs_bom_instance_type:             "{% if bom.InstanceType is defined %}{{ bom.InstanceType }}{% else %}ABAP{% endif %}"
-    public:                            true
 
 - name:                                "SCS HA Install"
   block:
@@ -182,7 +208,8 @@
                                                  SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.scs_ha }}             \
                                                  SAPINST_SKIP_DIALOGS=true                                           \
                                                  SAPINST_START_GUISERVER=false                                       \
-                                                 SAPINST_USE_HOSTNAME={{ scs_virtual_hostname }}
+                                                 SAPINST_USE_HOSTNAME={{ scs_virtual_hostname }}                     \
+                                                 IS_HOST_LOCAL_USING_STRING_COMPARE=true
           args:
             chdir:                     "{{ target_media_location }}/SWPM"
             creates:                   "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_scs.txt"
@@ -245,11 +272,11 @@
         # Add IS_HOST_LOCAL_USING_STRING_COMPARE=true to fix The host with the
         # name <host> is not a valid virtual host on the local host
         # SAP Note# 2279110
-        - name:                            "Create temp directory for sid"
+        - name:                        "Create temp directory for sid"
           ansible.builtin.file:
-            path:                          "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
-            state:                         directory
-            mode:                          0755
+            path:                      "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
+            state:                     directory
+            mode:                      0755
 
         - name:                        "RESCUE - SCS HA Install: SAPINST"
           ansible.builtin.shell: |
@@ -267,7 +294,7 @@
             SAPSYSTEMNAME:             "{{ sid_to_be_deployed.sid | upper }}"
             TMPDIR:                    "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
           register:                    scs_installation
-          failed_when:                 false
+          failed_when:                 scs_installation.rc > 0
           when:                        node_tier == 'scs'
 
     - name:                            "SCS HA Install: Installation results"

@@ -385,6 +385,7 @@ else
     sudo unzip -o /tmp/${tf_zip} -d ${tf_dir}
     sudo ln -vfs ../$(basename ${tf_dir})/terraform ${tf_bin}/terraform
 
+    # Uninstall Azure CLI - For some platforms
     case "$(get_distro_name)" in
     (ubuntu|sles)
       rel=$(lsb_release -a | grep Release | cut -d':' -f2 | xargs)
@@ -410,6 +411,9 @@ else
         AZ_REPO=$(lsb_release -cs)
         echo "deb [arch=`dpkg --print-architecture` signed-by=/etc/apt/keyrings/microsoft.gpg] https://packages.microsoft.com/repos/azure-cli/ $AZ_REPO main" |
             sudo tee /etc/apt/sources.list.d/azure-cli.list
+
+        sudo apt-get update
+        sudo apt-get install azure-cli
         ;;
     (sles)
         echo "Getting the Microsoft Key"
@@ -420,6 +424,7 @@ else
      (rhel*)
         sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc
         sudo dnf install -y https://packages.microsoft.com/config/rhel/8/packages-microsoft-prod.rpm
+        sudo dnf install azure-cli
         ;;
     esac
 

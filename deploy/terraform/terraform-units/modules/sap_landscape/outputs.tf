@@ -248,9 +248,17 @@ output "ANF_pool_settings" {
       data.azurerm_netapp_account.workload_netapp_account[0].name) : (
       try(azurerm_netapp_account.workload_netapp_account[0].name, "")
     )
+    account_id = length(var.ANF_settings.arm_id) > 0 ? (
+      var.ANF_settings.arm_id) : (
+      try(azurerm_netapp_account.workload_netapp_account[0].id, "")
+    )
     pool_name = length(var.ANF_settings.pool_name) == 0 ? (
       try(azurerm_netapp_pool.workload_netapp_pool[0].name, "")) : (
       var.ANF_settings.pool_name
+    )
+    pool_id = length(var.ANF_settings.pool_name) == 0 ? (
+      try(azurerm_netapp_pool.workload_netapp_pool[0].id, "")) : (
+      data.azurerm_netapp_pool.workload_netapp_pool[0].id
     )
 
     service_level = var.ANF_settings.use_existing_pool ? (
@@ -293,6 +301,7 @@ output "ANF_pool_settings" {
 ###############################################################################
 
 output "saptransport_path" {
+
   value = var.NFS_provider == "AFS" ? (
     length(var.transport_private_endpoint_id) == 0 ? (
       format("%s:/%s/%s", try(azurerm_private_endpoint.transport[0].private_dns_zone_configs[0].record_sets[0].fqdn,
@@ -319,11 +328,11 @@ output "saptransport_path" {
       format("%s:/%s",
         var.ANF_settings.use_existing_transport_volume ? (
           data.azurerm_netapp_volume.transport[0].mount_ip_addresses[0]) : (
-          azurerm_netapp_volume.transport[0].mount_ip_addresses[0]
+          try(azurerm_netapp_volume.transport[0].mount_ip_addresses[0], "")
         ),
         var.ANF_settings.use_existing_transport_volume ? (
           data.azurerm_netapp_volume.transport[0].volume_path) : (
-          azurerm_netapp_volume.transport[0].volume_path
+          try(azurerm_netapp_volume.transport[0].volume_path, "")
         )
       )
       ) : (
