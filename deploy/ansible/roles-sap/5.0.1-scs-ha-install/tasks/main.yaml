@@ -65,6 +65,10 @@
   register:                            scs_installed_according_to_sapinst
   when:                                scs_installation_tried.stat.exists
 
+- name:                                "SCS HA Install: Find the installationSuccesfullyFinished.dat results"
+  ansible.builtin.debug:
+    var:                               scs_installed_according_to_sapinst
+
 - name:                                "SCS HA Install: flag"
   ansible.builtin.file:
     path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_scs.txt"
