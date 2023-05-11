@@ -90,7 +90,7 @@
       failed_when:                     ers_rsc_sap.rc > 1
 
     - name:                            "5.6 SCSERS - RHEL - ENSA2 - Set the ERS resource stickiness"
-      ansible.builtin.command:         pcs resource meta rsc_sap_{{ sap_sid }}_ERS{{ ers_instance_number }}  resource-stickiness=3000
+      ansible.builtin.command:         pcs resource meta rsc_sap_{{ sap_sid }}_ERS{{ ers_instance_number }} resource-stickiness=3000
 
     - name:                            "5.6 SCSERS - RHEL - ENSA2 - Configure Co-location Constraints"
       ansible.builtin.shell: |

@@ -74,8 +74,6 @@
         - { path: '/usr/sap/{{ sap_sid | upper }}/SYS', mode: '0700' }
         - { path: '/usr/sap/{{ sap_sid }}/{{ instance_type | upper }}{{ scs_instance_number }}', mode: '0755' }
       when: inventory_hostname == primary_instance_name
-      tags:
-        - skip_ansible_lint
 
     - name:                            "5.6 SCSERS - RHEL - SCS - Install SCS on Primary host"
       ansible.builtin.include_role:
@@ -161,8 +159,6 @@
         - { path: '/usr/sap/{{ sap_sid | upper }}/SYS', mode: '0700' }
         - { path: '/usr/sap/{{ sap_sid | upper }}/ERS{{ ers_instance_number }}', mode: '0755' }
       when: inventory_hostname == secondary_instance_name
-      tags:
-        - skip_ansible_lint
 
     - name:                            "5.6 SCSERS - RHEL - ERS - Install on Secondary host"
       ansible.builtin.include_role:

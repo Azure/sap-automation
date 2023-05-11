@@ -71,7 +71,7 @@
           tags:
             - "5.6.4.1-scsersprofile"
 
-    - name:                            "5.6 SCSERS - profile"
+    - name:                            "5.6 SCSERS - SAP resources"
       ansible.builtin.include_tasks:
         file:                          "5.6.4.2-sap-resources-{{ ansible_os_family }}.yml"
         apply:
@@ -80,7 +80,7 @@
           tags:
             - "5.6.4.2-sap-resources"
 
-    - name:                            "5.6 SCSERS - resources"
+    - name:                            "5.6 SCSERS - SAP resources"
       ansible.builtin.include_tasks:
         file:                          "5.6.4.2-sap-resources-{{ ansible_os_family }}.yml"
         apply:
