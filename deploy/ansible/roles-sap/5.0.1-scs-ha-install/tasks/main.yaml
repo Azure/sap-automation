@@ -59,7 +59,6 @@
 - name:                                "SCS HA Install: check if installation has been tried"
   ansible.builtin.stat:
     path:                              "{{ file_path }}"
-    state:                             directory
   register:                            scs_installation_tried
   when:                                node_tier == 'scs'
 

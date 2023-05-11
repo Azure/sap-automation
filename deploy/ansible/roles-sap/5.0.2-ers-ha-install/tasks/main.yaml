@@ -49,7 +49,6 @@
 - name:                                "ERS Install: check if installation has been tried"
   ansible.builtin.stat:
     path:                              "{{ file_path }}"
-    state:                             directory
   register:                            ers_installation_tried
   when:                                node_tier == 'ers'
 
