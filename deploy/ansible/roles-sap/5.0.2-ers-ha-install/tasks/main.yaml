@@ -159,13 +159,13 @@
           register:                    stat_sys_exe_uc
           when:                        node_tier == 'ers'
 
-        - name:                            "RESCUE - ERS Install: Assign ownership"
+        - name:                        "RESCUE - ERS Install: Assign ownership"
           ansible.builtin.file:
-            path:                          "{{ item.path }}"
-            owner:                         "{{ sid_to_be_deployed.sid | lower }}adm"
-            group:                         sapsys
-            recurse:                       true
-            state:                         directory
+            path:                      "{{ item.path }}"
+            owner:                     "{{ sid_to_be_deployed.sid | lower }}adm"
+            group:                     sapsys
+            recurse:                   true
+            state:                     directory
           loop:
             - { path: '/sapmnt/{{ sid_to_be_deployed.sid | upper }}' }
             - { path: '/usr/sap/{{ sid_to_be_deployed.sid | upper }}/SYS' }
