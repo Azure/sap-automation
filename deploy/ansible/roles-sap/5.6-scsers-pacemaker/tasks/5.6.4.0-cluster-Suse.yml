@@ -66,6 +66,10 @@
       vars:
         sap_scs_hostname:              "{{ scs_virtual_hostname }}"
 
+    - name:                            "5.6 SCSERS - SUSE - SCS - Install SCS on Primary host - result"
+      ansible.builtin.debug:
+        var:                           scs_installation_succeeded
+
   when: inventory_hostname == primary_instance_name
 
 - name:                                "5.6 SCSERS - SUSE - SCS - Check if installation succeeded"

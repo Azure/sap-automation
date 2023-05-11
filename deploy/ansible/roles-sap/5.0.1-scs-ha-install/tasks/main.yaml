@@ -350,6 +350,8 @@
     - name:                            "SCS: - return value"
       ansible.builtin.set_fact:
         scs_already_installed:         true
+        scs_installation_succeeded:    true
+
   when:
     - node_tier == 'scs'
     - scs_installed.stat.exists
