@@ -38,32 +38,6 @@
   ansible.builtin.set_fact:
     ers_bom_id:                        "{{ bom.product_ids.ers_ha }}"
     ers_bom_instance_type:             "{% if bom.InstanceType is defined %}{{ bom.InstanceType }}{% else %}ABAP{% endif %}"
-    file_path:                         "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}/sapinst_instdir/{{ bom.product_ids.ers_ha.replace('.', '/').replace('/HA', '').replace('/ABAPHA', '').split(':')[1] }}/INSTALL/HA/{% if bom.InstanceType is defined %}{{ bom.InstanceType }}{% else %}ABAP{% endif %}/ERS"
-
-- name:                                "ERS Install: check if installation has been tried"
-  ansible.builtin.stat:
-    path:                              "{{ file_path }}"
-  register:                            ers_installation_tried
-  when:                                node_tier == 'ers'
-
-- name:                                "ERS Install: Find the installationSuccesfullyFinished.dat (SAPINST)"
-  ansible.builtin.find:
-    paths:                             "{{ file_path }}"
-    file_type:                         file
-    patterns:                          'installationSuccesfullyFinished.dat'
-    recurse:                           false
-  register:                            ers_installed_according_to_sapinst
-  when:                                ers_installation_tried.stat.exists
-
-- name:                                "ERS Install: flag"
-  ansible.builtin.file:
-    path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_ers.txt"
-    state:                             touch
-    mode:                              0755
-  when:
-    - ers_installation_tried.stat.exists
-    - ers_installed_according_to_sapinst is defined
-    - ers_installed_according_to_sapinst | length == 1
 
 - name:                                "ERS Install: reset"
   ansible.builtin.file:
@@ -185,32 +159,13 @@
           register:                    stat_sys_exe_uc
           when:                        node_tier == 'ers'
 
-        # - name:                        "RESCUE - ERS Install: Check '/usr/sap/<SAPSID>/SYS/exe/uc/linuxx86_64' is empty"
-        #   ansible.builtin.find:
-        #     path:                      '/usr/sap/{{ sid_to_be_deployed.sid | upper }}/SYS/exe/uc/linuxx86_64'
-        #     patterns:                  "*"
-        #     file_type:                 directory
-        #   register:                    find_sys_exe_uc_result
-        #   when:
-        #     - node_tier == 'ers'
-        #     - stat_sys_exe_uc.stat.exists
-
-        # - name:                        "RESCUE - ERS Install: Cleanup '/usr/sap/{{ sid_to_be_deployed.sid | upper }}/SYS/exe/uc/linuxx86_64'"
-        #   ansible.builtin.file:
-        #     path:                      "/usr/sap/{{ sid_to_be_deployed.sid | upper }}/SYS/exe/uc/linuxx86_64"
-        #     state:                     absent
-        #   when:
-        #     - node_tier == 'ers'
-        #     - find_sys_exe_uc_result is defined
-        #     - find_sys_exe_uc_result | length > 0
-
-        - name:                        "RESCUE - ERS Install: Assign ownership"
+        - name:                            "RESCUE - ERS Install: Assign ownership"
           ansible.builtin.file:
-            path:                      "{{ item.path }}"
-            owner:                     "{{ sid_to_be_deployed.sid | lower }}adm"
-            group:                     sapsys
-            recurse:                   true
-            state:                     directory
+            path:                          "{{ item.path }}"
+            owner:                         "{{ sid_to_be_deployed.sid | lower }}adm"
+            group:                         sapsys
+            recurse:                       true
+            state:                         directory
           loop:
             - { path: '/sapmnt/{{ sid_to_be_deployed.sid | upper }}' }
             - { path: '/usr/sap/{{ sid_to_be_deployed.sid | upper }}/SYS' }
