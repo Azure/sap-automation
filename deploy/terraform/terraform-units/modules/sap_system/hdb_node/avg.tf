@@ -26,14 +26,14 @@ resource "azapi_resource" "avg_HANA" {
 
 data "azurerm_netapp_pool" "workload_netapp_pool" {
   provider = azurerm.main
-  count = var.ANF_settings.use ? (
-    var.ANF_settings.use_existing_pool ? (
+  count = local.ANF_pool_settings.use ? (
+    local.ANF_pool_settings.use_existing_pool ? (
       1) : (
       0
     )) : (
     0
   )
-  resource_group_name = split("/", var.ANF_settings.arm_id)[4]
+  resource_group_name = split("/", local.ANF_pool_settings.arm_id)[4]
   name = length(local.ANF_pool_settings.pool_name) > 0 ? (
     local.ANF_pool_settings.pool_name) : (
     format("%s%s%s%s",
@@ -48,6 +48,13 @@ data "azurerm_netapp_pool" "workload_netapp_pool" {
     azurerm_netapp_account.workload_netapp_account[0].name
   )
 
+}
+
+data "azurerm_netapp_account" "workload_netapp_account" {
+  provider            = azurerm.main
+  count               = local.ANF_pool_settings.use && length(local.ANF_pool_settings.arm_id) > 0 ? 1 : 0
+  name                = split("/", local.ANF_pool_settings.arm_id)[8]
+  resource_group_name = split("/", local.ANF_pool_settings.arm_id)[4]
 }
 
 
