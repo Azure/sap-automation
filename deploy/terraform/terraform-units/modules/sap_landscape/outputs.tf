@@ -288,7 +288,15 @@ output "ANF_pool_settings" {
       azurerm_resource_group.resource_group[0].location
     )
     } : {
-    use_ANF = false
+    use_ANF             = false
+    account_name        = ""
+    account_id          = ""
+    pool_name           = ""
+    service_level       = ""
+    size_in_tb          = ""
+    subnet_id           = ""
+    resource_group_name = ""
+    location            = ""
   }
 }
 
