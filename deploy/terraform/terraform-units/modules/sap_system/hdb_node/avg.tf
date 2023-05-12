@@ -53,7 +53,7 @@ locals {
       local.resource_suffixes.hanadata, 1
     )
     properties = {
-      capacityPoolResourceId = data.azurerm_netapp_pool.workload_netapp_pool[0].id
+      capacityPoolResourceId = try(data.azurerm_netapp_pool.workload_netapp_pool[0].id, "")
       creationToken = format("%s-%s%02d",
         var.sap_sid,
         local.resource_suffixes.hanadata,
@@ -102,7 +102,7 @@ locals {
       local.resource_suffixes.hanalog, 1
     )
     properties = {
-      capacityPoolResourceId = data.azurerm_netapp_pool.workload_netapp_pool[0].id
+      capacityPoolResourceId = try(data.azurerm_netapp_pool.workload_netapp_pool[0].id, "")
       creationToken = format("%s-%s%02d",
         var.sap_sid,
         local.resource_suffixes.hanalog,
