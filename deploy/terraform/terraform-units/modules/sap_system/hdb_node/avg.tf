@@ -6,7 +6,7 @@ resource "azapi_resource" "avg_HANA" {
     var.naming.resource_prefixes.hana_avg,
     local.prefix,
     var.naming.separator,
-    local.resource_suffixes.hana_avg, local.zones[count.index]
+    local.resource_suffixes.hana_avg, count.index + 1
   )
   location  = local.ANF_pool_settings.location
   parent_id = local.ANF_pool_settings.account_id
