@@ -29,7 +29,7 @@ resource "azapi_resource" "avg_HANA" {
 
 data "azurerm_netapp_pool" "workload_netapp_pool" {
   provider            = azurerm.main
-  count               = var.NFS_provider == "ANF" ? 1 : 0
+  count               = var.NFS_provider == "ANF" ? 1 : 1
   resource_group_name = split("/", local.ANF_pool_settings.account_id)[4]
   name                = local.ANF_pool_settings.pool_name
   account_name        = data.azurerm_netapp_account.workload_netapp_account[0].name
@@ -38,7 +38,7 @@ data "azurerm_netapp_pool" "workload_netapp_pool" {
 
 data "azurerm_netapp_account" "workload_netapp_account" {
   provider            = azurerm.main
-  count               = var.NFS_provider == "ANF" ? 1 : 0
+  count               = var.NFS_provider == "ANF" ? 1 : 1
   name                = split("/", local.ANF_pool_settings.account_id)[8]
   resource_group_name = split("/", local.ANF_pool_settings.account_id)[4]
 }
