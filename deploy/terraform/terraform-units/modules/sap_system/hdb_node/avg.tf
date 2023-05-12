@@ -29,7 +29,7 @@ resource "azapi_resource" "avg_HANA" {
 
 data "azurerm_netapp_pool" "workload_netapp_pool" {
   provider            = azurerm.main
-  count               = var.NFS_provider == "ANF" && length(local.ANF_pool_settings.pool_name) > 0 ? 1 : 1
+  count               = var.NFS_provider == "ANF" && length(try(local.ANF_pool_settings.pool_name, "")) > 0 ? 1 : 1
   resource_group_name = data.azurerm_netapp_account.workload_netapp_account[0].resource_group_name
   name                = try(local.ANF_pool_settings.pool_name, "")
   account_name        = data.azurerm_netapp_account.workload_netapp_account[0].name
