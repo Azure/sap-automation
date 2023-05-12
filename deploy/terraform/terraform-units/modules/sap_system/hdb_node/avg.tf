@@ -87,7 +87,7 @@ locals {
       snapshotDirectoryVisible = true
       subnetId                 = try(local.ANF_pool_settings.subnet_id, "")
       throughputMibps          = var.hana_ANF_volumes.data_volume_throughput
-      unixPermissions          = "0755"
+      unixPermissions          = 0755
       usageThreshold           = var.hana_ANF_volumes.data_volume_size * 1024 * 1024 * 1024
       volumeSpecName           = "data"
     }
@@ -136,7 +136,7 @@ locals {
       snapshotDirectoryVisible = true
       subnetId                 = try(local.ANF_pool_settings.subnet_id, "")
       throughputMibps          = var.hana_ANF_volumes.log_volume_throughput
-      unixPermissions          = "0755"
+      unixPermissions          = 0755
       usageThreshold           = var.hana_ANF_volumes.log_volume_size * 1024 * 1024 * 1024
       volumeSpecName           = "log"
     }
