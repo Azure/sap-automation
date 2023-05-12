@@ -16,45 +16,28 @@ resource "azapi_resource" "avg_HANA" {
         applicationIdentifier = local.sid
         applicationType       = "SAP-HANA"
         deploymentSpecId      = uuid()
-        groupDescription = "Foo"
+        groupDescription      = "Foo"
       }
-      volumes = [ local.hana_data
+      volumes = [local.hana_data
       ]
     }
   })
 }
 
 data "azurerm_netapp_pool" "workload_netapp_pool" {
-  provider = azurerm.main
-  count = local.ANF_pool_settings.use ? (
-    local.ANF_pool_settings.use_existing_pool ? (
-      1) : (
-      0
-    )) : (
-    0
-  )
+  provider            = azurerm.main
+  count               = local.ANF_pool_settings.use ? 1 : 0
   resource_group_name = split("/", local.ANF_pool_settings.arm_id)[4]
-  name = length(local.ANF_pool_settings.pool_name) > 0 ? (
-    local.ANF_pool_settings.pool_name) : (
-    format("%s%s%s%s",
-      var.naming.resource_prefixes.netapp_pool,
-      local.prefix,
-      var.naming.separator,
-      local.resource_suffixes.netapp_pool
-    )
-  )
-  account_name = local.ANF_pool_settings.use && length(local.ANF_pool_settings.arm_id) > 0 ? (
-    data.azurerm_netapp_account.workload_netapp_account[0].name) : (
-    azurerm_netapp_account.workload_netapp_account[0].name
-  )
+  name                = local.ANF_pool_settings.pool_name
+  account_name        = data.azurerm_netapp_account.workload_netapp_account[0].name
 
 }
 
 data "azurerm_netapp_account" "workload_netapp_account" {
   provider            = azurerm.main
-  count               = local.ANF_pool_settings.use && length(local.ANF_pool_settings.arm_id) > 0 ? 1 : 0
-  name                = split("/", local.ANF_pool_settings.arm_id)[8]
-  resource_group_name = split("/", local.ANF_pool_settings.arm_id)[4]
+  count               = local.ANF_pool_settings.use ? 1 : 0
+  name                = split("/", local.ANF_pool_settings.account_id)[8]
+  resource_group_name = split("/", local.ANF_pool_settings.account_id)[4]
 }
 
 
@@ -69,7 +52,7 @@ locals {
     )
     properties = {
       capacityPoolResourceId = data.azurerm_netapp_pool.workload_netapp_pool[0].id
-      creationToken          = format("%s%s%s%s%d",
+      creationToken = format("%s%s%s%s%d",
         var.naming.resource_prefixes.hanadata,
         local.prefix,
         var.naming.separator,
@@ -92,8 +75,8 @@ locals {
           }
         ]
       }
-      kerberosEnabled                   = false
-      networkFeatures                   = "Standard"
+      kerberosEnabled = false
+      networkFeatures = "Standard"
       protocolTypes = [
         "NFSv4.1"
       ]
@@ -104,7 +87,7 @@ locals {
       subnetId                 = try(local.ANF_pool_settings.subnet_id, "")
       throughputMibps          = var.hana_ANF_volumes.sapmnt_volume_throughput
       unixPermissions          = "string"
-      usageThreshold           = var.hana_ANF_volumes.sapmnt_volume_size*1024*1024*1024
+      usageThreshold           = var.hana_ANF_volumes.sapmnt_volume_size * 1024 * 1024 * 1024
       volumeSpecName           = "data"
     }
     tags = {}
