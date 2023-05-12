@@ -277,7 +277,7 @@ variable "resource_prefixes" {
     "firewall_rule_db"               = ""
     "firewall_rule_app"              = ""
     "fw_route"                       = ""
-    "hanaavg"                        = ""
+    "hana_avg"                       = ""
     "hanadata"                       = ""
     "hanalog"                        = ""
     "hanashared"                     = ""
