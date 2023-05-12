@@ -9,7 +9,7 @@ resource "azapi_resource" "avg_HANA" {
     local.resource_suffixes.hana_avg, local.zones[count.index]
   )
   location  = local.ANF_pool_settings.location
-  parent_id = local.ANF_pool_settings.account_name
+  parent_id = local.ANF_pool_settings.account_id
   body = jsonencode({
     properties = {
       groupMetaData = {
