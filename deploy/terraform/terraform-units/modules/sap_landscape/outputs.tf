@@ -248,17 +248,10 @@ output "ANF_pool_settings" {
       data.azurerm_netapp_account.workload_netapp_account[0].name) : (
       try(azurerm_netapp_account.workload_netapp_account[0].name, "")
     )
-    account_id = length(var.ANF_settings.arm_id) > 0 ? (
-      var.ANF_settings.arm_id) : (
-      try(azurerm_netapp_account.workload_netapp_account[0].id, "")
-    )
+
     pool_name = length(var.ANF_settings.pool_name) == 0 ? (
       try(azurerm_netapp_pool.workload_netapp_pool[0].name, "")) : (
       var.ANF_settings.pool_name
-    )
-    pool_id = length(var.ANF_settings.pool_name) == 0 ? (
-      try(azurerm_netapp_pool.workload_netapp_pool[0].id, "")) : (
-      data.azurerm_netapp_pool.workload_netapp_pool[0].id
     )
 
     service_level = var.ANF_settings.use_existing_pool ? (
