@@ -2,6 +2,8 @@
 resource "azurerm_netapp_volume" "hanadata" {
   provider        = azurerm.main
 
+  depends_on = [ azapi_resource.avg_HANA ]
+
   count = var.hana_ANF_volumes.use_for_data && !local.use_avg ? (
     var.hana_ANF_volumes.use_existing_data_volume ? (
       0
@@ -64,6 +66,7 @@ data "azurerm_netapp_volume" "hanadata" {
 
 resource "azurerm_netapp_volume" "hanalog" {
   provider        = azurerm.main
+  depends_on = [ azapi_resource.avg_HANA ]
 
   count = var.hana_ANF_volumes.use_for_log ? (
     var.hana_ANF_volumes.use_existing_log_volume ? (
@@ -126,6 +129,7 @@ data "azurerm_netapp_volume" "hanalog" {
 
 resource "azurerm_netapp_volume" "hanashared" {
   provider        = azurerm.main
+  depends_on = [ azapi_resource.avg_HANA ]
 
   count = var.hana_ANF_volumes.use_for_shared ? (
     var.hana_ANF_volumes.use_existing_shared_volume ? (
