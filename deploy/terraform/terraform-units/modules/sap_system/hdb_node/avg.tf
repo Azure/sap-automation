@@ -38,7 +38,7 @@ data "azurerm_netapp_pool" "workload_netapp_pool" {
 
 data "azurerm_netapp_account" "workload_netapp_account" {
   provider            = azurerm.main
-  count               = var.NFS_provider == "ANF" ? 1 : 1
+  count               = var.NFS_provider == "ANF" && length(try(local.ANF_pool_settings.account_id, "")) > 0 ? 1 : 1
   name                = try(split("/", local.ANF_pool_settings.account_id)[8], "")
   resource_group_name = try(split("/", local.ANF_pool_settings.account_id)[4], "")
 }
