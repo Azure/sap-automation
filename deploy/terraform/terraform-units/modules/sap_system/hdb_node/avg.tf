@@ -67,8 +67,11 @@ locals {
             cifs                = false
             hasRootAccess       = true
             kerberos5iReadWrite = false
+            kerberos5iReadOnly  = false
             kerberos5pReadWrite = false
+            kerberos5pReadOnly  = false
             kerberos5ReadWrite  = false
+            kerberos5ReadOnly   = false
             nfsv3               = false
             nfsv41              = true
             ruleIndex           = 1
@@ -115,8 +118,11 @@ locals {
             cifs                = false
             hasRootAccess       = true
             kerberos5iReadWrite = false
+            kerberos5iReadOnly  = false
             kerberos5pReadWrite = false
+            kerberos5pReadOnly  = false
             kerberos5ReadWrite  = false
+            kerberos5ReadOnly   = false
             nfsv3               = false
             nfsv41              = true
             ruleIndex           = 1
