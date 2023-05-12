@@ -64,7 +64,7 @@ locals {
           {
             allowedClients      = "0.0.0.0/0"
             chownMode           = "Restricted"
-            cifs                = true
+            cifs                = false
             hasRootAccess       = true
             kerberos5iReadWrite = false
             kerberos5pReadWrite = false
@@ -73,6 +73,7 @@ locals {
             nfsv41              = true
             ruleIndex           = 1
             unixReadWrite       = true
+            unixReadOnly        = false
           }
         ]
       }
@@ -87,7 +88,6 @@ locals {
       snapshotDirectoryVisible = true
       subnetId                 = try(local.ANF_pool_settings.subnet_id, "")
       throughputMibps          = var.hana_ANF_volumes.data_volume_throughput
-      unixPermissions          = 0755
       usageThreshold           = var.hana_ANF_volumes.data_volume_size * 1024 * 1024 * 1024
       volumeSpecName           = "data"
     }
@@ -113,7 +113,7 @@ locals {
           {
             allowedClients      = "0.0.0.0/0"
             chownMode           = "Restricted"
-            cifs                = true
+            cifs                = false
             hasRootAccess       = true
             kerberos5iReadWrite = false
             kerberos5pReadWrite = false
@@ -122,6 +122,7 @@ locals {
             nfsv41              = true
             ruleIndex           = 1
             unixReadWrite       = true
+            unixReadOnly        = false
           }
         ]
       }
@@ -136,7 +137,6 @@ locals {
       snapshotDirectoryVisible = true
       subnetId                 = try(local.ANF_pool_settings.subnet_id, "")
       throughputMibps          = var.hana_ANF_volumes.log_volume_throughput
-      unixPermissions          = 0755
       usageThreshold           = var.hana_ANF_volumes.log_volume_size * 1024 * 1024 * 1024
       volumeSpecName           = "log"
     }
