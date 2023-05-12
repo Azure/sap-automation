@@ -140,7 +140,7 @@ locals {
       protocolTypes = [
         "NFSv4.1"
       ]
-      proximityPlacementGroup  = var.ppg[0].id
+      proximityPlacementGroup  = var.ppg[1].id
       serviceLevel             = local.ANF_pool_settings.service_level
       snapshotDirectoryVisible = true
       subnetId                 = try(local.ANF_pool_settings.subnet_id, "")
@@ -242,7 +242,7 @@ locals {
       protocolTypes = [
         "NFSv4.1"
       ]
-      proximityPlacementGroup  = var.ppg[0].id
+      proximityPlacementGroup  = var.ppg[1].id
       serviceLevel             = local.ANF_pool_settings.service_level
       snapshotDirectoryVisible = true
       subnetId                 = try(local.ANF_pool_settings.subnet_id, "")
@@ -344,7 +344,7 @@ locals {
       protocolTypes = [
         "NFSv4.1"
       ]
-      proximityPlacementGroup  = var.ppg[0].id
+      proximityPlacementGroup  = var.ppg[1].id
       serviceLevel             = local.ANF_pool_settings.service_level
       snapshotDirectoryVisible = true
       subnetId                 = try(local.ANF_pool_settings.subnet_id, "")
