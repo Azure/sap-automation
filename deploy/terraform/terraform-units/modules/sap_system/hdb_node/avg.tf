@@ -112,7 +112,7 @@ locals {
       creationToken = format("%s-%s%02d",
         var.sap_sid,
         local.resource_suffixes.hanadata,
-        1
+        2
       )
       exportPolicy = {
         rules = [
@@ -214,7 +214,7 @@ locals {
       creationToken = format("%s-%s%02d",
         var.sap_sid,
         local.resource_suffixes.hanalog,
-        1
+        2
       )
       exportPolicy = {
         rules = [
@@ -316,7 +316,7 @@ locals {
       creationToken = format("%s-%s%02d",
         var.sap_sid,
         local.resource_suffixes.hanashared,
-        1
+        2
       )
       exportPolicy = {
         rules = [
