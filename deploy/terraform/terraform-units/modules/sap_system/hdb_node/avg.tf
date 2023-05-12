@@ -97,10 +97,10 @@ locals {
 
   hana_log = {
     name = format("%s%s%s%s%d",
-      var.naming.resource_prefixes.hanadata,
+      var.naming.resource_prefixes.hanalog,
       local.prefix,
       var.naming.separator,
-      local.resource_suffixes.hanadata, 1
+      local.resource_suffixes.hanalog, 1
     )
     properties = {
       capacityPoolResourceId = data.azurerm_netapp_pool.workload_netapp_pool[0].id
