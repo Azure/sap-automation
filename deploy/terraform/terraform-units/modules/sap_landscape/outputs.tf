@@ -249,6 +249,11 @@ output "ANF_pool_settings" {
       try(azurerm_netapp_account.workload_netapp_account[0].name, "")
     )
 
+    account_id = length(var.ANF_settings.arm_id) > 0 ? (
+      var.ANF_settings.arm_id) : (
+      try(azurerm_netapp_account.workload_netapp_account[0].id, "")
+    )
+
     pool_name = length(var.ANF_settings.pool_name) == 0 ? (
       try(azurerm_netapp_pool.workload_netapp_pool[0].name, "")) : (
       var.ANF_settings.pool_name
