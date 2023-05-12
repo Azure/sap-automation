@@ -34,8 +34,8 @@ data "azurerm_netapp_pool" "workload_netapp_pool" {
     0
   )
   resource_group_name = split("/", var.ANF_settings.arm_id)[4]
-  name = length(var.ANF_settings.pool_name) > 0 ? (
-    var.ANF_settings.pool_name) : (
+  name = length(local.ANF_pool_settings.pool_name) > 0 ? (
+    local.ANF_pool_settings.pool_name) : (
     format("%s%s%s%s",
       var.naming.resource_prefixes.netapp_pool,
       local.prefix,
@@ -43,7 +43,7 @@ data "azurerm_netapp_pool" "workload_netapp_pool" {
       local.resource_suffixes.netapp_pool
     )
   )
-  account_name = var.ANF_settings.use && length(var.ANF_settings.arm_id) > 0 ? (
+  account_name = local.ANF_pool_settings.use && length(local.ANF_pool_settings.arm_id) > 0 ? (
     data.azurerm_netapp_account.workload_netapp_account[0].name) : (
     azurerm_netapp_account.workload_netapp_account[0].name
   )
