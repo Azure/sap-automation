@@ -86,7 +86,7 @@ locals {
         "NFSv4.1"
       ]
       proximityPlacementGroup  = var.ppg[0].id
-      serviceLevel             = "Premium"
+      serviceLevel             = local.ANF_pool_settings.service_level
       snapshotDirectoryVisible = true
       subnetId                 = try(local.ANF_pool_settings.subnet_id, "")
       throughputMibps          = var.hana_ANF_volumes.data_volume_throughput
@@ -137,7 +137,7 @@ locals {
         "NFSv4.1"
       ]
       proximityPlacementGroup  = var.ppg[0].id
-      serviceLevel             = "Premium"
+      serviceLevel             = local.ANF_pool_settings.service_level
       snapshotDirectoryVisible = true
       subnetId                 = try(local.ANF_pool_settings.subnet_id, "")
       throughputMibps          = var.hana_ANF_volumes.log_volume_throughput
