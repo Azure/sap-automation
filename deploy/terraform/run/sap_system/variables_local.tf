@@ -97,7 +97,7 @@ locals {
     sapmnt_volume_throughput           = var.ANF_sapmnt_volume_throughput
     sapmnt_use_clone_in_secondary_zone = var.ANF_sapmnt_use_clone_in_secondary_zone
 
-    use_AVG_for_data = true
+    use_AVG_for_data                   = true
 
   }
 
