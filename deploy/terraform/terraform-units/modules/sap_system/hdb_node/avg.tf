@@ -18,11 +18,13 @@ resource "azapi_resource" "avg_HANA" {
         deploymentSpecId      = "20542149-bfca-5618-1879-9863dc6767f1"
         groupDescription      = format("Application Volume %d group for %s", count.index + 1, var.sap_sid)
       }
-      volumes = compact([
-        var.hana_ANF_volumes.use_for_data ? (count.index == 0 ? local.hana_data1 : local.hana_data2) : null,
-        var.hana_ANF_volumes.use_for_log ? (count.index == 0 ? local.hana_log1 : local.hana_log2) : null,
-        var.hana_ANF_volumes.use_for_shared ? (count.index == 0 ? local.hana_shared1 : local.hana_shared2) : null,
-      ])
+      volumes = [
+        compact(
+          var.hana_ANF_volumes.use_for_data ? (count.index == 0 ? local.hana_data1 : local.hana_data2) : null,
+          var.hana_ANF_volumes.use_for_log ? (count.index == 0 ? local.hana_log1 : local.hana_log2) : null,
+          var.hana_ANF_volumes.use_for_shared ? (count.index == 0 ? local.hana_shared1 : local.hana_shared2) : null,
+        )
+      ]
     }
   })
 }
