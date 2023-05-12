@@ -54,11 +54,10 @@ locals {
     )
     properties = {
       capacityPoolResourceId = data.azurerm_netapp_pool.workload_netapp_pool[0].id
-      creationToken = format("%s%s%s%s%d",
-        var.naming.resource_prefixes.hanadata,
-        local.prefix,
-        var.naming.separator,
-        local.resource_suffixes.hanadata, 1
+      creationToken = format("%s-%s%02d",
+        var.sap_sid,
+        local.resource_suffixes.hanadata,
+        1
       )
       exportPolicy = {
         rules = [
@@ -104,11 +103,10 @@ locals {
     )
     properties = {
       capacityPoolResourceId = data.azurerm_netapp_pool.workload_netapp_pool[0].id
-      creationToken = format("%s%s%s%s%d",
-        var.naming.resource_prefixes.hanalog,
-        local.prefix,
-        var.naming.separator,
-        local.resource_suffixes.hanalog, 1
+      creationToken = format("%s-%s%02d",
+        var.sap_sid,
+        local.resource_suffixes.hanalog,
+        1
       )
       exportPolicy = {
         rules = [
