@@ -1,6 +1,6 @@
 
 resource "azapi_resource" "avg_HANA" {
-  count = var.NFS_provider == "ANF" && var.hana_ANF_volumes.use_AVG_for_data ? local.db_zone_count : 0
+  count = var.NFS_provider == "ANF" && var.hana_ANF_volumes.use_AVG_for_data ? 1 : 0
   type  = "Microsoft.NetApp/netAppAccounts/volumeGroups@2022-03-01"
   name = format("%s%s%s%s%d",
     var.naming.resource_prefixes.hana_avg,
@@ -15,7 +15,7 @@ resource "azapi_resource" "avg_HANA" {
       groupMetaData = {
         applicationIdentifier = local.sid
         applicationType       = "SAP-HANA"
-        deploymentSpecId      = uuid()
+        deploymentSpecId      = "20542149-bfca-5618-1879-9863dc6767f1"
         groupDescription      = "Foo"
       }
       volumes = [
