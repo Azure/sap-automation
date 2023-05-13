@@ -14,7 +14,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA" {
 
   dynamic "volume" {
     iterator = pub
-    for_each = local.volumes
+    for_each = (count.index == 0 ? local.volumes_primary : local.volumes_secondary)
     content {
       name                         = pub.name
       volume_path                  = pub.path
@@ -175,13 +175,15 @@ locals {
     throughput_in_mibps     = var.hana_ANF_volumes.shared_volume_throughput
   }
 
-
-
-
-  volumes = [
-    var.hana_ANF_volumes.use_for_data ? (count.index == 0 ? local.hana_data1 : local.hana_data2) : null,
-    var.hana_ANF_volumes.use_for_log ? (count.index == 0 ? local.hana_log1 : local.hana_log2) : null,
-    var.hana_ANF_volumes.use_for_shared ? (count.index == 0 ? local.hana_shared1 : local.hana_shared2) : null
+  volumes_primary = [
+    var.hana_ANF_volumes.use_for_data ? local.hana_data1 : null,
+    var.hana_ANF_volumes.use_for_log ? local.hana_log1 : null,
+    var.hana_ANF_volumes.use_for_shared ? local.hana_shared1 : null
+  ]
+  volumes_secondary = [
+    var.hana_ANF_volumes.use_for_data ? local.hana_data2 : null,
+    var.hana_ANF_volumes.use_for_log ? local.hana_log2 : null,
+    var.hana_ANF_volumes.use_for_shared ? local.hana_shared2 : null
   ]
 
 }
