@@ -141,15 +141,11 @@ resource "local_file" "sap-parameters_yml" {
 
     dns = local.dns_label
     bom = local.bom
-    sap_mnt = length(trimspace(var.sap_mnt)) > 0 ? (
-      format("sap_mnt:                       %s", var.sap_mnt)) : (
-      ""
-    )
-    sap_mnt = length(try(var.sap_mnt[0], "")) == 1 ? (
+
+    sap_mnt = length(var.sap_mnt) == 1 ? (
       format("sap_mnt:                       %s", var.sap_mnt[0])) : (
       format("sap_mnt:                       %s", jsonencode(var.sap_mnt))
     )
-
 
     sap_transport = length(trimspace(var.sap_transport)) > 0 ? (
       format("sap_trans:                     %s", var.sap_transport)) : (
