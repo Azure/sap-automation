@@ -1,6 +1,6 @@
 
 resource "azapi_resource" "avg_HANA" {
-  count = var.NFS_provider == "ANF" && local.use_avg ? length(local.zones) : 0
+  count = var.NFS_provider == "ANF" && local.use_avg && var.deployment == "new" ? length(var.ppg) : 0
   type  = "Microsoft.NetApp/netAppAccounts/volumeGroups@2022-03-01"
   name = format("%s%s%s%s%d",
     var.naming.resource_prefixes.hana_avg,
@@ -26,6 +26,35 @@ resource "azapi_resource" "avg_HANA" {
     }
   })
 }
+
+resource "azapi_update_resource" "avg_HANA" {
+  count = var.NFS_provider == "ANF" && local.use_avg && var.deployment == "update" ? length(var.ppg) : 0
+  type  = "Microsoft.NetApp/netAppAccounts/volumeGroups@2022-03-01"
+  name = format("%s%s%s%s%d",
+    var.naming.resource_prefixes.hana_avg,
+    local.prefix,
+    var.naming.separator,
+    local.resource_suffixes.hana_avg, count.index + 1
+  )
+  location  = local.ANF_pool_settings.location
+  parent_id = local.ANF_pool_settings.account_id
+  body = jsonencode({
+    properties = {
+      groupMetaData = {
+        applicationIdentifier = local.sid
+        applicationType       = "SAP-HANA"
+        deploymentSpecId      = "20542149-bfca-5618-1879-9863dc6767f1"
+        groupDescription      = format("Application Volume %d group for %s", count.index + 1, var.sap_sid)
+      }
+      volumes = [
+        var.hana_ANF_volumes.use_for_data ? (count.index == 0 ? local.hana_data1 : local.hana_data2) : null,
+        var.hana_ANF_volumes.use_for_log ? (count.index == 0 ? local.hana_log1 : local.hana_log2) : null,
+        var.hana_ANF_volumes.use_for_shared ? (count.index == 0 ? local.hana_shared1 : local.hana_shared2) : null
+      ]
+    }
+  })
+}
+
 
 data "azurerm_netapp_pool" "workload_netapp_pool" {
   provider            = azurerm.main
