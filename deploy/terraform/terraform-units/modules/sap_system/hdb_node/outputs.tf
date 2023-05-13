@@ -66,7 +66,7 @@ output "dns_info_loadbalancers" {
         var.naming.separator,
       local.resource_suffixes.db_alb)
       ], [
-      try(azurerm_lb.hdb[0].private_ip_addresses[0],"")
+      try(azurerm_lb.hdb[0].private_ip_addresses[0], "")
     ])) : (
     null
   )
@@ -122,35 +122,35 @@ output "db_server_secondary_ips" {
 output "hana_data_primary" {
   value = try(var.hana_ANF_volumes.use_for_data ? (
     format("%s:/%s",
-      var.hana_ANF_volumes.use_existing_data_volume ? (
+      var.hana_ANF_volumes.use_existing_data_volume || local.use_avg ? (
         data.azurerm_netapp_volume.hanadata[0].mount_ip_addresses[0]) : (
         azurerm_netapp_volume.hanadata[0].mount_ip_addresses[0]
       ),
-      var.hana_ANF_volumes.use_existing_data_volume ? (
+      var.hana_ANF_volumes.use_existing_data_volume || local.use_avg ? (
         data.azurerm_netapp_volume.hanadata[0].volume_path) : (
         azurerm_netapp_volume.hanadata[0].volume_path
       )
     )
     ) : (
     ""
-  ),"")
+  ), "")
 }
 
 output "hana_data_secondary" {
   value = try(var.hana_ANF_volumes.use_for_data && local.hdb_ha ? (
     format("%s:/%s",
-      var.hana_ANF_volumes.use_existing_data_volume ? (
+      var.hana_ANF_volumes.use_existing_data_volume || local.use_avg ? (
         data.azurerm_netapp_volume.hanadata[1].mount_ip_addresses[0]) : (
         azurerm_netapp_volume.hanadata[1].mount_ip_addresses[0]
       ),
-      var.hana_ANF_volumes.use_existing_data_volume ? (
+      var.hana_ANF_volumes.use_existing_data_volume || local.use_avg ? (
         data.azurerm_netapp_volume.hanadata[1].volume_path) : (
         azurerm_netapp_volume.hanadata[1].volume_path
       )
     )
     ) : (
     ""
-  ),"")
+  ), "")
 }
 
 # output "hana_data" {
@@ -193,41 +193,41 @@ output "hana_data_secondary" {
 output "hana_log_primary" {
   value = try(var.hana_ANF_volumes.use_for_log ? (
     format("%s:/%s",
-      var.hana_ANF_volumes.use_existing_log_volume ? (
+      var.hana_ANF_volumes.use_existing_log_volume || local.use_avg ? (
         data.azurerm_netapp_volume.hanalog[0].mount_ip_addresses[0]) : (
         azurerm_netapp_volume.hanalog[0].mount_ip_addresses[0]
       ),
-      var.hana_ANF_volumes.use_existing_log_volume ? (
+      var.hana_ANF_volumes.use_existing_log_volume || local.use_avg ? (
         data.azurerm_netapp_volume.hanalog[0].volume_path) : (
         azurerm_netapp_volume.hanalog[0].volume_path
       )
     )
     ) : (
     ""
-  ),"")
+  ), "")
 }
 
 output "hana_log_secondary" {
   value = try(var.hana_ANF_volumes.use_for_log && local.hdb_ha ? (
     format("%s:/%s",
-      var.hana_ANF_volumes.use_existing_log_volume ? (
+      var.hana_ANF_volumes.use_existing_log_volume || local.use_avg ? (
         data.azurerm_netapp_volume.hanalog[1].mount_ip_addresses[0]) : (
         azurerm_netapp_volume.hanalog[1].mount_ip_addresses[0]
       ),
-      var.hana_ANF_volumes.use_existing_log_volume ? (
+      var.hana_ANF_volumes.use_existing_log_volume || local.use_avg ? (
         data.azurerm_netapp_volume.hanalog[1].volume_path) : (
         azurerm_netapp_volume.hanalog[1].volume_path
       )
     )
     ) : (
     ""
-  ),"")
+  ), "")
 }
 
 output "hana_shared_primary" {
   value = try(var.hana_ANF_volumes.use_for_shared ? (
     format("%s:/%s",
-      var.hana_ANF_volumes.use_existing_shared_volume ? (
+      var.hana_ANF_volumes.use_existing_shared_volume || local.use_avg ? (
         data.azurerm_netapp_volume.hanashared[0].mount_ip_addresses[0]) : (
         try(azurerm_netapp_volume.hanashared[0].mount_ip_addresses[0], "")
       ),
@@ -238,13 +238,13 @@ output "hana_shared_primary" {
     )
     ) : (
     ""
-  ),"")
+  ), "")
 }
 
 output "hana_shared_secondary" {
   value = try(var.hana_ANF_volumes.use_for_shared && local.hdb_ha ? (
     format("%s:/%s",
-      var.hana_ANF_volumes.use_existing_shared_volume ? (
+      var.hana_ANF_volumes.use_existing_shared_volume || local.use_avg ? (
         data.azurerm_netapp_volume.hanashared[1].mount_ip_addresses[0]) : (
         try(azurerm_netapp_volume.hanashared[1].mount_ip_addresses[0], "")
       ),

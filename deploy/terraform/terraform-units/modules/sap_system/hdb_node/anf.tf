@@ -2,8 +2,6 @@
 resource "azurerm_netapp_volume" "hanadata" {
   provider        = azurerm.main
 
-  depends_on = [ azapi_resource.avg_HANA ]
-
   count = var.hana_ANF_volumes.use_for_data && !local.use_avg ? (
     var.hana_ANF_volumes.use_existing_data_volume ? (
       0
@@ -48,7 +46,9 @@ resource "azurerm_netapp_volume" "hanadata" {
 data "azurerm_netapp_volume" "hanadata" {
   provider        = azurerm.main
 
-  count = var.hana_ANF_volumes.use_for_data ? (
+  depends_on = [ azapi_resource.avg_HANA ]
+
+  count = var.hana_ANF_volumes.use_for_data  || local.use_avg ? (
     var.hana_ANF_volumes.use_existing_data_volume ? (
       local.hdb_ha ? 2 : 1
       ) : (
@@ -68,7 +68,7 @@ resource "azurerm_netapp_volume" "hanalog" {
   provider        = azurerm.main
   depends_on = [ azapi_resource.avg_HANA ]
 
-  count = var.hana_ANF_volumes.use_for_log ? (
+  count = var.hana_ANF_volumes.use_for_log && !local.use_avg ? (
     var.hana_ANF_volumes.use_existing_log_volume ? (
       0
       ) : (
@@ -111,9 +111,10 @@ resource "azurerm_netapp_volume" "hanalog" {
 
 data "azurerm_netapp_volume" "hanalog" {
   provider        = azurerm.main
+  depends_on = [ azapi_resource.avg_HANA ]
 
   count = var.hana_ANF_volumes.use_for_log ? (
-    var.hana_ANF_volumes.use_existing_log_volume ? (
+    var.hana_ANF_volumes.use_existing_log_volume || local.use_avg ? (
       local.hdb_ha ? 2 : 1
       ) : (
       0
@@ -131,7 +132,7 @@ resource "azurerm_netapp_volume" "hanashared" {
   provider        = azurerm.main
   depends_on = [ azapi_resource.avg_HANA ]
 
-  count = var.hana_ANF_volumes.use_for_shared ? (
+  count = var.hana_ANF_volumes.use_for_shared && !local.use_avg ? (
     var.hana_ANF_volumes.use_existing_shared_volume ? (
       0
       ) : (
@@ -173,9 +174,10 @@ resource "azurerm_netapp_volume" "hanashared" {
 
 data "azurerm_netapp_volume" "hanashared" {
   provider        = azurerm.main
+  depends_on = [ azapi_resource.avg_HANA ]
 
   count = var.hana_ANF_volumes.use_for_shared ? (
-    var.hana_ANF_volumes.use_existing_shared_volume ? (
+    var.hana_ANF_volumes.use_existing_shared_volume  || local.use_avg ? (
       local.hdb_ha ? 2 : 1
       ) : (
       0
