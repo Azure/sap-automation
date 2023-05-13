@@ -46,7 +46,7 @@ resource "azurerm_netapp_volume" "hanadata" {
 data "azurerm_netapp_volume" "hanadata" {
   provider = azurerm.main
 
-  depends_on = [azapi_resource.avg_HANA]
+  depends_on = [azurerm_netapp_volume_group_sap_hana.avg_HANA]
 
   count = var.hana_ANF_volumes.use_for_data || local.use_avg ? (
     var.hana_ANF_volumes.use_existing_data_volume ? (
@@ -71,7 +71,7 @@ data "azurerm_netapp_volume" "hanadata" {
 
 resource "azurerm_netapp_volume" "hanalog" {
   provider   = azurerm.main
-  depends_on = [azapi_resource.avg_HANA]
+  depends_on = [azurerm_netapp_volume_group_sap_hana.avg_HANA]
 
   count = var.hana_ANF_volumes.use_for_log && !local.use_avg ? (
     var.hana_ANF_volumes.use_existing_log_volume ? (
@@ -116,7 +116,7 @@ resource "azurerm_netapp_volume" "hanalog" {
 
 data "azurerm_netapp_volume" "hanalog" {
   provider   = azurerm.main
-  depends_on = [azapi_resource.avg_HANA]
+  depends_on = [azurerm_netapp_volume_group_sap_hana.avg_HANA]
 
   count = var.hana_ANF_volumes.use_for_log ? (
     var.hana_ANF_volumes.use_existing_log_volume || local.use_avg ? (
@@ -140,7 +140,7 @@ data "azurerm_netapp_volume" "hanalog" {
 
 resource "azurerm_netapp_volume" "hanashared" {
   provider   = azurerm.main
-  depends_on = [azapi_resource.avg_HANA]
+  depends_on = [azurerm_netapp_volume_group_sap_hana.avg_HANA]
 
   count = var.hana_ANF_volumes.use_for_shared && !local.use_avg ? (
     var.hana_ANF_volumes.use_existing_shared_volume ? (
@@ -184,7 +184,7 @@ resource "azurerm_netapp_volume" "hanashared" {
 
 data "azurerm_netapp_volume" "hanashared" {
   provider   = azurerm.main
-  depends_on = [azapi_resource.avg_HANA]
+  depends_on = [azurerm_netapp_volume_group_sap_hana.avg_HANA]
 
   count = var.hana_ANF_volumes.use_for_shared ? (
     var.hana_ANF_volumes.use_existing_shared_volume || local.use_avg ? (
