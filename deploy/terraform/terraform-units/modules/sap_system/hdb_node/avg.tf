@@ -8,6 +8,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA" {
     local.resource_suffixes.hana_avg, count.index + 1
   )
   location               = local.ANF_pool_settings.location
+  resource_group_name    = local.ANF_pool_settings.resource_group_name
   account_name           = local.ANF_pool_settings.account_name
   group_description      = format("Application Volume %d group for %s", count.index + 1, var.sap_sid)
   application_identifier = local.sid
