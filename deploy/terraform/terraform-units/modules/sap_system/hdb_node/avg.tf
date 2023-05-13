@@ -36,7 +36,6 @@ resource "azapi_update_resource" "avg_HANA" {
     var.naming.separator,
     local.resource_suffixes.hana_avg, count.index + 1
   )
-  location  = local.ANF_pool_settings.location
   parent_id = local.ANF_pool_settings.account_id
   body = jsonencode({
     properties = {
