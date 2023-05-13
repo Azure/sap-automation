@@ -257,3 +257,8 @@ output "hana_shared_secondary" {
     ""
   ), "")
 }
+
+
+output "application_volume_group" {
+  value = azapi_resource.avg_HANA
+}

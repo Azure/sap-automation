@@ -189,3 +189,7 @@ output "management_dns_subscription_id" {
 output "management_dns_resourcegroup_name" {
   value = coalesce(data.terraform_remote_state.landscape.outputs.management_dns_resourcegroup_name, local.saplib_resource_group_name)
 }
+
+output "application_volume_group" {
+  value = module.hdb_node.application_volume_group
+}
