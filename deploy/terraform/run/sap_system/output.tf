@@ -178,8 +178,6 @@ output "configuration_settings" {
   value       = var.configuration_settings
 }
 
-
-
 output "use_custom_dns_a_registration" {
   value = try(data.terraform_remote_state.landscape.outputs.use_custom_dns_a_registration, true)
 }
@@ -188,8 +186,4 @@ output "management_dns_subscription_id" {
 }
 output "management_dns_resourcegroup_name" {
   value = coalesce(data.terraform_remote_state.landscape.outputs.management_dns_resourcegroup_name, local.saplib_resource_group_name)
-}
-
-output "application_volume_group" {
-  value = module.hdb_node.application_volume_group
 }
