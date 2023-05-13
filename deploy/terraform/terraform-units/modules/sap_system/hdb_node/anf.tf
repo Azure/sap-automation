@@ -48,8 +48,8 @@ data "azurerm_netapp_volume" "hanadata" {
 
   depends_on = [azurerm_netapp_volume_group_sap_hana.avg_HANA]
 
-  count = var.hana_ANF_volumes.use_for_data || local.use_avg ? (
-    var.hana_ANF_volumes.use_existing_data_volume ? (
+  count = var.hana_ANF_volumes.use_for_data ? (
+    var.hana_ANF_volumes.use_existing_data_volume || local.use_avg ? (
       local.hdb_ha ? 2 : 1
       ) : (
       0
