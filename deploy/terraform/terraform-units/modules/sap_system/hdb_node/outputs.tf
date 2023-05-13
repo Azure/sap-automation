@@ -231,7 +231,7 @@ output "hana_shared_primary" {
         data.azurerm_netapp_volume.hanashared[0].mount_ip_addresses[0]) : (
         try(azurerm_netapp_volume.hanashared[0].mount_ip_addresses[0], "")
       ),
-      var.hana_ANF_volumes.use_existing_shared_volume ? (
+      var.hana_ANF_volumes.use_existing_shared_volume || local.use_avg ? (
         data.azurerm_netapp_volume.hanashared[0].volume_path) : (
         try(azurerm_netapp_volume.hanashared[0].volume_path, "")
       )
@@ -248,7 +248,7 @@ output "hana_shared_secondary" {
         data.azurerm_netapp_volume.hanashared[1].mount_ip_addresses[0]) : (
         try(azurerm_netapp_volume.hanashared[1].mount_ip_addresses[0], "")
       ),
-      var.hana_ANF_volumes.use_existing_shared_volume ? (
+      var.hana_ANF_volumes.use_existing_shared_volume || local.use_avg ? (
         data.azurerm_netapp_volume.hanashared[1].volume_path) : (
         try(azurerm_netapp_volume.hanashared[1].volume_path, "")
       )
