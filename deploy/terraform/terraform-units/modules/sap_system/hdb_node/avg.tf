@@ -17,15 +17,15 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA" {
     iterator = pub
     for_each = (count.index == 0 ? local.volumes_primary : local.volumes_secondary)
     content {
-      name                         = pub.name
-      volume_path                  = pub.path
+      name                         = pub.value.name
+      volume_path                  = pub.value.path
       service_level                = local.ANF_pool_settings.service_level
       capacity_pool_id             = data.azurerm_netapp_pool.workload_netapp_pool[0].id
       subnet_id                    = try(local.ANF_pool_settings.subnet_id, "")
-      proximity_placement_group_id = pub.proximityPlacementGroup
-      volume_spec_name             = pub.volumeSpecName
-      storage_quota_in_gb          = pub.storage_quota_in_gb
-      throughput_in_mibps          = pub.throughput_in_mibps
+      proximity_placement_group_id = pub.value.proximityPlacementGroup
+      volume_spec_name             = pub.value.volumeSpecName
+      storage_quota_in_gb          = pub.value.storage_quota_in_gb
+      throughput_in_mibps          = pub.value.throughput_in_mibps
       protocols                    = ["NFSv4.1"]
       security_style               = "Unix"
       snapshot_directory_visible   = false
