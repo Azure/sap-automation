@@ -1,57 +1,46 @@
 
-resource "azapi_resource" "avg_HANA" {
+resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA" {
   count = var.NFS_provider == "ANF" && local.use_avg && var.deployment == "new" ? length(var.ppg) : 0
-  type  = "Microsoft.NetApp/netAppAccounts/volumeGroups@2022-03-01"
   name = format("%s%s%s%s%d",
     var.naming.resource_prefixes.hana_avg,
     local.prefix,
     var.naming.separator,
     local.resource_suffixes.hana_avg, count.index + 1
   )
-  location  = local.ANF_pool_settings.location
-  parent_id = local.ANF_pool_settings.account_id
-  body = jsonencode({
-    properties = {
-      groupMetaData = {
-        applicationIdentifier = local.sid
-        applicationType       = "SAP-HANA"
-        deploymentSpecId      = "20542149-bfca-5618-1879-9863dc6767f1"
-        groupDescription      = format("Application Volume %d group for %s", count.index + 1, var.sap_sid)
-      }
-      volumes = [
-        var.hana_ANF_volumes.use_for_data ? (count.index == 0 ? local.hana_data1 : local.hana_data2) : null,
-        var.hana_ANF_volumes.use_for_log ? (count.index == 0 ? local.hana_log1 : local.hana_log2) : null,
-        var.hana_ANF_volumes.use_for_shared ? (count.index == 0 ? local.hana_shared1 : local.hana_shared2) : null
-      ]
-    }
-  })
-}
+  location               = local.ANF_pool_settings.location
+  account_name           = local.ANF_pool_settings.account_name
+  group_description      = format("Application Volume %d group for %s", count.index + 1, var.sap_sid)
+  application_identifier = local.sid
 
-resource "azapi_update_resource" "avg_HANA" {
-  count = var.NFS_provider == "ANF" && local.use_avg && var.deployment == "update" ? length(var.ppg) : 0
-  type  = "Microsoft.NetApp/netAppAccounts/volumeGroups@2022-03-01"
-  name = format("%s%s%s%s%d",
-    var.naming.resource_prefixes.hana_avg,
-    local.prefix,
-    var.naming.separator,
-    local.resource_suffixes.hana_avg, count.index + 1
-  )
-  parent_id = local.ANF_pool_settings.account_id
-  body = jsonencode({
-    properties = {
-      groupMetaData = {
-        applicationIdentifier = local.sid
-        applicationType       = "SAP-HANA"
-        deploymentSpecId      = "20542149-bfca-5618-1879-9863dc6767f1"
-        groupDescription      = format("Application Volume %d group for %s", count.index + 1, var.sap_sid)
+  dynamic "volume" {
+    iterator = pub
+    for_each = local.volumes
+    content {
+      name                         = pub.name
+      volume_path                  = pub.path
+      service_level                = local.ANF_pool_settings.service_level
+      capacity_pool_id             = data.azurerm_netapp_pool.workload_netapp_pool[0].id
+      subnet_id                    = try(local.ANF_pool_settings.subnet_id, "")
+      proximity_placement_group_id = pub.proximityPlacementGroup
+      volume_spec_name             = pub.volumeSpecName
+      storage_quota_in_gb          = pub.storage_quota_in_gb
+      throughput_in_mibps          = pub.throughput_in_mibps
+      protocols                    = ["NFSv4.1"]
+      security_style               = "Unix"
+      snapshot_directory_visible   = false
+
+      export_policy_rule {
+        rule_index          = 1
+        allowed_clients     = "0.0.0.0/0"
+        nfsv3_enabled       = false
+        nfsv41_enabled      = true
+        unix_read_only      = false
+        unix_read_write     = true
+        root_access_enabled = false
       }
-      volumes = [
-        var.hana_ANF_volumes.use_for_data ? (count.index == 0 ? local.hana_data1 : local.hana_data2) : null,
-        var.hana_ANF_volumes.use_for_log ? (count.index == 0 ? local.hana_log1 : local.hana_log2) : null,
-        var.hana_ANF_volumes.use_for_shared ? (count.index == 0 ? local.hana_shared1 : local.hana_shared2) : null
-      ]
     }
-  })
+  }
+
 }
 
 
@@ -60,7 +49,7 @@ data "azurerm_netapp_pool" "workload_netapp_pool" {
   count               = var.NFS_provider == "ANF" && length(local.ANF_pool_settings.pool_name) > 0 ? 1 : 0
   resource_group_name = data.azurerm_netapp_account.workload_netapp_account[0].resource_group_name
   name                = try(local.ANF_pool_settings.pool_name, "")
-  account_name        = data.azurerm_netapp_account.workload_netapp_account[0].name
+  account_name        = local.ANF_pool_settings.account_name
 
 }
 
@@ -77,6 +66,7 @@ locals {
     var.hana_ANF_volumes.use_AVG_for_data) && (
     var.hana_ANF_volumes.use_for_data || var.hana_ANF_volumes.use_for_log || var.hana_ANF_volumes.use_for_shared
   )
+
   hana_data1 = {
     name = format("%s%s%s%s%d",
       var.naming.resource_prefixes.hanadata,
@@ -84,48 +74,15 @@ locals {
       var.naming.separator,
       local.resource_suffixes.hanadata, 1
     )
-    properties = {
-      capacityPoolResourceId = try(data.azurerm_netapp_pool.workload_netapp_pool[0].id, "")
-      creationToken = format("%s-%s%02d",
-        var.sap_sid,
-        local.resource_suffixes.hanadata,
-        1
-      )
-      exportPolicy = {
-        rules = [
-          {
-            allowedClients      = "0.0.0.0/0"
-            chownMode           = "Restricted"
-            cifs                = false
-            hasRootAccess       = true
-            kerberos5iReadWrite = false
-            kerberos5iReadOnly  = false
-            kerberos5pReadWrite = false
-            kerberos5pReadOnly  = false
-            kerberos5ReadWrite  = false
-            kerberos5ReadOnly   = false
-            nfsv3               = false
-            nfsv41              = true
-            ruleIndex           = 1
-            unixReadWrite       = true
-            unixReadOnly        = false
-          }
-        ]
-      }
-      kerberosEnabled = false
-      networkFeatures = "Basic"
-      protocolTypes = [
-        "NFSv4.1"
-      ]
-      proximityPlacementGroup  = var.ppg[0].id
-      serviceLevel             = local.ANF_pool_settings.service_level
-      snapshotDirectoryVisible = true
-      subnetId                 = try(local.ANF_pool_settings.subnet_id, "")
-      throughputMibps          = var.hana_ANF_volumes.data_volume_throughput
-      usageThreshold           = var.hana_ANF_volumes.data_volume_size * 1024 * 1024 * 1024
-      volumeSpecName           = "data"
-    }
-    tags = {}
+    path = format("%s-%s%02d",
+      var.sap_sid,
+      local.resource_suffixes.hanadata,
+      1
+    )
+    volumeSpecName          = "data"
+    proximityPlacementGroup = var.ppg[0].id
+    storage_quota_in_gb     = var.hana_ANF_volumes.data_volume_size
+    throughput_in_mibps     = var.hana_ANF_volumes.data_volume_throughput
   }
 
   hana_data2 = {
@@ -135,48 +92,15 @@ locals {
       var.naming.separator,
       local.resource_suffixes.hanadata, 2
     )
-    properties = {
-      capacityPoolResourceId = try(data.azurerm_netapp_pool.workload_netapp_pool[0].id, "")
-      creationToken = format("%s-%s%02d",
-        var.sap_sid,
-        local.resource_suffixes.hanadata,
-        2
-      )
-      exportPolicy = {
-        rules = [
-          {
-            allowedClients      = "0.0.0.0/0"
-            chownMode           = "Restricted"
-            cifs                = false
-            hasRootAccess       = true
-            kerberos5iReadWrite = false
-            kerberos5iReadOnly  = false
-            kerberos5pReadWrite = false
-            kerberos5pReadOnly  = false
-            kerberos5ReadWrite  = false
-            kerberos5ReadOnly   = false
-            nfsv3               = false
-            nfsv41              = true
-            ruleIndex           = 1
-            unixReadWrite       = true
-            unixReadOnly        = false
-          }
-        ]
-      }
-      kerberosEnabled = false
-      networkFeatures = "Basic"
-      protocolTypes = [
-        "NFSv4.1"
-      ]
-      proximityPlacementGroup  = length(var.ppg) > 1 ? var.ppg[1].id : var.ppg[0].id
-      serviceLevel             = local.ANF_pool_settings.service_level
-      snapshotDirectoryVisible = true
-      subnetId                 = try(local.ANF_pool_settings.subnet_id, "")
-      throughputMibps          = var.hana_ANF_volumes.data_volume_throughput
-      usageThreshold           = var.hana_ANF_volumes.data_volume_size * 1024 * 1024 * 1024
-      volumeSpecName           = "data"
-    }
-    tags = {}
+    path = format("%s-%s%02d",
+      var.sap_sid,
+      local.resource_suffixes.hanadata,
+      2
+    )
+    volumeSpecName          = "data"
+    proximityPlacementGroup = length(var.ppg) > 1 ? var.ppg[1].id : var.ppg[0].id
+    storage_quota_in_gb     = var.hana_ANF_volumes.data_volume_size
+    throughput_in_mibps     = var.hana_ANF_volumes.data_volume_throughput
   }
 
   hana_log1 = {
@@ -186,48 +110,15 @@ locals {
       var.naming.separator,
       local.resource_suffixes.hanalog, 1
     )
-    properties = {
-      capacityPoolResourceId = try(data.azurerm_netapp_pool.workload_netapp_pool[0].id, "")
-      creationToken = format("%s-%s%02d",
-        var.sap_sid,
-        local.resource_suffixes.hanalog,
-        1
-      )
-      exportPolicy = {
-        rules = [
-          {
-            allowedClients      = "0.0.0.0/0"
-            chownMode           = "Restricted"
-            cifs                = false
-            hasRootAccess       = true
-            kerberos5iReadWrite = false
-            kerberos5iReadOnly  = false
-            kerberos5pReadWrite = false
-            kerberos5pReadOnly  = false
-            kerberos5ReadWrite  = false
-            kerberos5ReadOnly   = false
-            nfsv3               = false
-            nfsv41              = true
-            ruleIndex           = 1
-            unixReadWrite       = true
-            unixReadOnly        = false
-          }
-        ]
-      }
-      kerberosEnabled = false
-      networkFeatures = "Basic"
-      protocolTypes = [
-        "NFSv4.1"
-      ]
-      proximityPlacementGroup  = var.ppg[0].id
-      serviceLevel             = local.ANF_pool_settings.service_level
-      snapshotDirectoryVisible = true
-      subnetId                 = try(local.ANF_pool_settings.subnet_id, "")
-      throughputMibps          = var.hana_ANF_volumes.log_volume_throughput
-      usageThreshold           = var.hana_ANF_volumes.log_volume_size * 1024 * 1024 * 1024
-      volumeSpecName           = "log"
-    }
-    tags = {}
+    path = format("%s-%s%02d",
+      var.sap_sid,
+      local.resource_suffixes.hanalog,
+      1
+    )
+    volumeSpecName          = "log"
+    proximityPlacementGroup = var.ppg[0].id
+    storage_quota_in_gb     = var.hana_ANF_volumes.log_volume_size
+    throughput_in_mibps     = var.hana_ANF_volumes.log_volume_throughput
   }
 
   hana_log2 = {
@@ -237,48 +128,15 @@ locals {
       var.naming.separator,
       local.resource_suffixes.hanalog, 2
     )
-    properties = {
-      capacityPoolResourceId = try(data.azurerm_netapp_pool.workload_netapp_pool[0].id, "")
-      creationToken = format("%s-%s%02d",
-        var.sap_sid,
-        local.resource_suffixes.hanalog,
-        2
-      )
-      exportPolicy = {
-        rules = [
-          {
-            allowedClients      = "0.0.0.0/0"
-            chownMode           = "Restricted"
-            cifs                = false
-            hasRootAccess       = true
-            kerberos5iReadWrite = false
-            kerberos5iReadOnly  = false
-            kerberos5pReadWrite = false
-            kerberos5pReadOnly  = false
-            kerberos5ReadWrite  = false
-            kerberos5ReadOnly   = false
-            nfsv3               = false
-            nfsv41              = true
-            ruleIndex           = 1
-            unixReadWrite       = true
-            unixReadOnly        = false
-          }
-        ]
-      }
-      kerberosEnabled = false
-      networkFeatures = "Basic"
-      protocolTypes = [
-        "NFSv4.1"
-      ]
-      proximityPlacementGroup  = length(var.ppg) > 1 ? var.ppg[1].id : var.ppg[0].id
-      serviceLevel             = local.ANF_pool_settings.service_level
-      snapshotDirectoryVisible = true
-      subnetId                 = try(local.ANF_pool_settings.subnet_id, "")
-      throughputMibps          = var.hana_ANF_volumes.log_volume_throughput
-      usageThreshold           = var.hana_ANF_volumes.log_volume_size * 1024 * 1024 * 1024
-      volumeSpecName           = "log"
-    }
-    tags = {}
+    path = format("%s-%s%02d",
+      var.sap_sid,
+      local.resource_suffixes.hanalog,
+      2
+    )
+    volumeSpecName          = "log"
+    proximityPlacementGroup = length(var.ppg) > 1 ? var.ppg[1].id : var.ppg[0].id
+    storage_quota_in_gb     = var.hana_ANF_volumes.log_volume_size
+    throughput_in_mibps     = var.hana_ANF_volumes.log_volume_throughput
   }
 
   hana_shared1 = {
@@ -288,48 +146,15 @@ locals {
       var.naming.separator,
       local.resource_suffixes.hanashared, 1
     )
-    properties = {
-      capacityPoolResourceId = try(data.azurerm_netapp_pool.workload_netapp_pool[0].id, "")
-      creationToken = format("%s-%s%02d",
-        var.sap_sid,
-        local.resource_suffixes.hanashared,
-        1
-      )
-      exportPolicy = {
-        rules = [
-          {
-            allowedClients      = "0.0.0.0/0"
-            chownMode           = "Restricted"
-            cifs                = false
-            hasRootAccess       = true
-            kerberos5iReadWrite = false
-            kerberos5iReadOnly  = false
-            kerberos5pReadWrite = false
-            kerberos5pReadOnly  = false
-            kerberos5ReadWrite  = false
-            kerberos5ReadOnly   = false
-            nfsv3               = false
-            nfsv41              = true
-            ruleIndex           = 1
-            unixReadWrite       = true
-            unixReadOnly        = false
-          }
-        ]
-      }
-      kerberosEnabled = false
-      networkFeatures = "Basic"
-      protocolTypes = [
-        "NFSv4.1"
-      ]
-      proximityPlacementGroup  = var.ppg[0].id
-      serviceLevel             = local.ANF_pool_settings.service_level
-      snapshotDirectoryVisible = true
-      subnetId                 = try(local.ANF_pool_settings.subnet_id, "")
-      throughputMibps          = var.hana_ANF_volumes.log_volume_throughput
-      usageThreshold           = var.hana_ANF_volumes.log_volume_size * 1024 * 1024 * 1024
-      volumeSpecName           = "shared"
-    }
-    tags = {}
+    path = format("%s-%s%02d",
+      var.sap_sid,
+      local.resource_suffixes.hanashared,
+      1
+    )
+    volumeSpecName          = "shared"
+    proximityPlacementGroup = var.ppg[0].id
+    storage_quota_in_gb     = var.hana_ANF_volumes.shared_volume_size
+    throughput_in_mibps     = var.hana_ANF_volumes.shared_volume_throughput
   }
 
   hana_shared2 = {
@@ -339,48 +164,24 @@ locals {
       var.naming.separator,
       local.resource_suffixes.hanashared, 2
     )
-    properties = {
-      capacityPoolResourceId = try(data.azurerm_netapp_pool.workload_netapp_pool[0].id, "")
-      creationToken = format("%s-%s%02d",
-        var.sap_sid,
-        local.resource_suffixes.hanashared,
-        2
-      )
-      exportPolicy = {
-        rules = [
-          {
-            allowedClients      = "0.0.0.0/0"
-            chownMode           = "Restricted"
-            cifs                = false
-            hasRootAccess       = true
-            kerberos5iReadWrite = false
-            kerberos5iReadOnly  = false
-            kerberos5pReadWrite = false
-            kerberos5pReadOnly  = false
-            kerberos5ReadWrite  = false
-            kerberos5ReadOnly   = false
-            nfsv3               = false
-            nfsv41              = true
-            ruleIndex           = 1
-            unixReadWrite       = true
-            unixReadOnly        = false
-          }
-        ]
-      }
-      kerberosEnabled = false
-      networkFeatures = "Basic"
-      protocolTypes = [
-        "NFSv4.1"
-      ]
-      proximityPlacementGroup  = length(var.ppg) > 1 ? var.ppg[1].id : var.ppg[0].id
-      serviceLevel             = local.ANF_pool_settings.service_level
-      snapshotDirectoryVisible = true
-      subnetId                 = try(local.ANF_pool_settings.subnet_id, "")
-      throughputMibps          = var.hana_ANF_volumes.log_volume_throughput
-      usageThreshold           = var.hana_ANF_volumes.log_volume_size * 1024 * 1024 * 1024
-      volumeSpecName           = "shared"
-    }
-    tags = {}
+    path = format("%s-%s%02d",
+      var.sap_sid,
+      local.resource_suffixes.hanashared,
+      2
+    )
+    volumeSpecName          = "shared"
+    proximityPlacementGroup = length(var.ppg) > 1 ? var.ppg[1].id : var.ppg[0].id
+    storage_quota_in_gb     = var.hana_ANF_volumes.shared_volume_size
+    throughput_in_mibps     = var.hana_ANF_volumes.shared_volume_throughput
   }
+
+
+
+
+  volumes = [
+    var.hana_ANF_volumes.use_for_data ? (count.index == 0 ? local.hana_data1 : local.hana_data2) : null,
+    var.hana_ANF_volumes.use_for_log ? (count.index == 0 ? local.hana_log1 : local.hana_log2) : null,
+    var.hana_ANF_volumes.use_for_shared ? (count.index == 0 ? local.hana_shared1 : local.hana_shared2) : null
+  ]
 
 }
