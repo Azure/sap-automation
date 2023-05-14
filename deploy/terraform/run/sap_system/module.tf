@@ -408,7 +408,7 @@ module "output_files" {
   #########################################################################################
 
   NFS_provider  = var.NFS_provider
-  sap_mnt       = [module.common_infrastructure.sapmnt_path, module.common_infrastructure.sapmnt_path_secondary]
+  sap_mnt       = module.common_infrastructure.sapmnt_path
   sap_transport = try(data.terraform_remote_state.landscape.outputs.saptransport_path, "")
   install_path  = try(data.terraform_remote_state.landscape.outputs.install_path, "")
 
