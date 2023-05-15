@@ -71,12 +71,6 @@
   when:
     - hana_shared_mountpoint is undefined or hana_shared_mountpoint | length == 0
 
-- name:                                "1.5 Disk setup - Append 'hanashared' if needed"
-  ansible.builtin.debug:
-    msg:                               "Add shared"
-  when:
-    - hana_shared_mountpoint is undefined or hana_shared_mountpoint | length == 0
-
 - name:                                "1.5 Disk setup - Show disk info"
   ansible.builtin.debug:
     msg:
