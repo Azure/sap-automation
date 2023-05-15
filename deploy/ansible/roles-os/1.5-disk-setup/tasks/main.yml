@@ -46,6 +46,7 @@
       selectattr('type', 'equalto', 'shared') |
       map(attribute='type') | sort | unique |
       list | length }}"
+  when: hana_shared_mountpoint is not defined
 
 - name:                                "1.5 Disk setup - Load the disk configuration settings"
   ansible.builtin.include_vars:        disks_config.yml
