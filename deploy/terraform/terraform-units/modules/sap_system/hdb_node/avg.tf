@@ -30,6 +30,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA" {
       protocols                    = ["NFSv4.1"]
       security_style               = "Unix"
       snapshot_directory_visible   = false
+      zone                         = pub.value.zone
 
       export_policy_rule {
         rule_index          = 1
@@ -38,7 +39,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA" {
         nfsv41_enabled      = true
         unix_read_only      = false
         unix_read_write     = true
-        root_access_enabled = false
+        root_access_enabled = true
       }
     }
   }
@@ -85,6 +86,7 @@ locals {
     proximityPlacementGroup = var.ppg[0].id
     storage_quota_in_gb     = var.hana_ANF_volumes.data_volume_size
     throughput_in_mibps     = var.hana_ANF_volumes.data_volume_throughput
+    zone                    = local.db_zone_count > 0 ? try(local.zones[0], null) : null
   }
 
   hana_data2 = {
@@ -103,6 +105,8 @@ locals {
     proximityPlacementGroup = length(var.ppg) > 1 ? var.ppg[1].id : var.ppg[0].id
     storage_quota_in_gb     = var.hana_ANF_volumes.data_volume_size
     throughput_in_mibps     = var.hana_ANF_volumes.data_volume_throughput
+    zone                    = local.db_zone_count > 1 ? try(local.zones[1], null) : null
+
   }
 
   hana_log1 = {
@@ -121,6 +125,7 @@ locals {
     proximityPlacementGroup = var.ppg[0].id
     storage_quota_in_gb     = var.hana_ANF_volumes.log_volume_size
     throughput_in_mibps     = var.hana_ANF_volumes.log_volume_throughput
+    zone                    = local.db_zone_count > 0 ? try(local.zones[0], null) : null
   }
 
   hana_log2 = {
@@ -139,6 +144,7 @@ locals {
     proximityPlacementGroup = length(var.ppg) > 1 ? var.ppg[1].id : var.ppg[0].id
     storage_quota_in_gb     = var.hana_ANF_volumes.log_volume_size
     throughput_in_mibps     = var.hana_ANF_volumes.log_volume_throughput
+    zone                    = local.db_zone_count > 1 ? try(local.zones[1], null) : null
   }
 
   hana_shared1 = {
@@ -157,6 +163,7 @@ locals {
     proximityPlacementGroup = var.ppg[0].id
     storage_quota_in_gb     = var.hana_ANF_volumes.shared_volume_size
     throughput_in_mibps     = var.hana_ANF_volumes.shared_volume_throughput
+    zone                    = local.db_zone_count > 0 ? try(local.zones[0], null) : null
   }
 
   hana_shared2 = {
@@ -175,6 +182,7 @@ locals {
     proximityPlacementGroup = length(var.ppg) > 1 ? var.ppg[1].id : var.ppg[0].id
     storage_quota_in_gb     = var.hana_ANF_volumes.shared_volume_size
     throughput_in_mibps     = var.hana_ANF_volumes.shared_volume_throughput
+    zone                    = local.db_zone_count > 1 ? try(local.zones[1], null) : null
   }
 
   volumes_primary = [
