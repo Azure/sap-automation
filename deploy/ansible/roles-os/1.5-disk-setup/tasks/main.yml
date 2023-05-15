@@ -39,6 +39,10 @@
     mode:                              0775
   when: not tmp_dir.stat.isdir
 
+- name:                                "1.5 Disk setup - Default to no shared disk"
+  ansible.builtin.set_fact:
+    shareddisk:                        0
+
 - name:                                "1.5 Disk setup - Check if the shared disk exists"
   ansible.builtin.set_fact:
     shareddisk:                        "{{ disks | selectattr('host', 'defined') |
