@@ -30,7 +30,6 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA" {
       protocols                    = ["NFSv4.1"]
       security_style               = "Unix"
       snapshot_directory_visible   = false
-      zone                         = pub.value.zone
 
       export_policy_rule {
         rule_index          = 1
