@@ -482,21 +482,22 @@
     #     - (ansible_distribution | lower ~ ansible_distribution_major_version) in ['redhat7', 'redhat8']
     #     - yum_results is defined
 
+    # - name:                            "0.0 Validations - Show Mounts"
+    #   ansible.builtin.command: df -h
+    #   register: mounts
+    #   failed_when: false
+    #   tags:
+    #     - 0.0-mounts
+    #   when:
+    #     - ansible_os_family != "Windows"
     - name:                            "0.0 Validations - Show Mounts"
-      ansible.builtin.command: df -h
-      register: mounts
-      failed_when: false
-      tags:
-        - 0.0-mounts
+      ansible.builtin.debug:
+        msg="{{ item.mount }}"
+      with_items:
+        - "{{ ansible_mounts }}"
       when:
         - ansible_os_family != "Windows"
 
-    - name:                            "0.0 Validations - Show Mounts"
-      ansible.builtin.debug:
-        var: mounts.stdout_lines
-      when:
-        - mounts is defined
-        - ansible_os_family != "Windows"
 
     - name:                            "0.0 Validations - Show Hosts"
       ansible.builtin.command: cat /etc/hosts
