@@ -244,9 +244,9 @@ namespace AutomationForm.Models
         [AvSetIdValidator]
         public string[] application_server_vm_avset_arm_ids { get; set; }
 
-        public bool? application_server_no_avset { get; set; };
+        public bool? application_server_no_avset { get; set; }
 
-        public bool? application_server_use_avset { get; set; }= true;
+        public bool? application_server_use_avset { get; set; } = true;
 
         public bool? application_server_no_ppg { get; set; } = false;
 
