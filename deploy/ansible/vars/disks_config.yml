@@ -112,13 +112,6 @@ logical_volumes:
 
   - tier:       'sapos'
     node_tier:  'hana'
-    vg:         "{% if shareddisk == '1' %}vg_hana_shared{% else %}vg_sap{% endif %}"
-    lv:         'lv_hana_shared'
-    size:       "{% if shareddisk == '1' %}100%FREE{% else %}32g{% endif %}"
-    fstype:     'xfs'
-
-  - tier:       'sapos'
-    node_tier:  'hana'
     vg:         'vg_hana_backup'
     lv:         'lv_hana_backup'
     size:       '100%FREE'

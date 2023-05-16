@@ -39,6 +39,10 @@
     mode:                              0775
   when: not tmp_dir.stat.isdir
 
+- name:                                "1.5 Disk setup - Default to no shared disk"
+  ansible.builtin.set_fact:
+    shareddisk:                        0
+
 - name:                                "1.5 Disk setup - Check if the shared disk exists"
   ansible.builtin.set_fact:
     shareddisk:                        "{{ disks | selectattr('host', 'defined') |
@@ -46,6 +50,7 @@
       selectattr('type', 'equalto', 'shared') |
       map(attribute='type') | sort | unique |
       list | length }}"
+  when: hana_shared_mountpoint is not defined
 
 - name:                                "1.5 Disk setup - Load the disk configuration settings"
   ansible.builtin.include_vars:        disks_config.yml
@@ -57,24 +62,25 @@
 
 - name:                                "1.5 Disk setup - Append 'install' if needed"
   ansible.builtin.set_fact:
-    logical_volumes:                   "{{ logical_volumes + logical_volumes_install }}"
+    logical_volumes:                   "{{ logical_volumes_install + logical_volumes }}"
   when: usr_sap_install_mountpoint is not defined
 
 - name:                                "1.5 Disk setup - Append 'hanashared' if needed"
   ansible.builtin.set_fact:
     logical_volumes:                   "{{ logical_volumes_hanashared + logical_volumes }}"
-  when: hana_shared_mountpoint is not defined
-
+  when:
+    - hana_shared_mountpoint is undefined or hana_shared_mountpoint | length == 0
 
 - name:                                "1.5 Disk setup - Show disk info"
   ansible.builtin.debug:
     msg:
-      - "Unique disks:    {{ disktypes }} "
-      - "Volume groups:   {{ volume_groups }} "
-      - "Logical volumes: {{ logical_volumes }} "
-      - "sap mount:       {{ sap_mnt is defined }}"
-      - "sap trans:       {{ sap_trans is defined }}"
-      - "usr install:     {{ usr_sap_install_mountpoint is defined }}"
+      - "Unique disks:           {{ disktypes }} "
+      - "Volume groups:          {{ volume_groups }} "
+      - "Logical volumes:        {{ logical_volumes }} "
+      - "sap mount:              {{ sap_mnt is defined }}"
+      - "sap trans:              {% if sap_trans is defined %} {{ sap_trans }}{% else %}provided from SCS{% endif %}"
+      - "usr install:            {% if usr_sap_install_mountpoint is defined %} {{ usr_sap_install_mountpoint }}{% else %}provided from SCS{% endif %}"
+      - "hana_shared_mountpoint: {% if hana_shared_mountpoint is defined %} {{ hana_shared_mountpoint }}{% else %}provided from SCS{% endif %}"
     verbosity:                         2
 
 # CREATE VOLUME GROUPS BASED ON sap-parameters.yaml

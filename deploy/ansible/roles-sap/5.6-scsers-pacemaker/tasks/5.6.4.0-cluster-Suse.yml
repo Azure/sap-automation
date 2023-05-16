@@ -60,26 +60,28 @@
         - { path: '/usr/sap/{{ sap_sid | upper }}/SYS' }
         - { path: '/usr/sap/{{ sap_sid | upper }}/{{ instance_type | upper }}{{ scs_instance_number }}' }
 
+    - name:                            "5.6 SCSERS - SCS - Bring primary host online"
+      ansible.builtin.command:         crm node online {{ primary_instance_name }}
+      register:                        primary_online
+      changed_when:                    primary_online.rc != 0
+
     - name:                            "5.6 SCSERS - SUSE - SCS - Install SCS on Primary host"
       ansible.builtin.include_role:
         name:                          roles-sap/5.0.1-scs-ha-install
       vars:
         sap_scs_hostname:              "{{ scs_virtual_hostname }}"
 
+    - name:                            "5.6 SCSERS - SUSE - SCS - Check if installation succeeded"
+      ansible.builtin.stat:
+        path:                          "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_scs.txt"
+      register:                        scs_installed
+
+    - name:                            "ErrorHandling"
+      ansible.builtin.fail:
+        msg:                           "INSTALL:0014:SCS HA installation failed"
+      when:
+        - not scs_installed.stat.exists
   when: inventory_hostname == primary_instance_name
-
-- name:                                "5.6 SCSERS - SUSE - SCS - Check if installation succeeded"
-  ansible.builtin.stat:
-    path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_scs.txt"
-  register:                            scs_installed
-  when: ansible_hostname == primary_instance_name
-
-- name:                                "ErrorHandling"
-  ansible.builtin.fail:
-    msg:                               "INSTALL:0014:SCS HA installation failed"
-  when:
-    - ansible_hostname == primary_instance_name
-    - not scs_installed.stat.exists
 
 # [1] Create a virtual IP resource and health-probe for the ERS instance
 
