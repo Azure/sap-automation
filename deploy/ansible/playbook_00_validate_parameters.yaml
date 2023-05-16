@@ -492,7 +492,10 @@
     #     - ansible_os_family != "Windows"
     - name:                            "0.0 Validations - Show Mounts"
       ansible.builtin.debug:
-        msg="{{ item.mount }}"
+        msg:
+          - "Mount:      {{ item.mount }}"
+          - "Device:     {{ item.device }}"
+          - "Filesystem: {{ item.fstype }}"
       with_items:
         - "{{ ansible_mounts }}"
       when:
@@ -500,7 +503,7 @@
 
 
     - name:                            "0.0 Validations - Show Hosts"
-      ansible.builtin.command: cat /etc/hosts
+      ansible.builtin.shell: cat /etc/hosts | grep -v -e "^#" | grep -v -e '^[[:space:]]*$'
       register: hosts
       tags:
         - 0.0-hosts
