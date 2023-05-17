@@ -322,7 +322,6 @@
                     svc_password:          "{{ hostvars.localhost.svcadm_password }}"
                     primary_node:          "{{ ansible_play_hosts_all[0] }}"
                     secondary_node:        ""
-                    scs_virtual_hostname:  "{{ sap_sid | lower }}scs{{ scs_instance_number }}cl1"
                     ers_virtual_hostname:  "{{ sap_sid | lower }}ers{{ ers_instance_number }}cl2"
                   loop:                    "{{ all_sids }}"
                   loop_control:
