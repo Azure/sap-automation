@@ -57,7 +57,6 @@
       - "NFS Provider: {{ NFS_provider }}"
       - "Install path: {{ usr_sap_install_mount_point }}"
       - "Shared path:  {{ sharedpath }}"
-    verbosity:                         2
 
 # Mount Filesystems
 
@@ -342,6 +341,7 @@
   ansible.builtin.import_tasks:        2.6.0-afs-mounts.yaml
   when:
     - sap_mnt is defined or sap_trans is defined or usr_sap_install_mountpoint is defined
+    - NFS_provider == 'AFS'
 
 
 # Import this task only if the sap_mnt is defined, i.e. ANF is used
