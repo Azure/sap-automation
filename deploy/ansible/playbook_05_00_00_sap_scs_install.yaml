@@ -227,6 +227,7 @@
             sapbits_sas_token:         "{{ hostvars.localhost.sapbits_sas_token }}"
             always_upload_jinja_templates: false
             sa_enabled:                 true
+            ha_identifier:              ""
           tags:
             - always
 
