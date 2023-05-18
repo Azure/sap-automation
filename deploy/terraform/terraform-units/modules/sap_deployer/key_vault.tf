@@ -323,7 +323,7 @@ data "azurerm_private_dns_zone" "keyvault" {
 
 resource "azurerm_private_dns_zone_virtual_network_link" "vault" {
   provider = azurerm.dnsmanagement
-  count    = (!local.vnet_mgmt_exists) && !var.use_custom_dns_a_registration && !var.bootstrap ? 1 : 0
+  count    = (!local.vnet_mgmt_exists) && !var.use_custom_dns_a_registration && !var.bootstrap  && var.use_private_endpoint ? 1 : 0
   name = format("%s%s%s%s",
     var.naming.resource_prefixes.dns_link,
     local.prefix,
