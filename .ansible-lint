@@ -1,6 +1,7 @@
 exclude_paths:
   - deploy/pipelines
   - deploy/ansible/BOM-catalog
+  - deploy/ansible/filter_plugins
   - deploy/terraform
   - .github
 
