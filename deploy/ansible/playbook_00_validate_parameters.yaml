@@ -503,7 +503,7 @@
 
 
     - name:                            "0.0 Validations - Show Hosts"
-      ansible.builtin.shell: cat /etc/hosts | grep -v -e "^#" | grep -v -e '^[[:space:]]*$'
+      ansible.builtin.shell:           set -o pipefail && cat /etc/hosts | grep -v -e "^#" | grep -v -e '^[[:space:]]*$'
       register: hosts
       tags:
         - 0.0-hosts
