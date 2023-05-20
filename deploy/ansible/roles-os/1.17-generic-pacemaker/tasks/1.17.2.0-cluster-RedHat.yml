@@ -15,7 +15,7 @@
 - name:                                "1.17 Generic Pacemaker - Ensure HA Cluster password is set to something secure"
   ansible.builtin.user:
     name:                             hacluster
-    password:                         "{{ password_ha_db_cluster | password_hash('sha512', 65534 | random(seed=inventory_hostname) | string) }}"
+    password:                         "{{ password_ha_db_cluster | password_hash('sha512', 65534 | random(seed=None ) | string }}"
 
 - name:                                "1.17 Generic Pacemaker - Ensure the firewall service is configured to allow High Availability traffic"
   ansible.posix.firewalld:
@@ -73,7 +73,7 @@
       changed_when:                    false
 
     - name:                            "1.17 Generic Pacemaker - Wait until cluster has stabilized"
-      ansible.builtin.shell:           pcs status | grep '^Online:'
+      ansible.builtin.shell:           set -o pipefail && pcs status | grep '^Online:'
       register:                        cluster_stable_check
       retries:                         12
       delay:                           10
