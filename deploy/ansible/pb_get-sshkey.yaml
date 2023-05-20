@@ -6,9 +6,10 @@
 ---
 
 - hosts:                               localhost
+  name:                                Retrieve SSH Key
   gather_facts:                        false
   tags:
-  - always
+    - always
 
 
   tasks:
