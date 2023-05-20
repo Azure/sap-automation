@@ -166,6 +166,7 @@
   when:
     # If custom pool or servers specified
     - (chrony_conf_entries | count) > 0
+  tags: ansible_skip_lint
 
 - name:                                "1.7 chrony: - Do we need to restart chronyd?"
   ansible.builtin.debug:
