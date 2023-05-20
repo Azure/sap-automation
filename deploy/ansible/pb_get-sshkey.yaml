@@ -26,28 +26,24 @@
                                        az keyvault secret show
                                          --vault-name {{ kv_name }}
                                          --name {{ secret_name }}
-      changed_when:                     false
-      register:                         keyvault_secret_show
-      no_log:                           true
+                                         --query value
+                                         --output tsv
+      changed_when:                    false
+      register:                        keyvault_secret_show
+      no_log:                          true
 
-    - name:                             Extract SSH Key content from secret details
+    - name:                            Extract SSH Key content from secret details
       ansible.builtin.set_fact:
-        sshkey_content: >-
-                                     {{ (keyvault_secret_show.stdout | from_json).value }}
-      no_log:                        true
+        sshkey_content:                "{{ keyvault_secret_show.stdout }}"
+      no_log:                          true
 
-
-    - name:                          Determine SSH key file name
+    - name:                            Determine SSH key file name
       ansible.builtin.set_fact:
-        sshkey_file:                 "{{ lookup('env', 'ANSIBLE_PRIVATE_KEY_FILE') | default('sshkey', True) }}"
+        sshkey_file:                   "{{ lookup('env', 'ANSIBLE_PRIVATE_KEY_FILE') | default('sshkey', True) }}"
 
-    - name: Determine SSH key file path
+    - name:                            Determine SSH key file path
       set_fact:
-        sshkey_path: >-
-        {{ sshkey_file is abs |
-           ternary(sshkey_file,
-                   (_workspace_directory, sshkey_file) | join('/')) }}
-
+        sshkey_path:                   "{{ sshkey_file is abs | ternary(sshkey_file,(_workspace_directory, sshkey_file) | join('/')) }}"
 
     - name:                            Write out SSH Key content as sshkey file
       ansible.builtin.copy:
