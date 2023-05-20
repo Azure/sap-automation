@@ -121,7 +121,7 @@
 #
     - name:                             "{{ task_prefix }} - Create SAP Binaries Storage Account SAS"
       ansible.builtin.shell: >-
-                                        az storage account generate-sas                                                     \
+                                        set -o pipefail && az storage account generate-sas                                  \
                                           --services b                                                                      \
                                           --resource-types sco                                                              \
                                           --permissions cdlrw                                                               \
