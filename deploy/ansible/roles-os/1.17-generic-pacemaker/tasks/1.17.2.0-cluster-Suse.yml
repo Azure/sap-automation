@@ -61,8 +61,7 @@
 - name:                                "1.17 Generic Pacemaker - Ensure HA Cluster password is set to something secure"
   ansible.builtin.user:
     name:                              hacluster
-    password:                          "{{ password_ha_db_cluster | password_hash('sha512', 65534 | random(seed=None) ) | string }}"
-
+    password:                          "{{ password_ha_db_cluster | password_hash('sha512', 65534 | random(seed=None) | string) }}"
 - name:                                "1.17 Generic Pacemaker - Ensure cluster configuration contains correct details"
   ansible.builtin.template:
     src:                               corosync.conf.j2
