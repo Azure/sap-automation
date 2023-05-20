@@ -558,14 +558,23 @@ stages:
                           az account set --subscription $CP_ARM_SUBSCRIPTION_ID
 
                       else
+                        if [ $LOGON_USING_SPN == "true" ]; then
+                          echo "Login using SPN"
+                          export ARM_CLIENT_ID=$CP_ARM_CLIENT_ID
+                          export ARM_CLIENT_SECRET=$CP_ARM_CLIENT_SECRET
+                          export ARM_TENANT_ID=$CP_ARM_TENANT_ID
+                          export ARM_SUBSCRIPTION_ID=$ARM_SUBSCRIPTION_ID
+                          export ARM_USE_MSI=false
+                          az login --service-principal --username $CP_ARM_CLIENT_ID --password=$CP_ARM_CLIENT_SECRET --tenant $CP_ARM_TENANT_ID --output none
+                          return_code=$?
+                          if [ 0 != $return_code ]; then
+                              echo -e "$boldred--- Login failed ---$reset"
+                              echo "##vso[task.logissue type=error]az login failed."
+                              exit $return_code
+                          fi
+                        else
                           source /etc/profile.d/deploy_server.sh
-                          # az login --service-principal --username $CP_ARM_CLIENT_ID --password=$CP_ARM_CLIENT_SECRET --tenant $CP_ARM_TENANT_ID --output none
-                          # return_code=$?
-                          # if [ 0 != $return_code ]; then
-                          #     echo -e "$boldred--- Login failed ---$reset"
-                          #     echo "##vso[task.logissue type=error]az login failed."
-                          #     exit $return_code
-                          # fi
+                        fi
                       fi
 
                       echo -e "$green--- Configure parameters ---$reset"
@@ -810,7 +819,7 @@ stages:
                       TF_LOG:                      $(TF_LOG)
                       TF_IN_AUTOMATION:            true
                       DEPLOYER_TFSTATE_KEY:        "${{ parameters.deployer }}.terraform.tfstate"
-
+                      LOGON_USING_SPN:             $(Logon_Using_SPN)
 
                   failOnStderr: false
 
