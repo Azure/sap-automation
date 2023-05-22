@@ -473,7 +473,7 @@ stages:
                 if [ -f /etc/profile.d/deploy_server.sh ]; then
                   az logout --output none
                   if [ $LOGON_USING_SPN == "true" ]; then
-                    echo "Using SPN"
+                    echo "Logon Using SPN"
 
                     export ARM_CLIENT_ID=$WL_ARM_CLIENT_ID
                     export ARM_CLIENT_SECRET=$WL_ARM_CLIENT_SECRET
