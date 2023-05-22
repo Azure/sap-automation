@@ -98,7 +98,7 @@
         sap_profile_dir:               /sapmnt/{{ sap_sid | upper }}/profile
         sap_scs_hostname:              "{{ scs_server }}"
         sap_webVirtualHostname:        "{{ inventory_hostname }}"
-        sap_installSAPHostAgent:       false
+        sap_installSAPHostAgent:       "false"
         hdb_instance_number:           "{{ db_instance_number }}"
         web_sid:                       "{{ sid_to_be_deployed.web_sid | upper }}"
         sap_sid:                       "{{ sid_to_be_deployed.sid | upper }}"
