@@ -93,7 +93,7 @@
         sap_cd_package_cd3:
         sap_cd_package_cd4:
         sap_cd_package_cd5:
-        web_instance_number:           "{{ web_instance_number }}"
+        web_instance_number:           "{{ wd_instance_number }}"
         sap_ciInstanceNumber:          "{{ scs_instance_number }}"
         sap_profile_dir:               /sapmnt/{{ sap_sid | upper }}/profile
         sap_scs_hostname:              "{{ scs_server }}"
