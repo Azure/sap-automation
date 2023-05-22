@@ -173,13 +173,13 @@ namespace AutomationForm.Models
         [AvSetIdValidator]
         public string[] database_vm_avset_arm_ids { get; set; }
 
-        public bool? database_use_ppg { get; set; } = true;
+        public bool? database_use_ppg { get; set; } = false;
 
         public bool? database_use_avset { get; set; } = false;
 
-        public bool? database_no_ppg { get; set; } = true;
+        public bool? database_no_ppg { get; set; }
 
-        public bool? database_no_avset { get; set; } = false;
+        public bool? database_no_avset { get; set; }
 
         public Tag[] database_tags { get; set; }
 
@@ -244,13 +244,13 @@ namespace AutomationForm.Models
         [AvSetIdValidator]
         public string[] application_server_vm_avset_arm_ids { get; set; }
 
-        public bool? application_server_no_avset { get; set; } = false;
+        public bool? application_server_no_avset { get; set; }
 
         public bool? application_server_use_avset { get; set; } = true;
 
         public bool? application_server_no_ppg { get; set; } = false;
 
-        public bool? application_server_use_ppg { get; set; } = true;
+        public bool? application_server_use_ppg { get; set; }
 
         // SAP Central Services
 
@@ -284,13 +284,13 @@ namespace AutomationForm.Models
         [IpAddressValidator]
         public string[] scs_server_nic_secondary_ips { get; set; }
 
-        public bool? scs_server_use_avset { get; set; } = false;
+        public bool? scs_server_use_avset { get; set; }= false;
 
-        public bool? scs_server_no_avset { get; set; } = false;
+        public bool? scs_server_no_avset { get; set; }
 
-        public bool? scs_server_use_ppg { get; set; } = true;
+        public bool? scs_server_use_ppg { get; set; }= true;
 
-        public bool? scs_server_no_ppg { get; set; } = false;
+        public bool? scs_server_no_ppg { get; set; }
 
         // Web Dispatchers
 
@@ -316,9 +316,9 @@ namespace AutomationForm.Models
         [IpAddressValidator]
         public string[] webdispatcher_server_nic_secondary_ips { get; set; }
 
-        public bool? webdispatcher_server_use_avset { get; set; }
+        public bool? webdispatcher_server_use_avset { get; set; } = true;
 
-        public bool? webdispatcher_server_use_ppg { get; set; } = true;
+        public bool? webdispatcher_server_use_ppg { get; set; } = false;
 
 
         public bool? webdispatcher_server_no_avset { get; set; }
@@ -338,7 +338,6 @@ namespace AutomationForm.Models
         public string vm_disk_encryption_set_id { get; set; }
 
         public bool? nsg_asg_with_vnet { get; set; } = false;
-
 
         // NFS Support
 
@@ -404,6 +403,8 @@ namespace AutomationForm.Models
         public int? ANF_sapmnt_volume_size { get; set; }
 
         public int? ANF_sapmnt_volume_throughput { get; set; }
+
+        public bool? ANF_sapmnt_use_clone_in_secondary_zone { get; set; }
 
         // Anchor VM
 

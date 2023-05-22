@@ -6,19 +6,19 @@
 #########################################################################################
 
 module "sap_namegenerator" {
-  source           = "../../terraform-units/modules/sap_namegenerator"
-  environment      = local.infrastructure.environment
-  location         = local.infrastructure.region
-  codename         = lower(try(local.infrastructure.codename, ""))
-  random_id        = module.common_infrastructure.random_id
-  sap_vnet_name    = local.vnet_logical_name
-  sap_sid          = local.sap_sid
-  db_sid           = local.db_sid
-  web_sid          = local.web_sid
+  source        = "../../terraform-units/modules/sap_namegenerator"
+  environment   = local.infrastructure.environment
+  location      = local.infrastructure.region
+  codename      = lower(try(local.infrastructure.codename, ""))
+  random_id     = module.common_infrastructure.random_id
+  sap_vnet_name = local.vnet_logical_name
+  sap_sid       = local.sap_sid
+  db_sid        = local.db_sid
+  web_sid       = local.web_sid
 
-  app_ostype       = upper(try(local.application_tier.app_os.os_type, "LINUX"))
-  anchor_ostype    = upper(try(local.anchor_vms.os.os_type, "LINUX"))
-  db_ostype        = upper(try(local.database.os.os_type, "LINUX"))
+  app_ostype    = upper(try(local.application_tier.app_os.os_type, "LINUX"))
+  anchor_ostype = upper(try(local.anchor_vms.os.os_type, "LINUX"))
+  db_ostype     = upper(try(local.database.os.os_type, "LINUX"))
 
   db_server_count  = var.database_server_count
   app_server_count = try(local.application_tier.application_server_count, 0)
@@ -28,10 +28,10 @@ module "sap_namegenerator" {
     local.application_tier.scs_server_count
   )
 
-  app_zones                  = try(local.application_tier.app_zones, [])
-  scs_zones                  = try(local.application_tier.scs_zones, [])
-  web_zones                  = try(local.application_tier.web_zones, [])
-  db_zones                   = try(local.database.zones, [])
+  app_zones = try(local.application_tier.app_zones, [])
+  scs_zones = try(local.application_tier.scs_zones, [])
+  web_zones = try(local.application_tier.web_zones, [])
+  db_zones  = try(local.database.zones, [])
 
   resource_offset            = try(var.resource_offset, 0)
   custom_prefix              = var.custom_prefix
@@ -109,7 +109,10 @@ module "hdb_node" {
     azurerm.deployer      = azurerm
     azurerm.main          = azurerm.system
     azurerm.dnsmanagement = azurerm.dnsmanagement
+    azapi.api             = azapi.api
+
   }
+
   depends_on = [module.common_infrastructure]
   order_deployment = local.enable_db_deployment ? (
     local.db_zonal_deployment && local.application_tier.enable_deployment ? (

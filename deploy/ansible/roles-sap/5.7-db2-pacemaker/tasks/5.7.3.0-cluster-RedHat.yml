@@ -102,7 +102,7 @@
       ansible.builtin.command:         pcs property set maintenance-mode=false
 
     - name:                            "Wait until cluster has stabilized"
-      ansible.builtin.shell:           pcs status | grep '^Online:'
+      ansible.builtin.shell:           set -o pipefail && pcs status | grep '^Online:'
       register:                        cluster_stable_check
       retries:                         12
       delay:                           10
@@ -112,7 +112,7 @@
     # '*' is a special character in regexp and needs to be escaped for literal matching
     # if we are worried about character spacing across distros we can match for '\* Online:'
     - name:                            "Wait until cluster has stabilized - RHEL 8.x"
-      ansible.builtin.shell:           pcs status | grep '^  \* Online:'
+      ansible.builtin.shell:           set -o pipefail && pcs status | grep '^  \* Online:'
       register:                        cluster_stable_check
       retries:                         12
       delay:                           10
@@ -120,7 +120,7 @@
       when:                            ansible_distribution_major_version == "8"
 
     - name:                            "Ensure Cluster resources are started"
-      ansible.builtin.shell:           pcs resource show | grep '    Started:'
+      ansible.builtin.shell:           set -o pipefail && pcs resource show | grep '    Started:'
       register:                        db2_cluster_resource_check
       retries:                         12
       delay:                           10
@@ -128,7 +128,7 @@
       when:                            ansible_distribution_major_version != "8"
 
     - name:                            "Ensure Cluster resources are started - RHEL 8.x"
-      ansible.builtin.shell:           pcs resource status | grep 'Started'
+      ansible.builtin.shell:           set -o pipefail && pcs resource status | grep 'Started'
       register:                        db2_cluster_resource_check
       retries:                         12
       delay:                           10

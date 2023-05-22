@@ -381,7 +381,13 @@ variable "database_no_avset" {
 
 variable "database_use_avset" {
   description = "If true, the database tier will use an availability set"
-  default     = true
+  default     = null
+  validation {
+    condition = (
+      tobool(var.database_use_avset) != null
+    )
+    error_message = "database_use_avset is not defined, please define it in your tfvars file."
+  }
 }
 
 
@@ -397,7 +403,14 @@ variable "database_no_ppg" {
 
 variable "database_use_ppg" {
   description = "If provided, the database tier will be placed in a proximity placement group"
-  default     = false
+  default     = null
+  validation {
+    condition = (
+      tobool(var.database_use_ppg) != null
+    )
+    error_message = "database_use_ppg is not defined, please define it in your tfvars file."
+  }
+
 }
 
 variable "database_loadbalancer_ips" {
@@ -562,7 +575,13 @@ variable "scs_server_no_avset" {
 
 variable "scs_server_use_avset" {
   description = "If true, the SAP Central Services tier will be placed in an availability set"
-  default     = false
+  default     = null
+  validation {
+    condition = (
+      tobool(var.scs_server_use_avset) != null
+    )
+    error_message = "scs_server_use_avset is not defined, please define it in your tfvars file."
+  }
 }
 
 variable "scs_server_no_ppg" {
@@ -572,7 +591,13 @@ variable "scs_server_no_ppg" {
 
 variable "scs_server_use_ppg" {
   description = "If provided, the Central Services will be placed in a proximity placement group"
-  default     = false
+  default     = null
+  validation {
+    condition = (
+      tobool(var.scs_server_use_ppg) != null
+    )
+    error_message = "scs_server_use_ppg is not defined, please define it in your tfvars file."
+  }
 }
 
 variable "scs_shared_disk_size" {
@@ -644,7 +669,13 @@ variable "application_server_no_avset" {
 
 variable "application_server_use_avset" {
   description = "If true, the application tier will be placed in an availability set"
-  default     = true
+  default     = null
+  validation {
+    condition = (
+      tobool(var.application_server_use_avset) != null
+    )
+    error_message = "application_server_use_avset is not defined, please define it in your tfvars file."
+  }
 }
 
 variable "application_server_no_ppg" {
@@ -654,7 +685,13 @@ variable "application_server_no_ppg" {
 
 variable "application_server_use_ppg" {
   description = "If provided, the application servers will be placed in a proximity placement group"
-  default     = false
+  default     = null
+  validation {
+    condition = (
+      tobool(var.application_server_use_ppg) != null
+    )
+    error_message = "application_server_use_ppg is not defined, please define it in your tfvars file."
+  }
 }
 
 variable "application_server_image" {
@@ -744,7 +781,7 @@ variable "webdispatcher_server_no_avset" {
 
 variable "webdispatcher_server_use_avset" {
   description = "If true, the Web Dispatcher tier will will be placed in an availability set"
-  default     = true
+  default     = false
 }
 
 variable "webdispatcher_server_no_ppg" {
@@ -754,7 +791,7 @@ variable "webdispatcher_server_no_ppg" {
 
 variable "webdispatcher_server_use_ppg" {
   description = "If provided, the web dispatchers will be placed in a proximity placement group"
-  default     = false
+  default     = null
 }
 
 #########################################################################################
@@ -1012,6 +1049,11 @@ variable "use_service_endpoint" {
 
 variable "ANF_sapmnt_use_existing" {
   description = "Use existing sapmnt volume"
+  default     = false
+}
+
+variable "ANF_sapmnt_use_clone_in_secondary_zone" {
+  description = "Create a clone in the secondary region"
   default     = false
 }
 

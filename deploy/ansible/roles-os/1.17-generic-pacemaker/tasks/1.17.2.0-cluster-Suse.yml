@@ -61,8 +61,7 @@
 - name:                                "1.17 Generic Pacemaker - Ensure HA Cluster password is set to something secure"
   ansible.builtin.user:
     name:                              hacluster
-    password:                          "{{ password_ha_db_cluster | password_hash('sha512', 65534 | random(seed=inventory_hostname) | string) }}"
-
+    password:                          "{{ password_ha_db_cluster | password_hash('sha512', 65534 | random(seed=None) | string) }}"
 - name:                                "1.17 Generic Pacemaker - Ensure cluster configuration contains correct details"
   ansible.builtin.template:
     src:                               corosync.conf.j2
@@ -112,7 +111,7 @@
                                        pcmk_reboot_timeout=900
                                        pcmk_host_map="{{ primary_instance_name }}:{{ hostvars[primary_instance_name]['primary_vm_name'] }};{{ secondary_instance_name }}:{{ hostvars[secondary_instance_name]['secondary_vm_name'] }}"
       when:
-        - not use_msi_for_clusters or distribution_full_id in ["sles_sap12.4","sles_sap12.5"]
+        - not use_msi_for_clusters or distribution_full_id in ["sles_sap12.4"]
 
     - name:                            "1.17 Generic Pacemaker - Create Azure Fencing Agent (MSI)"
       ansible.builtin.command: >
@@ -127,7 +126,7 @@
                                        pcmk_host_map="{{ primary_instance_name }}:{{ hostvars[primary_instance_name]['primary_vm_name'] }};{{ secondary_instance_name }}:{{ hostvars[secondary_instance_name]['secondary_vm_name'] }}"
       when:
         - use_msi_for_clusters
-        - distribution_full_id in ["sles_sap15.1","sles_sap15.2", "sles_sap15.3", "sles_sap15.4"]
+        - distribution_full_id in ["sles_sap12.5", "sles_sap15.1","sles_sap15.2", "sles_sap15.3", "sles_sap15.4"]
 
 
     - name:                            "1.17 Generic Pacemaker - Stonith Timeout Property"
@@ -137,14 +136,12 @@
 
 - name:                                "1.17 Generic Pacemaker - Ensure Azure scheduled events is configured"
   block:
-  # After configuring the Pacemaker resources for azure-events agent, when you place the cluster in or out of maintenance mode, you may get warning messages like:
-  # WARNING: cib-bootstrap-options: unknown attribute 'hostName_ hostname'
-  # WARNING: cib-bootstrap-options: unknown attribute 'azure-events_globalPullState'
-  # WARNING: cib-bootstrap-options: unknown attribute 'hostName_ hostname'
+  # After configuring the Pacemaker resources for azure-events agent,
+  # when you place the cluster in or out of maintenance mode, you may get warning messages like:
+  #   WARNING: cib-bootstrap-options: unknown attribute 'hostName_ hostname'
+  #   WARNING: cib-bootstrap-options: unknown attribute 'azure-events_globalPullState'
+  #   WARNING: cib-bootstrap-options: unknown attribute 'hostName_ hostname'
   # These warning messages can be ignored.
-    - name:                            "1.17 Generic Pacemaker - Ensure maintenance mode"
-      ansible.builtin.command:         crm configure property maintenance-mode=true
-
     - name:                            "1.17 Generic Pacemaker - Ensure Pacemaker resources for the Azure agent is created"
       ansible.builtin.shell:           crm configure primitive rsc_azure-events ocf:heartbeat:azure-events op monitor interval=10s
 

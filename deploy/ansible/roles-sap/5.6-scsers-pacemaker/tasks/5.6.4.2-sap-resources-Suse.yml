@@ -8,8 +8,18 @@
 
 - name:                                "5.6 SCSERS - SUSE - ENSA1 - SAP Resources - Cluster Configuration after Install "
   block:
-    - name:                            "5.6 SCSERS - SUSE - ENSA1 - Set the cluster on maintenance mode"
+    - name:                            "5.6 SCSERS - SUSE - ENSA1 - SAP Resources - Get the cluster maintenance mode status"
+      ansible.builtin.command:         crm configure get_property maintenance-mode
+      register:                        get_status_maintenance_mode
+      changed_when:                    false
+
+    - name:                            "5.6 SCSERS - SUSE - ENSA1 - SAP Resources - Set the cluster maintenance mode"
       ansible.builtin.command:         crm configure property maintenance-mode=true
+      when:
+        - get_status_maintenance_mode.stdout == 'false'
+
+    # - name:                            "5.6 SCSERS - SUSE - ENSA1 - Set the cluster on maintenance mode"
+    #   ansible.builtin.command:         crm configure property maintenance-mode=true
 
     - name:                            "5.6 SCSERS - SUSE - ENSA1 - Configure SAP ASCS/SCS resources"
       ansible.builtin.command: >
@@ -67,8 +77,18 @@
 
 - name:                               "5.6 SCSERS - SUSE - ENSA2 - SAP Resources - Cluster Configuration after Install"
   block:
-    - name:                            "5.6 SCSERS - SUSE - ENSA2 - Set the cluster on maintenance mode"
+    - name:                            "5.6 SCSERS - SUSE - ENSA2 - SAP Resources - Get the cluster maintenance mode status"
+      ansible.builtin.command:         crm configure get_property maintenance-mode
+      register:                        get_status_maintenance_mode
+      changed_when:                    false
+
+    - name:                            "5.6 SCSERS - SUSE - ENSA2 - SAP Resources - Set the cluster maintenance mode"
       ansible.builtin.command:         crm configure property maintenance-mode=true
+      when:
+        - get_status_maintenance_mode.stdout == 'false'
+
+    # - name:                            "5.6 SCSERS - SUSE - ENSA2 - Set the cluster on maintenance mode"
+    #   ansible.builtin.command:         crm configure property maintenance-mode=true
 
     - name:                            "5.6 SCSERS - SUSE - ENSA2 - Configure SAP ASCS/SCS resources"
       ansible.builtin.shell: >
@@ -111,18 +131,6 @@
 
     - name:                            "5.6 SCSERS - SUSE - ENSA2 - Bring primary node online "
       ansible.builtin.command:         crm node online {{ primary_instance_name }}
-
-    # - name:                            "5.6 SCS ERS stop scs resource g-{{ sap_sid }}_{{ instance_type | upper }}"
-    #   ansible.builtin.shell:           "crm resource stop g-{{ sap_sid }}_{{ instance_type | upper }}"
-
-    # - name:                            "5.6 SCS ERS start scs resource g-{{ sap_sid }}_{{ instance_type | upper }}"
-    #   ansible.builtin.shell:           "crm resource start g-{{ sap_sid }}_{{ instance_type | upper }}"
-
-    # - name:                            "5.6 SCS ERS stop ers resource g-{{ sap_sid }}_ERS"
-    #   ansible.builtin.shell:           "crm resource stop g-{{ sap_sid }}_ERS"
-
-    # - name:                            "5.6 SCS ERS start ers resource g-{{ sap_sid }}_ERS"
-    #   ansible.builtin.shell:           "crm resource start g-{{ sap_sid }}_ERS"
 
     - name:                            "5.6 SCSERS - SUSE - ENSA2 - Set the Cluster out of maintenance mode"
       ansible.builtin.command:         crm configure property maintenance-mode=false

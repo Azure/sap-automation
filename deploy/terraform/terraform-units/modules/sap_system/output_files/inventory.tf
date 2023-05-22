@@ -98,10 +98,19 @@ resource "local_file" "ansible_inventory_new_yml" {
     ansible_winrm_server_cert_validation = var.platform == "SQLSERVER" ? (
       "ansible_winrm_server_cert_validation: ignore") : (
       upper(var.app_tier_os_types["scs"]) == "WINDOWS" ? "ansible_winrm_server_cert_validation: ignore" : ""
-
     )
 
-    db_os_type = var.platform == "SQLSERVER" ? "windows" : "linux"
+    ansible_winrm_operation_timeout_sec = var.platform == "SQLSERVER" ? (
+      "ansible_winrm_operation_timeout_sec: 120") : (
+      upper(var.app_tier_os_types["scs"]) == "WINDOWS" ? "ansible_winrm_operation_timeout_sec: 120" : ""
+    )
+
+    ansible_winrm_read_timeout_sec = var.platform == "SQLSERVER" ? (
+      "ansible_winrm_read_timeout_sec: 150") : (
+      upper(var.app_tier_os_types["scs"]) == "WINDOWS" ? "ansible_winrm_read_timeout_sec: 150" : ""
+    )
+
+    db_os_type  = var.platform == "SQLSERVER" ? "windows" : "linux"
     scs_os_type = upper(var.app_tier_os_types["scs"]) == "WINDOWS" ? "windows" : "linux"
     app_os_type = upper(var.app_tier_os_types["app"]) == "WINDOWS" ? "windows" : "linux"
     web_os_type = upper(var.app_tier_os_types["web"]) == "WINDOWS" ? "windows" : "linux"
@@ -132,10 +141,12 @@ resource "local_file" "sap-parameters_yml" {
 
     dns = local.dns_label
     bom = local.bom
-    sap_mnt = length(trimspace(var.sap_mnt)) > 0 ? (
+
+    sap_mnt = length(var.sap_mnt) > 1 ? (
       format("sap_mnt:                       %s", var.sap_mnt)) : (
       ""
     )
+
     sap_transport = length(trimspace(var.sap_transport)) > 0 ? (
       format("sap_trans:                     %s", var.sap_transport)) : (
       ""

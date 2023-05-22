@@ -444,7 +444,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vault" {
   depends_on = [
     azurerm_virtual_network.vnet_sap
   ]
-  count = local.use_Azure_native_DNS ? 1 : 0
+  count = local.use_Azure_native_DNS  && var.use_private_endpoint ? 1 : 0
   name = format("%s%s%s%s",
     var.naming.resource_prefixes.dns_link,
     local.prefix,

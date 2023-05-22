@@ -185,7 +185,7 @@ variable "deployer_enable_public_ip" {
 
 variable "deployer_size" {
   description = "The size of the deployer VM"
-  default     = ""
+  default     = "Standard_D4ds_v4"
 }
 
 variable "deployer_count" {

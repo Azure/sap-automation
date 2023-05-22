@@ -178,8 +178,6 @@ output "configuration_settings" {
   value       = var.configuration_settings
 }
 
-
-
 output "use_custom_dns_a_registration" {
   value = try(data.terraform_remote_state.landscape.outputs.use_custom_dns_a_registration, true)
 }

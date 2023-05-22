@@ -90,10 +90,14 @@ locals {
     usr_sap_volume_name         = var.ANF_usr_sap_volume_name
     usr_sap_volume_throughput   = var.ANF_usr_sap_throughput
 
-    sapmnt_volume_size         = var.sapmnt_volume_size
-    use_existing_sapmnt_volume = var.ANF_sapmnt_use_existing
-    sapmnt_volume_name         = var.ANF_sapmnt_volume_name
-    sapmnt_volume_throughput   = var.ANF_sapmnt_volume_throughput
+    sapmnt_volume_size                 = var.sapmnt_volume_size
+    use_for_sapmnt                     = var.ANF_sapmnt
+    use_existing_sapmnt_volume         = var.ANF_sapmnt_use_existing
+    sapmnt_volume_name                 = var.ANF_sapmnt_volume_name
+    sapmnt_volume_throughput           = var.ANF_sapmnt_volume_throughput
+    sapmnt_use_clone_in_secondary_zone = var.ANF_sapmnt_use_clone_in_secondary_zone
+
+    use_AVG_for_data                   = true
 
   }
 

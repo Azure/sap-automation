@@ -15,7 +15,7 @@
 - name:                                "1.17 Generic Pacemaker - Ensure HA Cluster password is set to something secure"
   ansible.builtin.user:
     name:                             hacluster
-    password:                         "{{ password_ha_db_cluster | password_hash('sha512', 65534 | random(seed=inventory_hostname) | string) }}"
+    password:                         "{{ password_ha_db_cluster | password_hash('sha512', 65534 | random(seed=None) | string) }}"
 
 - name:                                "1.17 Generic Pacemaker - Ensure the firewall service is configured to allow High Availability traffic"
   ansible.posix.firewalld:
@@ -73,7 +73,7 @@
       changed_when:                    false
 
     - name:                            "1.17 Generic Pacemaker - Wait until cluster has stabilized"
-      ansible.builtin.shell:           pcs status | grep '^Online:'
+      ansible.builtin.shell:           set -o pipefail && pcs status | grep '^Online:'
       register:                        cluster_stable_check
       retries:                         12
       delay:                           10
@@ -83,7 +83,7 @@
     # '*' is a special character in regexp and needs to be escaped for literal matching
     # if we are worried about character spacing across distros we can match for '\* Online:'
     - name:                            "1.17 Generic Pacemaker - Wait until cluster has stabilized"
-      ansible.builtin.shell:           pcs status | grep '^  \* Online:'
+      ansible.builtin.shell:           set -o pipefail && pcs status | grep '^  \* Online:'
       register:                        cluster_stable_check
       retries:                         12
       delay:                           10
@@ -185,5 +185,20 @@
     - name:                            "1.17 Generic Pacemaker - Ensure the STONITH device is enabled"
       ansible.builtin.command:         pcs property set stonith-enabled=true
   when:                                ansible_hostname == primary_instance_name
+
+# - name:                                "1.17 Generic Pacemaker - Set the cluster maintenance mode"
+#   block:
+#     - name:                            "1.17 Generic Pacemaker - Get the cluster maintenance mode status"
+#       ansible.builtin.command:         pcs property config maintenance-mode
+#       register:                        get_status_maintenance_mode
+#       changed_when:                    false
+
+#     - name:                            "1.17 Generic Pacemaker - Set the cluster maintenance mode"
+#       ansible.builtin.command:         pcs property set maintenance-mode=true
+#       when: >-
+#         'maintenance-mode' not in get_status_maintenance_mode.stdout or
+#         'maintenance-mode: false' in get_status_maintenance_mode.stdout
+
+#   when:                                ansible_hostname == primary_instance_name
 
 # End of Generic Pacemaker setup

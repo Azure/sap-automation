@@ -1,6 +1,7 @@
 exclude_paths:
   - deploy/pipelines
   - deploy/ansible/BOM-catalog
+  - deploy/ansible/filter_plugins
   - deploy/terraform
   - .github
 
@@ -19,5 +20,6 @@ skip_list:
   - yaml[colons]
   - yaml[commas]
   - yaml[line-length]
+  - yaml[octal-values]
   - name[template]
   - command-instead-of-shell # csh is not supported in commands

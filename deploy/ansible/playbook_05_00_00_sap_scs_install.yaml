@@ -227,6 +227,7 @@
             sapbits_sas_token:         "{{ hostvars.localhost.sapbits_sas_token }}"
             always_upload_jinja_templates: false
             sa_enabled:                 true
+            ha_identifier:              ""
           tags:
             - always
 
@@ -313,7 +314,7 @@
                     tier:                      app_tier
                     scs_server:                "{{ ansible_hostname }}"
 
-                - name:                "SCS Installation Playbook: - Install using sapinst"
+                - name:                "SCS Installation Playbook: - Install SAP Central Services"
                   ansible.builtin.include_role:
                     name:              roles-sap/windows/5.0.0-scs-install
                   vars:
@@ -322,6 +323,7 @@
                     svc_password:          "{{ hostvars.localhost.svcadm_password }}"
                     primary_node:          "{{ ansible_play_hosts_all[0] }}"
                     secondary_node:        ""
+                    ers_virtual_hostname:  "{{ sap_sid | lower }}ers{{ ers_instance_number }}cl2"
                   loop:                    "{{ all_sids }}"
                   loop_control:
                     loop_var:              sid_to_be_deployed
@@ -422,12 +424,12 @@
             sapbits_location_base_path: "{{ hostvars.localhost.sapbits_location_base_path }}"
             sapbits_sas_token:          "{{ hostvars.localhost.sapbits_sas_token }}"
             sa_enabled:                 true
-            scs_virtual_hostname:       "{{ sap_sid | lower }}scs{{ scs_instance_number }}cl1"
-            ers_virtual_hostname:       "{{ sap_sid | lower }}ers{{ ers_instance_number }}cl2"
             fencing_spn_client_id:      "{% if not use_msi_for_clusters %}{{ hostvars.localhost.sap_fencing_spn_client_id }}{% endif %}"
             fencing_spn_client_pwd:     "{% if not use_msi_for_clusters %}{{ hostvars.localhost.sap_fencing_spn_pwd }}{% endif %}"
             fencing_spn_tenant_id:      "{% if not use_msi_for_clusters %}{{ hostvars.localhost.sap_fencing_spn_tenant_id }}{% endif %}"
             always_upload_jinja_templates:    false
+            scs_virtual_hostname:       "{{ sap_sid | lower }}scs{{ scs_instance_number }}cl1"
+            ers_virtual_hostname:       "{{ sap_sid | lower }}ers{{ ers_instance_number }}cl2"
           tags:
             - always
 
@@ -619,6 +621,8 @@
                 secondary_node_ip_ers:        "{{ hostvars[ansible_play_hosts_all[1]]['ansible_eth0']['ipv4']['address'] }}"
                 ansible_winrm_transport:              credssp
                 ansible_winrm_server_cert_validation: ignore
+                scs_virtual_hostname:       "{{ sap_sid | lower }}scs{{ scs_instance_number }}cl1"
+                ers_virtual_hostname:       "{{ sap_sid | lower }}ers{{ ers_instance_number }}cl2"
 
               loop:                    "{{ all_sids }}"
               loop_control:

@@ -30,8 +30,8 @@ resource "azurerm_lb" "anydb" {
 }
 
 resource "azurerm_lb_backend_address_pool" "anydb" {
-  provider        = azurerm.main
-  count = local.enable_db_lb_deployment ? 1 : 0
+  provider = azurerm.main
+  count    = local.enable_db_lb_deployment ? 1 : 0
   name = format("%s%s%s%s",
     var.naming.resource_prefixes.db_alb_bepool,
     local.prefix,
@@ -95,7 +95,7 @@ resource "azurerm_network_interface_backend_address_pool_association" "anydb" {
 # AVAILABILITY SET ================================================================================================
 
 resource "azurerm_availability_set" "anydb" {
-  provider        = azurerm.main
+  provider = azurerm.main
   count = local.enable_deployment && local.use_avset && !local.availabilitysets_exist ? (
     max(length(local.zones), 1)) : (
     0
@@ -109,12 +109,9 @@ resource "azurerm_availability_set" "anydb" {
   resource_group_name          = var.resource_group[0].name
   platform_update_domain_count = 20
   platform_fault_domain_count  = local.faultdomain_count
-  proximity_placement_group_id = local.zonal_deployment ? (
-    null) : (
-    var.database.use_ppg ? (
-      var.ppg[count.index].id) : (
-      null
-    )
+  proximity_placement_group_id = var.database.use_ppg ? (
+    var.ppg[count.index % max(local.db_zone_count, 1)].id) : (
+    null
   )
   managed = true
 }

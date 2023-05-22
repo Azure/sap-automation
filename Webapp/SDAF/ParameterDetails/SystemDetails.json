@@ -1810,6 +1810,15 @@
         "Display": 3
       },
       {
+        "Name": "ANF_sapmnt_use_clone_in_secondary_zone",
+        "Required": false,
+        "Description": "Use clone in secondary region for sapmnt volume",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
         "Name": "ANF_sapmnt_volume_name",
         "Required": false,
         "Description": "Azure NetApp volumes name(s) for existing HANA /sapmnt volume(s)",

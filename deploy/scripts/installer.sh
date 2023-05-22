@@ -597,7 +597,7 @@ then
     echo "Error when running Terraform plan" > "${system_config_information}".err
 
     unset TF_DATA_DIR
-    rm
+    rm plan_output.log
     exit $return_value
 fi
 
@@ -1132,12 +1132,6 @@ then
             fi
         fi
 
-    fi
-    deployer_extension_ids=$(terraform -chdir="${terraform_module_directory}"  output -no-color -json deployer_extension_ids | jq -r '.[]')
-
-    if [[ -n ${deployer_extension_ids} ]]
-    then
-        az resource delete --ids ${deployer_extension_ids}
     fi
 
    if valid_kv_name "$keyvault" ; then

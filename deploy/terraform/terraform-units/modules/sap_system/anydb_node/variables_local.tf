@@ -382,8 +382,8 @@ locals {
   zonal_deployment = local.db_zone_count > 0 || local.enable_ultradisk ? true : false
 
   //If we deploy more than one server in zone put them in an availability set
-  use_avset = local.availabilitysets_exist ? (
-    true) : (var.database.use_avset && !local.enable_ultradisk ? (
+  use_avset = local.availabilitysets_exist || var.database.use_avset ? (
+    true) : (!local.enable_ultradisk ? (
       !local.zonal_deployment || (var.database_server_count != local.db_zone_count)) : (
       false
     )

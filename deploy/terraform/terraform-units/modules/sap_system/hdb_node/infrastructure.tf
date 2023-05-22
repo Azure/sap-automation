@@ -14,12 +14,9 @@ resource "azurerm_availability_set" "hdb" {
   resource_group_name          = var.resource_group[0].name
   platform_update_domain_count = 20
   platform_fault_domain_count  = local.faultdomain_count
-  proximity_placement_group_id = local.zonal_deployment ? (
-    null) : (
-    var.database.use_ppg ? (
-      var.ppg[count.index].id) : (
-      null
-    )
+  proximity_placement_group_id = var.database.use_ppg ? (
+    var.ppg[count.index % max(local.db_zone_count, 1)].id) : (
+    null
   )
   managed = true
 

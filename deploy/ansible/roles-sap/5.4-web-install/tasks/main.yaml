@@ -14,9 +14,9 @@
 
 - name:                                "Web Install: Set BOM facts"
   ansible.builtin.set_fact:
-    sap_inifile:                       "{{ bom_base_name }}-web-{{ sid_to_be_deployed.sid | lower }}-{{ ansible_hostname }}.params"
+    sap_inifile:                       "{{ bom_base_name }}-web-{{ sid_to_be_deployed.web_sid | lower }}-{{ ansible_hostname }}.params"
     sap_inifile_template:              "{{ bom_base_name }}{{ bom_suffix }}-web-inifile-param.j2"
-    dir_params:                        "{{ tmp_directory }}/.{{ sid_to_be_deployed.sid | lower }}-params"
+    dir_params:                        "{{ tmp_directory }}/.{{ sid_to_be_deployed.web_sid | lower }}-params"
 
 - name:                                "Web Install: Create directories"
   ansible.builtin.file:
@@ -25,18 +25,18 @@
     mode:                              '{{ item.mode }}'
   loop:
     - { mode: '0755', path: '{{ dir_params }}' }
-    - { mode: '0755', path: '{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}' }
-    - { mode: '0755', path: '/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}' }
+    - { mode: '0755', path: '{{ tmp_directory }}/{{ sid_to_be_deployed.web_sid | upper }}' }
+    - { mode: '0755', path: '/etc/sap_deployment_automation/{{ sid_to_be_deployed.web_sid | upper }}' }
 
 - name:                                "Web Install: reset"
   ansible.builtin.file:
-    path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_web.txt"
+    path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.web_sid | upper }}/sap_deployment_web.txt"
     state:                             absent
   when:                                reinstall
 
-- name:                                "Web Install: check if {{ sid_to_be_deployed.sid | upper }} is installed"
+- name:                                "Web Install: check if {{ sid_to_be_deployed.web_sid | upper }} is installed"
   ansible.builtin.stat:
-    path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_web.txt"
+    path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.web_sid | upper }}/sap_deployment_web.txt"
   register:                            web_installed
 
 # Returns bom object
@@ -48,6 +48,10 @@
     bom_name:                          "{{ bom_base_name }}"
     task_prefix:                       "Web Install: "
     sa_enabled:                        true
+
+- name:                                "Web install: register variables"
+  ansible.builtin.set_fact:
+    web_bom_id:                        "{{ bom.product_ids.web }}"
 
 - name:                                "Web Install"
   become:                              true
@@ -89,36 +93,33 @@
         sap_cd_package_cd3:
         sap_cd_package_cd4:
         sap_cd_package_cd5:
-        web_instance_number:           "00" # "{{ web_instance_number }}"
-        sap_ciInstanceNumber:          "00"
+        web_instance_number:           "{{ wd_instance_number }}"
+        sap_ciInstanceNumber:          "{{ scs_instance_number }}"
         sap_profile_dir:               /sapmnt/{{ sap_sid | upper }}/profile
         sap_scs_hostname:              "{{ scs_server }}"
         sap_webVirtualHostname:        "{{ inventory_hostname }}"
-        sap_installSAPHostAgent:       false
+        sap_installSAPHostAgent:       "false"
         hdb_instance_number:           "{{ db_instance_number }}"
-
-    - name:                            "Web install: register variables"
-      ansible.builtin.set_fact:
-        web_bom_id:                    "{{ bom.product_ids.web }}"
+        web_sid:                       "{{ sid_to_be_deployed.web_sid | upper }}"
+        sap_sid:                       "{{ sid_to_be_deployed.sid | upper }}"
 
     - name:                            "Web install: Who am I"
       ansible.builtin.command:         "whoami"
       register:                        whoami
-
 
     - name:                            "Web Install: install variables"
       ansible.builtin.debug:
         msg:
           - "INSTALLED:  {{ web_installed.stat.exists }}"
           - "INIFILE:    {{ dir_params }}/{{ sap_inifile }}"
-          - "SID:        {{ sid_to_be_deployed.sid }}"
+          - "SID:        {{ sid_to_be_deployed.web_sid }}"
           - "SAPSID:     {{ sap_sid }}"
           - "PRODUCT ID: {{ web_bom_id }}"
           - "INSTANCE:   {{ web_instance_number }}"
           - "SCSHOST:    {{ scs_server }}"
           - "WHOAMI :    {{ whoami.stdout }}"
           - "LOCATION:   {{ target_media_location }}/SWPM"
-          - "TMPDIR:     {{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
+          - "TMPDIR:     {{ tmp_directory }}/{{ sid_to_be_deployed.web_sid | upper }}"
 # *====================================4=======================================8
 #   SAP Web Dispatcher: Install
 # 2230669 - System Provisioning Using a Parameter Input File
@@ -126,13 +127,13 @@
 
     - name:                            "Create temp directory for sid"
       ansible.builtin.file:
-        path:                          "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
+        path:                          "{{ tmp_directory }}/{{ sid_to_be_deployed.web_sid | upper }}"
         state:                         directory
         mode:                          0755
 
     - name:                            "SAP Web Dispatcher Install: progress"
       ansible.builtin.debug:
-        msg:                           "Starting Web Install ({{ sid_to_be_deployed.sid | upper }})"
+        msg:                           "Starting Web Install ({{ sid_to_be_deployed.web_sid | upper }})"
 
     - name:                            "SAP Web Dispatcher Install"
       ansible.builtin.shell: |
@@ -144,10 +145,10 @@
                                                  SAPINST_START_GUISERVER=false
       args:
         chdir:                         "{{ target_media_location }}/SWPM"
-        creates:                       "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_web.txt"
+        creates:                       "/etc/sap_deployment_automation/{{ sid_to_be_deployed.web_sid | upper }}/sap_deployment_web.txt"
       environment:
-        SAPSYSTEMNAME:                 "{{ sid_to_be_deployed.sid | upper }}"
-        TMPDIR:                        "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
+        SAPSYSTEMNAME:                 "{{ sid_to_be_deployed.web_sid | upper }}"
+        TMPDIR:                        "{{ tmp_directory }}/{{ sid_to_be_deployed.web_sid | upper }}"
       register:                        web_installation
       failed_when:                     web_installation.rc > 0
       when:                            node_tier == 'web'
@@ -164,7 +165,7 @@
 
     - name:                            "Web Install: flag"
       ansible.builtin.file:
-        path:                          "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_web.txt"
+        path:                          "/etc/sap_deployment_automation/{{ sid_to_be_deployed.web_sid | upper }}/sap_deployment_web.txt"
         state:                         touch
         mode:                          0755
 

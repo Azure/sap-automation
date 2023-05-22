@@ -7,6 +7,17 @@
   loop:
     - PSDesiredStateConfiguration
     - SqlServerDsc
+    - SecurityPolicyDsc
+
+# This is needed to override the default SQLPS module that comes with the
+# SqlServer installation as a backward compatibility component
+- name:                                "WIN-SQL: Ensure SqlServer module is installed"
+  community.windows.win_psmodule:
+    name:                              "{{ item }}"
+    state:                             present
+    allow_clobber:                     true
+  loop:
+    - SqlServer
 
 - name:                                "WIN: Calculating the domain value from {{ domain_name }}"
   ansible.builtin.set_fact:
@@ -47,41 +58,67 @@
     quiet:                            true
 
 - name:                                "Grant required privileges to the SQL Server account"
-  become:                              true
-  become_method:                       'runas'
-  become_user:                         '{{ orchestration_ansible_user }}'
-  ansible.windows.win_user_right:
-    name:                              '{{ privilege_constant }}'
-    users:                             '{{ domain_sqlsvc_account }}'
-    action:                            add
+  ansible.windows.win_dsc:
+    resource_name:                     UserRightsAssignment
+    Policy:                            "{{ item }}"
+    Identity:                          '{{ domain_sqlsvc_account }}'
   loop:
-    - SeServiceLogonRight
-    - SeAssignPrimaryTokenPrivilege
-    - SeChangeNotifyPrivilege
-    - SeIncreaseQuotaPrivilege
-    - SeIncreaseWorkingSetPrivilege
-    - SeManageVolumePrivilege
-    - SeLockMemoryPrivilege
-  loop_control:
-    loop_var:                         privilege_constant
+    - Log_on_as_a_service
+    - Replace_a_process_level_token
+    - Modify_an_object_label
+    - Adjust_memory_quotas_for_a_process
+    - Increase_a_process_working_set
+    - Perform_volume_maintenance_tasks
+    - Bypass_traverse_checking
+    - Lock_pages_in_memory
+
+# - name:                                "Grant required privileges to the SQL Server account"
+#   become:                              true
+#   become_method:                       'runas'
+#   become_user:                         '{{ orchestration_ansible_user }}'
+#   ansible.windows.win_user_right:
+#     name:                              '{{ privilege_constant }}'
+#     users:                             '{{ domain_sqlsvc_account }}'
+#     action:                            add
+#   loop:
+#     - SeServiceLogonRight
+#     - SeAssignPrimaryTokenPrivilege
+#     - SeChangeNotifyPrivilege
+#     - SeIncreaseQuotaPrivilege
+#     - SeIncreaseWorkingSetPrivilege
+#     - SeManageVolumePrivilege
+#     - SeLockMemoryPrivilege
+#   loop_control:
+#     loop_var:                         privilege_constant
 
 - name:                                "Grant required privileges to the SQL Server agent account"
-  become:                              true
-  become_method:                       'runas'
-  become_user:                         '{{ orchestration_ansible_user }}'
-  ansible.windows.win_user_right:
-    name:                              '{{ privilege_constant }}'
-    users:                             '{{ domain_sqlagent_account }}'
-    action:                            add
+  ansible.windows.win_dsc:
+    resource_name:                     UserRightsAssignment
+    Policy:                            "{{ item }}"
+    Identity:                          '{{ domain_sqlagent_account }}'
   loop:
-    - SeServiceLogonRight
-    - SeAssignPrimaryTokenPrivilege
-    - SeChangeNotifyPrivilege
-    - SeIncreaseQuotaPrivilege
-  loop_control:
-    loop_var:                         privilege_constant
+    - Log_on_as_a_service
+    - Replace_a_process_level_token
+    - Modify_an_object_label
+    - Adjust_memory_quotas_for_a_process
 
-- name:                                "Add SPNs for the gMSA account"
+# - name:                                "Grant required privileges to the SQL Server agent account"
+#   become:                              true
+#   become_method:                       'runas'
+#   become_user:                         '{{ orchestration_ansible_user }}'
+#   ansible.windows.win_user_right:
+#     name:                              '{{ privilege_constant }}'
+#     users:                             '{{ domain_sqlagent_account }}'
+#     action:                            add
+#   loop:
+#     - SeServiceLogonRight
+#     - SeAssignPrimaryTokenPrivilege
+#     - SeChangeNotifyPrivilege
+#     - SeIncreaseQuotaPrivilege
+#   loop_control:
+#     loop_var:                         privilege_constant
+
+- name:                                "Add SPNs for SQL Server"
   ansible.windows.win_shell: |
     'setspn -A MSSQLSvc/{{ mssql_primary_node }}.{{ domain_name }} {{ domain_sqlsvc_account }}'
     'setspn -A MSSQLSvc/{{ mssql_primary_node }}.{{ domain_name }}:1433 {{ domain_sqlsvc_account }}'

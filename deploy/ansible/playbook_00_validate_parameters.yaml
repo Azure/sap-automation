@@ -482,24 +482,28 @@
     #     - (ansible_distribution | lower ~ ansible_distribution_major_version) in ['redhat7', 'redhat8']
     #     - yum_results is defined
 
-    - name:                            "0.0 Validations - Show Mounts"
-      ansible.builtin.command: df -h
-      register: mounts
-      failed_when: false
-      tags:
-        - 0.0-mounts
-      when:
-        - ansible_os_family != "Windows"
-
+    # - name:                            "0.0 Validations - Show Mounts"
+    #   ansible.builtin.command: df -h
+    #   register: mounts
+    #   failed_when: false
+    #   tags:
+    #     - 0.0-mounts
+    #   when:
+    #     - ansible_os_family != "Windows"
     - name:                            "0.0 Validations - Show Mounts"
       ansible.builtin.debug:
-        var: mounts.stdout_lines
+        msg:
+          - "Mount:      {{ item.mount }}"
+          - "Device:     {{ item.device }}"
+          - "Filesystem: {{ item.fstype }}"
+      with_items:
+        - "{{ ansible_mounts }}"
       when:
-        - mounts is defined
         - ansible_os_family != "Windows"
 
+
     - name:                            "0.0 Validations - Show Hosts"
-      ansible.builtin.command: cat /etc/hosts
+      ansible.builtin.shell:           set -o pipefail && cat /etc/hosts | grep -v -e "^#" | grep -v -e '^[[:space:]]*$'
       register: hosts
       tags:
         - 0.0-hosts

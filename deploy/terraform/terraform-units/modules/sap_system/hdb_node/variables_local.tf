@@ -312,9 +312,19 @@ locals {
   dns_label = try(var.landscape_tfstate.dns_label, "")
 
   ANF_pool_settings = var.NFS_provider == "ANF" ? (
-    try(var.landscape_tfstate.ANF_pool_settings, null)
+    try(var.landscape_tfstate.ANF_pool_settings, {})
     ) : (
-    null
+    {
+      use_ANF             = false
+      account_name        = ""
+      account_id          = ""
+      pool_name           = ""
+      service_level       = ""
+      size_in_tb          = ""
+      subnet_id           = ""
+      resource_group_name = ""
+      location            = ""
+    }
   )
   database_primary_ips = [
     {

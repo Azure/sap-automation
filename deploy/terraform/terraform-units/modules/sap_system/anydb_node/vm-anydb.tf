@@ -157,7 +157,7 @@ resource "azurerm_linux_virtual_machine" "dbserver" {
   }
 
   proximity_placement_group_id = var.database.use_ppg ? (
-    var.ppg[count.index].id) : (
+    var.ppg[count.index % max(local.db_zone_count, 1)].id) : (
     null
   )
   //If more than one servers are deployed into a single zone put them in an availability set and not a zone
@@ -168,7 +168,7 @@ resource "azurerm_linux_virtual_machine" "dbserver" {
     )
   ) : null
 
-  zone = local.zonal_deployment ? try(local.zones[count.index % max(local.db_zone_count, 1)], null) : null
+  zone = local.zonal_deployment && !local.use_avset ? try(local.zones[count.index % max(local.db_zone_count, 1)], null) : null
 
   network_interface_ids = local.anydb_dual_nics ? (
     var.options.legacy_nic_order ? (
@@ -273,7 +273,7 @@ resource "azurerm_windows_virtual_machine" "dbserver" {
   }
 
   proximity_placement_group_id = var.database.use_ppg ? (
-    var.ppg[count.index].id) : (
+    var.ppg[count.index % max(local.db_zone_count, 1)].id) : (
     null
   )
   //If more than one servers are deployed into a single zone put them in an availability set and not a zone
@@ -284,7 +284,7 @@ resource "azurerm_windows_virtual_machine" "dbserver" {
     )
   ) : null
 
-  zone = local.zonal_deployment ? try(local.zones[count.index % max(local.db_zone_count, 1)], null) : null
+  zone = local.zonal_deployment  && !local.use_avset ? try(local.zones[count.index % max(local.db_zone_count, 1)], null) : null
 
   network_interface_ids = local.anydb_dual_nics ? (
     var.options.legacy_nic_order ? (
@@ -370,7 +370,7 @@ resource "azurerm_managed_disk" "disks" {
     null
   )
 
-  zone = local.zonal_deployment ? (
+  zone = local.zonal_deployment  && !local.use_avset ? (
     upper(local.anydb_ostype) == "LINUX" ? (
       azurerm_linux_virtual_machine.dbserver[local.anydb_disks[count.index].vm_index].zone) : (
       azurerm_windows_virtual_machine.dbserver[local.anydb_disks[count.index].vm_index].zone
