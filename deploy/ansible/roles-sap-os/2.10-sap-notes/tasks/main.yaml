@@ -48,7 +48,7 @@
     policy:                            targeted
     state:                             permissive
   when:
-    - node_tier in ['scs', 'ers', 'pas', 'app']
+    - node_tier in ['scs', 'ers', 'pas', 'app', 'web']
     - distribution_id in ['redhat7', 'redhat8', 'oracle8']
   notify:                              "2.10-sap-notes: Reboot after the selinux is configured"
 
