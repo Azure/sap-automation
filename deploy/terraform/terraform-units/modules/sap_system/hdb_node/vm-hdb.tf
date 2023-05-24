@@ -263,9 +263,9 @@ resource "azurerm_linux_virtual_machine" "vm_dbnode" {
   dynamic "plan" {
     for_each = range(var.database.os.type == "marketplace_with_plan" ? 1 : 0)
     content {
-      name      = var.database.os.offer
+      name      = var.database.os.sku
       publisher = var.database.os.publisher
-      product   = var.database.os.sku
+      product   = var.database.os.offer
     }
   }
 

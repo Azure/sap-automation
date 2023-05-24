@@ -218,9 +218,9 @@ resource "azurerm_linux_virtual_machine" "web" {
   dynamic "plan" {
     for_each = range(var.application_tier.web_os.type == "marketplace_with_plan" ? 1 : 0)
     content {
-      name      = var.application_tier.web_os.offer
+      name      = var.application_tier.web_os.sku
       publisher = var.application_tier.web_os.publisher
-      product   = var.application_tier.web_os.sku
+      product   = var.application_tier.web_os.offer
     }
   }
 
@@ -338,9 +338,9 @@ resource "azurerm_windows_virtual_machine" "web" {
   dynamic "plan" {
     for_each = range(var.application_tier.web_os.type == "marketplace_with_plan" ? 1 : 0)
     content {
-      name      = var.application_tier.web_os.offer
+      name      = var.application_tier.web_os.sku
       publisher = var.application_tier.web_os.publisher
-      product   = var.application_tier.web_os.sku
+      product   = var.application_tier.web_os.offer
     }
   }
 
