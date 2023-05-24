@@ -219,9 +219,9 @@ resource "azurerm_linux_virtual_machine" "scs" {
   dynamic "plan" {
     for_each = range(var.application_tier.scs_os.type == "marketplace_with_plan" ? 1 : 0)
     content {
-      name      = var.application_tier.scs_os.offer
+      name      = var.application_tier.scs_os.sku
       publisher = var.application_tier.scs_os.publisher
-      product   = var.application_tier.scs_os.sku
+      product   = var.application_tier.scs_os.offer
     }
   }
   boot_diagnostics {
@@ -369,9 +369,9 @@ resource "azurerm_windows_virtual_machine" "scs" {
   dynamic "plan" {
     for_each = range(var.application_tier.scs_os.type == "marketplace_with_plan" ? 1 : 0)
     content {
-      name      = var.application_tier.scs_os.offer
+      name      = var.application_tier.scs_os.sku
       publisher = var.application_tier.scs_os.publisher
-      product   = var.application_tier.scs_os.sku
+      product   = var.application_tier.scs_os.offer
     }
   }
 
