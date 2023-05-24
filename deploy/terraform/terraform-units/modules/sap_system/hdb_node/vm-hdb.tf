@@ -252,7 +252,7 @@ resource "azurerm_linux_virtual_machine" "vm_dbnode" {
   source_image_id = var.database.os.type == "custom" ? local.hdb_os.source_image_id : null
 
   dynamic "source_image_reference" {
-    for_each = range(var.database.os.type == "marketplace" ? 1 : 0)
+    for_each = range(var.database.os.type == "marketplace" || var.database.os.type == "marketplace_with_plan" ? 1 : 0)
     content {
       publisher = var.database.os.publisher
       offer     = var.database.os.offer

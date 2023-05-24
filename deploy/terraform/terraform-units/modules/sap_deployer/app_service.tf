@@ -66,6 +66,7 @@ resource "azurerm_windows_web_app" "webapp" {
   resource_group_name = local.rg_name
   location            = local.rg_appservice_location
   service_plan_id     = azurerm_service_plan.appserviceplan[0].id
+  https_only          = true
 
   auth_settings {
     enabled          = true
