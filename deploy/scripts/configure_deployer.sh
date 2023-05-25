@@ -428,7 +428,7 @@ else
         ;;
     esac
 
-     az upgrade --all --yes --output none --only-show-errors
+     sudo az upgrade --all --yes --only-show-errors --output none
 
     # Install dotNet
     case "$(get_distro_name)" in
