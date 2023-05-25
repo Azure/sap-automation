@@ -420,6 +420,8 @@ else
 
     set -o errexit
 
+    az upgrade --all --yes --output none --only-show-errors
+
 
     # Install dotNet
     case "$(get_distro_name)" in

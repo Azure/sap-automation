@@ -428,6 +428,8 @@ else
         ;;
     esac
 
+     az upgrade --all --yes --output none --only-show-errors
+
     # Install dotNet
     case "$(get_distro_name)" in
     (ubuntu)
