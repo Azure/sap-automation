@@ -80,10 +80,10 @@ resource "azurerm_windows_web_app" "webapp" {
   }
 
   app_settings = {
-    "PAT"                                      = format("@Microsoft.KeyVault(SecretUri=https://%s.vault.azure.net/secrets/PAT/)", local.keyvault_names.user_access)
+    "PAT"                                      = var.use_private_endpoint ? format("@Microsoft.KeyVault(SecretUri=https://%s.privatelink.vaultcore.azure.net/secrets/PAT/)", local.keyvault_names.user_access) : format("@Microsoft.KeyVault(SecretUri=https://%s.vault.azure.net/secrets/PAT/)", local.keyvault_names.user_access)
     "CollectionUri"                            = var.agent_ado_url
     "IS_PIPELINE_DEPLOYMENT"                   = false
-    "MICROSOFT_PROVIDER_AUTHENTICATION_SECRET" = format("@Microsoft.KeyVault(SecretUri=https://%s.vault.azure.net/secrets/WEB-PWD/)", local.keyvault_names.user_access)
+    "MICROSOFT_PROVIDER_AUTHENTICATION_SECRET" = var.use_private_endpoint ? format("@Microsoft.KeyVault(SecretUri=https://%s.privatelink.vaultcore.azure.net/secrets/WEB-PWD/)", local.keyvault_names.user_access) : format("@Microsoft.KeyVault(SecretUri=https://%s.vault.azure.net/secrets/WEB-PWD/)", local.keyvault_names.user_access)
   }
   # auth_settings_v2 {
   #   auth_enabled           = true
@@ -128,7 +128,7 @@ resource "azurerm_windows_web_app" "webapp" {
   connection_string {
     name  = "sa_tfstate_conn_str"
     type  = "Custom"
-    value = format("@Microsoft.KeyVault(SecretUri=https://%s.vault.azure.net/secrets/sa-connection-string/)", local.user_keyvault_name)
+    value = var.use_private_endpoint ? format("@Microsoft.KeyVault(SecretUri=https://%s.privatelink.vaultcore.azure.net/secrets/sa-connection-string/)", local.user_keyvault_name) : format("@Microsoft.KeyVault(SecretUri=https://%s.vault.azure.net/secrets/sa-connection-string/)", local.user_keyvault_name)
   }
 
   lifecycle {
