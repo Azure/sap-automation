@@ -303,6 +303,13 @@ resource "azurerm_private_endpoint" "kv_user" {
     ]
   }
 
+ custom_network_interface_name = format("%s%s%s%s",
+    var.naming.resource_prefixes.keyvault_private_link,
+    local.prefix,
+    var.naming.resource_suffixes.keyvault_private_link,
+    var.naming.resource_suffixes.nic
+  )
+
   dynamic "private_dns_zone_group" {
     for_each = range(var.use_private_endpoint && !var.use_custom_dns_a_registration && !var.bootstrap ? 1 : 0)
     content {
