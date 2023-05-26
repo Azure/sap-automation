@@ -70,7 +70,7 @@
   notify:                              "2.10-sap-notes: Reboot after the selinux is configured"
   tags: ansible_skip_lint
   when:
-    - distribution_id in ['redhat7', 'redhat8']
+    - distribution_id in ['redhat7', 'redhat8', 'redhat9']
 
 ...
 # /*----------------------------------------------------------------------------8

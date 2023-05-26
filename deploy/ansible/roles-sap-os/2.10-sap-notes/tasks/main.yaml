@@ -49,7 +49,7 @@
     state:                             permissive
   when:
     - node_tier in ['scs', 'ers', 'pas', 'app', 'web']
-    - distribution_id in ['redhat7', 'redhat8', 'oracle8']
+    - distribution_id in ['redhat7', 'redhat8', 'redhat8', 'oracle8']
   notify:                              "2.10-sap-notes: Reboot after the selinux is configured"
 
 - name:                                "2.10.1 - Force all notified handlers to run now"
@@ -79,7 +79,7 @@
   ansible.builtin.include_tasks:       2.10.3119751.yaml
   when:
     - platform == 'HANA'
-    - distribution_id == 'redhat8'
+    - distribution_id in ['redhat8', 'redhat9']
 
 # - name:                                "2.10.1 sap-notes: - Disable SELinux"
 #   selinux:
