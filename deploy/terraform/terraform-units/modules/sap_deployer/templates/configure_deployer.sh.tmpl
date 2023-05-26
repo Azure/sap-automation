@@ -396,16 +396,23 @@ else
     case "$(get_distro_name)" in
     (ubuntu)
         # echo "Getting the Microsoft Key"
-        # sudo mkdir -p /etc/apt/keyrings
-        # curl -sLS https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor | sudo tee /etc/apt/keyrings/microsoft.gpg > /dev/null
-        # sudo chmod go+r /etc/apt/keyrings/microsoft.gpg
+        sudo mkdir -p /etc/apt/keyrings
+        curl -sLS https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor | sudo tee /etc/apt/keyrings/microsoft.gpg > /dev/null
+        sudo chmod go+r /etc/apt/keyrings/microsoft.gpg
 
-        # AZ_REPO=$(lsb_release -cs)
-        # echo "deb [arch=`dpkg --print-architecture` signed-by=/etc/apt/keyrings/microsoft.gpg] https://packages.microsoft.com/repos/azure-cli/ $AZ_REPO main" |
-        #     sudo tee /etc/apt/sources.list.d/azure-cli.list
+        AZ_REPO=$(lsb_release -cs)
+        echo "deb [arch=`dpkg --print-architecture` signed-by=/etc/apt/keyrings/microsoft.gpg] https://packages.microsoft.com/repos/azure-cli/ $AZ_REPO main" |
+            sudo tee /etc/apt/sources.list.d/azure-cli.list
 
-        # sudo apt-get update
-        sudo curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+        sudo apt-get update
+        #sudo curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+
+      if [ "$rel" == "20.04" ]; then
+        sudo apt-get install azure-cli=2.47.0-1~focal
+      else
+        sudo apt-get install azure-cli
+
+      fi
         ;;
     (sles)
         echo "Getting the Microsoft Key"
@@ -424,9 +431,6 @@ else
     pkg_mgr_install "$${cli_pkgs[@]}"
 
     set -o errexit
-
-    sudo az upgrade --all --yes --only-show-errors --output none
-
 
     # Install dotNet
     case "$(get_distro_name)" in
