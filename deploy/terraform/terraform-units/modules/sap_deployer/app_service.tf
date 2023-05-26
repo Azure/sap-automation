@@ -125,11 +125,11 @@ resource "azurerm_windows_web_app" "webapp" {
   identity {
     type = "SystemAssigned"
   }
-  connection_string {
-    name  = "sa_tfstate_conn_str"
-    type  = "Custom"
-    value = var.use_private_endpoint ? format("@Microsoft.KeyVault(SecretUri=https://%s.privatelink.vaultcore.azure.net/secrets/sa-connection-string/)", local.user_keyvault_name) : format("@Microsoft.KeyVault(SecretUri=https://%s.vault.azure.net/secrets/sa-connection-string/)", local.user_keyvault_name)
-  }
+  # connection_string {
+  #   name  = "sa_tfstate_conn_str"
+  #   type  = "Custom"
+  #   value = var.use_private_endpoint ? format("@Microsoft.KeyVault(SecretUri=https://%s.privatelink.vaultcore.azure.net/secrets/sa-connection-string/)", local.user_keyvault_name) : format("@Microsoft.KeyVault(SecretUri=https://%s.vault.azure.net/secrets/sa-connection-string/)", local.user_keyvault_name)
+  # }
 
   lifecycle {
     ignore_changes = [
