@@ -239,6 +239,12 @@ packages:
     - { tier: 'ha',    package: 'resource-agents-sap-hana',                     node_tier: 'hana',    state: 'present' }
     - { tier: 'ha',    package: 'resource-agents-sap',                          node_tier: 'scs',     state: 'present' }
     - { tier: 'ha',    package: 'resource-agents-sap',                          node_tier: 'ers',     state: 'present' }
+    - { tier: 'ha',    package: 'resource-agents-cloud',                        node_tier: 'hana',    state: 'present' }
+    - { tier: 'ha',    package: 'resource-agents-cloud',                        node_tier: 'scs',     state: 'present' }
+    - { tier: 'ha',    package: 'resource-agents-cloud',                        node_tier: 'ers',     state: 'present' }
+    - { tier: 'ha',    package: 'ha-cloud-support',                             node_tier: 'hana',    state: 'present' }
+    - { tier: 'ha',    package: 'ha-cloud-support',                             node_tier: 'scs',     state: 'present' }
+    - { tier: 'ha',    package: 'ha-cloud-support',                             node_tier: 'ers',     state: 'present' }
   # ------------------------- End - Packages required for Clustering -----------------------------------------8
   # ------------------------- Begin - Packages required for Start/Stop ------------------------------------8
     - { tier: 'ha',    package: 'sap-cluster-connector',                        node_tier: 'hana',    state: 'present' }
