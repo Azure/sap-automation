@@ -93,6 +93,20 @@ $$use_loadbalancers_for_standalone_deployments$$
 # use_private_endpoint is a boolean flag controlling if the key vaults and storage accounts have private endpoints
 $$use_private_endpoint$$
 
+
+#########################################################################################
+#                                                                                       #
+#  Cluster settings                                                                     #
+#                                                                                       #
+#########################################################################################
+
+# use_msi_for_clusters if defined will use managed service identity for the Pacemaker cluster fencing
+$$use_msi_for_clusters$$
+
+# fencing_role_name, If specified the role name to use for the fencing agent
+$$fencing_role_name$$
+
+
 #########################################################################################
 #                                                                                       #
 #  Database tier                                                                        #                                                                                       #
@@ -105,6 +119,7 @@ $$database_sid$$
 # - HANA
 # - DB2
 # - ORACLE
+# - ORACLE-ASM
 # - SYBASE
 # - SQLSERVER
 # - NONE (in this case no database tier is deployed)
@@ -405,9 +420,6 @@ $$vm_disk_encryption_set_id$$
 
 # deploy_application_security_groups if defined will create application security groups
 $$deploy_application_security_groups$$
-
-# use_msi_for_clusters if defined will use managed service identity for the Pacemaker cluster fencing
-$$use_msi_for_clusters$$
 
 #########################################################################################
 #                                                                                       #
