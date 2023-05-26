@@ -190,7 +190,6 @@ packages:
     - { tier: 'os',    package: 'libicu',                                       node_tier: 'all',     state: 'present' }
     - { tier: 'os',    package: 'sudo',                                         node_tier: 'all',     state: 'present' }
     - { tier: 'os',    package: 'tcsh',                                         node_tier: 'all',     state: 'present' }
-    - { tier: 'os',    package: 'libssh2',                                      node_tier: 'all',     state: 'present' }
     - { tier: 'os',    package: 'expect',                                       node_tier: 'all',     state: 'present' }
     - { tier: 'os',    package: 'cairo',                                        node_tier: 'all',     state: 'present' }
     - { tier: 'os',    package: 'graphviz',                                     node_tier: 'all',     state: 'present' }
