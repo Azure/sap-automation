@@ -253,6 +253,11 @@ tf_zip=terraform_$${tfversion}_linux_amd64.zip
 if [ -f /etc/profile.d/deploy_server.sh ] ; then
     echo
     echo ##vso[task.logissue type=warning]Deployer already configured
+    sudo az upgrade --all --yes --only-show-errors --output none
+    wget -nv -O /tmp/$${tf_zip} https://releases.hashicorp.com/terraform/$${tfversion}/$${tf_zip}
+    sudo unzip -o /tmp/$${tf_zip} -d $${tf_dir}
+    sudo ln -vfs ../$(basename $${tf_dir})/terraform $${tf_bin}/terraform
+
     exit 0
 else
     #
@@ -400,7 +405,7 @@ else
             sudo tee /etc/apt/sources.list.d/azure-cli.list
 
         sudo apt-get update
-        sudo apt-get install azure-cli
+        sudo curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
         ;;
     (sles)
         echo "Getting the Microsoft Key"
