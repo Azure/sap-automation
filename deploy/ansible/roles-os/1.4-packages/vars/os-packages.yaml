@@ -196,7 +196,6 @@ packages:
     - { tier: 'os',    package: 'iptraf-ng',                                    node_tier: 'all',     state: 'present' }
     - { tier: 'os',    package: 'krb5-workstation',                             node_tier: 'all',     state: 'present' }
     - { tier: 'os',    package: 'krb5-libs',                                    node_tier: 'all',     state: 'present' }
-    - { tier: 'os',    package: 'libpng12',                                     node_tier: 'all',     state: 'present' }
     - { tier: 'os',    package: 'nfs-utils',                                    node_tier: 'all',     state: 'present' }
     - { tier: 'os',    package: 'lm_sensors',                                   node_tier: 'all',     state: 'present' }
     - { tier: 'os',    package: 'rsyslog',                                      node_tier: 'all',     state: 'present' }
