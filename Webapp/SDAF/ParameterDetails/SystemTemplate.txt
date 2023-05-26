@@ -424,6 +424,9 @@ $$vm_disk_encryption_set_id$$
 # deploy_application_security_groups if defined will create application security groups
 $$deploy_application_security_groups$$
 
+# deploy_v1_monitoring_extension Defines if the Microsoft.AzureCAT.AzureEnhancedMonitoring extension will be deployed
+$$deploy_v1_monitoring_extension$$
+
 #########################################################################################
 #                                                                                       #
 #  NFS support                                                                          #

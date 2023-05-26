@@ -392,7 +392,7 @@ resource "azurerm_virtual_machine_data_disk_attachment" "app" {
 # VM Extension
 resource "azurerm_virtual_machine_extension" "app_lnx_aem_extension" {
   provider = azurerm.main
-  count = local.enable_deployment && upper(var.application_tier.app_os.os_type) == "LINUX" ? (
+  count = local.enable_deployment && var.application_tier.deploy_v1_monitoring_extension && upper(var.application_tier.app_os.os_type) == "LINUX" ? (
     local.application_server_count) : (
     0
   )
@@ -415,7 +415,7 @@ SETTINGS
 
 resource "azurerm_virtual_machine_extension" "app_win_aem_extension" {
   provider = azurerm.main
-  count = local.enable_deployment && upper(var.application_tier.app_os.os_type) == "WINDOWS" ? (
+  count = local.enable_deployment && var.application_tier.deploy_v1_monitoring_extension && upper(var.application_tier.app_os.os_type) == "WINDOWS" ? (
     local.application_server_count) : (
     0
   )

@@ -91,6 +91,8 @@ locals {
     use_ppg   = tobool(var.database_no_ppg) == null ? (length(var.proximityplacementgroup_arm_ids) > 0 && !var.database_use_ppg) || var.database_use_ppg : !var.database_no_ppg
     use_avset = tobool(var.database_no_avset) == null ? var.database_use_avset : !var.database_no_avset
 
+    deploy_v1_monitoring_extension = var.deploy_v1_monitoring_extension
+
   }
 
   db_os = {
@@ -178,6 +180,8 @@ locals {
 
     web_use_ppg   = tobool(var.webdispatcher_server_no_ppg) == null ? var.webdispatcher_server_use_ppg : !var.webdispatcher_server_no_ppg
     web_use_avset = tobool(var.webdispatcher_server_no_avset) == null ? var.webdispatcher_server_use_avset : !var.webdispatcher_server_no_avset
+
+    deploy_v1_monitoring_extension = var.deploy_v1_monitoring_extension
 
   }
 

@@ -397,7 +397,7 @@ resource "azurerm_virtual_machine_data_disk_attachment" "vm_disks" {
 # VM Extension
 resource "azurerm_virtual_machine_extension" "anydb_lnx_aem_extension" {
   provider = azurerm.main
-  count = local.enable_deployment ? (
+  count = local.enable_deployment && var.database.deploy_v1_monitoring_extension ? (
     upper(local.anydb_ostype) == "LINUX" ? (
       var.database_server_count) : (
       0
@@ -420,7 +420,7 @@ SETTINGS
 
 resource "azurerm_virtual_machine_extension" "anydb_win_aem_extension" {
   provider = azurerm.main
-  count = local.enable_deployment ? (
+  count = local.enable_deployment && var.database.deploy_v1_monitoring_extension ? (
     upper(local.anydb_ostype) == "WINDOWS" ? (
       var.database_server_count) : (
       0

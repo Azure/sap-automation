@@ -442,6 +442,8 @@ namespace AutomationForm.Models
 
         public bool? deploy_application_security_groups { get; set; } = true;
 
+        public bool? deploy_v1_monitoring_extension { get; set; } = true;
+
         [DisplayName("Web SID")]
         public string web_sid { get; set; }
 

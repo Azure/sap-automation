@@ -2003,6 +2003,16 @@
         "Display": 3
       },
       {
+        "Name": "deploy_v1_monitoring_extension",
+        "Required": false,
+        "Description": "Defines if the Microsoft.AzureCAT.AzureEnhancedMonitoring extension will be deployed.",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+
+      {
         "Name": "vm_disk_encryption_set_id",
         "Required": false,
         "Description": "Azure resource identifier for custom encryption key to use for disk encryption.",

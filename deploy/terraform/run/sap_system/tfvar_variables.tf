@@ -817,6 +817,10 @@ variable "resource_offset" {
   default     = 0
 }
 
+variable "deploy_v1_monitoring_extension" {
+  description = "Defines if the Microsoft.AzureCAT.AzureEnhancedMonitoring extension will be deployed"
+  default     = true
+}
 variable "vm_disk_encryption_set_id" {
   description = "If provided, the VM disks will be encrypted with the specified disk encryption set"
   default     = ""

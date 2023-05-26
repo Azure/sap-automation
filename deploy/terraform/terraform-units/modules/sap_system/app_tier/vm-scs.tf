@@ -431,7 +431,7 @@ resource "azurerm_virtual_machine_data_disk_attachment" "scs" {
 
 resource "azurerm_virtual_machine_extension" "scs_lnx_aem_extension" {
   provider = azurerm.main
-  count = local.enable_deployment && upper(var.application_tier.scs_os.os_type) == "LINUX" ? (
+  count = local.enable_deployment && var.application_tier.deploy_v1_monitoring_extension && upper(var.application_tier.scs_os.os_type) == "LINUX" ? (
     local.scs_server_count) : (
     0
   )
@@ -454,7 +454,7 @@ SETTINGS
 
 resource "azurerm_virtual_machine_extension" "scs_win_aem_extension" {
   provider = azurerm.main
-  count = local.enable_deployment && upper(var.application_tier.scs_os.os_type) == "WINDOWS" ? (
+  count = local.enable_deployment && var.application_tier.deploy_v1_monitoring_extension && upper(var.application_tier.scs_os.os_type) == "WINDOWS" ? (
     local.scs_server_count) : (
     0
   )
