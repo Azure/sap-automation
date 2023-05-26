@@ -344,6 +344,20 @@
         "Display": 1
       },
       {
+        "Name": "database_vm_sku",
+        "Required": false,
+        "Description": "If provided overrides the Virtual Machine SKU used for the database virtual machines.",
+        "Type": "lookup",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
         "Name": "database_vm_zones",
         "Required": false,
         "Description": "Defines the availability zones in which the database servers are deployed.",

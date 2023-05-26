@@ -156,6 +156,8 @@ namespace AutomationForm.Models
 
         public string database_size { get; set; }
 
+        public string database_vm_sku { get; set; }
+
         public string database_sid { get; set; }
 
         public string database_instance_number { get; set; }

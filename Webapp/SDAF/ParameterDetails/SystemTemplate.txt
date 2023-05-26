@@ -135,6 +135,9 @@ $$database_high_availability$$
 # If using a custom disk sizing populate with the node name for Database you have used in the file custom_disk_sizes_filename
 $$database_size$$
 
+# database_vm_sku, if provided defines the Virtual Machine SKU to use for the database virtual machines"
+$$database_vm_sku$$
+
 # database_instance_number if provided defines the instance number of the HANA database
 $$database_instance_number$$
 
