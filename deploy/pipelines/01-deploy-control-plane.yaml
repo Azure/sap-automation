@@ -101,6 +101,7 @@ stages:
                             echo ${{ parameters.force_reset }}
                             if [ ${{ parameters.force_reset }} == "True" ]; then
                               echo "##vso[task.logissue type=warning]Forcing a re-install"
+                              echo "running on $(this_agent)"
                               sed -i 's/step=1/step=0/' $deployer_environment_file_name
                               sed -i 's/step=2/step=0/' $deployer_environment_file_name
                               sed -i 's/step=3/step=0/' $deployer_environment_file_name
@@ -122,10 +123,9 @@ stages:
 
                               key_vault_id=$(az resource list --name "${key_vault}"  --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
                               if [ -n "${key_vault_id}" ]; then
-
                                 if [ "azure pipelines" = "$(this_agent)" ]; then
                                     this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
-                                    az keyvault network-rule add --name ${key_vault} --ip-address ${this_ip} --only-show-errors --output none
+                                    az keyvault network-rule add --name ${key_vault} --ip-address ${this_ip} --subscription $(Terraform_Remote_Storage_Subscription) --only-show-errors
                                     ip_added=1
                                 fi
                               fi
@@ -134,7 +134,7 @@ stages:
 
                                 if [ "azure pipelines" = "$(this_agent)" ]; then
                                     this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
-                                    az storage account network-rule add --resource-id "${tfstate_resource_id}"  --ip-address ${this_ip} --only-show-errors --output none
+                                    az storage account network-rule add --resource-id "${tfstate_resource_id}"  --ip-address ${this_ip} --only-show-errors
                                     ip_added=1
                                 fi
                               fi
