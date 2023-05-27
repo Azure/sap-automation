@@ -155,3 +155,12 @@ output "deployer_extension_ids" {
   value = module.sap_deployer.extension_ids
 }
 
+###############################################################################
+#                                                                             #
+#                                    Random                                   #
+#                                                                             #
+###############################################################################
+
+output "random_id_b64" {
+  value = module.sap_deployer.random_id_b64
+}

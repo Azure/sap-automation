@@ -94,6 +94,11 @@ output "random_id" {
   value = random_id.deployer.hex
 }
 
+output "random_id_b64" {
+  value = random_id.deployer.b64_url
+}
+
+
 output "user_vault_name" {
   value = var.key_vault.kv_exists ? data.azurerm_key_vault.kv_user[0].name : azurerm_key_vault.kv_user[0].name
 }

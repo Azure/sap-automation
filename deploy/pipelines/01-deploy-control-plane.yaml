@@ -129,6 +129,15 @@ stages:
                                     ip_added=1
                                 fi
                               fi
+                              tfstate_resource_id=$(az resource list --name $(Terraform_Remote_Storage_Account_Name) --subscription $(Terraform_Remote_Storage_Subscription) --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
+                              if [ -n "${tfstate_resource_id}" ]; then
+
+                                if [ "azure pipelines" = "$(this_agent)" ]; then
+                                    this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
+                                    az storage account network-rule add --resource-id "${tfstate_resource_id}"  --ip-address ${this_ip} --only-show-errors --output none
+                                    ip_added=1
+                                fi
+                              fi
                               step=0
                             else
                               if [ -f ${deployer_environment_file_name} ]; then
@@ -285,15 +294,15 @@ stages:
                                 git add .sap_deployment_automation/${ENVIRONMENT}${LOCATION}
                                 added=1
                             fi
+                            if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/.terraform/terraform.tfstate ]; then
+                              git add -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/.terraform/terraform.tfstate
+                              added=1
+                            fi
                             if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/terraform.tfstate ]; then
                               sudo apt install zip
                               pass=$(echo $ARM_CLIENT_SECRET | sed 's/-//g')
                               zip -j -P "${pass}" ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/terraform.tfstate
                               git add -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip
-                              added=1
-                            fi
-                            if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/.terraform/terraform.tfstate ]; then
-                              git add -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/.terraform/terraform.tfstate
                               added=1
                             fi
                             if [ 1 == $added ]; then
