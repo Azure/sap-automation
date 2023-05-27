@@ -405,9 +405,10 @@ else
         rel=$(lsb_release -a | grep Release | cut -d':' -f2 | xargs)
 
         if [ "$rel" == "20.04" ]; then
-          sudo apt-get install azure-cli=2.47.0-1~focal
+          echo ##vso[task.logissue type=warning]Running on Ubuntu 20.04, installing Azure CLI 2.48.1-1~focal
+          sudo apt-get install azure-cli=2.48.1-1~focal -y --allow-downgrades
         else
-          sudo apt-get install azure-cli
+          sudo apt-get install azure-cli -y
         fi
         ;;
     (sles)
