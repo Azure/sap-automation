@@ -407,6 +407,8 @@ else
         if [ "$rel" == "20.04" ]; then
           echo ##vso[task.logissue type=warning]Running on Ubuntu 20.04, installing Azure CLI 2.48.1-1~focal
           sudo apt-get install azure-cli=2.48.1-1~focal -y --allow-downgrades
+          ver=$(az version | jq -r .azure-cli)
+          echo ##vso[task.logissue type=warning]Azure CLI version: $ver
         else
           sudo apt-get install azure-cli -y
         fi
