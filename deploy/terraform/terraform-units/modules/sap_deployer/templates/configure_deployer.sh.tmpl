@@ -442,8 +442,7 @@ else
         sudo snap alias dotnet-sdk.dotnet dotnet
         ;;
      (rhel*)
-        sudo snap install dotnet-sdk --classic --channel=7.0
-        sudo snap alias dotnet-sdk.dotnet dotnet
+        sudo dnf install dotnet-sdk-7.0 -y
         ;;
     esac
 
