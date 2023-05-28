@@ -462,27 +462,18 @@ sudo mkdir -p \
   ${ansible_collections}
 
 
-# Install dotNet
+# Create a Python3 based venv into which we will install Ansible.
 case "$(get_distro_name)" in
-(ubuntu)
-    # Create a Python3 based venv into which we will install Ansible.
-    if [[ ! -e "${ansible_venv_bin}/activate" ]]; then
-        sudo rm -rf ${ansible_venv}
-        sudo virtualenv --python python3 ${ansible_venv}
-    fi
-    ;;
-(sles)
-    # Create a Python3 based venv into which we will install Ansible.
+(ubuntu|sles)
     if [[ ! -e "${ansible_venv_bin}/activate" ]]; then
         sudo rm -rf ${ansible_venv}
         sudo virtualenv --python python3 ${ansible_venv}
     fi
     ;;
   (rhel*)
-    # Create a Python3 based venv into which we will install Ansible.
     if [[ ! -e "${ansible_venv_bin}/activate" ]]; then
         sudo rm -rf ${ansible_venv}
-        python -m venv ansible_venv
+        sudo python -m venv ansible_venv
         source "${ansible_venv_bin}/activate"
     fi
     ;;
@@ -627,6 +618,15 @@ echo "export ANSIBLE_COLLECTIONS_PATHS=${ansible_collections}" | tee -a /tmp/dep
 echo "export BOM_CATALOG=${asad_sample_dir}/SAP" | tee -a /tmp/deploy_server.sh
 
 echo "export DOTNET_ROOT=/snap/dotnet-sdk/current" | tee -a /tmp/deploy_server.sh
+
+# export DOTNET_ROOT
+case "$(get_distro_name)" in
+(ubuntu|sles)
+    echo "export DOTNET_ROOT=/snap/dotnet-sdk/current" | tee -a /tmp/deploy_server.sh
+    ;;
+  (rhel*)
+    ;;
+esac
 
 
 # Set env for MSI
