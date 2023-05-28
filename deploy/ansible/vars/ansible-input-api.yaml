@@ -30,6 +30,9 @@ always_upload_jinja_templates:         true
 # -------------------------------------+---------------------------------------8
 
 # SAP Configuration for templates and install
+
+hana_use_master_password:              y
+hana_password_copy:                         ""
 hana_backup_path:                      /hana/backup
 aas_hostname:                          ""
 aas_instance_number:                   ""
