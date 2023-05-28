@@ -123,7 +123,7 @@ certificates_hostmap=
 master_password={{ main_password }}
 
 # System Administrator Password
-password={{ main_password }}
+password=
 
 # System Administrator Home Directory ( Default: /usr/sap/${sid}/home )
 home=/usr/sap/${sid}/home
