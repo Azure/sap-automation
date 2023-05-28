@@ -462,7 +462,7 @@ else
     case "$(get_distro_name)" in
     (rhel)
         sudo python -m venv $${ansible_venv}
-        source "${ansible_venv_bin}/activate"
+        source "$${ansible_venv_bin}/activate"
 
         ;;
     (ubuntu|sles)
