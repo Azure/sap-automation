@@ -52,16 +52,11 @@
     - distribution_id in ['redhat7', 'redhat8', 'redhat9', 'oracle8']
   notify:                              "2.10-sap-notes: Reboot after the selinux is configured"
 
-- name:                                "2.10.1 - Force all notified handlers to run now"
-  ansible.builtin.meta:                flush_handlers
-
-
 - name:                                2.10.1 - SAP Note 2777782
   ansible.builtin.include_tasks:       2.10.1.yaml
   when:
     - node_tier == 'hana'
     - distribution_id in ['redhat8', 'redhat9']
-
 
 - name:                                2.10.2 - SAP Note 2777782
   ansible.builtin.include_tasks:       2.10.2.yaml
@@ -80,6 +75,10 @@
   when:
     - platform == 'HANA'
     - distribution_id in ['redhat8']
+
+- name:                                "2.10 - Force all notified handlers to run now"
+  ansible.builtin.meta:                flush_handlers
+
 
 # - name:                                "2.10.1 sap-notes: - Disable SELinux"
 #   selinux:
