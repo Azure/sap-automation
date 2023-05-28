@@ -66,7 +66,7 @@ root_user=root
 root_password=
 
 # SAP Host Agent User (sapadm) Password
-sapadm_password=
+sapadm_password={{ password_copy }}
 
 # Directory containing a storage configuration
 storage_cfg=
