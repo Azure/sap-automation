@@ -225,16 +225,15 @@
             state:                     touch
             mode:                      0755
 
+        - name:                        "SAP HANA: remove install response file"
+          ansible.builtin.file:
+            path:                      "{{ dir_params }}/{{ sap_inifile }}"
+            state:                     absent
+
 
       when:
         - hana_installation.rc is defined
         - hana_installation.rc < 1
-
-
-    - name:                            "SAP HANA: remove install response file"
-      ansible.builtin.file:
-        path:                          "{{ dir_params }}/{{ sap_inifile }}"
-        state:                         absent
 
     - name:                            "SAP HANA: Create backup folder"
       ansible.builtin.file:
