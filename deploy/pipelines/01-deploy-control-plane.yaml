@@ -138,6 +138,9 @@ stages:
                                     ip_added=1
                                 fi
                               fi
+                              export REINSTALL_ACCOUNTNAME=$(Terraform_Remote_Storage_Account_Name)
+                              export REINSTALL_SUBSCRIPTION=$(Terraform_Remote_Storage_Subscription)
+                              export REINSTALL_RESOURCE_GROUP=$(Terraform_Remote_Storage_Resource_Group_Name)
                               step=0
                             else
                               if [ -f ${deployer_environment_file_name} ]; then
@@ -288,6 +291,9 @@ stages:
                                echo 'Deployer State File' $file_deployer_tfstate_key
                                file_key_vault=$(cat ${deployer_environment_file_name} | grep keyvault= | awk -F'=' '{print $2}' | xargs)
                                echo 'Deployer Key Vault' ${file_key_vault}
+                               deployer_random_id=$(cat ${deployer_environment_file_name} | grep deployer_random_id= | awk -F'=' '{print $2}' | xargs)
+                               library_random_id=$(cat ${deployer_environment_file_name} | grep library_random_id= | awk -F'=' '{print $2}' | xargs)
+
                             fi
                         echo -e "$green--- Update repo ---$reset"
                             if [ -f .sap_deployment_automation/${ENVIRONMENT}${LOCATION} ]; then
