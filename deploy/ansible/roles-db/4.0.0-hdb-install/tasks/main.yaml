@@ -28,7 +28,6 @@
     - { mode: '0755', path: '{{ tmp_directory }}/{{ db_sid | upper }}' }
     - { mode: '0755', path: '/etc/sap_deployment_automation/{{ db_sid | upper }}' }
 
-
 - name:                                "SAP HANA: Install reset"
   ansible.builtin.file:
     path:                              "/etc/sap_deployment_automation/{{ db_sid | upper }}/sap_deployment_hdb.txt"
@@ -58,7 +57,7 @@
         path:                          "{{ dir_params }}/{{ sap_inifile }}"
         state:                         absent
 
-    - name:                            "3.3.1 BoM Template processing: Create ini file {{ sap_inifile }} from {{ HANA_2_00_install.rsp }}"
+    - name:                            "SAP HANA Template processing: Create ini file {{ sap_inifile }} from {{ HANA_2_00_install.rsp }}"
       ansible.builtin.template:
         src:                           "HANA_2_00_install.rsp"
         dest:                          "{{ dir_params }}/{{ sap_inifile }}"
@@ -73,6 +72,11 @@
         _rsp_sid:                      "{{ db_sid | upper }}"
         _rsp_number:                   "{{ db_instance_number }}"
         _rsp_system_usage:             "custom"
+
+    - name:                            "SAP HANA: pwd"
+      ansible.builtin.debug:
+        var:                           main_password
+        verbosity:                     4
 
     - name:                            "SAP HANA: Progress"
       ansible.builtin.debug:
