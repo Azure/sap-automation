@@ -214,7 +214,6 @@ packages:
     - { tier: 'os',    package: 'lvm2',                                         node_tier: 'all',     state: 'present' }
     - { tier: 'os',    package: 'numad',                                        node_tier: 'all',     state: 'present' }
     - { tier: 'os',    package: 'cifs-utils',                                   node_tier: 'all',     state: 'present' }
-    - { tier: 'os',    package: 'chkconfig',                                    node_tier: 'all',     state: 'present' }
     # --------------------------- Begin - Packages required for DB2 -----------------------------------------8
     # https://www.ibm.com/docs/en/db2/11.5?topic=servers-linux
     - { tier: 'os',    package: 'libaio',                                       node_tier: 'db2',     state: 'present' }
@@ -231,6 +230,7 @@ packages:
     - { tier: 'sapos', package: 'libatomic',                                    node_tier: 'all',     state: 'present' }
     - { tier: 'sapos', package: 'uuidd',                                        node_tier: 'all',     state: 'present' }
     - { tier: 'sapos', package: 'csh',                                          node_tier: 'all',     state: 'present' }
+    - { tier: 'sapos', package: 'chkconfig',                                    node_tier: 'hana',    state: 'present' }
     # ------------------------- Begin - Packages required for Clustering ---------------------------------------8
     - { tier: 'ha',    package: 'pcs',                                          node_tier: 'all',     state: 'present' }
     - { tier: 'ha',    package: 'pacemaker',                                    node_tier: 'all',     state: 'present' }
