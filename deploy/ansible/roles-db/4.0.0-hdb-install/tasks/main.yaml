@@ -73,11 +73,6 @@
         _rsp_number:                   "{{ db_instance_number }}"
         _rsp_system_usage:             "custom"
 
-    - name:                            "SAP HANA: pwd"
-      ansible.builtin.debug:
-        var:                           main_password
-        verbosity:                     4
-
     - name:                            "SAP HANA: Progress"
       ansible.builtin.debug:
         msg:                           "Start HANA Installation"
