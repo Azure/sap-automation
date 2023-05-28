@@ -444,7 +444,7 @@ az config set extension.use_dynamic_install=yes_without_prompt
 
 devops_extension_installed=$(az extension list --query [].path | grep azure-devops)
 if [ -z $devops_extension_installed ]; then
-  az extension add --name azure-devops --output none
+  sudo az extension add --name azure-devops --output none
 fi
 
 # Fail if any command exits with a non-zero exit status
@@ -462,11 +462,32 @@ sudo mkdir -p \
   ${ansible_collections}
 
 
-# Create a Python3 based venv into which we will install Ansible.
-if [[ ! -e "${ansible_venv_bin}/activate" ]]; then
-    sudo rm -rf ${ansible_venv}
-    sudo virtualenv --python python3 ${ansible_venv}
-fi
+# Install dotNet
+case "$(get_distro_name)" in
+(ubuntu)
+    # Create a Python3 based venv into which we will install Ansible.
+    if [[ ! -e "${ansible_venv_bin}/activate" ]]; then
+        sudo rm -rf ${ansible_venv}
+        sudo virtualenv --python python3 ${ansible_venv}
+    fi
+    ;;
+(sles)
+    # Create a Python3 based venv into which we will install Ansible.
+    if [[ ! -e "${ansible_venv_bin}/activate" ]]; then
+        sudo rm -rf ${ansible_venv}
+        sudo virtualenv --python python3 ${ansible_venv}
+    fi
+    ;;
+  (rhel*)
+    # Create a Python3 based venv into which we will install Ansible.
+    if [[ ! -e "${ansible_venv_bin}/activate" ]]; then
+        sudo rm -rf ${ansible_venv}
+        python -m venv ansible_venv
+        source "${ansible_venv_bin}/activate"
+    fi
+    ;;
+esac
+
 
 
 # Fail if pip3 doesn't exist in the venv
