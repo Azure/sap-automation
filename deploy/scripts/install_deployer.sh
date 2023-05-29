@@ -171,6 +171,7 @@ else
               if [ -n "${tfstate_resource_id}" ]; then
                   echo "Reinitializing against remote state"
                   export TF_VAR_tfstate_resource_id=$tfstate_resource_id
+
                   terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/run/"${deployment_system}"/
                   terraform -chdir="${terraform_module_directory}" init -upgrade=true     \
                   --backend-config "subscription_id=$REINSTALL_SUBSCRIPTION"              \
