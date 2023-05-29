@@ -411,11 +411,11 @@ fi
 
 
 random_id=$(terraform -chdir="${terraform_module_directory}"  output -no-color -raw random_id_b64 | tr -d \")
-temp=$(echo "${random_id}" | grep -m1 "Warning")
-if [ -z "${temp}" ]
+temp2=$(echo "${random_id}" | grep -m1 "Warning")
+if [ -z "${temp2}" ]
 then
-    temp=$(echo "${random_id}" | grep "Backend reinitialization required")
-    if [ -z "${temp}" ]
+    temp2=$(echo "${random_id}" | grep "Backend reinitialization required")
+    if [ -z "${temp2}" ]
     then
         save_config_var "deployer_random_id" "${random_id}"
         return_value=0
