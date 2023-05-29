@@ -120,7 +120,7 @@
 # Description:
 #
     - name:                             "{{ task_prefix }} - Create SAP Binaries Storage Account SAS"
-      ansible.builtin.shell: >-
+      ansible.builtin.command: >-
                                         az storage account generate-sas                                                     \
                                           --services b                                                                      \
                                           --resource-types sco                                                              \
@@ -128,7 +128,7 @@
                                           --account-name {{ sapbits_location_base_path.rpartition('//')[2].split('.')[0] }} \
                                           --account-key {{ sapbits_access_key }}                                            \
                                           --expiry {{ expiry }}                                                             \
-                                          | tr -d \"
+                                          --output tsv
       changed_when:                     false
       register:                         az_sapbits_sas_token
 # Step: 04-03 - END
