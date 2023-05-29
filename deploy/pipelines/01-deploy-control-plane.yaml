@@ -124,14 +124,14 @@ stages:
                               key_vault_id=$(az resource list --name "${key_vault}"  --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
                               if [ -n "${key_vault_id}" ]; then
                                 this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
-                                az keyvault network-rule add --name ${key_vault} --ip-address ${this_ip} --subscription $(Terraform_Remote_Storage_Subscription) --only-show-errors
+                                az keyvault network-rule add --name ${key_vault} --ip-address ${this_ip} --subscription $(Terraform_Remote_Storage_Subscription) --only-show-errors --output none
                                 ip_added=1
                               fi
 
                               tfstate_resource_id=$(az resource list --name $(Terraform_Remote_Storage_Account_Name) --subscription $(Terraform_Remote_Storage_Subscription) --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
                               if [ -n "${tfstate_resource_id}" ]; then
                                 this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
-                                az storage account network-rule add --resource-id "${tfstate_resource_id}"  --ip-address ${this_ip} --only-show-errors
+                                az storage account network-rule add --account-name $(Terraform_Remote_Storage_Account_Name) --resource-id "${tfstate_resource_id}"  --ip-address ${this_ip} --only-show-errors --output none
                               fi
 
                               export REINSTALL_ACCOUNTNAME=$(Terraform_Remote_Storage_Account_Name)
