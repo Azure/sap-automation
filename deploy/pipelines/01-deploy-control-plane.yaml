@@ -131,7 +131,7 @@ stages:
                               tfstate_resource_id=$(az resource list --name $(Terraform_Remote_Storage_Account_Name) --subscription $(Terraform_Remote_Storage_Subscription) --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
                               if [ -n "${tfstate_resource_id}" ]; then
                                 this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
-                                az storage account network-rule add --account-name $(Terraform_Remote_Storage_Account_Name) --resource-id "${tfstate_resource_id}"  --ip-address ${this_ip} --only-show-errors --output none
+                                az storage account network-rule add --account-name $(Terraform_Remote_Storage_Account_Name) --resource-group $(Terraform_Remote_Storage_Resource_Group_Name)  --ip-address ${this_ip} --only-show-errors --output none
                               fi
 
                               export REINSTALL_ACCOUNTNAME=$(Terraform_Remote_Storage_Account_Name)
