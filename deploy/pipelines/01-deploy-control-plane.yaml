@@ -123,21 +123,17 @@ stages:
 
                               key_vault_id=$(az resource list --name "${key_vault}"  --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
                               if [ -n "${key_vault_id}" ]; then
-                                if [ "azure pipelines" = "$(this_agent)" ]; then
-                                    this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
-                                    az keyvault network-rule add --name ${key_vault} --ip-address ${this_ip} --subscription $(Terraform_Remote_Storage_Subscription) --only-show-errors
-                                    ip_added=1
-                                fi
+                                this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
+                                az keyvault network-rule add --name ${key_vault} --ip-address ${this_ip} --subscription $(Terraform_Remote_Storage_Subscription) --only-show-errors
+                                ip_added=1
                               fi
+
                               tfstate_resource_id=$(az resource list --name $(Terraform_Remote_Storage_Account_Name) --subscription $(Terraform_Remote_Storage_Subscription) --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
                               if [ -n "${tfstate_resource_id}" ]; then
-
-                                if [ "azure pipelines" = "$(this_agent)" ]; then
-                                    this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
-                                    az storage account network-rule add --resource-id "${tfstate_resource_id}"  --ip-address ${this_ip} --only-show-errors
-                                    ip_added=1
-                                fi
+                                this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
+                                az storage account network-rule add --resource-id "${tfstate_resource_id}"  --ip-address ${this_ip} --only-show-errors
                               fi
+
                               export REINSTALL_ACCOUNTNAME=$(Terraform_Remote_Storage_Account_Name)
                               export REINSTALL_SUBSCRIPTION=$(Terraform_Remote_Storage_Subscription)
                               export REINSTALL_RESOURCE_GROUP=$(Terraform_Remote_Storage_Resource_Group_Name)
