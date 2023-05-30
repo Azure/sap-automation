@@ -207,7 +207,7 @@ resource "azurerm_linux_virtual_machine" "scs" {
   source_image_id = var.application_tier.scs_os.type == "custom" ? var.application_tier.scs_os.source_image_id : null
 
   dynamic "source_image_reference" {
-    for_each = range(var.application_tier.scs_os.type == "marketplace" ? 1 : 0)
+    for_each = range(var.application_tier.scs_os.type == "marketplace" || var.application_tier.scs_os.type == "marketplace_with_plan" ? 1 : 0)
     content {
       publisher = var.application_tier.scs_os.publisher
       offer     = var.application_tier.scs_os.offer
@@ -219,9 +219,9 @@ resource "azurerm_linux_virtual_machine" "scs" {
   dynamic "plan" {
     for_each = range(var.application_tier.scs_os.type == "marketplace_with_plan" ? 1 : 0)
     content {
-      name      = var.application_tier.scs_os.offer
+      name      = var.application_tier.scs_os.sku
       publisher = var.application_tier.scs_os.publisher
-      product   = var.application_tier.scs_os.sku
+      product   = var.application_tier.scs_os.offer
     }
   }
   boot_diagnostics {
@@ -357,7 +357,7 @@ resource "azurerm_windows_virtual_machine" "scs" {
   source_image_id = var.application_tier.scs_os.type == "custom" ? var.application_tier.scs_os.source_image_id : null
 
   dynamic "source_image_reference" {
-    for_each = range(var.application_tier.scs_os.type == "marketplace" ? 1 : 0)
+    for_each = range(var.application_tier.scs_os.type == "marketplace" || var.application_tier.scs_os.type == "marketplace_with_plan" ? 1 : 0)
     content {
       publisher = var.application_tier.scs_os.publisher
       offer     = var.application_tier.scs_os.offer
@@ -369,9 +369,9 @@ resource "azurerm_windows_virtual_machine" "scs" {
   dynamic "plan" {
     for_each = range(var.application_tier.scs_os.type == "marketplace_with_plan" ? 1 : 0)
     content {
-      name      = var.application_tier.scs_os.offer
+      name      = var.application_tier.scs_os.sku
       publisher = var.application_tier.scs_os.publisher
-      product   = var.application_tier.scs_os.sku
+      product   = var.application_tier.scs_os.offer
     }
   }
 
@@ -431,7 +431,7 @@ resource "azurerm_virtual_machine_data_disk_attachment" "scs" {
 
 resource "azurerm_virtual_machine_extension" "scs_lnx_aem_extension" {
   provider = azurerm.main
-  count = local.enable_deployment && upper(var.application_tier.scs_os.os_type) == "LINUX" ? (
+  count = local.enable_deployment && var.application_tier.deploy_v1_monitoring_extension && upper(var.application_tier.scs_os.os_type) == "LINUX" ? (
     local.scs_server_count) : (
     0
   )
@@ -454,7 +454,7 @@ SETTINGS
 
 resource "azurerm_virtual_machine_extension" "scs_win_aem_extension" {
   provider = azurerm.main
-  count = local.enable_deployment && upper(var.application_tier.scs_os.os_type) == "WINDOWS" ? (
+  count = local.enable_deployment && var.application_tier.deploy_v1_monitoring_extension && upper(var.application_tier.scs_os.os_type) == "WINDOWS" ? (
     local.scs_server_count) : (
     0
   )

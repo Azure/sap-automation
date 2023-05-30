@@ -93,6 +93,20 @@ $$use_loadbalancers_for_standalone_deployments$$
 # use_private_endpoint is a boolean flag controlling if the key vaults and storage accounts have private endpoints
 $$use_private_endpoint$$
 
+
+#########################################################################################
+#                                                                                       #
+#  Cluster settings                                                                     #
+#                                                                                       #
+#########################################################################################
+
+# use_msi_for_clusters if defined will use managed service identity for the Pacemaker cluster fencing
+$$use_msi_for_clusters$$
+
+# fencing_role_name, If specified the role name to use for the fencing agent
+$$fencing_role_name$$
+
+
 #########################################################################################
 #                                                                                       #
 #  Database tier                                                                        #                                                                                       #
@@ -105,6 +119,7 @@ $$database_sid$$
 # - HANA
 # - DB2
 # - ORACLE
+# - ORACLE-ASM
 # - SYBASE
 # - SQLSERVER
 # - NONE (in this case no database tier is deployed)
@@ -119,6 +134,9 @@ $$database_high_availability$$
 # For M series VMs use the SKU name for instance "M32ts"
 # If using a custom disk sizing populate with the node name for Database you have used in the file custom_disk_sizes_filename
 $$database_size$$
+
+# database_vm_sku, if provided defines the Virtual Machine SKU to use for the database virtual machines"
+$$database_vm_sku$$
 
 # database_instance_number if provided defines the instance number of the HANA database
 $$database_instance_number$$
@@ -406,8 +424,8 @@ $$vm_disk_encryption_set_id$$
 # deploy_application_security_groups if defined will create application security groups
 $$deploy_application_security_groups$$
 
-# use_msi_for_clusters if defined will use managed service identity for the Pacemaker cluster fencing
-$$use_msi_for_clusters$$
+# deploy_v1_monitoring_extension Defines if the Microsoft.AzureCAT.AzureEnhancedMonitoring extension will be deployed
+$$deploy_v1_monitoring_extension$$
 
 #########################################################################################
 #                                                                                       #

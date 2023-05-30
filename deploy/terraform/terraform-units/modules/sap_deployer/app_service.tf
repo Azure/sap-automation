@@ -66,6 +66,7 @@ resource "azurerm_windows_web_app" "webapp" {
   resource_group_name = local.rg_name
   location            = local.rg_appservice_location
   service_plan_id     = azurerm_service_plan.appserviceplan[0].id
+  https_only          = true
 
   auth_settings {
     enabled          = true
@@ -79,10 +80,10 @@ resource "azurerm_windows_web_app" "webapp" {
   }
 
   app_settings = {
-    "PAT"                                      = format("@Microsoft.KeyVault(SecretUri=https://%s.vault.azure.net/secrets/PAT/)", local.keyvault_names.user_access)
+    "PAT"                                      = var.use_private_endpoint ? format("@Microsoft.KeyVault(SecretUri=https://%s.privatelink.vaultcore.azure.net/secrets/PAT/)", local.keyvault_names.user_access) : format("@Microsoft.KeyVault(SecretUri=https://%s.vault.azure.net/secrets/PAT/)", local.keyvault_names.user_access)
     "CollectionUri"                            = var.agent_ado_url
     "IS_PIPELINE_DEPLOYMENT"                   = false
-    "MICROSOFT_PROVIDER_AUTHENTICATION_SECRET" = format("@Microsoft.KeyVault(SecretUri=https://%s.vault.azure.net/secrets/WEB-PWD/)", local.keyvault_names.user_access)
+    "MICROSOFT_PROVIDER_AUTHENTICATION_SECRET" = var.use_private_endpoint ? format("@Microsoft.KeyVault(SecretUri=https://%s.privatelink.vaultcore.azure.net/secrets/WEB-PWD/)", local.keyvault_names.user_access) : format("@Microsoft.KeyVault(SecretUri=https://%s.vault.azure.net/secrets/WEB-PWD/)", local.keyvault_names.user_access)
   }
   # auth_settings_v2 {
   #   auth_enabled           = true
@@ -121,18 +122,22 @@ resource "azurerm_windows_web_app" "webapp" {
     # scm_use_main_ip_restriction = true
   }
 
+  key_vault_reference_identity_id = azurerm_user_assigned_identity.deployer.id
+
   identity {
-    type = "SystemAssigned"
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.deployer.id]
   }
   connection_string {
     name  = "sa_tfstate_conn_str"
     type  = "Custom"
-    value = format("@Microsoft.KeyVault(SecretUri=https://%s.vault.azure.net/secrets/sa-connection-string/)", local.user_keyvault_name)
+    value = var.use_private_endpoint ? format("@Microsoft.KeyVault(SecretUri=https://%s.privatelink.vaultcore.azure.net/secrets/sa-connection-string/)", local.user_keyvault_name) : format("@Microsoft.KeyVault(SecretUri=https://%s.vault.azure.net/secrets/sa-connection-string/)", local.user_keyvault_name)
   }
 
   lifecycle {
     ignore_changes = [
       app_settings,
+      connection_string,
       zip_deploy_file,
       tags
     ]

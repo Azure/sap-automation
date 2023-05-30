@@ -344,6 +344,20 @@
         "Display": 1
       },
       {
+        "Name": "database_vm_sku",
+        "Required": false,
+        "Description": "If provided overrides the Virtual Machine SKU used for the database virtual machines.",
+        "Type": "lookup",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
         "Name": "database_vm_zones",
         "Required": false,
         "Description": "Defines the availability zones in which the database servers are deployed.",
@@ -1988,6 +2002,16 @@
         "Overrules": "",
         "Display": 3
       },
+      {
+        "Name": "deploy_v1_monitoring_extension",
+        "Required": false,
+        "Description": "Defines if the Microsoft.AzureCAT.AzureEnhancedMonitoring extension will be deployed.",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+
       {
         "Name": "vm_disk_encryption_set_id",
         "Required": false,

@@ -189,7 +189,7 @@ resource "azurerm_linux_virtual_machine" "dbserver" {
   source_image_id = var.database.os.type == "custom" ? var.database.os.source_image_id : null
 
   dynamic "source_image_reference" {
-    for_each = range(var.database.os.type == "marketplace" ? 1 : 0)
+    for_each = range(var.database.os.type == "marketplace" || var.database.os.type == "marketplace_with_plan" ? 1 : 0)
     content {
       publisher = var.database.os.publisher
       offer     = var.database.os.offer
@@ -200,9 +200,9 @@ resource "azurerm_linux_virtual_machine" "dbserver" {
   dynamic "plan" {
     for_each = range(var.database.os.type == "marketplace_with_plan" ? 1 : 0)
     content {
-      name      = var.database.os.offer
+      name      = var.database.os.sku
       publisher = var.database.os.publisher
-      product   = var.database.os.sku
+      product   = var.database.os.offer
     }
   }
 
@@ -305,7 +305,7 @@ resource "azurerm_windows_virtual_machine" "dbserver" {
   source_image_id = var.database.os.type == "custom" ? var.database.os.source_image_id : null
 
   dynamic "source_image_reference" {
-    for_each = range(var.database.os.type == "marketplace" ? 1 : 0)
+    for_each = range(var.database.os.type == "marketplace" || var.database.os.type == "marketplace_with_plan" ? 1 : 0)
     content {
       publisher = var.database.os.publisher
       offer     = var.database.os.offer
@@ -316,9 +316,9 @@ resource "azurerm_windows_virtual_machine" "dbserver" {
   dynamic "plan" {
     for_each = range(var.database.os.type == "marketplace_with_plan" ? 1 : 0)
     content {
-      name      = var.database.os.offer
+      name      = var.database.os.sku
       publisher = var.database.os.publisher
-      product   = var.database.os.sku
+      product   = var.database.os.offer
     }
   }
 
@@ -397,7 +397,7 @@ resource "azurerm_virtual_machine_data_disk_attachment" "vm_disks" {
 # VM Extension
 resource "azurerm_virtual_machine_extension" "anydb_lnx_aem_extension" {
   provider = azurerm.main
-  count = local.enable_deployment ? (
+  count = local.enable_deployment && var.database.deploy_v1_monitoring_extension ? (
     upper(local.anydb_ostype) == "LINUX" ? (
       var.database_server_count) : (
       0
@@ -420,7 +420,7 @@ SETTINGS
 
 resource "azurerm_virtual_machine_extension" "anydb_win_aem_extension" {
   provider = azurerm.main
-  count = local.enable_deployment ? (
+  count = local.enable_deployment && var.database.deploy_v1_monitoring_extension ? (
     upper(local.anydb_ostype) == "WINDOWS" ? (
       var.database_server_count) : (
       0

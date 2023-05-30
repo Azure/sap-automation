@@ -184,6 +184,73 @@ packages:
     - { tier: 'ha',    package: 'sap-cluster-connector',                        node_tier: 'ers',     state: 'present' }
 
   # ------------------------- End - Packages required for Start/Stop -----------------------------------------8
+  redhat9:
+    - { tier: 'os',    package: '@base',                                        node_tier: 'all',     state: 'present' }
+    - { tier: 'os',    package: 'gtk2',                                         node_tier: 'all',     state: 'present' }
+    - { tier: 'os',    package: 'libicu',                                       node_tier: 'all',     state: 'present' }
+    - { tier: 'os',    package: 'sudo',                                         node_tier: 'all',     state: 'present' }
+    - { tier: 'os',    package: 'tcsh',                                         node_tier: 'all',     state: 'present' }
+    - { tier: 'os',    package: 'expect',                                       node_tier: 'all',     state: 'present' }
+    - { tier: 'os',    package: 'cairo',                                        node_tier: 'all',     state: 'present' }
+    - { tier: 'os',    package: 'graphviz',                                     node_tier: 'all',     state: 'present' }
+    - { tier: 'os',    package: 'iptraf-ng',                                    node_tier: 'all',     state: 'present' }
+    - { tier: 'os',    package: 'krb5-workstation',                             node_tier: 'all',     state: 'present' }
+    - { tier: 'os',    package: 'krb5-libs',                                    node_tier: 'all',     state: 'present' }
+    - { tier: 'os',    package: 'nfs-utils',                                    node_tier: 'all',     state: 'present' }
+    - { tier: 'os',    package: 'lm_sensors',                                   node_tier: 'all',     state: 'present' }
+    - { tier: 'os',    package: 'rsyslog',                                      node_tier: 'all',     state: 'present' }
+    - { tier: 'os',    package: 'openssl',                                      node_tier: 'all',     state: 'present' }
+    - { tier: 'os',    package: 'PackageKit-gtk3-module',                       node_tier: 'all',     state: 'present' }
+    - { tier: 'os',    package: 'libcanberra-gtk2',                             node_tier: 'all',     state: 'present' }
+    - { tier: 'os',    package: 'libtool-ltdl',                                 node_tier: 'all',     state: 'present' }
+    - { tier: 'os',    package: 'xorg-x11-xauth',                               node_tier: 'all',     state: 'present' }
+    - { tier: 'os',    package: 'numactl',                                      node_tier: 'all',     state: 'present' }
+    - { tier: 'os',    package: 'xfsprogs',                                     node_tier: 'all',     state: 'present' }
+    - { tier: 'os',    package: 'net-tools',                                    node_tier: 'all',     state: 'present' }
+    - { tier: 'os',    package: 'bind-utils',                                   node_tier: 'all',     state: 'present' }
+    - { tier: 'os',    package: 'chrony',                                       node_tier: 'all',     state: 'present' }
+    - { tier: 'os',    package: 'gdisk',                                        node_tier: 'all',     state: 'present' }
+    - { tier: 'os',    package: 'sg3_utils',                                    node_tier: 'all',     state: 'present' }
+    - { tier: 'os',    package: 'lvm2',                                         node_tier: 'all',     state: 'present' }
+    - { tier: 'os',    package: 'numad',                                        node_tier: 'all',     state: 'present' }
+    - { tier: 'os',    package: 'cifs-utils',                                   node_tier: 'all',     state: 'present' }
+    # --------------------------- Begin - Packages required for DB2 -----------------------------------------8
+    # https://www.ibm.com/docs/en/db2/11.5?topic=servers-linux
+    - { tier: 'os',    package: 'libaio',                                       node_tier: 'db2',     state: 'present' }
+    - { tier: 'os',    package: 'ksh',                                          node_tier: 'db2',     state: 'present' }
+    - { tier: 'os',    package: 'mksh',                                         node_tier: 'db2',     state: 'present' }
+    - { tier: 'os',    package: 'libstdc++.so.6',                               node_tier: 'db2',     state: 'present' }
+    - { tier: 'os',    package: 'unzip',                                        node_tier: 'db2',     state: 'present' }
+    - { tier: 'os',    package: 'libpam.so.0',                                  node_tier: 'db2',     state: 'present' }
+    - { tier: 'db2',   package: 'acl',                                          node_tier: 'db2',     state: 'present' }
+    # --------------------------- End - Packages required for DB2 -------------------------------------------8
+    - { tier: 'sapos', package: 'autofs',                                       node_tier: 'all',     state: 'present' }
+    - { tier: 'sapos', package: 'nfs4-acl-tools',                               node_tier: 'all',     state: 'present' }
+    - { tier: 'sapos', package: 'tuned-profiles-sap*',                          node_tier: 'all',     state: 'present' }
+    - { tier: 'sapos', package: 'libatomic',                                    node_tier: 'all',     state: 'present' }
+    - { tier: 'sapos', package: 'uuidd',                                        node_tier: 'all',     state: 'present' }
+    - { tier: 'sapos', package: 'csh',                                          node_tier: 'all',     state: 'present' }
+    # ------------------------- Begin - Packages required for Clustering ---------------------------------------8
+    - { tier: 'ha',    package: 'pcs',                                          node_tier: 'all',     state: 'present' }
+    - { tier: 'ha',    package: 'pacemaker',                                    node_tier: 'all',     state: 'present' }
+    - { tier: 'ha',    package: 'nmap-ncat',                                    node_tier: 'all',     state: 'present' }
+    - { tier: 'ha',    package: 'fence-agents-azure-arm',                       node_tier: 'all',     state: 'present' }
+    - { tier: 'ha',    package: 'resource-agents-sap-hana',                     node_tier: 'hana',    state: 'present' }
+    - { tier: 'ha',    package: 'resource-agents-sap',                          node_tier: 'scs',     state: 'present' }
+    - { tier: 'ha',    package: 'resource-agents-sap',                          node_tier: 'ers',     state: 'present' }
+    - { tier: 'ha',    package: 'resource-agents-cloud',                        node_tier: 'hana',    state: 'present' }
+    - { tier: 'ha',    package: 'resource-agents-cloud',                        node_tier: 'scs',     state: 'present' }
+    - { tier: 'ha',    package: 'resource-agents-cloud',                        node_tier: 'ers',     state: 'present' }
+    - { tier: 'ha',    package: 'ha-cloud-support',                             node_tier: 'hana',    state: 'present' }
+    - { tier: 'ha',    package: 'ha-cloud-support',                             node_tier: 'scs',     state: 'present' }
+    - { tier: 'ha',    package: 'ha-cloud-support',                             node_tier: 'ers',     state: 'present' }
+  # ------------------------- End - Packages required for Clustering -----------------------------------------8
+  # ------------------------- Begin - Packages required for Start/Stop ------------------------------------8
+    - { tier: 'ha',    package: 'sap-cluster-connector',                        node_tier: 'hana',    state: 'present' }
+    - { tier: 'ha',    package: 'sap-cluster-connector',                        node_tier: 'scs',     state: 'present' }
+    - { tier: 'ha',    package: 'sap-cluster-connector',                        node_tier: 'ers',     state: 'present' }
+
+  # ------------------------- End - Packages required for Start/Stop -----------------------------------------8
   redhat8.1:
     - { tier: 'ha',    package: 'fence-agents-azure-arm',                       node_tier: 'all',     state: 'present' }
   redhat8.2:
@@ -193,6 +260,11 @@ packages:
   redhat8.6:
     - { tier: 'ha',    package: 'fence-agents-azure-arm',                       node_tier: 'all',     state: 'present' }
   redhat8.7:
+    - { tier: 'ha',    package: 'fence-agents-azure-arm',                       node_tier: 'all',     state: 'present' }
+  redhat9.0:
+    - { tier: 'sapos', package: 'chkconfig',                                    node_tier: 'hana',    state: 'present' }
+    - { tier: 'ha',    package: 'fence-agents-azure-arm',                       node_tier: 'all',     state: 'present' }
+  redhat9.2:
     - { tier: 'ha',    package: 'fence-agents-azure-arm',                       node_tier: 'all',     state: 'present' }
   sles_sap12:
     - { tier: 'os',    package: 'chrony',                                       node_tier: 'all',     state: 'present' }

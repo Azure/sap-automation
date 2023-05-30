@@ -252,7 +252,7 @@ resource "azurerm_linux_virtual_machine" "vm_dbnode" {
   source_image_id = var.database.os.type == "custom" ? local.hdb_os.source_image_id : null
 
   dynamic "source_image_reference" {
-    for_each = range(var.database.os.type == "marketplace" ? 1 : 0)
+    for_each = range(var.database.os.type == "marketplace" || var.database.os.type == "marketplace_with_plan" ? 1 : 0)
     content {
       publisher = var.database.os.publisher
       offer     = var.database.os.offer
@@ -263,9 +263,9 @@ resource "azurerm_linux_virtual_machine" "vm_dbnode" {
   dynamic "plan" {
     for_each = range(var.database.os.type == "marketplace_with_plan" ? 1 : 0)
     content {
-      name      = var.database.os.offer
+      name      = var.database.os.sku
       publisher = var.database.os.publisher
-      product   = var.database.os.sku
+      product   = var.database.os.offer
     }
   }
 
@@ -360,7 +360,7 @@ resource "azurerm_virtual_machine_data_disk_attachment" "vm_dbnode_data_disk" {
 # VM Extension
 resource "azurerm_virtual_machine_extension" "hdb_linux_extension" {
   provider             = azurerm.main
-  count                = local.enable_deployment ? var.database_server_count : 0
+  count                = local.enable_deployment && var.database.deploy_v1_monitoring_extension ? var.database_server_count : 0
   name                 = "MonitorX64Linux"
   virtual_machine_id   = azurerm_linux_virtual_machine.vm_dbnode[count.index].id
   publisher            = "Microsoft.AzureCAT.AzureEnhancedMonitoring"

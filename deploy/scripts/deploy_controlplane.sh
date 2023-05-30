@@ -280,7 +280,13 @@ if [ 0 == $step ]; then
         save_config_var "tenant_id" "${deployer_config_information}"
     fi
 
-    export step=1
+    if [ -n $FORCE_RESET ]; then
+      step=3
+      save_config_var "step" "${deployer_config_information}"
+      exit 0
+    else
+      export step=1
+    fi
     save_config_var "step" "${deployer_config_information}"
 
     cd "$root_dirname" || exit

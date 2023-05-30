@@ -39,7 +39,7 @@ resource "azurerm_netapp_volume" "hanadata" {
 
   snapshot_directory_visible = true
 
-  zone = local.db_zone_count > 0 ? try(local.zones[count.index], null) : null
+  zone = local.db_zone_count > 0 && var.hana_ANF_volumes.use_zones ? try(local.zones[count.index], null) : null
 
 }
 

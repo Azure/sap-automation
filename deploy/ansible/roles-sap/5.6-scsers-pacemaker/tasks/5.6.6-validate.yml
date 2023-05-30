@@ -1,12 +1,12 @@
 # Validate that the SCS cluster is working as expected
 - name:                                "5.6 SCS/ERS Validation: - Set Python version {{ distribution_id }}"
   ansible.builtin.set_fact:
-    python_version: "python2"
+    python_version: "python3"
 
 - name:                                "5.6 SCS/ERS Validation: - Set Python version {{ distribution_id }}"
   ansible.builtin.set_fact:
-    python_version: "python3"
-  when: (ansible_distribution | lower ~ ansible_distribution_major_version) in ['suse15', 'redhat8', 'sles_sap15']
+    python_version: "python2"
+  when: (ansible_distribution | lower ~ ansible_distribution_major_version) in ['sles_sap12']
 
 - name:                                "5.6 SCS/ERS Validation: Determine if SCS is running on {{ ansible_hostname }}"
   become_user:                         "{{ sap_sid | lower }}adm"

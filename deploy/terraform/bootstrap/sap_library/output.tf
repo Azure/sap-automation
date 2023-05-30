@@ -1,8 +1,8 @@
 
 ###############################################################################
-#                                                                             # 
-#                             Resource Group                                  # 
-#                                                                             # 
+#                                                                             #
+#                             Resource Group                                  #
+#                                                                             #
 ###############################################################################
 
 output "created_resource_group_id" {
@@ -22,9 +22,9 @@ output "created_resource_group_name" {
 
 
 ###############################################################################
-#                                                                             # 
-#                             Storage accounts                                # 
-#                                                                             # 
+#                                                                             #
+#                             Storage accounts                                #
+#                                                                             #
 ###############################################################################
 
 output "sapbits_storage_account_name" {
@@ -67,3 +67,15 @@ output "sa_connection_string" {
   sensitive   = true
   value       = module.sap_library.sa_connection_string
 }
+
+
+###############################################################################
+#                                                                             #
+#                                    Random                                   #
+#                                                                             #
+###############################################################################
+
+output "random_id_b64" {
+  value = module.sap_library.random_id_b64
+}
+
