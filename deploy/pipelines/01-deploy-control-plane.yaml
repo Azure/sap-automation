@@ -94,6 +94,8 @@ stages:
                         echo -e "$green--- Configure devops CLI extension ---$reset"
                             az config set extension.use_dynamic_install=yes_without_prompt
 
+                            az extension add --name azure-devops --output none
+
                             az devops configure --defaults organization=$(System.CollectionUri) project='$(System.TeamProject)' --output none
                             export VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(variable_group)'].id | [0]")
                             echo "$(variable_group) id: ${VARIABLE_GROUP_ID}"
