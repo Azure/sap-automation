@@ -980,6 +980,10 @@ variable "ANF_HANA_use_AVG" {
   default     = false
 }
 
+variable "ANF_HANA_use_Zones" {
+  description = "Use zonal ANF deployments"
+  default     = false
+}
 
 variable "ANF_HANA_log" {
   description = "If defined, will create ANF volumes for HANA log"
