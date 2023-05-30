@@ -267,7 +267,10 @@ packages:
     - { tier: 'ha',    package: 'fence-agents-azure-arm',                       node_tier: 'all',     state: 'present' }
   redhat9.2:
     - { tier: 'ha',    package: 'fence-agents-azure-arm',                       node_tier: 'all',     state: 'present' }
+<<<<<<< HEAD
     - { tier: 'sapos', package: 'chkconfig',                                    node_tier: 'hana',    state: 'present' }
+=======
+>>>>>>> 3dda1665... 3.8.2 release (#452)
   sles_sap12:
     - { tier: 'os',    package: 'chrony',                                       node_tier: 'all',     state: 'present' }
     - { tier: 'os',    package: 'glibc',                                        node_tier: 'all',     state: 'present' }
