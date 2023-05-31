@@ -367,7 +367,7 @@ resource "azurerm_managed_disk" "app" {
   disk_size_gb           = local.app_data_disks[count.index].disk_size_gb
   disk_encryption_set_id = try(var.options.disk_encryption_set_id, null)
 
-  zone = local.use_app_avset ? null : (
+  zone = var.application_tier.app_use_avset ? null : (
     upper(var.application_tier.app_os.os_type) == "LINUX" ? (
       azurerm_linux_virtual_machine.app[local.app_data_disks[count.index].vm_index].zone) : (
       azurerm_windows_virtual_machine.app[local.app_data_disks[count.index].vm_index].zone
