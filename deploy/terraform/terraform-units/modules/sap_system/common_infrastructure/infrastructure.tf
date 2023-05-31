@@ -142,7 +142,7 @@ data "azurerm_storage_account" "storage_bootdiag" {
 // PROXIMITY PLACEMENT GROUP
 resource "azurerm_proximity_placement_group" "ppg" {
   provider = azurerm.main
-  count    = local.ppg_exists ? 0 : (local.zonal_deployment ? max(length(local.zones), 1) : 1)
+  count    = local.ppg_exists || var.use_scalesets_for_deployment ? 0 : (local.zonal_deployment ? max(length(local.zones), 1) : 1)
   name     = format("%s%s", local.prefix, var.naming.ppg_names[count.index])
   resource_group_name = local.resource_group_exists ? (
     data.azurerm_resource_group.resource_group[0].name) : (
@@ -215,6 +215,8 @@ data "template_cloudinit_config" "config_growpart" {
 resource "azurerm_orchestrated_virtual_machine_scale_set" "scale_set" {
 
   count = var.use_scalesets_for_deployment ? 1 : 0
+
+  depends_on = [azurerm_resource_group.resource_group]
 
   name = format("%s%s%s%s",
     var.naming.resource_prefixes.vmss,
