@@ -218,10 +218,9 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "scale_set" {
 
   depends_on = [azurerm_resource_group.resource_group]
 
-  name = format("%s%s%s%s",
+  name = format("%s%s%s",
     var.naming.resource_prefixes.vmss,
     local.prefix,
-    var.naming.separator,
     local.resource_suffixes.vmss
   )
 
