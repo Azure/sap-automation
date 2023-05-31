@@ -94,6 +94,8 @@ module "common_infrastructure" {
   deploy_application_security_groups = var.deploy_application_security_groups
   use_service_endpoint               = var.use_service_endpoint
 
+  use_scalesets_for_deployment = var.use_scalesets_for_deployment
+
 }
 
 
@@ -165,6 +167,10 @@ module "hdb_node" {
   use_custom_dns_a_registration     = data.terraform_remote_state.landscape.outputs.use_custom_dns_a_registration
   management_dns_subscription_id    = try(data.terraform_remote_state.landscape.outputs.management_dns_subscription_id, null)
   management_dns_resourcegroup_name = coalesce(data.terraform_remote_state.landscape.outputs.management_dns_resourcegroup_name, local.saplib_resource_group_name)
+
+  use_scalesets_for_deployment = var.use_scalesets_for_deployment
+  scale_set_id = try(module.common_infrastructure.scale_set_id, null)
+
 }
 
 
@@ -226,7 +232,8 @@ module "app_tier" {
   scs_shared_disk_lun  = var.scs_shared_disk_lun
   scs_shared_disk_size = var.scs_shared_disk_size
 
-
+  use_scalesets_for_deployment = var.use_scalesets_for_deployment
+  scale_set_id = try(module.common_infrastructure.scale_set_id, null)
 }
 
 #########################################################################################
@@ -288,6 +295,8 @@ module "anydb_node" {
   management_dns_subscription_id    = try(data.terraform_remote_state.landscape.outputs.management_dns_subscription_id, null)
   management_dns_resourcegroup_name = coalesce(data.terraform_remote_state.landscape.outputs.management_dns_resourcegroup_name, local.saplib_resource_group_name)
 
+  use_scalesets_for_deployment = var.use_scalesets_for_deployment
+  scale_set_id = try(module.common_infrastructure.scale_set_id, null)
 }
 
 #########################################################################################

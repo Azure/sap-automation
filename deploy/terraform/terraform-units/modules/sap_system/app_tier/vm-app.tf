@@ -136,8 +136,10 @@ resource "azurerm_linux_virtual_machine" "app" {
     null
   )
 
+  virtual_machine_scale_set_id = length(var.scale_set_id) > 0 ? var.scale_set_id : null
+
   //If length of zones > 1 distribute servers evenly across zones
-  zone = var.application_tier.app_use_avset  ? null : try(local.app_zones[count.index % max(local.app_zone_count, 1)], null)
+  zone = var.application_tier.app_use_avset ? null : try(local.app_zones[count.index % max(local.app_zone_count, 1)], null)
 
   network_interface_ids = var.application_tier.dual_nics ? (
     var.options.legacy_nic_order ? (
@@ -268,6 +270,7 @@ resource "azurerm_windows_virtual_machine" "app" {
     null
   )
 
+  virtual_machine_scale_set_id = length(var.scale_set_id) > 0 ? var.scale_set_id : null
   //If length of zones > 1 distribute servers evenly across zones
   zone = var.application_tier.app_use_avset ? null : try(local.app_zones[count.index % max(local.app_zone_count, 1)], null)
 

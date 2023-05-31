@@ -211,3 +211,26 @@ data "template_cloudinit_config" "config_growpart" {
   }
 }
 
+
+resource "azurerm_orchestrated_virtual_machine_scale_set" "scale_set" {
+
+  count = var.use_scalesets_for_deployment ? 1 : 0
+
+  name = format("%s%s%s%s",
+    var.naming.resource_prefixes.vmss,
+    local.prefix,
+    var.naming.separator,
+    local.resource_suffixes.vmss
+  )
+
+
+  resource_group_name = local.resource_group_exists ? (
+    data.azurerm_resource_group.resource_group[0].name) : (
+    azurerm_resource_group.resource_group[0].name
+  )
+  location = var.infrastructure.region
+
+  platform_fault_domain_count = 1
+
+  zones = local.zones
+}

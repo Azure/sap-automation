@@ -43,6 +43,13 @@ variable "custom_disk_sizes_filename" {
   default     = ""
 }
 
+variable "use_scalesets_for_deployment" {
+  description = "Use Flexible Virtual Machine Scale Sets for the deployment"
+  default     = false
+}
+
+
+
 #########################################################################################
 #                                                                                       #
 #  Resource Group variables                                                             #

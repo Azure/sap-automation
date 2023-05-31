@@ -190,6 +190,9 @@ resource "azurerm_linux_virtual_machine" "vm_dbnode" {
       azurerm_availability_set.hdb[count.index % max(local.db_zone_count, 1)].id
     )
   ) : null
+
+  virtual_machine_scale_set_id = length(var.scale_set_id) > 0 ? var.scale_set_id : null
+
   zone = local.use_avset ? null : try(local.zones[count.index % max(local.db_zone_count, 1)], null)
 
   network_interface_ids = local.enable_storage_subnet ? (
@@ -376,3 +379,19 @@ SETTINGS
     ignore_changes = [tags]
   }
 }
+
+
+#########################################################################################
+#                                                                                       #
+#  Scale Set                                                                            #
+#                                                                                       #
+#########################################################################################
+
+variable "use_scalesets_for_deployment" {
+  description = "Use Flexible Virtual Machine Scale Sets for the deployment"
+}
+
+variable "scale_set_id" {
+  description = "Azure resource identifier for scale set"
+}
+

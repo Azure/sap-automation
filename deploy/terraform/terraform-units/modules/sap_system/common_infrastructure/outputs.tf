@@ -242,3 +242,9 @@ output "anchor_vm" {
     ""
   )
 }
+
+
+output "scale_set_id" {
+
+  value = var.use_scalesets_for_deployment ? azurerm_orchestrated_virtual_machine_scale_set.scale_set[0].id : ""
+}
