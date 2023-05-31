@@ -124,7 +124,7 @@ resource "azurerm_linux_virtual_machine" "web" {
   resource_group_name = var.resource_group[0].name
 
   proximity_placement_group_id = var.application_tier.web_use_ppg ? (
-    local.web_zonal_deployment ? var.ppg[count.index % max(local.web_zone_count, 1)].id : var.ppg[0].id) : (
+    local.web_zonal_deployment ? var.ppg[count.index % max(local.web_zone_count, 1)] : var.ppg[0]) : (
     null
   )
 
@@ -258,7 +258,7 @@ resource "azurerm_windows_virtual_machine" "web" {
   resource_group_name = var.resource_group[0].name
 
   proximity_placement_group_id = var.application_tier.web_use_ppg ? (
-    local.web_zonal_deployment ? var.ppg[count.index % max(local.web_zone_count, 1)].id : var.ppg[0].id) : (
+    local.web_zonal_deployment ? var.ppg[count.index % max(local.web_zone_count, 1)] : var.ppg[0]) : (
     null
   )
 

@@ -179,7 +179,7 @@ resource "azurerm_linux_virtual_machine" "vm_dbnode" {
   }
 
   proximity_placement_group_id = var.database.use_ppg ? (
-    var.ppg[count.index].id) : (
+    var.ppg[count.index]) : (
     null
   )
 

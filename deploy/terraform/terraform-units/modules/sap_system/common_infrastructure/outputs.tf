@@ -53,7 +53,7 @@ output "random_id" {
 }
 
 output "ppg" {
-  value = var.use_scalesets_for_deployment ? {} : local.ppg_exists ? data.azurerm_proximity_placement_group.ppg : azurerm_proximity_placement_group.ppg
+  value = var.use_scalesets_for_deployment ? [] : local.ppg_exists ? data.azurerm_proximity_placement_group.ppg[*].id : azurerm_proximity_placement_group.ppg[*].id
 }
 
 
