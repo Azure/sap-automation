@@ -1,7 +1,7 @@
 
 resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA" {
   provider = azurerm.main
-  count    = var.NFS_provider == "ANF" && local.use_avg && var.deployment == "new" && length(var.scale_set_id) == 0 ? length(var.ppg) : 0
+  count    = var.NFS_provider == "ANF" && local.use_avg  ? length(var.ppg) : 0
   name = format("%s%s%s%s%d",
     var.naming.resource_prefixes.hana_avg,
     local.prefix,
@@ -67,7 +67,7 @@ locals {
   use_avg = (
     var.hana_ANF_volumes.use_AVG_for_data) && (
     var.hana_ANF_volumes.use_for_data || var.hana_ANF_volumes.use_for_log || var.hana_ANF_volumes.use_for_shared
-  )
+  ) && !var.use_scalesets_for_deployment
 
   hana_data1 = {
     name = format("%s%s%s%s%d",
