@@ -214,9 +214,8 @@ data "template_cloudinit_config" "config_growpart" {
 
 resource "azurerm_orchestrated_virtual_machine_scale_set" "scale_set" {
 
+  provider = azurerm.main
   count = var.use_scalesets_for_deployment ? 1 : 0
-
-  depends_on = [azurerm_resource_group.resource_group]
 
   name = format("%s%s%s",
     var.naming.resource_prefixes.vmss,
