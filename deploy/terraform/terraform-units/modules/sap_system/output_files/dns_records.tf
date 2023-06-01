@@ -44,7 +44,7 @@ resource "azurerm_private_dns_a_record" "web_secondary" {
 }
 
 resource "azurerm_private_dns_a_record" "db_secondary" {
-  count               = var.use_secondary_ips && !var.use_custom_dns_a_registration && length(var.dns) > 0 ? length(local.db_secondary_dns_names) : 0
+  count               = var.use_secondary_ips && !var.use_custom_dns_a_registration && length(var.dns) > 0 ? length(var.db_server_secondary_ips) : 0
   name                = local.db_secondary_dns_names[count.index]
   zone_name           = var.dns
   resource_group_name = var.management_dns_resourcegroup_name
