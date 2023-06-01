@@ -79,22 +79,26 @@ variable "anchor_ostype" {
 }
 
 variable "app_server_count" {
+  description = "Number of Application Servers"
   type    = number
   default = 1
 }
 
 variable "scs_server_count" {
+  description = "Number of SCS Servers"
   type    = number
   default = 1
 }
 
 variable "web_server_count" {
+  description = "Number of Web Dispatchers"
   type    = number
   default = 1
 }
 
 
 variable "db_server_count" {
+  description = "Number of Database Servers"
   type    = number
   default = 1
 }

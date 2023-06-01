@@ -435,4 +435,18 @@ module "output_files" {
   use_custom_dns_a_registration     = data.terraform_remote_state.landscape.outputs.use_custom_dns_a_registration
   management_dns_subscription_id    = try(data.terraform_remote_state.landscape.outputs.management_dns_subscription_id, null)
   management_dns_resourcegroup_name = coalesce(data.terraform_remote_state.landscape.outputs.management_dns_resourcegroup_name, local.saplib_resource_group_name)
+
+
+  #########################################################################################
+  #  Server counts                                                                        #
+  #########################################################################################
+
+  db_server_count  = var.database_server_count
+  app_server_count = try(local.application_tier.application_server_count, 0)
+  web_server_count = try(local.application_tier.webdispatcher_count, 0)
+  scs_server_count = local.application_tier.scs_high_availability ? (
+    2 * local.application_tier.scs_server_count) : (
+    local.application_tier.scs_server_count
+  )
+
 }
