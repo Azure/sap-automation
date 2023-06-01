@@ -21,7 +21,7 @@ resource "azurerm_key_vault_secret" "sapbits_location_base_path" {
 }
 
 
-resource "azurerm_key_vault_secret" "sapbits_location_base_path" {
+resource "azurerm_key_vault_secret" "sa_connection_string" {
   provider = azurerm.deployer
   count    = length(var.key_vault.kv_spn_id) > 0 ? 1 : 0
   name     = "sa_connection_string"
