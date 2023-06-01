@@ -133,10 +133,12 @@ output "web_vm_ids" {
 }
 
 output "hanadb_vm_ids" {
+  description = "VM IDs for the HANA Servers"
   value = module.hdb_node.hanadb_vm_ids
 }
 
 output "anydb_vm_ids" {
+  description = "VM IDs for the AnyDB Servers"
   value = module.anydb_node.anydb_vm_ids
 }
 
@@ -149,8 +151,17 @@ output "db_vm_ips" {
 
 }
 
+output "db_vm_secondary_ips" {
+  description = "Database Virtual Machine secondary IPs"
+  value = upper(try(local.database.platform, "HANA")) == "HANA" ? (
+    module.hdb_node.db_server_secondary_ips) : (
+    module.anydb_node.db_server_secondary_ips
+  )
+
+}
 
 output "sid" {
+  description = "SID of the system"
   value = local.application_tier.sid
 }
 
