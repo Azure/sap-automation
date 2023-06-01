@@ -169,7 +169,7 @@ module "hdb_node" {
   management_dns_resourcegroup_name = coalesce(data.terraform_remote_state.landscape.outputs.management_dns_resourcegroup_name, local.saplib_resource_group_name)
 
   use_scalesets_for_deployment = var.use_scalesets_for_deployment
-  scale_set_id = try(module.common_infrastructure.scale_set_id, null)
+  scale_set_id                 = try(module.common_infrastructure.scale_set_id, null)
 
 }
 
@@ -233,7 +233,7 @@ module "app_tier" {
   scs_shared_disk_size = var.scs_shared_disk_size
 
   use_scalesets_for_deployment = var.use_scalesets_for_deployment
-  scale_set_id = try(module.common_infrastructure.scale_set_id, null)
+  scale_set_id                 = try(module.common_infrastructure.scale_set_id, null)
 }
 
 #########################################################################################
@@ -296,7 +296,7 @@ module "anydb_node" {
   management_dns_resourcegroup_name = coalesce(data.terraform_remote_state.landscape.outputs.management_dns_resourcegroup_name, local.saplib_resource_group_name)
 
   use_scalesets_for_deployment = var.use_scalesets_for_deployment
-  scale_set_id = try(module.common_infrastructure.scale_set_id, null)
+  scale_set_id                 = try(module.common_infrastructure.scale_set_id, null)
 }
 
 #########################################################################################
@@ -306,7 +306,8 @@ module "anydb_node" {
 #########################################################################################
 
 module "output_files" {
-  source = "../../terraform-units/modules/sap_system/output_files"
+  depends_on = [module.anydb_node, module.common_infrastructure, module.app_tier, module.hdb_node]
+  source     = "../../terraform-units/modules/sap_system/output_files"
   providers = {
     azurerm.deployer      = azurerm
     azurerm.main          = azurerm.system
