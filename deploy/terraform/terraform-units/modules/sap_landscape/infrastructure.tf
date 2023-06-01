@@ -250,4 +250,27 @@ data "azurerm_private_dns_zone" "storage" {
   name                = "privatelink.blob.core.windows.net"
   resource_group_name = var.management_dns_resourcegroup_name
 }
+resource "azurerm_management_lock" "keyvault" {
+  provider   = azurerm.main
+  count      = (var.key_vault.kv_exists) ? 0 : var.place_delete_lock_on_resources ? 1 : 0
+  name       = format("%s-lock", local.keyvault_names.user_access)
+  scope      = azurerm_key_vault.kv_user[0].id
+  lock_level = "CanNotDelete"
+  notes      = "Locked because it's needed by the Workload"
+  lifecycle {
+    prevent_destroy = false
+  }
+}
+
+resource "azurerm_management_lock" "vnet_sap" {
+  provider   = azurerm.main
+  count      = (var.key_vault.kv_exists) ? 0 : var.place_delete_lock_on_resources ? 1 : 0
+  name       = format("%s-lock", local.vnet_sap_name)
+  scope      = azurerm_virtual_network.vnet_sap[0].id
+  lock_level = "CanNotDelete"
+  notes      = "Locked because it's needed by the Workload"
+  lifecycle {
+    prevent_destroy = false
+  }
+}
 

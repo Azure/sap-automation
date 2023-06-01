@@ -6,7 +6,7 @@
 
 // Create user KV with access policy
 resource "azurerm_key_vault" "kv_user" {
-  provider                   = azurerm.main
+  provider = azurerm.main
   depends_on = [
     azurerm_virtual_network_peering.peering_management_sap,
     azurerm_virtual_network_peering.peering_sap_management
@@ -444,7 +444,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vault" {
   depends_on = [
     azurerm_virtual_network.vnet_sap
   ]
-  count = local.use_Azure_native_DNS  && var.use_private_endpoint ? 1 : 0
+  count = local.use_Azure_native_DNS && var.use_private_endpoint ? 1 : 0
   name = format("%s%s%s%s",
     var.naming.resource_prefixes.dns_link,
     local.prefix,
@@ -497,3 +497,14 @@ resource "azurerm_key_vault_access_policy" "kv_user_additional_users" {
 
 }
 
+resource "azurerm_management_lock" "keyvault" {
+  provider   = azurerm.main
+  count      = (var.key_vault.kv_exists) ? 0 : var.place_delete_lock_on_resources ? 1 : 0
+  name       = format("%s-lock", local.keyvault_names.user_access)
+  scope      = azurerm_key_vault.kv_user[0].id
+  lock_level = "CanNotDelete"
+  notes      = "Locked because it's needed by the Control Plane"
+  lifecycle {
+    prevent_destroy = false
+  }
+}
