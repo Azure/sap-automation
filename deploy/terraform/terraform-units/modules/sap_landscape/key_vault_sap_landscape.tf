@@ -500,7 +500,7 @@ resource "azurerm_key_vault_access_policy" "kv_user_additional_users" {
 resource "azurerm_management_lock" "keyvault" {
   provider   = azurerm.main
   count      = (var.key_vault.kv_exists) ? 0 : var.place_delete_lock_on_resources ? 1 : 0
-  name       = format("%s-lock", local.keyvault_names.user_access)
+  name       = format("%s-lock", local.user_keyvault_name)
   scope      = azurerm_key_vault.kv_user[0].id
   lock_level = "CanNotDelete"
   notes      = "Locked because it's needed by the Control Plane"
