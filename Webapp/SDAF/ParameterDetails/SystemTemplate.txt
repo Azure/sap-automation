@@ -63,6 +63,8 @@ $$use_secondary_ips$$
 # subscription is the subscription in which the system will be deployed (informational only)
 $$subscription$$
 
+# use_scalesets_for_deployment defines if Flexible Virtual Machine Scale Sets are used for the deployment
+$$use_scalesets_for_deployment$$
 
 #########################################################################################
 #                                                                                       #

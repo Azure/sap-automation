@@ -104,6 +104,15 @@
         "Display": 2
       },
       {
+        "Name": "place_delete_lock_on_resources",
+        "Required": false,
+        "Description": " If defined, a delete lock will be placed on the key resources (virtual network and key vault)",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
         "Name": "resourcegroup_name",
         "Required": false,
         "Description": "Overrides the name of the resource group that will be provisioned.",
