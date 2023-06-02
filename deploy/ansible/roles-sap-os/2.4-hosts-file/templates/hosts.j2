@@ -76,10 +76,10 @@ Skip over the 'lo' interface.
 
 #}
 
-set default_ip = hostvars[host]['ansible_default_ipv4']['address']
-{{ '%-19s' | format(default_ip) }}{{ '%-50s' | format(host + '.' + sap_fqdn) }}{{ '%-21s' | format(host) }}
 
-{%    for ips in hostvars[host]['ansible_all_ipv4_addresses']|sort if ips in [default_ip] %}
+{{ '%-19s' | format(hostvars[host]['ansible_default_ipv4']['address']) }}{{ '%-50s' | format(host + '.' + sap_fqdn) }}{{ '%-21s' | format(host) }}
+
+{%    for ips in hostvars[host]['ansible_all_ipv4_addresses'] | sort if ips != hostvars[host]['ansible_default_ipv4']['address'] %}
 {#
 
 if ipv4 not found, then that NIC is not configured and is skipped
