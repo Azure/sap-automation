@@ -142,6 +142,7 @@ locals {
     use_spn                = var.use_spn || try(var.options.use_spn, true)
   }
   key_vault_temp = {
+    exists = length(var.user_keyvault_id) > 0
   }
 
   user_keyvault_specified = length(var.user_keyvault_id) > 0
