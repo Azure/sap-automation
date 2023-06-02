@@ -125,7 +125,7 @@ resource "azurerm_windows_web_app" "webapp" {
   key_vault_reference_identity_id = azurerm_user_assigned_identity.deployer.id
 
   identity {
-    type         = "UserAssigned"
+    type         = "UserAssigned, SystemAssigned"
     identity_ids = [azurerm_user_assigned_identity.deployer.id]
   }
   connection_string {
