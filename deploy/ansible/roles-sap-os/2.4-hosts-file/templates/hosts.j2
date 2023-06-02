@@ -57,7 +57,7 @@ Notes:
 0.........1.........2.........3.........4.........5.........6.........7.........8
 
 #}
-# {{ sap_sid|upper }}
+# {{ sap_sid | upper }}
 {#
 
 Loop through all the hosts that are referenced by the Playbook.
@@ -65,21 +65,20 @@ If we do not sort it, then the order can change randomly.
 
 #}
 {%  for host in play_hosts | sort %}
+# {{ host | upper }}
 {#
-
 
 Loop through all the network interfaces that are defined on the host.
 Sort the order so eth0 is first.
 Skip over the 'lo' interface.
 
-
-
 #}
-
 
 {{ '%-19s' | format(hostvars[host]['ansible_default_ipv4']['address']) }}{{ '%-50s' | format(host + '.' + sap_fqdn) }}{{ '%-21s' | format(host) }}
 
 {%    for ips in hostvars[host]['ansible_all_ipv4_addresses'] | sort if ips != hostvars[host]['ansible_default_ipv4']['address'] %}
+# {{ ips }}
+
 {#
 
 if ipv4 not found, then that NIC is not configured and is skipped
