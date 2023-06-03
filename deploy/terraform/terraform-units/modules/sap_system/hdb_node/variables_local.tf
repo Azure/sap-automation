@@ -7,7 +7,7 @@ locals {
   storageaccount_names = var.naming.storageaccount_names.SDU
   resource_suffixes    = var.naming.resource_suffixes
 
-  default_filepath = format("%s%s", path.module, "/../../../../../configs/hana_sizes.json")
+  default_filepath = var.database_use_premium_v2_storage ? format("%s%s", path.module, "/../../../../../configs/hana_sizes_v2.json") : format("%s%s", path.module, "/../../../../../configs/hana_sizes.json")
   custom_sizing    = length(var.custom_disk_sizes_filename) > 0
 
   // Imports database sizing information

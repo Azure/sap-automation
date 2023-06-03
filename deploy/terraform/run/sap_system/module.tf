@@ -171,6 +171,8 @@ module "hdb_node" {
   use_scalesets_for_deployment = var.use_scalesets_for_deployment
   scale_set_id                 = try(module.common_infrastructure.scale_set_id, null)
 
+  database_use_premium_v2_storage = var.database_use_premium_v2_storage
+
 }
 
 

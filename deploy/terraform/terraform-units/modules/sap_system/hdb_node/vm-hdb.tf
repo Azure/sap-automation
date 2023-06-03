@@ -328,11 +328,11 @@ resource "azurerm_managed_disk" "data_disk" {
   create_option        = "Empty"
   storage_account_type = local.data_disk_list[count.index].storage_account_type
   disk_size_gb         = local.data_disk_list[count.index].disk_size_gb
-  disk_iops_read_write = "UltraSSD_LRS" == local.data_disk_list[count.index].storage_account_type ? (
+  disk_iops_read_write = contains(["UltraSSD_LRS", "PremiumV2_LRS"], local.data_disk_list[count.index].storage_account_type) ? (
     local.data_disk_list[count.index].disk_iops_read_write) : (
     null
   )
-  disk_mbps_read_write = "UltraSSD_LRS" == local.data_disk_list[count.index].storage_account_type ? (
+  disk_mbps_read_write = contains(["UltraSSD_LRS", "PremiumV2_LRS"], local.data_disk_list[count.index].storage_account_type) ? (
     local.data_disk_list[count.index].disk_mbps_read_write) : (
     null
   )

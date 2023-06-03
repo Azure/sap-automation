@@ -465,6 +465,11 @@ variable "database_HANA_use_ANF_scaleout_scenario" {
   default = false
 }
 
+variable "database_use_premium_v2_storage" {
+  description = "If true, the database tier will use premium storage"
+  default     = false
+}
+
 
 #########################################################################################
 #                                                                                       #
