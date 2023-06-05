@@ -312,6 +312,7 @@ function set_executing_user_environment_variables() {
         # print ARM environment variables
         echo -e "\t[set_executing_user_environment_variables]: ARM environment variables:"
         echo -e "\t\tARM_CLIENT_ID: $(printenv ARM_CLIENT_ID)"
+        echo -e "\t\tARM_SUBSCRIPTION_ID: $(printenv ARM_SUBSCRIPTION_ID)"
         echo -e "\t\tARM_USE_MSI: $(printenv ARM_USE_MSI)"
 
     else
@@ -380,6 +381,7 @@ function set_executing_user_environment_variables() {
         # print ARM environment variables
         echo -e "\t[set_executing_user_environment_variables]: ARM environment variables:"
         echo -e "\t\tARM_CLIENT_ID: $(printenv ARM_CLIENT_ID)"
+        echo -e "\t\tARM_SUBSCRIPTION_ID: $(printenv ARM_SUBSCRIPTION_ID)"
         echo -e "\t\tARM_USE_MSI: $(printenv ARM_USE_MSI)"
     fi
 }

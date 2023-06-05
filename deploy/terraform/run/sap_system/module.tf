@@ -6,19 +6,19 @@
 #########################################################################################
 
 module "sap_namegenerator" {
-  source           = "../../terraform-units/modules/sap_namegenerator"
-  environment      = local.infrastructure.environment
-  location         = local.infrastructure.region
-  codename         = lower(try(local.infrastructure.codename, ""))
-  random_id        = module.common_infrastructure.random_id
-  sap_vnet_name    = local.vnet_logical_name
-  sap_sid          = local.sap_sid
-  db_sid           = local.db_sid
-  web_sid          = local.web_sid
+  source        = "../../terraform-units/modules/sap_namegenerator"
+  environment   = local.infrastructure.environment
+  location      = local.infrastructure.region
+  codename      = lower(try(local.infrastructure.codename, ""))
+  random_id     = module.common_infrastructure.random_id
+  sap_vnet_name = local.vnet_logical_name
+  sap_sid       = local.sap_sid
+  db_sid        = local.db_sid
+  web_sid       = local.web_sid
 
-  app_ostype       = upper(try(local.application_tier.app_os.os_type, "LINUX"))
-  anchor_ostype    = upper(try(local.anchor_vms.os.os_type, "LINUX"))
-  db_ostype        = upper(try(local.database.os.os_type, "LINUX"))
+  app_ostype    = upper(try(local.application_tier.app_os.os_type, "LINUX"))
+  anchor_ostype = upper(try(local.anchor_vms.os.os_type, "LINUX"))
+  db_ostype     = upper(try(local.database.os.os_type, "LINUX"))
 
   db_server_count  = var.database_server_count
   app_server_count = try(local.application_tier.application_server_count, 0)
@@ -28,10 +28,10 @@ module "sap_namegenerator" {
     local.application_tier.scs_server_count
   )
 
-  app_zones                  = try(local.application_tier.app_zones, [])
-  scs_zones                  = try(local.application_tier.scs_zones, [])
-  web_zones                  = try(local.application_tier.web_zones, [])
-  db_zones                   = try(local.database.zones, [])
+  app_zones = try(local.application_tier.app_zones, [])
+  scs_zones = try(local.application_tier.scs_zones, [])
+  web_zones = try(local.application_tier.web_zones, [])
+  db_zones  = try(local.database.zones, [])
 
   resource_offset            = try(var.resource_offset, 0)
   custom_prefix              = var.custom_prefix
@@ -94,6 +94,8 @@ module "common_infrastructure" {
   deploy_application_security_groups = var.deploy_application_security_groups
   use_service_endpoint               = var.use_service_endpoint
 
+  use_scalesets_for_deployment = var.use_scalesets_for_deployment
+
 }
 
 
@@ -109,7 +111,10 @@ module "hdb_node" {
     azurerm.deployer      = azurerm
     azurerm.main          = azurerm.system
     azurerm.dnsmanagement = azurerm.dnsmanagement
+    azapi.api             = azapi.api
+
   }
+
   depends_on = [module.common_infrastructure]
   order_deployment = local.enable_db_deployment ? (
     local.db_zonal_deployment && local.application_tier.enable_deployment ? (
@@ -162,6 +167,12 @@ module "hdb_node" {
   use_custom_dns_a_registration     = data.terraform_remote_state.landscape.outputs.use_custom_dns_a_registration
   management_dns_subscription_id    = try(data.terraform_remote_state.landscape.outputs.management_dns_subscription_id, null)
   management_dns_resourcegroup_name = coalesce(data.terraform_remote_state.landscape.outputs.management_dns_resourcegroup_name, local.saplib_resource_group_name)
+
+  use_scalesets_for_deployment = var.use_scalesets_for_deployment
+  scale_set_id                 = try(module.common_infrastructure.scale_set_id, null)
+
+  database_use_premium_v2_storage = var.database_use_premium_v2_storage
+
 }
 
 
@@ -223,7 +234,8 @@ module "app_tier" {
   scs_shared_disk_lun  = var.scs_shared_disk_lun
   scs_shared_disk_size = var.scs_shared_disk_size
 
-
+  use_scalesets_for_deployment = var.use_scalesets_for_deployment
+  scale_set_id                 = try(module.common_infrastructure.scale_set_id, null)
 }
 
 #########################################################################################
@@ -285,6 +297,8 @@ module "anydb_node" {
   management_dns_subscription_id    = try(data.terraform_remote_state.landscape.outputs.management_dns_subscription_id, null)
   management_dns_resourcegroup_name = coalesce(data.terraform_remote_state.landscape.outputs.management_dns_resourcegroup_name, local.saplib_resource_group_name)
 
+  use_scalesets_for_deployment = var.use_scalesets_for_deployment
+  scale_set_id                 = try(module.common_infrastructure.scale_set_id, null)
 }
 
 #########################################################################################
@@ -294,7 +308,8 @@ module "anydb_node" {
 #########################################################################################
 
 module "output_files" {
-  source = "../../terraform-units/modules/sap_system/output_files"
+  depends_on = [module.anydb_node, module.common_infrastructure, module.app_tier, module.hdb_node]
+  source     = "../../terraform-units/modules/sap_system/output_files"
   providers = {
     azurerm.deployer      = azurerm
     azurerm.main          = azurerm.system
@@ -422,4 +437,18 @@ module "output_files" {
   use_custom_dns_a_registration     = data.terraform_remote_state.landscape.outputs.use_custom_dns_a_registration
   management_dns_subscription_id    = try(data.terraform_remote_state.landscape.outputs.management_dns_subscription_id, null)
   management_dns_resourcegroup_name = coalesce(data.terraform_remote_state.landscape.outputs.management_dns_resourcegroup_name, local.saplib_resource_group_name)
+
+
+  #########################################################################################
+  #  Server counts                                                                        #
+  #########################################################################################
+
+  db_server_count  = var.database_server_count
+  app_server_count = try(local.application_tier.application_server_count, 0)
+  web_server_count = try(local.application_tier.webdispatcher_count, 0)
+  scs_server_count = local.application_tier.scs_high_availability ? (
+    2 * local.application_tier.scs_server_count) : (
+    local.application_tier.scs_server_count
+  )
+
 }

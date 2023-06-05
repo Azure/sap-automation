@@ -42,4 +42,3 @@ Webapp/SDAF/Properties/ServiceDependencies
 
 # Ignore OS files         - MKD 20221221
 **/.DS_Store
-deploy/terraform/terraform-units/modules/sap_system/hdb_node/avg.tf

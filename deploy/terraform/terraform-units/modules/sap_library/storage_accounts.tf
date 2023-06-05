@@ -61,7 +61,6 @@ resource "azurerm_storage_account_network_rules" "storage_tfstate" {
 
 }
 
-
 resource "azurerm_role_assignment" "storage_tfstate_contributor" {
   provider             = azurerm.main
   scope                = local.sa_tfstate_exists ? var.storage_account_tfstate.arm_id : azurerm_storage_account.storage_tfstate[0].id
@@ -71,7 +70,7 @@ resource "azurerm_role_assignment" "storage_tfstate_contributor" {
 
 resource "azurerm_role_assignment" "storage_tfstate_contributor_ssi" {
   provider             = azurerm.main
-  count                = var.deployer_tfstate.add_system_assigned_identity ? length(var.deployer_tfstate.deployer_system_assigned_identity) : 0
+  count                = try(var.deployer_tfstate.add_system_assigned_identity, false) ? length(var.deployer_tfstate.deployer_system_assigned_identity) : 0
   scope                = local.sa_tfstate_exists ? var.storage_account_tfstate.arm_id : azurerm_storage_account.storage_tfstate[0].id
   role_definition_name = "Storage Account Contributor"
   principal_id         = var.deployer_tfstate.deployer_system_assigned_identity[count.index]
@@ -387,7 +386,7 @@ resource "azurerm_role_assignment" "storage_sapbits_contributor" {
 
 resource "azurerm_role_assignment" "storage_sapbits_contributor_ssi" {
   provider             = azurerm.main
-  count                = var.deployer_tfstate.add_system_assigned_identity ? length(var.deployer_tfstate.deployer_system_assigned_identity) : 0
+  count                = try(var.deployer_tfstate.add_system_assigned_identity, false) ? length(var.deployer_tfstate.deployer_system_assigned_identity) : 0
   scope                = local.sa_sapbits_exists ? var.storage_account_sapbits.arm_id : azurerm_storage_account.storage_sapbits[0].id
   role_definition_name = "Storage Account Contributor"
   principal_id         = var.deployer_tfstate.deployer_system_assigned_identity[count.index]
@@ -414,4 +413,16 @@ data "azurerm_network_interface" "storage_sapbits" {
   count               = var.use_private_endpoint && !local.sa_sapbits_exists ? 1 : 0
   name                = azurerm_private_endpoint.storage_sapbits[count.index].network_interface[0].name
   resource_group_name = split("/", azurerm_private_endpoint.storage_sapbits[count.index].network_interface[0].id)[4]
+}
+
+resource "azurerm_management_lock" "storage_tfstate" {
+  provider   = azurerm.main
+  count      = (local.sa_tfstate_exists) ? 0 : var.place_delete_lock_on_resources ? 1 : 0
+  name       = format("%s-lock", azurerm_storage_account.storage_tfstate[0].name)
+  scope      = azurerm_storage_account.storage_tfstate[0].id
+  lock_level = "CanNotDelete"
+  notes      = "Locked because it's needed by Terraform to store state"
+  lifecycle {
+    prevent_destroy = false
+  }
 }

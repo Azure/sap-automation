@@ -253,6 +253,7 @@ tf_zip=terraform_$${tfversion}_linux_amd64.zip
 if [ -f /etc/profile.d/deploy_server.sh ] ; then
     echo
     echo ##vso[task.logissue type=warning]Deployer already configured
+
     exit 0
 else
     #
@@ -372,31 +373,7 @@ else
     sudo unzip -o /tmp/$${tf_zip} -d $${tf_dir}
     sudo ln -vfs ../$(basename $${tf_dir})/terraform $${tf_bin}/terraform
 
-    # Install Azure CLI
-    case "$(get_distro_name)" in
-    (ubuntu)
-        echo "Getting the Microsoft Key"
-        sudo mkdir -p /etc/apt/keyrings
-        curl -sLS https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor | sudo tee /etc/apt/keyrings/microsoft.gpg > /dev/null
-        sudo chmod go+r /etc/apt/keyrings/microsoft.gpg
-
-        AZ_REPO=$(lsb_release -cs)
-        echo "deb [arch=`dpkg --print-architecture` signed-by=/etc/apt/keyrings/microsoft.gpg] https://packages.microsoft.com/repos/azure-cli/ $AZ_REPO main" |
-            sudo tee /etc/apt/sources.list.d/azure-cli.list
-        ;;
-    (sles)
-        echo "Getting the Microsoft Key"
-        sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc
-        sudo zypper addrepo --name 'Azure CLI' --check https://packages.microsoft.com/yumrepos/azure-cli azure-cli
-        sudo zypper install --from azure-cli azure-cli
-        ;;
-     (rhel*)
-        sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc
-        sudo dnf install -y https://packages.microsoft.com/config/rhel/8/packages-microsoft-prod.rpm
-        ;;
-    esac
-
-
+    # Uninstall Azure CLI - For some platforms
     case "$(get_distro_name)" in
     (ubuntu|sles)
       rel=$(lsb_release -a | grep Release | cut -d':' -f2 | xargs)
@@ -411,11 +388,47 @@ else
       ;;
     esac
 
+    # Install Azure CLI
+    case "$(get_distro_name)" in
+    (ubuntu)
+        # echo "Getting the Microsoft Key"
+        sudo mkdir -p /etc/apt/keyrings
+        curl -sLS https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor | sudo tee /etc/apt/keyrings/microsoft.gpg > /dev/null
+        sudo chmod go+r /etc/apt/keyrings/microsoft.gpg
+
+        AZ_REPO=$(lsb_release -cs)
+        echo "deb [arch=`dpkg --print-architecture` signed-by=/etc/apt/keyrings/microsoft.gpg] https://packages.microsoft.com/repos/azure-cli/ $AZ_REPO main" |
+            sudo tee /etc/apt/sources.list.d/azure-cli.list
+
+        sudo apt-get update
+        #sudo curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+        rel=$(lsb_release -a | grep Release | cut -d':' -f2 | xargs)
+
+        if [ "$rel" == "20.04" ]; then
+          echo ##vso[task.logissue type=warning]Running on Ubuntu 20.04, installing Azure CLI 2.48.1-1~focal
+          sudo apt-get install azure-cli=2.48.1-1~focal -y --allow-downgrades
+          az version --output yaml
+        else
+          sudo apt-get install azure-cli -y
+        fi
+        ;;
+    (sles)
+        echo "Getting the Microsoft Key"
+        sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc
+        sudo zypper addrepo --name 'Azure CLI' --check https://packages.microsoft.com/yumrepos/azure-cli azure-cli
+        sudo zypper install --from azure-cli azure-cli
+        ;;
+     (rhel*)
+        sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc
+        sudo dnf install -y https://packages.microsoft.com/config/rhel/8/packages-microsoft-prod.rpm
+        sudo dnf install azure-cli
+        ;;
+    esac
+
     set +o errexit
     pkg_mgr_install "$${cli_pkgs[@]}"
 
     set -o errexit
-
 
     # Install dotNet
     case "$(get_distro_name)" in
@@ -428,8 +441,7 @@ else
         sudo snap alias dotnet-sdk.dotnet dotnet
         ;;
      (rhel*)
-        sudo snap install dotnet-sdk --classic --channel=7.0
-        sudo snap alias dotnet-sdk.dotnet dotnet
+        sudo dnf install dotnet-sdk-7.0 -y
         ;;
     esac
 
@@ -448,7 +460,9 @@ else
 
     case "$(get_distro_name)" in
     (rhel)
-        python3.6 -m venv $${ansible_venv}
+        sudo python -m venv $${ansible_venv}
+        source "$${ansible_venv_bin}/activate"
+
         ;;
     (ubuntu|sles)
         # Create a Python3 based venv into which we will install Ansible.
@@ -563,7 +577,13 @@ else
     echo export ANSIBLE_HOST_KEY_CHECKING=False | sudo tee -a /etc/profile.d/deploy_server.sh
     echo export ANSIBLE_COLLECTIONS_PATHS=$${ansible_collections} | sudo tee -a /etc/profile.d/deploy_server.sh
 
-    echo "export DOTNET_ROOT=/snap/dotnet-sdk/current" | tee -a /tmp/deploy_server.sh
+    case "$(get_distro_name)" in
+    (ubuntu|sles)
+        echo "export DOTNET_ROOT=/snap/dotnet-sdk/current" | tee -a /tmp/deploy_server.sh
+        ;;
+      (rhel*)
+        ;;
+    esac
 
     # Set env for MSI
     echo export ARM_USE_MSI=true | sudo tee -a /etc/profile.d/deploy_server.sh

@@ -84,7 +84,7 @@ resource "azurerm_private_dns_zone" "file" {
 
 resource "azurerm_private_dns_zone_virtual_network_link" "vnet_mgmt" {
   provider = azurerm.dnsmanagement
-  count = length(var.dns_label) > 0 && !var.use_custom_dns_a_registration ? 1 : 0
+  count = length(var.dns_label) > 0 && !var.use_custom_dns_a_registration && var.use_private_endpoint ? 1 : 0
   name = format("%s%s%s%s",
     var.naming.resource_prefixes.dns_link,
     local.prefix,
@@ -106,7 +106,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vnet_mgmt" {
 
 resource "azurerm_private_dns_zone_virtual_network_link" "vnet_mgmt_blob" {
   provider = azurerm.dnsmanagement
-  count = length(var.dns_label) > 0 && !var.use_custom_dns_a_registration ? 1 : 0
+  count = length(var.dns_label) > 0 && !var.use_custom_dns_a_registration && var.use_private_endpoint ? 1 : 0
   name = format("%s%s%s%s-blob",
     var.naming.resource_prefixes.dns_link,
     local.prefix,

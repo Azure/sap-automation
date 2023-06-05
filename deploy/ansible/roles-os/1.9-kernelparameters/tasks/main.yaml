@@ -53,7 +53,7 @@
 # Print Distribution ID if it is passed correctly.
 - name:                                "1.9 Kernel parameters - Display distribution_id which will be used"
   ansible.builtin.debug:
-    var:                              "{{ distribution_id }}"
+    msg:                              "Distribution ID: {{ distribution_id }}"
     verbosity:                         2
 
 

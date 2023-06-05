@@ -17,10 +17,14 @@ repos:
   redhat7.9:
   redhat8.1:
   redhat8.2:
-  #  - { tier:   'os', repo: 'epel', url: 'https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm', state: 'absent' }
+    - { tier:   'os', repo: 'epel', url: 'https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm', state: 'present' }
   redhat8.4:
+    - { tier:   'os', repo: 'epel', url: 'https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm', state: 'present' }
   redhat8.6:
+    - { tier:   'os', repo: 'epel', url: 'https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm', state: 'present' }
   redhat8.7:
+  redhat9.0:
+  redhat9.2:
   # do not have any repos that are needed for RedHat at the moment.
   sles_sap12.3:
   sles_sap12.4:
@@ -34,11 +38,8 @@ repos:
 
   # Adding the entries for Oracle-Linux for testing. cat /etc/oracle-release is the command to get the os version info in Oracle linux.
   oraclelinux8.1:
-
   oraclelinux8.2:
-
   oraclelinux8.3:
-
   oraclelinux8.4:
   oraclelinux8.5:
   oraclelinux8.6:

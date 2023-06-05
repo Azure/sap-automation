@@ -19,3 +19,16 @@ resource "azurerm_key_vault_secret" "sapbits_location_base_path" {
   )
   key_vault_id = var.key_vault.kv_spn_id
 }
+
+
+resource "azurerm_key_vault_secret" "sa_connection_string" {
+  provider = azurerm.deployer
+  count    = length(var.key_vault.kv_spn_id) > 0 ? 1 : 0
+  name     = "sa-connection-string"
+  value = local.sa_tfstate_exists ? (
+    data.azurerm_storage_account.storage_tfstate[0].primary_connection_string) : (
+    azurerm_storage_account.storage_tfstate[0].primary_connection_string
+  )
+  key_vault_id = var.key_vault.kv_spn_id
+}
+

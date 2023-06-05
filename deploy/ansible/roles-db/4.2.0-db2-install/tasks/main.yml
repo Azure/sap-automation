@@ -43,16 +43,17 @@
   register:                            db2_installed
   when:                                node_tier == 'db2'
 
+- name:                                "DB2 Install - Include 3.3.1-bom-utility role"
+  ansible.builtin.include_role:
+    name:                              roles-sap/3.3.1-bom-utility
+    tasks_from:                        bom-register
+  vars:
+    bom_name:                          "{{ bom_base_name }}"
+    task_prefix:                       "DB2 Install: "
+    sa_enabled:                        true
+
 - name:                                "DB2 Install"
   block:
-    - name:                            "DB2 Install - Include 3.3.1-bom-utility role"
-      ansible.builtin.include_role:
-        name:                          roles-sap/3.3.1-bom-utility
-        tasks_from:                    bom-register
-      vars:
-        bom_name:                      "{{ bom_base_name }}"
-        task_prefix:                   "DB2 Install: "
-        sa_enabled:                    true
 
     - name:                            "DB2 Install - Include roles-sap/3.3.1-bom-utility role"
       ansible.builtin.include_role:

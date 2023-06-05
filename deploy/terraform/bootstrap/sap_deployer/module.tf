@@ -7,7 +7,7 @@ module "sap_deployer" {
   source = "../../terraform-units/modules/sap_deployer"
   providers = {
     azurerm.dnsmanagement = azurerm.dnsmanagement
-    azurerm.main = azurerm.main
+    azurerm.main          = azurerm.main
   }
   infrastructure = local.infrastructure
   deployer       = local.deployer
@@ -51,6 +51,10 @@ module "sap_deployer" {
   ansible_core_version                         = var.ansible_core_version
   Agent_IP                                     = var.Agent_IP
   spn_id                                       = var.spn_id
+
+  place_delete_lock_on_resources = var.place_delete_lock_on_resources
+
+
 }
 
 module "sap_namegenerator" {

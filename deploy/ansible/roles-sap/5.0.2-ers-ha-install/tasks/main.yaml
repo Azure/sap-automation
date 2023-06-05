@@ -24,6 +24,21 @@
     - { mode: '0755', path: '{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}' }
     - { mode: '0755', path: '/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}' }
 
+# Returns bom object
+- name:                                "ERS Install: Register BoM"
+  ansible.builtin.include_role:
+    name:                              roles-sap/3.3.1-bom-utility
+    tasks_from:                        bom-register
+  vars:
+    bom_name:                          "{{ bom_base_name }}"
+    task_prefix:                       "ERS Install: "
+    sa_enabled:                        true
+
+- name:                                "ERS Install: register variables"
+  ansible.builtin.set_fact:
+    ers_bom_id:                        "{{ bom.product_ids.ers_ha }}"
+    ers_bom_instance_type:             "{% if bom.InstanceType is defined %}{{ bom.InstanceType }}{% else %}ABAP{% endif %}"
+
 - name:                                "ERS Install: reset"
   ansible.builtin.file:
     path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_ers.txt"
@@ -36,15 +51,6 @@
   register:                            ers_installed
   when: node_tier == 'ers'
 
-# Returns bom object
-- name:                                "ERS Install: Register BoM"
-  ansible.builtin.include_role:
-    name:                              roles-sap/3.3.1-bom-utility
-    tasks_from:                        bom-register
-  vars:
-    bom_name:                          "{{ bom_base_name }}"
-    task_prefix:                       "ERS Install: "
-    sa_enabled:                        true
 
 - name:                                "ERS Install"
   block:
@@ -87,11 +93,6 @@
         param_directory:               "{{ dir_params }}"
         hdb_instance_number:           "{{ db_instance_number }}"
 
-    - name:                            "ERS Install: register variables"
-      ansible.builtin.set_fact:
-        ers_bom_id:                    "{{ bom.product_ids.ers_ha }}"
-        ers_bom_instance_type:         "{% if bom.InstanceType is defined %}{{ bom.InstanceType }}{% else %}ABAP{% endif %}"
-
     - name:                            "ERS Install: check if installed"
       ansible.builtin.debug:
         msg:                           "ERS Install flag: {{ ers_installed }}"
@@ -112,6 +113,8 @@
         recurse:                       true
         state:                         directory
       loop:
+        - { path: '/sapmnt/{{ sid_to_be_deployed.sid | upper }}' }
+        - { path: '/usr/sap/{{ sid_to_be_deployed.sid | upper }}/SYS' }
         - { path: '/usr/sap/{{ sid_to_be_deployed.sid | upper }}/ERS{{ ers_instance_number }}' }
 
 # *====================================4=======================================8
@@ -156,25 +159,6 @@
           register:                    stat_sys_exe_uc
           when:                        node_tier == 'ers'
 
-        - name:                        "RESCUE - ERS Install: Check '/usr/sap/<SAPSID>/SYS/exe/uc/linuxx86_64' is empty"
-          ansible.builtin.find:
-            path:                      '/usr/sap/{{ sid_to_be_deployed.sid | upper }}/SYS/exe/uc/linuxx86_64'
-            patterns:                  "*"
-            file_type:                 directory
-          register:                    find_sys_exe_uc_result
-          when:
-            - node_tier == 'ers'
-            - stat_sys_exe_uc.stat.exists
-
-        - name:                        "RESCUE - ERS Install: Cleanup '/usr/sap/{{ sid_to_be_deployed.sid | upper }}/SYS/exe/uc/linuxx86_64'"
-          ansible.builtin.file:
-            path:                      "/usr/sap/{{ sid_to_be_deployed.sid | upper }}/SYS/exe/uc/linuxx86_64"
-            state:                     absent
-          when:
-            - node_tier == 'ers'
-            - find_sys_exe_uc_result is defined
-            - find_sys_exe_uc_result | length > 0
-
         - name:                        "RESCUE - ERS Install: Assign ownership"
           ansible.builtin.file:
             path:                      "{{ item.path }}"
@@ -190,11 +174,6 @@
         # Add IS_HOST_LOCAL_USING_STRING_COMPARE=true to fix The host with the
         # name <host> is not a valid virtual host on the local host
         # SAP Note# 2279110
-        - name:                        "Create temp directory for sid"
-          ansible.builtin.file:
-            path:                      "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
-            state:                     directory
-            mode:                      0755
 
         - name:                        "RESCUE - ERS Install: SAPInst"
           ansible.builtin.shell: |
@@ -212,7 +191,7 @@
             SAPSYSTEMNAME:             "{{ sid_to_be_deployed.sid | upper }}"
             TMPDIR:                    "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
           register:                    ers_installation
-          failed_when:                 false
+          failed_when:                 ers_installation.rc > 0
 
     - name:                            "ERS Install: Installation results"
       block:
@@ -228,7 +207,6 @@
         - name:                        "ERS Install: Installation results"
           ansible.builtin.fail:
             msg:                       ERS installation failed"
-
       when:                            ers_installation.rc > 0
 
     - name:                            "ERS Install: Cleanup ini file {{ ansible_hostname }}"

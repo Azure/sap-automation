@@ -65,6 +65,8 @@ module "sap_landscape" {
   install_always_create_fileshares = var.install_always_create_fileshares
   storage_account_replication_type = var.storage_account_replication_type
 
+  place_delete_lock_on_resources = var.place_delete_lock_on_resources
+
 }
 
 module "sap_namegenerator" {

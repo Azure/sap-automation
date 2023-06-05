@@ -173,6 +173,7 @@
     - name:                            "PAS Install: progress"
       ansible.builtin.debug:
         var:                           debug_inifile
+        verbosity:                     4
 
     - name:                            "PAS Install: progress"
       ansible.builtin.debug:

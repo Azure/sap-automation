@@ -1,12 +1,12 @@
 # Validate that the SCS cluster is working as expected
 - name:                                "5.6 SCS/ERS Validation: - Set Python version {{ distribution_id }}"
   ansible.builtin.set_fact:
-    python_version: "python2"
+    python_version: "python3"
 
 - name:                                "5.6 SCS/ERS Validation: - Set Python version {{ distribution_id }}"
   ansible.builtin.set_fact:
-    python_version: "python3"
-  when: (ansible_distribution | lower ~ ansible_distribution_major_version) in ['suse15', 'redhat8', 'sles_sap15']
+    python_version: "python2"
+  when: (ansible_distribution | lower ~ ansible_distribution_major_version) in ['sles_sap12']
 
 - name:                                "5.6 SCS/ERS Validation: Determine if SCS is running on {{ ansible_hostname }}"
   become_user:                         "{{ sap_sid | lower }}adm"
@@ -16,7 +16,7 @@
   block:
     - name:                            "5.6 SCS/ERS Validation: Get sapcontrol path"
       ansible.builtin.find:
-        paths:                         "/usr/sap/{{ sap_sid | upper }}"
+        paths:                         "/usr/sap/hostctrl/exe"
         file_type:                     file
         patterns:                      'sapcontrol'
         recurse:                       true
@@ -42,7 +42,7 @@
       environment:
         ANSIBLE_REMOTE_TEMP:           "{{ tmp_directory }}/{{ sap_sid | upper }}"
         TEMPDIR:                       "{{ tmp_directory }}/{{ sap_sid | upper }}"
-        PATH:                          /usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/usr/sap/{{ sap_sid | upper }}/SYS/exe/uc/linuxx86_64:/usr/sap/{{ sap_sid | upper }}/SYS/exe/run:/home/{{ sap_sid | lower }}adm
+        PATH:                          /usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/usr/sap/{{ sap_sid | upper }}/SYS/exe/uc/linuxx86_64:/usr/sap/{{ sap_sid | upper }}/SYS/exe/run:/home/{{ sap_sid | lower }}adm:/usr/sap/hostctrl/exe
         DIR_LIBRARY:                   /usr/sap/{{ sap_sid | upper }}/SYS/exe/run
         LD_LIBRARY_PATH:               /usr/sap/{{ sap_sid | upper }}/SYS/exe/run:/usr/sap/{ sap_sid | upper }}/SYS/exe/uc/linuxx86_64
         SAPSYSTEMNAME:                 "{{ sap_sid | upper }}"
@@ -137,7 +137,6 @@
             that:
               - cluster_group_location.stdout == primary_instance_name
             fail_msg:                  "cluster group g-{{ sap_sid }}_{{ instance_type | upper }} is not running on {{ primary_instance_name }}"
-          when:                        perform_check
 
         # {{ sapcontrol_path }} -nr {{ scs_instance_number }} -function GetProcessList | grep MessageServer | awk '{split($0,result,", "); print result[1],result[3] }'
         - name:                        "5.6 SCS/ERS Validation: Determine if SCS is running on {{ ansible_hostname }}"
@@ -153,7 +152,7 @@
           environment:
             ANSIBLE_REMOTE_TEMP:       "{{ tmp_directory }}/{{ sap_sid | upper }}"
             TEMPDIR:                   "{{ tmp_directory }}/{{ sap_sid | upper }}"
-            PATH:                      /usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/usr/sap/{{ sap_sid | upper }}/SYS/exe/uc/linuxx86_64:/usr/sap/{{ sap_sid | upper }}/SYS/exe/run:/home/{{ sap_sid | lower }}adm
+            PATH:                      /usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/usr/sap/{{ sap_sid | upper }}/SYS/exe/uc/linuxx86_64:/usr/sap/{{ sap_sid | upper }}/SYS/exe/run:/home/{{ sap_sid | lower }}adm:/usr/sap/hostctrl/exe
             DIR_LIBRARY:               /usr/sap/{{ sap_sid | upper }}/SYS/exe/run
             LD_LIBRARY_PATH:           /usr/sap/{{ sap_sid | upper }}/SYS/exe/run:/usr/sap/{ sap_sid | upper }}/SYS/exe/uc/linuxx86_64
             SAPSYSTEMNAME:             "{{ sap_sid | upper }}"
@@ -176,7 +175,7 @@
           environment:
             ANSIBLE_REMOTE_TEMP:       "{{ tmp_directory }}/{{ sap_sid | upper }}"
             TEMPDIR:                   "{{ tmp_directory }}/{{ sap_sid | upper }}"
-            PATH:                      /usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/usr/sap/{{ sap_sid | upper }}/SYS/exe/uc/linuxx86_64:/usr/sap/{{ sap_sid | upper }}/SYS/exe/run:/home/{{ sap_sid | lower }}adm
+            PATH:                      /usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/usr/sap/{{ sap_sid | upper }}/SYS/exe/uc/linuxx86_64:/usr/sap/{{ sap_sid | upper }}/SYS/exe/run:/home/{{ sap_sid | lower }}adm:/usr/sap/hostctrl/exe
             DIR_LIBRARY:               /usr/sap/{{ sap_sid | upper }}/SYS/exe/run
             LD_LIBRARY_PATH:           /usr/sap/{{ sap_sid | upper }}/SYS/exe/run:/usr/sap/{ sap_sid | upper }}/SYS/exe/uc/linuxx86_64
             SAPSYSTEMNAME:             "{{ sap_sid | upper }}"

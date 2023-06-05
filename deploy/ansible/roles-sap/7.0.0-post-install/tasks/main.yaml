@@ -25,6 +25,16 @@
     - tier != 'hana'
     - tier != 'oracle'
 
+- name:                                "Post Installation: check if installation has been tried"
+  become_user:                         root
+  become:                              true
+  ansible.builtin.stat:
+    path:                              "{{ tmp_directory }}/{{ this_sid }}/sapinst_instdir/{{ prefix }}/{{ path }}"
+  register:                            sap_installation_tried
+  when:
+    - tier != 'hana'
+    - tier != 'oracle'
+
 - name:                                "Post Installation: Find the log files (SAPINST)"
   become_user:                         root
   become:                              true
@@ -37,6 +47,7 @@
   when:
     - tier != 'hana'
     - tier != 'oracle'
+    - sap_installation_tried.stat.exists
 
 - name:                                "Post Installation: Debug (sapinst_log_files)"
   ansible.builtin.debug:

@@ -43,6 +43,11 @@ variable "resourcegroup_tags" {
   default     = {}
 }
 
+variable "place_delete_lock_on_resources" {
+  description = "If defined, a delete lock will be placed on the key resources"
+  default     = false
+}
+
 ###############################################################################
 #                                                                             #
 #                            Network                                          #
@@ -336,7 +341,7 @@ variable "deployer_diagnostics_account_arm_id" {
 
 variable "tf_version" {
   description = "Terraform version to install on deployer"
-  default     = "1.4.5"
+  default     = "1.4.6"
 }
 
 variable "name_override_file" {

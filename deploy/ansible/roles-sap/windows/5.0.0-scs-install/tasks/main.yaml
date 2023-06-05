@@ -32,17 +32,20 @@
 - name:                                "Set the SCS Server name"
   ansible.builtin.set_fact:
     scs_server:                        "{{ hostvars[scs_server_temp | first]['virtual_host'] }}"
-    ha_identifier:                     ""
     dir_params:                        '{{ tmp_directory_windows }}\{{ sid_to_be_deployed.sid | lower }}-params\'
+    ha_identifier:                     "_ha"
 
-- name:                                "5.6 SCSERS - Set the SCS and ERS Virtual Instance hostname"
+- name:                                "5.6 SCSERS - Set the SCS Virtual Instance hostname"
   ansible.builtin.set_fact:
     scs_virtual_hostname:              "{{ sap_sid | lower }}scs{{ scs_instance_number }}cl1"
-    ers_virtual_hostname:              "{{ sap_sid | lower }}ers{{ ers_instance_number }}cl2"
-    ha_identifier:                     "_ha"
   when:
     - scs_high_availability
 
+- name:                                "5.6 SCSERS - Set the ERS Virtual Instance hostname"
+  ansible.builtin.set_fact:
+    ers_virtual_hostname:              "{{ sap_sid | lower }}ers{{ ers_instance_number }}cl2"
+  when:
+    - scs_high_availability
 
 # /*---------------------------------------------------------------------------8
 # |                   Windows cluster configuration : START                    |
@@ -154,7 +157,7 @@
     - name:                            "SCS Install: Set BOM facts"
       ansible.builtin.set_fact:
         sap_inifile:                   "{{ bom_base_name }}-scs-{{ sid_to_be_deployed.sid | lower }}-{{ ansible_hostname }}.params"
-        sap_inifile_template:          "{{ bom_base_name }}{{ bom_suffix }}-scs{{ ha_identifier }}-inifile-param.j2"
+        sap_inifile_template:          "{% if scs_high_availability %}{{ bom_base_name }}{{ bom_suffix }}-scs_ha-inifile-param.j2{% else %}{{ bom_base_name }}{{ bom_suffix }}-scs-inifile-param.j2{% endif %}"
         dir_params:                    '{{ tmp_directory_windows }}\{{ sid_to_be_deployed.sid | lower }}-params'
         product_catalog:               '{{ download_directory_windows }}\SWPM\product.catalog'
         product_id:                    "{% if scs_high_availability %}{{ bom.product_ids.scs_ha }}{% else %}{{ bom.product_ids.scs }}{% endif %}"

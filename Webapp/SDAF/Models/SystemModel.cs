@@ -156,6 +156,8 @@ namespace AutomationForm.Models
 
         public string database_size { get; set; }
 
+        public string database_vm_sku { get; set; }
+
         public string database_sid { get; set; }
 
         public string database_instance_number { get; set; }
@@ -173,9 +175,9 @@ namespace AutomationForm.Models
         [AvSetIdValidator]
         public string[] database_vm_avset_arm_ids { get; set; }
 
-        public bool? database_use_ppg { get; set; }
+        public bool? database_use_ppg { get; set; } = false;
 
-        public bool? database_use_avset { get; set; }
+        public bool? database_use_avset { get; set; } = false;
 
         public bool? database_no_ppg { get; set; }
 
@@ -246,9 +248,9 @@ namespace AutomationForm.Models
 
         public bool? application_server_no_avset { get; set; }
 
-        public bool? application_server_use_avset { get; set; }
+        public bool? application_server_use_avset { get; set; } = true;
 
-        public bool? application_server_no_ppg { get; set; }
+        public bool? application_server_no_ppg { get; set; } = false;
 
         public bool? application_server_use_ppg { get; set; }
 
@@ -284,11 +286,11 @@ namespace AutomationForm.Models
         [IpAddressValidator]
         public string[] scs_server_nic_secondary_ips { get; set; }
 
-        public bool? scs_server_use_avset { get; set; }
+        public bool? scs_server_use_avset { get; set; }= false;
 
         public bool? scs_server_no_avset { get; set; }
 
-        public bool? scs_server_use_ppg { get; set; }
+        public bool? scs_server_use_ppg { get; set; }= true;
 
         public bool? scs_server_no_ppg { get; set; }
 
@@ -316,9 +318,9 @@ namespace AutomationForm.Models
         [IpAddressValidator]
         public string[] webdispatcher_server_nic_secondary_ips { get; set; }
 
-        public bool? webdispatcher_server_use_avset { get; set; }
+        public bool? webdispatcher_server_use_avset { get; set; } = true;
 
-        public bool? webdispatcher_server_use_ppg { get; set; }
+        public bool? webdispatcher_server_use_ppg { get; set; } = false;
 
 
         public bool? webdispatcher_server_no_avset { get; set; }
@@ -439,6 +441,10 @@ namespace AutomationForm.Models
         public bool? enable_purge_control_for_keyvaults { get; set; } = false;
 
         public bool? deploy_application_security_groups { get; set; } = true;
+
+        public bool? deploy_v1_monitoring_extension { get; set; } = true;
+
+        public bool? use_scalesets_for_deployment { get; set; } = false;
 
         [DisplayName("Web SID")]
         public string web_sid { get; set; }

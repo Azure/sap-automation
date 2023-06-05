@@ -53,7 +53,7 @@ output "random_id" {
 }
 
 output "ppg" {
-  value = local.ppg_exists ? data.azurerm_proximity_placement_group.ppg : azurerm_proximity_placement_group.ppg
+  value = var.use_scalesets_for_deployment ? [] : local.ppg_exists ? data.azurerm_proximity_placement_group.ppg[*].id : azurerm_proximity_placement_group.ppg[*].id
 }
 
 
@@ -195,6 +195,18 @@ output "sapmnt_path" {
   )
 }
 
+output "sapmnt_path_secondary" {
+  description = "Defines the sapmnt mount path"
+  value = var.NFS_provider == "ANF" && var.hana_ANF_volumes.sapmnt_use_clone_in_secondary_zone ? (
+    format("%s:/%s",
+      azurerm_netapp_volume.sapmnt_secondary[0].mount_ip_addresses[0],
+      azurerm_netapp_volume.sapmnt_secondary[0].volume_path
+    )
+    ) : (
+    ""
+  )
+}
+
 output "usrsap_path" {
   description = "Defines the /usr/sap mount path (if used)"
   value = var.NFS_provider == "ANF" && var.hana_ANF_volumes.use_for_usr_sap ? (
@@ -229,4 +241,10 @@ output "anchor_vm" {
     local.anchor_ostype == "LINUX" ? (azurerm_linux_virtual_machine.anchor[0].id) : (azurerm_windows_virtual_machine.anchor[0].id)) : (
     ""
   )
+}
+
+
+output "scale_set_id" {
+
+  value = var.use_scalesets_for_deployment ? azurerm_orchestrated_virtual_machine_scale_set.scale_set[0].id : ""
 }

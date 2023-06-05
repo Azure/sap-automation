@@ -173,11 +173,18 @@ resource "azurerm_lb_rule" "scs" {
   provider        = azurerm.main
   count           = local.enable_scs_lb_deployment ? 1 : 0
   loadbalancer_id = azurerm_lb.scs[0].id
-  name = format("%s%s%s%s",
-    var.naming.resource_prefixes.scs_scs_rule,
-    local.prefix,
-    var.naming.separator,
-    local.resource_suffixes.scs_scs_rule
+  name = length(local.prefix) > 0 ? (
+    format("%s%s%s%s",
+      var.naming.resource_prefixes.scs_scs_rule,
+      local.prefix,
+      var.naming.separator,
+      local.resource_suffixes.scs_scs_rule
+    )) : (
+    format("%s%s",
+      var.naming.resource_prefixes.scs_scs_rule,
+      local.resource_suffixes.scs_scs_rule
+    )
+
   )
   protocol      = "All"
   frontend_port = 0
@@ -200,12 +207,17 @@ resource "azurerm_lb_rule" "ers" {
   provider        = azurerm.main
   count           = local.enable_scs_lb_deployment && var.application_tier.scs_high_availability ? 1 : 0
   loadbalancer_id = azurerm_lb.scs[0].id
-  name = format("%s%s%s%s",
-    var.naming.resource_prefixes.scs_ers_rule,
-    local.prefix,
-    var.naming.separator,
-    local.resource_suffixes.scs_ers_rule
-  )
+  name = length(local.prefix) > 0 ? (
+    format("%s%s%s%s",
+      var.naming.resource_prefixes.scs_ers_rule,
+      local.prefix,
+      var.naming.separator,
+      local.resource_suffixes.scs_ers_rule
+    )) : (
+    format("%s%s",
+      var.naming.resource_prefixes.scs_ers_rule,
+      local.resource_suffixes.scs_ers_rule
+  ))
   protocol      = "All"
   frontend_port = 0
   backend_port  = 0
@@ -226,12 +238,17 @@ resource "azurerm_lb_rule" "clst" {
   provider        = azurerm.main
   count           = local.enable_scs_lb_deployment && local.win_ha_scs ? 0 : 0
   loadbalancer_id = azurerm_lb.scs[0].id
-  name = format("%s%s%s%s",
-    var.naming.resource_prefixes.scs_clst_rule,
-    local.prefix,
-    var.naming.separator,
-    local.resource_suffixes.scs_clst_rule
-  )
+  name = length(local.prefix) > 0 ? (
+    format("%s%s%s%s",
+      var.naming.resource_prefixes.scs_clst_rule,
+      local.prefix,
+      var.naming.separator,
+      local.resource_suffixes.scs_clst_rule
+    )) : (
+    format("%s%s",
+      var.naming.resource_prefixes.scs_clst_rule,
+      local.resource_suffixes.scs_clst_rule
+  ))
   protocol      = "All"
   frontend_port = 0
   backend_port  = 0
@@ -250,12 +267,17 @@ resource "azurerm_lb_rule" "fs" {
   provider        = azurerm.main
   count           = local.enable_scs_lb_deployment && local.win_ha_scs ? 0 : 0
   loadbalancer_id = azurerm_lb.scs[0].id
-  name = format("%s%s%s%s",
-    var.naming.resource_prefixes.scs_fs_rule,
-    local.prefix,
-    var.naming.separator,
-    local.resource_suffixes.scs_fs_rule
-  )
+  name = length(local.prefix) > 0 ? (
+    format("%s%s%s%s",
+      var.naming.resource_prefixes.scs_fs_rule,
+      local.prefix,
+      var.naming.separator,
+      local.resource_suffixes.scs_fs_rule
+    )) : (
+    format("%s%s",
+      var.naming.resource_prefixes.scs_fs_rule,
+      local.resource_suffixes.scs_fs_rule
+  ))
   protocol      = "All"
   frontend_port = 0
   backend_port  = 0
@@ -276,7 +298,7 @@ resource "azurerm_lb_rule" "fs" {
 #
 ##############################################################################################
 resource "azurerm_availability_set" "scs" {
-  provider        = azurerm.main
+  provider = azurerm.main
   count = local.enable_deployment && local.use_scs_avset ? (
     max(length(local.scs_zones), 1)) : (
     0
@@ -291,8 +313,8 @@ resource "azurerm_availability_set" "scs" {
   platform_update_domain_count = 20
   platform_fault_domain_count  = local.faultdomain_count
   proximity_placement_group_id = local.scs_zonal_deployment ? (
-    var.ppg[count.index % length(local.scs_zones)].id) : (
-    var.ppg[0].id
+    var.ppg[count.index % length(local.scs_zones)]) : (
+    var.ppg[0]
   )
   managed = true
   lifecycle {
@@ -321,8 +343,8 @@ resource "azurerm_availability_set" "app" {
   platform_update_domain_count = 20
   platform_fault_domain_count  = local.faultdomain_count
   proximity_placement_group_id = local.app_zonal_deployment ? (
-    var.ppg[count.index % local.app_zone_count].id) : (
-    var.ppg[0].id
+    var.ppg[count.index % local.app_zone_count]) : (
+    var.ppg[0]
   )
   managed = true
   lifecycle {
@@ -440,8 +462,8 @@ resource "azurerm_network_interface_backend_address_pool_association" "web" {
 ##############################################################################################
 
 resource "azurerm_availability_set" "web" {
-  provider        = azurerm.main
-  count = local.use_web_avset ? max(length(local.web_zones), 1) : 0
+  provider = azurerm.main
+  count    = local.use_web_avset ? max(length(local.web_zones), 1) : 0
   name = format("%s%s%s",
     local.prefix, var.naming.separator,
     var.naming.availabilityset_names.web[count.index]
@@ -450,7 +472,7 @@ resource "azurerm_availability_set" "web" {
   resource_group_name          = var.resource_group[0].name
   platform_update_domain_count = 20
   platform_fault_domain_count  = local.faultdomain_count
-  proximity_placement_group_id = local.web_zonal_deployment ? var.ppg[count.index % length(local.web_zones)].id : var.ppg[0].id
+  proximity_placement_group_id = local.web_zonal_deployment ? var.ppg[count.index % length(local.web_zones)] : var.ppg[0]
   managed                      = true
 
   lifecycle {

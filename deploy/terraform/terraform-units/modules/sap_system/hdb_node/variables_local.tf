@@ -7,7 +7,7 @@ locals {
   storageaccount_names = var.naming.storageaccount_names.SDU
   resource_suffixes    = var.naming.resource_suffixes
 
-  default_filepath = format("%s%s", path.module, "/../../../../../configs/hana_sizes.json")
+  default_filepath = var.database_use_premium_v2_storage ? format("%s%s", path.module, "/../../../../../configs/hana_sizes_v2.json") : format("%s%s", path.module, "/../../../../../configs/hana_sizes.json")
   custom_sizing    = length(var.custom_disk_sizes_filename) > 0
 
   // Imports database sizing information
@@ -109,11 +109,10 @@ locals {
   db_sizing_key = try(var.database.db_sizing_key, "Default")
 
   db_sizing = local.enable_deployment ? lookup(local.sizes.db, local.db_sizing_key).storage : []
-  db_size   = local.enable_deployment ? lookup(local.sizes.db, local.db_sizing_key).compute.vm_size : ""
+  db_size   = local.enable_deployment ? lookup(local.sizes.db, local.db_sizing_key).compute : {}
 
-  hdb_vm_sku = length(local.db_size) > 0 ? local.db_size : "Standard_E4s_v3"
-
-  hdb_ha = var.database.high_availability
+  hdb_vm_sku = length(var.database.database_vm_sku) > 0 ? var.database.database_vm_sku : try(local.db_size.vm_size, "Standard_E16_v3")
+  hdb_ha     = var.database.high_availability
 
   sid_auth_type        = try(var.database.authentication.type, "key")
   enable_auth_password = try(var.database.authentication.type, "key") == "password"
@@ -312,9 +311,19 @@ locals {
   dns_label = try(var.landscape_tfstate.dns_label, "")
 
   ANF_pool_settings = var.NFS_provider == "ANF" ? (
-    try(var.landscape_tfstate.ANF_pool_settings, null)
+    try(var.landscape_tfstate.ANF_pool_settings, {})
     ) : (
-    null
+    {
+      use_ANF             = false
+      account_name        = ""
+      account_id          = ""
+      pool_name           = ""
+      service_level       = ""
+      size_in_tb          = ""
+      subnet_id           = ""
+      resource_group_name = ""
+      location            = ""
+    }
   )
   database_primary_ips = [
     {

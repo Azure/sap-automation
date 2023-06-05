@@ -9,12 +9,12 @@
 ---
 - name:                                "SCS HA Install: - Set Python version {{ distribution_id }}"
   ansible.builtin.set_fact:
-    python_version: "python2"
+    python_version: "python3"
 
 - name:                                "SCS HA Install: - Set Python version {{ distribution_id }}"
   ansible.builtin.set_fact:
-    python_version: "python3"
-  when: (ansible_distribution | lower ~ ansible_distribution_major_version) in ['suse15', 'redhat8', 'sles_sap15']
+    python_version: "python2"
+  when: (ansible_distribution | lower ~ ansible_distribution_major_version) in ['sles_sap12']
 
 - name:                                 "SCS HA Install: Set BOM facts"
   ansible.builtin.set_fact:
@@ -182,7 +182,8 @@
                                                  SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.scs_ha }}             \
                                                  SAPINST_SKIP_DIALOGS=true                                           \
                                                  SAPINST_START_GUISERVER=false                                       \
-                                                 SAPINST_USE_HOSTNAME={{ scs_virtual_hostname }}
+                                                 SAPINST_USE_HOSTNAME={{ scs_virtual_hostname }}                     \
+                                                 IS_HOST_LOCAL_USING_STRING_COMPARE=true
           args:
             chdir:                     "{{ target_media_location }}/SWPM"
             creates:                   "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_scs.txt"
@@ -245,11 +246,6 @@
         # Add IS_HOST_LOCAL_USING_STRING_COMPARE=true to fix The host with the
         # name <host> is not a valid virtual host on the local host
         # SAP Note# 2279110
-        - name:                            "Create temp directory for sid"
-          ansible.builtin.file:
-            path:                          "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
-            state:                         directory
-            mode:                          0755
 
         - name:                        "RESCUE - SCS HA Install: SAPINST"
           ansible.builtin.shell: |
@@ -267,7 +263,7 @@
             SAPSYSTEMNAME:             "{{ sid_to_be_deployed.sid | upper }}"
             TMPDIR:                    "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
           register:                    scs_installation
-          failed_when:                 false
+          failed_when:                 scs_installation.rc > 0
           when:                        node_tier == 'scs'
 
     - name:                            "SCS HA Install: Installation results"
@@ -301,12 +297,15 @@
       ansible.builtin.file:
         path:                          "{{ dir_params }}/{{ sap_inifile }}"
         state:                         absent
+      when:                            scs_installation.rc == 0
+
 
     - name:                            "SCS HA Install: flag"
       ansible.builtin.file:
         path:                          "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_scs.txt"
         state:                         touch
         mode:                          0755
+      when:                            scs_installation.rc == 0
 
   when:
     - node_tier == 'scs'
@@ -325,7 +324,6 @@
   when:
     - node_tier == 'scs'
     - scs_installed.stat.exists
-
 - name:                                "SCS HA Install: check if installed without issues"
   ansible.builtin.stat:
     path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_scs.txt"
@@ -364,6 +362,12 @@
       ansible.builtin.set_fact:
         ensa1:                         "{{ enq_server.stdout_lines | select('search', 'enserver') | length > 0 }}"
 
+    # logic added to identify java based installations
+    - name:                            "SCSERS - Is ENSA1 - JAVA"
+      ansible.builtin.set_fact:
+        ensa1:                         "{{ enq_server.stdout_lines | select('search', 'enrepserver') | length > 0 }}"
+      when:
+        - not ensa1
 
     # enq_server, Enqueue Server 2
     - name:                            "SCSERS - Is ENSA2"

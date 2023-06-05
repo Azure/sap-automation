@@ -26,6 +26,11 @@ variable "name_override_file" {
   default     = ""
 }
 
+variable "place_delete_lock_on_resources" {
+  description = "If defined, a delete lock will be placed on the key resources"
+  default     = false
+}
+
 #########################################################################################
 #                                                                                       #
 #  Resource Group variables                                                             #

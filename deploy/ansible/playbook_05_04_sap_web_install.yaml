@@ -90,7 +90,8 @@
       ansible.builtin.set_fact:
         this_sid:
           {
-            'sid': '{{ web_sid | upper }}',
+            'sid': '{{ sap_sid | upper }}',
+            'web_sid': '{{ web_sid | upper }}',
             'dbsid_uid': '{{ hdbadm_uid }}',
             'sidadm_uid': '{{ sidadm_uid }}',
             'ascs_inst_no': '{{ scs_instance_number }}',
@@ -104,7 +105,6 @@
 
     - name:                            Run the WEB installation Playbook
       become:                          true
-      become_user:                     "root"
       block:
         - name:                        "WEB Installation Playbook: - run SAPInst"
           ansible.builtin.include_role:
@@ -129,7 +129,7 @@
             prefix:                    ""
             path:                      "{{ file_path }}"
             tier:                      'web'
-            this_sid:                  "{{ sid_to_be_deployed.sid | upper }}"
+            this_sid:                  "{{ sid_to_be_deployed.web_sid | upper }}"
           loop:                        "{{ all_sids }}"
           loop_control:
             loop_var:                  sid_to_be_deployed

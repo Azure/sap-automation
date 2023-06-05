@@ -100,18 +100,6 @@
       register:                        co_location
       failed_when:                     co_location.rc > 1
 
-    # - name:                            "5.6 SCS ERS disable scs resource g-{{ sap_sid }}_{{ instance_type | upper }}"
-    #   ansible.builtin.shell:           "pcs resource disable g-{{ sap_sid }}_{{ instance_type | upper }}"
-
-    # - name:                            "5.6 SCS ERS enable scs resource g-{{ sap_sid }}_{{ instance_type | upper }}"
-    #   ansible.builtin.shell:           "pcs resource enable g-{{ sap_sid }}_{{ instance_type | upper }}"
-
-    # - name:                            "5.6 SCS ERS disable ers resource g-{{ sap_sid }}_ERS"
-    #   ansible.builtin.shell:           "pcs resource disable g-{{ sap_sid }}_ERS"
-
-    # - name:                            "5.6 SCS ERS enable ers resource g-{{ sap_sid }}_ERS"
-    #   ansible.builtin.shell:           "pcs resource enable g-{{ sap_sid }}_ERS"
-
     - name:                            "5.6 SCSERS - RHEL - ENSA2 - Set the Cluster out of maintenance mode"
       ansible.builtin.command:         pcs property set maintenance-mode=false
 

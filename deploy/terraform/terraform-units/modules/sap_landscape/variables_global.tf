@@ -228,6 +228,12 @@ variable "ANF_settings" {
   }
 }
 
+
+variable "place_delete_lock_on_resources" {
+  description = "If defined, a delete lock will be placed on the key resources"
+}
+
+
 #########################################################################################
 #                                                                                       #
 #  DNS Settings                                                                         #
@@ -235,14 +241,13 @@ variable "ANF_settings" {
 #########################################################################################
 
 
-
 variable "dns_label" {
-  description = "DNS label"
+  description = "DNS label for the system, for example azure.contoso.net"
   default     = ""
 }
 
 variable "dns_server_list" {
-  description = "DNS server list"
+  description = "The list of DNS Servers to associate with the VNet"
   default     = []
 }
 
@@ -252,7 +257,7 @@ variable "create_vaults_and_storage_dns_a_records" {
 }
 
 variable "use_custom_dns_a_registration" {
-  description = "Boolean value indicating if a custom dns a record should be created when using private endpoints"
+  description = "Boolean value indicating if a custom dns a records should be created for private endpoints"
   default     = false
   type        = bool
 }

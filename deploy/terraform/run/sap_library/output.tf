@@ -1,8 +1,8 @@
 
 ###############################################################################
-#                                                                             # 
-#                             Resource Group                                  # 
-#                                                                             # 
+#                                                                             #
+#                             Resource Group                                  #
+#                                                                             #
 ###############################################################################
 
 output "created_resource_group_id" {
@@ -22,9 +22,9 @@ output "created_resource_group_subscription_id" {
 
 
 ###############################################################################
-#                                                                             # 
-#                             Storage accounts                                # 
-#                                                                             # 
+#                                                                             #
+#                             Storage accounts                                #
+#                                                                             #
 ###############################################################################
 
 output "sapbits_storage_account_name" {
@@ -66,12 +66,23 @@ output "sa_connection_string" {
 
 
 ###############################################################################
-#                                                                             # 
-#                             Automation version                              # 
-#                                                                             # 
+#                                                                             #
+#                             Automation version                              #
+#                                                                             #
 ###############################################################################
 
 output "automation_version" {
   description = "Defines the version of the terraform templates used in the deloyment"
   value       = local.version_label
 }
+
+###############################################################################
+#                                                                             #
+#                                    Random                                   #
+#                                                                             #
+###############################################################################
+
+output "random_id_b64" {
+  value = module.sap_library.random_id_b64
+}
+

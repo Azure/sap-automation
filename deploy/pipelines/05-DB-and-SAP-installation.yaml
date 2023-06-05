@@ -144,6 +144,8 @@ stages:
               echo -e "$green--- Configure devops CLI extension ---$reset"
                 az config set extension.use_dynamic_install=yes_without_prompt  --output none
 
+                az extension add --name azure-devops --output none
+
                 az devops configure --defaults organization=$(System.CollectionUri) project='$(System.TeamProject)' --output none
 
               echo -e "$green--- Validations ---$reset"
