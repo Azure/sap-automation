@@ -83,6 +83,7 @@ resource "azurerm_private_dns_zone" "file" {
 
 
 resource "azurerm_private_dns_zone_virtual_network_link" "vnet_mgmt" {
+  depends_on = [azurerm_private_dns_zone.dns]
   provider = azurerm.dnsmanagement
   count    = length(var.dns_label) > 0 && !var.use_custom_dns_a_registration && var.use_private_endpoint ? 1 : 0
   name = format("%s%s%s%s",
