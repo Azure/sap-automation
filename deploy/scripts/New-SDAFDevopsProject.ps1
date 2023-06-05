@@ -871,9 +871,9 @@ else {
 }
 
 Write-Host "Assigning reader permissions to the control plane subscription" -ForegroundColor Green
-az role assignment create --assignee $ARM_CLIENT_ID --role "Reader" --subscription $Control_plane_subscriptionID /subscriptions/$Control_plane_subscriptionID --output none
+az role assignment create --assignee $ARM_CLIENT_ID --role "Reader" --subscription $Control_plane_subscriptionID --scope /subscriptions/$Control_plane_subscriptionID --output none
 az role assignment create --assignee $ARM_CLIENT_ID --role "User Access Administrator" --subscription $Workload_zone_subscriptionID --scope /subscriptions/$Workload_zone_subscriptionID --output none
-az role assignment create --assignee $ARM_CLIENT_ID --role "Storage Account Contributor" --subscription $Control_plane_subscriptionID /subscriptions/$Control_plane_subscriptionID --output none
+az role assignment create --assignee $ARM_CLIENT_ID --role "Storage Account Contributor" --subscription $Control_plane_subscriptionID --scope /subscriptions/$Control_plane_subscriptionID --output none
 
 
 $Service_Connection_Name = $Workload_zone_code + "_WorkloadZone_Service_Connection"
