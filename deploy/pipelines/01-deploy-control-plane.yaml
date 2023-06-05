@@ -447,6 +447,9 @@ stages:
                           storage_account_parameter=""
                           if [ -n "${REMOTE_STATE_SA}"  ]; then
                              storage_account_parameter="--storageaccountname ${REMOTE_STATE_SA}"
+                          else
+                              sed -i 's/step=2/step=1/' $deployer_environment_file_name
+                              sed -i 's/step=3/step=1/' $deployer_environment_file_name
                           fi
 
                       echo -e "$green--- Validations ---$reset"
