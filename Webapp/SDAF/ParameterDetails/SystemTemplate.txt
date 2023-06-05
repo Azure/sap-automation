@@ -66,6 +66,9 @@ $$subscription$$
 # use_scalesets_for_deployment defines if Flexible Virtual Machine Scale Sets are used for the deployment
 $$use_scalesets_for_deployment$$
 
+# database_use_premium_v2_storage defines if the database tier will use premium v2 storage
+$$database_use_premium_v2_storage$$
+
 #########################################################################################
 #                                                                                       #
 #  Networking                                                                           #
