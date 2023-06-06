@@ -448,6 +448,8 @@ namespace AutomationForm.Models
 
         public bool? database_use_premium_v2_storage { get; set; } = false;
 
+        public bool? ANF_HANA_use_AVG { get; set; } = false;
+
         [DisplayName("Web SID")]
         public string web_sid { get; set; }
 

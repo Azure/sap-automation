@@ -454,6 +454,10 @@ $$sapmnt_private_endpoint_id$$
 
 # use_random_id_for_storageaccounts defines if the sapmnt storage account name will have a random suffix
 $$use_random_id_for_storageaccounts$$
+
+# ANF_HANA_use_AVG defines if the ANF volume will be created in an Application Volume Group
+$$ANF_HANA_use_AVG$$
+
 #########################################################################################
 #                                                                                       #
 #  HANA Data                                                                            #

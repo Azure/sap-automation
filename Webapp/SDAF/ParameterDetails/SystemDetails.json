@@ -1603,6 +1603,15 @@
         ],
         "Overrules": "",
         "Display": 3
+      },
+      {
+        "Name": "ANF_HANA_use_AVG",
+        "Required": false,
+        "Description": "defines if the ANF volume(s) will be created in an Application Volume Group",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
       }
     ]
   },
