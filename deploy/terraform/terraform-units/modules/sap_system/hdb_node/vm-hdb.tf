@@ -179,7 +179,7 @@ resource "azurerm_linux_virtual_machine" "vm_dbnode" {
   }
 
   proximity_placement_group_id = var.database.use_ppg ? (
-    var.ppg[count.index].id) : (
+    var.ppg[count.index]) : (
     null
   )
 
@@ -190,6 +190,9 @@ resource "azurerm_linux_virtual_machine" "vm_dbnode" {
       azurerm_availability_set.hdb[count.index % max(local.db_zone_count, 1)].id
     )
   ) : null
+
+  virtual_machine_scale_set_id = length(var.scale_set_id) > 0 ? var.scale_set_id : null
+
   zone = local.use_avset ? null : try(local.zones[count.index % max(local.db_zone_count, 1)], null)
 
   network_interface_ids = local.enable_storage_subnet ? (
@@ -252,7 +255,7 @@ resource "azurerm_linux_virtual_machine" "vm_dbnode" {
   source_image_id = var.database.os.type == "custom" ? local.hdb_os.source_image_id : null
 
   dynamic "source_image_reference" {
-    for_each = range(var.database.os.type == "marketplace" ? 1 : 0)
+    for_each = range(var.database.os.type == "marketplace" || var.database.os.type == "marketplace_with_plan" ? 1 : 0)
     content {
       publisher = var.database.os.publisher
       offer     = var.database.os.offer
@@ -263,9 +266,9 @@ resource "azurerm_linux_virtual_machine" "vm_dbnode" {
   dynamic "plan" {
     for_each = range(var.database.os.type == "marketplace_with_plan" ? 1 : 0)
     content {
-      name      = var.database.os.offer
+      name      = var.database.os.sku
       publisher = var.database.os.publisher
-      product   = var.database.os.sku
+      product   = var.database.os.offer
     }
   }
 
@@ -325,11 +328,11 @@ resource "azurerm_managed_disk" "data_disk" {
   create_option        = "Empty"
   storage_account_type = local.data_disk_list[count.index].storage_account_type
   disk_size_gb         = local.data_disk_list[count.index].disk_size_gb
-  disk_iops_read_write = "UltraSSD_LRS" == local.data_disk_list[count.index].storage_account_type ? (
+  disk_iops_read_write = contains(["UltraSSD_LRS", "PremiumV2_LRS"], local.data_disk_list[count.index].storage_account_type) ? (
     local.data_disk_list[count.index].disk_iops_read_write) : (
     null
   )
-  disk_mbps_read_write = "UltraSSD_LRS" == local.data_disk_list[count.index].storage_account_type ? (
+  disk_mbps_read_write = contains(["UltraSSD_LRS", "PremiumV2_LRS"], local.data_disk_list[count.index].storage_account_type) ? (
     local.data_disk_list[count.index].disk_mbps_read_write) : (
     null
   )
@@ -360,7 +363,7 @@ resource "azurerm_virtual_machine_data_disk_attachment" "vm_dbnode_data_disk" {
 # VM Extension
 resource "azurerm_virtual_machine_extension" "hdb_linux_extension" {
   provider             = azurerm.main
-  count                = local.enable_deployment ? var.database_server_count : 0
+  count                = local.enable_deployment && var.database.deploy_v1_monitoring_extension ? var.database_server_count : 0
   name                 = "MonitorX64Linux"
   virtual_machine_id   = azurerm_linux_virtual_machine.vm_dbnode[count.index].id
   publisher            = "Microsoft.AzureCAT.AzureEnhancedMonitoring"
@@ -376,3 +379,19 @@ SETTINGS
     ignore_changes = [tags]
   }
 }
+
+
+#########################################################################################
+#                                                                                       #
+#  Scale Set                                                                            #
+#                                                                                       #
+#########################################################################################
+
+variable "use_scalesets_for_deployment" {
+  description = "Use Flexible Virtual Machine Scale Sets for the deployment"
+}
+
+variable "scale_set_id" {
+  description = "Azure resource identifier for scale set"
+}
+

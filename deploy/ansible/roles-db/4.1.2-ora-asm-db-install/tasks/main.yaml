@@ -451,21 +451,33 @@
         owner:                         oracle
         group:                         oinstall
 
-    - name:                                "SAP Oracle DB ASM: Prepare for GRID SBP Patching"
+    - name:                            "SAP Oracle DB ASM: Prepare for GRID SBP Patching"
       become:                          true
       become_user:                     "root"
-      ansible.builtin.shell: |
-                                /oracle/GRID/{{ ora_version }}/crs/install/roothas.sh -prepatch |tee /etc/sap_deployment_automation/oracle/pre-patchcmd.log
-      register:                            gridpreinstall
+      ansible.builtin.shell:           /oracle/GRID/{{ ora_version }}/crs/install/roothas.sh -prepatch
+      register:                        gridpreinstall
       args:
-        creates:                           /etc/sap_deployment_automation/{{ sap_sid | upper }}/gridpreinstall.txt
+        creates:                       /etc/sap_deployment_automation/{{ sap_sid | upper }}/gridpreinstall.txt
 
-    - name:                                "SAP Oracle DB ASM: Create flag after a successful preparation"
+    # Debug for testing
+    - name:                            "SAP Oracle DB ASM: Prepare for GRID SBP Patching print output"
+      ansible.builtin.debug:
+        var:                           gridpreinstall.stdout_lines
+        verbosity:                     2
+
+    - name:                            "SAP Oracle DB ASM: Prepare for GRID SBP Patching"
+      ansible.builtin.copy:
+        dest:                          "/etc/sap_deployment_automation/{{ sap_sid | upper }}/pre-patchcmd.log"
+        content:                       "{{ gridpreinstall.stdout }}"
+        mode:                          0777
+      when:                            gridpreinstall.stdout is defined
+
+    - name:                            "SAP Oracle DB ASM: Create flag after a successful preparation"
       ansible.builtin.file:
-        path:                              /etc/sap_deployment_automation/{{ sap_sid | upper }}/gridpreinstall.txt
-        state:                             touch
-        mode:                              '0755'
-      when:                                gridpreinstall.rc == 0
+        path:                          /etc/sap_deployment_automation/{{ sap_sid | upper }}/gridpreinstall.txt
+        state:                         touch
+        mode:                          '0755'
+      when:                            gridpreinstall.rc == 0
 
     # STEP 4.2.2 SBP Patching for Oracle GRID.
     - name:                            "ORACLE: Post Processing - GRID SBP Patching"
@@ -485,7 +497,7 @@
         chdir:                          "{{ target_media_location }}/SBP"
         executable:                     /bin/csh
 
-    - name:                            "ORACLE: Post processing installer output"
+    - name:                            "SAP Oracle DB ASM: Post processing installer output"
       ansible.builtin.debug:
         var:                           gridsbpscript_results.stdout_lines
         verbosity:                     2
@@ -497,11 +509,11 @@
         mode:                          '0777'
       when:                            gridsbpscript_results.stdout is defined
 
-    - name:                                "SAP Oracle DB ASM: Create flag after a successful SBP GRID installation"
+    - name:                            "SAP Oracle DB ASM: Create flag after a successful SBP GRID installation"
       ansible.builtin.file:
-        path:                              /etc/sap_deployment_automation/{{ sap_sid | upper }}/gridsbp_installed.txt
-        state:                             touch
-        mode:                               '0755'
+        path:                          /etc/sap_deployment_automation/{{ sap_sid | upper }}/gridsbp_installed.txt
+        state:                         touch
+        mode:                          '0755'
 
     # STEP 4.2.3 Post-Processing SBP Patching for Oracle GRID.
     # SAP Note 2893317 - ORA-12547:  TNS:lost contact during SWPM system copy import -NetWeaver

@@ -81,14 +81,23 @@ locals {
     high_availability = var.database_high_availability || try(var.databases[0].high_availability, false)
     use_DHCP          = var.database_vm_use_DHCP || try(var.databases[0].use_DHCP, false)
 
-    platform      = var.database_platform
-    db_sizing_key = coalesce(var.db_sizing_dictionary_key, var.database_size, try(var.databases[0].size, ""))
+    platform        = var.database_platform
+    db_sizing_key   = coalesce(var.db_sizing_dictionary_key, var.database_size, try(var.databases[0].size, ""))
+    database_vm_sku = var.database_vm_sku
 
-    use_ANF    = var.database_HANA_use_ANF_scaleout_scenario || try(var.databases[0].use_ANF, false)
-    dual_nics  = var.database_dual_nics || try(var.databases[0].dual_nics, false)
+    use_ANF   = var.database_HANA_use_ANF_scaleout_scenario || try(var.databases[0].use_ANF, false)
+    dual_nics = var.database_dual_nics || try(var.databases[0].dual_nics, false)
 
-    use_ppg    = tobool(var.database_no_ppg) == null ? (length(var.proximityplacementgroup_arm_ids) > 0 && !var.database_use_ppg) || var.database_use_ppg : !var.database_no_ppg
-    use_avset  = tobool(var.database_no_avset) == null ? var.database_use_avset : !var.database_no_avset
+    use_ppg = var.use_scalesets_for_deployment ? (
+      false) : (
+      tobool(var.database_no_ppg) == null ? (length(var.proximityplacementgroup_arm_ids) > 0 && !var.database_use_ppg) || var.database_use_ppg : !var.database_no_ppg
+    )
+    use_avset = var.use_scalesets_for_deployment ? (
+      false) : (
+      tobool(var.database_no_avset) == null ? var.database_use_avset : !var.database_no_avset
+    )
+
+    deploy_v1_monitoring_extension = var.deploy_v1_monitoring_extension
 
   }
 
@@ -144,9 +153,16 @@ locals {
       ) : (
       0
     )
-    app_sku       = try(coalesce(var.application_server_sku, var.application_tier.app_sku), "")
-    app_use_ppg    = tobool(var.application_server_no_ppg) == null ? (length(var.proximityplacementgroup_arm_ids) > 0 && !var.application_server_use_ppg) || var.application_server_use_ppg : !var.application_server_no_ppg
-    app_use_avset  = tobool(var.application_server_no_avset) == null ? var.application_server_use_avset : !var.application_server_no_avset
+    app_sku = try(coalesce(var.application_server_sku, var.application_tier.app_sku), "")
+
+    app_use_ppg = var.use_scalesets_for_deployment ? (
+      false) : (
+      tobool(var.application_server_no_ppg) == null ? (length(var.proximityplacementgroup_arm_ids) > 0 && !var.application_server_use_ppg) || var.application_server_use_ppg : !var.application_server_no_ppg
+    )
+    app_use_avset = var.use_scalesets_for_deployment ? (
+      false) : (
+      tobool(var.application_server_no_avset) == null ? var.application_server_use_avset : !var.application_server_no_avset
+    )
 
     avset_arm_ids = var.application_server_vm_avset_arm_ids
 
@@ -163,20 +179,34 @@ locals {
     scs_instance_number = coalesce(var.scs_instance_number, try(var.application_tier.scs_instance_number, "00"))
     ers_instance_number = coalesce(var.ers_instance_number, try(var.application_tier.ers_instance_number, "02"))
 
-    scs_sku      = try(coalesce(var.scs_server_sku, var.application_tier.scs_sku), "")
+    scs_sku = try(coalesce(var.scs_server_sku, var.application_tier.scs_sku), "")
 
-    scs_use_ppg    = tobool(var.scs_server_no_ppg) == null ? (length(var.proximityplacementgroup_arm_ids) > 0 && !var.scs_server_use_ppg) || var.scs_server_use_ppg : !var.scs_server_no_ppg
-    scs_use_avset  = tobool(var.scs_server_no_avset) == null ? var.scs_server_use_avset : !var.scs_server_no_avset
+    scs_use_ppg = var.use_scalesets_for_deployment ? (
+      false) : (
+      tobool(var.scs_server_no_ppg) == null ? (length(var.proximityplacementgroup_arm_ids) > 0 && !var.scs_server_use_ppg) || var.scs_server_use_ppg : !var.scs_server_no_ppg
+    )
+    scs_use_avset = var.use_scalesets_for_deployment ? (
+      false) : (
+      tobool(var.scs_server_no_avset) == null ? var.scs_server_use_avset : !var.scs_server_no_avset
+    )
 
     webdispatcher_count = local.enable_app_tier_deployment ? (
       max(var.webdispatcher_server_count, try(var.application_tier.webdispatcher_count, 0))
       ) : (
       0
     )
-    web_sku      = try(coalesce(var.webdispatcher_server_sku, var.application_tier.web_sku), "")
+    web_sku = try(coalesce(var.webdispatcher_server_sku, var.application_tier.web_sku), "")
 
-    web_use_ppg    = tobool(var.webdispatcher_server_no_ppg) == null ? var.webdispatcher_server_use_ppg : !var.webdispatcher_server_no_ppg
-    web_use_avset  = tobool(var.webdispatcher_server_no_avset) == null ? var.webdispatcher_server_use_avset : !var.webdispatcher_server_no_avset
+    web_use_ppg = var.use_scalesets_for_deployment ? (
+      false) : (
+      tobool(var.webdispatcher_server_no_ppg) == null ? var.webdispatcher_server_use_ppg : !var.webdispatcher_server_no_ppg
+    )
+    web_use_avset = var.use_scalesets_for_deployment ? (
+      false) : (
+      tobool(var.webdispatcher_server_no_avset) == null ? var.webdispatcher_server_use_avset : !var.webdispatcher_server_no_avset
+    )
+
+    deploy_v1_monitoring_extension = var.deploy_v1_monitoring_extension
 
   }
 

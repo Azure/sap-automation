@@ -253,6 +253,7 @@ tf_zip=terraform_$${tfversion}_linux_amd64.zip
 if [ -f /etc/profile.d/deploy_server.sh ] ; then
     echo
     echo ##vso[task.logissue type=warning]Deployer already configured
+
     exit 0
 else
     #
@@ -390,7 +391,7 @@ else
     # Install Azure CLI
     case "$(get_distro_name)" in
     (ubuntu)
-        echo "Getting the Microsoft Key"
+        # echo "Getting the Microsoft Key"
         sudo mkdir -p /etc/apt/keyrings
         curl -sLS https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor | sudo tee /etc/apt/keyrings/microsoft.gpg > /dev/null
         sudo chmod go+r /etc/apt/keyrings/microsoft.gpg
@@ -400,7 +401,16 @@ else
             sudo tee /etc/apt/sources.list.d/azure-cli.list
 
         sudo apt-get update
-        sudo apt-get install azure-cli
+        #sudo curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+        rel=$(lsb_release -a | grep Release | cut -d':' -f2 | xargs)
+
+        if [ "$rel" == "20.04" ]; then
+          echo ##vso[task.logissue type=warning]Running on Ubuntu 20.04, installing Azure CLI 2.48.1-1~focal
+          sudo apt-get install azure-cli=2.48.1-1~focal -y --allow-downgrades
+          az version --output yaml
+        else
+          sudo apt-get install azure-cli -y
+        fi
         ;;
     (sles)
         echo "Getting the Microsoft Key"
@@ -420,7 +430,6 @@ else
 
     set -o errexit
 
-
     # Install dotNet
     case "$(get_distro_name)" in
     (ubuntu)
@@ -432,8 +441,7 @@ else
         sudo snap alias dotnet-sdk.dotnet dotnet
         ;;
      (rhel*)
-        sudo snap install dotnet-sdk --classic --channel=7.0
-        sudo snap alias dotnet-sdk.dotnet dotnet
+        sudo dnf install dotnet-sdk-7.0 -y
         ;;
     esac
 
@@ -452,7 +460,9 @@ else
 
     case "$(get_distro_name)" in
     (rhel)
-        python3.6 -m venv $${ansible_venv}
+        sudo python -m venv $${ansible_venv}
+        source "$${ansible_venv_bin}/activate"
+
         ;;
     (ubuntu|sles)
         # Create a Python3 based venv into which we will install Ansible.
@@ -567,7 +577,13 @@ else
     echo export ANSIBLE_HOST_KEY_CHECKING=False | sudo tee -a /etc/profile.d/deploy_server.sh
     echo export ANSIBLE_COLLECTIONS_PATHS=$${ansible_collections} | sudo tee -a /etc/profile.d/deploy_server.sh
 
-    echo "export DOTNET_ROOT=/snap/dotnet-sdk/current" | tee -a /tmp/deploy_server.sh
+    case "$(get_distro_name)" in
+    (ubuntu|sles)
+        echo "export DOTNET_ROOT=/snap/dotnet-sdk/current" | tee -a /tmp/deploy_server.sh
+        ;;
+      (rhel*)
+        ;;
+    esac
 
     # Set env for MSI
     echo export ARM_USE_MSI=true | sudo tee -a /etc/profile.d/deploy_server.sh

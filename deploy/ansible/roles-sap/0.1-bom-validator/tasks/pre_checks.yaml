@@ -214,6 +214,7 @@
 #
     - name:                            "{{ task_prefix }} - Create BOM download directories"
       become:                          "{{ bom_processing_become }}"
+      become_user:                     "{{ orchestration_ansible_user }}"
       ansible.builtin.file:
         path:                          "{{ item.path }}"
         state:                         directory

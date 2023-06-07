@@ -27,7 +27,7 @@
 - name: Ensure HA Cluster password is set to something secure
   ansible.builtin.user:
     name: hacluster
-    password: "{{ ha_cluster_password | password_hash('sha512', 65534 | random(seed=inventory_hostname) | string) }}"
+    password: "{{ ha_cluster_password | password_hash('sha512', 65534 | random(seed=None) | string) }}"
 
 - name: Ensure cluster configuration contains correct details
   ansible.builtin.template:
@@ -60,7 +60,7 @@
   block:
 
     - name: Check if SBD resource exists
-      ansible.builtin.shell: crm resource list | grep 'sbd' | awk '{ print $1; }'
+      ansible.builtin.shell: set -o pipefail && crm resource list | grep 'sbd' | awk '{ print $1; }'
       register: sbd_device
       failed_when: false
 
@@ -78,7 +78,7 @@
         op monitor interval="15" timeout="15"
 
     - name: Check the current SBD status
-      ansible.builtin.shell: crm_mon -1 | grep sbd
+      ansible.builtin.shell: set -o pipefail && crm_mon -1 | grep sbd
       register: sbd_report
       changed_when: false
       failed_when: false

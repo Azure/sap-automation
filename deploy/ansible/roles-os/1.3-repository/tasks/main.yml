@@ -239,4 +239,20 @@
     var:                               zypresult
     verbosity:                         2
 
+- name:                                "1.3 Repos: Add the repositories result"
+  ansible.builtin.debug:
+    var:                               zypresult
+    verbosity:                         2
+
+- name:                                "1.3 Repos: Add the HA repositories for RHEL"
+  ansible.builtin.dnf:
+    enablerepo:                        rhel-9-for-x86_64-highavailability-rpms
+    disable_gpg_check:                 true
+  changed_when:                        false
+  args:
+    warn:                              false
+  when:
+   - distribution_full_id in ['redhat9.0','redhat9.2']
+   - node_tier == 'ha'
+
 ...

@@ -28,7 +28,6 @@
     - { mode: '0755', path: '{{ tmp_directory }}/{{ db_sid | upper }}' }
     - { mode: '0755', path: '/etc/sap_deployment_automation/{{ db_sid | upper }}' }
 
-
 - name:                                "SAP HANA: Install reset"
   ansible.builtin.file:
     path:                              "/etc/sap_deployment_automation/{{ db_sid | upper }}/sap_deployment_hdb.txt"
@@ -58,7 +57,7 @@
         path:                          "{{ dir_params }}/{{ sap_inifile }}"
         state:                         absent
 
-    - name:                            "3.3.1 BoM Template processing: Create ini file {{ sap_inifile }} from {{ HANA_2_00_install.rsp }}"
+    - name:                            "SAP HANA Template processing: Create ini file {{ sap_inifile }} from {{ HANA_2_00_install.rsp }}"
       ansible.builtin.template:
         src:                           "HANA_2_00_install.rsp"
         dest:                          "{{ dir_params }}/{{ sap_inifile }}"
@@ -73,6 +72,8 @@
         _rsp_sid:                      "{{ db_sid | upper }}"
         _rsp_number:                   "{{ db_instance_number }}"
         _rsp_system_usage:             "custom"
+        use_master_password:           "{{ hana_use_master_password }} "
+        password_copy:                 "{%if hana_use_master_password == 'n' %}{{ main_password }}{% else %}{% endif %}"
 
     - name:                            "SAP HANA: Progress"
       ansible.builtin.debug:
@@ -224,16 +225,15 @@
             state:                     touch
             mode:                      0755
 
+        - name:                        "SAP HANA: remove install response file"
+          ansible.builtin.file:
+            path:                      "{{ dir_params }}/{{ sap_inifile }}"
+            state:                     absent
+
 
       when:
         - hana_installation.rc is defined
         - hana_installation.rc < 1
-
-
-    - name:                            "SAP HANA: remove install response file"
-      ansible.builtin.file:
-        path:                          "{{ dir_params }}/{{ sap_inifile }}"
-        state:                         absent
 
     - name:                            "SAP HANA: Create backup folder"
       ansible.builtin.file:

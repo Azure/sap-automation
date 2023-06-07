@@ -153,3 +153,18 @@ variable "management_dns_resourcegroup_name" {
   default     = null
   type        = string
 }
+
+
+#########################################################################################
+#                                                                                       #
+#  Scale Set                                                                            #
+#                                                                                       #
+#########################################################################################
+
+variable "use_scalesets_for_deployment" {
+  description = "Use Flexible Virtual Machine Scale Sets for the deployment"
+}
+
+variable "scale_set_id" {
+  description = "Azure resource identifier for scale set"
+}

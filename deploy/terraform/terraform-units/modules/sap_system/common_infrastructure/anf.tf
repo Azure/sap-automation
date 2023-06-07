@@ -44,7 +44,7 @@ resource "azurerm_netapp_volume" "sapmnt" {
   storage_quota_in_gb = var.hana_ANF_volumes.sapmnt_volume_size
   throughput_in_mibps = var.hana_ANF_volumes.sapmnt_volume_throughput
 
-  zone = length(local.scs_zones) > 0 ? try(local.scs_zones[0], null) : null
+  zone = length(local.scs_zones) > 0  && var.hana_ANF_volumes.use_zones ? try(local.scs_zones[0], null) : null
 
 }
 
@@ -95,7 +95,8 @@ resource "azurerm_netapp_volume" "sapmnt_secondary" {
     replication_frequency     = "10minutes"
   }
 
-  zone = length(local.scs_zones) > 1 ? try(local.scs_zones[1], null) : length(local.scs_zones) > 0 ? try(local.scs_zones[0], null) : null
+  zone = length(local.scs_zones) > 1 && var.hana_ANF_volumes.use_zones ? try(local.scs_zones[1], null) : length(local.scs_zones) > 0 ? try(local.scs_zones[0], null) : null
+
 
 
 }
@@ -164,6 +165,8 @@ resource "azurerm_netapp_volume" "usrsap" {
 
   storage_quota_in_gb = var.hana_ANF_volumes.usr_sap_volume_size
   throughput_in_mibps = var.hana_ANF_volumes.usr_sap_volume_throughput
+
+  zone = length(local.scs_zones) > 1 && var.hana_ANF_volumes.use_zones ? try(local.scs_zones[1], null) : length(local.scs_zones) > 0 ? try(local.scs_zones[0], null) : null
 
 }
 

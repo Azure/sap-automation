@@ -51,7 +51,7 @@ provider "azurerm" {
 provider "azurerm" {
   features {}
   alias                      = "dnsmanagement"
-  subscription_id            = coalesce(var.management_dns_subscription_id, local.spn.subscription_id)
+  subscription_id            = try(coalesce(var.management_dns_subscription_id, local.spn.subscription_id), null)
   client_id                  = var.use_deployer ? local.spn.client_id : null
   client_secret              = var.use_deployer ? local.spn.client_secret : null
   tenant_id                  = var.use_deployer ? local.spn.tenant_id : null

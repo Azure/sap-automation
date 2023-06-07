@@ -273,8 +273,23 @@ else
             echo "#########################################################################################"
 
             if [ $approve == "--auto-approve" ] ; then
+              tfstate_resource_id=$(az resource list --name $REINSTALL_ACCOUNTNAME --subscription $REINSTALL_SUBSCRIPTION --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
+              if [ -n "${tfstate_resource_id}" ]; then
+                  echo "Reinitializing against remote state"
+                  terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/run/"${deployment_system}"/
+                  export TF_VAR_tfstate_resource_id=$tfstate_resource_id
+                  terraform -chdir="${terraform_module_directory}" init -upgrade=true     \
+                  --backend-config "subscription_id=$REINSTALL_SUBSCRIPTION"              \
+                  --backend-config "resource_group_name=$REINSTALL_RESOURCE_GROUP"        \
+                  --backend-config "storage_account_name=$REINSTALL_ACCOUNTNAME"          \
+                  --backend-config "container_name=tfstate"                               \
+                  --backend-config "key=${key}.terraform.tfstate"
+                terraform -chdir="${terraform_module_directory}" refresh -var-file="${var_file}"
+
+              else
                 terraform -chdir="${terraform_module_directory}" init -upgrade=true -reconfigure  -backend-config "path=${param_dirname}/terraform.tfstate"
                 terraform -chdir="${terraform_module_directory}" refresh -var-file="${var_file}"
+              fi
             else
 
                 read -p "Do you want to re bootstrap the SAP library Y/N?"  ans
@@ -560,6 +575,18 @@ then
     if [ -z "${temp}" ]
     then
         save_config_var "REMOTE_STATE_RG" "${library_config_information}"
+        return_value=0
+    fi
+fi
+
+random_id_b64=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw random_id_b64 | tr -d \")
+temp=$(echo "${random_id_b64}" | grep -m1 "Warning")
+if [ -z "${temp}" ]
+then
+    temp=$(echo "${random_id_b64}" | grep "Backend reinitialization required")
+    if [ -z "${temp}" ]
+    then
+        save_config_var "library_random_id" "${random_id_b64}"
         return_value=0
     fi
 fi

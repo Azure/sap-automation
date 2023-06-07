@@ -167,9 +167,25 @@ else
             echo "#########################################################################################"
             sed -i /"use_microsoft_graph"/d "${param_dirname}/.terraform/terraform.tfstate"
             if [ $approve == "--auto-approve" ] ; then
+              tfstate_resource_id=$(az resource list --name $REINSTALL_ACCOUNTNAME --subscription $REINSTALL_SUBSCRIPTION --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
+              if [ -n "${tfstate_resource_id}" ]; then
+                  echo "Reinitializing against remote state"
+                  export TF_VAR_tfstate_resource_id=$tfstate_resource_id
+
+                  terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/run/"${deployment_system}"/
+                  terraform -chdir="${terraform_module_directory}" init -upgrade=true     \
+                  --backend-config "subscription_id=$REINSTALL_SUBSCRIPTION"              \
+                  --backend-config "resource_group_name=$REINSTALL_RESOURCE_GROUP"        \
+                  --backend-config "storage_account_name=$REINSTALL_ACCOUNTNAME"          \
+                  --backend-config "container_name=tfstate"                               \
+                  --backend-config "key=${key}.terraform.tfstate"
+                terraform -chdir="${terraform_module_directory}" refresh -var-file="${var_file}"
+
+              else
                 terraform -chdir="${terraform_module_directory}" init -force-copy -migrate-state  --backend-config "path=${param_dirname}/terraform.tfstate"
                 terraform -chdir="${terraform_module_directory}" init -reconfigure  --backend-config "path=${param_dirname}/terraform.tfstate"
                 terraform -chdir="${terraform_module_directory}" refresh -var-file="${var_file}"
+              fi
             else
                 read -p "Do you want to bootstrap the deployer again Y/N?"  ans
                 answer=${ans^^}
@@ -393,6 +409,21 @@ then
         return_value=2
     fi
 fi
+
+
+random_id=$(terraform -chdir="${terraform_module_directory}"  output -no-color -raw random_id_b64 | tr -d \")
+temp2=$(echo "${random_id}" | grep -m1 "Warning")
+if [ -z "${temp2}" ]
+then
+    temp2=$(echo "${random_id}" | grep "Backend reinitialization required")
+    if [ -z "${temp2}" ]
+    then
+        save_config_var "deployer_random_id" "${random_id}"
+        return_value=0
+    fi
+fi
+
+
 unset TF_DATA_DIR
 
 exit $return_value
