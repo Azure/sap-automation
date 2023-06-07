@@ -54,8 +54,13 @@ variable "resourcegroup_tags" {
   default     = {}
 }
 
+variable "place_delete_lock_on_resources" {
+  description = "If defined, a delete lock will be placed on the key resources"
+  default     = false
+}
 
 variable "spn_keyvault_id" {
+  description = "Azure resource identifier for the keyvault where the spn will be stored"
   default = ""
 }
 

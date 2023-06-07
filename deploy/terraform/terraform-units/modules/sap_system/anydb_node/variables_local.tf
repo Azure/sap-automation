@@ -80,7 +80,7 @@ locals {
   db_sizing = local.enable_deployment ? lookup(local.sizes.db, local.anydb_size).storage : []
   db_size   = local.enable_deployment ? lookup(local.sizes.db, local.anydb_size).compute : {}
 
-  anydb_sku = try(local.db_size.vm_size, "Standard_E16_v3")
+  anydb_sku = length(var.database.database_vm_sku) > 0 ? var.database.database_vm_sku : try(local.db_size.vm_size, "Standard_E16_v3")
 
   anydb_ha = try(var.database.high_availability, false)
   db_sid   = try(var.database.instance.sid, lower(substr(var.database.platform, 0, 3)))

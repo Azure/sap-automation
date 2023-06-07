@@ -156,6 +156,8 @@ namespace AutomationForm.Models
 
         public string database_size { get; set; }
 
+        public string database_vm_sku { get; set; }
+
         public string database_sid { get; set; }
 
         public string database_instance_number { get; set; }
@@ -439,6 +441,14 @@ namespace AutomationForm.Models
         public bool? enable_purge_control_for_keyvaults { get; set; } = false;
 
         public bool? deploy_application_security_groups { get; set; } = true;
+
+        public bool? deploy_v1_monitoring_extension { get; set; } = true;
+
+        public bool? use_scalesets_for_deployment { get; set; } = false;
+
+        public bool? database_use_premium_v2_storage { get; set; } = false;
+
+        public bool? ANF_HANA_use_AVG { get; set; } = false;
 
         [DisplayName("Web SID")]
         public string web_sid { get; set; }

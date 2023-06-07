@@ -79,22 +79,26 @@ variable "anchor_ostype" {
 }
 
 variable "app_server_count" {
+  description = "Number of Application Servers"
   type    = number
   default = 1
 }
 
 variable "scs_server_count" {
+  description = "Number of SCS Servers"
   type    = number
   default = 1
 }
 
 variable "web_server_count" {
+  description = "Number of Web Dispatchers"
   type    = number
   default = 1
 }
 
 
 variable "db_server_count" {
+  description = "Number of Database Servers"
   type    = number
   default = 1
 }
@@ -339,6 +343,7 @@ variable "resource_prefixes" {
     "transport_volume"               = ""
     "vm"                             = ""
     "usrsap"                         = ""
+    "vmss"                           = ""
     "vnet"                           = ""
     "vnet_rg"                        = ""
     "web_alb"                        = ""
@@ -467,6 +472,7 @@ variable "resource_suffixes" {
     "tfstate"                        = "tfstate"
     "transport_volume"               = "transport"
     "usrsap"                         = "usrsap"
+    "vmss"                           = "-vmss"
     "vm"                             = ""
     "vnet"                           = "-vnet"
     "vnet_rg"                        = "-INFRASTRUCTURE"

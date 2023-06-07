@@ -28,7 +28,7 @@ output "db_server_ips" {
 }
 
 output "db_server_secondary_ips" {
-  value = local.enable_deployment && var.use_secondary_ips ? azurerm_network_interface.anydb_db[*].private_ip_addresses[1] : []
+  value = local.enable_deployment && var.use_secondary_ips ? try(azurerm_network_interface.anydb_db[*].private_ip_addresses[1], []) : []
 }
 
 output "db_lb_ip" {

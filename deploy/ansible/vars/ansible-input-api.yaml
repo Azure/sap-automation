@@ -30,6 +30,9 @@ always_upload_jinja_templates:         true
 # -------------------------------------+---------------------------------------8
 
 # SAP Configuration for templates and install
+
+hana_use_master_password:              y
+hana_password_copy:                         ""
 hana_backup_path:                      /hana/backup
 aas_hostname:                          ""
 aas_instance_number:                   ""
@@ -177,7 +180,7 @@ sap_swap:
   - { tier: "ers",                swap_size_mb: "4096"  }
   - { tier: "pas",                swap_size_mb: "20480" }
   - { tier: "app",                swap_size_mb: "20480" }
-  - { tier: "web",                swap_size_mb: "4096"  }
+  - { tier: "web",                swap_size_mb: "20480" }
   - { tier: "hana",               swap_size_mb: "2048"  }
   - { tier: "db2",                swap_size_mb: "20480" }
   - { tier: "sybase",             swap_size_mb: "20480" }

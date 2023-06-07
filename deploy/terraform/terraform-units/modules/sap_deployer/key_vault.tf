@@ -268,7 +268,7 @@ data "azurerm_key_vault_secret" "pwd" {
 
 resource "azurerm_private_endpoint" "kv_user" {
   provider = azurerm.main
-  count = var.use_private_endpoint && !var.key_vault.kv_exists ? 1 : 0
+  count    = var.use_private_endpoint && !var.key_vault.kv_exists ? 1 : 0
   name = format("%s%s%s",
     var.naming.resource_prefixes.keyvault_private_link,
     local.prefix,
@@ -303,6 +303,13 @@ resource "azurerm_private_endpoint" "kv_user" {
     ]
   }
 
+  custom_network_interface_name = format("%s%s%s%s",
+    var.naming.resource_prefixes.keyvault_private_link,
+    local.prefix,
+    var.naming.resource_suffixes.keyvault_private_link,
+    var.naming.resource_suffixes.nic
+  )
+
   dynamic "private_dns_zone_group" {
     for_each = range(var.use_private_endpoint && !var.use_custom_dns_a_registration && !var.bootstrap ? 1 : 0)
     content {
@@ -323,7 +330,7 @@ data "azurerm_private_dns_zone" "keyvault" {
 
 resource "azurerm_private_dns_zone_virtual_network_link" "vault" {
   provider = azurerm.dnsmanagement
-  count    = (!local.vnet_mgmt_exists) && !var.use_custom_dns_a_registration && !var.bootstrap ? 1 : 0
+  count    = (!local.vnet_mgmt_exists) && !var.use_custom_dns_a_registration && !var.bootstrap && var.use_private_endpoint ? 1 : 0
   name = format("%s%s%s%s",
     var.naming.resource_prefixes.dns_link,
     local.prefix,
@@ -427,29 +434,42 @@ resource "azurerm_key_vault_access_policy" "kv_user_additional_users" {
 
 }
 
-resource "azurerm_key_vault_access_policy" "webapp" {
-  provider = azurerm.main
-  count = var.use_webapp ? 1 : 0
+# resource "azurerm_key_vault_access_policy" "webapp" {
+#   provider = azurerm.main
+#   count = var.use_webapp ? 1 : 0
 
-  key_vault_id = var.key_vault.kv_exists ? (
-    var.key_vault.kv_user_id) : (
-    azurerm_key_vault.kv_user[0].id
-  )
+#   key_vault_id = var.key_vault.kv_exists ? (
+#     var.key_vault.kv_user_id) : (
+#     azurerm_key_vault.kv_user[0].id
+#   )
 
-  tenant_id = azurerm_windows_web_app.webapp[0].identity[0].tenant_id
-  object_id = azurerm_windows_web_app.webapp[0].identity[0].principal_id
-  secret_permissions = [
-    "Get",
-    "List",
-    "Set",
-    "Recover"
-  ]
+#   tenant_id = azurerm_windows_web_app.webapp[0].identity[0].tenant_id
+#   object_id = azurerm_windows_web_app.webapp[0].identity[0].principal_id
+#   secret_permissions = [
+#     "Get",
+#     "List",
+#     "Set",
+#     "Recover"
+#   ]
 
-}
+# }
 
 data "azurerm_network_interface" "keyvault" {
   count = var.use_private_endpoint && !var.key_vault.kv_exists ? 1 : 0
   name  = azurerm_private_endpoint.kv_user[count.index].network_interface[0].name
 
   resource_group_name = split("/", azurerm_private_endpoint.kv_user[count.index].network_interface[0].id)[4]
+}
+
+
+resource "azurerm_management_lock" "keyvault" {
+  provider   = azurerm.main
+  count      = (var.key_vault.kv_exists) ? 0 : var.place_delete_lock_on_resources ? 1 : 0
+  name       = format("%s-lock", local.keyvault_names.user_access)
+  scope      = azurerm_key_vault.kv_user[0].id
+  lock_level = "CanNotDelete"
+  notes      = "Locked because it's needed by the Control Plane"
+  lifecycle {
+    prevent_destroy = false
+  }
 }

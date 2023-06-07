@@ -165,3 +165,9 @@ variable "management_dns_resourcegroup_name" {
   default     = null
   type        = string
 }
+
+
+variable "database_use_premium_v2_storage" {
+  description = "If true, the database tier will use premium storage"
+  type        = bool
+}

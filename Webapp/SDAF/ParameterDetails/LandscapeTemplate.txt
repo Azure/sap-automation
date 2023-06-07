@@ -79,6 +79,10 @@ $$peer_with_control_plane_vnet$$
 # Defines if access to the key vaults and storage accounts is restricted to the SAP and deployer VNets
 $$enable_firewall_for_keyvaults_and_storage$$
 
+
+# place_delete_lock_on_resources, If defined, a delete lock will be placed on the key resources
+$$place_delete_lock_on_resources$$
+
 #########################################################################################
 #                                                                                       #
 #  Admin Subnet variables                                                               #
@@ -286,11 +290,11 @@ $$storage_account_replication_type$$
 #########################################################################################
 
 # The two resource group name and arm_id can be used to control the naming and the creation of the resource group
-# The resourcegroup_name value is optional, it can be used to override the name of the resource group that will be provisioned
-# The resourcegroup_name arm_id is optional, it can be used to provide an existing resource group for the deployment
 
+# The resourcegroup_name value is optional, it can be used to override the name of the resource group that will be provisioned
 $$resourcegroup_name$$
 
+# The resourcegroup_name arm_id is optional, it can be used to provide an existing resource group for the deployment
 $$resourcegroup_arm_id$$
 
 

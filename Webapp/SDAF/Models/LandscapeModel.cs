@@ -34,6 +34,8 @@ namespace AutomationForm.Models
         public string name_override_file { get; set; }
         public bool? save_naming_information { get; set; }
 
+        public bool? place_delete_lock_on_resources { get; set; } = false;
+
         [RequiredIfNotDefault]
         [DisplayName("Network name")]
         [RegularExpression(@"^\w{0,7}$", ErrorMessage = "Logical network name cannot exceed seven characters")]

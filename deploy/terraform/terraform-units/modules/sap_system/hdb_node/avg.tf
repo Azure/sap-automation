@@ -1,7 +1,7 @@
 
 resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA" {
   provider = azurerm.main
-  count    = var.NFS_provider == "ANF" && local.use_avg && var.deployment == "new" ? length(var.ppg) : 0
+  count    = var.NFS_provider == "ANF" && local.use_avg  ? length(var.ppg) : 0
   name = format("%s%s%s%s%d",
     var.naming.resource_prefixes.hana_avg,
     local.prefix,
@@ -67,7 +67,7 @@ locals {
   use_avg = (
     var.hana_ANF_volumes.use_AVG_for_data) && (
     var.hana_ANF_volumes.use_for_data || var.hana_ANF_volumes.use_for_log || var.hana_ANF_volumes.use_for_shared
-  )
+  ) && !var.use_scalesets_for_deployment
 
   hana_data1 = {
     name = format("%s%s%s%s%d",
@@ -82,7 +82,7 @@ locals {
       1
     )
     volumeSpecName          = "data"
-    proximityPlacementGroup = var.ppg[0].id
+    proximityPlacementGroup = length(var.scale_set_id) == 0 ? var.ppg[0] : null
     storage_quota_in_gb     = var.hana_ANF_volumes.data_volume_size
     throughput_in_mibps     = var.hana_ANF_volumes.data_volume_throughput
     zone                    = local.db_zone_count > 0 ? try(local.zones[0], null) : null
@@ -101,7 +101,7 @@ locals {
       2
     )
     volumeSpecName          = "data"
-    proximityPlacementGroup = length(var.ppg) > 1 ? var.ppg[1].id : var.ppg[0].id
+    proximityPlacementGroup = length(var.scale_set_id) == 0 ? (length(var.ppg) > 1 ? var.ppg[1] : var.ppg[0]) : null
     storage_quota_in_gb     = var.hana_ANF_volumes.data_volume_size
     throughput_in_mibps     = var.hana_ANF_volumes.data_volume_throughput
     zone                    = local.db_zone_count > 1 ? try(local.zones[1], null) : null
@@ -121,7 +121,7 @@ locals {
       1
     )
     volumeSpecName          = "log"
-    proximityPlacementGroup = var.ppg[0].id
+    proximityPlacementGroup = length(var.scale_set_id) == 0 ? var.ppg[0] : null
     storage_quota_in_gb     = var.hana_ANF_volumes.log_volume_size
     throughput_in_mibps     = var.hana_ANF_volumes.log_volume_throughput
     zone                    = local.db_zone_count > 0 ? try(local.zones[0], null) : null
@@ -140,7 +140,7 @@ locals {
       2
     )
     volumeSpecName          = "log"
-    proximityPlacementGroup = length(var.ppg) > 1 ? var.ppg[1].id : var.ppg[0].id
+    proximityPlacementGroup = length(var.scale_set_id) == 0 ? (length(var.ppg) > 1 ? var.ppg[1] : var.ppg[0]) : null
     storage_quota_in_gb     = var.hana_ANF_volumes.log_volume_size
     throughput_in_mibps     = var.hana_ANF_volumes.log_volume_throughput
     zone                    = local.db_zone_count > 1 ? try(local.zones[1], null) : null
@@ -159,7 +159,7 @@ locals {
       1
     )
     volumeSpecName          = "shared"
-    proximityPlacementGroup = var.ppg[0].id
+    proximityPlacementGroup = length(var.scale_set_id) == 0 ? var.ppg[0] : null
     storage_quota_in_gb     = var.hana_ANF_volumes.shared_volume_size
     throughput_in_mibps     = var.hana_ANF_volumes.shared_volume_throughput
     zone                    = local.db_zone_count > 0 ? try(local.zones[0], null) : null
@@ -178,7 +178,8 @@ locals {
       2
     )
     volumeSpecName          = "shared"
-    proximityPlacementGroup = length(var.ppg) > 1 ? var.ppg[1].id : var.ppg[0].id
+
+    proximityPlacementGroup = length(var.scale_set_id) == 0 ? (length(var.ppg) > 1 ? var.ppg[1] : var.ppg[0]) : null
     storage_quota_in_gb     = var.hana_ANF_volumes.shared_volume_size
     throughput_in_mibps     = var.hana_ANF_volumes.shared_volume_throughput
     zone                    = local.db_zone_count > 1 ? try(local.zones[1], null) : null

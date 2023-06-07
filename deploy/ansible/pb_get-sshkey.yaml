@@ -6,57 +6,50 @@
 ---
 
 - hosts:                               localhost
+  name:                                Retrieve SSH Key
   gather_facts:                        false
   tags:
-  - always
-
+    - always
 
   tasks:
-  - name:                              Load the SAP parameters
-    ansible.builtin.include_vars:                      "{{ _workspace_directory }}/sap-parameters.yaml"
+    - name:                            Load the SAP parameters
+      ansible.builtin.include_vars:    "{{ _workspace_directory }}/sap-parameters.yaml"
 
 
-  - name:                              Construct SSH key secret name
-    ansible.builtin.set_fact:
-      secret_name:                     "{{ secret_prefix }}-sid-sshkey"
+    - name:                            Construct SSH key secret name
+      ansible.builtin.set_fact:
+        secret_name:                   "{{ secret_prefix }}-sid-sshkey"
 
 
-  - name:                              Retrieve SSH Key secret details
-    ansible.builtin.command: >-
+    - name:                            Retrieve SSH Key secret details
+      ansible.builtin.command: >-
                                        az keyvault secret show
                                          --vault-name {{ kv_name }}
                                          --name {{ secret_name }}
-    changed_when:                     false
-    register:                         keyvault_secret_show
-    no_log:                           true
+                                         --query value
+                                         --output tsv
+      changed_when:                    false
+      register:                        keyvault_secret_show
+      no_log:                          true
 
+    - name:                            Extract SSH Key content from secret details
+      ansible.builtin.set_fact:
+        sshkey_content:                "{{ keyvault_secret_show.stdout }}"
+      no_log:                          true
 
-  - name:                             Extract SSH Key content from secret details
-    ansible.builtin.set_fact:
-      sshkey_content: >-
-                                     {{ (keyvault_secret_show.stdout | from_json).value }}
-    no_log:                          true
+    - name:                            Determine SSH key file name
+      ansible.builtin.set_fact:
+        sshkey_file:                   "{{ lookup('env', 'ANSIBLE_PRIVATE_KEY_FILE') | default('sshkey', True) }}"
 
+    - name:                            Determine SSH key file path
+      ansible.builtin.set_fact:
+        sshkey_path:                   "{{ sshkey_file is abs | ternary(sshkey_file, (_workspace_directory, sshkey_file) | join('/')) }}"
 
-  - name:                            Determine SSH key file name
-    ansible.builtin.set_fact:
-      sshkey_file:                   "{{ lookup('env', 'ANSIBLE_PRIVATE_KEY_FILE') | default('sshkey', True) }}"
-
-
-  - name: Determine SSH key file path
-    set_fact:
-      sshkey_path: >-
-        {{ sshkey_file is abs |
-           ternary(sshkey_file,
-                   (_workspace_directory, sshkey_file) | join('/')) }}
-
-
-  - name:                            Write out SSH Key content as sshkey file
-    ansible.builtin.copy:
-      dest:                          "{{ sshkey_path }}"
-      content:                       "{{ sshkey_content }}"
-      mode:                          "0600"
-
+    - name:                            Write out SSH Key content as sshkey file
+      ansible.builtin.copy:
+        dest:                          "{{ sshkey_path }}"
+        content:                       "{{ sshkey_content }}"
+        mode:                          "0600"
 
 ...
 # /*---------------------------------------------------------------------------8
