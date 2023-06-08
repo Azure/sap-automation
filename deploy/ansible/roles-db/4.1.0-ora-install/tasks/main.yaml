@@ -323,7 +323,7 @@
     - name:                            "ORACLE: Pre Processing set directory permissions"
       ansible.builtin.file:
         path:                          "/oracle/{{ db_sid | upper }}/{{ ora_version }}/bin/oradism"
-        state:                         directory
+        state:                         file
         mode:                          '0750'
         owner:                         oracle
         group:                         oinstall
@@ -352,7 +352,7 @@
     - name:                            "ORACLE: Pre Processing reset directory permissions"
       ansible.builtin.file:
         path:                          "/oracle/{{ db_sid | upper }}/{{ ora_version }}/bin/oradism"
-        state:                         directory
+        state:                         file
         mode:                          '4750'
         owner:                         root
         group:                         oinstall
