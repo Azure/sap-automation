@@ -205,27 +205,30 @@
       async:                           7200
       poll:                            0
 
-    - name:                            "DBLoad Install"
-      block:
-        - name:                        "DBLoad Install -Wait for asynchronous job to end"
-          ansible.builtin.async_status:
-            jid:                       "{{ dbload_results.ansible_job_id }}"
-          register:                    job_result
-          until:                       job_result.finished
-          retries:                     120
-          delay:                       60
-          when:                        dbload_results.ansible_job_id is defined
+    - block:
+
+      - name:                            "DBLoad Install -Wait for asynchronous job to end"
+        ansible.builtin.async_status:
+          jid:                           "{{ dbload_results.ansible_job_id }}"
+        register:                        job_result
+        until:                           job_result.finished
+        retries:                         120
+        delay:                           60
+        when:                            dbload_results.ansible_job_id is defined
 
       rescue:
-        - name:                        "Error Handling: Try to modify error message for message server offline"
-          ansible.builtin.debug:
-            msg:                       "{{ job_result.stdout | try_get_error_code }}"
-          register:                    modified_error_message
+        - name:                        "Capturing the modified message for message server being offline"
+          ansible.builtin.set_fact:
+            modified_error_message:    "{{ job_result.stdout | try_get_error_code(task_tag='dbload', failure='messageserver_offline') }}"
 
-        - name:                        "Error Handling: Try to modify error message for db offline"
+        - name:                        "Capturing the modified message for database being offline"
+          ansible.builtin.set_fact:
+            modified_error_message:    "{{ modified_error_message | try_get_error_code(task_tag='dbload', failure='db_offline') }}"
+
+        - name:                        "Debug: Modified error message"
           ansible.builtin.debug:
-            msg:                       "{{ modified_error_message | try_get_error_code(task_tag='dbload_db_offline') }}"
-          register:                    modified_error_message
+            msg:                       "Modified error message: {{ modified_error_message }}"
+          when:                         modified_error_message != job_result.stdout
 
         - name:                        "Error Handling: Fail with the modified error message "
           ansible.builtin.fail:
