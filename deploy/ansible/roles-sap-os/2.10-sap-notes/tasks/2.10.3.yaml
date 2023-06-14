@@ -3,6 +3,7 @@
 # Disable SELinux
 # Disable core file creation
 
+
 - name:                                "2.10.2 sap-notes: - Collect facts about installed packages"
   ansible.builtin.package_facts:
 
