@@ -77,20 +77,10 @@
       tags:
         - skip_ansible_lint
 
-    - name:                            "Download [ACSS] cli extension"
-      delegate_to:                     localhost
-      ansible.builtin.get_url:
-        url:                          "{{ acss_cli_extension_url }}"
-        dest:                         "{{ tmp_directory }}/workloads-0.1.0-py3-none-any.whl"
-        mode:                         0755
-        validate_certs:               false
-      tags:
-        - skip_ansible_lint
-
     - name:                            "Install [ACSS] cli extension"
       delegate_to:                     localhost
       ansible.builtin.command: >-
-              "az extension add --source={{ tmp_directory }}/workloads-0.1.0-py3-none-any.whl --yes || exit 1"
+              "az extension add --name workloads --yes || exit 1"
       tags:
         - skip_ansible_lint
 
