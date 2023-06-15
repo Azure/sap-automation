@@ -20,21 +20,22 @@
       ansible.builtin.set_fact:
         secret_name:                   "{{ secret_prefix }}-sid-sshkey"
 
-    - block:
-      - name:                            Retrieve SSH Key secret details
-        ansible.builtin.command: >-
-                                        az keyvault secret show
-                                          --vault-name {{ kv_name }}
-                                          --name {{ secret_name }}
-                                          --query value
-                                          --output tsv
-        changed_when:                    false
-        register:                        keyvault_secret_show
-        no_log:                          true
-      rescue:
-        - name:                           Rescue Log the error message to be transformed
-          ansible.builtin.debug:
-            msg:                          "Error message to transform: {{keyvault_secret_show.stderr}}"
+    - name:                                Retrieve SSH Key secret details and rescue on failure
+      block:
+        - name:                            Retrieve SSH Key secret details
+          ansible.builtin.command: >-
+                                          az keyvault secret show
+                                            --vault-name {{ kv_name }}
+                                            --name {{ secret_name }}
+                                            --query value
+                                            --output tsv
+          changed_when:                    false
+          register:                        keyvault_secret_show
+          no_log:                          true
+        rescue:
+          - name:                           Rescue Log the error message to be transformed
+            ansible.builtin.debug:
+              msg:                          "Error message to transform: {{keyvault_secret_show.stderr}}"
 
         - name:                           Rescue Retrieve SSH Key secret details
           ansible.builtin.fail:
