@@ -166,18 +166,19 @@
       ansible.builtin.pause:
         seconds:                       60
 
-    - block:
-      - name:                            "1.4 Packages: -  Update OS packages: {{ distro_name }}"
-        ansible.builtin.package:
-          name:                          "{{ packages_for_tier |
-                                            selectattr('state', 'equalto', item.state) |
-                                            map(attribute='package') |
-                                            list }}"
-          state:                         "{{ item.state }}"
-        register:                        package_result
-        loop:
-          - { state: 'present' }  # First install required packages
-          - { state: 'absent' }   # Then remove packages that we don't want
+    - name:                           "1.4 Packages: -  Update OS packages: {{ distro_name }} and rescue"
+      block:
+        - name:                            "1.4 Packages: -  Update OS packages: {{ distro_name }}"
+          ansible.builtin.package:
+            name:                          "{{ packages_for_tier |
+                                              selectattr('state', 'equalto', item.state) |
+                                              map(attribute='package') |
+                                              list }}"
+            state:                         "{{ item.state }}"
+          register:                        package_result
+          loop:
+            - { state: 'present' }  # First install required packages
+            - { state: 'absent' }   # Then remove packages that we don't want
       rescue:
         - name:                           "Print stderr before getting error code"
           ansible.builtin.debug:
@@ -210,18 +211,19 @@
       ansible.builtin.pause:
         seconds:                       60
 
-    - block:
-      - name:                            "1.4 Packages: - Update OS packages: {{ distribution_full_id }}"
-        ansible.builtin.package:
-          name:                          "{{ packages_for_specific_tier |
-                                            selectattr('state', 'equalto', item.state) |
-                                            map(attribute='package') |
-                                            list }}"
-          state:                         "{{ item.state }}"
-        register:                         package_result
-        loop:
-          - { state: 'present' }  # First install required packages
-          - { state: 'absent' }   # Then remove packages that we don't want
+    - name:                              "1.4 Packages: - Update OS packages: {{ distribution_full_id }} and rescue"
+      block:
+        - name:                            "1.4 Packages: - Update OS packages: {{ distribution_full_id }}"
+          ansible.builtin.package:
+            name:                          "{{ packages_for_specific_tier |
+                                              selectattr('state', 'equalto', item.state) |
+                                              map(attribute='package') |
+                                              list }}"
+            state:                         "{{ item.state }}"
+          register:                         package_result
+          loop:
+            - { state: 'present' }  # First install required packages
+            - { state: 'absent' }   # Then remove packages that we don't want
       rescue:
         - name:                         "Print stderr before getting error code"
           ansible.builtin.debug:
@@ -255,18 +257,20 @@
     - name:                            "1.4 Packages: - Performing rescue action"
       ansible.builtin.pause:
         seconds:                       60
-    - block:
-      - name:                            "1.4 Packages: -  Update OS packages: {{ distro_name }}"
-        ansible.builtin.package:
-          name:                          "{{ packages_for_tier |
-                                            selectattr('state', 'equalto', item.state) |
-                                            map(attribute='package') |
-                                            list }}"
-          state:                         "{{ item.state }}"
-        register:                        package_result
-        loop:
-          - { state: 'present' }  # First install required packages
-          - { state: 'absent' }   # Then remove packages that we don't want
+
+    - name:                              "1.4 Packages: -  Update OS packages: {{ distro_name }} and rescue"
+      block:
+        - name:                            "1.4 Packages: -  Update OS packages: {{ distro_name }}"
+          ansible.builtin.package:
+            name:                          "{{ packages_for_tier |
+                                              selectattr('state', 'equalto', item.state) |
+                                              map(attribute='package') |
+                                              list }}"
+            state:                         "{{ item.state }}"
+          register:                        package_result
+          loop:
+            - { state: 'present' }  # First install required packages
+            - { state: 'absent' }   # Then remove packages that we don't want
       rescue:
         - name:                         "Print stderr before getting error code"
           ansible.builtin.debug:
@@ -300,17 +304,18 @@
       ansible.builtin.pause:
         seconds:                       60
 
-    - block:
-      - name:                            "1.4 Packages: - Update OS packages: {{ distribution_full_id }}"
-        ansible.builtin.package:
-          name:                          "{{ packages_for_specific_tier |
-                                            selectattr('state', 'equalto', item.state) |
-                                            map(attribute='package') | selectattr('node_tier', 'defined') | selectattr('node_tier', 'equalto', node_tier) |
-                                            list }}"
-          state:                         "{{ item.state }}"
-        loop:
-          - { state: 'present' }  # First install required packages
-          - { state: 'absent' }   # Then remove packages that we don't want
+    - name:                              "1.4 Packages: - Update OS packages: {{ distribution_full_id }} and rescue"
+      block:
+        - name:                            "1.4 Packages: - Update OS packages: {{ distribution_full_id }}"
+          ansible.builtin.package:
+            name:                          "{{ packages_for_specific_tier |
+                                              selectattr('state', 'equalto', item.state) |
+                                              map(attribute='package') | selectattr('node_tier', 'defined') | selectattr('node_tier', 'equalto', node_tier) |
+                                              list }}"
+            state:                         "{{ item.state }}"
+          loop:
+            - { state: 'present' }  # First install required packages
+            - { state: 'absent' }   # Then remove packages that we don't want
       rescue:
         - name:                         "Print stderr before getting error code"
           ansible.builtin.debug:

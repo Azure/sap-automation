@@ -205,16 +205,16 @@
       async:                           7200
       poll:                            0
 
-    - block:
-
-      - name:                            "DBLoad Install -Wait for asynchronous job to end"
-        ansible.builtin.async_status:
-          jid:                           "{{ dbload_results.ansible_job_id }}"
-        register:                        job_result
-        until:                           job_result.finished
-        retries:                         120
-        delay:                           60
-        when:                            dbload_results.ansible_job_id is defined
+    - name:                            "DBLoad Install -Wait for asynchronous job to end and rescue"
+      block:
+        - name:                        "DBLoad Install -Wait for asynchronous job to end"
+          ansible.builtin.async_status:
+            jid:                       "{{ dbload_results.ansible_job_id }}"
+          register:                    job_result
+          until:                       job_result.finished
+          retries:                     120
+          delay:                       60
+          when:                        dbload_results.ansible_job_id is defined
 
       rescue:
         - name:                        "Capturing the modified message for message server being offline"
