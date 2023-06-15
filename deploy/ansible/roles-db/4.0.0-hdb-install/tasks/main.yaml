@@ -28,6 +28,7 @@
     - { mode: '0755', path: '{{ tmp_directory }}/{{ db_sid | upper }}' }
     - { mode: '0755', path: '/etc/sap_deployment_automation/{{ db_sid | upper }}' }
 
+
 - name:                                "SAP HANA: Install reset"
   ansible.builtin.file:
     path:                              "/etc/sap_deployment_automation/{{ db_sid | upper }}/sap_deployment_hdb.txt"
@@ -57,7 +58,7 @@
         path:                          "{{ dir_params }}/{{ sap_inifile }}"
         state:                         absent
 
-    - name:                            "SAP HANA Template processing: Create ini file {{ sap_inifile }} from {{ HANA_2_00_install.rsp }}"
+    - name:                            "3.3.1 BoM Template processing: Create ini file {{ sap_inifile }} from {{ HANA_2_00_install.rsp }}"
       ansible.builtin.template:
         src:                           "HANA_2_00_install.rsp"
         dest:                          "{{ dir_params }}/{{ sap_inifile }}"
@@ -72,8 +73,6 @@
         _rsp_sid:                      "{{ db_sid | upper }}"
         _rsp_number:                   "{{ db_instance_number }}"
         _rsp_system_usage:             "custom"
-        use_master_password:           "{{ hana_use_master_password }} "
-        password_copy:                 "{%if hana_use_master_password == 'n' %}{{ main_password }}{% else %}{% endif %}"
 
     - name:                            "SAP HANA: Progress"
       ansible.builtin.debug:
@@ -83,7 +82,7 @@
       block:
         - name:                        "SAP HANA: Execute hdblcm on {{ (hana_host) }}"
           ansible.builtin.shell: |
-                                       umask {{ custom_umask | default('022') }};
+                                       umask {{ custom_umask | default('022') }} ;
                                        chmod 755 /usr/sap;
                                        ./hdblcm --batch --action=install --hostname {{ hana_host }} --configfile='{{ dir_params }}/{{ sap_inifile }}'
           args:
@@ -94,25 +93,35 @@
           register:                    hana_installation
           failed_when:                 hana_installation.rc > 0
       rescue:
+
+        - name:                         "Fail if HANA installation failed with rc > 1"
+          ansible.builtin.fail:
+            msg:                        "INSTALL:0022:Execute hdblcm failed."
+          when:                         hana_installation.rc > 1
+
         - name:                        "SAP HANA: Progress"
           ansible.builtin.debug:
             msg:                       "Restarting the HANA Installation"
           when:                        hana_installation.rc == 1
 
-
-        - name:                        "SAP HANA: Re-execute hdblcm on {{ (hana_host) }}"
-          ansible.builtin.shell: |
-                                       umask {{ custom_umask | default('022') }};
-                                       chmod 755 /usr/sap;
-                                       ./hdblcm --batch --action=install --hostname {{ hana_host }} --configfile='{{ dir_params }}/{{ sap_inifile }}'
-          args:
-            chdir:                     "{{ target_media_location }}/CD_HDBSERVER/SAP_HANA_DATABASE"
-            creates:                   "/etc/sap_deployment_automation/{{ db_sid | upper }}/sap_deployment_hdb.txt"
-          environment:
-            TMPDIR:                    "{{ tmp_directory }}/{{ db_sid | upper }}"
-          register:                    hana_installation
-          failed_when:                 hana_installation.rc > 0
-          when:                        hana_installation.rc == 1
+        - block:
+          - name:                        "SAP HANA: Execute hdblcm on {{ (hana_host) }}"
+            ansible.builtin.shell: |
+                                        umask {{ custom_umask | default('022') }};
+                                        chmod 755 /usr/sap;
+                                        ./hdblcm --batch --action=install --hostname {{ hana_host }} --configfile='{{ dir_params }}/{{ sap_inifile }}'
+            args:
+              chdir:                     "{{ target_media_location }}/CD_HDBSERVER/SAP_HANA_DATABASE"
+              creates:                   "/etc/sap_deployment_automation/{{ db_sid | upper }}/sap_deployment_hdb.txt"
+            environment:
+              TMPDIR:                    "{{ tmp_directory }}/{{ db_sid | upper }}"
+            register:                    hana_installation
+            failed_when:                 hana_installation.rc > 0
+            when:                        hana_installation.rc == 1
+          rescue:
+          - name:                        "Fail if HANA installation failed on second attempt."
+            ansible.builtin.fail:
+              msg:                       "INSTALL:0022:Execute hdblcm failed."
 
     - name:                            "SAP HANA: Installation results"
       ansible.builtin.debug:
@@ -121,14 +130,14 @@
           - "HDBLCM output: {{ hana_installation }}"
       when:
         - hana_installation.rc is defined
-        - hana_installation.rc > 1
+        - hana_installation.rc > 0
 
     - name:                            "Errorhandling: SAP HANA"
       ansible.builtin.debug:
         msg:                           "INSTALL:{{ hana_installation }}"
       when:
         - hana_installation.rc is defined
-        - hana_installation.rc > 1
+        - hana_installation.rc > 0
 
     - name:                            "SAP HANA: Successful installation"
       block:
@@ -173,67 +182,17 @@
             path:                      "/etc/sap_deployment_automation/{{ db_sid | upper }}/sap_deployment_hdb_arm.txt"
             state:                     touch
             mode:                      0755
-
-
-    - name:                            "SAP HANA: Successful installation"
-      block:
-
-        - name:                        "SAP HANA: Installation results"
-          ansible.builtin.debug:
-            msg:                       "HANA Installation succeeded"
-
-        - name:                        "SAP HANA: HANA Install: flag"
-          ansible.builtin.file:
-            path:                      "/etc/sap_deployment_automation/{{ db_sid | upper }}/sap_deployment_hdb.txt"
-            state:                     touch
-            mode:                      0755
-
-        - name:                        "Retrieve Subscription ID and Resource Group Name"
-          ansible.builtin.command:     curl -H Metadata:true --noproxy "*" "http://169.254.169.254/metadata/instance?api-version=2021-02-01"
-          register:                    azure_metadata
-          no_log:                      true
-          changed_when:                false
-          args:
-            warn:                      false
-
-        - name:                        "Save the Json data to a Variable as a Fact"
-          ansible.builtin.set_fact:
-            json_azure_data:           "{{ azure_metadata.stdout | from_json }}"
-          no_log:                      true
-
-        - name:                        "Extract details"
-          ansible.builtin.set_fact:
-            subscription_id:           "{{ json_azure_data | json_query('compute.subscriptionId') }}"
-            resource_group_name:       "{{ json_azure_data | json_query('compute.resourceGroupName') }}"
-
-        - name:                        "Show the subscription and resource group"
-          ansible.builtin.debug:
-            msg:
-              - "Subscription ID: {{ subscription_id }}"
-              - "Resource Group Name: {{ resource_group_name }}"
-
-        - name:                        "Include deploy/ansible/roles-misc/0.6-ARM-Deployment"
-          ansible.builtin.include_role:
-            name:                      roles-misc/0.6-ARM-Deployment
-          vars:
-            subscriptionId:           "{{ subscription_id }}"
-            resourceGroupName:       "{{ resource_group_name }}"
-
-        - name:                        "SAP HANA: ARM Deployment flag"
-          ansible.builtin.file:
-            path:                      "/etc/sap_deployment_automation/{{ db_sid | upper }}/sap_deployment_hdb_arm.txt"
-            state:                     touch
-            mode:                      0755
-
-        - name:                        "SAP HANA: remove install response file"
-          ansible.builtin.file:
-            path:                      "{{ dir_params }}/{{ sap_inifile }}"
-            state:                     absent
 
 
       when:
         - hana_installation.rc is defined
         - hana_installation.rc < 1
+
+
+    - name:                            "SAP HANA: remove install response file"
+      ansible.builtin.file:
+        path:                          "{{ dir_params }}/{{ sap_inifile }}"
+        state:                         absent
 
     - name:                            "SAP HANA: Create backup folder"
       ansible.builtin.file:
@@ -243,6 +202,14 @@
         owner:                         "{{ db_sid | lower }}adm"
         mode:                          0755
 
+    - name:                            "SAP HANA: HANA Install: flag"
+      ansible.builtin.file:
+        path:                          "/etc/sap_deployment_automation/{{ db_sid | upper }}/sap_deployment_hdb.txt"
+        state:                         touch
+        mode:                          0755
+      when:
+        - hana_installation.rc is defined
+        - hana_installation.rc < 1
 
   when:
     - not hana_installed.stat.exists

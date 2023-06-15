@@ -123,6 +123,7 @@
 - hosts:                               "{{ sap_sid | upper }}_APP"
 
   name:                                SAP Installation - APP
+  serial:                              1
   remote_user:                         "{{ orchestration_ansible_user }}"
   gather_facts:                        true                                    # Important to collect hostvars information
   vars_files:

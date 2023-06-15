@@ -209,6 +209,7 @@
     - name:                            "1.4 Packages: - Performing rescue action"
       ansible.builtin.pause:
         seconds:                       60
+
     - block:
       - name:                            "1.4 Packages: - Update OS packages: {{ distribution_full_id }}"
         ansible.builtin.package:
