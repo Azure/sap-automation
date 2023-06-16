@@ -142,6 +142,9 @@
   #   WARNING: cib-bootstrap-options: unknown attribute 'azure-events_globalPullState'
   #   WARNING: cib-bootstrap-options: unknown attribute 'hostName_ hostname'
   # These warning messages can be ignored.
+    - name:                            "1.17 Generic Pacemaker - Ensure maintenance mode is set"
+      ansible.builtin.command:         crm configure property maintenance-mode=true
+
     - name:                            "1.17 Generic Pacemaker - Ensure Pacemaker resources for the Azure agent is created"
       ansible.builtin.shell:           crm configure primitive rsc_azure-events ocf:heartbeat:azure-events op monitor interval=10s
 
