@@ -67,7 +67,6 @@
 - hosts:                               "{{ sap_sid | upper }}_APP"
 
   name:                                SAP Generic OS Groups and User Creation
-  serial:                              1
   remote_user:                         "{{ orchestration_ansible_user }}"
   gather_facts:                        true                                    # Important to collect hostvars information
   vars_files:

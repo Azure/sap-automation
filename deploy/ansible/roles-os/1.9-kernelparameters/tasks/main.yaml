@@ -39,6 +39,12 @@
 - name:                                "1.9 Kernel parameters - Ensure parameters are available"
   ansible.builtin.include_vars:        parameters.yaml
 
+- name:                                "1.9 Kernel parameters - Print the tier and node tier"
+  ansible.builtin.debug:
+    msg:
+      - "tier is:      {{ tier }}"
+      - "node_tier is: {{ node_tier }}"
+
 # ----------------------------------------
 # BEGIN
 # ----------------------------------------
