@@ -417,7 +417,6 @@
         status_code:
           - 200
           - 403
-          - 404
       register: internet_check
       vars:
         ansible_python_interpreter: "{{ python_version }}"
