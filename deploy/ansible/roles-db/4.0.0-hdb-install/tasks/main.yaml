@@ -57,7 +57,7 @@
         path:                          "{{ dir_params }}/{{ sap_inifile }}"
         state:                         absent
 
-    - name:                            "SAP HANA Template processing: Create ini file {{ sap_inifile }} from {{ HANA_2_00_install.rsp }}"
+    - name:                            "3.3.1 BoM Template processing: Create ini file {{ sap_inifile }} from {{ HANA_2_00_install.rsp }}"
       ansible.builtin.template:
         src:                           "HANA_2_00_install.rsp"
         dest:                          "{{ dir_params }}/{{ sap_inifile }}"
