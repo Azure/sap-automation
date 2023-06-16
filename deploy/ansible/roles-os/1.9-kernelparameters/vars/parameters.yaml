@@ -245,6 +245,7 @@ parameters:
     # this is not required in newer kernels as per 2382421
     # - { tier: 'os', name: 'net.ipv4.tcp_tw_recycle',                       value: '0',                      state: 'present' }
     - { tier: 'ha',    node_tier: 'all',    name: 'net.ipv4.tcp_tw_reuse',                      value: '0',                    state: 'present' }
+
   oraclelinux8:
     - { tier: 'os',    node_tier: 'all',     name: 'kernel.sem',                                value: '32000 1024000000 500 32000',    state: 'present' }
     - { tier: 'os',    node_tier: 'all',     name: 'vm.max_map_count',                          value: '2147483647',                    state: 'present' }
