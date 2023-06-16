@@ -447,6 +447,9 @@ stages:
                           storage_account_parameter=""
                           if [ -n "${REMOTE_STATE_SA}"  ]; then
                              storage_account_parameter="--storageaccountname ${REMOTE_STATE_SA}"
+                          else
+                              sed -i 's/step=2/step=1/' $deployer_environment_file_name
+                              sed -i 's/step=3/step=1/' $deployer_environment_file_name
                           fi
 
                       echo -e "$green--- Validations ---$reset"
@@ -911,7 +914,7 @@ stages:
 
                 - bash: |
                       #!/bin/bash
-                      printf "Configure the Web Application authentication using the following script.\n\`\`\`bash\naz ad app update --id %s --web-home-page-url https://%s.azurewebsites.net --web-redirect-uris https://%s.azurewebsites.net/ https://%s.azurewebsites.net/.auth/login/aad/callback\n\`\`\`\naz role assignment create --assignee %s --role reader --subscription %s \naz webapp restart --ids %s\n\n[Access the Web App](https://%s.azurewebsites.net)"  $(APP_REGISTRATION_APP_ID) $(WEBAPP_URL_BASE) $(WEBAPP_URL_BASE) $(WEBAPP_URL_BASE) $(WEBAPP_IDENTITY) $ARM_SUBSCRIPTION_ID $(WEBAPP_ID) $(WEBAPP_URL_BASE) > "$(Build.Repository.LocalPath)/Web Application Configuration.md"
+                      printf "Configure the Web Application authentication using the following script.\n\`\`\`bash\naz ad app update --id %s --web-home-page-url https://%s.azurewebsites.net --web-redirect-uris https://%s.azurewebsites.net/ https://%s.azurewebsites.net/.auth/login/aad/callback\n\`\`\`\naz role assignment create --assignee %s --role reader --subscription %s --scope /subscriptions/%s \naz webapp restart --ids %s\n\n[Access the Web App](https://%s.azurewebsites.net)"  $(APP_REGISTRATION_APP_ID) $(WEBAPP_URL_BASE) $(WEBAPP_URL_BASE) $(WEBAPP_URL_BASE) $(WEBAPP_IDENTITY) $ARM_SUBSCRIPTION_ID $ARM_SUBSCRIPTION_ID $(WEBAPP_ID) $(WEBAPP_URL_BASE) > "$(Build.Repository.LocalPath)/Web Application Configuration.md"
 
                       echo "##vso[task.uploadsummary]$(Build.Repository.LocalPath)/Web Application Configuration.md"
                   displayName: "Documentation"

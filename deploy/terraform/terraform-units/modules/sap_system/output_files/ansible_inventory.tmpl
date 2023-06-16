@@ -127,6 +127,7 @@ ${sid}_OBSERVER_DB:
       ansible_user        : ${ansible_user}
       ansible_connection  : ${db_connection}
       connection_type     : ${db_connectiontype}
+      virtual_host        : ${observers[idx]}
       become_user         : ${db_become_user}
       os_type             : ${db_os_type}
       ${ansible_winrm_server_cert_validation}

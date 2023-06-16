@@ -53,7 +53,7 @@ resource "azurerm_network_interface" "web" {
 }
 
 resource "azurerm_network_interface_application_security_group_association" "web" {
-  provider        = azurerm.main
+  provider = azurerm.main
   count = local.enable_deployment ? (
     var.deploy_application_security_groups ? local.webdispatcher_count : 0) : (
     0
@@ -124,16 +124,18 @@ resource "azurerm_linux_virtual_machine" "web" {
   resource_group_name = var.resource_group[0].name
 
   proximity_placement_group_id = var.application_tier.web_use_ppg ? (
-    local.web_zonal_deployment ? var.ppg[count.index % max(local.web_zone_count, 1)].id : var.ppg[0].id) : (
+    local.web_zonal_deployment ? var.ppg[count.index % max(local.web_zone_count, 1)] : var.ppg[0]) : (
     null
   )
 
   //If more than one servers are deployed into a single zone put them in an availability set and not a zone
   availability_set_id = local.use_web_avset ? (
-      azurerm_availability_set.web[count.index % max(local.web_zone_count, 1)].id
+    azurerm_availability_set.web[count.index % max(local.web_zone_count, 1)].id
     ) : (
     null
   )
+
+  virtual_machine_scale_set_id = length(var.scale_set_id) > 0 ? var.scale_set_id : null
 
   //If length of zones > 1 distribute servers evenly across zones
   zone = local.use_web_avset ? null : try(local.web_zones[count.index % max(local.web_zone_count, 1)], null)
@@ -207,7 +209,7 @@ resource "azurerm_linux_virtual_machine" "web" {
   source_image_id = var.application_tier.web_os.type == "custom" ? var.application_tier.web_os.source_image_id : null
 
   dynamic "source_image_reference" {
-    for_each = range(var.application_tier.web_os.type == "marketplace" || var.application_tier.web_os.type == "marketplace_with_plan"  ? 1 : 0)
+    for_each = range(var.application_tier.web_os.type == "marketplace" || var.application_tier.web_os.type == "marketplace_with_plan" ? 1 : 0)
     content {
       publisher = var.application_tier.web_os.publisher
       offer     = var.application_tier.web_os.offer
@@ -256,16 +258,19 @@ resource "azurerm_windows_virtual_machine" "web" {
   resource_group_name = var.resource_group[0].name
 
   proximity_placement_group_id = var.application_tier.web_use_ppg ? (
-    local.web_zonal_deployment ? var.ppg[count.index % max(local.web_zone_count, 1)].id : var.ppg[0].id) : (
+    local.web_zonal_deployment ? var.ppg[count.index % max(local.web_zone_count, 1)] : var.ppg[0]) : (
     null
   )
 
   //If more than one servers are deployed into a single zone put them in an availability set and not a zone
   availability_set_id = local.use_web_avset ? (
-      azurerm_availability_set.web[count.index % max(local.web_zone_count, 1)].id
+    azurerm_availability_set.web[count.index % max(local.web_zone_count, 1)].id
     ) : (
     null
   )
+
+  virtual_machine_scale_set_id = length(var.scale_set_id) > 0 ? var.scale_set_id : null
+
   //If length of zones > 1 distribute servers evenly across zones
   zone = local.use_web_avset ? (
     null) : (

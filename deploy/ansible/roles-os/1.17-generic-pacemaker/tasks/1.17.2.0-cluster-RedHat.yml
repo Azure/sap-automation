@@ -33,7 +33,7 @@
 
     - name:                            "1.17 Generic Pacemaker - Ensure the cluster can authenticate nodes as hacluster"
       ansible.builtin.command:         "pcs host auth {{ primary_instance_name }} {{ secondary_instance_name }} -u hacluster -p {{ password_ha_db_cluster }}"
-      when:                            ansible_distribution_major_version == "8"
+      when:                            ansible_distribution_major_version in  ["8", "9"]
 
     # Ref https://docs.microsoft.com/en-us/azure/virtual-machines/maintenance-and-updates#maintenance-that-doesnt-require-a-reboot
     - name:                            "1.17 Generic Pacemaker - Ensure the cluster is created with a token large enough to allow memory preserving maintenance"
@@ -42,7 +42,7 @@
 
     - name:                            "1.17 Generic Pacemaker - Ensure the cluster is created with a token large enough to allow memory preserving maintenance"
       ansible.builtin.command:         "pcs cluster setup {{ db_sid | upper }}_cluster {{ primary_instance_name }} {{ secondary_instance_name }} totem token={{ cluster_totem.token }}"
-      when:                            ansible_distribution_major_version == "8" and node_tier == 'hana'
+      when:                            ansible_distribution_major_version in  ["8", "9"] and node_tier == 'hana'
 
     - name:                            "1.17 Generic Pacemaker - Ensure the cluster is created with a token large enough to allow memory preserving maintenance"
       ansible.builtin.command:         "pcs cluster setup --name {{ sap_sid | upper }}_cluster {{ primary_instance_name }} {{ secondary_instance_name }} --token {{ cluster_totem.token }}"
@@ -50,7 +50,7 @@
 
     - name:                            "1.17 Generic Pacemaker - Ensure the cluster is created with a token large enough to allow memory preserving maintenance"
       ansible.builtin.command:         "pcs cluster setup {{ sap_sid | upper }}_cluster {{ primary_instance_name }} {{ secondary_instance_name }} totem token={{ cluster_totem.token }}"
-      when:                            ansible_distribution_major_version == "8" and node_tier == 'scs'
+      when:                            ansible_distribution_major_version in  ["8", "9"] and node_tier == 'scs'
 
     - name:                            "1.17 Generic Pacemaker - Ensure the cluster is created with a token large enough to allow memory preserving maintenance"
       ansible.builtin.command:         "pcs cluster setup --name {{ db_sid | upper }}_cluster {{ primary_instance_name }} {{ secondary_instance_name }} --token {{ cluster_totem.token }}"
@@ -58,7 +58,7 @@
 
     - name:                            "1.17 Generic Pacemaker - Ensure the cluster is created with a token large enough to allow memory preserving maintenance"
       ansible.builtin.command:         "pcs cluster setup {{ db_sid | upper }}_cluster {{ primary_instance_name }} {{ secondary_instance_name }} totem token={{ cluster_totem.token }}"
-      when:                            ansible_distribution_major_version == "8" and node_tier == 'db2'
+      when:                            ansible_distribution_major_version in  ["8", "9"] and node_tier == 'db2'
 
     - name:                            "1.17 Generic Pacemaker - Ensure the cluster is starting on all nodes"
       ansible.builtin.command:         pcs cluster start --all
@@ -78,7 +78,7 @@
       retries:                         12
       delay:                           10
       until:                           "(primary_instance_name + ' ' + secondary_instance_name) in cluster_stable_check.stdout or (secondary_instance_name + ' ' + primary_instance_name) in cluster_stable_check.stdout"
-      when:                            ansible_distribution_major_version != "8"
+      when:                            ansible_distribution_major_version != "8" and ansible_distribution_major_version != "9"
 
     # '*' is a special character in regexp and needs to be escaped for literal matching
     # if we are worried about character spacing across distros we can match for '\* Online:'
@@ -88,7 +88,7 @@
       retries:                         12
       delay:                           10
       until:                           "(primary_instance_name + ' ' + secondary_instance_name) in cluster_stable_check.stdout or (secondary_instance_name + ' ' + primary_instance_name) in cluster_stable_check.stdout"
-      when:                            ansible_distribution_major_version == "8"
+      when:                            ansible_distribution_major_version in ["8", "9"]
 
     - name:                            "1.17 Generic Pacemaker - Ensure the expected quorum votes is set for the cluster"
       ansible.builtin.command:         pcs quorum expected-votes "{{ cluster_quorum.expected_votes }}"
@@ -156,7 +156,7 @@
                                          pcmk_delay_max=15
                                          pcmk_host_map="{{ primary_instance_name }}:{{ hostvars[primary_instance_name]['primary_vm_name'] }};{{ secondary_instance_name }}:{{ hostvars[secondary_instance_name]['secondary_vm_name'] }}"
       when:
-        - ansible_distribution_major_version == "8"
+        - ansible_distribution_major_version in ["8", "9"]
         - not use_msi_for_clusters
 
     - name:                            "1.17 Generic Pacemaker - Ensure the STONTIH device is configured (MSI)"
@@ -173,7 +173,7 @@
                                          pcmk_delay_max=15
                                          pcmk_host_map="{{ primary_instance_name }}:{{ hostvars[primary_instance_name]['primary_vm_name'] }};{{ secondary_instance_name }}:{{ hostvars[secondary_instance_name]['secondary_vm_name'] }}"
       when:
-        - ansible_distribution_major_version == "8"
+        - ansible_distribution_major_version in ["8", "9"]
         - use_msi_for_clusters
 
     - name:                            "1.17 Generic Pacemaker - Update Monitor interval"

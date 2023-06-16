@@ -251,3 +251,15 @@ data "azurerm_private_dns_zone" "storage" {
   resource_group_name = var.management_dns_resourcegroup_name
 }
 
+resource "azurerm_management_lock" "vnet_sap" {
+  provider   = azurerm.main
+  count      = (local.vnet_sap_exists) ? 0 : var.place_delete_lock_on_resources ? 1 : 0
+  name       = format("%s-lock", local.vnet_sap_name)
+  scope      = azurerm_virtual_network.vnet_sap[0].id
+  lock_level = "CanNotDelete"
+  notes      = "Locked because it's needed by the Workload"
+  lifecycle {
+    prevent_destroy = false
+  }
+}
+

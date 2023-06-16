@@ -111,7 +111,7 @@ resource "azurerm_netapp_volume" "hanalog" {
 
   snapshot_directory_visible = true
 
-  zone = local.db_zone_count > 0 ? try(local.zones[count.index], null) : null
+  zone = local.db_zone_count > 0 && var.hana_ANF_volumes.use_zones ? try(local.zones[count.index], null) : null
 }
 
 data "azurerm_netapp_volume" "hanalog" {
@@ -179,6 +179,8 @@ resource "azurerm_netapp_volume" "hanashared" {
   throughput_in_mibps = var.hana_ANF_volumes.shared_volume_throughput
 
   snapshot_directory_visible = true
+
+  zone = local.db_zone_count > 0 && var.hana_ANF_volumes.use_zones ? try(local.zones[count.index], null) : null
 
 }
 

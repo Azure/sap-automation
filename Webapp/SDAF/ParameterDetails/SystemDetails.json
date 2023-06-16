@@ -15,7 +15,7 @@
   },
   {
     "Section": "Subscription *",
-    "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main",
+    "Link": "https://learn.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main",
     "Parameters": [
       {
         "Name": "subscription",
@@ -35,12 +35,12 @@
   },
   {
     "Section": "Workload zone",
-    "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-deploy-workload-zone?branch=main&tabs=linux%2Cdevops",
+    "Link": "https://learn.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-deploy-workload-zone?branch=main&tabs=linux%2Cdevops",
     "Parameters": [
       {
         "Name": "workload_zone",
         "Required": false,
-        "Description": "An existing workload zone for which the system will be deployed in. The workload zone provides the Azure Virtual Network and the Azure key vault for the system credentials.See <a href='https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-deployment-framework#about-the-sap-workload' target='_blank' rel='noopener noreferrer'>workload zone</a>'.",
+        "Description": "An existing workload zone for which the system will be deployed in. The workload zone provides the Azure Virtual Network and the Azure key vault for the system credentials.See <a href='https://learn.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-deployment-framework#about-the-sap-workload' target='_blank' rel='noopener noreferrer'>workload zone</a>'.",
         "Type": "lookup",
         "Options": [
           {
@@ -54,7 +54,7 @@
   },
   {
     "Section": "Environment settings",
-    "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system#environment-parameters",
+    "Link": "https://learn.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system#environment-parameters",
     "Parameters": [
       {
         "Name": "environment",
@@ -139,7 +139,7 @@
       {
         "Name": "save_naming_information",
         "Required": false,
-        "Description": "If defined, will create a naming information json file for the resources, see <a href='https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-naming-module#provide-name-overrides-using-a-json-file' target='_blank' rel='noopener noreferrer'>custom naming</a>.",
+        "Description": "If defined, will create a naming information json file for the resources, see <a href='https://learn.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-naming-module#provide-name-overrides-using-a-json-file' target='_blank' rel='noopener noreferrer'>custom naming</a>.",
         "Type": "checkbox",
         "Options": [],
         "Overrules": "",
@@ -148,7 +148,7 @@
       {
         "Name": "name_override_file",
         "Required": false,
-        "Description": "If provided,defines a json formatted file defining the name overrides, see <a href='https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-naming-module#provide-name-overrides-using-a-json-file' target='_blank' rel='noopener noreferrer'>custom naming</a>.",
+        "Description": "If provided,defines a json formatted file defining the name overrides, see <a href='https://learn.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-naming-module#provide-name-overrides-using-a-json-file' target='_blank' rel='noopener noreferrer'>custom naming</a>.",
         "Type": "field",
         "Options": [],
         "Overrules": "",
@@ -157,7 +157,7 @@
       {
         "Name": "custom_disk_sizes_filename",
         "Required": false,
-        "Description": "If provided,defines a json formatted file defining the custom disk sizes. See <a href='https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-extra-disks' target='_blank' rel='noopener noreferrer'>custom disk sizing</a>.",
+        "Description": "If provided,defines a json formatted file defining the custom disk sizes. See <a href='https://learn.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-extra-disks' target='_blank' rel='noopener noreferrer'>custom disk sizing</a>.",
         "Type": "field",
         "Options": [],
         "Overrules": "",
@@ -187,9 +187,27 @@
         "Display": 3
       },
       {
+        "Name": "use_scalesets_for_deployment",
+        "Required": false,
+        "Description": "Defines if Flexible Virtual Machine Scale Sets are used for the deployment",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "database_use_premium_v2_storage",
+        "Required": false,
+        "Description": "Defines if the database tier will use premium v2 storage",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
         "Name": "use_prefix",
         "Required": false,
-        "Description": "Defines if a prefix will be added to the resource names. See <a href='https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-naming' target='_blank' rel='noopener noreferrer'>automation naming</a>",
+        "Description": "Defines if a prefix will be added to the resource names. See <a href='https://learn.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-naming' target='_blank' rel='noopener noreferrer'>automation naming</a>",
         "Type": "checkbox",
         "Options": [],
         "Overrules": "",
@@ -198,7 +216,7 @@
       {
         "Name": "use_zonal_markers",
         "Required": false,
-        "Description": "Defines if a zonal indicators will be added to the resource names. See <a href='https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-naming' target='_blank' rel='noopener noreferrer'>automation naming</a>",
+        "Description": "Defines if a zonal indicators will be added to the resource names. See <a href='https://learn.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-naming' target='_blank' rel='noopener noreferrer'>automation naming</a>",
         "Type": "checkbox",
         "Options": [],
         "Overrules": "",
@@ -207,7 +225,7 @@
       {
         "Name": "custom_prefix",
         "Required": false,
-        "Description": "If provided, defines the name of the custom prefix to be prepended to resources. See <a href='https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-naming' target='_blank' rel='noopener noreferrer'>automation naming</a>",
+        "Description": "If provided, defines the name of the custom prefix to be prepended to resources. See <a href='https://learn.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-naming' target='_blank' rel='noopener noreferrer'>automation naming</a>",
         "Type": "field",
         "Options": [],
         "Overrules": "",
@@ -235,7 +253,7 @@
   },
   {
     "Section": "Database tier",
-    "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#database-tier-parameters",
+    "Link": "https://learn.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#database-tier-parameters",
     "Parameters": [
       {
         "Name": "database_platform",
@@ -332,7 +350,7 @@
       {
         "Name": "database_size",
         "Required": false,
-        "Description": "If using a custom disk sizing populate with the node name for 'db' section you have used in the file custom_disk_sizes_filename. See <a href='https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-extra-disks' target='_blank' rel='noopener noreferrer'>custom disk sizing</a>.",
+        "Description": "If using a custom disk sizing populate with the node name for 'db' section you have used in the file custom_disk_sizes_filename. See <a href='https://learn.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-extra-disks' target='_blank' rel='noopener noreferrer'>custom disk sizing</a>.",
         "Type": "lookup",
         "Options": [
           {
@@ -556,7 +574,7 @@
   },
   {
     "Section": "Application tier",
-    "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#common-application-tier-parameters",
+    "Link": "https://learn.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#common-application-tier-parameters",
     "Parameters": [
       {
         "Name": "sid",
@@ -579,7 +597,7 @@
       {
         "Name": "app_tier_sizing_dictionary_key",
         "Required": true,
-        "Description": "Defines the VM SKU and the disk layout for the application tier servers. Use 'Optimized' unless you have your own sizing file. See <a href='https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-extra-disks?branch=main' target='_blank' rel='noopener noreferrer'>custom disk sizing</a>",
+        "Description": "Defines the VM SKU and the disk layout for the application tier servers. Use 'Optimized' unless you have your own sizing file. See <a href='https://learn.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-extra-disks?branch=main' target='_blank' rel='noopener noreferrer'>custom disk sizing</a>",
         "Type": "field",
         "Options": [],
         "Overrules": "",
@@ -647,7 +665,7 @@
   },
   {
     "Section": "SAP Central Services",
-    "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#sap-central-services-parameters",
+    "Link": "https://learn.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#sap-central-services-parameters",
     "Parameters": [
       {
         "Name": "scs_server_count",
@@ -830,7 +848,7 @@
   },
   {
     "Section": "Application servers",
-    "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#application-server-parameters",
+    "Link": "https://learn.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#application-server-parameters",
     "Parameters": [
       {
         "Name": "application_server_count",
@@ -995,7 +1013,7 @@
   },
   {
     "Section": "Web dispatchers",
-    "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#web-dispatcher-parameters",
+    "Link": "https://learn.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#web-dispatcher-parameters",
     "Parameters": [
       {
         "Name": "webdispatcher_server_count",
@@ -1170,7 +1188,7 @@
   },
   {
     "Section": "Admin subnet",
-    "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#network-parameters",
+    "Link": "https://learn.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#network-parameters",
     "Parameters": [
       {
         "Name": "admin_subnet_name",
@@ -1231,7 +1249,7 @@
   },
   {
     "Section": "Database subnet",
-    "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#network-parameters",
+    "Link": "https://learn.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#network-parameters",
     "Parameters": [
       {
         "Name": "db_subnet_name",
@@ -1292,7 +1310,7 @@
   },
   {
     "Section": "Application subnet",
-    "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#network-parameters",
+    "Link": "https://learn.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#network-parameters",
     "Parameters": [
       {
         "Name": "app_subnet_name",
@@ -1353,7 +1371,7 @@
   },
   {
     "Section": "Web subnet",
-    "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#network-parameters",
+    "Link": "https://learn.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#network-parameters",
     "Parameters": [
       {
         "Name": "web_subnet_name",
@@ -1414,7 +1432,7 @@
   },
   {
     "Section": "Authentication",
-    "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#authentication-parameters",
+    "Link": "https://learn.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#authentication-parameters",
     "Parameters": [
       {
         "Name": "automation_username",
@@ -1456,7 +1474,7 @@
   },
   {
     "Section": "Keyvault",
-    "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#key-vault-parameters",
+    "Link": "https://learn.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#key-vault-parameters",
     "Parameters": [
       {
         "Name": "user_keyvault_id",
@@ -1499,7 +1517,7 @@
   },
   {
     "Section": "NFS and Shared Files Settings",
-    "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#nfs-support",
+    "Link": "https://learn.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#nfs-support",
     "Parameters": [
       {
         "Name": "NFS_provider",
@@ -1585,12 +1603,21 @@
         ],
         "Overrules": "",
         "Display": 3
+      },
+      {
+        "Name": "ANF_HANA_use_AVG",
+        "Required": false,
+        "Description": "defines if the ANF volume(s) will be created in an Application Volume Group",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
       }
     ]
   },
   {
     "Section": "ANF HANA Data",
-    "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#azure-netapp-files-support",
+    "Link": "https://learn.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#azure-netapp-files-support",
     "Parameters": [
       {
         "Name": "ANF_HANA_data",
@@ -1641,7 +1668,7 @@
   },
   {
     "Section": "ANF HANA Log",
-    "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#azure-netapp-files-support",
+    "Link": "https://learn.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#azure-netapp-files-support",
     "Parameters": [
       {
         "Name": "ANF_HANA_log",
@@ -1692,7 +1719,7 @@
   },
   {
     "Section": "ANF HANA shared",
-    "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#azure-netapp-files-support",
+    "Link": "https://learn.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#azure-netapp-files-support",
     "Parameters": [
       {
         "Name": "ANF_HANA_shared",
@@ -1743,7 +1770,7 @@
   },
   {
     "Section": "ANF HANA /usr/sap",
-    "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#azure-netapp-files-support",
+    "Link": "https://learn.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#azure-netapp-files-support",
     "Parameters": [
       {
         "Name": "ANF_usr_sap",
@@ -1794,7 +1821,7 @@
   },
   {
     "Section": "ANF /sapmnt",
-    "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#azure-netapp-files-support",
+    "Link": "https://learn.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#azure-netapp-files-support",
     "Parameters": [
       {
         "Name": "ANF_sapmnt_volume_size",
@@ -1845,7 +1872,7 @@
   },
   {
     "Section": "Anchor Virtual Machine",
-    "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#anchor-virtual-machine-parameters",
+    "Link": "https://learn.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#anchor-virtual-machine-parameters",
     "Parameters": [
       {
         "Name": "deploy_anchor_vm",
@@ -1955,7 +1982,7 @@
   },
   {
     "Section": "Other Parameters",
-    "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#other-parameters",
+    "Link": "https://learn.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#other-parameters",
     "Parameters": [
       {
         "Name": "resource_offset",

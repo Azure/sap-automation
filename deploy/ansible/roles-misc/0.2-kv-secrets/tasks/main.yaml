@@ -51,16 +51,26 @@
                                        az login --identity --allow-no-subscriptions --output none
       changed_when:                    false
 
-    - name:                            "0.2 Key Vault: - Get Deployer key vault name from workload zone key vault"
-      ansible.builtin.command: >-
-                                       az keyvault secret show
-                                          --vault-name {{ kv_name }}
-                                          --name {{ deployer_kv_name_secret }}
-                                          --query value
-                                          --output tsv
-      changed_when:                    false
-      register:                        deployer_kv_name_secret
-      when:                            bom_processing is not defined
+    - name:                              "0.2 Key Vault: - Get Deployer key vault name from workload zone key vault and rescue"
+      block:
+        - name:                            "0.2 Key Vault: - Get Deployer key vault name from workload zone key vault"
+          ansible.builtin.command: >-
+                                          az keyvault secret show
+                                              --vault-name {{ kv_name }}
+                                              --name {{ deployer_kv_name_secret }}
+                                              --query value
+                                              --output tsv
+          changed_when:                    false
+          register:                        deployer_kv_name_secret
+          when:                            bom_processing is not defined
+      rescue:
+        - name:                         Rescue Log the error message to be transformed
+          ansible.builtin.debug:
+            msg:                        "Error message to transform: {{ deployer_kv_name_secret.stderr }}"
+
+        - name:                         "Rescue 0.2 Key Vault: - Get Deployer key vault name from workload zone key vault"
+          ansible.builtin.fail:
+            msg:                        "{{ deployer_kv_name_secret.stderr | try_get_error_code }}"
 
     - name:                            "0.2 Key Vault: - Save Deployer key vault name"
       ansible.builtin.set_fact:

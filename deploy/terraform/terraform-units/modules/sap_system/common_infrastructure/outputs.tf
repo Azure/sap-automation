@@ -53,7 +53,7 @@ output "random_id" {
 }
 
 output "ppg" {
-  value = local.ppg_exists ? data.azurerm_proximity_placement_group.ppg : azurerm_proximity_placement_group.ppg
+  value = var.use_scalesets_for_deployment ? [] : local.ppg_exists ? data.azurerm_proximity_placement_group.ppg[*].id : azurerm_proximity_placement_group.ppg[*].id
 }
 
 
@@ -241,4 +241,10 @@ output "anchor_vm" {
     local.anchor_ostype == "LINUX" ? (azurerm_linux_virtual_machine.anchor[0].id) : (azurerm_windows_virtual_machine.anchor[0].id)) : (
     ""
   )
+}
+
+
+output "scale_set_id" {
+
+  value = var.use_scalesets_for_deployment ? azurerm_orchestrated_virtual_machine_scale_set.scale_set[0].id : ""
 }

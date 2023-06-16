@@ -129,7 +129,7 @@ resource "azurerm_linux_virtual_machine" "scs" {
 
   //If no ppg defined do not put the scs servers in a proximity placement group
   proximity_placement_group_id = var.application_tier.scs_use_ppg ? (
-    local.scs_zonal_deployment ? var.ppg[count.index % max(local.scs_zone_count, 1)].id : var.ppg[0].id) : (
+    local.scs_zonal_deployment ? var.ppg[count.index % max(local.scs_zone_count, 1)] : var.ppg[0]) : (
     null
   )
 
@@ -138,6 +138,8 @@ resource "azurerm_linux_virtual_machine" "scs" {
     azurerm_availability_set.scs[count.index % max(local.scs_zone_count, 1)].id) : (
     null
   )
+
+  virtual_machine_scale_set_id = length(var.scale_set_id) > 0 ? var.scale_set_id : null
 
   //If length of zones > 1 distribute servers evenly across zones
   zone = local.use_scs_avset ? null : try(local.scs_zones[count.index % max(local.scs_zone_count, 1)], null)
@@ -283,7 +285,7 @@ resource "azurerm_windows_virtual_machine" "scs" {
 
   //If no ppg defined do not put the scs servers in a proximity placement group
   proximity_placement_group_id = var.application_tier.scs_use_ppg ? (
-    local.scs_zonal_deployment ? var.ppg[count.index % max(local.scs_zone_count, 1)].id : var.ppg[0].id) : (
+    local.scs_zonal_deployment ? var.ppg[count.index % max(local.scs_zone_count, 1)] : var.ppg[0]) : (
     null
   )
 
@@ -292,6 +294,8 @@ resource "azurerm_windows_virtual_machine" "scs" {
     azurerm_availability_set.scs[count.index % max(local.scs_zone_count, 1)].id) : (
     null
   )
+
+  virtual_machine_scale_set_id = length(var.scale_set_id) > 0 ? var.scale_set_id : null
 
   //If length of zones > 1 distribute servers evenly across zones
   zone = local.use_scs_avset ? (

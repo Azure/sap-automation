@@ -123,7 +123,7 @@ resource "azurerm_linux_virtual_machine" "app" {
   resource_group_name = var.resource_group[0].name
 
   proximity_placement_group_id = var.application_tier.app_use_ppg ? (
-    local.app_zonal_deployment ? var.ppg[count.index % max(local.app_zone_count, 1)].id : var.ppg[0].id) : (
+    local.app_zonal_deployment ? var.ppg[count.index % max(local.app_zone_count, 1)] : var.ppg[0]) : (
     null
   )
 
@@ -136,8 +136,10 @@ resource "azurerm_linux_virtual_machine" "app" {
     null
   )
 
+  virtual_machine_scale_set_id = length(var.scale_set_id) > 0 ? var.scale_set_id : null
+
   //If length of zones > 1 distribute servers evenly across zones
-  zone = var.application_tier.app_use_avset  ? null : try(local.app_zones[count.index % max(local.app_zone_count, 1)], null)
+  zone = var.application_tier.app_use_avset ? null : try(local.app_zones[count.index % max(local.app_zone_count, 1)], null)
 
   network_interface_ids = var.application_tier.dual_nics ? (
     var.options.legacy_nic_order ? (
@@ -255,7 +257,7 @@ resource "azurerm_windows_virtual_machine" "app" {
   resource_group_name = var.resource_group[0].name
 
   proximity_placement_group_id = var.application_tier.app_use_ppg ? (
-    local.app_zonal_deployment ? var.ppg[count.index % max(local.app_zone_count, 1)].id : var.ppg[0].id) : (
+    local.app_zonal_deployment ? var.ppg[count.index % max(local.app_zone_count, 1)] : var.ppg[0]) : (
     null
   )
 
@@ -268,6 +270,7 @@ resource "azurerm_windows_virtual_machine" "app" {
     null
   )
 
+  virtual_machine_scale_set_id = length(var.scale_set_id) > 0 ? var.scale_set_id : null
   //If length of zones > 1 distribute servers evenly across zones
   zone = var.application_tier.app_use_avset ? null : try(local.app_zones[count.index % max(local.app_zone_count, 1)], null)
 
@@ -364,7 +367,7 @@ resource "azurerm_managed_disk" "app" {
   disk_size_gb           = local.app_data_disks[count.index].disk_size_gb
   disk_encryption_set_id = try(var.options.disk_encryption_set_id, null)
 
-  zone = local.use_app_avset ? null : (
+  zone = var.application_tier.app_use_avset ? null : (
     upper(var.application_tier.app_os.os_type) == "LINUX" ? (
       azurerm_linux_virtual_machine.app[local.app_data_disks[count.index].vm_index].zone) : (
       azurerm_windows_virtual_machine.app[local.app_data_disks[count.index].vm_index].zone

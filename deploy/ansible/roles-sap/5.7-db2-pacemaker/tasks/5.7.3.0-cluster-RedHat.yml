@@ -57,7 +57,7 @@
                                        meta resource-stickiness=5000 promotable notify=true
       register:                        sap_db2
       failed_when:                     sap_db2.rc > 1
-      when:                            ansible_distribution_major_version == "8"
+      when:                            ansible_distribution_major_version in ["8", "9"]
 
     - name:                            "Ensure the Virtual IP resource for the Load Balancer Front End IP is created"
       ansible.builtin.command:         pcs resource create vip_db2{{ db_sid | lower }}_{{ db_sid | upper }} IPaddr2 ip='{{ db_lb_ip }}'
@@ -84,7 +84,7 @@
       ansible.builtin.command:         pcs constraint colocation add g_ipnc_db2{{ db_sid | lower }}_{{ db_sid | upper }} with master Db2_HADR_{{ db_sid | upper }}-clone
       register:                        constraint
       failed_when:                     constraint.rc > 1
-      when:                            ansible_distribution_major_version == "8"
+      when:                            ansible_distribution_major_version in ["8", "9"]
 
     - name:                            "Ensure the order constraint for the SAP DB2 is configured - Rhel - 7"
       ansible.builtin.command:         pcs constraint order promote Db2_HADR_{{ db_sid | upper }}-master then g_ipnc_db2{{ db_sid | lower }}_{{ db_sid | upper }}
@@ -96,7 +96,7 @@
       ansible.builtin.command:         pcs constraint order promote Db2_HADR_{{ db_sid | upper }}-clone then g_ipnc_db2{{ db_sid | lower }}_{{ db_sid | upper }}
       register:                        constraint
       failed_when:                     constraint.rc > 1
-      when:                            ansible_distribution_major_version == "8"
+      when:                            ansible_distribution_major_version in ["8", "9"]
 
     - name:                            "Disable Maintenance mode for the cluster"
       ansible.builtin.command:         pcs property set maintenance-mode=false
@@ -117,7 +117,7 @@
       retries:                         12
       delay:                           10
       until:                           "'{{ primary_instance_name }} {{ secondary_instance_name }}' in cluster_stable_check.stdout or '{{ secondary_instance_name }} {{ primary_instance_name }}' in cluster_stable_check.stdout"
-      when:                            ansible_distribution_major_version == "8"
+      when:                            ansible_distribution_major_version in ["8", "9"]
 
     - name:                            "Ensure Cluster resources are started"
       ansible.builtin.shell:           set -o pipefail && pcs resource show | grep '    Started:'
@@ -125,7 +125,7 @@
       retries:                         12
       delay:                           10
       until:                           "'{{ primary_instance_name }} {{ secondary_instance_name }}' in db2_cluster_resource_check.stdout or '{{ secondary_instance_name }} {{ primary_instance_name }}' in db2_cluster_resource_check.stdout"
-      when:                            ansible_distribution_major_version != "8"
+      when:                            ansible_distribution_major_version != "8" and ansible_distribution_major_version != "9"
 
     - name:                            "Ensure Cluster resources are started - RHEL 8.x"
       ansible.builtin.shell:           set -o pipefail && pcs resource status | grep 'Started'
@@ -133,7 +133,7 @@
       retries:                         12
       delay:                           10
       until:                           "'{{ primary_instance_name }}' in db2_cluster_resource_check.stdout or '{{ secondary_instance_name }}' in db2_cluster_resource_check.stdout"
-      when:                            ansible_distribution_major_version == "8"
+      when:                            ansible_distribution_major_version in ["8", "9"]
   when: ansible_hostname == primary_instance_name
 
 # End of DB2 clustering resources

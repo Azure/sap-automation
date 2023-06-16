@@ -174,3 +174,8 @@ variable "spn_id" {
   description = "SPN ID to be used for the deployment"
   default     = ""
 }
+
+
+variable "place_delete_lock_on_resources" {
+  description = "If defined, a delete lock will be placed on the key resources"
+}

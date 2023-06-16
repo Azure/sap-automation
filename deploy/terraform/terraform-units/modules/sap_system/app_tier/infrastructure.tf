@@ -313,8 +313,8 @@ resource "azurerm_availability_set" "scs" {
   platform_update_domain_count = 20
   platform_fault_domain_count  = local.faultdomain_count
   proximity_placement_group_id = local.scs_zonal_deployment ? (
-    var.ppg[count.index % length(local.scs_zones)].id) : (
-    var.ppg[0].id
+    var.ppg[count.index % length(local.scs_zones)]) : (
+    var.ppg[0]
   )
   managed = true
   lifecycle {
@@ -343,8 +343,8 @@ resource "azurerm_availability_set" "app" {
   platform_update_domain_count = 20
   platform_fault_domain_count  = local.faultdomain_count
   proximity_placement_group_id = local.app_zonal_deployment ? (
-    var.ppg[count.index % local.app_zone_count].id) : (
-    var.ppg[0].id
+    var.ppg[count.index % local.app_zone_count]) : (
+    var.ppg[0]
   )
   managed = true
   lifecycle {
@@ -472,7 +472,7 @@ resource "azurerm_availability_set" "web" {
   resource_group_name          = var.resource_group[0].name
   platform_update_domain_count = 20
   platform_fault_domain_count  = local.faultdomain_count
-  proximity_placement_group_id = local.web_zonal_deployment ? var.ppg[count.index % length(local.web_zones)].id : var.ppg[0].id
+  proximity_placement_group_id = local.web_zonal_deployment ? var.ppg[count.index % length(local.web_zones)] : var.ppg[0]
   managed                      = true
 
   lifecycle {

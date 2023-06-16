@@ -179,7 +179,7 @@ resource "azurerm_linux_virtual_machine" "vm_dbnode" {
   }
 
   proximity_placement_group_id = var.database.use_ppg ? (
-    var.ppg[count.index].id) : (
+    var.ppg[count.index]) : (
     null
   )
 
@@ -190,6 +190,9 @@ resource "azurerm_linux_virtual_machine" "vm_dbnode" {
       azurerm_availability_set.hdb[count.index % max(local.db_zone_count, 1)].id
     )
   ) : null
+
+  virtual_machine_scale_set_id = length(var.scale_set_id) > 0 ? var.scale_set_id : null
+
   zone = local.use_avset ? null : try(local.zones[count.index % max(local.db_zone_count, 1)], null)
 
   network_interface_ids = local.enable_storage_subnet ? (
@@ -325,11 +328,11 @@ resource "azurerm_managed_disk" "data_disk" {
   create_option        = "Empty"
   storage_account_type = local.data_disk_list[count.index].storage_account_type
   disk_size_gb         = local.data_disk_list[count.index].disk_size_gb
-  disk_iops_read_write = "UltraSSD_LRS" == local.data_disk_list[count.index].storage_account_type ? (
+  disk_iops_read_write = contains(["UltraSSD_LRS", "PremiumV2_LRS"], local.data_disk_list[count.index].storage_account_type) ? (
     local.data_disk_list[count.index].disk_iops_read_write) : (
     null
   )
-  disk_mbps_read_write = "UltraSSD_LRS" == local.data_disk_list[count.index].storage_account_type ? (
+  disk_mbps_read_write = contains(["UltraSSD_LRS", "PremiumV2_LRS"], local.data_disk_list[count.index].storage_account_type) ? (
     local.data_disk_list[count.index].disk_mbps_read_write) : (
     null
   )
@@ -376,3 +379,19 @@ SETTINGS
     ignore_changes = [tags]
   }
 }
+
+
+#########################################################################################
+#                                                                                       #
+#  Scale Set                                                                            #
+#                                                                                       #
+#########################################################################################
+
+variable "use_scalesets_for_deployment" {
+  description = "Use Flexible Virtual Machine Scale Sets for the deployment"
+}
+
+variable "scale_set_id" {
+  description = "Azure resource identifier for scale set"
+}
+

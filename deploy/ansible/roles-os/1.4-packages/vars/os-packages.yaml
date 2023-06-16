@@ -234,6 +234,7 @@ packages:
     - { tier: 'ha',    package: 'pcs',                                          node_tier: 'all',     state: 'present' }
     - { tier: 'ha',    package: 'pacemaker',                                    node_tier: 'all',     state: 'present' }
     - { tier: 'ha',    package: 'nmap-ncat',                                    node_tier: 'all',     state: 'present' }
+    - { tier: 'ha',    package: 'fence-agents-common',                          node_tier: 'all',     state: 'present' }
     - { tier: 'ha',    package: 'fence-agents-azure-arm',                       node_tier: 'all',     state: 'present' }
     - { tier: 'ha',    package: 'resource-agents-sap-hana',                     node_tier: 'hana',    state: 'present' }
     - { tier: 'ha',    package: 'resource-agents-sap',                          node_tier: 'scs',     state: 'present' }
@@ -266,6 +267,7 @@ packages:
     - { tier: 'ha',    package: 'fence-agents-azure-arm',                       node_tier: 'all',     state: 'present' }
   redhat9.2:
     - { tier: 'ha',    package: 'fence-agents-azure-arm',                       node_tier: 'all',     state: 'present' }
+    - { tier: 'sapos', package: 'chkconfig',                                    node_tier: 'hana',    state: 'present' }
   sles_sap12:
     - { tier: 'os',    package: 'chrony',                                       node_tier: 'all',     state: 'present' }
     - { tier: 'os',    package: 'glibc',                                        node_tier: 'all',     state: 'present' }

@@ -268,7 +268,7 @@ data "azurerm_key_vault_secret" "pwd" {
 
 resource "azurerm_private_endpoint" "kv_user" {
   provider = azurerm.main
-  count = var.use_private_endpoint && !var.key_vault.kv_exists ? 1 : 0
+  count    = var.use_private_endpoint && !var.key_vault.kv_exists ? 1 : 0
   name = format("%s%s%s",
     var.naming.resource_prefixes.keyvault_private_link,
     local.prefix,
@@ -303,7 +303,7 @@ resource "azurerm_private_endpoint" "kv_user" {
     ]
   }
 
- custom_network_interface_name = format("%s%s%s%s",
+  custom_network_interface_name = format("%s%s%s%s",
     var.naming.resource_prefixes.keyvault_private_link,
     local.prefix,
     var.naming.resource_suffixes.keyvault_private_link,
@@ -330,7 +330,7 @@ data "azurerm_private_dns_zone" "keyvault" {
 
 resource "azurerm_private_dns_zone_virtual_network_link" "vault" {
   provider = azurerm.dnsmanagement
-  count    = (!local.vnet_mgmt_exists) && !var.use_custom_dns_a_registration && !var.bootstrap  && var.use_private_endpoint ? 1 : 0
+  count    = (!local.vnet_mgmt_exists) && !var.use_custom_dns_a_registration && !var.bootstrap && var.use_private_endpoint ? 1 : 0
   name = format("%s%s%s%s",
     var.naming.resource_prefixes.dns_link,
     local.prefix,
@@ -459,4 +459,17 @@ data "azurerm_network_interface" "keyvault" {
   name  = azurerm_private_endpoint.kv_user[count.index].network_interface[0].name
 
   resource_group_name = split("/", azurerm_private_endpoint.kv_user[count.index].network_interface[0].id)[4]
+}
+
+
+resource "azurerm_management_lock" "keyvault" {
+  provider   = azurerm.main
+  count      = (var.key_vault.kv_exists) ? 0 : var.place_delete_lock_on_resources ? 1 : 0
+  name       = format("%s-lock", local.keyvault_names.user_access)
+  scope      = azurerm_key_vault.kv_user[0].id
+  lock_level = "CanNotDelete"
+  notes      = "Locked because it's needed by the Control Plane"
+  lifecycle {
+    prevent_destroy = false
+  }
 }

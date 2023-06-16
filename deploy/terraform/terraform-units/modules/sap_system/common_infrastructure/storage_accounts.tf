@@ -115,11 +115,10 @@ resource "azurerm_private_endpoint" "sapmnt" {
     )) : (
     0
   )
-  name = format("%s%s%s%s",
+  name = format("%s%s%s",
     var.naming.resource_prefixes.storage_private_link_sapmnt,
     local.prefix,
-    local.resource_suffixes.storage_private_link_sapmnt,
-    var.naming.resource_suffixes.nic
+    local.resource_suffixes.storage_private_link_sapmnt
   )
 
   resource_group_name = local.rg_name
@@ -144,6 +143,16 @@ resource "azurerm_private_endpoint" "sapmnt" {
       "File"
     ]
   }
+
+  custom_network_interface_name = format("%s%s%s%s",
+    var.naming.resource_prefixes.storage_private_link_sapmnt,
+    length(local.prefix) > 0 ? (
+      local.prefix) : (
+      var.infrastructure.environment
+    ),
+    var.naming.resource_suffixes.storage_private_link_sapmnt,
+    var.naming.resource_suffixes.nic
+  )
 
   dynamic "private_dns_zone_group" {
     for_each = range(length(try(var.landscape_tfstate.privatelink_file_id, "")) > 0 ? 1 : 0)

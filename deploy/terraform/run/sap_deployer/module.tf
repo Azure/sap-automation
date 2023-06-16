@@ -60,6 +60,8 @@ module "sap_deployer" {
 
   spn_id = var.spn_id
 
+  place_delete_lock_on_resources = var.place_delete_lock_on_resources
+
 }
 
 module "sap_namegenerator" {

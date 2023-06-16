@@ -291,3 +291,24 @@ variable "db_clst_lb_ip" {
 variable "scs_clst_lb_ip" {
   description = "This is a Cluster IP address for Windows load balancer for central services"
 }
+
+variable "app_server_count" {
+  description = "Number of Application Servers"
+  type    = number
+}
+
+variable "scs_server_count" {
+  description = "Number of SCS Servers"
+  type    = number
+}
+
+variable "web_server_count" {
+  description = "Number of Web Dispatchers"
+  type    = number
+}
+
+
+variable "db_server_count" {
+  description = "Number of Database Servers"
+  type    = number
+}

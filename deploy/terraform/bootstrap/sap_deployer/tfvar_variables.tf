@@ -43,6 +43,11 @@ variable "resourcegroup_tags" {
   default     = {}
 }
 
+variable "place_delete_lock_on_resources" {
+  description = "If defined, a delete lock will be placed on the key resources"
+  default     = false
+}
+
 ###############################################################################
 #                                                                             #
 #                            Network                                          #
