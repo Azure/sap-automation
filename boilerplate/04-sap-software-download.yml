@@ -1,0 +1,61 @@
+name: SAP Software download $(bom) $(environment_code) $(location_code)
+
+parameters:
+  - name: bom_base_name
+    displayName: Name of Bill of Materials (BoM)
+    type: string
+    default:
+    values:
+      - S4HANA_2021_ISS_v0001ms
+      - S42020SPS04_v0001ms
+      - S41909SPS03_v0011ms
+      - HCMT_v0002ms
+      - BW4HANA2021SPS01_v0003ms
+      - HANA_2_00_063_v0001ms
+      - HANA_2_00_061_v0001ms
+      - HANA_2_00_059_v0003ms
+      - HANA_2_00_055_v0006ms
+      - NW750SPS20_v0004ms
+      - NW752SPS09_v0001ms
+      - NW750SPS20_DB2_11-1_v0001ms
+      - ORACLE_19_00_v0002ms
+      - NW750SPS20_DB2_v0001ms
+      - DB2_UDB_11_5_v0001ms
+      - ORACLE_19_00_ORA_MSID_v0001ms
+      - ORACLE_19_00_ORA_MSID_v0002ms
+      - ERP6_EHP8_WIN_MSS2019_v0001ms
+      - NW750SPS20_SYBASE_v0001ms
+      - SYBASE_1603SP11_v0001ms
+
+  - name: environment
+    displayName: Control Plane Environment
+    default: MGMT
+
+  - name: region
+    displayName: Control Plane (SAP Library) location code
+    type: string
+    default: WEEU
+
+  - name: re_download
+    displayName: Re-download software from SAP
+    type: boolean
+    default: false
+
+trigger: none
+
+pool:
+  name: $[coalesce(variables['POOL'], variables['Agent'])]
+  vmImage: ubuntu-latest
+
+extends:
+  template: ./resources.yml
+  parameters:
+    stages:
+      - template: deploy\pipelines\04-sap-software-download.yaml@sap-automation
+        parameters:
+          bom_base_name: ${{ parameters.bom_base_name }}
+          environment: ${{ parameters.environment }}
+          region: ${{ parameters.region }}
+          re_download: ${{ parameters.re_download }}
+          sap_automation_repo_path: $(Build.SourcesDirectory)/sap-automation
+          config_repo_path: $(Build.SourcesDirectory)/config

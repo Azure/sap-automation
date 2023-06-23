@@ -32,7 +32,6 @@ locals {
     ""
   )
 
-
   spn = {
     subscription_id = data.azurerm_key_vault_secret.subscription_id.value,
     client_id       = var.use_spn ? data.azurerm_key_vault_secret.client_id[0].value : null,
@@ -40,8 +39,8 @@ locals {
     tenant_id       = var.use_spn ? data.azurerm_key_vault_secret.tenant_id[0].value : null
   }
 
-cp_spn = {
-    subscription_id = data.azurerm_key_vault_secret.cp_subscription_id.value,
+  cp_spn = {
+    subscription_id = try(data.azurerm_key_vault_secret.cp_subscription_id[0].value, null)
     client_id       = var.use_spn ? data.azurerm_key_vault_secret.cp_client_id[0].value : null,
     client_secret   = var.use_spn ? data.azurerm_key_vault_secret.cp_client_secret[0].value : null,
     tenant_id       = var.use_spn ? data.azurerm_key_vault_secret.cp_tenant_id[0].value : null
@@ -96,5 +95,10 @@ cp_spn = {
 
   }
 
+  is_DNS_info_different = (
+    var.management_dns_subscription_id != data.azurerm_key_vault_secret.subscription_id.value
+    ) || (
+    var.management_dns_resourcegroup_name != (local.saplib_resource_group_name)
+  )
 
 }

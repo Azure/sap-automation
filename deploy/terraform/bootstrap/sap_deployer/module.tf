@@ -7,6 +7,7 @@ module "sap_deployer" {
   source = "../../terraform-units/modules/sap_deployer"
   providers = {
     azurerm.dnsmanagement = azurerm.dnsmanagement
+    azurerm.main          = azurerm.main
   }
   infrastructure = local.infrastructure
   deployer       = local.deployer
@@ -18,22 +19,27 @@ module "sap_deployer" {
     local.custom_names) : (
     module.sap_namegenerator.naming
   )
-  firewall_deployment                          = local.firewall_deployment
-  assign_subscription_permissions              = local.assign_subscription_permissions
-  bootstrap                                    = true
-  enable_purge_control_for_keyvaults           = var.enable_purge_control_for_keyvaults
-  arm_client_id                                = var.arm_client_id
-  use_private_endpoint                         = var.use_private_endpoint
-  use_custom_dns_a_registration                = var.use_custom_dns_a_registration
-  management_dns_subscription_id               = var.management_dns_subscription_id
-  management_dns_resourcegroup_name            = var.management_dns_resourcegroup_name
-  use_webapp                                   = var.use_webapp
-  configure                                    = false
-  tf_version                                   = var.tf_version
-  app_registration_app_id                      = var.app_registration_app_id
-  sa_connection_string                         = var.sa_connection_string
-  webapp_client_secret                         = var.webapp_client_secret
-  bastion_deployment                           = var.bastion_deployment
+  firewall_deployment                = local.firewall_deployment
+  assign_subscription_permissions    = var.deployer_assign_subscription_permissions
+  bootstrap                          = true
+  enable_purge_control_for_keyvaults = var.enable_purge_control_for_keyvaults
+  arm_client_id                      = var.arm_client_id
+  use_private_endpoint               = var.use_private_endpoint
+
+  use_custom_dns_a_registration     = var.use_custom_dns_a_registration
+  management_dns_subscription_id    = var.management_dns_subscription_id
+  management_dns_resourcegroup_name = var.management_dns_resourcegroup_name
+
+  use_webapp              = var.use_webapp
+  configure               = false
+  tf_version              = var.tf_version
+  app_registration_app_id = var.app_registration_app_id
+  sa_connection_string    = var.sa_connection_string
+  webapp_client_secret    = var.webapp_client_secret
+
+  bastion_deployment = var.bastion_deployment
+  bastion_sku        = var.bastion_sku
+
   auto_configure_deployer                      = var.auto_configure_deployer
   deployer_vm_count                            = var.deployer_count
   agent_pool                                   = var.agent_pool
@@ -44,6 +50,11 @@ module "sap_deployer" {
   enable_firewall_for_keyvaults_and_storage    = var.enable_firewall_for_keyvaults_and_storage
   ansible_core_version                         = var.ansible_core_version
   Agent_IP                                     = var.Agent_IP
+  spn_id                                       = var.spn_id
+
+  place_delete_lock_on_resources = var.place_delete_lock_on_resources
+
+
 }
 
 module "sap_namegenerator" {

@@ -13,9 +13,17 @@
     msg:
       - "SID:        {{ sid_to_be_deployed.sid | upper }}"
 
-- name:                                "SCS Install: Set the SCS Server name"
+- name:                                Get the SCS Server name list
   ansible.builtin.set_fact:
-    scs_server:                        "{{ virtual_host }}"
+    scs_server_temp: "{{ scs_server_temp | default([]) + [item] }}"
+
+  with_items:
+    - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') }}"
+    - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
+
+- name:                                "Set the SCS Server name"
+  ansible.builtin.set_fact:
+    scs_server: "{{ hostvars[scs_server_temp | first]['virtual_host'] }}"
 
 - name:                                "SCS Install: Set BOM facts"
   ansible.builtin.set_fact:
@@ -107,14 +115,11 @@
         sap_db_hostname:
         sap_ciVirtualHostname:
         sap_appVirtualHostname:
-        tier:                          "{{ tier }}"
         param_directory:               "{{ dir_params }}"
         sap_sid:                       "{{ sid_to_be_deployed.sid }}"
         scs_instance_number:           "{{ sid_to_be_deployed.ascs_inst_no }}"
         sidadm_uid:                    "{{ sid_to_be_deployed.sidadm_uid }}"
         hdb_instance_number:           "{{ db_instance_number }}"
-      tags:
-        - skip_ansible_lint
 
     - name:                            "SCS Install: install variables"
       ansible.builtin.debug:
@@ -171,7 +176,7 @@
 
     - name:                            "SCS Install: SAP SCS Install on {{ ansible_hostname }}"
       ansible.builtin.shell: |
-                                       umask {{ custom_umask | default('022') }};
+                                       umask {{ custom_umask | default('022') }} ;
                                        ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }}  \
                                                  SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.scs }}             \
                                                  SAPINST_SKIP_DIALOGS=true                                        \
@@ -185,8 +190,6 @@
         TMPDIR:                        "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
       register:                        scs_installation
       failed_when:                     scs_installation.rc > 0
-      tags:
-        - skip_ansible_lint
 
     - name:                            "SCS Install: Cleanup ini file {{ ansible_hostname }}"
       ansible.builtin.file:

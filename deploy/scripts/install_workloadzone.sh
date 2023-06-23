@@ -345,7 +345,8 @@ then
 fi
 
 #setting the user environment variables
-set_executing_user_environment_variables "none"
+set_executing_user_environment_variables "${spn_secret}"
+
 if [[ -z ${REMOTE_STATE_SA} ]]; then
     load_config_vars "${workload_config_information}" "REMOTE_STATE_SA"
 fi
@@ -411,46 +412,37 @@ fi
 
 if [ -n "${keyvault}" ]
 then
-    secretname="${environment}"-client-id
-    echo "Setting secrets"
+    echo "Setting the secrets"
 
-    secret_value=$(az keyvault secret show --name "$secretname" --vault "$keyvault" --only-show-errors --query id 2>error.log)
-    if [ -f error.log ]
+    save_config_var "client_id" "${workload_config_information}"
+    save_config_var "tenant_id" "${workload_config_information}"
+
+    if [ -n "$spn_secret" ]
     then
-        save_config_var "client_id" "${workload_config_information}"
-        save_config_var "tenant_id" "${workload_config_information}"
+        allParams=$(printf " --workload --environment %s --region %s --vault %s --spn_secret %s --subscription %s --spn_id %s --tenant_id %s " "${environment}" "${region_code}" "${keyvault}" "${spn_secret}" "${subscription}" "${client_id}" "${tenant_id}" )
 
-        if [ -n "$spn_secret" ]
-        then
-            allParams=$(printf " --workload --environment %s --region %s --vault %s --spn_secret %s --subscription %s --spn_id %s --tenant_id %s " "${environment}" "${region_code}" "${keyvault}" "${spn_secret}" "${subscription}" "${client_id}" "${tenant_id}" )
+        echo "Calling set_secrets with " $allParams
 
-            echo $allParams
+        "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/set_secrets.sh $allParams
 
-            "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/set_secrets.sh $allParams
+        if [ -f secret.err ]; then
+            error_message=$(cat secret.err)
+            echo "##vso[task.logissue type=error]${error_message}"
 
-            if [ -f secret.err ]; then
-                error_message=$(cat secret.err)
-                echo "##vso[task.logissue type=error]${error_message}"
+            exit 65
+        fi
+    else
+        read -p "Do you want to specify the Workload SPN Details Y/N?"  ans
+        answer=${ans^^}
+        if [ $answer == 'Y' ]; then
+            allParams=$(printf " --workload --environment %s --region %s --vault %s --subscription %s  --spn_id %s " "${environment}" "${region_code}" "${keyvault}" "${subscription}" "${client_id}" )
 
-                exit 65
-            fi
-        else
-            read -p "Do you want to specify the Workload SPN Details Y/N?"  ans
-            answer=${ans^^}
-            if [ $answer == 'Y' ]; then
-                allParams=$(printf " --workload --environment %s --region %s --vault %s --subscription %s  --spn_id %s " "${environment}" "${region_code}" "${keyvault}" "${subscription}" "${client_id}" )
-
-                "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/set_secrets.sh ${allParams}
-                if [ $? -eq 255 ]
-                then
-                    exit $?
-                fi
+            "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/set_secrets.sh ${allParams}
+            if [ $? -eq 255 ]
+            then
+                exit $?
             fi
         fi
-    fi
-    if [ -f error.log ]
-    then
-        rm error.log
     fi
 
     if [ -f kv.log ]
@@ -600,7 +592,7 @@ echo -e "#       $cyan Changing the subscription to: ${subscription} $resetforma
 echo "#                                                                                       #"
 echo "#########################################################################################"
 echo ""
-az account set --sub "${subscription}"
+#az account set --sub "${subscription}"
 
 save_config_var "REMOTE_STATE_SA" "${workload_config_information}"
 save_config_var "subscription" "${workload_config_information}"
@@ -628,7 +620,7 @@ then
         echo ""
 
         workloadkeyvault=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw workloadzone_kv_name | tr -d \")
-        if valid_kv_name "$keyvault" ; then
+        if valid_kv_name "$workloadkeyvault" ; then
             save_config_var "workloadkeyvault" "${workload_config_information}"
         fi
 
@@ -732,7 +724,6 @@ fi
 
 ok_to_proceed=0
 if [ -f plan_output.log ]; then
-    echo "2"
     cat plan_output.log
     LASTERROR=$(grep -m1 'Error: ' plan_output.log )
 
@@ -748,20 +739,13 @@ if [ -f plan_output.log ]; then
 fi
 
 if [ 0 == $return_value ] ; then
-    echo ""
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo -e "#                          $cyan Infrastructure is up to date $resetformatting                               #"
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
-    echo ""
     if [ -f plan_output.log ]
     then
         rm plan_output.log
     fi
 
     workloadkeyvault=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw workloadzone_kv_name | tr -d \")
-    if valid_kv_name "$keyvault" ; then
+    if valid_kv_name "$workloadkeyvault" ; then
         save_config_var "workloadkeyvault" "${workload_config_information}"
     fi
     save_config_vars "landscape_tfstate_key" "${workload_config_information}"
@@ -827,42 +811,9 @@ if [ 1 == $ok_to_proceed ]; then
     return_value=$?
 
 fi
-
+rerun_apply=0
 if [ -f apply_output.json ]
 then
-    errors_occurred=$(jq 'select(."@level" == "error") | length' apply_output.json)
-
-    if [[ -n $errors_occurred ]]
-    then
-    echo ""
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo -e "#                          $boldreduscore!Errors during the apply phase!$resetformatting                              #"
-
-    return_value=2
-    all_errors=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary, detail: .diagnostic.detail}' apply_output.json)
-    if [[ -n ${all_errors} ]]
-    then
-        readarray -t errors_strings < <(echo ${all_errors} | jq -c '.' )
-        for errors_string in "${errors_strings[@]}"; do
-            string_to_report=$(jq -c -r '.detail '  <<< "$errors_string" )
-            if [[ -z ${string_to_report} ]]
-            then
-                string_to_report=$(jq -c -r '.summary '  <<< "$errors_string" )
-            fi
-
-            echo -e "#                          $boldreduscore  $string_to_report $resetformatting"
-            if [ 1 == $called_from_ado ] ; then
-                echo "##vso[task.logissue type=error]${string_to_report}"
-            fi
-
-        done
-
-    fi
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
-    echo ""
-
     # Check for resource that can be imported
     existing=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary}  | select(.summary | startswith("A resource with the ID"))' apply_output.json)
     if [[ -n ${existing} ]]
@@ -874,28 +825,128 @@ then
             resourceID=$(jq -c -r '.summary' <<< "$item" | awk -F'\"' '{print $2}')
             echo "Trying to import" $resourceID "into" $moduleID
             allParamsforImport=$(printf " -var-file=%s %s %s %s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter} " )
-            echo terraform -chdir="${terraform_module_directory}" import -allow-missing-config  $allParamsforImport $moduleID $resourceID
-            terraform -chdir="${terraform_module_directory}" import -allow-missing-config  $allParamsforImport $moduleID $resourceID
+            echo terraform -chdir="${terraform_module_directory}" import $allParamsforImport $moduleID $resourceID
+            terraform -chdir="${terraform_module_directory}" import $allParamsforImport $moduleID $resourceID
         done
 
-        echo "##vso[task.logissue type=error]Resources imported into Terraform state file. Please re-run the pipeline."
-    fi
-    # resources_with_timeout=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary}  | select(.summary | startswith("waiting for creation of Private Endpoint"))' apply_output.json)
-    # if [[ -n ${resources_with_timeout} ]]
-    # then
+        rerun_apply=1
+        rm apply_output.json
+        echo ""
+        echo ""
+        echo "#########################################################################################"
+        echo "#                                                                                       #"
+        echo -e "#                          $cyan Re running Terraform apply$resetformatting                                  #"
+        echo "#                                                                                       #"
+        echo "#########################################################################################"
+        echo ""
+        echo ""
+        if [ 1 == $called_from_ado ] ; then
+            terraform -chdir="${terraform_module_directory}" apply ${approve} -parallelism="${parallelism}" -no-color -var-file=${var_file} $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter -json  | tee -a  apply_output.json
+        else
+            terraform -chdir="${terraform_module_directory}" apply ${approve} -parallelism="${parallelism}" -var-file=${var_file} $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter -json  | tee -a  apply_output.json
+        fi
+        return_value=$?
 
+    fi
+
+    if [ -f apply_output.json ]
+    then
+        # Check for resource that can be imported
+        existing=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary}  | select(.summary | startswith("A resource with the ID"))' apply_output.json)
+        if [[ -n ${existing} ]]
+        then
+
+            readarray -t existing_resources < <(echo ${existing} | jq -c '.' )
+            for item in "${existing_resources[@]}"; do
+                moduleID=$(jq -c -r '.address '  <<< "$item")
+                resourceID=$(jq -c -r '.summary' <<< "$item" | awk -F'\"' '{print $2}')
+                echo "Trying to import" $resourceID "into" $moduleID
+                allParamsforImport=$(printf " -var-file=%s %s %s %s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter} " )
+                echo terraform -chdir="${terraform_module_directory}" import $allParamsforImport $moduleID $resourceID
+                terraform -chdir="${terraform_module_directory}" import $allParamsforImport $moduleID $resourceID
+            done
+
+            rerun_apply=1
+        fi
+        if [ $rerun_apply == 1 ] ; then
+            echo ""
+            echo ""
+            echo "#########################################################################################"
+            echo "#                                                                                       #"
+            echo -e "#                          $cyan Re running Terraform apply$resetformatting                                  #"
+            echo "#                                                                                       #"
+            echo "#########################################################################################"
+            echo ""
+            echo ""
+            if [ 1 == $called_from_ado ] ; then
+                terraform -chdir="${terraform_module_directory}" apply ${approve} -parallelism="${parallelism}" -no-color -var-file=${var_file} $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter -json  | tee -a  apply_output.json
+            else
+                terraform -chdir="${terraform_module_directory}" apply ${approve} -parallelism="${parallelism}" -var-file=${var_file} $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter -json  | tee -a  apply_output.json
+            fi
+            return_value=$?
+        fi
+
+        return_value=0
+        errors_occurred=$(jq 'select(."@level" == "error") | length' apply_output.json)
+
+        if [[ -n $errors_occurred ]]
+        then
+          echo ""
+          echo "#########################################################################################"
+          echo "#                                                                                       #"
+          echo -e "#                          $boldreduscore!Errors during the apply phase!$resetformatting                              #"
+
+          return_value=2
+          all_errors=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary, detail: .diagnostic.detail} | select(.summary ) ' apply_output.json)
+          if [[ -n ${all_errors} ]]
+              then
+              readarray -t errors_strings < <(echo ${all_errors} | jq -c '.' )
+              for errors_string in "${errors_strings[@]}"; do
+                  string_to_report=$(jq -c -r '.detail '  <<< "$errors_string" )
+                  if [[ -z ${string_to_report} ]]
+                  then
+                      string_to_report=$(jq -c -r '.summary '  <<< "$errors_string" )
+                  fi
+                  report=$(echo $string_to_report | grep -m1 "Message=" "${var_file}" | cut -d'=' -f2-  | tr -d ' ' | tr -d '"')
+                  if [[ -n ${report} ]] ; then
+                      echo -e "#                          $boldreduscore  $report $resetformatting"
+                      if [ 1 == $called_from_ado ] ; then
+
+                          roleAssignmentExists=$(echo ${report} | grep -m1 "RoleAssignmentExists")
+                          if [ -z ${roleAssignmentExists} ] ; then
+                              echo "##vso[task.logissue type=error]${report}"
+                          fi
+                      fi
+                  else
+                      echo -e "#                          $boldreduscore  $string_to_report $resetformatting"
+                      if [ 1 == $called_from_ado ] ; then
+                          roleAssignmentExists=$(echo ${string_to_report} | grep -m1 "RoleAssignmentExists")
+                          if [ -z ${roleAssignmentExists} ]
+                          then
+                              echo "##vso[task.logissue type=error]${string_to_report}"
+                          fi
+                      fi
+                  fi
+                  echo -e "#                          $boldreduscore  $string_to_report $resetformatting"
+
+              done
+          fi
+          echo "#                                                                                       #"
+          echo "#########################################################################################"
+          echo ""
+
+        fi
     fi
 
 fi
-
-workload_zone_prefix=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw workload_zone_prefix | tr -d \")
-save_config_var "workload_zone_prefix" "${workload_config_information}"
 
 if [ -f apply_output.json ]
 then
      rm apply_output.json
 fi
 
+workload_zone_prefix=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw workload_zone_prefix | tr -d \")
+save_config_var "workload_zone_prefix" "${workload_config_information}"
 save_config_var "landscape_tfstate_key" "${workload_config_information}"
 
 if [ 0 == $return_value ] ; then
@@ -939,8 +990,15 @@ echo "#                                                                         
 echo "#########################################################################################"
 echo ""
 
+if [ -n "${spn_secret}" ]
+then
+    az logout
+    echo "Login as SPN"
+    az login --service-principal --username "${client_id}" --password="${spn_secret}" --tenant "${tenant_id}" --output none
+fi
+
 rg_name=$(terraform -chdir="${terraform_module_directory}"  output -no-color -raw created_resource_group_name | tr -d \")
-az deployment group create --resource-group "${rg_name}" --name "SAP-WORKLOAD-ZONE_${rg_name}" --subscription  ${subscription} --template-file "${script_directory}/templates/empty-deployment.json" --output none
+az deployment group create --resource-group "${rg_name}" --name "SAP-WORKLOAD-ZONE_${rg_name}" --subscription "${subscription}" --template-file "${script_directory}/templates/empty-deployment.json" --output none
 
 now=$(date)
 cat <<EOF > "${workload_config_information}".md
@@ -975,7 +1033,7 @@ subnet_id=$(terraform -chdir="${terraform_module_directory}"  output -no-color -
 if [ -n "${subnet_id}" ]; then
   echo "Adding the app subnet"
   az storage account network-rule add --resource-group "${REMOTE_STATE_RG}" --account-name "${REMOTE_STATE_SA}" --subscription "${STATE_SUBSCRIPTION}" --subnet $subnet_id --output none
-  if [ -n $SAPBITS ] ; then
+  if [ -n "$SAPBITS" ] ; then
     az storage account network-rule add --resource-group "${REMOTE_STATE_RG}" --account-name $SAPBITS --subscription "${STATE_SUBSCRIPTION}" --subnet $subnet_id --output none
   fi
 fi

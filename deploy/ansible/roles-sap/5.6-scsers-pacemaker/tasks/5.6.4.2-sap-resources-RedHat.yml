@@ -19,8 +19,7 @@
                                        meta resource-stickiness=5000 migration-threshold=1 failure-timeout=60 \
                                        op monitor interval=20 on-fail=restart timeout=60 \
                                        op start interval=0 timeout=600 op stop interval=0 timeout=600 \
-                                       --group g-{{ sap_sid }}_{{ instance_type | upper }} \
-                                       --before nc_{{ sap_sid }}_{{ instance_type | upper }}
+                                       --group g-{{ sap_sid }}_{{ instance_type | upper }}
       register:                        ascs_rsc_sap
       failed_when:                     ascs_rsc_sap.rc > 1
 
@@ -35,8 +34,7 @@
                                        op monitor interval=20 on-fail=restart timeout=60 \
                                        op start interval=0 timeout=600 \
                                        op stop interval=0 timeout=600 \
-                                       --group g-{{ sap_sid }}_ERS \
-                                       --before nc_{{ sap_sid }}_ERS
+                                       --group g-{{ sap_sid }}_ERS
       register:                        ers_rsc_sap
       failed_when:                     ers_rsc_sap.rc > 1
 
@@ -69,11 +67,10 @@
                                        pcs resource create rsc_sap_{{ sap_sid }}_{{ instance_type | upper }}{{ scs_instance_number }} SAPInstance \
                                        InstanceName={{ instance_name }} START_PROFILE="{{ start_profile_path }}" \
                                        AUTOMATIC_RECOVER=false \
-                                       meta resource-stickiness=5000
+                                       meta resource-stickiness=5000 \
                                        op monitor interval=20 on-fail=restart timeout=60 \
                                        op start interval=0 timeout=600 op stop interval=0 timeout=600 \
-                                       --group g-{{ sap_sid }}_{{ instance_type | upper }} \
-                                       --before nc_{{ sap_sid }}_{{ instance_type | upper }}
+                                       --group g-{{ sap_sid }}_{{ instance_type | upper }}
       register:                        ascs_rsc_sap
       failed_when:                     ascs_rsc_sap.rc > 1
 
@@ -88,13 +85,12 @@
                                        op monitor interval=20 on-fail=restart timeout=60 \
                                        op start interval=0 timeout=600 \
                                        op stop interval=0 timeout=600 \
-                                       --group g-{{ sap_sid }}_ERS \
-                                       --before nc_{{ sap_sid }}_ERS
+                                       --group g-{{ sap_sid }}_ERS
       register:                        ers_rsc_sap
       failed_when:                     ers_rsc_sap.rc > 1
 
     - name:                            "5.6 SCSERS - RHEL - ENSA2 - Set the ERS resource stickiness"
-      ansible.builtin.command:         pcs resource meta rsc_sap_{{ sap_sid }}_ERS{{ ers_instance_number }}  resource-stickiness=3000
+      ansible.builtin.command:         pcs resource meta rsc_sap_{{ sap_sid }}_ERS{{ ers_instance_number }} resource-stickiness=3000
 
     - name:                            "5.6 SCSERS - RHEL - ENSA2 - Configure Co-location Constraints"
       ansible.builtin.shell: |
@@ -107,9 +103,25 @@
     - name:                            "5.6 SCSERS - RHEL - ENSA2 - Set the Cluster out of maintenance mode"
       ansible.builtin.command:         pcs property set maintenance-mode=false
 
+- name:                            "5.6 SCSERS - RHEL - ENSA1 - Enable Maintenance mode for the cluster"
+  ansible.builtin.command:         pcs property set maintenance-mode=true
+
+- name:                            "5.6 SCS ERS Reboot the primary/secondaryinstance"
+  ansible.builtin.reboot:
+
+- name:                            "5.6 SCSERS - RHEL - ENSA2 - Set the Cluster out of maintenance mode"
+  ansible.builtin.command:         pcs property set maintenance-mode=false
+
+- name:                            "5.6 SCS cluster group validation"
+  ansible.builtin.include_tasks:
+    file:                          "5.6.6-validate.yml"
+    apply:
+      become:                      true
+      become_user:                 root
+      tags:
+        - "5.6.6-validate"
   when:
     - inventory_hostname == primary_instance_name
-    - ensa2 | default(false)
 
 # End of SAP Resources cluster configuration
 ...

@@ -50,9 +50,27 @@ data "azurerm_virtual_network" "vnet_sap" {
   resource_group_name = split("/", local.vnet_sap_arm_id)[4]
 }
 
+resource "azurerm_virtual_network_dns_servers" "vnet_sap_dns_servers" {
+  provider = azurerm.main
+  count    = local.vnet_sap_exists && length(var.dns_server_list) > 0 ? 0 : 1
+  virtual_network_id = local.vnet_sap_exists ? (
+    data.azurerm_virtual_network.vnet_sap[0].id) : (
+    azurerm_virtual_network.vnet_sap[0].id
+  )
+  dns_servers = var.dns_server_list
+}
+
 # // Peers management VNET to SAP VNET
 resource "azurerm_virtual_network_peering" "peering_management_sap" {
   provider = azurerm.peering
+  depends_on = [
+    azurerm_subnet.app,
+    azurerm_subnet.db,
+    azurerm_subnet.web,
+    azurerm_subnet.admin
+
+  ]
+
   count = var.peer_with_control_plane_vnet ? (
     local.vnet_sap_exists || !var.use_deployer ? 0 : 1) : (
     0
@@ -81,6 +99,13 @@ resource "azurerm_virtual_network_peering" "peering_management_sap" {
 // Peers SAP VNET to management VNET
 resource "azurerm_virtual_network_peering" "peering_sap_management" {
   provider = azurerm.main
+  depends_on = [
+    azurerm_subnet.app,
+    azurerm_subnet.db,
+    azurerm_subnet.web,
+    azurerm_subnet.admin
+
+  ]
   count = var.peer_with_control_plane_vnet ? (
     local.vnet_sap_exists || !var.use_deployer ? 0 : 1) : (
     0
@@ -112,6 +137,9 @@ resource "azurerm_virtual_network_peering" "peering_sap_management" {
 resource "azurerm_route_table" "rt" {
   provider = azurerm.main
   count    = local.vnet_sap_exists ? 0 : 1
+  depends_on = [
+    azurerm_virtual_network.vnet_sap
+  ]
   name = format("%s%s%s%s",
     var.naming.resource_prefixes.routetable,
     local.prefix,
@@ -130,11 +158,11 @@ resource "azurerm_route_table" "rt" {
 }
 
 resource "azurerm_route" "admin" {
+  provider = azurerm.main
   depends_on = [
     azurerm_route_table.rt
   ]
-  provider = azurerm.main
-  count    = length(local.firewall_ip) > 0 ? local.vnet_sap_exists ? 0 : 1 : 0
+  count = length(local.firewall_ip) > 0 ? local.vnet_sap_exists ? 0 : 1 : 0
   name = format("%s%s%s%s",
     var.naming.resource_prefixes.fw_route,
     local.prefix,
@@ -152,19 +180,86 @@ resource "azurerm_route" "admin" {
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "vnet_sap" {
-  provider = azurerm.peering
-  count    = length(var.dns_label) > 0 && !var.use_custom_dns_a_registration ? 1 : 0
+  provider = azurerm.dnsmanagement
+  depends_on = [
+    azurerm_virtual_network.vnet_sap
+  ]
+  count = local.use_Azure_native_DNS && var.use_private_endpoint ? 1 : 0
   name = format("%s%s%s%s",
     var.naming.resource_prefixes.dns_link,
     local.prefix,
     var.naming.separator,
-    local.resource_suffixes.dns_link
+    var.naming.resource_suffixes.dns_link
   )
-  resource_group_name   = var.dns_resource_group_name
+
+  resource_group_name = var.management_dns_resourcegroup_name
+
   private_dns_zone_name = var.dns_label
-  virtual_network_id = local.vnet_sap_exists ? (
-    data.azurerm_virtual_network.vnet_sap[0].id) : (
-    azurerm_virtual_network.vnet_sap[0].id
-  )
-  registration_enabled = true
+  virtual_network_id    = azurerm_virtual_network.vnet_sap[0].id
+  registration_enabled  = true
 }
+
+resource "azurerm_private_dns_zone_virtual_network_link" "vnet_sap_file" {
+  provider = azurerm.dnsmanagement
+  count    = local.use_Azure_native_DNS && var.use_private_endpoint ? 1 : 0
+  depends_on = [
+    azurerm_virtual_network.vnet_sap
+  ]
+  name = format("%s%s%s%s-file",
+    var.naming.resource_prefixes.dns_link,
+    local.prefix,
+    var.naming.separator,
+    var.naming.resource_suffixes.dns_link
+  )
+
+  resource_group_name = var.management_dns_resourcegroup_name
+
+  private_dns_zone_name = "privatelink.file.core.windows.net"
+  virtual_network_id    = azurerm_virtual_network.vnet_sap[0].id
+  registration_enabled  = false
+}
+
+data "azurerm_private_dns_zone" "file" {
+  provider            = azurerm.dnsmanagement
+  count               = var.use_private_endpoint ? 1 : 0
+  name                = "privatelink.file.core.windows.net"
+  resource_group_name = var.management_dns_resourcegroup_name
+}
+
+resource "azurerm_private_dns_zone_virtual_network_link" "storage" {
+  provider = azurerm.dnsmanagement
+  depends_on = [
+    azurerm_virtual_network.vnet_sap
+  ]
+  count = local.use_Azure_native_DNS  && var.use_private_endpoint ? 1 : 0
+  name = format("%s%s%s%s-blob",
+    var.naming.resource_prefixes.dns_link,
+    local.prefix,
+    var.naming.separator,
+    var.naming.resource_suffixes.dns_link
+  )
+
+  resource_group_name   = var.management_dns_resourcegroup_name
+  private_dns_zone_name = "privatelink.blob.core.windows.net"
+  virtual_network_id    = azurerm_virtual_network.vnet_sap[0].id
+}
+
+data "azurerm_private_dns_zone" "storage" {
+  provider            = azurerm.dnsmanagement
+  count               = var.use_private_endpoint ? 1 : 0
+  name                = "privatelink.blob.core.windows.net"
+  resource_group_name = var.management_dns_resourcegroup_name
+}
+
+resource "azurerm_management_lock" "vnet_sap" {
+  provider   = azurerm.main
+  count      = (local.vnet_sap_exists) ? 0 : var.place_delete_lock_on_resources ? 1 : 0
+  name       = format("%s-lock", local.vnet_sap_name)
+  scope      = azurerm_virtual_network.vnet_sap[0].id
+  lock_level = "CanNotDelete"
+  notes      = "Locked because it's needed by the Workload"
+  lifecycle {
+    prevent_destroy = false
+  }
+}
+

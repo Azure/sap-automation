@@ -1,0 +1,104 @@
+---
+
+# This user must have the permission to create the CNO (Cluster Name Object)
+# in Active Directory. This need not be a domain admin account.
+
+# ClusterIPAddress            = '192.168.100.20/24'
+# ClusterName                 = 'Cluster1'
+
+# If the CNO is prestaged, then the computer object must be disabled for the
+# resource Cluster to be able to create the cluster.
+# If the CNO is not prestaged, then the credential used in the Cluster resource
+# must have the permission in Active Directory to create the CNO (Cluster Name
+# Object).
+
+# by default the cluster is created with nostorage option
+# https://github.com/dsccommunity/FailoverClusterDsc/blob/main/source/DSCResources/DSC_Cluster/DSC_Cluster.psm1#L204
+
+- name:                                "WinCluster-Create: Calculating the domain value from {{ domain_name }}"
+  ansible.builtin.set_fact:
+    domain:                            "{{ domain_name | split('.') | first }}"
+    cacheable:                         true
+  when:
+    - domain_name is defined
+    - domain_name | type_debug != 'NoneType'
+    - domain_name | trim | length > 1
+    - domain is not defined
+
+- name:                                "WinCluster-Create: Print the variables from {{ domain_name }}"
+  ansible.builtin.debug:
+    msg:
+      - "ClusterName is {{ cluster_name }}"
+      - "ClusterIPAddress is {{ cluster_ip_address }}"
+      - "DomainName is {{ domain_name }}"
+      - "Domain Service Account is {{ domain_service_account }}"
+      - "Witness Storage Account Name is {{ witness_storage_account_name }}"
+  when:
+    - domain is defined
+    - domain | type_debug != 'NoneType'
+    - domain | trim | length > 1
+
+# post configuration steps include:
+# 1. Add probe port for the cluster resource IP address
+# 2. Update firewall rules to allow probe port
+# 3. Update ascs instance profile to accommodate ha installation.
+
+- name:                                "WinCluster-PostConfig: Update Cluster Properties"
+  become:                              true
+  become_method:                       "runas"
+  become_user:                         '{{ sap_sid }}adm@{{ domain }}'
+  ansible.windows.win_dsc:
+    resource_name:                     ClusterProperty
+    Name:                              "{{ cluster_name }}"
+    SameSubNetDelay:                   2000
+    SameSubNetThreshold:               15
+    PsDscRunAsCredential_username:     "{{ domain_service_account }}@{{ domain_name }}"
+    PsDscRunAsCredential_password:     "{{ domain_service_password }}"
+  when:
+    - ansible_hostname == primary_node
+
+- name:                                "WinCluster-PostConfig: Update RouteHistoryLength"
+  become:                              true
+  become_method:                       "runas"
+  become_user:                         '{{ sap_sid }}adm@{{ domain }}'
+  ansible.windows.win_shell: |
+                                       (Get-Cluster).RouteHistoryLength = 30
+  when:
+    - ansible_hostname == primary_node
+
+- name:                                "WinCluster-PostConfig: Copy probe port setup script"
+  become:                              true
+  become_method:                       "runas"
+  become_user:                         '{{ sap_sid }}adm@{{ domain }}'
+  ansible.windows.win_template:
+    src:                               "Set-AzLBHealthProbePortForASCS.j2"
+    dest:                              "{{ sap_deployment_automation }}\\Set-AzLBHealthProbePortForASCS.ps1"
+    force:                             true
+  when:
+    - ansible_hostname == primary_node
+
+- name:                                "WinCluster-PostConfig: Execute probe port setup script"
+  become:                              true
+  become_method:                       "runas"
+  become_user:                         '{{ sap_sid }}adm@{{ domain }}'
+  ansible.windows.win_shell:           "{{ sap_deployment_automation }}\\Set-AzLBHealthProbePortForASCS.ps1"
+  when:
+    - ansible_hostname == primary_node
+
+# TODO: Do similar call for ERS when we do ENSA2
+
+- name:                                "WinCluster-PostConfig: ENSA1 - Set param to keep connections between SAP WP and the enq server from closing"
+  become:                              true
+  become_method:                       "runas"
+  become_user:                         '{{ sap_sid }}adm@{{ domain }}'
+  community.windows.win_lineinfile:
+    backup:                            true
+    path:                              "{{ shared_disk_drive_letter }}:\\usr\\sap\\{{ sap_sid | upper }}\\SYS\\profile\\{{ sap_sid | upper }}_ASCS{{ scs_instance_number }}_{{ scs_cluster_hostname }}"
+    regex:                             "^enque/encni/set_so_keepalive"
+    insertbefore:                      "^rdisp/enqname"
+    line:                              "enque/encni/set_so_keepalive = true"
+    state:                             present
+  when:
+    - ansible_hostname == primary_node
+
+...

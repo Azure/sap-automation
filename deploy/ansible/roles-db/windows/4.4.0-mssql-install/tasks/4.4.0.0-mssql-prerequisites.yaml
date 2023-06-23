@@ -133,7 +133,15 @@
       - SecurityUpdates
       - CriticalUpdates
       - UpdateRollups
+  register:                            win_updates
   notify:                              "WIN-SQL: Restart SQL Server VM"
+
+- name:                                "WIN-SQL: Reboot if required"
+  ansible.windows.win_reboot:
+    reboot_timeout:                    600
+    post_reboot_delay:                 120
+    test_command:                      'exit (Get-Service -Name Netlogon).Status -ne "Running"'
+  when:                                win_updates.reboot_required
 
 - name:                                "Force all notified handlers to run now"
   ansible.builtin.meta:                flush_handlers
@@ -160,6 +168,7 @@
 
 
 # collation to use for SAP: SQL_Latin1_General_CP850_BIN2
+
 ...
 
 # /*---------------------------------------------------------------------------8

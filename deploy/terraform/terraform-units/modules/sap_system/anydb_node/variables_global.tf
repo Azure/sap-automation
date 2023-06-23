@@ -129,6 +129,13 @@ variable "fencing_role_name" {
   description = "If specified the role name to use for the fencing"
 }
 
+
+#########################################################################################
+#                                                                                       #
+#  DNS settings                                                                         #
+#                                                                                       #
+#########################################################################################
+
 variable "use_custom_dns_a_registration" {
   description = "Boolean value indicating if a custom dns a record should be created when using private endpoints"
   default     = false
@@ -145,4 +152,19 @@ variable "management_dns_resourcegroup_name" {
   description = "String value giving the possibility to register custom dns a records in a separate resourcegroup"
   default     = null
   type        = string
+}
+
+
+#########################################################################################
+#                                                                                       #
+#  Scale Set                                                                            #
+#                                                                                       #
+#########################################################################################
+
+variable "use_scalesets_for_deployment" {
+  description = "Use Flexible Virtual Machine Scale Sets for the deployment"
+}
+
+variable "scale_set_id" {
+  description = "Azure resource identifier for scale set"
 }

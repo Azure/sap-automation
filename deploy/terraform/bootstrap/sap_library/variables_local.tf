@@ -36,4 +36,17 @@ locals {
     null
   )
 
+  sa_tfstate_exists = length(local.storage_account_tfstate.arm_id) > 0
+
+  sa_tfstate_name = local.sa_tfstate_exists ? (
+    split("/", local.storage_account_tfstate.arm_id)[8]) : (
+    length(var.library_terraform_state_name) > 0 ? (
+      var.library_terraform_state_name) : (
+      length(var.name_override_file) > 0 ? (
+        try(local.custom_names.prefix.LIBRARY, "")) : (
+        module.sap_namegenerator.naming.prefix.LIBRARY
+      )
+    )
+  )
+
 }

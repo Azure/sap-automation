@@ -68,7 +68,7 @@
     },
     "512": {
       "compute": {
-        "vm_size"                                : "Standard_E4ds_v4",
+        "vm_size"                                : "Standard_E8ds_v4",
         "accelerated_networking"                 : true
       },
       "storage": [

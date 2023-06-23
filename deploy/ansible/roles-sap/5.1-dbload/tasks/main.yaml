@@ -158,12 +158,8 @@
         sidadm_uid:                    "{{ sid_to_be_deployed.sidadm_uid }}"
         # support older dbload inifile templates where hdb_instance_number was used
         hdb_instance_number:           "{{ db_instance_number }}"
-        db_instance_number:            "{{ db_instance_number }}"
         hana_backup_path:              "{{ backup_path }}"
         sa_enabled:                    true
-
-      tags:
-        - skip_ansible_lint
 
     - name:                            "DBLoad: install variables"
       ansible.builtin.debug:
@@ -194,7 +190,7 @@
 
     - name:                            "DBLoad: - run SAPInst"
       ansible.builtin.shell: |
-                                       umask {{ custom_umask | default('022') }};
+                                       umask {{ custom_umask | default('022') }} ;
                                        ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }} \
                                                  SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.dbl }}            \
                                                  SAPINST_SKIP_DIALOGS=true                                       \
@@ -206,19 +202,37 @@
         TMPDIR:                        "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
         SAPSYSTEMNAME:                 "{{ sid_to_be_deployed.sid | upper }}"
       register:                        dbload_results
-      tags:
-        - skip_ansible_lint
       async:                           7200
       poll:                            0
 
-    - name:                            "DBLoad Install -Wait for asynchronous job to end"
-      ansible.builtin.async_status:
-        jid:                           "{{ dbload_results.ansible_job_id }}"
-      register:                        job_result
-      until:                           job_result.finished
-      retries:                         120
-      delay:                           60
-      when:                            dbload_results.ansible_job_id is defined
+    - name:                            "DBLoad Install -Wait for asynchronous job to end and rescue"
+      block:
+        - name:                        "DBLoad Install -Wait for asynchronous job to end"
+          ansible.builtin.async_status:
+            jid:                       "{{ dbload_results.ansible_job_id }}"
+          register:                    job_result
+          until:                       job_result.finished
+          retries:                     120
+          delay:                       60
+          when:                        dbload_results.ansible_job_id is defined
+
+      rescue:
+        - name:                        "Capturing the modified message for message server being offline"
+          ansible.builtin.set_fact:
+            modified_error_message:    "{{ job_result.stdout | try_get_error_code(task_tag='dbload', failure='messageserver_offline') }}"
+
+        - name:                        "Capturing the modified message for database being offline"
+          ansible.builtin.set_fact:
+            modified_error_message:    "{{ modified_error_message | try_get_error_code(task_tag='dbload', failure='db_offline') }}"
+
+        - name:                        "Debug: Modified error message"
+          ansible.builtin.debug:
+            msg:                       "Modified error message: {{ modified_error_message }}"
+          when:                         modified_error_message != job_result.stdout
+
+        - name:                        "Error Handling: Fail with the modified error message "
+          ansible.builtin.fail:
+            msg:                       "{{ modified_error_message }}"
 
     - name:                            "DBLoad: Installation results"
       ansible.builtin.debug:

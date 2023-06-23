@@ -13,6 +13,12 @@
 */
 
 provider "azurerm" {
+  features {}
+  subscription_id = length(local.deployer_subscription_id) > 0 ? local.deployer_subscription_id : null
+
+}
+
+provider "azurerm" {
   features {
     resource_group {
       prevent_deletion_if_contains_resources = true
@@ -29,22 +35,24 @@ provider "azurerm" {
   client_id       = var.use_spn ? local.spn.client_id : null
   client_secret   = var.use_spn ? local.spn.client_secret : null
   tenant_id       = var.use_spn ? local.spn.tenant_id : null
-  use_msi         = false
+  use_msi         = var.use_spn ? false : true
+
+  storage_use_azuread = true
 
   partner_id = "25c87b5f-716a-4067-bcd8-116956916dd6"
+  alias      = "workload"
 
-}
-
-provider "azurerm" {
-  features {}
-  subscription_id = length(local.deployer_subscription_id) > 0 ? local.deployer_subscription_id : null
-  alias           = "deployer"
 }
 
 provider "azurerm" {
   features {}
   alias                      = "dnsmanagement"
   subscription_id            = coalesce(var.management_dns_subscription_id, length(local.deployer_subscription_id) > 0 ? local.deployer_subscription_id : "")
+  client_id                  = var.use_spn ? local.cp_spn.client_id : null
+  client_secret              = var.use_spn ? local.cp_spn.client_secret : null
+  tenant_id                  = var.use_spn ? local.cp_spn.tenant_id : null
+  use_msi                    = var.use_spn ? false : true
+  storage_use_azuread        = true
   skip_provider_registration = true
 }
 
@@ -82,12 +90,12 @@ terraform {
       source = "hashicorp/null"
     }
     azuread = {
-      source = "hashicorp/azuread"
+      source  = "hashicorp/azuread"
       version = "~> 2.2"
     }
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "~> 3.3"
+      version = ">=3.3"
     }
     tls = {
       source = "hashicorp/tls"

@@ -1,0 +1,63 @@
+@model AutomationForm.Models.FileUploadModel
+
+@{
+    ViewBag.Title = "Upload files";
+    string sourceController = ViewBag.SourceController;
+}
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script type="text/javascript">
+
+    $(function () {
+        $("#upload-form").submit(function () {
+            $('<input />').attr('type', 'hidden').attr('name', 'sourceController').attr('value', "@sourceController").appendTo('#upload-form');
+            return true;
+        });
+    });
+
+</script>
+
+<fluent-breadcrumb>
+    <fluent-breadcrumb-item href="@Url.Action("Index", "Home")">Home</fluent-breadcrumb-item>
+    <fluent-breadcrumb-item href="@Url.Action("Index", "File")">Files</fluent-breadcrumb-item>
+    <fluent-breadcrumb-item href="#">Upload</fluent-breadcrumb-item>
+</fluent-breadcrumb>
+
+<div class="text-center">
+    <h2>Upload files</h2>
+</div>
+
+<div class="notificationContainer" style="@(TempData["success"]==null ? "display: none;" : "display: flex; background: rgb(223, 246, 221);")">
+    <div class="notificationInner">
+        <span class="notificationText">
+            @TempData["success"]
+        </span>
+    </div>
+</div>
+<div class="notificationContainer" style="@(TempData["error"]==null ? "display: none;" : "display: flex; background: rgb(253, 231, 233);")">
+    <div class="notificationInner">
+        <span class="notificationText">
+            @TempData["error"]
+        </span>
+    </div>
+</div>
+
+<div>
+    <form enctype="multipart/form-data" method="post" id="upload-form" asp-controller="file" asp-action="upload">
+        <dl>
+            <dt>
+                <label asp-for="FormFiles"></label>
+            </dt>
+            <dd>
+                <input asp-for="FormFiles" type="file" multiple />
+                <span asp-validation-for="FormFiles"></span>
+            </dd>
+        </dl>
+        <fluent-button appearance="accent" style="margin-top: 15px" type="submit" value="Upload">
+            Upload
+        </fluent-button>
+        <fluent-anchor href="@Url.Action("Index", $"{sourceController}")">
+            Back to list
+        </fluent-anchor>
+    </form>
+</div>

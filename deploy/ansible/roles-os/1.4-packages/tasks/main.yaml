@@ -106,8 +106,6 @@
 #    name:                              'python-xml'
 #    state:                             latest
 #  when:                                distribution_id in ['suse15', 'sles_sap15']
-#  tags:
-#    - skip_ansible_lint
 
 # Analyse the package list for this distribution selecting only those
 # packages assigned to the active tier or 'all'.
@@ -168,17 +166,27 @@
       ansible.builtin.pause:
         seconds:                       60
 
-    - name:                            "1.4 Packages: -  Update OS packages: {{ distro_name }}"
-      ansible.builtin.package:
-        name:                          "{{ packages_for_tier |
-                                           selectattr('state', 'equalto', item.state) |
-                                           map(attribute='package') |
-                                           list }}"
-        state:                         "{{ item.state }}"
-      register:                        package_result
-      loop:
-        - { state: 'present' }  # First install required packages
-        - { state: 'absent' }   # Then remove packages that we don't want
+    - name:                           "1.4 Packages: -  Update OS packages: {{ distro_name }} and rescue"
+      block:
+        - name:                            "1.4 Packages: -  Update OS packages: {{ distro_name }}"
+          ansible.builtin.package:
+            name:                          "{{ packages_for_tier |
+                                              selectattr('state', 'equalto', item.state) |
+                                              map(attribute='package') |
+                                              list }}"
+            state:                         "{{ item.state }}"
+          register:                        package_result
+          loop:
+            - { state: 'present' }  # First install required packages
+            - { state: 'absent' }   # Then remove packages that we don't want
+      rescue:
+        - name:                           "Print stderr before getting error code"
+          ansible.builtin.debug:
+            msg:                          "debug statement: {{ package_result }}"
+
+        - name:                           "Error handling for 1.4 Packages: -  Update OS packages: {{ distro_name }}"
+          ansible.builtin.debug:
+            msg:                          "{{ package_result | try_get_error_code_results(task_tag='update_os_packages') }}"
 
 - name:                                "1.4 Packages: - Update OS packages: {{ distribution_full_id }}"
   block:
@@ -203,16 +211,28 @@
       ansible.builtin.pause:
         seconds:                       60
 
-    - name:                            "1.4 Packages: - Update OS packages: {{ distribution_full_id }}"
-      ansible.builtin.package:
-        name:                          "{{ packages_for_specific_tier |
-                                           selectattr('state', 'equalto', item.state) |
-                                           map(attribute='package') |
-                                           list }}"
-        state:                         "{{ item.state }}"
-      loop:
-        - { state: 'present' }  # First install required packages
-        - { state: 'absent' }   # Then remove packages that we don't want
+    - name:                              "1.4 Packages: - Update OS packages: {{ distribution_full_id }} and rescue"
+      block:
+        - name:                            "1.4 Packages: - Update OS packages: {{ distribution_full_id }}"
+          ansible.builtin.package:
+            name:                          "{{ packages_for_specific_tier |
+                                              selectattr('state', 'equalto', item.state) |
+                                              map(attribute='package') |
+                                              list }}"
+            state:                         "{{ item.state }}"
+          register:                         package_result
+          loop:
+            - { state: 'present' }  # First install required packages
+            - { state: 'absent' }   # Then remove packages that we don't want
+      rescue:
+        - name:                         "Print stderr before getting error code"
+          ansible.builtin.debug:
+            msg:                        "debug statement: {{ package_result }}"
+
+        - name:                         "Error handling for 1.4 Packages: - Update OS packages: {{ distribution_full_id }}"
+          ansible.builtin.fail:
+            msg:                        "{{ package_result | try_get_error_code_results(task_tag='update_os_packages') }}"
+
 
 - name:                                "1.4 Packages: - Update OS packages: {{ distro_name }} {{ node_tier }}"
   block:
@@ -238,17 +258,28 @@
       ansible.builtin.pause:
         seconds:                       60
 
-    - name:                            "1.4 Packages: -  Update OS packages: {{ distro_name }}"
-      ansible.builtin.package:
-        name:                          "{{ packages_for_tier |
-                                           selectattr('state', 'equalto', item.state) |
-                                           map(attribute='package') |
-                                           list }}"
-        state:                         "{{ item.state }}"
-      register:                        package_result
-      loop:
-        - { state: 'present' }  # First install required packages
-        - { state: 'absent' }   # Then remove packages that we don't want
+    - name:                              "1.4 Packages: -  Update OS packages: {{ distro_name }} and rescue"
+      block:
+        - name:                            "1.4 Packages: -  Update OS packages: {{ distro_name }}"
+          ansible.builtin.package:
+            name:                          "{{ packages_for_tier |
+                                              selectattr('state', 'equalto', item.state) |
+                                              map(attribute='package') |
+                                              list }}"
+            state:                         "{{ item.state }}"
+          register:                        package_result
+          loop:
+            - { state: 'present' }  # First install required packages
+            - { state: 'absent' }   # Then remove packages that we don't want
+      rescue:
+        - name:                         "Print stderr before getting error code"
+          ansible.builtin.debug:
+            msg:                        "debug statement: {{ package_result }}"
+
+        - name:                         "Error handling for 1.4 Packages: - Update OS packages: {{ distribution_full_id }}"
+          ansible.builtin.fail:
+            msg:                        "{{ package_result | try_get_error_code_results(task_tag='update_os_packages') }}"
+
 
 - name:                                "1.4 Packages: - Update OS packages: {{ distribution_full_id }} {{ node_tier }}"
   block:
@@ -273,27 +304,37 @@
       ansible.builtin.pause:
         seconds:                       60
 
-    - name:                            "1.4 Packages: - Update OS packages: {{ distribution_full_id }}"
-      ansible.builtin.package:
-        name:                          "{{ packages_for_specific_tier |
-                                           selectattr('state', 'equalto', item.state) |
-                                           map(attribute='package') | selectattr('node_tier', 'defined') | selectattr('node_tier', 'equalto', node_tier) |
-                                           list }}"
-        state:                         "{{ item.state }}"
-      loop:
-        - { state: 'present' }  # First install required packages
-        - { state: 'absent' }   # Then remove packages that we don't want
+    - name:                              "1.4 Packages: - Update OS packages: {{ distribution_full_id }} and rescue"
+      block:
+        - name:                            "1.4 Packages: - Update OS packages: {{ distribution_full_id }}"
+          ansible.builtin.package:
+            name:                          "{{ packages_for_specific_tier |
+                                              selectattr('state', 'equalto', item.state) |
+                                              map(attribute='package') | selectattr('node_tier', 'defined') | selectattr('node_tier', 'equalto', node_tier) |
+                                              list }}"
+            state:                         "{{ item.state }}"
+          loop:
+            - { state: 'present' }  # First install required packages
+            - { state: 'absent' }   # Then remove packages that we don't want
+      rescue:
+        - name:                         "Print stderr before getting error code"
+          ansible.builtin.debug:
+            msg:                        "debug statement: {{ package_result }}"
+
+        - name:                         "Error handling for 1.4 Packages: - Update OS packages: {{ distribution_full_id }}"
+          ansible.builtin.fail:
+            msg:                        "{{ package_result | try_get_error_code_results(task_tag='update_os_packages') }}"
+
 
 - name:                                "1.4 Packages: - Upgrade all: {{ distribution_full_id }}"  # noqa package-latest
   community.general.zypper:
     name:                              '*'
     state:                             latest
   when:
-    - ansible_os_family == 'Suse'
+    - ansible_os_family | upper == 'SUSE'
     - upgrade_packages is defined
     - upgrade_packages
-  tags:
-    - skip_ansible_lint
+    - tier == 'os'
 
 - name:                                "1.4 Packages: - Upgrade all: {{ distribution_full_id }}"  # noqa package-latest
   become:                              true
@@ -301,13 +342,12 @@
     name:                              '*'
     state:                             latest
     exclude:                           kernel*
+    skip_broken:                       true
   when:
-    - ansible_os_family == 'Redhat'
+    - ansible_os_family | upper in ['REDHAT', 'ORACLELINUX8']
     - upgrade_packages is defined
     - upgrade_packages
-  tags:
-    - skip_ansible_lint
-
+    - tier == 'os'
 
 # /*----------------------------------------------------------------------------8
 # |                                    END                                      |

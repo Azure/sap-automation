@@ -1,0 +1,149 @@
+# /*-----------------------------------------------------------------------------------------------------8
+# |                                                                                                      |
+# |                 Perform the Sybase DB Instance installation                                          |
+# |                  SAP: Register BOM                                                                   |
+# |                  Export  environment variables for Sybase Installation                               |
+# |                  Run SWPM to Install SYBASE                                                             |
+# |                  TODO; Mention any OSS notes here                                                   |
+# |                                                                                                      |
+# +------------------------------------4--------------------------------------------------------------- */
+
+---
+
+
+- name:                                "SYBASE Install"
+  block:
+    - name:                            "SYBASE Install - Include 3.3.1-bom-utility role"
+      ansible.builtin.include_role:
+        name:                          roles-sap/3.3.1-bom-utility
+        tasks_from:                    bom-register
+      vars:
+        bom_name:                      "{{ bom_base_name }}"
+        task_prefix:                   "SYBASE Install: "
+
+    - name:                            "SYBASE Install - Include roles-sap/3.3.1-bom-utility role"
+      ansible.builtin.include_role:
+        name:                          roles-sap/3.3.1-bom-utility
+        tasks_from:                    bom-template
+      vars:
+        bom_name:                      "{{ bom_base_name }}"
+        task_prefix:                   "SYBASE Install: "
+        always_upload_jinja_templates: false
+
+    # +--------------------------------4--------------------------------------*/
+    #
+    # - name:                            "SAP SYBASE install: variables"
+    - name:                                "SYBASE Install: install variables"
+      ansible.builtin.debug:
+        msg:
+          - "INSTALLED:  {{ sybase_installed.stat.exists }}"
+          - "INIFILE:    {{ dir_params }}/{{ sap_inifile }}"
+          - "PRODUCT ID: {{ bom.product_ids.dbl }}"
+          - "MEDIA:      {{ target_media_location }}"
+
+    - name:                            "SYBASE Install: Progress"
+      ansible.builtin.debug:
+        msg:                           "Start SYBASE Installation"
+
+    # *================================4=======================================8
+    #   SAP SYBASE: Install
+    #   2230669 - System Provisioning Using a Parameter Input File
+    #
+
+    - name:                            "SYBASE Install - SAPINST SYBASE Install"
+      ansible.builtin.shell: |
+                                       umask {{ custom_umask | default('022') }};
+                                       ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }}     \
+                                                 SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.dbl }}                \
+                                                 SAPINST_USE_HOSTNAME={{ sap_db_hostname }}                          \
+                                                 SAPINST_SKIP_DIALOGS=true                                           \
+                                                 SAPINST_START_GUISERVER=false
+      args:
+        chdir:                         "{{ target_media_location }}/SWPM"
+        creates:                       "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_sybase.txt"
+      register:                        sybase_installation
+
+    - name:                            "SAP SYBASE: Installation results"
+      ansible.builtin.debug:
+        msg:                           "SYBASE Installation succeeded"
+      when:                            sybase_installation.rc == 0
+
+    - name:                            "SAP SYBASE: check if ARM Deployment done"
+      ansible.builtin.stat:
+        path:                          "/etc/sap_deployment_automation/{{ db_sid | upper }}/sap_deployment_db_arm.txt"
+      register:                        db_arm_deployment_done
+
+    - name:                            "SAP SYBASE: Successful installation"
+      block:
+        - name:                        "Retrieve Subscription ID and Resource Group Name"
+          ansible.builtin.command:     curl -H Metadata:true --noproxy "*" "http://169.254.169.254/metadata/instance?api-version=2021-02-01"
+          register:                    azure_metadata
+          no_log:                      true
+          changed_when:                false
+          args:
+            warn:                      false
+
+        - name:                        "SAP SYBASE: Save the Json data to a Variable as a Fact"
+          ansible.builtin.set_fact:
+            json_azure_data:           "{{ azure_metadata.stdout | from_json }}"
+          no_log:                      true
+
+        - name:                        "SAP SYBASE: Extract details"
+          ansible.builtin.set_fact:
+            subscription_id:           "{{ json_azure_data | json_query('compute.subscriptionId') }}"
+            resource_group_name:       "{{ json_azure_data | json_query('compute.resourceGroupName') }}"
+
+        - name:                        "SAP SYBASE: Show the subscription and resource group"
+          ansible.builtin.debug:
+            msg:
+              - "Subscription ID: {{ subscription_id }}"
+              - "Resource Group Name: {{ resource_group_name }}"
+
+        - name:                        "Include deploy/ansible/roles-misc/0.6-ARM-Deployment"
+          ansible.builtin.include_role:
+            name:                      roles-misc/0.6-ARM-Deployment
+          vars:
+            subscriptionId:           "{{ subscription_id }}"
+            resourceGroupName:       "{{ resource_group_name }}"
+
+      when:
+        - not db_arm_deployment_done.stat.exists
+        - sybase_installation.rc == 0
+
+    - name:                            "SAP Sybase: Show errors if they exist"
+      ansible.builtin.debug:
+        msg:                           "{{ sybase_installation.stdout_lines }}"
+      when: sybase_installation is defined and sybase_installation.rc != 0
+
+    - name:                           "SAP Sybase: Abort execution when there are installation errors"
+      ansible.builtin.fail:
+        msg:                          "SAP Sybase: Execution interrupted due to errors"
+      when: sybase_installation is defined and sybase_installation.rc != 0
+
+    - name:                            "SYBASE Install - flag"
+      ansible.builtin.file:
+        path:                          "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_sybase.txt"
+        state:                         touch
+        mode:                          0755
+
+  when:
+    - not sybase_installed.stat.exists
+
+  # *==================================4=======================================8
+
+- name:                                "Sybase Install status"
+  block:
+
+    - name:                            "Sybase Install status"
+      ansible.builtin.debug:
+        msg:                           "Sybase is already installed"
+
+    - name:                            "Sybase Install: - return value"
+      ansible.builtin.set_fact:
+        sybase_already_installed:        true
+  when:
+    - sybase_installed.stat.exists
+# /*---------------------------------------------------------------------------8
+# |                                   END                                      |
+# +------------------------------------4--------------------------------------*/
+...

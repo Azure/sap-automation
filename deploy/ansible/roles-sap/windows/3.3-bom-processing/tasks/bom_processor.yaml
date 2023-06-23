@@ -86,8 +86,10 @@
     Type:                              Directory
     Ensure:                            Present
   loop:                                "{{ bom.materials.media | flatten(levels=1) }}"
-  when:                                not ( (item.extractDir is undefined) or (item.extractDir == '') )
-
+  when:
+    - item.extractDir is defined
+    - item.extractDir | type_debug != 'NoneType'
+    - item.extractDir | length > 0
 
 # Download Files
 # ------------------<DEBUGGING>-------------------

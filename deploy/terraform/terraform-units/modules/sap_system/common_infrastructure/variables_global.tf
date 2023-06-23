@@ -12,7 +12,7 @@ variable "database" {
     condition = (
       length(trimspace(try(var.database.platform, ""))) != 7
     )
-    error_message = "The platform (HANA, SQLSERVER, ORACLE, DB2) must be specified."
+    error_message = "The platform (HANA, SQLSERVER, ORACLE, ORACLE-ASM, DB2, SYBASE) must be specified."
   }
 
   validation {
@@ -191,10 +191,15 @@ variable "azure_files_sapmnt_id" {
   default = ""
 }
 
+
+variable "use_random_id_for_storageaccounts" {
+  description = "If true, will use random id for storage accounts"
+}
+
 variable "Agent_IP" {
   description = "If provided, contains the IP address of the agent"
-  type    = string
-  default = ""
+  type        = string
+  default     = ""
 }
 
 variable "use_private_endpoint" {
@@ -208,6 +213,14 @@ variable "use_service_endpoint" {
   default     = false
   type        = bool
 }
+
+
+#########################################################################################
+#                                                                                       #
+#  DNS settings                                                                         #
+#                                                                                       #
+#########################################################################################
+
 
 variable "use_custom_dns_a_registration" {
   description = "Boolean value indicating if a custom dns a record should be created when using private endpoints"
@@ -257,3 +270,13 @@ variable "landscape_tfstate" {
 
 }
 
+
+#########################################################################################
+#                                                                                       #
+#  Scale Set                                                                            #
+#                                                                                       #
+#########################################################################################
+
+variable "use_scalesets_for_deployment" {
+  description = "Use Flexible Virtual Machine Scale Sets for the deployment"
+}

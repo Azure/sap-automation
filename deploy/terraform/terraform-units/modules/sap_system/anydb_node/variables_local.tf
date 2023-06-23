@@ -45,7 +45,7 @@ locals {
   // Dual network cards
   anydb_dual_nics = try(var.database.dual_nics, false) && length(try(var.admin_subnet.id, "")) > 0
 
-  enable_deployment = contains(["ORACLE", "DB2", "SQLSERVER", "ASE"], var.database.platform)
+  enable_deployment = contains(["ORACLE", "ORACLE-ASM", "DB2", "SQLSERVER", "SYBASE"], var.database.platform)
 
   // Enable deployment based on length of local.anydb_databases
 
@@ -80,7 +80,7 @@ locals {
   db_sizing = local.enable_deployment ? lookup(local.sizes.db, local.anydb_size).storage : []
   db_size   = local.enable_deployment ? lookup(local.sizes.db, local.anydb_size).compute : {}
 
-  anydb_sku = try(local.db_size.vm_size, "Standard_E16_v3")
+  anydb_sku = length(var.database.database_vm_sku) > 0 ? var.database.database_vm_sku : try(local.db_size.vm_size, "Standard_E16_v3")
 
   anydb_ha = try(var.database.high_availability, false)
   db_sid   = try(var.database.instance.sid, lower(substr(var.database.platform, 0, 3)))
@@ -89,7 +89,7 @@ locals {
   enable_db_lb_deployment = (
     var.database_server_count > 0 &&
     (var.use_loadbalancers_for_standalone_deployments || var.database_server_count > 1) &&
-    var.database.platform != "ORACLE" &&
+    var.database.platform != "ORACLE" && var.database.platform != "ORACLE-ASM" &&
     var.database.platform != "NONE"
   )
 
@@ -110,7 +110,7 @@ locals {
 
   // Default values in case not provided
   os_defaults = {
-    ASE = {
+    SYBASE = {
       "publisher" = "SUSE",
       "offer"     = "sles-sap-15-sp3",
       "sku"       = "gen2"
@@ -188,7 +188,7 @@ locals {
 
   #If using an existing VM for observer set use_observer to false in .tfvars
   deploy_observer = var.use_observer ? (
-    upper(var.database.platform) == "ORACLE" && local.anydb_ha) : (
+    (upper(var.database.platform) == "ORACLE" || upper(var.database.platform) == "ORACLE-ASM") && local.anydb_ha) : (
     false
   )
   observer_size            = "Standard_D4s_v3"
@@ -208,10 +208,13 @@ locals {
 
   // Ports used for specific DB Versions
   lb_ports = {
-    "ASE" = [
+    "SYBASE" = [
       "63500"
     ]
     "ORACLE" = [
+      "1521"
+    ]
+    "ORACLE-ASM" = [
       "1521"
     ]
     "DB2" = [
@@ -278,6 +281,7 @@ locals {
           caching                   = storage_type.caching,
           write_accelerator_enabled = try(storage_type.write_accelerator, false)
           type                      = storage_type.name
+          tier                      = try(storage_type.tier, null)
           lun                       = storage_type.lun_start + idx
         }
         if !try(storage_type.append, false)
@@ -292,15 +296,17 @@ locals {
         for idx, disk_count in range(storage_type.count) : {
           suffix = format("-%s%02d",
             storage_type.name,
-            storage_type.lun_start + disk_count + var.options.resource_offset
+            storage_type.name_offset + disk_count + var.options.resource_offset
           )
           storage_account_type      = storage_type.disk_type
           disk_size_gb              = storage_type.size_gb
           disk_iops_read_write      = try(storage_type.disk-iops-read-write, null)
           disk_mbps_read_write      = try(storage_type.disk-mbps-read-write, null)
+          tier                      = try(storage_type.tier, null)
           caching                   = storage_type.caching
           write_accelerator_enabled = try(storage_type.write_accelerator, false)
           type                      = storage_type.name
+          tier                      = try(storage_type.tier, null)
           lun                       = storage_type.lun_start + idx
         }
         if try(storage_type.append, false)
@@ -309,15 +315,9 @@ locals {
     ]
   ) : []
 
-  all_data_disk_per_dbnode = distinct(
-    concat(
-      local.data_disk_per_dbnode, local.append_data_disk_per_dbnode
-    )
-  )
-
-  anydb_disks = flatten([
+  base_anydb_disks = flatten([
     for vm_counter in range(var.database_server_count) : [
-      for datadisk in local.all_data_disk_per_dbnode : {
+      for datadisk in local.data_disk_per_dbnode : {
         suffix                    = datadisk.suffix
         vm_index                  = vm_counter
         caching                   = datadisk.caching
@@ -328,9 +328,30 @@ locals {
         disk_mbps_read_write      = datadisk.disk_mbps_read_write
         lun                       = datadisk.lun
         type                      = datadisk.type
+        tier                      = datadisk.tier
       }
     ]
   ])
+
+  append_anydb_disks = flatten([
+    for vm_counter in range(var.database_server_count) : [
+      for datadisk in local.append_data_disk_per_dbnode : {
+        suffix                    = datadisk.suffix
+        vm_index                  = vm_counter
+        caching                   = datadisk.caching
+        storage_account_type      = datadisk.storage_account_type
+        disk_size_gb              = datadisk.disk_size_gb
+        write_accelerator_enabled = datadisk.write_accelerator_enabled
+        disk_iops_read_write      = datadisk.disk_iops_read_write
+        disk_mbps_read_write      = datadisk.disk_mbps_read_write
+        lun                       = datadisk.lun
+        type                      = datadisk.type
+        tier                      = datadisk.tier
+      }
+    ]
+  ])
+
+  anydb_disks = distinct(concat(local.base_anydb_disks, local.append_anydb_disks))
 
   //Disks for Ansible
   // host: xxx, LUN: #, type: sapusr, size: #
@@ -361,9 +382,11 @@ locals {
   zonal_deployment = local.db_zone_count > 0 || local.enable_ultradisk ? true : false
 
   //If we deploy more than one server in zone put them in an availability set
-  use_avset = local.zonal_deployment ? (
-    false) : (
-    var.database_server_count > 0 && try(!var.database.no_avset, false)
+  use_avset = local.availabilitysets_exist || var.database.use_avset ? (
+    true) : (!local.enable_ultradisk ? (
+      !local.zonal_deployment || (var.database_server_count != local.db_zone_count)) : (
+      false
+    )
   )
 
   full_observer_names = flatten([for vm in var.naming.virtualmachine_names.OBSERVER_VMNAME :
@@ -376,8 +399,6 @@ locals {
     )]
   )
 
-  //PPG control flag
-  no_ppg = var.database.no_ppg
 
   dns_label               = try(var.landscape_tfstate.dns_label, "")
   dns_resource_group_name = try(var.landscape_tfstate.dns_resource_group_name, "")
@@ -408,5 +429,55 @@ locals {
     flatten(concat(local.database_primary_ips, local.database_secondary_ips))) : (
     local.database_primary_ips
   )
+
+
+  std_ips = [
+    {
+      name = format("%s%s%s%s",
+        var.naming.resource_prefixes.db_alb_feip,
+        local.prefix,
+        var.naming.separator,
+        local.resource_suffixes.db_alb_feip
+      )
+      subnet_id = var.db_subnet.id
+      private_ip_address = length(try(var.database.loadbalancer.frontend_ips[0], "")) > 0 ? (
+        var.database.loadbalancer.frontend_ips[0]) : (
+        var.database.use_DHCP ? (
+          null) : (
+          cidrhost(
+            var.db_subnet.address_prefixes[0],
+            local.anydb_ip_offsets.anydb_lb
+        ))
+      )
+      private_ip_address_allocation = length(try(var.database.loadbalancer.frontend_ips[0], "")) > 0 ? "Static" : "Dynamic"
+      zones                         = ["1", "2", "3"]
+    },
+    {
+      name = format("%s%s%s%s",
+        var.naming.resource_prefixes.db_clst_feip,
+        local.prefix,
+        var.naming.separator,
+        local.resource_suffixes.db_clst_feip
+      )
+      subnet_id = var.db_subnet.id
+      private_ip_address = length(try(var.database.loadbalancer.frontend_ips[1], "")) > 0 ? (
+        var.database.loadbalancer.frontend_ips[1]) : (
+        var.database.use_DHCP ? (
+          null) : (
+          cidrhost(
+            var.db_subnet.address_prefixes[0],
+            local.anydb_ip_offsets.anydb_lb + 1
+        ))
+      )
+      private_ip_address_allocation = length(try(var.database.loadbalancer.frontend_ips[1], "")) > 0 ? "Static" : "Dynamic"
+
+    }
+
+  ]
+
+  winHA = var.database.high_availability && upper(local.anydb_ostype) == "WINDOWS"
+
+  fpips = slice(local.std_ips, 0, local.winHA ? 2 : 1)
+
 
 }

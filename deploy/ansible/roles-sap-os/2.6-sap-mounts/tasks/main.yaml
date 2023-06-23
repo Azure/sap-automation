@@ -56,7 +56,7 @@
     msg:
       - "NFS Provider: {{ NFS_provider }}"
       - "Install path: {{ usr_sap_install_mount_point }}"
-    verbosity:                         2
+      - "Shared path:  {{ sharedpath }}"
 
 # Mount Filesystems
 
@@ -158,6 +158,18 @@
     - "'scs' in supported_tiers"
     - usr_sap_install_mountpoint is undefined
 
+- name:                                "1.5 Disk setup - Check if installation root directory exists"
+  ansible.builtin.stat:
+    path:                              "{{ tmp_directory }}"
+  register:                            tmp_dir
+
+- name:                                "1.5 Disk setup - Ensure installation root directory exists"
+  ansible.builtin.file:
+    path:                              "{{ tmp_directory }}"
+    state:                             directory
+    mode:                              0775
+  when: not tmp_dir.stat.isdir
+
 # Mount Filesystems
 - name:                                "2.6 SAP Mounts: - Mount local sapmnt on (scs) {{ ansible_hostname }}"
   ansible.posix.mount:
@@ -198,7 +210,7 @@
         state:                         mounted
       when:
         - tier == 'sapos'
-        - node_tier in ['pas', 'app', 'ers', 'oracle', 'db2']
+        - node_tier in ['pas', 'app', 'ers', 'oracle', 'db2', 'sybase']
         - sap_mnt is undefined
         - MULTI_SIDS is undefined
         - nfs_server !=  ansible_hostname
@@ -215,7 +227,7 @@
         state:                         remounted
       when:
         - tier == 'sapos'
-        - node_tier in ['pas', 'app', 'ers', 'oracle', 'db2']
+        - node_tier in ['pas', 'app', 'ers', 'oracle', 'db2', 'sybase']
         - sap_mnt is undefined
         - MULTI_SIDS is undefined
         - nfs_server !=  ansible_hostname
@@ -318,12 +330,18 @@
   when:
     - node_tier == "db2"
 
+# Import this task only if the node_tier is ase.
+- name:                                "2.6 SAP Mounts: - Import SYBASE tasks"
+  ansible.builtin.import_tasks:        "2.6.6-sybase-mounts.yaml"
+  when:
+    - node_tier == "sybase"
+
 # Import this task only if the sap_mnt is defined, i.e. AFS is used
 - name:                                "2.6 SAP Mounts: - Import AFS tasks"
   ansible.builtin.import_tasks:        2.6.0-afs-mounts.yaml
   when:
     - sap_mnt is defined or sap_trans is defined or usr_sap_install_mountpoint is defined
-    - NFS_provider != 'ANF'
+    - NFS_provider == 'AFS'
 
 
 # Import this task only if the sap_mnt is defined, i.e. ANF is used
@@ -343,8 +361,7 @@
 - name:                                "2.6 SAP Mounts: - Set permissions"
   become:                               true
   become_user:                          root
-  when:
-    - node_tier == "hana"
+  when:                                 node_tier == "hana"
   block:
     - name:                            "2.6 SAP Mounts: - Set permissions on hana folders"
       ansible.builtin.file:

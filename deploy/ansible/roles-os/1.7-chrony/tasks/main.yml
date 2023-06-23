@@ -131,6 +131,7 @@
     - name:                            "1.7 chrony: - Remove existing pool or server entries if
                                        custom settings not yet applied"
       ansible.builtin.shell: |
+        set -o pipefail
         # Don't do anything if the file has ansible managed marker
         if grep >/dev/null 2>&1 "ANSIBLE MANAGED BLOCK" /etc/chrony.conf; then
           exit 0
@@ -145,6 +146,7 @@
       failed_when:                     chrony_remove_existing_settings.rc not in [0, 55]
       changed_when:                    chrony_remove_existing_settings.rc == 55
       register:                        chrony_remove_existing_settings
+      tags:                            ansible_skip_lint
 
     - name:                            "1.7 chrony: - Add/Update custom settings block"
       ansible.builtin.blockinfile:
@@ -166,6 +168,7 @@
   when:
     # If custom pool or servers specified
     - (chrony_conf_entries | count) > 0
+  tags: ansible_skip_lint
 
 - name:                                "1.7 chrony: - Do we need to restart chronyd?"
   ansible.builtin.debug:

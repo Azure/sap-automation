@@ -4,7 +4,7 @@
 # SAP Note 2205917 - SAP HANA DB Recommended OS settings for SLES 12 / SLES for SAP Applications 12
 # TODO: when tier = HANA; put in a block; move to sap specific
 - name:                                Task Disable Transparent Hugepages & Configure Processor C-States 1
-  ansible.builtin.command:             "echo never > /sys/kernel/mm/transparent_hugepage/enabled"
+  ansible.builtin.shell:               "echo never > /sys/kernel/mm/transparent_hugepage/enabled"
   changed_when:                        false
 
 - name:                                "Set GRUB config path"
@@ -19,7 +19,7 @@
     - processor.max_cstate:              '1'
 
 - name:                                "2.10.0 sap-notes: - Update GRUB config for UEFI systems"
-  ansible.builtin.command:             grub2-mkconfig -o /boot/efi/EFI/sles/grub.cfg
+  ansible.builtin.command:             grub2-mkconfig -o /boot/efi/EFI/BOOT/grub.cfg
   changed_when:                        false
   when:                                "'/boot/efi' in ansible_mounts | map(attribute='mount') | list"
 

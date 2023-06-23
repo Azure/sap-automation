@@ -72,7 +72,7 @@ data "azurerm_subnet" "admin" {
 
 resource "azurerm_subnet" "db" {
   provider             = azurerm.main
-  count                = local.enable_db_deployment ? (local.database_subnet_exists ? 0 : 1) : 0
+  count                = length(trimspace(local.database_subnet_arm_id)) == 0 ? 1 : 0
   name                 = local.database_subnet_name
   resource_group_name  = data.azurerm_virtual_network.vnet_sap.resource_group_name
   virtual_network_name = data.azurerm_virtual_network.vnet_sap.name
@@ -82,7 +82,7 @@ resource "azurerm_subnet" "db" {
 // Imports data of existing db subnet
 data "azurerm_subnet" "db" {
   provider             = azurerm.main
-  count                = local.enable_db_deployment ? (local.database_subnet_exists ? 1 : 0) : 0
+  count                = length(local.database_subnet_arm_id) > 0 ? 1 : 0
   name                 = split("/", local.database_subnet_arm_id)[10]
   resource_group_name  = split("/", local.database_subnet_arm_id)[4]
   virtual_network_name = split("/", local.database_subnet_arm_id)[8]
@@ -142,7 +142,7 @@ data "azurerm_storage_account" "storage_bootdiag" {
 // PROXIMITY PLACEMENT GROUP
 resource "azurerm_proximity_placement_group" "ppg" {
   provider = azurerm.main
-  count    = local.ppg_exists ? 0 : (local.zonal_deployment ? max(length(local.zones), 1) : 1)
+  count    = local.ppg_exists || var.use_scalesets_for_deployment ? 0 : (local.zonal_deployment ? max(length(local.zones), 1) : 1)
   name     = format("%s%s", local.prefix, var.naming.ppg_names[count.index])
   resource_group_name = local.resource_group_exists ? (
     data.azurerm_resource_group.resource_group[0].name) : (
@@ -211,3 +211,26 @@ data "template_cloudinit_config" "config_growpart" {
   }
 }
 
+
+resource "azurerm_orchestrated_virtual_machine_scale_set" "scale_set" {
+
+  provider = azurerm.main
+  count = var.use_scalesets_for_deployment ? 1 : 0
+
+  name = format("%s%s%s",
+    var.naming.resource_prefixes.vmss,
+    local.prefix,
+    local.resource_suffixes.vmss
+  )
+
+
+  resource_group_name = local.resource_group_exists ? (
+    data.azurerm_resource_group.resource_group[0].name) : (
+    azurerm_resource_group.resource_group[0].name
+  )
+  location = var.infrastructure.region
+
+  platform_fault_domain_count = 1
+
+  zones = local.zones
+}

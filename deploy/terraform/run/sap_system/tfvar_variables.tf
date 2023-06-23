@@ -6,12 +6,12 @@
 
 variable "environment" {
   type        = string
-  description = "This is the environment name of the deployment"
+  description = "This is the environment name for the deployment"
   default     = ""
 }
 
 variable "codename" {
-  description = "Optipnal code name for the deployment"
+  description = "Optional code name for the deployment"
   type        = string
   default     = ""
 }
@@ -23,7 +23,7 @@ variable "custom_prefix" {
 }
 
 variable "use_prefix" {
-  description = "Use the prefix for the resources"
+  description = "Defines if the resources are to be prefixed"
   default     = true
 }
 
@@ -34,7 +34,7 @@ variable "location" {
 }
 
 variable "name_override_file" {
-  description = "If provided, contains a json formatted file defining the name overrides"
+  description = "If provided, contains a json formatted file defining the filename for the override json"
   default     = ""
 }
 
@@ -42,6 +42,13 @@ variable "custom_disk_sizes_filename" {
   description = "Custom disk configuration json file for Virtual machines"
   default     = ""
 }
+
+variable "use_scalesets_for_deployment" {
+  description = "Use Flexible Virtual Machine Scale Sets for the deployment"
+  default     = false
+}
+
+
 
 #########################################################################################
 #                                                                                       #
@@ -60,7 +67,7 @@ variable "resourcegroup_arm_id" {
 }
 
 variable "resourcegroup_tags" {
-  description = "Tags for the resource group"
+  description = "If provided, tags for the resource group"
   default     = {}
 }
 
@@ -72,12 +79,12 @@ variable "resourcegroup_tags" {
 
 
 variable "proximityplacementgroup_names" {
-  description = "Names of the proximity placement groups"
+  description = "If provided, names of the proximity placement groups"
   default     = []
 }
 
 variable "proximityplacementgroup_arm_ids" {
-  description = "Azure resource group ids for the proximity placement groups"
+  description = "If provided, azure resource ids for the proximity placement groups"
   default     = []
 }
 
@@ -93,7 +100,7 @@ variable "network_logical_name" {
 }
 
 variable "use_secondary_ips" {
-  description = "Use secondary IPs for the SAP System"
+  description = "Defines if secondary IPs are used for the SAP Systems virtual machines"
   default     = false
 }
 
@@ -120,12 +127,12 @@ variable "admin_subnet_address_prefix" {
 }
 
 variable "admin_subnet_nsg_name" {
-  description = "If provided, the name of the admin subnet NSG"
+  description = "If provided, the name of the network security group attached to the admin subnet"
   default     = ""
 }
 
 variable "admin_subnet_nsg_arm_id" {
-  description = "If provided, Azure resource id for the admin subnet NSG"
+  description = "If provided, Azure resource id of the network security group attached to the admin subnet"
   default     = ""
 }
 
@@ -152,12 +159,12 @@ variable "db_subnet_address_prefix" {
 }
 
 variable "db_subnet_nsg_name" {
-  description = "If provided, the name of the db subnet NSG"
+  description = "If provided, the name of the network security group attached to the db subnet"
   default     = ""
 }
 
 variable "db_subnet_nsg_arm_id" {
-  description = "If provided, Azure resource id for the db subnet NSG"
+  description = "If provided, Azure resource id network security group attached to the db subnet"
   default     = ""
 }
 
@@ -184,12 +191,12 @@ variable "app_subnet_address_prefix" {
 }
 
 variable "app_subnet_nsg_name" {
-  description = "If provided, the name of the app subnet NSG"
+  description = "If provided, the name of the network security group attached to the app subnet"
   default     = ""
 }
 
 variable "app_subnet_nsg_arm_id" {
-  description = "If provided, Azure resource id for the app subnet NSG"
+  description = "If provided, Azure resource id network security group attached to the app subnet"
   default     = ""
 }
 
@@ -216,18 +223,13 @@ variable "web_subnet_address_prefix" {
 }
 
 variable "web_subnet_nsg_name" {
-  description = "If provided, the name of the web subnet NSG"
+  description = "If provided, the name of network security group attached to the web subnet"
   default     = ""
 }
 
 variable "web_subnet_nsg_arm_id" {
-  description = "If provided, Azure resource id for the web subnet NSG"
+  description = "If provided, Azure resource id for network security group attached to the web subnet"
   default     = ""
-}
-
-variable "use_observer" {
-  description = "value to determine if an observer virtual machine is used"
-  default     = true
 }
 
 #########################################################################################
@@ -286,12 +288,28 @@ variable "use_spn" {
 
 #########################################################################################
 #                                                                                       #
+#  Cluster settings                                                                     #
+#                                                                                       #
+#########################################################################################
+
+variable "use_msi_for_clusters" {
+  description = "If true, the Pacemaker cluser will use a managed identity"
+  default     = false
+}
+
+variable "fencing_role_name" {
+  description = "If specified the role name to use for the fencing agent"
+  default     = "Virtual Machine Contributor"
+}
+
+#########################################################################################
+#                                                                                       #
 #  Database tier variables                                                              #
 #                                                                                       #
 #########################################################################################
 
 variable "database_platform" {
-  description = "Database platform, supported values are HANA, DB2, ORACLE, ASE, SQLSERVER or NONE (in this case no database tier is deployed)"
+  description = "Database platform, supported values are HANA, DB2, ORACLE, ORACLE-ASM, ASE, SQLSERVER or NONE (in this case no database tier is deployed)"
   default     = ""
 }
 
@@ -310,16 +328,10 @@ variable "database_high_availability" {
   default     = false
 }
 
-variable "use_msi_for_clusters" {
-  description = "If true, the Pacemaker cluser will use a managed identity"
-  default     = false
+variable "use_observer" {
+  description = "If true, an observer virtual machine will be used"
+  default     = true
 }
-
-variable "fencing_role_name" {
-  description = "If specified the role name to use for the fencing agent"
-  default     = "Virtual Machine Contributor"
-}
-
 
 variable "database_vm_zones" {
   description = "If provided, the database tier will be deployed in the specified zones"
@@ -327,7 +339,12 @@ variable "database_vm_zones" {
 }
 
 variable "database_size" {
-  description = "Dictionary value to sizing json"
+  description = "Dictionary key value to sizing json"
+  default     = ""
+}
+
+variable "database_vm_sku" {
+  description = "The Virtual Machine SKU to use for the database virtual machines"
   default     = ""
 }
 
@@ -365,7 +382,7 @@ variable "database_vm_avset_arm_ids" {
 }
 
 variable "database_vm_use_DHCP" {
-  description = "If true, the database server will use Azure Provided IP addresses"
+  description = "If true, the database server will use Azure provided IP addresses"
   default     = false
 }
 
@@ -373,53 +390,84 @@ variable "database_instance_number" {
   description = "The Instance number for the database server"
   default     = "00"
 }
+
 variable "database_no_avset" {
-  description = "If true, the database tier will not use an availability set"
-  default     = false
+  description = "[Obsolete] If true, the database tier will not use an availability set"
+  default     = null
 }
 
+variable "database_use_avset" {
+  description = "If true, the database tier will use an availability set"
+  default     = null
+  validation {
+    condition = (
+      tobool(var.database_use_avset) != null
+    )
+    error_message = "database_use_avset is not defined, please define it in your tfvars file."
+  }
+}
+
+
 variable "database_dual_nics" {
-  description = "If true, the database tier will have two NICs"
+  description = "If true, the database tier will have be deployed with two network interfaces"
   default     = false
 }
 
 variable "database_no_ppg" {
-  description = "If provided, the database tier will not use a proximity placement group"
-  default     = false
+  description = "[Obsolete] If provided, the database tier will not be placed in a proximity placement group"
+  default     = null
+}
+
+variable "database_use_ppg" {
+  description = "If provided, the database tier will be placed in a proximity placement group"
+  default     = null
+  validation {
+    condition = (
+      tobool(var.database_use_ppg) != null
+    )
+    error_message = "database_use_ppg is not defined, please define it in your tfvars file."
+  }
+
 }
 
 variable "database_loadbalancer_ips" {
-  description = "If provided, the database tier will be configured with the specified load balancer IP"
+  description = "If provided, the database tier's load balancer will be configured with the specified load balancer IPs"
   default     = []
 }
 
 variable "database_tags" {
-  description = "If provided, the database tier will be configured with the specified tags"
+  description = "If provided, the database tier virtual machines will be configured with the specified tags"
   default     = {}
 }
 
 variable "database_vm_db_nic_ips" {
-  description = "If provided, the database tier will be configured with the specified IPs"
+  description = "If provided, the database tier virtual machines will be configured using the specified IPs"
   default     = [""]
 }
 
 variable "database_vm_db_nic_secondary_ips" {
-  description = "If provided, the database tier will be configured with the specified IPs as secondary IPs"
+  description = "If provided, the database tier virtual machines will be configured using the specified IPs as secondary IPs"
   default     = [""]
 }
 
 variable "database_vm_admin_nic_ips" {
-  description = "If provided, the database tier will be configured with the specified IPs (admin subnet)"
+  description = "If provided, the database tier virtual machines will be configured with the specified IPs (admin subnet)"
   default     = [""]
 }
 
 variable "database_vm_storage_nic_ips" {
-  description = "If provided, the database tier will be configured with the specified IPs (storage subnet)"
+  description = "If provided, the database tier virtual machines will be configured with the specified IPs (storage subnet)"
   default     = [""]
 }
 
 variable "database_HANA_use_ANF_scaleout_scenario" {
+  description = "Not implemented yet"
   default = false
+}
+
+variable "database_use_premium_v2_storage" {
+  description = "If true, the database tier will use premium storage"
+  default     = false
 }
 
 
@@ -445,12 +493,12 @@ variable "sid" {
 }
 
 variable "app_tier_use_DHCP" {
-  description = "If true, the application tier will use Azure Provided IP addresses"
+  description = "If true, the application tier virtual machines will use Azure provided IP addresses"
   default     = false
 }
 
 variable "app_tier_dual_nics" {
-  description = "If true, the application tier will have two NICs"
+  description = "If true, the application tier virtual machines will have two NICs"
   default     = false
 }
 
@@ -477,7 +525,7 @@ variable "app_disk_sizes_filename" {
 #########################################################################################
 
 variable "scs_server_count" {
-  description = "The number of SAP Central Services servers"
+  description = "The number of SAP Central Services servers to deploy"
   default     = 0
 }
 
@@ -500,41 +548,42 @@ variable "scs_server_image" {
     "offer"           = ""
     "sku"             = ""
     "version"         = ""
+    "type"            = "Custom"
   }
 }
 
 variable "scs_instance_number" {
-  description = "The Instance number for SCS"
+  description = "The instance number for SCS"
   default     = "00"
 }
 
 variable "ers_instance_number" {
-  description = "The Instance number for ERS"
+  description = "The instance number for ERS"
   default     = "02"
 }
 
 variable "scs_server_app_nic_ips" {
-  description = "If provided, the SAP Central Services tier will be configured with the specified IPs"
+  description = "If provided, the SAP Central Services virtual machines will be configured with the specified IPs"
   default     = []
 }
 
 variable "scs_server_nic_secondary_ips" {
-  description = "If provided, the SAP Central Services tier will be configured with the specified IPs as secondary IPs"
+  description = "If provided, the SAP Central Services virtual machines will be configured with the specified IPs as secondary IPs"
   default     = []
 }
 
 variable "scs_server_admin_nic_ips" {
-  description = "If provided, the SAP Central Services tier will be configured with the specified IPs  (admin subnet)"
+  description = "If provided, the SAP Central Services virtual machines will be configured with the specified IPs  (admin subnet)"
   default     = []
 }
 
 variable "scs_server_loadbalancer_ips" {
-  description = "If provided, the SAP Central Services tier will be configured with the specified load balancer IPs"
+  description = "If provided, the SAP Central Services virtual machines will be configured with the specified load balancer IPs"
   default     = []
 }
 
 variable "scs_server_sku" {
-  description = "The Virtual Machine SKU to use"
+  description = "The Virtual Machine SKU to use for the SAP Central Services virtual machines"
   default     = ""
 }
 
@@ -544,13 +593,45 @@ variable "scs_server_tags" {
 }
 
 variable "scs_server_no_avset" {
-  description = "If true, the SAP Central Services tier will not use an availability set"
-  default     = false
+  description = "[Obsolete] If true, the SAP Central Services tier will not use an availability set"
+  default     = null
+}
+
+variable "scs_server_use_avset" {
+  description = "If true, the SAP Central Services tier will be placed in an availability set"
+  default     = null
+  validation {
+    condition = (
+      tobool(var.scs_server_use_avset) != null
+    )
+    error_message = "scs_server_use_avset is not defined, please define it in your tfvars file."
+  }
 }
 
 variable "scs_server_no_ppg" {
-  description = "If provided, the Central Services will not be placed in a proximity placement group"
-  default     = false
+  description = "[Obsolete] If provided, the Central Services will not be placed in a proximity placement group"
+  default     = null
+}
+
+variable "scs_server_use_ppg" {
+  description = "If provided, the Central Services will be placed in a proximity placement group"
+  default     = null
+  validation {
+    condition = (
+      tobool(var.scs_server_use_ppg) != null
+    )
+    error_message = "scs_server_use_ppg is not defined, please define it in your tfvars file."
+  }
+}
+
+variable "scs_shared_disk_size" {
+  description = "The size of the shared disk for the SAP Central Services Windows cluster"
+  default     = 128
+}
+
+variable "scs_shared_disk_lun" {
+  description = "The LUN of the shared disk for the SAP Central Services Windows cluster"
+  default     = 5
 }
 
 #########################################################################################
@@ -562,6 +643,11 @@ variable "scs_server_no_ppg" {
 variable "application_server_count" {
   description = "The number of application servers"
   default     = 0
+}
+
+variable "pas_instance_number" {
+  description = "The Instance number for PAS"
+  default     = "00"
 }
 
 variable "application_server_app_nic_ips" {
@@ -594,19 +680,42 @@ variable "application_server_zones" {
   default     = []
 }
 
-variable "application_server_no_avset" {
-  description = "If true, the application tier will not use an availability set"
-  default     = false
-}
 
 variable "application_server_vm_avset_arm_ids" {
   description = "If provided, Azure resource ids for the availability sets to use for the application servers"
   default     = []
 }
 
+variable "application_server_no_avset" {
+  description = "[Obsolete]If true, the application tier will not be placed availability set"
+  default     = null
+}
+
+variable "application_server_use_avset" {
+  description = "If true, the application tier will be placed in an availability set"
+  default     = null
+  validation {
+    condition = (
+      tobool(var.application_server_use_avset) != null
+    )
+    error_message = "application_server_use_avset is not defined, please define it in your tfvars file."
+  }
+}
+
 variable "application_server_no_ppg" {
-  description = "If provided, the application servers will not be placed in a proximity placement group"
-  default     = false
+  description = "[Obsolete]If provided, the application servers will not be placed in a proximity placement group"
+  default     = null
+}
+
+variable "application_server_use_ppg" {
+  description = "If provided, the application servers will be placed in a proximity placement group"
+  default     = null
+  validation {
+    condition = (
+      tobool(var.application_server_use_ppg) != null
+    )
+    error_message = "application_server_use_ppg is not defined, please define it in your tfvars file."
+  }
 }
 
 variable "application_server_image" {
@@ -637,6 +746,10 @@ variable "web_sid" {
   default     = ""
 }
 
+variable "web_instance_number" {
+  description = "The Instance number for the Web dispatcher"
+  default     = "00"
+}
 
 variable "webdispatcher_server_zones" {
   description = "The zones for the web dispatchers"
@@ -686,13 +799,23 @@ variable "webdispatcher_server_tags" {
 }
 
 variable "webdispatcher_server_no_avset" {
-  description = "If true, the Web Dispatcher tier will not use an availability set"
+  description = "[OBSOLUTE]If true, the Web Dispatcher tier will not use an availability set"
+  default     = null
+}
+
+variable "webdispatcher_server_use_avset" {
+  description = "If true, the Web Dispatcher tier will will be placed in an availability set"
   default     = false
 }
 
 variable "webdispatcher_server_no_ppg" {
-  description = "If provided, the web dispatchers will not be placed in a proximity placement group"
-  default     = false
+  description = "[OBSOLUTE]If provided, the web dispatchers will not be placed in a proximity placement group"
+  default     = null
+}
+
+variable "webdispatcher_server_use_ppg" {
+  description = "If provided, the web dispatchers will be placed in a proximity placement group"
+  default     = null
 }
 
 #########################################################################################
@@ -706,13 +829,17 @@ variable "resource_offset" {
   default     = 0
 }
 
+variable "deploy_v1_monitoring_extension" {
+  description = "Defines if the Microsoft.AzureCAT.AzureEnhancedMonitoring extension will be deployed"
+  default     = true
+}
 variable "vm_disk_encryption_set_id" {
   description = "If provided, the VM disks will be encrypted with the specified disk encryption set"
   default     = ""
 }
 
 variable "nsg_asg_with_vnet" {
-  description = "If true, the NSG will be placed in the resource group containing the VNet"
+  description = "If true, the network security group will be placed in the resource group containing the VNet"
   default     = false
 }
 
@@ -732,14 +859,14 @@ variable "idle_timeout_scs_ers" {
 }
 
 variable "bom_name" {
-  description = "NAme of the SAP Application Bill of Material file"
+  description = "Name of the SAP Application Bill of Material file"
   default     = ""
 }
 
 variable "Agent_IP" {
   description = "If provided, contains the IP address of the agent"
-  type    = string
-  default = ""
+  type        = string
+  default     = ""
 }
 
 variable "shared_home" {
@@ -763,6 +890,14 @@ variable "use_private_endpoint" {
   type        = bool
 }
 
+
+#########################################################################################
+#                                                                                       #
+#  DNS settings                                                                         #
+#                                                                                       #
+#########################################################################################
+
+
 variable "use_custom_dns_a_registration" {
   description = "Boolean value indicating if a custom dns a record should be created when using private endpoints"
   default     = false
@@ -771,15 +906,22 @@ variable "use_custom_dns_a_registration" {
 
 variable "management_dns_subscription_id" {
   description = "String value giving the possibility to register custom dns a records in a separate subscription"
-  default     = null
+  default     = ""
   type        = string
 }
 
 variable "management_dns_resourcegroup_name" {
   description = "String value giving the possibility to register custom dns a records in a separate resourcegroup"
-  default     = null
+  default     = ""
   type        = string
 }
+
+variable "create_storage_dns_a_records" {
+  description = "Boolean value indicating if dns a records should be created for the storage accounts"
+  default     = false
+  type        = bool
+}
+
 #########################################################################################
 #                                                                                       #
 #  NFS and Shared Filed settings                                                        #
@@ -802,12 +944,16 @@ variable "azure_files_sapmnt_id" {
   default     = ""
 }
 
+variable "use_random_id_for_storageaccounts" {
+  description = "If true, will use random id for storage accounts"
+  default     = false
+}
+
 variable "sapmnt_private_endpoint_id" {
   description = "Azure Resource Identifier for an private endpoint connection"
   type        = string
   default     = ""
 }
-
 
 #########################################################################################
 #                                                                                       #
@@ -839,6 +985,16 @@ variable "ANF_HANA_data_volume_name" {
 variable "ANF_HANA_data_volume_throughput" {
   description = "If defined provides the throughput of the data volume"
   default     = 128
+}
+
+variable "ANF_HANA_use_AVG" {
+  description = "Use Application Volume Group for data volume"
+  default     = false
+}
+
+variable "ANF_HANA_use_Zones" {
+  description = "Use zonal ANF deployments"
+  default     = false
 }
 
 variable "ANF_HANA_log" {
@@ -923,6 +1079,16 @@ variable "use_service_endpoint" {
   type        = bool
 }
 
+variable "ANF_sapmnt_use_existing" {
+  description = "Use existing sapmnt volume"
+  default     = false
+}
+
+variable "ANF_sapmnt_use_clone_in_secondary_zone" {
+  description = "Create a clone in the secondary region"
+  default     = false
+}
+
 variable "ANF_sapmnt" {
   description = "Use existing sapmnt volume"
   default     = false
@@ -1001,4 +1167,15 @@ variable "anchor_vm_accelerated_networking" {
 variable "subscription" {
   description = "Target subscription"
   default     = ""
+}
+
+#########################################################################################
+#                                                                                       #
+#  Configuration values                                                                 #
+#                                                                                       #
+#########################################################################################
+
+variable "configuration_settings" {
+  description = "This is a dictionary that will contain values persisted to the sap-parameters.file"
+  default     = {}
 }

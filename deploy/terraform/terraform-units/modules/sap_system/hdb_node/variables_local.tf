@@ -7,7 +7,7 @@ locals {
   storageaccount_names = var.naming.storageaccount_names.SDU
   resource_suffixes    = var.naming.resource_suffixes
 
-  default_filepath = format("%s%s", path.module, "/../../../../../configs/hana_sizes.json")
+  default_filepath = var.database_use_premium_v2_storage ? format("%s%s", path.module, "/../../../../../configs/hana_sizes_v2.json") : format("%s%s", path.module, "/../../../../../configs/hana_sizes.json")
   custom_sizing    = length(var.custom_disk_sizes_filename) > 0
 
   // Imports database sizing information
@@ -109,11 +109,10 @@ locals {
   db_sizing_key = try(var.database.db_sizing_key, "Default")
 
   db_sizing = local.enable_deployment ? lookup(local.sizes.db, local.db_sizing_key).storage : []
-  db_size   = local.enable_deployment ? lookup(local.sizes.db, local.db_sizing_key).compute.vm_size : ""
+  db_size   = local.enable_deployment ? lookup(local.sizes.db, local.db_sizing_key).compute : {}
 
-  hdb_vm_sku = length(local.db_size) > 0 ? local.db_size : "Standard_E4s_v3"
-
-  hdb_ha = var.database.high_availability
+  hdb_vm_sku = length(var.database.database_vm_sku) > 0 ? var.database.database_vm_sku : try(local.db_size.vm_size, "Standard_E16_v3")
+  hdb_ha     = var.database.high_availability
 
   sid_auth_type        = try(var.database.authentication.type, "key")
   enable_auth_password = try(var.database.authentication.type, "key") == "password"
@@ -218,7 +217,7 @@ locals {
         for idx, disk_count in range(storage_type.count) : {
           suffix = format("-%s%02d",
             storage_type.name,
-            disk_count + var.options.resource_offset
+            storage_type.name_offset + disk_count + var.options.resource_offset
           )
           storage_account_type      = storage_type.disk_type,
           disk_size_gb              = storage_type.size_gb,
@@ -235,13 +234,9 @@ locals {
     ]
   ) : []
 
-  all_data_disk_per_dbnode = distinct(
-    concat(local.data_disk_per_dbnode, local.append_disk_per_dbnode)
-  )
-
-  data_disk_list = flatten([
+  base_data_disk_list = flatten([
     for vm_counter in range(var.database_server_count) : [
-      for datadisk in local.all_data_disk_per_dbnode : {
+      for datadisk in local.data_disk_per_dbnode : {
         suffix                    = datadisk.suffix
         vm_index                  = vm_counter
         caching                   = datadisk.caching
@@ -255,6 +250,25 @@ locals {
       }
     ]
   ])
+
+  append_data_disk_list = flatten([
+    for vm_counter in range(var.database_server_count) : [
+      for datadisk in local.append_disk_per_dbnode : {
+        suffix                    = datadisk.suffix
+        vm_index                  = vm_counter
+        caching                   = datadisk.caching
+        storage_account_type      = datadisk.storage_account_type
+        disk_size_gb              = datadisk.disk_size_gb
+        write_accelerator_enabled = datadisk.write_accelerator_enabled
+        disk_iops_read_write      = datadisk.disk_iops_read_write
+        disk_mbps_read_write      = datadisk.disk_mbps_read_write
+        lun                       = datadisk.lun
+        type                      = datadisk.type
+      }
+    ]
+  ])
+
+  data_disk_list = distinct(concat(local.base_data_disk_list, local.append_data_disk_list))
 
   //Disks for Ansible
   // host: xxx, LUN: #, type: sapusr, size: #
@@ -285,20 +299,31 @@ locals {
   zonal_deployment = local.db_zone_count > 0 || local.enable_ultradisk ? true : false
 
   //If we deploy more than one server in zone put them in an availability set
-  use_avset = var.database_server_count > 0 && !var.database.no_avset && !local.enable_ultradisk ? (
-    !local.zonal_deployment || (var.database_server_count != local.db_zone_count)) : (
-    false
+
+  use_avset = local.availabilitysets_exist ? (
+    true) : (var.database.use_avset && !local.enable_ultradisk ? (
+      !local.zonal_deployment || (var.database_server_count != local.db_zone_count)) : (
+      false
+    )
   )
 
-  //PPG control flag
-  no_ppg = var.database.no_ppg
 
-  dns_label               = try(var.landscape_tfstate.dns_label, "")
+  dns_label = try(var.landscape_tfstate.dns_label, "")
 
   ANF_pool_settings = var.NFS_provider == "ANF" ? (
-    try(var.landscape_tfstate.ANF_pool_settings, null)
+    try(var.landscape_tfstate.ANF_pool_settings, {})
     ) : (
-    null
+    {
+      use_ANF             = false
+      account_name        = ""
+      account_id          = ""
+      pool_name           = ""
+      service_level       = ""
+      size_in_tb          = ""
+      subnet_id           = ""
+      resource_group_name = ""
+      location            = ""
+    }
   )
   database_primary_ips = [
     {
@@ -326,5 +351,4 @@ locals {
     flatten(concat(local.database_primary_ips, local.database_secondary_ips))) : (
     local.database_primary_ips
   )
-
 }

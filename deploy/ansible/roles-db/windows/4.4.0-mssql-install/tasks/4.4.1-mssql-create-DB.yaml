@@ -54,10 +54,10 @@
 
 # - name:                                 "WIN-SQL: DB Creation || Flag File"
 #   block:
-- name:                             "WIN-SQL: DB Creation || Flag File"
+- name:                                "WIN-SQL: DB Creation || Flag File"
   ansible.windows.win_file:
-    path:                           '{{ sap_deployment_automation }}\{{ sap_sid | upper }}\sap_deployment_sqldb_create.txt'
-    state:                          touch
+    path:                              '{{ sap_deployment_automation }}\{{ sap_sid | upper }}\sap_deployment_sqldb_create.txt'
+    state:                             touch
   # when:
   #   - sql_output.rc is defined
   #   - sql_output.rc == 0

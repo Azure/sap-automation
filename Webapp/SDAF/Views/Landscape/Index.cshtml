@@ -1,0 +1,20 @@
+﻿@model AutomationForm.Models.SapObjectIndexModel<LandscapeModel>
+
+@{
+    ViewBag.Title = "Workload zones";
+    ViewBag.SapObjectType = "Landscape";
+    ViewBag.SapObjectDisplayName = "Workload zone";
+    ViewBag.MoreInformationUrl = "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main";
+}
+<script>
+    window.onload = function() {
+        $('.notificationContainer').delay(6000).fadeOut();
+    }
+</script>
+
+<fluent-breadcrumb>
+    <fluent-breadcrumb-item href="@Url.Action("Index", "Home")">Home</fluent-breadcrumb-item>
+    <fluent-breadcrumb-item href="#">Workload zones</fluent-breadcrumb-item>
+</fluent-breadcrumb>
+
+@await Html.PartialAsync("_IndexPartial", Model) 

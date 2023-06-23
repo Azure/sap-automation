@@ -41,8 +41,7 @@ locals {
   )
 
   // Storage account for tfstate
-  sa_tfstate_arm_id = try(var.storage_account_tfstate.arm_id, "")
-  sa_tfstate_exists = length(local.sa_tfstate_arm_id) > 0
+  sa_tfstate_exists = length(var.storage_account_tfstate.arm_id) > 0
 
 
   // Comment out code with users.object_id for the time being.
@@ -55,5 +54,6 @@ locals {
 
   enable_firewall_for_keyvaults_and_storage = try(var.deployer_tfstate.enable_firewall_for_keyvaults_and_storage, false)
 
+  use_local_private_dns = (length(var.dns_label) > 0 && !var.use_custom_dns_a_registration && length(var.management_dns_subscription_id) == 0)
 
 }

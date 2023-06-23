@@ -113,7 +113,6 @@
       loop_control:
         loop_var:                      sid_to_be_deployed
       when:
-        - platform not in [ "ORACLE", "ORACLE-ASM" ]
         - ansible_os_family != "Windows"
       tags:
         - 2.5-sap-users
@@ -170,6 +169,8 @@
     - name:                            "PAS Installation Playbook: Define list of SIDs"
       ansible.builtin.set_fact:
         all_sids:                      "{% if MULTI_SIDS is defined %}{{ MULTI_SIDS }}{% else %}{{ all_sids | default([]) + [this_sid] }}{% endif %}"
+      when:
+        - "'pas' in supported_tiers"
 
 # -------------------------------------+---------------------------------------8
 # Role: 5.2-PAS Installation
@@ -204,7 +205,20 @@
         - name:                        Run the PAS installation Playbook
           block:
 
-            - name:                    "APP Playbook - Install: Include 2.6-sap-mounts role"
+            - name:                        "PAS Installation playbook: - Determine if part of high availablity deployment"
+              ansible.builtin.set_fact:
+                is_ha:                      "{{ db_high_availability | default(false) }}"
+              tags:
+                - always
+
+            - name:                        "PAS Installation playbook: - Ensure the kernel parameters are set"
+              ansible.builtin.include_role:
+                name:                      roles-os/1.9-kernelparameters
+              when:                        is_ha
+              tags:
+                - 1.9-kernelparameters
+
+            - name:                    "PAS Installation Playbook - Install: Include 2.6-sap-mounts role"
               ansible.builtin.include_role:
                 name:                  roles-sap-os/2.6-sap-mounts
               tags:
@@ -285,10 +299,31 @@
         - name:                        "PAS Installation Playbook: - Ensure Sharing Data Folder"
           ansible.builtin.include_role:
             name:                      roles-sap-os/windows/2.3-sap-exports
+          tags:
+            - 2.3-sap-exports
+          vars:
+            winadm_password:           "{{ hostvars.localhost.winadm_password }}"
+            domain_service_password:   "{{ hostvars.localhost.adsvc_password }}"
+            domain_service_account:    "{{ hostvars.localhost.adsvc_account }}"
+            domain_user_password:      "{{ hostvars.localhost.winadm_password }}"
+            sql_svc_account:           "{% if hostvars.localhost.sqlsvc_account is defined %}{{ hostvars.localhost.sqlsvc_account }}{% else %}{{ win_sql_svc_account }}{% endif %}"
+            tier:                      app_tier
 
         - name:                        Run the PAS installation Playbook
           block:
-            - name:                    "PAS Installation Playbook: - Install SAPInst"
+            - name:                    "PAS Installation - Add packages"
+              ansible.builtin.include_role:
+                name:                  roles-os/windows/1.4-packages
+              tags:
+                - 1.4-packages
+              vars:
+                winadm_password:           "{{ hostvars.localhost.winadm_password }}"
+                domain_service_password:   "{{ hostvars.localhost.adsvc_password }}"
+                domain_service_account:    "{{ hostvars.localhost.adsvc_account }}"
+                domain_user_password:      "{{ hostvars.localhost.winadm_password }}"
+                tier:                      app_tier
+
+            - name:                    "PAS Installation Playbook: - Install using SAPInst"
               ansible.builtin.include_role:
                 name:                  roles-sap/windows/5.2-pas-install
               vars:

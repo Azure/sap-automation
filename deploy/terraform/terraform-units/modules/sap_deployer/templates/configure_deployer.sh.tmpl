@@ -72,7 +72,7 @@ AGENTNAME=$(hostname)
 #
 # Ansible Version settings
 #
-ansible_version="$${ansible_version:-2.11}"
+ansible_version="$${ansible_version:-2.13}"
 ansible_major="$${ansible_version%%.*}"
 ansible_minor=$(echo "$${ansible_version}." | cut -d . -f 2)
 
@@ -136,6 +136,10 @@ pkg_mgr_init()
         pkg_mgr="zypper"
         pkg_type="rpm"
         ;;
+    (rhel|centos|fedora)
+        pkg_mgr="yum"
+        pkg_type="rpm"
+        ;;
     (*)
         error "Unsupported distibution: '$${distro_name}'"
         exit 1
@@ -162,6 +166,9 @@ pkg_mgr_refresh()
     (zypper)
         sudo $${pkg_mgr} --gpg-auto-import-keys --quiet refresh
         ;;
+    (yum)
+        sudo $${pkg_mgr} update --quiet
+        ;;
     esac
 
     pkg_mgr_refreshed=true
@@ -185,7 +192,10 @@ pkg_mgr_upgrade()
         sudo $${pkg_mgr} upgrade --quiet -y
         ;;
     (zypper)
-        sudo $${pkg_mgr} --gpg-auto-import-keys --quiet upgrade
+        sudo $${pkg_mgr} --gpg-auto-import-keys --non-interactive patch
+        ;;
+    (yum)
+        sudo $${pkg_mgr} upgrade --quiet -y
         ;;
     esac
 
@@ -204,6 +214,9 @@ pkg_mgr_install()
         ;;
     (zypper)
         sudo $${pkg_mgr} --gpg-auto-import-keys --quiet --non-interactive install --no-confirm "$${@}"
+        ;;
+    (yum)
+        sudo $${pkg_mgr} --nogpgcheck --quiet  install --assumeyes "$${@}"
         ;;
     esac
 }
@@ -240,6 +253,7 @@ tf_zip=terraform_$${tfversion}_linux_amd64.zip
 if [ -f /etc/profile.d/deploy_server.sh ] ; then
     echo
     echo ##vso[task.logissue type=warning]Deployer already configured
+
     exit 0
 else
     #
@@ -255,6 +269,9 @@ else
     (ubuntu*|sles*)
         echo "$${distro_name_version} is supported."
         ;;
+    (rhel*)
+        echo "$${distro_name_version} is supported."
+        ;;
     (*)
         error "Unsupported distro: $${distro_name_version} not currently supported."
         exit 1
@@ -264,14 +281,12 @@ else
 
     # List of required packages whose names are common to all supported distros
     required_pkgs=(
+        git
         jq
         unzip
         ca-certificates
         curl
-        apt-transport-https
-        lsb-release
         gnupg
-        sshpass
         dos2unix
     )
 
@@ -282,14 +297,31 @@ else
 
     # Include distro version agnostic packages into required packages list
     case "$(get_distro_name)" in
-    (ubuntu|sles)
+    (ubuntu)
         required_pkgs+=(
+            sshpass
             python3-pip
             python3-virtualenv
+            apt-transport-https
+            lsb-release
+        )
+        ;;
+    (sles)
+        required_pkgs+=(
+            curl
+            python3-pip
+            python3-virtualenv
+            lsb-release
+        )
+        ;;
+    (rhel)
+        required_pkgs+=(
+            sshpass
+            python36
+            python3-pip
         )
         ;;
     esac
-
     # Include distro version specific packages into required packages list
     case "$(get_distro_name_version)" in
     (ubuntu_18.04)
@@ -307,7 +339,10 @@ else
     pkg_mgr_refresh
 
     # Install required packages as determined above
+    set +o errexit
     pkg_mgr_install "$${required_pkgs[@]}"
+
+    set -o errexit
 
 
     # Prepare Azure SAP Automated Deployment folder structure
@@ -338,21 +373,78 @@ else
     sudo unzip -o /tmp/$${tf_zip} -d $${tf_dir}
     sudo ln -vfs ../$(basename $${tf_dir})/terraform $${tf_bin}/terraform
 
+    # Uninstall Azure CLI - For some platforms
+    case "$(get_distro_name)" in
+    (ubuntu|sles)
+      rel=$(lsb_release -a | grep Release | cut -d':' -f2 | xargs)
+      # Ubuntu 20.04 (Focal Fossa) and 20.10 (Groovy Gorilla) include an azure-cli package with version 2.0.81 provided by the universe repository.
+      # This package is outdated and not recommended. If this package is installed, remove the package
+      if [ "$rel" == "20.04" ]; then
+        echo "Removing Azure CLI"
+        sudo apt remove azure-cli -y
+        sudo apt autoremove -y
+        sudo apt update -y
+      fi
+      ;;
+    esac
 
-    rel=$(lsb_release -a | grep Release | cut -d':' -f2 | xargs)
-    # Ubuntu 20.04 (Focal Fossa) and 20.10 (Groovy Gorilla) include an azure-cli package with version 2.0.81 provided by the universe repository.
-    # This package is outdated and not recommended. If this package is installed, remove the package
-    if [ "$rel" == "20.04" ]; then
-    echo "Removing Azure CLI"
-    sudo apt remove azure-cli -y
-    sudo apt autoremove -y
-    sudo apt update -y
-    fi
-    #
-    # Install az cli using provided scripting
-    #
+    # Install Azure CLI
+    case "$(get_distro_name)" in
+    (ubuntu)
+        # echo "Getting the Microsoft Key"
+        sudo mkdir -p /etc/apt/keyrings
+        curl -sLS https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor | sudo tee /etc/apt/keyrings/microsoft.gpg > /dev/null
+        sudo chmod go+r /etc/apt/keyrings/microsoft.gpg
 
-    curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash > /dev/null
+        AZ_REPO=$(lsb_release -cs)
+        echo "deb [arch=`dpkg --print-architecture` signed-by=/etc/apt/keyrings/microsoft.gpg] https://packages.microsoft.com/repos/azure-cli/ $AZ_REPO main" |
+            sudo tee /etc/apt/sources.list.d/azure-cli.list
+
+        sudo apt-get update
+        #sudo curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+        rel=$(lsb_release -a | grep Release | cut -d':' -f2 | xargs)
+
+        if [ "$rel" == "20.04" ]; then
+          echo ##vso[task.logissue type=warning]Running on Ubuntu 20.04, installing Azure CLI 2.48.1-1~focal
+          sudo apt-get install azure-cli=2.48.1-1~focal -y --allow-downgrades
+          az version --output yaml
+        else
+          sudo apt-get install azure-cli -y
+        fi
+        ;;
+    (sles)
+        echo "Getting the Microsoft Key"
+        sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc
+        sudo zypper addrepo --name 'Azure CLI' --check https://packages.microsoft.com/yumrepos/azure-cli azure-cli
+        sudo zypper install --from azure-cli azure-cli
+        ;;
+     (rhel*)
+        sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc
+        sudo dnf install -y https://packages.microsoft.com/config/rhel/8/packages-microsoft-prod.rpm
+        sudo dnf install azure-cli
+        ;;
+    esac
+
+    set +o errexit
+    pkg_mgr_install "$${cli_pkgs[@]}"
+
+    set -o errexit
+
+    # Install dotNet
+    case "$(get_distro_name)" in
+    (ubuntu)
+        sudo snap install dotnet-sdk --classic --channel=7.0
+        sudo snap alias dotnet-sdk.dotnet dotnet
+        ;;
+    (sles)
+        sudo snap install dotnet-sdk --classic --channel=7.0
+        sudo snap alias dotnet-sdk.dotnet dotnet
+        ;;
+     (rhel*)
+        sudo dnf install dotnet-sdk-7.0 -y
+        ;;
+    esac
+
 
     # If the deployer will be an ADO agent install the devops cli
     if [[ -n $${TOKEN} ]];
@@ -365,6 +457,22 @@ else
     # Fail if any command exits with a non-zero exit status
     set -o errexit
 
+
+    case "$(get_distro_name)" in
+    (rhel)
+        sudo python -m venv $${ansible_venv}
+        source "$${ansible_venv_bin}/activate"
+
+        ;;
+    (ubuntu|sles)
+        # Create a Python3 based venv into which we will install Ansible.
+        if [[ ! -e "$${ansible_venv_bin}/activate" ]]; then
+            sudo rm -rf $${ansible_venv}
+            sudo virtualenv --python python3 $${ansible_venv}
+        fi
+        ;;
+    esac
+
     # Ensure our package metadata cache is up to date
     # pkg_mgr_refresh
     # pkg_mgr_upgrade
@@ -374,11 +482,6 @@ else
     sudo mkdir -p \
         $${ansible_bin}
 
-    # Create a Python3 based venv into which we will install Ansible.
-    if [[ ! -e "$${ansible_venv_bin}/activate" ]]; then
-        sudo rm -rf $${ansible_venv}
-        sudo virtualenv --python python3 $${ansible_venv}
-    fi
 
     # Fail if pip3 doesn't exist in the venv
     if [[ ! -x "$${ansible_venv_bin}/pip3" ]]; then
@@ -411,7 +514,8 @@ else
         argcomplete \
         'pywinrm>=0.3.0' \
         netaddr  \
-        jmespath
+        jmespath \
+        pywinrm[credssp]
 
 
     # Create symlinks for all relevant commands that were installed in the Ansible
@@ -458,6 +562,7 @@ else
     sudo mkdir -p $${ansible_collections}
     sudo -H $${ansible_venv_bin}/ansible-galaxy collection install ansible.windows --force --collections-path $${ansible_collections}
     sudo -H $${ansible_venv_bin}/ansible-galaxy collection install ansible.posix --force --collections-path $${ansible_collections}
+    sudo -H $${ansible_venv_bin}/ansible-galaxy collection install ansible.utils --force --collections-path $${ansible_collections}
     sudo -H $${ansible_venv_bin}/ansible-galaxy collection install ansible.netcommon --force --collections-path $${ansible_collections}
     sudo -H $${ansible_venv_bin}/ansible-galaxy collection install community.windows --force --collections-path $${ansible_collections}
     sudo -H $${ansible_venv_bin}/ansible-galaxy collection install community.general --force --collections-path $${ansible_collections}
@@ -470,9 +575,15 @@ else
 
     # Set env for ansible
     echo export ANSIBLE_HOST_KEY_CHECKING=False | sudo tee -a /etc/profile.d/deploy_server.sh
-    echo export ANSIBLE_COLLECTIONS_PATHS=$${ansible_collections} | sudo tee -a /tmp/deploy_server.sh
+    echo export ANSIBLE_COLLECTIONS_PATHS=$${ansible_collections} | sudo tee -a /etc/profile.d/deploy_server.sh
 
-    echo "export DOTNET_ROOT=/snap/dotnet-sdk/current" | tee -a /tmp/deploy_server.sh
+    case "$(get_distro_name)" in
+    (ubuntu|sles)
+        echo "export DOTNET_ROOT=/snap/dotnet-sdk/current" | tee -a /tmp/deploy_server.sh
+        ;;
+      (rhel*)
+        ;;
+    esac
 
     # Set env for MSI
     echo export ARM_USE_MSI=true | sudo tee -a /etc/profile.d/deploy_server.sh
@@ -482,9 +593,9 @@ else
 
     echo export DEPLOYMENT_REPO_PATH='$${HOME}/Azure_SAP_Automated_Deployment/sap-automation' | sudo tee -a /etc/profile.d/deploy_server.sh
 
-    if [[ -n $${TOKEN} ]]; then
-        echo export AZURE_DEVOPS_EXT_PAT=$${TOKEN} | sudo tee -a /etc/profile.d/deploy_server.sh
-    fi
+    # if [[ -n $${TOKEN} ]]; then
+    #     echo export AZURE_DEVOPS_EXT_PAT=$${TOKEN} | sudo tee -a /etc/profile.d/deploy_server.sh
+    # fi
 
     # Add new /opt bin directories to start of PATH to ensure the versions we installed
     # are preferred over any installed standard system versions.

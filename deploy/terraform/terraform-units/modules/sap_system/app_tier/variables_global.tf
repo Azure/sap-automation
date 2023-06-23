@@ -140,3 +140,27 @@ variable "management_dns_resourcegroup_name" {
   default     = null
   type        = string
 }
+
+
+variable "scs_shared_disk_size" {
+  description = "The size of the shared disk for the SAP Central Services Windows cluster"
+}
+
+variable "scs_shared_disk_lun" {
+  description = "The LUN of the shared disk for the SAP Central Services Windows cluster"
+}
+
+
+#########################################################################################
+#                                                                                       #
+#  Scale Set                                                                            #
+#                                                                                       #
+#########################################################################################
+
+variable "use_scalesets_for_deployment" {
+  description = "Use Flexible Virtual Machine Scale Sets for the deployment"
+}
+
+variable "scale_set_id" {
+  description = "Azure resource identifier for scale set"
+}

@@ -66,6 +66,7 @@ resource "azurerm_windows_web_app" "webapp" {
   resource_group_name = local.rg_name
   location            = local.rg_appservice_location
   service_plan_id     = azurerm_service_plan.appserviceplan[0].id
+  https_only          = true
 
   auth_settings {
     enabled          = true
@@ -79,10 +80,33 @@ resource "azurerm_windows_web_app" "webapp" {
   }
 
   app_settings = {
-    "PAT"                    = format("@Microsoft.KeyVault(SecretUri=https://%s.vault.azure.net/secrets/PAT/)", local.keyvault_names.user_access)
-    "CollectionUri"          = var.agent_ado_url
-    "IS_PIPELINE_DEPLOYMENT" = false
+    "PAT"                                      = var.use_private_endpoint ? format("@Microsoft.KeyVault(SecretUri=https://%s.privatelink.vaultcore.azure.net/secrets/PAT/)", local.keyvault_names.user_access) : format("@Microsoft.KeyVault(SecretUri=https://%s.vault.azure.net/secrets/PAT/)", local.keyvault_names.user_access)
+    "CollectionUri"                            = var.agent_ado_url
+    "IS_PIPELINE_DEPLOYMENT"                   = false
+    "MICROSOFT_PROVIDER_AUTHENTICATION_SECRET" = var.use_private_endpoint ? format("@Microsoft.KeyVault(SecretUri=https://%s.privatelink.vaultcore.azure.net/secrets/WEB-PWD/)", local.keyvault_names.user_access) : format("@Microsoft.KeyVault(SecretUri=https://%s.vault.azure.net/secrets/WEB-PWD/)", local.keyvault_names.user_access)
   }
+  # auth_settings_v2 {
+  #   auth_enabled           = true
+  #   unauthenticated_action = "RedirectToLoginPage"
+  #   default_provider       = "AzureActiveDirectory"
+  #   active_directory_v2 {
+  #     client_id                   = var.app_registration_app_id
+  #     login_parameters            = {}
+  #     tenant_auth_endpoint        = format("https://login.microsoftonline.com/v2.0/%s/", data.azurerm_client_config.deployer.tenant_id)
+  #     www_authentication_disabled = false
+  #     client_secret_setting_name  = "MICROSOFT_PROVIDER_AUTHENTICATION_SECRET"
+  #   }
+  #   login {
+  #     token_store_enabled = true
+  #   }
+  # }
+
+  # app_settings = {
+  #   "PAT"                                      = format("@Microsoft.KeyVault(SecretUri=https://%s.vault.azure.net/secrets/PAT/)", local.keyvault_names.user_access)
+  #   "CollectionUri"                            = var.agent_ado_url
+  #   "IS_PIPELINE_DEPLOYMENT"                   = false
+  #   "MICROSOFT_PROVIDER_AUTHENTICATION_SECRET" = format("@Microsoft.KeyVault(SecretUri=https://%s.vault.azure.net/secrets/WEB-PWD/)", local.keyvault_names.user_access)
+  # }
 
   virtual_network_subnet_id = local.webapp_subnet_exists ? data.azurerm_subnet.webapp[0].id : azurerm_subnet.webapp[0].id
   site_config {
@@ -98,18 +122,22 @@ resource "azurerm_windows_web_app" "webapp" {
     # scm_use_main_ip_restriction = true
   }
 
+  key_vault_reference_identity_id = azurerm_user_assigned_identity.deployer.id
+
   identity {
-    type = "SystemAssigned"
+    type         = "SystemAssigned, UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.deployer.id]
   }
   connection_string {
     name  = "sa_tfstate_conn_str"
     type  = "Custom"
-    value = format("@Microsoft.KeyVault(SecretUri=https://%s.vault.azure.net/secrets/sa-connection-string/)", local.user_keyvault_name)
+    value = var.use_private_endpoint ? format("@Microsoft.KeyVault(SecretUri=https://%s.privatelink.vaultcore.azure.net/secrets/sa-connection-string/)", local.user_keyvault_name) : format("@Microsoft.KeyVault(SecretUri=https://%s.vault.azure.net/secrets/sa-connection-string/)", local.user_keyvault_name)
   }
 
   lifecycle {
     ignore_changes = [
       app_settings,
+      connection_string,
       zip_deploy_file,
       tags
     ]
@@ -124,3 +152,20 @@ resource "azurerm_app_service_virtual_network_swift_connection" "webapp_vnet_con
   app_service_id = azurerm_windows_web_app.webapp[0].id
   subnet_id      = local.webapp_subnet_exists ? data.azurerm_subnet.webapp[0].id : azurerm_subnet.webapp[0].id
 }
+
+
+# resource "azurerm_role_assignment" "app_service_contributor" {
+#   provider             = azurerm.main
+#   count                = var.use_webapp && var.deployer.add_system_assigned_identity ? var.deployer_vm_count : 0
+#   scope                = azurerm_windows_web_app.webapp[0].id
+#   role_definition_name = "Website Contributor"
+#   principal_id         = azurerm_linux_virtual_machine.deployer[count.index].identity[0].principal_id
+# }
+
+# resource "azurerm_role_assignment" "app_service_contributor_msi" {
+#   provider             = azurerm.main
+#   count                = var.use_webapp ? 1 : 0
+#   scope                = azurerm_windows_web_app.webapp[0].id
+#   role_definition_name = "Website Contributor"
+#   principal_id         = azurerm_user_assigned_identity.deployer.principal_id
+# }

@@ -9,6 +9,7 @@ parameters:
   environment:                         ""
   re_download:                         false
   region:                              ""
+  ExtraParams:                         ""
 
 variables:
   - group:                             "SDAF-General"

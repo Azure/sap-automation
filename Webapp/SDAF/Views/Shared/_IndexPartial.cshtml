@@ -1,0 +1,158 @@
+@{
+    string controllerName = ViewBag.SapObjectType;
+    string displayName = ViewBag.SapObjectDisplayName;
+    string moreInfoUrl = ViewBag.MoreInformationUrl;
+}
+
+<div class="text-center">
+    <h2>Existing @(displayName.ToLower() + "s")</h2>
+    <p>
+        <a href=@moreInfoUrl target="_blank" rel="noopener noreferrer">
+            More information on configuring the @displayName.ToLower()
+        </a>
+    </p>
+</div>
+
+<div class="notificationContainer" role="status" style="@(TempData["success"]==null ? "display: none;" : "display: flex; background: rgb(223, 246, 221);")">
+    <div class="notificationInner">
+        <span class="notificationText">
+            @TempData["success"]
+        </span>
+    </div>
+</div>
+<div class="notificationContainer" role="status" style="@(TempData["error"]==null ? "display: none;" : "display: flex; background: rgb(253, 231, 233);")">
+    <div class="notificationInner">
+        <span class="notificationText">
+            @TempData["error"]
+        </span>
+    </div>
+</div>
+
+<div class="table-scroll">
+    <table class="table" aria-label="Existing @(displayName.ToLower() + "s")">
+        <thead>
+            <tr>
+                <th>
+                    Default
+                </th>
+                <th>
+                    @displayName ID
+                </th>
+                <th class="wideonly">
+                    Environment
+                </th>
+                <th class="wideonly">
+                    Location
+                </th>
+                <th class="wideonly">
+                    Network name
+                </th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var sapObj in Model.SapObjects)
+            {
+                var iconType = (sapObj.IsDefault) ? "FavoriteStarFill" : "FavoriteStar";
+                <tr>
+                    <td>
+                        <fluent-anchor appearance="stealth" href="@Url.Action("MakeDefault", controllerName, new { id=sapObj.Id, partitionKey=sapObj.environment })">
+                            <i class="ms-Icon ms-Icon--@iconType" aria-hidden="true"></i>
+                        </fluent-anchor>
+                    <td>
+                        @Html.DisplayName((string)sapObj.Id)
+                    </td>
+                    <td class="wideonly">
+                        @Html.DisplayName((string)sapObj.environment)
+                        @if (sapObj.environment == null && !sapObj.IsDefault)
+                        {
+                            <i class="ms-Icon ms-Icon--Warning12" aria-hidden="true"></i>
+                        }
+                    </td>
+                    <td class="wideonly">
+                        @Html.DisplayName((string)sapObj.location)
+                        @if (sapObj.location == null && !sapObj.IsDefault)
+                        {
+                            <i class="ms-Icon ms-Icon--Warning12" aria-hidden="true"></i>
+                        }
+                    </td>
+                    <td class="wideonly">
+                        @Html.DisplayName((string)sapObj.network_logical_name)
+                        @if (sapObj.network_logical_name == null && !sapObj.IsDefault)
+                        {
+                            <i class="ms-Icon ms-Icon--Warning12" aria-hidden="true"></i>
+                        }
+                    </td>
+                    <td class="td-align-right">
+                        @Html.ActionLink("Edit", "Edit", new { id = sapObj.Id, partitionKey = sapObj.environment }) |
+                        @Html.ActionLink("Details", "Details", new { id = sapObj.Id, partitionKey = sapObj.environment }) |
+                        @Html.ActionLink("Download", "Download", new { id = sapObj.Id, partitionKey = sapObj.environment }) |
+                        @Html.ActionLink("Delete", "Delete", new { id = sapObj.Id, partitionKey = sapObj.environment })
+                        @if (!String.IsNullOrEmpty(ViewBag.IsPipelineDeployment) && sapObj.IsValid())
+                        {
+                            @: | @Html.ActionLink("Deploy", "Deploy", new { id = sapObj.Id, partitionKey = sapObj.environment })
+                            @if (controllerName == "System")
+                            {
+                                @: | @Html.ActionLink("Install", "Install", new { id = sapObj.Id, partitionKey = sapObj.environment })
+                            }
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<p style="margin-bottom: 20px;">
+    <fluent-anchor appearance="accent" href="@Url.Action("Create", controllerName)">
+        <i class="ms-Icon ms-Icon--Add" aria-hidden="true"></i> Create new
+    </fluent-anchor>
+</p>
+
+<div class="text-center">
+    <h2>@displayName files</h2>
+</div>
+
+<div class="table-scroll">
+    <table class="table" aria-label="@displayName files">
+        <thead>
+            <tr>
+                <th>
+                    File ID
+                </th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var file in Model.AppFiles)
+            {
+                <tr>
+                    <td>
+                        @((string)file.Id)
+                    </td>
+                    <td class="td-align-right">
+                        @Html.ActionLink("Edit", "Edit", "File", new { id = file.Id, sourceController = controllerName }, null) |
+                        @Html.ActionLink("Details", "Details", "File", new { id = file.Id, sourceController = controllerName }, null) |
+                        @Html.ActionLink("Convert", "Convert", "File", new { id = file.Id, sourceController = controllerName }, null) |
+                        @Html.ActionLink("Download", "Download", "File", new { id = file.Id, sourceController = controllerName }, null) |
+                        @Html.ActionLink("Delete", "Delete", "File", new { id = file.Id, sourceController = controllerName }, null)
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<p>
+    <fluent-anchor appearance="accent" href="@Url.Action("Create", "File", new { sourceController=controllerName })">
+        <i class="ms-Icon ms-Icon--Add" aria-hidden="true"></i> Create
+    </fluent-anchor>
+
+    <fluent-anchor href="@Url.Action("Upload", "File", new { sourceController=controllerName })">
+        <i class="ms-Icon ms-Icon--Upload" aria-hidden="true"></i> Upload
+    </fluent-anchor>
+
+    <fluent-anchor appearance="accent" style="float: right" href="@Url.Action("Templates", "File", new { sourceController=controllerName })">
+        Templates
+    </fluent-anchor>
+</p>

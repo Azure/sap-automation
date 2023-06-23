@@ -144,8 +144,10 @@ locals {
         try(var.deployers[0].authentication.type, "")
       )
     }
+    add_system_assigned_identity = var.add_system_assigned_identity
     os = {
       os_type = "LINUX"
+      type = try(var.deployer_image.type, "marketplace")
       source_image_id = try(coalesce(
         var.deployer_image.source_image_id,
         try(var.deployers[0].os.source_image_id, "")
@@ -168,7 +170,6 @@ locals {
         var.deployer_image.version,
         try(var.deployers[0].sku, "")
       ), "")
-      type = "marketplace"
     }
 
 
@@ -191,12 +192,12 @@ locals {
   }
 
   key_vault = {
-    kv_user_id = var.user_keyvault_id
-    kv_exists = length(var.user_keyvault_id) > 0 ? true : false
+    kv_user_id     = var.user_keyvault_id
+    kv_exists      = length(var.user_keyvault_id) > 0 ? true : false
     kv_sshkey_prvt = var.deployer_private_key_secret_name
-    kv_sshkey_pub = var.deployer_public_key_secret_name
-    kv_username = var.deployer_username_secret_name
-    kv_pwd = var.deployer_password_secret_name
+    kv_sshkey_pub  = var.deployer_public_key_secret_name
+    kv_username    = var.deployer_username_secret_name
+    kv_pwd         = var.deployer_password_secret_name
 
   }
 
@@ -208,5 +209,4 @@ locals {
   firewall_rule_subnets        = try(var.firewall_rule_subnets, [])
   firewall_allowed_ipaddresses = try(var.firewall_allowed_ipaddresses, [])
 
-  assign_subscription_permissions = try(var.deployer_assign_subscription_permissions, false)
 }

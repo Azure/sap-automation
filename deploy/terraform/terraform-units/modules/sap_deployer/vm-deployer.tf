@@ -68,11 +68,11 @@ resource "azurerm_network_interface" "deployer" {
       "Dynamic"
     )
 
-    public_ip_address_id = local.enable_deployer_public_ip ? azurerm_public_ip.deployer[count.index].id : ""
+    public_ip_address_id = local.enable_deployer_public_ip ? azurerm_public_ip.deployer[count.index].id : null
   }
 }
 
-// User defined identity for all Deployer, assign contributor to the current subscription
+// User defined identity for all Deployers, assign contributor to the current subscription
 resource "azurerm_user_assigned_identity" "deployer" {
   resource_group_name = local.resource_group_exists ? data.azurerm_resource_group.deployer[0].name : azurerm_resource_group.deployer[0].name
   location            = local.resource_group_exists ? data.azurerm_resource_group.deployer[0].location : azurerm_resource_group.deployer[0].location
@@ -81,9 +81,10 @@ resource "azurerm_user_assigned_identity" "deployer" {
 
 # // Add role to be able to deploy resources
 resource "azurerm_role_assignment" "sub_contributor" {
+  provider             = azurerm.main
   count                = var.assign_subscription_permissions ? 1 : 0
   scope                = data.azurerm_subscription.primary.id
-  role_definition_name = "Contributor"
+  role_definition_name = "Reader"
   principal_id         = azurerm_user_assigned_identity.deployer.principal_id
 }
 
@@ -129,7 +130,7 @@ resource "azurerm_linux_virtual_machine" "deployer" {
   source_image_id = var.deployer.os.source_image_id != "" ? var.deployer.os.source_image_id : null
 
   dynamic "source_image_reference" {
-    for_each = range(var.deployer.os.type == "marketplace" ? 1 : 0)
+    for_each = range(var.deployer.os.type == "marketplace" || var.deployer.os.type == "marketplace_with_plan" ? 1 : 0)
     content {
       publisher = var.deployer.os.publisher
       offer     = var.deployer.os.offer
@@ -141,14 +142,14 @@ resource "azurerm_linux_virtual_machine" "deployer" {
   dynamic "plan" {
     for_each = range(var.deployer.os.type == "marketplace_with_plan" ? 1 : 0)
     content {
-      name      = var.deployer.os.offer
-      publisher = var.deployer.os.publisher
-      product   = var.deployer.os.sku
+      name      = var.deployer.plan.name
+      publisher = var.deployer.plan.publisher
+      product   = var.deployer.plan.product
     }
   }
 
   identity {
-    type         = "UserAssigned"
+    type         = var.deployer.add_system_assigned_identity ? "SystemAssigned, UserAssigned" : "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.deployer.id]
   }
 
@@ -178,9 +179,30 @@ resource "azurerm_linux_virtual_machine" "deployer" {
   tags = local.tags
 }
 
-resource "azurerm_virtual_machine_extension" "configure" {
+# // Add role to be able to deploy resources
+resource "azurerm_role_assignment" "subscription_contributor_system_identity" {
+  provider             = azurerm.main
+  count                = var.assign_subscription_permissions && var.deployer.add_system_assigned_identity ? var.deployer_vm_count : 0
+  scope                = data.azurerm_subscription.primary.id
+  role_definition_name = "Reader"
+  principal_id         = azurerm_linux_virtual_machine.deployer[count.index].identity[0].principal_id
+}
 
+#Private endpoint tend to take a while to be created, so we need to wait for it to be ready before we can use it
+resource "time_sleep" "wait_for_VM" {
+  create_duration = "60s"
+
+  depends_on = [
+    azurerm_linux_virtual_machine.deployer
+  ]
+}
+
+resource "azurerm_virtual_machine_extension" "configure" {
   count = var.auto_configure_deployer ? var.deployer_vm_count : 0
+
+  depends_on = [
+    time_sleep.wait_for_VM
+  ]
 
   name                 = "configure_deployer"
   virtual_machine_id   = azurerm_linux_virtual_machine.deployer[count.index].id

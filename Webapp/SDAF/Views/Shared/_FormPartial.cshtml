@@ -1,0 +1,135 @@
+@{
+    List<SelectListItem> imageOptions = ViewBag.ImageOptions;
+}
+
+<div>
+    <fieldset>
+        @for (int i = 0; i < Model.ParameterGroupings.Length; i++)
+        {
+            Grouping g = Model.ParameterGroupings[i];
+            <div class="grouping">
+                <h2><a href="@g.Link" target="_blank" rel="noopener noreferrer">@g.Section</a></h2>
+                <div class="parameters">
+                    @for (int k = 0; k < g.Parameters.Length; k++)
+                    {
+                        ParameterModel p = g.Parameters[k];
+                        var required = (@p.Required) ? "required" : "";
+                        var prop = Model.SapObject.GetType().GetProperty(p.Name);
+                        var value = (p.Type != "image_dropdown" && prop != null) ? prop.GetValue(Model.SapObject) : null;
+                        var displayClass = (p.Display == 1) ? "basic-parameter" : ((p.Display == 2) ? "advanced-parameter" : "expert-parameter");
+
+                        <div class="ms-TextField @displayClass">
+
+                            <div class="left-input">
+                                @Html.Label(p.Name, p.Name, new { @class = $"ms-Label {required}" })
+                                <p>@Html.Raw(p.Description)</p>
+                            </div>
+
+                            <div class="right-input">
+                                @if (@p.Type == "field")
+                                {
+                                    @Html.TextBox(p.Name, (string) ("" + value), new { @class = "ms-TextField-field", @onchange = $"overrulesHandler({p.Name}, {p.Overrules})" })
+                                }
+                                else if (@p.Type == "lookup")
+                                {
+                                    @Html.DropDownList(p.Name, p.Options, new { @class = "js-example-placeholder-single", @style = "width: 100%;", @onchange = $"overrulesHandler({p.Name}, {p.Overrules})" })
+                                }
+                                else if (@p.Type == "checkbox")
+                                {
+                                    var isChecked = (value != null && (bool)value) ? "checked" : "";
+                                    <fluent-checkbox id="@p.Name" name="@p.Name" @isChecked value="@value" onchange="this.value=this.checked"></fluent-checkbox>
+                                }
+                                else if (@p.Type == "list")
+                                {
+                                    @Html.ListBox(p.Name, p.Options, new { @class = "js-example-placeholder-multiple", @style = "width: 100%;", @multiple = "multiple" })
+                                }
+                                else if (@p.Type == "image")
+                                {
+                                    Image img = (Image)value;
+                                    if (img == null) img = new Image();
+
+                                    <h3 style="font-size: 20px;">Marketplace Image</h3>
+                                    <div class="image-container">
+                                        <span>
+                                            @Html.Label("publisher", "publisher", new { @class = $"ms-Label image-label" })
+                                            @Html.TextBox(p.Name + ".publisher", img.publisher, new { @class = "ms-TextField-field image-input" })
+                                        </span>
+
+                                        <span>
+                                            @Html.Label("offer", "offer", new { @class = $"ms-Label image-label" })
+                                            @Html.TextBox(p.Name + ".offer", img.offer, new { @class = "ms-TextField-field image-input" })
+                                        </span>
+
+                                        <span>
+                                            @Html.Label("sku", "sku", new { @class = $"ms-Label image-label" })
+                                            @Html.TextBox(p.Name + ".sku", img.sku, new { @class = "ms-TextField-field image-input" })
+                                        </span>
+
+                                        <span>
+                                            @Html.Label("version", "version", new { @class = $"ms-Label image-label" })
+                                            @Html.TextBox(p.Name + ".version", img.version, new { @class = "ms-TextField-field image-input" })
+                                        </span>
+
+                                        <span>
+                                            @Html.Label("type", "type", new { @class = $"ms-Label image-label" })
+                                            @Html.TextBox(p.Name + ".type", img.type, new { @class = "ms-TextField-field image-input" })
+                                        </span>
+                                    </div>
+                                    <h3 style="font-size: 20px;">Custom Image</h3>
+                                    <div class="image-container">
+                                        <span>
+                                            @Html.Label("os_type", "os_type", new { @class = $"ms-Label image-label" })
+                                            @Html.TextBox(p.Name + ".os_type", img.os_type, new { @class = "ms-TextField-field image-input" })
+                                        </span>
+
+                                        <span>
+                                            @Html.Label("source_image_id", "source_image_id", new { @class = $"ms-Label image-label" })
+                                            @Html.TextBox(p.Name + ".source_image_id", img.source_image_id, new { @class = "ms-TextField-field image-input" })
+                                        </span>
+                                    </div>
+                                }
+                                else if (p.Type == "image_dropdown")
+                                {
+                                    @Html.DropDownList(p.Name, imageOptions, new { @class = "js-example-placeholder-single", @style = "width: 100%;", @onchange = $"updateImage(this, '{p.Overrules}')" })
+                                }
+                                else if (p.Type == "tag")
+                                {
+                                    <div id="@p.Name-tags-container">
+                                        @{
+                                            Tag[] tags = (Tag[])value;
+                                            if (tags == null) tags = new Tag[0];
+                                            @for (int t = 0; t < tags.Length; t++)
+                                            {
+                                                var tag = tags[t];
+                                                if (tag == null) tag = new Tag();
+                                                <div class="tag">
+                                                    <div class="tag-key">
+                                                        @Html.Label(p.Name + "[" + t + "].Key", "Key", new { @class = $"ms-Label tags-label" })
+                                                        @Html.TextBox(p.Name + "[" + t + "].Key", tag.Key, new { @class = "ms-TextField-field tag-input" })
+                                                    </div>
+                                                    <div class="tag-value">
+                                                        @Html.Label(p.Name + "[" + t + "].Value", "Value", new { @class = $"ms-Label tags-label" })
+                                                        @Html.TextBox(p.Name + "[" + t + "].Value", tag.Value, new { @class = "ms-TextField-field tag-input" })
+                                                    </div>
+                                                </div>
+                                            }
+                                        }
+                                    </div>
+                                    <fluent-button appearance="accent" style="margin-top: 15px" onclick='addTag("@p.Name");'>
+                                        Add tag
+                                    </fluent-button>
+                                }
+                                else
+                                {
+                                    <p>Invalid parameter</p>
+                                }
+
+                                @Html.ValidationMessage(p.Name)
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    </fieldset>
+</div>

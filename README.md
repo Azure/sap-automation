@@ -1,100 +1,43 @@
----
-ArtifactType: nupkg, executable, azure-web-app, azure-cloud-service, etc. More requirements for artifact type standardization may come later.
-Documentation: URL
-Language: typescript, csharp, java, js, python, golang, powershell, markdown, etc. More requirements for language names standardization may come later.
-Platform: windows, node, linux, ubuntu16, azure-function, etc. More requirements for platform standardization may come later.
-Stackoverflow: URL
-Tags: comma,separated,list,of,tags
----
+# Project
 
-# Project Title. MUST BE topmost header
+The SAP deployment automation framework on Azure is an open-source orchestration tool for deploying, installing and maintaining SAP environments. You can create infrastructure for SAP landscapes based on SAP HANA and NetWeaver with AnyDB on any of the SAP-supported operating system versions and deploy them into any Azure region.
 
-One Paragraph of project description goes here. Including links to other user docs or a project website is good here as well. This paragraph will be used as a blurb on CodeHub. Please make the first paragraph short and to the point.
+The framework uses Terraform for infrastructure deployment, and Ansible for the operating system and application configuration.
 
-You can expand on project description in subsequent paragraphs. It is a good practice to explain how this project is used and what other projects depend on it.
+## Enterprise-scale  - Reference Implementation
 
-## Getting Started
+![Ansible Lint](https://github.com/Azure/sap-automation/workflows/Ansible%20Lint/badge.svg)    [![Average time to resolve an issue](http://isitmaintained.com/badge/resolution/azure/sap-automation.svg)](http://isitmaintained.com/project/azure/sap-automation "Average time to resolve an issue")    [![Percentage of issues still open](http://isitmaintained.com/badge/open/azure/sap-automation.svg)](http://isitmaintained.com/project/azure/sap-automation "Percentage of issues still open")
 
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
+## Partnership
 
-### Prerequisites
+The project is being build in partnership with [SUSE](https://www.suse.com/) and [Red Hat](https://www.redhat.com/)
 
-What things you need to install the software and how to install them
+## Documentation
 
-``` powershell
-Give examples
-```
-
-### Installing
-
-A step by step series of examples that tell you how to get a development environment running
-
-1. Describe what needs to be done first
-
-    ``` batch
-    Give an example of performing step 1
-    ```
-
-2. And then repeat for each step
-
-    ``` sh
-    Another example, this time for step 2
-    ```
-
-## Running the tests
-
-Explain how to run the tests for this project that are relevant to users. You can also link to the testing portion of [CONTRIBUTING.md](CONTRIBUTING.md) for tests relevant to contributors.
-
-### End-to-end tests
-
-Explain what these tests test and why
-
-```
-Give an example
-```
-
-### Unit tests
-
-Explain what these test and why
-
-```
-Give examples
-```
-
-## Deployment
-
-Add additional notes about how to deploy this on a live system
-
-## Built With
-
-Documenting some of the main tools used to build this project, manage dependencies, etc will help users get more information if they are trying to understand or having difficulties getting the project up and running.
-
-* Link to some dependency manager
-* Link to some framework or build tool
-* Link to some compiler, linting tool, bundler, etc
+The user guidance can be located here [SAP deployment automation framework](https://docs.microsoft.com/azure/virtual-machines/workloads/sap/automation-deployment-framework)
 
 ## Contributing
 
-Please read our [CONTRIBUTING.md](CONTRIBUTING.md) which outlines all of our policies, procedures, and requirements for contributing to this project.
+If you want to contribute to our project, be sure to review the [contributing guidelines](/CONTRIBUTING.md).
 
-## Versioning and changelog
+We use [GitHub issues](https://github.com/Azure/sap-automation/issues/) for feature requests and bugs.
 
-We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](link-to-tags-or-other-release-location).
+This project welcomes contributions and suggestions.  Most contributions require you to agree to a
+Contributor License Agreement (CLA) declaring that you have the right to, and actually do, grant us
+the rights to use your contribution. For details, visit <https://cla.opensource.microsoft.com>.
 
-It is a good practice to keep `CHANGELOG.md` file in repository that can be updated as part of a pull request.
+When you submit a pull request, a CLA bot will automatically determine whether you need to provide
+a CLA and decorate the PR appropriately (e.g., status check, comment). Simply follow the instructions
+provided by the bot. You will only need to do this once across all repos using our CLA.
 
-## Authors
+This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).
+For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or
+contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
 
-List main authors of this project with a couple of words about their contribution.
+## Trademarks
 
-Also insert a link to the `owners.txt` file if it exists as well as any other dashboard or other resources that lists all contributors to the project.
-
-## License
-
-This project is licensed under the < INSERT LICENSE NAME > - see the [LICENSE](LICENSE) file for details
-
-## Acknowledgments
-
-* Hat tip to anyone whose code was used
-* Inspiration
-* etc
+This project may contain trademarks or logos for projects, products, or services. Authorized use of Microsoft
+trademarks or logos is subject to and must follow
+[Microsoft's Trademark & Brand Guidelines](https://www.microsoft.com/en-us/legal/intellectualproperty/trademarks/usage/general).
+Use of Microsoft trademarks or logos in modified versions of this project must not cause confusion or imply Microsoft sponsorship.
+Any use of third-party trademarks or logos are subject to those third-party's policies.

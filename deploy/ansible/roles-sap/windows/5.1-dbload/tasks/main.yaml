@@ -41,10 +41,22 @@
   ansible.builtin.set_fact:
     sap_inifile:                       "{{ bom_base_name }}-dbload-{{ sid_to_be_deployed.sid | lower }}-{{ ansible_hostname }}.params"
     sap_inifile_template:              "{{ bom_base_name }}{{ bom_suffix }}-dbload-inifile-param.j2"
-    scs_server:                        "{% if scs_high_availability %}{{ sid_to_be_deployed.sid | lower }}scs{{ scs_instance_number }}cl1{% else %}{{ hostvars[scs_server_temp | first]['virtual_host'] }}{% endif %}"
+    scs_server:                        "{{ hostvars[scs_server_temp | first]['virtual_host'] }}"
     db_virtual_host:                   "{{ hostvars[db_server_temp | first]['virtual_host'] }}"
+    scs_sapmnt_server:                 "{% if scs_high_availability %}{{ sid_to_be_deployed.sid | lower }}scs{{ scs_instance_number }}cl1{% else %}{{ hostvars[scs_server_temp | first]['virtual_host'] }}{% endif %}"
     dir_params:                        '{{ tmp_directory_windows }}\params'
     product_catalog:                   '{{ download_directory_windows }}\SWPM\product.catalog'
+
+- name:                                "DBLoad: - Set dbload facts"
+  ansible.builtin.debug:
+    msg:
+      - "INIFILE:                      {{ sap_inifile }}"
+      - "TEMPLATE:                     {{ sap_inifile_template }}"
+      - "SAP SWPM SERVER:              {{ scs_server }}"
+      - "DB VIRTUAL HOST:              {{ db_virtual_host }}"
+      - "DOWNLOAD DIR:                 {{ download_directory_windows }}"
+      - "PARAMS DIR:                   {{ dir_params }}"
+      - "CATALOG PATH:                 {{ product_catalog }}"
 
 #   0x) Create directory for parameter files
 - name:                                "DBLoad: Create a directory"
@@ -123,6 +135,13 @@
   vars:
     sql_disk_list: "{{ lookup('template', 'sql_disks.j2') }}"
 
+- name:                                "Print SQL Disks"
+  ansible.builtin.debug:
+    msg:
+      - "SQL DATA Disks:               {{ vm_data_disks }}"
+      - "SQL LOG Disks:                {{ vm_log_disks }}"
+
+
 - name:                                "DBLoad: - Include roles-sap/3.3.1-bom-utility role"
   ansible.builtin.include_role:
     name:                              roles-sap/windows/3.3.1-bom-utility
@@ -142,19 +161,16 @@
     sap_ciDialogWPNumber:
     sap_ciBtcWPNumber:
     sap_installSAPHostAgent:
-    sap_profile_dir:                   '\\{{ scs_server }}\sapmnt\{{ sid_to_be_deployed.sid | upper }}\SYS\profile'
-    sap_scs_hostname:                  "{{ scs_server }}"
+    sap_profile_dir:                   '\\{{ scs_sapmnt_server }}\sapmnt\{{ sid_to_be_deployed.sid | upper }}\SYS\profile'
+    sap_scs_hostname:                  "{{ scs_sapmnt_server }}"
     sap_db_hostname:                   "{{ db_virtual_host }}"
     sap_ciVirtualHostname:
     sap_appVirtualHostname:
-    tier:                              "{{ tier }}"
     param_directory:                   "{{ dir_params }}"
     sap_sid:                           "{{ sid_to_be_deployed.sid }}"
     sidadm_uid:                        "{{ sid_to_be_deployed.sidadm_uid }}"
     data_disks:                        "{{ vm_data_disks }}"
     log_disks:                         "{{ vm_log_disks }}"
-  tags:
-    - skip_ansible_lint
 
 - name:                                "DBLoad: install variables"
   ansible.builtin.debug:
@@ -162,7 +178,7 @@
       - "INSTALLED:  {{ dbload_installed.stat.exists }}"
       - "INIFILE:    {{ sap_inifile }}"
       - "PRODUCT ID: {{ bom.product_ids.dbl }}"
-      - "SCSHOST:    {{ scs_server }}"
+      - "SCSHOST:    {{ scs_sapmnt_server }}"
       - "DBHOST:     {{ db_virtual_host }}"
       - "SID:        {{ sid_to_be_deployed.sid | upper }}"
 
@@ -211,7 +227,7 @@
       failed_when:                     scs_extraction.rc > 0
 
     - name:                            "DBLoad: - run SAPInst"
-      win_shell: |
+      ansible.windows.win_shell: |
                                        {{ download_directory_windows }}\sap_extract\sapinst.exe SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}\{{ sap_inifile }}  `
                                                                                                 SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.dbl }}             `
                                                                                                 SAPINST_SKIP_DIALOGS=true                                        `
@@ -228,8 +244,6 @@
         ansible_become_password:       "{{ domain_user_password }}"
       register:                        dbload_results
       failed_when:                     dbload_results.rc > 0
-      tags:
-        - skip_ansible_lint
       # async:                           7200
       # poll:                            0
 

@@ -132,8 +132,7 @@
             http_agent:                'SAP Software Download'
             timeout:                   60
             mode:                      0644
-          # become:                      "{{ bom_processing_become }}"
-          # become_user:                 root
+          become:                      "{{ bom_processing_become }}"
           register:                    result
           until:                       result is succeeded or not result.changed
           retries:                     2
@@ -283,7 +282,6 @@
             - name:                        "BOM: Line"
               ansible.builtin.blockinfile:
                 path:                      "{{ bom_file }}"
-                regexp:                    '      archive:      {{ bom_media_entry.archive }}'
                 insertafter:               '      archive:      {{ bom_media_entry.archive }}'
                 block:                     "      checksum:     {{ fs_check.stat.checksum }}"
                 marker:                    "# {mark} ANSIBLE MANAGED BLOCK {{ bom_media_entry.archive }}"
@@ -291,8 +289,6 @@
                 - fs_check is defined
                 - create_checksums is defined
                 - bom_file is defined
-              tags:
-              - skip_ansible_lint
 # Step: 05-03-02-01 - END
 # -------------------------------------+---------------------------------------8
 
@@ -315,6 +311,7 @@
 # -------------------------------------+---------------------------------------8
 
           when:
+            - bom_media_entry.checksum is defined
             - bom_media_entry.checksum | bool is not true
 # Step: 05-03-02 - END
 # -------------------------------------+---------------------------------------8
@@ -335,8 +332,6 @@
                 bom:                                "{{ bom_update }}"
               vars:
                 bom_update:                         "{#- -#}{% set _ = bom.materials.media[bom_media_index].update({'checksum': fs_check.stat.checksum}) -%} {{ bom }}"
-              tags:
-               - skip_ansible_lint
         # Step: 05-03-03-01 - END
 
 # -------------------------------------+---------------------------------------8
@@ -360,7 +355,7 @@
       when:
         # - bom_media_entry.checksum is not defined
         # - create_checksums is defined
-        - (bom_media_entry.checksum | bool) or (bom_media_entry.checksum is not defined and create_checksums is defined)
+        - (bom_media_entry.checksum is not defined and create_checksums is defined) or (bom_media_entry.checksum | bool)
 # Step: 05-03 - END
 # -------------------------------------+---------------------------------------8
 

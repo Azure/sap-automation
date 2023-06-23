@@ -21,7 +21,7 @@ output "created_resource_group_name" {
 
 output "environment" {
   description = "Deployer environment name"
-  value = var.environment
+  value       = var.environment
 }
 
 ###############################################################################
@@ -36,16 +36,26 @@ output "deployer_id" {
 }
 
 output "deployer_uai" {
-  sensitive = true
   value = {
     principal_id = module.sap_deployer.deployer_uai.principal_id
     tenant_id    = module.sap_deployer.deployer_uai.tenant_id
   }
 }
 
+output "deployer_msi_id" {
+  value = module.sap_deployer.deployer_uai.principal_id
+}
 
 output "deployer_public_ip_address" {
   value = module.sap_deployer.deployer_public_ip_address
+}
+
+output "deployer_system_assigned_identity" {
+  value = module.sap_deployer.deployer_system_assigned_identity
+}
+
+output "add_system_assigned_identity" {
+  value = var.add_system_assigned_identity
 }
 
 ###############################################################################
@@ -61,6 +71,16 @@ output "vnet_mgmt_id" {
 output "subnet_mgmt_id" {
   value = module.sap_deployer.subnet_mgmt_id
 }
+
+
+output "subnet_mgmt_address_prefixes" {
+  value = module.sap_deployer.subnet_mgmt_address_prefixes
+}
+
+output "subnet_bastion_address_prefixes" {
+  value = module.sap_deployer.subnet_bastion_address_prefixes
+}
+
 
 output "subnet_webapp_id" {
   value = module.sap_deployer.subnet_webapp_id
@@ -135,3 +155,12 @@ output "deployer_extension_ids" {
   value = module.sap_deployer.extension_ids
 }
 
+###############################################################################
+#                                                                             #
+#                                    Random                                   #
+#                                                                             #
+###############################################################################
+
+output "random_id_b64" {
+  value = module.sap_deployer.random_id_b64
+}

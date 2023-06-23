@@ -60,6 +60,11 @@
         - { path: '/usr/sap/{{ sap_sid | upper }}/SYS' }
         - { path: '/usr/sap/{{ sap_sid | upper }}/{{ instance_type | upper }}{{ scs_instance_number }}' }
 
+    - name:                            "5.6 SCSERS - SCS - Bring primary host online"
+      ansible.builtin.command:         crm node online {{ primary_instance_name }}
+      register:                        primary_online
+      changed_when:                    primary_online.rc != 0
+
     - name:                            "5.6 SCSERS - SUSE - SCS - Install SCS on Primary host"
       ansible.builtin.include_role:
         name:                          roles-sap/5.0.1-scs-ha-install
@@ -123,7 +128,7 @@
                                        vip_{{ sap_sid }}_ERS meta resource-stickiness=3000
       register:                        ers_hp
       failed_when:                     ers_hp.rc > 1
-  when: inventory_hostname == secondary_instance_name
+  when: ansible_hostname == secondary_instance_name
 
     # [2] Install SAP NetWeaver ERS - Create a new playbook for Installation of ERS - done
 - name:                                "5.6 SCSERS - SUSE - ERS - Install ERS on Secondary host"
@@ -161,7 +166,7 @@
       when:
         - not ers_installed.stat.exists
 
-  when: inventory_hostname == secondary_instance_name
+  when: ansible_hostname == secondary_instance_name
 
 
 # END of playbook.

@@ -8,8 +8,10 @@ ${sid}_DB:
       connection_type     : ${db_connectiontype}
       virtual_host        : ${virt_dbnodes[idx]}
       become_user         : ${db_become_user}
+      os_type             : ${db_os_type}
       ${ansible_winrm_server_cert_validation}
-
+      ${ansible_winrm_operation_timeout_sec}
+      ${ansible_winrm_read_timeout_sec}
 
 %{~ endfor }
   vars:
@@ -26,7 +28,10 @@ ${sid}_SCS:
       connection_type     : ${scs_connectiontype}
       virtual_host        : ${virt_scs_servers[idx]}
       become_user         : ${scs_become_user}
+      os_type             : ${scs_os_type}
       ${ansible_winrm_server_cert_validation}
+      ${ansible_winrm_operation_timeout_sec}
+      ${ansible_winrm_read_timeout_sec}
 
 %{~ endfor }
   vars:
@@ -43,7 +48,10 @@ ${sid}_ERS:
       connection_type     : ${ers_connectiontype}
       virtual_host        : ${virt_ers_servers[idx]}
       become_user         : ${scs_become_user}
+      os_type             : ${scs_os_type}
       ${ansible_winrm_server_cert_validation}
+      ${ansible_winrm_operation_timeout_sec}
+      ${ansible_winrm_read_timeout_sec}
 
 %{~ endfor }
   vars:
@@ -61,7 +69,10 @@ ${sid}_PAS:
       connection_type     : ${scs_connectiontype}
       virtual_host        : ${virt_pas_servers[idx]}
       become_user         : ${app_become_user}
+      os_type             : ${app_os_type}
       ${ansible_winrm_server_cert_validation}
+      ${ansible_winrm_operation_timeout_sec}
+      ${ansible_winrm_read_timeout_sec}
 
 %{~ endfor }
   vars:
@@ -78,7 +89,10 @@ ${sid}_APP:
       connection_type     : ${app_connectiontype}
       virtual_host        : ${virt_app_servers[idx]}
       become_user         : ${app_become_user}
+      os_type             : ${app_os_type}
       ${ansible_winrm_server_cert_validation}
+      ${ansible_winrm_operation_timeout_sec}
+      ${ansible_winrm_read_timeout_sec}
 
 %{~ endfor }
   vars:
@@ -95,7 +109,10 @@ ${sid}_WEB:
       connection_type     : ${web_connectiontype}
       virtual_host        : ${virt_web_servers[idx]}
       become_user         : ${web_become_user}
+      os_type             : ${web_os_type}
       ${ansible_winrm_server_cert_validation}
+      ${ansible_winrm_operation_timeout_sec}
+      ${ansible_winrm_read_timeout_sec}
 
 %{~ endfor }
   vars:
@@ -110,8 +127,12 @@ ${sid}_OBSERVER_DB:
       ansible_user        : ${ansible_user}
       ansible_connection  : ${db_connection}
       connection_type     : ${db_connectiontype}
+      virtual_host        : ${observers[idx]}
       become_user         : ${db_become_user}
+      os_type             : ${db_os_type}
       ${ansible_winrm_server_cert_validation}
+      ${ansible_winrm_operation_timeout_sec}
+      ${ansible_winrm_read_timeout_sec}
 
 %{~ endfor }
   vars:

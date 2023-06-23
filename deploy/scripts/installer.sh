@@ -139,7 +139,6 @@ if [ "${deployment_system}" == sap_system ]
 then
     load_config_vars "$parameterfile_name" "network_logical_name"
     network_logical_name=$(echo "${network_logical_name}" | tr "[:lower:]" "[:upper:]")
-
 fi
 
 #Persisting the parameters across executions
@@ -181,6 +180,11 @@ fi
 if [ "${deployment_system}" == sap_deployer ]
 then
     deployer_tfstate_key=${key}.terraform.tfstate
+    STATE_SUBSCRIPTION=$ARM_SUBSCRIPTION_ID
+fi
+if [[ -z $STATE_SUBSCRIPTION ]];
+then
+  STATE_SUBSCRIPTION=$ARM_SUBSCRIPTION_ID
 fi
 
 if [[ -z $REMOTE_STATE_SA ]];
@@ -230,6 +234,12 @@ then
     else
         deployer_tfstate_key_parameter=" -var deployer_tfstate_key=${deployer_tfstate_key}"
     fi
+else
+  load_config_vars "${system_config_information}" "keyvault"
+  export TF_VAR_deployer_kv_user_arm_id=$(az resource list --name "${keyvault}" --subscription ${STATE_SUBSCRIPTION} --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
+
+  echo "Deployer Keyvault: $TF_VAR_deployer_kv_user_arm_id"
+
 fi
 
 landscape_tfstate_key_parameter=''
@@ -359,12 +369,7 @@ if [[ -z ${tfstate_resource_id} ]]; then
 
 fi
 
-if [ "${deployment_system}" != sap_deployer ]
-then
-    tfstate_parameter=" -var tfstate_resource_id=${tfstate_resource_id}"
-else
-    tfstate_parameter=" "
-fi
+tfstate_parameter=" -var tfstate_resource_id=${tfstate_resource_id}"
 
 terraform_module_directory="$SAP_AUTOMATION_REPO_PATH"/deploy/terraform/run/"${deployment_system}"/
 export TF_DATA_DIR="${param_dirname}/.terraform"
@@ -401,14 +406,26 @@ version_parameter=""
 
 export TF_DATA_DIR="${param_dirname}/.terraform"
 
+terraform --version
+
 check_output=0
 if [ -f terraform.tfstate ]; then
 
   if [ "${deployment_system}" == sap_deployer ]
   then
-    echo "Reinitializing deployer in case of on a new deployer"
+    echo ""
+    echo -e "$cyan Reinitializing deployer in case of on a new deployer $resetformatting"
+
     terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/"${deployment_system}"/
     terraform -chdir="${terraform_module_directory}" init  -backend-config "path=${param_dirname}/terraform.tfstate" -reconfigure
+    echo ""
+    key_vault_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_arm_id | tr -d \")
+
+    if [ -n "${key_vault_id}" ]
+    then
+      export TF_VAR_deployer_kv_user_arm_id="${key_vault_id}" ; echo $TF_VAR_deployer_kv_user_arm_id
+    fi
+
 
   fi
 
@@ -566,8 +583,9 @@ fi
 allParams=$(printf " -var-file=%s %s %s %s %s %s %s" "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter}" )
 
 terraform -chdir="$terraform_module_directory" plan -no-color -detailed-exitcode $allParams | tee -a plan_output.log
-return_value=$?
-if [ 1 == $return_value ]
+echo "Plan returned $return_value"
+
+if [ 0 != $return_value ]
 then
     echo ""
     echo "#########################################################################################"
@@ -579,6 +597,7 @@ then
     echo "Error when running Terraform plan" > "${system_config_information}".err
 
     unset TF_DATA_DIR
+    rm plan_output.log
     exit $return_value
 fi
 
@@ -598,26 +617,25 @@ if [ 0 == $return_value ] ; then
                 webapp_url_base=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_url_base | tr -d \")
 
                 if [ -n "${webapp_url_base}" ] ; then
-                az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "WEBAPP_URL_BASE.value")
-                if [ -z ${az_var} ]; then
-                    az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_URL_BASE --value $webapp_url_base --output none --only-show-errors
-                else
-                    az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_URL_BASE --value $webapp_url_base --output none --only-show-errors
-                fi
+                  az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "WEBAPP_URL_BASE.value")
+                  if [ -z ${az_var} ]; then
+                      az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_URL_BASE --value $webapp_url_base --output none --only-show-errors
+                  else
+                      az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_URL_BASE --value $webapp_url_base --output none --only-show-errors
+                  fi
                 fi
 
                 webapp_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_id | tr -d \")
                 if [ -n "${webapp_id}" ] ; then
-                az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "WEBAPP_ID.value")
-                if [ -z ${az_var} ]; then
-                    az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_ID --value $webapp_id --output none --only-show-errors
-                else
-                    az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_ID --value $webapp_id --output none --only-show-errors
+                  az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "WEBAPP_ID.value")
+                  if [ -z ${az_var} ]; then
+                      az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_ID --value $webapp_id --output none --only-show-errors
+                  else
+                      az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_ID --value $webapp_id --output none --only-show-errors
+                  fi
                 fi
                 fi
 
-
-            fi
         fi
 
 
@@ -644,6 +662,19 @@ if [ 0 == $return_value ] ; then
           REMOTE_STATE_SA=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw remote_state_storage_account_name| tr -d \")
 
           get_and_store_sa_details "${REMOTE_STATE_SA}" "${system_config_information}"
+
+          SAPBITS=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw sapbits_storage_account_name| tr -d \")
+
+          if [ -n "${SAPBITS}" ] ; then
+            az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "INSTALLATION_MEDIA_ACCOUNT.value")
+            if [ -z ${az_var} ]; then
+              az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name INSTALLATION_MEDIA_ACCOUNT --value $SAPBITS --output none --only-show-errors
+            else
+              az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name INSTALLATION_MEDIA_ACCOUNT --value $SAPBITS --output none --only-show-errors
+            fi
+          fi
+
+
       fi
     fi
 
@@ -818,6 +849,20 @@ if [ -n "${test}" ] ; then
     fatal_errors=1
 fi
 
+echo "TEST_ONLY: " $TEST_ONLY
+if [ "${TEST_ONLY}" == "True" ]; then
+    echo ""
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo -e "#                                 $cyan Running plan only. $resetformatting                                  #"
+    echo "#                                                                                       #"
+    echo "#                                  No deployment performed.                             #"
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
+    echo ""
+    exit 0
+fi
+
 ok_to_proceed=1
 
 if [ $fatal_errors == 1 ] ; then
@@ -886,46 +931,47 @@ if [ 1 == $ok_to_proceed ]; then
     then
         errors_occurred=$(jq 'select(."@level" == "error") | length' apply_output.json)
 
-        if [[ -n $errors_occurred ]]
+        # Check for resource that can be imported
+        existing=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary} | select(.summary | startswith("A resource with the ID"))' apply_output.json)
+        if [[ -n ${existing} ]]
         then
-            echo ""
-            echo "#########################################################################################"
-            echo "#                                                                                       #"
-            echo -e "#                          $boldreduscore!Errors during the apply phase!$resetformatting                              #"
 
-            return_value=2
-            all_errors=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary, detail: .diagnostic.detail}' apply_output.json)
-            if [[ -n ${all_errors} ]]
-                then
-                readarray -t errors_strings < <(echo ${all_errors} | jq -c '.' )
-                for errors_string in "${errors_strings[@]}"; do
-                    string_to_report=$(jq -c -r '.detail '  <<< "$errors_string" )
-                    if [[ -z ${string_to_report} ]]
-                    then
-                        string_to_report=$(jq -c -r '.summary '  <<< "$errors_string" )
-                    fi
-                    report=$(echo $string_to_report | grep -m1 "Message=" "${var_file}" | cut -d'=' -f2-  | tr -d ' ' | tr -d '"')
-                    if [[ -n ${report} ]] ; then
-                        echo -e "#                          $boldreduscore  $report $resetformatting"
-                        if [ 1 == $called_from_ado ] ; then
-                            echo "##vso[task.logissue type=error]${report}"
-                        fi
-                    else
-                        echo -e "#                          $boldreduscore  $string_to_report $resetformatting"
-                        if [ 1 == $called_from_ado ] ; then
-                            echo "##vso[task.logissue type=error]${string_to_report}"
-                        fi
-                    fi
-                    echo -e "#                          $boldreduscore  $string_to_report $resetformatting"
+            readarray -t existing_resources < <(echo ${existing} | jq -c '.' )
+            for item in "${existing_resources[@]}"; do
+                moduleID=$(jq -c -r '.address '  <<< "$item")
+                resourceID=$(jq -c -r '.summary' <<< "$item" | awk -F'\"' '{print $2}')
+                echo "Trying to import" $resourceID "into" $moduleID
+                allParamsforImport=$(printf " -var-file=%s %s %s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter} " )
+                echo terraform -chdir="${terraform_module_directory}" import  $allParamsforImport $moduleID $resourceID
+                terraform -chdir="${terraform_module_directory}" import  $allParamsforImport $moduleID $resourceID
+            done
+            rm apply_output.json
 
-                done
+            if [ $rerun_apply == 1 ] ; then
+                rerun_apply=0
+
+                echo ""
+                echo ""
+                echo "#########################################################################################"
+                echo "#                                                                                       #"
+                echo -e "#                          $cyan Re running Terraform apply$resetformatting                                  #"
+                echo "#                                                                                       #"
+                echo "#########################################################################################"
+                echo ""
+                echo ""
+                if [ 1 == $called_from_ado ] ; then
+                    terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings -json $allParams | tee -a apply_output.json
+                else
+                    terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -json $allParams | tee -a  apply_output.json
+                fi
+                return_value=$?
             fi
-            echo "#                                                                                       #"
-            echo "#########################################################################################"
-            echo ""
+        fi
 
+        if [ -f apply_output.json ]
+        then
             # Check for resource that can be imported
-            existing=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary}  | select(.summary | startswith("A resource with the ID"))' apply_output.json)
+            existing=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary} | select(.summary | startswith("A resource with the ID"))' apply_output.json)
             if [[ -n ${existing} ]]
             then
 
@@ -935,17 +981,81 @@ if [ 1 == $ok_to_proceed ]; then
                     resourceID=$(jq -c -r '.summary' <<< "$item" | awk -F'\"' '{print $2}')
                     echo "Trying to import" $resourceID "into" $moduleID
                     allParamsforImport=$(printf " -var-file=%s %s %s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter} " )
-                    echo terraform -chdir="${terraform_module_directory}" import -allow-missing-config  $allParamsforImport $moduleID $resourceID
-                    terraform -chdir="${terraform_module_directory}" import -allow-missing-config  $allParamsforImport $moduleID $resourceID
+                    echo terraform -chdir="${terraform_module_directory}" import  $allParamsforImport $moduleID $resourceID
+                    terraform -chdir="${terraform_module_directory}" import  $allParamsforImport $moduleID $resourceID
                 done
-                rerun_apply=1
-            fi
-            retryable=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary}  | select(.summary | startswith("Code=\"RetryableError\""))' apply_output.json)
-            if [[ -n ${retryable} ]]
-            then
-              rerun_apply=1
+
+                rm apply_output.json
+
+                echo ""
+                echo ""
+                echo "#########################################################################################"
+                echo "#                                                                                       #"
+                echo -e "#                          $cyan Re running Terraform apply$resetformatting                                  #"
+                echo "#                                                                                       #"
+                echo "#########################################################################################"
+                echo ""
+                echo ""
+                if [ 1 == $called_from_ado ] ; then
+                    terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings -json $allParams | tee -a apply_output.json
+                else
+                    terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -json $allParams | tee -a  apply_output.json
+                fi
+                return_value=$?
             fi
 
+        fi
+
+        if [ -f apply_output.json ]
+        then
+
+            if [[ -n $errors_occurred ]]
+            then
+                echo ""
+                echo "#########################################################################################"
+                echo "#                                                                                       #"
+                echo -e "#                          $boldreduscore!Errors during the apply phase!$resetformatting                              #"
+
+                return_value=2
+                all_errors=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary, detail: .diagnostic.detail} ' apply_output.json)
+                if [[ -n ${all_errors} ]]
+                    then
+                    readarray -t errors_strings < <(echo ${all_errors} | jq -c '.' )
+                    for errors_string in "${errors_strings[@]}"; do
+                        string_to_report=$(jq -c -r '.detail '  <<< "$errors_string" )
+                        if [[ -z ${string_to_report} ]]
+                        then
+                            string_to_report=$(jq -c -r '.summary '  <<< "$errors_string" )
+                        fi
+                        report=$(echo $string_to_report | grep -m1 "Message=" "${var_file}" | cut -d'=' -f2-  | tr -d ' ' | tr -d '"')
+                        if [[ -n ${report} ]] ; then
+                            echo -e "#                          $boldreduscore  $report $resetformatting"
+                            if [ 1 == $called_from_ado ] ; then
+
+                                roleAssignmentExists=$(echo ${report} | grep -m1 "RoleAssignmentExists")
+                                if [ -z ${roleAssignmentExists} ] ; then
+                                    echo "##vso[task.logissue type=error]${report}"
+                                fi
+                            fi
+                        else
+                            echo -e "#                          $boldreduscore  $string_to_report $resetformatting"
+                            if [ 1 == $called_from_ado ] ; then
+                                roleAssignmentExists=$(echo ${string_to_report} | grep -m1 "RoleAssignmentExists")
+                                if [ -z ${roleAssignmentExists} ]
+                                then
+                                    echo "##vso[task.logissue type=error]${string_to_report}"
+                                fi
+                            fi
+                        fi
+                        echo -e "#                          $boldreduscore  $string_to_report $resetformatting"
+
+                    done
+                fi
+                echo "#                                                                                       #"
+                echo "#########################################################################################"
+                echo ""
+
+            fi
         fi
 
     fi
@@ -953,24 +1063,6 @@ if [ 1 == $ok_to_proceed ]; then
     if [ -f apply_output.json ]
     then
         rm apply_output.json
-    fi
-
-    if [ $rerun_apply == 1 ] ; then
-        echo ""
-        echo ""
-        echo "#########################################################################################"
-        echo "#                                                                                       #"
-        echo -e "#                          $cyan Re running Terraform apply$resetformatting                                  #"
-        echo "#                                                                                       #"
-        echo "#########################################################################################"
-        echo ""
-        echo ""
-        if [ 1 == $called_from_ado ] ; then
-            terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -compact-warnings $allParams
-        else
-            terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" $allParams
-        fi
-        return_value=$?
     fi
 
     if [ 0 != $return_value ] ; then
@@ -992,10 +1084,24 @@ then
     deployer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_public_ip_address | tr -d \")
     keyvault=$(terraform -chdir="${terraform_module_directory}"  output -no-color -raw deployer_kv_user_name | tr -d \")
 
+    random_id=$(terraform -chdir="${terraform_module_directory}"  output  -no-color -raw random_id_b64 | tr -d \")
+    temp=$(echo "${random_id}" | grep -m1 "Warning")
+    if [ -z "${temp}" ]
+    then
+        temp=$(echo "${random_id}" | grep "Backend reinitialization required")
+        if [ -z "${temp}" ]
+        then
+            save_config_var "deployer_random_id" "${random_id}"
+            return_value=0
+        fi
+    fi
+
     created_resource_group_name=$(terraform -chdir="${terraform_module_directory}"  output -no-color -raw created_resource_group_name | tr -d \")
 
     az deployment group create --resource-group ${created_resource_group_name} --name "ControlPlane_Deployer_${created_resource_group_name}" --template-file "${script_directory}/templates/empty-deployment.json" --output none
     if [ 1 == $called_from_ado ] ; then
+
+        terraform -chdir="${terraform_module_directory}" output -json -no-color deployer_uai
 
         if [ -n "${created_resource_group_name}" ] ; then
             az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "WEBAPP_RESOURCE_GROUP.value")
@@ -1029,24 +1135,37 @@ then
 
             webapp_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_id | tr -d \")
             if [ -n "${webapp_id}" ] ; then
-            az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "WEBAPP_ID.value")
-            if [ -z ${az_var} ]; then
-                az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_ID --value $webapp_id --output none --only-show-errors
-            else
-                az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_ID --value $webapp_id --output none --only-show-errors
+              az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "WEBAPP_ID.value")
+              if [ -z ${az_var} ]; then
+                  az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_ID --value $webapp_id --output none --only-show-errors
+              else
+                  az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_ID --value $webapp_id --output none --only-show-errors
+              fi
             fi
+            if [ -n "${random_id}" ] ; then
+                az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "DEPLOYER_RANDOM_ID_SEED.value")
+                if [ -z ${az_var} ]; then
+                    az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name DEPLOYER_RANDOM_ID_SEED --value "${random_id}" --output none --only-show-errors
+                else
+                    az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name DEPLOYER_RANDOM_ID_SEED --value "${random_id}" --output none --only-show-errors
+                fi
             fi
         fi
 
     fi
-    deployer_extension_ids=$(terraform -chdir="${terraform_module_directory}"  output -no-color -json deployer_extension_ids | jq -r '.[]')
 
-    if [[ -n ${deployer_extension_ids} ]]
-    then
-        az resource delete --ids ${deployer_extension_ids}
+   if valid_kv_name "$keyvault" ; then
+        save_config_var "keyvault" "${system_config_information}"
+    else
+        printf -v val %-40.40s "$keyvault"
+        echo "#########################################################################################"
+        echo "#                                                                                       #"
+        echo -e "#       The provided keyvault is not valid:$boldred ${val} $resetformatting  #"
+        echo "#                                                                                       #"
+        echo "#########################################################################################"
+        echo "The provided keyvault is not valid " "${val}"  > secret.err
     fi
 
-    save_config_var "keyvault" "${system_config_information}"
     save_config_var "deployer_public_ip_address" "${system_config_information}"
 fi
 
@@ -1095,6 +1214,8 @@ then
     #     fi
     # fi
 
+    az login --service-principal --username $ARM_CLIENT_ID --password=$ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID  --output none
+
     rg_name=$(terraform -chdir="${terraform_module_directory}"  output -no-color -raw created_resource_group_name | tr -d \")
 
     az deployment group create --resource-group ${rg_name} --name "SAP_${rg_name}" --subscription  $ARM_SUBSCRIPTION_ID --template-file "${script_directory}/templates/empty-deployment.json"  --output none
@@ -1113,8 +1234,21 @@ fi
 
 if [ "${deployment_system}" == sap_library ]
 then
-    REMOTE_STATE_SA=$(terraform -chdir="${terraform_module_directory}" output remote_state_storage_account_name| tr -d \")
+    REMOTE_STATE_SA=$(terraform -chdir="${terraform_module_directory}" output  -no-color -raw remote_state_storage_account_name | tr -d \")
     sapbits_storage_account_name=$(terraform -chdir="${terraform_module_directory}"  output -no-color -raw sapbits_storage_account_name | tr -d \")
+    random_id_b64=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw random_id_b64 | tr -d \")
+    temp=$(echo "${random_id_b64}" | grep -m1 "Warning")
+    if [ -z "${temp}" ]
+    then
+        temp=$(echo "${random_id_b64}" | grep "Backend reinitialization required")
+        if [ -z "${temp}" ]
+        then
+            save_config_var "library_random_id" "${random_id_b64}"
+            return_value=0
+        fi
+    fi
+
+
     if [ 1 == $called_from_ado ] ; then
 
         if [ -n "${sapbits_storage_account_name}" ] ; then
@@ -1125,6 +1259,15 @@ then
                 az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name INSTALLATION_MEDIA_ACCOUNT --value "${sapbits_storage_account_name}" --output none --only-show-errors
             fi
         fi
+        if [ -n "${random_id_b64}" ] ; then
+            az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "LIBRARY_RANDOM_ID_SEED.value")
+            if [ -z ${az_var} ]; then
+                az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name LIBRARY_RANDOM_ID_SEED --value "${random_id_b64}" --output none --only-show-errors
+            else
+                az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name LIBRARY_RANDOM_ID_SEED --value "${random_id_b64}" --output none --only-show-errors
+            fi
+        fi
+
     fi
 
     get_and_store_sa_details "${REMOTE_STATE_SA}" "${system_config_information}"

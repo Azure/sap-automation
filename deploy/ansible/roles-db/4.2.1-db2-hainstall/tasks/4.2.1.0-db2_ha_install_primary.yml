@@ -62,6 +62,15 @@
   when:
     - ansible_hostname == primary_instance_name
 
+- name:                                "DB2 Install: Include 3.3.1-bom-utility role"
+  ansible.builtin.include_role:
+    name:                              roles-sap/3.3.1-bom-utility
+    tasks_from:                        bom-register
+  vars:
+    bom_name:                          "{{ bom_base_name }}"
+    task_prefix:                       "DB2 Install: "
+    sa_enabled:                        true
+
 - name:                                "SAP DB2 Install: Install DB2"
   block:
 
@@ -70,14 +79,6 @@
         msg:
           - "INIFILE:    {{ sap_inifile }}"
           - "mem_size:   {{ mem_size | int }}"
-
-    - name:                            "DB2 Install: Include 3.3.1-bom-utility role"
-      ansible.builtin.include_role:
-        name:                          roles-sap/3.3.1-bom-utility
-        tasks_from:                    bom-register
-      vars:
-        bom_name:                      "{{ bom_base_name }}"
-        task_prefix:                   "DB2 Install: "
 
     - name:                            "DB2 Install: Include roles-sap/3.3.1-bom-utility role"
       ansible.builtin.include_role:
@@ -97,13 +98,10 @@
         db2_encryption_keystore_dir:   /db2/db2{{ db_sid }}/keystore
         db2_sslencryption_label:       "sap_db2{{ db_sid }}_{{ sap_db_hostname }}_ssl_comm_000"
         sap_scs_hostname:              "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') | first }}"
-        tier:                          "{{ tier }}"
         sap_profile_dir:               "/sapmnt/{{ sap_sid | upper }}/profile"
         param_directory:               "{{ dir_params }}"
         db2_memory:                    "{{ mem_size | int }}"
         always_upload_jinja_templates: false
-      tags:
-        - skip_ansible_lint
 
     - name:                            "SAP DB2 install: variables"
       ansible.builtin.debug:
@@ -124,7 +122,7 @@
 
     - name:                            "SAP DB2 Install"
       ansible.builtin.shell: |
-                                       umask {{ custom_umask | default('022') }};
+                                       umask {{ custom_umask | default('022') }} ;
                                        ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }}     \
                                                  SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.dblha }}             \
                                                  SAPINST_SKIP_DIALOGS=true                                           \
@@ -135,10 +133,9 @@
         creates:                       "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_db2.txt"
       environment:
         TMPDIR:                        "{{ tmp_directory }}/{{ sap_sid | upper }}"
+        DB2TMPDIR:                     "{{ tmp_directory }}"
       register:                        db2_installation
       failed_when:                     db2_installation.rc > 0
-      tags:
-        - skip_ansible_lint
 
     - name:                            "SAP DB2 Install: progress"
       ansible.builtin.debug:
@@ -171,6 +168,89 @@
         state:                         touch
         mode:                          0755
       when:                            db2_lock_escalation.rc == 0
+    - name:                            "DB2 Install: check if ARM Deployment done"
+      ansible.builtin.stat:
+        path:                          "/etc/sap_deployment_automation/{{ db_sid | upper }}/sap_deployment_db_arm.txt"
+      register:                        db_arm_deployment_done
+
+    - name:                            "DB2 Install: Successful installation"
+      block:
+        - name:                        "Retrieve Subscription ID and Resource Group Name"
+          ansible.builtin.command:     curl -H Metadata:true --noproxy "*" "http://169.254.169.254/metadata/instance?api-version=2021-02-01"
+          register:                    azure_metadata
+          no_log:                      true
+          changed_when:                false
+          args:
+            warn:                      false
+
+        - name:                        "Save the Json data to a Variable as a Fact"
+          ansible.builtin.set_fact:
+            json_azure_data:           "{{ azure_metadata.stdout | from_json }}"
+          no_log:                      true
+
+        - name:                        "Extract details"
+          ansible.builtin.set_fact:
+            subscription_id:           "{{ json_azure_data | json_query('compute.subscriptionId') }}"
+            resource_group_name:       "{{ json_azure_data | json_query('compute.resourceGroupName') }}"
+
+        - name:                        "Show the subscription and resource group"
+          ansible.builtin.debug:
+            msg:
+              - "Subscription ID: {{ subscription_id }}"
+              - "Resource Group Name: {{ resource_group_name }}"
+
+        - name:                        "Include deploy/ansible/roles-misc/0.6-ARM-Deployment"
+          ansible.builtin.include_role:
+            name:                      roles-misc/0.6-ARM-Deployment
+          vars:
+            subscriptionId:           "{{ subscription_id }}"
+            resourceGroupName:       "{{ resource_group_name }}"
+
+      when:
+        - not db_arm_deployment_done.stat.exists
+
+    - name:                            "DB2 Install: check if ARM Deployment done"
+      ansible.builtin.stat:
+        path:                          "/etc/sap_deployment_automation/{{ db_sid | upper }}/sap_deployment_db_arm.txt"
+      register:                        db_arm_deployment_done
+
+    - name:                            "DB2 Install: Successful installation"
+      block:
+        - name:                        "Retrieve Subscription ID and Resource Group Name"
+          ansible.builtin.command:     curl -H Metadata:true --noproxy "*" "http://169.254.169.254/metadata/instance?api-version=2021-02-01"
+          register:                    azure_metadata
+          no_log:                      true
+          changed_when:                false
+          args:
+            warn:                      false
+
+        - name:                        "Save the Json data to a Variable as a Fact"
+          ansible.builtin.set_fact:
+            json_azure_data:           "{{ azure_metadata.stdout | from_json }}"
+          no_log:                      true
+
+        - name:                        "Extract details"
+          ansible.builtin.set_fact:
+            subscription_id_tmp:           "{{ json_azure_data | json_query('compute.subscriptionId') }}"
+            resource_group_name:       "{{ json_azure_data | json_query('compute.resourceGroupName') }}"
+
+        - name:                        "Show the subscription and resource group"
+          ansible.builtin.debug:
+            msg:
+              - "Subscription ID: {{ subscription_id }}"
+              - "Resource Group Name: {{ resource_group_name }}"
+
+        - name:                        "Include deploy/ansible/roles-misc/0.6-ARM-Deployment"
+          ansible.builtin.include_role:
+            name:                      roles-misc/0.6-ARM-Deployment
+          vars:
+            subscriptionId:           "{{ subscription_id }}"
+            resourceGroupName:       "{{ resource_group_name }}"
+
+      when:
+        - not db_arm_deployment_done.stat.exists
+
+
   when:
     - not db2_installed.stat.exists
     - ansible_hostname == primary_instance_name

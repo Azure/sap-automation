@@ -112,11 +112,16 @@
 #   when:
 #     - definition_made.changed
 
+- name:                                "1.10 Networking - Wait for 5 seconds"
+  ansible.builtin.wait_for:
+    timeout:                           5
+
 # Start network interface eth0
 - name:                                "1.10 Networking - Restart Network service"
   ansible.builtin.command:             ifup eth0
   when:
     - definition_made.changed
+    - ansible_os_family | upper == "REDHAT"
 
 ...
 # /*----------------------------------------------------------------------------8

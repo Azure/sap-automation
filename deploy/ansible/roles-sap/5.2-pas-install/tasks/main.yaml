@@ -129,7 +129,6 @@
         sap_db_hostname:               "{{ db_lb_virtual_host }}"
         sap_ciVirtualHostname:
         sap_appVirtualHostname:
-        tier:                          "{{ tier }}"
         param_directory:               "{{ dir_params }}"
         sap_sid:                       "{{ sid_to_be_deployed.sid }}"
         scs_instance_number:           "{{ sid_to_be_deployed.ascs_inst_no }}"
@@ -137,8 +136,6 @@
         virt_do_not_resolve_hostname:  "{{ db_lb_virtual_host }}"
         # support older app inifile templates where hdb_instance_number was used
         hdb_instance_number:           "{{ db_instance_number }}"
-      tags:
-        - skip_ansible_lint
 
     - name:                            "PAS Install: register variables"
       ansible.builtin.set_fact:
@@ -169,13 +166,22 @@
         state:                         directory
         mode:                          0755
 
+    - name:                            "PAS Install: debug"
+      ansible.builtin.command:         "cat {{ dir_params }}/{{ sap_inifile }}"
+      register:                        debug_inifile
+
+    - name:                            "PAS Install: progress"
+      ansible.builtin.debug:
+        var:                           debug_inifile
+        verbosity:                     4
+
     - name:                            "PAS Install: progress"
       ansible.builtin.debug:
         msg:                           "Starting PAS installation ({{ sid_to_be_deployed.sid | upper }})"
 
     - name:                            "PAS Install"
       ansible.builtin.shell: |
-                                       umask {{ custom_umask | default('022') }};
+                                       umask {{ custom_umask | default('022') }} ;
                                        ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }} \
                                                  SAPINST_EXECUTE_PRODUCT_ID={{ pas_bom_id }}                     \
                                                  SAPINST_SKIP_DIALOGS=true                                       \
@@ -189,8 +195,6 @@
         SAPSYSTEMNAME:                 "{{ sid_to_be_deployed.sid | upper }}"
       register:                        pas_installation
       failed_when:                     pas_installation.rc > 0
-      tags:
-        - skip_ansible_lint
 
     - name:                            "PAS Install: Installation results"
       ansible.builtin.debug:
@@ -256,16 +260,14 @@
       become:                          true
       become_user:                     "{{ sid_to_be_deployed.sid | lower }}adm"
       ansible.builtin.shell: |
-                                       {{ hdbuserstore_path }} SET DEFAULT {{ db_lb_virtual_host }}:30313@{{ db_sid | upper }} {{ hana_schema }} {{ main_password }}
+                                       {{ hdbuserstore_path }} SET DEFAULT {{ db_lb_virtual_host }}:3{{ db_instance_number }}13@{{ db_sid | upper }} {{ hana_schema }} {{ main_password }}
       environment:
         SAPSYSTEMNAME:                 "{{ sid_to_be_deployed.sid | upper }}"
         TMPDIR:                        "{{ hdbuserstore_path }}"
-        ssfs_connect:                  1
+        ssfs_connect:                  "1"
       register:                        hdbuserstore
       vars:
         allow_world_readable_tmpfiles: true
-      tags:
-        - skip_ansible_lint
       when:
         - db_high_availability
         - platform == 'HANA'
@@ -335,7 +337,7 @@
                                        {{ hdbuserstore_path }} SET DEFAULT {{ db_lb_virtual_host }}:3{{ db_instance_number }}13@{{ db_sid | upper }} {{ hana_schema }} {{ main_password }}
       environment:
         SAPSYSTEMNAME:                 "{{ sid_to_be_deployed.sid | upper }}"
-        ssfs_connect:                  1
+        ssfs_connect:                  "1"
       register:                        hdbuserstore
       become:                          true
       become_user:                     "{{ sid_to_be_deployed.sid | lower }}adm"
@@ -344,8 +346,6 @@
       when:
         - db_high_availability
         - platform == 'HANA'
-      tags:
-        - skip_ansible_lint
 
 
   when:

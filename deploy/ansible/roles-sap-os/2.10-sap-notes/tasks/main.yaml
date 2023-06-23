@@ -29,7 +29,7 @@
   ansible.builtin.include_tasks:       2.10.0.yaml
   when:
     - node_tier == 'hana'
-    - distribution_id == 'suse12'
+    - distribution_id == ['suse12', 'suse15', 'sles_sap12', 'sles_sap15']
 # -------------------------------------+---------------------------------------8
 
 # -------------------------------------+---------------------------------------8
@@ -48,26 +48,37 @@
     policy:                            targeted
     state:                             permissive
   when:
-    - node_tier in ['scs', 'ers', 'pas', 'app']
-    - distribution_id in ['redhat7', 'redhat8', 'oracle8']
+    - node_tier in ['scs', 'ers', 'pas', 'app', 'web']
+    - distribution_id in ['redhat7', 'redhat8', 'redhat9', 'oracle8']
   notify:                              "2.10-sap-notes: Reboot after the selinux is configured"
-
-- name:                                "2.10.1 - Force all notified handlers to run now"
-  ansible.builtin.meta:                flush_handlers
-
 
 - name:                                2.10.1 - SAP Note 2777782
   ansible.builtin.include_tasks:       2.10.1.yaml
   when:
     - node_tier == 'hana'
-    - distribution_id == 'redhat8'
-
+    - distribution_id in ['redhat8', 'redhat9']
 
 - name:                                2.10.2 - SAP Note 2777782
   ansible.builtin.include_tasks:       2.10.2.yaml
   when:
     - node_tier == 'oracle' or node_tier == 'oracle-asm'
     - distribution_id == 'oraclelinux8'
+
+- name:                                2.10.3 - SAP Note 1275776
+  ansible.builtin.include_tasks:       2.10.3.yaml
+  when:
+    - node_tier == 'sybase'
+    - distribution_id == 'redhat8'
+
+- name:                                2.10.3119751 - SAP Note 3119751
+  ansible.builtin.include_tasks:       2.10.3119751.yaml
+  when:
+    - platform == 'HANA'
+    - distribution_id in ['redhat8']
+
+- name:                                "2.10 - Force all notified handlers to run now"
+  ansible.builtin.meta:                flush_handlers
+
 
 # - name:                                "2.10.1 sap-notes: - Disable SELinux"
 #   selinux:

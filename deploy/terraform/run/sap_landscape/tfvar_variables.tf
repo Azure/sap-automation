@@ -26,6 +26,11 @@ variable "name_override_file" {
   default     = ""
 }
 
+variable "place_delete_lock_on_resources" {
+  description = "If defined, a delete lock will be placed on the key resources"
+  default     = false
+}
+
 #########################################################################################
 #                                                                                       #
 #  Resource Group variables                                                             #
@@ -287,6 +292,11 @@ variable "additional_users_to_add_to_keyvault_policies" {
   default     = [""]
 }
 
+variable "keyvault_private_endpoint_id" {
+  description = "Existing private endpoint for key vault"
+  default     = ""
+}
+
 #########################################################################################
 #                                                                                       #
 #  Authentication variables                                                             #
@@ -369,12 +379,22 @@ variable "install_private_endpoint_id" {
   default     = ""
 }
 
-variable "Agent_IP" {
-  description = "If provided, contains the IP address of the agent"
-  type    = string
-  default = ""
+variable "install_always_create_fileshares" {
+  description = "Value indicating if file shares are created ehen using existing storage accounts"
+  default     = false
 }
 
+
+variable "Agent_IP" {
+  description = "If provided, contains the IP address of the agent"
+  type        = string
+  default     = ""
+}
+
+variable "storage_account_replication_type" {
+  description = "Storage account replication type"
+  default     = "ZRS"
+}
 
 #########################################################################################
 #                                                                                       #
@@ -385,7 +405,7 @@ variable "Agent_IP" {
 
 variable "use_custom_dns_a_registration" {
   description = "Boolean value indicating if a custom dns a record should be created when using private endpoints"
-  default     = false
+  default     = true
   type        = bool
 }
 
@@ -399,6 +419,17 @@ variable "management_dns_resourcegroup_name" {
   description = "String value giving the possibility to register custom dns a records in a separate resourcegroup"
   default     = ""
   type        = string
+}
+
+variable "create_vaults_and_storage_dns_a_records" {
+  description = "Boolean value indicating if dns a records should be created for the vaults and storage accounts"
+  default     = false
+  type        = bool
+}
+
+variable "dns_server_list" {
+  description = "DNS server list"
+  default     = []
 }
 
 

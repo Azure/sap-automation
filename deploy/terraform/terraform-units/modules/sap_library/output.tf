@@ -36,7 +36,7 @@ output "created_resource_group_name" {
 output "tfstate_storage_account" {
   description = "TFState storage account name"
   value = local.sa_tfstate_exists ? (
-    split("/", local.sa_tfstate_arm_id)[8]) : (
+    split("/", var.storage_account_tfstate.arm_id)[8]) : (
     length(var.storage_account_tfstate.name) > 0 ? (
       var.storage_account_tfstate.name) : (
       var.naming.storageaccount_names.LIBRARY.terraformstate_storageaccount_name
@@ -74,10 +74,14 @@ output "random_id" {
   value = random_id.post_fix.hex
 }
 
+output "random_id_b64" {
+  value = random_id.post_fix.b64_url
+}
+
 
 output "remote_state_storage_account_name" {
   value = local.sa_tfstate_exists ? (
-    split("/", local.sa_tfstate_arm_id)[8]) : (
+    split("/", var.storage_account_tfstate.arm_id)[8]) : (
     length(var.storage_account_tfstate.name) > 0 ? (
       var.storage_account_tfstate.name) : (
       var.naming.storageaccount_names.LIBRARY.terraformstate_storageaccount_name
@@ -88,7 +92,7 @@ output "remote_state_storage_account_name" {
 output "tfstate_resource_id" {
   value = local.sa_tfstate_exists ? (
     data.azurerm_storage_account.storage_tfstate[0].id) : (
-    azurerm_storage_account.storage_tfstate[0].id
+    try(azurerm_storage_account.storage_tfstate[0].id, "")
   )
 }
 
@@ -97,7 +101,7 @@ output "sa_connection_string" {
   sensitive   = true
   value = local.sa_tfstate_exists ? (
     data.azurerm_storage_account.storage_tfstate[0].primary_connection_string) : (
-    azurerm_storage_account.storage_tfstate[0].primary_connection_string
+    try(azurerm_storage_account.storage_tfstate[0].primary_connection_string, "")
   )
 
 }

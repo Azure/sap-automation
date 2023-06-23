@@ -69,6 +69,21 @@ admin_groups:
     enabled:      true
     node_tier:    db2
 
+# Admin groups for ASE
+  - name:         "sybadm"
+    gid:          "{{ asesysadm_gid }}"
+    state:        present
+    tier:         sapos
+    enabled:      true
+    node_tier:    sybase
+
+  - name:         db{{ db_sid | lower }}adm
+    gid:          "{{ asedbadm_gid }}"
+    state:        present
+    tier:         sapos
+    enabled:      true
+    node_tier:    sybase
+
   # Admin groups for Oracle Non-ASM
   - name:         dba
     gid:          "{{ dba_gid }}"
@@ -254,7 +269,7 @@ admin_users:
     comment:      "Example User"
     uid:          "2000"
     group:        example
-    groups:       ["users", "adm"]
+    groups:       ["users","adm"]
     sudoers_role: "admin_no_password"
     shell:        /bin/bash
     password:     "some_password_string"
@@ -263,17 +278,32 @@ admin_users:
     enabled:      true
     node_tier:    none
 
-#  - name:         sapadm
-#   comment:      "SAP Host Agent"
-#    uid:          "{{ sapadm_uid }}"
-#    group:        sapsys
-#    groups:       ["sapsys"]
-#    password:     "some_password_string"
+# SYBASE users and groups will be created as part of the generic install process
+
+#  - name:         "sybase"
+#    comment:      "SAP System Administrator"
+#    uid:          "{{ asesapsid_uid }}"
+#    group:        "sybadm"
+#    groups:       ["sapsys","sapinst"]
+#    password:     "{{ main_password }}"
 #    sudoers_role: "admin_no_password"
 #    shell:        /bin/csh
 #    state:        present
 #    tier:         sapos
-#    node_tier:    all
+#    node_tier:    sybase
+#    enabled:      true
+
+#  - name:         "syb{{ sap_sid | lower }}"
+#    comment:      "SAP ASE Database Administrator"
+#    uid:          "{{ asesidadm_uid }}"
+#    group:        "sapinst"
+#    groups:       ["sapsys","sapinst","db{{ db_sid | lower }}adm"]
+#    password:     "{{ main_password }}"
+#    sudoers_role: "admin_no_password"
+#    shell:        /bin/csh
+#    state:        present
+#    tier:         sapos
+#    node_tier:    sybase
 #    enabled:      true
 
 #  - name:         "{{ sap_sid | lower }}adm"

@@ -34,7 +34,7 @@ output "workload_zone_prefix" {
 output "vnet_sap_arm_id" {
   description = "Azure resource identifier for the Virtual Network"
 
-  value       = length(var.network_arm_id) > 0 ? var.network_arm_id : module.sap_landscape.vnet_sap_id
+  value = length(var.network_arm_id) > 0 ? var.network_arm_id : module.sap_landscape.vnet_sap_id
 }
 
 output "route_table_id" {
@@ -106,7 +106,7 @@ output "spn_kv_id" {
 
 output "workloadzone_kv_name" {
   description = "User credential keyvault name"
-  value       = length(var.user_keyvault_id) > 0 ? split("/", var.user_keyvault_id)[8] : split("/", module.sap_landscape.kv_user)[8]
+  value       = length(var.user_keyvault_id) > 0 ? split("/", var.user_keyvault_id)[8] : try(split("/", module.sap_landscape.kv_user)[8], "")
 }
 
 output "landscape_key_vault_private_arm_id" {
@@ -155,34 +155,39 @@ output "iscsi_private_ip" {
 ###############################################################################
 output "dns_info_iscsi" {
   description = "value"
-  value = module.sap_landscape.dns_info_vms
-}
-
-output "use_custom_dns_a_registration" {
-  description = "Defines if custom DNS is used"
-  value = var.use_custom_dns_a_registration
+  value       = module.sap_landscape.dns_info_vms
 }
 
 output "management_dns_subscription_id" {
   description = "custom DNS subscription"
-  value = var.management_dns_subscription_id
+  value       = var.management_dns_subscription_id
 }
 
 
 output "management_dns_resourcegroup_name" {
   description = "custom DNS resource group"
-  value = var.management_dns_resourcegroup_name
+  value       = var.management_dns_resourcegroup_name
 }
 
 output "dns_label" {
   description = "DNS label"
-  value = var.dns_label
+  value       = var.dns_label
 }
 
+output "use_custom_dns_a_registration" {
+  sensitive = true
+  description = "Defines if custom DNS is used"
+  value = var.use_custom_dns_a_registration
+}
 
 output "dns_resource_group_name" {
-  description = "DNS resource group"
-  value = length(var.dns_resource_group_name) > 0 ? var.dns_resource_group_name : local.saplib_resource_group_name
+  description = "DNS resource group name"
+  value = local.saplib_resource_group_name
+}
+
+output "privatelink_file_id" {
+  value = module.sap_landscape.privatelink_file_id
+
 }
 
 
@@ -249,3 +254,15 @@ output "install_path" {
   value       = module.sap_landscape.install_path
 }
 
+
+###############################################################################
+#                                                                             #
+#                            Control Plane                                    #
+#                                                                             #
+###############################################################################
+
+
+output "controlplane_environment" {
+  description = "Control plane environment"
+  value       = data.terraform_remote_state.deployer[0].outputs.environment
+}

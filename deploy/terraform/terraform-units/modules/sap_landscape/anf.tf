@@ -64,6 +64,7 @@ resource "azurerm_netapp_pool" "workload_netapp_pool" {
 }
 
 data "azurerm_netapp_pool" "workload_netapp_pool" {
+  provider = azurerm.main
   count = var.ANF_settings.use ? (
     var.ANF_settings.use_existing_pool ? (
       1) : (
@@ -136,9 +137,11 @@ resource "azurerm_netapp_volume" "transport" {
     local.resource_suffixes.transport_volume
   )
   service_level = var.ANF_settings.service_level
-  subnet_id     = local.ANF_subnet_existing ? local.ANF_subnet_arm_id : azurerm_subnet.anf[0].id
+  subnet_id     = local.ANF_subnet_existing ? var.infrastructure.vnets.sap.subnet_anf.arm_id : azurerm_subnet.anf[0].id
 
-  protocols = ["NFSv4.1"]
+  protocols        = ["NFSv4.1"]
+  network_features = "Standard"
+
   export_policy_rule {
     allowed_clients     = ["0.0.0.0/0"]
     protocols_enabled   = ["NFSv4.1"]
@@ -152,6 +155,7 @@ resource "azurerm_netapp_volume" "transport" {
 }
 
 data "azurerm_netapp_volume" "transport" {
+  provider = azurerm.main
   count = var.NFS_provider == "ANF" ? (
     var.ANF_settings.use_existing_transport_volume ? (
       1) : (
@@ -185,9 +189,9 @@ data "azurerm_netapp_volume" "transport" {
 }
 
 ################################################################################
-#                                                                              # 
+#                                                                              #
 #                                Install media                                 #
-#                                                                              # 
+#                                                                              #
 ################################################################################
 
 resource "azurerm_netapp_volume" "install" {
@@ -237,9 +241,11 @@ resource "azurerm_netapp_volume" "install" {
     local.resource_suffixes.install_volume
   )
   service_level = var.ANF_settings.service_level
-  subnet_id     = local.ANF_subnet_existing ? local.ANF_subnet_arm_id : azurerm_subnet.anf[0].id
+  subnet_id     = local.ANF_subnet_existing ? var.infrastructure.vnets.sap.subnet_anf.arm_id : azurerm_subnet.anf[0].id
 
-  protocols = ["NFSv4.1"]
+  protocols        = ["NFSv4.1"]
+  network_features = "Standard"
+
   export_policy_rule {
     allowed_clients     = ["0.0.0.0/0"]
     protocols_enabled   = ["NFSv4.1"]
@@ -252,6 +258,7 @@ resource "azurerm_netapp_volume" "install" {
 }
 
 data "azurerm_netapp_volume" "install" {
+  provider = azurerm.main
   count = var.NFS_provider == "ANF" ? (
     var.ANF_settings.use_existing_install_volume ? (
       1) : (

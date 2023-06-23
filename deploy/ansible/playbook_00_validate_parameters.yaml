@@ -28,6 +28,12 @@
         name:                          netaddr
         state:                         present
 
+    # - name:                            "0.0 Validations - ensure credssp is installed in the controller"
+    #   ansible.builtin.pip:
+    #     name:                          'pywinrm[credssp]'
+    #     state:                         present
+    #   failed_when:                     false
+
     - name:                            "0.0 Validations - Create Progress folder"
       ansible.builtin.file:
         path:                          "{{ _workspace_directory }}/.progress"
@@ -128,7 +134,9 @@
         }
       loop_control:
         loop_var:                      item_to_check
-      when: scs_high_availability
+      when:
+        - scs_high_availability
+        - platform != "SQLSERVER"
 
     - name:                            "0.0 Validations - Check required SCS HA fencing variables are present and not empty"
       ansible.builtin.assert:
@@ -286,11 +294,12 @@
       when:
         - deployer_free_temp_disk_space is not defined
 
-    - name:                            "0.0 Validations - Check for free disk space on deployer "
+    - name:                            "0.0 Validations - Check for free disk space on deployer"
       ansible.builtin.assert:
-        that:
-          - "{{ (mnt_free_diskspace | first | int / (1024 * 1024 * 1024) | int) > (deployer_free_temp_disk_space | int) }}"
+        that: "{{ (mnt_free_diskspace | first | int / (1024 * 1024 * 1024) | int) > (deployer_free_temp_disk_space | int) }}"
         fail_msg: "The deployer needs at least {{ deployer_free_temp_disk_space }} GB of free disk space in /mnt"
+      when:
+        - mnt_free_diskspace | length > 0
       tags:
         - 0.0-agent-diskspace
 
@@ -329,12 +338,12 @@
 
     - name:                            "0.0 Validations: - Set Python version {{ distribution_id }}"
       ansible.builtin.set_fact:
-        python_version: "python2"
+        python_version: "python3"
 
     - name:                            "0.0 Validations: - Set Python version {{ distribution_id }}"
       ansible.builtin.set_fact:
-        python_version: "python3"
-      when: (ansible_distribution | lower ~ ansible_distribution_major_version) in ['suse15', 'redhat8', 'sles_sap15']
+        python_version: "python2"
+      when: (ansible_distribution | lower ~ ansible_distribution_major_version) in ['sles_sap12']
 
     - name:                            "0.0 Validations - Get details from local host"
       ansible.builtin.set_fact:
@@ -399,11 +408,12 @@
 
     - name:                            "0.0 Validations - Check internet connectivity"
       ansible.builtin.uri:
-        url: "https://management.azure.com/subscriptions/{{ subscription_id }}/providers/Microsoft.Web/sites?api-version=2016-08-01"
-        headers:
-          Authorization: "Bearer {{ access_token }}"
-          Content-Type: application/json
-          Accept: application/json
+        # url: "https://management.azure.com/subscriptions/{{ subscription_id }}/providers/Microsoft.Web/sites?api-version=2022-03-01"
+        url: "https://azure.status.microsoft/en-us/status"
+        # headers:
+        #   Authorization: "Bearer {{ access_token }}"
+        #   Content-Type: application/json
+        #   Accept: application/json
         status_code:
           - 200
           - 403
@@ -411,14 +421,14 @@
       vars:
         ansible_python_interpreter: "{{ python_version }}"
       when:
-        - (ansible_distribution | lower ~ ansible_distribution_major_version) in ['suse15', 'redhat8', 'sles_sap15' ]
+        - (ansible_distribution | lower ~ ansible_distribution_major_version) in ['suse15', 'redhat8', 'redhat9', 'sles_sap15' ]
         - ansible_os_family != "Windows"
       tags:
         - 0.0-internet
 
     - name:                            "0.0 Validations - Check internet connectivity"
       ansible.builtin.uri:
-        url: "https://management.azure.com/subscriptions/{{ subscription_id }}/providers/Microsoft.Web/sites?api-version=2016-08-01"
+        url: "https://management.azure.com/subscriptions/{{ subscription_id }}/providers/Microsoft.Web/sites?api-version=2022-03-01"
         headers:
           Authorization: "Bearer {{ access_token }}"
           Content-Type: application/json
@@ -431,6 +441,7 @@
         - (ansible_distribution | lower ~ ansible_distribution_major_version) != 'suse15'
         - (ansible_distribution | lower ~ ansible_distribution_major_version) != 'sles_sap15'
         - (ansible_distribution | lower ~ ansible_distribution_major_version) != 'redhat8'
+        - (ansible_distribution | lower ~ ansible_distribution_major_version) != 'redhat9'
         - ansible_os_family != "Windows"
       tags:
         - 0.0-internet
@@ -472,24 +483,28 @@
     #     - (ansible_distribution | lower ~ ansible_distribution_major_version) in ['redhat7', 'redhat8']
     #     - yum_results is defined
 
-    - name:                            "0.0 Validations - Show Mounts"
-      ansible.builtin.command: df -h
-      register: mounts
-      failed_when: false
-      tags:
-        - 0.0-mounts
-      when:
-        - ansible_os_family != "Windows"
-
+    # - name:                            "0.0 Validations - Show Mounts"
+    #   ansible.builtin.command: df -h
+    #   register: mounts
+    #   failed_when: false
+    #   tags:
+    #     - 0.0-mounts
+    #   when:
+    #     - ansible_os_family != "Windows"
     - name:                            "0.0 Validations - Show Mounts"
       ansible.builtin.debug:
-        var: mounts.stdout_lines
+        msg:
+          - "Mount:      {{ item.mount }}"
+          - "Device:     {{ item.device }}"
+          - "Filesystem: {{ item.fstype }}"
+      with_items:
+        - "{{ ansible_mounts }}"
       when:
-        - mounts is defined
         - ansible_os_family != "Windows"
 
+
     - name:                            "0.0 Validations - Show Hosts"
-      ansible.builtin.command: cat /etc/hosts
+      ansible.builtin.shell:           set -o pipefail && cat /etc/hosts | grep -v -e "^#" | grep -v -e '^[[:space:]]*$'
       register: hosts
       tags:
         - 0.0-hosts
@@ -537,6 +552,7 @@
           when:
             - "'scs' in supported_tiers"
             - usr_sap_mounted is defined
+            - ansible_os_family != "Windows"
           block:
             - name:                    "0.0 Validations - Disk space details"
               ansible.builtin.set_fact:

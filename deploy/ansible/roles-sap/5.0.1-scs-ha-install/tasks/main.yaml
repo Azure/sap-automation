@@ -9,12 +9,12 @@
 ---
 - name:                                "SCS HA Install: - Set Python version {{ distribution_id }}"
   ansible.builtin.set_fact:
-    python_version: "python2"
+    python_version: "python3"
 
 - name:                                "SCS HA Install: - Set Python version {{ distribution_id }}"
   ansible.builtin.set_fact:
-    python_version: "python3"
-  when: (ansible_distribution | lower ~ ansible_distribution_major_version) in ['suse15', 'redhat8', 'sles_sap15']
+    python_version: "python2"
+  when: (ansible_distribution | lower ~ ansible_distribution_major_version) in ['sles_sap12']
 
 - name:                                 "SCS HA Install: Set BOM facts"
   ansible.builtin.set_fact:
@@ -101,8 +101,6 @@
         sap_appVirtualHostname:
         param_directory:               "{{ dir_params }}"
         hdb_instance_number:           "{{ db_instance_number }}"
-      tags:
-        - skip_ansible_lint
 
     - name:                            "SCS HA Install: check if installed"
       ansible.builtin.debug:
@@ -179,12 +177,13 @@
       block:
         - name:                        "SCS HA Install: SAPInst"
           ansible.builtin.shell: |
-                                       umask {{ custom_umask | default('022') }};
+                                       umask {{ custom_umask | default('022') }} ;
                                        ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }}     \
                                                  SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.scs_ha }}             \
                                                  SAPINST_SKIP_DIALOGS=true                                           \
                                                  SAPINST_START_GUISERVER=false                                       \
-                                                 SAPINST_USE_HOSTNAME={{ scs_virtual_hostname }}
+                                                 SAPINST_USE_HOSTNAME={{ scs_virtual_hostname }}                     \
+                                                 IS_HOST_LOCAL_USING_STRING_COMPARE=true
           args:
             chdir:                     "{{ target_media_location }}/SWPM"
             creates:                   "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_scs.txt"
@@ -193,8 +192,6 @@
             TMPDIR:                    "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
           register:                    scs_installation
           failed_when:                 scs_installation.rc > 0
-          tags:
-            - skip_ansible_lint
           when:                        node_tier == 'scs'
       rescue:
         # ToDO: cleanup file systems on failed install.
@@ -249,15 +246,10 @@
         # Add IS_HOST_LOCAL_USING_STRING_COMPARE=true to fix The host with the
         # name <host> is not a valid virtual host on the local host
         # SAP Note# 2279110
-        - name:                            "Create temp directory for sid"
-          ansible.builtin.file:
-            path:                          "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
-            state:                         directory
-            mode:                          0755
 
         - name:                        "RESCUE - SCS HA Install: SAPINST"
-          ansible.builtin.command: |
-                                       umask {{ custom_umask | default('022') }};
+          ansible.builtin.shell: |
+                                       umask {{ custom_umask | default('022') }} ;
                                        ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }}     \
                                                  SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.scs_ha }}             \
                                                  SAPINST_SKIP_DIALOGS=true                                           \
@@ -271,9 +263,7 @@
             SAPSYSTEMNAME:             "{{ sid_to_be_deployed.sid | upper }}"
             TMPDIR:                    "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
           register:                    scs_installation
-          failed_when:                 false
-          tags:
-            - skip_ansible_lint
+          failed_when:                 scs_installation.rc > 0
           when:                        node_tier == 'scs'
 
     - name:                            "SCS HA Install: Installation results"
@@ -307,12 +297,15 @@
       ansible.builtin.file:
         path:                          "{{ dir_params }}/{{ sap_inifile }}"
         state:                         absent
+      when:                            scs_installation.rc == 0
+
 
     - name:                            "SCS HA Install: flag"
       ansible.builtin.file:
         path:                          "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_scs.txt"
         state:                         touch
         mode:                          0755
+      when:                            scs_installation.rc == 0
 
   when:
     - node_tier == 'scs'
@@ -331,12 +324,21 @@
   when:
     - node_tier == 'scs'
     - scs_installed.stat.exists
-
-- name:                                "SCS HA Install: check if installed"
+- name:                                "SCS HA Install: check if installed without issues"
   ansible.builtin.stat:
     path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_scs.txt"
   register:                            scs_installed
   when:                                node_tier == 'scs'
+
+- name:                                "ENSA1 set defaults"
+  ansible.builtin.set_fact:
+    ensa1:                             false
+  when: ensa1 is not defined
+
+- name:                                "ENSA2 set defaults"
+  ansible.builtin.set_fact:
+    ensa2:                             false
+  when: ensa2 is not defined
 
 - name:                                "SCSERS - Enqueue Server Setup"
   block:
@@ -375,8 +377,8 @@
     - name:                            "SCSERS - Print the value of ENSA1/ENSA2"
       ansible.builtin.debug:
         msg:
-          - "{{ ensa1 }}"
-          - "{{ ensa2 }}"
+          - "ENSA1: {{ ensa1 }}"
+          - "ENSA2: {{ ensa2 }}"
   rescue:
     - name:                            "SCSERS - set default to ENSA2 for HANA if message server is down"
       ansible.builtin.set_fact:
@@ -391,6 +393,44 @@
   when:
     - inventory_hostname == primary_instance_name
     - scs_installed.stat.exists
+
+- name:                                "SCSERS - set default to ENSA2 for HANA if message server is down"
+  ansible.builtin.set_fact:
+    ensa2:                             true
+  when:
+    - platform == 'HANA'
+    - scs_bom_instance_type == 'ABAP'
+    - not ensa1
+    - not ensa2
+    - inventory_hostname == primary_instance_name
+    - scs_installed.stat.exists
+
+- name:                                "SCSERS - set default to ENSA for HANA (JAVA) if message server is down"
+  ansible.builtin.set_fact:
+    ensa1:                             true
+  when:
+    - platform == 'HANA'
+    - scs_bom_instance_type == 'JAVA'
+    - not ensa1
+    - not ensa2
+    - inventory_hostname == primary_instance_name
+    - scs_installed.stat.exists
+
+- name:                                "SCSERS - set default to ENSA1 for AnyDB if message server is down"
+  ansible.builtin.set_fact:
+    ensa1:                             true
+  when:
+    - platform != 'HANA'
+    - not ensa1
+    - not ensa2
+    - inventory_hostname == primary_instance_name
+    - scs_installed.stat.exists
+
+- name:                                "SCSERS - Print the value of ENSA1/ENSA2"
+  ansible.builtin.debug:
+    msg:
+      - "ENSA1: {{ ensa1 }}"
+      - "ENSA2: {{ ensa2 }}"
 
 ...
 # /*---------------------------------------------------------------------------8

@@ -114,6 +114,11 @@ variable "enable_rbac_authorization_for_keyvault" {
   description = "Enables RBAC authorization for Azure keyvault"
 }
 
+variable "keyvault_private_endpoint_id" {
+  description = "Existing private endpoint for key vault"
+}
+
+
 #########################################################################################
 #                                                                                       #
 #  Storage Account Variables                                                            #
@@ -166,6 +171,16 @@ variable "install_private_endpoint_id" {
   default     = ""
 }
 
+variable "install_always_create_fileshares" {
+  description = "Value indicating if file shares are created ehen using existing storage accounts"
+  default     = false
+}
+
+variable "storage_account_replication_type" {
+  description = "Storage account replication type"
+  default     = "ZRS"
+}
+
 #########################################################################################
 #                                                                                       #
 #  Miscallaneous variables                                                              #
@@ -213,6 +228,12 @@ variable "ANF_settings" {
   }
 }
 
+
+variable "place_delete_lock_on_resources" {
+  description = "If defined, a delete lock will be placed on the key resources"
+}
+
+
 #########################################################################################
 #                                                                                       #
 #  DNS Settings                                                                         #
@@ -220,31 +241,23 @@ variable "ANF_settings" {
 #########################################################################################
 
 
-
 variable "dns_label" {
-  description = "DNS label"
+  description = "DNS label for the system, for example azure.contoso.net"
   default     = ""
 }
 
-variable "dns_resource_group_name" {
-  description = "DNS resource group name"
-  default     = ""
+variable "dns_server_list" {
+  description = "The list of DNS Servers to associate with the VNet"
+  default     = []
 }
 
-variable "use_private_endpoint" {
-  description = "Boolean value indicating if private endpoint should be used for the deployment"
-  default     = false
-  type        = bool
-}
-
-variable "use_service_endpoint" {
-  description = "Boolean value indicating if service endpoints should be used for the deployment"
-  default     = false
+variable "create_vaults_and_storage_dns_a_records" {
+  description = "Boolean value indicating if dns a records should be created for the vaults and storage accounts"
   type        = bool
 }
 
 variable "use_custom_dns_a_registration" {
-  description = "Boolean value indicating if a custom dns a record should be created when using private endpoints"
+  description = "Boolean value indicating if a custom dns a records should be created for private endpoints"
   default     = false
   type        = bool
 }
@@ -261,6 +274,19 @@ variable "management_dns_resourcegroup_name" {
   type        = string
 }
 
+variable "use_private_endpoint" {
+  description = "Boolean value indicating if private endpoint should be used for the deployment"
+  default     = false
+  type        = bool
+}
+
+variable "use_service_endpoint" {
+  description = "Boolean value indicating if service endpoints should be used for the deployment"
+  default     = false
+  type        = bool
+}
+
+
 variable "NFS_provider" {
   description = "Describes the NFS solution used"
   type        = string
@@ -268,8 +294,8 @@ variable "NFS_provider" {
 
 variable "Agent_IP" {
   description = "If provided, contains the IP address of the agent"
-  type    = string
-  default = ""
+  type        = string
+  default     = ""
 }
 
 

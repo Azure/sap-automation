@@ -27,14 +27,14 @@ output "dns_info_vms" {
       zipmap(
         compact(
           concat(
-            slice(var.naming.virtualmachine_names.HANA_VMNAME, 0, var.database_server_count),
-            slice(var.naming.virtualmachine_names.HANA_SECONDARY_DNSNAME, 0, var.database_server_count)
+            slice(var.naming.virtualmachine_names.HANA_VMNAME, 0, length(azurerm_linux_virtual_machine.vm_dbnode)),
+            slice(var.naming.virtualmachine_names.HANA_SECONDARY_DNSNAME, 0, length(azurerm_linux_virtual_machine.vm_dbnode))
           )
         ),
         compact(
           concat(
-            slice(azurerm_network_interface.nics_dbnodes_admin[*].private_ip_address, 0, var.database_server_count),
-            slice(azurerm_network_interface.nics_dbnodes_db[*].private_ip_address, 0, var.database_server_count)
+            slice(azurerm_network_interface.nics_dbnodes_admin[*].private_ip_address, 0, length(azurerm_linux_virtual_machine.vm_dbnode)),
+            slice(azurerm_network_interface.nics_dbnodes_db[*].private_ip_address, 0, length(azurerm_linux_virtual_machine.vm_dbnode))
           )
         )
       )
@@ -42,12 +42,12 @@ output "dns_info_vms" {
       zipmap(
         compact(
           concat(
-            slice(var.naming.virtualmachine_names.HANA_VMNAME, 0, var.database_server_count)
+            slice(var.naming.virtualmachine_names.HANA_VMNAME, 0, length(azurerm_linux_virtual_machine.vm_dbnode))
           )
         ),
         compact(
           concat(
-            slice(azurerm_network_interface.nics_dbnodes_db[*].private_ip_address, 0, var.database_server_count)
+            slice(azurerm_network_interface.nics_dbnodes_db[*].private_ip_address, 0, length(azurerm_linux_virtual_machine.vm_dbnode))
           )
         )
       )
@@ -66,7 +66,7 @@ output "dns_info_loadbalancers" {
         var.naming.separator,
       local.resource_suffixes.db_alb)
       ], [
-      azurerm_lb.hdb[0].private_ip_addresses[0]
+      try(azurerm_lb.hdb[0].private_ip_addresses[0], "")
     ])) : (
     null
   )
@@ -88,7 +88,7 @@ output "db_ha" {
 output "db_lb_ip" {
   value = [
     local.enable_db_lb_deployment ? (
-      azurerm_lb.hdb[0].frontend_ip_configuration[0].private_ip_address) : (
+      try(azurerm_lb.hdb[0].frontend_ip_configuration[0].private_ip_address, "")) : (
       ""
     )
   ]
@@ -97,7 +97,7 @@ output "db_lb_ip" {
 output "db_lb_id" {
   value = [
     local.enable_db_lb_deployment ? (
-      azurerm_lb.hdb[0].id) : (
+      try(azurerm_lb.hdb[0].id, "")) : (
       ""
     )
   ]
@@ -110,42 +110,47 @@ output "db_admin_ip" {
   )
 }
 
-output "db_ip" {
-  value = local.enable_deployment ? azurerm_network_interface.nics_dbnodes_db[*].private_ip_address : []
+output "db_server_ips" {
+  value = local.enable_deployment ? azurerm_network_interface.nics_dbnodes_db[*].private_ip_addresses[0] : []
 }
 
+output "db_server_secondary_ips" {
+  value = local.enable_deployment && var.use_secondary_ips ? azurerm_network_interface.nics_dbnodes_db[*].private_ip_addresses[1] : []
+}
+
+
 output "hana_data_primary" {
-  value = var.hana_ANF_volumes.use_for_data ? (
+  value = try(var.hana_ANF_volumes.use_for_data ? (
     format("%s:/%s",
-      var.hana_ANF_volumes.use_existing_data_volume ? (
+      var.hana_ANF_volumes.use_existing_data_volume || local.use_avg ? (
         data.azurerm_netapp_volume.hanadata[0].mount_ip_addresses[0]) : (
         azurerm_netapp_volume.hanadata[0].mount_ip_addresses[0]
       ),
-      var.hana_ANF_volumes.use_existing_data_volume ? (
+      var.hana_ANF_volumes.use_existing_data_volume || local.use_avg ? (
         data.azurerm_netapp_volume.hanadata[0].volume_path) : (
         azurerm_netapp_volume.hanadata[0].volume_path
       )
     )
     ) : (
     ""
-  )
+  ), "")
 }
 
 output "hana_data_secondary" {
-  value = var.hana_ANF_volumes.use_for_data && local.hdb_ha ? (
+  value = try(var.hana_ANF_volumes.use_for_data && local.hdb_ha ? (
     format("%s:/%s",
-      var.hana_ANF_volumes.use_existing_data_volume ? (
+      var.hana_ANF_volumes.use_existing_data_volume || local.use_avg ? (
         data.azurerm_netapp_volume.hanadata[1].mount_ip_addresses[0]) : (
         azurerm_netapp_volume.hanadata[1].mount_ip_addresses[0]
       ),
-      var.hana_ANF_volumes.use_existing_data_volume ? (
+      var.hana_ANF_volumes.use_existing_data_volume || local.use_avg ? (
         data.azurerm_netapp_volume.hanadata[1].volume_path) : (
         azurerm_netapp_volume.hanadata[1].volume_path
       )
     )
     ) : (
     ""
-  )
+  ), "")
 }
 
 # output "hana_data" {
@@ -186,69 +191,74 @@ output "hana_data_secondary" {
 #   [""])
 # }
 output "hana_log_primary" {
-  value = var.hana_ANF_volumes.use_for_log ? (
+  value = try(var.hana_ANF_volumes.use_for_log ? (
     format("%s:/%s",
-      var.hana_ANF_volumes.use_existing_log_volume ? (
+      var.hana_ANF_volumes.use_existing_log_volume || local.use_avg ? (
         data.azurerm_netapp_volume.hanalog[0].mount_ip_addresses[0]) : (
         azurerm_netapp_volume.hanalog[0].mount_ip_addresses[0]
       ),
-      var.hana_ANF_volumes.use_existing_log_volume ? (
+      var.hana_ANF_volumes.use_existing_log_volume || local.use_avg ? (
         data.azurerm_netapp_volume.hanalog[0].volume_path) : (
         azurerm_netapp_volume.hanalog[0].volume_path
       )
     )
     ) : (
     ""
-  )
+  ), "")
 }
 
 output "hana_log_secondary" {
-  value = var.hana_ANF_volumes.use_for_log && local.hdb_ha ? (
+  value = try(var.hana_ANF_volumes.use_for_log && local.hdb_ha ? (
     format("%s:/%s",
-      var.hana_ANF_volumes.use_existing_log_volume ? (
+      var.hana_ANF_volumes.use_existing_log_volume || local.use_avg ? (
         data.azurerm_netapp_volume.hanalog[1].mount_ip_addresses[0]) : (
         azurerm_netapp_volume.hanalog[1].mount_ip_addresses[0]
       ),
-      var.hana_ANF_volumes.use_existing_log_volume ? (
+      var.hana_ANF_volumes.use_existing_log_volume || local.use_avg ? (
         data.azurerm_netapp_volume.hanalog[1].volume_path) : (
         azurerm_netapp_volume.hanalog[1].volume_path
       )
     )
     ) : (
     ""
-  )
+  ), "")
 }
 
 output "hana_shared_primary" {
-  value = var.hana_ANF_volumes.use_for_shared ? (
+  value = try(var.hana_ANF_volumes.use_for_shared ? (
     format("%s:/%s",
-      var.hana_ANF_volumes.use_existing_shared_volume ? (
+      var.hana_ANF_volumes.use_existing_shared_volume || local.use_avg ? (
         data.azurerm_netapp_volume.hanashared[0].mount_ip_addresses[0]) : (
-        azurerm_netapp_volume.hanashared[0].mount_ip_addresses[0]
+        try(azurerm_netapp_volume.hanashared[0].mount_ip_addresses[0], "")
       ),
-      var.hana_ANF_volumes.use_existing_shared_volume ? (
+      var.hana_ANF_volumes.use_existing_shared_volume || local.use_avg ? (
         data.azurerm_netapp_volume.hanashared[0].volume_path) : (
-        azurerm_netapp_volume.hanashared[0].volume_path
+        try(azurerm_netapp_volume.hanashared[0].volume_path, "")
       )
     )
     ) : (
     ""
-  )
+  ), "")
 }
 
 output "hana_shared_secondary" {
-  value = var.hana_ANF_volumes.use_for_shared && local.hdb_ha ? (
+  value = try(var.hana_ANF_volumes.use_for_shared && local.hdb_ha ? (
     format("%s:/%s",
-      var.hana_ANF_volumes.use_existing_shared_volume ? (
+      var.hana_ANF_volumes.use_existing_shared_volume || local.use_avg ? (
         data.azurerm_netapp_volume.hanashared[1].mount_ip_addresses[0]) : (
-        azurerm_netapp_volume.hanashared[1].mount_ip_addresses[0]
+        try(azurerm_netapp_volume.hanashared[1].mount_ip_addresses[0], "")
       ),
-      var.hana_ANF_volumes.use_existing_shared_volume ? (
+      var.hana_ANF_volumes.use_existing_shared_volume || local.use_avg ? (
         data.azurerm_netapp_volume.hanashared[1].volume_path) : (
-        azurerm_netapp_volume.hanashared[1].volume_path
+        try(azurerm_netapp_volume.hanashared[1].volume_path, "")
       )
     )
     ) : (
     ""
-  )
+  ), "")
+}
+
+
+output "application_volume_group" {
+  value = azurerm_netapp_volume_group_sap_hana.avg_HANA
 }

@@ -22,10 +22,10 @@
     path:                               "{{ item.path }}"
     state:                              directory
     mode:                               0755
+    owner:                              "{{ orchestration_ansible_user }}"
   delegate_to:                          localhost
-# 20221201 MKD (DynBOM)- mitigate become
-  # become:                               "{{ bom_processing_become }}"
-  # become_user:                          root
+  become:                               "{{ bom_processing_become }}"
+  become_user:                          root
   loop:
     - path: "{{ download_directory }}"
     - path: "{{ download_directory }}/tmp"
@@ -69,8 +69,7 @@
         dest:                           "{{ download_directory }}/bom/{{ new_bom_name }}.yaml"
         mode:                           0644
       delegate_to:                      localhost
-# 20221201 MKD (DynBOM)- mitigate become
-      # become:                           "{{ bom_processing_become }}"
+      become:                           "{{ bom_processing_become }}"
       ignore_errors:                    true
       register:                         result
 # Step: 03-01 - END
@@ -155,6 +154,8 @@
         path:                           "{{ BOM_directory }}/{{ bom_name }}/{{ bom_name }}.yaml"
       register:                         microsoft_supplied_bom
       delegate_to:                      localhost
+      become:                          "{{ bom_processing_become }}"
+
 # Step: 05-01 - END
 # -------------------------------------+---------------------------------------8
 
@@ -214,6 +215,7 @@
             path:                       "{{ BOM_directory }}/archives/{{ bom_name }}/{{ bom_name }}.yaml"
           register:                     microsoft_supplied_bom_archive
           delegate_to:                  localhost
+          become:                       "{{ bom_processing_become }}"
 # Step: 05-05-01 - END
 # -------------------------------------+---------------------------------------8
 

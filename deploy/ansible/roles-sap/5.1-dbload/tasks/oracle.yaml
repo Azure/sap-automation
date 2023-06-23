@@ -46,8 +46,6 @@
     executable:                        /bin/csh
   register:                            lsnrstatus
   failed_when:                         lsnrstatus.rc >= 2
-  tags:
-    - skip_ansible_lint
 
 - name:                                "DBLoad (sharedHome): create startlsnrctl.txt"
   ansible.builtin.file:

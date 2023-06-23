@@ -42,6 +42,12 @@ variable "sap_sid" {
   default     = ""
 }
 
+variable "web_sid" {
+  description = "Web Dispatcher SID"
+  default     = ""
+}
+
+
 variable "db_sid" {
   description = "Database SID"
   default     = ""
@@ -64,7 +70,7 @@ variable "app_ostype" {
 
 variable "db_platform" {
   description = "AnyDB platform type (Oracle, DB2, SQLServer, ASE)"
-  default     = "LINUX"
+  default     = "HANA"
 }
 
 variable "anchor_ostype" {
@@ -73,22 +79,26 @@ variable "anchor_ostype" {
 }
 
 variable "app_server_count" {
+  description = "Number of Application Servers"
   type    = number
   default = 1
 }
 
 variable "scs_server_count" {
+  description = "Number of SCS Servers"
   type    = number
   default = 1
 }
 
 variable "web_server_count" {
+  description = "Number of Web Dispatchers"
   type    = number
   default = 1
 }
 
 
 variable "db_server_count" {
+  description = "Number of Database Servers"
   type    = number
   default = 1
 }
@@ -166,7 +176,7 @@ variable "azlimits" {
 variable "region_mapping" {
   type        = map(string)
   description = "Region Mapping: Full = Single CHAR, 4-CHAR"
-  # 42 Regions 
+  # 42 Regions
   default = {
     "australiacentral"   = "auce"
     "australiacentral2"  = "auc2"
@@ -242,9 +252,11 @@ variable "resource_prefixes" {
     "app_service_plan"                = ""
     "bastion_host"                   = ""
     "bastion_pip"                    = ""
+    "cluster_disk"                   = ""
     "db_alb"                         = ""
     "db_alb_bepool"                  = ""
     "db_alb_feip"                    = ""
+    "db_clst_feip"                   = ""
     "db_alb_hp"                      = ""
     "db_alb_rule"                    = ""
     "db_asg"                         = ""
@@ -269,6 +281,7 @@ variable "resource_prefixes" {
     "firewall_rule_db"               = ""
     "firewall_rule_app"              = ""
     "fw_route"                       = ""
+    "hana_avg"                       = ""
     "hanadata"                       = ""
     "hanalog"                        = ""
     "hanashared"                     = ""
@@ -330,6 +343,7 @@ variable "resource_prefixes" {
     "transport_volume"               = ""
     "vm"                             = ""
     "usrsap"                         = ""
+    "vmss"                           = ""
     "vnet"                           = ""
     "vnet_rg"                        = ""
     "web_alb"                        = ""
@@ -367,9 +381,11 @@ variable "resource_suffixes" {
     "app_subnet_nsg"                 = "appSubnet-nsg"
     "bastion_host"                   = "bastion-host"
     "bastion_pip"                    = "bastion-pip"
+    "cluster_disk"                   = "cluster-disks"
     "db_alb"                         = "db-alb"
     "db_alb_bepool"                  = "dbAlb-bePool"
     "db_alb_feip"                    = "dbAlb-feip"
+    "db_clst_feip"                   = "dbClst-feip"
     "db_alb_hp"                      = "dbAlb-hp"
     "db_alb_rule"                    = "dbAlb-rule"
     "db_asg"                         = "db-asg"
@@ -395,6 +411,7 @@ variable "resource_suffixes" {
     "firewall_rule_db"               = "firewall-rule-db"
     "firewall_rule_app"              = "firewall-rule-app"
     "fw_route"                       = "firewall-route"
+    "hana_avg"                       = "hana-avg"
     "hanadata"                       = "hanadata"
     "hanalog"                        = "hanalog"
     "hanashared"                     = "hanashared"
@@ -455,6 +472,7 @@ variable "resource_suffixes" {
     "tfstate"                        = "tfstate"
     "transport_volume"               = "transport"
     "usrsap"                         = "usrsap"
+    "vmss"                           = "-vmss"
     "vm"                             = ""
     "vnet"                           = "-vnet"
     "vnet_rg"                        = "-INFRASTRUCTURE"

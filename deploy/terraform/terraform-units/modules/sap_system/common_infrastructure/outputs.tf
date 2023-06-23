@@ -1,7 +1,7 @@
 ###############################################################################
-#                                                                             # 
-#                             Resource Group                                  # 
-#                                                                             # 
+#                                                                             #
+#                             Resource Group                                  #
+#                                                                             #
 ###############################################################################
 
 output "created_resource_group_id" {
@@ -33,9 +33,9 @@ output "resource_group" {
 }
 
 ###############################################################################
-#                                                                             # 
-#                             Storage accounts                                # 
-#                                                                             # 
+#                                                                             #
+#                             Storage accounts                                #
+#                                                                             #
 ###############################################################################
 
 output "storage_bootdiag_endpoint" {
@@ -43,9 +43,9 @@ output "storage_bootdiag_endpoint" {
 }
 
 ###############################################################################
-#                                                                             # 
-#                             Miscallaneous                                   # 
-#                                                                             # 
+#                                                                             #
+#                             Miscallaneous                                   #
+#                                                                             #
 ###############################################################################
 
 output "random_id" {
@@ -53,14 +53,14 @@ output "random_id" {
 }
 
 output "ppg" {
-  value = local.ppg_exists ? data.azurerm_proximity_placement_group.ppg : azurerm_proximity_placement_group.ppg
+  value = var.use_scalesets_for_deployment ? [] : local.ppg_exists ? data.azurerm_proximity_placement_group.ppg[*].id : azurerm_proximity_placement_group.ppg[*].id
 }
 
 
 ###############################################################################
-#                                                                             # 
-#                            Network                                          # 
-#                                                                             # 
+#                                                                             #
+#                            Network                                          #
+#                                                                             #
 ###############################################################################
 
 output "network_location" {
@@ -79,13 +79,19 @@ output "admin_subnet" {
 }
 
 output "db_subnet" {
-  value = local.enable_db_deployment ? (
-    local.database_subnet_exists ? data.azurerm_subnet.db[0] : azurerm_subnet.db[0]) : (
-    null
-  )
+  value = local.database_subnet_exists ? data.azurerm_subnet.db[0] : azurerm_subnet.db[0]
   #local.database_subnet_exists ? data.azurerm_subnet.db[0] : azurerm_subnet.db[0]
 }
 
+output "db_subnet_netmask" {
+  value = local.enable_db_deployment ? (
+    local.database_subnet_exists ? (
+      split("/", data.azurerm_subnet.db[0].address_prefixes[0])[1]) : (
+      split("/", azurerm_subnet.db[0].address_prefixes[0])[1]
+    )) : (
+    null
+  )
+}
 output "storage_subnet" {
   value = local.enable_db_deployment && local.enable_storage_subnet ? (
     local.sub_storage_exists ? (
@@ -107,14 +113,14 @@ output "firewall_id" {
 }
 
 ###############################################################################
-#                                                                             # 
-#                            Key Vault                                        # 
-#                                                                             # 
+#                                                                             #
+#                            Key Vault                                        #
+#                                                                             #
 ###############################################################################
 
 output "sid_keyvault_user_id" {
   description = "User credentials keyvault"
-  value = local.enable_sid_deployment && local.use_local_credentials &&  length(local.user_key_vault_id) == 0 ? (
+  value = local.enable_sid_deployment && local.use_local_credentials && length(local.user_key_vault_id) == 0 ? (
     azurerm_key_vault.sid_keyvault_user[0].id) : (
   local.user_key_vault_id)
 }
@@ -149,18 +155,17 @@ output "cloudinit_growpart_config" {
 
 
 ###############################################################################
-#                                                                             # 
-#                       Mount info                                            # 
-#                                                                             # 
+#                                                                             #
+#                       Mount info                                            #
+#                                                                             #
 ###############################################################################
 
 output "sapmnt_path" {
   description = "Defines the sapmnt mount path"
   value = var.NFS_provider == "AFS" ? (
     format("%s:/%s/%s",
-
       length(var.sapmnt_private_endpoint_id) == 0 ? (
-        try(azurerm_private_endpoint.sapmnt[0].custom_dns_configs[0].fqdn,
+        try(azurerm_private_endpoint.sapmnt[0].private_dns_zone_configs[0].record_sets[0].fqdn,
           azurerm_private_endpoint.sapmnt[0].private_service_connection[0].private_ip_address
         )) : (
         data.azurerm_private_endpoint_connection.sapmnt[0].private_service_connection[0].private_ip_address
@@ -190,6 +195,18 @@ output "sapmnt_path" {
   )
 }
 
+output "sapmnt_path_secondary" {
+  description = "Defines the sapmnt mount path"
+  value = var.NFS_provider == "ANF" && var.hana_ANF_volumes.sapmnt_use_clone_in_secondary_zone ? (
+    format("%s:/%s",
+      azurerm_netapp_volume.sapmnt_secondary[0].mount_ip_addresses[0],
+      azurerm_netapp_volume.sapmnt_secondary[0].volume_path
+    )
+    ) : (
+    ""
+  )
+}
+
 output "usrsap_path" {
   description = "Defines the /usr/sap mount path (if used)"
   value = var.NFS_provider == "ANF" && var.hana_ANF_volumes.use_for_usr_sap ? (
@@ -209,11 +226,13 @@ output "usrsap_path" {
 
 }
 
-
+output "test" {
+  value = try(azurerm_private_endpoint.sapmnt[0].private_dns_zone_configs[0].record_sets[0].fqdn, "")
+}
 ###############################################################################
-#                                                                             # 
-#                       Anchor VM                                             # 
-#                                                                             # 
+#                                                                             #
+#                       Anchor VM                                             #
+#                                                                             #
 ###############################################################################
 
 
@@ -222,4 +241,10 @@ output "anchor_vm" {
     local.anchor_ostype == "LINUX" ? (azurerm_linux_virtual_machine.anchor[0].id) : (azurerm_windows_virtual_machine.anchor[0].id)) : (
     ""
   )
+}
+
+
+output "scale_set_id" {
+
+  value = var.use_scalesets_for_deployment ? azurerm_orchestrated_virtual_machine_scale_set.scale_set[0].id : ""
 }

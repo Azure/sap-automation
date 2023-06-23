@@ -12,6 +12,7 @@ locals {
 
   db_sid  = upper(try(local.database.instance.sid, "HDB"))
   sap_sid = upper(try(local.application_tier.sid, local.db_sid))
+  web_sid = upper(try(var.web_sid, local.sap_sid))
 
   enable_db_deployment = length(local.database.platform) > 0
 
@@ -38,6 +39,13 @@ locals {
     client_id       = var.use_spn ? data.azurerm_key_vault_secret.client_id[0].value : null,
     client_secret   = var.use_spn ? data.azurerm_key_vault_secret.client_secret[0].value : null,
     tenant_id       = var.use_spn ? data.azurerm_key_vault_secret.tenant_id[0].value : null
+  }
+
+  cp_spn = {
+    subscription_id = try(data.azurerm_key_vault_secret.cp_subscription_id[0].value, null)
+    client_id       = var.use_spn ? try(coalesce(data.azurerm_key_vault_secret.cp_client_id[0].value, data.azurerm_key_vault_secret.client_id[0].value), null) : null,
+    client_secret   = var.use_spn ? try(coalesce(data.azurerm_key_vault_secret.cp_client_secret[0].value, data.azurerm_key_vault_secret.client_secret[0].value), null) : null,
+    tenant_id       = var.use_spn ? try(coalesce(data.azurerm_key_vault_secret.cp_tenant_id[0].value, data.azurerm_key_vault_secret.tenant_id[0].value), null) : null
   }
 
   service_principal = {
@@ -82,10 +90,15 @@ locals {
     usr_sap_volume_name         = var.ANF_usr_sap_volume_name
     usr_sap_volume_throughput   = var.ANF_usr_sap_throughput
 
-    sapmnt_volume_size         = var.sapmnt_volume_size
-    use_existing_sapmnt_volume = var.ANF_sapmnt
-    sapmnt_volume_name         = var.ANF_sapmnt_volume_name
-    sapmnt_volume_throughput   = var.ANF_sapmnt_volume_throughput
+    sapmnt_volume_size                 = var.sapmnt_volume_size
+    use_for_sapmnt                     = var.ANF_sapmnt
+    use_existing_sapmnt_volume         = var.ANF_sapmnt_use_existing
+    sapmnt_volume_name                 = var.ANF_sapmnt_volume_name
+    sapmnt_volume_throughput           = var.ANF_sapmnt_volume_throughput
+    sapmnt_use_clone_in_secondary_zone = var.ANF_sapmnt_use_clone_in_secondary_zone
+
+    use_AVG_for_data = var.ANF_HANA_use_AVG
+    use_zones        = var.ANF_HANA_use_Zones
 
   }
 

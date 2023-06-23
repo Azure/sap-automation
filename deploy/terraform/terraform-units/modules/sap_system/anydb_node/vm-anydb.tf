@@ -156,13 +156,9 @@ resource "azurerm_linux_virtual_machine" "dbserver" {
     }
   }
 
-  //If no ppg defined do not put the database in a proximity placement group
-  proximity_placement_group_id = local.zonal_deployment ? (
-    null) : (
-    local.no_ppg ? (
-      null) : (
-      var.ppg[0].id
-    )
+  proximity_placement_group_id = var.database.use_ppg ? (
+    var.ppg[count.index % max(local.db_zone_count, 1)]) : (
+    null
   )
   //If more than one servers are deployed into a single zone put them in an availability set and not a zone
   availability_set_id = local.use_avset ? (
@@ -172,7 +168,9 @@ resource "azurerm_linux_virtual_machine" "dbserver" {
     )
   ) : null
 
-  zone = local.zonal_deployment ? try(local.zones[count.index % max(local.db_zone_count, 1)], null) : null
+  virtual_machine_scale_set_id = length(var.scale_set_id) > 0 ? var.scale_set_id : null
+
+  zone = local.zonal_deployment && !local.use_avset ? try(local.zones[count.index % max(local.db_zone_count, 1)], null) : null
 
   network_interface_ids = local.anydb_dual_nics ? (
     var.options.legacy_nic_order ? (
@@ -193,7 +191,7 @@ resource "azurerm_linux_virtual_machine" "dbserver" {
   source_image_id = var.database.os.type == "custom" ? var.database.os.source_image_id : null
 
   dynamic "source_image_reference" {
-    for_each = range(var.database.os.type == "marketplace" ? 1 : 0)
+    for_each = range(var.database.os.type == "marketplace" || var.database.os.type == "marketplace_with_plan" ? 1 : 0)
     content {
       publisher = var.database.os.publisher
       offer     = var.database.os.offer
@@ -204,9 +202,9 @@ resource "azurerm_linux_virtual_machine" "dbserver" {
   dynamic "plan" {
     for_each = range(var.database.os.type == "marketplace_with_plan" ? 1 : 0)
     content {
-      name      = var.database.os.offer
+      name      = var.database.os.sku
       publisher = var.database.os.publisher
-      product   = var.database.os.sku
+      product   = var.database.os.offer
     }
   }
 
@@ -276,15 +274,10 @@ resource "azurerm_windows_virtual_machine" "dbserver" {
     }
   }
 
-  //If no ppg defined do not put the database in a proximity placement group
-  proximity_placement_group_id = local.zonal_deployment ? (
-    null) : (
-    local.no_ppg ? (
-      null) : (
-      var.ppg[0].id
-    )
+  proximity_placement_group_id = var.database.use_ppg ? (
+    var.ppg[count.index % max(local.db_zone_count, 1)]) : (
+    null
   )
-
   //If more than one servers are deployed into a single zone put them in an availability set and not a zone
   availability_set_id = local.use_avset ? (
     local.availabilitysets_exist ? (
@@ -293,7 +286,9 @@ resource "azurerm_windows_virtual_machine" "dbserver" {
     )
   ) : null
 
-  zone = local.zonal_deployment ? try(local.zones[count.index % max(local.db_zone_count, 1)], null) : null
+  virtual_machine_scale_set_id = length(var.scale_set_id) > 0 ? var.scale_set_id : null
+
+  zone = local.zonal_deployment && !local.use_avset ? try(local.zones[count.index % max(local.db_zone_count, 1)], null) : null
 
   network_interface_ids = local.anydb_dual_nics ? (
     var.options.legacy_nic_order ? (
@@ -314,7 +309,7 @@ resource "azurerm_windows_virtual_machine" "dbserver" {
   source_image_id = var.database.os.type == "custom" ? var.database.os.source_image_id : null
 
   dynamic "source_image_reference" {
-    for_each = range(var.database.os.type == "marketplace" ? 1 : 0)
+    for_each = range(var.database.os.type == "marketplace" || var.database.os.type == "marketplace_with_plan" ? 1 : 0)
     content {
       publisher = var.database.os.publisher
       offer     = var.database.os.offer
@@ -325,9 +320,9 @@ resource "azurerm_windows_virtual_machine" "dbserver" {
   dynamic "plan" {
     for_each = range(var.database.os.type == "marketplace_with_plan" ? 1 : 0)
     content {
-      name      = var.database.os.offer
+      name      = var.database.os.sku
       publisher = var.database.os.publisher
-      product   = var.database.os.sku
+      product   = var.database.os.offer
     }
   }
 
@@ -368,6 +363,7 @@ resource "azurerm_managed_disk" "disks" {
   create_option          = "Empty"
   storage_account_type   = local.anydb_disks[count.index].storage_account_type
   disk_size_gb           = local.anydb_disks[count.index].disk_size_gb
+  tier                   = local.anydb_disks[count.index].tier
   disk_encryption_set_id = try(var.options.disk_encryption_set_id, null)
   disk_iops_read_write = "UltraSSD_LRS" == local.anydb_disks[count.index].storage_account_type ? (
     local.anydb_disks[count.index].disk_iops_read_write) : (
@@ -378,7 +374,7 @@ resource "azurerm_managed_disk" "disks" {
     null
   )
 
-  zone = local.zonal_deployment ? (
+  zone = local.zonal_deployment && !local.use_avset ? (
     upper(local.anydb_ostype) == "LINUX" ? (
       azurerm_linux_virtual_machine.dbserver[local.anydb_disks[count.index].vm_index].zone) : (
       azurerm_windows_virtual_machine.dbserver[local.anydb_disks[count.index].vm_index].zone
@@ -398,19 +394,21 @@ resource "azurerm_virtual_machine_data_disk_attachment" "vm_disks" {
   caching                   = local.anydb_disks[count.index].caching
   write_accelerator_enabled = local.anydb_disks[count.index].write_accelerator_enabled
   lun                       = local.anydb_disks[count.index].lun
+  # tier                      = local.anydb_disks[count.index].tier
 }
 
 
 # VM Extension
 resource "azurerm_virtual_machine_extension" "anydb_lnx_aem_extension" {
   provider = azurerm.main
-  count = local.enable_deployment ? (
+  count = local.enable_deployment && var.database.deploy_v1_monitoring_extension ? (
     upper(local.anydb_ostype) == "LINUX" ? (
       var.database_server_count) : (
       0
     )) : (
     0
   )
+  depends_on           = [azurerm_virtual_machine_data_disk_attachment.vm_disks]
   name                 = "MonitorX64Linux"
   virtual_machine_id   = azurerm_linux_virtual_machine.dbserver[count.index].id
   publisher            = "Microsoft.AzureCAT.AzureEnhancedMonitoring"
@@ -426,13 +424,14 @@ SETTINGS
 
 resource "azurerm_virtual_machine_extension" "anydb_win_aem_extension" {
   provider = azurerm.main
-  count = local.enable_deployment ? (
+  count = local.enable_deployment && var.database.deploy_v1_monitoring_extension ? (
     upper(local.anydb_ostype) == "WINDOWS" ? (
       var.database_server_count) : (
       0
     )) : (
     0
   )
+  depends_on           = [azurerm_virtual_machine_data_disk_attachment.vm_disks]
   name                 = "MonitorX64Windows"
   virtual_machine_id   = azurerm_windows_virtual_machine.dbserver[count.index].id
   publisher            = "Microsoft.AzureCAT.AzureEnhancedMonitoring"
@@ -446,7 +445,6 @@ SETTINGS
 }
 
 resource "azurerm_virtual_machine_extension" "configure_ansible" {
-
   provider = azurerm.main
   count = local.enable_deployment ? (
     upper(local.anydb_ostype) == "WINDOWS" ? (
@@ -456,6 +454,7 @@ resource "azurerm_virtual_machine_extension" "configure_ansible" {
     0
   )
 
+  depends_on = [azurerm_virtual_machine_data_disk_attachment.vm_disks]
 
   name                 = "configure_ansible"
   virtual_machine_id   = azurerm_windows_virtual_machine.dbserver[count.index].id
@@ -464,8 +463,8 @@ resource "azurerm_virtual_machine_extension" "configure_ansible" {
   type_handler_version = "1.9"
   settings             = <<SETTINGS
         {
-          "fileUris": ["https://raw.githubusercontent.com/ansible/ansible/devel/examples/scripts/ConfigureRemotingForAnsible.ps1"],
-          "commandToExecute": "powershell.exe -ExecutionPolicy Unrestricted -File ConfigureRemotingForAnsible.ps1 -Verbose"
+          "fileUris": ["https://raw.githubusercontent.com/Azure/sap-automation/main/deploy/scripts/configure_ansible.ps1"],
+          "commandToExecute": "powershell.exe -ExecutionPolicy Unrestricted -File configure_ansible.ps1 -Verbose"
         }
     SETTINGS
 }

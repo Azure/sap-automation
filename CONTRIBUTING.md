@@ -1,37 +1,98 @@
----
 
----
+# Table of contents
 
-# Contributing
+- [Building "in the Open"](#building-in-the-open)
+- [Fully Maintained](#fully-maintained)
+- [Execution-focused](#execution-focused)
+- [Coding Guidelines](#coding-guidelines)
+  - [PR Basics](#pr-basics)
+    - [PR guidelines](#pr-guidelines)
+    - [Terraform guidelines](#terraform-guidelines)
+  - [PR reviews guidelines](#pr-reviews-guidelines)
+  - [Release strategy](#release-strategy)
 
-Welcome contributors to your project then list particular contribution procedures your team follows including but not limited to the sections below.
+Thanks for taking the time to contribute!
+This document summarizes the deployment principles which govern our project.
 
-Sample text may go like this. *Welcome and thank you for your interest
-in contributing to **project-name**! Before contributing to this
-project, please review this document for policies and procedures which
-will ease the contribution and review process for everyone. If you have
-questions, please contact **contact-method**. This project adopted Inner
-Source
-[model](https://oe-documentation.azurewebsites.net/inner-source/index.html).*
+## Building 'in the open'
 
-## Issues and Feature Requests
+- Our users appreciate the transparency of our project; in this context, building "in the open" means that anyone can:
+  1- see the individual pull requests this solution is comprised of;
+  - understand particular changes by going back and forth between pull requests;
+  - submit pull requests with their own changes following the [Coding Guidelines](#coding-guidelines).
+- In addition, we use open-source software (OSS) tools rather than proprietary technology to build the solution.
 
-Describe procedures or other requirements on filing issues, fixing bugs, proposing new features, etc that you have including references to roadmaps or other considerations contributors should make before submitting anything to the project team for review.
+## Fully Maintained
 
-## Style Guidelines
+- Rather than providing a loose collection of scripts that are never updated, we fully maintain our project.
+- We strive to provide a high-quality solution by:
+  - continuously deploying it using an internal runner to ensure performance and stability;
+  - detecting regressions introduced by code changes before merging them.
 
-Include any code and/or documentation style guidelines, linting requirements, etc.
+## Execution-focused
 
-## Pull Request Process
+- We don't just work on some grand plan that may or never be completely executed;
+  - It is encouraged to make changes to gradually improve old codebase to meet standards. However, we are not planning a refactor.
+  - we start building out the solution and iterate towards a grand plan.
 
-Give very detailed instructions on your PR procedure to ensure contributions are made in the way your teams wants/expects them. This eases the process for everyone. An example process could include the following but this should align with your team's processes.
+## Coding Guidelines
 
-1. Ensure builds are still successful and tests, including any added or updated tests, pass prior to submitting the pull request.
-2. Update any documentation, user and contributor, that is impacted by your changes.
-3. Increase the version numbers in any examples and the `README.md` to the new version that this pull request would represent. The versioning scheme we use is [SemVer](http://semver.org/).
-4. Include your change description in `CHANGELOG.md` file as part of pull request.
-5. You may merge the pull request in once you have the sign-off of two other developers, or if you do not have permission to do that, you may request the second reviewer to merge it for you.
+This repository integrates with [Azure Pipelines](https://azure.microsoft.com/en-us/services/devops/pipelines/), which invokes build checks on the submitted pull requests aginst defined branch(eg. master). :exclamation: All pull requests are required to pass the Azure pipelines test before it can be merged.
 
-## License Information
+### PR Basics
 
-Inform the user of the license(s) under which this project accepts and distributes contributions. If you have any license agreement or other legal requirements, include those here as well.
+This section captures fundamentals on how new features should be developed and fixes made to the codebase.
+
+1. **Close on design before sending PRs**
+
+- Add and describe design by creating an issue [here](https://github.com/Azure/sap-automation/issues). Discussions on the design will happen in the issue page.
+
+1. **Design for modularity, easy versioning, easy deployment and rollback**
+
+- The design has to make sure it is independent and has minimum impact on other modules.
+- There should be a set of test cases in place to prove the design works and will not break existing code.
+
+### PR guidelines
+
+1. Required information in PR ([example](https://github.com/Azure/sap-automation/pull/480)):
+     - Always link to the issue that is is trying to resolve with tag **Closes**.
+
+- Describe the **Problem** that it tries to resolve.
+- Provide the **Solution** that this PR contains.
+- Provide **Tests** that have been done to make sure this PR does not break existing code (either in master or branch). If the test requires certain instructions, please add that information as well.
+
+1. The PRs should be easily tested independent of other projects in progress.
+
+1. Submit PRs with small commits with **descriptive but not random comments**, so that make it easier to rollback in case of problem.
+
+1. While the commits being small, please also make sure **do not stack up too many commits** (do squash if needed).
+
+#### Terraform guidelines
+
+1. Use `//` for single line comment and `/* */` for block comment.
+2. Try to handle complex logic in `variables_local.tf` which comes in every module.
+3. Use underscore `_` instead of hyphen `-`. The only place hyphen is used is for resource naming convention.
+
+### PR reviews guidelines
+
+We need to ensure quality along with agility. We need to move to everyone agreeing on the base requirement and then relying on systems in place to catch and mitigate issues.
+
+1. Focus on the [PR Basics](#pr-basics). PRs have to adhere to Basics with no exceptions.
+2. In additional to Basics, PR reviews need to focus on the quality of a PR. eg. catching potential issues/bugs, semantic problems, nitpicks, etc...
+3. Keep PRs in an open published state for at least one working day, which would allow everyone in other regions to review.
+4. For hotfixes, keep PRs open for at least 4 business hrs.
+5. The maintainer is [here](https://github.com/Azure/sap-automation/blob/main/CODEOWNERS).
+
+### Release strategy
+
+1. All features should stay in private_preview branch until stable before get into main (eg. `beta/v2.3`)
+
+1. Only merge private_preview branches into master.
+
+1. Create releases of current master before and after merge into master.
+
+1. Releases naming convention: x.x.x-x (eg. `2.3.1-1`)
+   - major version number
+   - sub version number
+   - maintainance version number
+   - documentation number
