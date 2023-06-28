@@ -1,14 +1,13 @@
 - name:                                "SDAF: Check if running on deployer"
-  become:                              true
-  become_user:                         "{{ orchestration_ansible_user }}"
   delegate_to:                         localhost
+  become:                              false
   ansible.builtin.stat:
     path:                              /etc/profile.d/deploy_server.sh
   register:                            on_deployer
 
 - name:                                "SDAF: Perform ARM Deployment"
+  when:                                on_deployer.stat.exists
   block:
-
     - name:                            "SDAF: Set Deployment Type"
       delegate_to:                     localhost
       ansible.builtin.set_fact:
@@ -56,5 +55,3 @@
                                        az deployment group create --resource-group {{ resourceGroupName }} --subscription {{ subscriptionId }} --name {{ deployment_name }} --template-file './templates/empty-deployment.json' --output none --no-prompt --no-wait --only-show-errors
           register:                    arm_deployment
           changed_when:                false
-
-  when:                                on_deployer.stat.exists
