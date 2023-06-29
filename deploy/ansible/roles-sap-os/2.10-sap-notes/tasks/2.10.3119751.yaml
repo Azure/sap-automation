@@ -1,4 +1,4 @@
-- name:                                "SAP Note 31197511 make directory"  # noqa package-latest
+- name:                                "SAP Note 3119751 make directory"
   become:                              true
   ansible.builtin.file:
     path:                              /usr/sap/lib
@@ -7,13 +7,13 @@
     owner:                             '{{ sidadm_uid }}'
     group:                             sapsys
 
-
-- name:                                "SAP Note 31197511 create link"  # noqa package-latest
+- name:                                "SAP Note 3119751 create symlink"
   become:                              true
   ansible.builtin.file:
     src:                               /opt/rh/SAP/lib64/compat-sap-c++-10.so
     dest:                              /usr/sap/lib/libstdc++.so.6
     state:                             link
+    follow:                            false
     mode:                              0755
     owner:                             '{{ sidadm_uid }}'
     group:                             sapsys
