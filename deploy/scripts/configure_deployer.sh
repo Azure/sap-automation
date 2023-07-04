@@ -429,11 +429,11 @@ esac
 case "$(get_distro_name)" in
 (ubuntu)
     sudo snap install dotnet-sdk --classic --channel=7.0
-    sudo snap alias dotnet-sdk.dotnet dotnet dotnet
+    sudo snap alias dotnet-sdk.dotnet dotnet
     ;;
 (sles)
     sudo snap install dotnet-sdk --classic --channel=7.0
-    sudo snap alias dotnet-sdk.dotnet dotnet dotnet
+    sudo snap alias dotnet-sdk.dotnet dotnet
     ;;
   (rhel*)
     sudo dnf install dotnet-sdk-7.0
