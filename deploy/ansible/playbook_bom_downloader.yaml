@@ -14,7 +14,7 @@
   connection:                           local
   environment:
     ANSIBLE_COLLECTIONS_PATHS:         "/opt/ansible/collections"
-  become:                               "{{ bom_processing_become  }}"
+  become:                               "{{ bom_processing_become }}"
   become_user:                          "{{ orchestration_ansible_user }}"
   vars_files:
     - vars/ansible-input-api.yaml                                               # API Input template with defaults
