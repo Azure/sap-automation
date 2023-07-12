@@ -64,6 +64,12 @@
     path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sbp_installed.txt"
   register:                            oracle_installed
 
+- name:                                "ORACLE: Install RPM Packages"
+  ansible.builtin.yum:
+    name:                              "{{ target_media_location }}/downloads/compat-libcap1-1.10-7.el7.x86_64.rpm"
+    state:                             present
+    disable_gpg_check:                 true
+
 # /*---------------------------------------------------------------------------8
 # | Start of Oracle software installation using SAP RUNINSTALLER wrapper.      |
 # | Before running Installer set DB_SID and CV_ASSUME_DISTID according to      |
@@ -314,9 +320,17 @@
         owner:                         oracle
         group:                         oinstall
 
+    - name:                            "ORACLE: Pre Processing set directory permissions"
+      ansible.builtin.file:
+        path:                          "/oracle/{{ db_sid | upper }}/{{ ora_version }}/bin/oradism"
+        state:                         file
+        mode:                          '0750'
+        owner:                         oracle
+        group:                         oinstall
+
     - name:                            "ORACLE: Post Processing - SBP Patching - progress"
       ansible.builtin.debug:
-        msg:                           "Running the installation, please wait"
+        msg:                           "Running SBP Patching, please wait"
 
     - name:                            "ORACLE: Post Processing - SBP Patching"
       become:                          true
@@ -334,6 +348,15 @@
         chdir:                         "{{ target_media_location }}/SBP"
         creates:                       "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sbp_installed.txt"
         executable:                    /bin/csh
+
+    - name:                            "ORACLE: Pre Processing reset directory permissions"
+      ansible.builtin.file:
+        path:                          "/oracle/{{ db_sid | upper }}/{{ ora_version }}/bin/oradism"
+        state:                         file
+        mode:                          '4750'
+        owner:                         root
+        group:                         oinstall
+
 
     - name:                            "ORACLE: Post processing installer output"
       ansible.builtin.debug:

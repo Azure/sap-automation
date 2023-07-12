@@ -67,7 +67,6 @@
 - hosts:                               "{{ sap_sid | upper }}_APP"
 
   name:                                SAP Generic OS Groups and User Creation
-  serial:                              1
   remote_user:                         "{{ orchestration_ansible_user }}"
   gather_facts:                        true                                    # Important to collect hostvars information
   vars_files:
@@ -162,6 +161,7 @@
         all_sids:                      "{% if MULTI_SIDS is defined %}{{ MULTI_SIDS }}{% else %}{{ all_sids | default([]) + [this_sid] }}{% endif %}"
 
     - name:                            "Run the APP Installation on Linux"
+      become:                          true
       when: ansible_os_family != "Windows"
       block:
 
@@ -187,7 +187,6 @@
                 - 2.6-sap-mounts
 
         - name:                        Run the APP installation Playbook
-          become:                      true
           block:
             - name:                    "APP Playbook - Install: Include 5.3-app-install"
               ansible.builtin.include_role:

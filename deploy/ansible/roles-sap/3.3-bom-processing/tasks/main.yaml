@@ -42,18 +42,18 @@
 
 - name:                                "3.3 BoM Processing: - Create BOM download directories"
   ansible.builtin.file:
-    path:                              "{{ item.path }}"
+    path:                              "{{ item }}"
     state:                             directory
     mode:                              0755
-    owner:                              "{{ orchestration_ansible_user }}"
+    owner:                              "{{ orchestration_ansible_user if bom_processing_become else omit }}"
   delegate_to:                         localhost
   become:                              "{{ bom_processing_become }}"
   become_user:                         root
   loop:
-    - path: "{{ download_directory }}"
-    - path: "{{ download_directory }}/tmp"
-    - path: "{{ download_directory }}/bom"
-    - path: "{{ download_directory }}/files"
+    - "{{ download_directory }}"
+    - "{{ download_directory }}/tmp"
+    - "{{ download_directory }}/bom"
+    - "{{ download_directory }}/files"
 
 - name:                                "3.3 BoM Processing: - Run the bom-register"
   ansible.builtin.include_role:

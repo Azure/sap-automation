@@ -20,17 +20,26 @@
       ansible.builtin.set_fact:
         secret_name:                   "{{ secret_prefix }}-sid-sshkey"
 
+    - name:                                Retrieve SSH Key secret details and rescue on failure
+      block:
+        - name:                            Retrieve SSH Key secret details
+          ansible.builtin.command: >-
+                                          az keyvault secret show
+                                            --vault-name {{ kv_name }}
+                                            --name {{ secret_name }}
+                                            --query value
+                                            --output tsv
+          changed_when:                    false
+          register:                        keyvault_secret_show
+          no_log:                          true
+      rescue:
+        - name:                           Rescue Log the error message to be transformed
+          ansible.builtin.debug:
+            msg:                          "Error message to transform: {{ keyvault_secret_show.stderr }}"
 
-    - name:                            Retrieve SSH Key secret details
-      ansible.builtin.command: >-
-                                       az keyvault secret show
-                                         --vault-name {{ kv_name }}
-                                         --name {{ secret_name }}
-                                         --query value
-                                         --output tsv
-      changed_when:                    false
-      register:                        keyvault_secret_show
-      no_log:                          true
+        - name:                           Rescue Retrieve SSH Key secret details
+          ansible.builtin.fail:
+            msg:                            "{{ keyvault_secret_show.stderr | try_get_error_code }}"
 
     - name:                            Extract SSH Key content from secret details
       ansible.builtin.set_fact:

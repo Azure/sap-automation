@@ -23,7 +23,13 @@ regex_to_error_msgs = [
         {'task_tag=zypper_registration'}),
     (r'(.*)Zypper run command failed with return code 7(.*)',
         'INSTALL:0019:Update OS Packages has failed for host since zypper was locked by another process.',
-        {'task_tag=update_os_package'})
+        {'task_tag=update_os_package'}),
+    (r'([\s\d\w\D\W]*)Connect to message server([\s\w\d\W\D]*)Make sure that the message server is started([\s\w\d\W\D]*)',
+        'INSTALL:0020:DB Load failure, unable to connect to message server.',
+        {'task_tag=dbload', 'failure=messageserver_offline'}),
+    (r'([\s\d\w\D\W]*)Make sure the database is online([\s\w\d\W\D]*)',
+        'INSTALL:0021:DB Load failure, database is offline.',
+        {'task_tag=dbload', 'failure=db_offline'})
 ]
 
 # Takes a dictionary and converts it into a set of
@@ -141,7 +147,7 @@ class FilterModule(object):
 #         }
 #     ]
 # }
-# message = "non-zero return code"
+# message = "asdConnect to message server\n<>>Make sure that the message server is started*asd\n"
 # print(try_get_error_code_results(result, task_tag="update_os_packages", host_name="host"))
-# print(try_get_error_code(message, task_tag="zypper_registration"))
+# print(try_get_error_code(message,task_tag="dbload_messageserver"))
 # convert_kwargs_to_tags(None)

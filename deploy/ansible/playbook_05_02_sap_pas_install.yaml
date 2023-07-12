@@ -300,7 +300,7 @@
           ansible.builtin.include_role:
             name:                      roles-sap-os/windows/2.3-sap-exports
           tags:
-                - 2.3-sap-exports
+            - 2.3-sap-exports
           vars:
             winadm_password:           "{{ hostvars.localhost.winadm_password }}"
             domain_service_password:   "{{ hostvars.localhost.adsvc_password }}"

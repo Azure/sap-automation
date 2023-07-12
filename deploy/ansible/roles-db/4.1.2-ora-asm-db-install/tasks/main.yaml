@@ -289,6 +289,15 @@
         owner:                         oracle
         group:                         oinstall
 
+
+    - name:                            "ORACLE: Pre Processing set permissions"
+      ansible.builtin.file:
+        path:                          "/oracle/{{ db_sid | upper }}/{{ ora_version }}/bin/oradism"
+        state:                         file
+        mode:                          '0750'
+        owner:                         oracle
+        group:                         oinstall
+
     - name:                            "ORACLE: Post Processing - SBP Patching"
       become:                          true
       become_user:                     "oracle"
@@ -305,6 +314,14 @@
         creates:                       "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sbpdb_installed.txt"
         chdir:                         "{{ target_media_location }}/SBP"
         executable:                    /bin/csh
+
+    - name:                            "ORACLE: pre processing reset permissions"
+      ansible.builtin.file:
+        path:                          "/oracle/{{ db_sid | upper }}/{{ ora_version }}/bin/oradism"
+        state:                         file
+        mode:                          '4750'
+        owner:                         root
+        group:                         oinstall
 
     - name:                            "ORACLE: Post processing installer output"
       ansible.builtin.debug:
@@ -480,6 +497,15 @@
       when:                            gridpreinstall.rc == 0
 
     # STEP 4.2.2 SBP Patching for Oracle GRID.
+
+    - name:                            "ORACLE: Pre Processing set permissions GRID"
+      ansible.builtin.file:
+        path:                          "/oracle/GRID/{{ ora_version }}/bin/oradism"
+        state:                         file
+        mode:                          '0750'
+        owner:                         oracle
+        group:                         oinstall
+
     - name:                            "ORACLE: Post Processing - GRID SBP Patching"
       become:                          true
       become_user:                     "oracle"
@@ -496,6 +522,14 @@
         creates:                        "/etc/sap_deployment_automation/{{ sap_sid | upper }}/gridsbp_installed.txt"
         chdir:                          "{{ target_media_location }}/SBP"
         executable:                     /bin/csh
+
+    - name:                            "ORACLE: Pre Processing reset permissions GRID"
+      ansible.builtin.file:
+        path:                          "/oracle/GRID/{{ ora_version }}/bin/oradism"
+        state:                         file
+        mode:                          '4750'
+        owner:                         oracle
+        group:                         oinstall
 
     - name:                            "SAP Oracle DB ASM: Post processing installer output"
       ansible.builtin.debug:

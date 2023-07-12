@@ -62,6 +62,7 @@ resource "azurerm_storage_account_network_rules" "storage_tfstate" {
 }
 
 resource "azurerm_role_assignment" "storage_tfstate_contributor" {
+  count                = try(var.deployer_tfstate.deployer_uai.principal_id, "") != "" ? 1 : 0
   provider             = azurerm.main
   scope                = local.sa_tfstate_exists ? var.storage_account_tfstate.arm_id : azurerm_storage_account.storage_tfstate[0].id
   role_definition_name = "Storage Account Contributor"
@@ -378,6 +379,7 @@ resource "azurerm_storage_share" "fileshare_sapbits" {
 }
 
 resource "azurerm_role_assignment" "storage_sapbits_contributor" {
+  count                = try(var.deployer_tfstate.deployer_uai.principal_id, "") != "" ? 1 : 0
   provider             = azurerm.main
   scope                = local.sa_sapbits_exists ? var.storage_account_sapbits.arm_id : azurerm_storage_account.storage_sapbits[0].id
   role_definition_name = "Storage Account Contributor"
