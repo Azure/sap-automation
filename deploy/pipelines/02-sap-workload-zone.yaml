@@ -215,8 +215,8 @@ stages:
                   "FRSO") LOCATION_IN_FILENAME="francesouth" ;;
                   "GENO") LOCATION_IN_FILENAME="germanynorth" ;;
                   "GEWC") LOCATION_IN_FILENAME="germanywest" ;;
-                  "JAEA") LOCATION_IN_FILENAME="japaneastst" ;;
-                  "JAWE") LOCATION_IN_FILENAME="japanwestst" ;;
+                  "JAEA") LOCATION_IN_FILENAME="japaneast" ;;
+                  "JAWE") LOCATION_IN_FILENAME="japanwest" ;;
                   "JINC") LOCATION_IN_FILENAME="jioindiacentral" ;;
                   "JINW") LOCATION_IN_FILENAME="jioindiawest" ;;
                   "GENO") LOCATION_IN_FILENAME="germanynorth" ;;
