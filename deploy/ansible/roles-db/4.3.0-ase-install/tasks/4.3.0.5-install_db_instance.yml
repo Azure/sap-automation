@@ -29,8 +29,6 @@
         bom_name:                      "{{ bom_base_name }}"
         task_prefix:                   "SYBASE Install: "
         always_upload_jinja_templates: false
-        sa_enabled:                    true
-
 
     # +--------------------------------4--------------------------------------*/
     #
@@ -105,8 +103,8 @@
           ansible.builtin.include_role:
             name:                      roles-misc/0.6-ARM-Deployment
           vars:
-            subscriptionId:            "{{ subscription_id }}"
-            resourceGroupName:         "{{ resource_group_name }}"
+            subscriptionId:           "{{ subscription_id }}"
+            resourceGroupName:       "{{ resource_group_name }}"
 
       when:
         - not db_arm_deployment_done.stat.exists
@@ -117,9 +115,9 @@
         msg:                           "{{ sybase_installation.stdout_lines }}"
       when: sybase_installation is defined and sybase_installation.rc != 0
 
-    - name:                            "SAP Sybase: Abort execution when there are installation errors"
+    - name:                           "SAP Sybase: Abort execution when there are installation errors"
       ansible.builtin.fail:
-        msg:                           "SAP Sybase: Execution interrupted due to errors"
+        msg:                          "SAP Sybase: Execution interrupted due to errors"
       when: sybase_installation is defined and sybase_installation.rc != 0
 
     - name:                            "SYBASE Install - flag"
