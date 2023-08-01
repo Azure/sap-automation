@@ -118,7 +118,7 @@
     mode:                              '0755'
   when:
     - current_host == ora_secondary
-    - secondary_startup_results.rc == 0
+    - asmfilesystems_secondary_created_results.rc == 0
     - node_tier == "oracle-asm"
 
 - name:                                "Oracle Data Guard - Setup Secondary: Startup secondary DB using pfile"
