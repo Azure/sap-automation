@@ -493,7 +493,7 @@
     backup:                           true
     src:                              asmfilesystems-secondary.j2
     dest:                             "/etc/sap_deployment_automation/dgscripts/asmfilesystems-secondary.sh"
-    mode:                             '0644'
+    mode:                             '0755'
     force:                            true
   when:  
     - current_host == ora_secondary
