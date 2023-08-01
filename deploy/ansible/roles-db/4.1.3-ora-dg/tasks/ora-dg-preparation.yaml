@@ -85,6 +85,7 @@
   when:                                node_tier == "oracle-asm"
 
 
+
 - name:                                "Oracle Data Guard for oracle asm - Preparation: create fralogs.sql"
   become:                              true
   become_user:                         "oracle"
@@ -484,6 +485,19 @@
         SHUTDOWN ABORT;
         exit
     mode:                              '0755'
+
+- name:                               "Oracle Data Guard - Preparation: Create ASM Directories for Secondary System"
+  become:                             true
+  become_user:                        oracle
+  ansible.builtin.template:
+    backup:                           true
+    src:                              asmfilesystems-secondary.j2
+    dest:                             "/etc/sap_deployment_automation/dgscripts/asmfilesystems-secondary.sh"
+    mode:                             '0644'
+    force:                            true
+  when:  
+    - current_host == ora_secondary
+    - node_tier == "oracle-asm"
 
 ...
 # /*---------------------------------------------------------------------------8
