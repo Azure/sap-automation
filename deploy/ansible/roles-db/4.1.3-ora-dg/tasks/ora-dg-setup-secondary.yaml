@@ -84,8 +84,8 @@
   ansible.builtin.shell: |
       set -o pipefail
       ./asmfilesystems-secondary.sh | tee /etc/sap_deployment_automation/dgscripts/asmfilesystems-secondary-creation.log
-  register:                            asmfilesystems-secondary_created_results
-  failed_when:                         asmfilesystems-secondary_created_results.rc > 0
+  register:                            asmfilesystems_secondary_created_results
+  failed_when:                         asmfilesystems_secondary_created_results.rc > 0
   args:
     creates:                           /etc/sap_deployment_automation/dgscripts/asmfilesystems-secondary-created.txt
     chdir:                             /etc/sap_deployment_automation/dgscripts
@@ -96,7 +96,7 @@
 
 - name:                                "Oracle Data Guard - Setup Secondary: startup DG Broker on Secondary (Debug)"
   ansible.builtin.debug:
-    var:                               asmfilesystems-secondary_created_results.stdout_lines
+    var:                               asmfilesystems_secondary_created_results.stdout_lines
     verbosity:                         2
   when: 
     - current_host == ora_secondary
@@ -105,9 +105,9 @@
 - name:                                "Oracle Data Guard - Setup Secondary: startup DG Broker on Secondary (save output)"
   ansible.builtin.copy:
     dest:                              /etc/sap_deployment_automation/dgscripts/asmfilesystems-secondary-creation.log
-    content:                           "{{ asmfilesystems-secondary_created_results.stdout }}"
+    content:                           "{{ asmfilesystems_secondary_created_results.stdout }}"
     mode:                              '0777'
-  when:                                asmfilesystems-secondary_created_results.stdout is defined
+  when:                                asmfilesystems_secondary_created_results.stdout is defined
 
 - name:                                "Oracle Data Guard - Setup Secondary: Create secondary_startup.txt"
   become:                              true
