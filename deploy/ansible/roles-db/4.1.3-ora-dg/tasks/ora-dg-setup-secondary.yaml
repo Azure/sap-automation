@@ -43,7 +43,7 @@
 # Add additional parameters for Oracle ASM to match the file locations of Primary in secondary.
 # This has to be done to prevent rman shooting file systems all over the disk groups.
 
-- name:                               "Update the initSID.ora for adopting the parameters for Secondary"
+- name:                               "Update the initSID.ora for changing the control file location"
   ansible.builtin.replace:
     path:                             /oracle/{{ db_sid | upper }}/{{ ora_release }}/dbs/init{{ db_sid | upper }}.ora
     regexp:                          '/{{ db_sid | upper }}/c'
@@ -52,19 +52,29 @@
   when:
     - node_tier == 'oracle-asm'
 
-- name:                               "Update the initSID.ora for adopting the parameters for Secondary"
+- name:                            "File update wait for 15 sec to avoid multiple locks"
+  ansible.builtin.wait_for:
+    timeout:                       15
+
+- name:                               "Update the initSID.ora for adopting oraarch location"
   ansible.builtin.replace:
     path:                             /oracle/{{ db_sid | upper }}/{{ ora_release }}/dbs/init{{ db_sid | upper }}.ora
-    regexp:                          '+ARCH/{{ db_sid | upper }}'
-    replace:                         '+ARCH/{{ db_sid | upper }}_STDBY'
+    regexp:                          '{{ db_sid | upper }}/oraarch'
+    replace:                         '{{ db_sid | upper }}_STDBY/oraarch'
     backup:                           true
   when:
     - node_tier == 'oracle-asm'
 #  You can also use "sed" to replace the string. sed -i 's|/DBSID/c|/DBSID_STDBY/c|g'
 
+- name:                            "File update wait for 15 sec to avoid multiple locks"
+  ansible.builtin.wait_for:
+    timeout:                       15
+
 - name:                                "Insert Additional entries for ASM Recovery in initSID.ora"
   ansible.builtin.blockinfile:
     path:                              /oracle/{{ db_sid | upper }}/{{ ora_release }}/dbs/init{{ db_sid | upper }}.ora
+    marker_begin:                      "-- BEGIN"
+    marker_end:                        "-- END"
     insertafter:                       ".db_name='{{ db_sid | upper }}'"
     block: |
                 *.db_create_file_dest='+DATA'
