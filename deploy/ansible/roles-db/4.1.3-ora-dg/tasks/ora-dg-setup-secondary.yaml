@@ -87,7 +87,7 @@
 - name:                                "Oracle Data Guard - Setup Secondary: Stop lsnrctl on Secondary"
   become:                              true
   become_user:                         "oracle"
-  ansible.builtin.shell:               lsnrctl reload
+  ansible.builtin.shell:               lsnrctl stop
   register:                            lsnrctl_stop_secondary_results
   failed_when:                         lsnrctl_stop_secondary_results.rc > 0
   args:
@@ -98,43 +98,47 @@
     - current_host == ora_secondary
     - node_tier == "oracle-asm"
 
-# - name:                                "Oracle Data Guard - Setup Secondary: Start lsnrctl on Secondary"
-#   become:                              true
-#   become_user:                         "oracle"
-#   ansible.builtin.shell:               lsnrctl start
-#   register:                            lsnrctl_asm_start_secondary_results
-#   failed_when:                         lsnrctl_asm_start_secondary_results.rc > 0
-#   args:
-#     creates:                           /etc/sap_deployment_automation/dgscripts/lsnrctl_asm_started_sec.txt
-#     chdir:                             /etc/sap_deployment_automation/dgscripts
-#     executable:                        /bin/csh
-#   when:                                
-#     - current_host == ora_secondary
-#     - node_tier == "oracle-asm"
+- name:                                "Oracle Data Guard - Setup Secondary: Start lsnrctl on Secondary"
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.shell:               lsnrctl start
+  register:                            lsnrctl_asm_start_secondary_results
+  failed_when:                         lsnrctl_asm_start_secondary_results.rc > 0
+  args:
+    creates:                           /etc/sap_deployment_automation/dgscripts/lsnrctl_asm_started_sec.txt
+    chdir:                             /etc/sap_deployment_automation/dgscripts
+    executable:                        /bin/csh
+  when:                                
+    - current_host == ora_secondary
+    - node_tier == "oracle-asm"
 
-# - name:                                "Oracle Data Guard - Setup Secondary: restart lsnrctl on Secondary (Debug)"
-#   ansible.builtin.debug:
-#     var:                               lsnrctl_asm_start_secondary_results.stdout_lines
-#     verbosity:                         2
+- name:                                "Oracle Data Guard - Setup Secondary: restart lsnrctl on Secondary (Debug)"
+  ansible.builtin.debug:
+    var:                               lsnrctl_asm_start_secondary_results.stdout_lines
+    verbosity:                         2
 
-# - name:                                "Oracle Data Guard - Setup Secondary: restart lsnrctl on Secondary (save output)"
-#   ansible.builtin.copy:
-#     dest:                              /etc/sap_deployment_automation/lsnrctl_start_primary.log
-#     content:                           "{{ lsnrctl_asm_start_secondary_results.stdout }}"
-#     mode:                              '0777'
-#   when:                                lsnrctl_asm_start_secondary_results.stdout is defined
+- name:                                "Oracle Data Guard - Setup Secondary: restart lsnrctl on Secondary (save output)"
+  ansible.builtin.copy:
+    dest:                              /etc/sap_deployment_automation/lsnrctl_start_primary.log
+    content:                           "{{ lsnrctl_asm_start_secondary_results.stdout }}"
+    mode:                              '0777'
+  when:                                lsnrctl_asm_start_secondary_results.stdout is defined
 
-# - name:                                "Oracle Data Guard - Setup Secondary: Create lsnrctl_started_sec.txt"
-#   become:                              true
-#   become_user:                         "oracle"
-#   ansible.builtin.file:
-#     path:                              /etc/sap_deployment_automation/dgscripts/lsnrctl_asm_started_sec.txt
-#     state:                             touch
-#     mode:                              '0755'
-#   when:
-#     - current_host == ora_secondary
-#     - lsnrctl_asm_start_secondary_results.rc == 0
-#     - node_tier == "oracle-asm"
+- name:                                "Oracle Data Guard - Setup Secondary: Create lsnrctl_started_sec.txt"
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.file:
+    path:                              /etc/sap_deployment_automation/dgscripts/lsnrctl_asm_started_sec.txt
+    state:                             touch
+    mode:                              '0755'
+  when:
+    - current_host == ora_secondary
+    - lsnrctl_asm_start_secondary_results.rc == 0
+    - node_tier == "oracle-asm"
+
+- name:                            "ASM Listener Starting: Sleep for 40 seconds and continue with play"
+  ansible.builtin.wait_for:
+    timeout:                       40
 
 - name:                                "Oracle Data Guard - Setup Secondary: Startup secondary DB using pfile"
   become:                              true
