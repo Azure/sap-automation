@@ -76,7 +76,7 @@
 
 - name:                            "Testing for initSID.ora updates"
   ansible.builtin.fail:
-    msg: 
+    msg:      "fail here"
 
 # Restart the Listener on Secondary node when the node_tier is Oracle.
 
