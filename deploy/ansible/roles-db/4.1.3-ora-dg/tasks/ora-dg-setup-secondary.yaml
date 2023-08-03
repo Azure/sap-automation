@@ -84,9 +84,11 @@
   when:
     - node_tier == 'oracle-asm'
 
-- name:                            "Testing for initSID.ora updates"
-  ansible.builtin.fail:
-    msg:      "fail here"
+#  Put a block for creating flag file to stop updating the initDE2.ora file after completion of restore.
+
+# - name:                            "Testing for initSID.ora updates"
+#   ansible.builtin.fail:
+#     msg:      "fail here"
 
 # Restart the Listener on Secondary node when the node_tier is Oracle.
 
