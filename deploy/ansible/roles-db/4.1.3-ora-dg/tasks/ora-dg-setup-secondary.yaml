@@ -40,6 +40,39 @@
     mode:                              "{{ '0777' | int - (custom_umask | default('022') | int) }}"
   when: current_host == ora_secondary
 
+# Add additional parameters for Oracle ASM to match the file locations of Primary in secondary.
+# This has to be done to prevent rman shooting file systems all over the disk groups.
+
+- name:                               "Update the initSID.ora for adopting the parameters for Secondary"
+  replace:
+    path:                             /oracle/{{ db_sid | upper }}/{{ ora_release }}/dbs/init{{ db_sid | upper }}.ora
+    regexp:                          '/{{ db_sid | upper }}/c'
+    replace:                         '/{{ db_sid | upper }}_STDBY/c'
+
+- name:                               "Update the initSID.ora for adopting the parameters for Secondary"
+  replace:
+    path:                             /oracle/{{ db_sid | upper }}/{{ ora_release }}/dbs/init{{ db_sid | upper }}.ora
+    regexp:                          '+ARCH/{{ db_sid | upper }}'
+    replace:                         '+ARCH/{{ db_sid | upper }}_STDBY'
+
+#  You can also use "sed" to replace the string. sed -i 's|/DBSID/c|/DBSID_STDBY/c|g'
+
+- name:                                "Insert Additional entries for ASM Recovery in initSID.ora"
+  ansible.builtin.blockinfile:
+    path:                              /oracle/{{ db_sid | upper }}/{{ ora_release }}/dbs/init{{ db_sid | upper }}.ora
+    insertafter:                       ".db_name='{{ db_sid | upper }}'"
+    block: |
+                *.db_create_file_dest='+DATA'
+                *.db_create_online_log_dest_1='+DATA'
+                *.db_create_online_log_dest_2='+ARCH'
+                *.db_unique_name ='{{ db_sid | upper }}_STDBY'
+  when:
+    - node_tier == 'oracle-asm'
+
+- name:                            "Testing for initSID.ora updates"
+  ansible.builtin.fail:
+    msg: 
+
 # Restart the Listener on Secondary node when the node_tier is Oracle.
 
 - name:                                "Oracle Data Guard - Setup Secondary: restart lsnrctl on Secondary"
