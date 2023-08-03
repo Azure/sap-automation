@@ -44,18 +44,20 @@
 # This has to be done to prevent rman shooting file systems all over the disk groups.
 
 - name:                               "Update the initSID.ora for adopting the parameters for Secondary"
-  replace:
+  ansible.builtin.replace:
     path:                             /oracle/{{ db_sid | upper }}/{{ ora_release }}/dbs/init{{ db_sid | upper }}.ora
     regexp:                          '/{{ db_sid | upper }}/c'
     replace:                         '/{{ db_sid | upper }}_STDBY/c'
+    backup:                           true
   when:
     - node_tier == "oracle-asm"
 
 - name:                               "Update the initSID.ora for adopting the parameters for Secondary"
-  replace:
+  ansible.builtin.replace:
     path:                             /oracle/{{ db_sid | upper }}/{{ ora_release }}/dbs/init{{ db_sid | upper }}.ora
     regexp:                          '+ARCH/{{ db_sid | upper }}'
     replace:                         '+ARCH/{{ db_sid | upper }}_STDBY'
+    backup:                           true
   when:
     - node_tier == "oracle-asm"
 #  You can also use "sed" to replace the string. sed -i 's|/DBSID/c|/DBSID_STDBY/c|g'
