@@ -216,48 +216,48 @@
 
 
 # Create File systems for Oracle-ASM on Secondary before recovery
-- name:                                "Oracle Data Guard - Setup ASM Folder Structure for Secondary"
-  become:                              true
-  become_user:                         "oracle"
-  ansible.builtin.shell: |
-      set -o pipefail
-      ./asmfilesystems-secondary.sh | tee /etc/sap_deployment_automation/dgscripts/asmfilesystems-secondary-creation.log
-  register:                            asmfilesystems_secondary_created_results
-  failed_when:                         asmfilesystems_secondary_created_results.rc > 0
-  args:
-    creates:                           /etc/sap_deployment_automation/dgscripts/asmfilesystems-secondary-created.txt
-    chdir:                             /etc/sap_deployment_automation/dgscripts
-    executable:                        /bin/csh
-  when: 
-    - current_host == ora_secondary
-    - node_tier == "oracle-asm"
+# - name:                                "Oracle Data Guard - Setup ASM Folder Structure for Secondary"
+#   become:                              true
+#   become_user:                         "oracle"
+#   ansible.builtin.shell: |
+#       set -o pipefail
+#       ./asmfilesystems-secondary.sh | tee /etc/sap_deployment_automation/dgscripts/asmfilesystems-secondary-creation.log
+#   register:                            asmfilesystems_secondary_created_results
+#   failed_when:                         asmfilesystems_secondary_created_results.rc > 0
+#   args:
+#     creates:                           /etc/sap_deployment_automation/dgscripts/asmfilesystems-secondary-created.txt
+#     chdir:                             /etc/sap_deployment_automation/dgscripts
+#     executable:                        /bin/csh
+#   when: 
+#     - current_host == ora_secondary
+#     - node_tier == "oracle-asm"
 
-- name:                                "Oracle Data Guard - Setup ASM Folder Structure for Secondary (Debug)"
-  ansible.builtin.debug:
-    var:                               asmfilesystems_secondary_created_results.stdout_lines
-    verbosity:                         2
-  when: 
-    - current_host == ora_secondary
-    - node_tier == "oracle-asm"
+# - name:                                "Oracle Data Guard - Setup ASM Folder Structure for Secondary (Debug)"
+#   ansible.builtin.debug:
+#     var:                               asmfilesystems_secondary_created_results.stdout_lines
+#     verbosity:                         2
+#   when: 
+#     - current_host == ora_secondary
+#     - node_tier == "oracle-asm"
 
-- name:                                "Oracle Data Guard - Setup ASM Folder Structure for Secondary (save output)"
-  ansible.builtin.copy:
-    dest:                              /etc/sap_deployment_automation/dgscripts/asmfilesystems-secondary-creation.log
-    content:                           "{{ asmfilesystems_secondary_created_results.stdout }}"
-    mode:                              '0777'
-  when:                                asmfilesystems_secondary_created_results.stdout is defined
+# - name:                                "Oracle Data Guard - Setup ASM Folder Structure for Secondary (save output)"
+#   ansible.builtin.copy:
+#     dest:                              /etc/sap_deployment_automation/dgscripts/asmfilesystems-secondary-creation.log
+#     content:                           "{{ asmfilesystems_secondary_created_results.stdout }}"
+#     mode:                              '0777'
+#   when:                                asmfilesystems_secondary_created_results.stdout is defined
 
-- name:                                "Oracle Data Guard - Setup Secondary: Create secondary_startup.txt"
-  become:                              true
-  become_user:                         "oracle"
-  ansible.builtin.file:
-    path:                              /etc/sap_deployment_automation/dgscripts/asmfilesystems-secondary-created.txt
-    state:                             touch
-    mode:                              '0755'
-  when:
-    - current_host == ora_secondary
-    - asmfilesystems_secondary_created_results.rc == 0
-    - node_tier == "oracle-asm"
+# - name:                                "Oracle Data Guard - Setup Secondary: Create secondary_startup.txt"
+#   become:                              true
+#   become_user:                         "oracle"
+#   ansible.builtin.file:
+#     path:                              /etc/sap_deployment_automation/dgscripts/asmfilesystems-secondary-created.txt
+#     state:                             touch
+#     mode:                              '0755'
+#   when:
+#     - current_host == ora_secondary
+#     - asmfilesystems_secondary_created_results.rc == 0
+#     - node_tier == "oracle-asm"
 
 
 - name:                                "Oracle Data Guard - Setup Secondary: Duplicate Secondary DB from Primary DB using RMAN"
