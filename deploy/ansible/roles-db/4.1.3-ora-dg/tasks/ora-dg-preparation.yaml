@@ -347,7 +347,23 @@
     dest:                             "/etc/sap_deployment_automation/dgscripts/rman-restore.rman"
     mode:                             '0644'
     force:                            true
-  when:  current_host == ora_secondary
+  when:  
+    - current_host == ora_secondary
+    - node_tier ='oracle'
+
+- name:                               "Oracle Data Guard - Preparation: create rman-restore.rman for oracle-asm"
+  become:                             true
+  become_user:                        oracle
+  ansible.builtin.template:
+    backup:                           true
+    src:                              rman-restore-asm.j2
+    dest:                             "/etc/sap_deployment_automation/dgscripts/rman-restore.rman"
+    mode:                             '0644'
+    force:                            true
+  when:  
+    - current_host == ora_secondary
+    - node_tier ='oracle-asm'
+
 
 - name:                                "Oracle Data Guard - Preparation: create secondarystartup.sql"
   become:                              true
