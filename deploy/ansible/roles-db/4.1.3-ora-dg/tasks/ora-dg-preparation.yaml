@@ -156,6 +156,40 @@
          CREATE SPFILE FROM PFILE;
          exit
     mode:                              '0755'
+  when:
+    - node_tier == 'oracle'
+
+
+- name:                                "Oracle Data Guard for ASM - Preparation: create createspfile.sql"
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.blockinfile:
+    create:                            true
+    path:                              /etc/sap_deployment_automation/dgscripts/createspfilesecondary.sql
+    marker_begin:                      "-- BEGIN"
+    marker_end:                        "-- END"
+    block: |
+         CREATE spfile='+DATA/{{ db_sid | upper }}_STDBY/PARAMETERFILE/spfile{{ db_sid | upper }}.ora' from pfile='/oracle/{{ db_sid | upper }}/{{ ora_release }}/dbs/init{{ db_sid | upper }}.ora';
+         exit
+    mode:                              '0755'
+  when:
+    - node_tier == 'oracle-asm'
+
+- name:                                "Oracle Data Guard for ASM - Preparation: create asmsecondarystartup.sql"
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.blockinfile:
+    create:                            true
+    path:                              /etc/sap_deployment_automation/dgscripts/asmsecondarystartup.sql
+    marker_begin:                      "-- BEGIN"
+    marker_end:                        "-- END"
+    block: |
+              STARTUP MOUNT;
+              exit
+    mode:                              '0755'
+  when:
+    - node_tier == 'oracle-asm'
+
 
 - name:                                "Oracle Data Guard - Preparation: create secondarystartup.sql"
   become:                              true
@@ -169,6 +203,22 @@
          STARTUP NOMOUNT PFILE=$ORACLE_HOME/dbs/init{{ db_sid | upper }}.ora;
          exit
     mode:                              '0755'
+
+
+- name:                                "Oracle Data Guard - Preparation: create asmsecondarystartup.sql"
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.blockinfile:
+    create:                            true
+    path:                              /etc/sap_deployment_automation/dgscripts/asmsecondarystartup.sql
+    marker_begin:                      "-- BEGIN"
+    marker_end:                        "-- END"
+    block: |
+         STARTUP MOUNT;
+         exit
+    mode:                              '0755'
+
+
 
 - name:                                "Oracle Data Guard - Preparation: create dgstatus.sql"
   become:                              true
