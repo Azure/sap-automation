@@ -229,6 +229,17 @@
     - secondary_startup_results.rc == 0
 
 
+- name:                                "Create oraarch for oracle-asm"
+  ansible.builtin.command:             /oracle/GRID/{{ ora_version }}/bin/asmcmd --privilege sysdba mkdir +ARCH/{{ db_sid | upper }}_STDBY/oraarch
+  register:                            asm_oraarch_created_results
+  failed_when:                         asm_oraarch_created_results.rc > 0
+  args:
+    executable:                        /bin/csh
+    creates:                           /etc/sap_deployment_automation/dgscripts/asm_oraarch_created.txt
+  when:
+    - current_host == ora_secondary
+    - node_tier == 'oracle-asm'
+
 # Create File systems for Oracle-ASM on Secondary before recovery
 # - name:                                "Oracle Data Guard - Setup ASM Folder Structure for Secondary"
 #   become:                              true
