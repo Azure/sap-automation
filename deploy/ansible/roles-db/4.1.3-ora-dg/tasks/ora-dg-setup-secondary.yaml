@@ -242,6 +242,8 @@
 
 
 - name:                                "Create oraarch for oracle-asm"
+  become:                              true
+  become_user:                         "oracle"
   ansible.builtin.shell: |
                                        /oracle/GRID/{{ ora_version }}/bin/asmcmd --privilege sysdba mkdir +ARCH/{{ db_sid | upper }}_STDBY/oraarch
   register:                            asm_oraarch_created_results
