@@ -61,7 +61,6 @@
     path:                             /oracle/{{ db_sid | upper }}/{{ ora_release }}/dbs/init{{ db_sid | upper }}.ora
     regexp:                          '{{ db_sid | upper }}/oraarch'
     replace:                         '{{ db_sid | upper }}_STDBY/oraarch'
-    backup:                           true
   when:
     - node_tier == 'oracle-asm'
 #  You can also use "sed" to replace the string. sed -i 's|/DBSID/c|/DBSID_STDBY/c|g'
