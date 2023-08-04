@@ -349,7 +349,7 @@
     force:                            true
   when:  
     - current_host == ora_secondary
-    - node_tier ='oracle'
+    - node_tier == 'oracle'
 
 - name:                               "Oracle Data Guard - Preparation: create rman-restore.rman for oracle-asm"
   become:                             true
@@ -362,7 +362,7 @@
     force:                            true
   when:  
     - current_host == ora_secondary
-    - node_tier ='oracle-asm'
+    - node_tier == 'oracle-asm'
 
 
 - name:                                "Oracle Data Guard - Preparation: create secondarystartup.sql"
