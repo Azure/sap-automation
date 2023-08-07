@@ -430,8 +430,6 @@
           register:                    azure_metadata
           no_log:                      true
           changed_when:                false
-          args:
-            warn:                      false
 
         - name:                        "ORACLE: Save the Json data to a Variable as a Fact"
           ansible.builtin.set_fact:

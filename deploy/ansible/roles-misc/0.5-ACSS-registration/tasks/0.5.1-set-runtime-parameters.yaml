@@ -54,8 +54,6 @@
   register:                            azure_metadata
   no_log:                              true
   changed_when:                        false
-  args:
-    warn:                              false
 
 - name:                                "0.5.1 acss registration: Set Azure instance metadata"
   ansible.builtin.set_fact:

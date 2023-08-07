@@ -82,8 +82,6 @@
           register:                    azure_metadata
           no_log:                      true
           changed_when:                false
-          args:
-            warn:                      false
 
         - name:                        "SAP SYBASE: Save the Json data to a Variable as a Fact"
           ansible.builtin.set_fact:

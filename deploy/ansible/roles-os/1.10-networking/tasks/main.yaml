@@ -8,8 +8,6 @@
   ansible.builtin.command:             curl -H Metadata:true --noproxy "*" "http://169.254.169.254/metadata/instance/network/interface/0?api-version=2021-02-01"
   register:                            azure_metadata
   changed_when:                        false
-  args:
-    warn:                              false
 
 - name:                                "1.10 Networking - Pass the output of instance meta data to azure meta data function"
   ansible.builtin.set_fact:

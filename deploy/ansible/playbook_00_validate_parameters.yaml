@@ -265,8 +265,6 @@
       register:                        azure_metadata
       no_log:                          true
       changed_when:                    false
-      args:
-        warn:                          false
 
     - name:                            "0.0 Validations - Show IMDS results"
       ansible.builtin.debug:
@@ -427,8 +425,6 @@
     #   ansible.builtin.command:         zypper lr
     #   register:                        zypper_results
     #   changed_when:                    false
-    #   args:
-    #     warn:                          false  # quieten warning about using zypper directly
     #   when:
     #     - (ansible_distribution | lower ~ ansible_distribution_major_version) in ['suse15', 'sles_sap15' ]
     #   tags:
@@ -446,8 +442,6 @@
     #   ansible.builtin.command:         yum repolist
     #   register:                        yum_results
     #   changed_when:                    false
-    #   args:
-    #     warn:                          false  # quieten warning about using yum directly
     #   when:
     #     - (ansible_distribution | lower ~ ansible_distribution_major_version) in ['redhat7', 'redhat8']
     #   tags:
