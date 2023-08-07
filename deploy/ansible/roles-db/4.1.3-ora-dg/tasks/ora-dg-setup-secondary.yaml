@@ -490,7 +490,6 @@
     marker_end:                        "-- END"
     block: |
               spfile='+DATA/{{ db_sid | upper }}_STDBY/PARAMETERFILE/spfile{{ db_sid | upper }}.ora'
-              exit
     mode:                              '0755'
   when:
     - node_tier == 'oracle-asm'
