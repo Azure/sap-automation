@@ -64,23 +64,36 @@ output "anydb_loadbalancers" {
 // Output for DNS
 output "dns_info_vms" {
   value = local.enable_deployment ? (
-    zipmap(
-      concat(
-        (
-          local.anydb_dual_nics ? slice(var.naming.virtualmachine_names.ANYDB_VMNAME, 0, length(azurerm_linux_virtual_machine.dbserver) + length(azurerm_windows_virtual_machine.dbserver)) : [""]
+    local.anydb_dual_nics ? (
+      zipmap(
+        compact(
+          concat(
+            slice(var.naming.virtualmachine_names.ANYDB_VMNAME, 0, length(azurerm_linux_virtual_machine.dbserver) + length(azurerm_windows_virtual_machine.dbserver)),
+            slice(var.naming.virtualmachine_names.ANYDB_SECONDARY_DNSNAME, 0, length(azurerm_linux_virtual_machine.dbserver) + length(azurerm_windows_virtual_machine.dbserver))
+          )
         ),
-        (
-          slice(var.naming.virtualmachine_names.ANYDB_SECONDARY_DNSNAME, 0, length(azurerm_linux_virtual_machine.dbserver) + length(azurerm_windows_virtual_machine.dbserver))
+        compact(
+          concat(
+            slice(azurerm_network_interface.anydb_admin[*].private_ip_address, 0, length(azurerm_linux_virtual_machine.dbserver) + length(azurerm_windows_virtual_machine.dbserver)),
+            slice(azurerm_network_interface.anydb_db[*].private_ip_address, 0, length(azurerm_linux_virtual_machine.dbserver) + length(azurerm_windows_virtual_machine.dbserver))
+          )
         )
-      ),
-      concat(
-        (
-          local.anydb_dual_nics ? slice(azurerm_network_interface.anydb_admin[*].private_ip_address, 0, length(azurerm_linux_virtual_machine.dbserver) + length(azurerm_windows_virtual_machine.dbserver)) : [""]
+      )
+      ) : (
+      zipmap(
+        compact(
+          concat(
+            slice(var.naming.virtualmachine_names.ANYDB_VMNAME, 0, length(azurerm_linux_virtual_machine.dbserver) + length(azurerm_windows_virtual_machine.dbserver))
+          )
         ),
-        (
-          slice(azurerm_network_interface.anydb_db[*].private_ip_address, 0, length(azurerm_linux_virtual_machine.dbserver) + length(azurerm_windows_virtual_machine.dbserver))
+        compact(
+          concat(
+            slice(azurerm_network_interface.anydb_db[*].private_ip_address, 0, length(azurerm_linux_virtual_machine.dbserver) + length(azurerm_windows_virtual_machine.dbserver))
+          )
         )
-    ))) : (
+      )
+    )
+    ) : (
     null
   )
 }
