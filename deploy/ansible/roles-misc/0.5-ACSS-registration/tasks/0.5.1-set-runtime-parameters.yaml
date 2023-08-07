@@ -50,20 +50,17 @@
   when:                                bom.InstanceType is defined
 
 - name:                                "0.5.1 acss registration: Get Azure instance metadata"
-  ansible.builtin.command:             curl -H Metadata:true --noproxy "*" "http://169.254.169.254/metadata/instance?api-version=2021-02-01"
-  register:                            azure_metadata
-  no_log:                              true
-  changed_when:                        false
-
-- name:                                "0.5.1 acss registration: Set Azure instance metadata"
-  ansible.builtin.set_fact:
-    azure_instance_metadata:            "{{ azure_metadata.stdout | from_json }}"
-  no_log:                              true
+  ansible.builtin.uri:
+    url:                               http://169.254.169.254/metadata/instance?api-version=2021-02-01
+    use_proxy:                         false
+    headers:
+      Metadata:                        true
+  register: azure_metadata
 
 - name:                                "0.5.1 acss registration: Set variables from Azure IMDS"
   ansible.builtin.set_fact:
-    acss_resource_group:                "{{ azure_instance_metadata.compute.resourceGroupName }}"
-    acss_location:                      "{{ azure_instance_metadata.compute.location }}"
+    acss_resource_group:                "{{ azure_metadata.json.compute.resourceGroupName }}"
+    acss_location:                      "{{ azure_metadata.json.compute.location }}"
     acss_sid:                           "{{ sap_sid | upper }}"
     acss_instance_type:                 "{{ instance_type }}"
 
