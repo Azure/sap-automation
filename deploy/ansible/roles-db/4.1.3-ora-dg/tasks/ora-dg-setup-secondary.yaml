@@ -365,7 +365,7 @@
                                        /oracle/GRID/{{ ora_version }}/bin/asmcmd --privilege sysdba mkdir +ARCH/{{ db_sid | upper }}_STDBY/oraarch
                                        /oracle/GRID/{{ ora_version }}/bin/asmcmd --privilege sysdba mkdir +DATA/{{ db_sid | upper }}_STDBY/PARAMETERFILE
                                        /oracle/GRID/{{ ora_version }}/bin/asmcmd --privilege sysdba mkdir +RECO/{{ db_sid | upper }}_STDBY/FLASHBACK
-                                       /oracle/GRID/{{ ora_version }}/bin/asmcmd --privilege sysdba mkdir +DATA/{{ db_sid | upper }}_STDBY/AUTOBACKUP
+                                       /oracle/GRID/{{ ora_version }}/bin/asmcmd --privilege sysdba mkdir +RECO/{{ db_sid | upper }}_STDBY/AUTOBACKUP
   register:                            asm_oraarch_created_results
   failed_when:                         asm_oraarch_created_results.rc > 0
   args:
