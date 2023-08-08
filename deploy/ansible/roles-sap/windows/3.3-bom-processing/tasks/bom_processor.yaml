@@ -93,17 +93,27 @@
 
 # Download Files
 # ------------------<DEBUGGING>-------------------
-- name:                                "3.3 BoM Processing: - List files"
-  ansible.builtin.debug:
-    msg:
-      - "URL : {{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/archives/{{ item.archive }}\
-               {% if sapbits_sas_token is not undefined %}?{{ sapbits_sas_token }}{% endif %}"
-      - "DEST: {{ target_media_location }}/{% if item.filename is undefined %}{{ item.archive }}{% else %}{{ item.filename }}{% endif %}"
-      - "MODE: {% if item.permissions is undefined %}0644{% else %}{{ item.permissions }}{% endif %}"
-    verbosity:                         2
-  loop:       "{{ bom.materials.media | flatten(levels=1) }}"
-  when:
-    - item.download is undefined or item.download
+- name:                                "3.3 BoM Processing: - List files and check if dynamic BOM download was performed successfully."
+  block:
+    - name:                             "Check if the item has dynamic property"
+      ansible.builtin.fail:
+        msg:                            "INSTALL:0023:Error while donwloading BOM contents. Invalid BOM structure detected."
+      when:
+        - item.download is undefined or item.download
+        - item.dynamic is defined or item.archive is undefined
+      loop:       "{{ bom.materials.media | flatten(levels=1) }}"
+
+    - name:                                "3.3 BoM Processing: - List files"
+      ansible.builtin.debug:
+        msg:
+          - "URL : {{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/archives/{{ item.archive }}\
+                  {% if sapbits_sas_token is not undefined %}?{{ sapbits_sas_token }}{% endif %}"
+          - "DEST: {{ target_media_location }}/{% if item.filename is undefined %}{{ item.archive }}{% else %}{{ item.filename }}{% endif %}"
+          - "MODE: {% if item.permissions is undefined %}0644{% else %}{{ item.permissions }}{% endif %}"
+        verbosity:                         2
+      loop:       "{{ bom.materials.media | flatten(levels=1) }}"
+      when:
+        - item.download is undefined or item.download
 # ------------------</DEBUGGING>------------------
 
 - name:                                "3.3 BoM Processing: - Creates temporary download directory"

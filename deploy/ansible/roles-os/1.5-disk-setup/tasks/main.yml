@@ -58,10 +58,14 @@
 - name:                                "1.5 Disk setup - Append 'install' if needed"
   ansible.builtin.set_fact:
 <<<<<<< HEAD
+<<<<<<< HEAD
     logical_volumes:                   "{{ logical_volumes_install + logical_volumes }}"
 =======
     logical_volumes:                   "{{ logical_volumes + logical_volumes_install }}"
 >>>>>>> d9c7cfe54a52a5f4fd970ebd6c47edaad7733653
+=======
+    logical_volumes:                   "{{ logical_volumes + logical_volumes_install }}"
+>>>>>>> e6e297d8af5c84294521c4dd63e5f7f3ebb023e3
   when: usr_sap_install_mountpoint is not defined
 
 - name:                                "1.5 Disk setup - Append 'sapmnt' if neeeded"
