@@ -96,7 +96,7 @@
         dbms_type: "db6"
         dbs_db6_schema: "sap{{ db_sid | lower }}"
         dbs_db6_user: "sap{{ db_sid | lower }}"
-        DB2DIR: "/db2/db2{{ db_sid }}/db2_software"
+        DB2DIR: "/db2/db2{{ db_sid | lower }}/db2_software"
         INST_DIR: "/db2/db2{{ db_sid | lower }}/sqllib"
         IBM_DB_DIR: "/db2/db2{{ db_sid | lower }}/sqllib"
         IBM_DB_LIB: "/db2/db2{{ db_sid | lower }}/sqllib/lib"
