@@ -44,5 +44,6 @@ Webapp/.npmrc
 # Ignore OS files         - MKD 20221221
 **/.DS_Store
 
-# Text files to ignore
+# Additional files to ignore
 owners.txt
+NuGet.config
