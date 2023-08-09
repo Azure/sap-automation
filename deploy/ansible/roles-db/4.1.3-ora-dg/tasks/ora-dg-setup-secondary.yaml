@@ -83,12 +83,6 @@
   when:
     - node_tier == 'oracle-asm'
 
-#  Put a block for creating flag file to stop updating the initDE2.ora file after completion of restore.
-
-# - name:                            "Testing for initSID.ora updates"
-#   ansible.builtin.fail:
-#     msg:      "fail here"
-
 # Restart the Listener on Secondary node when the node_tier is Oracle.
 
 - name:                                "Oracle Data Guard - Setup Secondary: restart lsnrctl on Secondary"
@@ -418,7 +412,7 @@
     - node_tier == 'oracle-asm'
     - current_host == ora_secondary
 
-# Backup the PFILE and Create new PFILE point to SPFILE.
+# Backup the PFILE and Create new PFILE refering to SPFILE.
 - name:                                "Oracle Data Guard - Setup Secondary: Backup and remove pfile"
   become:                              true
   become_user:                         "oracle"
