@@ -70,28 +70,27 @@
       when:                            secondary_log_apply_off_results.rc == 0
 
 # Enable Flashback on Secondary      
-    - name:                                "Oracle Data Guard - Setup Primary: Enable Flashback on Oracle Secondary DB"
+    - name:                                "Oracle Data Guard - Enable Flashback on Oracle Secondary DB"
       become:                              true
       become_user:                         "oracle"
       ansible.builtin.shell:               sqlplus / as sysdba @turnonflashback.sql
       register:                            turn_on_flashback_secondary_results
       failed_when:                         turn_on_flashback_secondary_results.rc > 0
       args:
-        creates:                           /etc/sap_deployment_automation/dgscripts/turn_on_flashback_secondary.txt
-        chdir:                             /etc/sap_deployment_automation/dgscripts
-        executable:                        /bin/csh
-         
-    
+       creates:                           /etc/sap_deployment_automation/dgscripts/turn_on_flashback_secondary.txt
+       chdir:                             /etc/sap_deployment_automation/dgscripts
+       executable:                        /bin/csh
+
     - name:                                "Oracle Data Guard - Setup Primary: Enable Flashback on Oracle Primary DB (debug)"
       ansible.builtin.debug:
         var:                               turn_on_flashback_secondary_results.stdout_lines
         verbosity:                         2
     - name:                                "Oracle Data Guard - Setup Primary: Enable Flashback on Oracle Secondary DB (save output)"
       ansible.builtin.copy:
-      dest:                              /etc/sap_deployment_automation/dgscripts/turn_on_flashback_secondary.log
-      content:                           "{{ turn_on_flashback_secondary_results.stdout }}"
-      mode:                              '0755'
-      when:                                turn_on_flashback_secondary_results.stdout is defined
+        dest:                              /etc/sap_deployment_automation/dgscripts/turn_on_flashback_secondary.log
+        content:                           "{{ turn_on_flashback_secondary_results.stdout }}"
+        mode:                              '0755'
+      when:                               turn_on_flashback_secondary_results.stdout is defined
   
     - name:                                "Oracle Data Guard - Setup Primary: Create turn_on_flashback_secondary.txt"
       become:                              true
