@@ -144,7 +144,7 @@
           set -o pipefail
           sqlplus / as sysdba @shutdownsecondary.sql | tee /etc/sap_deployment_automation/dgscripts/asm_secondary_shutdown_cfg.log
       register:                            secondary_shutdown_cfg_results
-      failed_when:                         secondary_shutdown__cfg_results.rc > 0
+      failed_when:                         secondary_shutdown_cfg_results.rc > 0
       args:
         creates:                           /etc/sap_deployment_automation/dgscripts/asm_secondary_shutdown_cfg.txt
         chdir:                             /etc/sap_deployment_automation/dgscripts
