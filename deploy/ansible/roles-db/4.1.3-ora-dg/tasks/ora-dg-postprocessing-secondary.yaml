@@ -136,13 +136,42 @@
         mode:                          '0755'
       when:                            secondary_log_apply_off_results.rc == 0
 
-
-    - name:                            "Oracle CLusterware Restart COnfiguration"
+    # Stop the Secondary Database.
+    - name:                                "Oracle Data Guard - Setup Secondary: Stop secondary DB for oracle clusterware configuration."
+      become:                              true
+      become_user:                         "oracle"
+      ansible.builtin.shell: |
+          set -o pipefail
+          sqlplus / as sysdba @shutdownsecondary.sql | tee /etc/sap_deployment_automation/dgscripts/asm_secondary_shutdown_cfg.log
+      register:                            secondary_shutdown_cfg_results
+      failed_when:                         secondary_shutdown__cfg_results.rc > 0
+      args:
+        creates:                           /etc/sap_deployment_automation/dgscripts/asm_secondary_shutdown_cfg.txt
+        chdir:                             /etc/sap_deployment_automation/dgscripts
+        executable:                        /bin/csh
+      when: 
+        - current_host == ora_secondary
+        # - node_tier == 'oracle-asm'
+    
+    - name:                                "Oracle Data Guard - Setup Secondary: Create asm_secondary_shutdown.txt"
+      become:                              true
+      become_user:                         "root"
+      ansible.builtin.file:
+        path:                              /etc/sap_deployment_automation/dgscripts/asm_secondary_shutdown_cfg.txt
+        state:                             touch
+        mode:                              '0755'
+        owner:                             oracle
+        group:                             oinstall
+      when:                                
+        - secondary_shutdown_cfg_results.rc == 0
+        # - node_tier == 'oracle-asm'
+        - current_host == ora_secondary
+    
+    - name:                            "Oracle CLusterware Restart Configuration"
       become:                          true
       become_user:                     "oracle"
       ansible.builtin.shell: |
                               srvctl add   database  -db {{ db_sid |  upper }}_STDBY   -oraclehome /oracle/{{ db_sid |  upper }}/{{ ora_release }}   -spfile  +DATA/{{ db_sid |  upper }}_STDBY/PARAMETERFILE/spfile{{ db_sid |  lower }}.ora. -role PHYSICAL_STANDBY -instance  {{ db_sid |  upper }} -startoption mount -diskgroup "ARCH,DATA,RECO"
-                              srvctl stop  database  -db {{ db_sid |  upper }}_STDBY
                               srvctl start database  -db {{ db_sid |  upper }}_STDBY
       register:                        oracle_clusterware_register
       failed_when:                     oracle_clusterware_register.rc > 0
