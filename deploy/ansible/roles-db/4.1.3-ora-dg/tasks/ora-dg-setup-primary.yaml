@@ -147,7 +147,7 @@
     mode:                              '0755'
   when:
     - current_host == ora_primary
-    - standby_redo_log_results.rc < 2
+    - standby_redo_log_results.rc == 0
 
 - name:                                "Oracle Data Guard - Setup Primary: Enable Flashback on Oracle Primary DB"
   become:                              true

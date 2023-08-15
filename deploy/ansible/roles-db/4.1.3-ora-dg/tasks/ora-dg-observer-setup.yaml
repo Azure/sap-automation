@@ -100,7 +100,7 @@
     path:                              /etc/sap_deployment_automation/oracle_installed.txt
     state:                             touch
     mode:                              '0755'
-  when:                                orainstall_results.rc < 3
+  when:                                orainstall_results.rc >= 3
 
   # Create SQLNET.ORA .
 
