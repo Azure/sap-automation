@@ -23,7 +23,10 @@
     - name:                                Retrieve SSH Key secret details and rescue on failure
       block:
         - name:                            Retrieve SSH Key secret details
-          ansible.builtin.command: >-
+          ansible.builtin.command: 
+            strip_empty_ends:             false
+            stdin_add_newline:            true
+            cmd: >-
                                           az keyvault secret show
                                             --vault-name {{ kv_name }}
                                             --name {{ secret_name }}
