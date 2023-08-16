@@ -43,6 +43,10 @@ Webapp/.npmrc
 # Ignore OS files         - MKD 20221221
 **/.DS_Store
 
+# Additional files to ignore
+owners.txt
+NuGet.config
+
 # Ignore Python cache directories
 __pycache__
 # Additional files to ignore
