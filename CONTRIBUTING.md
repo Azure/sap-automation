@@ -14,8 +14,6 @@
 Thanks for taking the time to contribute!
 This document summarizes the deployment principles which govern our project.
 
-:exclamation: All pull requests are required to be submitted against `experimental` branch.
-
 ## Building 'in the open'
 
 - Our users appreciate the transparency of our project; in this context, building "in the open" means that anyone can:
