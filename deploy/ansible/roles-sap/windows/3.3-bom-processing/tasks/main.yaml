@@ -40,21 +40,6 @@
   ansible.builtin.import_tasks:        pre_checks.yaml
 # -------------------------------------+---------------------------------------8
 
-# - name:                                "3.3 BoM Processing: - Create BOM download directories"
-#   ansible.builtin.file:
-#     path:                              "{{ item.path }}"
-#     state:                             directory
-#     mode:                              0755
-#   become:                              true
-#   delegate_to:                         localhost
-#   become_user:                         root
-#   loop:
-#     - path: "{{ download_directory }}"
-#     - path: "{{ download_directory }}/tmp"
-#     - path: "{{ download_directory }}/bom"
-#     - path: "{{ download_directory }}/files"
-
-
 - name:                                "3.3 BoM Processing: - Run the bom-register"
   ansible.builtin.include_role:
     name:                              roles-sap/windows/3.3.1-bom-utility
