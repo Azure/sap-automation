@@ -1,0 +1,12 @@
+exec dbms_service.create_service(service_name=>'{{ db_sid | upper }}_HA',network_name=>'{{ db_sid | upper }}_HA');
+CREATE OR REPLACE TRIGGER {{ db_sid | lower }}_ha_service
+after startup on database
+DECLARE
+role VARCHAR(30);
+BEGIN
+SELECT DATABASE_ROLE INTO role FROM V$DATABASE; IF role = 'PRIMARY' THEN
+DBMS_SERVICE.START_SERVICE('{{ db_sid | upper }}_HA');
+END IF;
+END;
+/
+exit;

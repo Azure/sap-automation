@@ -1,0 +1,21 @@
+{{ db_sid | upper }}_HA.WORLD =
+(DESCRIPTION =
+(ADDRESS_LIST =
+(ADDRESS =
+(PROTOCOL = TCP)
+(HOST = ora_primary)
+(PORT = 1527)
+)
+(ADDRESS =
+(PROTOCOL = TCP)
+(HOST = ora_secondary)
+(PORT = 1527)
+)
+(LOAD_BALANCE = YES)
+)
+(CONNECT_DATA=
+(SID = {{ db_sid | upper }})
+(GLOBAL_NAME = {{ db_sid | upper }}.WORLD)
+(SERVICE_NAME={{ db_sid | upper }}_HA)
+)
+)

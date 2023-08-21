@@ -297,6 +297,10 @@
             main_password:             "{{ hostvars.localhost.sap_password }}"
           tags:
             - always
+        
+        - name:                        "Configure accounts for oracle"
+          ansible.builtin.include_role:
+            name:                      roles-os/1.11-accounts
 
         - name:                        "Database Installation Playbook: - Check for file system mounts"
           ansible.builtin.include_role:
