@@ -29,7 +29,13 @@ regex_to_error_msgs = [
         {'task_tag=dbload', 'failure=messageserver_offline'}),
     (r'([\s\d\w\D\W]*)Make sure the database is online([\s\w\d\W\D]*)',
         'INSTALL:0021:DB Load failure, database is offline.',
-        {'task_tag=dbload', 'failure=db_offline'})
+        {'task_tag=dbload', 'failure=db_offline'}),
+    (r'([\s\d\w\D\W]*)Connect to message server([\s\w\d\W\D]*)Make sure that the message server is started([\s\w\d\W\D]*)',
+        'INSTALL:0024:PAS Install failed, unable to connect to message server.',
+        {'task_tag=pasinstall', 'failure=messageserver_offline'}),
+    (r'([\s\d\w\D\W]*)Make sure the database is online([\s\w\d\W\D]*)',
+        'INSTALL:0025:PAS Install failed, database is offline.',
+        {'task_tag=pasinstall', 'failure=db_offline'})
 ]
 
 # Takes a dictionary and converts it into a set of
