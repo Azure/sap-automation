@@ -70,6 +70,22 @@
     timeout:                       15
 
 - name:                                "Insert Additional entries for ASM Recovery in initSID.ora"
+  ansible.builtin.lineinfile:
+    path:                              /oracle/{{ db_sid | upper }}/{{ ora_release }}/dbs/init{{ db_sid | upper }}.ora
+    regexp:                            "^*.local_listener='(Address=(Protocol=TCP)(Host=ora_primary)(Port=1521))'"
+    line:                              "*.local_listener='(Address=(Protocol=TCP)(Host=ora_secondary)(Port=1521))'" 
+    backrefs:                           true
+
+
+- name:                                "Insert Additional entries for ASM Recovery in initSID.ora"
+  ansible.builtin.lineinfile:
+    path:                              /oracle/{{ db_sid | upper }}/{{ ora_release }}/dbs/init{{ db_sid | upper }}.ora
+    regexp:                            "^*.db_unique_name ='{{ db_sid | upper }}"
+    line:                              "*.db_unique_name ='{{ db_sid | upper }}_STDBY'" 
+    backrefs:                           true
+
+
+- name:                                "Replace the local listener entires in initSID.ora"
   ansible.builtin.blockinfile:
     path:                              /oracle/{{ db_sid | upper }}/{{ ora_release }}/dbs/init{{ db_sid | upper }}.ora
     marker_begin:                      "-- BEGIN"
@@ -78,8 +94,6 @@
     block: |
                 *.db_create_file_dest='+DATA'
                 *.db_create_online_log_dest_1='+DATA'
-                *.db_create_online_log_dest_2='+ARCH'
-                *.db_unique_name ='{{ db_sid | upper }}_STDBY'
   when:
     - node_tier == 'oracle-asm'
 

@@ -1,5 +1,6 @@
 exec dbms_service.create_service(service_name=>'{{ db_sid | upper }}_HA',network_name=>'{{ db_sid | upper }}_HA');
-CREATE OR REPLACE TRIGGER {{ db_sid | lower }}_ha_service
+exec dbms_service.start_service('{{ db_sid | upper }}_HA');
+CREATE OR REPLACE TRIGGER {{ db_sid | lower }}_HA_SERVICE
 after startup on database
 DECLARE
 role VARCHAR(30);

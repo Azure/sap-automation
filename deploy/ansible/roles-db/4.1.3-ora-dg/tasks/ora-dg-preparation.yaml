@@ -377,6 +377,37 @@
   when:  current_host != ora_primary
 
 
+# Create the sql script for updating the data guard specific parameters for Primary node.
+
+- name:                               "Oracle Data Guard - Preparation: Create the SQL for  Dataguard parameters on  Primary"
+  become:                             true
+  become_user:                        oracle
+  ansible.builtin.template:
+    backup:                           true
+    src:                              dbparametersfordg.j2
+    dest:                             "/etc/sap_deployment_automation/dgscripts/dbparametersfordg.sql"
+    mode:                             '0644'
+    force:                            true
+  vars:
+    hostname:  "{{ ora_primary }}"
+    sap_dbp_hostname: "{{ ora_primary }}"
+    sap_dbs_hostname: "{{ ora_secondary }}"
+  when:  current_host == ora_primary
+
+# Create DB trigger sql for SAP HA Setup
+
+- name:                               "Oracle Data Guard - Preparation: Create the SQL for  DBTrigger on  Primary"
+  become:                             true
+  become_user:                        oracle
+  ansible.builtin.template:
+    backup:                           true
+    src:                              dbtrigger.j2
+    dest:                             "/etc/sap_deployment_automation/dgscripts/dbtrigger.sql"
+    mode:                             '0644'
+    force:                            true
+  when:  current_host == ora_primary
+
+
 - name:                               "Oracle Data Guard - Preparation: create dgconfig.sh"
   become:                             true
   become_user:                        oracle
