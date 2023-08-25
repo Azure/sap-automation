@@ -1084,7 +1084,19 @@ then
     deployer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_public_ip_address | tr -d \")
     keyvault=$(terraform -chdir="${terraform_module_directory}"  output -no-color -raw deployer_kv_user_name | tr -d \")
 
-   created_resource_group_name=$(terraform -chdir="${terraform_module_directory}"  output -no-color -raw created_resource_group_name | tr -d \")
+    random_id=$(terraform -chdir="${terraform_module_directory}"  output  -no-color -raw random_id_b64 | tr -d \")
+    temp=$(echo "${random_id}" | grep -m1 "Warning")
+    if [ -z "${temp}" ]
+    then
+        temp=$(echo "${random_id}" | grep "Backend reinitialization required")
+        if [ -z "${temp}" ]
+        then
+            save_config_var "deployer_random_id" "${random_id}"
+            return_value=0
+        fi
+    fi
+
+    created_resource_group_name=$(terraform -chdir="${terraform_module_directory}"  output -no-color -raw created_resource_group_name | tr -d \")
 
     az deployment group create --resource-group ${created_resource_group_name} --name "ControlPlane_Deployer_${created_resource_group_name}" --template-file "${script_directory}/templates/empty-deployment.json" --output none
     if [ 1 == $called_from_ado ] ; then
