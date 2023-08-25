@@ -200,6 +200,21 @@
         mode:                          '0755'
         owner: oracle
         group: oinstall
+  
+  
+   # Update the tnsnames.ora for SAP application servers
+
+    - name:                                "Oracle Data Guard - Update tnsnames.ora for SAP application servers"
+      become:                              true
+      become_user:                         "root"
+      ansible.builtin.copy:
+        src:                               /etc/sap_deployment_automation/dgscripts/tnsnames.ora
+        dest:                              /sapmnt/{{ sap_sid |upper }}/profile/oracle/tnsnames.ora
+        remote_src:                        true
+        owner:                             '{{sap_sid}}adm'
+        group:                             sapsys
+        mode:                              "{{ '0777' | int - (custom_umask | default('022') | int) }}"
+   
   when:
     - primary_post_processing_completed.stat.exists
 
