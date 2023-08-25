@@ -1,7 +1,5 @@
-ALTER SYSTEM SET db_unique_name='{{ db_sid | upper }}' SCOPE=BOTH;
-ALTER SYSTEM SET valid_for='(ONLINE_LOGFILE,ALL_ROLES)' SCOPE=BOTH;
 ALTER SYSTEM SET log_archive_dest_state_1='ENABLE' SCOPE=BOTH;
-ALTER SYSTEM SET log_archive_max_processes='2'  SCOPE=BOTH;
-ALTER SYSTEM SET log_archive_min_succeed_dest='1' SCOPE=BOTH;
-ALTER SYSTEM SET log_archive_trace='0' SCOPE=BOTH;
-ALTER SYSTEM SET log_file_name_convert='{{ db_sid | upper }}','{{ db_sid | upper }}' SCOPE=BOTH;
+ALTER SYSTEM SET log_archive_max_processes=2  SCOPE=BOTH;
+ALTER SYSTEM SET log_archive_min_succeed_dest=1 SCOPE=BOTH;
+ALTER SYSTEM SET log_archive_trace=0 SCOPE=BOTH;
+exit;

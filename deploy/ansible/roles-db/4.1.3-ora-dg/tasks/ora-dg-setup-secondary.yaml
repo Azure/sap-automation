@@ -93,6 +93,8 @@
     insertafter:                       ".db_name='{{ db_sid | upper }}'"
     block: |
                 *.db_create_file_dest='+DATA'
+                *.db_unique_name ='{{ db_sid | upper }}_STDBY'
+                *.log_file_name_convert='{{ db_sid | upper }}','{{ db_sid | upper }}'
                 *.db_create_online_log_dest_1='+DATA'
   when:
     - node_tier == 'oracle-asm'
