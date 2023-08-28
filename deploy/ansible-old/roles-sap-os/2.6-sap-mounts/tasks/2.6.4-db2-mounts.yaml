@@ -1,0 +1,152 @@
+---
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                Perform the Disk system mounts                              |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+# Mount Filesystems
+
+- name:                                "DB2: Get Logical volumes created in 1.5"
+  ansible.builtin.include_vars:        disks_config.yml
+
+- name:                                "DB2: Check if LVs exists."
+  ansible.builtin.stat:
+    path:                              "{{ dev_path_from_lv_item }}"
+  loop:                                "{{ logical_volumes }}"
+  register:                            db2volstat
+
+- name:                                "DB2: Debug - Show volume information"
+  ansible.builtin.debug:
+    var:                               db2volstat
+    verbosity:                         2
+
+- name:                                "DB2: Gather existing LVs"
+  ansible.builtin.set_fact:
+    lvexists:                          "{{ db2volstat.results | selectattr('stat.exists', 'equalto', true) | map(attribute='item.lv') | list }}"
+
+- name:                                "DB2: Show lvexists"
+  ansible.builtin.debug:
+    var:                               lvexists
+    verbosity:                         2
+
+# Mount Filesystems
+- name:                                "DB2: Mount Filesystems for DB2"
+  ansible.posix.mount:
+    src:                               "{{ dev_path_from_lv_item }}"
+    path: >-
+                                        {%- set lv_parts = item.lv.split('_') -%}
+                                        {%- if lv_parts| length == 2 -%}
+                                        {%- set _path = '/' ~ lv_parts[-1] -%}
+                                        {%- elif ('offline' in lv_parts) and
+                                            (lv_parts| length == 4 ) -%}
+                                        {%- set _path = ['/' ~ lv_parts[-3],
+                                          db_sid | upper,
+                                          lv_parts[-2:] | join('_') ] |
+                                          join('/') -%}
+                                        {%- else -%}
+                                        {%- set _path = ['/' ~ lv_parts[-2],
+                                          db_sid | upper, lv_parts[-1]] |
+                                          join('/') -%}
+                                        {%- endif -%}
+                                        {{- _path -}}
+    fstype:                            "{{ item.fstype }}"
+    opts:                              defaults
+    state:                             mounted
+  loop:                                "{{ logical_volumes |
+                                            sort(attribute='lv') }}"
+  register:  db2fsmounts
+  when:
+    - item.node_tier == "db2"
+    - item.lv in  lvexists
+
+- name:                                "DB2: Create sap_deployment_automation
+                                        folder"
+  ansible.builtin.file:
+    path:                              /etc/sap_deployment_automation
+    mode:                              0755
+    state:                             directory
+
+# Debug - Fail
+# - name:                                "DB2: fail here"
+#   ansible.builtin.fail:
+#     msg:                               "Fail after printing lv details"
+
+- name:                                "DB2: Make db2sid:dba as owners for DB2
+                                        directories - check flag file"
+  ansible.builtin.stat:
+    path:                              /etc/sap_deployment_automation/filepermission.txt
+  register:                            db2_permissions_set
+
+- name:                                "DB2: Make db2sid:dba as owners for DB2 directories"
+  ansible.builtin.file:
+    path:                              "{{ item.path }}"
+    state:                             directory
+    owner:                             "{{ item.owner }}"
+    group:                             "{{ item.group }}"
+    recurse:                           true
+  loop:
+    - { path: '/db2', group: '{{ db2sysadm_gid }}', owner: '{{ db2sidadm_uid }}' }
+  when:
+    - not db2_permissions_set.stat.exists
+
+- name:                                "DB2: Create sap_deployment_automation
+                                        folder"
+  ansible.builtin.file:
+    path:                              /etc/sap_deployment_automation
+    mode:                              0755
+    state:                             directory
+
+- name:                                "DB2: Create filepermission.txt"
+  become:                              true
+  become_user:                         root
+  ansible.builtin.file:
+    path:                              /etc/sap_deployment_automation/filepermission.txt
+    mode:                              0644
+    state:                             touch
+
+- name:                                "DB2: Set NFS Server variable"
+  ansible.builtin.set_fact:
+    sapmnt_nfs_mount: >-
+                                        {% if (NFS_provider == 'AFS' or NFS_provider == 'ANF') and (sap_mnt is defined) %}{{ sap_mnt }}{% else %}{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') | first }}:/sapmnt/{{ sap_sid | upper }}{% endif %}
+
+- name:                                "DB2: Set NFS Server variable"
+  ansible.builtin.debug:
+    var:  sapmnt_nfs_mount
+
+- name:                                "DB2: Set NFS Server options"
+  ansible.builtin.set_fact:
+    sapmnt_nfs_opts: >-
+                                        {% if (NFS_provider == 'AFS' or NFS_provider == 'ANF') and (sap_mnt is defined) %}rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp{% else %}defaults{% endif %}
+
+- name:                                "DB2: Set NFS Server options"
+  ansible.builtin.debug:
+    var:  sapmnt_nfs_opts
+
+# Mount Filesystems
+- name:                                "Mount SAP Filesystems on Database for installation"
+  ansible.posix.mount:
+    src:                               "{{ item.src }}"
+    path:                              "{{ item.path }}"
+    fstype:                            "{{ item.type }}"
+    opts:                              "{{ item.opts }}"
+    state:                             mounted
+  loop:
+    - {   tier: 'db2'
+          , type: 'nfs4'
+          , src: '{{ sapmnt_nfs_mount }}'
+          , path: '/sapmnt/{{ sap_sid | upper }}'
+          , opts: '{{ sapmnt_nfs_opts }}'
+    }
+  when:
+    - item.tier == "db2"
+    - sap_mnt is undefined
+
+# Debug for testing
+- name:                                "DB2: Print filesystems"
+  ansible.builtin.debug:
+    var:                               db2fsmounts
+    verbosity:                         2
+
+...

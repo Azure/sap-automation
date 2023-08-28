@@ -1,0 +1,108 @@
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                         OS Base Disk Configuration                         |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+---
+# -------------------------------------+---------------------------------------8
+#
+# Task: 1.5     disk-setup
+#
+# -------------------------------------+---------------------------------------8
+
+# -------------------------------------+---------------------------------------8
+#
+# <Comment Header>
+#
+# -------------------------------------+---------------------------------------8
+
+# ----------------------------------------
+# BEGIN
+# ----------------------------------------
+
+# ----------------------------------------
+# END
+# ----------------------------------------
+
+# -------------------------------------+---------------------------------------8
+#
+# - name: "update the community.windows to fix the win_disk_facts module"
+#   delegate_to: localhost
+#   become: true
+#   ansible.builtin.raw: |
+#     source /opt/ansible/venv/2.13/bin/activate
+#     ansible-galaxy collection install git+https://github.com/ansible-collections/community.windows,main --force --collections-path /opt/ansible/collections
+#     deactivate
+#   args:
+#     executable: /bin/bash
+
+- name:                                "1.5 Disk setup - Get disk facts"
+  community.windows.win_disk_facts:
+
+- name:                                "1.5 Disk setup - Show disk info"
+  ansible.builtin.debug:
+    msg:
+      - "Disks:    {{ ansible_facts.disks }} "
+    verbosity:                         2
+
+- name:                                "1.5 Disk setup - Load the disk configuration settings"
+  ansible.builtin.include_vars:        disks_config.yml
+
+- name:                                "1.5 Disk setup - Show disk info"
+  ansible.builtin.debug:
+    msg:
+      - "Unique disks:    {{ disktypes }} "
+      - "Volume groups:   {{ volume_groups }} "
+    verbosity:                         2
+
+- name:                                "1.5 Disk setup - Initialize the disks"
+  ansible.windows.win_dsc:
+    resource_name:                     "WaitForDisk"
+    DiskId:                            "{{ item.osdisk_id }}"
+    DiskIdType:                        'UniqueId'
+    RetryIntervalSec:                  60
+    RetryCount:                        10
+  loop:                                "{{ volume_groups }}"
+
+- name:                                "1.5 Disk setup - Initialize the disks"
+  ansible.windows.win_dsc:
+    resource_name:                     "Disk"
+    DiskId:                            "{{ item.osdisk_id }}"
+    DiskIdType:                        'UniqueId'
+    DriveLetter:                       "{{ item.driveletter }}"
+    PartitionStyle:                    "GPT"
+    FSLabel:                           "{{ item.diskname }}"
+    FSFormat:                          'NTFS'
+    AllocationUnitSize:                "{{ item.sector_size }}"
+  loop:                                "{{ volume_groups }}"
+  register:                            win_disk_results
+
+# - name: get disk facts
+#   win_disk_facts:
+
+- name:                               "1.5 Disk setup - Show disk info"
+  ansible.builtin.debug:
+    msg:
+      - "disk facts: {{ win_disk_results }}"
+
+# - name: select disk unique id
+#   vars:
+#     regex: '^Integrated.+LUN\s({{ item.LUN }})$'
+#   set_fact:
+#     disk_id: "{{ ansible_facts.disks |
+#               selectattr('location', 'match', regex) |
+#               map(attribute='unique_id') |
+#               list | first }}"
+#   loop:       "{{ disks }}"
+#   when: item.host == ansible_hostname
+
+# - name:                                "1.5 Disk setup - Show disk info"
+#   ansible.builtin.debug:
+#     msg:
+#       - "Disk ids:    {{ disk_id }} "
+#       - "disk facts: {{ ansible_facts.disks}}"
+
+...
+# /*---------------------------------------------------------------------------8
+# |                                   END                                      |
+# +------------------------------------4--------------------------------------*/

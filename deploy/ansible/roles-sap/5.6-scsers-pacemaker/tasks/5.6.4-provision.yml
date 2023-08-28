@@ -27,7 +27,22 @@
       become_user:                     root
       tags:
         - "5.6.4.0-cluster"
-  when:                                (not scs_installed.stat.exists) or (not ers_installed.stat.exists)
+  when:
+    - (not scs_installed.stat.exists) or (not ers_installed.stat.exists)
+    - not use_simple_mount
+
+- name:                                "5.6 SCSERS: Cluster based on OS in VM"
+  ansible.builtin.include_tasks:
+    file:                              "5.6.4.0-cluster-{{ ansible_os_family }}-SimpleMount.yml"
+    apply:
+      become:                          true
+      become_user:                     root
+      tags:
+        - "5.6.4.0-cluster-simplemount"
+  when:
+    - (not scs_installed.stat.exists) or (not ers_installed.stat.exists)
+    - use_simple_mount
+    - ansible_os_family | upper == "SUSE"
 
 # introduce throttle to sequence task execution on each node before moving to next task
 # did not add the cluster includes in here. May need to consider this here as well.
@@ -79,7 +94,19 @@
           become_user:                 root
           tags:
             - "5.6.4.2-sap-resources"
+      when:
+        - not use_simple_mount
 
+    - name:                            "5.6 SCSERS - SAP resources"
+      ansible.builtin.include_tasks:
+        file:                          "5.6.4.2-sap-resources-{{ ansible_os_family }}-SimpleMount.yml"
+        apply:
+          become:                      true
+          become_user:                 root
+          tags:
+            - "5.6.4.2-sap-resources-simplemount"
+      when:
+        - use_simple_mount
     # - name:                            "5.6 SCSERS - SAP resources"
     #   ansible.builtin.include_tasks:
     #     file:                          "5.6.4.2-sap-resources-{{ ansible_os_family }}.yml"

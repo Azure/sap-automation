@@ -228,6 +228,7 @@
             path:                      "{{ app_file_path }}"
             tier:                      'app'
             this_sid:                  "{{ sid_to_be_deployed.sid | upper }}"
+            work_log_component_name:   "D{{ app_instance_number }}"
           loop:                        "{{ all_sids }}"
           loop_control:
             loop_var:                  sid_to_be_deployed

@@ -42,6 +42,6 @@ storage_object: sbd{{ cluster_name }}
 target: "{{ iscsi_object }}.{{ cluster_name }}.local:{{ cluster_name }}"
 
 
-hana_stop_start_timeout_in_seconds: 2700
-hana_stop_start_delay_in_seconds: 2
+hana_stop_start_timeout_in_seconds: 600
+hana_stop_start_delay_in_seconds: 10
 ...

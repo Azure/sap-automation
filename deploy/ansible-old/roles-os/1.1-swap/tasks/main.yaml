@@ -1,0 +1,124 @@
+# /*----------------------------------------------------------------------------8
+# |                                                                            |
+# |            Role for ensuring the swap space is configured correctly         |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+---
+# -------------------------------------+---------------------------------------8
+#
+# Task: 1.1     - swap space setup
+#
+# -------------------------------------+---------------------------------------8
+
+
+- name:                                "1.1 Swap: - Ensure /mnt/resource directory exists"
+  ansible.builtin.file:
+    path:                              "/mnt/resource"
+    state:                             directory
+    mode:                              "0755"
+  notify:
+    - Restart waagent
+
+# Check the current swap size
+- name:                                "check swap size"
+  ansible.builtin.shell:               set -o pipefail && cat /proc/meminfo | grep SwapTotal
+  register:                            swap_space
+
+- name:                                "SWAP space from /proc/meminfo"
+  ansible.builtin.debug:
+    msg:                               "SWAP size from procinfo: {{ swap_space }}"
+    verbosity:                         2
+
+
+- name:                                "Trim Swap space"
+  ansible.builtin.set_fact:
+    swap_value:                        "{{ swap_space.stdout_lines[0] | regex_search('([0-9]+)') }}"
+
+- name:                                "Swap space in Integer"
+  ansible.builtin.set_fact:
+    swap_size:                         "{{ swap_value | int }}"
+
+- name:                                "SWAP size"
+  ansible.builtin.debug:
+    msg:                               "Swap size: {{ swap_size }}"
+
+- name:                                "1.1 Swap: - Ensure waagent file is configured with proper parameters"
+  ansible.builtin.lineinfile:
+    dest:                              /etc/waagent.conf
+    state:                             "{{ item.state }}"
+    regexp:                            "{{ item.regexp }}"
+    line:                              "{{ item.line }}"
+  loop:
+    # Default values on install
+    #     ResourceDisk.Format             = y
+    #     ResourceDisk.Filesystem         = ext4
+    #     ResourceDisk.MountPoint         = /mnt/resource
+    #     ResourceDisk.EnableSwap         = n
+    #     ResourceDisk.SwapSizeMB         = 0
+    #     ResourceDisk.MountOptions       = None
+    - { state: 'present',  regexp: 'ResourceDisk.Format=',      line: 'ResourceDisk.Format=y'                                      }
+    - { state: 'present',  regexp: 'ResourceDisk.EnableSwap=',  line: 'ResourceDisk.EnableSwap=y'                                  }
+    - { state: 'present',  regexp: 'ResourceDisk.SwapSizeMB=',  line: 'ResourceDisk.SwapSizeMB={{ swap_size_mb | default(2052) }}' }
+    - { state: 'present',  regexp: 'ResourceDisk.MountPoint=',  line: 'ResourceDisk.MountPoint=/mnt'                               }
+    - { state: 'present',  regexp: 'Provisioning.Agent=',       line: 'Provisioning.Agent=waagent'                                 }
+  register:                            wagent_configuration
+  vars:
+    swap_size_mb:                      "{{ (sap_swap | selectattr('tier', 'search', node_tier) | list | first).swap_size_mb }}"
+  when:
+    - swap_size == '0'
+
+- name:                                "Swap reboot"
+  ansible.builtin.reboot:
+  when:
+    - wagent_configuration.changed
+
+# - name:                               "Get SWAP Size"
+#   set_fact:
+#     swap_size_mb:                      "{{ (sap_swap | selectattr('tier', 'search', node_tier) | list | first).swap_size_mb }}"
+
+# # Enable SWAP file using Cloud-init : https://learn.microsoft.com/en-us/troubleshoot/azure/virtual-machines/swap-file-not-recreated-linux-vm-restart
+# # New OS release will use Cloud-Init for Provisioning: https://learn.microsoft.com/en-us/azure/virtual-machines/linux/using-cloud-init
+# #Create SWAP configuration file at /var/lib/cloud/scripts/per-boot
+
+# # Check the current swap size
+# - name:                             "check swap size"
+#   ansible.builtin.shell:          cat /proc/meminfo |grep SwapTotal
+#   register:                         swap_space
+
+# - name:                               "SWAP space"
+#   ansible.builtin.debug:
+#         msg:                           "{{swap_space}}"
+
+# - name:                             "Trim Swap space"
+#   set_fact:
+#     swap_value:                     "{{ swap_space.stdout_lines[0] | regex_search('([0-9]+)') }}"
+
+# - name:                             "Swap space in Integer"
+#   set_fact:
+#     swap_size:                     "{{swap_value | int }}"
+
+# # - fail:
+# #     msg:       "swap value not right"
+
+# - name:                               "SWAP Enabled"
+#   ansible.builtin.debug:
+#         msg:                           "{{swap_size}}"
+
+# - name:                               "Create SWAP.sh"
+#   become:                             true
+#   become_user:                        root
+#   ansible.builtin.template:
+#     src:                              swap.j2
+#     dest:                             "/var/lib/cloud/scripts/per-boot/create_swapfile.sh"
+#     mode:                             '0755'
+#     force:                            true
+#   when:
+#     - swap_size == '0'
+
+
+# - name:                                "Swap reboot"
+#   ansible.builtin.reboot:
+#   when:
+#     - swap_size == '0'
+
+...

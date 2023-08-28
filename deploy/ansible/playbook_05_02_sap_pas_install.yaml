@@ -260,6 +260,7 @@
                 path:                  'INSTALL/DISTRIBUTED/{{ pas_bom_instance_type }}/APP1'
                 tier:                  'pas'
                 this_sid:              "{{ sid_to_be_deployed.sid | upper }}"
+                work_log_component_name: "D{{ pas_instance_number }}"
               loop:                    "{{ all_sids }}"
               loop_control:
                 loop_var:              sid_to_be_deployed

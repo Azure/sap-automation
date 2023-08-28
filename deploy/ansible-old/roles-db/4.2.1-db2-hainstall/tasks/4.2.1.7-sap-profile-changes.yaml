@@ -1,0 +1,59 @@
+---
+
+#################################################################################################################
+# Profile changes for DB2 Installations                                                                         #
+# To connect to the primary instance of the HADR configuration, the SAP application layer needs to use the      #
+# virtual IP address that you defined and configured for the Azure Load Balancer                                #
+#################################################################################################################
+
+- name:                                " 4.2.1.7 - SAP Profile changes - DB2 Installations"
+  block:
+
+    - name:                            "4.2.1.7 - SAP DEFAULT.PFL changes "
+      ansible.builtin.replace:
+        path:                          /sapmnt/{{ sap_sid | upper }}/profile/DEFAULT.PFL
+        backup:                        true
+        regexp:                        '^SAPDBHOST'
+        replace:                       '#SAPDBHOST'
+      tags:
+        - dbhostcomment
+
+    - name:                            "4.2.1.7 - SAP DEFAULT.PFL changes - add db virtual hostname "
+      ansible.builtin.lineinfile:
+        path:                          /sapmnt/{{ sap_sid | upper }}/profile/DEFAULT.PFL
+        line:                          SAPDBHOST = {{ db_virtual_hostname }}
+        insertafter:                   '#SAPDBHOST'
+      tags:
+        - dbhostpara
+
+    - name:                            "4.2.1.7 - SAP DEFAULT.PFL changes - add db virtual hostname "
+      ansible.builtin.lineinfile:
+        path:                          /sapmnt/{{ sap_sid | upper }}/profile/DEFAULT.PFL
+        line:                          j2ee/dbhost = {{ db_virtual_hostname }}
+        insertafter:                   'SAPDBHOST'
+      tags:
+        - j2eedbhostpara
+
+    - name:                            "4.2.1.7 - SAP db2cli.ini profile changes "
+      ansible.builtin.replace:
+        path:                          /sapmnt/{{ sap_sid | upper }}/global/db6/db2cli.ini
+        backup:                        true
+        regexp:                        '^Hostname'
+        replace:                       '#Hostname'
+      tags:
+        - hostnamecomment
+
+    - name:                            "4.2.1.7 - SAP db2cli.ini profile changes "
+      ansible.builtin.lineinfile:
+        path:                          /sapmnt/{{ sap_sid | upper }}/global/db6/db2cli.ini
+        line:                          Hostname = {{ db_virtual_hostname }}
+        insertafter:                   '#Hostname'
+      tags:
+        - virtdbhostpara
+
+  when:
+    - inventory_hostname == primary_instance_name
+    - platform == 'DB2'
+    - db_high_availability
+
+...

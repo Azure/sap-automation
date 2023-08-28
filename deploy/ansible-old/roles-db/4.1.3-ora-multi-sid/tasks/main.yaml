@@ -1,0 +1,369 @@
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                Perform the Oracle Instance installation                    |
+# |                  SAP: Register BOM                                         |
+# |                  create .params directory                                  |
+# |                  Export environment variables for Oracle Installation      |
+# |                  Run the Oracle universal installer in silent mode.        |
+# |                   SAP Note : 2660017 Oracle Software Installation on Unix  |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+---
+
+- name:                               "ORACLE (sharedHome): Validate ORACLE parameters"
+  ansible.builtin.assert:
+    that:
+      - item_to_check.parameter is defined                    # Has the variable been defined
+      - item_to_check.parameter | type_debug != 'NoneType'    # and given a value
+      - item_to_check.parameter | trim | length > 1
+    fail_msg:                      item_to_check.error
+  loop:
+    - { parameter: 'ora_release', error: 'Oracle deployments requires that ora_release is provided' }
+    - { parameter: 'ora_version', error: 'Oracle deployments requires that ora_version is provided' }
+    - { parameter: 'oracle_sbp_patch', error: 'Oracle deployments requires that oracle_sbp_patch is provided' }
+  loop_control:
+    loop_var: item_to_check
+
+- name:                                "ORACLE (sharedHome): Create sap_deployment_automation folder"
+  ansible.builtin.file:
+    path:                              /etc/sap_deployment_automation
+    mode:                              0755
+    state:                             directory
+    owner:                             oracle
+    group:                             oinstall
+
+- name:                                "ORACLE (sharedHome): check if permissions are set"
+  ansible.builtin.stat:
+    path:                              /etc/sap_deployment_automation/oracleowner.txt
+  register:                            permissions_set
+
+- name:                                "ORACLE Permissions"
+  block:
+
+    - name:                            "ORACLE (sharedHome): Make oracle:oinstall as owners"
+      ansible.builtin.file:
+        path:                          /oracle
+        state:                         directory
+        owner:                         oracle
+        group:                         oinstall
+        recurse:                       true
+
+    - name:                            "ORACLE (sharedHome): Create oracleowner.txt"
+      become:                          true
+      become_user:                     root
+      ansible.builtin.file:
+        path:                           /etc/sap_deployment_automation/oracleowner.txt
+        state:                         touch
+        mode:                           0755
+        owner:                         oracle
+        group:                         oinstall
+
+  when:
+    - not permissions_set.stat.exists
+
+#  START OF ORACLE SOFTWARE INSTALLATION USING SAP RUNINSTALLER WRAPPER.
+# /*---------------------------------------------------------------------------8
+# | Start of Oracle software installation using SAP RUNINSTALLER wrapper.      |
+# | Before running Installer set DB_SID and CV_ASSUME_DISTID according to      |
+# | SAP Note 2660017 Oracle Software Installation on Unix                      |
+# |                                                                            |
+# | Step 1 run the Installation for Shared RDBMS                               |
+# +------------------------------------4--------------------------------------*/
+
+- name:                                 "ORACLE (sharedHome): Install IHRDBMS - Database executables"
+  become:                               true
+  become_user:                         oracle
+  ansible.builtin.shell: |
+                      set -o errexit
+                      ./RUNINSTALLER -shared -create_link no -orabasetab no -silent
+  register:                            orainstaller_results
+  failed_when:                         orainstaller_results.rc >= 2              # installer returns rc=1 (exited with warning) by default when run is silent mode as the oratab file is created only after running the root.sh
+  environment:
+    DB_SID:                             "{{ db_sid }}"
+    CV_ASSUME_DISTID:                   OL7
+  args:
+    executable:                         /bin/csh
+    chdir:                             "{{ target_media_location }}/oraserver/LINUX_X86_64/db_home/SAP"
+    creates:                           /etc/sap_deployment_automation/shared_db_installed.txt
+
+- name:                                 "ORACLE (sharedHome): Debug: installer output"
+  ansible.builtin.debug:
+    var:                               orainstaller_results.stdout_lines
+    verbosity:                         2
+
+- name:                                 "ORACLE (sharedHome): Debug: installer output"
+  ansible.builtin.debug:
+    var:                               orainstaller_results.stdout_lines
+    verbosity:                         0
+
+- name:                                 "ORACLE (sharedHome): Debug installer output log"
+  ansible.builtin.copy:
+    dest:                               /etc/sap_deployment_automation/rdbms.log
+    content:                           "{{ orainstaller_results.stdout }}"
+    mode:                               0777
+  when:                                 orainstaller_results.stdout is defined
+
+- name:                                 "ORACLE (sharedHome): Create shared_db_installed.txt"
+  ansible.builtin.file:
+    path:                               /etc/sap_deployment_automation/shared_db_installed.txt
+    state:                             touch
+    mode:                               0755
+
+# STEP2 RUN THE INSTALLATION - EXECUTE per SID.
+
+- name:                                 "ORACLE (sharedHome): Execute RUNINSTALLER"
+  become:                               true
+  become_user:                         oracle
+  ansible.builtin.shell: |
+                      set -o pipefail
+                      set -o errexit
+                      ./RUNINSTALLER -shared -ohsapcfg |tee -a /etc/sap_deployment_automation/"{{ item.sid }}"_install.log
+  register:                            orainstaller_results
+  failed_when:                         orainstaller_results.rc >= 2              # installer returns rc=1 (exited with warning) by default when run is silent mode as the oratab file is created only after running the root.sh
+  environment:
+    DB_SID:                             "{{ item.sid }}"
+    CV_ASSUME_DISTID:                   OL7
+  loop:                                 "{{ MULTI_SIDS }}"
+  args:
+    executable:                         /bin/csh
+    chdir:                             "{{ target_media_location }}/oraserver/LINUX_X86_64/db_home/SAP"
+    creates:                           /etc/sap_deployment_automation/oracle_installed.txt
+
+- name:                                 "ORACLE (sharedHome): create after a successful install"
+  ansible.builtin.file:
+    path:                               /etc/sap_deployment_automation/oracle_installed.txt
+    state:                             touch
+    mode:                               0755
+
+# /*---------------------------------------------------------------------------8
+# | Start of Oracle software installation using SAP RUNINSTALLER wrapper.      |
+# | Before running Installer set DB_SID and CV_ASSUME_DISTID according to      |
+# | SAP Note 2660017 Oracle Software Installation on Unix                      |
+# |                                                                            |
+# | Step 3 Post processing                                                     |
+# +------------------------------------4--------------------------------------*/
+
+- name:                                 "ORACLE (sharedHome): Post Processing - Run orainstRoot.sh"
+  become:                               true
+  become_user:                         root
+  ansible.builtin.shell:               /oracle/oraInventory/orainstRoot.sh
+  register:                             orainstRoot_results
+  args:
+    creates:                           /etc/sap_deployment_automation/orainstRoot_executed.txt
+    executable:                         /bin/csh
+
+- name:                                 "ORACLE (sharedHome): Debug: orainstRoot output"
+  ansible.builtin.debug:
+    var:                               orainstRoot_results.stdout_lines
+    verbosity:                         2
+
+- name:                                 "ORACLE (sharedHome): Debug installer output log"
+  ansible.builtin.copy:
+    dest:                               /etc/sap_deployment_automation/orainstRoot.log
+    content:                           "{{ orainstRoot_results.stdout }}"
+    mode:                               0777
+  when:                                 orainstRoot_results.stdout is defined
+
+- name:                                 "ORACLE (sharedHome): Create orainstRoot_executed.txt"
+  ansible.builtin.file:
+    path:                               /etc/sap_deployment_automation/orainstRoot_executed.txt
+    state:                             touch
+    mode:                               0755
+
+- name:                                 "ORACLE (sharedHome): Post Processing - Run root.sh"
+  become:                               true
+  become_user:                         root
+  ansible.builtin.shell  :              /oracle/RDBMS/{{ ora_version }}/root.sh
+  register:                            rootscript_results
+  args:
+    creates:                          /etc/sap_deployment_automation/root_scripts_executed.txt
+    executable:                        /bin/csh
+
+- name:                                 "ORACLE (sharedHome): Debug: rootscript output"
+  ansible.builtin.debug:
+    var:                               rootscript_results.stdout_lines
+    verbosity:                         2
+
+- name:                                 "ORACLE (sharedHome): Debug rootscript output log"
+  ansible.builtin.copy:
+    dest:                               /etc/sap_deployment_automation/rootscript.log
+    content:                           "{{ rootscript_results.stdout }}"
+    mode:                               0777
+  when:                                 rootscript_results.stdout is defined
+
+- name:                                 "ORACLE (sharedHome): Create rootscripts_executed.txt"
+  ansible.builtin.file:
+    path:                               /etc/sap_deployment_automation/root_scripts_executed.txt
+    state:                             touch
+    mode:                               0755
+
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |       Set permissions                                                      |
+# +------------------------------------4--------------------------------------*/
+
+- name:                                "ORACLE (sharedHome): Permissions"
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.file:
+    path:                              /oracle/RDBMS/{{ ora_version }}/bin/oracle
+    state:                             file
+    owner:                             oracle
+    group:                             oinstall
+    mode:                              06751
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |       Set permissions                                                      |
+# +------------------------------------4--------------------------------------*/
+
+- name:                                  "ORACLE (sharedHome): Permissions"
+  become:                                true
+  become_user:                         "oracle"
+  ansible.builtin.file:
+    path:                               /oracle/RDBMS/{{ ora_version }}/bin/oracle
+    state:                             file
+    owner:                             oracle
+    group:                             oinstall
+    mode:                              06751
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# | Step 4 SBP Patching for Oracle                                             |
+# +------------------------------------4--------------------------------------*/
+
+- name:                                 "ORACLE (sharedHome): Find MOPatch"
+  ansible.builtin.find:
+    paths:                             "{{ target_media_location }}/SBP/SAPSBP"
+    patterns:                           ["MOPatch"]
+    file_type:                         directory
+    recurse:                           true
+  register:                             mopatch_directory
+
+- name:                                 "ORACLE (sharedHome): Debug: Find MOPatch"
+  ansible.builtin.fail:
+    msg:                               "Too many MOPatches found"
+  when:                                 mopatch_directory.matched != 1
+
+- name:                                 "ORACLE (sharedHome): MOPatch path"
+  ansible.builtin.set_fact:
+    mopatch_path:                       "{{ mopatch_directory.files[0].path }}"
+  when:                                 mopatch_directory.matched == 1
+
+- name:                                 "ORACLE (sharedHome): Check if 'OPatch.bck' exists"
+  ansible.builtin.stat:
+    path:                               /oracle/RDBMS/{{ ora_version }}/OPatch.bck
+  register:                             opatch_stat
+
+- name:                                 "ORACLE (sharedHome): backup OPatch"
+  ansible.builtin.copy:
+    src:                               /oracle/RDBMS/{{ ora_version }}/OPatch
+    dest:                               /oracle/RDBMS/{{ ora_version }}/OPatch.bck
+    remote_src:                         true
+    mode:                               0777
+  when:
+    - not opatch_stat.stat.exists
+
+- name:                                 "ORACLE (sharedHome): remove old OPatch"
+  ansible.builtin.file:
+    path:                               /oracle/RDBMS/{{ ora_version }}/OPatch
+    state:                             absent
+  when:
+    - not opatch_stat.stat.exists
+
+- name:                                 "ORACLE (sharedHome): copy OPatch"
+  become:                               true
+  become_user:                         "oracle"
+  ansible.builtin.copy:
+    src:                               "{{ target_media_location }}/SBP/OPATCH/OPatch"
+    dest:                               /oracle/RDBMS/{{ ora_version }}
+    remote_src:                         true
+    mode:                               0777
+
+- name:                                 "ORACLE (sharedHome): copy MOPatch"
+  become:                               true
+  become_user:                         "oracle"
+  ansible.builtin.copy:
+    src:                               "{{ mopatch_path }}"
+    dest:                               /oracle/RDBMS/{{ ora_version }}
+    remote_src:                         true
+    mode:                               0777
+
+
+- name:                                 "ORACLE (sharedHome): Post Processing - SBP Patching"
+  become:                               true
+  become_user:                         "oracle"
+  ansible.builtin.shell:               $IHRDBMS/MOPatch/mopatch.sh -v -s {{ target_media_location }}/SBP/{{ oracle_sbp_patch }}
+  environment:
+    DB_SID:                             "{{ db_sid }}"
+    CV_ASSUME_DISTID:                   OL7
+    IHRDBMS:                            /oracle/RDBMS/{{ ora_version }}
+    ORACLE_HOME:                        /oracle/RDBMS/{{ ora_version }}
+    RDBMS:                              /oracle/RDBMS/{{ ora_version }}
+  register:                             sbpscript_results
+  failed_when:                          sbpscript_results.rc >= 2
+  args:
+    creates:                            /etc/sap_deployment_automation/sbpinstalled.txt
+    chdir:                              "{{ target_media_location }}/SBP"
+    executable:                         /bin/csh
+
+- name:                                 "ORACLE (sharedHome): Post processing installer output"
+  ansible.builtin.debug:
+    var:                               sbpscript_results.stdout_lines
+    verbosity:                         2
+
+- name:                                 "ORACLE (sharedHome): Post processing installer output"
+  ansible.builtin.copy:
+    dest:                               /etc/sap_deployment_automation/sbp.log
+    content:                           "{{ sbpscript_results.stdout }}"
+    mode:                               0777
+  when:                                 sbpscript_results.stdout is defined
+
+- name:                                 "ORACLE (sharedHome): Create sbpinstalled.txt"
+  ansible.builtin.file:
+    path:                               /etc/sap_deployment_automation/sbpinstalled.txt
+    state:                             touch
+    mode:                               0755
+
+- name:                                 "ORACLE (sharedHome): Add environment variables to the Bash profile"
+  become:                               true
+  become_user:                         "oracle"
+  ansible.builtin.blockinfile:
+    path:                               /home/oracle/.bashrc
+    insertafter:                       'fi '
+    block: |
+        # User Specific environment
+        export ORACLE_HOME=/oracle/{{ db_sid }}/{{ ora_release }}
+        export ORACLE_SID={{ db_sid }}
+        export ORACLE_BASE=/oracle
+        export LD_LIBRARY_PATH=$ORACLE_HOME/lib
+        export TNS_ADMIN=$ORACLE_HOME/network/admin
+        export DB_SID={{ db_sid }}
+        PATH="$PATH:$ORACLE_HOME/bin"
+        export PATH
+
+- name:                                 "ORACLE (sharedHome): create .cshrc"
+  become:                               true
+  become_user:                         "oracle"
+  ansible.builtin.blockinfile:
+    create:                             true
+    path:                               /home/oracle/.cshrc
+    marker_begin:                       "-- BEGIN"
+    marker_end:                         "-- END"
+    block: |
+        # User Specific environment
+        setenv ORACLE_HOME /oracle/{{ db_sid }}/{{ ora_release }}
+        setenv ORACLE_SID  {{ db_sid }}
+        setenv ORACLE_BASE /oracle
+        setenv LD_LIBRARY_PATH $ORACLE_HOME/lib
+        setenv TNS_ADMIN $ORACLE_HOME/network/admin
+        setenv DB_SID {{ db_sid }}
+        set path = ($path $ORACLE_HOME/bin)
+    mode:                              0755
+
+...
+# /*---------------------------------------------------------------------------8
+# |                                   END                                      |
+# +------------------------------------4--------------------------------------*/

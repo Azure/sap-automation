@@ -1,0 +1,38 @@
+{% set lvg_scs = [] %}
+{#
+    Outer Loop: Loop over disk types
+#}
+{% for disktype in disktypes %}
+{#
+    Initialise VG dictionary with VG name derived from disk type
+#}
+{%     set vg = {'vg': 'vg_' ~ (disk_type_to_name_map[disktype] |
+                                default(disktype))} %}
+{#
+    Inner Loop: Loop over list of disks that match the execution host and the disk type
+    Note: '_' used as dummy variable that can be ignored
+#}
+{#
+    Add list of pvs and diskcount to VG dictionary
+    Note: '_' used as dummy variable that can be ignored
+#}
+
+{% for multisid in multisids if ('sap' in disktype ) %}
+{%     set _ = vg.update({'lv': 'lv_sapmnt' + (multisid) }) %}
+{%     set _ = vg.update({'fstype': 'xfs'}) %}
+{%     set _ = vg.update({'stripesize': '128'}) %}
+{%     set _ = vg.update({'size': '64g'}) %}
+{%     set _ = vg.update({'tier': 'sapos'}) %}
+{%     set _ = vg.update({'node_tier': 'scs'}) %}
+{%     endfor %}
+
+{#
+    Append VG dictionary to list of VGs
+    Note: '_' used as dummy variable that can be ignored
+#}
+{%     set _ = lvg_scs.append(vg) %}
+{% endfor %}
+{#
+    Output List of Dictionaries
+#}
+{{ lvg }}

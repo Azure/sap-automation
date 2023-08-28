@@ -1,0 +1,1232 @@
+# -------------------------------------+---------------------------------------8
+#
+# Description:  SAP SSO Authentication Process
+#
+# TODO: create a Windows version?
+
+# -------------------------------------+---------------------------------------8
+# Step: 01
+#   Description:  Connect to launchpad.support.sap.com to begin logon process.
+#
+#   Cookies Sent:       NONE
+#   Data Sent:          NONE
+#
+#   Cookies Received:   BIGipServerdispatcher.factory.customdomain
+#                       mds<id>
+#   Data Received:      Form:
+#                         post_action
+#                         tenantId
+#                         idpName
+#                         requestUrl
+#                         requestId
+#                         relayState
+#                         action
+#                         signature
+#
+# Notes:
+#   Request:
+#     Connection: keep-alive              | Connection: close
+#     User-Agent: Mozilla/5.0 (Macintosh; | User-Agent: ansible-httpget
+#                 Intel Mac OS X 10_15_7) |
+#                 AppleWebKit/537.36      |
+#                 (KHTML, like Gecko)     |
+#                 Chrome/106.0.0.0        |
+#                 Safari/537.36           |
+#     Accept-Encoding: gzip, deflate, br  | Accept-Encoding: identity
+#
+#   Response:
+#     Connection: keep-alive              | Connection: close
+#     Content-Encoding: gzip              |
+# -------------------------------------+---------------------------------------8
+#
+
+
+# -------------------------------------+---------------------------------------8
+# Step: 01
+# Description:
+#
+- name:                                 "SAP SSO Logon - Begin logon request"
+  ansible.builtin.uri:
+    url:                                "{{ sap_logon_url }}"
+    headers:
+      Connection:                       "{{ sap_sso_parameters.connection }}"
+      sec-ch-ua:                        "{{ sap_sso_parameters.sec_ch_ua }}"
+      sec-ch-ua-mobile:                 "{{ sap_sso_parameters.sec_ch_ua_mobile }}"
+      sec-ch-ua-platform:               "{{ sap_sso_parameters.sec_ch_ua_platform }}"
+      Upgrade-Insecure-Requests:        "{{ sap_sso_parameters.upgrade_insecure_requests }}"
+      Accept:                           "{{ sap_sso_parameters.accept }}"
+      Sec-Fetch-Site:                   none
+      Sec-Fetch-Mode:                   "{{ sap_sso_parameters.sec_fetch_mode }}"
+      Sec-Fetch-User:                   "{{ sap_sso_parameters.sec_fetch_user }}"
+      Sec-Fetch-Dest:                   "{{ sap_sso_parameters.sec_fetch_dest }}"
+      Accept-Language:                  "{{ sap_sso_parameters.accept_language }}"
+    return_content:                     true
+  register:                             step1Results
+
+
+- name:                                 "SAP SSO Logon - Show data"
+  ansible.builtin.debug:
+    msg:
+      - "origin:                        {{ origin }}"
+      - "referer:                       {{ referer }}"
+      - "post_action:                   {{ post_action }}"
+      - "tenantId:                      {{ tenantId }}"
+      - "idpName:                       {{ idpName }}"
+      - "requestUrl:                    {{ requestUrl }}"
+      - "requestId:                     {{ requestId }}"
+      - "relayState:                    {{ relayState }}"
+      - "action:                        {{ action }}"
+      - "signature:                     {{ signature }}"
+    verbosity:                          1
+  vars:
+    origin:                             "{{ step1Results.url | regex_search('^http.*?://[^/]+') }}"
+    referer:                            "{{ step1Results.url | regex_search('^http.*?://[^/]+') }}/"
+    post_action:                        "{{ step1Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> action=\".*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_search(' action=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+    tenantId:                           "{{ step1Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"tenantId\".*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+    idpName:                            "{{ step1Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"idpName\".*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+    requestUrl:                         "{{ step1Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"requestUrl\".*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+    requestId:                          "{{ step1Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"requestId\".*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+    relayState:                         "{{ step1Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"relayState\".*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+    action:                             "{{ step1Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"action\".*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+    signature:                          "{{ step1Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"signature\".*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+# Step: 01 - END
+# -------------------------------------+---------------------------------------8
+
+
+# -------------------------------------+---------------------------------------8
+# Step: 02
+# Description:  Maintain Cookie Jar
+#
+- name:                                 "SAP SSO Logon - Maintain Cookie Jar"  # noqa no-tabs jinja[spacing]
+  ansible.builtin.lineinfile:
+    state:                              present
+    create:                             true
+    path:                               cookie_jar
+    mode:                               0644
+    regexp:                             ^#.*?_({{ url | regex_replace('[.]', '[.]') }}).*?\s({{ (item.split('=', 1))[0] | trim | regex_replace('[.]', '[.]') }})\s
+    line:                               "
+                                        {#-  -#}
+                                        {% set _cookie = {  'cookie_name':  '',
+                                                            'cookie_value': '',
+                                                            'Expires':      '0',
+                                                            'Max-age':      '',
+                                                            'Url':          '',
+                                                            'Domain':       'FALSE',
+                                                            'Path':         '',
+                                                            'Secure':       '',
+                                                            'HttpOnly':     'FALSE',
+                                                            'SameSite':     '' }
+                                                                                                       -%}
+                                        {% for element in item.split(';')                              -%}
+                                        {%   if loop.index == 1                                        -%}
+                                        {%     set sub = element.split('=', 1)                         -%}
+                                        {%     set _ = _cookie.update({'cookie_name': sub[0] | trim})   -%}
+                                        {%     set _ = _cookie.update({'cookie_value': sub[1] | trim})   -%}
+                                        {%   elif 'PATH' in element.split('=', 1) | trim | upper           -%}
+                                        {%     set sub = element.split('=', 1)                         -%}
+                                        {%     set _ = _cookie.update({'Path':         sub[1] | trim})   -%}
+                                        {%   elif 'HTTPONLY' in element | trim | upper                     -%}
+                                        {%     set _ = _cookie.update({'HttpOnly':     'TRUE'})        -%}
+                                        {%   elif 'DOMAIN' in element.split('=', 1) | trim | upper         -%}
+                                        {%     set sub = element.split('=', 1)                         -%}
+                                        {%     set _ = _cookie.update({'Domain':       'TRUE'})        -%}
+                                        {%     set _ = _cookie.update({'Url':          '.' + sub[1] | trim | regex_search('^[.]?(?P<hostname>.*)$', '\\g<hostname>') | join}) -%}
+                                        {%   endif                                                     -%}
+                                        {% endfor                                                      -%}
+                                        {% if not _cookie.Url                                          -%}
+                                        {%   set _ = _cookie.update({'Url':            url})           -%}
+                                        {% endif                                                       -%}
+                                        #HttpOnly_\
+                                        {{ _cookie.Url }}\t\
+                                        {{ _cookie.Domain }}\t\
+                                        {{ _cookie.Path }}\t\
+                                        {{ _cookie.HttpOnly }}\t\
+                                        {{ _cookie.Expires }}\t\
+                                        {{ _cookie.cookie_name }}\t\
+                                        {{ _cookie.cookie_value }}
+                                        "
+  loop:                                 "{{ set_cookie_string_filtered.split(',') }}"
+  vars:
+    set_cookie_string_filtered:         "{{ step1Results.set_cookie | regex_replace('Expires=(?P<day>...),', 'Expires=\\g<day>%2C') }}"
+    url:                                "{{ step1Results.url | urlsplit('hostname') }}"
+# Step: 02 - END
+# -------------------------------------+---------------------------------------8
+
+# -------------------------------------+---------------------------------------8
+# Step: 03
+# Description:  SSO Authentication block
+#
+- name:                                "SAP SSO Logon - Authentication Required"
+  block:
+
+# -------------------------------------+---------------------------------------8
+# Step: 03-01
+#   Description:  Submit session information to SAML provider:
+#                 https://authn.hana.ondemand.com/saml2/sp/mds
+#
+#   Cookies Sent:       NONE
+#   Data Sent:          tenantId
+#                       idpName
+#                       requestUrl
+#                       requestId
+#                       relayState
+#                       action
+#                       signature
+#
+#   Cookies Received:   BIGipServerssoendpointssecurity.hana.ondemand.com
+#                       <id>
+#   Data Received:      Form:
+#                         post_action
+#                         SAMLRequest
+#                         RelayState
+#
+# Notes:
+#   Request:
+#     Connection: keep-alive              | Connection: close
+#     User-Agent: Mozilla/5.0 (Macintosh; | User-Agent: ansible-httpget
+#                 Intel Mac OS X 10_15_7) |
+#                 AppleWebKit/537.36      |
+#                 (KHTML, like Gecko)     |
+#                 Chrome/106.0.0.0        |
+#                 Safari/537.36           |
+#     Accept-Encoding: gzip, deflate, br  | Accept-Encoding: identity
+#
+#   Response:
+#     Connection: keep-alive              | Connection: close
+#     Keep-Alive: timeout=20              |
+# -------------------------------------+---------------------------------------8
+    - name:                                 "SAP SSO Logon - Step 2 - Get SAML request"  # noqa jinga[spacing]
+      ansible.builtin.uri:
+        url:                                "{{ post_action }}"
+        method:                             POST
+        headers:
+          Connection:                       "{{ sap_sso_parameters.connection }}"
+          Accept-Language:                  "{{ sap_sso_parameters.accept_language }}"
+          Origin:                           "{{ origin }}"
+          Referer:                          "{{ referer }}"
+          Accept:                           "{{ sap_sso_parameters.accept }}"
+          sec-ch-ua:                        "{{ sap_sso_parameters.sec_ch_ua }}"
+          sec-ch-ua-mobile:                 "{{ sap_sso_parameters.sec_ch_ua_mobile }}"
+          sec-ch-ua-platform:               "{{ sap_sso_parameters.sec_ch_ua_platform }}"
+          Upgrade-Insecure-Requests:        "{{ sap_sso_parameters.upgrade_insecure_requests }}"
+          Sec-Fetch-Site:                   cross-site
+          Sec-Fetch-Mode:                   "{{ sap_sso_parameters.sec_fetch_mode }}"
+          Sec-Fetch-Dest:                   "{{ sap_sso_parameters.sec_fetch_dest }}"
+          Cache-Control:                    "{{ sap_sso_parameters.cache_control }}"
+        body_format:                        form-urlencoded
+        body:
+          tenantId:                         "{{ tenantId }}"
+          idpName:                          "{{ idpName }}"
+          requestUrl:                       "{{ requestUrl }}"
+          requestId:                        "{{ requestId }}"
+          relayState:                       "{{ relayState }}"
+          action:                           "{{ action }}"
+          signature:                        "{{ signature }}"
+        follow_redirects:                   safe
+        force:                              true
+        return_content:                     true
+      vars:
+        origin:                             "{{ step1Results.url | regex_search('^http.*?://[^/]+') }}"
+        referer:                            "{{ step1Results.url | regex_search('^http.*?://[^/]+') }}/"
+        post_action:                        "{{ step1Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> action=\".*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_search(' action=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+        tenantId:                           "{{ step1Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"tenantId\".*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+        idpName:                            "{{ step1Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"idpName\".*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+        requestUrl:                         "{{ step1Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"requestUrl\".*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+        requestId:                          "{{ step1Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"requestId\".*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+        relayState:                         "{{ step1Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"relayState\".*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+        action:                             "{{ step1Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"action\".*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+        signature:                          "{{ step1Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"signature\".*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+      register:                             step2Results
+
+    - name:                                 "SAP SSO Logon - Step 2 - Show data"
+      ansible.builtin.debug:
+        msg:
+          - "origin:                        {{ origin }}"
+          - "referer:                       {{ referer }}"
+          - "post_action:                   {{ post_action }}"
+          - "SAMLRequest:                   {{ SAMLRequest }}"
+          - "RelayState:                    {{ RelayState }}"
+        verbosity:                          1
+      vars:
+        origin:                             "{{ step2Results.url | regex_search('^http.*?://[^/]+') }}"
+        referer:                            "{{ step2Results.url | regex_search('^http.*?://[^/]+') }}/"
+        post_action:                        "{{ step2Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> action=\".*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_search(' action=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+        SAMLRequest:                        "{{ step2Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"SAMLRequest\".*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+        RelayState:                         "{{ step2Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"RelayState\".*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+# Step: 03-01 - END
+# -------------------------------------+---------------------------------------8
+
+# -------------------------------------+---------------------------------------8
+# Step: 03-02
+# Description:  Maintain Cookie Jar
+#
+    - name:                                 "SAP SSO Logon - Step 2 - Maintain Cookie Jar"  # noqa no-tabs jinja[spacing]
+      ansible.builtin.lineinfile:
+        state:                              present
+        create:                             true
+        path:                               cookie_jar
+        mode:                               0644
+        regexp:                             ^#.*?_({{ url | regex_replace('[.]', '[.]') }}).*?\s({{ (item.split('=', 1))[0] | trim | regex_replace('[.]', '[.]') }})\s
+        line:                               "
+                                            {#-  -#}
+                                            {% set _cookie = {  'cookie_name':  '',
+                                                                'cookie_value': '',
+                                                                'Expires':      '0',
+                                                                'Max-age':      '',
+                                                                'Url':          '',
+                                                                'Domain':       'FALSE',
+                                                                'Path':         '',
+                                                                'Secure':       '',
+                                                                'HttpOnly':     'FALSE',
+                                                                'SameSite':     '' }
+                                                                                                          -%}
+                                            {% for element in item.split(';')                              -%}
+                                            {%   if loop.index == 1                                        -%}
+                                            {%     set sub = element.split('=', 1)                         -%}
+                                            {%     set _ = _cookie.update({'cookie_name':  sub[0] | trim})   -%}
+                                            {%     set _ = _cookie.update({'cookie_value': sub[1] | trim})   -%}
+                                            {%   elif 'PATH' in element.split('=', 1) | trim | upper           -%}
+                                            {%     set sub = element.split('=', 1)                         -%}
+                                            {%     set _ = _cookie.update({'Path':         sub[1] | trim})   -%}
+                                            {%   elif 'HTTPONLY' in element | trim | upper                     -%}
+                                            {%     set _ = _cookie.update({'HttpOnly':     'TRUE'})        -%}
+                                            {%   elif 'DOMAIN' in element.split('=', 1) | trim | upper         -%}
+                                            {%     set sub = element.split('=', 1)                         -%}
+                                            {%     set _ = _cookie.update({'Domain':       'TRUE'})        -%}
+                                            {%     set _ = _cookie.update({'Url':          '.' + sub[1] | trim | regex_search('^[.]?(?P<hostname>.*)$', '\\g<hostname>') | join}) -%}
+                                            {%   endif                                                     -%}
+                                            {% endfor                                                      -%}
+                                            {% if not _cookie.Url                                          -%}
+                                            {%   set _ = _cookie.update({'Url':            url})           -%}
+                                            {% endif                                                       -%}
+                                            #HttpOnly_\
+                                            {{ _cookie.Url }}\t\
+                                            {{ _cookie.Domain }}\t\
+                                            {{ _cookie.Path }}\t\
+                                            {{ _cookie.HttpOnly }}\t\
+                                            {{ _cookie.Expires }}\t\
+                                            {{ _cookie.cookie_name }}\t\
+                                            {{ _cookie.cookie_value }}
+                                            "
+      loop:                                 "{{ set_cookie_string_filtered.split(',') }}"
+      vars:
+        set_cookie_string_filtered:         "{{ step2Results.set_cookie | regex_replace('Expires=(?P<day>...),', 'Expires=\\g<day>%2C') }}"
+        url:                                "{{ step2Results.url | urlsplit('hostname') }}"
+# Step: 03-02 - END
+# -------------------------------------+---------------------------------------8
+
+# -------------------------------------+---------------------------------------8
+# Step: 03-03
+#   Description:
+#     Submit SAML information to IPD provider: accounts.sap.com
+#
+#   Cookies Sent:       NONE
+#   Data Sent:          SAMLRequest
+#                       RelayState
+#
+#   Cookies Received:   XSRF_COOKIE
+#                       JSESSIONID
+#   Data Received:      Form:
+#                         post_action
+#                         utf8
+#                         authenticity_token
+#                         xsrfProtection
+#                         method
+#                         idpSSOEndpoint
+#                         SAMLRequest
+#                         RelayState
+#                         targetUrl
+#                         targetUrl
+#                         org
+#                         spId
+#                         spName
+#                         mobileSSOToken
+#                         tfaToken
+#                         css
+#                         passwordlessAuthnSelected
+#
+# Notes:
+#   Request:
+#     Connection: keep-alive              | Connection: close
+#     User-Agent: Mozilla/5.0 (Macintosh; | User-Agent: ansible-httpget
+#                 Intel Mac OS X 10_15_7) |
+#                 AppleWebKit/537.36      |
+#                 (KHTML, like Gecko)     |
+#                 Chrome/106.0.0.0        |
+#                 Safari/537.36           |
+#     Accept-Encoding: gzip, deflate, br  | Accept-Encoding: identity
+#
+#   Response:
+#     Connection: keep-alive              | Connection: close
+#     Keep-Alive: timeout=20              |
+#     Content-Encoding: gzip              |
+# -------------------------------------+---------------------------------------8
+    - name:                                   "SAP SSO Logon - Step 3 - Submit SAML information to Identity provider: {{ post_action }}"
+      ansible.builtin.uri:
+        url:                                  "{{ post_action }}"
+        method:                               POST
+        headers:
+          Connection:                         "{{ sap_sso_parameters.connection }}"
+          Accept-Language:                    "{{ sap_sso_parameters.accept_language }}"
+          Origin:                             "{{ origin }}"
+          Referer:                            "{{ referer }}"
+          Accept:                             "{{ sap_sso_parameters.accept }}"
+          sec-ch-ua:                          "{{ sap_sso_parameters.sec_ch_ua }}"
+          sec-ch-ua-mobile:                   "{{ sap_sso_parameters.sec_ch_ua_mobile }}"
+          sec-ch-ua-platform:                 "{{ sap_sso_parameters.sec_ch_ua_platform }}"
+          Upgrade-Insecure-Requests:          "{{ sap_sso_parameters.upgrade_insecure_requests }}"
+          Sec-Fetch-Site:                     cross-site
+          Sec-Fetch-Mode:                     "{{ sap_sso_parameters.sec_fetch_mode }}"
+          Sec-Fetch-Dest:                     "{{ sap_sso_parameters.sec_fetch_dest }}"
+          Cache-Control:                      "{{ sap_sso_parameters.cache_control }}"
+        body_format:                          form-urlencoded
+        body:
+          SAMLRequest:                        "{{ SAMLRequest }}"
+          RelayState:                         "{{ RelayState }}"
+        follow_redirects:                     safe
+        force:                                true
+        return_content:                       true
+      vars:
+        origin:                               "{{ step2Results.url | regex_search('^http.*?://[^/]+') }}"
+        referer:                              "{{ step2Results.url | regex_search('^http.*?://[^/]+') }}/"
+        post_action:                          "{{ step2Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> action=\".*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_search(' action=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+        SAMLRequest:                          "{{ step2Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"SAMLRequest\".*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+        RelayState:                           "{{ step2Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"RelayState\".*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+      register:                               step3Results
+
+    - name:                                   "SAP SSO Logon - Step 3 - Store cookies for accounts.sap.com"
+      ansible.builtin.set_fact:
+        cookies_accounts_sap_com:             "{{ step3Results.cookies }}"
+
+    - name:                                   "SAP SSO Logon - Step 3 - Show data"
+      ansible.builtin.debug:
+        msg:
+          - "origin:                          {{ origin }}"
+          - "referer:                         {{ referer }}"
+          - "post_action:                     {{ post_action }}"
+          - "post_url:                        {{ post_url }}"
+          - "utf8:                            {{ sap_sso_parameters.utf8 }}"
+          - "authenticity_token:              {{ authenticity_token }}"
+          - "xsrfProtection:                  {{ xsrfProtection }}"
+          - "method:                          {{ method }}"
+          - "idpSSOEndpoint:                  {{ idpSSOEndpoint }}"
+          - "SAMLRequest:                     {{ SAMLRequest }}"
+          - "RelayState:                      {{ RelayState }}"
+          - "targetUrl:                       {{ targetUrl }}"
+          - "sourceUrl:                       {{ sourceUrl }}"
+          - "org:                             {{ org }}"
+          - "spId:                            {{ spId }}"
+          - "spName:                          {{ spName }}"
+          - "mobileSSOToken:                  {{ mobileSSOToken }}"
+          - "tfaToken:                        {{ tfaToken }}"
+          - "css:                             {{ css }}"
+          - "passwordlessAuthnSelected:       {{ passwordlessAuthnSelected }}"
+          - "j_username:                      {{ j_username }}"
+          - "cookies_accounts_sap_com_string: {{ cookies_accounts_sap_com_string }}"
+        verbosity:                            1
+      vars:
+        origin:                               "{{ step3Results.url | regex_search('^http.*?://[^/]+') }}"
+        referer:                              "{{ step3Results.url | regex_search('^http.*?://[^/]+') }}/"
+        post_action:                          "{{ step3Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> action=\".*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_search(' action=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+        post_url:                             "{{ origin }}{{ post_action }}"
+        authenticity_token:                   "{{ step3Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"authenticity_token\".*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+        xsrfProtection:                       "{{ step3Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"xsrfProtection\".*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+        method:                               "{{ step3Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"method\".*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+        idpSSOEndpoint:                       "{{ step3Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"idpSSOEndpoint\".*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+        SAMLRequest:                          "{{ step3Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"SAMLRequest\".*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+        RelayState:                           "{{ step3Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"RelayState\".*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+        targetUrl:                            "{{ step3Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=.targetUrl..*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_replace(\"'\", '\"') | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+        sourceUrl:                            "{{ step3Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=.sourceUrl..*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_replace(\"'\", '\"') | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+        org:                                  "{{ step3Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=.org..*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_replace(\"'\", '\"') | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+        spId:                                 "{{ step3Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=.spId..*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_replace(\"'\", '\"') | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+        spName:                               "{{ step3Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=.spName..*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_replace(\"'\", '\"') | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+        mobileSSOToken:                       "{{ step3Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=.mobileSSOToken..*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_replace(\"'\", '\"') | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+        tfaToken:                             "{{ step3Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=.tfaToken..*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_replace(\"'\", '\"') | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+        css:                                  "{{ step3Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=.css..*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_replace(\"'\", '\"') | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+        passwordlessAuthnSelected:            "{{ step3Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=.passwordlessAuthnSelected..*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_replace(\"'\", '\"') | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+        j_username:                           "{{ s_user }}"
+        cookies_accounts_sap_com_string:      "{{ cookies_accounts_sap_com.keys() |
+                                                  zip(cookies_accounts_sap_com.values()) |
+                                                  map('join', '=') |
+                                                  join('; ')
+                                                }}"
+# Step: 03-03 - END
+# -------------------------------------+---------------------------------------8
+
+# -------------------------------------+---------------------------------------8
+# Step: 03-04
+# Description:  Maintain Cookie Jar
+#
+    - name:                                 "SAP SSO Logon - Step 3 - Maintain Cookie Jar"  # noqa no-tabs jinja[spacing]
+      ansible.builtin.lineinfile:
+        state:                              present
+        create:                             true
+        path:                               cookie_jar
+        mode:                               0644
+        regexp:                             ^#.*?_({{ url | regex_replace('[.]', '[.]') }}).*?\s({{ (item.split('=', 1))[0] | trim | regex_replace('[.]', '[.]') }})\s
+        line:                               "
+                                            {#-  -#}
+                                            {% set _cookie = {  'cookie_name':  '',
+                                                                'cookie_value': '',
+                                                                'Expires':      '0',
+                                                                'Max-age':      '',
+                                                                'Url':          '',
+                                                                'Domain':       'FALSE',
+                                                                'Path':         '',
+                                                                'Secure':       '',
+                                                                'HttpOnly':     'FALSE',
+                                                                'SameSite':     '' }
+                                                                                                          -%}
+                                            {% for element in item.split(';')                              -%}
+                                            {%   if loop.index == 1                                        -%}
+                                            {%     set sub = element.split('=', 1)                         -%}
+                                            {%     set _ = _cookie.update({'cookie_name':  sub[0] | trim})   -%}
+                                            {%     set _ = _cookie.update({'cookie_value': sub[1] | trim})   -%}
+                                            {%   elif 'PATH' in element.split('=', 1) | trim | upper           -%}
+                                            {%     set sub = element.split('=', 1)                         -%}
+                                            {%     set _ = _cookie.update({'Path':         sub[1] | trim})   -%}
+                                            {%   elif 'HTTPONLY' in element | trim | upper                     -%}
+                                            {%     set _ = _cookie.update({'HttpOnly':     'TRUE'})        -%}
+                                            {%   elif 'DOMAIN' in element.split('=', 1) | trim | upper         -%}
+                                            {%     set sub = element.split('=', 1)                         -%}
+                                            {%     set _ = _cookie.update({'Domain':       'TRUE'})        -%}
+                                            {%     set _ = _cookie.update({'Url':          '.' + sub[1] | trim | regex_search('^[.]?(?P<hostname>.*)$', '\\g<hostname>') | join}) -%}
+                                            {%   endif                                                     -%}
+                                            {% endfor                                                      -%}
+                                            {% if not _cookie.Url                                          -%}
+                                            {%   set _ = _cookie.update({'Url':            url})           -%}
+                                            {% endif                                                       -%}
+                                            #HttpOnly_\
+                                            {{ _cookie.Url }}\t\
+                                            {{ _cookie.Domain }}\t\
+                                            {{ _cookie.Path }}\t\
+                                            {{ _cookie.HttpOnly }}\t\
+                                            {{ _cookie.Expires }}\t\
+                                            {{ _cookie.cookie_name }}\t\
+                                            {{ _cookie.cookie_value }}
+                                            "
+      loop:                                 "{{ set_cookie_string_filtered.split(',') }}"
+      vars:
+        set_cookie_string_filtered:         "{{ step3Results.set_cookie | regex_replace('Expires=(?P<day>...),', 'Expires=\\g<day>%2C') }}"
+        url:                                "{{ step3Results.url | urlsplit('hostname') }}"
+# Step: 03-04 - END
+# -------------------------------------+---------------------------------------8
+
+# -------------------------------------+---------------------------------------8
+# Step: 03-05
+#   Description:
+#     Submit user information to IPD provider: accounts.sap.com
+#
+#   Cookies Sent:       XSRF_COOKIE
+#                       JSESSIONID
+#   Data Sent:          utf8
+#                       authenticity_token
+#                       xsrfProtection
+#                       method
+#                       idpSSOEndpoint
+#                       SAMLRequest
+#                       RelayState
+#                       targetUrl
+#                       targetUrl
+#                       org
+#                       spId
+#                       spName
+#                       mobileSSOToken
+#                       tfaToken
+#                       css
+#                       passwordlessAuthnSelected
+#                       j_username
+#
+#   Cookies Received:   XSRF_COOKIE
+#                       JSESSIONID
+#   Data Received:      Form:
+#                         post_action
+#                         utf8
+#                         authenticity_token
+#                         xsrfProtection
+#                         method
+#                         idpSSOEndpoint
+#                         SAMLRequest
+#                         RelayState
+#                         targetUrl
+#                         targetUrl
+#                         org
+#                         spId
+#                         spName
+#                         mobileSSOToken
+#                         tfaToken
+#                         css
+#                         passwordlessAuthnSelected
+#                         j_username
+#
+# Notes:
+#   Request:
+#     Connection: keep-alive              | Connection: close
+#     User-Agent: Mozilla/5.0 (Macintosh; | User-Agent: ansible-httpget
+#                 Intel Mac OS X 10_15_7) |
+#                 AppleWebKit/537.36      |
+#                 (KHTML, like Gecko)     |
+#                 Chrome/106.0.0.0        |
+#                 Safari/537.36           |
+#     Accept-Encoding: gzip, deflate, br  | Accept-Encoding: identity
+#
+#   Response:
+#     Connection: keep-alive              | Connection: close
+#     Keep-Alive: timeout=20              |
+#     Content-Encoding: gzip              |
+# -------------------------------------+---------------------------------------8
+    - name:                                 "SAP SSO Logon - Step 4 - Submit User information to Identity provider: {{ post_url }}"
+      ansible.builtin.uri:
+        url:                                "{{ post_url }}"
+        method:                             POST
+        headers:
+          Cookie:                           "{{ cookies_accounts_sap_com_string }}"
+          Connection:                       "{{ sap_sso_parameters.connection }}"
+          Accept-Language:                  "{{ sap_sso_parameters.accept_language }}"
+          Origin:                           "{{ origin }}"
+          Referer:                          "{{ referer }}"
+          Accept:                           "{{ sap_sso_parameters.accept }}"
+          sec-ch-ua:                        "{{ sap_sso_parameters.sec_ch_ua }}"
+          sec-ch-ua-mobile:                 "{{ sap_sso_parameters.sec_ch_ua_mobile }}"
+          sec-ch-ua-platform:               "{{ sap_sso_parameters.sec_ch_ua_platform }}"
+          Upgrade-Insecure-Requests:        "{{ sap_sso_parameters.upgrade_insecure_requests }}"
+          Sec-Fetch-Site:                   same-origin
+          Sec-Fetch-Mode:                   "{{ sap_sso_parameters.sec_fetch_mode }}"
+          Sec-Fetch-User:                   "{{ sap_sso_parameters.sec_fetch_user }}"
+          Sec-Fetch-Dest:                   "{{ sap_sso_parameters.sec_fetch_dest }}"
+          Cache-Control:                    "{{ sap_sso_parameters.cache_control }}"
+        body_format:                        form-urlencoded
+        body:
+          utf8:                             "{{ sap_sso_parameters.utf8 }}"
+          authenticity_token:               "{{ authenticity_token }}"
+          xsrfProtection:                   "{{ xsrfProtection }}"
+          method:                           "{{ method }}"
+          idpSSOEndpoint:                   "{{ idpSSOEndpoint }}"
+          SAMLRequest:                      "{{ SAMLRequest }}"
+          RelayState:                       "{{ RelayState }}"
+          targetUrl:                        "{{ targetUrl }}"
+          sourceUrl:                        "{{ sourceUrl }}"
+          org:                              "{{ org }}"
+          spId:                             "{{ spId }}"
+          spName:                           "{{ spName }}"
+          mobileSSOToken:                   "{{ mobileSSOToken }}"
+          tfaToken:                         "{{ tfaToken }}"
+          css:                              "{{ css }}"
+          passwordlessAuthnSelected:        "{{ passwordlessAuthnSelected }}"
+          j_username:                       "{{ j_username }}"
+        follow_redirects:                   safe
+        force:                              true
+        return_content:                     true
+      vars:
+        origin:                             "{{ step3Results.url | regex_search('^http.*?://[^/]+') }}"
+        referer:                            "{{ step3Results.url | regex_search('^http.*?://[^/]+') }}/"
+        post_action:                        "{{ step3Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> action=\".*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_search(' action=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+        post_url:                           "{{ origin }}{{ post_action }}"
+        authenticity_token:                 "{{ step3Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"authenticity_token\".*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+        xsrfProtection:                     "{{ step3Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"xsrfProtection\".*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+        method:                             "{{ step3Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"method\".*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+        idpSSOEndpoint:                     "{{ step3Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"idpSSOEndpoint\".*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+        SAMLRequest:                        "{{ step3Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"SAMLRequest\".*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+        RelayState:                         "{{ step3Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"RelayState\".*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+        targetUrl:                          "{{ step3Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=.targetUrl..*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_replace(\"'\", '\"') | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+        sourceUrl:                          "{{ step3Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=.sourceUrl..*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_replace(\"'\", '\"') | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+        org:                                "{{ step3Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=.org..*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_replace(\"'\", '\"') | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+        spId:                               "{{ step3Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=.spId..*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_replace(\"'\", '\"') | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+        spName:                             "{{ step3Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=.spName..*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_replace(\"'\", '\"') | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+        mobileSSOToken:                     "{{ step3Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=.mobileSSOToken..*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_replace(\"'\", '\"') | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+        tfaToken:                           "{{ step3Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=.tfaToken..*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_replace(\"'\", '\"') | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+        css:                                "{{ step3Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=.css..*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_replace(\"'\", '\"') | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+        passwordlessAuthnSelected:          "{{ step3Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=.passwordlessAuthnSelected..*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_replace(\"'\", '\"') | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+        j_username:                         "{{ s_user }}"
+        cookies_accounts_sap_com_string:    "{{ cookies_accounts_sap_com.keys() |
+                                                zip(cookies_accounts_sap_com.values()) |
+                                                map('join', '=') |
+                                                join('; ')
+                                                }}"
+      register:                             step4Results
+
+    - name:                                 "SAP SSO Logon - Step 4 - Update cookies for accounts.sap.com"
+      ansible.builtin.set_fact:
+        cookies_accounts_sap_com:           "{{ cookies_accounts_sap_com | combine(step4Results.cookies) }}"
+
+
+    - name:                                 "SAP SSO Logon - Step 4 - Show data - step4Results"
+      ansible.builtin.debug:
+        var:                                step4Results.content
+
+
+    - name:                                 "SAP SSO Logon - Step 4 - Show data"
+      ansible.builtin.debug:
+        msg:
+          - "origin:                          {{ origin }}"
+          - "referer:                         {{ referer }}"
+          - "post_action:                     {{ post_action }}"
+          - "post_url:                        {{ post_url }}"
+          - "utf8:                            {{ sap_sso_parameters.utf8 }}"
+          - "authenticity_token:              {{ authenticity_token }}"
+          - "xsrfProtection:                  {{ xsrfProtection }}"
+          - "method:                          {{ method }}"
+          - "idpSSOEndpoint:                  {{ idpSSOEndpoint }}"
+          - "SAMLRequest:                     {{ SAMLRequest }}"
+          - "RelayState:                      {{ RelayState }}"
+          - "targetUrl:                       {{ targetUrl }}"
+          - "sourceUrl:                       {{ sourceUrl }}"
+          - "org:                             {{ org }}"
+          - "spId:                            {{ spId }}"
+          - "spName:                          {{ spName }}"
+          - "mobileSSOToken:                  {{ mobileSSOToken }}"
+          - "tfaToken:                        {{ tfaToken }}"
+          - "css:                             {{ css }}"
+          - "passwordlessAuthnSelected:       {{ passwordlessAuthnSelected }}"
+          - "login_hint:                      {{ login_hint }}"
+          - "j_username:                      {{ j_username }}"
+          # - "j_password:                      {{ j_password }}"
+          - "cookies_accounts_sap_com_string: {{ cookies_accounts_sap_com_string }}"
+        verbosity:                            0
+      vars:
+        origin:                               "{{ step4Results.url | regex_search('^http.*?://[^/]+') }}"
+        referer:                              "{{ step4Results.url | regex_search('^http.*?://[^/]+') }}/"
+        post_action:                          "{%- if (step4Results.content | regex_search(' action=')) -%}{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> action=\".*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_search(' action=\"(?P<value>.*?)\"', '\\g<value>') | join }}{%- else -%}NOT_SET{%- endif -%}"
+        post_url:                             "{{ origin }}{{ post_action }}"
+        authenticity_token:                   "{%- if (step4Results.content | regex_search(' name=.authenticity_token. ')) -%}{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"authenticity_token\".*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}{%- else -%}NOT_SET{%- endif -%}"
+        xsrfProtection:                       "{%- if (step4Results.content | regex_search(' name=.xsrfProtection. ')) -%}{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"xsrfProtection\".*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}{%- else -%}NOT_SET{%- endif -%}"
+        method:                               "{%- if (step4Results.content | regex_search(' name=.method. ')) -%}{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"method\".*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}{%- else -%}NOT_SET{%- endif -%}"
+        idpSSOEndpoint:                       "{%- if (step4Results.content | regex_search(' name=.idpSSOEndpoint. ')) -%}{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"idpSSOEndpoint\".*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}{%- else -%}NOT_SET{%- endif -%}"
+        SAMLRequest:                          "{%- if (step4Results.content | regex_search(' name=.SAMLRequest. ')) -%}{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"SAMLRequest\".*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}{%- else -%}NOT_SET{%- endif -%}"
+        RelayState:                           "{%- if (step4Results.content | regex_search(' name=.RelayState. ')) -%}{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"RelayState\".*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}{%- else -%}NOT_SET{%- endif -%}"
+        targetUrl:                            "{%- if (step4Results.content | regex_search(' name=.targetUrl. ')) -%}{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=.targetUrl..*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_replace(\"'\", '\"') | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}{%- else -%}NOT_SET{%- endif -%}"
+        sourceUrl:                            "{%- if (step4Results.content | regex_search(' name=.sourceUrl. ')) -%}{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=.sourceUrl..*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_replace(\"'\", '\"') | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}{%- else -%}NOT_SET{%- endif -%}"
+        org:                                  "{%- if (step4Results.content | regex_search(' name=.org. ')) -%}{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=.org..*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_replace(\"'\", '\"') | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}{%- else -%}NOT_SET{%- endif -%}"
+        spId:                                 "{%- if (step4Results.content | regex_search(' name=.spId. ')) -%}{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=.spId..*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_replace(\"'\", '\"') | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}{%- else -%}NOT_SET{%- endif -%}"
+        spName:                               "{%- if (step4Results.content | regex_search(' name=.spName. ')) -%}{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=.spName..*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_replace(\"'\", '\"') | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}{%- else -%}NOT_SET{%- endif -%}"
+        mobileSSOToken:                       "{%- if (step4Results.content | regex_search(' name=.mobileSSOToken. ')) -%}{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=.mobileSSOToken..*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_replace(\"'\", '\"') | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}{%- else -%}NOT_SET{%- endif -%}"
+        tfaToken:                             "{%- if (step4Results.content | regex_search(' name=.tfaToken. ')) -%}{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=.tfaToken..*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_replace(\"'\", '\"') | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}{%- else -%}NOT_SET{%- endif -%}"
+        css:                                  "{%- if (step4Results.content | regex_search(' name=.css. ')) -%}{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=.css..*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_replace(\"'\", '\"') | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}{%- else -%}NOT_SET{%- endif -%}"
+        passwordlessAuthnSelected:            "{%- if (step4Results.content | regex_search(' name=.passwordlessAuthnSelected. ')) -%}{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=.passwordlessAuthnSelected..*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_replace(\"'\", '\"') | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}{%- else -%}NOT_SET{%- endif -%}"
+        login_hint:                           "{%- if (step4Results.content | regex_search(' name=.login_hint. ')) -%}{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=.login_hint..*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_replace(\"'\", '\"') | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}{%- else -%}NOT_SET{%- endif -%}"
+        j_username:                           "{{ s_user }}"
+        j_password:                           "{{ s_password }}"
+        cookies_accounts_sap_com_string:      "{{ cookies_accounts_sap_com.keys() |
+                                                  zip(cookies_accounts_sap_com.values()) |
+                                                  map('join', '=') |
+                                                  join('; ')
+                                                }}"
+# Step: 03-05 - END
+# -------------------------------------+---------------------------------------8
+
+# -------------------------------------+---------------------------------------8
+# Step: 03-06
+# Description:  Maintain Cookie Jar
+#
+    - name:                                 "SAP SSO Logon - Step 4 - Maintain Cookie Jar"  # noqa no-tabs jinja[spacing]
+      ansible.builtin.lineinfile:
+        state:                              present
+        create:                             true
+        path:                               cookie_jar
+        mode:                               0644
+        regexp:                             ^#.*?_({{ url | regex_replace('[.]', '[.]') }}).*?\s({{ (item.split('=', 1))[0] | trim | regex_replace('[.]', '[.]') }})\s
+        line:                               "
+                                            {#-  -#}
+                                            {% set _cookie = {  'cookie_name':  '',
+                                                                'cookie_value': '',
+                                                                'Expires':      '0',
+                                                                'Max-age':      '',
+                                                                'Url':          '',
+                                                                'Domain':       'FALSE',
+                                                                'Path':         '',
+                                                                'Secure':       '',
+                                                                'HttpOnly':     'FALSE',
+                                                                'SameSite':     '' }
+                                                                                                           -%}
+                                            {% for element in item.split(';')                              -%}
+                                            {%   if loop.index == 1                                        -%}
+                                            {%     set sub = element.split('=', 1)                         -%}
+                                            {%     set _ = _cookie.update({'cookie_name':  sub[0] | trim})   -%}
+                                            {%     set _ = _cookie.update({'cookie_value': sub[1] | trim})   -%}
+                                            {%   elif 'PATH' in element.split('=', 1) | trim | upper           -%}
+                                            {%     set sub = element.split('=', 1)                         -%}
+                                            {%     set _ = _cookie.update({'Path':         sub[1] | trim})   -%}
+                                            {%   elif 'HTTPONLY' in element | trim | upper                     -%}
+                                            {%     set _ = _cookie.update({'HttpOnly':     'TRUE'})        -%}
+                                            {%   elif 'DOMAIN' in element.split('=', 1) | trim | upper         -%}
+                                            {%     set sub = element.split('=', 1)                         -%}
+                                            {%     set _ = _cookie.update({'Domain':       'TRUE'})        -%}
+                                            {%     set _ = _cookie.update({'Url':          '.' + sub[1] | trim | regex_search('^[.]?(?P<hostname>.*)$', '\\g<hostname>') | join}) -%}
+                                            {%   elif 'EXPIRES' in element.split('=', 1) | trim | upper        -%}
+                                            {%     set sub = element.split('=', 1)                         -%}
+                                            {%     set _ = _cookie.update({'Expires':      (sub[1] | trim | to_datetime('%a%%2C %d %b %Y %H:%M:%S %Z')).strftime('%s')})     -%}
+                                            {%   endif                                                     -%}
+                                            {% endfor                                                      -%}
+                                            {% if not _cookie.Url                                          -%}
+                                            {%   set _ = _cookie.update({'Url':            url})           -%}
+                                            {% endif                                                       -%}
+                                            #HttpOnly_\
+                                            {{ _cookie.Url }}\t\
+                                            {{ _cookie.Domain }}\t\
+                                            {{ _cookie.Path }}\t\
+                                            {{ _cookie.HttpOnly }}\t\
+                                            {{ _cookie.Expires }}\t\
+                                            {{ _cookie.cookie_name }}\t\
+                                            {{ _cookie.cookie_value }}
+                                            "
+      loop:                                 "{{ set_cookie_string_filtered.split(',') }}"
+      vars:
+        set_cookie_string_filtered:         "{{ step4Results.set_cookie | regex_replace('Expires=(?P<day>...),', 'Expires=\\g<day>%2C') }}"
+        url:                                "{{ step4Results.url | urlsplit('hostname') }}"
+
+                                            # {%     set _ = _cookie.update({'Expires':      (sub[1] | trim | to_datetime('%a%%2C %d-%b-%Y %H:%M:%S %Z')).strftime('%s')})     -%}
+# Step: 03-06 - END
+# -------------------------------------+---------------------------------------8
+
+# -------------------------------------+---------------------------------------8
+# Step: 03-07
+#   Description:
+#     Submit password information to IPD provider: accounts.sap.com
+#
+#   Cookies Sent:       XSRF_COOKIE
+#                       JSESSIONID
+#                       authIdentifierDataTemporary
+#   Data Sent:          utf8
+#                       authenticity_token
+#                       xsrfProtection
+#                       method
+#                       idpSSOEndpoint
+#                       SAMLRequest
+#                       RelayState
+#                       targetUrl
+#                       targetUrl
+#                       org
+#                       spId
+#                       spName
+#                       mobileSSOToken
+#                       tfaToken
+#                       css
+#                       passwordlessAuthnSelected
+#                       j_username
+#                       j_password
+#
+#   Cookies Received:   XSRF_COOKIE
+#                       JSESSIONID
+#   Data Received:      Form:
+#                         post_action
+#                         authenticity_token
+#                         SAMLResponse
+#                         RelayState
+#
+# Notes:
+#   Request:
+#     Connection: keep-alive              | Connection: close
+#     User-Agent: Mozilla/5.0 (Macintosh; | User-Agent: ansible-httpget
+#                 Intel Mac OS X 10_15_7) |
+#                 AppleWebKit/537.36      |
+#                 (KHTML, like Gecko)     |
+#                 Chrome/106.0.0.0        |
+#                 Safari/537.36           |
+#     Accept-Encoding: gzip, deflate, br  | Accept-Encoding: identity
+#
+#   Response:
+#     Connection: keep-alive              | Connection: close
+#     Keep-Alive: timeout=20              |
+#     Set-Cookie: JSESSIONID=<id>         |
+# -------------------------------------+---------------------------------------8
+    - name:                                 "SAP SSO Logon - Step 5 - Submit Password information to IPD provider: {{ post_url }}"  # noqa command-instead-of-module
+      ansible.builtin.command: >-
+                                            curl {{ post_url }}                                                        \
+                                            --include                                                                   \
+                                            --cookie-jar cookie_jar                                                     \
+                                            --cookie     cookie_jar                                                     \
+                                            --location                                                                  \
+                                            --silent                                                                    \
+                                            --user-agent 'ansible-httpget'                                              \
+                                            --header 'Content-Type: {{ sap_sso_parameters.content_type }}'              \
+                                            --header 'Accept: {{ sap_sso_parameters.accept }}'                          \
+                                            --header 'Accept-Language: {{ sap_sso_parameters.accept_language }}'        \
+                                            --header 'Connection: {{ sap_sso_parameters.connection }}'                  \
+                                            --header 'sec-ch-ua: {{ sap_sso_parameters.sec_ch_ua }}'                    \
+                                            --header 'sec-ch-ua-mobile: {{ sap_sso_parameters.sec_ch_ua_mobile }}'      \
+                                            --header 'sec-ch-ua-platform: {{ sap_sso_parameters.sec_ch_ua_platform }}'  \
+                                            --header 'Upgrade-Insecure-Requests: {{ sap_sso_parameters.upgrade_insecure_requests }}' \
+                                            --header 'Sec-Fetch-Site: same-origin'                                      \
+                                            --header 'Sec-Fetch-Mode: {{ sap_sso_parameters.sec_fetch_mode }}'          \
+                                            --header 'Sec-Fetch-User: {{ sap_sso_parameters.sec_fetch_user }}'          \
+                                            --header 'Sec-Fetch-Dest: {{ sap_sso_parameters.sec_fetch_dest }}'          \
+                                            --header 'Cache-Control: {{ sap_sso_parameters.cache_control }}'            \
+                                            --header 'Origin: {{ origin }}'                                             \
+                                            --header 'Referer: {{ referer }}'                                           \
+                                            --data-urlencode 'utf8={{ sap_sso_parameters.utf8 }}'                       \
+                                            --data-urlencode 'authenticity_token={{ authenticity_token }}'              \
+                                            --data-urlencode 'xsrfProtection={{ xsrfProtection }}'                      \
+                                            --data-urlencode 'method={{ method }}'                                      \
+                                            --data-urlencode 'idpSSOEndpoint={{ idpSSOEndpoint }}'                      \
+                                            --data-urlencode 'SAMLRequest={{ SAMLRequest }}'                            \
+                                            --data-urlencode 'RelayState={{ RelayState }}'                              \
+                                            --data-urlencode 'targetUrl={{ targetUrl }}'                                \
+                                            --data-urlencode 'sourceUrl={{ sourceUrl }}'                                \
+                                            --data-urlencode 'org={{ org }}'                                            \
+                                            --data-urlencode 'spId={{ spId }}'                                          \
+                                            --data-urlencode 'spName={{ spName }}'                                      \
+                                            --data-urlencode 'mobileSSOToken={{ mobileSSOToken }}'                      \
+                                            --data-urlencode "tfaToken={{ tfaToken }}"                                  \
+                                            --data-urlencode 'css={{ css }}'                                            \
+                                            --data-urlencode 'passwordlessAuthnSelected={{ passwordlessAuthnSelected }}' \
+                                            --data-urlencode 'j_username={{ j_username }}'                              \
+                                            --data-urlencode 'j_password={{ j_password }}'                              \
+                                            --output -
+      vars:
+        origin:                             "{{ step4Results.url | regex_search('^http.*?://[^/]+') }}"
+        referer:                            "{{ step4Results.url | regex_search('^http.*?://[^/]+') }}/"
+        post_action:                        "{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> action=\".*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_search(' action=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+        post_url:                           "{{ origin }}{{ post_action }}"
+        authenticity_token:                 "{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"authenticity_token\".*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+        xsrfProtection:                     "{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"xsrfProtection\".*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+        method:                             "{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"method\".*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+        idpSSOEndpoint:                     "{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"idpSSOEndpoint\".*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+        SAMLRequest:                        "{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"SAMLRequest\".*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+        RelayState:                         "{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"RelayState\".*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+        targetUrl:                          "{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=.targetUrl..*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_replace(\"'\", '\"') | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+        sourceUrl:                          "{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=.sourceUrl..*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_replace(\"'\", '\"') | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+        org:                                "{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=.org..*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_replace(\"'\", '\"') | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+        spId:                               "{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=.spId..*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_replace(\"'\", '\"') | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+        spName:                             "{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=.spName..*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_replace(\"'\", '\"') | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+        mobileSSOToken:                     "{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=.mobileSSOToken..*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_replace(\"'\", '\"') | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+        tfaToken:                           "{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=.tfaToken..*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_replace(\"'\", '\"') | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+        css:                                "{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=.css..*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_replace(\"'\", '\"') | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+        passwordlessAuthnSelected:          "{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=.passwordlessAuthnSelected..*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_replace(\"'\", '\"') | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+        j_username:                         "{{ s_user }}"
+        j_password:                         "{{ s_password }}"
+      register:                             step5Results
+
+    # - name:                                 "SAP SSO Logon - Step 5 - Submit Password information to IPD provider: {{ post_url }}"
+    #   ansible.builtin.command: >-
+    #                                         curl  {{ post_action }}                                                     \
+    #                                         --include                                                                   \
+    #                                         --cookie-jar cookie_jar                                                     \
+    #                                         --cookie     cookie_jar                                                     \
+    #                                         --location                                                                  \
+    #                                         --silent                                                                    \
+    #                                         --user-agent 'ansible-httpget'                                              \
+    #                                         --header 'Content-Type: {{ sap_sso_parameters.content_type }}'              \
+    #                                         --header 'Accept: {{ sap_sso_parameters.accept }}'                          \
+    #                                         --header 'Accept-Language: {{ sap_sso_parameters.accept_language }}'        \
+    #                                         --header 'Connection: {{ sap_sso_parameters.connection }}'                  \
+    #                                         --header 'sec-ch-ua: {{ sap_sso_parameters.sec_ch_ua }}'                    \
+    #                                         --header 'sec-ch-ua-mobile: {{ sap_sso_parameters.sec_ch_ua_mobile }}'      \
+    #                                         --header 'sec-ch-ua-platform: {{ sap_sso_parameters.sec_ch_ua_platform }}'  \
+    #                                         --header 'Upgrade-Insecure-Requests: {{ sap_sso_parameters.upgrade_insecure_requests }}' \
+    #                                         --header 'Sec-Fetch-Site: same-origin'                                      \
+    #                                         --header 'Sec-Fetch-Mode: {{ sap_sso_parameters.sec_fetch_mode }}'          \
+    #                                         --header 'Sec-Fetch-User: {{ sap_sso_parameters.sec_fetch_user }}'          \
+    #                                         --header 'Sec-Fetch-Dest: {{ sap_sso_parameters.sec_fetch_dest }}'          \
+    #                                         --header 'Cache-Control: {{ sap_sso_parameters.cache_control }}'            \
+    #                                         --header 'Origin: {{ origin }}'                                             \
+    #                                         --header 'Referer: {{ referer }}'                                           \
+    #                                         --data-urlencode 'utf8={{ sap_sso_parameters.utf8 }}'                       \
+    #                                         --data-urlencode 'authenticity_token={{ authenticity_token }}'              \
+    #                                         --data-urlencode 'SAMLRequest={{ SAMLRequest }}'                            \
+    #                                         --data-urlencode 'RelayState={{ RelayState }}'                              \
+    #                                         --data-urlencode 'login_hint={{ login_hint }}'                              \
+    #                                         --output -
+    #   vars:
+    #     origin:                               "{{ step4Results.url     | regex_search('^http.*?://[^/]+') }}"
+    #     referer:                              "{{ step4Results.url     | regex_search('^http.*?://[^/]+') }}/"
+    #     post_action:                          "{%- if (step4Results.content | regex_search(' action='))                           -%}{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> action=\".*?>)',                         '\\g<first_part>', '\\g<second_part>') | join                              | regex_search(' action=\"(?P<value>.*?)\"', '\\g<value>') | join }}{%- else -%}NOT_SET{%- endif -%}"
+    #     post_url:                             "{{ origin }}{{ post_action }}"
+    #     authenticity_token:                   "{%- if (step4Results.content | regex_search(' name=.authenticity_token. '))        -%}{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"authenticity_token\".*?>)',       '\\g<first_part>', '\\g<second_part>') | join                              | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}{%- else -%}NOT_SET{%- endif -%}"
+    #     xsrfProtection:                       "{%- if (step4Results.content | regex_search(' name=.xsrfProtection. '))            -%}{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"xsrfProtection\".*?>)',           '\\g<first_part>', '\\g<second_part>') | join                              | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}{%- else -%}NOT_SET{%- endif -%}"
+    #     method:                               "{%- if (step4Results.content | regex_search(' name=.method. '))                    -%}{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"method\".*?>)',                   '\\g<first_part>', '\\g<second_part>') | join                              | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}{%- else -%}NOT_SET{%- endif -%}"
+    #     idpSSOEndpoint:                       "{%- if (step4Results.content | regex_search(' name=.idpSSOEndpoint. '))            -%}{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"idpSSOEndpoint\".*?>)',           '\\g<first_part>', '\\g<second_part>') | join                              | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}{%- else -%}NOT_SET{%- endif -%}"
+    #     SAMLRequest:                          "{%- if (step4Results.content | regex_search(' name=.SAMLRequest. '))               -%}{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"SAMLRequest\".*?>)',              '\\g<first_part>', '\\g<second_part>') | join                              | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}{%- else -%}NOT_SET{%- endif -%}"
+    #     RelayState:                           "{%- if (step4Results.content | regex_search(' name=.RelayState. '))                -%}{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"RelayState\".*?>)',               '\\g<first_part>', '\\g<second_part>') | join                              | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}{%- else -%}NOT_SET{%- endif -%}"
+    #     targetUrl:                            "{%- if (step4Results.content | regex_search(' name=.targetUrl. '))                 -%}{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=.targetUrl..*?>)',                  '\\g<first_part>', '\\g<second_part>') | join | regex_replace(\"'\", '\"') | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}{%- else -%}NOT_SET{%- endif -%}"
+    #     sourceUrl:                            "{%- if (step4Results.content | regex_search(' name=.sourceUrl. '))                 -%}{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=.sourceUrl..*?>)',                  '\\g<first_part>', '\\g<second_part>') | join | regex_replace(\"'\", '\"') | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}{%- else -%}NOT_SET{%- endif -%}"
+    #     org:                                  "{%- if (step4Results.content | regex_search(' name=.org. '))                       -%}{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=.org..*?>)',                        '\\g<first_part>', '\\g<second_part>') | join | regex_replace(\"'\", '\"') | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}{%- else -%}NOT_SET{%- endif -%}"
+    #     spId:                                 "{%- if (step4Results.content | regex_search(' name=.spId. '))                      -%}{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=.spId..*?>)',                       '\\g<first_part>', '\\g<second_part>') | join | regex_replace(\"'\", '\"') | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}{%- else -%}NOT_SET{%- endif -%}"
+    #     spName:                               "{%- if (step4Results.content | regex_search(' name=.spName. '))                    -%}{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=.spName..*?>)',                     '\\g<first_part>', '\\g<second_part>') | join | regex_replace(\"'\", '\"') | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}{%- else -%}NOT_SET{%- endif -%}"
+    #     mobileSSOToken:                       "{%- if (step4Results.content | regex_search(' name=.mobileSSOToken. '))            -%}{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=.mobileSSOToken..*?>)',             '\\g<first_part>', '\\g<second_part>') | join | regex_replace(\"'\", '\"') | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}{%- else -%}NOT_SET{%- endif -%}"
+    #     tfaToken:                             "{%- if (step4Results.content | regex_search(' name=.tfaToken. '))                  -%}{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=.tfaToken..*?>)',                   '\\g<first_part>', '\\g<second_part>') | join | regex_replace(\"'\", '\"') | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}{%- else -%}NOT_SET{%- endif -%}"
+    #     css:                                  "{%- if (step4Results.content | regex_search(' name=.css. '))                       -%}{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=.css..*?>)',                        '\\g<first_part>', '\\g<second_part>') | join | regex_replace(\"'\", '\"') | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}{%- else -%}NOT_SET{%- endif -%}"
+    #     passwordlessAuthnSelected:            "{%- if (step4Results.content | regex_search(' name=.passwordlessAuthnSelected. ')) -%}{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=.passwordlessAuthnSelected..*?>)',  '\\g<first_part>', '\\g<second_part>') | join | regex_replace(\"'\", '\"') | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}{%- else -%}NOT_SET{%- endif -%}"
+    #     login_hint:                           "{%- if (step4Results.content | regex_search(' name=.login_hint. '))                -%}{{ step4Results.content | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=.login_hint..*?>)',  '\\g<first_part>', '\\g<second_part>') | join | regex_replace(\"'\", '\"') | regex_search(' value=\"(?P<value>.*?)\"',  '\\g<value>') | join }}{%- else -%}NOT_SET{%- endif -%}"
+    #     j_username:                         "{{ s_user }}"
+    #     j_password:                         "{{ s_password }}"
+    #   register:                             step5Results
+
+    # - name:                                 "SAP SSO Logon - Step 5 - Show data - step5Results"
+    #   ansible.builtin.debug:
+    #     var:                                step5Results.content
+
+    - name:                                           "Step 5 - Show data"
+      ansible.builtin.debug:
+        msg:
+          # - "results:                                 {{ results }}"
+          # - "stdout:                                  {{ stdout }}"
+          - "origin:                                  {{ origin }}"
+          - "referer:                                 {{ referer }}"
+          - "post_action:                             {{ post_action }}"
+          - "utf8:                                    {{ sap_sso_parameters.utf8 }}"
+          - "authenticity_token:                      {{ authenticity_token }}"
+          - "SAMLResponse:                            {{ SAMLResponse }}"
+          - "RelayState:                              {{ RelayState }}"
+        verbosity:                                    1
+      vars:
+        results:                                      "{{ step5Results }}"
+        stdout:                                       "{{ step5Results.stdout }}"
+        origin:                                       "{{ step4Results.url | regex_search('^http.*?://[^/]+') }}"
+        referer:                                      "{{ step4Results.url | regex_search('^http.*?://[^/]+') }}/"
+        post_action:                                  "{{ step5Results.stdout | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> action=\".*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_search(' action=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+        authenticity_token:                           "{{ step5Results.stdout | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"authenticity_token\".*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+        SAMLResponse:                                 "{{ step5Results.stdout | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"SAMLResponse\".*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+        RelayState:                                   "{{ step5Results.stdout | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"RelayState\".*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+# Step: 03-07 - END
+# -------------------------------------+---------------------------------------8
+
+# -------------------------------------+---------------------------------------8
+# Step: 03-08
+#   Description:
+#     Return SAML response to SAML provider: authn.hana.ondemand.com
+#
+#   Cookies Sent:       BIGipServerssoendpointssecurity.hana.ondemand.com
+#                       <id>
+#   Data Sent:          utf8
+#                       authenticity_token
+#                       SAMLResponse
+#                       RelayState
+#
+#   Cookies Received:   sso_domains_supportportal_supportportal
+#                       <id>
+#   Data Received:      Form:
+#                         post_action
+#                         authenticity_token
+#                         SAMLResponse
+#                         RelayState
+#
+# Notes:
+#   Request:
+#     Connection: keep-alive              | Connection: close
+#     User-Agent: Mozilla/5.0 (Macintosh; | User-Agent: ansible-httpget
+#                 Intel Mac OS X 10_15_7) |
+#                 AppleWebKit/537.36      |
+#                 (KHTML, like Gecko)     |
+#                 Chrome/106.0.0.0        |
+#                 Safari/537.36           |
+#     Accept-Encoding: gzip, deflate, br  | Accept-Encoding: identity
+#
+#   Response:
+#     Connection: keep-alive              | Connection: close
+#     Keep-Alive: timeout=20              |
+# -------------------------------------+---------------------------------------8
+    - name:                                 "SAP SSO Logon - Step 6 - Return SAML response to SAML provider: {{ post_action }}"  # noqa command-instead-of-module
+      ansible.builtin.command: >-
+                                            curl  {{ post_action }}                                                     \
+                                            --include                                                                   \
+                                            --cookie-jar cookie_jar                                                     \
+                                            --cookie     cookie_jar                                                     \
+                                            --location                                                                  \
+                                            --silent                                                                    \
+                                            --user-agent 'ansible-httpget'                                              \
+                                            --header 'Content-Type: {{ sap_sso_parameters.content_type }}'              \
+                                            --header 'Accept: {{ sap_sso_parameters.accept }}'                          \
+                                            --header 'Accept-Language: {{ sap_sso_parameters.accept_language }}'        \
+                                            --header 'Connection: {{ sap_sso_parameters.connection }}'                  \
+                                            --header 'sec-ch-ua: {{ sap_sso_parameters.sec_ch_ua }}'                    \
+                                            --header 'sec-ch-ua-mobile: {{ sap_sso_parameters.sec_ch_ua_mobile }}'      \
+                                            --header 'sec-ch-ua-platform: {{ sap_sso_parameters.sec_ch_ua_platform }}'  \
+                                            --header 'Upgrade-Insecure-Requests: {{ sap_sso_parameters.upgrade_insecure_requests }}' \
+                                            --header 'Sec-Fetch-Site: cross-site'                                       \
+                                            --header 'Sec-Fetch-Mode: {{ sap_sso_parameters.sec_fetch_mode }}'          \
+                                            --header 'Sec-Fetch-User: {{ sap_sso_parameters.sec_fetch_user }}'          \
+                                            --header 'Sec-Fetch-Dest: {{ sap_sso_parameters.sec_fetch_dest }}'          \
+                                            --header 'Cache-Control: {{ sap_sso_parameters.cache_control }}'            \
+                                            --header 'Origin: {{ origin }}'                                             \
+                                            --header 'Referer: {{ referer }}'                                           \
+                                            --data-urlencode 'utf8={{ sap_sso_parameters.utf8 }}'                       \
+                                            --data-urlencode 'authenticity_token={{ authenticity_token }}'              \
+                                            --data-urlencode 'SAMLResponse={{ SAMLResponse }}'                          \
+                                            --data-urlencode 'RelayState={{ RelayState }}'                              \
+                                            --output -
+      vars:
+        origin:                             "{{ step4Results.url | regex_search('^http.*?://[^/]+') }}"
+        referer:                            "{{ step4Results.url | regex_search('^http.*?://[^/]+') }}/"
+        post_action:                        "{{ step5Results.stdout | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> action=\".*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_search(' action=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+        authenticity_token:                 "{{ step5Results.stdout | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"authenticity_token\".*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+        SAMLResponse:                       "{{ step5Results.stdout | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"SAMLResponse\".*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+        RelayState:                         "{{ step5Results.stdout | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"RelayState\".*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+      register:                             step6Results
+
+    - name:                                 "SAP SSO Logon - Step 6 - Show data"
+      ansible.builtin.debug:
+        msg:
+          # - "results:                                 {{ results }}"
+          # - "stdout:                                  {{ stdout }}"
+          - "origin_action:                           {{ origin_action }}"
+          - "origin_scheme:                           {{ origin_scheme }}"
+          - "origin_hostname:                         {{ origin_hostname }}"
+          - "origin:                                  {{ origin }}"
+          - "referer:                                 {{ referer }}"
+          - "post_action:                             {{ post_action }}"
+          - "utf8:                                    {{ sap_sso_parameters.utf8 }}"
+          - "authenticity_token:                      {{ authenticity_token }}"
+          - "SAMLResponse:                            {{ SAMLResponse }}"
+          - "RelayState:                              {{ RelayState }}"
+        verbosity:                                    1
+      vars:
+        results:                                      "{{ step6Results }}"
+        stdout:                                       "{{ step6Results.stdout }}"
+        origin_action:                                "{{ step5Results.stdout | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> action=\".*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_search(' action=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+        origin_scheme:                                "{{ origin_action | urlsplit('scheme') }}"
+        origin_hostname:                              "{{ origin_action | urlsplit('hostname') }}"
+        origin:                                       "{{ origin_scheme }}://{{ origin_hostname }}"
+        referer:                                      "{{ origin }}/"
+        post_action:                                  "{{ step6Results.stdout | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> action=\".*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_search(' action=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+        authenticity_token:                           "{{ step6Results.stdout | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"authenticity_token\".*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+        SAMLResponse:                                 "{{ step6Results.stdout | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"SAMLResponse\".*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+        RelayState:                                   "{{ step6Results.stdout | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"RelayState\".*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+# Step: 03-08 - END
+# -------------------------------------+---------------------------------------8
+
+# -------------------------------------+---------------------------------------8
+# Step: 03-09
+#   Description:
+#     Return SAML response to SAML provider: authn.hana.ondemand.com
+#
+#   Cookies Sent:       BIGipServerssoendpointssecurity.hana.ondemand.com
+#                       <id>
+#   Data Sent:          utf8
+#                       authenticity_token
+#                       SAMLResponse
+#                       RelayState
+#
+#   Cookies Received:   sso_domains_supportportal_supportportal
+#                       <id>
+#   Data Received:
+#
+# Notes:
+#   Request:
+#     Connection: keep-alive              | Connection: close
+#     User-Agent: Mozilla/5.0 (Macintosh; | User-Agent: ansible-httpget
+#                 Intel Mac OS X 10_15_7) |
+#                 AppleWebKit/537.36      |
+#                 (KHTML, like Gecko)     |
+#                 Chrome/106.0.0.0        |
+#                 Safari/537.36           |
+#     Accept-Encoding: gzip, deflate, br  | Accept-Encoding: identity
+#
+#   Response:
+#     Connection: keep-alive              | Connection: close
+#     Keep-Alive: timeout=20              |
+# -------------------------------------+---------------------------------------8
+    - name:                                 "SAP SSO Logon - Step 7 - back to {{ post_action }}"  # noqa command-instead-of-module
+      ansible.builtin.command: >-
+                                            curl  {{ post_action }}                                                     \
+                                            --include                                                                   \
+                                            --cookie-jar cookie_jar                                                     \
+                                            --cookie     cookie_jar                                                     \
+                                            --location                                                                  \
+                                            --silent                                                                    \
+                                            --user-agent 'ansible-httpget'                                              \
+                                            --header 'Content-Type: {{ sap_sso_parameters.content_type }}'              \
+                                            --header 'Accept: {{ sap_sso_parameters.accept }}'                          \
+                                            --header 'Accept-Language: {{ sap_sso_parameters.accept_language }}'        \
+                                            --header 'Connection: {{ sap_sso_parameters.connection }}'                  \
+                                            --header 'sec-ch-ua: {{ sap_sso_parameters.sec_ch_ua }}'                    \
+                                            --header 'sec-ch-ua-mobile: {{ sap_sso_parameters.sec_ch_ua_mobile }}'      \
+                                            --header 'sec-ch-ua-platform: {{ sap_sso_parameters.sec_ch_ua_platform }}'  \
+                                            --header 'Upgrade-Insecure-Requests: {{ sap_sso_parameters.upgrade_insecure_requests }}' \
+                                            --header 'Sec-Fetch-Site: cross-site'                                       \
+                                            --header 'Sec-Fetch-Mode: {{ sap_sso_parameters.sec_fetch_mode }}'          \
+                                            --header 'Sec-Fetch-User: {{ sap_sso_parameters.sec_fetch_user }}'          \
+                                            --header 'Sec-Fetch-Dest: {{ sap_sso_parameters.sec_fetch_dest }}'          \
+                                            --header 'Cache-Control: {{ sap_sso_parameters.cache_control }}'            \
+                                            --header 'Origin: {{ origin }}'                                             \
+                                            --header 'Referer: {{ referer }}'                                           \
+                                            --data-urlencode 'utf8={{ sap_sso_parameters.utf8 }}'                       \
+                                            --data-urlencode 'authenticity_token={{ authenticity_token }}'              \
+                                            --data-urlencode 'SAMLResponse={{ SAMLResponse }}'                          \
+                                            --data-urlencode 'RelayState={{ RelayState }}'                              \
+                                            --output -
+      vars:
+        origin_action:                      "{{ step5Results.stdout | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> action=\".*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_search(' action=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+        origin_scheme:                      "{{ origin_action | urlsplit('scheme') }}"
+        origin_hostname:                    "{{ origin_action | urlsplit('hostname') }}"
+        origin:                             "{{ origin_scheme }}://{{ origin_hostname }}"
+        referer:                            "{{ origin }}/"
+        post_action:                        "{{ step6Results.stdout | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> action=\".*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_search(' action=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+        authenticity_token:                 "{{ step6Results.stdout | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"authenticity_token\".*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+        SAMLResponse:                       "{{ step6Results.stdout | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"SAMLResponse\".*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+        RelayState:                         "{{ step6Results.stdout | regex_search('(?:.*(?P<first_part><.*))(?P<second_part> name=\"RelayState\".*?>)', '\\g<first_part>', '\\g<second_part>') | join | regex_search(' value=\"(?P<value>.*?)\"', '\\g<value>') | join }}"
+      register:                             step7Results
+# Step: 03-09 - END
+# -------------------------------------+---------------------------------------8
+
+  when:
+    - "step1Results['com.sap.cloud.security.login'] is defined"                 # is the key defined
+    - "step1Results['com.sap.cloud.security.login'] | type_debug != 'NoneType'" #  and not null
+    - "step1Results['com.sap.cloud.security.login'] == 'login-request'"         #  and equals value
+# Step: 03 - END
+# -------------------------------------+---------------------------------------8
+
+# -------------------------------------+---------------------------------------8
+# Step: 04
+#   Description:
+#
+- name:                                 "SAP SSO Logon - Step 8 - Query {{ post_action }}"  # noqa command-instead-of-module
+  ansible.builtin.command: >-
+                                        curl  {{ post_action }}                                                     \
+                                        --include                                                                   \
+                                        --cookie-jar cookie_jar                                                     \
+                                        --cookie     cookie_jar                                                     \
+                                        --location                                                                  \
+                                        --silent                                                                    \
+                                        --user-agent 'ansible-httpget'                                              \
+                                        --header 'Content-Type: {{ sap_sso_parameters.content_type }}'              \
+                                        --header 'Accept: {{ sap_sso_parameters.accept }}'                          \
+                                        --header 'Accept-Language: {{ sap_sso_parameters.accept_language }}'        \
+                                        --header 'Connection: {{ sap_sso_parameters.connection }}'                  \
+                                        --header 'sec-ch-ua: {{ sap_sso_parameters.sec_ch_ua }}'                    \
+                                        --header 'sec-ch-ua-mobile: {{ sap_sso_parameters.sec_ch_ua_mobile }}'      \
+                                        --header 'sec-ch-ua-platform: {{ sap_sso_parameters.sec_ch_ua_platform }}'  \
+                                        --header 'Upgrade-Insecure-Requests: {{ sap_sso_parameters.upgrade_insecure_requests }}' \
+                                        --header 'Sec-Fetch-Site: cross-site'                                       \
+                                        --header 'Sec-Fetch-Mode: {{ sap_sso_parameters.sec_fetch_mode }}'          \
+                                        --header 'Sec-Fetch-User: {{ sap_sso_parameters.sec_fetch_user }}'          \
+                                        --header 'Sec-Fetch-Dest: {{ sap_sso_parameters.sec_fetch_dest }}'          \
+                                        --header 'Cache-Control: {{ sap_sso_parameters.cache_control }}'            \
+                                        --output -
+  vars:
+    post_action:                        "https://launchpad.support.sap.com/services/odata/svt/swdcuisrv/SearchResultSet?SEARCH_MAX_RESULT=500&RESULT_PER_PAGE=500&SEARCH_STRING={{ asset }}&sap-language=en"
+  register:                             sap_asset_search
+# Step: 04 - END
+# -------------------------------------+---------------------------------------8
+
+# -------------------------------------+---------------------------------------8
+# Step: 05
+#   Description:  Informational
+#
+- name:                                 "SAP SSO Logon - Step 8 - Show data"
+  ansible.builtin.debug:
+    msg:
+      - "results:                       {{ results }}"
+      - "stdout:                        {{ stdout }}"
+      - "post_action:                   {{ post_action }}"
+  vars:
+    results:                            "{{ sap_asset_search }}"
+    stdout:                             "{{ sap_asset_search.stdout }}"
+    post_action:                        "https://launchpad.support.sap.com/services/odata/svt/swdcuisrv/SearchResultSet?SEARCH_MAX_RESULT=500&RESULT_PER_PAGE=500&SEARCH_STRING={{ asset }}&sap-language=en"
+# Step: 05 - END
+# -------------------------------------+---------------------------------------8
+
+# -------------------------------------+---------------------------------------8
+# Step: 06
+#   Description:  Remove cookie_jar
+#
+- name:                             "SAP SSO Logon - Remove cookie jar"
+  ansible.builtin.file:
+    path:                           cookie_jar
+    state:                          absent
+# Step: 06 - END
+# -------------------------------------+---------------------------------------8
+
+...
+# /*---------------------------------------------------------------------------8
+# |                                   END                                      |
+# +------------------------------------4--------------------------------------*/

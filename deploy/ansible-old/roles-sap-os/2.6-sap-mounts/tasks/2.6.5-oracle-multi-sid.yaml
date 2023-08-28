@@ -1,0 +1,188 @@
+---
+
+# Create Run Flag Directory
+- name:                                "2.6 SAP Mounts (Oracle shared home) : Create run flag directory"
+  become:                              true
+  become_user:                         root
+  ansible.builtin.file:
+    path:                              /etc/sap_deployment_automation
+    state:                             directory
+    mode:                              0755
+    owner:                             oracle
+    group:                             oinstall
+
+- name:                                "2.6 SAP Mounts (Oracle shared home): - Gather Logical volumes created in 1.5.2-disk-setup-ora-multi-sid"
+  ansible.builtin.include_vars:                        disks_config_ora_msid.yml
+
+- name:                                "2.6 SAP Mounts (Oracle shared home): - Load logical volumes"
+  ansible.builtin.set_fact:
+    logical_volume_groups: "{{ lookup('template', '../../roles-os/1.5.2-disk-setup-ora-multi-sid/templates/logical_volume_group.j2') }}"
+
+- name:                                "2.6 SAP Mounts (Oracle shared home): Check if LVs exists."
+  ansible.builtin.stat:
+    path:                              "{{ dev_path_from_lv_item }}"
+  loop:                                "{{ logical_volume_groups }}"
+  register:                             oravgstat
+
+- name:                                "2.6 SAP Mounts (Oracle shared home): Mount LVs"
+  ansible.builtin.debug:
+    var:                               oravgstat
+    verbosity:                         2
+
+- name:                                "2.6 SAP Mounts (Oracle shared home): Gather existing LVs"
+  ansible.builtin.set_fact:
+    lvexists: "{{ oravgstat.results | selectattr('stat.exists', 'equalto', true) | map(attribute='item.lv') | list }}"
+
+- name:                                "2.6 SAP Mounts (Oracle shared home): debug"
+  ansible.builtin.debug:
+    var:                               lvexists
+    verbosity:                         2
+
+# Mount Oracle File System before mounting the sub-directories.
+- name:                                "2.6 SAP Mounts (Oracle shared home): Mount oracle Filesystem"
+  become:                              true
+  become_user:                         root
+  ansible.posix.mount:
+    src:                               "{{ item.src }}"
+    path:                              "{{ item.path }}"
+    fstype:                            "{{ item.type }}"
+    opts:                              defaults
+    state:                             mounted
+  loop:
+    - { node_tier: 'oracle-multi-sid',  type: 'xfs',   src: '/dev/vg_oracle/lv_oracle',      path: '/oracle'         }
+    - { node_tier: 'oracle-multi-sid',  type: 'xfs',   src: '/dev/vg_sap/lv_usrsap',      path: '/usr/sap'         }
+  when:
+    - item.node_tier == "oracle-multi-sid"
+
+# Mount File systems
+- name:                                "2.6 SAP Mounts (Oracle shared home): Mount File systems for Oracle"
+  become:                              true
+  become_user:                         root
+  ansible.posix.mount:
+    src:                               "{{ dev_path_from_lv_item }}"
+    # path:   "{{ ['/'~item.lv|split('_')[-2], anydb_sid|upper, item.lv|split('_')[-1]] | join('/') }}"
+    path: >-
+        {%- set lv_parts = item.lv.split('_') -%}
+        {%- if lv_parts| length == 2 -%}
+        {%- set _path = '/' ~ lv_parts[-1] -%}
+        {%- else -%}
+        {%- set _path = ['/oracle/' ~ lv_parts[-1] | upper  ~ '/' ~ lv_parts[-2]] | join('/') -%}
+        {%- endif -%}
+        {{- _path -}}
+    fstype:                            "{{ item.fstype }}"
+    opts:                              defaults
+    state:                             mounted
+  loop: "{{ logical_volume_groups | sort(attribute='lv') }}"
+  when:
+    - item.node_tier == "oracle-multi-sid"
+    - item.lv in  lvexists
+    - item.lv != 'lv_usrsap'
+    - item.lv != 'lv_oracle'
+  register:  oraclefilesystemmounts
+
+# # Mount File systems
+# - name:                                "2.6 SAP Mounts (Oracle shared home): Mount SAP Filesystems on Database for installation"
+#   become:                              true
+#   become_user:                         root
+#   ansible.posix.mount:
+#     src:                               "{{ item.src }}"
+#     path:                              "{{ item.path }}"
+#     fstype:                            "{{ item.type }}"
+#     opts:                              defaults
+#     state:                             mounted
+#   vars:
+#     # Get all the hostnames in <SID>_SCS group and return only the first hostname
+#     nfs_server:                        "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') | first }}"
+#   loop:
+#     - { tier: 'sapos', type: 'xfs',   src: '/dev/vg_sap/lv_usrsap',                             path: '/usr/sap' }
+#     - { tier: 'ora',   type: 'nfs4',  src: '{{ nfs_server }}:{{ target_media_location }}',    path: '{{ target_media_location }}' }                # Special Install Structure; Destroy on Completion
+#   when:
+#                 item.tier == "sapos" or
+#                 item.tier == "ora"
+
+# - name:                                "2.6 SAP Mounts (Oracle shared home): Mount SAP Filesystems on Database for installation"
+#   become:                              true
+#   become_user:                         root
+#   ansible.posix.mount:
+#     src:                               '{{ nfs_server }}:/sapmnt/{{ item.sid | upper }}'
+#     path:                              '/sapmnt/{{ item.sid | upper }}'
+#     fstype:                            'nfs4'
+#     opts:                              defaults
+#     state:                             mounted
+#   vars:
+#     # Get all the hostnames in <SID>_SCS group and return only the first hostname
+#     nfs_server:                        "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') | first }}"
+#   loop: "{{ MULTI_SIDS }}"
+#   when:
+#     - node_tier == "oracle-multi-sid"
+
+# ORACLE should be the owner of the file systems /oracle directories.
+# .PARAMS folder is not required for oracle install as we are not passing any parameters files.
+
+- name:                                "2.6 SAP Mounts (Oracle shared home) : Make orasid:dba as owners for Oracle directories - check flag file"
+  ansible.builtin.stat:
+    path:                              /etc/sap_deployment_automation/file_permission.txt
+  register:                            oracle_permissions_set
+
+- name:                                "2.6 SAP Mounts (Oracle shared home) : Make orasid:dba as owners for Oracle directories"
+  become:                              true
+  become_user:                         root
+  ansible.builtin.file:
+    path:                              "{{ item.path }}"
+    state:                             directory
+    owner:                             "{{ item.owner }}"
+    group:                             "{{ item.group }}"
+    recurse:                           true
+  loop:
+    - { path: '/oracle',       group: 'oinstall',   owner: 'oracle'}
+  when:
+    - not oracle_permissions_set.stat.exists
+
+- name:                                "2.6 SAP Mounts (Oracle shared home) : Create file_permission.txt"
+  become:                              true
+  become_user:                         root
+  ansible.builtin.file:
+    path:                              /etc/sap_deployment_automation/file_permission.txt
+    state:                             touch
+    mode:                              0755
+
+# Debug for testing
+- name:                                "2.6 SAP Mounts (Oracle shared home) : Print oracle filesystems"
+  ansible.builtin.debug:
+    var:                               oraclefilesystemmounts
+    verbosity:                         2
+
+# Mount File systems for Oracle Multi-SID on DB and APP servers
+
+- name:                                "2.6 SAP Mounts: - Mount SAP File systems for installation"
+  become:                              true
+  become_user:                         root
+  ansible.posix.mount:
+    src:                               '{{ nfs_server }}:/sapmnt/{{ item.sid | upper }}'
+    path:                              '/sapmnt/{{ item.sid | upper }}'
+    fstype:                            'nfs4'
+    opts:                              defaults
+    state:                             mounted
+  vars:
+    # Get all the hostnames in <SID>_SCS group and return only the first hostname
+    nfs_server:                        "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') | first }}"
+  loop:                                "{{ MULTI_SIDS }}"
+  when:
+    - tier == 'sapos'
+    - MULTI_SIDS is defined
+    - node_tier != 'scs'
+    - sap_mnt is undefined
+
+- name:                                "ORACLE: Make orasid:dba as owners"
+  become:                              true
+  become_user:                         root
+  ansible.builtin.file:
+    path:                              "{{ item.path }}"
+    state:                             directory
+    owner:                             "{{ item.owner }}"
+    group:                             "{{ item.group }}"
+    recurse:                           true
+  loop:
+    - { path: '{{ target_media_location }}/SBP',       group: 'oinstall',   owner: 'oracle'}
+    - { path: '{{ target_media_location }}/oraclient', group: 'oinstall',   owner: 'oracle'}
+    - { path: '{{ target_media_location }}/oraserver', group: 'oinstall',   owner: 'oracle'}

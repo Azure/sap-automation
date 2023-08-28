@@ -1,0 +1,49 @@
+---
+
+- name:                                "WIN-SQL: Print Tier information"
+  ansible.builtin.debug:
+    msg:
+      - "Current execution tier:  {{ tier }}"
+      - "Current config tier:     {{ config_tier }}"
+      - "Current execution host:  {{ inventory_hostname }}"
+
+- name:                                "WIN-SQL: check if installed"
+  ansible.windows.win_stat:
+    path:                              '{{ sap_deployment_automation }}\{{ sap_sid | upper }}\sap_deployment_sqldb.txt'
+  register:                            sql_installed
+
+- name:                                "WIN-SQL: Run SQL Server Prerequisites"
+  ansible.builtin.include_tasks:
+    file:                              "4.4.0.0-mssql-prerequisites.yaml"
+  when:
+    - tier == 'sqlserver'
+    - not sql_installed.stat.exists
+
+- name:                                "WIN-SQL: Run SQL Server Installation"
+  ansible.builtin.include_tasks:
+    file:                              "4.4.0.1-mssql-main.yaml"
+  when:
+    - tier == 'sqlserver'
+    - not sql_installed.stat.exists
+
+- name:                                "WIN-SQL: Run SQL Server Always On Prerequisites"
+  ansible.builtin.include_tasks:
+    file:                              "4.4.1.0-mssql-alwayson-prerequisites.yaml"
+  when:
+    - tier == 'ha'
+    - config_tier == 'sqlserverha'
+    - sql_installed.stat.exists
+
+- name:                                "WIN-SQL: Run SQL Server Always On config"
+  ansible.builtin.include_tasks:
+    file:                              "4.4.1.1-mssql-alwayson-config.yaml"
+  when:
+    - tier == 'ha'
+    - config_tier == 'sqlserverha'
+    - sql_installed.stat.exists
+
+...
+
+# /*---------------------------------------------------------------------------8
+# |                                   END                                      |
+# +------------------------------------4--------------------------------------*/

@@ -1,0 +1,66 @@
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                Perform the HANA Cloud Meansurement Tool                    |
+# |                  Setup HCMT                                                |
+# |                  change executionplan.json to allow non-interactive runs   |
+# |                  reduce repeat value to 1                                  |
+# |                  execute hcmt                                              |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+---
+
+- name:                                "HCMT"
+  block:
+
+# +------------------------------------4--------------------------------------*/
+
+    - name: Setup HCMT
+      ansible.builtin.shell: |
+                                       umask {{ custom_umask | default('022') }} ;
+                                       ./hcmtsetup
+      args:
+        chdir:                         "{{ target_media_location }}/hcmt/setup"
+        creates:                       "{{ target_media_location }}/hcmt/setup/config"
+
+    - name:                            Set Request to false to allow non-interactive run
+      ansible.builtin.replace:
+        path:                          "{{ target_media_location }}/hcmt/setup/config/executionplan.json"
+        regexp:                        '"Request": "true"'
+        replace:                       '"Request": "false"'
+
+    - name:                            Lower Repeat Value to 1 to reduce long runtime
+      ansible.builtin.replace:
+        path:                          "{{ target_media_location }}/hcmt/setup/config/executionplan.json"
+        regexp:                        '"Value": "2"'
+        replace:                       '"Value": "1"'
+
+    - name:                            Execute HCMT
+      ansible.builtin.shell: |
+                                       umask {{ custom_umask | default('022') }} ;
+                                       ./hcmt -v -p config/executionplan.json
+      changed_when:                    false
+      args:
+        chdir:                         "{{ target_media_location }}/hcmt/setup"
+
+    - name:                            "Find the log files (HCMT)"
+      ansible.builtin.find:
+        paths:                         "{{ target_media_location }}/hcmt/setup"
+        file_type:                     file
+        patterns:                      "hcmtresult-*.zip"
+        recurse:                       false
+      register:                        hcmt_logs
+
+    - name:                            "Copy HCMT logs"
+      ansible.builtin.fetch:
+        src:                           "{{ item.path }}"
+        dest:                          "{{ _workspace_directory }}/logs/{{ item.path | basename }}"
+        flat:                          true
+      with_items: "{{ hcmt_logs.files }}"
+      when:
+        - hcmt_logs is defined
+
+...
+# /*---------------------------------------------------------------------------8
+# |                                   END                                      |
+# +------------------------------------4--------------------------------------*/

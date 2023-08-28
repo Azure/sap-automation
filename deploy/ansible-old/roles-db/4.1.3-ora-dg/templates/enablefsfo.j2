@@ -1,0 +1,8 @@
+EDIT DATABASE {{ db_sid | upper }} SET PROPERTY LogXptMode='SYNC';
+EDIT DATABASE {{ db_sid | upper }}_STDBY SET PROPERTY LogXptMode='SYNC';
+EDIT DATABASE {{ db_sid | upper }} SET PROPERTY FastStartFailoverTarget ='{{ db_sid | upper }}_STDBY';
+EDIT DATABASE {{ db_sid | upper }}_STDBY SET PROPERTY FastStartFailoverTarget ='{{ db_sid | upper }}';
+EDIT CONFIGURATION SET PROTECTION MODE AS MAXAVAILABILITY;
+
+
+

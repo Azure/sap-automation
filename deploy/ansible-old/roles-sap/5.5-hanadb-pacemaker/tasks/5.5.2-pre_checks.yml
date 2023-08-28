@@ -1,0 +1,61 @@
+---
+
+# sapcontrol EXITCODES
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |     Pre checks                                                             |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+- name:                                Check the fencing agent configuration variables are set
+  ansible.builtin.assert:
+    that:
+      - "fencing_spn_subscription_id is defined"
+      - "fencing_spn_subscription_id | trim | length > 0"
+      - "fencing_spn_tenant_id is defined"
+      - "fencing_spn_tenant_id | trim | length > 0"
+      - "fencing_spn_client_id is defined"
+      - "fencing_spn_client_id | trim | length > 0"
+      - "fencing_spn_client_pwd is defined"
+      - "fencing_spn_client_pwd | trim | length > 0"
+    fail_msg:                          Fencing SPN details are missing
+  when:                                not use_msi_for_clusters
+- name:                                Check the required cluster password is set
+  ansible.builtin.assert:
+    that:
+      - "password_ha_db_cluster is defined"
+      - "password_ha_db_cluster | trim | length > 0"
+    fail_msg:                          The cluster password is not defined
+
+- name:                                Check the required Clustering scripts are available
+  ansible.builtin.stat:
+    path:                              "/usr/sbin/crm"
+  register:                            cluster_scripts_status_results
+  failed_when:                         not cluster_scripts_status_results.stat.exists
+  when: ansible_os_family == 'Suse'
+
+- name:                                "HANA PCM Install: Create run flag directory"
+  ansible.builtin.file:
+    path:                              /etc/sap_deployment_automation
+    state:                             directory
+    mode:                              0755
+
+- name:                                "HANA PCM Install: reset"
+  ansible.builtin.file:
+    path:                              /etc/sap_deployment_automation/sap_deployment_hana_pcm.txt
+    state:                             absent
+  when:                                reinstall
+
+- name:                                "HANA PCM Install: check if deployed"
+  ansible.builtin.stat:
+    path:                              /etc/sap_deployment_automation/sap_deployment_hana_pcm.txt
+  register:                            hana_pacemaker
+
+- name:                                Check if a cluster has already been prepared (save)
+  ansible.builtin.set_fact:
+    hana_cluster_existence_check:      "{{ hana_pacemaker.stat.exists }}"
+
+- name:                                Check if a cluster has already been prepared (show)
+  ansible.builtin.debug:
+    msg:                               "Cluster check return value: {{ hana_cluster_existence_check }}"

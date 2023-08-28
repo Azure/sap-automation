@@ -1,0 +1,60 @@
+{% set vgs = [] %}
+{#
+    Outer Loop: Loop over disk types
+#}
+{%     set startletter = namespace(value=101) %}
+{%     set pvlist = [] %}
+{% for disktype in disktypes %}
+{#
+    Initialise VG dictionary with VG name derived from disk type
+#}
+{%     set size = 4096 %}
+{% if disktype == 'data' %}
+{%     set size = 65536 %}
+{% elif disktype == 'log' %}
+{%     set size = 65536 %}
+{% endif %}
+{%     set vg = {'disktype': disktype} %}
+{#
+    Inner Loop: Loop over list of disks that match the execution host and the disk type
+    Note: '_' used as dummy variable that can be ignored | selectattr('device_id', 'defined') | selectattr('device_id', 'ne', '0')
+#}
+{%     for disk in disks if (disk.host == inventory_hostname) and (disk.type == disktype) %}
+{%     set startletter.value = startletter.value + 1 %}
+{%     set regex_string = '^Integrated.+LUN\s('~ disk.LUN ~ ')$' %}
+{% if disktype == 'sap' %}
+{%     set startlettercharacter = "S" %}
+{% elif disktype == 'log' %}
+{%     set startlettercharacter = "N" %}
+{% elif disktype == 'data' %}
+{%     set startlettercharacter = "abcdefghijklmnopqrstuvwxyz"[startletter.value - 97]  | upper %}
+{% elif disktype == 'backup' %}
+{%     set startlettercharacter = "T" %}
+{% else %}
+{%     set startlettercharacter = "V" %}
+{% endif %}
+{%     set      os_disk_id = ansible_facts.disks | selectattr('location', 'match', regex_string) | rejectattr('partition_style', 'equalto', 'MBR') | map(attribute='unique_id') | list | first %}
+{% if disktype == 'data' %}
+{%         set _ = pvlist.append({'diskname':'SQL' ~ disktype ~  loop.index, 'LUN':disk.LUN, 'driveletter' : startlettercharacter, 'sector_size': size, 'disk_type' : disktype, 'osdisk_id': os_disk_id }) %}
+{% elif disktype == 'log' %}
+{%         set _ = pvlist.append({'diskname':'SQL' ~ disktype ~  loop.index, 'LUN':disk.LUN, 'driveletter' : startlettercharacter, 'sector_size': size, 'disk_type' : disktype, 'osdisk_id': os_disk_id }) %}
+{% else %}
+{%         set _ = pvlist.append({'diskname': disktype ~  loop.index, 'LUN':disk.LUN, 'driveletter' : startlettercharacter, 'sector_size': size, 'disk_type' : disktype, 'osdisk_id': os_disk_id }) %}
+{% endif %}
+{%     endfor %}
+{#
+    Add list of pvs and diskcount to VG dictionary
+    Note: '_' used as dummy variable that can be ignored
+#}
+{%     set _ = vg.update({'sector_size': size}) %}
+{%     set _ = vg.update({'disks': pvlist}) %}
+{#
+    Append VG dictionary to list of VGs
+    Note: '_' used as dummy variable that can be ignored
+#}
+{%     set _ = vgs.append(vg) %}
+{% endfor %}
+{#
+    Output List of Dictionaries
+#}
+{{ pvlist }}

@@ -1,0 +1,7 @@
+---
+
+cluster_ip_address: "{{ sap_cluster_ip_address }}"
+
+shared_disk_drive_letter: "Y"
+
+...

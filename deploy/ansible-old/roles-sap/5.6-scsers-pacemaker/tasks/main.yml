@@ -1,0 +1,65 @@
+---
+- name:                                "5.6 SCSERS Pacemaker - set_runtime_facts"
+  ansible.builtin.include_tasks:
+    file:                              5.6.1-set_runtime_facts.yml
+    apply:
+      tags:
+        - 5.6.1-set_runtime_facts
+      become:                          true
+      become_user:                     root
+
+- name:                                "5.6 SCSERS Pacemaker - pre_checks"
+  ansible.builtin.include_tasks:
+    file:                              5.6.2-pre_checks.yml
+    apply:
+      tags:
+        - 5.6.2-pre_checks
+      become:                          true
+      become_user:                     root
+
+- name:                                "5.6 SCSERS Pacemaker - prep_steps"
+  ansible.builtin.include_tasks:
+    file:                              5.6.3-prep_steps.yml
+    apply:
+      tags:
+        - 5.6.3-prep_steps
+      become:                          true
+      become_user:                     root
+
+- name:                                "5.6 SCSERS Pacemaker - provision"
+  ansible.builtin.include_tasks:
+    file:                              5.6.4-provision.yml
+    apply:
+      tags:
+        - 5.6.4-provision
+      become:                          true
+      become_user:                     root
+  # when:
+  #   - cluster_existence_check_result is defined
+  #   - not cluster_existence_check_result
+
+- name:                                "Post SCS HA Install: check if installed"
+  become:                              true
+  ansible.builtin.stat:
+    path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_scs.txt"
+  register:                            post_scs_install
+  failed_when:                         not post_scs_install.stat.exists
+  when:                                ansible_hostname == primary_instance_name
+
+- name:                                "Post ERS Install: check if installed"
+  become:                              true
+  ansible.builtin.stat:
+    path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_ers.txt"
+  register:                            post_ers_install
+  failed_when:                         not post_ers_install.stat.exists
+  when:                                ansible_hostname == secondary_instance_name
+
+- name:                                "5.6 SCSERS Pacemaker - post_provision_report"
+  ansible.builtin.include_tasks:
+    file:                              5.6.5-post_provision_report.yml
+    apply:
+      tags:
+        - 5.6.5-post_provision_report
+      become:                          true
+      become_user:                     root
+...

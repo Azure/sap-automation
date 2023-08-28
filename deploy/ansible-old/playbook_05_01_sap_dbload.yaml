@@ -1,0 +1,397 @@
+---
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                      Prepare for SAP DB Load                               |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+- hosts:                               localhost
+  name:                                "DBLoad Playbook: - Initialization"
+  gather_facts:                        true
+  vars_files:
+    - vars/ansible-input-api.yaml
+    # API Input template with defaults
+
+  tasks:
+
+    - name:                            "DBLoad Playbook: - Create Progress folder"
+      ansible.builtin.file:
+        path:                          "{{ _workspace_directory }}/.progress"
+        state:                          directory
+        mode:                          0755
+
+    - name:                            "DBLoad Playbook: - Remove db-load-done flag"
+      ansible.builtin.file:
+        path:                          "{{ _workspace_directory }}/.progress/db-load-done"
+        state:                          absent
+
+    - name:                            "DBLoad Playbook: - Initialize tier"
+      ansible.builtin.set_fact:
+        tier:                          dbload
+
+    - name:                            "DBLoad Playbook: - Read/Create passwords"
+      ansible.builtin.include_role:
+        name:                          roles-misc/0.1-passwords
+        public:                        true
+      tags:
+        - 0.1-passwords
+
+    - name:                            "OS configuration playbook: - Read password"
+      ansible.builtin.include_role:
+        name:                          roles-misc/0.1-passwords
+        tasks_from:                    windows.yaml
+        public:                        true
+      when: platform == "SQLSERVER"
+      tags:
+        - 0.1-win-passwords
+
+    - name:                            "DBLoad Playbook: - Read storage account details"
+      ansible.builtin.include_role:
+        name:                          roles-misc/0.3.sap-installation-media-storage-details
+        public:                        true
+      tags:
+        - kv-sap-installation-media-storage-details
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                      Playbook for SAP DB Load                              |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+- hosts:                               "{{ sap_sid | upper }}_PAS  :
+                                        {{ sap_sid | upper }}_SCS :
+                                        {{ sap_sid | upper }}_DB"
+
+  name:                                DB Load
+  remote_user:                         "{{ orchestration_ansible_user }}"
+  gather_facts:                        true                                    # Important to collect hostvars information
+  vars_files:
+    - vars/ansible-input-api.yaml                                              # API Input template with defaults
+
+  tasks:
+
+# -------------------------------------+---------------------------------------8
+#
+# Build the list of tasks to be executed in order here.
+#
+# -------------------------------------+---------------------------------------8
+    - name:                            "DBLoad Playbook: - Perform DB Load on HANA"
+      become:                          true
+      become_user:                     root
+      block:
+        - name:                        "DBLoad Playbook: - Setting the dbload facts"
+          ansible.builtin.set_fact:
+            tier:                      dbload                                                          # SAP Install phase: DBLOAD
+            main_password:             "{{ hostvars.localhost.sap_password }}"
+            sapbits_location_base_path: "{{ hostvars.localhost.sapbits_location_base_path }}"
+            sapbits_sas_token:         "{{ hostvars.localhost.sapbits_sas_token }}"
+            bom_processing:            true
+            always_upload_jinja_templates: false
+            sa_enabled:                true
+          tags:
+            - always
+
+        - name:                    "DBLoad Playbook: - Mounting"
+          ansible.builtin.include_role:
+            name:                  roles-sap-os/2.6-sap-mounts
+          tags:
+            - 2.6-sap-mounts
+
+        - name:                        "DBLoad Playbook: Define this SID"
+          ansible.builtin.set_fact:
+            this_sid:
+              {
+                'sid': '{{ sap_sid | upper }}',
+                'dbsid_uid': '{{ hdbadm_uid }}',
+                'sidadm_uid': '{{ sidadm_uid }}',
+                'ascs_inst_no': '{{ scs_instance_number }}',
+                'pas_inst_no': '{{ pas_instance_number }}',
+                'app_inst_no': '{{ app_instance_number }}'
+              }
+
+        - name:                        "DBLoad Playbook: Define list of SIDs"
+          ansible.builtin.set_fact:
+            all_sids:                  "{% if MULTI_SIDS is defined %}{{ MULTI_SIDS }}{% else %}{{ all_sids | default([]) + [this_sid] }}{% endif %}"
+
+        - name:                        Run the DBLoad Playbook
+          block:
+            - name:                    "DBLoad Playbook: - Run DBLoad"
+              ansible.builtin.include_role:
+                name:                  roles-sap/5.1-dbload
+              vars:
+                scs_instance_number: "{{ sid_to_be_deployed.ascs_inst_no }}"
+                sa_enabled:            true
+              loop:                    "{{ all_sids }}"
+              loop_control:
+                loop_var:              sid_to_be_deployed
+
+            - name:                    "DBLoad Playbook: - Create db-load-done flag"
+              delegate_to:             localhost
+              become:                  false
+              ansible.builtin.file:
+                path:                  "{{ _workspace_directory }}/.progress/db-load-done"
+                state:                 touch
+                mode:                  0755
+              when:
+                - dbload_already_performed is defined or (dbload_results.rc is defined and dbload_results.rc == 0)
+
+          always:
+
+            - name:                    "DBLoad Playbook: - Run post installation tasks"
+              ansible.builtin.include_role:
+                name:                  roles-sap/7.0.0-post-install
+              vars:
+                suffix:                '_DBLOAD'
+                prefix:                "{{ bom.product_ids.dbl.replace('.', '/').replace('/ABAP', '').split(':')[1] }}"
+                path:                  '/INSTALL/DISTRIBUTED/{{ dbl_bom_instance_type }}/DB'
+                tier:                  'dbload'
+
+            - name:                    "DBLoad Playbook: - Get the Error lines from installation output"
+              ansible.builtin.set_fact:
+                error_lines:           "{{ error_lines | default([]) + [item] }}"
+              with_items:              "{{ dbload.stdout_lines }}"
+              when:
+                - dbload is defined
+                - dbload.stdout_lines is defined
+                - '"ERROR" in item'
+
+            - name:                    "DBLoad Playbook: - Show errors from DBLoad"
+              ansible.builtin.debug:
+                msg:                   "{{ error_lines }}"
+              when:
+                - error_lines is defined
+          tags:
+            - 5.1-dbload
+
+      when:
+        - platform == 'HANA'
+        - "'pas' in supported_tiers"
+        - ansible_os_family != "Windows"
+
+# /*----------------------------------------------------------------------------8
+# |                                                                            |
+# |                      Playbook for Oracle DB Load                           |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+- hosts:                               "{{ sap_sid | upper }}_DB[0]"
+
+  name:                                DB Installation - ORACLE
+  remote_user:                         "{{ orchestration_ansible_user }}"
+  gather_facts:                        true
+  vars_files:
+    - vars/ansible-input-api.yaml                               # API Input template with defaults
+
+  tasks:
+# -------------------------------------+---------------------------------------8
+#
+# Build the list of tasks to be executed in order here.
+#
+# -------------------------------------+---------------------------------------8
+    - name:                            "DBLoad Playbook: - Perform DB Load on ORACLE"
+      become:                          true
+      become_user:                     root
+      block:
+        - name:                        "DBLoad Playbook: - Setting the dbload facts"
+          ansible.builtin.set_fact:
+            tier:                      dbload                                                          # SAP Install phase: DBLOAD
+            main_password:             "{{ hostvars.localhost.sap_password }}"
+            sapbits_location_base_path: "{{ hostvars.localhost.sapbits_location_base_path }}"
+            sapbits_sas_token:         "{{ hostvars.localhost.sapbits_sas_token }}"
+            always_upload_jinja_templates: false
+          tags:
+            - always
+        - name:                        "DBLoad Playbook: Define this SID"
+          ansible.builtin.set_fact:
+            this_sid:
+              {
+                'sid': '{{ sap_sid | upper }}',
+                'dbsid_uid': '{{ hdbadm_uid }}',
+                'sidadm_uid': '{{ sidadm_uid }}',
+                'ascs_inst_no': '{{ scs_instance_number }}',
+                'pas_inst_no': '{{ pas_instance_number }}',
+                'app_inst_no': '{{ app_instance_number }}'
+              }
+
+        - name:                        "DBLoad Playbook: Define list of SIDs"
+          ansible.builtin.set_fact:
+            all_sids:                  "{% if MULTI_SIDS is defined %}{{ MULTI_SIDS }}{% else %}{{ all_sids | default([]) + [this_sid] }}{% endif %}"
+
+        - name:                        Run the DBLoad Playbook
+          block:
+            - name:                    "DBLoad Playbook: - Run DBLoad (shared home)"
+              ansible.builtin.include_role:
+                name:                  roles-sap/5.1-dbload
+              loop:                    "{{ all_sids }}"
+              loop_control:
+                loop_var:              sid_to_be_deployed
+
+            - name:                    "DBLoad Playbook: - Create db-load-done flag"
+              delegate_to:             localhost
+              become:                  false
+              ansible.builtin.file:
+                path:                  "{{ _workspace_directory }}/.progress/db-load-done"
+                state:                 touch
+                mode:                  0755
+              when:
+                - dbload_already_performed is defined or (dbload_results.rc is defined and dbload_results.rc == 0)
+
+          always:
+
+            - name:                    "DBLoad Playbook: - Run post installation tasks"
+              ansible.builtin.include_role:
+                name:                  roles-sap/7.0.0-post-install
+              vars:
+                suffix:                '_DBLOAD'
+                prefix:                "{{ bom.product_ids.dbl.replace('.', '/').replace('/ABAP', '').split(':')[1] }}"
+                path:                  'INSTALL/DISTRIBUTED/ABAP/DB'
+                tier:                  'dbload'
+                this_sid:              "{{ sid_to_be_deployed.sid | upper }}"
+              loop:                    "{{ all_sids }}"
+              loop_control:
+                loop_var:              sid_to_be_deployed
+
+            - name:                    "DBLoad Playbook: - Get the Error lines from installation output"
+              ansible.builtin.set_fact:
+                error_lines:           "{{ error_lines | default([]) + [item] }}"
+              with_items:              "{{ dbload.stdout_lines }}"
+              when:
+                - dbload is defined
+                - dbload.stdout_lines is defined
+                - '"ERROR" in item'
+
+            - name:                    "DBLoad Playbook: - Show errors from DBLoad"
+              ansible.builtin.debug:
+                msg:                   "{{ error_lines }}"
+              when:
+                - error_lines is defined
+          tags:
+            - 5.1-dbload
+
+      when:
+        - platform in ['ORACLE', 'ORACLE-ASM']
+        - ansible_os_family != "Windows"
+
+# /*----------------------------------------------------------------------------8
+# |                                                                            |
+# |                      Playbook for SQLSERVER DB Load                        |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+- hosts:                               "{{ sap_sid | upper }}_DB[0]"
+
+  name:                                DB Load
+  remote_user:                         "{{ orchestration_ansible_user }}"
+  gather_facts:                        true                                    # Important to collect hostvars information
+  vars_files:
+    - vars/ansible-input-api.yaml                                              # API Input template with defaults
+
+  tasks:
+# -------------------------------------+---------------------------------------8
+#
+# Build the list of tasks to be executed in order here.
+#
+# -------------------------------------+---------------------------------------8
+    - name:                            "DBLoad Playbook: - Perform DB Load on SQLSERVER"
+      block:
+        - name:                        "DBLoad Playbook: - Setting the dbload facts"
+          ansible.builtin.set_fact:
+            tier:                      dbload                                  # SAP Install phase: DBLOAD
+            main_password:             "{{ hostvars.localhost.sap_password }}"
+            sapbits_location_base_path: "{{ hostvars.localhost.sapbits_location_base_path }}"
+            sapbits_sas_token:         "{{ hostvars.localhost.sapbits_sas_token }}"
+            domain_user_password:      "{{ hostvars.localhost.winadm_password }}"
+            svc_password:              "{{ hostvars.localhost.svcadm_password }}"
+            bom_processing:            true
+            always_upload_jinja_templates: false
+          tags:
+            - always
+
+        - name:                    "DBLoad Playbook: - Ensure Sharing Data Folder"
+          ansible.builtin.include_role:
+            name:                      roles-sap-os/windows/2.3-sap-exports
+
+        - name:                        "DBLoad Playbook: Define this SID"
+          ansible.builtin.set_fact:
+            this_sid:
+              {
+                'sid': '{{ sap_sid | upper }}',
+                'dbsid_uid': '{{ hdbadm_uid }}',
+                'sidadm_uid': '{{ sidadm_uid }}',
+                'ascs_inst_no': '{{ scs_instance_number }}',
+                'pas_inst_no': '{{ pas_instance_number }}',
+                'app_inst_no': '{{ app_instance_number }}'
+              }
+
+        - name:                        "DBLoad Playbook: Define list of SIDs"
+          ansible.builtin.set_fact:
+            all_sids:                  "{% if MULTI_SIDS is defined %}{{ MULTI_SIDS }}{% else %}{{ all_sids | default([]) + [this_sid] }}{% endif %}"
+
+        - name:                        Run the DBLoad Playbook
+          block:
+            - name:                    "DBLoad Playbook: - Run DBLoad"
+              ansible.builtin.include_role:
+                name:                  roles-sap/windows/5.1-dbload
+              vars:
+                scs_instance_number:   "{{ sid_to_be_deployed.ascs_inst_no }}"
+                domain_user_password:  "{{ hostvars.localhost.winadm_password }}"
+              loop:                    "{{ all_sids }}"
+              loop_control:
+                loop_var:              sid_to_be_deployed
+
+            - name:                    "DBLoad Playbook: - Create db-load-done flag"
+              delegate_to:             localhost
+              become:                  false
+              ansible.builtin.file:
+                path:                  "{{ _workspace_directory }}/.progress/db-load-done"
+                state:                 touch
+                mode:                  0755
+              when:
+                - dbload_already_performed is defined or (dbload_results.rc is defined and dbload_results.rc == 0)
+
+          always:
+
+            - name:                    "DBLoad Playbook: - Run post installation tasks"
+              ansible.builtin.include_role:
+                name:                  roles-sap/windows/7.0.0-post-install
+              vars:
+                suffix:                '_DBLOAD'
+                # prefix:                "{{ bom.product_ids.dbl.replace('.','/').replace('/ABAP','').split(':')[1] }}"
+                # path:                  '/INSTALL/DISTRIBUTED/ABAP/DB'
+                tier:                  'dbload'
+
+            - name:                    "DBLoad Playbook: - Get the Error lines from installation output"
+              ansible.builtin.set_fact:
+                error_lines:           "{{ error_lines | default([]) + [item] }}"
+              with_items:              "{{ dbload.stdout_lines }}"
+              when:
+                - dbload is defined
+                - dbload.stdout_lines is defined
+                - '"ERROR" in item'
+
+            - name:                    "DBLoad Playbook: - Show errors from DBLoad"
+              ansible.builtin.debug:
+                msg:                   "{{ error_lines }}"
+              when:
+                - error_lines is defined
+
+            - name:                    "DBLoad Playbook: Rename sapinst_logs Folder with TimeStamp"
+              ansible.windows.win_shell: |
+                                        Rename-Item -Path .\sapinst_logs -NewName "sapinst_logs_$(get-date -f yyyy_MM_dd_HH_mm_ss)"
+              args:
+                chdir:                 '{{ log_dir_windows }}'
+                removes:               '{{ log_dir_windows }}\sapinst_logs'
+              register:                sapinst_log_name
+              failed_when:             sapinst_log_name.rc > 0
+              when:
+                - ansible_os_family == "Windows"
+
+          tags:
+            - 5.1-dbload
+
+      when:
+        - platform == 'SQLSERVER'
+        - ansible_os_family == "Windows"
+...
+# /*----------------------------------------------------------------------------8
+# |                                    END                                      |
+# +------------------------------------4--------------------------------------*/

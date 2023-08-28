@@ -1,0 +1,39 @@
+# -------------------------------------+---------------------------------------8
+#
+# Description:  Manage Windows domain users and local groups
+#
+
+- name:                                "2.5-sap-users: Calculating the domain value from {{ domain_name }}"
+  ansible.builtin.set_fact:
+    domain:                            "{{ domain_name | split('.') | first }}"
+    cacheable:                         true
+  when:
+    - domain_name is defined
+    - domain_name | type_debug != 'NoneType'
+    - domain_name | trim | length > 1
+    - domain is not defined
+
+
+- name:                                "2.5-sap-users: Add Local Groups"
+  ansible.builtin.import_tasks:        add_local_groups.yaml
+
+# -------------------------------------+---------------------------------------8
+#
+# Description:  Run SQL Server Installation
+#
+# -------------------------------------+---------------------------------------8
+
+- name:                                "2.5-sap-users: Add Memebers to the Local Group"
+  ansible.builtin.import_tasks:        add_group_members.yaml
+
+- name:                                "2.5-sap-users: Add Permissions to (A)SCS Nodes"
+  ansible.builtin.import_tasks:        add_permissions.yaml
+  # when:
+  #   - "'scs' in supported_tiers"
+
+- name:                                "Force all notified handlers to run now"
+  ansible.builtin.meta:                flush_handlers
+...
+# /*---------------------------------------------------------------------------8
+# |                                   END                                      |
+# +------------------------------------4--------------------------------------*/

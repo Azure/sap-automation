@@ -1,0 +1,709 @@
+---
+
+# /*----------------------------------------------------------------------------8
+# |                                                                            |
+# |                      Prepare for DB Install                           |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+- hosts:                               localhost
+  name:                                "Database Installation Playbook: - Initialization"
+  gather_facts:                        true
+  vars_files:
+    - vars/ansible-input-api.yaml                               # API Input template with defaults
+
+  tasks:
+    - name:                            "Database Installation Playbook: - Create Progress folder"
+      ansible.builtin.file:
+        path:                          "{{ _workspace_directory }}/.progress"
+        state:                         directory
+        mode:                          0755
+
+    - name:                            "Database Installation Playbook: - Create Progress db folder"
+      ansible.builtin.file:
+        path:                          "{{ _workspace_directory }}/.progress/db"
+        state:                         directory
+        mode:                          0755
+
+    - name:                            "Database Installation Playbook: - Remove db-install-done flag"
+      ansible.builtin.file:
+        path:                          "{{ _workspace_directory }}/.progress/db-install-done"
+        state:                          absent
+
+    - name:                            "Database Installation Playbook: - Set hdb fact"
+      ansible.builtin.set_fact:
+        tier:                          hdb
+
+    - name:                            "Database Installation Playbook: - Read/Create passwords"
+      ansible.builtin.include_role:
+        name:                          roles-misc/0.1-passwords
+        public:                        true
+      tags:
+        - 0.1-passwords
+
+    - name:                            "Database Installation Playbook: - Read password"
+      ansible.builtin.include_role:
+        name:                          roles-misc/0.1-passwords
+        tasks_from:                    windows.yaml
+        public:                        true
+      when: platform == "SQLSERVER"
+      tags:
+        - 0.1-win-passwords
+
+    - name:                            "Database Installation Playbook: - Read/Create key vault secrets"
+      ansible.builtin.include_role:
+        name:                          roles-misc/0.2-kv-secrets
+        public:                        true
+      vars:
+        tier:                          fencing
+      tags:
+        - 0.2-kv-secrets
+
+    - name:                            "Database Installation Playbook: - Read storage account details"
+      ansible.builtin.include_role:
+        name:                          roles-misc/0.3.sap-installation-media-storage-details
+        public:                        true
+      vars:
+        tier:                          bom_download
+      tags:
+        - kv-sap-installation-media-storage-details
+
+# /*----------------------------------------------------------------------------8
+# |                                                                            |
+# |                      Playbook for HANA DB Install                           |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+
+- hosts:                               "{{ sap_sid | upper }}_DB"
+  name:                                DB Installation - HANA
+  remote_user:                         "{{ orchestration_ansible_user }}"
+  gather_facts:                        true                                    # Important to collect hostvars information
+  any_errors_fatal:                    true
+  vars_files:
+    - vars/ansible-input-api.yaml                                              # API Input template with defaults
+
+  tasks:
+# -------------------------------------+---------------------------------------8
+#
+# Build the list of tasks to be executed in order here.
+#
+# -------------------------------------+---------------------------------------8
+
+    - name:                            "Database Installation Playbook: - Install HANA"
+      become:                          true
+      when: node_tier == 'hana'
+      block:
+        - name:                        "Database Installation Playbook: - Setting the DB facts"
+          ansible.builtin.set_fact:
+            tier:                      hdb                                     # Actions for HANA DB Serve
+            main_password:             "{{ hostvars.localhost.sap_password }}"
+            sapbits_location_base_path: "{{ hostvars.localhost.sapbits_location_base_path }}"
+            sapbits_sas_token:         "{{ hostvars.localhost.sapbits_sas_token }}"
+          tags:
+            - always
+
+        - name:                        "Database Installation Playbook: - Show SAP password"
+          ansible.builtin.debug:
+            msg:                       "{{ hostvars.localhost.sap_password }}"
+            verbosity:                 4
+
+        - name:                        "Run the Database installation Playbook"
+          block:
+            - name:                    "Database Installation Playbook: - run HANA installation"
+              ansible.builtin.include_role:
+                name:                  roles-db/4.0.0-hdb-install
+
+            - name:                    "Database Installation Playbook: - Create db-install-done flag"
+              delegate_to:             localhost
+              become:                  false
+              ansible.builtin.file:
+                path:                  "{{ _workspace_directory }}/.progress/db/db-install-done{{ ansible_hostname }}"
+                state:                 touch
+                mode:                  0755
+              when:
+                - hana_already_installed is defined or (hana_installation.rc is defined and hana_installation.rc == 0)
+
+          always:
+            - name:                    "Database Installation Playbook: - Get the Error lines from installation output"
+              ansible.builtin.set_fact:
+                error_lines:           "{{ error_lines | default([]) + [item] }}"
+              with_items:              "{{ hana_installation.stdout_lines }}"
+              when:
+                - hana_installation is defined
+                - hana_installation.stdout_lines is defined
+                - '"ERROR" in item'
+
+            - name:                    "Database Installation Playbook: - Run post installation routines"
+              ansible.builtin.include_role:
+                name:                  roles-sap/7.0.0-post-install
+              vars:
+                suffix:                "_DB"
+                tier:                  'hana'
+
+            - name:                    "Database Installation Playbook: - Show errors from HANA installation"
+              ansible.builtin.debug:
+                msg:                   "{{ error_lines }}"
+              when:
+                - error_lines is defined
+
+          tags:
+            - 4.0.0-hdb-install
+
+    - name:                            "Database Installation Playbook: - Install Pacemaker (base)"
+      become:                          true
+      when:
+        - db_high_availability
+        - node_tier == 'hana'
+      block:
+        - name:                        "Database Installation Playbook: - Setting the facts"
+          ansible.builtin.set_fact:
+            tier:                      ha
+            main_password:             "{{ hostvars.localhost.sap_password }}"
+            password_ha_db_cluster:    "{{ hostvars.localhost.db_cluster_password }}"
+            primary_instance_name:     "{{ ansible_play_hosts_all[0] }}"         # Setting up Primary Instance Name
+            secondary_instance_name:   "{{ ansible_play_hosts_all[1] }}"         # Setting up Secondary Instance Name
+            fencing_spn_client_id:     "{% if not use_msi_for_clusters %}{{ hostvars.localhost.sap_fencing_spn_client_id }}{% endif %}"
+            fencing_spn_client_pwd:    "{% if not use_msi_for_clusters %}{{ hostvars.localhost.sap_fencing_spn_pwd }}{% endif %}"
+            fencing_spn_tenant_id:     "{% if not use_msi_for_clusters %}{{ hostvars.localhost.sap_fencing_spn_tenant_id }}{% endif %}"
+
+        - name:                        "Database Installation Playbook: - Ensure the correct repositories are set"
+          ansible.builtin.include_role:
+            name:                      roles-os/1.3-repository
+          tags:
+            - 1.3-repository
+
+        - name:                        "Database Installation Playbook: - Ensure the correct packages are installed"
+          ansible.builtin.include_role:
+            name:                      roles-os/1.4-packages
+          tags:
+            - 1.4-packages
+
+        # Setup the kernel parameters required for pacemaker cluster VMs
+        - name:                        "Database Installation Playbook: - Ensure the correct kernel parameters are set"
+          ansible.builtin.include_role:
+            name:                      roles-os/1.9-kernelparameters
+          tags:
+            - 1.9-kernelparameters
+
+        - name:                        "Database Installation Playbook: - Ensure the needed services are enabled/disabled"
+          ansible.builtin.include_role:
+            name:                      roles-os/1.16-services
+          tags:
+            - 1.16-services
+
+        - name:                        "Database Installation Playbook: - Ensure the accounts are present"
+          ansible.builtin.include_role:
+            name:                      roles-os/1.11-accounts
+          tags:
+            - 1.11-accounts
+
+        - name:                        "Database Installation Playbook: - Install Pacemaker"
+          ansible.builtin.include_role:
+            name:                      roles-os/1.17-generic-pacemaker                         # Configures the Pacemaker cluster with Azure fence agent
+            apply:
+              tags:
+                - 1.17-generic-pacemaker
+              become:                  true
+              become_user:             root
+          when:
+            - node_tier != 'oracle'
+            - node_tier != 'oracle-asm'
+          tags:
+            - 1.17-generic-pacemaker
+
+        - name:                        "Database Installation Playbook: - Create pacemaker-install-done flag"
+          delegate_to:                 localhost
+          become:                      false
+          ansible.builtin.file:
+            path:                      "{{ _workspace_directory }}/.progress/pacemaker-install-done"
+            state:                     touch
+            mode:                      0755
+
+
+# /*----------------------------------------------------------------------------8
+# |                                                                            |
+# |                      Playbook for Oracle DB Install
+# |                      CREATE USERS for SAP Installation                     |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+- hosts:                               "{{ sap_sid | upper }}_DB"
+  name:                                DB Installation - Oracle
+  remote_user:                         "{{ orchestration_ansible_user }}"
+  gather_facts:                        false
+  vars_files:
+    - vars/ansible-input-api.yaml                               # API Input template with defaults
+
+  tasks:
+# -------------------------------------+---------------------------------------8
+#
+# Build the list of tasks to be executed in order here.
+#
+# -------------------------------------+---------------------------------------8
+
+    - name:                            "Database Installation Playbook: - Install Oracle"
+      become:                          true
+      become_user:                     root
+      when:
+        - node_tier == 'oracle-multi-sid'
+        - platform == 'ORACLE'
+      block:
+
+        - name:                        "Database Installation Playbook: - Setting the DB facts"
+          ansible.builtin.set_fact:
+            tier:                      ora                                    # Actions for Oracle DB Servers
+            main_password:             "{{ hostvars.localhost.sap_password }}"
+          tags:
+            - always
+
+        - name:                        "Configure accounts for ora-msid"
+          ansible.builtin.include_role:
+            name:                      roles-os/1.11-accounts
+
+
+# /*----------------------------------------------------------------------------8
+# |                                                                            |
+# |                      Playbook for Oracle DB Install                           |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+
+- hosts:                               "{{ sap_sid | upper }}_DB"
+  name:                                DB Installation - Oracle
+  remote_user:                         "{{ orchestration_ansible_user }}"
+  gather_facts:                        false
+  vars_files:
+    - vars/ansible-input-api.yaml                               # API Input template with defaults
+
+  tasks:
+# -------------------------------------+---------------------------------------8
+#
+# Build the list of tasks to be executed in order here.
+#
+# -------------------------------------+---------------------------------------8
+
+    - name:                            "Database Installation Playbook: - Install Oracle"
+      become:                          true
+      become_user:                     root
+      when:
+        - node_tier == 'oracle'
+        - platform == 'ORACLE'
+      block:
+
+        - name:                        "Database Installation Playbook: - Setting the DB facts"
+          ansible.builtin.set_fact:
+            tier:                      ora                                    # Actions for Oracle DB Servers
+            main_password:             "{{ hostvars.localhost.sap_password }}"
+          tags:
+            - always
+
+        - name:                        "Database Installation Playbook: - Check for file system mounts"
+          ansible.builtin.include_role:
+            name:                      roles-sap-os/2.6-sap-mounts
+
+        - name:                        "Database Installation Playbook: - run Oracle installer"
+          ansible.builtin.include_role:
+            name:                      roles-db/4.1.0-ora-install
+
+        - name:                        "Database Installation Playbook: - Run post installation routines"
+          ansible.builtin.include_role:
+            name:                      roles-sap/7.0.0-post-install
+          vars:
+            suffix:                    "_DB"
+            tier:                      'oracle'
+
+        - name:                        "Database Installation Playbook: - Create db-install-done flag"
+          delegate_to:                 localhost
+          become:                      false
+          ansible.builtin.file:
+            path:                      "{{ _workspace_directory }}/.progress/db/db-install-done{{ ansible_hostname }}"
+            state:                     touch
+            mode:                      0755
+
+
+    - name:                            "Install Oracle for MSID"
+      become:                          true
+      become_user:                     root
+      when:
+        - node_tier == 'oracle-multi-sid'
+        - platform == 'ORACLE'
+      block:
+        - name:                        Setting the DB facts for MSID
+          ansible.builtin.set_fact:
+            tier:                      ora                                    # Actions for Oracle DB Servers
+            main_password:             "{{ hostvars.localhost.sap_password }}"
+          tags:
+            - always
+
+        - name:                        Include 1.5.2-disk-setup-ora-multi-sid role
+          ansible.builtin.include_role:
+            name:                      roles-os/1.5.2-disk-setup-ora-multi-sid
+
+        - name:                        Check for file system mounts
+          ansible.builtin.include_role:
+            name:                      roles-sap-os/2.6-sap-mounts
+          when:                        node_tier == 'oracle-multi-sid'
+
+        - name:                        Installing Oracle
+          ansible.builtin.include_role:
+            name:                      roles-db/4.1.3-ora-multi-sid
+          when:                        node_tier == 'oracle-multi-sid'
+
+        - name:                        "Database Installation Playbook: - Create db-install-done flag"
+          delegate_to:                 localhost
+          become:                      false
+          ansible.builtin.file:
+            path:                      "{{ _workspace_directory }}/.progress/db/db-install-done{{ ansible_hostname }}"
+            state:                     touch
+            mode:                      0755
+
+    # Install Oracle DB based on ASM
+    - name:                            "Install Oracle on ASM"
+      become:                          true
+      become_user:                     root
+      when:
+        - node_tier == 'oracle-asm'
+        - platform == 'ORACLE-ASM'
+      block:
+        - name:                        Setting the DB facts for ASM
+          ansible.builtin.set_fact:
+            tier:                      ora                                    # Actions for Oracle DB Servers
+            main_password:             "{{ hostvars.localhost.sap_password }}"
+          tags:
+            - always
+
+        - name:                        Include 1.5.1.1-disk-setup-asm-sap
+          ansible.builtin.include_role:
+            name:                      roles-os/1.5.1.1-disk-setup-asm-sap
+
+        - name:                        "OS configuration playbook: - Ensure the kernel parameters are set"
+          ansible.builtin.include_role:
+            name:                      roles-os/1.9-kernelparameters
+          tags:
+            - 1.9-kernelparameters
+
+        # - name:                        "SAP OS configuration playbook: - Configure accounts"
+        #   ansible.builtin.include_role:
+        #     name:                      roles-os/1.11-accounts
+        #   tags:
+        #     - 1.11-accounts
+
+        - name:                        "SAP OS configuration playbook: - Create SAP users/groups"
+          ansible.builtin.include_role:
+            name:                      roles-sap-os/2.5-sap-users
+          tags:
+            - 2.5-sap-users
+
+        - name:                        Mount the file systems for ASM installation
+          ansible.builtin.include_role:
+            name:                      roles-sap-os/2.6-sap-mounts
+
+        - name:                        Include 1.5.1-disk-setup-asm role
+          ansible.builtin.include_role:
+            name:                      roles-os/1.5.1-disk-setup-asm
+
+        - name:                        Check for file system mounts
+          ansible.builtin.include_role:
+            name:                      roles-sap-os/2.6-sap-mounts
+
+        - name:                        Installing Oracle ASM Grid
+          ansible.builtin.include_role:
+            name:                      roles-db/4.1.1-ora-asm-grid
+          tags:                        4.1.1-ora-asm-grid
+
+        - name:                        Installing Oracle on ASM
+          ansible.builtin.include_role:
+            name:                      roles-db/4.1.2-ora-asm-db-install
+
+        - name:                        "Database Installation Playbook: - Create db-install-done flag"
+          delegate_to:                 localhost
+          become:                      false
+          ansible.builtin.file:
+            path:                      "{{ _workspace_directory }}/.progress/db/db-install-done{{ ansible_hostname }}"
+            state:                     touch
+            mode:                      0755
+
+# /*----------------------------------------------------------------------------8
+# |                                                                            |
+# |                      Playbook for DB2 DB Install                           |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+- hosts:                               "{{ sap_sid| upper }}_DB[0]"
+  name:                                "DB Installation - SAP DB2"
+  remote_user:                         "{{ orchestration_ansible_user }}"
+  gather_facts:                        false
+  vars_files:
+    - vars/ansible-input-api.yaml                               # API Input template with defaults
+
+  tasks:
+# -------------------------------------+---------------------------------------8
+#
+# Build the list of tasks to be executed in order here.
+#
+# -------------------------------------+---------------------------------------8
+    - name:                            "Install SAP DB2"
+      become:                          true
+      become_user:                     root
+      when:
+        - platform == 'DB2'
+        - not db_high_availability
+      block:
+
+        - name:                        "DB2 : Setting the DB facts"
+          ansible.builtin.set_fact:
+            tier:                      db2                                    # Actions for Oracle DB Servers
+            main_password:             "{{ hostvars.localhost.sap_password }}"
+            sapbits_location_base_path: "{{ hostvars.localhost.sapbits_location_base_path }}"
+            sapbits_sas_token:         "{{ hostvars.localhost.sapbits_sas_token }}"
+            bom_processing:            true
+          tags:
+            - always
+
+        - name:                        "DB2 : Install DB2 specific packages"
+          ansible.builtin.include_role:
+            name:                      roles-os/1.4-packages
+
+        - name:                        "DB2 : Check for file system mounts"
+          ansible.builtin.include_role:
+            name:                      roles-sap-os/2.6-sap-mounts
+
+        - name:                        Installing DB2
+          ansible.builtin.include_role:
+            name:                      roles-db/4.2.0-db2-install
+
+        - name:                        "Database Installation Playbook: - Run post installation routines"
+          ansible.builtin.include_role:
+            name:                      roles-sap/7.0.0-post-install
+          vars:
+            suffix:                    "_DB"
+            tier:                      'db2'
+            prefix:                    "{{ bom.product_ids.dblha.replace('.', '/').replace('/ABAP', '').split(':')[1] }}"
+            path:                      "INSTALL/DISTRIBUTED/ABAP/DB"
+            this_sid:                  "{{ sap_sid }}"
+
+# /*----------------------------------------------------------------------------8
+# |                                                                            |
+# |                      Playbook for DB2 DB HA Install                        |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+- hosts:                               "{{ sap_sid| upper }}_DB"
+  name:                                "DB Installation - SAP DB2 HA"
+  remote_user:                         "{{ orchestration_ansible_user }}"
+  gather_facts:                        false
+  vars_files:
+    - vars/ansible-input-api.yaml                               # API Input template with defaults
+
+  tasks:
+# -------------------------------------+---------------------------------------8
+#
+# Build the list of tasks to be executed in order here.
+#
+# -------------------------------------+---------------------------------------8
+    - name:                            "Install SAP DB2"
+      become:                          true
+      become_user:                     root
+      block:
+
+        - name:                        Setting the DB facts
+          ansible.builtin.set_fact:
+            tier:                      db2                                    # Actions for Oracle DB Servers
+            main_password:             "{{ hostvars.localhost.sap_password }}"
+            sapbits_location_base_path: "{{ hostvars.localhost.sapbits_location_base_path }}"
+            sapbits_sas_token:         "{{ hostvars.localhost.sapbits_sas_token }}"
+            bom_processing:            true
+            primary_instance_name:     "{{ ansible_play_hosts_all[0] }}"         # Setting up Primary Instance Name
+            secondary_instance_name:   "{{ ansible_play_hosts_all[1] }}"         # Setting up Secondary Instance Name
+
+          tags:
+            - always
+
+        - name:                        "DB2 : Install DB2 specific packages"
+          ansible.builtin.include_role:
+            name:                      roles-os/1.4-packages
+
+        - name:                        Check for file system mounts
+          ansible.builtin.include_role:
+            name:                      roles-sap-os/2.6-sap-mounts
+
+        - name:                        Installing DB2
+          ansible.builtin.include_role:
+            name:                      roles-db/4.2.1-db2-hainstall
+
+        - name:                        "Database Installation Playbook: - Run post installation routines"
+          ansible.builtin.include_role:
+            name:                      roles-sap/7.0.0-post-install
+          vars:
+            suffix:                    "_DB"
+            tier:                      'db2'
+            prefix:                    "{{ bom.product_ids.dblha.replace('.', '/').replace('/ABAP', '').split(':')[1] }}"
+            path:                      "INSTALL/DISTRIBUTED/ABAP/DB"
+            this_sid:                  "{{ sap_sid }}"
+      when:
+        - platform == 'DB2'
+        - db_high_availability
+        - (ansible_play_hosts_all | length) >= 2
+
+# /*----------------------------------------------------------------------------8
+# |                                                                            |
+# |                      Playbook for ASE DB Install                           |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+- hosts:                               "{{ sap_sid| upper }}_DB[0]"
+  name:                                "DB Installation - SAP ASE"
+  remote_user:                         "{{ orchestration_ansible_user }}"
+  gather_facts:                        false
+  vars_files:
+    - vars/ansible-input-api.yaml                               # API Input template with defaults
+
+  tasks:
+# -------------------------------------+---------------------------------------8
+#
+# Build the list of tasks to be executed in order here.
+#
+# -------------------------------------+---------------------------------------8
+    - name:                            "Install SAP ASE"
+      become:                          true
+      become_user:                     root
+      when:
+        - platform == 'SYBASE'
+        - not db_high_availability
+      block:
+
+        - name:                        "ASE : Setting the DB facts"
+          ansible.builtin.set_fact:
+            tier:                      sybase
+            main_password:             "{{ hostvars.localhost.sap_password }}"
+            sapbits_location_base_path: "{{ hostvars.localhost.sapbits_location_base_path }}"
+            sapbits_sas_token:         "{{ hostvars.localhost.sapbits_sas_token }}"
+            bom_processing:            true
+            sa_enabled:                true
+          tags:
+            - always
+
+        - name:                        "SYBASE : Install DB2 specific packages"
+          ansible.builtin.include_role:
+            name:                      roles-os/1.4-packages
+
+        - name:                        "ASE : Check for file system mounts"
+          ansible.builtin.include_role:
+            name:                      roles-sap-os/2.6-sap-mounts
+
+        - name:                        Installing ASE
+          ansible.builtin.include_role:
+            name:                      roles-db/4.3.0-ase-install
+
+
+# /*----------------------------------------------------------------------------8
+# |                                                                            |
+# |                      Playbook for SQL Server Install on Windows            |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+- hosts:                               "{{ sap_sid | upper }}_DB"
+  name:                                DB Installation - SQLSERVER
+  remote_user:                         "{{ orchestration_ansible_user }}"
+  gather_facts:                        false
+  vars_files:
+    - vars/ansible-input-api.yaml                               # API Input template with defaults
+
+  tasks:
+# -------------------------------------+---------------------------------------8
+#
+# Build the list of tasks to be executed in order here.
+#
+# -------------------------------------+---------------------------------------8
+
+    - name:                            "Database Installation Playbook: - Install SQL Server on Windows"
+      when:
+        - platform == 'SQLSERVER'
+        - node_tier == 'sqlserver'
+      block:
+
+        - name:                        "Database Installation Playbook: - Setting the DB facts"
+          ansible.builtin.set_fact:
+            tier:                      sqlserver                               # Actions for sql Servers
+            main_password:             "{{ hostvars.localhost.sap_password }}"
+            config_tier:               "sqlserver"
+          tags:
+            - always
+
+        - name:                        "DBLoad Playbook: - Ensure Sharing Data Folder"
+          ansible.builtin.include_role:
+            name:                      roles-sap-os/windows/2.3-sap-exports
+
+        - name:                        "Database Installation Playbook: - Run SQL Server Installation"
+          ansible.builtin.include_role:
+            name:                      roles-db/windows/4.4.0-mssql-install
+          vars:
+            domain_user_password:      "{{ hostvars.localhost.winadm_password }}"
+
+        - name:                        "Database Installation Playbook: - Create db-install-done flag"
+          delegate_to:                 localhost
+          become:                      false
+          ansible.builtin.file:
+            path:                      "{{ _workspace_directory }}/.progress/db/db-install-done{{ ansible_hostname }}"
+            state:                     touch
+            mode:                      0755
+      vars:
+        become_user:                   "{{ become_user_name }}"
+# add platform in sap-parameters.yaml to execute tasks for DB2, ORACLE, MSSQL, SYBASE
+
+# # /*----------------------------------------------------------------------------8
+# # |                                                                            |
+# # |                         PLAYBOOK FOR DB LOGGING                       |
+# # |                                                                            |
+# # +------------------------------------4--------------------------------------*/
+# - name:                        "Database Installation Playbook: - Create db-install-done flag"
+#   delegate_to:                 localhost
+#   become:                      false
+#   ansible.builtin.file:
+#     path:                      "{{ _workspace_directory }}/.progress/db-install-done"
+#     state:                     touch
+#     mode:                      0755
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                    Playbook for Validating DB Install                      |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+
+- hosts:                               "{{ sap_sid | upper }}_DB"
+
+  name:                                SAP Post Installation - DB
+  remote_user:                         "{{ orchestration_ansible_user }}"
+  gather_facts:                        true
+  vars_files:
+    - vars/ansible-input-api.yaml                                               # API Input template with defaults
+
+  tasks:
+# -------------------------------------+---------------------------------------8
+#
+# Build the list of tasks to be executed in order here.
+#
+# -------------------------------------+---------------------------------------8
+    - name:                            "DB Playbook - Post Install: Check for files in progress folder"
+      ansible.builtin.find:
+        path:                          "{{ _workspace_directory }}/.progress/db"
+        patterns:                      "*"
+      register:                        find_progress_files
+      delegate_to:                     localhost
+      become:                          false
+
+    - name:                            "DB Playbook - Post Install: - Create db-install-done flag"
+      delegate_to:                     localhost
+      become:                          false
+      ansible.builtin.file:
+        path:                          "{{ _workspace_directory }}/.progress/db-install-done"
+        state:                         touch
+        mode:                          0755
+      when:                            find_progress_files.matched == (ansible_play_hosts | length)
+
+...
+# /*----------------------------------------------------------------------------8
+# |                                    END                                      |
+# +------------------------------------4--------------------------------------*/

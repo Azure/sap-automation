@@ -1,0 +1,70 @@
+---
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |     Copy SSFS Keys                                                         |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+- name:                                "HANA HSR: - variable for SSFS files"
+  ansible.builtin.set_fact:
+    ssfs_files:
+      - { file: "SSFS_{{ hana_tenant_database_name }}.DAT", folder: "/usr/sap/{{ hana_tenant_database_name }}/SYS/global/security/rsecssfs/data/", mode: '640' }
+      - { file: "SSFS_{{ hana_tenant_database_name }}.KEY", folder: "/usr/sap/{{ hana_tenant_database_name }}/SYS/global/security/rsecssfs/key/", mode: '600' }
+
+- name:                                "HANA HSR: - Fetch SSFS files from Primary node to Controller"
+  ansible.builtin.fetch:
+    src:                               "{{ item.folder }}{{ item.file }}"
+    dest:                              /tmp/rsecssfs/
+    flat:                              true
+  loop:                                "{{ ssfs_files }}"
+  when:                                ansible_hostname == primary_instance_name
+
+- name:                                "HANA HSR: - Copy SSFS files from Controller to Secondary node"
+  ansible.builtin.copy:
+    src:                               /tmp/rsecssfs/{{ item.file }}
+    dest:                              "{{ item.folder }}"
+    mode:                              "{{ item.mode }}"
+    owner:                             "{{ db_sid_admin_user }}"
+    group:                             "{{ hana_group }}"
+  loop:                                "{{ ssfs_files }}"
+  when:                                ansible_hostname == secondary_instance_name
+
+- name:                                "HANA HSR: - Ensure the Primary node XSA SSFS_{{ hana_tenant_database_name }}.DAT file exists"
+  ansible.builtin.stat:
+    path:                              /usr/sap/{{ hana_tenant_database_name }}/SYS/global/xsa/security/ssfs/data/SSFS_{{ hana_tenant_database_name }}.DAT
+  register:                            primary_xsa_file_result
+  when:                                ansible_hostname == primary_instance_name
+
+- name:                                "HANA HSR: - Ensure the Primary node XSA SSFS_{{ hana_tenant_database_name }}.DAT file exists"
+  ansible.builtin.debug:
+    var:                               primary_xsa_file_result
+    verbosity:                         2
+
+- name:                                "HANA HSR: - Copy XSA SSFS files from Primary node to the Secondary node"
+  block:
+    - name:                            "HANA HSR: - variable for XSA SSFS files"
+      ansible.builtin.set_fact:
+        xsa_ssfs_files:
+          - { file: "SSFS_{{ hana_tenant_database_name }}.DAT", folder: "/usr/sap/{{ hana_tenant_database_name }}/SYS/global/xsa/security/ssfs/data/", mode: '640' }
+          - { file: "SSFS_{{ hana_tenant_database_name }}.KEY", folder: "/usr/sap/{{ hana_tenant_database_name }}/SYS/global/xsa/security/ssfs/key/", mode: '600' }
+
+    - name:                            "HANA HSR: - Fetch XSA SSFS files from Primary node to Controller"
+      ansible.builtin.fetch:
+        src:                           "{{ item.folder }}{{ item.file }}"
+        dest:                          /tmp/xsa_ssfs/
+        flat:                          true
+      loop:                            "{{ xsa_ssfs_files }}"
+      when:                            ansible_hostname == primary_instance_name
+
+    - name:                            "HANA HSR: - Copy XSA SSFS files from Controller to Secondary node"
+      ansible.builtin.copy:
+        src:                           /tmp/xsa_ssfs/{{ item.file }}
+        dest:                          "{{ item.folder }}"
+        mode:                          "{{ item.mode }}"
+        owner:                         "{{ db_sid_admin_user }}"
+        group:                         "{{ hana_group }}"
+      loop:                            "{{ xsa_ssfs_files }}"
+      when:                            ansible_hostname == secondary_instance_name
+
+  when:                                hostvars[primary_instance_name]['primary_xsa_file_result'].stat.exists

@@ -165,6 +165,12 @@
           tags:
             - 2.2-sapPermissions
 
+        - name:                        "SAP OS configuration playbook: - Configurations according to SAP Notes"
+          ansible.builtin.include_role:
+            name:                      roles-sap-os/2.10-sap-notes
+          tags:
+            - 2.10-sap-notes
+
         - name:                        "SAP OS configuration playbook: - configure exports"
           ansible.builtin.include_role:
             name:                      roles-sap-os/2.3-sap-exports
@@ -177,11 +183,6 @@
           tags:
             - 2.6-sap-mounts
 
-        - name:                        "SAP OS configuration playbook: - Configurations according to SAP Notes"
-          ansible.builtin.include_role:
-            name:                      roles-sap-os/2.10-sap-notes
-          tags:
-            - 2.10-sap-notes
       when:
         - ansible_os_family != "Windows"
 

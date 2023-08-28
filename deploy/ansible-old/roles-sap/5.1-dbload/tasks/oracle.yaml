@@ -1,0 +1,56 @@
+# Create ORA<SID> users for MULTI-SID Installation on Database Node.
+- name:                                "DBLoad (sharedHome): ORA{{ sid_to_be_deployed.sid }} User creation"
+  ansible.builtin.user:
+    name:                              "ora{{ sid_to_be_deployed.sid | lower }}"
+    uid:                               "{{ sid_to_be_deployed.dbsid_uid }}"
+    group:                             dba
+    groups:                            oper,sapinst,oinstall
+    shell:                             /bin/csh
+    create_home:                       true
+    home:                              "/home/ora.{{ sid_to_be_deployed.sid | lower }}"
+    password:                          "{{ main_password |
+                                          password_hash('sha512') }}"
+    state:                             present
+    append:                            true
+
+# Temporary block to start the listener due the bug in SWPM DEV version.
+# Remove this block after checking with SAP - Action on VP
+# Create tnsnames.ora
+########################################### START OF THE BLOCK ###############################################################
+- name:                                "DBLoad (sharedHome): Create the tnsnames file"
+  become:                              true
+  become_user:                         oracle
+  ansible.builtin.template:
+    backup:                            true
+    src:                               tnsnames.j2
+    dest:                              "/oracle/RDBMS/{{ ora_version }}/network/admin/tnsnames.ora"
+    mode:                              0644
+    force:                             true
+
+- name:                                "DBLoad (sharedHome): Create the tnsnames file"
+  become:                              true
+  become_user:                         oracle
+  ansible.builtin.template:
+    backup:                            true
+    src:                               listener.j2
+    dest:                              "/oracle/RDBMS/{{ ora_version }}/network/admin/listener.ora"
+    mode:                              0644
+    force:                             true
+
+- name:                                "DBLoad (sharedHome): START THE LISTENER"
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.shell:               lsnrctl start
+  args:
+    creates:                           "/etc/sap_deployment_automation/startlsnrctl.txt"
+    executable:                        /bin/csh
+  register:                            lsnrstatus
+  failed_when:                         lsnrstatus.rc >= 2
+
+- name:                                "DBLoad (sharedHome): create startlsnrctl.txt"
+  ansible.builtin.file:
+    path:                              "/etc/sap_deployment_automation/startlsnrctl.txt"
+    state:                             touch
+    mode:                              0755
+
+########################################### END OF THE BLOCK ###############################################################

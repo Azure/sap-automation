@@ -1,0 +1,236 @@
+---
+
+# /*---------------------------------------------------------------------------8
+# |Execute the SQL scripts  for  data guard initial configuration.             |
+# |                                                                            |
+# |                                                                            |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+
+# Set Primary and Secondary node names.
+- name:                                "Oracle Data Guard - Setup Primary: Define variables"
+  ansible.builtin.set_fact:
+    ora_primary:                "{{ ansible_play_hosts_all[0] }}"         # Oracle Primary Host
+    ora_secondary:              "{{ ansible_play_hosts_all[1] }}"         # Oracle Secondary Host
+    current_host:               "{{ ansible_hostname }}"
+
+# Steps to be run on Primary DB
+
+- name:                                "Oracle Data Guard - Setup Primary: Check if archive_enabled_on_primary.txt exists"
+  ansible.builtin.stat:
+    path:                              /etc/sap_deployment_automation/dgscripts/archive_enabled_on_primary.txt
+  register:                            archive_primary_stat
+  when:  current_host == ora_primary
+
+- name:                                "Oracle Data Guard - Setup Primary: Enable Archive log on Primary"  # In a typical SWPM installation archive log is always enabled.
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.shell:               sqlplus / as sysdba @enablearchivelog.sql
+  register:                            enable_archive_log_results
+  failed_when:                         enable_archive_log_results.rc >= 2
+  args:
+    creates:                           /etc/sap_deployment_automation/dgscripts/archive_enabled_on_primary.txt
+    chdir:                             /etc/sap_deployment_automation/dgscripts
+    executable:                        /bin/csh
+  when:
+  #  - not archive_primary_stat.stat.exists
+    - current_host == ora_primary
+
+- name:                                "Oracle Data Guard - Setup Primary: Enable Archive log on Primary (debug)"
+  ansible.builtin.debug:
+    var:                               enable_archive_log_results.stdout_lines
+    verbosity:                         2
+
+- name:                                "Oracle Data Guard - Setup Primary: Enable Archive log on Primary (save output)"
+  ansible.builtin.copy:
+    dest:                              /etc/sap_deployment_automation/dgscripts/enable_archive.log
+    content:                           "{{ enable_archive_log_results.stdout }}"
+    mode:                              '0777'
+  when:                                enable_archive_log_results.stdout is defined
+
+- name:                                "Oracle Data Guard - Setup Primary: Create archive_enabled_on_primary.txt"
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.file:
+    path:                              /etc/sap_deployment_automation/dgscripts/archive_enabled_on_primary.txt
+    state:                             touch
+    mode:                              '0755'
+  when:
+    - current_host == ora_primary
+    - enable_archive_log_results.rc < 2
+
+- name:                                "Oracle Data Guard - Setup Primary: Check if 'enable_force_login.txt' exists"
+  ansible.builtin.stat:
+    path:                              /etc/sap_deployment_automation/dgscripts/enable_force_login.txt
+  register:                            forcelogin_stat
+  when:  current_host == ora_primary
+
+- name:                                "Oracle Data Guard - Setup Primary: Enable enable_force_login on Primary"
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.shell: |
+                                       set -o pipefail
+                                       sqlplus / as sysdba @enableforcelogging.sql | tee
+  register:                            enable_force_logging_results
+  failed_when:                         enable_force_logging_results.rc >= 2
+  args:
+    creates:                           /etc/sap_deployment_automation/dgscripts/enable_force_login.txt
+    chdir:                             /etc/sap_deployment_automation/dgscripts
+    executable:                        /bin/csh
+  when:
+  #  - not forcelogin_stat.stat.exists
+    - current_host == ora_primary
+
+- name:                                "Oracle Data Guard - Setup Primary: Enable enable_force_login on Primary (debug)"
+  ansible.builtin.debug:
+    var:                               enable_force_logging_results.stdout_lines
+    verbosity:                         2
+
+- name:                                "Oracle Data Guard - Setup Primary: Enable enable_force_login on Primary (save output)"
+  ansible.builtin.copy:
+    dest:                              /etc/sap_deployment_automation/dgscripts/switch_archive.log
+    content:                           "{{ enable_force_logging_results.stdout }}"
+    mode:                              '0777'
+  when:                                enable_force_logging_results.stdout is defined
+
+- name:                                "Oracle Data Guard - Setup Primary: Create enable_force_login.txt"
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.file:
+    path:                              /etc/sap_deployment_automation/dgscripts/enable_force_login.txt
+    state:                             touch
+    mode:                              '0755'
+  when:
+    - current_host == ora_primary
+    - enable_archive_log_results.rc < 2
+
+- name:                                "Oracle Data Guard - Setup Primary: Create oracle standbylog directory"
+  ansible.builtin.file:
+    path:                              /oracle/{{ db_sid | upper }}/oraarch/standbylog
+    mode:                              '0755'
+    state:                             directory
+    owner:                             oracle
+    group:                             oinstall
+  when:  current_host == ora_primary
+
+- name:                                "Oracle Data Guard - Setup Primary: Create standby logs for Oracle DG"
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.shell:               sqlplus / as sysdba @standbyredologs.sql
+  register:                            standby_redo_log_results
+  failed_when:                         standby_redo_log_results.rc >= 2
+  args:
+    creates:                           /etc/sap_deployment_automation/dgscripts/standby_redo_logs.txt
+    chdir:                             /etc/sap_deployment_automation/dgscripts
+    executable:                        /bin/csh
+  when:  current_host == ora_primary
+
+- name:                                "Oracle Data Guard - Setup Primary: Create standby logs for Oracle DG (debug)"
+  ansible.builtin.debug:
+    var:                               standby_redo_log_results.stdout_lines
+    verbosity:                         2
+
+- name:                                "Oracle Data Guard - Setup Primary: Create standby logs for Oracle DG (save output)"
+  ansible.builtin.copy:
+    dest:                              /etc/sap_deployment_automation/dgscripts/standby_logs.log
+    content:                           "{{ standby_redo_log_results.stdout }}"
+    mode:                              '0777'
+  when:                                standby_redo_log_results.stdout is defined
+
+- name:                                "Oracle Data Guard - Setup Primary: Create standby_redo_logs.txt"
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.file:
+    path:                              /etc/sap_deployment_automation/dgscripts/standby_redo_logs.txt
+    state:                             touch
+    mode:                              '0755'
+  when:
+    - current_host == ora_primary
+    - standby_redo_log_results.rc < 2
+
+- name:                                "Oracle Data Guard - Setup Primary: Enable Flashback on Oracle Primary DB"
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.shell:               sqlplus / as sysdba @turnonflashback.sql
+  register:                            turn_on_flashback_results
+  failed_when:                         turn_on_flashback_results.rc > 0
+  args:
+    creates:                           /etc/sap_deployment_automation/dgscripts/turn_on_flashback.txt
+    chdir:                             /etc/sap_deployment_automation/dgscripts
+    executable:                        /bin/csh
+  when:  current_host == ora_primary
+
+- name:                                "Oracle Data Guard - Setup Primary: Enable Flashback on Oracle Primary DB (debug)"
+  ansible.builtin.debug:
+    var:                               turn_on_flashback_results.stdout_lines
+    verbosity:                         2
+
+- name:                                "Oracle Data Guard - Setup Primary: Enable Flashback on Oracle Primary DB (save output)"
+  ansible.builtin.copy:
+    dest:                              /etc/sap_deployment_automation/dgscripts/turn_on_flashback.log
+    content:                           "{{ turn_on_flashback_results.stdout }}"
+    mode:                              '0777'
+  when:                                turn_on_flashback_results.stdout is defined
+
+- name:                                "Oracle Data Guard - Setup Primary: Create turn_on_flashback.txt"
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.file:
+    path:                              /etc/sap_deployment_automation/dgscripts/turn_on_flashback.txt
+    state:                             touch
+    mode:                              '0755'
+  when:
+    - current_host == ora_primary
+    - turn_on_flashback_results.rc == 0
+
+# STEP3 DGMGRL Config on Primary
+
+# Restart the LSNRCTL START
+# - name:                               "RESTART LSNRCTL ON PRIMARY"
+#   become:                              true
+#   become_user:                         "oracle"
+#   ansible.builtin.shell:               lsnrctl reload
+#   register:                            lsnrctl_start_primary_results
+#   failed_when:                         lsnrctl_start_primary_results.rc > 0
+#   args:
+#     creates:                           /etc/sap_deployment_automation/dgscripts/lsnrctl_started_primary.txt
+#     chdir:                             /etc/sap_deployment_automation/dgscripts
+#     executable:                        /bin/csh
+#   when:                                current_host == ora_primary
+
+# - name:                                Create lsnrctl_started_sec.txt
+#   become:                              true
+#   become_user:                         "oracle"
+#   ansible.builtin.file:
+#     path:                              /etc/sap_deployment_automation/dgscripts/lsnrctl_started_primary.txt
+#     state:                             touch
+#     mode:                              0755
+#   when:                                current_host == ora_primary
+
+
+# - name:                                " DGMGRL CONFIG ON PRIMARY "
+#   become:                              true
+#   become_user:                         "oracle"
+#   ansible.builtin.shell:               dgmgrl / as sysdba @dgconfig.dgmgrl  | tee /etc/sap_deployment_automation/dgscripts/dgcreate.log
+#   register:                            dgconfig_results
+#   failed_when:                         dgconfig_results.rc > 0
+#   args:
+#     creates:                           /etc/sap_deployment_automation/dgscripts/dgconfig.txt
+#     chdir:                             /etc/sap_deployment_automation/dgscripts
+#     executable:                        /bin/csh
+#   when:                                current_host == ora_primary
+
+# - name:                                Create dgconfig.txt
+#   become:                              true
+#   become_user:                         "oracle"
+#   ansible.builtin.file:
+#     path:                              /etc/sap_deployment_automation/dgscripts/dgconfig.txt
+#     state:                             touch
+#     mode:                              0755
+#   when:                                current_host == ora_primary
+
+...
+# /*---------------------------------------------------------------------------8
+# |                                   END                                      |
+# +------------------------------------4--------------------------------------*/

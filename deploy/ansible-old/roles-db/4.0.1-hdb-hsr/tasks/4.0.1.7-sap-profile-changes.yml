@@ -1,0 +1,115 @@
+---
+
+##############################################################################################################
+# Profile changes for HANA Installations                                                                     #
+# To connect to the primary instance of the HSR configuration, the SAP application layer needs to use the    #
+# virtual IP address that you defined and configured for the Azure Load Balancer                             #
+##############################################################################################################
+
+- name:                                "HSR 4.0.1.7 - SAP Profile changes - HANA Installations"
+  block:
+
+    - name:                            "HSR 4.0.1.7 - SAP Profile changes - Set the DB Server name list"
+      ansible.builtin.set_fact:
+        db_server_temp:                "{{ db_server_temp | default([]) + [item] }}"
+      with_items:
+        - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
+      when:
+        - db_high_availability
+
+    - name:                            "HSR 4.0.1.7 - SAP Profile changes - Set the DB virtual_host name"
+      ansible.builtin.set_fact:
+        db_lb_virtual_host:            "{% if db_high_availability %}{{ sap_sid | lower }}{{ db_sid | lower }}db{{ db_instance_number }}cl{% else %}{{ hostvars[db_server_temp | first]['virtual_host'] }}{% endif %}"
+      when:
+        - db_high_availability
+        - db_server_temp is defined
+        - db_server_temp | length > 0
+
+    - name:                            "HSR: 4.0.1.7 - Check if SAP DEFAULT.PFL changes are needed"
+      ansible.builtin.lineinfile:
+        path:                          "/sapmnt/{{ sap_sid | upper }}/profile/DEFAULT.PFL"
+        regexp:                        "^SAPDBHOST = {{ db_lb_virtual_host }}"
+        line:                          "SAPDBHOST = {{ db_lb_virtual_host }}"
+        state:                         present
+      check_mode:                      true
+      register:                        check_default_pfl
+      when:
+        - db_high_availability
+
+    - name:                            "HSR: 4.0.1.7 - SAP DEFAULT.PFL changes "
+      ansible.builtin.replace:
+        path:                          /sapmnt/{{ sap_sid | upper }}/profile/DEFAULT.PFL
+        backup:                        true
+        regexp:                        '^SAPDBHOST'
+        replace:                       '#SAPDBHOST'
+      when:
+        - check_default_pfl is changed
+        - db_high_availability
+      tags:
+        - dbhostcomment
+
+    - name:                            "HSR: 4.0.1.7 - SAP DEFAULT.PFL changes - add db virtual hostname "
+      ansible.builtin.lineinfile:
+        path:                          /sapmnt/{{ sap_sid | upper }}/profile/DEFAULT.PFL
+        line:                          SAPDBHOST = {{ db_lb_virtual_host }}
+        insertafter:                   '#SAPDBHOST'
+      when:
+        - check_default_pfl is changed
+        - db_high_availability
+      tags:
+        - dbhostpara
+
+    - name:                            "HSR: 4.0.1.7 - SAP DEFAULT.PFL changes for JAVA"
+      block:
+        - name:                            "HSR: 4.0.1.7 - Check if SAP DEFAULT.PFL changes are needed for JAVA"
+          ansible.builtin.lineinfile:
+            path:                          "/sapmnt/{{ sap_sid | upper }}/profile/DEFAULT.PFL"
+            regexp:                        "^j2ee/dbhost = {{ db_lb_virtual_host }}"
+            line:                          "j2ee/dbhost = {{ db_lb_virtual_host }}"
+            state:                         present
+          check_mode:                      true
+          register:                        check_default_pfl
+          when:
+            - db_high_availability
+
+        - name:                            "HSR: 4.0.1.7 - SAP DEFAULT.PFL changes for JAVA"
+          ansible.builtin.replace:
+            path:                          /sapmnt/{{ sap_sid | upper }}/profile/DEFAULT.PFL
+            backup:                        true
+            regexp:                        '^j2ee/dbhost'
+            replace:                       '#j2ee/dbhost'
+          when:
+            - check_default_pfl is changed
+            - db_high_availability
+          tags:
+            - dbhostcomment
+
+        - name:                            "HSR: 4.0.1.7 - SAP DEFAULT.PFL changes - add db virtual hostname for JAVA"
+          ansible.builtin.lineinfile:
+            path:                          /sapmnt/{{ sap_sid | upper }}/profile/DEFAULT.PFL
+            line:                          j2ee/dbhost = {{ db_lb_virtual_host }}
+            insertafter:                   '#j2ee/dbhost'
+          when:
+            - check_default_pfl is changed
+            - db_high_availability
+          tags:
+            - dbhostpara
+      when:
+        - platform == 'HANA'
+        - db_high_availability
+        - instance_type is defined
+        - instance_type == 'JAVA'
+  when:
+    - platform == 'HANA'
+    - db_high_availability
+
+- name:                            "4.0.1.7 - Check if SAP DEFAULT.PFL changes are needed for rsdb/ssfs_connect"
+  ansible.builtin.lineinfile:
+    path:                          "/sapmnt/{{ sap_sid | upper }}/profile/DEFAULT.PFL"
+    regexp:                        "^rsdb/ssfs_connect = "
+    line:                          "rsdb/ssfs_connect = 1"
+    state:                         present
+  check_mode:                      true
+  register:                        check_ssfs_connect_pfl
+
+...

@@ -1,0 +1,31 @@
+---
+
+- name:                                "Load the disk configuration settings"
+  ansible.builtin.include_vars:        disks_config.yml
+
+# - name:                                "SQL"
+#   ansible.builtin.debug:
+#     var: disks
+
+- name:                                "SQL"
+  ansible.builtin.debug:
+    msg:
+      - "Data {{ sql_disk_list[0] }}"
+      - "Log {{ sql_disk_list[1] }}"
+  vars:
+    sql_disk_list: "{{ lookup('template', 'sql_disks.j2') }}"
+
+- name:                                "SQL"
+  ansible.builtin.set_fact:
+    data_disks: '{{ sql_disk_list[0] | join(",") }}'
+    log_disks: '{{ sql_disk_list[1] | join(",") }}'
+  vars:
+    sql_disk_list: "{{ lookup('template', 'sql_disks.j2') }}"
+
+- name:                                "SQL"
+  ansible.builtin.debug:
+    msg:
+      - "Data {{ data_disks }}"
+      - "Log {{ log_disks }}"
+
+...

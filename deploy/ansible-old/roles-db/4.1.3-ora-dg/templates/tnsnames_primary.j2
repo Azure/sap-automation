@@ -1,0 +1,36 @@
+
+ ################
+# Filename......: tnsnames.ora
+# Created.......: created by SAP AG, R/3 Rel. >= 6.10
+# Name..........:
+# Date..........:
+# @(#) $Id: //inst/inst_scripts/lmts_006_REL/tpls/ora/TNSNAMES.ORA#2 $
+################
+{{ db_sid }}.WORLD=
+  (DESCRIPTION =
+    (ADDRESS_LIST =
+        (ADDRESS =
+          (PROTOCOL = TCP)
+          (HOST = {{ sap_dbp_hostname }})
+          (PORT = 1521)
+        )
+    )
+    (CONNECT_DATA =
+       (SID = {{ db_sid }})
+       (SERVICE_NAME = {{ db_sid }})
+    )
+  )
+{{ db_sid }}_STDBY.WORLD=
+  (DESCRIPTION =
+    (ADDRESS_LIST =
+        (ADDRESS =
+          (PROTOCOL = TCP)
+          (HOST = {{ sap_dbs_hostname }})
+          (PORT = 1521)
+        )
+    )
+    (CONNECT_DATA =
+       (SID = {{ db_sid }})
+       (SERVICE_NAME = {{ db_sid }}_STDBY)
+    )
+  )

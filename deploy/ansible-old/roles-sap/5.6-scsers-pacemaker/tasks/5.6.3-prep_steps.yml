@@ -1,0 +1,44 @@
+---
+
+#######################################################################################################################
+# This file details all the preparation steps required before installing ASCS/ERS and                                 #
+# the cluster resources.                                                                                              #
+# https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-suse-netapp-files    #8
+#######################################################################################################################
+
+# The following items are prefixed with either [A] - applicable to all nodes, [1] - only applicable to node 1 or [2] - only applicable to node 2.
+
+
+# [A] Update SAP resource agents
+- name:                                "SLES - Check patch for the resource-agents package"
+  ansible.builtin.command:             grep 'parameter name="IS_ERS"' /usr/lib/ocf/resource.d/heartbeat/SAPInstance
+  register:                            rscagentpatch
+  become:                              true
+  when:
+    - distribution_full_id == "suse12.1"
+
+- name:                                "SLES - Update SAP resource agents - Ref - Bugzilla 1036486 - SLES 12 SP1"
+  ansible.builtin.command:             sudo zypper in -t patch SUSE-SLE-HA-12-SP1-2017-885=1
+  when:
+    - distribution_full_id == "suse12.1"
+    - rscagentpatch.stdout.find('IS_ERS') = -1
+
+- name:                                "SLES - Update SAP resource agents - Ref - Bugzilla 1036486 - SLES 12 SP2"
+  ansible.builtin.command:             sudo zypper in -t patch SUSE-SLE-HA-12-SP2-2017-886=1
+  when:
+    - distribution_full_id == "suse12.2"
+    - rscagentpatch.stdout.find('IS_ERS') = -1
+
+# @TODO - Update of SAP resource agents - do we need to do anything for SLES 15 ? The documentation is not clear
+
+# [A] Add mount entries - RHEL
+
+# [A] Configure SWAP file
+
+# [A] RHEL configuration - as per OSS note - SAP Note 2002167 - should we get this reviewed by RHEL ?
+
+# TODO - check the actions required for RHEL & add those actions here
+
+# End of all the preparation actions required to Install ASCS / ERS and cluster resources
+
+...

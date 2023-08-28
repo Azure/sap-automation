@@ -1,0 +1,62 @@
+---
+
+# /*---------------------------------------------------------------------------8
+# | Prepare the sql script  for  data guard initial configuration.             |
+# |                                                                            |
+# |                                                                            |
+# | Step 1 create the SQL scripts for DG                                       |
+# +------------------------------------4--------------------------------------*/
+
+# Set Primary and Secondary node names.
+
+- name:                                "Oracle Data Guard: Setting the primary and Secondary DB names"
+  ansible.builtin.set_fact:
+    ora_primary:                       "{{ ansible_play_hosts_all[0] }}"         # Oracle Primary Host
+    ora_secondary:                     "{{ ansible_play_hosts_all[1] }}"         # Oracle Secondary Host
+    current_host:                      "{{ ansible_hostname }}"
+  when:
+    - node_tier == "oracle" or node_tier == "oracle-asm"
+    - action == 1
+
+- name:                                "Oracle Data Guard: Prepare secondary node"
+  ansible.builtin.include_tasks:       "ora-dg-secondary-preparation.yaml"
+  when:
+    - node_tier == "oracle" or node_tier == "oracle-asm"
+    - action == 0
+
+- name:                                "Oracle Data Guard: Prepare and Restore"
+  block:
+    - name:                            "Oracle Data Guard: Preparation tasks"
+      ansible.builtin.include_tasks:   "ora-dg-preparation.yaml"
+
+    - name:                            "Oracle Data Guard: Setup primary"
+      ansible.builtin.include_tasks:   "ora-dg-setup-primary.yaml"
+      when:
+        - current_host == ora_primary
+
+    - name:                            "Oracle Data Guard: Setup secondary"
+      ansible.builtin.include_tasks:   "ora-dg-setup-secondary.yaml"
+      when:
+        - current_host == ora_secondary
+  when:
+    - action == 1
+    - node_tier == "oracle" or node_tier == "oracle-asm"
+    - node_tier != "observer"
+
+- name:                                "Oracle Data Guard: Post processing"
+  ansible.builtin.include_tasks:       "ora-dg-postprocessing.yaml"
+  when:
+    - node_tier == "oracle" or node_tier == "oracle-asm"
+    - node_tier != "observer"
+    - action       == 2
+
+# FSFO is enabled from the Observer.
+- name:                                "Oracle Data Guard: Setup Observer"
+  ansible.builtin.include_tasks:       "ora-dg-observer-setup.yaml"
+  when:
+    - node_tier == "observer"
+    - action    == 3
+...
+# /*---------------------------------------------------------------------------8
+# |                                   END                                      |
+# +------------------------------------4--------------------------------------*/

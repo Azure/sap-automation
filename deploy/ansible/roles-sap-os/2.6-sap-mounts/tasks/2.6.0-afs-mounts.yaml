@@ -68,7 +68,7 @@
                 src:                   "{{ sap_mnt }}"
                 path:                  "/saptmp"
                 fstype:                "nfs4"
-                opts:                  "vers=4,minorversion=1,sec=sys"
+                opts:                  "vers=4.1,sec=sys"
                 state:                 mounted
 
           rescue:
@@ -85,7 +85,7 @@
                 src:                   "{{ sap_mnt }}"
                 path:                  "/saptmp"
                 fstype:                "nfs4"
-                opts:                  "vers=4,minorversion=1,sec=sys"
+                opts:                  "vers=4.1,sec=sys"
                 state:                 mounted
 
         - name:                        "AFS Mount: Create SAP Directories (AFS)"
@@ -137,7 +137,7 @@
             src:                       "{{ sap_mnt }}"
             path:                      "/saptmp"
             fstype:                    "nfs4"
-            opts:                      "vers=4,minorversion=1,sec=sys"
+            opts:                      "vers=4.1,sec=sys"
             state:                     absent
       when:
         - sap_mnt is defined
@@ -368,48 +368,11 @@
         - { type: 'nfs4',  src: '{{ sap_mnt }}/usrsap{{ sap_sid | upper }}sys', path: '/usr/sap/{{ sap_sid | upper }}/SYS' }
   when:
     - scs_high_availability
-    - node_tier == 'scs'
+    - node_tier in ['scs','ers']
     - sap_mnt is defined
+  tags:
+    - sap_app_ha_sys_mount
 
-- name:                                "AFS Mount: usr/sap/{{ sap_sid | upper }}/SYS"
-  block:
-
-    - name:                            "AFS Mount: usr/sap/{{ sap_sid | upper }}/SYS"
-      ansible.posix.mount:
-        src:                           "{{ item.src }}"
-        path:                          "{{ item.path }}"
-        fstype:                        "{{ item.type }}"
-        opts:                          'rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp'
-        state:                         mounted
-      register:                        sys_mounted
-      loop:
-        - { type: 'nfs4',  src: '{{ sap_mnt }}/usrsap{{ sap_sid | upper }}sys', path: '/usr/sap/{{ sap_sid | upper }}/SYS' }
-  rescue:
-    - name:                            "AFS Mount: Pause for 5 seconds"
-      ansible.builtin.pause:
-        seconds:                       15
-    - name:                            "AFS Mount: usr/sap/{{ sap_sid | upper }}/SYS"
-      ansible.builtin.debug:
-        msg:                           "Rescue - AFS Mount: usr/sap/{{ sap_sid | upper }}/SYS"
-
-    - name:                            "AFS Mount: Debug"
-      ansible.builtin.debug:
-        var:                           sys_mounted
-
-    - name:                            "AFS Mount: usr/sap/{{ sap_sid | upper }}/SYS"
-      ansible.posix.mount:
-        src:                           "{{ item.src }}"
-        path:                          "{{ item.path }}"
-        fstype:                        "{{ item.type }}"
-        opts:                          'rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp'
-        state:                         mounted
-
-      loop:
-        - { type: 'nfs4',  src: '{{ sap_mnt }}/usrsap{{ sap_sid | upper }}sys', path: '/usr/sap/{{ sap_sid | upper }}/SYS' }
-  when:
-    - scs_high_availability
-    - node_tier == 'ers'
-    - sap_mnt is defined
 
 - name:                                "AFS Mount: sap_trans"
   ansible.builtin.include_tasks:       2.6.0.1-afs-mount.yaml

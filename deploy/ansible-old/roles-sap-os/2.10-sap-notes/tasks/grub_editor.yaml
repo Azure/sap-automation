@@ -1,0 +1,28 @@
+---
+# SAP Note 2777782 - SAP HANA DB: Recommended OS Settings for RHEL 8
+# Generic editor to add or edit GRUB arguments
+- name:                                "2.10 sap-notes: - Slurp GRUB config file content"
+  ansible.builtin.slurp:
+    src:                               "{{ grub_config_file }}"
+  register: grub_config_file_slurp
+
+- name:                                "2.10 sap-notes: - Update the current setting"
+  ansible.builtin.lineinfile:
+    path:                              "{{ grub_config_file }}"
+    regexp:                            '^GRUB_CMDLINE_LINUX="(.*){{ item.key }}=(?:[^\s]+)( .*"|")'
+    line:                              'GRUB_CMDLINE_LINUX="\1{{ item.key }}={{ item.value }}\2'
+    backrefs:                          true
+  when: item.key in grub_config_file_slurp.content | b64decode
+
+- name:                                "2.10 sap-notes: - Add the argument if it does not exist"
+  ansible.builtin.lineinfile:
+    path:                              "{{ grub_config_file }}"
+    regexp:                            '^GRUB_CMDLINE_LINUX="(.*)"'
+    line:                              'GRUB_CMDLINE_LINUX="\1 {{ item.key }}={{ item.value }}"'
+    backrefs:                          true
+  when: item.key not in grub_config_file_slurp.content | b64decode
+
+...
+# /*----------------------------------------------------------------------------8
+# |                                    END                                      |
+# +------------------------------------4--------------------------------------*/
