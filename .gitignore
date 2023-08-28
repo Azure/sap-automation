@@ -45,6 +45,7 @@ Webapp/.npmrc
 
 # Ignore Python cache directories
 __pycache__
+
 # Additional files to ignore
 owners.txt
 NuGet.config
