@@ -261,27 +261,22 @@
       no_log: true
 
     - name:                            "0.0 Validations - Retrieve Subscription ID and Resource Group Name"
-      ansible.builtin.command:         curl -H Metadata:true --noproxy "*" "http://169.254.169.254/metadata/instance?api-version=2021-02-01"
-      register:                        azure_metadata
-      no_log:                          true
-      changed_when:                    false
-      args:
-        warn:                          false
+      ansible.builtin.uri:
+        url:                           http://169.254.169.254/metadata/instance?api-version=2021-02-01
+        use_proxy:                     false
+        headers:
+          Metadata:                    true
+      register: azure_metadata
 
-    - name:                            "0.0 Validations - Show IMDS results"
+    - name:                            "0.0 Validations - Show IMDS results (JSON)"
       ansible.builtin.debug:
-        var:                           azure_metadata
+        var:                           azure_metadata.json
         verbosity:                     2
-
-    - name:                            "0.0 Validations - Save the Json data to a Variable as a Fact"
-      ansible.builtin.set_fact:
-        json_azure_data:               "{{ azure_metadata.stdout | from_json }}"
-      no_log:                          true
 
     - name:                            "0.0 Validations - Extract details"
       ansible.builtin.set_fact:
-        subscription_id:               "{{ json_azure_data | json_query('compute.subscriptionId') }}"
-        resource_group_name:           "{{ json_azure_data | json_query('compute.resourceGroupName') }}"
+        subscription_id:               "{{ azure_metadata.json.compute.subscriptionId }}"
+        resource_group_name:           "{{ azure_metadata.json.compute.resourceGroupName }}"
         mnt_free_diskspace:            "{{ ansible_mounts | json_query('[?mount == `/mnt`].size_available') }}"
 
     - name:                            "0.0 Validations - Show IMDS results"
@@ -408,26 +403,6 @@
 
     - name:                            "0.0 Validations - Check internet connectivity"
       ansible.builtin.uri:
-        # url: "https://management.azure.com/subscriptions/{{ subscription_id }}/providers/Microsoft.Web/sites?api-version=2022-03-01"
-        url: "https://azure.status.microsoft/en-us/status"
-        # headers:
-        #   Authorization: "Bearer {{ access_token }}"
-        #   Content-Type: application/json
-        #   Accept: application/json
-        status_code:
-          - 200
-          - 403
-      register: internet_check
-      vars:
-        ansible_python_interpreter: "{{ python_version }}"
-      when:
-        - (ansible_distribution | lower ~ ansible_distribution_major_version) in ['suse15', 'redhat8', 'redhat9', 'sles_sap15' ]
-        - ansible_os_family != "Windows"
-      tags:
-        - 0.0-internet
-
-    - name:                            "0.0 Validations - Check internet connectivity"
-      ansible.builtin.uri:
         url: "https://management.azure.com/subscriptions/{{ subscription_id }}/providers/Microsoft.Web/sites?api-version=2022-03-01"
         headers:
           Authorization: "Bearer {{ access_token }}"
@@ -436,13 +411,10 @@
         status_code:
           - 200
           - 403
-      register: internet_check
       when:
-        - (ansible_distribution | lower ~ ansible_distribution_major_version) != 'suse15'
-        - (ansible_distribution | lower ~ ansible_distribution_major_version) != 'sles_sap15'
-        - (ansible_distribution | lower ~ ansible_distribution_major_version) != 'redhat8'
-        - (ansible_distribution | lower ~ ansible_distribution_major_version) != 'redhat9'
+        - (ansible_distribution | lower ~ ansible_distribution_major_version) in ['suse15', 'redhat8', 'redhat9', 'sles_sap15' ]
         - ansible_os_family != "Windows"
+        - check_outbound | bool
       tags:
         - 0.0-internet
 
@@ -450,8 +422,6 @@
     #   ansible.builtin.command:         zypper lr
     #   register:                        zypper_results
     #   changed_when:                    false
-    #   args:
-    #     warn:                          false  # quieten warning about using zypper directly
     #   when:
     #     - (ansible_distribution | lower ~ ansible_distribution_major_version) in ['suse15', 'sles_sap15' ]
     #   tags:
@@ -469,8 +439,6 @@
     #   ansible.builtin.command:         yum repolist
     #   register:                        yum_results
     #   changed_when:                    false
-    #   args:
-    #     warn:                          false  # quieten warning about using yum directly
     #   when:
     #     - (ansible_distribution | lower ~ ansible_distribution_major_version) in ['redhat7', 'redhat8']
     #   tags:

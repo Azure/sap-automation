@@ -170,22 +170,30 @@
     state:                             touch
     mode:                              '0755'
 
-# Can not use ansible yum module as we need to use -y option in yum.
-- name:                                "SAP Oracle ASM: Install CVUQDISK RPM"
-  become:                              true
-  become_user:                         root
-  ansible.builtin.shell: |
-                                       set -o errexit
-                                       set -o pipefail
-                                       yum install -y /oracle/GRID/{{ ora_version }}/cv/rpm/cvuqdisk-1.0.10-1.rpm
-  args:
-    creates:                           /etc/sap_deployment_automation/oracle/CVUQDISK.txt
 
-- name:                                "SAP Oracle ASM: create after a RPM install"
-  ansible.builtin.file:
-    path:                              "/etc/sap_deployment_automation/oracle/CVUQDISK.txt"
-    state:                             touch
-    mode:                              '0755'
+- name:                                "ORACLE ASM: Install RPM Packages"
+  ansible.builtin.yum:
+    name:
+      - "/oracle/GRID/{{ ora_version }}/cv/rpm/cvuqdisk-1.0.10-1.rpm"
+    state:                             present
+    disable_gpg_check:                 true
+
+# # Can not use ansible yum module as we need to use -y option in yum.
+# - name:                                "SAP Oracle ASM: Install CVUQDISK RPM"
+#   become:                              true
+#   become_user:                         root
+#   ansible.builtin.shell: |
+#                                        set -o errexit
+#                                        set -o pipefail
+#                                        yum install -y /oracle/GRID/{{ ora_version }}/cv/rpm/cvuqdisk-1.0.10-1.rpm
+#   args:
+#     creates:                           /etc/sap_deployment_automation/oracle/CVUQDISK.txt
+
+# - name:                                "SAP Oracle ASM: create after a RPM install"
+#   ansible.builtin.file:
+#     path:                              "/etc/sap_deployment_automation/oracle/CVUQDISK.txt"
+#     state:                             touch
+#     mode:                              '0755'
 
 # +------------------------------------4--------------------------------------*/
 # |                                                                            |
@@ -194,35 +202,35 @@
 # +------------------------------------4--------------------------------------*/
 
 - name:                                "Make oracle:oinstall are the owners for ASM Data Disks "
-  become:                               true
-  become_user:                          root
+  become:                              true
+  become_user:                         root
   ansible.builtin.file:
     path:                              '{{ item }}1'
     owner:                             oracle
     group:                             oinstall
     mode:                              '755'
-  loop:                               '{{ datadisklist }}'
+  loop:                                '{{ datadisklist }}'
 
 
 - name:                                "Make oracle:oinstall are the owners for ASM Arch Disks "
-  become:                               true
-  become_user:                          root
+  become:                              true
+  become_user:                         root
   ansible.builtin.file:
     path:                              '{{ item }}1'
     owner:                             oracle
     group:                             oinstall
     mode:                              '755'
-  loop:                               '{{ archdisklist }}'
+  loop:                                '{{ archdisklist }}'
 
 - name:                                "Make oracle:oinstall are the owners for ASM Reco Disks "
-  become:                               true
-  become_user:                          root
+  become:                              true
+  become_user:                         root
   ansible.builtin.file:
     path:                              '{{ item }}1'
     owner:                             oracle
     group:                             oinstall
     mode:                              '755'
-  loop:                               '{{ recodisklist }}'
+  loop:                                '{{ recodisklist }}'
 
 - name:                                "SAP Oracle ASM: Install Execute GRIDSETUP"
   become:                              true
@@ -235,10 +243,10 @@
   failed_when:                         gridinstaller_results.rc >= 2              # installer returns rc=1 (exited with warning) by default when run is silent mode as the oratab file is created only after running the root.sh
   environment:
     CV_ASSUME_DISTID:                  OL7
-    ORACLE_SID:                       "{{ db_sid | upper }}"
-    ORACLE_BASE:                      /oracle/BASE
-    ORACLE_HOME:                      /oracle/GRID/{{ ora_version }}
-    DB_SID:                           "{{ db_sid | upper }}"
+    ORACLE_SID:                        "{{ db_sid | upper }}"
+    ORACLE_BASE:                       /oracle/BASE
+    ORACLE_HOME:                       /oracle/GRID/{{ ora_version }}
+    DB_SID:                            "{{ db_sid | upper }}"
   args:
     executable:                        /bin/csh
     chdir:                             "/oracle/GRID/{{ ora_version }}"

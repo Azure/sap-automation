@@ -34,7 +34,7 @@ resource "azurerm_private_dns_zone" "dns" {
   depends_on = [
     azurerm_resource_group.library
   ]
-  name     = var.dns_label
+  name = var.dns_label
   resource_group_name = local.resource_group_exists ? (
     split("/", var.infrastructure.resource_group.arm_id)[4]) : (
     azurerm_resource_group.library[0].name
@@ -47,7 +47,7 @@ resource "azurerm_private_dns_zone" "blob" {
   depends_on = [
     azurerm_resource_group.library
   ]
-  name     = "privatelink.blob.core.windows.net"
+  name = "privatelink.blob.core.windows.net"
   resource_group_name = local.resource_group_exists ? (
     split("/", var.infrastructure.resource_group.arm_id)[4]) : (
     azurerm_resource_group.library[0].name
@@ -60,7 +60,7 @@ resource "azurerm_private_dns_zone" "vault" {
   depends_on = [
     azurerm_resource_group.library
   ]
-  name     = "privatelink.vaultcore.azure.net"
+  name = "privatelink.vaultcore.azure.net"
   resource_group_name = local.resource_group_exists ? (
     split("/", var.infrastructure.resource_group.arm_id)[4]) : (
     azurerm_resource_group.library[0].name
@@ -73,7 +73,7 @@ resource "azurerm_private_dns_zone" "file" {
   depends_on = [
     azurerm_resource_group.library
   ]
-  name     = "privatelink.file.core.windows.net"
+  name = "privatelink.file.core.windows.net"
   resource_group_name = local.resource_group_exists ? (
     split("/", var.infrastructure.resource_group.arm_id)[4]) : (
     azurerm_resource_group.library[0].name
@@ -83,8 +83,9 @@ resource "azurerm_private_dns_zone" "file" {
 
 
 resource "azurerm_private_dns_zone_virtual_network_link" "vnet_mgmt" {
+  depends_on = [azurerm_private_dns_zone.dns]
   provider = azurerm.dnsmanagement
-  count = length(var.dns_label) > 0 && !var.use_custom_dns_a_registration && var.use_private_endpoint ? 1 : 0
+  count    = length(var.dns_label) > 0 && !var.use_custom_dns_a_registration && var.use_private_endpoint ? 1 : 0
   name = format("%s%s%s%s",
     var.naming.resource_prefixes.dns_link,
     local.prefix,
@@ -105,8 +106,12 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vnet_mgmt" {
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "vnet_mgmt_blob" {
+  depends_on = [
+    azurerm_storage_account.storage_tfstate,
+    azurerm_private_dns_zone.blob
+  ]
   provider = azurerm.dnsmanagement
-  count = length(var.dns_label) > 0 && !var.use_custom_dns_a_registration && var.use_private_endpoint ? 1 : 0
+  count    = length(var.dns_label) > 0 && !var.use_custom_dns_a_registration && var.use_private_endpoint ? 1 : 0
   name = format("%s%s%s%s-blob",
     var.naming.resource_prefixes.dns_link,
     local.prefix,

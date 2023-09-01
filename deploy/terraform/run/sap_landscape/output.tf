@@ -264,5 +264,5 @@ output "install_path" {
 
 output "controlplane_environment" {
   description = "Control plane environment"
-  value       = data.terraform_remote_state.deployer[0].outputs.environment
+  value       = try(data.terraform_remote_state.deployer[0].outputs.environmentm, "")
 }

@@ -35,7 +35,7 @@
           "count":                1,
           "disk_type":            "StandardSSD_LRS",
           "size_gb":              512,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
           "lun_start":         13
         },
@@ -44,18 +44,22 @@
           "count":                1,
           "disk_type":            "StandardSSD_LRS",
           "size_gb":              512,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
-          "lun_start":            14
+          "lun_start":            14,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 125
         },
         {
           "name":                 "backup",
           "count":                1,
           "disk_type":            "StandardSSD_LRS",
           "size_gb":              512,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
-          "lun_start":            15
+          "lun_start":            15,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 125
         }
       ]
     },
@@ -94,7 +98,7 @@
           "count":                1,
           "disk_type":            "StandardSSD_LRS",
           "size_gb":              512,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
           "lun_start":         13
         },
@@ -103,18 +107,22 @@
           "count":                1,
           "disk_type":            "StandardSSD_LRS",
           "size_gb":              512,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
-          "lun_start":            14
+          "lun_start":            14,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 125
         },
         {
           "name":                 "backup",
           "count":                1,
           "disk_type":            "StandardSSD_LRS",
           "size_gb":              512,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
-          "lun_start":            15
+          "lun_start":            15,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 125
         }
       ]
     },
@@ -138,7 +146,7 @@
           "count":                1,
           "disk_type":            "PremiumV2_LRS",
           "size_gb":              256,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
           "lun_start":            0
         },
@@ -165,7 +173,7 @@
           "count":                1,
           "disk_type":            "PremiumV2_LRS",
           "size_gb":              512,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
           "lun_start":            6
         },
@@ -174,7 +182,7 @@
           "count":                1,
           "disk_type":            "PremiumV2_LRS",
           "size_gb":              512,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
           "lun_start": 2
         }
@@ -219,7 +227,7 @@
           "count":                1,
           "disk_type":            "PremiumV2_LRS",
           "size_gb":              160,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
           "lun_start":            6,
           "disk_iops_read_write": 3000,
@@ -228,20 +236,24 @@
         {
           "name":                 "sap",
           "count":                1,
-          "disk_type":            "Premium_LRS",
+          "disk_type":            "PremiumV2_LRS",
           "size_gb":              128,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
-          "lun_start":            14
+          "lun_start":            14,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 125
         },
         {
           "name":                 "backup",
           "count":                1,
-          "disk_type":            "Premium_LRS",
+          "disk_type":            "PremiumV2_LRS",
           "size_gb":              256,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
-          "lun_start":            15
+          "lun_start":            15,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 125
         }
       ]
     },
@@ -284,7 +296,7 @@
           "count":                1,
           "disk_type":            "PremiumV2_LRS",
           "size_gb":              160,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
           "lun_start":            6,
           "disk_iops_read_write": 3000,
@@ -295,18 +307,22 @@
           "count":                1,
           "disk_type":            "PremiumV2_LRS",
           "size_gb":              128,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
-          "lun_start":            14
+          "lun_start":            14,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 125
         },
         {
           "name":                 "backup",
           "count":                1,
           "disk_type":            "PremiumV2_LRS",
           "size_gb":              256,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
-          "lun_start":            15
+          "lun_start":            15,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 125
         }
       ]
     },
@@ -349,7 +365,7 @@
           "count":                1,
           "disk_type":            "PremiumV2_LRS",
           "size_gb":              160,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
           "lun_start":            6,
           "disk_iops_read_write": 3000,
@@ -360,18 +376,22 @@
           "count":                1,
           "disk_type":            "PremiumV2_LRS",
           "size_gb":              128,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
-          "lun_start":            14
+          "lun_start":            14,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 125
         },
         {
           "name":                 "backup",
           "count":                1,
           "disk_type":            "PremiumV2_LRS",
           "size_gb":              256,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
-          "lun_start":            15
+          "lun_start":            15,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 125
         }
       ]
     },
@@ -415,7 +435,7 @@
           "count":                1,
           "disk_type":            "PremiumV2_LRS",
           "size_gb":              256,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
           "lun_start":            6,
           "disk_iops_read_write": 3000,
@@ -426,18 +446,22 @@
           "count":                1,
           "disk_type":            "PremiumV2_LRS",
           "size_gb":              128,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
-          "lun_start":            14
+          "lun_start":            14,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 125
         },
         {
           "name":                 "backup",
           "count":                1,
           "disk_type":            "PremiumV2_LRS",
           "size_gb":              256,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
-          "lun_start":            15
+          "lun_start":            15,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 125
         }
       ]
     },
@@ -481,7 +505,7 @@
           "count":                1,
           "disk_type":            "PremiumV2_LRS",
           "size_gb":              256,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
           "lun_start":            6,
           "disk_iops_read_write": 3000,
@@ -490,20 +514,24 @@
         {
           "name":                 "sap",
           "count":                1,
-          "disk_type":            "Premium_LRS",
+          "disk_type":            "PremiumV2_LRS",
           "size_gb":              128,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
-          "lun_start":            14
+          "lun_start":            14,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 125
         },
         {
           "name":                 "backup",
           "count":                1,
-          "disk_type":            "Premium_LRS",
+          "disk_type":            "PremiumV2_LRS",
           "size_gb":              256,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
-          "lun_start":            15
+          "lun_start":            15,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 125
         }
       ]
     },
@@ -546,7 +574,7 @@
           "count":                1,
           "disk_type":            "PremiumV2_LRS",
           "size_gb":              256,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
           "lun_start":            6,
           "disk_iops_read_write": 3000,
@@ -557,18 +585,22 @@
           "count":                1,
           "disk_type":            "PremiumV2_LRS",
           "size_gb":              128,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
-          "lun_start":            14
+          "lun_start":            14,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 125
         },
         {
           "name":                 "backup",
           "count":                1,
           "disk_type":            "PremiumV2_LRS",
           "size_gb":              256,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
-          "lun_start":            15
+          "lun_start":            15,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 125
         }
       ]
     },
@@ -611,7 +643,7 @@
           "count":                1,
           "disk_type":            "PremiumV2_LRS",
           "size_gb":              384,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
           "lun_start":            6,
           "disk_iops_read_write": 3000,
@@ -620,20 +652,24 @@
         {
           "name":                 "sap",
           "count":                1,
-          "disk_type":            "Premium_LRS",
+          "disk_type":            "PremiumV2_LRS",
           "size_gb":              128,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
-          "lun_start":            14
+          "lun_start":            14,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 125
         },
         {
           "name":                 "backup",
           "count":                1,
-          "disk_type":            "Premium_LRS",
+          "disk_type":            "PremiumV2_LRS",
           "size_gb":              512,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
-          "lun_start":            15
+          "lun_start":            15,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 125
         }
       ]
     },
@@ -676,7 +712,7 @@
           "count":                1,
           "disk_type":            "PremiumV2_LRS",
           "size_gb":              384,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
           "lun_start":            6,
           "disk_iops_read_write": 3000,
@@ -687,18 +723,22 @@
           "count":                1,
           "disk_type":            "PremiumV2_LRS",
           "size_gb":              128,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
-          "lun_start":            14
+          "lun_start":            14,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 125
         },
         {
           "name":                 "backup",
           "count":                1,
           "disk_type":            "PremiumV2_LRS",
           "size_gb":              512,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
-          "lun_start":            15
+          "lun_start":            15,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 125
         }
       ]
     },
@@ -741,7 +781,7 @@
           "count":                1,
           "disk_type":            "PremiumV2_LRS",
           "size_gb":              384,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
           "lun_start":            6,
           "disk_iops_read_write": 3000,
@@ -752,18 +792,22 @@
           "count":                1,
           "disk_type":            "PremiumV2_LRS",
           "size_gb":              128,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
-          "lun_start":            14
+          "lun_start":            14,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 125
         },
         {
           "name":                 "backup",
           "count":                1,
           "disk_type":            "PremiumV2_LRS",
           "size_gb":              512,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
-          "lun_start":            15
+          "lun_start":            15,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 125
         }
       ]
     },
@@ -806,7 +850,7 @@
           "count":                1,
           "disk_type":            "PremiumV2_LRS",
           "size_gb":              512,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
           "lun_start":            6,
           "disk_iops_read_write": 3000,
@@ -817,18 +861,22 @@
           "count":                1,
           "disk_type":            "PremiumV2_LRS",
           "size_gb":              128,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
-          "lun_start":            14
+          "lun_start":            14,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 125
         },
         {
           "name":                 "backup",
           "count":                1,
           "disk_type":            "PremiumV2_LRS",
           "size_gb":              512,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
-          "lun_start":            15
+          "lun_start":            15,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 125
         }
       ]
     },
@@ -871,7 +919,7 @@
           "count":                1,
           "disk_type":            "PremiumV2_LRS",
           "size_gb":              504,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
           "lun_start":            6,
           "disk_iops_read_write": 3000,
@@ -880,20 +928,24 @@
         {
           "name":                 "sap",
           "count":                1,
-          "disk_type":            "Premium_LRS",
+          "disk_type":            "PremiumV2_LRS",
           "size_gb":              128,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
-          "lun_start":            14
+          "lun_start":            14,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 125
         },
         {
           "name":                 "backup",
           "count":                1,
-          "disk_type":            "Premium_LRS",
+          "disk_type":            "PremiumV2_LRS",
           "size_gb":              512,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
-          "lun_start":            15
+          "lun_start":            15,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 125
         }
       ]
     },
@@ -936,7 +988,7 @@
           "count":                1,
           "disk_type":            "PremiumV2_LRS",
           "size_gb":              512,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
           "lun_start":            6,
           "disk_iops_read_write": 3000,
@@ -945,20 +997,24 @@
         {
           "name":                 "sap",
           "count":                1,
-          "disk_type":            "Premium_LRS",
+          "disk_type":            "PremiumV2_LRS",
           "size_gb":              128,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
-          "lun_start":            14
+          "lun_start":            14,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 125
         },
         {
           "name":                 "backup",
           "count":                1,
-          "disk_type":            "Premium_LRS",
+          "disk_type":            "PremiumV2_LRS",
           "size_gb":              512,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
-          "lun_start":            15
+          "lun_start":            15,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 125
         }
       ]
     },
@@ -1001,7 +1057,7 @@
           "count":                1,
           "disk_type":            "PremiumV2_LRS",
           "size_gb":              672,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
           "lun_start":            6,
           "disk_iops_read_write": 3000,
@@ -1012,18 +1068,22 @@
           "count":                1,
           "disk_type":            "PremiumV2_LRS",
           "size_gb":              128,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
-          "lun_start":            14
+          "lun_start":            14,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 125
         },
         {
           "name":                 "backup",
           "count":                1,
           "disk_type":            "PremiumV2_LRS",
           "size_gb":              512,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
-          "lun_start":            15
+          "lun_start":            15,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 125
         }
       ]
     },
@@ -1066,7 +1126,7 @@
           "count":                1,
           "disk_type":            "PremiumV2_LRS",
           "size_gb":              672,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
           "lun_start":            6,
           "disk_iops_read_write": 3000,
@@ -1075,20 +1135,24 @@
         {
           "name":                 "sap",
           "count":                1,
-          "disk_type":            "Premium_LRS",
+          "disk_type":            "PremiumV2_LRS",
           "size_gb":              128,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
-          "lun_start":            14
+          "lun_start":            14,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 125
         },
         {
           "name":                 "backup",
           "count":                1,
-          "disk_type":            "Premium_LRS",
+          "disk_type":            "PremiumV2_LRS",
           "size_gb":              512,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
-          "lun_start":            15
+          "lun_start":            15,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 125
         }
       ]
     },
@@ -1131,7 +1195,7 @@
           "count":                1,
           "disk_type":            "PremiumV2_LRS",
           "size_gb":              192,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
           "lun_start":            6,
           "disk_iops_read_write": 3000,
@@ -1140,20 +1204,24 @@
         {
           "name":                 "sap",
           "count":                1,
-          "disk_type":            "Premium_LRS",
+          "disk_type":            "PremiumV2_LRS",
           "size_gb":              128,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
-          "lun_start":            14
+          "lun_start":            14,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 125
         },
         {
           "name":                 "backup",
           "count":                1,
-          "disk_type":            "Premium_LRS",
+          "disk_type":            "PremiumV2_LRS",
           "size_gb":              512,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
-          "lun_start":            15
+          "lun_start":            15,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 125
         }
       ]
     },
@@ -1196,7 +1264,7 @@
           "count":                1,
           "disk_type":            "PremiumV2_LRS",
           "size_gb":              256,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
           "lun_start":            6,
           "disk_iops_read_write": 3000,
@@ -1205,20 +1273,24 @@
         {
           "name":                 "sap",
           "count":                1,
-          "disk_type":            "Premium_LRS",
+          "disk_type":            "PremiumV2_LRS",
           "size_gb":              128,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
-          "lun_start":            14
+          "lun_start":            14,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 125
         },
         {
           "name":                 "backup",
           "count":                1,
-          "disk_type":            "Premium_LRS",
+          "disk_type":            "PremiumV2_LRS",
           "size_gb":              512,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
-          "lun_start":            15
+          "lun_start":            15,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 125
         }
       ]
     },
@@ -1261,7 +1333,7 @@
           "count":                1,
           "disk_type":            "PremiumV2_LRS",
           "size_gb":              875,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
           "lun_start":            6,
           "disk_iops_read_write": 3000,
@@ -1270,20 +1342,24 @@
         {
           "name":                 "sap",
           "count":                1,
-          "disk_type":            "Premium_LRS",
+          "disk_type":            "PremiumV2_LRS",
           "size_gb":              128,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
-          "lun_start":            14
+          "lun_start":            14,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 125
         },
         {
           "name":                 "backup",
           "count":                1,
-          "disk_type":            "Premium_LRS",
+          "disk_type":            "PremiumV2_LRS",
           "size_gb":              512,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
-          "lun_start":            15
+          "lun_start":            15,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 125
         }
       ]
     },
@@ -1326,7 +1402,7 @@
           "count":                1,
           "disk_type":            "PremiumV2_LRS",
           "size_gb":              875,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
           "lun_start":            6,
           "disk_iops_read_write": 3000,
@@ -1335,20 +1411,24 @@
         {
           "name":                 "sap",
           "count":                1,
-          "disk_type":            "Premium_LRS",
+          "disk_type":            "PremiumV2_LRS",
           "size_gb":              128,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
-          "lun_start":            14
+          "lun_start":            14,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 125
         },
         {
           "name":                 "backup",
           "count":                1,
-          "disk_type":            "Premium_LRS",
+          "disk_type":            "PremiumV2_LRS",
           "size_gb":              512,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
-          "lun_start":            15
+          "lun_start":            15,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 125
         }
       ]
     },
@@ -1391,7 +1471,7 @@
           "count":                1,
           "disk_type":            "PremiumV2_LRS",
           "size_gb":              512,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
           "lun_start":            6,
           "disk_iops_read_write": 3000,
@@ -1400,20 +1480,24 @@
         {
           "name":                 "sap",
           "count":                1,
-          "disk_type":            "Premium_LRS",
+          "disk_type":            "PremiumV2_LRS",
           "size_gb":              128,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
-          "lun_start":            14
+          "lun_start":            14,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 125
         },
         {
           "name":                 "backup",
           "count":                1,
-          "disk_type":            "Premium_LRS",
+          "disk_type":            "PremiumV2_LRS",
           "size_gb":              1024,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
-          "lun_start":            15
+          "lun_start":            15,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 125
         }
       ]
     },
@@ -1456,7 +1540,7 @@
           "count":                1,
           "disk_type":            "PremiumV2_LRS",
           "size_gb":              1024,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
           "lun_start":            6,
           "disk_iops_read_write": 3000,
@@ -1465,20 +1549,24 @@
         {
           "name":                 "sap",
           "count":                1,
-          "disk_type":            "Premium_LRS",
+          "disk_type":            "PremiumV2_LRS",
           "size_gb":              128,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
-          "lun_start":            14
+          "lun_start":            14,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 125
         },
         {
           "name":                 "backup",
           "count":                1,
-          "disk_type":            "Premium_LRS",
+          "disk_type":            "PremiumV2_LRS",
           "size_gb":              1024,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
-          "lun_start":            15
+          "lun_start":            15,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 125
         }
       ]
     },
@@ -1521,7 +1609,7 @@
           "count":                1,
           "disk_type":            "PremiumV2_LRS",
           "size_gb":              1024,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
           "lun_start":            6,
           "disk_iops_read_write": 3000,
@@ -1530,20 +1618,24 @@
         {
           "name":                 "sap",
           "count":                1,
-          "disk_type":            "Premium_LRS",
+          "disk_type":            "PremiumV2_LRS",
           "size_gb":              128,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
-          "lun_start":            14
+          "lun_start":            14,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 125
         },
         {
           "name":                 "backup",
           "count":                1,
-          "disk_type":            "Premium_LRS",
+          "disk_type":            "PremiumV2_LRS",
           "size_gb":              1024,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
-          "lun_start":            15
+          "lun_start":            15,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 125
         }
       ]
     },
@@ -1586,7 +1678,7 @@
           "count":                1,
           "disk_type":            "PremiumV2_LRS",
           "size_gb":              1024,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
           "lun_start":            6,
           "disk_iops_read_write": 3000,
@@ -1595,20 +1687,24 @@
         {
           "name":                 "sap",
           "count":                1,
-          "disk_type":            "Premium_LRS",
+          "disk_type":            "PremiumV2_LRS",
           "size_gb":              128,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
-          "lun_start":            14
+          "lun_start":            14,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 125
         },
         {
           "name":                 "backup",
           "count":                1,
-          "disk_type":            "Premium_LRS",
+          "disk_type":            "PremiumV2_LRS",
           "size_gb":              1024,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
-          "lun_start":            15
+          "lun_start":            15,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 125
         }
       ]
     },
@@ -1651,7 +1747,7 @@
           "count":                1,
           "disk_type":            "PremiumV2_LRS",
           "size_gb":              1024,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
           "lun_start":            6,
           "disk_iops_read_write": 3000,
@@ -1660,20 +1756,24 @@
         {
           "name":                 "sap",
           "count":                1,
-          "disk_type":            "Premium_LRS",
+          "disk_type":            "PremiumV2_LRS",
           "size_gb":              128,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
-          "lun_start":            14
+          "lun_start":            14,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 125
         },
         {
           "name":                 "backup",
           "count":                2,
-          "disk_type":            "Premium_LRS",
+          "disk_type":            "PremiumV2_LRS",
           "size_gb":              1024,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
-          "lun_start":            15
+          "lun_start":            15,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 125
         }
       ]
     },
@@ -1716,7 +1816,7 @@
           "count":                1,
           "disk_type":            "PremiumV2_LRS",
           "size_gb":              1024,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
           "lun_start":            6,
           "disk_iops_read_write": 3000,
@@ -1725,20 +1825,24 @@
         {
           "name":                 "sap",
           "count":                1,
-          "disk_type":            "Premium_LRS",
+          "disk_type":            "PremiumV2_LRS",
           "size_gb":              128,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
-          "lun_start":            14
+          "lun_start":            14,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 125
         },
         {
           "name":                 "backup",
-          "count":                2,
-          "disk_type":            "Premium_LRS",
+          "count":                1,
+          "disk_type":            "PremiumV2_LRS",
           "size_gb":              1024,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
-          "lun_start":            15
+          "lun_start":            15,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 125
         }
       ]
     },
@@ -1781,7 +1885,7 @@
           "count":                1,
           "disk_type":            "PremiumV2_LRS",
           "size_gb":              1024,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
           "lun_start":            6,
           "disk_iops_read_write": 3000,
@@ -1790,20 +1894,24 @@
         {
           "name":                 "sap",
           "count":                1,
-          "disk_type":            "Premium_LRS",
+          "disk_type":            "PremiumV2_LRS",
           "size_gb":              128,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
-          "lun_start":            14
+          "lun_start":            14,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 125
         },
         {
           "name":                 "backup",
-          "count":                2,
-          "disk_type":            "Premium_LRS",
-          "size_gb":              1024,
-          "caching":              "ReadOnly",
+          "count":                1,
+          "disk_type":            "PremiumV2_LRS",
+          "size_gb":              2560,
+          "caching":              "None",
           "write_accelerator":    false,
-          "lun_start":            15
+          "lun_start":            15,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 125
         }
       ]
     },
@@ -1846,7 +1954,7 @@
           "count":                1,
           "disk_type":            "PremiumV2_LRS",
           "size_gb":              1024,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
           "lun_start":            6,
           "disk_iops_read_write": 3000,
@@ -1855,20 +1963,24 @@
         {
           "name":                 "sap",
           "count":                1,
-          "disk_type":            "Premium_LRS",
+          "disk_type":            "PremiumV2_LRS",
           "size_gb":              128,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
-          "lun_start":            14
+          "lun_start":            14,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 125
         },
         {
           "name":                 "backup",
-          "count":                2,
-          "disk_type":            "Premium_LRS",
-          "size_gb":              1024,
-          "caching":              "ReadOnly",
+          "count":                1,
+          "disk_type":            "PremiumV2_LRS",
+          "size_gb":              3072,
+          "caching":              "None",
           "write_accelerator":    false,
-          "lun_start":            15
+          "lun_start":            15,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 125
         }
       ]
     },
@@ -1911,7 +2023,7 @@
           "count":                1,
           "disk_type":            "PremiumV2_LRS",
           "size_gb":              1024,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
           "lun_start":            6,
           "disk_iops_read_write": 3000,
@@ -1920,20 +2032,24 @@
         {
           "name":                 "sap",
           "count":                1,
-          "disk_type":            "Premium_LRS",
+          "disk_type":            "PremiumV2_LRS",
           "size_gb":              128,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
-          "lun_start":            14
+          "lun_start":            14,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 125
         },
         {
           "name":                 "backup",
-          "count":                2,
-          "disk_type":            "Premium_LRS",
-          "size_gb":              1024,
-          "caching":              "ReadOnly",
+          "count":                1,
+          "disk_type":            "PremiumV2_LRS",
+          "size_gb":              3072,
+          "caching":              "None",
           "write_accelerator":    false,
-          "lun_start":            15
+          "lun_start":            15,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 125
         }
       ]
     },
@@ -1976,7 +2092,7 @@
           "count":                1,
           "disk_type":            "PremiumV2_LRS",
           "size_gb":              1024,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
           "lun_start":            6,
           "disk_iops_read_write": 3000,
@@ -1985,20 +2101,24 @@
         {
           "name":                 "sap",
           "count":                1,
-          "disk_type":            "Premium_LRS",
+          "disk_type":            "PremiumV2_LRS",
           "size_gb":              128,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
-          "lun_start":            14
+          "lun_start":            14,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 125
         },
         {
           "name":                 "backup",
-          "count":                2,
-          "disk_type":            "Premium_LRS",
-          "size_gb":              1024,
-          "caching":              "ReadOnly",
+          "count":                1,
+          "disk_type":            "PremiumV2_LRS",
+          "size_gb":              3072,
+          "caching":              "None",
           "write_accelerator":    false,
-          "lun_start":            15
+          "lun_start":            15,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 125
         }
       ]
     },
@@ -2041,7 +2161,7 @@
           "count":                1,
           "disk_type":            "PremiumV2_LRS",
           "size_gb":              1024,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
           "lun_start":            6,
           "disk_iops_read_write": 3000,
@@ -2050,20 +2170,24 @@
         {
           "name":                 "sap",
           "count":                1,
-          "disk_type":            "Premium_LRS",
+          "disk_type":            "PremiumV2_LRS",
           "size_gb":              128,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
-          "lun_start":            14
+          "lun_start":            14,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 125
         },
         {
           "name":                 "backup",
-          "count":                2,
-          "disk_type":            "Premium_LRS",
-          "size_gb":              1024,
-          "caching":              "ReadOnly",
+          "count":                1,
+          "disk_type":            "PremiumV2_LRS",
+          "size_gb":              6144,
+          "caching":              "None",
           "write_accelerator":    false,
-          "lun_start":            15
+          "lun_start":            15,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 125
         }
       ]
     },
@@ -2106,7 +2230,7 @@
           "count":                1,
           "disk_type":            "PremiumV2_LRS",
           "size_gb":              1024,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
           "lun_start":            6,
           "disk_iops_read_write": 3000,
@@ -2115,20 +2239,24 @@
         {
           "name":                 "sap",
           "count":                1,
-          "disk_type":            "Premium_LRS",
+          "disk_type":            "PremiumV2_LRS",
           "size_gb":              128,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
-          "lun_start":            14
+          "lun_start":            14,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 125
         },
         {
           "name":                 "backup",
-          "count":                2,
-          "disk_type":            "Premium_LRS",
-          "size_gb":              1024,
-          "caching":              "ReadOnly",
+          "count":                1,
+          "disk_type":            "PremiumV2_LRS",
+          "size_gb":              6144,
+          "caching":              "None",
           "write_accelerator":    false,
-          "lun_start":            15
+          "lun_start":            15,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 125
         }
       ]
     },
@@ -2171,7 +2299,7 @@
           "count":                1,
           "disk_type":            "PremiumV2_LRS",
           "size_gb":              1024,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
           "lun_start":            6,
           "disk_iops_read_write": 3000,
@@ -2180,20 +2308,24 @@
         {
           "name":                 "sap",
           "count":                1,
-          "disk_type":            "Premium_LRS",
+          "disk_type":            "PremiumV2_LRS",
           "size_gb":              128,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
-          "lun_start":            14
+          "lun_start":            14,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 125
         },
         {
           "name":                 "backup",
-          "count":                2,
-          "disk_type":            "Premium_LRS",
-          "size_gb":              1024,
-          "caching":              "ReadOnly",
+          "count":                1,
+          "disk_type":            "PremiumV2_LRS",
+          "size_gb":              6144,
+          "caching":              "None",
           "write_accelerator":    false,
-          "lun_start":            15
+          "lun_start":            15,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 125
         }
       ]
     },
@@ -2236,7 +2368,7 @@
           "count":                1,
           "disk_type":            "PremiumV2_LRS",
           "size_gb":              1024,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
           "lun_start":            6,
           "disk_iops_read_write": 3000,
@@ -2245,20 +2377,24 @@
         {
           "name":                 "sap",
           "count":                1,
-          "disk_type":            "Premium_LRS",
+          "disk_type":            "PremiumV2_LRS",
           "size_gb":              128,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
-          "lun_start":            14
+          "lun_start":            14,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 125
         },
         {
           "name":                 "backup",
-          "count":                4,
-          "disk_type":            "Premium_LRS",
-          "size_gb":              1024,
-          "caching":              "ReadOnly",
+          "count":                1,
+          "disk_type":            "PremiumV2_LRS",
+          "size_gb":              6144,
+          "caching":              "None",
           "write_accelerator":    false,
-          "lun_start":            15
+          "lun_start":            15,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 125
         }
       ]
     },
@@ -2301,7 +2437,7 @@
           "count":                1,
           "disk_type":            "PremiumV2_LRS",
           "size_gb":              1024,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
           "lun_start":            6,
           "disk_iops_read_write": 3000,
@@ -2310,20 +2446,24 @@
         {
           "name":                 "sap",
           "count":                1,
-          "disk_type":            "Premium_LRS",
+          "disk_type":            "PremiumV2_LRS",
           "size_gb":              128,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
-          "lun_start":            14
+          "lun_start":            14,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 125
         },
         {
           "name":                 "backup",
-          "count":                4,
-          "disk_type":            "Premium_LRS",
-          "size_gb":              2048,
-          "caching":              "ReadOnly",
+          "count":                1,
+          "disk_type":            "PremiumV2_LRS",
+          "size_gb":              8192,
+          "caching":              "None",
           "write_accelerator":    false,
-          "lun_start":            15
+          "lun_start":            15,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 125
         }
       ]
     },
@@ -2366,7 +2506,7 @@
           "count":                1,
           "disk_type":            "PremiumV2_LRS",
           "size_gb":              1024,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
           "lun_start":            6,
           "disk_iops_read_write": 3000,
@@ -2375,20 +2515,24 @@
         {
           "name":                 "sap",
           "count":                1,
-          "disk_type":            "Premium_LRS",
+          "disk_type":            "PremiumV2_LRS",
           "size_gb":              128,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
-          "lun_start":            14
+          "lun_start":            14,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 125
         },
         {
           "name":                 "backup",
-          "count":                4,
-          "disk_type":            "Premium_LRS",
-          "size_gb":              2048,
-          "caching":              "ReadOnly",
+          "count":                1,
+          "disk_type":            "PremiumV2_LRS",
+          "size_gb":              4096,
+          "caching":              "None",
           "write_accelerator":    false,
-          "lun_start":            15
+          "lun_start":            15,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 125
         }
       ]
     },
@@ -2431,7 +2575,7 @@
           "count":                1,
           "disk_type":            "PremiumV2_LRS",
           "size_gb":              1024,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
           "lun_start":            6,
           "disk_iops_read_write": 3000,
@@ -2440,20 +2584,24 @@
         {
           "name":                 "sap",
           "count":                1,
-          "disk_type":            "Premium_LRS",
+          "disk_type":            "PremiumV2_LRS",
           "size_gb":              128,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
-          "lun_start":            14
+          "lun_start":            14,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 125
         },
         {
           "name":                 "backup",
-          "count":             3,
-          "disk_type":            "Premium_LRS",
-          "size_gb":              2048,
-          "caching":              "ReadOnly",
+          "count":                1,
+          "disk_type":            "PremiumV2_LRS",
+          "size_gb":              6144,
+          "caching":              "None",
           "write_accelerator":    false,
-          "lun_start":            15
+          "lun_start":            15,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 125
         }
       ]
     },
@@ -2496,7 +2644,7 @@
           "count":                1,
           "disk_type":            "PremiumV2_LRS",
           "size_gb":              1024,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
           "lun_start":            6,
           "disk_iops_read_write": 3000,
@@ -2505,20 +2653,24 @@
         {
           "name":                 "sap",
           "count":                1,
-          "disk_type":            "Premium_LRS",
+          "disk_type":            "PremiumV2_LRS",
           "size_gb":              128,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
-          "lun_start":            14
+          "lun_start":            14,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 125
         },
         {
           "name":                 "backup",
-          "count":             3,
+          "count":                1,
           "disk_type":            "PremiumV2_LRS",
-          "size_gb":              5096,
-          "caching":              "ReadOnly",
+          "size_gb":              10240,
+          "caching":              "None",
           "write_accelerator":    false,
-          "lun_start":            15
+          "lun_start":            15,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 125
         }
       ]
     },
@@ -2561,7 +2713,7 @@
           "count":                1,
           "disk_type":            "PremiumV2_LRS",
           "size_gb":              1024,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
           "lun_start":            6,
           "disk_iops_read_write": 3000,
@@ -2570,20 +2722,24 @@
         {
           "name":                 "sap",
           "count":                1,
-          "disk_type":            "Premium_LRS",
+          "disk_type":            "PremiumV2_LRS",
           "size_gb":              128,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
-          "lun_start":            14
+          "lun_start":            14,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 125
         },
         {
           "name":                 "backup",
-          "count":                4,
-          "disk_type":            "Premium_LRS",
+          "count":                1,
+          "disk_type":            "PremiumV2_LRS",
           "size_gb":              5096,
-          "caching":              "ReadOnly",
+          "caching":              "None",
           "write_accelerator":    false,
-          "lun_start":            15
+          "lun_start":            15,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 125
         }
       ]
     }

@@ -195,24 +195,14 @@
 - name:                                "ORACLE ASM: Disk Initialisation"
   block:
 
-    - name:                            "ORACLE ASM: Install ASM RPM Packages"
-      ansible.builtin.shell: |
-                          set -o errexit
-                          yum install -y {{ target_media_location }}/downloads/oracleasmlib-2.0.17-1.el8.x86_64.rpm
-                          yum install -y {{ target_media_location }}/downloads/oracleasm-support-2.1.12-1.el8.x86_64.rpm
-                          yum install -y {{ target_media_location }}/downloads/compat-libcap1-1.10-7.el7.x86_64.rpm
-                          touch /etc/sap_deployment_automation/asmlibinstall.txt
-      register:                        asmpackageouput
-
-      args:
-        creates:                       /etc/sap_deployment_automation/asmlibinstall.txt
-
-    # Debug for testing
-    - name:                            "ORACLE ASM: Install ASM package ouput"
-      ansible.builtin.debug:
-        var:                           asmpackageouput
-        verbosity:                     2
-
+    - name:                            "ORACLE ASM: Install RPM Packages"
+      ansible.builtin.yum:
+        name:
+          - "{{ target_media_location }}/downloads/oracleasmlib-2.0.17-1.el8.x86_64.rpm"
+          - "{{ target_media_location }}/downloads/oracleasm-support-2.1.12-1.el8.x86_64.rpm"
+          - "{{ target_media_location }}/downloads/compat-libcap1-1.10-7.el7.x86_64.rpm"
+        state:                         present
+        disable_gpg_check:             true
 
     # STEP2 Configure and init ORACLEASM
     # The loop has to be run per host as the sap-parameters file has all the disks.

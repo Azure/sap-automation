@@ -299,6 +299,15 @@
         - name:                        "PAS Installation Playbook: - Ensure Sharing Data Folder"
           ansible.builtin.include_role:
             name:                      roles-sap-os/windows/2.3-sap-exports
+          tags:
+            - 2.3-sap-exports
+          vars:
+            winadm_password:           "{{ hostvars.localhost.winadm_password }}"
+            domain_service_password:   "{{ hostvars.localhost.adsvc_password }}"
+            domain_service_account:    "{{ hostvars.localhost.adsvc_account }}"
+            domain_user_password:      "{{ hostvars.localhost.winadm_password }}"
+            sql_svc_account:           "{% if hostvars.localhost.sqlsvc_account is defined %}{{ hostvars.localhost.sqlsvc_account }}{% else %}{{ win_sql_svc_account }}{% endif %}"
+            tier:                      app_tier
 
         - name:                        Run the PAS installation Playbook
           block:
@@ -312,7 +321,7 @@
                 domain_service_password:   "{{ hostvars.localhost.adsvc_password }}"
                 domain_service_account:    "{{ hostvars.localhost.adsvc_account }}"
                 domain_user_password:      "{{ hostvars.localhost.winadm_password }}"
-                tier:                  app_tier
+                tier:                      app_tier
 
             - name:                    "PAS Installation Playbook: - Install using SAPInst"
               ansible.builtin.include_role:

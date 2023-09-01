@@ -289,6 +289,15 @@
         owner:                         oracle
         group:                         oinstall
 
+
+    - name:                            "ORACLE: Pre Processing set permissions"
+      ansible.builtin.file:
+        path:                          "/oracle/{{ db_sid | upper }}/{{ ora_version }}/bin/oradism"
+        state:                         file
+        mode:                          '0750'
+        owner:                         oracle
+        group:                         oinstall
+
     - name:                            "ORACLE: Post Processing - SBP Patching"
       become:                          true
       become_user:                     "oracle"
@@ -305,6 +314,14 @@
         creates:                       "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sbpdb_installed.txt"
         chdir:                         "{{ target_media_location }}/SBP"
         executable:                    /bin/csh
+
+    - name:                            "ORACLE: pre processing reset permissions"
+      ansible.builtin.file:
+        path:                          "/oracle/{{ db_sid | upper }}/{{ ora_version }}/bin/oradism"
+        state:                         file
+        mode:                          '4750'
+        owner:                         root
+        group:                         oinstall
 
     - name:                            "ORACLE: Post processing installer output"
       ansible.builtin.debug:
@@ -480,6 +497,15 @@
       when:                            gridpreinstall.rc == 0
 
     # STEP 4.2.2 SBP Patching for Oracle GRID.
+
+    - name:                            "ORACLE: Pre Processing set permissions GRID"
+      ansible.builtin.file:
+        path:                          "/oracle/GRID/{{ ora_version }}/bin/oradism"
+        state:                         file
+        mode:                          '0750'
+        owner:                         oracle
+        group:                         oinstall
+
     - name:                            "ORACLE: Post Processing - GRID SBP Patching"
       become:                          true
       become_user:                     "oracle"
@@ -496,6 +522,14 @@
         creates:                        "/etc/sap_deployment_automation/{{ sap_sid | upper }}/gridsbp_installed.txt"
         chdir:                          "{{ target_media_location }}/SBP"
         executable:                     /bin/csh
+
+    - name:                            "ORACLE: Pre Processing reset permissions GRID"
+      ansible.builtin.file:
+        path:                          "/oracle/GRID/{{ ora_version }}/bin/oradism"
+        state:                         file
+        mode:                          '4750'
+        owner:                         oracle
+        group:                         oinstall
 
     - name:                            "SAP Oracle DB ASM: Post processing installer output"
       ansible.builtin.debug:
@@ -598,22 +632,17 @@
     - name:                            "ORACLE: Successful installation"
       block:
         - name:                        "Retrieve Subscription ID and Resource Group Name"
-          ansible.builtin.command:     curl -H Metadata:true --noproxy "*" "http://169.254.169.254/metadata/instance?api-version=2021-02-01"
-          register:                    azure_metadata
-          no_log:                      true
-          changed_when:                false
-          args:
-            warn:                      false
-
-        - name:                        "ORACLE: Save the Json data to a Variable as a Fact"
-          ansible.builtin.set_fact:
-            json_azure_data:           "{{ azure_metadata.stdout | from_json }}"
-          no_log:                      true
+          ansible.builtin.uri:
+            url:                       http://169.254.169.254/metadata/instance?api-version=2021-02-01
+            use_proxy:                 false
+            headers:
+              Metadata:                true
+          register: azure_metadata
 
         - name:                        "ORACLE: Extract details"
           ansible.builtin.set_fact:
-            subscription_id:           "{{ json_azure_data | json_query('compute.subscriptionId') }}"
-            resource_group_name:       "{{ json_azure_data | json_query('compute.resourceGroupName') }}"
+            subscription_id:           "{{ azure_metadata.json.compute.subscriptionId }}"
+            resource_group_name:       "{{ azure_metadata.json.compute.resourceGroupName }}"
 
         - name:                        "ORACLE: Show the subscription and resource group"
           ansible.builtin.debug:

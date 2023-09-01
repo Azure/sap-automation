@@ -115,11 +115,10 @@ resource "azurerm_private_endpoint" "sapmnt" {
     )) : (
     0
   )
-  name = format("%s%s%s%s",
+  name = format("%s%s%s",
     var.naming.resource_prefixes.storage_private_link_sapmnt,
     local.prefix,
-    local.resource_suffixes.storage_private_link_sapmnt,
-    var.naming.resource_suffixes.nic
+    local.resource_suffixes.storage_private_link_sapmnt
   )
 
   resource_group_name = local.rg_name
