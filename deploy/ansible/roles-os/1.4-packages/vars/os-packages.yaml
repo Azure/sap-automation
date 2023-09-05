@@ -230,7 +230,6 @@ packages:
     - { tier: 'sapos', package: 'libatomic',                                    node_tier: 'all',     state: 'present' }
     - { tier: 'sapos', package: 'uuidd',                                        node_tier: 'all',     state: 'present' }
     - { tier: 'sapos', package: 'csh',                                          node_tier: 'all',     state: 'present' }
-    - { tier: 'sapos', package: 'chkconfig',                                    node_tier: 'hana',    state: 'present' }
     # ------------------------- Begin - Packages required for Clustering ---------------------------------------8
     - { tier: 'ha',    package: 'pcs',                                          node_tier: 'all',     state: 'present' }
     - { tier: 'ha',    package: 'pacemaker',                                    node_tier: 'all',     state: 'present' }
@@ -246,7 +245,6 @@ packages:
     - { tier: 'ha',    package: 'ha-cloud-support',                             node_tier: 'hana',    state: 'present' }
     - { tier: 'ha',    package: 'ha-cloud-support',                             node_tier: 'scs',     state: 'present' }
     - { tier: 'ha',    package: 'ha-cloud-support',                             node_tier: 'ers',     state: 'present' }
-
   # ------------------------- End - Packages required for Clustering -----------------------------------------8
   # ------------------------- Begin - Packages required for Start/Stop ------------------------------------8
     - { tier: 'ha',    package: 'sap-cluster-connector',                        node_tier: 'hana',    state: 'present' }
@@ -255,13 +253,23 @@ packages:
 
   # ------------------------- End - Packages required for Start/Stop -----------------------------------------8
   redhat8.1:
+    - { tier: 'ha',    package: 'fence-agents-azure-arm',                       node_tier: 'all',     state: 'present' }
   redhat8.2:
+    - { tier: 'ha',    package: 'fence-agents-azure-arm',                       node_tier: 'all',     state: 'present' }
   redhat8.4:
+    - { tier: 'ha',    package: 'fence-agents-azure-arm',                       node_tier: 'all',     state: 'present' }
   redhat8.6:
+    - { tier: 'ha',    package: 'fence-agents-azure-arm',                       node_tier: 'all',     state: 'present' }
+  redhat8.7:
+    - { tier: 'ha',    package: 'fence-agents-azure-arm',                       node_tier: 'all',     state: 'present' }
   redhat8.8:
+    - { tier: 'ha',    package: 'fence-agents-azure-arm',                       node_tier: 'all',     state: 'present' }
   redhat9.0:
+    - { tier: 'sapos', package: 'chkconfig',                                    node_tier: 'hana',    state: 'present' }
+    - { tier: 'ha',    package: 'fence-agents-azure-arm',                       node_tier: 'all',     state: 'present' }
   redhat9.2:
-
+    - { tier: 'ha',    package: 'fence-agents-azure-arm',                       node_tier: 'all',     state: 'present' }
+    - { tier: 'sapos', package: 'chkconfig',                                    node_tier: 'hana',    state: 'present' }
   sles_sap12:
     - { tier: 'os',    package: 'chrony',                                       node_tier: 'all',     state: 'present' }
     - { tier: 'os',    package: 'glibc',                                        node_tier: 'all',     state: 'present' }
@@ -344,21 +352,21 @@ packages:
     - { tier: 'sapos', package: 'libatomic1',                                   node_tier: 'all',     state: 'present' }
     - { tier: 'sapos', package: 'uuidd',                                        node_tier: 'all',     state: 'present' }
     - { tier: 'sapos', package: 'acl',                                          node_tier: 'all',     state: 'present' }
-    # ----------------------- Begin - Packages required for Clustering -------------------------------------8
+  # ----------------------- Begin - Packages required for Clustering -------------------------------------8
     - { tier: 'ha',    package: 'acl',                                          node_tier: 'hana',    state: 'present' }
     - { tier: 'ha',    package: 'socat',                                        node_tier: 'all' ,    state: 'present' }
     - { tier: 'ha',    package: 'corosync',                                     node_tier: 'hana',    state: 'present' }
-    - { tier: 'ha',    package: 'resource-agents>=4.3',                         node_tier: 'all',     state: 'present' }
+    - { tier: 'ha',    package: 'resource-agents>=4.3',                         node_tier: 'hana',    state: 'present' }
     - { tier: 'ha',    package: 'fence-agents>=4.4.0',                          node_tier: 'hana',    state: 'present' }
     - { tier: 'ha',    package: 'cloud-netconfig-azure>=1.3',                   node_tier: 'hana',    state: 'present' }
-    # Assumption: Public_Cloud_Module_x86_64 already available
-    # python3-azure-mgmt-compute depends on az-cli
-    # investigate by running
-    # [1] sudo zypper search -s -n python3-azure-mgmt-compute=4.6.2
-    # look at required packages
-    # [2] sudo zypper search --requires -n python3-azure-mgmt-compute=4.6.2
-    # identify requirements for azure-cli-vm which allows the restart of VMs
-    # [3]  sudo zypper search --requires -n azure-cli-vm=2.2.2
+  # Assumption: Public_Cloud_Module_x86_64 already available
+  # python3-azure-mgmt-compute depends on az-cli
+  # investigate by running
+  # [1] sudo zypper search -s -n python3-azure-mgmt-compute=4.6.2
+  # look at required packages
+  # [2] sudo zypper search --requires -n python3-azure-mgmt-compute=4.6.2
+  # identify requirements for azure-cli-vm which allows the restart of VMs
+  # [3]  sudo zypper search --requires -n azure-cli-vm=2.2.2
     - { tier: 'ha',    package: 'azure-cli',                                    node_tier: 'hana',    state: 'present' }
     - { tier: 'ha',    package: 'azure-cli',                                    node_tier: 'scs',     state: 'present' }
     - { tier: 'ha',    package: 'azure-cli',                                    node_tier: 'ers',     state: 'present' }
@@ -382,29 +390,16 @@ packages:
     - { tier: 'os',    package: 'python-xml',                                   node_tier: 'all',     state: 'present' }
     - { tier: 'os',    package: 'python2-rpm',                                  node_tier: 'all',     state: 'present' }
     - { tier: 'db2',   package: 'system-user-bin',                              node_tier: 'db2',     state: 'present' }
-    - { tier: 'ha',    package: 'sapstartsrv-resource-agents',                  node_tier: 'scs',     state: 'present' }
-    - { tier: 'ha',    package: 'sapstartsrv-resource-agents',                  node_tier: 'ers',     state: 'present' }
   sles_sap15.3:
     #  - { tier: 'os',    package: 'sle-module-public-cloud',                                  state: 'present' }
     - { tier: 'os',    package: 'python-xml',                                   node_tier: 'all',     state: 'present' }
     - { tier: 'os',    package: 'python2-rpm',                                  node_tier: 'all',     state: 'present' }
     - { tier: 'db2',   package: 'system-user-bin',                              node_tier: 'db2',     state: 'present' }
-    - { tier: 'ha',    package: 'sapstartsrv-resource-agents',                  node_tier: 'scs',     state: 'present' }
-    - { tier: 'ha',    package: 'sapstartsrv-resource-agents',                  node_tier: 'ers',     state: 'present' }
   sles_sap15.4:
     #  - { tier: 'os',    package: 'sle-module-public-cloud',                                  state: 'present' }
     - { tier: 'os',    package: 'python3-xml',                                  node_tier: 'all',     state: 'present' }
     #  SLES15 SP4 has removed python 2, no python2-rpm package. Additionally, python-xml is now part of python-base and referenced as python3-xml
     - { tier: 'db2',   package: 'system-user-bin',                              node_tier: 'db2',     state: 'present' }
-    - { tier: 'ha',    package: 'sapstartsrv-resource-agents',                  node_tier: 'scs',     state: 'present' }
-    - { tier: 'ha',    package: 'sapstartsrv-resource-agents',                  node_tier: 'ers',     state: 'present' }
-  sles_sap15.5:
-    #  - { tier: 'os',    package: 'sle-module-public-cloud',                                  state: 'present' }
-    - { tier: 'os',    package: 'python3-xml',                                  node_tier: 'all',     state: 'present' }
-    #  SLES15 SP4 has removed python 2, no python2-rpm package. Additionally, python-xml is now part of python-base and referenced as python3-xml
-    - { tier: 'db2',   package: 'system-user-bin',                              node_tier: 'db2',     state: 'present' }
-    - { tier: 'ha',    package: 'sapstartsrv-resource-agents',                  node_tier: 'scs',     state: 'present' }
-    - { tier: 'ha',    package: 'sapstartsrv-resource-agents',                  node_tier: 'ers',     state: 'present' }
 
   # Adding packages for Oracle linux 8.4 to start with, copied the list from RHEL.
   # Adding additional Oracle linux packages as per SAP Note 2069760 - Oracle Linux 7.x SAP Installation and Upgrade. Need to add the groupinstall command.

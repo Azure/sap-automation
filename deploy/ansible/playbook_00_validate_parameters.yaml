@@ -401,27 +401,6 @@
       tags:
         - 0.0-scs-pas-single
 
-    # url: "https://management.azure.com/subscriptions/{{ subscription_id }}/providers/Microsoft.Web/sites?api-version=2022-03-01"
-    #url: "https://azure.status.microsoft/en-us/status"
-    - name:                            "0.0 Validations - Check internet connectivity"
-      ansible.builtin.uri:
-        url:                           "{{ url_internet }}"
-        # headers:
-        #   Authorization: "Bearer {{ access_token }}"
-        #   Content-Type: application/json
-        #   Accept: application/json
-        status_code:
-          - 200
-          - 403
-      register: internet_check
-      vars:
-        ansible_python_interpreter: "{{ python_version }}"
-      when:
-        - (ansible_distribution | lower ~ ansible_distribution_major_version) in ['suse15', 'redhat8', 'redhat9', 'sles_sap15' ]
-        - ansible_os_family != "Windows"
-      tags:
-        - 0.0-internet
-
     - name:                            "0.0 Validations - Check internet connectivity"
       ansible.builtin.uri:
         url: "https://management.azure.com/subscriptions/{{ subscription_id }}/providers/Microsoft.Web/sites?api-version=2022-03-01"

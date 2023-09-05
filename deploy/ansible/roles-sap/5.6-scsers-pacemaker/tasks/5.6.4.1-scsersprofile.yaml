@@ -104,7 +104,7 @@
       ansible.builtin.lineinfile:
         path:                          /sapmnt/{{ sap_sid }}/profile/{{ sap_sid }}_{{ instance_type | upper }}{{ scs_instance_number }}_{{ scs_virtual_hostname }}
         line:                          Start_Program_01 = local $(_EN) pf=$(_PF)
-        insertafter:                   '#Restart_Program_01'
+        insertafter:                   Restart_Program_01
       tags:
         - ascspara
 
@@ -121,7 +121,7 @@
       ansible.builtin.lineinfile:
         path:                          /sapmnt/{{ sap_sid }}/profile/{{ sap_sid }}_ERS{{ ers_instance_number }}_{{ ers_virtual_hostname }}
         line:                          Start_Program_00 = local $(_ER) pf=$(_PFL) NR=$(SCSID)
-        insertafter:                   '#Restart_Program_00'
+        insertafter:                   Restart_Program_01
       tags:
         - erspara
 
@@ -171,7 +171,7 @@
       ansible.builtin.lineinfile:
         path:                          /sapmnt/{{ sap_sid }}/profile/{{ sap_sid }}_{{ instance_type | upper }}{{ scs_instance_number }}_{{ scs_virtual_hostname }}
         line:                          Start_Program_01 = local $(_EN) pf=$(_PF)
-        insertafter:                   '#Restart_Program_01'
+        insertafter:                   Restart_Program_01
       tags:
         - ascspara
 
@@ -188,7 +188,7 @@
       ansible.builtin.lineinfile:
         path:                          /sapmnt/{{ sap_sid }}/profile/{{ sap_sid }}_ERS{{ ers_instance_number }}_{{ ers_virtual_hostname }}
         line:                          Start_Program_00 = local $(_ER) pf=$(_PFL) NR=$(SCSID)
-        insertafter:                   '#Restart_Program_00'
+        insertafter:                   Restart_Program_01
       tags:
         - erspara
 

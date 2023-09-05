@@ -186,6 +186,19 @@
       ansible.builtin.command:         pcs property set stonith-enabled=true
   when:                                ansible_hostname == primary_instance_name
 
+# - name:                                "1.17 Generic Pacemaker - Set the cluster maintenance mode"
+#   block:
+#     - name:                            "1.17 Generic Pacemaker - Get the cluster maintenance mode status"
+#       ansible.builtin.command:         pcs property config maintenance-mode
+#       register:                        get_status_maintenance_mode
+#       changed_when:                    false
 
+#     - name:                            "1.17 Generic Pacemaker - Set the cluster maintenance mode"
+#       ansible.builtin.command:         pcs property set maintenance-mode=true
+#       when: >-
+#         'maintenance-mode' not in get_status_maintenance_mode.stdout or
+#         'maintenance-mode: false' in get_status_maintenance_mode.stdout
+
+#   when:                                ansible_hostname == primary_instance_name
 
 # End of Generic Pacemaker setup

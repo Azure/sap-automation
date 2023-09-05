@@ -17,7 +17,7 @@ sub=/subscriptions/$ARM_SUBSCRIPTION_ID
 role=$(az role definition list --custom-role-only true --output json --query '[].{roleName:roleName, roleType:roleType}' | grep 'Linux Fence Agent Role')
 
 if [ -z $role ] ; then
-    echo $(jq --arg sub $sub '.assignableScopes |= [$sub]' ./templates/fencing.json)  > temp_fencing.json
+    echo $(jq --arg sub $sub '.assignableScopes |= [$sub]' .//mnt/c/Users/prasroy/Documents/gitrepos/sdaf-prasroy/sap-automation/deploy/templates/fencing.json)  > temp_fencing.json
 
     az role definition create --role-definition ./temp_fencing.json --subscription $ARM_SUBSCRIPTION_ID
 

@@ -264,8 +264,6 @@
     - name:                            "2.3 SAP Exports: - Set the NFS Service name {{ distribution_id }}"
       ansible.builtin.set_fact:
         nfs_service:                   'nfsserver'
-      when:                            "'SUSE' == ansible_os_family | upper"
-
 
     - name:                            "2.3 SAP Exports: - Set the NFS Service name {{ distribution_id }}"
       ansible.builtin.set_fact:

@@ -72,41 +72,6 @@
     start_profile_path:                "/sapmnt/{{ sap_sid }}/profile/{{ sap_sid }}_{{ instance_type }}{{ scs_instance_number }}_{{ scs_virtual_hostname }}"
     profile_directory:                 "/usr/sap/{{ sap_sid | upper }}/{{ instance_type }}{{ scs_instance_number }}"
 
-  # Set fact for the timeout value of monitor operation for filesystem and ASCS/ERS resources
-  # Since we only configure NFS4.1, the timeout value is set to 40 seconds for non-ANF and 105 seconds for ANF
-- name:                                "5.6 SCS HA install calculate filesystem timeout"
-  ansible.builtin.set_fact:
-    clus_fs_mon_timeout:  >-
-                                       {%- set _timeoutvalue = 40 -%}
-                                       {%- if (NFS_provider == "ANF")   -%}
-                                       {%-    if NFS_version != "NFSv3" -%}
-                                       {%-      set _timeoutvalue = 40 -%}
-                                       {%-    elif NFS_version == "NFSv4.1" -%}
-                                       {%-      set _timeoutvalue = 105 -%}
-                                       {%-    endif -%}
-                                       {%- else -%}
-                                       {%-   set _timeoutvalue = 40 -%}
-                                       {%- endif -%}
-                                       {{- _timeoutvalue -}}
-  when:
-    - scs_high_availability
-
-- name:                                "5.6 SCS HA install calculate SAP resource monitor timeout"
-  ansible.builtin.set_fact:
-    clus_sap_mon_timeout:  >-
-                                       {%- set _timeoutvalue = 60 -%}
-                                       {%- if (NFS_provider == "ANF")   -%}
-                                       {%-    if NFS_version != "NFSv3" -%}
-                                       {%-      set _timeoutvalue = 60 -%}
-                                       {%-    elif NFS_version == "NFSv4.1" -%}
-                                       {%-      set _timeoutvalue = 105 -%}
-                                       {%-    endif -%}
-                                       {%- else -%}
-                                       {%-   set _timeoutvalue = 60 -%}
-                                       {%- endif -%}
-                                       {{- _timeoutvalue -}}
-  when:
-    - scs_high_availability
 
 - name:                                "ASCS/ERS check if installed"
   become:                              true

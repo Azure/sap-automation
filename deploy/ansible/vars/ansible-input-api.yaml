@@ -74,7 +74,7 @@ db2hadr_port2:                         51013
 db2_abap_connect_user:                 ""
 
 tmp_directory:                         "/var/tmp"
-url_internet:                          "https://azure.status.microsoft/en-us/status"                 # URL to use for internet access checks"
+url_internet:                          "http://www.github.com"                 # URL to use for internet access checks"
 check_outbound:                        false
 
 # ASE specific parameters
@@ -175,8 +175,6 @@ sapbits_sas_token_secret:               "sapbits-sas-token"                     
 
 # NFS
 NFS_provider:                           "NONE"
-NFS_version:                            "NFSv4.1"
-use_simple_mount:                       false
 
 # ------------------- Begin - SAP SWAP settings variables --------------------8
 sap_swap:

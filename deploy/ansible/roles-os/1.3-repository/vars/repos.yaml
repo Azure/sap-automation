@@ -22,8 +22,8 @@ repos:
     - { tier:   'os', repo: 'epel', url: 'https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm', state: 'present' }
   redhat8.6:
     - { tier:   'os', repo: 'epel', url: 'https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm', state: 'present' }
+  redhat8.7:
   redhat8.8:
-    - { tier:   'os', repo: 'epel', url: 'https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm', state: 'present' }
   redhat9.0:
   redhat9.2:
   # do not have any repos that are needed for RedHat at the moment.
@@ -34,7 +34,6 @@ repos:
   sles_sap15.2:
   sles_sap15.3:
   sles_sap15.4:
-  sles_sap15.5:
 
   # Oracle
 

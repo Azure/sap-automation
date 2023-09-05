@@ -46,7 +46,7 @@
 - name:                                "2.10.1 sap-notes: - Disable SELinux"
   ansible.posix.selinux:
     policy:                            targeted
-    state:                             disabled
+    state:                             permissive
   when:
     - node_tier in ['scs', 'ers', 'pas', 'app', 'web']
     - distribution_id in ['redhat7', 'redhat8', 'redhat9', 'oracle8']
