@@ -25,6 +25,7 @@
     - { path: '{{ target_media_location }}/SBP',       group: 'oinstall',   owner: 'oracle'}
     - { path: '{{ target_media_location }}/oraclient', group: 'oinstall',   owner: 'oracle'}
     - { path: '{{ target_media_location }}/oraserver', group: 'oinstall',   owner: 'oracle'}
+    - { path: '{{ target_media_location }}/GSBP',      group: 'oinstall',   owner: 'oracle'}
   when:
     - node_tier != "observer"
 

@@ -68,16 +68,6 @@
   register:                            oracle_installed
 
 
-- name:                                "Make oracle:oinstall as owners for GRID Patches"
-  become:                              true
-  become_user:                         root
-  ansible.builtin.file:
-    path:                              "{{ target_media_location }}/GSBP"
-    state:                             directory
-    owner:                             oracle
-    group:                             oinstall
-    recurse:                           true
-
 
 # /*---------------------------------------------------------------------------8
 # | Start of Oracle software installation using SAP RUNINSTALLER wrapper.      |
