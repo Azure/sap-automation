@@ -205,12 +205,26 @@
   # Create User for SIDADM on Secondary Node.
     - name:                                "2.5.1 SAP Users: -  Create Oracle ASM Users Assignment"
       ansible.builtin.user:
-        name:                              "{{sap_sid}}adm"
+        name:                              "{{sap_sid | lower }}adm"
         uid:                               "{{ sidadm_uid }}"
         group:                             "sapsys"
         groups:                            asmoper,asmdba,dba,oper,oinstall
         append:                            true
         shell:                             /bin/csh
+      args:
+        creates:                           /etc/sap_deployment_automation/dgscripts/sidadm_created_on_secondary.txt
+      register:                            sidadm_created_on_secondary_results
+      failed_when:                         sidadm_created_on_secondary_results.rc > 0
+    
+    - name:                               "SIDADM Created on Secondary DB Node"
+      become:                              true
+      become_user:                         "oracle"
+      ansible.builtin.file:
+        path:                              /etc/sap_deployment_automation/dgscripts/sidadm_created_on_secondary.txt
+        state:                             touch
+        mode:                              '0755'
+      when: 
+        -  sidadm_created_on_secondary_results.rc == 0 
     
     
    # Update the tnsnames.ora for SAP application servers
