@@ -236,7 +236,7 @@
         src:                               /etc/sap_deployment_automation/dgscripts/tnsnames.ora
         dest:                              /sapmnt/{{ sap_sid |upper }}/profile/oracle/tnsnames.ora
         remote_src:                        true
-        owner:                             '{{sap_sid}}adm'
+        owner:                             '{{sap_sid |lower }}adm'
         group:                             sapsys
         mode:                              "{{ '0777' | int - (custom_umask | default('022') | int) }}"
    
