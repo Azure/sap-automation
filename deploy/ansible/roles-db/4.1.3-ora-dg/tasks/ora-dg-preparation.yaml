@@ -410,7 +410,6 @@
     hostname:  "{{ ora_primary }}"
     sap_dbp_hostname: "{{ ora_primary }}"
     sap_dbs_hostname: "{{ ora_secondary }}"
-  when:  current_host == ora_primary
 
 
 # Create DB trigger sql for SAP HA Setup
