@@ -202,6 +202,17 @@
         group: oinstall
   
   
+  # Create User for SIDADM on Secondary Node.
+    - name:                                "2.5.1 SAP Users: -  Create Oracle ASM Users Assignment"
+      ansible.builtin.user:
+        name:                              "{{sap_sid}}adm"
+        uid:                               "{{ sidadm_uid }}"
+        group:                             "sapsys"
+        groups:                            asmoper,asmdba,dba,oper,oinstall
+        append:                            true
+        shell:                             /bin/csh
+    
+    
    # Update the tnsnames.ora for SAP application servers
 
     - name:                                "Oracle Data Guard - Update tnsnames.ora for SAP application servers"
