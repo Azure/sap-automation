@@ -136,8 +136,8 @@
     block: |
                 @sapsys    hard    nproc    unlimited
                 @sapsys    soft    nproc    unlimited
-                @db2{{ db_sid | lower }}adm      hard    nproc    unlimited
-                @db{{ db_sid | lower }}adm       soft    nproc    unlimited
+                @db{{ db_sid | lower }}adm      hard    nproc    unlimited
+                @db{{ db_sid | lower }}adm      soft    nproc    unlimited
   when:
     - node_tier == 'db2'
 
