@@ -50,7 +50,7 @@
   register:                             sql_output
   failed_when:                          sql_output.rc != 0
   become:                               true
-  become_method:                        runas
+  become_method:                        ansible.builtin.runas
 
 # - name:                                 "WIN-SQL: DB Creation || Flag File"
 #   block:

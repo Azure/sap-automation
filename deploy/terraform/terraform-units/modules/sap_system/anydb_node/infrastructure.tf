@@ -96,8 +96,8 @@ resource "azurerm_network_interface_backend_address_pool_association" "anydb" {
 
 resource "azurerm_availability_set" "anydb" {
   provider = azurerm.main
-  count = local.enable_deployment && local.use_avset && !local.availabilitysets_exist ? (
-    max(length(local.zones), 1)) : (
+  count = local.enable_deployment && !var.use_scalesets_for_deployment  ? (
+    local.use_avset && !local.availabilitysets_exist ? max(length(local.zones), 1) : 0) : (
     0
   )
   name = format("%s%s%s",
@@ -118,8 +118,8 @@ resource "azurerm_availability_set" "anydb" {
 
 data "azurerm_availability_set" "anydb" {
   provider = azurerm.main
-  count = local.enable_deployment && local.use_avset && local.availabilitysets_exist ? (
-    max(length(local.zones), 1)) : (
+  count = local.enable_deployment && !var.use_scalesets_for_deployment  ? (
+    local.use_avset && local.availabilitysets_exist? max(length(local.zones), 1) : 0) : (
     0
   )
   name                = split("/", local.availabilityset_arm_ids[count.index])[8]
@@ -128,7 +128,7 @@ data "azurerm_availability_set" "anydb" {
 
 resource "azurerm_private_dns_a_record" "db" {
   provider            = azurerm.dnsmanagement
-  count               = local.enable_db_lb_deployment && length(local.dns_label) > 0 ? 1 : 0
+  count               = local.enable_db_lb_deployment && length(local.dns_label) > 0 && var.register_virtual_network_to_dns ? 1 : 0
   name                = lower(format("%s%sdb%scl", var.sap_sid, local.anydb_sid, "00"))
   resource_group_name = coalesce(var.management_dns_resourcegroup_name, var.landscape_tfstate.dns_resource_group_name)
   zone_name           = local.dns_label

@@ -373,10 +373,20 @@ then
 
         echo -e "#$cyan processing $deployment_system removal as defined in $parameterfile_name $resetformatting"
         echo $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter
-        terraform -chdir="${terraform_module_directory}" destroy -var-file="${var_file}" ${approve} \
-            $tfstate_parameter \
-            $landscape_tfstate_key_parameter \
-            $deployer_tfstate_key_parameter  -json  | tee -a  destroy_output.json
+        if [ -n "${approve}" ]
+        then
+
+            terraform -chdir="${terraform_module_directory}" destroy -var-file="${var_file}" ${approve} \
+                $tfstate_parameter \
+                $landscape_tfstate_key_parameter \
+                $deployer_tfstate_key_parameter  -json  | tee -a  destroy_output.json
+        else
+            terraform -chdir="${terraform_module_directory}" destroy -var-file="${var_file}" ${approve} \
+                $tfstate_parameter \
+                $landscape_tfstate_key_parameter \
+                $deployer_tfstate_key_parameter
+
+        fi
 
         return_value=$?
 

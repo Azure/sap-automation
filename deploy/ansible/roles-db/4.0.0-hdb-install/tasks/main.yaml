@@ -72,7 +72,7 @@
         _rsp_sid:                      "{{ db_sid | upper }}"
         _rsp_number:                   "{{ db_instance_number }}"
         _rsp_system_usage:             "custom"
-        use_master_password:           "{{ hana_use_master_password }} "
+        use_master_password:           "{{ hana_use_master_password }}"
         password_copy:                 "{%if hana_use_master_password == 'n' %}{{ main_password }}{% else %}{% endif %}"
 
     - name:                            "SAP HANA: Progress"
@@ -155,17 +155,22 @@
             mode:                      0755
 
         - name:                        "Retrieve Subscription ID and Resource Group Name"
-          ansible.builtin.uri:
-            url:                       http://169.254.169.254/metadata/instance?api-version=2021-02-01
-            use_proxy:                 false
-            headers:
-              Metadata:                true
-          register: azure_metadata
+          ansible.builtin.command:     curl -H Metadata:true --noproxy "*" "http://169.254.169.254/metadata/instance?api-version=2021-02-01"
+          register:                    azure_metadata
+          no_log:                      true
+          changed_when:                false
+          args:
+            warn:                      false
+
+        - name:                        "Save the Json data to a Variable as a Fact"
+          ansible.builtin.set_fact:
+            json_azure_data:           "{{ azure_metadata.stdout | from_json }}"
+          no_log:                      true
 
         - name:                        "Extract details"
           ansible.builtin.set_fact:
-            subscription_id:           "{{ azure_metadata.json.compute.subscriptionId }}"
-            resource_group_name:       "{{ azure_metadata.json.compute.resourceGroupName }}"
+            subscription_id:           "{{ json_azure_data | json_query('compute.subscriptionId') }}"
+            resource_group_name:       "{{ json_azure_data | json_query('compute.resourceGroupName') }}"
 
         - name:                        "Show the subscription and resource group"
           ansible.builtin.debug:
@@ -186,10 +191,10 @@
             state:                     touch
             mode:                      0755
 
-        - name:                        "SAP HANA: remove install response file"
-          ansible.builtin.file:
-            path:                      "{{ dir_params }}/{{ sap_inifile }}"
-            state:                     absent
+        # - name:                        "SAP HANA: remove install response file"
+        #   ansible.builtin.file:
+        #     path:                      "{{ dir_params }}/{{ sap_inifile }}"
+        #     state:                     absent
 
 
       when:
@@ -227,17 +232,22 @@
     - name:                            "SAP HANA: Successful installation"
       block:
         - name:                        "Retrieve Subscription ID and Resource Group Name"
-          ansible.builtin.uri:
-            url:                       http://169.254.169.254/metadata/instance?api-version=2021-02-01
-            use_proxy:                 false
-            headers:
-              Metadata:                true
-          register: azure_metadata
+          ansible.builtin.command:     curl -H Metadata:true --noproxy "*" "http://169.254.169.254/metadata/instance?api-version=2021-02-01"
+          register:                    azure_metadata
+          no_log:                      true
+          changed_when:                false
+          args:
+            warn:                      false
+
+        - name:                        "Save the Json data to a Variable as a Fact"
+          ansible.builtin.set_fact:
+            json_azure_data:           "{{ azure_metadata.stdout | from_json }}"
+          no_log:                      true
 
         - name:                        "Extract details"
           ansible.builtin.set_fact:
-            subscription_id_tmp:       "{{ azure_metadata.json.compute.subscriptionId }}"
-            resource_group_name_tmp:   "{{ azure_metadata.json.compute.resourceGroupName }}"
+            subscription_id_tmp:           "{{ json_azure_data | json_query('compute.subscriptionId') }}"
+            resource_group_name_tmp:       "{{ json_azure_data | json_query('compute.resourceGroupName') }}"
 
         - name:                        "Show the subscription and resource group"
           ansible.builtin.debug:

@@ -4,10 +4,10 @@ using System.ComponentModel.DataAnnotations;
 
 namespace AutomationForm.Models
 {
-    public class FileUploadModel
-    {
-        [Required]
-        [Display(Name = "File")]
-        public List<IFormFile> FormFiles { get; set; }
-    }
+  public class FileUploadModel
+  {
+    [Required]
+    [Display(Name = "File")]
+    public List<IFormFile> FormFiles { get; set; }
+  }
 }

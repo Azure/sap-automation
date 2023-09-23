@@ -190,6 +190,9 @@ output "privatelink_file_id" {
 
 }
 
+output "register_virtual_network_to_dns" {
+  value = var.register_virtual_network_to_dns
+}
 
 ###############################################################################
 #                                                                             #
@@ -264,5 +267,5 @@ output "install_path" {
 
 output "controlplane_environment" {
   description = "Control plane environment"
-  value       = try(data.terraform_remote_state.deployer[0].outputs.environmentm, "")
+  value       = try(data.terraform_remote_state.deployer[0].outputs.environment, "")
 }

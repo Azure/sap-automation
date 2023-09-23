@@ -23,6 +23,22 @@
 # ------------------</DEBUGGING>------------------
 
 
+- name:                                "3.3.1 BoM Template processing: - Create BOM download directories"
+  ansible.builtin.file:
+    path:                              "{{ item.path }}"
+    state:                             directory
+    mode:                              0755
+    owner:                              "{{ orchestration_ansible_user }}"
+  delegate_to:                         localhost
+  become:                              "{{ bom_processing_become }}"
+  become_user:                         "{{ orchestration_ansible_user }}"
+  loop:
+    - path: "{{ download_directory }}"
+    - path: "{{ download_directory }}/tmp"
+    - path: "{{ download_directory }}/bom"
+    - path: "{{ download_directory }}/files"
+
+
 # -------------------------------------+---------------------------------------8
 #
 # Look for template in the storage account first

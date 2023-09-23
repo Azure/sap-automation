@@ -97,7 +97,7 @@
         arguments:                     '/norestart /log vcredist_x64.log /quiet'
       vars:
         ansible_become:                true
-        ansible_become_method:         runas
+        ansible_become_method:         ansible.builtin.runas
         ansible_become_user:           '{{ sap_sid }}adm@{{ domain_name }}'
         ansible_become_password:       "{{ domain_user_password }}"
       register:                        vcredist2013_output
@@ -110,7 +110,7 @@
         arguments:                     '/norestart /log vcredist_x64.log /quiet'
       vars:
         ansible_become:                true
-        ansible_become_method:         runas
+        ansible_become_method:         ansible.builtin.runas
         ansible_become_user:           '{{ sap_sid }}adm@{{ domain_name }}'
         ansible_become_password:       "{{ domain_user_password }}"
       register:                        vcredist2017_output
@@ -139,7 +139,7 @@
                                        MsiExec.exe /i {{ tempdir.path }}\msodbcsql.msi IACCEPTMSODBCSQLLICENSETERMS=YES /qn
       vars:
         ansible_become:                true
-        ansible_become_method:         runas
+        ansible_become_method:         ansible.builtin.runas
         ansible_become_user:           '{{ sap_sid }}adm@{{ domain_name }}'
         ansible_become_password:       "{{ domain_user_password }}"
 

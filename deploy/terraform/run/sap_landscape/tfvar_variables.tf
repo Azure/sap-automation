@@ -405,7 +405,7 @@ variable "storage_account_replication_type" {
 
 variable "use_custom_dns_a_registration" {
   description = "Boolean value indicating if a custom dns a record should be created when using private endpoints"
-  default     = true
+  default     = false
   type        = bool
 }
 
@@ -432,6 +432,12 @@ variable "dns_server_list" {
   default     = []
 }
 
+
+variable "register_virtual_network_to_dns" {
+  description = "Boolean value indicating if the vnet should be registered to the dns zone"
+  default     = true
+  type        = bool
+}
 
 #########################################################################################
 #                                                                                       #

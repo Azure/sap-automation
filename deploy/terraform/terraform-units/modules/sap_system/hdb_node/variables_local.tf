@@ -179,8 +179,8 @@ locals {
           )
           storage_account_type      = storage_type.disk_type,
           disk_size_gb              = storage_type.size_gb,
-          disk_iops_read_write      = try(storage_type.disk-iops-read-write, null)
-          disk_mbps_read_write      = try(storage_type.disk-mbps-read-write, null)
+          disk_iops_read_write      = try(storage_type.disk_iops_read_write, null)
+          disk_mbps_read_write      = try(storage_type.disk_mbps_read_write, null)
           caching                   = storage_type.caching,
           write_accelerator_enabled = storage_type.write_accelerator
           type                      = storage_type.name
@@ -200,8 +200,8 @@ locals {
         for idx, disk_count in range(storage_type.count) : {
           storage_account_type      = storage_type.disk_type,
           disk_size_gb              = storage_type.size_gb,
-          disk_iops_read_write      = try(storage_type.disk-iops-read-write, null)
-          disk_mbps_read_write      = try(storage_type.disk-mbps-read-write, null)
+          disk_iops_read_write      = try(storage_type.disk_iops_read_write, null)
+          disk_mbps_read_write      = try(storage_type.disk_mbps_read_write, null)
           caching                   = storage_type.caching,
           write_accelerator_enabled = try(storage_type.write_accelerator, false)
         }
@@ -221,8 +221,8 @@ locals {
           )
           storage_account_type      = storage_type.disk_type,
           disk_size_gb              = storage_type.size_gb,
-          disk_iops_read_write      = try(storage_type.disk-iops-read-write, null)
-          disk_mbps_read_write      = try(storage_type.disk-mbps-read-write, null)
+          disk_iops_read_write      = try(storage_type.disk_iops_read_write, null)
+          disk_mbps_read_write      = try(storage_type.disk_mbps_read_write, null)
           caching                   = storage_type.caching,
           write_accelerator_enabled = storage_type.write_accelerator
           type                      = storage_type.name

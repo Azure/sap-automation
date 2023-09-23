@@ -45,4 +45,5 @@
 
 - name:                                "WIN: Joining the domain {{ domain }} - reboot"
   ansible.windows.win_reboot:
-  when: domain_state.reboot_required
+    post_reboot_delay:                 60
+  when:                                domain_state.reboot_required

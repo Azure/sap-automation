@@ -55,6 +55,7 @@
 
 - name:                                "HANA HSR: - Determine runtime value of SAP global path"
   become_user:                         "{{ db_sid_admin_user }}"
+  become:                              true
   ansible.builtin.shell: >
                                        set -o pipefail && grep '^alias cdglo=' ~/.sapenv.sh | sed -e 's/^.* //' -e 's/$SAPSYSTEMNAME/{{ db_sid | upper }}/' -e "s/'//"
   register:                            global_path_status
@@ -69,6 +70,7 @@
   block:
     - name:                            "HANA HSR: - Check whether HANA has been installed as a single container (no SYSTEMDB)"
       become_user:                     "{{ db_sid_admin_user }}"
+      become:                          true
       ansible.builtin.shell: >
                                        {{ hdbsql_systemdb_command }} "SELECT DATABASE_NAME FROM SYS.M_DATABASES"
       register:                        hana_container_status
@@ -113,6 +115,7 @@
 - name:                                "HANA HSR: - Check that HANA DB SYSTEM user can access the SYSTEM database"
   # If HSR is already enabled, we cannot read from the secondary node
   become_user:                         "{{ db_sid_admin_user }}"
+  become:                              true
   ansible.builtin.shell: >
                                        {{ hdbsql_systemdb_command }} '{{ dummy_cmd }}'
   changed_when:                        false
@@ -123,6 +126,7 @@
 - name:                                "HANA HSR: - Check that HANA DB SYSTEM user can access the tenant database {{ hana_tenant_database_name }}"
   # If HSR is already enabled, we cannot read from the secondary node
   become_user:                         "{{ db_sid_admin_user }}"
+  become:                              true
   ansible.builtin.shell: >
                                        {{ hdbsql_tenant_command }} '{{ dummy_cmd }}'
   changed_when:                        false
@@ -134,6 +138,7 @@
 - name:                                "HANA HSR: - Check HANA log mode is set to normal"
   # If HSR is already enabled, we cannot read from the secondary node
   become_user:                         "{{ db_sid_admin_user }}"
+  become:                              true
   ansible.builtin.shell: >
                                        {{ hdbsql_systemdb_command }} "{{ get_log_mode_cmd }}"
   register:                            log_mode_status

@@ -1,3 +1,8 @@
+## Add an expiry date to the secrets
+resource "time_offset" "secret_expiry_date" {
+  offset_months = 12
+}
+
 resource "azurerm_key_vault_secret" "saplibrary_access_key" {
   provider = azurerm.deployer
   count    = length(var.key_vault.kv_spn_id) > 0 ? 1 : 0
@@ -7,6 +12,12 @@ resource "azurerm_key_vault_secret" "saplibrary_access_key" {
     azurerm_storage_account.storage_sapbits[0].primary_access_key
   )
   key_vault_id = var.key_vault.kv_spn_id
+
+  expiration_date = var.deployer_tfstate.set_secret_expiry ? (
+    time_offset.secret_expiry_date.rfc3339) : (
+    null
+  )
+
 }
 
 resource "azurerm_key_vault_secret" "sapbits_location_base_path" {
@@ -18,6 +29,10 @@ resource "azurerm_key_vault_secret" "sapbits_location_base_path" {
     azurerm_storage_container.storagecontainer_sapbits[0].id
   )
   key_vault_id = var.key_vault.kv_spn_id
+  expiration_date = var.deployer_tfstate.set_secret_expiry ? (
+    time_offset.secret_expiry_date.rfc3339) : (
+    null
+  )
 }
 
 
@@ -30,5 +45,9 @@ resource "azurerm_key_vault_secret" "sa_connection_string" {
     azurerm_storage_account.storage_tfstate[0].primary_connection_string
   )
   key_vault_id = var.key_vault.kv_spn_id
+  expiration_date = var.deployer_tfstate.set_secret_expiry ? (
+    time_offset.secret_expiry_date.rfc3339) : (
+    null
+  )
 }
 

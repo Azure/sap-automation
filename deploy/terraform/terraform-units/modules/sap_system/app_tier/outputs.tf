@@ -225,19 +225,19 @@ output "dns_info_vms" {
 
 output "dns_info_loadbalancers" {
   description = "DNS information for the application tier load balancers"
-  value = try(
-    zipmap(
-      concat(
-        slice(local.load_balancer_IP_names, 0, try(length(azurerm_lb.scs[0].private_ip_addresses), 0)),
-        slice(local.web_load_balancer_IP_names, 0, try(length(azurerm_lb.web[0].private_ip_addresses), 0))
-      ),
-      concat(
-        try(azurerm_lb.scs[0].private_ip_addresses, []),
-        try(azurerm_lb.web[0].private_ip_addresses, [])
-      )
-    ),
-    null
-  )
+
+  value = try(zipmap(
+    [
+      slice(local.load_balancer_IP_names, 0, try(length(azurerm_lb.scs[0].private_ip_addresses), 0)),
+      slice(local.web_load_balancer_IP_names, 0, try(length(azurerm_lb.web[0].private_ip_addresses), 0))
+    ],
+    [
+      azurerm_lb.scs[0].private_ip_addresses,
+      azurerm_lb.web[0].private_ip_addresses
+    ]
+  ), null)
+
+
 }
 
 

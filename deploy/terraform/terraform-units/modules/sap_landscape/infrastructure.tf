@@ -52,7 +52,7 @@ data "azurerm_virtual_network" "vnet_sap" {
 
 resource "azurerm_virtual_network_dns_servers" "vnet_sap_dns_servers" {
   provider = azurerm.main
-  count    = local.vnet_sap_exists && length(var.dns_server_list) > 0 ? 1 : 0
+  count    = local.vnet_sap_exists && length(var.dns_server_list) > 0 ? 0 : 1
   virtual_network_id = local.vnet_sap_exists ? (
     data.azurerm_virtual_network.vnet_sap[0].id) : (
     azurerm_virtual_network.vnet_sap[0].id
@@ -184,7 +184,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vnet_sap" {
   depends_on = [
     azurerm_virtual_network.vnet_sap
   ]
-  count = local.use_Azure_native_DNS && var.use_private_endpoint ? 1 : 0
+  count = local.use_Azure_native_DNS && var.use_private_endpoint && var.register_virtual_network_to_dns ? 1 : 0
   name = format("%s%s%s%s",
     var.naming.resource_prefixes.dns_link,
     local.prefix,

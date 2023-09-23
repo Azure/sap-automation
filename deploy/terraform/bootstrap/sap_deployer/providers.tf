@@ -30,6 +30,7 @@ provider "azurerm" {
 
     }
   }
+  skip_provider_registration = true
 }
 
 provider "azurerm" {
@@ -44,9 +45,9 @@ provider "azurerm" {
       purge_soft_deleted_certificates_on_destroy = !var.enable_purge_control_for_keyvaults
     }
   }
-  partner_id = "f94f50f2-2539-42f8-9c8e-c65b28c681f7"
-
-  alias           = "main"
+  partner_id                 = "f94f50f2-2539-42f8-9c8e-c65b28c681f7"
+  alias                      = "main"
+  skip_provider_registration = true
 
 }
 

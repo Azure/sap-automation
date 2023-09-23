@@ -40,6 +40,7 @@ parameters:
       - CEUA
       - EAAS
       - EAUS
+      - EUSA
       - EUS2
       - FRCE
       - FRSO
@@ -210,6 +211,7 @@ stages:
                   "CEUA") LOCATION_IN_FILENAME="centraluseuap" ;;
                   "EAAS") LOCATION_IN_FILENAME="eastasia" ;;
                   "EAUS") LOCATION_IN_FILENAME="eastus" ;;
+                  "EUSA") LOCATION_IN_FILENAME="eastus2euap" ;;
                   "EUS2") LOCATION_IN_FILENAME="eastus2" ;;
                   "FRCE") LOCATION_IN_FILENAME="francecentral" ;;
                   "FRSO") LOCATION_IN_FILENAME="francesouth" ;;

@@ -21,7 +21,7 @@
     - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') }}"
     - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
 
-- name:                                "Set the SCS Server name"
+- name:                                "SCS Install: Set the SCS Server name"
   ansible.builtin.set_fact:
     scs_server: "{{ hostvars[scs_server_temp | first]['virtual_host'] }}"
 
@@ -40,6 +40,29 @@
     - { mode: '0755', path: '{{ dir_params }}' }
     - { mode: '0755', path: '{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}' }
     - { mode: '0755', path: '/etc/sap_deployment_automation/{{ sap_sid | upper }}' }
+
+# ToDo: Validate this works
+# - name:                                "SCS Install: Find the installationSuccesfullyFinished.dat (SAPINST)"
+#   ansible.builtin.find:
+#     paths:                             "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}/sapinst_instdir/{{ bom.product_ids.scs.replace('.', '/').replace('/ABAP', '').split(':')[1] }}/INSTALL/DISTRIBUTED/ABAP/ASCS"
+#     file_type:                         file
+#     patterns:                          'installationSuccesfullyFinished.dat'
+#     recurse:                           true
+#   register:                            scs_installed_according_to_sapinst
+
+# - name:                                "SCS Install: show"
+#   ansible.builtin.debug:
+#     var:                               scs_installed_according_to_sapinst
+#     verbosity:                         2
+
+# - name:                                "SCS Install: flag"
+#   ansible.builtin.file:
+#     path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_scs.txt"
+#     state:                             touch
+#     mode:                              0755
+#   when:
+#     - scs_installed_according_to_sapinst is defined
+#     - scs_installed_according_to_sapinst | length > 0
 
 - name:                                "SCS Install: reset"
   ansible.builtin.file:
@@ -157,18 +180,35 @@
         scs_bom_instance_type:         "{% if bom.InstanceType is defined %}{{ bom.InstanceType }}{% else %}ABAP{% endif %}"
         public:                        true
 
-    - name:                            "Create temp directory for sid"
+    - name:                            "SCS Install: Create temp directory for sid"
       ansible.builtin.file:
         path:                          "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
         state:                         directory
         mode:                          0755
 
-    - name:                            "SCS Install: - comment out required message server prots in /etc/services"
+    - name:                            "SCS Install: Comment out required message server prots in /etc/services"
       ansible.builtin.replace:
         path:                          /etc/services
         regexp:                        '^([a-z\-]+\s+36{{ scs_instance_number }}/.*)$'
         replace:                       '# \1'
         backup:                        true
+
+    - name:                            "SCS Install: Create Symlink"
+      ansible.builtin.import_tasks:    ../../../roles-sap-os/2.10-sap-notes/tasks/2.10.3119751.yaml
+      when:
+        - ansible_os_family == 'RedHat'
+        - "distribution_id != 'oraclelinux8'"
+
+    - name:                            "SCS Install: Assign ownership"
+      ansible.builtin.file:
+        path:                          "{{ item.path }}"
+        owner:                         '{{ sid_to_be_deployed.sidadm_uid }}'
+        group:                         sapsys
+        recurse:                       true
+        state:                         directory
+      loop:
+        - { path: '/sapmnt/{{ sap_sid | upper }}' }
+        - { path: '/usr/sap/{{ sap_sid | upper }}' }
 
     - name:                            "SCS Install: Progress"
       ansible.builtin.debug:
@@ -206,7 +246,7 @@
         msg:                           "SCS Installation succeeded"
       when:                            scs_installation.rc == 0
 
-    - name:                            Find the installationSuccesfullyFinished.dat (SAPINST)
+    - name:                            "SCS Install: Find the installationSuccesfullyFinished.dat (SAPINST)"
       ansible.builtin.find:
         paths:                         "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}/sapinst_instdir/{{ bom.product_ids.scs.replace('.', '/').replace('/ABAP', '').split(':')[1] }}/INSTALL/DISTRIBUTED/ABAP/ASCS"
         file_type:                     file
@@ -228,7 +268,6 @@
         - scs_installation.rc == 0
         - scs_installed_according_to_sapinst is defined
         - scs_installed_according_to_sapinst | length > 0
-
 
   when:
     - "'scs' in supported_tiers"

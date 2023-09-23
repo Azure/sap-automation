@@ -62,6 +62,9 @@ module "sap_deployer" {
 
   place_delete_lock_on_resources = var.place_delete_lock_on_resources
 
+  subnets_to_add_to_firewall_for_keyvaults_and_storage = var.subnets_to_add_to_firewall_for_keyvaults_and_storage
+
+  set_secret_expiry = var.set_secret_expiry
 }
 
 module "sap_namegenerator" {

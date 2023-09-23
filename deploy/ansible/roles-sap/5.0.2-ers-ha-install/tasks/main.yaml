@@ -123,18 +123,23 @@
 #
 # *====================================4=======================================8
 
-    - name:                            "Create temp directory for sid"
+    - name:                            "ERS Install: Create temp directory for sid"
       ansible.builtin.file:
         path:                          "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
         state:                         directory
         mode:                          0755
 
-    - name:                            "ERS HA Installation"
-      ansible.builtin.debug:
-        msg:                           "Starting sapinst for {{ sid_to_be_deployed.sid | upper }}. Please wait"
-
-    - name:                            "ERS HA Installation"
+    - name:                            "ERS Installation Block"
       block:
+        - name:                        "ERS Install: Create Symlink"
+          ansible.builtin.import_tasks:  ../../../roles-sap-os/2.10-sap-notes/tasks/2.10.3119751.yaml
+          when:
+            - ansible_os_family == 'RedHat'
+
+        - name:                        "ERS Install: Status"
+          ansible.builtin.debug:
+            msg:                       "Starting sapinst for {{ sid_to_be_deployed.sid | upper }}. Please wait"
+
         - name:                        "ERS Install: SAPInst"
           ansible.builtin.shell: |
                                        umask {{ custom_umask | default('022') }} ;

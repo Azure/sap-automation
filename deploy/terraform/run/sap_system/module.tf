@@ -111,7 +111,7 @@ module "hdb_node" {
     azurerm.deployer      = azurerm
     azurerm.main          = azurerm.system
     azurerm.dnsmanagement = azurerm.dnsmanagement
-    azapi.api             = azapi.api
+//    azapi.api             = azapi.api
 
   }
 
@@ -164,12 +164,13 @@ module "hdb_node" {
   use_msi_for_clusters               = var.use_msi_for_clusters
   fencing_role_name                  = var.fencing_role_name
 
-  use_custom_dns_a_registration     = data.terraform_remote_state.landscape.outputs.use_custom_dns_a_registration
+  use_custom_dns_a_registration     = try(data.terraform_remote_state.landscape.outputs.use_custom_dns_a_registration, false)
   management_dns_subscription_id    = try(data.terraform_remote_state.landscape.outputs.management_dns_subscription_id, null)
   management_dns_resourcegroup_name = coalesce(data.terraform_remote_state.landscape.outputs.management_dns_resourcegroup_name, local.saplib_resource_group_name)
+  register_virtual_network_to_dns   = try(data.terraform_remote_state.landscape.outputs.register_virtual_network_to_dns, true)
 
   use_scalesets_for_deployment = var.use_scalesets_for_deployment
-  scale_set_id                 = try(module.common_infrastructure.scale_set_id, null)
+  scale_set_id                 = module.common_infrastructure.scale_set_id
 
   database_use_premium_v2_storage = var.database_use_premium_v2_storage
 
@@ -226,16 +227,18 @@ module "app_tier" {
 
   fencing_role_name = var.fencing_role_name
 
-  use_custom_dns_a_registration     = data.terraform_remote_state.landscape.outputs.use_custom_dns_a_registration
+  use_custom_dns_a_registration     = try(data.terraform_remote_state.landscape.outputs.use_custom_dns_a_registration, false)
   management_dns_subscription_id    = try(data.terraform_remote_state.landscape.outputs.management_dns_subscription_id, null)
-  management_dns_resourcegroup_name = coalesce(data.terraform_remote_state.landscape.outputs.management_dns_resourcegroup_name, local.saplib_resource_group_name)
+  management_dns_resourcegroup_name = try(data.terraform_remote_state.landscape.outputs.management_dns_resourcegroup_name, local.saplib_resource_group_name)
+  register_virtual_network_to_dns   = try(data.terraform_remote_state.landscape.outputs.register_virtual_network_to_dns, true)
+
 
   use_msi_for_clusters = var.use_msi_for_clusters
   scs_shared_disk_lun  = var.scs_shared_disk_lun
   scs_shared_disk_size = var.scs_shared_disk_size
 
   use_scalesets_for_deployment = var.use_scalesets_for_deployment
-  scale_set_id                 = try(module.common_infrastructure.scale_set_id, null)
+  scale_set_id                 = module.common_infrastructure.scale_set_id
 }
 
 #########################################################################################
@@ -293,12 +296,14 @@ module "anydb_node" {
   use_msi_for_clusters               = var.use_msi_for_clusters
   fencing_role_name                  = var.fencing_role_name
 
-  use_custom_dns_a_registration     = data.terraform_remote_state.landscape.outputs.use_custom_dns_a_registration
+  use_custom_dns_a_registration     = try(data.terraform_remote_state.landscape.outputs.use_custom_dns_a_registration, false)
   management_dns_subscription_id    = try(data.terraform_remote_state.landscape.outputs.management_dns_subscription_id, null)
-  management_dns_resourcegroup_name = coalesce(data.terraform_remote_state.landscape.outputs.management_dns_resourcegroup_name, local.saplib_resource_group_name)
+  management_dns_resourcegroup_name = try(data.terraform_remote_state.landscape.outputs.management_dns_resourcegroup_name, local.saplib_resource_group_name)
+  register_virtual_network_to_dns   = try(data.terraform_remote_state.landscape.outputs.register_virtual_network_to_dns, true)
+
 
   use_scalesets_for_deployment = var.use_scalesets_for_deployment
-  scale_set_id                 = try(module.common_infrastructure.scale_set_id, null)
+  scale_set_id                 = module.common_infrastructure.scale_set_id
 }
 
 #########################################################################################
@@ -400,6 +405,7 @@ module "output_files" {
   application_server_secondary_ips = module.app_tier.application_server_secondary_ips
   nics_app_admin                   = module.app_tier.nics_app_admin
   pas_instance_number              = var.pas_instance_number
+  app_instance_number              = var.app_instance_number
 
   webdispatcher_server_ips           = module.app_tier.webdispatcher_server_ips
   webdispatcher_server_secondary_ips = module.app_tier.webdispatcher_server_secondary_ips
@@ -434,9 +440,9 @@ module "output_files" {
   #  DNS information                                                                      #
   #########################################################################################
   dns                               = try(data.terraform_remote_state.landscape.outputs.dns_label, "")
-  use_custom_dns_a_registration     = data.terraform_remote_state.landscape.outputs.use_custom_dns_a_registration
+  use_custom_dns_a_registration     = try(data.terraform_remote_state.landscape.outputs.use_custom_dns_a_registration, false)
   management_dns_subscription_id    = try(data.terraform_remote_state.landscape.outputs.management_dns_subscription_id, null)
-  management_dns_resourcegroup_name = coalesce(data.terraform_remote_state.landscape.outputs.management_dns_resourcegroup_name, local.saplib_resource_group_name)
+  management_dns_resourcegroup_name = try(data.terraform_remote_state.landscape.outputs.management_dns_resourcegroup_name, local.saplib_resource_group_name)
 
 
   #########################################################################################
@@ -450,5 +456,7 @@ module "output_files" {
     2 * local.application_tier.scs_server_count) : (
     local.application_tier.scs_server_count
   )
+
+  use_simple_mount = local.validated_use_simple_mount
 
 }

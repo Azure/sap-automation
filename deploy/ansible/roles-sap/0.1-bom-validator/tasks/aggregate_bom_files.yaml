@@ -1,20 +1,29 @@
 ---
 # Directory Object handling for BOM aggregation
 
-# Collect object statistics
+
+# -------------------------------------+---------------------------------------8
+# Step: 01
+# Description:  Collect object statistics
+#
 - name:                                 "{{ task_prefix }}: - file stats"
   ansible.builtin.stat:
     path:                               "{{ bom_directory_object.path }}"
   register:                             object_stats
+# Step: 01 - END
+# -------------------------------------+---------------------------------------8
 
-# Directory block
+# -------------------------------------+---------------------------------------8
+# Step: 02
+# Description:  Directory block
+#
 - name:                                 "{{ task_prefix }}: - Directory block"
-  vars:
-    destination:                        "{{ download_directory }}/bom/{{ new_bom_name }}"
-    sub_path:                           "{{ object_stats.stat.path | regex_search('(?:.*/' + this_bom_name + '/)(?P<relative_path>.*)', '\\g<relative_path>') | join }}"
-  when: object_stats.stat.mimetype  == "inode/directory"
   block:
-    # Informational
+
+# -------------------------------------+---------------------------------------8
+# Step: 02-01
+# Description:  Informational
+#
     - name:                             "{{ task_prefix }}: - Informational"
       ansible.builtin.debug:
         msg: |-
@@ -23,8 +32,14 @@
                                         sub_path:         {{ sub_path }}
                                         destination:      {{ destination }}
         verbosity:                      1
+# Step: 02-01 - END
+# -------------------------------------+---------------------------------------8
 
-    # Create directories
+
+# -------------------------------------+---------------------------------------8
+# Step: 02-02
+# Description:  Create directories
+#
     - name:                             "{{ task_prefix }}: - consolidate_bom: - Create temporary BOM directories"
       delegate_to:                      localhost
       become:                          "{{ bom_processing_become }}"
@@ -32,19 +47,28 @@
         path:                           "{{ destination }}/{{ sub_path }}"
         state:                          directory
         mode:                           0755
+# Step: 02-02 - END
+# -------------------------------------+---------------------------------------8
 
-# Preserve original BOM block
-- name:                                 "{{ task_prefix }}: - Original BOM block"
   vars:
     destination:                        "{{ download_directory }}/bom/{{ new_bom_name }}"
-    sub_path:                           "{{ object_stats.stat.path | regex_search('(?:.*/' + this_bom_name + '/)(?P<relative_path>.*)', '\\g<relative_path>') | join }}"
-    dir_path:                           "{{ sub_path | dirname }}"
-    file_name:                          "{{ sub_path | basename }}"
-    new_file_name:                      "{{ sub_path | basename }}.original"
+    sub_path:                           "{{ object_stats.stat.path | regex_search('(?:.*\/' + this_bom_name + '\/)(?P<relative_path>.*)', '\\g<relative_path>') | join }}"
   when:
-    - object_stats.stat.mimetype  == "text/plain"
-    - file_name                   == this_bom_name + ".yaml"
+    - object_stats.stat.mimetype  == "inode/directory"
+# Step: 02 - END
+# -------------------------------------+---------------------------------------8
+
+# -------------------------------------+---------------------------------------8
+# Step: 03
+# Description:  Preserve original BOM block
+#
+- name:                                 "{{ task_prefix }}: - Original BOM block"
   block:
+
+# -------------------------------------+---------------------------------------8
+# Step: 03-01
+# Description:
+#
     - name:                             "{{ task_prefix }}: - Informational"
       ansible.builtin.debug:
         msg: |-
@@ -56,7 +80,13 @@
                                         new_file_name:    {{ new_file_name }}
                                         destination:      {{ destination }}
         verbosity:                      1
+# Step: 03-01 - END
+# -------------------------------------+---------------------------------------8
 
+# -------------------------------------+---------------------------------------8
+# Step: 03-02
+# Description:
+#
     - name:                             "{{ task_prefix }}: - copy and rename original BOM"
       delegate_to:                      localhost
       become:                          "{{ bom_processing_become }}"
@@ -65,21 +95,32 @@
         dest:                           "{{ destination }}/{% if dir_path != '' %}{{ dir_path }}/{% endif %}{{ new_file_name }}"
         force:                          true
         mode:                           0755
+# Step: 03-02 - END
+# -------------------------------------+---------------------------------------8
 
-# File block
-- name:                                 "{{ task_prefix }}: - Original BOM block"
   vars:
     destination:                        "{{ download_directory }}/bom/{{ new_bom_name }}"
-    sub_path:                           "{{ object_stats.stat.path | regex_search('(?:.*/' + this_bom_name + '/)(?P<relative_path>.*)', '\\g<relative_path>') | join }}"
+    sub_path:                           "{{ object_stats.stat.path | regex_search('(?:.*\/' + this_bom_name + '\/)(?P<relative_path>.*)', '\\g<relative_path>') | join }}"
     dir_path:                           "{{ sub_path | dirname }}"
     file_name:                          "{{ sub_path | basename }}"
-    new_file_name:                      "{{ sub_path | basename | regex_replace(this_bom_name, new_bom_name) }}"
+    new_file_name:                      "{{ sub_path | basename }}.original"
   when:
-    - object_stats.stat.mimetype  == "text/plain"         or
-      object_stats.stat.mimetype  == "application/pdf"    or
-      object_stats.stat.mimetype  == "text/xml"
-    - file_name                   != this_bom_name + ".yaml"
+    - object_stats.stat.mimetype  == "text/plain"
+    - file_name                   == this_bom_name + ".yaml"
+# Step: 03 - END
+# -------------------------------------+---------------------------------------8
+
+# -------------------------------------+---------------------------------------8
+# Step: 04
+# Description:  File block
+#
+- name:                                 "{{ task_prefix }}: - Original BOM block"
   block:
+
+# -------------------------------------+---------------------------------------8
+# Step: 04-01
+# Description:
+#
     - name:                             "{{ task_prefix }}: - Informational"
       ansible.builtin.debug:
         msg: |-
@@ -91,7 +132,13 @@
                                         new_file_name:    {{ new_file_name }}
                                         destination:      {{ destination }}
         verbosity:                      1
+# Step: 04-01 - END
+# -------------------------------------+---------------------------------------8
 
+# -------------------------------------+---------------------------------------8
+# Step: 04-02
+# Description:
+#
     - name:                             "{{ task_prefix }}: - copy and rename files"
       become:                          "{{ bom_processing_become }}"
       delegate_to:                      localhost
@@ -100,5 +147,25 @@
         dest:                           "{{ destination }}/{% if dir_path != '' %}{{ dir_path }}/{% endif %}{{ new_file_name }}"
         force:                          true
         mode:                           0755
+# Step: 04-02 - END
+# -------------------------------------+---------------------------------------8
+
+  vars:
+    destination:                        "{{ download_directory }}/bom/{{ new_bom_name }}"
+    sub_path:                           "{{ object_stats.stat.path | regex_search('(?:.*\/' + this_bom_name + '\/)(?P<relative_path>.*)', '\\g<relative_path>') | join }}"
+    dir_path:                           "{{ sub_path | dirname }}"
+    file_name:                          "{{ sub_path | basename }}"
+    new_file_name:                      "{{ sub_path | basename | regex_replace(this_bom_name, new_bom_name) }}"
+  when:
+    - object_stats.stat.mimetype  == "text/plain"         or
+      object_stats.stat.mimetype  == "application/pdf"    or
+      object_stats.stat.mimetype  == "text/xml"
+    - file_name                   != this_bom_name + ".yaml"
+# Step: 04 - END
+# -------------------------------------+---------------------------------------8
+
 
 ...
+# /*---------------------------------------------------------------------------8
+# |                                   END                                      |
+# +------------------------------------4--------------------------------------*/

@@ -12,26 +12,30 @@
 
 
 - name:                                Retrieve Subscription ID and Resource Group Name
-  ansible.builtin.uri:
-    url:                               http://169.254.169.254/metadata/instance?api-version=2021-02-01
-    use_proxy:                         false
-    headers:
-      Metadata:                        true
-  register: hanavmmetadata
+  ansible.builtin.command:             curl -H Metadata:true --noproxy "*" "http://169.254.169.254/metadata/instance?api-version=2021-02-01"
+  register:                            hanavmmetadata
+  changed_when:                        false
+  args:
+    warn:                              false
 
 - name:                                Show IMDS results
   ansible.builtin.debug:
-    var:                               hanavmmetadata.json
+    var:                               hanavmmetadata
     verbosity:                         2
+
+- name:                                Save the Json data to a Variable as a Fact
+  ansible.builtin.set_fact:
+    jsondata:                          "{{ hanavmmetadata.stdout | from_json }}"
+  no_log:                              true
 
 - name:                                Extract Subscription ID
   ansible.builtin.set_fact:
-    fencing_spn_subscription_id:       "{{ hanavmmetadata.json.compute.subscriptionId }}"
+    fencing_spn_subscription_id: "{{ jsondata | json_query('compute.subscriptionId') }}"
   no_log:                              true
 
 - name:                                "Extract ResourceGroup Name "
   ansible.builtin.set_fact:
-    resource_group_name:               "{{ hanavmmetadata.json.compute.resourceGroupName }}"
+    resource_group_name:               "{{ jsondata | json_query('compute.resourceGroupName') }}"
   no_log:                              true
 
 - name:                                Set the primary intance db nic and admin nic IP
@@ -56,6 +60,7 @@
   block:
     - name:                            Check HANA DB Version and register
       become_user:                     "{{ db_sid | lower }}adm"
+      become:                          true
       ansible.builtin.command:         /hana/shared/{{ db_sid | upper }}/HDB{{ db_instance_number }}/HDB version
       register:                        hdbversion
       changed_when:                    false

@@ -122,9 +122,6 @@ variable "landscape_tfstate" {
   description = "Landscape remote tfstate file"
 }
 
-variable "hana_ANF_volumes" {
-  description = "Defines HANA ANF volumes"
-}
 
 variable "NFS_provider" {
   description = "Describes the NFS solution used"
@@ -148,6 +145,19 @@ variable "fencing_role_name" {
   description = "If specified the role name to use for the fencing"
 }
 
+
+variable "database_use_premium_v2_storage" {
+  description = "If true, the database tier will use premium storage"
+  type        = bool
+}
+
+#########################################################################################
+#                                                                                       #
+#  DNS settings                                                                         #
+#                                                                                       #
+#########################################################################################
+
+
 variable "use_custom_dns_a_registration" {
   description = "Boolean value indicating if a custom dns a record should be created when using private endpoints"
   default     = false
@@ -167,7 +177,18 @@ variable "management_dns_resourcegroup_name" {
 }
 
 
-variable "database_use_premium_v2_storage" {
-  description = "If true, the database tier will use premium storage"
+variable "register_virtual_network_to_dns" {
+  description = "Boolean value indicating if the vnet should be registered to the dns zone"
   type        = bool
+}
+
+
+#########################################################################################
+#                                                                                       #
+#  ANF settings                                                                         #
+#                                                                                       #
+#########################################################################################
+
+variable "hana_ANF_volumes" {
+  description = "Defines HANA ANF volumes"
 }

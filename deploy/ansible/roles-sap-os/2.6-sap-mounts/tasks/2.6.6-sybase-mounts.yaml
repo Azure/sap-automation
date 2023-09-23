@@ -156,7 +156,7 @@
 # Debug for testing
 - name:                                "SYBASE: Print filesystems"
   ansible.builtin.debug:
-    var:                               asefsmounts
+    var:                               sybasefsmounts
     verbosity:                         2
 
 ...

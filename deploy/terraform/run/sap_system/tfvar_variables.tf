@@ -302,6 +302,12 @@ variable "fencing_role_name" {
   default     = "Virtual Machine Contributor"
 }
 
+variable "use_simple_mount" {
+  description = "If specified use Simple mount"
+  default     = true
+}
+
+
 #########################################################################################
 #                                                                                       #
 #  Database tier variables                                                              #
@@ -646,6 +652,11 @@ variable "application_server_count" {
 }
 
 variable "pas_instance_number" {
+  description = "The Instance number for PAS"
+  default     = "00"
+}
+
+variable "app_instance_number" {
   description = "The Instance number for PAS"
   default     = "00"
 }

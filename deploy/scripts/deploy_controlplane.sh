@@ -190,7 +190,7 @@ if [ -n "${subscription}" ]; then
     echo ""
     az account set --sub "${subscription}"
     export ARM_SUBSCRIPTION_ID="${subscription}"
-    kv_found=$(az keyvault list --subscription $subscription --query [].name | grep  "${keyvault}")
+    kv_found=$(az keyvault list --subscription "${subscription}" --query [].name | grep  "${keyvault}")
 
     if [ -z "${kv_found}" ] ; then
         echo "#########################################################################################"
@@ -280,7 +280,7 @@ if [ 0 == $step ]; then
         save_config_var "tenant_id" "${deployer_config_information}"
     fi
 
-    if [ -n $FORCE_RESET ]; then
+    if [ -n "${FORCE_RESET}" ]; then
       step=3
       save_config_var "step" "${deployer_config_information}"
       exit 0
@@ -353,7 +353,7 @@ fi
 
 cd "$root_dirname" || exit
 
-if [ 1 == $step ]; then
+if [ 1 == $step ] || [ 3 == $step ] ; then
     secretname="${environment}"-client-id
     echo ""
     echo "#########################################################################################"
@@ -431,8 +431,10 @@ if [ 1 == $step ]; then
             fi
         fi
         cd "${curdir}" || exit
-        step=2
-        save_config_var "step" "${deployer_config_information}"
+        if [ 1 == $step ] ; then
+          step=2
+          save_config_var "step" "${deployer_config_information}"
+        fi
     else
         az_subscription_id=$(az account show --query id -o tsv)
         printf -v val %-40.40s "$az_subscription_id"
@@ -443,8 +445,8 @@ if [ 1 == $step ]; then
         echo "#########################################################################################"
         echo "User account ${val} does not have access to: $keyvault" > "${deployer_config_information}".err
 
-        exit 65
         echo "##vso[task.setprogress value=40;]Progress Indicator"
+        exit 65
 
     fi
 else
@@ -487,6 +489,8 @@ if [ 2 == $step ]; then
     return_code=$?
     if [ 0 != $return_code ]; then
         echo "Bootstrapping of the SAP Library failed" > "${deployer_config_information}".err
+        step=1
+        save_config_var "step" "${deployer_config_information}"
         exit 20
     fi
     terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/sap_library/
@@ -558,7 +562,6 @@ if [ 3 == $step ]; then
         rm post_deployment.sh
     fi
 
-
     secretname=sa-connection-string
     deleted=$(az keyvault secret list-deleted --vault-name "${keyvault}" --query "[].{Name:name} | [? contains(Name,'${secretname}')] | [0]" | tr -d \")
     if [ "${deleted}" == "${secretname}"  ]; then
@@ -574,6 +577,13 @@ if [ 3 == $step ]; then
       export TF_VAR_sa_connection_string
 
     fi
+
+    if [[ -z $REMOTE_STATE_SA ]];
+    then
+        echo "Loading the State file information"
+        load_config_vars "${deployer_config_information}" "REMOTE_STATE_SA"
+    fi
+
     allParams=$(printf " --parameterfile %s --storageaccountname %s --type sap_deployer %s %s " "${deployer_file_parametername}" "${REMOTE_STATE_SA}" "${approveparam}" "${ado_flag}" )
 
     echo -e "$cyan calling installer.sh with parameters: $allParams"
@@ -640,7 +650,7 @@ echo "#                                                                         
 echo "#########################################################################################"
 
 if [ -f "${deployer_config_information}".err ]; then
-    "${deployer_config_information}".err
+    sudo rm "${deployer_config_information}".err
 fi
 
 now=$(date)
@@ -667,13 +677,13 @@ export deployer_ip="${deployer_public_ip_address}"
 export terraform_state_storage_account="${REMOTE_STATE_SA}"
 
 if [ 5 == $step ]; then
-    if [ $ado_flag != "--ado" ] ; then
+    if [ "${ado_flag}" != "--ado" ] ; then
         cd "${curdir}" || exit
 
         load_config_vars "${deployer_config_information}" "sshsecret"
         load_config_vars "${deployer_config_information}" "keyvault"
         load_config_vars "${deployer_config_information}" "deployer_public_ip_address"
-        if [ "$this_ip" != "$deployer_public_ip_address" ] ; then
+        if [ ! -f /etc/profile.d/deploy_server.sh ] ; then
             # Only run this when not on deployer
             echo "#########################################################################################"
             echo "#                                                                                       #"

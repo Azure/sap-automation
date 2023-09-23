@@ -95,19 +95,26 @@ resource "local_file" "ansible_inventory_new_yml" {
     scs_supported_tiers = local.scs_supported_tiers
     ips_observers       = var.observer_ips
     observers           = length(var.observer_ips) > 0 ? var.naming.virtualmachine_names.OBSERVER_COMPUTERNAME : []
+
+    # Only create these if the operating system is Windows
     ansible_winrm_server_cert_validation = var.platform == "SQLSERVER" ? (
-      "ansible_winrm_server_cert_validation: ignore") : (
-      upper(var.app_tier_os_types["scs"]) == "WINDOWS" ? "ansible_winrm_server_cert_validation: ignore" : ""
+      "ansible_winrm_server_cert_validation : ignore") : (
+      upper(var.app_tier_os_types["scs"]) == "WINDOWS" ? "ansible_winrm_server_cert_validation : ignore" : ""
     )
 
     ansible_winrm_operation_timeout_sec = var.platform == "SQLSERVER" ? (
-      "ansible_winrm_operation_timeout_sec: 120") : (
-      upper(var.app_tier_os_types["scs"]) == "WINDOWS" ? "ansible_winrm_operation_timeout_sec: 120" : ""
+      "ansible_winrm_operation_timeout_sec  : 120") : (
+      upper(var.app_tier_os_types["scs"]) == "WINDOWS" ? "ansible_winrm_operation_timeout_sec  : 120" : ""
     )
 
     ansible_winrm_read_timeout_sec = var.platform == "SQLSERVER" ? (
-      "ansible_winrm_read_timeout_sec: 150") : (
-      upper(var.app_tier_os_types["scs"]) == "WINDOWS" ? "ansible_winrm_read_timeout_sec: 150" : ""
+      "ansible_winrm_read_timeout_sec       : 150") : (
+      upper(var.app_tier_os_types["scs"]) == "WINDOWS" ? "ansible_winrm_read_timeout_sec       : 150" : ""
+    )
+
+    ansible_winrm_transport = var.platform == "SQLSERVER" ? (
+      "ansible_winrm_transport              : credssp") : (
+      upper(var.app_tier_os_types["scs"]) == "WINDOWS" ? "ansible_winrm_transport              : credssp" : ""
     )
 
     db_os_type  = var.platform == "SQLSERVER" ? "windows" : "linux"
@@ -140,7 +147,7 @@ resource "local_file" "sap-parameters_yml" {
     db_instance_number = try(var.database.instance.instance_number, "00")
 
     dns = local.dns_label
-    bom = local.bom
+    bom = ""
 
     sap_mnt = length(var.sap_mnt) > 1 ? (
       format("sap_mnt:                       %s", var.sap_mnt)) : (
@@ -193,6 +200,10 @@ resource "local_file" "sap-parameters_yml" {
 
     dns = var.dns
 
+    is_use_simple_mount = var.use_simple_mount
+
+    app_instance_number = var.app_instance_number
+
     }
   )
   filename             = format("%s/sap-parameters.yaml", path.cwd)
@@ -215,49 +226,49 @@ resource "local_file" "sap_inventory_md" {
   directory_permission = "0770"
 }
 
-locals {
-  fileContents     = fileexists(format("%s/sap-parameters.yaml", path.cwd)) ? file(format("%s/sap-parameters.yaml", path.cwd)) : ""
-  fileContentsList = split("\n", local.fileContents)
+# locals {
+#   fileContents     = fileexists(format("%s/sap-parameters.yaml", path.cwd)) ? file(format("%s/sap-parameters.yaml", path.cwd)) : ""
+#   fileContentsList = split("\n", local.fileContents)
 
-  items = compact([for strValue in local.fileContentsList :
-    length(trimspace(strValue)) > 0 ? (
-      length(split(":", strValue)) > 1 ? (
-        substr(trimspace(strValue), 0, 1) != "-" ? (
-          trimspace(strValue)) : (
-          ""
-        )
-        ) : (
-        ""
-      )) : (
-      ""
-    )
-    ]
-  )
+#   items = compact([for strValue in local.fileContentsList :
+#     length(trimspace(strValue)) > 0 ? (
+#       length(split(":", strValue)) > 1 ? (
+#         substr(trimspace(strValue), 0, 1) != "-" ? (
+#           trimspace(strValue)) : (
+#           ""
+#         )
+#         ) : (
+#         ""
+#       )) : (
+#       ""
+#     )
+#     ]
+#   )
 
-  itemvalues = tomap({ for strValue in local.items :
-    trimspace(split(":", strValue)[0]) => trimspace(substr(strValue, length(split(":", strValue)[0]) + 1, -1))
-  })
+#   itemvalues = tomap({ for strValue in local.items :
+#     trimspace(split(":", strValue)[0]) => trimspace(substr(strValue, length(split(":", strValue)[0]) + 1, -1))
+#   })
 
-  bom = trimspace(coalesce(var.bom_name, lookup(local.itemvalues, "bom_base_name", ""), " "))
+#   bom = trimspace(coalesce(var.bom_name, lookup(local.itemvalues, "bom_base_name", ""), " "))
 
-  token            = lookup(local.itemvalues, "sapbits_sas_token", "")
-  ora_release      = lookup(local.itemvalues, "ora_release", "")
-  ora_version      = lookup(local.itemvalues, "ora_version", "")
-  oracle_sbp_patch = lookup(local.itemvalues, "oracle_sbp_patch", "")
-  domain           = lookup(local.itemvalues, "domain", "")
-  domain_user      = lookup(local.itemvalues, "domain_user", "")
-  domain_name      = lookup(local.itemvalues, "domain_name", "")
+#   token            = lookup(local.itemvalues, "sapbits_sas_token", "")
+#   ora_release      = lookup(local.itemvalues, "ora_release", "")
+#   ora_version      = lookup(local.itemvalues, "ora_version", "")
+#   oracle_sbp_patch = lookup(local.itemvalues, "oracle_sbp_patch", "")
+#   domain           = lookup(local.itemvalues, "domain", "")
+#   domain_user      = lookup(local.itemvalues, "domain_user", "")
+#   domain_name      = lookup(local.itemvalues, "domain_name", "")
 
-  oracle = (upper(var.platform) == "ORACLE" || upper(var.platform) == "ORACLE-ASM") ? (
-    format("ora_release: %s\nora_version: %s\noracle_sbp_patch: %s\n", local.ora_release, local.ora_version, local.oracle_sbp_patch)) : (
-    ""
-  )
+#   oracle = (upper(var.platform) == "ORACLE" || upper(var.platform) == "ORACLE-ASM") ? (
+#     format("ora_release: %s\nora_version: %s\noracle_sbp_patch: %s\n", local.ora_release, local.ora_version, local.oracle_sbp_patch)) : (
+#     ""
+#   )
 
-  domain_info = upper(var.platform) == "SQLSERVER" ? (
-    format("domain: %s\ndomain_user: %s\ndomain_name: %s\n", local.domain, local.domain_user, local.domain_name)) : (
-    ""
-  )
-}
+#   domain_info = upper(var.platform) == "SQLSERVER" ? (
+#     format("domain: %s\ndomain_user: %s\ndomain_name: %s\n", local.domain, local.domain_user, local.domain_name)) : (
+#     ""
+#   )
+# }
 
 resource "local_file" "sap_inventory_for_wiki_md" {
   content = templatefile(format("%s/sid-description.tmpl", path.module), {
