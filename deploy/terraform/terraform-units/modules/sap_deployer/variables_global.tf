@@ -24,6 +24,11 @@ variable "enable_purge_control_for_keyvaults" {
   description = "Disables the purge protection for Azure keyvaults."
 }
 
+variable "set_secret_expiry" {
+  description = "Set expiry date for secrets"
+  type        = bool
+}
+
 #########################################################################################
 #                                                                                       #
 #  Web App                                                                              #
@@ -31,15 +36,25 @@ variable "enable_purge_control_for_keyvaults" {
 #########################################################################################
 
 variable "use_webapp" {
+  description = "value indicating if webapp should be deployed"
   default = false
 }
-variable "app_registration_app_id" {}
-variable "sa_connection_string" {}
-variable "webapp_client_secret" {}
+
+variable "app_registration_app_id" {
+  description = "App registration app id"
+}
+
+variable "sa_connection_string" {
+  description = "Storage account connection string"
+}
+
+variable "webapp_client_secret" {
+  description = "App registration client secret"
+}
 
 
 variable "naming" {
-  description = "naming convention"
+  description = "Dictionary containing the names of the resources"
 }
 
 variable "firewall_deployment" {
@@ -53,7 +68,7 @@ variable "assign_subscription_permissions" {
 }
 
 variable "bootstrap" {
-  description = "Which phase of deployment"
+  description = "Defines the phase of deployment"
   type        = bool
 
 }
@@ -75,6 +90,11 @@ variable "enable_firewall_for_keyvaults_and_storage" {
   description = "Boolean value indicating if firewall should be enabled for key vaults and storage"
   default     = false
   type        = bool
+}
+
+variable "subnets_to_add_to_firewall_for_keyvaults_and_storage" {
+  description = "List of subnets to add to storage account and keyvaults firewall"
+  default     = [""]
 }
 
 variable "use_custom_dns_a_registration" {

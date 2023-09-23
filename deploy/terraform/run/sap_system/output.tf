@@ -103,6 +103,16 @@ output "scs_loadbalancer_id" {
   value       = module.app_tier.scs_lb_id
 }
 
+output "use_custom_dns_a_registration" {
+  value = try(data.terraform_remote_state.landscape.outputs.use_custom_dns_a_registration, true)
+}
+output "management_dns_subscription_id" {
+  value = try(data.terraform_remote_state.landscape.outputs.management_dns_subscription_id, null)
+}
+output "management_dns_resourcegroup_name" {
+  value = coalesce(data.terraform_remote_state.landscape.outputs.management_dns_resourcegroup_name, local.saplib_resource_group_name)
+}
+
 
 ###############################################################################
 #                                                                             #
@@ -189,12 +199,23 @@ output "configuration_settings" {
   value       = var.configuration_settings
 }
 
-output "use_custom_dns_a_registration" {
-  value = try(data.terraform_remote_state.landscape.outputs.use_custom_dns_a_registration, true)
+
+###############################################################################
+#                                                                             #
+#                                     SPN                                     #
+#                                                                             #
+###############################################################################
+
+
+output "app_id_used" {
+  description = "The App ID used in the deployment"
+  value       = local.spn.client_id
+  sensitive   = true
 }
-output "management_dns_subscription_id" {
-  value = try(data.terraform_remote_state.landscape.outputs.management_dns_subscription_id, null)
+
+output "subscription_id_used" {
+  description = "The Subscription ID configured in the key vault"
+  value       = local.spn.subscription_id
+  sensitive   = true
 }
-output "management_dns_resourcegroup_name" {
-  value = coalesce(data.terraform_remote_state.landscape.outputs.management_dns_resourcegroup_name, local.saplib_resource_group_name)
-}
+

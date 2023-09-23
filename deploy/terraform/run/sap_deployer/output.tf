@@ -83,6 +83,10 @@ output "subnet_bastion_address_prefixes" {
   value = module.sap_deployer.subnet_bastion_address_prefixes
 }
 
+output "subnets_to_add_to_firewall_for_keyvaults_and_storage" {
+  value = var.subnets_to_add_to_firewall_for_keyvaults_and_storage
+}
+
 
 ###############################################################################
 #                                                                             #
@@ -99,6 +103,9 @@ output "deployer_kv_user_name" {
   value = module.sap_deployer.user_vault_name
 }
 
+output "set_secret_expiry" {
+  value = var.set_secret_expiry
+}
 
 ###############################################################################
 #                                                                             #

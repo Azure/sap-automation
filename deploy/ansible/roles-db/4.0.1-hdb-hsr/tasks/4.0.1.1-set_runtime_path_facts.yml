@@ -7,6 +7,7 @@
 
 - name:                                "HANA HSR: - Determine runtime value of SAP global path"
   become_user:                         "{{ db_sid_admin_user }}"
+  become:                              true
   ansible.builtin.shell: >
                                        set -o pipefail && grep '^alias cdglo=' ~/.sapenv.sh | sed -e 's/^.* //' -e 's/$SAPSYSTEMNAME/{{ db_sid | upper }}/' -e "s/'//"
   register:                            global_path_status
@@ -64,6 +65,7 @@
 
     - name:                            "HANA HSR: - Check HANA DB Version and register"
       become_user:                     "{{ db_sid_admin_user }}"
+      become:                          true
       ansible.builtin.command:         /hana/shared/{{ db_sid | upper }}/HDB{{ db_instance_number }}/HDB version
       register:                        hdbversion
       changed_when:                    false

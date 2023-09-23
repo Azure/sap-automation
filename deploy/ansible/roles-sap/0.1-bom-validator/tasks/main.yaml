@@ -77,7 +77,7 @@
 
 # - name:                                 "Install Collections"
 #   ansible.builtin.command: >-
-#                                         ansible-galaxy collection install ansible.netcommon
+#                                         ansible-galaxy collection install ansible.netcommon:5.1.2
 
 # - name:                                 "Show Installed Collections"
 #   ansible.builtin.command: >-

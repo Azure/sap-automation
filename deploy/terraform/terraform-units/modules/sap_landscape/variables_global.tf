@@ -251,6 +251,12 @@ variable "dns_server_list" {
   default     = []
 }
 
+variable "register_virtual_network_to_dns" {
+  description = "Boolean value indicating if the vnet should be registered to the dns zone"
+  type        = bool
+}
+
+
 variable "create_vaults_and_storage_dns_a_records" {
   description = "Boolean value indicating if dns a records should be created for the vaults and storage accounts"
   type        = bool

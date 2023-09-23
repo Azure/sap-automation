@@ -923,7 +923,12 @@ if [ 1 == $ok_to_proceed ]; then
     if [ 1 == $called_from_ado ] ; then
         terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings -json $allParams | tee -a apply_output.json
     else
-        terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -json $allParams | tee -a  apply_output.json
+        if [ -n "${approve}" ]
+        then
+          terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -json $allParams | tee -a  apply_output.json
+        else
+          terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" $allParams
+        fi
     fi
     return_value=$?
 
@@ -1097,8 +1102,18 @@ then
     fi
 
     created_resource_group_name=$(terraform -chdir="${terraform_module_directory}"  output -no-color -raw created_resource_group_name | tr -d \")
+    echo ""
+    echo ""
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo -e "#                        $cyan  Capturing telemetry  $resetformatting                                        #"
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
+    echo ""
+    echo ""
 
     az deployment group create --resource-group ${created_resource_group_name} --name "ControlPlane_Deployer_${created_resource_group_name}" --template-file "${script_directory}/templates/empty-deployment.json" --output none
+    return_value=0
     if [ 1 == $called_from_ado ] ; then
 
         terraform -chdir="${terraform_module_directory}" output -json -no-color deployer_uai
@@ -1218,6 +1233,16 @@ then
 
     rg_name=$(terraform -chdir="${terraform_module_directory}"  output -no-color -raw created_resource_group_name | tr -d \")
 
+    echo ""
+    echo ""
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo -e "#                        $cyan  Capturing telemetry  $resetformatting                                        #"
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
+    echo ""
+    echo ""
+
     az deployment group create --resource-group ${rg_name} --name "SAP_${rg_name}" --subscription  $ARM_SUBSCRIPTION_ID --template-file "${script_directory}/templates/empty-deployment.json"  --output none
 
 fi
@@ -1229,6 +1254,16 @@ then
     landscape_tfstate_key
 
     rg_name=$(terraform -chdir="${terraform_module_directory}"  output -no-color -raw created_resource_group_name | tr -d \")
+    echo ""
+    echo ""
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo -e "#                        $cyan  Capturing telemetry  $resetformatting                                        #"
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
+    echo ""
+    echo ""
+
     az deployment group create --resource-group ${rg_name} --name "SAP-WORKLOAD-ZONE_${rg_name}" --template-file "${script_directory}/templates/empty-deployment.json" --output none
 fi
 
@@ -1236,19 +1271,6 @@ if [ "${deployment_system}" == sap_library ]
 then
     REMOTE_STATE_SA=$(terraform -chdir="${terraform_module_directory}" output  -no-color -raw remote_state_storage_account_name | tr -d \")
     sapbits_storage_account_name=$(terraform -chdir="${terraform_module_directory}"  output -no-color -raw sapbits_storage_account_name | tr -d \")
-    random_id_b64=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw random_id_b64 | tr -d \")
-    temp=$(echo "${random_id_b64}" | grep -m1 "Warning")
-    if [ -z "${temp}" ]
-    then
-        temp=$(echo "${random_id_b64}" | grep "Backend reinitialization required")
-        if [ -z "${temp}" ]
-        then
-            save_config_var "library_random_id" "${random_id_b64}"
-            return_value=0
-        fi
-    fi
-
-
     if [ 1 == $called_from_ado ] ; then
 
         if [ -n "${sapbits_storage_account_name}" ] ; then
@@ -1272,6 +1294,16 @@ then
 
     get_and_store_sa_details "${REMOTE_STATE_SA}" "${system_config_information}"
     rg_name=$(terraform -chdir="${terraform_module_directory}"  output -no-color -raw created_resource_group_name | tr -d \")
+
+    echo ""
+    echo ""
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo -e "#                        $cyan  Capturing telemetry  $resetformatting                                        #"
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
+    echo ""
+    echo ""
 
     az deployment group create --resource-group ${rg_name} --name "SAP-LIBRARY_${rg_name}" --template-file "${script_directory}/templates/empty-deployment.json" --output none
 

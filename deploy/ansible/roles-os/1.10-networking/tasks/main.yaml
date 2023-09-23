@@ -121,7 +121,7 @@
   ansible.builtin.command:             ifup eth0
   when:
     - definition_made.changed
-    - ansible_os_family | upper == "REDHAT"
+    - distribution_id == 'redhat7'
 
 ...
 # /*----------------------------------------------------------------------------8

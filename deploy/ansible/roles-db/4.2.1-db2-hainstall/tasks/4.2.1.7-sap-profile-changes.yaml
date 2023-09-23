@@ -30,7 +30,7 @@
       ansible.builtin.lineinfile:
         path:                          /sapmnt/{{ sap_sid | upper }}/profile/DEFAULT.PFL
         line:                          j2ee/dbhost = {{ db_virtual_hostname }}
-        insertafter:                   'SAPDBHOST'
+        insertafter:                   '#SAPDBHOST'
       tags:
         - j2eedbhostpara
 

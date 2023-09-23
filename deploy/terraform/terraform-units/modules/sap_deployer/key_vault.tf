@@ -3,7 +3,10 @@ data "azurerm_client_config" "deployer" {
   provider = azurerm.main
 }
 
-
+## Add an expiry date to the secrets
+resource "time_offset" "secret_expiry_date" {
+  offset_months = 12
+}
 // Create user KV with access policy
 resource "azurerm_key_vault" "kv_user" {
   count = (var.key_vault.kv_exists) ? 0 : 1
@@ -39,16 +42,15 @@ resource "azurerm_key_vault" "kv_user" {
       )
 
       virtual_network_subnet_ids = compact(local.management_subnet_exists ? (var.use_webapp ? (
-        [data.azurerm_subnet.subnet_mgmt[0].id, data.azurerm_subnet.webapp[0].id]) : (
-        [data.azurerm_subnet.subnet_mgmt[0].id])
+        flatten([data.azurerm_subnet.subnet_mgmt[0].id, data.azurerm_subnet.webapp[0].id, var.subnets_to_add_to_firewall_for_keyvaults_and_storage])) : (
+        flatten([data.azurerm_subnet.subnet_mgmt[0].id, var.subnets_to_add_to_firewall_for_keyvaults_and_storage]))
         ) : (var.use_webapp ? (
-          compact([azurerm_subnet.subnet_mgmt[0].id, try(azurerm_subnet.webapp[0].id, null)])) : (
-          [azurerm_subnet.subnet_mgmt[0].id]
+          compact(flatten([azurerm_subnet.subnet_mgmt[0].id, try(azurerm_subnet.webapp[0].id, null), var.subnets_to_add_to_firewall_for_keyvaults_and_storage]))) : (
+          flatten([azurerm_subnet.subnet_mgmt[0].id, var.subnets_to_add_to_firewall_for_keyvaults_and_storage])
         )
       ))
     }
   }
-
 }
 
 resource "azurerm_private_dns_a_record" "kv_user" {
@@ -104,6 +106,11 @@ resource "azurerm_key_vault_secret" "ppk" {
   name         = local.ppk_secret_name
   value        = local.private_key
   key_vault_id = var.key_vault.kv_exists ? var.key_vault.kv_user_id : azurerm_key_vault.kv_user[0].id
+
+  expiration_date = var.set_secret_expiry ? (
+    time_offset.secret_expiry_date.rfc3339) : (
+    null
+  )
 }
 
 resource "azurerm_key_vault_secret" "pk" {
@@ -125,6 +132,11 @@ resource "azurerm_key_vault_secret" "pk" {
   name         = local.pk_secret_name
   value        = local.public_key
   key_vault_id = var.key_vault.kv_exists ? var.key_vault.kv_user_id : azurerm_key_vault.kv_user[0].id
+
+  expiration_date = var.set_secret_expiry ? (
+    time_offset.secret_expiry_date.rfc3339) : (
+    null
+  )
 }
 
 resource "azurerm_key_vault_secret" "username" {
@@ -145,6 +157,11 @@ resource "azurerm_key_vault_secret" "username" {
   name         = local.username_secret_name
   value        = local.username
   key_vault_id = var.key_vault.kv_exists ? var.key_vault.kv_user_id : azurerm_key_vault.kv_user[0].id
+
+  expiration_date = var.set_secret_expiry ? (
+    time_offset.secret_expiry_date.rfc3339) : (
+    null
+  )
 }
 
 resource "azurerm_key_vault_secret" "pat" {
@@ -166,6 +183,10 @@ resource "azurerm_key_vault_secret" "pat" {
   name         = "PAT"
   value        = var.agent_pat
   key_vault_id = var.key_vault.kv_exists ? var.key_vault.kv_user_id : azurerm_key_vault.kv_user[0].id
+  expiration_date = var.set_secret_expiry ? (
+    time_offset.secret_expiry_date.rfc3339) : (
+    null
+  )
 }
 
 resource "azurerm_key_vault_secret" "web_pwd" {
@@ -187,6 +208,10 @@ resource "azurerm_key_vault_secret" "web_pwd" {
   name         = "WEB-PWD"
   value        = var.webapp_client_secret
   key_vault_id = var.key_vault.kv_exists ? var.key_vault.kv_user_id : azurerm_key_vault.kv_user[0].id
+  expiration_date = var.set_secret_expiry ? (
+    time_offset.secret_expiry_date.rfc3339) : (
+    null
+  )
 }
 
 
@@ -226,6 +251,10 @@ resource "azurerm_key_vault_secret" "pwd" {
   key_vault_id = var.key_vault.kv_exists ? (
     var.key_vault.kv_user_id) : (
     azurerm_key_vault.kv_user[0].id
+  )
+  expiration_date = var.set_secret_expiry ? (
+    time_offset.secret_expiry_date.rfc3339) : (
+    null
   )
 }
 

@@ -9,6 +9,7 @@
 
 - name:                                "HANA HSR: - Ensure HANA 1.0 is configured for System Replication"
   become_user:                         "{{ db_sid_admin_user }}"
+  become:                              true
   block:
 
     # https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/sap-hana-high-availability#configure-sap-hana-10-system-replication
@@ -45,6 +46,7 @@
 
 - name:                                "HANA HSR: - Perform pre-flight backup checks"
   become_user:                         "{{ db_sid_admin_user }}"
+  become:                              true
   block:
     - name:                            "HANA HSR: - Check backup file exists for SYSTEMDB database for System Identifier {{ db_sid }}"
       ansible.builtin.stat:
@@ -118,16 +120,17 @@
   when:                                ansible_hostname == primary_instance_name
 
 - name:                                "HANA HSR: - Set INI File values"
-  ansible.builtin.import_tasks:                        4.0.1.5.0-set_global_ini_values.yml
+  ansible.builtin.import_tasks:        4.0.1.5.0-set_global_ini_values.yml
 
 - name:                                "HANA HSR: - Restart HANA"
   become_user:                         "{{ db_sid_admin_user }}"
+  become:                              true
   block:
     - name:                            "HANA HSR: - Stop HANA on {{ ansible_hostname | lower }}"
-      ansible.builtin.import_tasks:                   ../../../roles-misc/0.4-helpers/tasks/04.02-stop_hana.yml
+      ansible.builtin.import_tasks:    ../../../roles-misc/0.4-helpers/tasks/04.02-stop_hana.yml
 
     - name:                            "HANA HSR: - Start HANA on {{ ansible_hostname | lower }}"
-      ansible.builtin.import_tasks:                    ../../../roles-misc/0.4-helpers/tasks/04.01-start_hana.yml
+      ansible.builtin.import_tasks:    ../../../roles-misc/0.4-helpers/tasks/04.01-start_hana.yml
   vars:
     ansible_python_interpreter:        python3
   environment:
@@ -155,7 +158,7 @@
   block:
 
     - name:                            "HANA HSR: - Stop HANA on {{ ansible_hostname | lower }}"
-      ansible.builtin.import_tasks:                   ../../../roles-misc/0.4-helpers/tasks/04.02-stop_hana.yml
+      ansible.builtin.import_tasks:    ../../../roles-misc/0.4-helpers/tasks/04.02-stop_hana.yml
 
     - name:                            "HANA HSR: - Ensure Secondary node is registered as secondary in replication"
       become_user:                     "{{ db_sid_admin_user }}"
@@ -170,7 +173,7 @@
         executable: /bin/bash
 
     - name:                            "HANA HSR: - Start HANA on {{ ansible_hostname | lower }}"
-      ansible.builtin.import_tasks:                    ../../../roles-misc/0.4-helpers/tasks/04.01-start_hana.yml
+      ansible.builtin.import_tasks:    ../../../roles-misc/0.4-helpers/tasks/04.01-start_hana.yml
   vars:
     ansible_python_interpreter:        python3
   environment:

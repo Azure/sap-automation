@@ -30,30 +30,26 @@
 
 - name:                                "1.17 Generic Pacemaker - Extract details"
   ansible.builtin.set_fact:
-    fencing_spn_subscription_id: "{{ json_azure_data | json_query('compute.subscriptionId') }}"
-    resource_group_name:               "{{ json_azure_data | json_query('compute.resourceGroupName') }}"
+    fencing_spn_subscription_id:       "{{ azure_metadata.json.compute.subscriptionId }}"
+    resource_group_name:               "{{ azure_metadata.json.compute.resourceGroupName }}"
+    primary_ip:                        "{{ azure_metadata.json.network.interface[0].ipv4.ipAddress[0].privateIpAddress }}"
+    subnet_prefix:                     "{{ azure_metadata.json.network.interface[0].ipv4.subnet[0].prefix }}"
   no_log:                              true
 
-- name:                                "1.17 Generic Pacemaker - Extract details"
+- name:                                "1.17 Generic Pacemaker - Extract primary VM Name"
   ansible.builtin.set_fact:
     primary_vm_name:                   "{{ json_azure_data | json_query('compute.name') }}"
   when:                                ansible_hostname == primary_instance_name
-  no_log:                              true
 
-- name:                                "1.17 Generic Pacemaker - Extract VM Name"
+- name:                                "1.17 Generic Pacemaker - Extract secondary VM Name"
   ansible.builtin.set_fact:
     secondary_vm_name:                 "{{ json_azure_data | json_query('compute.name') }}"
   when:                                ansible_hostname == secondary_instance_name
-  no_log:                              true
 
-- name:                                "1.17 Generic Pacemaker - Set the primary and secondary instance nic IP - eth0"
+- name:                                "1.17 Generic Pacemaker - Extract NIC IPs"
   ansible.builtin.set_fact:
-    primary_instance_ip:               "{{ hostvars[primary_instance_name]['ansible_eth0']['ipv4']['address'] }}"
-    secondary_instance_ip:             "{{ hostvars[secondary_instance_name]['ansible_eth0']['ipv4']['address'] }}"
-
-- name:                                "1.17 Generic Pacemaker - Set the subnet prefix"
-  ansible.builtin.set_fact:
-    subnet_prefix:                     "{{ json_azure_data | json_query('network.interface[0].ipv4.subnet[0].prefix') }}"
+    primary_instance_ip:               "{{ hostvars[primary_instance_name]['primary_ip'] | string }}"
+    secondary_instance_ip:             "{{ hostvars[secondary_instance_name]['primary_ip'] | string }}"
 
 - name:                                "1.17 Generic Pacemaker - Show Details"
   ansible.builtin.debug:

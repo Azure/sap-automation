@@ -61,7 +61,15 @@ variable "key_vault" {
 
 }
 
-variable "dns_label" {}
+variable "dns_label" {
+    validation {
+    condition = (
+      length(trimspace(var.dns_label)) != 0
+    )
+    error_message = "The dns_label must be specified."
+  }
+
+}
 
 variable "naming" {
   description = "naming convention data structure"

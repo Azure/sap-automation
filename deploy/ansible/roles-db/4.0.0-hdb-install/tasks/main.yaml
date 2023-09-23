@@ -72,7 +72,7 @@
         _rsp_sid:                      "{{ db_sid | upper }}"
         _rsp_number:                   "{{ db_instance_number }}"
         _rsp_system_usage:             "custom"
-        use_master_password:           "{{ hana_use_master_password }} "
+        use_master_password:           "{{ hana_use_master_password }}"
         password_copy:                 "{%if hana_use_master_password == 'n' %}{{ main_password }}{% else %}{% endif %}"
 
     - name:                            "SAP HANA: Progress"
@@ -191,10 +191,10 @@
             state:                     touch
             mode:                      0755
 
-        - name:                        "SAP HANA: remove install response file"
-          ansible.builtin.file:
-            path:                      "{{ dir_params }}/{{ sap_inifile }}"
-            state:                     absent
+        # - name:                        "SAP HANA: remove install response file"
+        #   ansible.builtin.file:
+        #     path:                      "{{ dir_params }}/{{ sap_inifile }}"
+        #     state:                     absent
 
 
       when:

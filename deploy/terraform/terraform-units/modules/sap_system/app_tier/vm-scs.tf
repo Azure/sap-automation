@@ -248,6 +248,7 @@ resource "azurerm_linux_virtual_machine" "scs" {
 
 resource "azurerm_role_assignment" "scs" {
   provider = azurerm.main
+  depends_on = [ azurerm_linux_virtual_machine.scs  ]
   count = (
     var.use_msi_for_clusters &&
     local.enable_deployment &&
@@ -260,11 +261,35 @@ resource "azurerm_role_assignment" "scs" {
     0
   )
 
-  scope                = var.resource_group[0].id
+  scope = azurerm_linux_virtual_machine.scs[count.index].id
+
   role_definition_name = var.fencing_role_name
-  principal_id         = azurerm_linux_virtual_machine.scs[count.index].identity[0].principal_id
+  principal_id =  azurerm_linux_virtual_machine.scs[count.index].identity[0].principal_id
 
 }
+
+resource "azurerm_role_assignment" "scs_ha" {
+  provider = azurerm.main
+  depends_on = [ azurerm_linux_virtual_machine.scs  ]
+  count = (
+    var.use_msi_for_clusters &&
+    local.enable_deployment &&
+    upper(var.application_tier.scs_os.os_type) == "LINUX" &&
+    length(var.fencing_role_name) > 0 &&
+    local.scs_server_count > 1
+    ) ? (
+    local.scs_server_count
+    ) : (
+    0
+  )
+
+  scope = azurerm_linux_virtual_machine.scs[count.index].id
+
+  role_definition_name = var.fencing_role_name
+  principal_id =  azurerm_linux_virtual_machine.scs[(count.index +1) % local.scs_server_count].identity[0].principal_id
+
+}
+
 # Create the SCS Windows VM(s)
 resource "azurerm_windows_virtual_machine" "scs" {
   provider = azurerm.main

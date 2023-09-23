@@ -308,6 +308,12 @@ variable "additional_users_to_add_to_keyvault_policies" {
   default     = [""]
 }
 
+variable "set_secret_expiry" {
+  description = "Set expiry date for secrets"
+  default     = false
+  type        = bool
+}
+
 #########################################################################################
 #                                                                                       #
 #  Miscallaneous settings                                                               #
@@ -341,7 +347,7 @@ variable "deployer_diagnostics_account_arm_id" {
 
 variable "tf_version" {
   description = "Terraform version to install on deployer"
-  default     = "1.4.6"
+  default     = "1.5.6"
 }
 
 variable "name_override_file" {
@@ -448,6 +454,11 @@ variable "enable_firewall_for_keyvaults_and_storage" {
   description = "Boolean value indicating if firewall should be enabled for key vaults and storage"
   default     = false
   type        = bool
+}
+
+variable "subnets_to_add_to_firewall_for_keyvaults_and_storage" {
+  description = "List of subnets to add to storage account and keyvaults firewall"
+  default     = null
 }
 
 variable "Agent_IP" {

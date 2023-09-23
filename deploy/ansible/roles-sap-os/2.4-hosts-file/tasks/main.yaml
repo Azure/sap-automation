@@ -101,4 +101,69 @@
     - db_high_availability
     - platform == 'DB2'
 
+- name:                                "2.4 Hosts: Process pas_hostname variable and update host file when it is defined"
+  when:
+    - pas_hostname is defined
+    - pas_hostname | type_debug != 'NoneType'
+    - pas_hostname | length != 0
+  block:
+    - name:                            "2.4 Hosts: - Get the PAS Server name list"
+      ansible.builtin.set_fact:
+        pas_server_list:               "{{ pas_server_list | default([]) + [item] }}"
+      with_items:
+        - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_PAS') }}"
+
+    - name:                            "2.4 Hosts: - Set virtual_host fact from the fetched PAS server list"
+      ansible.builtin.set_fact:
+        pas_virtualhost_from_inventory: "{{ hostvars[pas_server_list[0]]['virtual_host'] }}"
+      when:
+        - pas_server_list is defined
+        - pas_server_list | length > 0
+
+    - name:                            "2.4 Hosts: - Set fact for the PAS if pas_hostname is defined"
+      ansible.builtin.set_fact:
+        pas_virtual_hostname:          "{% if pas_hostname | type_debug != 'NoneType' and pas_hostname | length != 0 %}{{ pas_hostname }}{% else %}{{ pas_virtualhost_from_inventory }}{% endif %}"
+
+    - name:                            "2.4 Hosts: - Display the variables being used"
+      ansible.builtin.debug:
+        msg:
+          - "pas_hostname:             {{ pas_hostname }} "
+          - "pas_virtual_hostname:     {{ pas_virtual_hostname }} "
+          - "pas_virtualhost_from_inventory: {{ pas_virtualhost_from_inventory }}"
+
+    - name:                            "2.4 Hosts: - Get the line from /etc/hosts with virtual_host"
+      ansible.builtin.slurp:
+        src:                           /etc/hosts
+      register: hosts_content
+
+    - name:                            "2.4 Hosts: - Extract the line with virtual_host"
+      ansible.builtin.set_fact:
+        virtual_host_line:             "{{ (hosts_content['content'] | b64decode).split('\n') | select('search', pas_virtualhost_from_inventory) | first }}"
+
+    - name:                            "2.4 Hosts: - Duplicate the line with virtual_host and replace with pas_virtual_hostname in /etc/hosts"
+      ansible.builtin.lineinfile:
+        path:                          /etc/hosts
+        line:                          "{{ virtual_host_line | replace(pas_virtualhost_from_inventory, pas_virtual_hostname) }}"
+        insertbefore:                  "{{ virtual_host_line }}"
+      when: virtual_host_line is defined and pas_virtual_hostname is defined
+
+- name:                                "2.4 Hosts: - Remove duplicate lines from /etc/hosts"
+  block:
+    - name:                            "2.4 Hosts: - Get the line from /etc/hosts with virtual_host"
+      ansible.builtin.slurp:
+        src:                           /etc/hosts
+      register:                        hosts_content_after
+
+    - name:                            "2.4 Hosts: - Get unique lines from /etc/hosts"
+      ansible.builtin.set_fact:
+        unique_lines:                  "{{ (hosts_content_after['content'] | b64decode).split('\n') | unique }}"
+
+    - name:                            "2.4 Hosts: - Write unique lines back to /etc/hosts"
+      ansible.builtin.copy:
+        dest:                          /etc/hosts
+        content:                       "{{ unique_lines | join('\n') }}"
+        mode:                          0644
+        backup:                        true
+      when: (hosts_content_after['content'] | b64decode).split('\n') | unique | length != (hosts_content_after['content'] | b64decode).split('\n') | length
+
 ...

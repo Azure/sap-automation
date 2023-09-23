@@ -68,45 +68,50 @@ resource "azurerm_windows_web_app" "webapp" {
   service_plan_id     = azurerm_service_plan.appserviceplan[0].id
   https_only          = true
 
-  auth_settings {
-    enabled          = true
-    issuer           = "https://sts.windows.net/${data.azurerm_client_config.deployer.tenant_id}/v2.0"
-    default_provider = "AzureActiveDirectory"
-    active_directory {
-      client_id     = var.app_registration_app_id
-      client_secret = var.webapp_client_secret
-    }
-    unauthenticated_client_action = "RedirectToLoginPage"
-  }
+  # auth_settings {
+  #   enabled          = true
+  #   issuer           = "https://sts.windows.net/${data.azurerm_client_config.deployer.tenant_id}/v2.0"
+  #   default_provider = "AzureActiveDirectory"
+  #   active_directory {
+  #     client_id     = var.app_registration_app_id
+  #     client_secret = var.webapp_client_secret
+  #   }
+  #   unauthenticated_client_action = "RedirectToLoginPage"
+  # }
 
   app_settings = {
     "PAT"                                      = var.use_private_endpoint ? format("@Microsoft.KeyVault(SecretUri=https://%s.privatelink.vaultcore.azure.net/secrets/PAT/)", local.keyvault_names.user_access) : format("@Microsoft.KeyVault(SecretUri=https://%s.vault.azure.net/secrets/PAT/)", local.keyvault_names.user_access)
     "CollectionUri"                            = var.agent_ado_url
     "IS_PIPELINE_DEPLOYMENT"                   = false
     "MICROSOFT_PROVIDER_AUTHENTICATION_SECRET" = var.use_private_endpoint ? format("@Microsoft.KeyVault(SecretUri=https://%s.privatelink.vaultcore.azure.net/secrets/WEB-PWD/)", local.keyvault_names.user_access) : format("@Microsoft.KeyVault(SecretUri=https://%s.vault.azure.net/secrets/WEB-PWD/)", local.keyvault_names.user_access)
+    "WEBSITE_AUTH_CUSTOM_AUTHORIZATION"        = true
   }
-  # auth_settings_v2 {
-  #   auth_enabled           = true
-  #   unauthenticated_action = "RedirectToLoginPage"
-  #   default_provider       = "AzureActiveDirectory"
-  #   active_directory_v2 {
-  #     client_id                   = var.app_registration_app_id
-  #     login_parameters            = {}
-  #     tenant_auth_endpoint        = format("https://login.microsoftonline.com/v2.0/%s/", data.azurerm_client_config.deployer.tenant_id)
-  #     www_authentication_disabled = false
-  #     client_secret_setting_name  = "MICROSOFT_PROVIDER_AUTHENTICATION_SECRET"
-  #   }
-  #   login {
-  #     token_store_enabled = true
-  #   }
-  # }
 
-  # app_settings = {
-  #   "PAT"                                      = format("@Microsoft.KeyVault(SecretUri=https://%s.vault.azure.net/secrets/PAT/)", local.keyvault_names.user_access)
-  #   "CollectionUri"                            = var.agent_ado_url
-  #   "IS_PIPELINE_DEPLOYMENT"                   = false
-  #   "MICROSOFT_PROVIDER_AUTHENTICATION_SECRET" = format("@Microsoft.KeyVault(SecretUri=https://%s.vault.azure.net/secrets/WEB-PWD/)", local.keyvault_names.user_access)
-  # }
+  sticky_settings {
+    app_setting_names       = ["MICROSOFT_PROVIDER_AUTHENTICATION_SECRET"]
+    connection_string_names = ["sa_tfstate_conn_str"]
+  }
+
+  auth_settings_v2 {
+    auth_enabled           = true
+    unauthenticated_action = "RedirectToLoginPage"
+    default_provider       = "AzureActiveDirectory"
+    active_directory_v2 {
+      client_id                   = var.app_registration_app_id
+      tenant_auth_endpoint        = "https://sts.windows.net/${data.azurerm_client_config.deployer.tenant_id}/v2.0"
+      www_authentication_disabled = false
+      client_secret_setting_name  = "MICROSOFT_PROVIDER_AUTHENTICATION_SECRET"
+      allowed_applications        = [var.app_registration_app_id]
+      allowed_audiences           = []
+      allowed_groups              = []
+      allowed_identities          = []
+    }
+    login {
+      token_store_enabled = false
+    }
+  }
+
+
 
   virtual_network_subnet_id = local.webapp_subnet_exists ? data.azurerm_subnet.webapp[0].id : azurerm_subnet.webapp[0].id
   site_config {

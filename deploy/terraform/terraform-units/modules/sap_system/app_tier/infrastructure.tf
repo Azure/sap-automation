@@ -560,7 +560,7 @@ resource "azurerm_subnet_route_table_association" "subnet_sap_web" {
 
 resource "azurerm_private_dns_a_record" "scs" {
   provider = azurerm.dnsmanagement
-  count    = local.enable_scs_lb_deployment && length(local.dns_label) > 0 ? 1 : 0
+  count    = local.enable_scs_lb_deployment && length(local.dns_label) > 0  && var.register_virtual_network_to_dns ? 1 : 0
   name = lower(format("%sscs%scl1",
     local.sid,
     var.application_tier.scs_instance_number
@@ -573,7 +573,7 @@ resource "azurerm_private_dns_a_record" "scs" {
 
 resource "azurerm_private_dns_a_record" "ers" {
   provider = azurerm.dnsmanagement
-  count    = local.enable_scs_lb_deployment && length(local.dns_label) > 0 ? 1 : 0
+  count    = local.enable_scs_lb_deployment && length(local.dns_label) > 0 && var.register_virtual_network_to_dns ? 1 : 0
   name = lower(format("%sers%scl2",
     local.sid,
     local.ers_instance_number

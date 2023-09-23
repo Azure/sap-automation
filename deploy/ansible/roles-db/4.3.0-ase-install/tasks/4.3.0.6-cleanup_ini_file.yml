@@ -10,5 +10,7 @@
   ansible.builtin.file:
     path:                              "{{ dir_params }}/{{ sap_inifile }}"
     state:                             absent
+  when:
+    - sybase_installation.rc == 0
 
 ...

@@ -250,8 +250,8 @@ locals {
         for idx, disk_count in range(storage_type.count) : {
           storage_account_type      = storage_type.disk_type,
           disk_size_gb              = storage_type.size_gb,
-          disk_iops_read_write      = try(storage_type.disk-iops-read-write, null)
-          disk_mbps_read_write      = try(storage_type.disk-mbps-read-write, null)
+          disk_iops_read_write      = try(storage_type.disk_iops_read_write, null)
+          disk_mbps_read_write      = try(storage_type.disk_mbps_read_write, null)
           caching                   = storage_type.caching,
           write_accelerator_enabled = try(storage_type.write_accelerator, false)
         }
@@ -276,8 +276,8 @@ locals {
           )
           storage_account_type      = storage_type.disk_type,
           disk_size_gb              = storage_type.size_gb,
-          disk_iops_read_write      = try(storage_type.disk-iops-read-write, null)
-          disk_mbps_read_write      = try(storage_type.disk-mbps-read-write, null)
+          disk_iops_read_write      = try(storage_type.disk_iops_read_write, null)
+          disk_mbps_read_write      = try(storage_type.disk_mbps_read_write, null)
           caching                   = storage_type.caching,
           write_accelerator_enabled = try(storage_type.write_accelerator, false)
           type                      = storage_type.name
@@ -300,8 +300,8 @@ locals {
           )
           storage_account_type      = storage_type.disk_type
           disk_size_gb              = storage_type.size_gb
-          disk_iops_read_write      = try(storage_type.disk-iops-read-write, null)
-          disk_mbps_read_write      = try(storage_type.disk-mbps-read-write, null)
+          disk_iops_read_write      = try(storage_type.disk_iops_read_write, null)
+          disk_mbps_read_write      = try(storage_type.disk_mbps_read_write, null)
           tier                      = try(storage_type.tier, null)
           caching                   = storage_type.caching
           write_accelerator_enabled = try(storage_type.write_accelerator, false)
@@ -381,11 +381,19 @@ locals {
   //Ultra disk requires zonal deployment
   zonal_deployment = local.db_zone_count > 0 || local.enable_ultradisk ? true : false
 
+  use_ppg = length(var.scale_set_id) > 0 ? (
+    false) : (
+    var.database.use_ppg
+  )
+
   //If we deploy more than one server in zone put them in an availability set
-  use_avset = local.availabilitysets_exist || var.database.use_avset ? (
-    true) : (!local.enable_ultradisk ? (
-      !local.zonal_deployment || (var.database_server_count != local.db_zone_count)) : (
-      false
+  use_avset = length(var.scale_set_id) > 0 ? (
+    false) : (
+    local.availabilitysets_exist || var.database.use_avset ? (
+      true) : (!local.enable_ultradisk ? (
+        !local.zonal_deployment || (var.database_server_count != local.db_zone_count)) : (
+        false
+      )
     )
   )
 

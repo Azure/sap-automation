@@ -77,6 +77,7 @@
 - name:                                "Inspect cluster features"
   ansible.builtin.debug:
     msg:                               "{{ cluster_features }}"
+    verbosity:                         2
 
 
 - name:                                "WinCluster-PreReq: Reboot '{{ ansible_hostname }}' if needed"

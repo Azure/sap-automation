@@ -3,6 +3,7 @@
 
 - name:                                "DB2 Primary Instance: - Ensure replication status is active"
   become_user:                         db2{{ db_sid | lower }}
+  become:                              true
   ansible.builtin.shell:               set -o pipefail && db2pd -hadr -db {{ db_sid | upper }} | grep -e 'HADR_STATE = PEER' -e 'HADR_CONNECT_STATUS = CONNECTED'
   register:                            grep_result
   until:                               grep_result.rc == 0 or grep_result.rc == 1
@@ -19,6 +20,7 @@
 
 - name:                                "DB2 Secondary Instance: - Ensure replication status is active"
   become_user:                         db2{{ db_sid | lower }}
+  become:                              true
   ansible.builtin.shell:               set -o pipefail && db2pd -hadr -db {{ db_sid | upper }} | grep -e 'HADR_STATE = PEER' -e 'HADR_CONNECT_STATUS = CONNECTED'
   register:                            grep_result
   until:                               grep_result.rc == 0 or grep_result.rc == 1

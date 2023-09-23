@@ -296,10 +296,17 @@ locals {
   )
 
   scs_sizing = local.enable_deployment ? (
-    var.application_tier.scs_high_availability ? lookup(local.sizes.scsha, local.vm_sizing_dictionary_key) : lookup(local.sizes.scs, local.vm_sizing_dictionary_key)
+    var.application_tier.scs_high_availability ? (
+      try(
+        lookup(local.sizes.scsha, local.vm_sizing_dictionary_key),
+        lookup(local.sizes.scs, local.vm_sizing_dictionary_key)
+      )) : (
+      lookup(local.sizes.scs, local.vm_sizing_dictionary_key)
+    )
     ) : (
     null
   )
+
 
   web_sizing = local.enable_deployment && local.webdispatcher_count > 0 ? (
     lookup(local.sizes.web, local.vm_sizing_dictionary_key)) : (

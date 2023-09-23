@@ -272,7 +272,17 @@
   args:
     warn:                              false
   when:
-    - distribution_full_id in ['redhat9.0','redhat9.2']
+    - distribution_id in ['redhat9']
     - node_tier == 'ha'
+
+# - name:                                "1.3 Repos: Install EPEL repo"
+#   ansible.builtin.yum_repository:
+#     name:                              epel
+#     description:                       EPEL YUM repo
+#     baseurl:                           https://download.fedoraproject.org/pub/epel/$releasever/$basearch/
+
+#   when:
+#     - distribution_id in ['redhat8','redhat9']
+#     - node_tier == 'ha'
 
 ...

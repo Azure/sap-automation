@@ -23,6 +23,8 @@ resource "azurerm_storage_account" "storage_tfstate" {
   account_tier             = var.storage_account_tfstate.account_tier
   account_kind             = var.storage_account_tfstate.account_kind
 
+  public_network_access_enabled = local.enable_firewall_for_keyvaults_and_storage
+
   enable_https_traffic_only = true
   blob_properties {
     delete_retention_policy {
@@ -55,10 +57,19 @@ resource "azurerm_storage_account_network_rules" "storage_tfstate" {
     []
   )
   virtual_network_subnet_ids = var.use_webapp ? (
-    compact([var.deployer_tfstate.subnet_mgmt_id, try(var.deployer_tfstate.subnet_webapp_id, null)])) : (
-    [var.deployer_tfstate.subnet_mgmt_id]
-  )
-
+    compact(flatten([
+      var.deployer_tfstate.subnet_mgmt_id,
+      try(var.deployer_tfstate.subnet_webapp_id, null),
+      try(var.deployer_tfstate.subnets_to_add_to_firewall_for_keyvaults_and_storage, null)])
+    )) : flatten((
+    [
+      var.deployer_tfstate.subnet_mgmt_id,
+      try(var.deployer_tfstate.subnets_to_add_to_firewall_for_keyvaults_and_storage, null)
+    ]
+  ))
+  lifecycle {
+    ignore_changes = [virtual_network_subnet_ids]
+  }
 }
 
 resource "azurerm_role_assignment" "storage_tfstate_contributor" {
@@ -218,6 +229,8 @@ resource "azurerm_storage_account" "storage_sapbits" {
   account_kind              = var.storage_account_sapbits.account_kind
   enable_https_traffic_only = true
 
+  public_network_access_enabled = local.enable_firewall_for_keyvaults_and_storage
+
   routing {
     publish_microsoft_endpoints = true
     choice                      = "MicrosoftRouting"
@@ -243,9 +256,16 @@ resource "azurerm_storage_account_network_rules" "storage_sapbits" {
     []
   )
   virtual_network_subnet_ids = var.use_webapp ? (
-    [var.deployer_tfstate.subnet_mgmt_id, try(var.deployer_tfstate.subnet_webapp_id, null)]) : (
-    [var.deployer_tfstate.subnet_mgmt_id]
-  )
+    compact(flatten([
+      var.deployer_tfstate.subnet_mgmt_id,
+      try(var.deployer_tfstate.subnet_webapp_id, null),
+      try(var.deployer_tfstate.subnets_to_add_to_firewall_for_keyvaults_and_storage, null)]
+    ))) : (
+    flatten([
+      var.deployer_tfstate.subnet_mgmt_id,
+      try(var.deployer_tfstate.subnets_to_add_to_firewall_for_keyvaults_and_storage, null)
+    ]
+  ))
   lifecycle {
     ignore_changes = [virtual_network_subnet_ids]
   }

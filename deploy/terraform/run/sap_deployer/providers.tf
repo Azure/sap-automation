@@ -25,7 +25,8 @@ provider "azurerm" {
       purge_soft_deleted_certificates_on_destroy = !var.enable_purge_control_for_keyvaults
     }
   }
-  partner_id = "f94f50f2-2539-42f8-9c8e-c65b28c681f7"
+  partner_id                 = "f94f50f2-2539-42f8-9c8e-c65b28c681f7"
+  skip_provider_registration = true
 
 }
 
@@ -43,11 +44,12 @@ provider "azurerm" {
   }
   partner_id = "f94f50f2-2539-42f8-9c8e-c65b28c681f7"
 
-  subscription_id = local.spn.subscription_id
-  client_id       = local.spn.client_id
-  client_secret   = local.spn.client_secret
-  tenant_id       = local.spn.tenant_id
-  alias           = "main"
+  subscription_id            = local.spn.subscription_id
+  client_id                  = local.spn.client_id
+  client_secret              = local.spn.client_secret
+  tenant_id                  = local.spn.tenant_id
+  alias                      = "main"
+  skip_provider_registration = true
 
 }
 

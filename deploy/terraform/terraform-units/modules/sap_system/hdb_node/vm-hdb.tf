@@ -307,9 +307,25 @@ resource "azurerm_role_assignment" "role_assignment_msi" {
     ) : (
     0
   )
-  scope                = var.resource_group[0].id
+  scope                = azurerm_linux_virtual_machine.vm_dbnode[count.index].id
   role_definition_name = var.fencing_role_name
   principal_id         = azurerm_linux_virtual_machine.vm_dbnode[count.index].identity[0].principal_id
+}
+
+resource "azurerm_role_assignment" "role_assignment_msi_ha" {
+  provider = azurerm.main
+  count = (
+    var.use_msi_for_clusters &&
+    length(var.fencing_role_name) > 0 &&
+    var.database_server_count > 1
+    ) ? (
+    var.database_server_count
+    ) : (
+    0
+  )
+  scope                = azurerm_linux_virtual_machine.vm_dbnode[count.index].id
+  role_definition_name = var.fencing_role_name
+  principal_id         = azurerm_linux_virtual_machine.vm_dbnode[(count.index +1) % var.database_server_count].identity[0].principal_id
 }
 
 # Creates managed data disk

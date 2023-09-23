@@ -244,6 +244,16 @@ locals {
   }
   scs_os_specified = (length(local.scs_os.source_image_id) + length(local.scs_os.publisher)) > 0
 
+  validated_use_simple_mount = var.use_simple_mount ? (
+    upper(local.scs_os.publisher) != "SUSE" || !(var.scs_high_availability) ? (
+      false) : (
+      contains(["sles-sap-15-sp3", "sles-sap-15-sp4", "sles-sap-15-sp5"], local.scs_os.offer) ? (
+        var.use_simple_mount) : (
+        false
+      )
+    )) : (
+    false
+  )
   web_os = {
     os_type         = try(coalesce(var.webdispatcher_server_image.os_type, var.application_server_image.os_type, "LINUX"), "LINUX")
     source_image_id = try(coalesce(var.webdispatcher_server_image.source_image_id, try(var.application_tier.web_os.source_image_id, "")), "")

@@ -35,7 +35,7 @@ hana_use_master_password:              y
 hana_password_copy:                         ""
 hana_backup_path:                      /hana/backup
 aas_hostname:                          ""
-aas_instance_number:                   ""
+aas_instance_number:                   "00"
 sap_sid:                               ""                                      # REQUIRED - SAP Install
 download_basket_dir:                   "{{ target_media_location }}/download_basket"
 hdb_hostname:                          ""
@@ -60,6 +60,9 @@ use_msi_for_clusters:                  false
 hana_components:                       "all"
 
 instance_type:                         "ASCS"
+
+dbload_retry_count:                    120
+
 # DB2 specific parameters
 # db2_sid:                                "DB6"
 db2sysadm_gid:                         3000
@@ -72,7 +75,7 @@ db2hadr_port1:                         51012
 db2hadr_port2:                         51013
 
 tmp_directory:                         "/var/tmp"
-url_internet:                          "http://www.github.com"                 # URL to use for internet access checks"
+url_internet:                          "https://azure.status.microsoft/en-us/status"                 # URL to use for internet access checks"
 check_outbound:                        false
 
 # ASE specific parameters
@@ -173,6 +176,8 @@ sapbits_sas_token_secret:               "sapbits-sas-token"                     
 
 # NFS
 NFS_provider:                           "NONE"
+NFS_version:                            "NFSv4.1"
+use_simple_mount:                       false
 
 # ------------------- Begin - SAP SWAP settings variables --------------------8
 sap_swap:
