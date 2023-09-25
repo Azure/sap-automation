@@ -516,7 +516,8 @@
         OHGRID:                         /oracle/GRID/{{ ora_version }}
         # ORACLE_BASE:                    /oracle/GRID/
         ORACLE_HOME:                    /oracle/GRID/{{ ora_version }}
-        # IHRDBMS:                        /oracle/{{ db_sid | upper}}/{{ ora_release }}
+        IHRDBMS:                        /oracle/{{ db_sid | upper}}/{{ ora_release }}
+        SBPFUSER:                       /usr/sbin/fuser
         # ORACLE_SID:                     "{{ db_sid | upper}}"
       register:                         gridsbpscript_results
       failed_when:                      gridsbpscript_results.rc >= 2
