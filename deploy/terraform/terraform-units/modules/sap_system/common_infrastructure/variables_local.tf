@@ -347,7 +347,11 @@ locals {
   #     split("/", var.infrastructure.vnets.sap.subnet_app.arm_id)[10]) : (
   #     length(var.infrastructure.vnets.sap.subnet_app.name) > 0 ? (
   #       var.infrastructure.vnets.sap.subnet_app.arm_id) : (
-  #       format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.app_subnet)
+  #       format("%s%s%s",
+  #         local.prefix,
+  #         var.naming.separator,
+  #         local.resource_suffixes.app_subnet
+  #       )
   #   ))) : (
   #   ""
   # )
@@ -358,7 +362,11 @@ locals {
   #   try(split("/", local.application_subnet_nsg_arm_id)[8], "")) : (
   #   length(try(var.infrastructure.vnets.sap.subnet_app.nsg.name, "")) > 0 ? (
   #     var.infrastructure.vnets.sap.subnet_app.nsg.name) : (
-  #     format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.app_subnet_nsg)
+  #     format("%s%s%s",
+  #       local.prefix,
+  #       var.naming.separator,
+  #       local.resource_suffixes.app_subnet_nsg
+  #     )
   #   )
   # )
 

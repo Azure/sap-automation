@@ -313,9 +313,8 @@ if [ 0 == $step ]; then
                 echo "#                                                                                       #"
                 echo "#########################################################################################"
                 echo ""
-
                 temp_file=$(mktemp)
-                ppk=$(az keyvault secret show --vault-name "${keyvault}" --name "${sshsecret}" | jq -r .value)
+                ppk=$(az keyvault secret show --vault-name "${keyvault}" --name "${sshsecret}" --query value --output tsv)
                 echo "${ppk}" > "${temp_file}"
                 chmod 600 "${temp_file}"
 
@@ -650,7 +649,7 @@ echo "#                                                                         
 echo "#########################################################################################"
 
 if [ -f "${deployer_config_information}".err ]; then
-    sudo rm "${deployer_config_information}".err
+    rm "${deployer_config_information}".err
 fi
 
 now=$(date)

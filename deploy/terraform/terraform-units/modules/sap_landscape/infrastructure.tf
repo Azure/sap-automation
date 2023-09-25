@@ -52,7 +52,7 @@ data "azurerm_virtual_network" "vnet_sap" {
 
 resource "azurerm_virtual_network_dns_servers" "vnet_sap_dns_servers" {
   provider = azurerm.main
-  count    = local.vnet_sap_exists && length(var.dns_server_list) > 0 ? 0 : 1
+  count    = local.vnet_sap_exists && length(var.dns_server_list) > 0 ? 1 : 0
   virtual_network_id = local.vnet_sap_exists ? (
     data.azurerm_virtual_network.vnet_sap[0].id) : (
     azurerm_virtual_network.vnet_sap[0].id

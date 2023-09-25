@@ -186,7 +186,6 @@ output "sid" {
 output "disks" {
   description = "Disks attached to the virtual machines"
   value       = compact(concat(module.hdb_node.dbtier_disks, module.anydb_node.dbtier_disks, module.app_tier.apptier_disks))
-
 }
 
 output "sapmnt_path" {
@@ -218,4 +217,3 @@ output "subscription_id_used" {
   value       = local.spn.subscription_id
   sensitive   = true
 }
-

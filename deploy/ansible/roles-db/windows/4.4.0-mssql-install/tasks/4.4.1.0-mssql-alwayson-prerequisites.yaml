@@ -173,6 +173,8 @@
           - ViewServerState
           - AlterAnyEndpoint
           - AlterAnyAvailabilityGroup
+    # PsDscRunAsCredential_username:     '{{ sap_sid }}adm@{{ domain_name }}'
+    # PsDscRunAsCredential_password:     '{{ domain_user_password }}'
     Name:                              "{{ item }}"
   loop:
     - "{{ win_cluster_svc_account }}"

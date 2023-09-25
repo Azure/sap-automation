@@ -64,15 +64,16 @@ instance_type:                         "ASCS"
 dbload_retry_count:                    120
 
 # DB2 specific parameters
-# db2_sid:                                "DB6"
 db2sysadm_gid:                         3000
 db2sysctrl_gid:                        3001
 db2sysmaint_gid:                       3002
 db2sysmon_gid:                         3003
 db2sidadm_uid:                         3004
-db2sapsid_uid:                         3005
+db2sapsid_uid:                         3005 # Uid of the database connect user
 db2hadr_port1:                         51012
 db2hadr_port2:                         51013
+# Name of the database connect user for ABAP. Default value is 'sap<sapsid>'.
+db2_abap_connect_user:                 ""
 
 tmp_directory:                         "/var/tmp"
 url_internet:                          "https://azure.status.microsoft/en-us/status"                 # URL to use for internet access checks"

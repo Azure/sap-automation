@@ -592,6 +592,11 @@ variable "iscsi_nic_ips" {
   default     = []
 }
 
+variable "iscsi_vm_zones" {
+  description = "If provided, the iSCSI will be deployed in the specified zones"
+  default     = []
+}
+
 
 #########################################################################################
 #                                                                                       #

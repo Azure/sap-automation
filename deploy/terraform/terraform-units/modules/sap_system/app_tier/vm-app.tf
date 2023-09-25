@@ -306,7 +306,13 @@ resource "azurerm_windows_virtual_machine" "app" {
     )
 
     content {
-      name                   = format("%s%s%s%s%s", var.naming.resource_prefixes.osdisk, local.prefix, var.naming.separator, var.naming.virtualmachine_names.APP_VMNAME[count.index], local.resource_suffixes.osdisk)
+      name                    = format("%s%s%s%s%s",
+                                  var.naming.resource_prefixes.osdisk,
+                                  local.prefix,
+                                  var.naming.separator,
+                                  var.naming.virtualmachine_names.APP_VMNAME[count.index],
+                                  local.resource_suffixes.osdisk
+                                )
       caching                = disk.value.caching
       storage_account_type   = disk.value.disk_type
       disk_size_gb           = disk.value.size_gb
