@@ -171,7 +171,7 @@
       become:                          true
       become_user:                     "oracle"
       ansible.builtin.shell: |
-                              srvctl add   database  -db {{ db_sid |  upper }}_STDBY   -oraclehome /oracle/{{ db_sid |  upper }}/{{ ora_release }}   -spfile  +DATA/{{ db_sid |  upper }}_STDBY/PARAMETERFILE/spfile{{ db_sid |  lower }}.ora. -role PHYSICAL_STANDBY -instance  {{ db_sid |  upper }} -startoption mount -diskgroup "ARCH,DATA,RECO"
+                              srvctl add   database  -db {{ db_sid |  upper }}_STDBY   -oraclehome /oracle/{{ db_sid |  upper }}/{{ ora_release }}   -spfile  +DATA/{{ db_sid |  upper }}_STDBY/PARAMETERFILE/spfile{{ db_sid |  lower }}.ora -role PHYSICAL_STANDBY -instance  {{ db_sid |  upper }} -startoption mount -diskgroup "ARCH,DATA,RECO"
                               srvctl start database  -db {{ db_sid |  upper }}_STDBY
       register:                        oracle_clusterware_register
       failed_when:                     oracle_clusterware_register.rc > 0
@@ -201,7 +201,29 @@
         owner: oracle
         group: oinstall
   
-  
+    - name:                            "Update the Local_Listener Value in secondary"
+      become:                              true
+      become_user:                         "oracle"
+      ansible.builtin.shell:               sqlplus / as sysdba @listenerupdate.sql
+      register:                            local_listener_on_secondary_results
+      failed_when:                         local_listener_on_secondary_results.rc > 0
+      args:
+       creates:                           /etc/sap_deployment_automation/dgscripts/local_listener_on_secondary.txt
+       chdir:                             /etc/sap_deployment_automation/dgscripts
+       executable:                        /bin/csh
+      
+    
+    - name:                            "Create local_listener_on_secondary on secondary"
+      become:                          true
+      become_user:                     root
+      ansible.builtin.file:
+        path:                           /etc/sap_deployment_automation/dgscripts/local_listener_on_secondary.txt
+        state:                          touch
+        mode:                           '0755'
+        owner:                          oracle
+        group:                          oinstall
+      when:                             local_listener_on_secondary_results.rc  == 0
+
   # Create User for SIDADM on Secondary Node.
     - name:                                "2.5.1 SAP Users: -  Create Oracle ASM Users Assignment"
       ansible.builtin.user:
@@ -211,20 +233,7 @@
         groups:                            asmoper,asmdba,dba,oper,oinstall
         append:                            true
         shell:                             /bin/csh
-    #   args:
-    #    creates:                           /etc/sap_deployment_automation/dgscripts/sidadm_created_on_secondary.txt
-    #   register:                            sidadm_created_on_secondary_results
-    #   failed_when:                         sidadm_created_on_secondary_results.rc > 0
     
-    # - name:                               "SIDADM Created on Secondary DB Node"
-    #   become:                              true
-    #   become_user:                         "oracle"
-    #   ansible.builtin.file:
-    #     path:                              /etc/sap_deployment_automation/dgscripts/sidadm_created_on_secondary.txt
-    #     state:                             touch
-    #     mode:                              '0755'
-    #   when: 
-    #     -  sidadm_created_on_secondary_results.rc == 0 
     
     
    # Update the tnsnames.ora for SAP application servers
