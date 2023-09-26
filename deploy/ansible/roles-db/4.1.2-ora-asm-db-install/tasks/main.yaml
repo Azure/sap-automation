@@ -523,7 +523,7 @@
     - name:                            "Oracle ASM: Post Processing - GRID SBP Patching"
       become:                          true
       become_user:                     "oracle"
-      ansible.builtin.shell:            $OHGRID/MOPatch/mopatch.sh -v -s {{ target_media_location }}/GSBP/{{ oraclegrid_sbp_patch }}
+      ansible.builtin.shell:            $OHGRID/MOPatch/mopatch.sh -v -s /home/oracle/GSBP/{{ oraclegrid_sbp_patch }}
       environment:
         OHGRID:                         /oracle/GRID/{{ ora_version }}
         # ORACLE_BASE:                    /oracle/GRID/
