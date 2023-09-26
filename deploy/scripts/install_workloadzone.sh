@@ -436,7 +436,7 @@ then
     else
         read -p "Do you want to specify the Workload SPN Details Y/N?"  ans
         answer=${ans^^}
-        if [ $answer == 'Y' ]; then
+        if [ ${answer} == 'Y' ]; then
             allParams=$(printf " --workload --environment %s --region %s --vault %s --subscription %s  --spn_id %s " "${environment}" "${region_code}" "${keyvault}" "${subscription}" "${client_id}" )
 
             "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/set_secrets.sh ${allParams}

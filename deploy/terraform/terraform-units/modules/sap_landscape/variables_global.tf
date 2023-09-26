@@ -321,3 +321,8 @@ variable "enable_firewall_for_keyvaults_and_storage" {
   description = "Boolean value indicating if firewall should be enabled for key vaults and storage"
   type        = bool
 }
+
+variable "public_network_access_enabled" {
+  description = "Defines if the public access should be enabled for keyvaults and storage accounts"
+  type        = bool
+}

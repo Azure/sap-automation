@@ -24,6 +24,13 @@ output "environment" {
   value       = var.environment
 }
 
+output "created_resource_group_location" {
+  description = "Created resource group's location"
+  value       = module.sap_deployer.created_resource_group_location
+}
+
+
+
 ###############################################################################
 #                                                                             #
 #                                 Deployer                                    #
@@ -128,6 +135,12 @@ output "set_secret_expiry" {
   value = var.set_secret_expiry
 }
 
+output "deployer_sshkey_secret_name" {
+  description = "Name of the deployer key vault"
+  value = module.sap_deployer.ppk_secret_name
+}
+
+
 ###############################################################################
 #                                                                             #
 #                                 Firewall                                    #
@@ -149,6 +162,11 @@ output "firewall_id" {
 output "enable_firewall_for_keyvaults_and_storage" {
   description = "Defines if the firewall should be enabled for keyvaults and storage"
   value = var.enable_firewall_for_keyvaults_and_storage
+}
+
+output "public_network_access_enabled" {
+  description = "Defines if the public access should be enabled for keyvaults and storage"
+  value = var.public_network_access_enabled || !var.use_private_endpoint
 }
 
 output "automation_version" {
@@ -198,4 +216,9 @@ output "deployer_extension_ids" {
 output "random_id_b64" {
   description = "The random ID used for the naming of resources"
   value = module.sap_deployer.random_id_b64
+}
+
+output "Agent_IP" {
+  description = "The IP address of the agent"
+  value = var.Agent_IP
 }

@@ -10,6 +10,7 @@ module "sap_library" {
                                        azurerm.dnsmanagement = azurerm.dnsmanagement
                                      }
 
+  bootstrap                         = true
   deployer                          = local.deployer
   deployer_tfstate                  = try(data.terraform_remote_state.deployer[0].outputs, [])
   dns_label                         = var.dns_label

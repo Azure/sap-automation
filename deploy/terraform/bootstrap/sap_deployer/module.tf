@@ -15,6 +15,7 @@ module "sap_deployer" {
                                                           )
   additional_users_to_add_to_keyvault_policies         = var.additional_users_to_add_to_keyvault_policies
   agent_ado_url                                        = var.agent_ado_url
+  Agent_IP                                             = var.Agent_IP
   agent_pat                                            = var.agent_pat
   agent_pool                                           = var.agent_pool
   ansible_core_version                                 = var.ansible_core_version
@@ -38,6 +39,7 @@ module "sap_deployer" {
   management_dns_subscription_id                       = var.management_dns_subscription_id
   options                                              = local.options
   place_delete_lock_on_resources                       = var.place_delete_lock_on_resources
+  public_network_access_enabled                        = var.public_network_access_enabled || !var.use_private_endpoint
   sa_connection_string                                 = var.sa_connection_string
   set_secret_expiry                                    = var.set_secret_expiry
   spn_id                                               = var.spn_id

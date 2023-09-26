@@ -451,10 +451,17 @@ variable "webapp_subnet_address_prefix" {
 
 
 variable "enable_firewall_for_keyvaults_and_storage" {
-  description = "Boolean value indicating if firewall should be enabled for key vaults and storage"
+  description = "[OBSOLETE]Boolean value indicating if firewall should be enabled for key vaults and storage"
   default     = false
   type        = bool
 }
+
+variable "public_network_access_enabled" {
+  description = "Boolean value indicating if public access should be enabled for key vaults and storage"
+  default     = false
+  type        = bool
+}
+
 
 variable "subnets_to_add_to_firewall_for_keyvaults_and_storage" {
   description = "List of subnets to add to storage account and keyvaults firewall"

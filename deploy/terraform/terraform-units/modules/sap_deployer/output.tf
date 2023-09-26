@@ -28,6 +28,11 @@ output "created_resource_group_name" {
   value = local.resource_group_exists ? data.azurerm_resource_group.deployer[0].name : azurerm_resource_group.deployer[0].name
 }
 
+output "created_resource_group_location" {
+  description = "Created resource group's location"
+  value       = local.resource_group_exists ? data.azurerm_resource_group.deployer[0].location : azurerm_resource_group.deployer[0].location
+}
+
 
 ###############################################################################
 #                                                                             #

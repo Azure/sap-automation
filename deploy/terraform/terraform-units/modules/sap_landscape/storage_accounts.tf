@@ -145,6 +145,7 @@ resource "azurerm_storage_account" "witness_storage" {
   min_tls_version                 = "TLS1_2"
   allow_nested_items_to_be_public = false
 
+  public_network_access_enabled   = var.public_network_access_enabled
 
   lifecycle {
     ignore_changes = [tags]
@@ -153,7 +154,7 @@ resource "azurerm_storage_account" "witness_storage" {
 
 resource "azurerm_storage_account_network_rules" "witness" {
   provider = azurerm.main
-  count    = var.enable_firewall_for_keyvaults_and_storage && length(var.witness_storage_account.arm_id) == 0 ? 1 : 0
+  count    = length(var.witness_storage_account.arm_id) == 0 ? 1 : 0
   depends_on = [
     azurerm_storage_account.witness_storage,
     azurerm_subnet.db,
@@ -302,11 +303,14 @@ resource "azurerm_storage_account" "transport" {
   min_tls_version                 = "TLS1_2"
   allow_nested_items_to_be_public = false
 
+  public_network_access_enabled   = var.public_network_access_enabled
+
+
 }
 
 resource "azurerm_storage_account_network_rules" "transport" {
   provider           = azurerm.main
-  count              = var.NFS_provider == "AFS" && var.enable_firewall_for_keyvaults_and_storage && length(var.transport_storage_account_id) == 0 ? 1 : 0
+  count              = var.NFS_provider == "AFS" && length(var.transport_storage_account_id) == 0 ? 1 : 0
   storage_account_id = azurerm_storage_account.transport[0].id
   default_action     = "Deny"
 
@@ -523,12 +527,13 @@ resource "azurerm_storage_account" "install" {
     azurerm_resource_group.resource_group[0].location
   )
 
-  account_tier                    = "Premium"
-  account_replication_type        = var.storage_account_replication_type
   account_kind                    = "FileStorage"
+  account_replication_type        = var.storage_account_replication_type
+  account_tier                    = "Premium"
+  allow_nested_items_to_be_public = false
   enable_https_traffic_only       = false
   min_tls_version                 = "TLS1_2"
-  allow_nested_items_to_be_public = false
+  public_network_access_enabled   = var.public_network_access_enabled
 
 }
 
@@ -539,7 +544,7 @@ resource "azurerm_storage_account_network_rules" "install" {
     azurerm_subnet.db
   ]
 
-  count              = var.NFS_provider == "AFS" && var.enable_firewall_for_keyvaults_and_storage && length(var.install_storage_account_id) == 0 ? 1 : 0
+  count              = var.NFS_provider == "AFS" && length(var.install_storage_account_id) == 0 ? 1 : 0
   storage_account_id = azurerm_storage_account.install[0].id
   default_action     = "Deny"
 

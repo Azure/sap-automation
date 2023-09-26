@@ -25,6 +25,11 @@ output "workload_zone_prefix" {
   value       = module.sap_namegenerator.naming.prefix.WORKLOAD_ZONE
 }
 
+output "public_network_access_enabled" {
+  description = "Defines if the public access should be enabled for keyvaults and storage"
+  value = var.public_network_access_enabled || !var.use_private_endpoint
+}
+
 ###############################################################################
 #                                                                             #
 #                            Network                                          #
@@ -169,7 +174,7 @@ output "dns_resource_group_name" {
 
 output "management_dns_resourcegroup_name" {
   description = "custom DNS resource group"
-  value       = var.management_dns_resourcegroup_name
+  value       = coalesce(var.management_dns_resourcegroup_name, local.saplib_resource_group_name)
 }
 
 output "management_dns_subscription_id" {
