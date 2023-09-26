@@ -24,6 +24,7 @@
   when:
     - tier != 'hana'
     - tier != 'oracle'
+    - tier != 'oracle-asm'
 
 - name:                                "Post Installation: check if installation has been tried"
   become_user:                         root
@@ -34,6 +35,7 @@
   when:
     - tier != 'hana'
     - tier != 'oracle'
+    - tier != 'oracle-asm'
 
 - name:                                "Post Installation: Find the log files (SAPINST)"
   become_user:                         root
