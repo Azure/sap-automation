@@ -524,19 +524,19 @@
           tags:
             - always
 
-        - name:                        "DB2 : Install DB2 specific packages"
+        - name:                        "DB2 Installation Play: Install DB2 specific packages"
           ansible.builtin.include_role:
             name:                      roles-os/1.4-packages
 
-        - name:                        Check for file system mounts
+        - name:                        "DB2 Installation Play: Check for file system mounts"
           ansible.builtin.include_role:
             name:                      roles-sap-os/2.6-sap-mounts
 
-        - name:                        Installing DB2
+        - name:                        "DB2 Installation Play: Installing DB2"
           ansible.builtin.include_role:
             name:                      roles-db/4.2.1-db2-hainstall
 
-        - name:                        "Database Installation Playbook: - Run post installation routines"
+        - name:                        "DB2 Installation Play: : - Run post installation routines"
           ansible.builtin.include_role:
             name:                      roles-sap/7.0.0-post-install
           vars:
@@ -577,7 +577,7 @@
         - not db_high_availability
       block:
 
-        - name:                        "ASE : Setting the DB facts"
+        - name:                        "ASE Installation Play: Setting the DB facts"
           ansible.builtin.set_fact:
             tier:                      sybase
             main_password:             "{{ hostvars.localhost.sap_password }}"
@@ -588,17 +588,28 @@
           tags:
             - always
 
-        - name:                        "SYBASE : Install DB2 specific packages"
+        - name:                        "ASE Installation Play: Install ASE specific packages"
           ansible.builtin.include_role:
             name:                      roles-os/1.4-packages
 
-        - name:                        "ASE : Check for file system mounts"
+        - name:                        "ASE Installation Play: Check for file system mounts"
           ansible.builtin.include_role:
             name:                      roles-sap-os/2.6-sap-mounts
 
-        - name:                        Installing ASE
+        - name:                        "ASE Installation Play: Installing ASE"
           ansible.builtin.include_role:
             name:                      roles-db/4.3.0-ase-install
+
+        - name:                        "ASE Installation Play: Run post installation routines"
+          ansible.builtin.include_role:
+            name:                      roles-sap/7.0.0-post-install
+          vars:
+            suffix:                    "_DB"
+            prefix:                    "{{ bom.product_ids.dbl.replace('.', '/').replace('/ABAP', '').split(':')[1] }}"
+            path:                      "INSTALL/DISTRIBUTED/ABAP/DB"
+            tier:                      'sybase'
+            this_sid:                  "{{ sap_sid | upper }}"
+            work_log_component_name: "ASE{{ db_instance_number }}"
 
 
 # /*----------------------------------------------------------------------------8

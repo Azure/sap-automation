@@ -234,7 +234,16 @@
       {
         "Name": "use_msi_for_clusters",
         "Required": false,
-        "Description": "If provided, defines the that fencing agent uses a managed identity</a>",
+        "Description": "If provided, defines that the fencing agent uses a managed identity",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "use_simple_mount",
+        "Required": false,
+        "Description": "If provided, defines that simple mounts are used (Applicable for SLES 15 SP# or newer)",
         "Type": "checkbox",
         "Options": [],
         "Overrules": "",
@@ -243,7 +252,7 @@
       {
         "Name": "fencing_role_name",
         "Required": false,
-        "Description": "If provided, the role to assign to the managed identities</a>",
+        "Description": "If provided, the role to assign to the managed identities",
         "Type": "field",
         "Options": [],
         "Overrules": "",

@@ -60,6 +60,7 @@ parameters:
     - { tier: 'os',    node_tier: 'all',     name: 'kernel.sem',                                 value: '250 32000 100 4096',   state: 'present' }
     - { tier: 'os',    node_tier: 'all',     name: 'net.ipv4.tcp_keepalive_intvl',               value: '75',                   state: 'present' }
     - { tier: 'os',    node_tier: 'all',     name: 'net.ipv4.tcp_keepalive_probes',              value: '9',                    state: 'present' }
+    - { tier: 'os',    node_tier: 'all',     name: 'net.ipv4.tcp_slow_start_after_idle',         value:  '0',                   state: 'present' }
 
   sles_sap15:
     - { tier: 'os',    node_tier: 'all',     name: 'fs.protected_hardlinks',                     value: '1',                    state: 'present' }

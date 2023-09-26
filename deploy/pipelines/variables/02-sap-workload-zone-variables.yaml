@@ -39,6 +39,7 @@ parameters:
       - CEUA
       - EAAS
       - EAUS
+      - EUSA
       - EUS2
       - FRCE
       - FRSO

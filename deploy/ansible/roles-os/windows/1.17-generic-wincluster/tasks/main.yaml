@@ -29,6 +29,9 @@
     - ansible_os_family | upper == "WINDOWS"
   ansible.builtin.import_tasks:
     file:                              "1.17.1-wincluster-createcluster.yaml"
+  vars:
+    ansible_winrm_transport:              credssp
+    ansible_winrm_server_cert_validation: ignore
   tags:
     - "win_cluster_configure"
 ...

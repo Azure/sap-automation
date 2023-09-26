@@ -21,6 +21,8 @@ resource "azurerm_key_vault" "kv_user" {
   sku_name                   = "standard"
   enable_rbac_authorization  = var.enable_rbac_authorization_for_keyvault
 
+  public_network_access_enabled = var.public_network_access_enabled
+
   dynamic "network_acls" {
     for_each = range(var.enable_firewall_for_keyvaults_and_storage ? 1 : 0)
     content {
@@ -420,7 +422,7 @@ data "azurerm_private_dns_zone" "keyvault" {
 
 resource "azurerm_private_dns_a_record" "keyvault" {
   provider = azurerm.dnsmanagement
-  count    = local.use_Azure_native_DNS ? 1 : 0
+  count    = local.use_Azure_native_DNS && var.use_private_endpoint ?  1 : 0
   name = lower(
     format("%s", local.user_keyvault_name)
   )

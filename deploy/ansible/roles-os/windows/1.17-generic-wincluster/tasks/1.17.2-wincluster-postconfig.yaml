@@ -45,7 +45,7 @@
 
 - name:                                "WinCluster-PostConfig: Update Cluster Properties"
   become:                              true
-  become_method:                       "runas"
+  become_method:                       ansible.builtin.runas
   become_user:                         '{{ sap_sid }}adm@{{ domain }}'
   ansible.windows.win_dsc:
     resource_name:                     ClusterProperty
@@ -59,7 +59,7 @@
 
 - name:                                "WinCluster-PostConfig: Update RouteHistoryLength"
   become:                              true
-  become_method:                       "runas"
+  become_method:                       ansible.builtin.runas
   become_user:                         '{{ sap_sid }}adm@{{ domain }}'
   ansible.windows.win_shell: |
                                        (Get-Cluster).RouteHistoryLength = 30
@@ -68,7 +68,7 @@
 
 - name:                                "WinCluster-PostConfig: Copy probe port setup script"
   become:                              true
-  become_method:                       "runas"
+  become_method:                       ansible.builtin.runas
   become_user:                         '{{ sap_sid }}adm@{{ domain }}'
   ansible.windows.win_template:
     src:                               "Set-AzLBHealthProbePortForASCS.j2"
@@ -79,7 +79,7 @@
 
 - name:                                "WinCluster-PostConfig: Execute probe port setup script"
   become:                              true
-  become_method:                       "runas"
+  become_method:                       ansible.builtin.runas
   become_user:                         '{{ sap_sid }}adm@{{ domain }}'
   ansible.windows.win_shell:           "{{ sap_deployment_automation }}\\Set-AzLBHealthProbePortForASCS.ps1"
   when:
@@ -89,7 +89,7 @@
 
 - name:                                "WinCluster-PostConfig: ENSA1 - Set param to keep connections between SAP WP and the enq server from closing"
   become:                              true
-  become_method:                       "runas"
+  become_method:                       ansible.builtin.runas
   become_user:                         '{{ sap_sid }}adm@{{ domain }}'
   community.windows.win_lineinfile:
     backup:                            true

@@ -73,11 +73,12 @@
 
 # Download Files
 # ------------------<DEBUGGING>-------------------
-- name:                                "3.3 BoM Processing: - List files"
+
+- name:                             "3.3 BoM Processing: - List files"
   ansible.builtin.debug:
     msg:
       - "URL : {{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/archives/{{ item.archive }}\
-               {% if sapbits_sas_token is not undefined %}?{{ sapbits_sas_token }}{% endif %}"
+              {% if sapbits_sas_token is not undefined %}?{{ sapbits_sas_token }}{% endif %}"
       - "DEST: {{ target_media_location }}/{% if item.filename is undefined %}{{ item.archive }}{% else %}{{ item.filename }}{% endif %}"
       - "MODE: {% if item.permissions is undefined %}0644{% else %}{{ item.permissions }}{% endif %}"
     verbosity:                         2

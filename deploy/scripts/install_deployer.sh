@@ -261,8 +261,12 @@ parallelism=10
 if [[ -n "${TF_PARALLELLISM}" ]]; then
     parallelism=$TF_PARALLELLISM
 fi
-
-terraform -chdir="${terraform_module_directory}"  apply ${approve} -parallelism="${parallelism}" -var-file="${var_file}" $extra_vars -json | tee -a  apply_output.json
+if [ -n "${approve}" ]
+then
+  terraform -chdir="${terraform_module_directory}"  apply ${approve} -parallelism="${parallelism}" -var-file="${var_file}" $extra_vars -json | tee -a  apply_output.json
+else
+  terraform -chdir="${terraform_module_directory}"  apply ${approve} -parallelism="${parallelism}" -var-file="${var_file}" $extra_vars
+fi
 return_value=$?
 
 rerun_apply=0
@@ -410,17 +414,26 @@ then
     fi
 fi
 
+sshsecret=$(terraform -chdir="${terraform_module_directory}"  output -no-color -raw deployer_sshkey_secret_name | tr -d \")
+if [ -n "${sshsecret}" ]
+then
+    save_config_var "sshsecret" "${deployer_config_information}"
+    return_value=0
+fi
 
 random_id=$(terraform -chdir="${terraform_module_directory}"  output -no-color -raw random_id_b64 | tr -d \")
-temp2=$(echo "${random_id}" | grep -m1 "Warning")
-if [ -z "${temp2}" ]
+if [ -n "${random_id}" ]
 then
-    temp2=$(echo "${random_id}" | grep "Backend reinitialization required")
-    if [ -z "${temp2}" ]
-    then
-        save_config_var "deployer_random_id" "${random_id}"
-        return_value=0
-    fi
+    deployer_random_id="${random_id}"
+    save_config_var "deployer_random_id" "${deployer_config_information}"
+    return_value=0
+fi
+
+deployer_public_ip_address=$(terraform -chdir="${terraform_module_directory}"  output -no-color -raw deployer_public_ip_address | tr -d \")
+if [ -n "${deployer_public_ip_address}" ]
+then
+    save_config_var "deployer_public_ip_address" "${deployer_config_information}"
+    return_value=0
 fi
 
 

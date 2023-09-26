@@ -314,6 +314,12 @@ variable "deployer_kv_user_arm_id" {
   default     = ""
 }
 
+variable "set_secret_expiry" {
+  description = "Set expiry date for secrets"
+  default     = false
+  type        = bool
+}
+
 #########################################################################################
 #                                                                                       #
 #  Miscallaneous settings                                                               #
@@ -347,7 +353,7 @@ variable "deployer_diagnostics_account_arm_id" {
 
 variable "tf_version" {
   description = "Terraform version to install on deployer"
-  default     = "1.4.6"
+  default     = "1.5.6"
 }
 
 variable "name_override_file" {
@@ -457,6 +463,17 @@ variable "enable_firewall_for_keyvaults_and_storage" {
   type        = bool
 }
 
+variable "public_network_access_enabled" {
+  description = "Defines if the public access should be enabled for keyvaults and storage accounts"
+  default     = false
+  type        = bool
+
+}
+variable "subnets_to_add_to_firewall_for_keyvaults_and_storage" {
+  description = "List of subnets to add to storage account and keyvaults firewall"
+  default     = null
+}
+
 variable "tfstate_resource_id" {
   description = "Resource id of tfstate storage account"
   validation {
@@ -466,4 +483,9 @@ variable "tfstate_resource_id" {
     error_message = "The Azure Resource ID for the storage account containing the Terraform state files must be provided and be in correct format."
   }
 
+}
+
+variable "Agent_IP" {
+  description = "IP address of the agent"
+  default     = ""
 }

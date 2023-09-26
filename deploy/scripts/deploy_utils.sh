@@ -418,6 +418,7 @@ function get_region_code() {
         "eastasia")           export region_code="EAAS" ;;
         "eastus")             export region_code="EAUS" ;;
         "eastus2")            export region_code="EUS2" ;;
+        "eastus2euap")        export region_code="EUSA" ;;
         "francecentral")      export region_code="FRCE" ;;
         "francesouth")        export region_code="FRSO" ;;
         "germanynorth")       export region_code="GENO" ;;

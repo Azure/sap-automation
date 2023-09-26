@@ -38,9 +38,15 @@ Webapp/SDAF/bin
 Webapp/SDAF/Properties/PublishProfiles
 Webapp/.vs/ProjectEvaluation
 Webapp/SDAF/Properties/ServiceDependencies
+Webapp/.npmrc
 
 # Ignore OS files         - MKD 20221221
 **/.DS_Store
 
-# Ignore Python cache directories
+# Visual Studio 2015/2017 cache/options directory
+.vs/
+
+# Python Tools for Visual Studio (PTVS)
+__pycache__/
 __pycache__
+*.pyc

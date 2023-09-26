@@ -154,6 +154,10 @@ variable "management_dns_resourcegroup_name" {
   type        = string
 }
 
+variable "register_virtual_network_to_dns" {
+  description = "Boolean value indicating if the vnet should be registered to the dns zone"
+  type        = bool
+}
 
 #########################################################################################
 #                                                                                       #

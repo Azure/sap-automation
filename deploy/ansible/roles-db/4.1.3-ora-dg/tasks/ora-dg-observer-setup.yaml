@@ -70,7 +70,7 @@
 - name:                                "Oracle Data Guard - Observer: Execute RUNINSTALLER"
   become:                              true
   become_user:                         "oracle"
-  ansible.builtin.command:             ./RUNINSTALLER  -ignorePrereqWarnings -silent
+  ansible.builtin.shell:               ./RUNINSTALLER  -ignorePrereqWarnings -silent
   register:                            orainstall_results
   failed_when:                         orainstall_results.rc >= 3
   environment:

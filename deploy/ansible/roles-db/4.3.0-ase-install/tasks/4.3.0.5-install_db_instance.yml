@@ -30,18 +30,26 @@
         task_prefix:                   "SYBASE Install: "
         always_upload_jinja_templates: false
         sa_enabled:                    true
+        core_count:                    "{{ vm_core_count }}"
 
 
     # +--------------------------------4--------------------------------------*/
     #
     # - name:                            "SAP SYBASE install: variables"
-    - name:                                "SYBASE Install: install variables"
+    - name:                            "SYBASE Install: install variables"
       ansible.builtin.debug:
         msg:
           - "INSTALLED:  {{ sybase_installed.stat.exists }}"
           - "INIFILE:    {{ dir_params }}/{{ sap_inifile }}"
           - "PRODUCT ID: {{ bom.product_ids.dbl }}"
           - "MEDIA:      {{ target_media_location }}"
+
+    - name:                            "SYBASE Install: Create temp directory for sid"
+      ansible.builtin.file:
+        path:                          "{{ tmp_directory }}/{{ sap_sid | upper }}"
+        state:                         directory
+        mode:                          0755
+
 
     - name:                            "SYBASE Install: Progress"
       ansible.builtin.debug:
@@ -64,44 +72,55 @@
         chdir:                         "{{ target_media_location }}/SWPM"
         creates:                       "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_sybase.txt"
       register:                        sybase_installation
+      environment:
+        SAPSYSTEMNAME:                 "{{ sap_sid | upper }}"
+        TMPDIR:                        "{{ tmp_directory }}/{{ sap_sid | upper }}"
 
-    - name:                            "SAP SYBASE: Installation results"
+    - name:                            "SYBASE Install: Installation results"
       ansible.builtin.debug:
         msg:                           "SYBASE Installation succeeded"
       when:                            sybase_installation.rc == 0
 
-    - name:                            "SAP SYBASE: check if ARM Deployment done"
+    - name:                            "SYBASE Install: Installation failure"
+      ansible.builtin.debug:
+        var:                           sybase_installation
+      when:                            sybase_installation.rc > 0
+
+    - name:                            "SYBASE Install: Set flag"
+      ansible.builtin.file:
+        path:                          "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_sybase.txt"
+        state:                         touch
+        mode:                          0755
+      when:
+        - sybase_installation.rc == 0
+
+    - name:                            "SYBASE Install: check if ARM Deployment done"
       ansible.builtin.stat:
         path:                          "/etc/sap_deployment_automation/{{ db_sid | upper }}/sap_deployment_db_arm.txt"
       register:                        db_arm_deployment_done
 
-    - name:                            "SAP SYBASE: Successful installation"
+    - name:                            "SYBASE: Successful installation"
       block:
         - name:                        "Retrieve Subscription ID and Resource Group Name"
-          ansible.builtin.command:     curl -H Metadata:true --noproxy "*" "http://169.254.169.254/metadata/instance?api-version=2021-02-01"
-          register:                    azure_metadata
-          no_log:                      true
-          changed_when:                false
-          args:
-            warn:                      false
+          ansible.builtin.uri:
+            url:                       http://169.254.169.254/metadata/instance?api-version=2021-02-01
+            use_proxy:                 false
+            headers:
+              Metadata:                true
+          register: azure_metadata
 
-        - name:                        "SAP SYBASE: Save the Json data to a Variable as a Fact"
+        - name:                        "SYBASE Install: Extract Subscription ID and Resource Group Name"
           ansible.builtin.set_fact:
-            json_azure_data:           "{{ azure_metadata.stdout | from_json }}"
-          no_log:                      true
+            subscription_id:           "{{ azure_metadata.json.compute.subscriptionId }}"
+            resource_group_name:       "{{ azure_metadata.json.compute.resourceGroupName }}"
 
-        - name:                        "SAP SYBASE: Extract details"
-          ansible.builtin.set_fact:
-            subscription_id:           "{{ json_azure_data | json_query('compute.subscriptionId') }}"
-            resource_group_name:       "{{ json_azure_data | json_query('compute.resourceGroupName') }}"
-
-        - name:                        "SAP SYBASE: Show the subscription and resource group"
+        - name:                        "SYBASE Install: Show the subscription and resource group"
           ansible.builtin.debug:
             msg:
               - "Subscription ID: {{ subscription_id }}"
               - "Resource Group Name: {{ resource_group_name }}"
 
-        - name:                        "Include deploy/ansible/roles-misc/0.6-ARM-Deployment"
+        - name:                        "SYBASE Install: Include deploy/ansible/roles-misc/0.6-ARM-Deployment"
           ansible.builtin.include_role:
             name:                      roles-misc/0.6-ARM-Deployment
           vars:
@@ -112,21 +131,15 @@
         - not db_arm_deployment_done.stat.exists
         - sybase_installation.rc == 0
 
-    - name:                            "SAP Sybase: Show errors if they exist"
+    - name:                            "SYBASE Install: Show errors if they exist"
       ansible.builtin.debug:
         msg:                           "{{ sybase_installation.stdout_lines }}"
       when: sybase_installation is defined and sybase_installation.rc != 0
 
-    - name:                            "SAP Sybase: Abort execution when there are installation errors"
+    - name:                            "SYBASE Install: Abort execution when there are installation errors"
       ansible.builtin.fail:
-        msg:                           "SAP Sybase: Execution interrupted due to errors"
+        msg:                           "SYBASE Install: Execution interrupted due to errors"
       when: sybase_installation is defined and sybase_installation.rc != 0
-
-    - name:                            "SYBASE Install - flag"
-      ansible.builtin.file:
-        path:                          "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_sybase.txt"
-        state:                         touch
-        mode:                          0755
 
   when:
     - not sybase_installed.stat.exists

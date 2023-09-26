@@ -16,10 +16,10 @@ regex_to_error_msgs = [
         'INSTALL:0016:Secret deployer-kv-name not found in key vault.',
         {}),
     (r'(.*)Failed to download(.*)',
-        'INSTALL:0017:Update OS Packages has failed for host.',
+        'INSTALL:0017:Update OS Packages has failed for host. Please ensure you have outbound connectivity to the right endpoints.',
         {'task_tag=update_os_packages'}),
     (r'(.*)non-zero return code(.*)',
-        'INSTALL:0018:Zypper registration has failed on host.',
+        'INSTALL:0018:Zypper registration has failed on host. Please ensure you have outbound connectivity to the right endpoints.',
         {'task_tag=zypper_registration'}),
     (r'(.*)Zypper run command failed with return code 7(.*)',
         'INSTALL:0019:Update OS Packages has failed for host since zypper was locked by another process.',
@@ -29,7 +29,13 @@ regex_to_error_msgs = [
         {'task_tag=dbload', 'failure=messageserver_offline'}),
     (r'([\s\d\w\D\W]*)Make sure the database is online([\s\w\d\W\D]*)',
         'INSTALL:0021:DB Load failure, database is offline.',
-        {'task_tag=dbload', 'failure=db_offline'})
+        {'task_tag=dbload', 'failure=db_offline'}),
+    (r'([\s\d\w\D\W]*)Connect to message server([\s\w\d\W\D]*)Make sure that the message server is started([\s\w\d\W\D]*)',
+        'INSTALL:0024:PAS Install failed, unable to connect to message server.',
+        {'task_tag=pasinstall', 'failure=messageserver_offline'}),
+    (r'([\s\d\w\D\W]*)Make sure the database is online([\s\w\d\W\D]*)',
+        'INSTALL:0025:PAS Install failed, database is offline.',
+        {'task_tag=pasinstall', 'failure=db_offline'})
 ]
 
 # Takes a dictionary and converts it into a set of

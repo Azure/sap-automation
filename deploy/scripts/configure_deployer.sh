@@ -55,7 +55,7 @@ set -o pipefail
 #
 
 if [ -z "${TF_VERSION}" ]; then
-  TF_VERSION="1.4.1"
+  TF_VERSION="1.5.6"
 fi
 
 
@@ -148,23 +148,23 @@ pkg_mgr_refresh()
 {
     typeset -g pkg_mgr pkg_mgr_refreshed
 
-    if [[ -z "$${pkg_mgr:-}" ]]; then
+    if [[ -z ${pkg_mgr:-} ]]; then
         pkg_mgr_init
     fi
 
-    if [[ -n "$${pkg_mgr_refreshed:-}" ]]; then
+    if [[ -n ${pkg_mgr_refreshed:-} ]]; then
         return
     fi
 
-    case "$${pkg_mgr}" in
+    case ${pkg_mgr} in
     (apt-get)
-        sudo $${pkg_mgr} update --quiet
+        sudo ${pkg_mgr} update --quiet
         ;;
     (zypper)
-        sudo $${pkg_mgr} --gpg-auto-import-keys --quiet refresh
+        sudo ${pkg_mgr} --gpg-auto-import-keys --quiet refresh
         ;;
     (yum)
-        sudo $${pkg_mgr} update --quiet
+        sudo ${pkg_mgr} update --quiet
         ;;
     esac
 
@@ -176,23 +176,23 @@ pkg_mgr_upgrade()
 {
     typeset -g pkg_mgr pkg_mgr_upgraded
 
-    if [[ -z "$${pkg_mgr:-}" ]]; then
+    if [[ -z ${pkg_mgr:-} ]]; then
         pkg_mgr_init
     fi
 
-    if [[ -n "$${pkg_mgr_upgraded:-}" ]]; then
+    if [[ -n ${pkg_mgr_upgraded:-} ]]; then
         return
     fi
 
-    case "$${pkg_mgr}" in
+    case ${pkg_mgr} in
     (apt-get)
-        sudo $${pkg_mgr} upgrade --quiet -y
+        sudo ${pkg_mgr} upgrade --quiet -y
         ;;
     (zypper)
-        sudo $${pkg_mgr} --gpg-auto-import-keys --non-interactive patch
+        sudo ${pkg_mgr} --gpg-auto-import-keys --non-interactive patch
         ;;
     (yum)
-        sudo $${pkg_mgr} upgrade --quiet -y
+        sudo ${pkg_mgr} upgrade --quiet -y
         ;;
     esac
 
@@ -205,15 +205,15 @@ pkg_mgr_install()
 
     pkg_mgr_refresh
 
-    case "$${pkg_mgr}" in
+    case ${pkg_mgr} in
     (apt-get)
-        sudo env DEBIAN_FRONTEND=noninteractive $${pkg_mgr} --quiet --yes install "$${@}"
+        sudo env DEBIAN_FRONTEND=noninteractive ${pkg_mgr} --quiet --yes install "${@}"
         ;;
     (zypper)
-        sudo $${pkg_mgr} --gpg-auto-import-keys --quiet --non-interactive install --no-confirm "$${@}"
+        sudo ${pkg_mgr} --gpg-auto-import-keys --quiet --non-interactive install --no-confirm "${@}"
         ;;
     (yum)
-        sudo $${pkg_mgr} --nogpgcheck --quiet  install --assumeyes "$${@}"
+        sudo ${pkg_mgr} --nogpgcheck --quiet  install --assumeyes "${@}"
         ;;
     esac
 }
@@ -237,7 +237,7 @@ asad_ws="${asad_home}/WORKSPACES"
 asad_repo="https://github.com/Azure/sap-automation.git"
 asad_sample_repo="https://github.com/Azure/sap-automation-samples.git"
 asad_dir="${asad_home}/$(basename ${asad_repo} .git)"
-asad_sample_dir="${asad_home}/$(basename ${asad_sample_repo} .git)"
+asad_sample_dir="${asad_home}/samples"
 
 # Terraform installation directories
 tf_base=/opt/terraform
@@ -294,27 +294,35 @@ cli_pkgs=(
 # Include distro version agnostic packages into required packages list
 case "$(get_distro_name)" in
 (ubuntu)
-    required_pkgs+=(
+    distro_required_pkgs=(
         sshpass
         python3-pip
         python3-virtualenv
         apt-transport-https
         lsb-release
+        jq
+        unzip
+        dos2unix
+        virtualenv
     )
     ;;
 (sles)
-    required_pkgs+=(
+    distro_required_pkgs+=(
         curl
         python3-pip
         python3-virtualenv
         lsb-release
+        jq
+        unzip
     )
     ;;
 (rhel)
-    required_pkgs+=(
+    distro_required_pkgs+=(
         sshpass
         python36
         python3-pip
+        jq
+        unzip
     )
     ;;
 esac
@@ -340,12 +348,12 @@ pkg_mgr_refresh
 # Install required packages as determined above
 pkg_mgr_install "${required_pkgs[@]}"
 
-curl -H Metadata:true --noproxy "*" "http://169.254.169.254/metadata/instance?api-version=2021-02-01" -s | jq . > vm.json
+# Install required packages as determined above
+pkg_mgr_install "${distro_required_pkgs[@]}"
 
-rg_name=$(jq --raw-output .compute.resourceGroupName vm.json )
-subscription_id=$(jq --raw-output .compute.subscriptionId vm.json)
+rg_name=$(curl -H Metadata:true --noproxy "*" "http://169.254.169.254/metadata/instance?api-version=2021-02-01" -s | jq .compute.resourceGroupName)
 
-rm vm.json
+subscription_id=$(curl -H Metadata:true --noproxy "*" "http://169.254.169.254/metadata/instance?api-version=2021-02-01" -s | jq .compute.subscriptionId)
 
 # Prepare Azure SAP Automated Deployment folder structure
 mkdir -p \
@@ -369,7 +377,6 @@ if [[ ! -d "${asad_sample_dir}" ]]; then
     git clone "${asad_sample_repo}" "${asad_sample_dir}"
 fi
 
-chown -R "${USER}" "${asad_home}"
 #
 # Install terraform for all users
 #
@@ -442,9 +449,9 @@ esac
 
 az config set extension.use_dynamic_install=yes_without_prompt
 
-devops_extension_installed=$(az extension list --query [].path | grep azure-devops)
+devops_extension_installed=$(az extension list --query "[?name=='azure-devops'].name | [0]")
 if [ -z $devops_extension_installed ]; then
-  sudo az extension add --name azure-devops --output none
+  az extension add --name azure-devops --output none
 fi
 
 # Fail if any command exits with a non-zero exit status
@@ -560,7 +567,7 @@ sudo mkdir -p ${ansible_collections}
 sudo -H ${ansible_venv_bin}/ansible-galaxy collection install ansible.windows --force --collections-path ${ansible_collections}
 sudo -H ${ansible_venv_bin}/ansible-galaxy collection install ansible.posix --force --collections-path ${ansible_collections}
 sudo -H ${ansible_venv_bin}/ansible-galaxy collection install ansible.utils --force --collections-path ${ansible_collections}
-sudo -H ${ansible_venv_bin}/ansible-galaxy collection install ansible.netcommon --force --collections-path ${ansible_collections}
+sudo -H ${ansible_venv_bin}/ansible-galaxy collection install ansible.netcommon:5.1.2 --force --collections-path ${ansible_collections}
 sudo -H ${ansible_venv_bin}/ansible-galaxy collection install community.windows --force --collections-path ${ansible_collections}
 sudo -H ${ansible_venv_bin}/ansible-galaxy collection install community.general --force --collections-path ${ansible_collections}
 #
@@ -577,6 +584,9 @@ mkdir -p \
     ${asad_ws}/SYSTEM \
     ${asad_ws}/LANDSCAPE \
     ${asad_ws}/DEPLOYER/${rg_name}
+
+
+chown -R "${USER}" "${asad_ws}"
 
 #
 # Update current session
@@ -628,6 +638,8 @@ case "$(get_distro_name)" in
     ;;
 esac
 
+
+chown -R "${USER}" "${asad_home}"
 
 # Set env for MSI
 echo "export ARM_USE_MSI=true" | tee -a /tmp/deploy_server.sh

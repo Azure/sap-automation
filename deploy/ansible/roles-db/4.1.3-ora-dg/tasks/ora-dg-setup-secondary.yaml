@@ -88,6 +88,29 @@
 
 # Restart the Listener on Secondary node when the node_tier is Oracle.
 
+- name:                                "Oracle Data Guard - Setup Secondary: stop lsnrctl on Secondary"
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.shell:               lsnrctl stop
+  register:                            lsnrctl_stop_secondary_results
+  failed_when:                         lsnrctl_stop_secondary_results.rc > 0
+  args:
+    creates:                           /etc/sap_deployment_automation/dgscripts/lsnrctl_stopped_sec.txt
+    chdir:                             /etc/sap_deployment_automation/dgscripts
+    executable:                        /bin/csh
+  when:                                current_host == ora_secondary
+
+- name:                                "Oracle Data Guard - Setup Secondary: Create lsnrctl_stopped_sec.txt"
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.file:
+    path:                              /etc/sap_deployment_automation/dgscripts/lsnrctl_stopped_sec.txt
+    state:                             touch
+    mode:                              '0755'
+  when:
+    - current_host == ora_secondary
+    - lsnrctl_stop_secondary_results.rc == 0
+
 - name:                                "Oracle Data Guard - Setup Secondary: restart lsnrctl on Secondary"
   become:                              true
   become_user:                         "oracle"
@@ -271,10 +294,10 @@
         chdir:                         /etc/sap_deployment_automation/dgscripts
         executable:                    /bin/csh
 
-    - name:                            "Oracle Data Guard - Setup Secondary: Remove files"  # noqa deprecated-command-syntax
+    - name:                            "Oracle Data Guard - Setup Secondary: Remove files"
       become:                          true
       become_user:                     "oracle"
-      ansible.builtin.shell:           rm -rf {{ item.directory_to_empty }}/*
+      ansible.builtin.command:         rm -rf {{ item.directory_to_empty }}/*
       loop:
         - { directory_to_empty: '/oracle/{{ db_sid | upper }}/sapdata1' }
         - { directory_to_empty: '/oracle/{{ db_sid | upper }}/sapdata2' }
@@ -284,6 +307,8 @@
         - { directory_to_empty: '/oracle/{{ db_sid | upper }}/origlogB' }
         - { directory_to_empty: '/oracle/{{ db_sid | upper }}/mirrlogA' }
         - { directory_to_empty: '/oracle/{{ db_sid | upper }}/mirrlogB' }
+      tags:
+        - skip_ansible_lint
 
     - name:                            "Oracle Data Guard - Setup Secondary: Startup secondary DB"
       become:                          true

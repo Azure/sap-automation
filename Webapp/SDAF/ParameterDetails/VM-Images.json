@@ -96,6 +96,30 @@
     }
   },
   {
+    "name": "Red Hat 8.8",
+    "data": {
+      "os_type": "LINUX",
+      "source_image_id": "",
+      "publisher": "RedHat",
+      "offer": "RHEL-SAP-APPS",
+      "sku": "8_8",
+      "version": "latest",
+      "type": "marketplace"
+    }
+  },
+  {
+    "name": "Red Hat 8.8 HA",
+    "data": {
+      "os_type": "LINUX",
+      "source_image_id": "",
+      "publisher": "RedHat",
+      "offer": "RHEL-SAP-HA",
+      "sku": "88sapha-gen2",
+      "version": "latest",
+      "type": "marketplace"
+    }
+  },
+  {
     "name": "Red Hat 9.0",
     "data": {
       "os_type": "LINUX",
@@ -150,6 +174,18 @@
       "source_image_id": "",
       "publisher": "SUSE",
       "offer": "sles-sap-15-sp4",
+      "sku": "gen2",
+      "version": "latest",
+      "type": "marketplace"
+    }
+  },
+  {
+    "name": "SUSE 15 SP5",
+    "data": {
+      "os_type": "LINUX",
+      "source_image_id": "",
+      "publisher": "SUSE",
+      "offer": "sles-sap-15-sp5",
       "sku": "gen2",
       "version": "latest",
       "type": "marketplace"

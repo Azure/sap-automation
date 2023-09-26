@@ -3,7 +3,24 @@
 @{
     ViewBag.Title = "Edit file";
     string sourceController = ViewBag.SourceController;
-    bool isImagesFile = ViewBag.IsImagesFile;
+    bool isImagesFile = false;
+    int type = ViewBag.Type;
+    string filePattern = "VM-Images.json";
+    if (ViewBag.Type==1)
+    {
+        filePattern = ViewBag.FilePattern;
+    }
+    if (ViewBag.Type == 2)
+    {
+        filePattern = ViewBag.FilePattern;
+    }
+    try
+    {
+        isImagesFile = ViewBag.IsImagesFile;
+    }
+    catch
+    {}
+    
     string language = (isImagesFile) ? "language-json" : "language-hcl";
 }
 
@@ -65,7 +82,7 @@
             </div>
 
             <div class="right-input">
-                @Html.TextBox("newId", Model.Id, new { @class = "ms-TextField-field", required = "required", pattern = isImagesFile ? "VM-Images.json" : @"^[\w-]+\.tfvars$" })
+                @Html.TextBox("newId", Model.Id, new { @class = "ms-TextField-field", required = "required", pattern = isImagesFile ? filePattern : @"^[\w-]+\.tfvars$" })
             </div>
         </div>
 

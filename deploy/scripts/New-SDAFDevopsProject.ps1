@@ -167,10 +167,12 @@ else {
   Add-Content -Path $fname -Value ""
   Add-Content -Path $fname -Value "DevOps Project: $ADO_PROJECT"
 
+  Write-Host "Using an existing project"
+
   $repo_id = (az repos list --query "[?name=='$ADO_Project'].id | [0]").Replace("""", "")
   az devops configure --defaults organization=$ADO_ORGANIZATION project=$ADO_PROJECT
 
-  $repo_size=(az repos list --query "[].size | [0]")
+  $repo_size=(az repos list --query "[?id=='$repo_id'].size | [0]")
 
   if ($repo_size -eq 0) {
     Write-Host "Importing the repository from GitHub" -ForegroundColor Green
@@ -189,11 +191,16 @@ else {
   }
   else {
     Write-Host "The repository already exists" -ForegroundColor Yellow
+    Write-Host "Creating repository 'SDAF Configuration'" -ForegroundColor Green
+    $repo_id = (az repos create --name "SDAF Configuration" --query id --output tsv)
+
+    az repos import create --git-url https://github.com/Azure/SAP-automation-bootstrap --repository $repo_id --output none
   }
 
   az repos update --repository $repo_id --default-branch main --output none
 
 }
+
 
 $confirmation = Read-Host "You can optionally import the Terraform and Ansible code from GitHub into Azure DevOps, however, this should only be done if you cannot access github from the Azure DevOps agent or if you intend to customize the code. Do you want to run the code from GitHub y/n?"
 if ($confirmation -ne 'y') {
@@ -222,6 +229,7 @@ if ($confirmation -ne 'y') {
 
     $objectId = (az devops invoke --area git --resource refs --route-parameters project=$ADO_Project repositoryId=$repo_id --query-parameters filter=heads/main --query value[0] | ConvertFrom-Json).objectId
 
+
     $templatename = "resources.yml"
     if (Test-Path $templatename) {
       Remove-Item $templatename
@@ -241,7 +249,7 @@ if ($confirmation -ne 'y') {
     Add-Content -Path $templatename "    - repository: sap-automation"
     Add-Content -Path $templatename "      type: git"
     Add-Content -Path $templatename "      name: $ADO_Project/sap-automation"
-    Add-Content -Path $templatename "      ref: refs/tags/v3.8.1.0"
+    Add-Content -Path $templatename "      ref: refs/tags/v3.8.4.0"
 
     $cont = Get-Content -Path $templatename -Raw
 
@@ -289,7 +297,7 @@ if ($confirmation -ne 'y') {
     Add-Content -Path $templatename "    - repository: sap-automation"
     Add-Content -Path $templatename "      type: git"
     Add-Content -Path $templatename "      name: $ADO_Project/sap-automation"
-    Add-Content -Path $templatename "      ref: refs/tags/v3.8.1.0"
+    Add-Content -Path $templatename "      ref: refs/tags/v3.8.4.0"
     Add-Content -Path $templatename "    - repository: sap-samples"
     Add-Content -Path $templatename "      type: git"
     Add-Content -Path $templatename "      name: $ADO_Project/sap-samples"
@@ -351,7 +359,6 @@ else {
   Read-Host "Please press enter when you have created the connection"
 
   $ghConn = (az devops service-endpoint list --query "[?type=='github'].name | [0]").Replace("""", "")
-  $repo_id = (az repos list --query "[?name=='$ADO_Project'].id | [0]").Replace("""", "")
 
   $objectId = (az devops invoke --area git --resource refs --route-parameters project=$ADO_Project repositoryId=$repo_id --query-parameters filter=heads/main --query value[0] | ConvertFrom-Json).objectId
 
@@ -375,7 +382,7 @@ else {
   Add-Content -Path $templatename "      type: GitHub"
   Add-Content -Path $templatename -Value ("      endpoint: " + $ghConn)
   Add-Content -Path $templatename "      name: Azure/sap-automation"
-  Add-Content -Path $templatename "      ref: refs/heads/main"
+  Add-Content -Path $templatename "      ref: refs/tags/v3.8.4.0"
 
   $cont = Get-Content -Path $templatename -Raw
 
@@ -424,7 +431,7 @@ else {
   Add-Content -Path $templatename "     type: GitHub"
   Add-Content -Path $templatename -Value ("     endpoint: " + $ghConn)
   Add-Content -Path $templatename "     name: Azure/sap-automation"
-  Add-Content -Path $templatename "     ref: refs/heads/main"
+  Add-Content -Path $templatename "     ref: refs/tags/v3.8.4.0"
   Add-Content -Path $templatename "   - repository: sap-samples"
   Add-Content -Path $templatename "     type: GitHub"
   Add-Content -Path $templatename -Value ("     endpoint: " + $ghConn)
@@ -487,7 +494,7 @@ Write-Host "Creating the variable group SDAF-General" -ForegroundColor Green
 
 $general_group_id = (az pipelines variable-group list --query "[?name=='SDAF-General'].id | [0]" --only-show-errors)
 if ($general_group_id.Length -eq 0) {
-  az pipelines variable-group create --name SDAF-General --variables ANSIBLE_HOST_KEY_CHECKING=false Deployment_Configuration_Path=WORKSPACES Branch=main tf_version="1.4.5" ansible_core_version="2.13" S-Username=$SUserName S-Password=$SPassword --output yaml --authorize true --output none
+  az pipelines variable-group create --name SDAF-General --variables ANSIBLE_HOST_KEY_CHECKING=false Deployment_Configuration_Path=WORKSPACES Branch=main tf_version="1.5.6" ansible_core_version="2.13" S-Username=$SUserName S-Password=$SPassword --output yaml --authorize true --output none
   $general_group_id = (az pipelines variable-group list --query "[?name=='SDAF-General'].id | [0]" --only-show-errors)
   az pipelines variable-group variable update --group-id $general_group_id --name "S-Password" --value $SPassword --secret true --output none --only-show-errors
 

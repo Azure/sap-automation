@@ -19,8 +19,10 @@ hana_1_hsr_password:                   HSRpassw0rd
 # A delay of 2 seconds is also recommended
 # 2700 seconds is 45 minutes!
 # May be overridden, if required
-hana_stop_start_timeout_in_seconds:    2700
-hana_stop_start_delay_in_seconds:      2
+# hana_stop_start_timeout_in_seconds:    2700
+# hana_stop_start_delay_in_seconds:      2
+hana_stop_start_timeout_in_seconds:    600
+hana_stop_start_delay_in_seconds:      10
 
 # TODO: Maybe move these to a group_vars/all/distro file so that they
 # can be shared by all playbooks/tasks automatically, and extend with

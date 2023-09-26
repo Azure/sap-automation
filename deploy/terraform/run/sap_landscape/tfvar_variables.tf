@@ -96,6 +96,12 @@ variable "enable_firewall_for_keyvaults_and_storage" {
   type        = bool
 }
 
+variable "public_network_access_enabled" {
+  description = "Defines if the public access should be enabled for keyvaults and storage accounts"
+  default     = false
+  type        = bool
+}
+
 variable "peer_with_control_plane_vnet" {
   description = "Defines in the SAP VNet will be peered with the controlplane VNet"
   type        = bool
@@ -405,7 +411,7 @@ variable "storage_account_replication_type" {
 
 variable "use_custom_dns_a_registration" {
   description = "Boolean value indicating if a custom dns a record should be created when using private endpoints"
-  default     = true
+  default     = false
   type        = bool
 }
 
@@ -432,6 +438,12 @@ variable "dns_server_list" {
   default     = []
 }
 
+
+variable "register_virtual_network_to_dns" {
+  description = "Boolean value indicating if the vnet should be registered to the dns zone"
+  default     = true
+  type        = bool
+}
 
 #########################################################################################
 #                                                                                       #
@@ -583,6 +595,11 @@ variable "iscsi_authentication_username" {
 
 variable "iscsi_nic_ips" {
   description = "IP addresses for the iSCSI Virtual Machine NICs"
+  default     = []
+}
+
+variable "iscsi_vm_zones" {
+  description = "If provided, the iSCSI will be deployed in the specified zones"
   default     = []
 }
 

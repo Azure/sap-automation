@@ -61,7 +61,15 @@ variable "key_vault" {
 
 }
 
-variable "dns_label" {}
+variable "dns_label" {
+    validation {
+    condition = (
+      length(trimspace(var.dns_label)) != 0
+    )
+    error_message = "The dns_label must be specified."
+  }
+
+}
 
 variable "naming" {
   description = "naming convention data structure"
@@ -111,4 +119,8 @@ variable "use_webapp" {
 
 variable "place_delete_lock_on_resources" {
   description = "If defined, a delete lock will be placed on the key resources"
+}
+
+variable "bootstrap" {
+
 }

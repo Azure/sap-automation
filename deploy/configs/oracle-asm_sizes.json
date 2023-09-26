@@ -8,6 +8,7 @@
         "storage": [
           {
             "name"                       : "os",
+            "fullname"                   : "",
             "count"                      : 1,
             "disk_type"                  : "Premium_LRS",
             "size_gb"                    : 128,
@@ -16,6 +17,7 @@
           },
           {
             "name"                       : "sap",
+            "fullname"                   : "",
             "count"                      : 1,
             "disk_type"                  : "Premium_LRS",
             "size_gb"                    : 256,
@@ -26,6 +28,7 @@
           },
           {
             "name"                       : "data-asm",
+            "fullname"                   : "",
             "count"                      : 4,
             "disk_type"                  : "Premium_LRS",
             "size_gb"                    : 128,
@@ -35,6 +38,7 @@
           },
           {
             "name"                       : "arch-asm",
+            "fullname"                   : "",
             "count"                      : 4,
             "disk_type"                  : "Premium_LRS",
             "size_gb"                    : 128,
@@ -44,6 +48,7 @@
           },
           {
             "name"                       : "reco-asm",
+            "fullname"                   : "",
             "count"                      : 4,
             "disk_type"                  : "Premium_LRS",
             "size_gb"                    : 128,
@@ -51,9 +56,10 @@
             "write_accelerator"          : false,
             "lun_start"                  : 20
           },
-  
+
           {
             "name"                       : "oracle",
+            "fullname"                   : "",
             "count"                      : 1,
             "disk_type"                  : "Premium_LRS",
             "size_gb"                    : 128,
@@ -72,6 +78,7 @@
         "storage": [
           {
             "name"                       : "os",
+            "fullname"                   : "",
             "count"                      : 1,
             "disk_type"                  : "Premium_LRS",
             "size_gb"                    : 128,
@@ -80,6 +87,7 @@
           },
           {
             "name"                       : "sap",
+            "fullname"                   : "",
             "count"                      : 1,
             "disk_type"                  : "Premium_LRS",
             "size_gb"                    : 256,
@@ -90,6 +98,7 @@
           },
           {
             "name"                       : "data-asm",
+            "fullname"                   : "",
             "count"                      : 4,
             "disk_type"                  : "Premium_LRS",
             "size_gb"                    : 256,
@@ -99,6 +108,7 @@
           },
           {
             "name"                       : "arch-asm",
+            "fullname"                   : "",
             "count"                      : 4,
             "disk_type"                  : "Premium_LRS",
             "size_gb"                    : 256,
@@ -108,6 +118,7 @@
           },
           {
             "name"                       : "reco-asm",
+            "fullname"                   : "",
             "count"                      : 4,
             "disk_type"                  : "Premium_LRS",
             "size_gb"                    : 256,
@@ -115,9 +126,10 @@
             "write_accelerator"          : false,
             "lun_start"                  : 20
           },
-  
+
           {
             "name"                       : "oracle",
+            "fullname"                   : "",
             "count"                      : 1,
             "disk_type"                  : "Premium_LRS",
             "size_gb"                    : 128,
@@ -136,6 +148,7 @@
         "storage": [
           {
             "name"                       : "os",
+            "fullname"                   : "",
             "count"                      : 1,
             "disk_type"                  : "Premium_LRS",
             "size_gb"                    : 128,
@@ -144,6 +157,7 @@
           },
           {
             "name"                       : "sap",
+            "fullname"                   : "",
             "count"                      : 1,
             "disk_type"                  : "Premium_LRS",
             "size_gb"                    : 256,
@@ -154,6 +168,7 @@
           },
           {
             "name"                       : "data-asm",
+            "fullname"                   : "",
             "count"                      : 4,
             "disk_type"                  : "Premium_LRS",
             "size_gb"                    : 512,
@@ -163,6 +178,7 @@
           },
           {
             "name"                       : "arch-asm",
+            "fullname"                   : "",
             "count"                      : 4,
             "disk_type"                  : "Premium_LRS",
             "size_gb"                    : 512,
@@ -172,6 +188,7 @@
           },
           {
             "name"                       : "reco-asm",
+            "fullname"                   : "",
             "count"                      : 4,
             "disk_type"                  : "Premium_LRS",
             "size_gb"                    : 512,
@@ -179,9 +196,10 @@
             "write_accelerator"          : false,
             "lun_start"                  : 20
           },
-  
+
           {
             "name"                       : "oracle",
+            "fullname"                   : "",
             "count"                      : 1,
             "disk_type"                  : "Premium_LRS",
             "size_gb"                    : 128,
@@ -200,6 +218,7 @@
         "storage": [
           {
             "name"                       : "os",
+            "fullname"                   : "",
             "count"                      : 1,
             "disk_type"                  : "Premium_LRS",
             "size_gb"                    : 128,
@@ -208,6 +227,7 @@
           },
           {
             "name"                       : "sap",
+            "fullname"                   : "",
             "count"                      : 1,
             "disk_type"                  : "Premium_LRS",
             "size_gb"                    : 256,
@@ -218,6 +238,7 @@
           },
           {
             "name"                       : "data-asm",
+            "fullname"                   : "",
             "count"                      : 4,
             "disk_type"                  : "Premium_LRS",
             "size_gb"                    : 1024,
@@ -227,6 +248,7 @@
           },
           {
             "name"                       : "arch-asm",
+            "fullname"                   : "",
             "count"                      : 4,
             "disk_type"                  : "Premium_LRS",
             "size_gb"                    : 1024,
@@ -236,6 +258,7 @@
           },
           {
             "name"                       : "reco-asm",
+            "fullname"                   : "",
             "count"                      : 4,
             "disk_type"                  : "Premium_LRS",
             "size_gb"                    : 512,
@@ -243,9 +266,10 @@
             "write_accelerator"          : false,
             "lun_start"                  : 20
           },
-  
+
           {
             "name"                       : "oracle",
+            "fullname"                   : "",
             "count"                      : 1,
             "disk_type"                  : "Premium_LRS",
             "size_gb"                    : 128,
@@ -258,4 +282,3 @@
       }
     }
   }
-  

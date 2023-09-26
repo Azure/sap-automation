@@ -251,6 +251,12 @@ variable "dns_server_list" {
   default     = []
 }
 
+variable "register_virtual_network_to_dns" {
+  description = "Boolean value indicating if the vnet should be registered to the dns zone"
+  type        = bool
+}
+
+
 variable "create_vaults_and_storage_dns_a_records" {
   description = "Boolean value indicating if dns a records should be created for the vaults and storage accounts"
   type        = bool
@@ -313,5 +319,10 @@ variable "peer_with_control_plane_vnet" {
 
 variable "enable_firewall_for_keyvaults_and_storage" {
   description = "Boolean value indicating if firewall should be enabled for key vaults and storage"
+  type        = bool
+}
+
+variable "public_network_access_enabled" {
+  description = "Defines if the public access should be enabled for keyvaults and storage accounts"
   type        = bool
 }

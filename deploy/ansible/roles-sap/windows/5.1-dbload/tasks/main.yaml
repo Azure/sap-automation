@@ -76,7 +76,7 @@
     state:                             directory
   vars:
     ansible_become:                    true
-    ansible_become_method:             runas
+    ansible_become_method:             ansible.builtin.runas
     ansible_become_user:               '{{ sap_sid }}adm@{{ domain_name }}'
     ansible_become_password:           "{{ domain_user_password }}"
 
@@ -94,7 +94,7 @@
     arguments:                         '/norestart /log vcredist_x64.log /quiet'
   vars:
     ansible_become:                    true
-    ansible_become_method:             runas
+    ansible_become_method:             ansible.builtin.runas
     ansible_become_user:               '{{ sap_sid }}adm@{{ domain_name }}'
     ansible_become_password:           "{{ domain_user_password }}"
   register:                            vcredist2013_output
@@ -107,7 +107,7 @@
     arguments:                         '/norestart /log vcredist_x64.log /quiet'
   vars:
     ansible_become:                    true
-    ansible_become_method:             runas
+    ansible_become_method:             ansible.builtin.runas
     ansible_become_user:               '{{ sap_sid }}adm@{{ domain_name }}'
     ansible_become_password:           "{{ domain_user_password }}"
   register:                            vcredist2017_output
@@ -220,7 +220,7 @@
         creates:                       '{{ download_directory_windows }}\sap_extract\sapinst.exe'
       vars:
         ansible_become:                true
-        ansible_become_method:         runas
+        ansible_become_method:         ansible.builtin.runas
         ansible_become_user:           '{{ sap_sid }}adm@{{ domain_name }}'
         ansible_become_password:       "{{ domain_user_password }}"
       register:                        scs_extraction
@@ -239,7 +239,7 @@
         creates:                       '{{ sap_deployment_automation }}\{{ sid_to_be_deployed.sid | upper }}\sap_deployment_dbload.txt'
       vars:
         ansible_become:                true
-        ansible_become_method:         runas
+        ansible_become_method:         ansible.builtin.runas
         ansible_become_user:           '{{ sap_sid }}adm@{{ domain_name }}'
         ansible_become_password:       "{{ domain_user_password }}"
       register:                        dbload_results

@@ -426,22 +426,17 @@
     - name:                            "ORACLE: Successful installation"
       block:
         - name:                        "Retrieve Subscription ID and Resource Group Name"
-          ansible.builtin.command:     curl -H Metadata:true --noproxy "*" "http://169.254.169.254/metadata/instance?api-version=2021-02-01"
-          register:                    azure_metadata
-          no_log:                      true
-          changed_when:                false
-          args:
-            warn:                      false
-
-        - name:                        "ORACLE: Save the Json data to a Variable as a Fact"
-          ansible.builtin.set_fact:
-            json_azure_data:           "{{ azure_metadata.stdout | from_json }}"
-          no_log:                      true
+          ansible.builtin.uri:
+            url:                       http://169.254.169.254/metadata/instance?api-version=2021-02-01
+            use_proxy:                 false
+            headers:
+              Metadata:                true
+          register: azure_metadata
 
         - name:                        "ORACLE: Extract details"
           ansible.builtin.set_fact:
-            subscription_id:           "{{ json_azure_data | json_query('compute.subscriptionId') }}"
-            resource_group_name:       "{{ json_azure_data | json_query('compute.resourceGroupName') }}"
+            subscription_id:           "{{ azure_metadata.json.compute.subscriptionId }}"
+            resource_group_name:       "{{ azure_metadata.json.compute.resourceGroupName }}"
 
         - name:                        "ORACLE: Show the subscription and resource group"
           ansible.builtin.debug:

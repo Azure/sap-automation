@@ -23,6 +23,8 @@ resource "azurerm_storage_account" "storage_tfstate" {
   account_tier             = var.storage_account_tfstate.account_tier
   account_kind             = var.storage_account_tfstate.account_kind
 
+  public_network_access_enabled = try(var.deployer_tfstate.public_network_access_enabled, false)
+
   enable_https_traffic_only = true
   blob_properties {
     delete_retention_policy {
@@ -44,21 +46,32 @@ resource "azurerm_storage_account" "storage_tfstate" {
 
 resource "azurerm_storage_account_network_rules" "storage_tfstate" {
   provider           = azurerm.main
-  count              = local.enable_firewall_for_keyvaults_and_storage && !local.sa_tfstate_exists ? 1 : 0
+  count              = local.sa_tfstate_exists ? 0 : 1
   storage_account_id = azurerm_storage_account.storage_tfstate[0].id
   default_action     = "Deny"
 
   ip_rules = local.deployer_public_ip_address_used ? (
     [
       local.deployer_public_ip_address
-    ]) : (
-    []
+    ]) : compact(
+    [
+      try(var.deployer_tfstate.Agent_IP, "")
+    ]
   )
   virtual_network_subnet_ids = var.use_webapp ? (
-    compact([var.deployer_tfstate.subnet_mgmt_id, try(var.deployer_tfstate.subnet_webapp_id, null)])) : (
-    [var.deployer_tfstate.subnet_mgmt_id]
-  )
-
+    compact(flatten(compact([
+      var.deployer_tfstate.subnet_mgmt_id,
+      try(var.deployer_tfstate.subnet_webapp_id, ""),
+      try(var.deployer_tfstate.subnets_to_add_to_firewall_for_keyvaults_and_storage, "")])
+      ))) : flatten(compact((
+      [
+        var.deployer_tfstate.subnet_mgmt_id,
+        try(var.deployer_tfstate.subnets_to_add_to_firewall_for_keyvaults_and_storage, "")
+      ]
+  )))
+  lifecycle {
+    ignore_changes = [virtual_network_subnet_ids]
+  }
 }
 
 resource "azurerm_role_assignment" "storage_tfstate_contributor" {
@@ -219,6 +232,8 @@ resource "azurerm_storage_account" "storage_sapbits" {
   account_kind              = var.storage_account_sapbits.account_kind
   enable_https_traffic_only = true
 
+  public_network_access_enabled = var.bootstrap ? !local.enable_firewall_for_keyvaults_and_storage : local.enable_firewall_for_keyvaults_and_storage
+
   routing {
     publish_microsoft_endpoints = true
     choice                      = "MicrosoftRouting"
@@ -234,19 +249,28 @@ resource "azurerm_storage_account" "storage_sapbits" {
 
 resource "azurerm_storage_account_network_rules" "storage_sapbits" {
   provider           = azurerm.main
-  count              = local.enable_firewall_for_keyvaults_and_storage && !local.sa_sapbits_exists ? 1 : 0
+  count              = local.sa_sapbits_exists ? 0 : 1
   storage_account_id = azurerm_storage_account.storage_sapbits[0].id
   default_action     = "Deny"
   ip_rules = local.deployer_public_ip_address_used ? (
     [
       local.deployer_public_ip_address
-    ]) : (
-    []
+    ]) : compact(
+    [
+      try(var.deployer_tfstate.Agent_IP, "")
+    ]
   )
   virtual_network_subnet_ids = var.use_webapp ? (
-    [var.deployer_tfstate.subnet_mgmt_id, try(var.deployer_tfstate.subnet_webapp_id, null)]) : (
-    [var.deployer_tfstate.subnet_mgmt_id]
-  )
+    compact(flatten(compact([
+      var.deployer_tfstate.subnet_mgmt_id,
+      try(var.deployer_tfstate.subnet_webapp_id, ""),
+      try(var.deployer_tfstate.subnets_to_add_to_firewall_for_keyvaults_and_storage, "")])
+      ))) : flatten(compact((
+      [
+        var.deployer_tfstate.subnet_mgmt_id,
+        try(var.deployer_tfstate.subnets_to_add_to_firewall_for_keyvaults_and_storage, "")
+      ]
+  )))
   lifecycle {
     ignore_changes = [virtual_network_subnet_ids]
   }

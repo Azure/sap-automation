@@ -60,6 +60,7 @@ else {
   Write-Host "Using Project: $ADO_Project" -foregroundColor Yellow
 }
 
+az devops configure --defaults organization=$ADO_Organization project=$ADO_Project --output none
 
 if ($Workload_zone_code.Length -eq 0) {
   Write-Host "Workload zone code is not set (DEV, etc)"
@@ -80,7 +81,7 @@ if ($url.Length -eq 0) {
 $Project_ID = (az devops project list --organization $ADO_ORGANIZATION --query "[value[]] | [0] | [? name=='$ADO_PROJECT'].id | [0]")
 
 if ($Project_ID.Length -eq 0) {
-  Write-Host "Project '$ADO_PROJECT' was not found" -ForegroundColor Red
+  Write-Host "Project " $ADO_PROJECT " was not found" -ForegroundColor Red
   exit
 }
 
@@ -134,11 +135,11 @@ $Service_Connection_Name = $Workload_zone_code + "_WorkloadZone_Service_Connecti
 $GroupID = (az pipelines variable-group list --query "[?name=='$WorkloadZonePrefix'].id | [0]" --only-show-errors )
 if ($GroupID.Length -eq 0) {
   Write-Host "Creating the variable group" $WorkloadZonePrefix -ForegroundColor Green
-  az pipelines variable-group create --name $WorkloadZonePrefix --variables Agent='Azure Pipelines' ARM_CLIENT_ID=$ARM_CLIENT_ID ARM_OBJECT_ID=$ARM_OBJECT_ID ARM_CLIENT_SECRET=$ARM_CLIENT_SECRET ARM_SUBSCRIPTION_ID=$Workload_zone_subscriptionID ARM_TENANT_ID=$ARM_TENANT_ID WZ_PAT='Enter your personal access token here' POOL=$Pool_Name AZURE_CONNECTION_NAME=$Service_Connection_Name TF_LOG=OFF Logon_Using_SPN=true --output none --authorize true
+  az pipelines variable-group create --name $WorkloadZonePrefix --variables Agent='Azure Pipelines' ARM_CLIENT_ID=$ARM_CLIENT_ID ARM_OBJECT_ID=$ARM_OBJECT_ID ARM_CLIENT_SECRET=$ARM_CLIENT_SECRET ARM_SUBSCRIPTION_ID=$Workload_zone_subscriptionID ARM_TENANT_ID=$ARM_TENANT_ID WZ_PAT='Enter your personal access token here' POOL=$Pool_Name AZURE_CONNECTION_NAME=$Service_Connection_Name TF_LOG=OFF Logon_Using_SPN=true --output none
   $GroupID = (az pipelines variable-group list --query "[?name=='$WorkloadZonePrefix'].id | [0]" --only-show-errors)
 }
 
-$PAT = Read-Host -Prompt "Please enter the PAT token: "
+$PAT = Read-Host -Prompt "If you have a PAT token please enter it otherwise please create one before proceeding: "
 az pipelines variable-group variable update --group-id $GroupID --name "WZ_PAT" --value $PAT --secret true --only-show-errors --output none
 
 

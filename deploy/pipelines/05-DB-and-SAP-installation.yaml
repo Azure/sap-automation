@@ -3,7 +3,7 @@
 # |                                                                            |
 # |               This pipeline performs the software installation             |
 # |              and must run on a self hosted deployment agent                |
-# |                      due to long run time                                  |
+# |                      due to long run time.                                 |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
@@ -239,7 +239,7 @@ stages:
               echo -e "$green--- az login ---$reset"
                 #If the deployer_file exists we run on a deployer configured by the framework instead of a azdo hosted one
                 deployer_file=/etc/profile.d/deploy_server.sh
-                az login --service-principal -u $AZURE_CLIENT_ID -p=$AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID --output none
+                az login --service-principal -u $AZURE_CLIENT_ID -p=$AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID  --output none
                 az account set --subscription $AZURE_SUBSCRIPTION_ID
 
                 return_code=$?
@@ -247,8 +247,8 @@ stages:
                   echo -e "$boldred--- Login failed ---$reset"
                   echo "##vso[task.logissue type=error]az login failed."
                   exit $return_code
+
                 fi
-                az account set --subscription $AZURE_SUBSCRIPTION_ID
 
                 az keyvault secret show --name ${workload_prefix}-sid-sshkey --vault-name $workload_key_vault --query value -o tsv > artifacts/${SAP_SYSTEM_CONFIGURATION_NAME}_sshkey
                 cp sap-parameters.yaml artifacts/.

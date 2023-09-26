@@ -34,8 +34,8 @@ output "naming" {
       LIBRARY       = trimspace(length(var.custom_prefix) > 0 ? var.custom_prefix : local.library_name)
     }
 
-    resource_suffixes = var.resource_suffixes
     resource_prefixes = var.resource_prefixes
+    resource_suffixes = var.resource_suffixes
 
     separator = length(var.custom_prefix) > 0 ? "" : local.separator
 

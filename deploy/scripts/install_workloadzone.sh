@@ -419,11 +419,13 @@ then
 
     if [ -n "$spn_secret" ]
     then
+        allParams=$(printf " --workload --environment %s --region %s --vault %s --spn_secret ***** --subscription %s --spn_id %s --tenant_id %s " "${environment}" "${region_code}" "${keyvault}"  "${subscription}" "${client_id}" "${tenant_id}" )
+
+        echo "Calling set_secrets with " "${allParams}"
+
         allParams=$(printf " --workload --environment %s --region %s --vault %s --spn_secret %s --subscription %s --spn_id %s --tenant_id %s " "${environment}" "${region_code}" "${keyvault}" "${spn_secret}" "${subscription}" "${client_id}" "${tenant_id}" )
 
-        echo "Calling set_secrets with " $allParams
-
-        "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/set_secrets.sh $allParams
+        "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/set_secrets.sh ${allParams}
 
         if [ -f secret.err ]; then
             error_message=$(cat secret.err)
@@ -434,7 +436,7 @@ then
     else
         read -p "Do you want to specify the Workload SPN Details Y/N?"  ans
         answer=${ans^^}
-        if [ $answer == 'Y' ]; then
+        if [ ${answer} == 'Y' ]; then
             allParams=$(printf " --workload --environment %s --region %s --vault %s --subscription %s  --spn_id %s " "${environment}" "${region_code}" "${keyvault}" "${subscription}" "${client_id}" )
 
             "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/set_secrets.sh ${allParams}
@@ -701,7 +703,11 @@ echo "#                                                                         
 echo "#########################################################################################"
 echo ""
 
-terraform -chdir="${terraform_module_directory}" plan -no-color -detailed-exitcode  -var-file=${var_file} $tfstate_parameter $deployer_tfstate_key_parameter  | tee -a plan_output.log
+if [ 1 == $called_from_ado ] ; then
+  terraform -chdir="${terraform_module_directory}" plan -no-color -detailed-exitcode  -var-file=${var_file} $tfstate_parameter $deployer_tfstate_key_parameter  | tee -a plan_output.log
+else
+  terraform -chdir="${terraform_module_directory}" plan -detailed-exitcode  -var-file=${var_file} $tfstate_parameter $deployer_tfstate_key_parameter  | tee -a plan_output.log
+fi
 return_value=$?
 
 echo "Terraform Plan return code: " $return_value
@@ -805,7 +811,13 @@ if [ 1 == $ok_to_proceed ]; then
     if [ 1 == $called_from_ado ] ; then
         terraform -chdir="${terraform_module_directory}" apply ${approve} -parallelism="${parallelism}" -no-color -var-file=${var_file} $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter -json  | tee -a  apply_output.json
     else
-        terraform -chdir="${terraform_module_directory}" apply ${approve} -parallelism="${parallelism}" -var-file=${var_file} $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter -json  | tee -a  apply_output.json
+        if [ -n "${approve}" ]
+        then
+          terraform -chdir="${terraform_module_directory}" apply ${approve} -parallelism="${parallelism}" -var-file=${var_file} $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter -json  | tee -a  apply_output.json
+        else
+          terraform -chdir="${terraform_module_directory}" apply ${approve} -parallelism="${parallelism}" -var-file=${var_file} $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter
+        fi
+
     fi
 
     return_value=$?
