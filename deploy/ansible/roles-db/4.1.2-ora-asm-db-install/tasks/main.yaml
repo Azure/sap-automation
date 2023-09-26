@@ -507,9 +507,9 @@
         src:                           "{{ target_media_location }}/GSBP"
         dest:                          /home/oracle/
         remote_src:                    true
-        mode:                          "0755"
         owner:                         oracle
         group:                         oinstall
+        mode:                          '0755'
 
     - name:                            "Oracle ASM: Pre Processing set permissions GRID"
       ansible.builtin.file:
