@@ -499,14 +499,24 @@
       when:                            gridpreinstall.rc == 0
 
     # STEP 4.2.2 SBP Patching for Oracle GRID.
+    
+    # Copy the GSBP patch to local folder to avoid failures.
+
+    - name:                            "Copy the GRID SBP Patches to local folders"
+      ansible.builtin.copy:
+        src:                           "{{ target_media_location }}/GSBP"
+        dest:                          /home/oracle/
+        remote_src:                    true
+        mode:                          "0755"
 
     - name:                            "Oracle ASM: Pre Processing set permissions GRID"
       ansible.builtin.file:
         path:                          "/oracle/GRID/{{ ora_version }}/bin/oradism"
-        state:                         file
+        state:                         directory
         mode:                          '0750'
         owner:                         oracle
         group:                         oinstall
+        recurse:                       yes
 
     - name:                            "Oracle ASM: Post Processing - GRID SBP Patching"
       become:                          true
@@ -523,7 +533,7 @@
       failed_when:                      gridsbpscript_results.rc >= 2
       args:
         creates:                        "/etc/sap_deployment_automation/{{ sap_sid | upper }}/gridsbp_installed.txt"
-        chdir:                          "{{ target_media_location }}/GSBP"
+        chdir:                          "/home/oracle/GSBP"
         executable:                     /bin/csh
 
     - name:                            "Oracle ASM: Pre Processing reset permissions GRID"
