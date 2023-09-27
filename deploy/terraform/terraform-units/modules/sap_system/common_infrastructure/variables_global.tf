@@ -8,7 +8,12 @@ variable "application_tier" {
 
   validation {
     condition = (
-      ((var.application_tier.scs_cluster_type == "ASD") && (length(try(var.application_tier.scs_zones, [])) <= 1))
+      contains(keys(var.application_tier), "scs_cluster_type") ?
+      (
+        (var.application_tier.scs_cluster_type == "ASD") && (length(try(var.application_tier.scs_zones, [])) <= 1)
+        ) : (
+        true
+      )
     )
     error_message = "Cluster type 'ASD' does not support cross zonal deployments."
   }
