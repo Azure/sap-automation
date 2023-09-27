@@ -539,7 +539,7 @@
            chdir:                          "/home/oracle/GSBP"
            executable:                     /bin/csh
 
-      resuce:
+      rescue:
        - name:                             "Remove the Pre-install.txt File for preparing Re-run"
          become:                          true
          become_user:                     "oracle"
