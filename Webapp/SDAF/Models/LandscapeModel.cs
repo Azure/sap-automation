@@ -180,6 +180,8 @@ namespace AutomationForm.Models
 
     public bool? enable_firewall_for_keyvaults_and_storage { get; set; } = true;
 
+    public bool? public_network_access_enabled { get; set; } = true;
+
     public bool? ANF_use_existing_pool { get; set; }
 
     public string ANF_pool_name { get; set; }

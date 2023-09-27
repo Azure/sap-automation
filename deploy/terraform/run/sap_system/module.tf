@@ -55,48 +55,43 @@ module "common_infrastructure" {
     azurerm.main                                = azurerm.system
     azurerm.dnsmanagement                       = azurerm.dnsmanagement
   }
-  is_single_node_hana                           = "true"
+  Agent_IP                                      = var.Agent_IP
   application_tier                              = local.application_tier
-  database                                      = local.database
-  infrastructure                                = local.infrastructure
-  options                                       = local.options
-  key_vault                                     = local.key_vault
-  naming                                        = length(var.name_override_file) > 0 ? local.custom_names : module.sap_namegenerator.naming
-  service_principal                             = var.use_spn ? local.service_principal : local.account
-  deployer_tfstate                              = length(var.deployer_tfstate_key) > 0 ? data.terraform_remote_state.deployer[0].outputs : null
-  landscape_tfstate                             = data.terraform_remote_state.landscape.outputs
-  custom_disk_sizes_filename                    = try(coalesce(var.custom_disk_sizes_filename, var.db_disk_sizes_filename), "")
   authentication                                = local.authentication
-  terraform_template_version                    = var.terraform_template_version
-  deployment                                    = var.deployment
-  license_type                                  = var.license_type
-  enable_purge_control_for_keyvaults            = var.enable_purge_control_for_keyvaults
-  sapmnt_volume_size                            = var.sapmnt_volume_size
-  NFS_provider                                  = var.NFS_provider
+  azure_files_sapmnt_id                         = var.azure_files_sapmnt_id
+  custom_disk_sizes_filename                    = try(coalesce(var.custom_disk_sizes_filename, var.db_disk_sizes_filename), "")
   custom_prefix                                 = var.use_prefix ? var.custom_prefix : " "
+  database                                      = local.database
+  database_dual_nics                            = var.database_dual_nics
+  deploy_application_security_groups            = var.deploy_application_security_groups
+  deployer_tfstate                              = length(var.deployer_tfstate_key) > 0 ? data.terraform_remote_state.deployer[0].outputs : null
+  deployment                                    = var.deployment
+  enable_purge_control_for_keyvaults            = var.enable_purge_control_for_keyvaults
   ha_validator                                  = format("%d%d-%s",
                                                     local.application_tier.scs_high_availability ? 1 : 0,
                                                     local.database.high_availability ? 1 : 0,
                                                     upper(try(local.application_tier.app_os.os_type, "LINUX")) == "LINUX" ? var.NFS_provider : "WINDOWS"
                                                   )
-  Agent_IP                                      = var.Agent_IP
-  use_private_endpoint                          = var.use_private_endpoint
-
-  use_custom_dns_a_registration                 = try(data.terraform_remote_state.landscape.outputs.use_custom_dns_a_registration, true)
-  management_dns_subscription_id                = try(data.terraform_remote_state.landscape.outputs.management_dns_subscription_id, null)
-  management_dns_resourcegroup_name             = coalesce(data.terraform_remote_state.landscape.outputs.management_dns_resourcegroup_name, local.saplib_resource_group_name)
-
-  database_dual_nics                            = var.database_dual_nics
-
-  azure_files_sapmnt_id                         = var.azure_files_sapmnt_id
-  use_random_id_for_storageaccounts             = var.use_random_id_for_storageaccounts
-
   hana_ANF_volumes                              = local.hana_ANF_volumes
+  infrastructure                                = local.infrastructure
+  is_single_node_hana                           = "true"
+  key_vault                                     = local.key_vault
+  landscape_tfstate                             = data.terraform_remote_state.landscape.outputs
+  license_type                                  = var.license_type
+  management_dns_resourcegroup_name             = coalesce(data.terraform_remote_state.landscape.outputs.management_dns_resourcegroup_name, local.saplib_resource_group_name)
+  management_dns_subscription_id                = try(data.terraform_remote_state.landscape.outputs.management_dns_subscription_id, null)
+  naming                                        = length(var.name_override_file) > 0 ? local.custom_names : module.sap_namegenerator.naming
+  NFS_provider                                  = var.NFS_provider
+  options                                       = local.options
   sapmnt_private_endpoint_id                    = var.sapmnt_private_endpoint_id
-  deploy_application_security_groups            = var.deploy_application_security_groups
-  use_service_endpoint                          = var.use_service_endpoint
-
+  sapmnt_volume_size                            = var.sapmnt_volume_size
+  service_principal                             = var.use_spn ? local.service_principal : local.account
+  terraform_template_version                    = var.terraform_template_version
+  use_custom_dns_a_registration                 = try(data.terraform_remote_state.landscape.outputs.use_custom_dns_a_registration, true)
+  use_private_endpoint                          = var.use_private_endpoint
+  use_random_id_for_storageaccounts             = var.use_random_id_for_storageaccounts
   use_scalesets_for_deployment                  = var.use_scalesets_for_deployment
+  use_service_endpoint                          = var.use_service_endpoint
 
 }
 
@@ -122,6 +117,7 @@ module "hdb_node" {
   custom_disk_sizes_filename                    = try(coalesce(var.custom_disk_sizes_filename, var.db_disk_sizes_filename), "")
   database                                      = local.database
   database_cluster_disk_size                    = var.database_cluster_disk_size
+  database_cluster_disk_lun                     = var.database_cluster_disk_lun
   database_dual_nics                            = try(module.common_infrastructure.admin_subnet, null) == null ? false : var.database_dual_nics
   database_server_count                         = upper(try(local.database.platform, "HANA")) == "HANA" ? (
                                                     local.database.high_availability ? (

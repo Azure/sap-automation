@@ -558,6 +558,14 @@ resource "azurerm_managed_disk" "cluster" {
   disk_size_gb                          = var.scs_cluster_disk_size
   disk_encryption_set_id                = try(var.options.disk_encryption_set_id, null)
   max_shares                            = local.scs_server_count
+
+  zone                                  = !local.use_scs_avset ? (
+                                            upper(var.application_tier.scs_os.os_type) == "LINUX" ? (
+                                              azurerm_linux_virtual_machine.scs[local.scs_data_disks[count.index].vm_index].zone) : (
+                                              azurerm_windows_virtual_machine.scs[local.scs_data_disks[count.index].vm_index].zone
+                                            )) : (
+                                            null
+                                          )
 }
 
 resource "azurerm_virtual_machine_data_disk_attachment" "cluster" {

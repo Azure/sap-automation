@@ -465,7 +465,7 @@ variable "enable_firewall_for_keyvaults_and_storage" {
 
 variable "public_network_access_enabled" {
   description = "Defines if the public access should be enabled for keyvaults and storage accounts"
-  default     = false
+  default     = true
   type        = bool
 
 }

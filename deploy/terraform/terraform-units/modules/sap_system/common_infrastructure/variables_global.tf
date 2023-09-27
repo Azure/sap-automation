@@ -1,9 +1,16 @@
 variable "application_tier" {
   validation {
     condition = (
-      length(trimspace(try(var.application_tier.sid, ""))) != 0
+      length(trimspace(try(var.application_tier.sid, ""))) == 3
     )
-    error_message = "The sid must be specified in the application.sid field."
+    error_message = "The sid must be specified in the sid field."
+  }
+
+  validation {
+    condition = (
+      ((var.application_tier.scs_cluster_type == "ASD") && (length(try(var.application_tier.scs_zones, [])) <= 1))
+    )
+    error_message = "Cluster type 'ASD' does not support cross zonal deployments."
   }
 
 }
