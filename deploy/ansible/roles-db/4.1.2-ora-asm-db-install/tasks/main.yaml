@@ -552,6 +552,8 @@
          become:                          true
          become_user:                     "oracle"
          ansible.builtin.shell:           rm -rf link*
+         register:                        removelinkfiles
+         failed_when:                     removelinkfiles.rc >= 2
          args:
            chdir:                         $HOME/GSBP
            executable:                    /bin/csh
