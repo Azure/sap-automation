@@ -498,6 +498,36 @@
         mode:                          '0755'
       when:                            gridpreinstall.rc == 0
 
+    # Addition Block for Preventing orachk problems as per SBP Guidelines for patching 2308.
+
+    - name:                             "Preventing orachk problems"
+      become:                          true
+      become_user:                     "root"
+      ansible.builtin.shell: |           
+                                       set -o errexit
+                                       set -o pipefail
+                                       chown -R oracle:oinstall $OHGRID/suptools/orachk
+                                       chmod -R u+w $OHGRID/suptools/orachk
+                                       rm -f $OHGRID/suptools/orachk/orachk
+      register:                        orachkdeletion
+      environment:
+           OHGRID:                         /oracle/GRID/{{ ora_version }}
+           ORACLE_HOME:                    /oracle/GRID/{{ ora_version }}
+           IHRDBMS:                        /oracle/{{ db_sid | upper}}/{{ ora_release }}
+           SBPFUSER:                       /usr/sbin/fuser
+           # ORACLE_SID:                     "{{ db_sid | upper}}"
+      args:
+        creates:                       /etc/sap_deployment_automation/{{ sap_sid | upper }}/orachkdeleted.txt
+        chdir:                         "/home/oracle/GSBP"
+
+
+    - name:                            "Oracle ASM: Create flag after a successful orachk deletion"
+      ansible.builtin.file:
+        path:                          /etc/sap_deployment_automation/{{ sap_sid | upper }}/orachkdeleted.txt
+        state:                         touch
+        mode:                          '0755'
+      when:                            orachkdeletion.rc == 0
+
     # STEP 4.2.2 SBP Patching for Oracle GRID.
     
     # Copy the GSBP patch to local folder to avoid failures.
