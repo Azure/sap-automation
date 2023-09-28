@@ -230,6 +230,7 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
+#  MOPATCH for SBP
     - name:                            "Oracle ASM: Find MOPatch"
       ansible.builtin.find:
         paths:                         "{{ target_media_location }}/SBP/SAPSBP"
@@ -247,6 +248,27 @@
       ansible.builtin.set_fact:
         mopatch_path:                  "{{ mopatch_directory.files[0].path }}"
       when:                            mopatch_directory.matched == 1
+
+
+    # MOPATCH for GRID
+
+    - name:                            "Oracle ASM: Find MOPatch for GRID"
+      ansible.builtin.find:
+        paths:                         "{{ target_media_location }}/GSBP/SGR19P"
+        patterns:                      ["MOPatch"]
+        file_type:                     directory
+        recurse:                       true
+      register:                        mopatch_grid_directory
+
+    - name:                            "Oracle ASM: Find MOPatch for GRID"
+      ansible.builtin.fail:
+        msg:                           "Too many MOPatches found"
+      when:                            mopatch_grid_directory.matched != 1
+
+    - name:                            "Oracle ASM: MOPatch path"
+      ansible.builtin.set_fact:
+        mopatch_grid_path:                  "{{ mopatch_grid_directory.files[0].path }}"
+      when:                            mopatch_grid_directory.matched == 1
 
     - name:                            "Oracle ASM: Check if 'OPatch.bck' exists"
       ansible.builtin.stat:
@@ -426,7 +448,7 @@
       # become:                              true
       # become_user:                         "oracle"
       ansible.builtin.copy:
-        src:                           "{{ mopatch_path }}"
+        src:                           "{{  mopatch_grid_path }}"
         dest:                          /oracle/GRID/{{ ora_version }}
         remote_src:                    true
         mode:                          '0755'
