@@ -540,7 +540,7 @@
            # ORACLE_SID:                     "{{ db_sid | upper}}"
       args:
         creates:                       /etc/sap_deployment_automation/{{ sap_sid | upper }}/orachkdeleted.txt
-        chdir:                         "/home/oracle/GSBP"
+        chdir:                         "/oracle/GRID/{{ ora_version }}"
 
 
     - name:                            "Oracle ASM: Create flag after a successful orachk deletion"
