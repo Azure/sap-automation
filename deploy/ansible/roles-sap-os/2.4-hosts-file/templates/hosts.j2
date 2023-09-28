@@ -65,9 +65,30 @@ Loop through all the hosts that are referenced by the Playbook.
 If we do not sort it, then the order can change randomly.
 
 #}
+
+{#
+
 {%  for host in ansible_play_hosts|sort %}
+{% if ansible_play_hosts|length > 1 %}
 {{ '%-19s' | format(hostvars[host]['ansible_default_ipv4']['address']) }}{{ '%-50s' | format(host + '.' + sap_fqdn) }}{{ '%-21s' | format(host) }}
 {%    for ips in hostvars[host]['ansible_all_ipv4_addresses'] | sort if ips != hostvars[host]['ansible_default_ipv4']['address'] %}
 {{ '%-19s' | format(ips) }}{{ '%-50s' | format(hostvars[host]['virtual_host'] + '.' + sap_fqdn) }}{{ '%-21s' | format(hostvars[host]['virtual_host']) }}
 {%    endfor %}
+{% elif ansible_play_hosts|length == 1 %}
+{{ '%-19s' | format(hostvars[host]['ansible_default_ipv4']['address']) }}{{ '%-50s' | format(host + '.' + sap_fqdn) }}{{ '%-21s' | format(host) }}
+{{ '%-19s' | format(ips) }}{{ '%-50s' | format(hostvars[host]['virtual_host'] + '.' + sap_fqdn) }}{{ '%-21s' | format(hostvars[host]['virtual_host']) }}
+{% endif %}
 {%  endfor %}
+
+#}
+
+{% for host in ansible_play_hosts|sort %}
+{{ '%-19s' | format(hostvars[host]['ansible_default_ipv4']['address']) }}{{ '%-50s' | format(host + '.' + sap_fqdn) }}{{ '%-21s' | format(host) }}
+
+{% set ips_list = hostvars[host]['ansible_all_ipv4_addresses']|sort %}
+{% if ips_list|length > 1 %}
+{{ '%-19s' | format(ips_list[1]) }}{{ '%-50s' | format(hostvars[host]['virtual_host'] + '.' + sap_fqdn) }}{{ '%-21s' | format(hostvars[host]['virtual_host']) }}
+{% elif hostvars[host]['virtual_host'] %}
+{{ '%-19s' | format(hostvars[host]['ansible_default_ipv4']['address']) }}{{ '%-50s' | format(hostvars[host]['virtual_host'] + '.' + sap_fqdn) }}{{ '%-21s' | format(hostvars[host]['virtual_host']) }}
+{% endif %}
+{% endfor %}

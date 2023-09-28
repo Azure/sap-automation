@@ -156,7 +156,7 @@ resource "azurerm_linux_virtual_machine" "dbserver" {
     }
   }
 
-  proximity_placement_group_id = var.database.use_ppg ? (
+  proximity_placement_group_id = local.use_ppg ? (
     var.ppg[count.index % max(local.db_zone_count, 1)]) : (
     null
   )
@@ -274,7 +274,7 @@ resource "azurerm_windows_virtual_machine" "dbserver" {
     }
   }
 
-  proximity_placement_group_id = var.database.use_ppg ? (
+  proximity_placement_group_id = local.use_ppg ? (
     var.ppg[count.index % max(local.db_zone_count, 1)]) : (
     null
   )

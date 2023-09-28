@@ -24,7 +24,12 @@
     sap_inifile:                       "{{ bom_base_name }}-app-{{ sid_to_be_deployed.sid }}-{{ ansible_hostname }}.params"
     sap_inifile_template:              "{{ bom_base_name }}{{ bom_suffix }}-app-inifile-param.j2"
     dir_params:                        "{{ tmp_directory }}/.{{ sid_to_be_deployed.sid | upper }}-params"
-    db_lb_virtual_host:                "{% if db_high_availability %}{{ sid_to_be_deployed.sid | lower }}{{ db_sid | lower }}db{{ db_instance_number }}cl{% else %}{{ hostvars[db_server_temp | first]['virtual_host'] }}{% endif %}"
+    db_lb_virtual_host_HANA:           "{% if db_high_availability %}{{ sid_to_be_deployed.sid | lower }}{{ db_sid | lower }}db{{ db_instance_number }}cl{% else %}{{ hostvars[db_server_temp | first]['virtual_host'] }}{% endif %}"
+    db_lb_virtual_host_AnyDB:          "{% if db_high_availability %}{{ sid_to_be_deployed.sid | lower }}{{ db_sid | lower }}db{{ db_instance_number }}cl{% else %}{{ db_server_temp }}{% endif %}"
+
+- name:                                "APP Install: Set BOM facts db host"
+  ansible.builtin.set_fact:
+    db_lb_virtual_host:                "{% if platform == 'HANA' %}{{ db_lb_virtual_host_HANA }}{% else %}{{ db_lb_virtual_host_AnyDB }}{% endif %}"
 
 - name:                                "APP Install: -  Create directories"
   ansible.builtin.file:
@@ -74,7 +79,7 @@
         db_virtual_host:               "{{ hostvars[db_server_temp | first]['virtual_host'] }}"
         file_path:                     "{% if scs_high_availability %}INSTALL/HA/ABAP/APPX{% else %}INSTALL/DISTRIBUTED/ABAP/APPS{% endif %}"
 
-    - name:                            "SCS Install: check media exists"
+    - name:                            "APP Install: check media exists"
       ansible.builtin.stat:
         path:                          "{{ target_media_location }}/SWPM/sapinst"
       register:                        sapinst_found
@@ -98,8 +103,8 @@
         sap_cd_package_cd3:
         sap_cd_package_cd4:
         sap_cd_package_cd5:
-        sap_ciInstanceNumber:          "{{ scs_instance_number }}"
-        app_instance_number:
+        sap_ciInstanceNumber:          "{{ sid_to_be_deployed.ascs_inst_no }}"
+        app_instance_number:           "{{ sid_to_be_deployed.app_inst_no }}"
         sap_ciDialogWPNumber:          12
         sap_ciBtcWPNumber:             8
         sap_installSAPHostAgent:       "false"
@@ -115,7 +120,7 @@
         # support older app inifile templates where hdb_instance_number was used
         hdb_instance_number:           "{{ db_instance_number }}"
 
-    - name:                            "App install: register variables"
+    - name:                            "App Install: register variables"
       ansible.builtin.set_fact:
         app_bom_id:                    "{{ bom.product_ids.app }}"
 
@@ -135,11 +140,17 @@
         - db_high_availability
         - platform == "HANA"
 
-    - name:                            "Create temp directory for sid"
+    - name:                            "APP Install: Create temp directory for sid"
       ansible.builtin.file:
         path:                          "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
         state:                         directory
         mode:                          0755
+
+    - name:                            "APP Install: Create Symlink"
+      ansible.builtin.import_tasks:    ../../../roles-sap-os/2.10-sap-notes/tasks/2.10.3119751.yaml
+      when:
+        - ansible_os_family == 'RedHat'
+        - "distribution_id != 'oraclelinux8'"
 
     - name:                            "APP Install: progress"
       ansible.builtin.debug:

@@ -33,11 +33,13 @@
 
     - name:                            "DB2 Primary DB - Start the Primary DB"
       ansible.builtin.shell:           db2start
+      register:                        db2startstatus
       args:
         executable:                    /bin/csh
       environment:
         PATH:                          "{{ ansible_env.PATH }}:/db2/db2{{ db_sid | lower }}/sqllib/gskit/bin"
       when:                            pridb2status != 0 and "Active" not in pridb2status.stdout
+      failed_when:                     db2startstatus.rc > 1
 
     - name:                            "DB2 Primary DB - HA Config - SLES"
       # SLES - Setttings - When you use an Azure Pacemaker fencing agent, set the following parameters:
@@ -137,6 +139,8 @@
       environment:
         PATH:                          "{{ ansible_env.PATH }}:/db2/db2{{ db_sid | lower }}/sqllib/gskit/bin"
       when:                            secdb2status != 0 and "Active" not in secdb2status.stdout
+      register:                        secdb2status_start
+      failed_when:                     secdb2status_start.rc > 1
 
     - name:                            "DB2 Secondary DB - HA Config - SLES"
       # SLES - Setttings - When you use an Azure Pacemaker fencing agent, set the following parameters:

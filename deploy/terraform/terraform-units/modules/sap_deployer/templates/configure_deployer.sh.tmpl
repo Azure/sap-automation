@@ -240,6 +240,10 @@ asad_ws="$${asad_home}/WORKSPACES"
 asad_repo="https://github.com/Azure/sap-automation.git"
 asad_dir="$${asad_home}/$(basename $${asad_repo} .git)"
 
+asad_sample_repo="https://github.com/Azure/sap-automation-samples.git"
+asad_dir="$${asad_home}/$(basename $${asad_repo} .git)"
+asad_sample_dir="$${asad_home}/samples"
+
 # Terraform installation directories
 tf_base=/opt/terraform
 tf_dir=$${tf_base}/terraform_$${tfversion}
@@ -359,7 +363,12 @@ else
     if [[ ! -d "$${asad_dir}" ]]; then
         git clone "$${asad_repo}" "$${asad_dir}"
     fi
-
+    #
+    # Clone Azure SAP Automated Deployment sample repository
+    #
+    if [[ ! -d "$${asad_sample_dir}" ]]; then
+        git clone "$${asad_sample_repo}" "$${asad_sample_dir}"
+    fi
 
     chown -R "$${local_user}" "$${asad_home}"
 
@@ -404,13 +413,7 @@ else
         #sudo curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
         rel=$(lsb_release -a | grep Release | cut -d':' -f2 | xargs)
 
-        if [ "$rel" == "20.04" ]; then
-          echo ##vso[task.logissue type=warning]Running on Ubuntu 20.04, installing Azure CLI 2.48.1-1~focal
-          sudo apt-get install azure-cli=2.48.1-1~focal -y --allow-downgrades
-          az version --output yaml
-        else
-          sudo apt-get install azure-cli -y
-        fi
+        sudo apt-get install azure-cli -y
         ;;
     (sles)
         echo "Getting the Microsoft Key"
@@ -563,7 +566,7 @@ else
     sudo -H $${ansible_venv_bin}/ansible-galaxy collection install ansible.windows --force --collections-path $${ansible_collections}
     sudo -H $${ansible_venv_bin}/ansible-galaxy collection install ansible.posix --force --collections-path $${ansible_collections}
     sudo -H $${ansible_venv_bin}/ansible-galaxy collection install ansible.utils --force --collections-path $${ansible_collections}
-    sudo -H $${ansible_venv_bin}/ansible-galaxy collection install ansible.netcommon --force --collections-path $${ansible_collections}
+    sudo -H $${ansible_venv_bin}/ansible-galaxy collection install ansible.netcommon:5.1.2 --force --collections-path $${ansible_collections}
     sudo -H $${ansible_venv_bin}/ansible-galaxy collection install community.windows --force --collections-path $${ansible_collections}
     sudo -H $${ansible_venv_bin}/ansible-galaxy collection install community.general --force --collections-path $${ansible_collections}
     #

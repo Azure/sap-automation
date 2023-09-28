@@ -7,8 +7,8 @@ locals {
           storage_account_type = storage_type.disk_type,
           disk_size_gb         = storage_type.size_gb,
           //The following two lines are for Ultradisks only
-          disk_iops_read_write      = try(storage_type.disk-iops-read-write, null)
-          disk_mbps_read_write      = try(storage_type.disk-mbps-read-write, null)
+          disk_iops_read_write      = try(storage_type.disk_iops_read_write, null)
+          disk_mbps_read_write      = try(storage_type.disk_mbps_read_write, null)
           caching                   = storage_type.caching,
           write_accelerator_enabled = storage_type.write_accelerator
           type                      = storage_type.name
@@ -31,8 +31,8 @@ locals {
           storage_account_type = storage_type.disk_type,
           disk_size_gb         = storage_type.size_gb,
           //The following two lines are for Ultradisks only
-          disk_iops_read_write      = try(storage_type.disk-iops-read-write, null)
-          disk_mbps_read_write      = try(storage_type.disk-mbps-read-write, null)
+          disk_iops_read_write      = try(storage_type.disk_iops_read_write, null)
+          disk_mbps_read_write      = try(storage_type.disk_mbps_read_write, null)
           caching                   = storage_type.caching,
           write_accelerator_enabled = storage_type.write_accelerator
           type                      = storage_type.name
@@ -70,8 +70,8 @@ locals {
           storage_account_type = storage_type.disk_type,
           disk_size_gb         = storage_type.size_gb,
           //The following two lines are for Ultradisks only
-          disk_iops_read_write      = try(storage_type.disk-iops-read-write, null)
-          disk_mbps_read_write      = try(storage_type.disk-mbps-read-write, null)
+          disk_iops_read_write      = try(storage_type.disk_iops_read_write, null)
+          disk_mbps_read_write      = try(storage_type.disk_mbps_read_write, null)
           caching                   = storage_type.caching,
           write_accelerator_enabled = storage_type.write_accelerator
           type                      = storage_type.name
@@ -93,8 +93,8 @@ locals {
           storage_account_type = storage_type.disk_type,
           disk_size_gb         = storage_type.size_gb,
           //The following two lines are for Ultradisks only
-          disk_iops_read_write      = try(storage_type.disk-iops-read-write, null)
-          disk_mbps_read_write      = try(storage_type.disk-mbps-read-write, null)
+          disk_iops_read_write      = try(storage_type.disk_iops_read_write, null)
+          disk_mbps_read_write      = try(storage_type.disk_mbps_read_write, null)
           caching                   = storage_type.caching,
           write_accelerator_enabled = storage_type.write_accelerator
           type                      = storage_type.name
@@ -133,8 +133,8 @@ locals {
           storage_account_type = storage_type.disk_type,
           disk_size_gb         = storage_type.size_gb,
           //The following two lines are for Ultradisks only
-          disk_iops_read_write      = try(storage_type.disk-iops-read-write, null)
-          disk_mbps_read_write      = try(storage_type.disk-mbps-read-write, null)
+          disk_iops_read_write      = try(storage_type.disk_iops_read_write, null)
+          disk_mbps_read_write      = try(storage_type.disk_mbps_read_write, null)
           caching                   = storage_type.caching,
           write_accelerator_enabled = storage_type.write_accelerator
           type                      = storage_type.name
@@ -157,8 +157,8 @@ locals {
           storage_account_type = storage_type.disk_type,
           disk_size_gb         = storage_type.size_gb,
           //The following two lines are for Ultradisks only
-          disk_iops_read_write      = try(storage_type.disk-iops-read-write, null)
-          disk_mbps_read_write      = try(storage_type.disk-mbps-read-write, null)
+          disk_iops_read_write      = try(storage_type.disk_iops_read_write, null)
+          disk_mbps_read_write      = try(storage_type.disk_mbps_read_write, null)
           caching                   = storage_type.caching,
           write_accelerator_enabled = storage_type.write_accelerator
           type                      = storage_type.name

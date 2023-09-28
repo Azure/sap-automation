@@ -22,6 +22,7 @@
 
 - name:                                "HANA HSR: - Ensure backup is taken on primary node"
   become_user:                         "{{ db_sid_admin_user }}"
+  become:                              true
   block:
     - name:                            "HANA HSR: - Check whether backup exists for SYSTEMDB database for System Identifier: {{ db_sid }}"
       ansible.builtin.shell: >

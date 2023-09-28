@@ -111,6 +111,9 @@ $$use_msi_for_clusters$$
 # fencing_role_name, If specified the role name to use for the fencing agent
 $$fencing_role_name$$
 
+# use_simple_mount specifies if Simple mounts are used (Applicable for SLES 15 SP# or newer)
+$$use_simple_mount$$
+
 
 #########################################################################################
 #                                                                                       #

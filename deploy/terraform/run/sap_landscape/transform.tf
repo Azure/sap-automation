@@ -427,6 +427,7 @@ locals {
       type     = try(coalesce(var.iscsi_authentication_type, try(var.infrastructure.iscsi.authentication.type, "key")), "key")
       username = try(coalesce(var.iscsi_authentication_username, try(var.authentication.username, "azureadm")), "azureadm")
     }
+    zones      = try(var.iscsi_vm_zones, [])
   }
 
 

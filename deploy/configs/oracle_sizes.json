@@ -4,11 +4,12 @@
             "compute": {
                 "vm_size"               : "Standard_E8ds_v5",
                 "accelerated_networking"       : true
-                
+
             },
             "storage": [
                 {
                     "name"              : "os",
+                    "fullname"          : "",
                     "count"             : 1,
                     "disk_type"         : "Premium_LRS",
                     "size_gb"           : 128,
@@ -16,6 +17,7 @@
                 },
                 {
                     "name"              : "sap",
+                    "fullname"          : "",
                     "count"             : 1,
                     "disk_type"         : "Premium_LRS",
                     "size_gb"           : 128,
@@ -25,6 +27,7 @@
                 },
                 {
                     "name"              : "sapdata1",
+                    "fullname"          : "",
                     "count"             : 1,
                     "disk_type"         : "Premium_LRS",
                     "size_gb"           : 64,
@@ -34,6 +37,7 @@
                 },
                 {
                     "name"              : "sapdata2",
+                    "fullname"          : "",
                     "count"             : 1,
                     "disk_type"         : "Premium_LRS",
                     "size_gb"           : 64,
@@ -43,6 +47,7 @@
                 },
                 {
                     "name"              : "sapdata3",
+                    "fullname"          : "",
                     "count"             : 1,
                     "disk_type"         : "Premium_LRS",
                     "size_gb"           : 64,
@@ -52,6 +57,7 @@
                 },
                 {
                     "name"              : "sapdata4",
+                    "fullname"          : "",
                     "count"             : 1,
                     "disk_type"         : "Premium_LRS",
                     "size_gb"           : 64,
@@ -61,6 +67,7 @@
                 },
                 {
                     "name"              : "origloga",
+                    "fullname"          : "",
                     "count"             : 1,
                     "disk_type"         : "Premium_LRS",
                     "size_gb"           : 64,
@@ -70,6 +77,7 @@
                 },
                 {
                     "name"              : "origlogb",
+                    "fullname"          : "",
                     "count"             : 1,
                     "disk_type"         : "Premium_LRS",
                     "size_gb"           : 64,
@@ -79,6 +87,7 @@
                 },
                 {
                     "name"              : "mirrloga",
+                    "fullname"          : "",
                     "count"             : 1,
                     "disk_type"         : "Premium_LRS",
                     "size_gb"           : 64,
@@ -88,6 +97,7 @@
                 },
                 {
                     "name"              : "mirrlogb",
+                    "fullname"          : "",
                     "count"             : 1,
                     "disk_type"         : "Premium_LRS",
                     "size_gb"           : 64,
@@ -97,6 +107,7 @@
                 },
                 {
                     "name"              : "oracle",
+                    "fullname"          : "",
                     "count"             : 1,
                     "disk_type"         : "Premium_LRS",
                     "size_gb"           : 128,
@@ -106,6 +117,7 @@
                 },
                 {
                     "name"              : "oraarch",
+                    "fullname"          : "",
                     "count"             : 1,
                     "disk_type"         : "Premium_LRS",
                     "size_gb"           : 256,
@@ -123,6 +135,7 @@
             "storage": [
                 {
                     "name"              : "os",
+                    "fullname"          : "",
                     "count"             : 1,
                     "disk_type"         : "Premium_LRS",
                     "size_gb"           : 128,
@@ -130,6 +143,7 @@
                 },
                 {
                     "name"              : "sap",
+                    "fullname"          : "",
                     "count"             : 1,
                     "disk_type"         : "Premium_LRS",
                     "size_gb"           : 128,
@@ -139,6 +153,7 @@
                 },
                 {
                     "name"              : "sapdata1",
+                    "fullname"          : "",
                     "count"             : 2,
                     "disk_type"         : "Premium_LRS",
                     "size_gb"           : 128,
@@ -148,6 +163,7 @@
                 },
                 {
                     "name"              : "sapdata2",
+                    "fullname"          : "",
                     "count"             : 2,
                     "disk_type"         : "Premium_LRS",
                     "size_gb"           : 128,
@@ -157,6 +173,7 @@
                 },
                 {
                     "name"              : "sapdata3",
+                    "fullname"          : "",
                     "count"             : 2,
                     "disk_type"         : "Premium_LRS",
                     "size_gb"           : 128,
@@ -166,6 +183,7 @@
                 },
                 {
                     "name"              : "sapdata4",
+                    "fullname"          : "",
                     "count"             : 2,
                     "disk_type"         : "Premium_LRS",
                     "size_gb"           : 128,
@@ -175,6 +193,7 @@
                 },
                 {
                     "name"              : "origloga",
+                    "fullname"          : "",
                     "count"             : 2,
                     "disk_type"         : "Premium_LRS",
                     "size_gb"           : 128,
@@ -184,6 +203,7 @@
                 },
                 {
                     "name"              : "origlogb",
+                    "fullname"          : "",
                     "count"             : 2,
                     "disk_type"         : "Premium_LRS",
                     "size_gb"           : 128,
@@ -193,6 +213,7 @@
                 },
                 {
                     "name"              : "mirrloga",
+                    "fullname"          : "",
                     "count"             : 2,
                     "disk_type"         : "Premium_LRS",
                     "size_gb"           : 128,
@@ -202,6 +223,7 @@
                 },
                 {
                     "name"              : "mirrlogb",
+                    "fullname"          : "",
                     "count"             : 2,
                     "disk_type"         : "Premium_LRS",
                     "size_gb"           : 128,
@@ -211,6 +233,7 @@
                 },
                 {
                     "name"              : "oracle",
+                    "fullname"          : "",
                     "count"             : 1,
                     "disk_type"         : "Premium_LRS",
                     "size_gb"           : 128,
@@ -220,6 +243,7 @@
                 },
                 {
                     "name"              : "oraarch",
+                    "fullname"          : "",
                     "count"             : 1,
                     "disk_type"         : "Premium_LRS",
                     "size_gb"           : 256,
@@ -237,6 +261,7 @@
             "storage": [
                 {
                     "name"              : "os",
+                    "fullname"          : "",
                     "count"             : 1,
                     "disk_type"         : "Premium_LRS",
                     "size_gb"           : 128,
@@ -244,6 +269,7 @@
                 },
                 {
                     "name"              : "sap",
+                    "fullname"          : "",
                     "count"             : 1,
                     "disk_type"         : "Premium_LRS",
                     "size_gb"           : 128,
@@ -253,6 +279,7 @@
                 },
                 {
                     "name"              : "sapdata1",
+                    "fullname"          : "",
                     "count"             : 2,
                     "disk_type"         : "Premium_LRS",
                     "size_gb"           : 256,
@@ -262,6 +289,7 @@
                 },
                 {
                     "name"              : "sapdata2",
+                    "fullname"          : "",
                     "count"             : 2,
                     "disk_type"         : "Premium_LRS",
                     "size_gb"           : 256,
@@ -271,6 +299,7 @@
                 },
                 {
                     "name"              : "sapdata3",
+                    "fullname"          : "",
                     "count"             : 2,
                     "disk_type"         : "Premium_LRS",
                     "size_gb"           : 256,
@@ -280,6 +309,7 @@
                 },
                 {
                     "name"              : "sapdata4",
+                    "fullname"          : "",
                     "count"             : 2,
                     "disk_type"         : "Premium_LRS",
                     "size_gb"           : 256,
@@ -289,6 +319,7 @@
                 },
                 {
                     "name"              : "origloga",
+                    "fullname"          : "",
                     "count"             : 2,
                     "disk_type"         : "Premium_LRS",
                     "size_gb"           : 128,
@@ -298,6 +329,7 @@
                 },
                 {
                     "name"              : "origlogb",
+                    "fullname"          : "",
                     "count"             : 2,
                     "disk_type"         : "Premium_LRS",
                     "size_gb"           : 128,
@@ -307,6 +339,7 @@
                 },
                 {
                     "name"              : "mirrloga",
+                    "fullname"          : "",
                     "count"             : 2,
                     "disk_type"         : "Premium_LRS",
                     "size_gb"           : 128,
@@ -316,6 +349,7 @@
                 },
                 {
                     "name"              : "mirrlogb",
+                    "fullname"          : "",
                     "count"             : 2,
                     "disk_type"         : "Premium_LRS",
                     "size_gb"           : 128,
@@ -325,6 +359,7 @@
                 },
                 {
                     "name"              : "oracle",
+                    "fullname"          : "",
                     "count"             : 1,
                     "disk_type"         : "Premium_LRS",
                     "size_gb"           : 128,
@@ -334,6 +369,7 @@
                 },
                 {
                     "name"              : "oraarch",
+                    "fullname"          : "",
                     "count"             : 1,
                     "disk_type"         : "Premium_LRS",
                     "size_gb"           : 256,
@@ -351,6 +387,7 @@
             "storage": [
                 {
                     "name"              : "os",
+                    "fullname"          : "",
                     "count"             : 1,
                     "disk_type"         : "Premium_LRS",
                     "size_gb"           : 128,
@@ -358,6 +395,7 @@
                 },
                 {
                     "name"              : "sap",
+                    "fullname"          : "",
                     "count"             : 1,
                     "disk_type"         : "Premium_LRS",
                     "size_gb"           : 128,
@@ -367,6 +405,7 @@
                 },
                 {
                     "name"              : "sapdata1",
+                    "fullname"          : "",
                     "count"             : 2,
                     "disk_type"         : "Premium_LRS",
                     "size_gb"           : 512,
@@ -376,6 +415,7 @@
                 },
                 {
                     "name"              : "sapdata2",
+                    "fullname"          : "",
                     "count"             : 2,
                     "disk_type"         : "Premium_LRS",
                     "size_gb"           : 512,
@@ -385,6 +425,7 @@
                 },
                 {
                     "name"              : "sapdata3",
+                    "fullname"          : "",
                     "count"             : 2,
                     "disk_type"         : "Premium_LRS",
                     "size_gb"           : 512,
@@ -394,6 +435,7 @@
                 },
                 {
                     "name"              : "sapdata4",
+                    "fullname"          : "",
                     "count"             : 2,
                     "disk_type"         : "Premium_LRS",
                     "size_gb"           : 512,
@@ -403,6 +445,7 @@
                 },
                 {
                     "name"              : "origloga",
+                    "fullname"          : "",
                     "count"             : 2,
                     "disk_type"         : "Premium_LRS",
                     "size_gb"           : 256,
@@ -412,6 +455,7 @@
                 },
                 {
                     "name"              : "origlogb",
+                    "fullname"          : "",
                     "count"             : 2,
                     "disk_type"         : "Premium_LRS",
                     "size_gb"           : 256,
@@ -421,6 +465,7 @@
                 },
                 {
                     "name"              : "mirrloga",
+                    "fullname"          : "",
                     "count"             : 2,
                     "disk_type"         : "Premium_LRS",
                     "size_gb"           : 256,
@@ -430,6 +475,7 @@
                 },
                 {
                     "name"              : "mirrlogb",
+                    "fullname"          : "",
                     "count"             : 2,
                     "disk_type"         : "Premium_LRS",
                     "size_gb"           : 256,
@@ -439,6 +485,7 @@
                 },
                 {
                     "name"              : "oracle",
+                    "fullname"          : "",
                     "count"             : 1,
                     "disk_type"         : "Premium_LRS",
                     "size_gb"           : 128,
@@ -448,6 +495,7 @@
                 },
                 {
                     "name"              : "oraarch",
+                    "fullname"          : "",
                     "count"             : 1,
                     "disk_type"         : "Premium_LRS",
                     "size_gb"           : 256,

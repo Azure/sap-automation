@@ -184,6 +184,11 @@ variable "pas_instance_number" {
   default = "00"
 }
 
+variable "app_instance_number" {
+  description = "The Instance number for PAS"
+  default     = "00"
+}
+
 variable "platform" {
   default = "HANA"
 }
@@ -255,6 +260,10 @@ variable "web_instance_number" {
 
 variable "use_msi_for_clusters" {
   description = "If true, the Pacemaker cluser will use a managed identity"
+}
+
+variable "use_simple_mount" {
+  default     = true
 }
 
 variable "dns" {

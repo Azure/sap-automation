@@ -72,25 +72,6 @@
     - Bypass_traverse_checking
     - Lock_pages_in_memory
 
-# - name:                                "Grant required privileges to the SQL Server account"
-#   become:                              true
-#   become_method:                       'runas'
-#   become_user:                         '{{ orchestration_ansible_user }}'
-#   ansible.windows.win_user_right:
-#     name:                              '{{ privilege_constant }}'
-#     users:                             '{{ domain_sqlsvc_account }}'
-#     action:                            add
-#   loop:
-#     - SeServiceLogonRight
-#     - SeAssignPrimaryTokenPrivilege
-#     - SeChangeNotifyPrivilege
-#     - SeIncreaseQuotaPrivilege
-#     - SeIncreaseWorkingSetPrivilege
-#     - SeManageVolumePrivilege
-#     - SeLockMemoryPrivilege
-#   loop_control:
-#     loop_var:                         privilege_constant
-
 - name:                                "Grant required privileges to the SQL Server agent account"
   ansible.windows.win_dsc:
     resource_name:                     UserRightsAssignment
@@ -101,22 +82,6 @@
     - Replace_a_process_level_token
     - Modify_an_object_label
     - Adjust_memory_quotas_for_a_process
-
-# - name:                                "Grant required privileges to the SQL Server agent account"
-#   become:                              true
-#   become_method:                       'runas'
-#   become_user:                         '{{ orchestration_ansible_user }}'
-#   ansible.windows.win_user_right:
-#     name:                              '{{ privilege_constant }}'
-#     users:                             '{{ domain_sqlagent_account }}'
-#     action:                            add
-#   loop:
-#     - SeServiceLogonRight
-#     - SeAssignPrimaryTokenPrivilege
-#     - SeChangeNotifyPrivilege
-#     - SeIncreaseQuotaPrivilege
-#   loop_control:
-#     loop_var:                         privilege_constant
 
 - name:                                "Add SPNs for SQL Server"
   ansible.windows.win_shell: |
@@ -197,7 +162,6 @@
 
 # maybe split to two tasks, and assign lesser perms to cluster service account
 - name:                                "Give permissions on the SQL Server to cluster service account"
-  become:                              true
   ansible.windows.win_dsc:
     resource_name:                     SqlPermission
     ServerName:                        "{{ ansible_hostname }}"
@@ -209,6 +173,8 @@
           - ViewServerState
           - AlterAnyEndpoint
           - AlterAnyAvailabilityGroup
+    # PsDscRunAsCredential_username:     '{{ sap_sid }}adm@{{ domain_name }}'
+    # PsDscRunAsCredential_password:     '{{ domain_user_password }}'
     Name:                              "{{ item }}"
   loop:
     - "{{ win_cluster_svc_account }}"

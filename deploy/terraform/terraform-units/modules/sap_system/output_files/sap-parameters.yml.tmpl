@@ -51,6 +51,10 @@ scs_clst_lb_ip:                 ${scs_clst_lb_ip}
 # PAS Instance Number
 pas_instance_number:           "${pas_instance_number}"
 
+# APP Instance Number
+app_instance_number:           "${app_instance_number}"
+
+
 #############################################################################
 #                                                                           #
 #                              Database tier                                #
@@ -80,6 +84,9 @@ db_lb_ip:                      ${db_lb_ip}
 
 # db_clst_lb_ip is the IP address of the load balancer for the database cluster in Windows
 db_clst_lb_ip:                 ${db_clst_lb_ip}
+
+# use_simple_mount defines if simple mount is to be used
+use_simple_mount:              ${is_use_simple_mount}
 
 #############################################################################
 #                                                                           #

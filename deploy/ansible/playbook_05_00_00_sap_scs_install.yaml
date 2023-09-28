@@ -101,7 +101,7 @@
           {
             'sid': '{{ sap_sid | upper }}',
             'dbsid_uid': '{{ hdbadm_uid }}',
-            'sidadm_uid': '{{ sidadm_uid }}',
+            'sidadm_uid': '{% if platform == "SYBASE" %}{{ asesidadm_uid }}{% else %}{{ sidadm_uid }}{% endif %}',
             'ascs_inst_no': '{{ scs_instance_number }}',
             'pas_inst_no': '{{ pas_instance_number }}',
             'app_inst_no': '{{ app_instance_number }}'
@@ -190,7 +190,7 @@
               {
                 'sid': '{{ sap_sid | upper }}',
                 'dbsid_uid': '{{ hdbadm_uid }}',
-                'sidadm_uid': '{{ sidadm_uid }}',
+                'sidadm_uid': '{% if platform == "SYBASE" %}{{ asesidadm_uid }}{% else %}{{ sidadm_uid }}{% endif %}',
                 'ascs_inst_no': '{{ scs_instance_number }}',
                 'pas_inst_no': '{{ pas_instance_number }}',
                 'app_inst_no': '{{ app_instance_number }}'
@@ -279,6 +279,7 @@
                     path:              'INSTALL/DISTRIBUTED/{{ scs_bom_instance_type }}/{{ instance_type }}'
                     tier:              'scs'
                     this_sid:          "{{ sid_to_be_deployed.sid | upper }}"
+                    work_log_component_name: "ASCS{{ scs_instance_number }}"
 
                   loop:                "{{ all_sids }}"
                   loop_control:
@@ -355,6 +356,7 @@
                     suffix:            "_SCS"
                     tier:              'scs'
                     domain_user_password:  "{{ hostvars.localhost.winadm_password }}"
+                    work_log_component_name: "ASCS{{ scs_instance_number }}"
 
                 - name:                "SCS Installation Playbook: - Show errors from the installation"
                   ansible.builtin.debug:
@@ -540,6 +542,7 @@
                 path:                  'INSTALL/HA/{{ scs_bom_instance_type }}/{{ instance_type }}'
                 tier:                  'scs'
                 this_sid:              "{{ sap_sid | upper }}"
+                work_log_component_name: "ASCS{{ scs_instance_number }}"
               when:
                 - scs_bom_id is defined
                 - node_tier == 'scs'
@@ -553,6 +556,7 @@
                 path:                  'INSTALL/HA/{{ ers_bom_instance_type }}/ERS'
                 tier:                  'ers'
                 this_sid:              "{{ sap_sid | upper }}"
+                work_log_component_name: "ERS{{ ers_instance_number }}"
               when:
                 - ers_bom_id is defined
                 - node_tier == 'ers'
@@ -655,6 +659,7 @@
                 suffix:            "_SCS"
                 tier:              'scs'
                 domain_user_password:  "{{ hostvars.localhost.winadm_password }}"
+                work_log_component_name: "ASCS{{ scs_instance_number }}"
 
             - name:                "SCS Installation Playbook: - Show errors from the installation"
               ansible.builtin.debug:

@@ -6,9 +6,9 @@ terraform {
       version               = ">= 3.54"
     }
 
-    azapi = {
-      source                = "Azure/azapi"
-      configuration_aliases = [azapi.api]
-    }
+    # azapi = {
+    #   source                = "Azure/azapi"
+    #   configuration_aliases = [azapi.api]
+    # }
   }
 }

@@ -259,6 +259,15 @@
         "Options": [],
         "Overrules": "",
         "Display": 2
+      },
+      {
+        "Name": "public_network_access_enabled",
+        "Required": false,
+        "Description": "Defines if public access is allowed for the storage accounts and key vaults",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
       }
 
     ]
@@ -667,10 +676,20 @@
         ],
         "Overrules": "",
         "Display": 3
-      },{
+      },
+      {
         "Name": "use_custom_dns_a_registration",
         "Required": false,
         "Description": "Boolean value indicating if custom dns registration is used",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "register_virtual_network_to_dns",
+        "Required": false,
+        "Description": "Defines if the Virtual network and the load balancers are registered with DNS",
         "Type": "checkbox",
         "Options": [],
         "Overrules": "",
@@ -973,7 +992,7 @@
       }
     ]
   },
- {
+  {
     "Section": "Storage Accounts",
     "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#azure-files-nfs-support",
     "Parameters": [

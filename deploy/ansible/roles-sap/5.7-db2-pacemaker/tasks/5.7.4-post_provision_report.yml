@@ -30,4 +30,5 @@
 - name:                                Output SBD status
   ansible.builtin.debug:
     msg:                               "{{ sbd_status_report.stdout }}"
+    verbosity:                         2
   when:                                ansible_os_family == 'Suse'

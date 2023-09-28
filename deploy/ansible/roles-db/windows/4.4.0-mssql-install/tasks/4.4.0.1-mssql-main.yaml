@@ -66,7 +66,7 @@
         creates:                            '{{ sap_deployment_automation }}\{{ sap_sid | upper }}\sap_deployment_sqldb.txt'
       vars:
         ansible_become:                     true
-        ansible_become_method:              runas
+        ansible_become_method:              ansible.builtin.runas
         ansible_become_user:                '{{ sap_sid }}adm@{{ domain_name }}'
         ansible_become_password:            "{{ domain_user_password }}"
       register:                             sql_install_output
@@ -133,7 +133,7 @@
         creates:                            '{{ sap_deployment_automation }}\{{ sap_sid | upper }}\sap_deployment_sqldb.txt'
       vars:
         ansible_become:                     true
-        ansible_become_method:              runas
+        ansible_become_method:              ansible.builtin.runas
         ansible_become_user:                '{{ sap_sid }}adm@{{ domain_name }}'
         ansible_become_password:            "{{ domain_user_password }}"
       register:                             sql_install_output

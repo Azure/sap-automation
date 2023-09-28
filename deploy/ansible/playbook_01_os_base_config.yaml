@@ -223,9 +223,26 @@
             winadm_password:           "{{ hostvars.localhost.winadm_password }}"
             domain_service_password:   "{{ hostvars.localhost.adsvc_password }}"
             domain_service_account:    "{{ hostvars.localhost.adsvc_account }}"
-
           tags:
             - 1.11-domain-join
+
+        - name:                        "OS configuration playbook: - Checks"
+          block:
+            - name:                    "OS configuration playbook: - Check if required DNS entries are made"
+              ansible.windows.win_shell:     "[System.Net.DNS]::Resolve('{{ sap_sid | lower }}scs{{ scs_instance_number }}cl1')"
+              register:                dns_check_results
+              when:
+                - scs_high_availability
+              failed_when:             dns_check_results.rc > 0
+
+            - name:                    "OS configuration playbook: - Check if required DNS entries are made - show results"
+              ansible.builtin.debug:
+                msg:                   "DNS query results: {{ dns_check_results.stdout }}"
+                verbosity:             2
+              when:                    dns_check_results is defined
+          when:
+            - ansible_os_family == "Windows"
+
 
       when:
         - ansible_os_family == "Windows"

@@ -181,16 +181,15 @@
   when:
     - tier == 'sapos'
     - sap_mnt is undefined
-    - node_tier == 'scs'
     - MULTI_SIDS is undefined
     - sap_disk_exists == '1'
     - "'scs' in supported_tiers"
 
 - name:                                "2.6 SAP Mounts: - Create SAP Directories (sapmnt)"
-  become:                               true
-  become_user:                          root
+  become:                              true
+  become_user:                         root
   ansible.builtin.file:
-    owner:                             '{{ sidadm_uid }}'
+    owner:                             '{% if platform == "SYBASE" %}{{ asesidadm_uid }}{% else %}{{ sidadm_uid }}{% endif %}'
     group:                             sapsys
     mode:                              0755
     path:                              "/sapmnt/{{ sap_sid | upper }}"
@@ -341,6 +340,14 @@
   ansible.builtin.import_tasks:        2.6.0-afs-mounts.yaml
   when:
     - sap_mnt is defined or sap_trans is defined or usr_sap_install_mountpoint is defined
+    - not use_simple_mount
+    - NFS_provider == 'AFS'
+
+- name:                                "2.6 SAP Mounts: - Import AFS simple mount tasks"
+  ansible.builtin.import_tasks:        2.6.7-afs-mounts-simplemount.yaml
+  when:
+    - use_simple_mount is defined and use_simple_mount
+    - sap_mnt is defined or sap_trans is defined or usr_sap_install_mountpoint is defined
     - NFS_provider == 'AFS'
 
 
@@ -348,6 +355,14 @@
 - name:                                "2.6 SAP Mounts: - Import ANF tasks"
   ansible.builtin.import_tasks:        2.6.1-anf-mounts.yaml
   when:
+    - sap_mnt is defined or sap_trans is defined or usr_sap_install_mountpoint is defined
+    - not use_simple_mount
+    - NFS_provider == 'ANF'
+
+- name:                                "2.6 SAP Mounts: - Import ANF tasks"
+  ansible.builtin.import_tasks:        2.6.8-anf-mounts-simplemount.yaml
+  when:
+    - use_simple_mount is defined and use_simple_mount
     - sap_mnt is defined or sap_trans is defined or usr_sap_install_mountpoint is defined
     - NFS_provider == 'ANF'
 

@@ -253,7 +253,7 @@ stages:
                         Add-Content $(library_file) "environment = ""$(deployer_environment)"""
                         Add-Content $(library_file) "location = ""$region"""
                         Add-Content $(library_file) ""
-                        Add-Content $(library_file) "dns_label = ""sap.contoso.net"""
+                        Add-Content $(library_file) "dns_label = ""azure.sdaf.contoso.net"""
                         git config --global user.email "$(Build.RequestedForEmail)"
                         git config --global user.name "$(Build.RequestedFor)"
                         git add -f $(library_file)
