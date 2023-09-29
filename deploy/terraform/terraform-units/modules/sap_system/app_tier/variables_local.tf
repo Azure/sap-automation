@@ -212,13 +212,13 @@ locals {
       azurerm_network_security_group.nsg_app[0]
     )), null
   )
-
+#--------------------------------------+---------------------------------------8
+  scs_server_count                      = var.application_tier.scs_server_count * (var.application_tier.scs_high_availability ? 2 : 1)
   firewall_exists          = length(var.firewall_id) > 0
   enable_deployment        = var.application_tier.enable_deployment && length(try(var.landscape_tfstate.vnet_sap_arm_id, "")) > 0
   scs_instance_number      = var.application_tier.scs_instance_number
   ers_instance_number      = var.application_tier.ers_instance_number
   application_server_count = var.application_tier.application_server_count
-  scs_server_count         = var.application_tier.scs_server_count * (var.application_tier.scs_high_availability ? 2 : 1)
   enable_scs_lb_deployment = local.enable_deployment ? (
     (
       local.scs_server_count > 0 &&

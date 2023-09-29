@@ -270,6 +270,17 @@ locals {
 
   data_disk_list = distinct(concat(local.base_data_disk_list, local.append_data_disk_list))
 
+  database_cluster_disk_lun             = min(                                                                      # Find the first available LUN
+                                            setsubtract(
+                                              range(16),
+                                              compact(
+                                                [
+                                                  for disk in local.data_disk_list : disk.vm_index == 0 ? "${disk.lun}" : null
+                                                ]
+                                              )
+                                            )...
+                                          )
+
   //Disks for Ansible
   // host: xxx, LUN: #, type: sapusr, size: #
 

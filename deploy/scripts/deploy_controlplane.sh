@@ -313,9 +313,8 @@ if [ 0 == $step ]; then
                 echo "#                                                                                       #"
                 echo "#########################################################################################"
                 echo ""
-
                 temp_file=$(mktemp)
-                ppk=$(az keyvault secret show --vault-name "${keyvault}" --name "${sshsecret}" | jq -r .value)
+                ppk=$(az keyvault secret show --vault-name "${keyvault}" --name "${sshsecret}" --query value --output tsv)
                 echo "${ppk}" > "${temp_file}"
                 chmod 600 "${temp_file}"
 
@@ -354,6 +353,23 @@ fi
 cd "$root_dirname" || exit
 
 if [ 1 == $step ] || [ 3 == $step ] ; then
+
+    if [ -z "$keyvault" ]; then
+
+      key=$(echo "${deployer_file_parametername}" | cut -d. -f1)
+      if [ $recover == 1 ]; then
+        terraform_module_directory="$SAP_AUTOMATION_REPO_PATH"/deploy/terraform/run/sap_deployer/
+        terraform -chdir="${terraform_module_directory}" init -upgrade=true     \
+        --backend-config "subscription_id=${STATE_SUBSCRIPTION}"                \
+        --backend-config "resource_group_name=${REMOTE_STATE_RG}"               \
+        --backend-config "storage_account_name=${REMOTE_STATE_SA}"              \
+        --backend-config "container_name=tfstate"                               \
+        --backend-config "key=${key}.terraform.tfstate"
+
+        keyvault=$(terraform -chdir="${terraform_module_directory}"  output deployer_kv_user_name | tr -d \")
+      fi
+    fi
+
     secretname="${environment}"-client-id
     echo ""
     echo "#########################################################################################"
@@ -650,7 +666,7 @@ echo "#                                                                         
 echo "#########################################################################################"
 
 if [ -f "${deployer_config_information}".err ]; then
-    sudo rm "${deployer_config_information}".err
+    rm "${deployer_config_information}".err
 fi
 
 now=$(date)

@@ -47,8 +47,7 @@ locals {
   // If the environment deployment created a route table use it to populate a route
   route_table_name = try(split("/", var.landscape_tfstate.route_table_id)[8], "")
 
-
-  db_ha = try(var.database.high_availability, "false")
+  db_ha  = try(var.database.high_availability, "false")
 
   //If custom image is used, we do not overwrite os reference with default value
   db_custom_image = try(var.database.os.source_image_id, "") != "" ? true : false
@@ -347,7 +346,11 @@ locals {
   #     split("/", var.infrastructure.vnets.sap.subnet_app.arm_id)[10]) : (
   #     length(var.infrastructure.vnets.sap.subnet_app.name) > 0 ? (
   #       var.infrastructure.vnets.sap.subnet_app.arm_id) : (
-  #       format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.app_subnet)
+  #       format("%s%s%s",
+  #         local.prefix,
+  #         var.naming.separator,
+  #         local.resource_suffixes.app_subnet
+  #       )
   #   ))) : (
   #   ""
   # )
@@ -358,7 +361,11 @@ locals {
   #   try(split("/", local.application_subnet_nsg_arm_id)[8], "")) : (
   #   length(try(var.infrastructure.vnets.sap.subnet_app.nsg.name, "")) > 0 ? (
   #     var.infrastructure.vnets.sap.subnet_app.nsg.name) : (
-  #     format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.app_subnet_nsg)
+  #     format("%s%s%s",
+  #       local.prefix,
+  #       var.naming.separator,
+  #       local.resource_suffixes.app_subnet_nsg
+  #     )
   #   )
   # )
 

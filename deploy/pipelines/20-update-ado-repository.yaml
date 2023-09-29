@@ -5,7 +5,8 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-name:                                  Update Azure DevOps repository from GitHub $(branch) branch
+name:                                   Update Azure DevOps repository from GitHub $(branch) branch
+trigger:                                none
 
 parameters:
   - name:                              repository
@@ -28,7 +29,20 @@ parameters:
     type:                              boolean
     default:                           false
 
-trigger:                               none
+  #--------------------------------------------------------------------
+  # Change:                                                        
+  #   20230516 MKD
+  #
+  # Notes:
+  #   Establish debug framework.
+  #--------------------------------------------------------------------
+  #>>>> START OF INSERTION <<<<
+  - name:                              p_debug
+    displayName:                       Debug Mode
+    type:                              boolean
+    default:                           false
+  #>>>> END   OF INSERTION <<<<
+  #--------------------------------------------------------------------
 
 pool:
   vmImage:                             ubuntu-latest
@@ -44,6 +58,18 @@ variables:
     value:                             ${{ parameters.force }}
   - name:                              log
     value:                             logfile_$(Build.BuildId)
+  #--------------------------------------------------------------------
+  # Change:                                                        
+  #   20230516 MKD
+  #
+  # Notes:
+  #   Establish debug framework.
+  #--------------------------------------------------------------------
+  #>>>> START OF INSERTION <<<<
+  - name:                              v_debug
+    value:                             ${{ parameters.p_debug }}
+  #>>>> END   OF INSERTION <<<<
+  #--------------------------------------------------------------------
 
 stages:
   - stage:                             Update_ADO_repository
@@ -57,11 +83,35 @@ stages:
           - bash: |
               #!/bin/bash
               green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
+              #--------------------------------------------------------------------
+              # Change:                                                        
+              #   20230516 MKD
+              #
+              # Notes:
+              #   Establish debug framework.
+              #--------------------------------------------------------------------
+              #>>>> START OF INSERTION <<<<
+              debug=$(v_debug)
+              [ "$debug" = True ] && set -x                                                   # Debugging On
+              #>>>> END   OF INSERTION <<<<
+              #--------------------------------------------------------------------
 
               git config --global user.email "$(Build.RequestedForEmail)"
               git config --global user.name "$(Build.RequestedFor)"
               git config --global pull.ff false
               git config --global pull.rebase false
+
+              #--------------------------------------------------------------------
+              # Change:                                                        
+              #   20230516 MKD
+              #
+              # Notes:
+              #   
+              #--------------------------------------------------------------------
+              #>>>> START OF INSERTION <<<<
+              git checkout $(branch)
+              #>>>> END   OF INSERTION <<<<
+              #--------------------------------------------------------------------
 
               git pull -q
 
@@ -103,5 +153,18 @@ stages:
             displayName:               Update ADO repository
             env:
               SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
-            failOnStderr:              true
+            #--------------------------------------------------------------------
+            # Change:                                                        
+            #   20230516 MKD
+            #
+            # Notes:
+            #   
+            #--------------------------------------------------------------------
+            #>>>> START OF DELETION <<<<
+            # failOnStderr:              true
+            #>>>> END   OF DELETION <<<<
+            #>>>> START OF INSERTION <<<<
+            failOnStderr:              false
+            #>>>> END   OF INSERTION <<<<
+            #--------------------------------------------------------------------
 ...

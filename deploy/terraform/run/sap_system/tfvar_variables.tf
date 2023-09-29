@@ -314,6 +314,16 @@ variable "use_simple_mount" {
 #                                                                                       #
 #########################################################################################
 
+variable "database_cluster_disk_lun" {
+  description = "The LUN of the shared disk for the Database cluster"
+  default     = 5
+}
+
+variable "database_cluster_disk_size" {
+  description = "The size of the shared disk for the Database cluster"
+  default     = 128
+}
+
 variable "database_platform" {
   description = "Database platform, supported values are HANA, DB2, ORACLE, ORACLE-ASM, ASE, SQLSERVER or NONE (in this case no database tier is deployed)"
   default     = ""
@@ -332,6 +342,11 @@ variable "database_server_count" {
 variable "database_high_availability" {
   description = "If true, the database tier will be configured for high availability"
   default     = false
+}
+
+variable "database_cluster_type" {
+  description   = "Cluster quorum type; AFA (Azure Fencing Agent), ASD (Azure Shared Disk), ISCSI"
+  default       = "AFA"
 }
 
 variable "use_observer" {
@@ -477,6 +492,7 @@ variable "database_use_premium_v2_storage" {
 }
 
 
+
 #########################################################################################
 #                                                                                       #
 #  Application tier variables                                                           #
@@ -538,6 +554,11 @@ variable "scs_server_count" {
 variable "scs_high_availability" {
   description = "If true, the SAP Central Services tier will be configured for high availability"
   default     = false
+}
+
+variable "scs_cluster_type" {
+  description   = "Cluster quorum type; AFA (Azure Fencing Agent), ASD (Azure Shared Disk), ISCSI"
+  default       = "AFA"
 }
 
 variable "scs_server_zones" {
@@ -630,14 +651,14 @@ variable "scs_server_use_ppg" {
   }
 }
 
-variable "scs_shared_disk_size" {
-  description = "The size of the shared disk for the SAP Central Services Windows cluster"
-  default     = 128
+variable "scs_cluster_disk_lun" {
+  description = "The LUN of the shared disk for the SAP Central Services cluster"
+  default     = 5
 }
 
-variable "scs_shared_disk_lun" {
-  description = "The LUN of the shared disk for the SAP Central Services Windows cluster"
-  default     = 5
+variable "scs_cluster_disk_size" {
+  description = "The size of the shared disk for the SAP Central Services cluster"
+  default     = 128
 }
 
 #########################################################################################

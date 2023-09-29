@@ -39,6 +39,8 @@ resource "azurerm_storage_account" "sapmnt" {
   min_tls_version                 = "TLS1_2"
   allow_nested_items_to_be_public = false
 
+  public_network_access_enabled = try(var.landscape_tfstate.public_network_access_enabled, true)
+
 }
 resource "azurerm_storage_account_network_rules" "sapmnt" {
   provider = azurerm.main

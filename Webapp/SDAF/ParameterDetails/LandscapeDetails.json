@@ -259,6 +259,15 @@
         "Options": [],
         "Overrules": "",
         "Display": 2
+      },
+      {
+        "Name": "public_network_access_enabled",
+        "Required": false,
+        "Description": "Defines if public access is allowed for the storage accounts and key vaults",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
       }
     ]
   },

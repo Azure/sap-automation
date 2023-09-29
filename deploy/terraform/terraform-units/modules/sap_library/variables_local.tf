@@ -56,4 +56,6 @@ locals {
 
   use_local_private_dns = (length(var.dns_label) > 0 && !var.use_custom_dns_a_registration && length(var.management_dns_subscription_id) == 0)
 
+  keyvault_id = try(var.deployer_tfstate.deployer_kv_user_arm_id,"")
+
 }

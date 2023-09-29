@@ -79,6 +79,8 @@ $$peer_with_control_plane_vnet$$
 # Defines if access to the key vaults and storage accounts is restricted to the SAP and deployer VNets
 $$enable_firewall_for_keyvaults_and_storage$$
 
+# Defines if public access is allowed for the storage accounts and key vaults
+$$public_network_access_enabled$$
 
 # place_delete_lock_on_resources, If defined, a delete lock will be placed on the key resources
 $$place_delete_lock_on_resources$$

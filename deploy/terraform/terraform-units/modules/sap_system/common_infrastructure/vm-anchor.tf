@@ -3,7 +3,13 @@
 resource "azurerm_network_interface" "anchor" {
   provider                      = azurerm.main
   count                         = local.deploy_anchor ? length(local.zones) : 0
-  name                          = format("%s%s%s%s%s", var.naming.resource_prefixes.nic, local.prefix, var.naming.separator, local.anchor_virtualmachine_names[count.index], local.resource_suffixes.nic)
+  name                          = format("%s%s%s%s%s",
+                                    var.naming.resource_prefixes.nic,
+                                    local.prefix,
+                                    var.naming.separator,
+                                    local.anchor_virtualmachine_names[count.index],
+                                    local.resource_suffixes.nic
+                                  )
   resource_group_name           = local.resource_group_exists ? data.azurerm_resource_group.resource_group[0].name : azurerm_resource_group.resource_group[0].name
   location                      = local.resource_group_exists ? data.azurerm_resource_group.resource_group[0].location : azurerm_resource_group.resource_group[0].location
   enable_accelerated_networking = var.infrastructure.anchor_vms.accelerated_networking
@@ -21,14 +27,20 @@ resource "azurerm_network_interface" "anchor" {
 
 # Create the Linux Application VM(s)
 resource "azurerm_linux_virtual_machine" "anchor" {
-  provider                     = azurerm.main
-  count                        = local.deploy_anchor && (local.anchor_ostype == "LINUX") ? length(local.zones) : 0
-  name                         = format("%s%s%s%s%s", var.naming.resource_prefixes.vm, local.prefix, var.naming.separator, local.anchor_virtualmachine_names[count.index], local.resource_suffixes.vm)
-  computer_name                = local.anchor_computer_names[count.index]
-  resource_group_name          = local.resource_group_exists ? data.azurerm_resource_group.resource_group[0].name : azurerm_resource_group.resource_group[0].name
-  location                     = local.resource_group_exists ? data.azurerm_resource_group.resource_group[0].location : azurerm_resource_group.resource_group[0].location
-  proximity_placement_group_id = local.ppg_exists ? data.azurerm_proximity_placement_group.ppg[count.index].id : azurerm_proximity_placement_group.ppg[count.index].id
-  zone                         = local.zones[count.index]
+  provider                      = azurerm.main
+  count                         = local.deploy_anchor && (local.anchor_ostype == "LINUX") ? length(local.zones) : 0
+  name                          = format("%s%s%s%s%s",
+                                    var.naming.resource_prefixes.vm,
+                                    local.prefix,
+                                    var.naming.separator,
+                                    local.anchor_virtualmachine_names[count.index],
+                                    local.resource_suffixes.vm
+                                  )
+  computer_name                 = local.anchor_computer_names[count.index]
+  resource_group_name           = local.resource_group_exists ? data.azurerm_resource_group.resource_group[0].name : azurerm_resource_group.resource_group[0].name
+  location                      = local.resource_group_exists ? data.azurerm_resource_group.resource_group[0].location : azurerm_resource_group.resource_group[0].location
+  proximity_placement_group_id  = local.ppg_exists ? data.azurerm_proximity_placement_group.ppg[count.index].id : azurerm_proximity_placement_group.ppg[count.index].id
+  zone                          = local.zones[count.index]
 
   network_interface_ids = [
     azurerm_network_interface.anchor[count.index].id
@@ -50,10 +62,16 @@ resource "azurerm_linux_virtual_machine" "anchor" {
   custom_data = var.deployment == "new" ? local.cloudinit_growpart_config : null
 
   os_disk {
-    name                   = format("%s%s%s%s%s", var.naming.resource_prefixes.osdisk, local.prefix, var.naming.separator, local.anchor_virtualmachine_names[count.index], local.resource_suffixes.osdisk)
-    caching                = "ReadWrite"
-    storage_account_type   = "Premium_LRS"
-    disk_encryption_set_id = try(var.options.disk_encryption_set_id, null)
+    name                        = format("%s%s%s%s%s",
+                                    var.naming.resource_prefixes.osdisk,
+                                    local.prefix,
+                                    var.naming.separator,
+                                    local.anchor_virtualmachine_names[count.index],
+                                    local.resource_suffixes.osdisk
+                                  )
+    caching                     = "ReadWrite"
+    storage_account_type        = "Premium_LRS"
+    disk_encryption_set_id      = try(var.options.disk_encryption_set_id, null)
   }
 
   source_image_id = local.anchor_custom_image ? local.anchor_os.source_image_id : null
@@ -91,14 +109,20 @@ resource "azurerm_linux_virtual_machine" "anchor" {
 
 # Create the Windows Application VM(s)
 resource "azurerm_windows_virtual_machine" "anchor" {
-  provider                     = azurerm.main
-  count                        = local.deploy_anchor && (local.anchor_ostype == "WINDOWS") ? length(local.zones) : 0
-  name                         = format("%s%s%s%s%s", var.naming.resource_prefixes.vm, local.prefix, var.naming.separator, local.anchor_virtualmachine_names[count.index], local.resource_suffixes.vm)
-  computer_name                = local.anchor_computer_names[count.index]
-  resource_group_name          = local.resource_group_exists ? data.azurerm_resource_group.resource_group[0].name : azurerm_resource_group.resource_group[0].name
-  location                     = local.resource_group_exists ? data.azurerm_resource_group.resource_group[0].location : azurerm_resource_group.resource_group[0].location
-  proximity_placement_group_id = local.ppg_exists ? data.azurerm_proximity_placement_group.ppg[count.index].id : azurerm_proximity_placement_group.ppg[count.index].id
-  zone                         = local.zones[count.index]
+  provider                      = azurerm.main
+  count                         = local.deploy_anchor && (local.anchor_ostype == "WINDOWS") ? length(local.zones) : 0
+  name                          = format("%s%s%s%s%s",
+                                    var.naming.resource_prefixes.vm,
+                                    local.prefix,
+                                    var.naming.separator,
+                                    local.anchor_virtualmachine_names[count.index],
+                                    local.resource_suffixes.vm
+                                  )
+  computer_name                 = local.anchor_computer_names[count.index]
+  resource_group_name           = local.resource_group_exists ? data.azurerm_resource_group.resource_group[0].name : azurerm_resource_group.resource_group[0].name
+  location                      = local.resource_group_exists ? data.azurerm_resource_group.resource_group[0].location : azurerm_resource_group.resource_group[0].location
+  proximity_placement_group_id  = local.ppg_exists ? data.azurerm_proximity_placement_group.ppg[count.index].id : azurerm_proximity_placement_group.ppg[count.index].id
+  zone                          = local.zones[count.index]
 
   network_interface_ids = [
     azurerm_network_interface.anchor[count.index].id
@@ -109,7 +133,13 @@ resource "azurerm_windows_virtual_machine" "anchor" {
   admin_password = local.sid_auth_password
 
   os_disk {
-    name                 = format("%s%s%s%s%s", var.naming.resource_prefixes.osdisk, local.prefix, var.naming.separator, local.anchor_virtualmachine_names[count.index], local.resource_suffixes.osdisk)
+    name                        = format("%s%s%s%s%s",
+                                    var.naming.resource_prefixes.osdisk,
+                                    local.prefix,
+                                    var.naming.separator,
+                                    local.anchor_virtualmachine_names[count.index],
+                                    local.resource_suffixes.osdisk
+                                  )
     caching              = "ReadWrite"
     storage_account_type = "Standard_LRS"
   }

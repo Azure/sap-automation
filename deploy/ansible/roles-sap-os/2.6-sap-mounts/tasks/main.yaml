@@ -196,7 +196,7 @@
     state:                             directory
     recurse:                           true
   when:
-    - node_tier != "oracle-asm"
+    - node_tier not in ['oracle-asm', 'hana']
 
 - name:                                "2.6 SAP Mounts: - sapmnt"
   block:

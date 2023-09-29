@@ -21,6 +21,8 @@ resource "azurerm_key_vault" "kv_user" {
   sku_name                   = "standard"
   enable_rbac_authorization  = var.enable_rbac_authorization_for_keyvault
 
+  public_network_access_enabled = var.public_network_access_enabled
+
   dynamic "network_acls" {
     for_each = range(var.enable_firewall_for_keyvaults_and_storage ? 1 : 0)
     content {

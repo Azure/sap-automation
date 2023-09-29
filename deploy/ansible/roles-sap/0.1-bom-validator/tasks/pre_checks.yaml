@@ -214,18 +214,18 @@
 #
     - name:                            "{{ task_prefix }} - Create BOM download directories"
       become:                          "{{ bom_processing_become }}"
-      become_user:                     "{{ orchestration_ansible_user }}"
+      become_user:                     root
       ansible.builtin.file:
-        path:                          "{{ item.path }}"
+        path:                          "{{ item }}"
         state:                         directory
-        mode:                          '{{ item.mode }}'
-        owner:                         "{{ orchestration_ansible_user }}"
+        mode:                          0755
+        owner:                         "{{ orchestration_ansible_user if bom_processing_become else omit }}"
       delegate_to:                     localhost
       loop:
-        - { mode: '0755', path: '{{ download_directory }}' }
-        - { mode: '0755', path: '{{ download_directory }}/tmp' }
-        - { mode: '0755', path: '{{ download_directory }}/files' }
-        - { mode: '0755', path: '{{ download_directory }}/bom' }
+        - "{{ download_directory }}"
+        - "{{ download_directory }}/tmp"
+        - "{{ download_directory }}/files"
+        - "{{ download_directory }}/bom"
 
 
 # Step: 07-01 - END

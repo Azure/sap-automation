@@ -58,7 +58,7 @@ data "azurerm_network_security_group" "iscsi" {
 // TODO: Add nsr to iSCSI's nsg
 
 /*
-  iSCSI device IP address range: .4 - 
+  iSCSI device IP address range: .4 -
 */
 // Creates the NIC and IP address for iSCSI device
 resource "azurerm_network_interface" "iscsi" {
@@ -132,6 +132,9 @@ resource "azurerm_linux_virtual_machine" "iscsi" {
   admin_username                  = local.iscsi.authentication.username
   admin_password                  = local.iscsi_auth_password
   disable_password_authentication = local.enable_iscsi_auth_key
+
+  //If length of zones > 1 distribute servers evenly across zones
+  zone                            = try(local.iscsi.zones[count.index % max(length(local.iscsi.zones), 1)], null)
 
   //custom_data = try(data.template_cloudinit_config.config_growpart.rendered, "Cg==")
 

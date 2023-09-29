@@ -92,6 +92,10 @@ variable "enable_firewall_for_keyvaults_and_storage" {
   type        = bool
 }
 
+variable "public_network_access_enabled" {
+  description = "Defines if the public access should be enabled for keyvaults and storage accounts"
+}
+
 variable "subnets_to_add_to_firewall_for_keyvaults_and_storage" {
   description = "List of subnets to add to storage account and keyvaults firewall"
   default     = [""]

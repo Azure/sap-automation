@@ -463,6 +463,13 @@ variable "enable_firewall_for_keyvaults_and_storage" {
   type        = bool
 }
 
+variable "public_network_access_enabled" {
+  description = "Defines if the public access should be enabled for keyvaults and storage accounts"
+  default     = true
+  type        = bool
+
+}
+
 variable "subnets_to_add_to_firewall_for_keyvaults_and_storage" {
   description = "List of subnets to add to storage account and keyvaults firewall"
   default     = null
@@ -477,4 +484,9 @@ variable "tfstate_resource_id" {
     error_message = "The Azure Resource ID for the storage account containing the Terraform state files must be provided and be in correct format."
   }
 
+}
+
+variable "Agent_IP" {
+  description = "IP address of the agent"
+  default     = ""
 }
