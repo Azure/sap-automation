@@ -418,6 +418,4 @@ module "output_files" {
   web_server_count                              = try(local.application_tier.webdispatcher_count, 0)
   use_simple_mount                              = local.validated_use_simple_mount
 
-  use_simple_mount = local.validated_use_simple_mount
-
 }
