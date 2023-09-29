@@ -603,7 +603,7 @@
          failed_when:                      gridsbpscript_results.rc >= 2
          args:
            creates:                        "/etc/sap_deployment_automation/{{ sap_sid | upper }}/gridsbp_installed.txt"
-           chdir:                          "/home/oracle/GSBP"
+           chdir:                          /home/oracle/GSBP
            executable:                     /bin/csh
 
       rescue:
@@ -648,7 +648,7 @@
          failed_when:                      gridsbpscript_results.rc >= 2
          args:
            creates:                        "/etc/sap_deployment_automation/{{ sap_sid | upper }}/gridsbp_installed.txt"
-           chdir:                          "/home/oracle/GSBP"
+           chdir:                          /home/oracle/GSBP
            executable:                     /bin/csh
        
 
