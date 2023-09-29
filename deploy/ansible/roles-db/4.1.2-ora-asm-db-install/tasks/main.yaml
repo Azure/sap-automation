@@ -578,9 +578,14 @@
         owner:                         oracle
         group:                         oinstall
 
-    - name:                           "debug 2308 Patching"
-      fail:                            
-        msg:                          "fail here for manual GRID SBP installation"
+    # - name:                           "debug 2308 Patching"
+    #   fail:                            
+    #     msg:                          "fail here for manual GRID SBP installation"
+
+    - name:                            "File update wait for 15 sec to avoid multiple locks"
+      ansible.builtin.wait_for:
+        timeout:                       30
+
 
     - name:                            "Oracle GRID Patching Error Handling Block"
       block:
