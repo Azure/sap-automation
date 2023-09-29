@@ -53,9 +53,6 @@ module "sap_deployer" {
   use_webapp                                           = var.use_webapp
   webapp_client_secret                                 = var.webapp_client_secret
 
-  subnets_to_add_to_firewall_for_keyvaults_and_storage = var.subnets_to_add_to_firewall_for_keyvaults_and_storage
-
-  set_secret_expiry = var.set_secret_expiry
 }
 
 module "sap_namegenerator" {
