@@ -109,6 +109,10 @@ module "hdb_node" {
     azurerm.main                                = azurerm.system
     azurerm.dnsmanagement                       = azurerm.dnsmanagement
     # azapi.api                                 = azapi.api
+<<<<<<< HEAD
+=======
+
+>>>>>>> origin/HEAD
   }
 
   admin_subnet                                  = module.common_infrastructure.admin_subnet
@@ -162,7 +166,10 @@ module "hdb_node" {
   use_msi_for_clusters                          = var.use_msi_for_clusters
   use_scalesets_for_deployment                  = var.use_scalesets_for_deployment
   use_secondary_ips                             = var.use_secondary_ips
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin/HEAD
 
 }
 
@@ -405,7 +412,6 @@ module "output_files" {
   use_custom_dns_a_registration                 = try(data.terraform_remote_state.landscape.outputs.use_custom_dns_a_registration, false)
   management_dns_subscription_id                = try(data.terraform_remote_state.landscape.outputs.management_dns_subscription_id, null)
   management_dns_resourcegroup_name             = try(data.terraform_remote_state.landscape.outputs.management_dns_resourcegroup_name, local.saplib_resource_group_name)
-
 
   #########################################################################################
   #  Server counts                                                                        #

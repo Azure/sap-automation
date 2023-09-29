@@ -95,7 +95,6 @@ variable "register_virtual_network_to_dns"             {
                                                          type        = bool
                                                        }
 
-
 #########################################################################################
 #                                                                                       #
 #  ANF settings                                                                         #

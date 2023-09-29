@@ -100,7 +100,6 @@
         DB:                            "{% if MULTI_SIDS is defined %}{{ sid_to_be_deployed.sid | upper }}/HDB{{ db_instance_number }}{% else %}{{ db_sid | upper }}/HDB{{ db_instance_number }}{% endif %}"
         pas_virtual_hostname:          "{% if pas_hostname | type_debug != 'NoneType' and pas_hostname | length != 0 %}{{ pas_hostname }}{% else %}{{ virtual_host }}{% endif %}"
 
-
     - name:                            "PAS Install: check media exists"
       ansible.builtin.stat:
         path:                          "{{ target_media_location }}/SWPM/sapinst"

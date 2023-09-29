@@ -52,7 +52,6 @@ module "sap_deployer" {
   use_service_endpoint                                 = var.use_service_endpoint
   use_webapp                                           = var.use_webapp
   webapp_client_secret                                 = var.webapp_client_secret
-
 }
 
 module "sap_namegenerator" {
