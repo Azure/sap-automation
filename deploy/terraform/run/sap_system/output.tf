@@ -217,3 +217,4 @@ output "subscription_id_used" {
   value       = local.spn.subscription_id
   sensitive   = true
 }
+

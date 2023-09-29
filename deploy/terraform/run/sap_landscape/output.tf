@@ -191,9 +191,12 @@ output "register_virtual_network_to_dns" {
 }
 
 output "use_custom_dns_a_registration" {
-  sensitive = true
   description = "Defines if custom DNS is used"
   value = var.use_custom_dns_a_registration
+}
+
+output "register_virtual_network_to_dns" {
+  value = var.register_virtual_network_to_dns
 }
 
 ###############################################################################

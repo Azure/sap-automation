@@ -23,7 +23,7 @@ resource "azurerm_storage_account" "storage_tfstate" {
   account_tier             = var.storage_account_tfstate.account_tier
   account_kind             = var.storage_account_tfstate.account_kind
 
-  public_network_access_enabled = try(var.deployer_tfstate.public_network_access_enabled, false)
+  public_network_access_enabled = try(var.deployer_tfstate.public_network_access_enabled, true)
 
   enable_https_traffic_only = true
   blob_properties {
