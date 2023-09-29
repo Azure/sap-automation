@@ -1,0 +1,34 @@
+---
+# RHEL-3.10 Disable Transparent Hugepages (THP)
+# RHEL-3.12 Configure Processor C-States (not relevant for IBM Power LE (ppc64le))
+# SAP Note 2205917 - SAP HANA DB Recommended OS settings for SLES 12 / SLES for SAP Applications 12
+# TODO: when tier = HANA; put in a block; move to sap specific
+- name:                                Task Disable Transparent Hugepages & Configure Processor C-States 1
+  ansible.builtin.shell:               "echo never > /sys/kernel/mm/transparent_hugepage/enabled"
+  changed_when:                        false
+
+- name:                                "Set GRUB config path"
+  ansible.builtin.set_fact:
+    grub_config_file:                  "{{ grub_config_path | default('/etc/default/grub') }}"
+
+- name:                                Task Disable Transparent Hugepages & Configure Processor C-States 2
+  ansible.builtin.include_tasks:       roles-sap-os/2.10-sap-notes/tasks/grub_editor.yaml
+  with_dict:
+    - transparent_hugepage:              never
+    - intel_idle.max_cstate:             '1'
+    - processor.max_cstate:              '1'
+
+- name:                                "2.10.0 sap-notes: - Update GRUB config for UEFI systems"
+  ansible.builtin.command:             grub2-mkconfig -o /boot/efi/EFI/BOOT/grub.cfg
+  changed_when:                        false
+  when:                                "'/boot/efi' in ansible_mounts | map(attribute='mount') | list"
+
+- name:                                "2.10.0 sap-notes: - Update GRUB config for non UEFI systems"
+  ansible.builtin.command:             grub2-mkconfig -o /boot/grub2/grub.cfg
+  changed_when:                        false
+  when:                                "'/boot/efi' not in ansible_mounts | map(attribute='mount') | list"
+
+...
+# /*----------------------------------------------------------------------------8
+# |                                    END                                      |
+# +------------------------------------4--------------------------------------*/

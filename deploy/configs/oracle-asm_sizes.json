@@ -1,0 +1,284 @@
+{
+    "db": {
+      "512": {
+        "compute": {
+          "vm_size"                      : "Standard_E8ds_v5",
+          "accelerated_networking"       : true
+        },
+        "storage": [
+          {
+            "name"                       : "os",
+            "fullname"                   : "",
+            "count"                      : 1,
+            "disk_type"                  : "Premium_LRS",
+            "size_gb"                    : 128,
+            "caching"                    : "None",
+            "write_accelerator"          : false
+          },
+          {
+            "name"                       : "sap",
+            "fullname"                   : "",
+            "count"                      : 1,
+            "disk_type"                  : "Premium_LRS",
+            "size_gb"                    : 256,
+            "caching"                    : "ReadOnly",
+            "write_accelerator"          : false,
+            "mount_point"                : "/usr/sap",
+            "lun_start"                  : 0
+          },
+          {
+            "name"                       : "data-asm",
+            "fullname"                   : "",
+            "count"                      : 4,
+            "disk_type"                  : "Premium_LRS",
+            "size_gb"                    : 128,
+            "caching"                    : "ReadOnly",
+            "write_accelerator"          : false,
+            "lun_start"                  : 5
+          },
+          {
+            "name"                       : "arch-asm",
+            "fullname"                   : "",
+            "count"                      : 4,
+            "disk_type"                  : "Premium_LRS",
+            "size_gb"                    : 128,
+            "caching"                    : "None",
+            "write_accelerator"          : false,
+            "lun_start"                  : 10
+          },
+          {
+            "name"                       : "reco-asm",
+            "fullname"                   : "",
+            "count"                      : 4,
+            "disk_type"                  : "Premium_LRS",
+            "size_gb"                    : 128,
+            "caching"                    : "None",
+            "write_accelerator"          : false,
+            "lun_start"                  : 20
+          },
+
+          {
+            "name"                       : "oracle",
+            "fullname"                   : "",
+            "count"                      : 1,
+            "disk_type"                  : "Premium_LRS",
+            "size_gb"                    : 128,
+            "caching"                    : "ReadOnly",
+            "write_accelerator"          : false,
+            "mount_point"                : "/oracle",
+            "lun_start"                  : 2
+          }
+        ]
+      },
+      "1024": {
+        "compute": {
+          "vm_size"                      : "Standard_E16ds_v5",
+          "accelerated_networking"       : true
+        },
+        "storage": [
+          {
+            "name"                       : "os",
+            "fullname"                   : "",
+            "count"                      : 1,
+            "disk_type"                  : "Premium_LRS",
+            "size_gb"                    : 128,
+            "caching"                    : "None",
+            "write_accelerator"          : false
+          },
+          {
+            "name"                       : "sap",
+            "fullname"                   : "",
+            "count"                      : 1,
+            "disk_type"                  : "Premium_LRS",
+            "size_gb"                    : 256,
+            "caching"                    : "ReadOnly",
+            "write_accelerator"          : false,
+            "mount_point"                : "/usr/sap",
+            "lun_start"                  : 0
+          },
+          {
+            "name"                       : "data-asm",
+            "fullname"                   : "",
+            "count"                      : 4,
+            "disk_type"                  : "Premium_LRS",
+            "size_gb"                    : 256,
+            "caching"                    : "ReadOnly",
+            "write_accelerator"          : false,
+            "lun_start"                  : 5
+          },
+          {
+            "name"                       : "arch-asm",
+            "fullname"                   : "",
+            "count"                      : 4,
+            "disk_type"                  : "Premium_LRS",
+            "size_gb"                    : 256,
+            "caching"                    : "None",
+            "write_accelerator"          : false,
+            "lun_start"                  : 10
+          },
+          {
+            "name"                       : "reco-asm",
+            "fullname"                   : "",
+            "count"                      : 4,
+            "disk_type"                  : "Premium_LRS",
+            "size_gb"                    : 256,
+            "caching"                    : "None",
+            "write_accelerator"          : false,
+            "lun_start"                  : 20
+          },
+
+          {
+            "name"                       : "oracle",
+            "fullname"                   : "",
+            "count"                      : 1,
+            "disk_type"                  : "Premium_LRS",
+            "size_gb"                    : 128,
+            "caching"                    : "ReadOnly",
+            "write_accelerator"          : false,
+            "mount_point"                : "/oracle",
+            "lun_start"                  : 2
+          }
+        ]
+      },
+      "2048": {
+        "compute": {
+          "vm_size"                      : "Standard_E32ds_v5",
+          "accelerated_networking"       : true
+        },
+        "storage": [
+          {
+            "name"                       : "os",
+            "fullname"                   : "",
+            "count"                      : 1,
+            "disk_type"                  : "Premium_LRS",
+            "size_gb"                    : 128,
+            "caching"                    : "None",
+            "write_accelerator"          : false
+          },
+          {
+            "name"                       : "sap",
+            "fullname"                   : "",
+            "count"                      : 1,
+            "disk_type"                  : "Premium_LRS",
+            "size_gb"                    : 256,
+            "caching"                    : "ReadOnly",
+            "write_accelerator"          : false,
+            "mount_point"                : "/usr/sap",
+            "lun_start"                  : 0
+          },
+          {
+            "name"                       : "data-asm",
+            "fullname"                   : "",
+            "count"                      : 4,
+            "disk_type"                  : "Premium_LRS",
+            "size_gb"                    : 512,
+            "caching"                    : "ReadOnly",
+            "write_accelerator"          : false,
+            "lun_start"                  : 5
+          },
+          {
+            "name"                       : "arch-asm",
+            "fullname"                   : "",
+            "count"                      : 4,
+            "disk_type"                  : "Premium_LRS",
+            "size_gb"                    : 512,
+            "caching"                    : "None",
+            "write_accelerator"          : false,
+            "lun_start"                  : 10
+          },
+          {
+            "name"                       : "reco-asm",
+            "fullname"                   : "",
+            "count"                      : 4,
+            "disk_type"                  : "Premium_LRS",
+            "size_gb"                    : 512,
+            "caching"                    : "None",
+            "write_accelerator"          : false,
+            "lun_start"                  : 20
+          },
+
+          {
+            "name"                       : "oracle",
+            "fullname"                   : "",
+            "count"                      : 1,
+            "disk_type"                  : "Premium_LRS",
+            "size_gb"                    : 128,
+            "caching"                    : "ReadOnly",
+            "write_accelerator"          : false,
+            "mount_point"                : "/oracle",
+            "lun_start"                  : 2
+          }
+        ]
+      },
+      "4096": {
+        "compute": {
+          "vm_size"                      : "Standard_E32ds_v5",
+          "accelerated_networking"       : true
+        },
+        "storage": [
+          {
+            "name"                       : "os",
+            "fullname"                   : "",
+            "count"                      : 1,
+            "disk_type"                  : "Premium_LRS",
+            "size_gb"                    : 128,
+            "caching"                    : "None",
+            "write_accelerator"          : false
+          },
+          {
+            "name"                       : "sap",
+            "fullname"                   : "",
+            "count"                      : 1,
+            "disk_type"                  : "Premium_LRS",
+            "size_gb"                    : 256,
+            "caching"                    : "ReadOnly",
+            "write_accelerator"          : false,
+            "mount_point"                : "/usr/sap",
+            "lun_start"                  : 0
+          },
+          {
+            "name"                       : "data-asm",
+            "fullname"                   : "",
+            "count"                      : 4,
+            "disk_type"                  : "Premium_LRS",
+            "size_gb"                    : 1024,
+            "caching"                    : "ReadOnly",
+            "write_accelerator"          : false,
+            "lun_start"                  : 5
+          },
+          {
+            "name"                       : "arch-asm",
+            "fullname"                   : "",
+            "count"                      : 4,
+            "disk_type"                  : "Premium_LRS",
+            "size_gb"                    : 1024,
+            "caching"                    : "None",
+            "write_accelerator"          : false,
+            "lun_start"                  : 10
+          },
+          {
+            "name"                       : "reco-asm",
+            "fullname"                   : "",
+            "count"                      : 4,
+            "disk_type"                  : "Premium_LRS",
+            "size_gb"                    : 512,
+            "caching"                    : "None",
+            "write_accelerator"          : false,
+            "lun_start"                  : 20
+          },
+
+          {
+            "name"                       : "oracle",
+            "fullname"                   : "",
+            "count"                      : 1,
+            "disk_type"                  : "Premium_LRS",
+            "size_gb"                    : 128,
+            "caching"                    : "ReadOnly",
+            "write_accelerator"          : false,
+            "mount_point"                : "/oracle",
+            "lun_start"                  : 2
+          }
+        ]
+      }
+    }
+  }

@@ -1,0 +1,45 @@
+- name:                                "2.6 SCSERS: Block"
+  block:
+
+    # Returns bom object
+    - name:                            "2.6 SCSERS: SCS HA Install - Register BoM"
+      ansible.builtin.include_role:
+        name:                          roles-sap/3.3.1-bom-utility
+        tasks_from:                    bom-register
+      vars:
+        bom_name:                      "{{ bom_base_name }}"
+        task_prefix:                   "SCS HA Install: "
+      when:
+        - bom is not defined
+        - not is_run_with_infraCreate_only
+
+    # default to ASCS instance when BOM is not defined or instance type in BOM is not defined
+    - name:                            "2.6 SCS HA Install: Default instance type"
+      ansible.builtin.set_fact:
+        instance_type:                 "ASCS"
+      when:                            bom is not defined or bom.InstanceType is not defined
+
+
+    - name:                            "2.6 SCS HA Install: register instance type"
+      ansible.builtin.set_fact:
+        instance_type:  >-
+                                            {%- set _instance_type = 'ASCS' -%}
+                                            {%- if bom.InstanceType == 'JAVA' -%}
+                                            {%- set _instance_type = 'SCS' -%}
+                                            {%- elif bom.InstanceType == 'ABAP' -%}
+                                            {%- set _instance_type = 'ASCS' -%}
+                                            {%- else -%}
+                                            {%- set _instance_type = 'ASCS' -%}
+                                            {%- endif -%}
+                                            {{- _instance_type -}}
+        public:                        true
+      when:                            bom.InstanceType is defined
+
+    - name:                            "2.6 SCS HA Install: Populate InstanceName for cluster resource"
+      ansible.builtin.set_fact:
+        instance_name:                 "{{ sap_sid }}_{{ instance_type }}{{ scs_instance_number }}_{{ scs_virtual_hostname }}"
+        start_profile_path:            "/sapmnt/{{ sap_sid }}/profile/{{ sap_sid }}_{{ instance_type }}{{ scs_instance_number }}_{{ scs_virtual_hostname }}"
+        profile_directory:             "/usr/sap/{{ sap_sid | upper }}/{{ instance_type }}{{ scs_instance_number }}"
+      when:                            bom.InstanceType is defined
+  when:
+    - node_tier in ['scs', 'ers']

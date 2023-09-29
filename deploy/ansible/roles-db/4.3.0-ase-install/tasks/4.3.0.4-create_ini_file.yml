@@ -1,0 +1,50 @@
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                Perform the Sybase ASE Software installation                |
+# |                  Step 5: Create ini files from DB load templete            |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+---
+
+# Search for Kernel executables and DB software media
+
+- name:                                "SAP Sybase: Search for Kernel files"
+  ansible.builtin.find:
+    paths:                             "{{ kernel_media_folder }}"
+    patterns:                          'SAPEXE_*SAR'
+    recurse:                           true
+  register:                            sapexe_exist
+
+- name:                                "SAP Sybase: Store Kernel folder full path"
+  ansible.builtin.set_fact:
+    sap_exe_full_path:                 "{{ sapexe_exist.files[0].path }}"
+  when:                                sapexe_exist.matched == 1
+
+- name:                                "SAP Sybase: Search SAP ASE Software location"
+  ansible.builtin.find:
+    paths:                             "{{ db_unarchived_folder }}"
+    file_type:                         directory
+    patterns:                          'BD_SYBASE_ASE_*._BS_'
+    recurse:                           true
+  register:                            sybase_media_exist
+
+- name:                                "SAP Sybase: Store SAP ASE software folder full path"
+  ansible.builtin.set_fact:
+    db_install_media_path:             "{{ sybase_media_exist.files[0].path }}"
+  when:                                sybase_media_exist.matched >= 1
+
+- name:                                "SAP Sybase: Show all facts"
+  ansible.builtin.debug:
+    var:                               ansible_facts
+    verbosity:                         4
+
+# "{{ (ansible_facts.memory_mb.real.total | int / 1024 * 0.8) | int }}"
+- name:                                "SAP ASE Install: Set BOM facts"
+  ansible.builtin.set_fact:
+    sap_inifile:                       "{{ bom_base_name }}-dbload-{{ ansible_hostname }}.params"
+    sap_inifile_template:              "{{ bom_base_name }}{{ bom_suffix }}-dbload-inifile-param.j2"
+    dir_params:                        "{{ tmp_directory }}/.{{ sap_sid | upper }}-params"
+    mem_size:                          7000
+    vm_core_count:                     '{% if ansible_facts.processor_vcpus is defined %}{{ ansible_facts.processor_vcpus }}{% else %}{{ ansible_facts.processor_cores }}{% endif %}'
+
+...

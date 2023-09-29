@@ -1,0 +1,130 @@
+---
+- name:                                "2.6. Oracle ASM Mounts - Gather Logical volumes created in 1.5.1"
+  ansible.builtin.include_vars:        disks_config_asm.yml
+
+- name:                                "2.6. Oracle ASM Mounts - Set the NFS Server name list"
+  ansible.builtin.set_fact:
+    nfs_server_temp:                   "{{ nfs_server_temp | default([]) + [item] }}"
+  with_items:
+    - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') }}"
+    - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
+
+- name:                                "2.6. Oracle ASM Mounts - Set the NFS Server name"
+  ansible.builtin.set_fact:
+    nfs_server:                        "{{ nfs_server_temp | first }}"
+  when:                                NFS_provider == "NONE"
+
+- name:                                "2.6. Oracle ASM Mounts - Check if LVs exists."
+  ansible.builtin.stat:
+    path:                              "{{ dev_path_from_lv_item }}"
+  loop:                                "{{ logical_volumes }}"
+  register:                            oravgstat
+
+- name:                                "2.6. Oracle ASM Mounts - SAP Filesystems on Database for installation when using Shared File systems"
+  ansible.posix.mount:
+    src:    "{{ item.src }}"
+    path:   "{{ item.path }}"
+    fstype: "{{ item.type }}"
+    opts:   defaults
+    state:  mounted
+  loop:
+    - { type: 'xfs',   src: '/dev/vg_sap/lv_usrsap',                             path: '/usr/sap' }
+    - { type: 'xfs',   src: '/dev/vg_oracle/lv_oracle',                          path: '/oracle' }
+  when:
+    - NFS_provider != "NONE"
+
+- name:                                "2.6. Oracle ASM Mounts - Print oravgstat"
+  ansible.builtin.debug:
+    var:                               oravgstat
+    verbosity:                         2
+
+- name:                                "2.6. Oracle ASM Mounts - Gather existing LVs"
+  ansible.builtin.set_fact:
+    lvexists:                          "{{ oravgstat.results | selectattr('stat.exists', 'equalto', true) | map(attribute='item.lv') | list }}"
+
+- name:                                "2.6. Oracle ASM Mounts - Print Logical volumes"
+  ansible.builtin.debug:
+    msg:                               "Logical Volumes: {{ lvexists }}"
+    verbosity:                         2
+
+# - fail: msg="here"
+
+# # Mount Filesystems
+# - name:     "Mount Filesystems for Oracle"
+#   ansible.posix.mount:
+#     src:    "{{ dev_path_from_lv_item }}"
+#     # path:   "{{ ['/'~item.lv | split('_')[-2], db_sid | upper, item.lv | split('_')[-1]] | join('/') }}"
+#     path: >-
+#         {%- set lv_parts = item.lv.split('_') -%}
+#         {%- if lv_parts | length == 2 -%}
+#         {%- set _path = '/' ~ lv_parts[-1] -%}
+#         {%- else -%}
+#         {%- set _path = ['/' ~lv_parts[-2], db_sid |upper, lv_parts[-1]] | join('/') -%}
+#         {%- endif -%}
+#         {{- _path -}}
+#     fstype: "{{ item.fstype }}"
+#     opts:   defaults
+#     state:  mounted
+#   loop: "{{ logical_volumes | sort(attribute='lv') }}"
+#   when:
+#     - item.tier == "ora"
+#     - item.node_tier == "oracle-asm"
+#     - item.lv in  lvexists
+#   register:  oraclefilesystemmounts
+
+# Same as oracle.yml from here on.
+
+- name:                                "2.6. Oracle ASM Mounts - Create sap_deployment_automation folder"
+  become:                              true
+  become_user:                         root
+  ansible.builtin.file:
+    path:                              /etc/sap_deployment_automation
+    mode:                              '0755'
+    state:                             directory
+    owner:                             oracle
+    group:                             oinstall
+
+- name:                                "2.6. Oracle ASM Mounts - 2.6. Oracle ASM Mounts : Make orasid:dba as owners for Oracle directories - check flag file"
+  ansible.builtin.stat:
+    path:                              /etc/sap_deployment_automation/filepermission.txt
+  register:                            oracle_permissions_set
+
+
+# Mount Filesystems
+- name:                                "2.6. Oracle ASM Mounts - Mount SAP File systems on Database for installation"
+  ansible.posix.mount:
+    src:                               "{{ item.src }}"
+    path:                              "{{ item.path }}"
+    fstype:                            "{{ item.type }}"
+    opts:                              defaults
+    state:                             mounted
+  vars:
+    # Get all the hostnames in <SID>_SCS group and return only the first hostname
+    nfs_server:                        "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') | first }}"
+  loop:
+    - {type: 'nfs4',    src: '{{ nfs_server }}:/sapmnt/{{ sap_sid | upper }}',    path: '/sapmnt/{{ sap_sid | upper }}' }
+  when:
+    - sap_mnt is undefined
+
+# Mount install file system on Observer node.
+- name:                                "2.6. Oracle ASM Mounts : Mount Install folder when using AFS"
+  ansible.posix.mount:
+    src:                               "{{ item.src }}"
+    path:                              "{{ item.path }}"
+    fstype:                            "{{ item.type }}"
+    opts:                              "vers=4,minorversion=1,sec=sys"
+    state:                             mounted
+  vars:
+    # Get all the hostnames in <SID>_SCS group and return only the first hostname
+    nfs_server:                        "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') | first }}"
+  loop:
+    - { type: 'nfs4', src: '{{ usr_sap_install_mountpoint }}', path: '{{ target_media_location }}' }
+  when:
+    - node_tier == 'observer'
+    - use_AFS
+
+# Debug for testing
+- name:                                "2.6. Oracle ASM Mounts : Print oracle filesystems"
+  ansible.builtin.debug:
+    var:                               oracle_filesystem_mounts
+    verbosity:                         2

@@ -1,0 +1,63 @@
+@{
+    ViewData["Title"] = "Home";
+}
+
+<div class="wrapper">
+
+    <div class="text-center" style="padding: 20px">
+        <h1>SAP Deployment Automation Framework - Configuration Editor</h1>
+    </div>
+
+    <div class="wrapper grouping">
+        <h2> Overview </h2>
+        <p>
+            This application can be used to perform the infrastructure configuration for the SDAF Workload zone(s) and the SAP systems. The image below illustrates the dependency between the workload zone and the systems.
+            <img src="./images/SDAF.png" alt="SDAF" width="450" style="display: block; margin: 0 auto">
+        </p>
+        <h2> Getting started </h2>
+        <p>
+            To get started, click on the <a href="/Landscape"><b>Workload Zones</b></a> tab. This will take you to the Workload Zones page where you can create a new workload zone definition. Once you have created a workload zone definition, you can create a new SAP system by clicking on the <a href="/Systems"><b>Systems</b></a>  tab. This will take you to the SAP Systems page where you can create a new SAP system definition.<br />
+
+            <br />You can create a new definition by:
+            <ul>
+                <li>using a predefined sample from the <a href="https://github.com/Azure/SAP-automation-samples/tree/main/Terraform/WORKSPACES" target='_blank'>SDAF GitHub sample repository</a></li>
+                <li>uploading an existing workload zone definition tfvars file</li>
+                <li>creating a new workload zone definition</li>
+            </ul>
+            <br />
+            Click on <b>Edit</b> to update existing configuration items. <br />
+            Click on <b>Details</b> to see more information about your configuration item.<br />
+            Click on <b>Deploy</b> to initiate an Azure DevOps pipeline execution that provisions the infrastructure.
+            Click on <b>Install</b> to initiate an Azure DevOps pipeline execution that performs the SAP installation.
+
+        </p>
+        <h2>Editing</h2>
+        <p>
+
+            When in edit mode you can toggle the displayed parameters using the 'Basic', 'Advanced' or 'Expert' checkboxes. The 'Basic' parameters are the mandatory parameters. The 'Advanced' option displays more configuration options and the 'Expert' option displays all the configuration options.<br />
+
+            <br /><b><i>Defaults</i></b><br />
+            Click on the star next to an definition item to set it as the default item. You can also set an object as the default from the edit or create page.<br /><br />
+
+            When creating new configuration items, you can copy the values from the default item to new item by selecting the "Use default" checkbox. <br />
+
+
+            <br /><b>Note</b> There can only be one default workload zone and one default system at a time. <br />When an object is selected to be the default, there are no mandatory parameters. Note that if you remove this object as the default later, missing required parameters will make this object invalid for deployment until further edited.
+        </p>
+        <h2>Environments</h2>
+        <p>
+            Click on the <a href="/Environment"><b>Environments</b></a> tab to view your environment definitions defined in Azure DevOps. <br />
+            The environment defines the target subscription and the deployment credentials. <br />
+            You can view and edit the parameters of your existing environment definitions here, or create a new one.<br />
+
+        </p>
+        <h2>Files</h2>
+        <p>
+            The Files section provides a way to create and manage files that can be used when creating the definition items. <br /><br />
+            Click on <b>Create</b> to make a new file, <b>Upload</b> to import an existing tfvars file, or browse to use an existing <b>Template</b>. <br />
+        <b><i>Converting</i></b><br />
+            Clicking <b>Convert</b> will convert the specified file into a workload zone or system definition, which can then be edited or deployed.
+        </p>
+    </div>
+
+</div>

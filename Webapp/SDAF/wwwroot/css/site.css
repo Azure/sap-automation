@@ -1,0 +1,493 @@
+﻿/* Please see documentation at https://docs.microsoft.com/aspnet/core/client-side/bundling-and-minification
+for details on configuring this project to bundle and minify static web assets. */
+
+a.navbar-brand {
+    white-space: normal;
+    text-align: center;
+    word-break: break-all;
+}
+
+/* Provide sufficient contrast against white background */
+a {
+    color: #0366d6;
+}
+
+.btn-primary {
+    color: #fff;
+    background-color: #1b6ec2;
+    border-color: #1861ac;
+}
+
+.nav-pills .nav-link.active, .nav-pills .show > .nav-link {
+    color: #fff;
+    background-color: #1b6ec2;
+    border-color: #1861ac;
+}
+
+/* Sticky footer styles
+-------------------------------------------------- */
+html {
+    font-size: 14px;
+}
+
+@media (min-width: 768px) {
+    html {
+        font-size: 16px;
+    }
+}
+
+.border-top {
+    border-top: 1px solid #e5e5e5;
+}
+
+.border-bottom {
+    border-bottom: 1px solid #e5e5e5;
+}
+
+.box-shadow {
+    box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .05);
+}
+
+button.accept-policy {
+    font-size: 1rem;
+    line-height: inherit;
+}
+
+/* Sticky footer styles
+-------------------------------------------------- */
+html {
+    position: relative;
+    min-height: 100%;
+}
+
+body {
+    /* Margin bottom by footer height */
+    margin-bottom: 60px;
+}
+
+pre {
+    height: 70vh;
+    margin: 20px 20px 0px 20px !important;
+}
+
+pre code {
+    outline: none;
+}
+
+.editable:hover {
+    cursor: text;
+}
+
+fluent-checkbox {
+    padding-bottom: 10px;
+}
+
+fluent-breadcrumb {
+    padding-bottom: 15px;
+}
+
+.footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    white-space: nowrap;
+    line-height: 60px; /* Vertically center the text there */
+}
+
+/*Form*/
+.wrapper {
+    padding: 5px 20px;
+}
+
+.wrapper fieldset {
+    margin: 20px 0;
+}
+
+.sticky {
+    position: fixed;
+    top: 0;
+    z-index: 2;
+    padding: 20px 0px;
+    width: 100%;
+    background-color: white;
+}
+
+.sticky + .wrapper {
+    padding-top: 102px;
+}
+
+#searchbar {
+    width: 25%;
+}
+
+.grouping > h2 {
+    color: #007bff;
+    font-size: 20px;
+}
+
+.parameters {
+    width: 90%;
+    margin: 10px auto;
+    padding-bottom: 10px;
+}
+
+.bottom-buttons {
+    margin-top: 2vh;
+}
+
+label.required:after {
+    content: " *";
+    color: red;
+}
+
+.ms-Icon--Info {
+    cursor: pointer;
+    padding: 0px 10px;
+}
+
+.ms-Label {
+    display: inline-block;
+    font-size: 15px !important;
+    padding-bottom: 0px !important;
+}
+
+.ms-TextField {
+    margin-top: 2vh;
+}
+
+.ms-TextField p {
+    font-size: 13px;
+    margin-bottom: 5px;
+}
+
+.ms-TextField-field {
+    height: 28px;
+    border-radius: 4px;
+    font-size: 14px;
+    padding: 0px 20px 0px 8px;
+}
+
+.text-center {
+    padding: 1vh;
+}
+
+.text-center p {
+    margin: 0px;
+}
+
+.width-full {
+    width: 100%;
+}
+
+@media screen and (min-width: 992px) {
+    .ms-TextField {
+        display: flex;
+    }
+
+    .ms-Label {
+        padding: 0px !important;
+    }
+    
+    .left-input {
+        display: inline-block;
+        width: 30%;
+    }
+
+    .right-input {
+        display: inline-block;
+        margin-left: 20%;
+        width: 50%;
+    }
+
+    .text-center {
+        padding: 0px 1vh 1vh 1vh;
+    }
+}
+
+@media screen and (max-width: 992px) {
+
+    #searchbar {
+        width: 50%;
+    }
+
+    .super-wideonly {
+        display: none;
+    }
+}
+
+@media screen and (min-width: 1200px) {
+    .left-input {
+        display: inline-block;
+        width: 30%;
+    }
+
+    .right-input {
+        display: inline-block;
+        margin-left: 10%;
+        width: 60%;
+    }
+}
+
+@media screen and (max-width: 767px) {
+    .wideonly {
+        display: none;
+    }
+}
+
+.hidden {
+    display: none !important;
+}
+
+.notificationContainer {
+    font-family: "Segoe UI", "Segoe UI Web (West European)", "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, "Helvetica Neue", sans-serif;
+    -webkit-font-smoothing: antialiased;
+    font-size: 14px;
+    font-weight: 400;
+    color: rgb(50, 49, 48);
+    min-height: 32px;
+    width: 100%;
+    display: flex;
+    word-break: break-word;
+}
+
+.notificationInner {
+    display: flex;
+    flex-grow: 1;
+    -webkit-font-smoothing: antialiased;
+    font-size: 12px;
+    margin: 5px;
+}
+
+.notificationText {
+    margin: auto;
+}
+
+.select2-selection--multiple {
+    padding-left: 3px;
+}
+
+.select2-search textarea::placeholder {
+    color: #999 !important;
+    font-family: 'Segoe UI Web (West European)' !important;
+}
+
+.image-container {
+    padding: 2vh 0px;
+}
+
+.image-container span {
+    display: inline-block;
+    width: 100%;
+    margin: auto;
+    padding: 2px 0px;
+}
+
+.image-label {
+    width: 25%;
+    margin-right: 5%;
+    font-weight: normal !important;
+}
+
+.image-input {
+    width: 70%;
+    margin: auto;
+    float: right;
+}
+
+[contenteditable="true"]:focus {
+    border: none;
+    outline: none;
+}
+
+
+/* Loading symbol */
+#loading-background {
+    position: fixed;
+    padding: 0;
+    margin: 0;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 9999;
+    background: rgba(0,0,0,0.25);
+    display: flex;
+    align-items: center;
+}
+
+
+/* Model validation errors */
+.field-validation-error {
+    color: #ff0000;
+}
+
+.field-validation-valid {
+    display: none;
+}
+
+.input-validation-error {
+    border: 1px solid #ff0000;
+    background-color: #ffeeee;
+}
+
+.validation-summary-errors {
+    font-weight: bold;
+}
+
+    .validation-summary-errors ul {
+        list-style-type: none;
+        margin: auto;
+    }
+
+.validation-summary-valid {
+    display: none;
+}
+
+.display-label,
+.editor-label {
+    margin: 1em 0 0 0;
+}
+
+.display-field,
+.editor-field {
+    margin: 0.5em 0 0 0;
+}
+
+.text-box {
+    width: 30em;
+}
+
+    .text-box.multi-line {
+        height: 6.5em;
+    }
+
+.tri-state {
+    width: 6em;
+}
+
+/* Tooltip */
+
+.tooltip-inner {
+    background-color: white;
+    color: rgb(33, 32, 31);
+    font-weight: 400;
+    border-radius: 0 !important;
+    margin: 0px 4px;
+    opacity: 1;
+    box-shadow: 5px 4px 10px #808080;
+}
+
+.bs-tooltip-top .arrow::before {
+    border-top-color: white !important;
+}
+
+
+/* Table */
+td {
+    vertical-align: middle !important;
+}
+
+.table-scroll {
+    overflow-y: auto;
+    max-height: 60vh;
+    margin-bottom: 1rem;
+    scroll-snap-type: y proximity;
+}
+
+.table-scroll table {
+    margin-bottom: 0;
+}
+
+.table-scroll thead th {
+    background: #eee;
+    position: sticky;
+    z-index: 1;
+    top: 0;
+}
+
+.table-scroll tr {
+    scroll-snap-align: start;
+}
+
+.details-table {
+    empty-cells: show;
+    border-collapse: collapse;
+    width: 100%;
+    margin-bottom: 1rem;
+    table-layout: fixed;
+}
+
+.details-table tbody tr:nth-of-type(odd) td {
+    background: #eee;
+}
+
+.details-table td {
+    border: 1px solid #999;
+    padding: 0.5rem;
+    text-align: left;
+    word-wrap: break-word;
+}
+
+.details-table thead th {
+    background: #333;
+    color: white; 
+    border: 1px solid #999;
+    padding: 0.5rem;
+    text-align: center;
+    word-wrap: break-word;
+}
+
+.details-section {
+    text-align: center !important;
+}
+
+.td-align-right {
+    text-align: right;
+}
+
+/* Cards */
+.cards {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-evenly;
+    align-content: flex-start;
+    gap: 10px;
+    margin: auto;
+    margin-bottom: 1rem;
+}
+
+.card-inner {
+    margin: 4%;
+    text-align: center;
+}
+
+fluent-card {
+    flex-grow: 1;
+    max-width: 21%;
+    height: auto;
+    transition: 0.3s;
+}
+
+fluent-card:hover {
+    box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2);
+}
+
+/* Basic, advanced, expert filters */
+.filter-checkboxes {
+    text-align: center;
+}
+
+.parameters-filter {
+    padding-left: 10px;
+}
+
+/* Tags UI */
+.tag {
+    display: flex;
+}
+
+.tag-key, .tag-value {
+    flex: 50%;
+    margin-right: 5px;
+    margin-bottom: 5px;
+}

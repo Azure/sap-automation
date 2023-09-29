@@ -1,0 +1,78 @@
+# /*----------------------------------------------------------------------------8
+# |                                                                            |
+# |                         PLAYBOOK FOR BOM DOWNLOADER                        |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+---
+# Steps:
+#   01) Process BOM (Validate and Extract)
+#
+
+- hosts:                                localhost
+  name:                                 BOM Downloader Playbook
+  gather_facts:                         true
+  connection:                           local
+  environment:
+    ANSIBLE_COLLECTIONS_PATHS:         "/opt/ansible/collections"
+  become:                               "{{ bom_processing_become }}"
+  become_user:                          "{{ orchestration_ansible_user }}"
+  vars_files:
+    - vars/ansible-input-api.yaml                                               # API Input template with defaults
+
+  tasks:
+# -------------------------------------+---------------------------------------8
+#
+# Build the list of tasks to be executed in order here.
+#
+# -------------------------------------+---------------------------------------8
+
+# -------------------------------------+
+# 20230117 MKD (DynBOM) - BEGIN DELETE
+    # - name: "BOM Downloader: Show the BOM"
+    #   ansible.builtin.debug:
+    #     var: bom_base_name
+
+    # - name: Set the bom tier
+    #   ansible.builtin.set_fact:
+    #     tier: bom
+
+    # - name: "BOM Downloader: Set deployer keyvault name"
+    #   ansible.builtin.set_fact:
+    #     kv_name: "{{ deployer_kv_name }}"
+    #   when: deployer_kv_name is defined
+
+    # - name: "BOM Downloader: Load the keyvault secrets"
+    #   ansible.builtin.include_role:
+    #     name: roles-misc/0.2-kv-secrets
+    #     public: true
+    #   tags:
+    #     - 0.2-kv-secrets
+
+    # - name: "BOM Downloader: Load the storage account details"
+    #   ansible.builtin.include_role:
+    #     name: roles-misc/0.3.sap-installation-media-storage-details
+    #     public: true
+    #   tags:
+    #     - 0.3.sap-installation-media-storage-details
+
+    # - name: "BOM Downloader: Set the preparation tier"
+    #   ansible.builtin.set_fact:
+    #     tier: preparation
+# 20230117 MKD (DynBOM) - END   DELETE
+# -------------------------------------+
+
+    - name:                             "BOM Downloader: Run the bom-validator"
+      ansible.builtin.include_role:
+        name:                           roles-sap/0.1-bom-validator
+      vars:
+        operation:                      "SoftwareAcquisition"
+# -------------------------------------+
+# 20230117 MKD (DynBOM) - BEGIN DELETE
+      # tags:
+      #   - 0.1-bom-validator
+# 20230117 MKD (DynBOM) - END   DELETE
+# -------------------------------------+
+
+# /*---------------------------------------------------------------------------8
+# |                                   END                                      |
+# +------------------------------------4--------------------------------------*/

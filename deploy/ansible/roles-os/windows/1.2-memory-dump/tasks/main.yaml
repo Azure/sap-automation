@@ -1,0 +1,92 @@
+# /*----------------------------------------------------------------------------8
+# |                                                                            |
+# |                         Configure Memory Dump                              |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+---
+# Set Registry Values
+- name:                               "Set Registry Values"
+  ansible.windows.win_regedit:
+    path:                             HKLM:\System\CurrentControlSet\Control\CrashControl
+    name:                             "{{ item }}"
+    type:                             dword
+    data:                             1
+    state:                            present
+  loop:
+    - EnableLogFile
+    - DumpLogLevel
+    - AutoReboot
+
+# -------------------------------------+---------------------------------------8
+# Auto Reboot Enabled
+# -------------------------------------+---------------------------------------8
+
+- name:                               "Check if auto-reboot is enabled"
+  ansible.windows.win_shell: |
+                                      Get-WmiObject -Class Win32_OSRecoveryConfiguration | Select-Object -ExpandProperty AutoReboot
+  register:                           auto_reboot_enabled
+
+- name:                               "Enable AutoReboot"
+  ansible.windows.win_shell: |
+                                      (Get-WmiObject -Class Win32_OSRecoveryConfiguration) | Set-WmiInstance -Arguments @{ AutoReboot= $True}
+  when:                               (auto_reboot_enabled.stdout | trim) == "False"
+
+- name:                               "Print AutoReboot status"
+  ansible.builtin.debug:
+    msg:                              "AutoReboot already enabled"
+  when:                               (auto_reboot_enabled.stdout | trim) == "True"
+
+- name:                               "Print AutoReboot status"
+  ansible.builtin.debug:
+    msg:                              "AutoReboot Enabled"
+  when:                               (auto_reboot_enabled.stdout | trim) == "False"
+
+# -------------------------------------+---------------------------------------8
+# Enable Complete Memory Dump
+# -------------------------------------+---------------------------------------8
+
+- name:                               "Check if complete memory dump is enabled"
+  ansible.windows.win_shell: |
+                                      Get-WmiObject -Class Win32_OSRecoveryConfiguration | Select-Object -ExpandProperty DebugInfoType
+  register:                           memory_dump_enabled
+
+- name:                               "Enable Complete Memory Dump"
+  ansible.windows.win_shell: |
+                                      (Get-WmiObject -Class Win32_OSRecoveryConfiguration) | Set-WmiInstance -Arguments @{ DebugInfoType=1 }
+  when:                               (memory_dump_enabled.stdout | trim) != '1'
+
+- name:                               "Print Memory Dump status"
+  ansible.builtin.debug:
+    msg:                              "Complete Memory Dump already enabled"
+  when:                               (memory_dump_enabled.stdout | trim) == '1'
+
+- name:                               "Print Memory Dump status"
+  ansible.builtin.debug:
+    msg:                              "Complete Memory Dump enabled"
+  when:                               (memory_dump_enabled.stdout | trim) != '1'
+
+# -------------------------------------+---------------------------------------8
+# Set Memory Dump Location
+# -------------------------------------+---------------------------------------8
+- name:                               "Create MemoryDump Directory"
+  ansible.windows.win_file:
+    path:                             C:\MemoryDump
+    state:                            directory
+
+- name:                               "Set Memory Dump Location"
+  ansible.windows.win_shell: |
+                                      (Get-WmiObject -Class Win32_OSRecoveryConfiguration) | Set-WmiInstance -Arguments @{ DebugFilePath= 'C:\MemoryDump\MEMORY.DMP'}
+  register:                           memory_dump_location
+
+- name:                               "Print Memory Dump Location"
+  ansible.builtin.debug:
+    msg:                              "MemoryDump Location changed to {{ memory_dump_location.stdout_lines[3].split()[0] }}"
+
+# -------------------------------------+---------------------------------------8
+# Start Remote Registry Service
+# -------------------------------------+---------------------------------------8
+- name:                               "Start Remote Registry Service"
+  ansible.windows.win_service:
+    name:                             RemoteRegistry
+    state:                            started
+...

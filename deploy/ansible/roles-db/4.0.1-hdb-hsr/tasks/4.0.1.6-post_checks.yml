@@ -1,0 +1,24 @@
+---
+
+- name:                                "HANA HSR: - Ensure replication status is active"
+  become_user:                         "{{ db_sid_admin_user }}"
+  become:                              true
+  # Note: ideally we should be using set -o pipefail here (see for example https://xanmanning.co.uk/2019/03/21/ansible-lint-rule-306.html).
+  # However, the python script returns a status of 15 (!), which breaks the pipeline. Consequently,
+  # no pipefail option and elect to skip Ansible linting of this task.
+  ansible.builtin.shell: |
+    set -o pipefail
+    cdpy
+    (python systemReplicationStatus.py; echo) | grep -q 'overall system replication status: ACTIVE'
+  register:                            grep_result
+  until:                               grep_result.rc == 0 or grep_result.rc == 1
+  failed_when:                         grep_result.rc != 0 and grep_result.rc != 1
+  changed_when:                        false
+  retries:                             10
+  delay:                               5
+  when:                                ansible_hostname == primary_instance_name
+
+- name:                                "HANA HSR: - Debug replication"
+  ansible.builtin.debug:
+    var:                               grep_result
+    verbosity:                         2

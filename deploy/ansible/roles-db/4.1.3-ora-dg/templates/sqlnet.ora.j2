@@ -1,0 +1,16 @@
+################
+# Filename......: sqlnet.ora
+# Created.......: created by SAP AG, R/3 Rel. >= 6.10
+# Name..........:
+# Date..........:
+# @(#) $Id: //inst/inst_scripts/lmts_006_REL/tpls/ora/SQLNET.ORA#2 $
+################
+AUTOMATIC_IPC = ON
+TRACE_LEVEL_CLIENT = OFF
+NAMES.DEFAULT_DOMAIN = WORLD
+# 05.01.06 set the default to 10 
+SQLNET.EXPIRE_TIME = 10
+# 05.01.06 set to default 
+#TCP.NODELAY=YES 
+# 05.01.06 set to 32768 
+DEFAULT_SDU_SIZE=32768

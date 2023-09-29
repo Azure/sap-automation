@@ -1,0 +1,44 @@
+#--------------------------------------+---------------------------------------8
+#                                                                              |
+# Defines the parameters and variables for the System and Workload removal     |
+#                                                                              |
+#--------------------------------------+---------------------------------------8
+
+
+parameters:
+  deployer_environment: ''
+  workload_environment: ''
+  workload_zone: ''
+  sap_system: ''
+
+variables:
+  - group:                             "SDAF-General"
+  - group:                             SDAF-${{ parameters.deployer_environment }}
+  - group:                             SDAF-${{ parameters.workload_environment }}
+
+  - name:                              parent_variable_group
+    value:                             SDAF-${{ parameters.deployer_environment }}
+
+  - name:                              run_on
+    value:                             $[lower(coalesce(variables['POOL'], variables['Agent']))]
+
+  - name:                              variable_group
+    value:                             SDAF-${{ parameters.workload_environment }}
+
+  - name:                              workload_zone_folder
+    value:                             ${{ parameters.workload_zone }}
+
+  - name:                              workload_zone_configuration_file
+    value:                             ${{ parameters.workload_zone }}.tfvars
+
+  - name:                              sap_system_folder
+    value:                             ${{ parameters.sap_system }}
+
+  - name:                              sap_system_configuration
+    value:                             ${{ parameters.sap_system }}.tfvars
+
+  - name:                              tf_url
+    value:                             https://releases.hashicorp.com/terraform/$(tf_version)/terraform_$(tf_version)_linux_amd64.zip
+
+  - name:                              this_agent
+    value:                             $[lower(coalesce(variables['POOL'], variables['Agent']))]

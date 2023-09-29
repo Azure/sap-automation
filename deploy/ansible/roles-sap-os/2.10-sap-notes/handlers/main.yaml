@@ -1,0 +1,6 @@
+# ---
+
+- name:                                "2.10-sap-notes: Reboot after the selinux is configured"
+  ansible.builtin.reboot:
+    reboot_timeout:                    300
+# ...

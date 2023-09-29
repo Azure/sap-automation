@@ -1,0 +1,153 @@
+@model AutomationForm.Models.FormViewModel<SystemModel>
+
+@{
+    ViewBag.Title = "Install SAP";
+    ViewData["environment"] = Model.SapObject.environment;
+    IEnumerable<SelectListItem> environments = ViewBag.Environments;
+    IEnumerable<SelectListItem> acssEnvs = new List<SelectListItem>
+    {
+        new SelectListItem { Text = "", Value = "" },
+        new SelectListItem { Text = "NonProd", Value = "NonProd" },
+        new SelectListItem { Text = "Prod", Value = "Prod" }
+    };
+    IEnumerable<SelectListItem> acssSystems = new List<SelectListItem>
+    {
+        new SelectListItem { Text = "", Value = "" },
+        new SelectListItem { Text = "ECC", Value = "ECC" },
+        new SelectListItem { Text = "Other", Value = "Other" }
+    };
+}
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script type="text/javascript">
+
+    window.onload = function () {
+        $(".js-example-placeholder-single").select2({
+            placeholder: "Search...",
+            allowClear: true,
+            tags: true
+        });
+
+        toggleNullParameters();
+    }
+
+</script>
+
+<fluent-breadcrumb>
+    <fluent-breadcrumb-item href="@Url.Action("Index", "Home")">Home</fluent-breadcrumb-item>
+    <fluent-breadcrumb-item href="@Url.Action("Index", "System")">Systems</fluent-breadcrumb-item>
+    <fluent-breadcrumb-item href="#">Install</fluent-breadcrumb-item>
+</fluent-breadcrumb>
+
+<div class="text-center">
+    <h2>Install SAP</h2>
+</div>
+
+<h4>Are you sure you want to install SAP using System @Model.SapObject.Id?</h4>
+<div>
+    @await Html.PartialAsync("_DetailsPartial", Model)
+
+    @using (Html.BeginForm())
+    {
+        @Html.AntiForgeryToken()
+        <div class="ms-TextField">
+            <div class="left-input">
+                @Html.Label("sap_system_configuration_name", "SAP System", new { @class = $"ms-Label required" })
+                <p>SAP System configuration name</p>
+            </div>
+
+            <div class="right-input">
+                @Html.TextBox("sap_system_configuration_name", Model.SapObject.Id, new { @class = "ms-TextField-field", @onkeyup = $"toggleDisableViaNInputs(['sap_system_configuration_name', 'environment', 'bom_base_name'], 'confirm-install-system-checkbox')" })
+            </div>
+        </div>
+
+        <div class="ms-TextField">
+            <div class="left-input">
+                @Html.Label("environment", "Workload Environment", new { @class = $"ms-Label required" })
+                <p>Please specify the workload environment to deploy to (DEV, QA, PRD, ...)</p>
+            </div>
+
+            <div class="right-input">
+                @Html.DropDownList("environment", environments, new { @class = "js-example-placeholder-single", @style = "width: 100%;", @onchange = $"toggleDisableViaNInputs(['sap_system_configuration_name', 'environment', 'bom_base_name'], 'confirm-install-system-checkbox')" })
+            </div>
+        </div>
+
+        <div class="ms-TextField">
+            <div class="left-input">
+                @Html.Label("bom_base_name", "Bill of Materials name", new { @class = $"ms-Label required" })
+                <p>Bill of materials name</p>
+            </div>
+
+            <div class="right-input">
+                @Html.TextBox("bom_base_name", Model.SapObject.bom_name, new { @class = "ms-TextField-field", @onkeyup = $"toggleDisableViaNInputs(['sap_system_configuration_name', 'environment', 'bom_base_name'], 'confirm-install-system-checkbox')" })
+            </div>
+        </div>
+
+        <div class="ms-TextField">
+            <div class="left-input">
+                @Html.Label("extra_params", "Extra Parameters", new { @class = $"ms-Label" })
+                <p>Extra parameters</p>
+            </div>
+
+            <div class="right-input">
+                @Html.TextBox("extra_params", "", new { @class = "ms-TextField-field" })
+            </div>
+        </div>
+
+        @Html.EditorForModel("Checkbox", new { ParameterName = "base_os_configuration", DisplayName = "Core Operating System Configuration", IsChecked = true })
+
+        @Html.EditorForModel("Checkbox", new { ParameterName = "sap_os_configuration", DisplayName = "SAP Operating System Configuration", IsChecked = true })
+
+        @Html.EditorForModel("Checkbox", new { ParameterName = "bom_processing", DisplayName = "Software Acquisition", IsChecked = true })
+
+        @Html.EditorForModel("Checkbox", new { ParameterName = "database_install", DisplayName = "Database Installation", IsChecked = true })
+
+        @Html.EditorForModel("Checkbox", new { ParameterName = "scs_installation", DisplayName = "SCS Installation", IsChecked = true })
+
+        @Html.EditorForModel("Checkbox", new { ParameterName = "db_load", DisplayName = "Database Load", IsChecked = true })
+
+        @Html.EditorForModel("Checkbox", new { ParameterName = "high_availability_configuration", DisplayName = "SAP & DB High Availability Setup", IsChecked = true })
+
+        @Html.EditorForModel("Checkbox", new { ParameterName = "pas_installation", DisplayName = "PAS Installation", IsChecked = true })
+
+        @Html.EditorForModel("Checkbox", new { ParameterName = "application_server_installation", DisplayName = "APP Installation", IsChecked = true })
+
+        @Html.EditorForModel("Checkbox", new { ParameterName = "webdispatcher_installation", DisplayName = "WebDispatcher Installation", IsChecked = false })
+
+        @Html.EditorForModel("Checkbox", new { ParameterName = "acss_registration", DisplayName = "Register System in ACSS", IsChecked = true })
+
+        <div class="ms-TextField">
+            <div class="left-input">
+                @Html.Label("acss_environment", "ACSS Prod/NonProd", new { @class = $"ms-Label required" })
+            </div>
+
+            <div class="right-input">
+                @Html.DropDownList("acss_environment", acssEnvs , new { @class = "js-example-placeholder-single", @style = "width: 100%;", @onchange = $"toggleDisableViaNInputs(['sap_system_configuration_name', 'environment', 'bom_base_name', 'acss_environment', 'acss_sap_product'], 'confirm-install-system-checkbox')" })
+            </div>
+        </div>
+
+        <div class="ms-TextField">
+            <div class="left-input">
+                @Html.Label("acss_sap_product", "SystemType", new { @class = $"ms-Label required" })
+            </div>
+
+            <div class="right-input">
+                @Html.DropDownList("acss_sap_product", acssSystems, new { @class = "js-example-placeholder-single", @style = "width: 100%;", @onchange = $"toggleDisableViaNInputs(['sap_system_configuration_name', 'environment', 'bom_base_name', 'acss_environment', 'acss_sap_product'], 'confirm-install-system-checkbox')" })
+            </div>
+        </div>
+
+
+
+
+        <fluent-checkbox id="confirm-install-system-checkbox" onchange="toggleDisableViaCheckbox(this, 'install-system-button')" disabled>I confirm that I wish to install SAP on this system</fluent-checkbox><br />
+
+        <fluent-button id="install-system-button" appearance="accent" value="Install" type="submit" disabled>
+            <i class="ms-Icon ms-Icon--Installation" aria-hidden="true"></i> Install
+        </fluent-button>
+
+        <fluent-anchor href="@Url.Action("Index", "System")">
+            Cancel
+        </fluent-anchor>
+
+    }
+</div>

@@ -1,0 +1,476 @@
+---
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                                Admin Users                                 |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+# -------------------------------------+---------------------------------------8
+# 'admin_accounts' specifies a list of hashes/dictionaries outlining the
+# settings to be used when creating/managing admin groups
+# -------------------------------------+---------------------------------------8
+
+# Create User Groups for SAP:
+#   sapsys - once defined, typically remains constant across all systems. Used
+#   for file access in shared directories between SID's.
+#
+#   sapinst - typically only used durring install, and removed after. Potentially
+#   can be depracated.
+#
+
+admin_groups:
+  - name:         example
+    gid:          "2000"
+    state:        present
+    tier:         example
+    enabled:      true
+    node_tier:    none
+
+  - name:         sapsys
+    gid:          "{{ sapsys_gid }}"
+    state:        present
+    tier:         os
+    enabled:      true
+    node_tier:    all
+
+  - name:         sapinst
+    gid:          "{{ sapinst_gid }}"
+    state:        present
+    tier:         os
+    enabled:      true
+    node_tier:    all
+
+  # Admin groups for DB2
+  - name:         db{{ db_sid | lower }}adm
+    gid:          "{{ db2sysadm_gid }}"
+    state:        present
+    tier:         db2
+    enabled:      true
+    node_tier:    db2
+
+  - name:         db{{ db_sid | lower }}ctl
+    gid:          "{{ db2sysctrl_gid }}"
+    state:        present
+    tier:         db2
+    enabled:      true
+    node_tier:    db2
+
+  - name:         db{{ db_sid | lower }}mnt
+    gid:          "{{ db2sysmaint_gid }}"
+    state:        present
+    tier:         db2
+    enabled:      true
+    node_tier:    db2
+
+  - name:         db{{ db_sid | lower }}mon
+    gid:          "{{ db2sysmon_gid }}"
+    state:        present
+    tier:         db2
+    enabled:      true
+    node_tier:    db2
+
+# Admin groups for ASE
+  - name:         "sybadm"
+    gid:          "{{ asesysadm_gid }}"
+    state:        present
+    tier:         sapos
+    enabled:      true
+    node_tier:    sybase
+
+  - name:         db{{ db_sid | lower }}adm
+    gid:          "{{ asedbadm_gid }}"
+    state:        present
+    tier:         sapos
+    enabled:      true
+    node_tier:    sybase
+
+  # Admin groups for Oracle Non-ASM
+  - name:         dba
+    gid:          "{{ dba_gid }}"
+    state:        present
+    tier:         ora
+    enabled:      true
+    node_tier:    oracle
+
+  - name:         oper
+    gid:          "{{ oper_gid }}"
+    state:        present
+    tier:         ora
+    enabled:      true
+    node_tier:    oracle
+
+  - name:         asmoper
+    gid:          "{{ asmoper_gid }}"
+    state:        present
+    tier:         ora
+    enabled:      true
+    node_tier:    oracle
+
+  - name:         asmadmin
+    gid:          "{{ asmadmin_gid }}"
+    state:        present
+    tier:         ora
+    enabled:      true
+    node_tier:    oracle
+
+  - name:         asmdba
+    gid:          "{{ asmdba_gid }}"
+    state:        present
+    tier:         ora
+    enabled:      true
+    node_tier:    oracle
+
+  - name:         oinstall
+    gid:          "{{ oinstall_gid }}"
+    state:        present
+    tier:         ora
+    enabled:      true
+    node_tier:    oracle
+
+# Admin groups for Oracle ASM
+  - name:         dba
+    gid:          "{{ dba_gid }}"
+    state:        present
+    tier:         ora
+    enabled:      true
+    node_tier:    oracle-asm
+
+  - name:         oper
+    gid:          "{{ oper_gid }}"
+    state:        present
+    tier:         ora
+    enabled:      true
+    node_tier:    oracle-asm
+
+  - name:         asmoper
+    gid:          "{{ asmoper_gid }}"
+    state:        present
+    tier:         ora
+    enabled:      true
+    node_tier:    oracle-asm
+
+  - name:         asmadmin
+    gid:          "{{ asmadmin_gid }}"
+    state:        present
+    tier:         ora
+    enabled:      true
+    node_tier:    oracle-asm
+
+  - name:         asmdba
+    gid:          "{{ asmdba_gid }}"
+    state:        present
+    tier:         ora
+    enabled:      true
+    node_tier:    oracle-asm
+
+  - name:         oinstall
+    gid:          "{{ oinstall_gid }}"
+    state:        present
+    tier:         ora
+    enabled:      true
+    node_tier:    oracle-asm
+
+# Admin groups for Oracle Non-ASM Multi-SID
+  - name:         dba
+    gid:          "{{ dba_gid }}"
+    state:        present
+    tier:         ora
+    enabled:      true
+    node_tier:    oracle-multi-sid
+
+  - name:         oper
+    gid:          "{{ oper_gid }}"
+    state:        present
+    tier:         ora
+    enabled:      true
+    node_tier:    oracle-multi-sid
+
+  - name:         asmoper
+    gid:          "{{ asmoper_gid }}"
+    state:        present
+    tier:         ora
+    enabled:      true
+    node_tier:    oracle-multi-sid
+
+  - name:         asmadmin
+    gid:          "{{ asmadmin_gid }}"
+    state:        present
+    tier:         ora
+    enabled:      true
+    node_tier:    oracle-multi-sid
+
+  - name:         asmdba
+    gid:          "{{ asmdba_gid }}"
+    state:        present
+    tier:         ora
+    enabled:      true
+    node_tier:    oracle-multi-sid
+
+  - name:         oinstall
+    gid:          "{{ oinstall_gid }}"
+    state:        present
+    tier:         ora
+    enabled:      true
+    node_tier:    oracle-multi-sid
+
+
+  # Users Groups on the Observer node
+  - name:         dba
+    gid:          "{{ dba_gid }}"
+    state:        present
+    tier:         ora
+    enabled:      true
+    node_tier:    observer
+
+  - name:         oper
+    gid:          "{{ oper_gid }}"
+    state:        present
+    tier:         ora
+    enabled:      true
+    node_tier:    observer
+
+  - name:         asmoper
+    gid:          "{{ asmoper_gid }}"
+    state:        present
+    tier:         ora
+    enabled:      true
+    node_tier:    observer
+
+  - name:         asmadmin
+    gid:          "{{ asmadmin_gid }}"
+    state:        present
+    tier:         ora
+    enabled:      true
+    node_tier:    observer
+
+  - name:         asmdba
+    gid:          "{{ asmdba_gid }}"
+    state:        present
+    tier:         ora
+    enabled:      true
+    node_tier:    observer
+
+  - name:         oinstall
+    gid:          "{{ oinstall_gid }}"
+    state:        present
+    tier:         ora
+    enabled:      true
+    node_tier:    observer
+
+# -------------------------------------+---------------------------------------8
+#
+# 'admin_users' specifies a list of hashes/dictionaries outlining the
+# settings to be used when creating/managing admin user accounts
+#
+# -------------------------------------+---------------------------------------8
+
+admin_users:
+  - name:         example
+    comment:      "Example User"
+    uid:          "2000"
+    group:        example
+    groups:       ["users","adm"]
+    sudoers_role: "admin_no_password"
+    shell:        /bin/bash
+    password:     "some_password_string"
+    state:        present
+    tier:         example
+    enabled:      true
+    node_tier:    none
+
+# SYBASE users and groups will be created as part of the generic install process
+
+#  - name:         "sybase"
+#    comment:      "SAP System Administrator"
+#    uid:          "{{ asesapsid_uid }}"
+#    group:        "sybadm"
+#    groups:       ["sapsys","sapinst"]
+#    password:     "{{ main_password }}"
+#    sudoers_role: "admin_no_password"
+#    shell:        /bin/csh
+#    state:        present
+#    tier:         sapos
+#    node_tier:    sybase
+#    enabled:      true
+
+#  - name:         "syb{{ sap_sid | lower }}"
+#    comment:      "SAP ASE Database Administrator"
+#    uid:          "{{ asesidadm_uid }}"
+#    group:        "sapinst"
+#    groups:       ["sapsys","sapinst","db{{ db_sid | lower }}adm"]
+#    password:     "{{ main_password }}"
+#    sudoers_role: "admin_no_password"
+#    shell:        /bin/csh
+#    state:        present
+#    tier:         sapos
+#    node_tier:    sybase
+#    enabled:      true
+
+#  - name:         "{{ sap_sid | lower }}adm"
+#    comment:      "SAP System Administrator"
+#    uid:          "{{ sidadm_uid }}"
+#    group:        sapsys
+#    groups:       ["sapsys"]
+#    password:     "some_password_string"
+#    sudoers_role: "admin_no_password"
+#    shell:        /bin/csh
+#    state:        present
+#    tier:         sapos
+#    node_tier:    all
+#    enabled:      true
+
+# DB2 users and groups will be created as part of the generic install process
+#  - name:         "db2{{ sap_sid| lower }}adm"
+#    comment:      "SAP System Administrator"
+#    uid:          "{{ sidadm_uid }}"
+#    group:        "{{ db{{ db_sid | lower }}adm }}"
+#    groups:       ["db{{ db_sid | lower }}ctl", "db{{ db_sid | lower }}mnt", "db{{ db_sid | lower }}mon"]
+#    password:     "{{ main_password }}"
+#    sudoers_role: "admin_no_password"
+#    shell:        /bin/csh
+#    state:        present
+#    tier:         sapos
+#    node_tier:    db2
+#    enabled:      true
+
+# Admin users for Oracle Non-ASM
+
+  - name:         "ora{{ db_sid | lower }}"
+    comment:      "Oracle Database System Administrator"
+    uid:          "{{ orasid_uid }}"
+    group:        dba
+    groups:       ["oper","sapinst","oinstall"]
+    sudoers_role: "admin_no_password"
+    password:     "{{ main_password }}"
+    shell:        /bin/csh
+    state:        present
+    tier:         ora
+    node_tier:    oracle
+    enabled:      true
+
+  - name:         "oracle"
+    comment:      "Oracle Database software Administrator"
+    uid:          "{{ oracle_uid }}"
+    group:        oinstall
+    groups:       ["oper", "sapsys", "sapinst", "asmdba", "dba", "asmadmin", "asmoper"]
+    sudoers_role: "admin_no_password"
+    password:     "{{ main_password }}"
+    shell:        /bin/csh
+    state:        present
+    tier:         ora
+    node_tier:    oracle
+    enabled:      true
+
+  - name:         "oracle"
+    comment:      "Oracle Database software Administrator"
+    uid:          "{{ oracle_uid }}"
+    group:        oinstall
+    groups:       ["oper","sapsys","sapinst","asmdba","dba","asmadmin","asmoper"]
+    sudoers_role: "admin_no_password"
+    password:     "{{ main_password }}"
+    shell:        /bin/csh
+    state:        present
+    tier:         ora
+    node_tier:    observer
+    enabled:      true
+
+  - name:         "observer"
+    comment:      "Oracle observer"
+    uid:          "{{ observer_uid }}"
+    group:        oinstall
+    groups:       ["oper","sapsys","sapinst","asmdba","dba","asmadmin","asmoper"]
+    sudoers_role: "admin_no_password"
+    password:     "{{ main_password }}"
+    shell:        /bin/csh
+    state:        present
+    tier:         ora
+    node_tier:    observer
+    enabled:      true
+
+# ####
+# Admin users for Oracle Non-ASM Multi-SID
+
+  # - name:         "ora{{ sap_sid | lower }}"
+  #   comment:      "Oracle Database System Administrator"
+  #   uid:          "{{ orasid_uid }}"
+  #   group:        dba
+  #   groups:       ["oper","sapinst","oinstall"]
+  #   sudoers_role: "admin_no_password"
+  #   password:     "{{ main_password }}"
+  #   shell:        /bin/csh
+  #   state:        present
+  #   tier:         ora
+  #   node_tier:    oracle-multi-sid
+  #   enabled:      true
+
+  - name:         "oracle"
+    comment:      "Oracle Database software Administrator"
+    uid:          "{{ oracle_uid }}"
+    group:        oinstall
+    groups:       ["oper","sapsys","sapinst","asmdba","dba","asmadmin","asmoper"]
+    sudoers_role: "admin_no_password"
+    password:     "{{ main_password }}"
+    shell:        /bin/csh
+    state:        present
+    tier:         ora
+    node_tier:    oracle-multi-sid
+    enabled:      true
+
+  # Admin users for Oracle ASM
+
+  - name:         "ora{{ sap_sid | lower }}"
+    comment:      "Oracle Database System Administrator"
+    uid:          "{{ orasid_uid }}"
+    group:        dba
+    groups:       ["oper","sapinst","oinstall"]
+    sudoers_role: "admin_no_password"
+    password:     "{{ main_password }}"
+    shell:        /bin/csh
+    state:        present
+    tier:         ora
+    node_tier:    oracle-asm
+    enabled:      true
+
+  - name:         "oracle"
+    comment:      "Oracle Database software Administrator"
+    uid:          "{{ oracle_uid }}"
+    group:        oinstall
+    groups:       ["oper", "sapsys", "sapinst", "asmdba", "dba", "asmadmin", "asmoper"]
+    sudoers_role: "admin_no_password"
+    password:     "{{ main_password }}"
+    shell:        /bin/csh
+    state:        present
+    tier:         ora
+    node_tier:    oracle-asm
+    enabled:      true
+
+# Admin users for Observer
+
+  - name:         "ora{{ sap_sid | lower }}"
+    comment:      "Oracle Database System Administrator"
+    uid:          "{{ orasid_uid }}"
+    group:        dba
+    groups:       ["oper","sapinst","oinstall"]
+    sudoers_role: "admin_no_password"
+    password:     "{{ main_password }}"
+    shell:        /bin/csh
+    state:        present
+    tier:         ora
+    node_tier:    observer
+    enabled:      true
+
+
+  - name:         "oracle"
+    comment:      "Oracle Database software Administrator"
+    uid:          "{{ oracle_uid }}"
+    group:        oinstall
+    groups:       ["oper", "sapsys", "sapinst", "asmdba", "dba", "asmadmin", "asmoper"]
+    sudoers_role: "admin_no_password"
+    password:     "{{ main_password }}"
+    shell:        /bin/csh
+    state:        present
+    tier:         ora
+    node_tier:    observer
+    enabled:      true
+
+...

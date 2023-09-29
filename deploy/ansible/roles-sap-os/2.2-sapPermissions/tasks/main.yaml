@@ -1,0 +1,22 @@
+---
+- name:                                "2.2 SAP Permissions : check SAP users are created"
+  ansible.builtin.stat:
+    path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}/user_created.txt"
+  register:                            users_created
+
+- name:                                "2.2 SAP Permissions: - Directory Permissions"
+  ansible.builtin.file:
+    path:                              "{{ item.path }}"
+    owner:                             "{{ item.owner }}"
+    group:                             "{{ item.group }}"
+    mode:                              "{{ item.mode }}"
+    state:                             "{{ item.state }}"
+    recurse:                           true
+  loop:
+    - { node_tier: 'hana', path: '/hana', mode: '0755', owner: 'root', group: 'root',   state: 'directory' }
+    - { node_tier: 'pas', path: '/sapmnt', mode: '0755', owner: 'root', group: 'sapsys', state: 'directory' }
+    - { node_tier: 'app', path: '/sapmnt', mode: '0755', owner: 'root', group: 'sapsys', state: 'directory' }
+  when:
+    - item.node_tier == "all" or item.node_tier == node_tier
+    - not users_created.stat.exists
+...

@@ -1,0 +1,61 @@
+---
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |               Task: 1.11    - Enable sudo settings for SAP HANA PythonHook |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+# -------------------------------------+---------------------------------------8
+#
+# To be able to template sudoers_role specific /etc/sudoers.d/<filename>
+# files with variables loaded from a sudoers role specific vars file, if
+# it exists, we need to implement that work flow in this task list which
+# is used by a loop'd include_tasks action in the main.yml.
+#
+# Required variables when including this task list:
+#   * hanasudoers_file - the file name to create a sudoers.d file;
+#                    must be specified and must be a valid user name
+#                    This file will have the db_sid entry required for
+#                    clustering
+#   * hanasudoers_role - the type of sudoers entry to create; optional
+#                    defaulting to 'hanaadmin_no_password'. Specified
+#                    value must match the name of a template file
+#                    in the templates directory, and optionally a
+#                    vars file in the vars directory.
+#
+# -------------------------------------+---------------------------------------8
+#
+
+- name:                                Create sudoers file for {{ hanasudoers_file }} with role {{ hanasudoers_role }} if required
+  ansible.builtin.debug:
+    msg:                               "{{ sudoers_path }}/{{ hanasudoers_file }}"
+    verbosity:                         2
+
+- name: Debug hanasudoers
+  ansible.builtin.debug:
+    msg:                               "sudoers_{{ hanasudoers_role }}.j2"
+    verbosity:                         2
+
+- name:                                Create sudoers file for {{ hanasudoers_file }} with role {{ hanasudoers_role }} if required
+  ansible.builtin.template:
+    src:                               sudoers_{{ hanasudoers_role }}.j2
+    dest:                              "{{ sudoers_path }}/{{ hanasudoers_file }}"
+    mode:                              0440
+    owner:                             root
+    group:                             root
+    validate:                          /usr/sbin/visudo -cf %s
+  when:
+    - sudoers_state == "present"
+    - not ansible_os_family | upper == "SUSE"
+
+- name:                                Create sudoers file for {{ hanasudoers_file }} with role {{ hanasudoers_role }} if required
+  ansible.builtin.template:
+    src:                               sudoers_{{ hanasudoers_role }}_SUSE.j2
+    dest:                              "{{ sudoers_path }}/{{ hanasudoers_file }}"
+    mode:                              0440
+    owner:                             root
+    group:                             root
+    validate:                          /usr/sbin/visudo -cf %s
+  when:
+    - sudoers_state == "present"
+    - ansible_os_family | upper == "SUSE"

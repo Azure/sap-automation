@@ -1,0 +1,80 @@
+---
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |      This pipeline removes the SAP systems, the workload zone (landscape)  |
+# |      and the region via ARM resource group deletion.                       |
+# |                                                                            |
+# |      The pipeline can be used as fallback in case the terraform            |
+# |      destroy doesn't remove everything.                                    |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+name: Remove deployment
+parameters:
+  - name: cleanup_sap
+    displayName: Remove the SAP system
+    type: boolean
+    default: true
+
+  - name: sap_system
+    displayName: "SAP System configuration name, use this format: ENV-LOCA-VNET-SID"
+    type: string
+    default: DEV-WEEU-SAP01-X00
+
+  - name: cleanup_workload_zone
+    displayName: Remove the SAP workload zone
+    type: boolean
+    default: true
+
+  - name: workload_zone
+    displayName: "SAP workload zone configuration name, use this format: ENV-LOCA-VNET-INFRASTRUCTURE"
+    type: string
+    default: DEV-WEEU-SAP01-INFRASTRUCTURE
+
+  - name: cleanup_control_plane
+    displayName: Remove the control plane
+    type: boolean
+    default: true
+
+  - name: deployer
+    displayName: "Deployer configuration name, use this format: ENV-LOCA-VNET-INFRASTRUCTURE"
+    type: string
+    default: MGMT-WEEU-DEP00-INFRASTRUCTURE
+
+  - name: library
+    displayName: "Library configuration name, use this format: ENV-LOCA-SAP_LIBRARY"
+    type: string
+    default: MGMT-WEEU-SAP_LIBRARY
+
+  - name: workload_environment
+    displayName: Workload Environment (DEV, QUA, PRD, ...)
+    type: string
+    default: DEV
+
+  - name: deployer_environment
+    displayName: Deployer Environment name (MGMT, DEV, QA, PRD, ...)
+    type: string
+    default: MGMT
+
+trigger: none
+
+pool:
+  vmImage: ubuntu-latest
+
+extends:
+  template: ./resources.yml
+  parameters:
+    stages:
+      - template: deploy\pipelines\11-remover-arm-fallback.yaml@sap-automation
+        parameters:
+          sap_automation_repo_path: $(Build.SourcesDirectory)/sap-automation
+          config_repo_path: $(Build.SourcesDirectory)/config
+          cleanup_sap: ${{ parameters.cleanup_sap }}
+          sap_system: ${{ parameters.sap_system }}
+          cleanup_workload_zone: ${{ parameters.cleanup_workload_zone }}
+          workload_zone: ${{ parameters.workload_zone }}
+          cleanup_control_plane: ${{ parameters.cleanup_control_plane }}
+          deployer: ${{ parameters.deployer }}
+          library: ${{ parameters.library }}
+          workload_environment_parameter: ${{ parameters.workload_environment }}
+          deployer_environment_parameter: ${{ parameters.deployer_environment }}

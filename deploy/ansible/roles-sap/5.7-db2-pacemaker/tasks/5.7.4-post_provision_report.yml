@@ -1,0 +1,34 @@
+---
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# | Post processing - TBC - pending for DB2 - the whole playbook needs         |
+# | adapting for DB2 resources                                                 |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+- name:                                Pause to give cluster time to stabilize
+  ansible.builtin.pause:
+    seconds:                           "{{ cluster_status_report_wait_in_s }}"
+
+- name:                                Check the post-provisioning cluster status
+  ansible.builtin.command:             "{{ cluster_status_cmd[ansible_os_family] }}"
+  register:                            cluster_status_report
+  changed_when:                        false
+  failed_when:                         false
+
+- name:                                Output cluster status
+  ansible.builtin.debug:
+    msg:                               "{{ cluster_status_report.stdout }}"
+
+- name:                                Check the SBD devices status
+  ansible.builtin.shell:               set -o pipefail && crm_mon -1 | grep sbd
+  register:                            sbd_status_report
+  changed_when:                        false
+  failed_when:                         false
+  when:                                ansible_os_family == 'Suse'
+
+- name:                                Output SBD status
+  ansible.builtin.debug:
+    msg:                               "{{ sbd_status_report.stdout }}"
+    verbosity:                         2
+  when:                                ansible_os_family == 'Suse'

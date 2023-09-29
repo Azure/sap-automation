@@ -1,0 +1,509 @@
+{
+    "db": {
+        "512": {
+            "compute": {
+                "vm_size"               : "Standard_E8ds_v5",
+                "accelerated_networking"       : true
+
+            },
+            "storage": [
+                {
+                    "name"              : "os",
+                    "fullname"          : "",
+                    "count"             : 1,
+                    "disk_type"         : "Premium_LRS",
+                    "size_gb"           : 128,
+                    "caching"           : "ReadWrite"
+                },
+                {
+                    "name"              : "sap",
+                    "fullname"          : "",
+                    "count"             : 1,
+                    "disk_type"         : "Premium_LRS",
+                    "size_gb"           : 128,
+                    "caching"           : "ReadOnly",
+                    "write_accelerator" : false,
+                    "lun_start"         : 0
+                },
+                {
+                    "name"              : "sapdata1",
+                    "fullname"          : "",
+                    "count"             : 1,
+                    "disk_type"         : "Premium_LRS",
+                    "size_gb"           : 64,
+                    "caching"           : "ReadOnly",
+                    "write_accelerator" : false,
+                    "lun_start"         : 5
+                },
+                {
+                    "name"              : "sapdata2",
+                    "fullname"          : "",
+                    "count"             : 1,
+                    "disk_type"         : "Premium_LRS",
+                    "size_gb"           : 64,
+                    "caching"           : "ReadOnly",
+                    "write_accelerator" : false,
+                    "lun_start"         : 10
+                },
+                {
+                    "name"              : "sapdata3",
+                    "fullname"          : "",
+                    "count"             : 1,
+                    "disk_type"         : "Premium_LRS",
+                    "size_gb"           : 64,
+                    "caching"           : "ReadOnly",
+                    "write_accelerator" : false,
+                    "lun_start"         : 15
+                },
+                {
+                    "name"              : "sapdata4",
+                    "fullname"          : "",
+                    "count"             : 1,
+                    "disk_type"         : "Premium_LRS",
+                    "size_gb"           : 64,
+                    "caching"           : "ReadOnly",
+                    "write_accelerator" : false,
+                    "lun_start"         : 20
+                },
+                {
+                    "name"              : "origloga",
+                    "fullname"          : "",
+                    "count"             : 1,
+                    "disk_type"         : "Premium_LRS",
+                    "size_gb"           : 64,
+                    "caching"           : "None",
+                    "write_accelerator" : false,
+                    "lun_start"         : 25
+                },
+                {
+                    "name"              : "origlogb",
+                    "fullname"          : "",
+                    "count"             : 1,
+                    "disk_type"         : "Premium_LRS",
+                    "size_gb"           : 64,
+                    "caching"           : "None",
+                    "write_accelerator" : false,
+                    "lun_start"         : 30
+                },
+                {
+                    "name"              : "mirrloga",
+                    "fullname"          : "",
+                    "count"             : 1,
+                    "disk_type"         : "Premium_LRS",
+                    "size_gb"           : 64,
+                    "caching"           : "None",
+                    "write_accelerator" : false,
+                    "lun_start"         : 35
+                },
+                {
+                    "name"              : "mirrlogb",
+                    "fullname"          : "",
+                    "count"             : 1,
+                    "disk_type"         : "Premium_LRS",
+                    "size_gb"           : 64,
+                    "caching"           : "None",
+                    "write_accelerator" : false,
+                    "lun_start"         : 40
+                },
+                {
+                    "name"              : "oracle",
+                    "fullname"          : "",
+                    "count"             : 1,
+                    "disk_type"         : "Premium_LRS",
+                    "size_gb"           : 128,
+                    "caching"           : "ReadOnly",
+                    "write_accelerator" : false,
+                    "lun_start"         : 2
+                },
+                {
+                    "name"              : "oraarch",
+                    "fullname"          : "",
+                    "count"             : 1,
+                    "disk_type"         : "Premium_LRS",
+                    "size_gb"           : 256,
+                    "caching"           : "ReadOnly",
+                    "write_accelerator" : false,
+                    "lun_start"         : 3
+                }
+            ]
+        },
+        "1024": {
+            "compute": {
+                "vm_size"               : "Standard_E16ds_v5",
+                "accelerated_networking"       : true
+            },
+            "storage": [
+                {
+                    "name"              : "os",
+                    "fullname"          : "",
+                    "count"             : 1,
+                    "disk_type"         : "Premium_LRS",
+                    "size_gb"           : 128,
+                    "caching"           : "ReadWrite"
+                },
+                {
+                    "name"              : "sap",
+                    "fullname"          : "",
+                    "count"             : 1,
+                    "disk_type"         : "Premium_LRS",
+                    "size_gb"           : 128,
+                    "caching"           : "ReadOnly",
+                    "write_accelerator" : false,
+                    "lun_start"         : 0
+                },
+                {
+                    "name"              : "sapdata1",
+                    "fullname"          : "",
+                    "count"             : 2,
+                    "disk_type"         : "Premium_LRS",
+                    "size_gb"           : 128,
+                    "caching"           : "ReadOnly",
+                    "write_accelerator" : false,
+                    "lun_start"         : 5
+                },
+                {
+                    "name"              : "sapdata2",
+                    "fullname"          : "",
+                    "count"             : 2,
+                    "disk_type"         : "Premium_LRS",
+                    "size_gb"           : 128,
+                    "caching"           : "ReadOnly",
+                    "write_accelerator" : false,
+                    "lun_start"         : 10
+                },
+                {
+                    "name"              : "sapdata3",
+                    "fullname"          : "",
+                    "count"             : 2,
+                    "disk_type"         : "Premium_LRS",
+                    "size_gb"           : 128,
+                    "caching"           : "ReadOnly",
+                    "write_accelerator" : false,
+                    "lun_start"         : 15
+                },
+                {
+                    "name"              : "sapdata4",
+                    "fullname"          : "",
+                    "count"             : 2,
+                    "disk_type"         : "Premium_LRS",
+                    "size_gb"           : 128,
+                    "caching"           : "ReadOnly",
+                    "write_accelerator" : false,
+                    "lun_start"         : 20
+                },
+                {
+                    "name"              : "origloga",
+                    "fullname"          : "",
+                    "count"             : 2,
+                    "disk_type"         : "Premium_LRS",
+                    "size_gb"           : 128,
+                    "caching"           : "None",
+                    "write_accelerator" : false,
+                    "lun_start"         : 25
+                },
+                {
+                    "name"              : "origlogb",
+                    "fullname"          : "",
+                    "count"             : 2,
+                    "disk_type"         : "Premium_LRS",
+                    "size_gb"           : 128,
+                    "caching"           : "None",
+                    "write_accelerator" : false,
+                    "lun_start"         : 30
+                },
+                {
+                    "name"              : "mirrloga",
+                    "fullname"          : "",
+                    "count"             : 2,
+                    "disk_type"         : "Premium_LRS",
+                    "size_gb"           : 128,
+                    "caching"           : "None",
+                    "write_accelerator" : false,
+                    "lun_start"         : 35
+                },
+                {
+                    "name"              : "mirrlogb",
+                    "fullname"          : "",
+                    "count"             : 2,
+                    "disk_type"         : "Premium_LRS",
+                    "size_gb"           : 128,
+                    "caching"           : "None",
+                    "write_accelerator" : false,
+                    "lun_start"         : 40
+                },
+                {
+                    "name"              : "oracle",
+                    "fullname"          : "",
+                    "count"             : 1,
+                    "disk_type"         : "Premium_LRS",
+                    "size_gb"           : 128,
+                    "caching"           : "ReadOnly",
+                    "write_accelerator" : false,
+                    "lun_start"         : 2
+                },
+                {
+                    "name"              : "oraarch",
+                    "fullname"          : "",
+                    "count"             : 1,
+                    "disk_type"         : "Premium_LRS",
+                    "size_gb"           : 256,
+                    "caching"           : "ReadOnly",
+                    "write_accelerator" : false,
+                    "lun_start"         : 3
+                }
+            ]
+        },
+        "2048": {
+            "compute": {
+                "vm_size"               : "Standard_E32ds_v5",
+                "accelerated_networking"       : true
+            },
+            "storage": [
+                {
+                    "name"              : "os",
+                    "fullname"          : "",
+                    "count"             : 1,
+                    "disk_type"         : "Premium_LRS",
+                    "size_gb"           : 128,
+                    "caching"           : "ReadWrite"
+                },
+                {
+                    "name"              : "sap",
+                    "fullname"          : "",
+                    "count"             : 1,
+                    "disk_type"         : "Premium_LRS",
+                    "size_gb"           : 128,
+                    "caching"           : "ReadOnly",
+                    "write_accelerator" : false,
+                    "lun_start"         : 0
+                },
+                {
+                    "name"              : "sapdata1",
+                    "fullname"          : "",
+                    "count"             : 2,
+                    "disk_type"         : "Premium_LRS",
+                    "size_gb"           : 256,
+                    "caching"           : "ReadOnly",
+                    "write_accelerator" : false,
+                    "lun_start"         : 5
+                },
+                {
+                    "name"              : "sapdata2",
+                    "fullname"          : "",
+                    "count"             : 2,
+                    "disk_type"         : "Premium_LRS",
+                    "size_gb"           : 256,
+                    "caching"           : "ReadOnly",
+                    "write_accelerator" : false,
+                    "lun_start"         : 10
+                },
+                {
+                    "name"              : "sapdata3",
+                    "fullname"          : "",
+                    "count"             : 2,
+                    "disk_type"         : "Premium_LRS",
+                    "size_gb"           : 256,
+                    "caching"           : "ReadOnly",
+                    "write_accelerator" : false,
+                    "lun_start"         : 15
+                },
+                {
+                    "name"              : "sapdata4",
+                    "fullname"          : "",
+                    "count"             : 2,
+                    "disk_type"         : "Premium_LRS",
+                    "size_gb"           : 256,
+                    "caching"           : "ReadOnly",
+                    "write_accelerator" : false,
+                    "lun_start"         : 20
+                },
+                {
+                    "name"              : "origloga",
+                    "fullname"          : "",
+                    "count"             : 2,
+                    "disk_type"         : "Premium_LRS",
+                    "size_gb"           : 128,
+                    "caching"           : "None",
+                    "write_accelerator" : false,
+                    "lun_start"         : 25
+                },
+                {
+                    "name"              : "origlogb",
+                    "fullname"          : "",
+                    "count"             : 2,
+                    "disk_type"         : "Premium_LRS",
+                    "size_gb"           : 128,
+                    "caching"           : "None",
+                    "write_accelerator" : false,
+                    "lun_start"         : 30
+                },
+                {
+                    "name"              : "mirrloga",
+                    "fullname"          : "",
+                    "count"             : 2,
+                    "disk_type"         : "Premium_LRS",
+                    "size_gb"           : 128,
+                    "caching"           : "None",
+                    "write_accelerator" : false,
+                    "lun_start"         : 35
+                },
+                {
+                    "name"              : "mirrlogb",
+                    "fullname"          : "",
+                    "count"             : 2,
+                    "disk_type"         : "Premium_LRS",
+                    "size_gb"           : 128,
+                    "caching"           : "None",
+                    "write_accelerator" : false,
+                    "lun_start"         : 40
+                },
+                {
+                    "name"              : "oracle",
+                    "fullname"          : "",
+                    "count"             : 1,
+                    "disk_type"         : "Premium_LRS",
+                    "size_gb"           : 128,
+                    "caching"           : "ReadOnly",
+                    "write_accelerator" : false,
+                    "lun_start"         : 2
+                },
+                {
+                    "name"              : "oraarch",
+                    "fullname"          : "",
+                    "count"             : 1,
+                    "disk_type"         : "Premium_LRS",
+                    "size_gb"           : 256,
+                    "caching"           : "ReadOnly",
+                    "write_accelerator" : false,
+                    "lun_start"         : 3
+                }
+            ]
+        },
+        "4096": {
+            "compute": {
+                "vm_size"              : "Standard_E32ds_v5",
+                "accelerated_networking"       : true
+            },
+            "storage": [
+                {
+                    "name"              : "os",
+                    "fullname"          : "",
+                    "count"             : 1,
+                    "disk_type"         : "Premium_LRS",
+                    "size_gb"           : 128,
+                    "caching"           : "ReadWrite"
+                },
+                {
+                    "name"              : "sap",
+                    "fullname"          : "",
+                    "count"             : 1,
+                    "disk_type"         : "Premium_LRS",
+                    "size_gb"           : 128,
+                    "caching"           : "ReadOnly",
+                    "write_accelerator" : false,
+                    "lun_start"         : 0
+                },
+                {
+                    "name"              : "sapdata1",
+                    "fullname"          : "",
+                    "count"             : 2,
+                    "disk_type"         : "Premium_LRS",
+                    "size_gb"           : 512,
+                    "caching"           : "ReadOnly",
+                    "write_accelerator" : false,
+                    "lun_start"         : 5
+                },
+                {
+                    "name"              : "sapdata2",
+                    "fullname"          : "",
+                    "count"             : 2,
+                    "disk_type"         : "Premium_LRS",
+                    "size_gb"           : 512,
+                    "caching"           : "ReadOnly",
+                    "write_accelerator" : false,
+                    "lun_start"         : 10
+                },
+                {
+                    "name"              : "sapdata3",
+                    "fullname"          : "",
+                    "count"             : 2,
+                    "disk_type"         : "Premium_LRS",
+                    "size_gb"           : 512,
+                    "caching"           : "ReadOnly",
+                    "write_accelerator" : false,
+                    "lun_start"         : 15
+                },
+                {
+                    "name"              : "sapdata4",
+                    "fullname"          : "",
+                    "count"             : 2,
+                    "disk_type"         : "Premium_LRS",
+                    "size_gb"           : 512,
+                    "caching"           : "ReadOnly",
+                    "write_accelerator" : false,
+                    "lun_start"         : 20
+                },
+                {
+                    "name"              : "origloga",
+                    "fullname"          : "",
+                    "count"             : 2,
+                    "disk_type"         : "Premium_LRS",
+                    "size_gb"           : 256,
+                    "caching"           : "None",
+                    "write_accelerator" : false,
+                    "lun_start"         : 25
+                },
+                {
+                    "name"              : "origlogb",
+                    "fullname"          : "",
+                    "count"             : 2,
+                    "disk_type"         : "Premium_LRS",
+                    "size_gb"           : 256,
+                    "caching"           : "None",
+                    "write_accelerator" : false,
+                    "lun_start"         : 30
+                },
+                {
+                    "name"              : "mirrloga",
+                    "fullname"          : "",
+                    "count"             : 2,
+                    "disk_type"         : "Premium_LRS",
+                    "size_gb"           : 256,
+                    "caching"           : "None",
+                    "write_accelerator" : false,
+                    "lun_start"         : 35
+                },
+                {
+                    "name"              : "mirrlogb",
+                    "fullname"          : "",
+                    "count"             : 2,
+                    "disk_type"         : "Premium_LRS",
+                    "size_gb"           : 256,
+                    "caching"           : "None",
+                    "write_accelerator" : false,
+                    "lun_start"         : 40
+                },
+                {
+                    "name"              : "oracle",
+                    "fullname"          : "",
+                    "count"             : 1,
+                    "disk_type"         : "Premium_LRS",
+                    "size_gb"           : 128,
+                    "caching"           : "ReadOnly",
+                    "write_accelerator" : false,
+                    "lun_start"         : 2
+                },
+                {
+                    "name"              : "oraarch",
+                    "fullname"          : "",
+                    "count"             : 1,
+                    "disk_type"         : "Premium_LRS",
+                    "size_gb"           : 256,
+                    "caching"           : "ReadOnly",
+                    "write_accelerator" : false,
+                    "lun_start"         : 3
+                }
+            ]
+        }
+    }
+}

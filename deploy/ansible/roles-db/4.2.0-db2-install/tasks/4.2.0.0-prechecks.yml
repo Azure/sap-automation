@@ -1,0 +1,20 @@
+---
+# This playbook is used to check for issues identified in the system.
+# based on issues identified for other systems, check if any services are using
+# the required ports.
+- name:                                "comment services using port 5912 in /etc/services"
+  ansible.builtin.replace:
+    path:                              /etc/services
+    regexp:                            '^([a-z\-]+\s+5912/.*)$'
+    replace:                           '# \1'
+    backup:                            true
+
+- name:                                "comment services using port 59120 in /etc/services"
+  ansible.builtin.replace:
+    path:                              /etc/services
+    regexp:                            '^([a-z\-]+\s+59120/.*)$'
+    replace:                           '# \1'
+    backup:                            true
+
+# additional checks for issues identified.
+...

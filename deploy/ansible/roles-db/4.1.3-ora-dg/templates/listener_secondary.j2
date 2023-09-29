@@ -1,0 +1,42 @@
+ 
+################
+# Filename......: listener.ora
+# Created.......: created by SAP AG, R/3 Rel. >= 6.10
+# Name..........:
+# Date..........:
+# @(#) $Id: //inst/inst_scripts/lmts_006_REL/tpls/ora/LISTENER.ORA#2 $
+################
+ADMIN_RESTRICTIONS_LISTENER = on
+LISTENER =
+  (ADDRESS_LIST =
+        (ADDRESS =
+          (PROTOCOL = IPC)
+          (KEY = {{ db_sid }}.WORLD)
+        )
+        (ADDRESS=
+          (PROTOCOL = IPC)
+          (KEY = {{ db_sid }})
+        )
+        (ADDRESS =
+          (PROTOCOL = TCP)
+          (HOST = {{ hostname }})
+          (PORT = 1521)
+        )
+  )
+STARTUP_WAIT_TIME_LISTENER = 0
+CONNECT_TIMEOUT_LISTENER = 10
+TRACE_LEVEL_LISTENER = OFF
+SID_LIST_LISTENER =
+  (SID_LIST =
+    (SID_DESC =
+      (SID_NAME = {{ db_sid }})
+      (GLOBAL_DBNAME = {{ db_sid }}_STDBY)
+    (ORACLE_HOME = /oracle/{{ db_sid }}/{{ ora_release }})
+    )
+ (SID_DESC =
+      (SID_NAME = {{ db_sid }})
+      (GLOBAL_DBNAME = {{ db_sid }}_STDBY_DGMGRL)
+      (ORACLE_HOME = /oracle/{{ db_sid }}/{{ ora_release }})
+    )
+  )
+ADR_BASE_LISTENER = /oracle/{{ db_sid }}/saptrace

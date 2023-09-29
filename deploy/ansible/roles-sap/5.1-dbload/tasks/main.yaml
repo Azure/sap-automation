@@ -1,0 +1,435 @@
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                SAP: Register BOM                                           |
+# |         SAP DBLOAD: deploy DBLOAD Parameter file install template          |
+# |         SAP DBLOAD: Install                                                |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+---
+
+- name:                                "DBLoad: - Set dbload facts"
+  ansible.builtin.set_fact:
+    sap_inifile:                       "{{ bom_base_name }}-dbload-{{ sid_to_be_deployed.sid | lower }}-{{ ansible_hostname }}.params"
+    sap_inifile_template:              "{{ bom_base_name }}{{ bom_suffix }}-dbload-inifile-param.j2"
+    dir_params:                        "{{ tmp_directory }}/.params"
+
+- name:                                "DBLoad: -  Create directories"
+  ansible.builtin.file:
+    path:                              "{{ item.path }}"
+    state:                             directory
+    mode:                              '{{ item.mode }}'
+  loop:
+    - { mode: '0755', path: '{{ dir_params }}' }
+    - { mode: '0755', path: '{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}' }
+    - { mode: '0755', path: '/etc/sap_deployment_automation/{{ sap_sid | upper }}' }
+
+- name:                                "DBLoad: -  reset"
+  ansible.builtin.file:
+    path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_dbload.txt"
+    state:                             absent
+  when:                                reinstall
+
+# Returns bom object
+- name:                                "DBLoad: - Register BoM"
+  ansible.builtin.include_role:
+    name:                              roles-sap/3.3.1-bom-utility
+    tasks_from:                        bom-register
+  vars:
+    bom_name:                          "{{ bom_base_name }}"
+    task_prefix:                       "DBLoad: "
+    sa_enabled:                        true
+
+- name:                                "DBLoad: Default instance type"
+  ansible.builtin.set_fact:
+    instance_type:                     "ASCS"
+  when:                                bom.InstanceType is not defined
+
+- name:                                "DBLoad: register instance type"
+  ansible.builtin.set_fact:
+    instance_type:  >-
+                                       {%- set _instance_type = 'ASCS' -%}
+                                       {%- if bom.InstanceType == 'JAVA' -%}
+                                       {%- set _instance_type = 'SCS' -%}
+                                       {%- elif bom.InstanceType == 'ABAP' -%}
+                                       {%- set _instance_type = 'ASCS' -%}
+                                       {%- else -%}
+                                       {%- set _instance_type = 'ASCS' -%}
+                                       {%- endif -%}
+                                       {{- _instance_type -}}
+    public:                            true
+  when:                                bom.InstanceType is defined
+
+- name:                                "DBLoad: - Set dbload path"
+  ansible.builtin.set_fact:
+    db_load_path:                      "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}/sapinst_instdir/{{ bom.product_ids.dbl.replace('.', '/').replace('/{{ instance_type }}', '').split(':')[1] }}/INSTALL/DISTRIBUTED/{{ instance_type }}/DB"
+
+- name:                                "DBLoad: Check if DBLoad has been tried on this server"
+  ansible.builtin.stat:
+    path:                              "{{ db_load_path }}"
+  register:                            dbload_performed
+
+- name:                                "DBLoad: Check if install is performed"
+  block:
+    - name:                            "DBLoad: Find the installationSuccesfullyFinished.dat (SAPINST)"
+      ansible.builtin.find:
+        paths:                         "{{ db_load_path }}"
+        file_type:                     file
+        patterns:                      'installationSuccesfullyFinished.dat'
+        recurse:                       false
+      register:                        dbload_performed_according_to_sapinst
+
+    - name:                            "DBLoad: show"
+      ansible.builtin.debug:
+        var:                           dbload_performed_according_to_sapinst
+        verbosity:                     2
+      when:                            dbload_performed.stat.exists
+
+    - name:                            "DBLoad: flag"
+      ansible.builtin.file:
+        path:                          "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_dbload.txt"
+        state:                             touch
+        mode:                          0755
+      when:
+        - dbload_performed_according_to_sapinst is defined
+        - dbload_performed_according_to_sapinst | length > 0
+  when:
+    - dbload_performed.stat.exists
+
+- name:                                "DBLoad: - check if DBLoad is performed for {{ sid_to_be_deployed.sid | upper }}"
+  ansible.builtin.stat:
+    path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_dbload.txt"
+  register:                            dbload_installed
+
+- name:                                "DBLoad: register variables"
+  ansible.builtin.set_fact:
+    dbl_bom_instance_type:             "{% if bom.InstanceType is defined %}{{ bom.InstanceType }}{% else %}ABAP{% endif %}"
+    public:                            true
+
+# *====================================4=======================================8
+#   SAP DBLOAD: Install
+# 2230669 - System Provisioning Using a Parameter Input File
+#
+# *====================================4=======================================8
+
+- name:                                "DBLoad: - Run"
+  block:
+
+    - name:                            "DBLoad: -  Set the SCS Server name list"
+      ansible.builtin.set_fact:
+        scs_server_temp:               "{{ scs_server_temp | default([]) + [item] }}"
+      with_items:
+        - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') }}"
+        - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
+
+    - name:                            "DBLoad: -  Set the DB Server name list"
+      ansible.builtin.set_fact:
+        db_server_temp:                "{{ db_server_temp | default([]) + [item] }}"
+      with_items:
+        - "{{ query('inventory_hostnames', '{{ sid_to_be_deployed.sid | upper }}_DB') }}"
+
+    - name:                            "DBLoad: -  Set the server facts"
+      ansible.builtin.set_fact:
+        scs_server:                    "{% if scs_high_availability %}{{ sid_to_be_deployed.sid | lower }}scs{{ scs_instance_number }}cl1{% else %}{{ hostvars[scs_server_temp | first]['virtual_host'] }}{% endif %}"
+        db_virtual_host:               "{{ hostvars[db_server_temp | first]['virtual_host'] }}"
+
+    - name:                            "DBLoad: check media exists"
+      ansible.builtin.stat:
+        path:                          "{{ target_media_location }}/SWPM/sapinst"
+      register:                        sapinst_found
+
+    - name:                            "ErrorHandling"
+      ansible.builtin.fail:
+        msg:                           "INSTALL:0005:Unable to find sapinst, please check that the installation media is mounted"
+      when: not sapinst_found.stat.exists
+
+    - name:                            "DBLoad: - DB Server name list"
+      ansible.builtin.set_fact:
+        db_server:                     "{{ db_server | default([]) + [item] }}"
+      with_items:
+        - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
+
+    - name:                            "DBLoad: - Check if the backup disk exists on DB Server"
+      ansible.builtin.set_fact:
+        backupdisks_count:             "{{ disks | selectattr('host', 'defined') |
+          selectattr('host', 'equalto', inventory_hostname) |
+          selectattr('type', 'equalto', 'backup') |
+          map(attribute='type') | sort | unique |
+          list | length | int }}"
+
+    - name:                            "DBLoad: -  Set the hana backup facts"
+      ansible.builtin.set_fact:
+        backup_path:                   "{% if (backupdisks_count | int) == 0 %}/hana/data/backup{% else %}{{ hana_backup_path }}{% endif %}"
+
+    - name:                            "Hana backup directory"
+      ansible.builtin.debug:
+        msg:                           "Backup path: {{ backup_path }}"
+
+    - name:                            "DBLoad: - Include roles-sap/3.3.1-bom-utility role"
+      ansible.builtin.include_role:
+        name:                          roles-sap/3.3.1-bom-utility
+        tasks_from:                    bom-template
+      vars:
+        task_prefix:                   "DBLoad: "
+        always_upload_jinja_templates: false
+        bom_name:                      "{{ bom_base_name }}{{ bom_suffix }}"
+        sap_cd_package_hdbclient:      "{{ target_media_location }}/CD_HDBCLIENT/SAP_HANA_CLIENT"
+        sap_cd_package_cd1:            "{{ target_media_location }}/CD_EXPORT"
+        sap_cd_package_cd2:
+        sap_cd_package_cd3:
+        sap_cd_package_cd4:
+        sap_cd_package_cd5:
+        sap_ciInstanceNumber:
+        app_instance_number:
+        sap_ciDialogWPNumber:
+        sap_ciBtcWPNumber:
+        sap_installSAPHostAgent:
+        sap_profile_dir:               "/sapmnt/{{ sid_to_be_deployed.sid | upper }}/profile"
+        sap_scs_hostname:              "{{ scs_server }}"
+        sap_db_hostname:               "{{ db_virtual_host }}"
+        sap_ciVirtualHostname:
+        sap_appVirtualHostname:
+        param_directory:               "{{ dir_params }}"
+        sap_sid:                       "{{ sid_to_be_deployed.sid }}"
+        sidadm_uid:                    "{{ sid_to_be_deployed.sidadm_uid }}"
+        # support older dbload inifile templates where hdb_instance_number was used
+        hdb_instance_number:           "{{ db_instance_number }}"
+        hana_backup_path:              "{{ backup_path }}"
+        sa_enabled:                    true
+
+    - name:                            "DBLoad: install variables"
+      ansible.builtin.debug:
+        msg:
+          - "INSTALLED:  {{ dbload_installed.stat.exists }}"
+          - "INIFILE:    {{ sap_inifile }}"
+          - "PRODUCT ID: {{ bom.product_ids.dbl }}"
+          - "INSTANCE:   {{ db_instance_number }}"
+          - "SCSHOST:    {{ scs_server }}"
+          - "DBHOST:     {{ db_virtual_host }}"
+          - "SID:        {{ sid_to_be_deployed.sid | upper }}"
+
+        # Import this task only if the tier is ora.
+    - name:                            "DBLoad: import oracle tasks"
+      ansible.builtin.import_tasks:    oracle.yaml
+      when:
+        - node_tier == "oracle-multi-sid"
+
+    - name:                            "Create temp directory for sid"
+      ansible.builtin.file:
+        path:                          "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
+        state:                         directory
+        mode:                          0755
+
+    - name:                            "DBLoad: progress"
+      ansible.builtin.debug:
+        msg:                           "Starting DBLoad for {{ sid_to_be_deployed.sid | upper }}. Please wait"
+
+    - name:                            "DBLoad: - run SAPInst"
+      ansible.builtin.shell: |
+                                       umask {{ custom_umask | default('022') }} ;
+                                       ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }} \
+                                                 SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.dbl }}            \
+                                                 SAPINST_SKIP_DIALOGS=true                                       \
+                                                 SAPINST_START_GUISERVER=false
+      args:
+        chdir:                         "{{ target_media_location }}/SWPM"
+        creates:                       "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_dbload.txt"
+      environment:
+        TMPDIR:                        "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
+        SAPSYSTEMNAME:                 "{{ sid_to_be_deployed.sid | upper }}"
+      register:                        dbload_results
+      async:                           7200
+      poll:                            0
+
+    - name:                            "DBLoad Install -Wait for asynchronous job to end and rescue"
+      block:
+        - name:                        "DBLoad Install -Wait for asynchronous job to end"
+          ansible.builtin.async_status:
+            jid:                       "{{ dbload_results.ansible_job_id }}"
+          register:                    job_result
+          until:                       job_result.finished
+          retries:                     "{% if dbload_retry_count is defined %}{{ dbload_retry_count }}{% else %}120{% endif %}"
+          delay:                       60
+          when:                        dbload_results.ansible_job_id is defined
+
+      rescue:
+        - name:                        "Capturing the modified message for message server being offline"
+          ansible.builtin.set_fact:
+            modified_error_message:    "{{ job_result.stdout | try_get_error_code(task_tag='dbload', failure='messageserver_offline') }}"
+
+        - name:                        "Capturing the modified message for database being offline"
+          ansible.builtin.set_fact:
+            modified_error_message:    "{{ modified_error_message | try_get_error_code(task_tag='dbload', failure='db_offline') }}"
+
+        - name:                        "Debug: Modified error message"
+          ansible.builtin.debug:
+            msg:                       "Modified error message: {{ modified_error_message }}"
+          when:                         modified_error_message != job_result.stdout
+
+        - name:                        "Error Handling: Fail with the modified error message "
+          ansible.builtin.fail:
+            msg:                       "{{ modified_error_message }}"
+
+    - name:                            "DBLoad: Results"
+      ansible.builtin.debug:
+        msg:
+          - "DBLoad : {{ dbload_results }}"
+          - "Job result: {{ job_result }}"
+
+    - name:                            "DBLoad: Results"
+      ansible.builtin.debug:
+        var:                           dbload_results
+      when:
+        - job_result is defined
+        - job_result.rc > 0
+
+    - name:                            "DBLoad: Cleanup ini file {{ ansible_hostname }}"
+      ansible.builtin.file:
+        path:                          "{{ dir_params }}/{{ sap_inifile }}"
+        state:                         absent
+
+    - name:                            "DBLoad: - set completion flag"
+      ansible.builtin.file:
+        path:                          "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_dbload.txt"
+        state:                         touch
+        mode:                          0755
+      when:
+        - job_result.rc is defined
+        - job_result.rc == 0
+
+    - name:                            "DBLoad:  results"
+      ansible.builtin.debug:
+        msg:                           "DBLoad  succeeded"
+      when:
+        - job_result.rc is defined
+        - job_result.rc == 0
+
+    # # Import this task only if the tier is ora.
+    # - import_tasks:                    "oracle-postprocessing.yaml"
+    #   when:
+    #     - node_tier in ["oracle","oracle-asm"]
+    - name:                            "DBLoad: Get hdbuserstore path"
+      become:                          true
+      become_user:                     "{{ sid_to_be_deployed.sid | lower }}adm"
+      ansible.builtin.find:
+        paths:                         "/usr/sap/{{ sid_to_be_deployed.sid | upper }}/SYS/exe/uc/linuxx86_64/hdbclient/"
+        file_type:                     file
+        patterns:                      'hdbuserstore'
+        recurse:                       true
+      register:                        hdbuserstore_file
+      environment:
+        SAPSYSTEMNAME:                 "{{ sid_to_be_deployed.sid | upper }}"
+      when:
+        - db_high_availability
+        - platform == 'HANA'
+
+    - name:                            "DBLoad: Set hdbuserstore path"
+      ansible.builtin.set_fact:
+        hdbuserstore_path:             "{{ hdbuserstore_file.files[0].path }}"
+        db_lb_virtual_host:            "{{ sid_to_be_deployed.sid | lower }}{{ db_sid | lower }}db{{ db_instance_number }}cl.{{ sap_fqdn }}"
+      when:
+        - db_high_availability
+        - platform == 'HANA'
+        - hdbuserstore_file is defined
+        - hdbuserstore_file | length > 0
+
+    - name:                            "DBLoad: show hdbuserstore path"
+      ansible.builtin.debug:
+        var:                           hdbuserstore_path
+        verbosity:                     2
+      when:
+        - db_high_availability
+        - platform == 'HANA'
+
+    - name:                            "DBLoad: Set DB Virtual Host name ({{ db_lb_virtual_host }})"
+      become:                          true
+      become_user:                     "{{ sid_to_be_deployed.sid | lower }}adm"
+      ansible.builtin.shell: |
+                                       {{ hdbuserstore_path }} SET DEFAULT {{ db_lb_virtual_host }}:3{{ db_instance_number }}13@{{ db_sid | upper }} {{ hana_schema }} {{ main_password }}
+      environment:
+        SAPSYSTEMNAME:                 "{{ sid_to_be_deployed.sid | upper }}"
+        TMPDIR:                        "{{ hdbuserstore_path }}"
+        ssfs_connect:                  "1"
+      register:                        hdbuserstore
+      vars:
+        allow_world_readable_tmpfiles: true
+      when:
+        - db_high_availability
+        - platform == 'HANA'
+        - hdbuserstore_path is defined
+
+  when:
+    - not dbload_installed.stat.exists
+
+# Import this task only if the tier is ora.
+- name:                                "Oracle post processing"
+  ansible.builtin.import_tasks:        "oracle-postprocessing.yaml"
+  when:
+    - node_tier in ["oracle","oracle-asm"]
+
+- name:                                "DBLoad: - status"
+  when: dbload_installed.stat.exists
+  block:
+    - name:                            "DBLoad: - status"
+      ansible.builtin.debug:
+        msg:                           "DBLoad is already performed ({{ sid_to_be_deployed.sid | upper }})"
+
+    - name:                            "DBLoad: - return value"
+      ansible.builtin.set_fact:
+        dbload_already_performed:      true
+
+    - name:                            "DBLoad: Get hdbuserstore path"
+      become:                          true
+      become_user:                     "{{ sid_to_be_deployed.sid | lower }}adm"
+      ansible.builtin.find:
+        paths:                         "/usr/sap/{{ sid_to_be_deployed.sid | upper }}/SYS/exe/uc/linuxx86_64/hdbclient/"
+        file_type:                     file
+        patterns:                      'hdbuserstore'
+        recurse:                       true
+      register:                        hdbuserstore_file
+      environment:
+        SAPSYSTEMNAME:                 "{{ sid_to_be_deployed.sid | upper }}"
+      when:
+        - db_high_availability
+        - platform == 'HANA'
+
+    - name:                            "DBLoad: Set hdbuserstore path"
+      ansible.builtin.set_fact:
+        hdbuserstore_path:             "{{ hdbuserstore_file.files[0].path }}"
+        db_lb_virtual_host:            "{{ sid_to_be_deployed.sid | lower }}{{ db_sid | lower }}db{{ db_instance_number }}cl.{{ sap_fqdn }}"
+      when:
+        - db_high_availability
+        - platform == 'HANA'
+        - hdbuserstore_file is defined
+        - hdbuserstore_file | length > 0
+
+    - name:                            "DBLoad: show hdbuserstore path"
+      ansible.builtin.debug:
+        var:                           hdbuserstore_path
+        verbosity:                     2
+      when:
+        - db_high_availability
+        - platform == 'HANA'
+
+    - name:                            "DBLoad: Set DB Virtual Host name ({{ db_lb_virtual_host }})"
+      become:                          true
+      become_user:                     "{{ sid_to_be_deployed.sid | lower }}adm"
+      ansible.builtin.shell: |
+                                       {{ hdbuserstore_path }} SET DEFAULT {{ db_lb_virtual_host }}:3{{ db_instance_number }}13@{{ db_sid | upper }} {{ hana_schema }} {{ main_password }}
+      environment:
+        SAPSYSTEMNAME:                 "{{ sid_to_be_deployed.sid | upper }}"
+        TMPDIR:                        "{{ hdbuserstore_path }}"
+        ssfs_connect:                  "1"
+      register:                        hdbuserstore
+      vars:
+        allow_world_readable_tmpfiles: true
+      when:
+        - db_high_availability
+        - platform == 'HANA'
+        - hdbuserstore_path is defined
+
+
+...
+# /*---------------------------------------------------------------------------8
+# |                                   END                                      |
+# +------------------------------------4--------------------------------------*/

@@ -1,0 +1,90 @@
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                          Role to process the BOM                           |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+# Description:  Download the specified BOM file to the ansible controller.
+#               Download any dependent BOM files to the ansible controller.
+#               Create Download directories, both static and dynamic.
+#               Download all media from BOMs to the SCS
+#
+#
+# Objects:
+#   External:
+#             sapbits_location_base_path      - URL of Blob Storage
+#             sapbits_bom_files               - path to the root of the sap file store
+#             bom_base_name                   - Name of BOM
+#             sapbits_sas_token               - SAS Token
+#             inventory_dir                   - Path to the inventory location on the ansible controller
+#
+#   Internal:
+#             result                          - objet to store the results of a task execution
+#
+#   Created:
+#             bom_base                        - object containing the specified BOM
+#
+# -------------------------------------+---------------------------------------8
+# Reviews:
+#
+# 04/22/2021  Morgan Deegan       Reviewed - Complete
+#
+# -------------------------------------+---------------------------------------8
+---
+
+
+# -------------------------------------+---------------------------------------8
+#
+# Description:  Validation for Prerequisites
+#
+- name:                                Run pre-checks
+  ansible.builtin.import_tasks:        pre_checks.yaml
+# -------------------------------------+---------------------------------------8
+
+- name:                                "3.3 BoM Processing: - Create BOM download directories"
+  ansible.builtin.file:
+    path:                              "{{ item }}"
+    state:                             directory
+    mode:                              0755
+    owner:                              "{{ orchestration_ansible_user if bom_processing_become else omit }}"
+  delegate_to:                         localhost
+  become:                              "{{ bom_processing_become }}"
+  become_user:                         root
+  loop:
+    - "{{ download_directory }}"
+    - "{{ download_directory }}/tmp"
+    - "{{ download_directory }}/bom"
+    - "{{ download_directory }}/files"
+
+- name:                                "3.3 BoM Processing: - Run the bom-register"
+  ansible.builtin.include_role:
+    name:                              roles-sap/3.3.1-bom-utility
+    tasks_from:                        bom-register
+  vars:
+    bom_name:                          "{{ bom_base_name }}"
+    task_prefix:                       "BOM Processing: "
+
+- name:                                "3.3 BoM Processing: - Save the BOM"
+  ansible.builtin.set_fact:
+    bom_base:                          "{{ bom }}"
+    cacheable:                         true
+
+# -------------------------------------+---------------------------------------8
+#
+# Description:  Process Main BOM.
+#               Call BOM processor, passing BOM name.
+#
+# TODO:
+#       Enhance so a single task loops over base bom and dependencies
+#
+# -------------------------------------+---------------------------------------8
+
+- name:                                "3.3 BoM Processing: - Process main BOM"
+  ansible.builtin.include_tasks:       "bom_processor.yaml"
+  vars:
+    bom_name:                          "{{ bom_base_name }}"
+# when:                                ansible_hostname == primary_instance_name
+
+...
+# /*---------------------------------------------------------------------------8
+# |                                   END                                      |
+# +------------------------------------4--------------------------------------*/

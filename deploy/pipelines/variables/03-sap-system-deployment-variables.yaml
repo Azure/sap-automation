@@ -1,0 +1,48 @@
+#--------------------------------------+---------------------------------------8
+#                                                                              |
+# Defines the parameters and variables for the SAP System                      |
+#                                                                              |
+#--------------------------------------+---------------------------------------8
+
+parameters:
+  sap_system: ''
+  environment: ''
+  test: false
+
+variables:
+  - group:                             "SDAF-General"
+
+  - group:                             SDAF-${{ parameters.environment }}
+
+  - name:                              sap_system_folder
+    value:                             ${{ parameters.sap_system }}
+
+  - name:                              sap_system_configuration
+    value:                             ${{ parameters.sap_system }}.tfvars
+
+  - name:                              tf_url
+    value:                             https://releases.hashicorp.com/terraform/$(tf_version)/terraform_$(tf_version)_linux_amd64.zip
+
+  - name:                              variable_group
+    value:                             SDAF-${{ parameters.environment }}
+
+  - name:                              this_agent
+    value:                             $[lower(coalesce(variables['POOL'], variables['Agent']))]
+
+  - name:                              REMOTE_STATE_SA
+    value:                             $[variables['Terraform_Remote_Storage_Account_Name']]
+
+  - name:                              REMOTE_STATE_RG
+    value:                             $[variables['Terraform_Remote_Storage_Resource_Group_Name']]
+
+  - name:                              STATE_SUBSCRIPTION
+    value:                             $[variables['Terraform_Remote_Storage_Subscription']]
+
+  - name:                              deployer_tfstate_key
+    value:                             $[variables['Deployer_State_FileName']]
+
+  - name:                              key_vault
+    value:                             $[variables['Deployer_Key_Vault']]
+
+  - name:                              test_only
+    value:                             ${{ parameters.test }}

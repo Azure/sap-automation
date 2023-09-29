@@ -1,0 +1,103 @@
+﻿@model AutomationForm.Models.FormViewModel<SystemModel>;
+@using System.Text.Json
+
+@{
+    ViewBag.Title = "Create system";
+    List<SelectListItem> imageOptions = ViewBag.ImageOptions;
+    bool validImageOptions = ViewBag.ValidImageOptions;
+}
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script type="text/javascript">
+
+    $(document).ready(function () {
+        var system = @Html.Raw(JsonSerializer.Serialize(Model.SapObject));
+        createModel(system);
+        retainFormValues();
+        getEnvironmentsFromAdo(@ViewBag.IsPipelineDeployment);
+
+        var formHeader = $("#form-sticky-header");
+        var sticky = $("#form-sticky-header").offset().top;
+        $(window).scroll(function () { stickifyHeader(formHeader, sticky) });
+    });
+
+    window.onload = function () {
+        $(".js-example-placeholder-single").select2({
+            placeholder: "Search...",
+            allowClear: true,
+            tags: true
+        });
+        $(".js-example-placeholder-multiple").select2({
+            placeholder: "Add items...",
+            tags: true
+        });
+    }
+
+    var submitting = false;
+    window.onbeforeunload = function(){
+        if (!submitting) {
+            return "";
+        }
+    };
+
+</script>
+
+<div id="loading-background">
+    <fluent-progress-ring class="width-full"></fluent-progress-ring>
+</div>
+
+<fluent-breadcrumb>
+    <fluent-breadcrumb-item href="@Url.Action("Index", "Home")">Home</fluent-breadcrumb-item>
+    <fluent-breadcrumb-item href="@Url.Action("Index", "System")">Systems</fluent-breadcrumb-item>
+    <fluent-breadcrumb-item href="#">Create</fluent-breadcrumb-item>
+</fluent-breadcrumb>
+
+<div>
+
+    <div class="text-center">
+        <h2 style="text-align: center">New system</h2>
+        <p>
+            <a href="https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main" target="_blank" rel="noopener noreferrer">
+                More information on configuring the system
+            </a>
+        </p>
+    </div>
+
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="notificationContainer" style="display: flex; background: rgb(253, 231, 233);">
+            <div class="notificationInner">
+                <span class="notificationText">
+                    @Html.ValidationSummary(false)
+                </span>
+            </div>
+        </div>
+    }
+
+    <div id="form-sticky-header">
+        <div class="filter-checkboxes">
+            <fluent-checkbox checked class="parameters-filter" onchange="toggleParams(this, 1)" id="basic-filter">Basic</fluent-checkbox>
+            <fluent-checkbox checked class="parameters-filter" onchange="toggleParams(this, 2)" id="advanced-filter">Advanced</fluent-checkbox>
+            <fluent-checkbox checked class="parameters-filter" onchange="toggleParams(this, 3)" id="expert-filter">Expert</fluent-checkbox>
+        </div>
+
+        <div id="checkbox-and-searchbar">
+            <fluent-checkbox id="system-default-checkbox" onchange="toggleDefault(this, 'system-default-checkbox', 'System')">Use values from the default system configuration</fluent-checkbox><br />
+            <input id="searchbar" placeholder="Filter..." class="ms-TextField-field" onkeyup="filterResults(this.value)" />
+        </div>
+    </div>
+
+    <form class="wrapper" asp-controller="system" asp-action="create">
+        @Html.AntiForgeryToken()
+
+        @await Html.PartialAsync("_FormPartial", Model)
+
+        <fluent-button appearance="accent" style="margin-top: 15px" type="submit" onclick="submitting=true">
+            Submit
+        </fluent-button>
+
+        <fluent-anchor href="@Url.Action("Index", "System")">
+            Cancel
+        </fluent-anchor>
+    </form>
+</div>

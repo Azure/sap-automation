@@ -1,0 +1,126 @@
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |             Add 2nd IP addresses to a VM operating system in RHEL          |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+- name:                                "1.10 Networking - Get the IP information from instance meta data service"
+  ansible.builtin.uri:
+    url:                               http://169.254.169.254/metadata/instance/network/interface/0?api-version=2021-02-01
+    use_proxy:                         false
+    headers:
+      Metadata:                        true
+  register: azure_metadata
+
+- name:                                "1.10 Networking - Filter out the values for IPAddresses in json format"
+  ansible.builtin.set_fact:
+    private_ips_info:                  "{{ azure_metadata.json.ipv4.ipAddress }}"
+
+- name:                                "1.10 Networking - Convert ips to list"
+  ansible.builtin.set_fact:
+    ipadd:                             "{{ private_ips_info | map(attribute='privateIpAddress') | list }}"
+
+- name:                                "1.10 Networking - Get the secondary IP"
+  ansible.builtin.set_fact:
+    secondary_ip:                      "{{ ipadd[1] }}"
+  when:
+    - ipadd is defined
+    - ipadd | length > 1
+
+- name:                                "1.10 Networking - Set the netmask"
+  ansible.builtin.set_fact:
+    az_snet_netmask:                   "{{ hostvars[ansible_hostname]['ansible_default_ipv4']['netmask'] }}"
+
+- name:                                "1.10 Networking - Print ip info"
+  ansible.builtin.debug:
+    msg:                               "{{ azure_metadata.json }}"
+    verbosity:                         2
+
+- name:                                "1.10 Networking - Print ipaddress"
+  ansible.builtin.debug:
+    msg:                               "{{ private_ips_info }}"
+    verbosity:                         2
+
+- name:                                "1.10 Networking - Print Secondary ip"
+  ansible.builtin.debug:
+    msg:                               "Secondary IP: {{ secondary_ip }}"
+    verbosity:                         2
+  when:
+    - secondary_ip is defined
+
+# - name:                                "1.10 Networking - Update the file with secondary ip"
+#   ansible.builtin.lineinfile:
+#     backup:                            true
+#     path:                              /etc/sysconfig/network-scripts/ifcfg-eth0
+#     regexp:                            "{{ item.regexp }}"
+#     line:                              "{{ item.lif }}"
+#     state:                             present
+#     mode:                              0644
+#   loop:
+#     - {regexp: "^IPADDR1={{ secondary_ip }}",     lif: "IPADDR1={{ secondary_ip }}"         }
+#     - {regexp: "^NETMASK1={{ az_snet_netmask }}", lif: "NETMASK1={{ az_snet_netmask }}"     }
+#   register:                            definition_made
+#   when:
+#     - ansible_os_family | upper == "REDHAT"
+#     - secondary_ip is defined
+
+# - name:                                "1.10 Networking - Get ifcfg-eth0 content"
+#   ansible.builtin.command:             "cat /etc/sysconfig/network-scripts/ifcfg-eth0"
+#   register:                            file_content
+
+# - name:                                "1.10 Networking - Print ifcfg-eth0 content"
+#   ansible.builtin.debug:
+#     var:                               file_content
+
+- name:                                "1.10 Networking - Create the file with secondary ip"
+  ansible.builtin.blockinfile:
+    create:                            true
+    path:                              /etc/sysconfig/network-scripts/ifcfg-eth0:0
+    marker_begin:                      "-- BEGIN"
+    marker_end:                        "-- END"
+    block: |
+      DEVICE=eth0:0
+      BOOTPROTO=static
+      ONBOOT=yes
+      IPADDR={{ secondary_ip }}
+      NETMASK={{ az_snet_netmask }}
+    mode:                              644
+  register:                            definition_made
+  when:
+    - secondary_ip is defined
+
+# - name:                                "1.16 - Restart Service NetworkManager"
+#   ansible.builtin.service:
+#     name:                              NetworkManager
+#     state:                             restarted
+
+# Restart Network service (ifup eth0)
+- name:                                "1.10 Networking - Restart Network service"
+  ansible.builtin.systemd:
+    name:                              NetworkManager.service
+    state:                             restarted
+  when:
+    - definition_made.changed
+
+
+# Stop network interface eth0
+# - name:                                "1.10 Networking - Stop Network service"
+#   ansible.builtin.command:             ifdown eth0
+#   when:
+#     - definition_made.changed
+
+- name:                                "1.10 Networking - Wait for 5 seconds"
+  ansible.builtin.wait_for:
+    timeout:                           5
+
+# Start network interface eth0
+- name:                                "1.10 Networking - Restart Network service"
+  ansible.builtin.command:             ifup eth0
+  when:
+    - definition_made.changed
+    - distribution_id == 'redhat7'
+
+...
+# /*----------------------------------------------------------------------------8
+# |                                    END                                      |
+# +------------------------------------4--------------------------------------*/

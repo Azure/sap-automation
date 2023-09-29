@@ -1,0 +1,47 @@
+parameters:
+  deployer: ""
+  deployer_environment: ""
+  library: ""
+  sap_system: ""
+  workload_environment: ""
+  workload_zone: ""
+  cleanup_workload_zone: false
+  cleanup_control_plane: false
+  connection_name: ""
+
+variables:
+  - group: "SDAF-General"
+
+  - group: SDAF-${{ parameters.deployer_environment }}
+
+  - group: SDAF-${{ parameters.workload_environment }}
+
+  - name: parent_variable_group
+    value: SDAF-${{ parameters.deployer_environment }}
+
+  - name: variable_group
+    value: SDAF-${{ parameters.workload_environment }}
+
+  - name: deployer_folder
+    value: ${{ parameters.deployer }}
+
+  - name: deployer_config
+    value: ${{ parameters.deployer }}.tfvars
+
+  - name: library_folder
+    value: ${{ parameters.library }}
+
+  - name: library_config
+    value: ${{ parameters.library }}.tfvars
+
+  - name: zone_folder
+    value: ${{ parameters.workload_zone }}
+
+  - name: zone_config
+    value: ${{ parameters.workload_zone }}.tfvars
+
+  - name: sap_system_folder
+    value: ${{ parameters.sap_system }}
+
+  - name: sap_system_config
+    value: ${{ parameters.sap_system }}.tfvars

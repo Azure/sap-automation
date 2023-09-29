@@ -1,0 +1,208 @@
+---
+# /*----------------------------------------------------------------------------8
+# |                                                                            |
+# |         BOM Validation role                                                |
+# |                                                                            |
+# | Assumptions                                                                |
+# |   target_media_location exists on disk                                     |
+# |                                                                            |
+# | Inputs:                                                                    |
+# |   target_media_location             Default     xxxx                       |
+# | download_directory                                                         |
+# | bom_name                                                                   |
+# | sapbits_location_base_path                                                 |
+# | sapbits_bom_files                                                          |
+# | sapbits_sas_token                                                          |
+# | sapbits_access_key                                                         |
+# | S_user                                                                     |
+# | S_password:                                                                |
+# | download_directory:               Default xxxx                             |
+# |                                                                            |
+# |Locals:                                                                     |
+# | _bom                                                                       |
+# | item                                                                       |
+# | result                                                                     |
+# |                                                                            |
+# | BOM Fields:                                                                |
+# | download                                                                   |
+# | archive                                                                    |
+# | permissions                                                                |
+# |                                                                            |
+# |                                                                            |
+# | Steps:                                                                     |
+# |  01) Register BOM                                                          |
+# |  02) Create static download directories
+# |  03) Create dynamic extract directories
+# |  04) Download media from bom
+# |  05) Extract files - SAPCAR
+# |  06) Extract files - UNRAR
+# |  07) Extract files - UNZIP
+# |  08) Purge BOM file from Ansible Controller - TBD
+
+# +------------------------------------4--------------------------------------*/
+
+- name:                                "3.3 BoM Processing: - Register BoM"
+  ansible.builtin.include_role:
+    name:                              roles-sap/windows/3.3.1-bom-utility
+    tasks_from:                        bom-register
+  vars:
+    inventory_dir:                     "{{ download_directory }}/bom"
+    task_prefix:                       "BOM Processing: "
+    sa_enabled:                        true
+
+#   02) Create static download directories
+- name:                                "3.3 BoM Processing: - Create SAP download directories"
+  ansible.windows.win_dsc:
+    resource_name:                     File
+    DestinationPath:                   "{{ item.path }}"
+    Type:                              Directory
+    Ensure:                            Present
+  loop:
+    - path: '{{ target_media_location_windows }}\tmp'
+    - path: '{{ target_media_location_windows }}\downloads'
+    - path: '{{ target_media_location_windows }}\download_basket'
+
+
+#   03) Create dynamic extract directories
+- name:                                "3.3 BoM Processing: - Create BOM directories"
+  ansible.windows.win_dsc:
+    resource_name:                     File
+    DestinationPath:                   '{{ target_media_location_windows }}\{{ item.extractDir }}'
+    Type:                              Directory
+    Ensure:                            Present
+  loop:                                "{{ bom.materials.media | flatten(levels=1) }}"
+  when:
+    - item.extractDir is defined
+    - item.extractDir | type_debug != 'NoneType'
+    - item.extractDir | length > 0
+
+# Download Files
+# ------------------<DEBUGGING>-------------------
+- name:                                "3.3 BoM Processing: - List files and check if dynamic BOM download was performed successfully."
+  block:
+    - name:                             "Check if the item has dynamic property"
+      ansible.builtin.fail:
+        msg:                            "INSTALL:0023:Error while donwloading BOM contents. Invalid BOM structure detected."
+      when:
+        - item.download is undefined or item.download
+        - item.dynamic is defined or item.archive is undefined
+      loop:       "{{ bom.materials.media | flatten(levels=1) }}"
+
+    - name:                                "3.3 BoM Processing: - List files"
+      ansible.builtin.debug:
+        msg:
+          - "URL : {{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/archives/{{ item.archive }}\
+                  {% if sapbits_sas_token is not undefined %}?{{ sapbits_sas_token }}{% endif %}"
+          - "DEST: {{ target_media_location }}/{% if item.filename is undefined %}{{ item.archive }}{% else %}{{ item.filename }}{% endif %}"
+          - "MODE: {% if item.permissions is undefined %}0644{% else %}{{ item.permissions }}{% endif %}"
+        verbosity:                         2
+      loop:       "{{ bom.materials.media | flatten(levels=1) }}"
+      when:
+        - item.download is undefined or item.download
+# ------------------</DEBUGGING>------------------
+
+- name:                                "3.3 BoM Processing: - Creates temporary download directory"
+  ansible.windows.win_tempfile:
+    path:                              C:\resource
+    state:                             directory
+
+
+- name:                                "3.3 BoM Processing: - Download Files {{ distribution_id }}"
+  ansible.windows.win_get_url:
+    url:                               "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/archives/{{ item.archive | string | trim }}\
+                                       {% if sapbits_sas_token is not undefined %}?{{ sapbits_sas_token }}{% endif %}"
+    dest:                              '{{ target_media_location_windows }}\{% if item.path is undefined %}downloads{% else %}{{ item.path }}{% endif %}\{% if item.filename is undefined %}{{ item.archive }}{% else %}{{ item.filename }}{% endif %}'
+    checksum:                          "{% if item.checksum is defined %}{{ item.checksum | upper }}{% endif %}"
+    checksum_algorithm:                "sha256"
+    validate_certs:                    true
+  register:                            result
+  until:                               result is succeeded
+  retries:                             2
+  delay:                               5
+  loop:                                "{{ bom.materials.media | flatten(levels=1) }}"
+  when:
+    - item.download is undefined or item.download
+
+#   05) Extract files - SAPCAR
+- name:                                "3.3 BoM Processing: - Extract File, SAPCAR"
+  ansible.windows.win_shell:                           '{{ target_media_location_windows }}\downloads\SAPCAR -manifest SIGNATURE.SMF -xf {{ target_media_location_windows }}\{% if item.path is undefined %}downloads{% else %}{{ item.path }}{% endif %}\{% if item.filename is undefined %}{{ item.archive }}{% else %}{{ item.filename }}{% endif %}'
+  args:
+    chdir:                             '{{ target_media_location_windows }}\{{ item.extractDir }}'
+    creates:                           '{ target_media_location_windows }}\{{ item.extractDir }}\{% if item.creates is defined %}{{ item.creates }}{% else %}NOT_DEFINED{% endif %}'
+  loop:                                "{{ bom.materials.media | flatten(levels=1) }}"
+  when:
+    - item.extract is not undefined
+    - item.extract
+    - ( item.filename is undefined and (item.archive |regex_search('[^.]+(?=\\.*$)')|upper=="SAR") ) or
+      ( item.filename is defined   and (item.filename|regex_search('[^.]+(?=\\.*$)')|upper=="SAR") )
+
+
+# #   06) Extract files - UNRAR
+# - name:                                "3.3 BoM Processing: - Extract File, UNRAR"
+#   ansible.builtin.command:             unrar x "{{ target_media_location }}/{% if item.path is undefined %}downloads{% else %}{{ item.path }}{% endif %}/\
+#                                        {% if item.filename is undefined %}{{ item.archive }}{% else %}{{ item.filename }}{% endif %}"
+#   args:
+#     chdir:                             "{{ target_media_location }}/{{ item.extractDir }}"
+#     creates:                           "{{ target_media_location }}/{{ item.extractDir }}/\
+#                                         {% if item.creates is defined %}{{ item.creates }}{% else %}NOT_DEFINED{% endif %}"
+#   loop:                                "{{ bom.materials.media | flatten(levels=1) }}"
+#   when:
+#     - item.extract is not undefined
+#     - item.extract
+#     - ( item.filename is undefined and (item.archive |regex_search('[^.]+(?=\\.*$)')|upper=="RAR") ) or
+#       ( item.filename is defined   and (item.filename|regex_search('[^.]+(?=\\.*$)')|upper=="RAR") )
+
+
+#   07) Extract files - UNZIP
+- name:                                "3.3 BoM Processing: - Extract File, UNZIP"
+  ansible.windows.win_dsc:
+    resource_name: Archive
+    Ensure: Present
+    Path:                              '{{ target_media_location_windows }}\{% if item.path is undefined %}downloads{% else %}{{ item.path }}{% endif %}\{% if item.filename is undefined %}{{ item.archive }}{% else %}{{ item.filename }}{% endif %}'
+    Destination:                       '{{ target_media_location_windows }}\{{ item.extractDir }}'
+  loop:                                "{{ bom.materials.media | flatten(levels=1) }}"
+  when:
+    - item.extract is not undefined
+    - item.extract
+    - ( item.filename is undefined and (item.archive |regex_search('[^.]+(?=\\.*$)')|upper=="ZIP") ) or
+      ( item.filename is defined   and (item.filename|regex_search('[^.]+(?=\\.*$)')|upper=="ZIP") )
+
+#   08) Extract files - EXE
+
+- name:                                "3.3 BoM Processing: - Extract File, EXE"
+  ansible.builtin.include_tasks:       "process_exe_archives.yaml"
+  loop:                                "{{ bom.materials.media | flatten(levels=1) }}"
+  when:
+    - item.extract is defined
+    - item.extract
+    - ( item.filename is undefined and (item.archive |regex_search('[^.]+(?=\\.*$)')|upper=="EXE") ) or
+      ( item.filename is defined   and (item.filename|regex_search('[^.]+(?=\\.*$)')|upper=="EXE") )
+
+# -------------------------------------+---------------------------------------8
+#
+# Description:  Process BOM dependencies.
+#               Call BOM processor, passing dependent BOM names.
+#
+- name:                                "3.3 BoM Processing: - Process dependent BOMs"
+  ansible.builtin.include_tasks:                       "bom_processor.yaml"
+  vars:
+    bom_name:                          "{{ bom_dependency.name }}"
+  loop:                                "{{ bom.materials.dependencies | flatten(levels=1) }}"
+  loop_control:
+    loop_var:                          bom_dependency
+  when:
+    - bom.materials.dependencies is defined
+    - bom.materials.dependencies|length>0
+# -------------------------------------+---------------------------------------8
+
+
+# #   08) Purge BOM file from Ansible Controller
+# - name:         "Ensure {{ bom_name }} is absent"
+#   ansible.builtin.file:
+#     path:       "{{ inventory_dir }}/{{ bom_name }}.yaml"
+#     state:      absent
+#   delegate_to:  localhost
+
+# -------------------------------------+---------------------------------------8
+
+...

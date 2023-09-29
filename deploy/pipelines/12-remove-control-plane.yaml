@@ -1,0 +1,679 @@
+---
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |      This pipeline removes the Control Plane via Terraform.                |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+parameters:
+  - name:                              deployer
+    displayName:                       "Deployer configuration name, use this format: ENV-LOCA-VNET-INFRASTRUCTURE"
+    type:                              string
+    default:                           MGMT-WEEU-DEP01-INFRASTRUCTURE
+
+  - name:                              library
+    displayName:                       "Library configuration name, use this format: ENV-LOCA-SAP_LIBRARY"
+    type:                              string
+    default:                           MGMT-WEEU-SAP_LIBRARY
+
+  - name:                              deployer_environment
+    displayName:                       Deployer Environment name (MGMT, DEV, QA, PRD, ...)
+    type:                              string
+    default:                           MGMT
+
+  - name:                              use_deployer
+    displayName:                       Run removal on self hosted agent
+    type:                              boolean
+    default:                           false
+
+  - name:                              sap_automation_repo_path
+    displayName:                       The local path on the agent where the sap_automation repo can be found
+    type:                              string
+
+  - name:                              config_repo_path
+    displayName:                       The local path on the agent where the config repo can be found
+    type:                              string
+
+stages:
+  - stage:                             Remove_control_plane_remote
+    displayName:                       "Control plane removal (on agent)"
+    variables:
+      - template:                      variables/12-remove-control-plane-variables.yaml
+        parameters:
+          deployer:                    ${{ parameters.deployer }}
+          deployer_environment:        ${{ parameters.deployer_environment }}
+          library:                     ${{ parameters.library }}
+          use_deployer:                ${{ parameters.use_deployer }}
+    pool:
+      name:                            $(POOL)
+    jobs:
+      - job:                           Remove_control_plane_remote
+        displayName:                   "Start control plane removal"
+        variables:
+          - group:                     SDAF-${{ parameters.deployer_environment }}
+        workspace:
+          clean:                       all
+        steps:
+          - template:                  templates\download.yaml
+          - task:                      PostBuildCleanup@3
+          - bash: |
+              #!/bin/bash
+              # Treat unset variables as an error when substituting.
+              set -u
+
+              echo "##vso[build.updatebuildnumber]Removing the control plane defined in $(deployer_folder) $(library_folder)"
+              green="\e[1;32m" ; reset="\e[0m"
+
+              # echo -e "$green--- Checkout $(Build.SourceBranchName) ---$reset"
+              #   git fetch -q --all
+              #   git checkout -q $(Build.SourceBranchName)
+
+              echo -e "$green--- Update .sap_deployment_automation/config as DEPLOYMENT_REPO_PATH can change on devops agent ---$reset"
+                DEPLOYMENT_REPO_PATH=$(Build.Repository.LocalPath)
+                export HOME=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)
+                cd $HOME; mkdir -p .sap_deployment_automation
+                echo DEPLOYMENT_REPO_PATH=$DEPLOYMENT_REPO_PATH > .sap_deployment_automation/config
+
+              echo -e "$green--- Configure devops CLI extension ---$reset"
+                az config set extension.use_dynamic_install=yes_without_prompt
+
+                az devops configure --defaults organization=$(System.CollectionUri) project='$(System.TeamProject)' --output none
+                if [ -n $(PAT) ]; then
+                  export AZURE_DEVOPS_EXT_PAT=$(PAT)
+                else
+                  export AZURE_DEVOPS_EXT_PAT=$(System.AccessToken)
+                fi
+
+                export VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(parent_variable_group)'].id | [0]")
+                echo '$(parent_variable_group) id: ' $VARIABLE_GROUP_ID
+                if [ -z ${VARIABLE_GROUP_ID} ]; then
+                    echo "##vso[task.logissue type=error]Variable group $(parent_variable_group) could not be found."
+                    exit 2
+                fi
+                if [ -z $CP_ARM_SUBSCRIPTION_ID ]; then
+                  echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined."
+                  exit 2
+                fi
+
+                if [ -z $CP_ARM_CLIENT_ID ]; then
+                  echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined."
+                  exit 2
+                fi
+
+                if [ -z $CP_ARM_CLIENT_SECRET ]; then
+                  echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined."
+                  exit 2
+                fi
+
+                if [ -z $CP_ARM_TENANT_ID ]; then
+                  echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined."
+                  exit 2
+                fi
+
+                if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
+                  echo -e "$green --- Install dos2unix ---$reset"
+                    sudo apt-get -qq install dos2unix
+
+                  echo -e "$green --- Install terraform ---$reset"
+
+                    wget -q $(tf_url)
+                    return_code=$?
+                    if [ 0 != $return_code ]; then
+                      echo "##vso[task.logissue type=error]Unable to download Terraform version $(tf_version)."
+                      exit 2
+                    fi
+                    unzip -qq terraform_$(tf_version)_linux_amd64.zip ; sudo mv terraform /bin/
+                    rm -f terraform_$(tf_version)_linux_amd64.zip
+                fi
+
+                az login --service-principal --username $CP_ARM_CLIENT_ID --password=$CP_ARM_CLIENT_SECRET --tenant $CP_ARM_TENANT_ID --output none
+                return_code=$?
+                if [ 0 != $return_code ]; then
+                  echo -e "$boldred--- Login failed ---$reset"
+                  echo "##vso[task.logissue type=error]az login failed."
+                  exit $return_code
+                fi
+                export ARM_CLIENT_ID=$CP_ARM_CLIENT_ID
+                export ARM_CLIENT_SECRET=$CP_ARM_CLIENT_SECRET
+                export ARM_TENANT_ID=$CP_ARM_TENANT_ID
+                export ARM_SUBSCRIPTION_ID=$CP_ARM_SUBSCRIPTION_ID
+
+
+              echo -e "$green--- Convert config files to UX format ---$reset"
+                dos2unix -q $CONFIG_REPO_PATH/DEPLOYER/$(deployer_folder)/$(deployer_configuration_file)
+                dos2unix -q $CONFIG_REPO_PATH/LIBRARY/$(library_folder)/$(library_configuration_file)
+
+              echo -e "$green--- Running the remove region script that destroys deployer VM and SAP library ---$reset"
+
+                ENVIRONMENT=$(grep "^environment" $CONFIG_REPO_PATH/DEPLOYER/$(deployer_folder)/$(deployer_configuration_file) | awk -F'=' '{print $2}' | xargs)
+                   LOCATION=$(grep "^location" $CONFIG_REPO_PATH/DEPLOYER/$(deployer_folder)/$(deployer_configuration_file) | awk -F'=' '{print $2}' | xargs | tr 'A-Z' 'a-z')
+                echo Environment: ${ENVIRONMENT}
+                echo Location:    ${LOCATION}
+
+                ENVIRONMENT_IN_FILENAME=$(echo $(deployer_folder) | awk -F'-' '{print $1}' | xargs )
+                          LOCATION_CODE=$(echo $(deployer_folder) | awk -F'-' '{print $2}' | xargs )
+                case "$LOCATION_CODE" in
+                  "AUCE") LOCATION_IN_FILENAME="australiacentral" ;;
+                  "AUC2") LOCATION_IN_FILENAME="australiacentral2" ;;
+                  "AUEA") LOCATION_IN_FILENAME="australiaeast" ;;
+                  "AUSE") LOCATION_IN_FILENAME="australiasoutheast" ;;
+                  "BRSO") LOCATION_IN_FILENAME="brazilsouth" ;;
+                  "BRSE") LOCATION_IN_FILENAME="brazilsoutheast" ;;
+                  "BRUS") LOCATION_IN_FILENAME="brazilus" ;;
+                  "CACE") LOCATION_IN_FILENAME="canadacentral" ;;
+                  "CAEA") LOCATION_IN_FILENAME="canadaeast" ;;
+                  "CEIN") LOCATION_IN_FILENAME="centralindia" ;;
+                  "CEUS") LOCATION_IN_FILENAME="centralus" ;;
+                  "CEUA") LOCATION_IN_FILENAME="centraluseuap" ;;
+                  "EAAS") LOCATION_IN_FILENAME="eastasia" ;;
+                  "EAUS") LOCATION_IN_FILENAME="eastus" ;;
+                  "EUS2") LOCATION_IN_FILENAME="eastus2" ;;
+                  "FRCE") LOCATION_IN_FILENAME="francecentral" ;;
+                  "FRSO") LOCATION_IN_FILENAME="francesouth" ;;
+                  "GENO") LOCATION_IN_FILENAME="germanynorth" ;;
+                  "GEWC") LOCATION_IN_FILENAME="germanywest" ;;
+                  "JAEA") LOCATION_IN_FILENAME="japaneast" ;;
+                  "JAWE") LOCATION_IN_FILENAME="japanwest" ;;
+                  "JINC") LOCATION_IN_FILENAME="jioindiacentral" ;;
+                  "JINW") LOCATION_IN_FILENAME="jioindiawest" ;;
+                  "GENO") LOCATION_IN_FILENAME="germanynorth" ;;
+                  "KOCE") LOCATION_IN_FILENAME="koreacentral" ;;
+                  "KOSO") LOCATION_IN_FILENAME="koreasouth" ;;
+                  "NCUS") LOCATION_IN_FILENAME="northcentralus" ;;
+                  "NOEU") LOCATION_IN_FILENAME="northeurope" ;;
+                  "NOEA") LOCATION_IN_FILENAME="norwayeast" ;;
+                  "NOWE") LOCATION_IN_FILENAME="norwaywest" ;;
+                  "SANO") LOCATION_IN_FILENAME="southafricanorth" ;;
+                  "SAWE") LOCATION_IN_FILENAME="southafricawest" ;;
+                  "SCUS") LOCATION_IN_FILENAME="southcentralus" ;;
+                  "SCUG") LOCATION_IN_FILENAME="southcentralusstg" ;;
+                  "SOEA") LOCATION_IN_FILENAME="southeastasia" ;;
+                  "SOIN") LOCATION_IN_FILENAME="southindia" ;;
+                  "SECE") LOCATION_IN_FILENAME="swedencentral" ;;
+                  "SWNO") LOCATION_IN_FILENAME="switzerlandnorth" ;;
+                  "SWWE") LOCATION_IN_FILENAME="switzerlandwest" ;;
+                  "UACE") LOCATION_IN_FILENAME="uaecentral" ;;
+                  "UANO") LOCATION_IN_FILENAME="uaenorth" ;;
+                  "UKSO") LOCATION_IN_FILENAME="uksouth" ;;
+                  "UKWE") LOCATION_IN_FILENAME="ukwest" ;;
+                  "WCUS") LOCATION_IN_FILENAME="westcentralus" ;;
+                  "WEEU") LOCATION_IN_FILENAME="westeurope" ;;
+                  "WEIN") LOCATION_IN_FILENAME="westindia" ;;
+                  "WEUS") LOCATION_IN_FILENAME="westus" ;;
+                  "WUS2") LOCATION_IN_FILENAME="westus2" ;;
+                  "WUS3") LOCATION_IN_FILENAME="westus3" ;;
+                  *) LOCATION_IN_FILENAME="westeurope" ;;
+                esac
+
+                echo "Environment(filename): $ENVIRONMENT_IN_FILENAME"
+                echo "Location(filename):    $LOCATION_IN_FILENAME"
+
+                if [ $ENVIRONMENT != $ENVIRONMENT_IN_FILENAME ]; then
+                  echo "##vso[task.logissue type=error]The environment setting in $(workload_zone_configuration_file) '$ENVIRONMENT' does not match the $(workload_zone_configuration_file) file name '$ENVIRONMENT_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
+                  exit 2
+                fi
+
+                if [ $LOCATION != $LOCATION_IN_FILENAME ]; then
+                  echo "##vso[task.logissue type=error]The location setting in $(workload_zone_configuration_file) '$LOCATION' does not match the $(workload_zone_configuration_file) file name '$LOCATION_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
+                  exit 2
+                fi
+
+                deployer_environment_file_name=$HOME/.sap_deployment_automation/$ENVIRONMENT$LOCATION_CODE; echo "Environment file: " $deployer_environment_file_name
+
+                az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Deployer_Key_Vault.value" | tr -d \")
+                if [ -n "${az_var}" ]; then
+                  key_vault="${az_var}" ; echo 'Deployer Key Vault' ${key_vault}
+                else
+                  echo "Reading key vault from environment file"
+                  key_vault=$(cat ${deployer_environment_file_name} | grep keyvault= -m1 | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer Key Vault' ${key_vault}
+                fi
+
+                az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Account_Name.value" | tr -d \")
+                if [ -n "${az_var}" ]; then
+                  REMOTE_STATE_SA="${az_var}" ; echo 'Terraform state file storage account' $REMOTE_STATE_SA
+                else
+                  echo "Reading storage account from environment file"
+                  REMOTE_STATE_SA=$(cat ${deployer_environment_file_name} | grep REMOTE_STATE_SA | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file storage account' $REMOTE_STATE_SA
+                fi
+
+                az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Resource_Group_Name.value" | tr -d \")
+                if [ -n "${az_var}" ]; then
+                  REMOTE_STATE_RG="${az_var}"  ; echo 'Terraform state file resource group' $REMOTE_STATE_RG
+                else
+                  REMOTE_STATE_RG=$(cat ${deployer_environment_file_name}  | grep REMOTE_STATE_RG      | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file resource group' $REMOTE_STATE_RG
+                fi
+
+                export STATE_SUBSCRIPTION=$CP_ARM_SUBSCRIPTION_ID ; echo 'Terraform state file subscription' $STATE_SUBSCRIPTION
+
+              echo -e "$green--- Running the remove region script that destroys deployer VM and SAP library ---$reset"
+
+                $SAP_AUTOMATION_REPO_PATH/deploy/scripts/remove_controlplane.sh                            \
+                  --deployer_parameter_file $CONFIG_REPO_PATH/DEPLOYER/$(deployer_folder)/$(deployer_configuration_file) \
+                  --library_parameter_file $CONFIG_REPO_PATH/LIBRARY/$(library_folder)/$(library_configuration_file)     \
+                  --storage_account $REMOTE_STATE_SA                                                   \
+                  --subscription ${STATE_SUBSCRIPTION}                                                 \
+                  --resource_group $REMOTE_STATE_RG                                                    \
+                  --ado --auto-approve --keep_agent
+
+                return_code=$?
+
+                echo "Return code from remove_controlplane $return_code."
+
+              echo -e "$green--- Remove Control Plane Part 1 ---$reset"
+                cd $CONFIG_REPO_PATH
+                git checkout -q $(Build.SourceBranchName)
+
+                changed=0
+                if [ -f $deployer_environment_file_name ]; then
+                    git add $deployer_environment_file_name
+                    changed=1
+                fi
+
+                if [ -f DEPLOYER/$(deployer_folder)/terraform.tfstate ]; then
+                    echo "Compressing the state file."
+                    sudo apt install zip
+                    pass=$(echo $CP_ARM_CLIENT_SECRET | sed 's/-//g')
+                    zip -j -P "${pass}" DEPLOYER/$(deployer_folder)/state DEPLOYER/$(deployer_folder)/terraform.tfstate
+                    git add -f DEPLOYER/$(deployer_folder)/state.zip
+                    changed=1
+                fi
+
+                if [ -f "DEPLOYER/$(deployer_folder)/.terraform/terraform.tfstate" ]; then
+                  git add -f "DEPLOYER/$(deployer_folder)/.terraform/terraform.tfstate"
+                  changed=1
+                fi
+
+                if [ -d LIBRARY/$(library_folder)/.terraform ]; then
+                  git rm -q -r  --ignore-unmatch LIBRARY/$(library_folder)/.terraform
+                  changed=1
+                fi
+
+                if [ -f LIBRARY/$(library_folder)/state.zip ]; then
+                  git rm -q  --ignore-unmatch LIBRARY/$(library_folder)/state.zip
+                  changed=1
+                fi
+
+                if [ -f  LIBRARY/$(library_folder)/backend-config.tfvars ]; then
+                  git rm -q   --ignore-unmatch  LIBRARY/$(library_folder)/backend-config.tfvars
+                  changed=1
+                fi
+                if [ 0 == $return_code ]; then
+
+                  if [ 1 == $changed ]; then
+                      git config --global user.email "$(Build.RequestedForEmail)"
+                      git config --global user.name "$(Build.RequestedFor)"
+                      git commit -m "Control Plane $(deployer_folder) removal step 1[skip ci]"
+                      git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --set-upstream origin $(Build.SourceBranchName)
+                      return_code=$?
+                  fi
+                fi
+
+              exit $return_code
+            displayName:               Remove control plane
+            env:
+              SYSTEM_ACCESSTOKEN:       $(System.AccessToken)
+              CP_ARM_SUBSCRIPTION_ID:   $(CP_ARM_SUBSCRIPTION_ID)
+              CP_ARM_CLIENT_ID:         $(CP_ARM_CLIENT_ID)
+              CP_ARM_CLIENT_SECRET:     $(CP_ARM_CLIENT_SECRET)
+              CP_ARM_TENANT_ID:         $(CP_ARM_TENANT_ID)
+              SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
+              CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
+              key_vault:                $(Deployer_Key_Vault)
+              TF_IN_AUTOMATION:         true
+              TF_LOG:                   $(TF_LOG)
+            failOnStderr: false
+
+  - stage:                              Remove_control_plane
+    displayName:                        "Finalize control plane removal"
+    variables:
+      - template:                       variables/12-remove-control-plane-variables.yaml
+        parameters:
+          deployer:                     ${{ parameters.deployer }}
+          deployer_environment:         ${{ parameters.deployer_environment }}
+          library:                      ${{ parameters.library }}
+          use_deployer:                 ${{ parameters.use_deployer }}
+    pool:
+      name:                             $(Agent)
+    dependsOn:
+      - Remove_control_plane_remote
+    condition:                          in(dependencies.Remove_control_plane_remote.result, 'Succeeded', 'Skipped')
+    jobs:
+      - job:                            Remove_control_plane
+        displayName:                    "Finalize control plane removal"
+        variables:
+          - group:                     SDAF-${{ parameters.deployer_environment }}
+        workspace:
+          clean:                       all
+        steps:
+          - template:                  templates\download.yaml
+            parameters:
+              getLatestFromBranch:     true
+          - task:                      PostBuildCleanup@3
+          - bash: |
+              #!/bin/bash
+              echo "##vso[build.updatebuildnumber]Removing the control plane defined in $(deployer_folder) $(library_folder)"
+              green="\e[1;32m" ; reset="\e[0m"
+              # Treat unset variables as an error when substituting.
+                set -ue
+
+              # echo -e "$green--- Checkout $(Build.SourceBranchName) ---$reset"
+              #  git fetch -q --all
+              #  git checkout -q $(Build.SourceBranchName)
+
+                # Check if running on deployer
+                if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
+                    echo -e "$green --- Install dos2unix ---$reset"
+                    sudo apt-get -qq install dos2unix
+
+                    sudo apt -qq install zip
+
+                    echo -e "$green --- Install terraform ---$reset"
+
+                    wget -q $(tf_url)
+                    return_code=$?
+                    if [ 0 != $return_code ]; then
+                        echo "##vso[task.logissue type=error]Unable to download Terraform version $(tf_version)."
+                        exit 2
+                    fi
+                    unzip -qq terraform_$(tf_version)_linux_amd64.zip ; sudo mv terraform /bin/
+                    rm -f terraform_$(tf_version)_linux_amd64.zip
+                fi
+
+              echo -e "$green--- Update .sap_deployment_automation/config as DEPLOYMENT_REPO_PATH can change on devops agent ---$reset"
+                DEPLOYMENT_REPO_PATH=$(Build.Repository.LocalPath)
+                export HOME=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)
+                cd $HOME; mkdir -p .sap_deployment_automation
+
+              echo -e "$green--- Configure devops CLI extension ---$reset"
+                az config set extension.use_dynamic_install=yes_without_prompt
+
+                az devops configure --defaults organization=$(System.CollectionUri) project='$(System.TeamProject)' --output none
+                if [ -n $(PAT) ]; then
+                  export AZURE_DEVOPS_EXT_PAT=$(PAT)
+                else
+                  export AZURE_DEVOPS_EXT_PAT=$(System.AccessToken)
+                fi
+
+                export VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(parent_variable_group)'].id | [0]")
+                echo '$(variable_group) id: ' $VARIABLE_GROUP_ID
+                if [ -z ${VARIABLE_GROUP_ID} ]; then
+                    echo "##vso[task.logissue type=error]Variable group $(parent_variable_group) could not be found."
+                    exit 2
+                fi
+                if [ -z $ARM_SUBSCRIPTION_ID ]; then
+                  echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined."
+                  exit 2
+                fi
+                if [ -z $ARM_CLIENT_ID ]; then
+                  echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined."
+                  exit 2
+                fi
+                if [ -z $ARM_CLIENT_SECRET ]; then
+                  echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined."
+                  exit 2
+                fi
+                if [ -z $ARM_TENANT_ID ]; then
+                  echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined."
+                  exit 2
+                fi
+
+              echo -e "$green--- Convert config files to UX format ---$reset"
+                dos2unix -q $CONFIG_REPO_PATH/DEPLOYER/$(deployer_folder)/$(deployer_configuration_file)
+                dos2unix -q $CONFIG_REPO_PATH/LIBRARY/$(library_folder)/$(library_configuration_file)
+
+              echo -e "$green--- Running the remove region script that destroys deployer VM and SAP library ---$reset"
+
+                ENVIRONMENT=$(grep "^environment" $CONFIG_REPO_PATH/DEPLOYER/$(deployer_folder)/$(deployer_configuration_file) | awk -F'=' '{print $2}' | xargs)
+                   LOCATION=$(grep "^location" $CONFIG_REPO_PATH/DEPLOYER/$(deployer_folder)/$(deployer_configuration_file) | awk -F'=' '{print $2}' | xargs | tr 'A-Z' 'a-z')
+                echo Environment: ${ENVIRONMENT}
+                echo Location:    ${LOCATION}
+
+                ENVIRONMENT_IN_FILENAME=$(echo $(deployer_folder) | awk -F'-' '{print $1}' | xargs )
+                          LOCATION_CODE=$(echo $(deployer_folder) | awk -F'-' '{print $2}' | xargs )
+                case "$LOCATION_CODE" in
+                  "AUCE") LOCATION_IN_FILENAME="australiacentral" ;;
+                  "AUC2") LOCATION_IN_FILENAME="australiacentral2" ;;
+                  "AUEA") LOCATION_IN_FILENAME="australiaeast" ;;
+                  "AUSE") LOCATION_IN_FILENAME="australiasoutheast" ;;
+                  "BRSO") LOCATION_IN_FILENAME="brazilsouth" ;;
+                  "BRSE") LOCATION_IN_FILENAME="brazilsoutheast" ;;
+                  "BRUS") LOCATION_IN_FILENAME="brazilus" ;;
+                  "CACE") LOCATION_IN_FILENAME="canadacentral" ;;
+                  "CAEA") LOCATION_IN_FILENAME="canadaeast" ;;
+                  "CEIN") LOCATION_IN_FILENAME="centralindia" ;;
+                  "CEUS") LOCATION_IN_FILENAME="centralus" ;;
+                  "CEUA") LOCATION_IN_FILENAME="centraluseuap" ;;
+                  "EAAS") LOCATION_IN_FILENAME="eastasia" ;;
+                  "EAUS") LOCATION_IN_FILENAME="eastus" ;;
+                  "EUS2") LOCATION_IN_FILENAME="eastus2" ;;
+                  "FRCE") LOCATION_IN_FILENAME="francecentral" ;;
+                  "FRSO") LOCATION_IN_FILENAME="francesouth" ;;
+                  "GENO") LOCATION_IN_FILENAME="germanynorth" ;;
+                  "GEWC") LOCATION_IN_FILENAME="germanywest" ;;
+                  "JAEA") LOCATION_IN_FILENAME="japaneast" ;;
+                  "JAWE") LOCATION_IN_FILENAME="japanwest" ;;
+                  "JINC") LOCATION_IN_FILENAME="jioindiacentral" ;;
+                  "JINW") LOCATION_IN_FILENAME="jioindiawest" ;;
+                  "GENO") LOCATION_IN_FILENAME="germanynorth" ;;
+                  "KOCE") LOCATION_IN_FILENAME="koreacentral" ;;
+                  "KOSO") LOCATION_IN_FILENAME="koreasouth" ;;
+                  "NCUS") LOCATION_IN_FILENAME="northcentralus" ;;
+                  "NOEU") LOCATION_IN_FILENAME="northeurope" ;;
+                  "NOEA") LOCATION_IN_FILENAME="norwayeast" ;;
+                  "NOWE") LOCATION_IN_FILENAME="norwaywest" ;;
+                  "SANO") LOCATION_IN_FILENAME="southafricanorth" ;;
+                  "SAWE") LOCATION_IN_FILENAME="southafricawest" ;;
+                  "SCUS") LOCATION_IN_FILENAME="southcentralus" ;;
+                  "SCUG") LOCATION_IN_FILENAME="southcentralusstg" ;;
+                  "SOEA") LOCATION_IN_FILENAME="southeastasia" ;;
+                  "SOIN") LOCATION_IN_FILENAME="southindia" ;;
+                  "SECE") LOCATION_IN_FILENAME="swedencentral" ;;
+                  "SWNO") LOCATION_IN_FILENAME="switzerlandnorth" ;;
+                  "SWWE") LOCATION_IN_FILENAME="switzerlandwest" ;;
+                  "UACE") LOCATION_IN_FILENAME="uaecentral" ;;
+                  "UANO") LOCATION_IN_FILENAME="uaenorth" ;;
+                  "UKSO") LOCATION_IN_FILENAME="uksouth" ;;
+                  "UKWE") LOCATION_IN_FILENAME="ukwest" ;;
+                  "WCUS") LOCATION_IN_FILENAME="westcentralus" ;;
+                  "WEEU") LOCATION_IN_FILENAME="westeurope" ;;
+                  "WEIN") LOCATION_IN_FILENAME="westindia" ;;
+                  "WEUS") LOCATION_IN_FILENAME="westus" ;;
+                  "WUS2") LOCATION_IN_FILENAME="westus2" ;;
+                  "WUS3") LOCATION_IN_FILENAME="westus3" ;;
+                  *) LOCATION_IN_FILENAME="westeurope" ;;
+                esac
+
+                echo "Environment(filename): $ENVIRONMENT_IN_FILENAME"
+                echo "Location(filename):    $LOCATION_IN_FILENAME"
+
+                if [ $ENVIRONMENT != $ENVIRONMENT_IN_FILENAME ]; then
+                  echo "##vso[task.logissue type=error]The environment setting in $(workload_zone_configuration_file) '$ENVIRONMENT' does not match the $(workload_zone_configuration_file) file name '$ENVIRONMENT_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
+                  exit 2
+                fi
+
+                if [ $LOCATION != $LOCATION_IN_FILENAME ]; then
+                  echo "##vso[task.logissue type=error]The location setting in $(workload_zone_configuration_file) '$LOCATION' does not match the $(workload_zone_configuration_file) file name '$LOCATION_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
+                  exit 2
+                fi
+
+              echo -e "$green--- Running the remove region script that destroys deployer VM and SAP library ---$reset"
+
+                deployer_environment_file_name=$HOME/.sap_deployment_automation/$ENVIRONMENT$LOCATION; echo "Environment file: " $deployer_environment_file_name
+
+              echo -e "$green--- az login ---$reset"
+
+                az login --service-principal --username $ARM_CLIENT_ID --password=$ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID --output none
+                return_code=$?
+                if [ 0 != $return_code ]; then
+                  echo -e "$boldred--- Login failed ---$reset"
+                  echo "##vso[task.logissue type=error]az login failed."
+                  exit $return_code
+                fi
+                az account set --subscription $ARM_SUBSCRIPTION_ID
+
+                az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Deployer_Key_Vault.value" | tr -d \")
+                if [ -n "${az_var}" ]; then
+                  key_vault="${az_var}" ; echo 'Deployer Key Vault' ${key_vault}
+                else
+                  echo "Reading key vault from environment file"
+                  key_vault=$(cat ${deployer_environment_file_name} | grep keyvault= -m1 | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer Key Vault' ${key_vault}
+                fi
+
+                key_vault_id=$(az resource list --name "${key_vault}"  --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
+                if [ -n "${key_vault_id}" ]; then
+
+                  if [ "azure pipelines" = "$(this_agent)" ]; then
+                      this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
+                      az keyvault network-rule add --name ${key_vault} --ip-address ${this_ip} --only-show-errors --output none
+                      ip_added=1
+                  fi
+                fi
+
+              echo -e "$green--- Running the remove_deployer script that destroys deployer VM ---$reset"
+                if [ -f $CONFIG_REPO_PATH/DEPLOYER/$(deployer_folder)/state.zip ]; then
+                    echo "Unzipping state.zip"
+                    pass=$(echo $ARM_CLIENT_SECRET | sed 's/-//g')
+                    unzip -qq -o -P "${pass}" $CONFIG_REPO_PATH/DEPLOYER/$(deployer_folder)/state.zip -d ${CONFIG_REPO_PATH}/DEPLOYER/$(deployer_folder)
+                fi
+
+                sudo chmod +x $SAP_AUTOMATION_REPO_PATH/deploy/scripts/remove_deployer.sh
+                cd $CONFIG_REPO_PATH/DEPLOYER/$(deployer_folder)
+
+                $SAP_AUTOMATION_REPO_PATH/deploy/scripts/remove_deployer.sh --auto-approve                 \
+                  --parameterfile $(deployer_configuration_file)
+
+                return_code=$?
+
+                echo "Return code from remove_deployer $return_code."
+                if [ 0 != $return_code ]; then
+                  echo "##vso[task.logissue type=error]Return code from remove_deployer $return_code."
+                fi
+
+              echo -e "$green--- Removing deployment automation configuration from devops repository ---$reset"
+
+                if [ 0 == $return_code ] ; then
+                  cd $CONFIG_REPO_PATH
+                  changed=0
+                  echo "##vso[build.updatebuildnumber]Removing control plane $(deployer_folder) $(library_folder)"
+                    if [ -f "DEPLOYER/$(deployer_folder)/.terraform/terraform.tfstate" ]; then
+                      git rm -q -f --ignore-unmatch DEPLOYER/$(deployer_folder)/.terraform/terraform.tfstate
+                      changed=1
+                    fi
+
+
+                    if [ -d "DEPLOYER/$(deployer_folder)/.terraform" ]; then
+                      git rm -q -r  --ignore-unmatch DEPLOYER/$(deployer_folder)/.terraform
+                      changed=1
+                    fi
+
+                    if [ -f "DEPLOYER/$(deployer_folder)/state.zip" ]; then
+                      git rm -q -f --ignore-unmatch DEPLOYER/$(deployer_folder)/state.zip
+                      changed=1
+                    fi
+
+                    if [ -d LIBRARY/$(library_folder)/.terraform ]; then
+                      git rm -q -r  --ignore-unmatch LIBRARY/$(library_folder)/.terraform
+                      changed=1
+                    fi
+
+                    if [ -f LIBRARY/$(library_folder)/state.zip ]; then
+                      git rm -q -f --ignore-unmatch LIBRARY/$(library_folder)/state.zip
+                      changed=1
+                    fi
+
+                    if [ -f  .sap_deployment_automation/${ENVIRONMENT}${LOCATION_CODE} ]; then
+                      rm .sap_deployment_automation/${ENVIRONMENT}${LOCATION_CODE}
+                      git rm -q   --ignore-unmatch  .sap_deployment_automation/${ENVIRONMENT}${LOCATION_CODE}
+                      changed=1
+                    fi
+                    if [ -f  .sap_deployment_automation/${ENVIRONMENT}${LOCATION_CODE}.md ]; then
+                      rm .sap_deployment_automation/${ENVIRONMENT}${LOCATION_CODE}.md
+                      git rm -q   --ignore-unmatch  .sap_deployment_automation/${ENVIRONMENT}${LOCATION_CODE}.md
+                      changed=1
+                    fi
+
+                    if [ -f  LIBRARY/$(library_folder)/backend-config.tfvars ]; then
+                      git rm -q   --ignore-unmatch  LIBRARY/$(library_folder)/backend-config.tfvars
+                      changed=1
+                    fi
+
+                    if [ 1 == $changed ] ; then
+                      git config --global user.email "$(Build.RequestedForEmail)"
+                      git config --global user.name "$(Build.RequestedFor)"
+                      git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"
+                      git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push
+                    fi
+                  echo -e "$green--- Deleting variables ---$reset"
+                    if [ ${#VARIABLE_GROUP_ID} != 0 ]; then
+                      echo "Deleting variables"
+
+                      variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Account_Name.value" )
+                      if [ ${#variable_value} != 0 ]; then
+                        az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Terraform_Remote_Storage_Account_Name --yes --only-show-errors
+                      fi
+
+                      variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Resource_Group_Name.value" )
+                      if [ ${#variable_value} != 0 ]; then
+                        az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Terraform_Remote_Storage_Resource_Group_Name --yes --only-show-errors
+                      fi
+
+                      variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Subscription.value" )
+                      if [ ${#variable_value} != 0 ]; then
+                        az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Terraform_Remote_Storage_Subscription --yes --only-show-errors
+                      fi
+
+                      variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Deployer_State_FileName.value" )
+                      if [ ${#variable_value} != 0 ]; then
+                        az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Deployer_State_FileName              --yes --only-show-errors
+                      fi
+
+                      variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Deployer_Key_Vault.value" )
+                      if [ ${#variable_value} != 0 ]; then
+                        az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Deployer_Key_Vault                   --yes --only-show-errors
+                      fi
+
+                      variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "WEBAPP_URL_BASE.value" )
+                      if [ ${#variable_value} != 0 ]; then
+                        az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_URL_BASE                      --yes --only-show-errors
+                      fi
+
+                      variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "WEBAPP_IDENTITY.value" )
+                      if [ ${#variable_value} != 0 ]; then
+                        az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_IDENTITY                      --yes --only-show-errors
+                      fi
+
+                      variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "WEBAPP_ID.value" )
+                      if [ ${#variable_value} != 0 ]; then
+                        az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_ID                            --yes --only-show-errors
+                      fi
+
+                      variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "WEBAPP_RESOURCE_GROUP.value" )
+                      if [ ${#variable_value} != 0 ]; then
+                        az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_RESOURCE_GROUP                --yes --only-show-errors
+                      fi
+
+                      variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "INSTALLATION_MEDIA_ACCOUNT.value" )
+                      if [ ${#variable_value} != 0 ]; then
+                        az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name INSTALLATION_MEDIA_ACCOUNT           --yes --only-show-errors
+                      fi
+
+
+
+                    fi
+
+                fi
+
+              exit $return_code
+            displayName:               Remove control plane
+            env:
+              SYSTEM_ACCESSTOKEN:       $(System.AccessToken)
+              ARM_SUBSCRIPTION_ID:      $(CP_ARM_SUBSCRIPTION_ID)
+              ARM_CLIENT_ID:            $(CP_ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:        $(CP_ARM_CLIENT_SECRET)
+              ARM_TENANT_ID:            $(CP_ARM_TENANT_ID)
+              SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
+              CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
+              key_vault:                $(Deployer_Key_Vault)
+              TF_IN_AUTOMATION:         true
+              TF_LOG:                   $(TF_LOG)
+            failOnStderr:               false

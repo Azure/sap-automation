@@ -1,0 +1,32 @@
+﻿@model AutomationForm.Models.FormViewModel<LandscapeModel>
+
+@{
+    ViewBag.Title = "Workload zone details";
+}
+
+<fluent-breadcrumb>
+    <fluent-breadcrumb-item href="@Url.Action("Index", "Home")">Home</fluent-breadcrumb-item>
+    <fluent-breadcrumb-item href="@Url.Action("Index", "Landscape")">Workload zones</fluent-breadcrumb-item>
+    <fluent-breadcrumb-item href="#">Details</fluent-breadcrumb-item>
+</fluent-breadcrumb>
+
+<div class="text-center">
+    <h2>@Model.SapObject.Id</h2>
+</div>
+
+<fluent-switch onchange="toggleNullParameters()">
+    <span slot="checked-message">On</span>
+    <span slot="unchecked-message">Off</span>
+    <label for="cap-switch">Hide null values:</label>
+</fluent-switch>
+
+@await Html.PartialAsync("_DetailsPartial", Model)
+
+<p>
+    <fluent-anchor appearance="accent" href="@Url.Action("Edit", "Landscape", new { id = Model.SapObject.Id, partitionKey = Model.SapObject.environment })">
+        <i class="ms-Icon ms-Icon--Edit" aria-hidden="true"></i> Edit
+    </fluent-anchor>
+    <fluent-anchor href="@Url.Action("Index", "Landscape")">
+        Back to list
+    </fluent-anchor>
+</p>

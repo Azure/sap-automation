@@ -1,0 +1,42 @@
+---
+# HANA must be restarted after setting values in global.ini
+# Reference:
+# - SAP Help document: Monitoring and Replicating INI File Parameter Changes
+# (https://help.sap.com/viewer/6b94445c94ae495c83a19646e7c3fd56/2.0.04/en-US/f65a9c62f60f4d4bb91620dd959ee68d.html)
+# - SAP Note 2800357 infile_checker not able to Replicate Parameters although "replicate" is set to True
+# -------------------------------------+---------------------------------------8
+- name:                                "HANA HSR: - path to global.ini."
+  ansible.builtin.debug:
+    msg:                               "{{ path_global_ini }}"
+    verbosity:                         2
+# - name:                                Adjust global.ini on each cluster node
+#   ansible.builtin.blockinfile:
+#     path:                              "/hana/shared/{{ db_sid | upper }}/global/hdb/custom/config/global.ini"
+#     block: |
+#                                        [inifile_checker]
+#                                        enable = true
+#                                        interval = 3600
+#                                        replicate = true
+#                                        fixed_exclusion_global.ini/SYSTEM = storage/*, persistence/*path*, internal_hostname_resolution/*, public_hostname_resolution/*, system_replication*, multidb/mode, system_landscape_hostname_virtualization/sldsystemhome
+#     marker:                            "# {mark} ANSIBLE MANAGED BLOCK"
+#   vars:
+#     ansible_python_interpreter:        python3
+
+- name:                                "HANA HSR: - Ensure options set in section [inifile_checker] of global.ini."
+  become_user:                         "{{ db_sid_admin_user }}"
+  become:                              true
+  community.general.ini_file:
+    path:                              "/hana/shared/{{ db_sid | upper }}/global/hdb/custom/config/global.ini"
+    section:                           inifile_checker
+    state:                             present
+    mode:                              0644
+    option:                            "{{ item.option }}"
+    value:                             "{{ item.value }}"
+  loop:
+    - { option: enable,                            value: "true" }
+    - { option: interval,                          value: "3600" }
+    - { option: replicate,                         value: "true" }
+    - { option: fixed_exclusion_global.ini/SYSTEM, value: "storage/*, persistence/*path*, internal_hostname_resolution/*,
+                                                          public_hostname_resolution/*, system_replication*, multidb/mode, system_landscape_hostname_virtualization/sldsystemhome" }
+#  when:                                ansible_hostname == primary_instance_name and not hana_system_replication_needed
+# #

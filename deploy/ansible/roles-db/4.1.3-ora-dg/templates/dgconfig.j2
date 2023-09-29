@@ -1,0 +1,4 @@
+CREATE CONFIGURATION {{ db_sid | upper }}_dg_config AS PRIMARY DATABASE IS {{ db_sid | upper }} CONNECT IDENTIFIER IS {{ db_sid | upper }};
+ADD DATABASE {{ db_sid | upper }}_STDBY AS CONNECT IDENTIFIER IS {{ db_sid | upper }}_STDBY MAINTAINED AS PHYSICAL;
+ENABLE CONFIGURATION
+exit

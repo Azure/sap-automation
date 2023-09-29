@@ -1,0 +1,40 @@
+# /*-----------------------------------------------------------------------------------------------------8
+# |                                                                                                      |
+# |                 Check whether Sybase DB Instance has been installed or not                           |
+# |                 Step 2:Flag: Create a folder for DB installation flag                                |
+# |                                                                                                      |
+# |                                                                                                      |
+# +------------------------------------4--------------------------------------------------------------- */
+
+---
+
+
+- name:                                "SAP Sybase: Install reset"
+  ansible.builtin.file:
+    path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_sybase.txt"
+    state:                             absent
+  when: reinstall
+
+- name:                                "SAP Sybase: Check if Sybase already installed"
+  ansible.builtin.stat:
+    path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_sybase.txt"
+  register:                            "sybase_installed"
+  when:                                node_tier == 'sybase'
+
+- name:                                "SYBASE Install status"
+  block:
+
+    - name:                            "SYBASE Install status"
+      ansible.builtin.debug:
+        msg:                           "SYBASE is already installed"
+
+    - name:                            "SYBASE Install: - return value"
+      ansible.builtin.set_fact:
+        sybase_already_installed:      true
+  when:
+    - sybase_installed.stat.exists
+# /*---------------------------------------------------------------------------8
+# |                                   END                                      |
+# +------------------------------------4--------------------------------------*/
+
+...

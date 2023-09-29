@@ -1,0 +1,78 @@
+---
+# Set 'sap-hana' as tuned profile
+# Add GRUB arguments to the config
+# Set 'never' for transparent_hugepage
+# Disable SELinux
+# Disable core file creation
+# SAP Note 2777782 - SAP HANA DB: Recommended OS Settings for RHEL 8
+- name:                                "2.10.1 sap-notes: - Collect facts about installed packages"
+  ansible.builtin.package_facts:
+
+- name:                                "2.10.1 sap-notes: - Ensure tuned-profiles-sap-hana is installed"
+  ansible.builtin.dnf:
+    name:                              tuned-profiles-sap-hana
+    state:                             present
+  when:                                "'tuned-profiles-sap-hana' not in ansible_facts.packages"
+
+- name:                                "2.10.1 sap-notes: - Ensure tuned service is running and enabled"
+  ansible.builtin.systemd:
+    name:                              tuned
+    state:                             started
+    enabled:                           true
+
+- name:                                "2.10.1 sap-notes: - Set 'sap-hana' as tuned profile"
+  ansible.builtin.command:             tuned-adm profile sap-hana
+  changed_when:                        false
+
+- name:                                "2.10.1 sap-notes: - Set GRUB config path"
+  ansible.builtin.set_fact:
+    grub_config_file:                  "{{ grub_config_path | default('/etc/default/grub') }}"
+
+- name:                                "2.10.1 sap-notes: - Add GRUB arguments to the config if RHEL 8.4"
+  ansible.builtin.include_tasks:       roles-sap-os/2.10-sap-notes/tasks/grub_editor.yaml
+  with_dict:
+    - tsx:                             'on'
+    - transparent_hugepage:            'never'
+    - processor.max_cstate:            '1'
+    - intel_idle.max_cstate:           '1'
+
+- name:                                "2.10.1 sap-notes: - Update GRUB config for UEFI systems"
+  ansible.builtin.command:             grub2-mkconfig -o /boot/efi/EFI/redhat/grub.cfg
+  changed_when:                        false
+  when:                                "'/boot/efi' in ansible_mounts | map(attribute='mount') | list"
+
+- name:                                "2.10.1 sap-notes: - Update GRUB config for non UEFI systems"
+  ansible.builtin.command:             grub2-mkconfig -o /boot/grub2/grub.cfg
+  changed_when:                        false
+  when:                                "'/boot/efi' not in ansible_mounts | map(attribute='mount') | list"
+
+- name:                                "2.10.1 sap-notes: - Set 'never' for transparent_hugepage"
+  ansible.builtin.command:             echo never > /sys/kernel/mm/transparent_hugepage/enabled
+  changed_when:                        false
+
+- name:                                "2.10.1 sap-notes: - Disable core file creation"
+  ansible.builtin.lineinfile:
+    path:                              /etc/security/limits.d/99-sap.conf
+    regexp:                            "@sapsys\\s*{{ item }}\\s*core\\s*0"
+    line:                              "@sapsys    {{ item }}    core    0"
+    owner:                             root
+    group:                             root
+    mode:                              0600
+    create:                            true
+  with_items:
+    - soft
+    - hard
+
+# Disable SELinux
+- name:                                "2.10.1 sap-notes: - Disable SELinux"
+  ansible.posix.selinux:
+    state:                             disabled
+  notify:                              "2.10-sap-notes: Reboot after the selinux is configured"
+  tags: ansible_skip_lint
+  when:
+    - distribution_id in ['redhat7', 'redhat8', 'redhat9']
+
+...
+# /*----------------------------------------------------------------------------8
+# |                                    END                                      |
+# +-------------------------------------4--------------------------------------*/

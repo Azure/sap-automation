@@ -1,0 +1,116 @@
+- name:                                "ORACLE Post Processing: Set Variables"
+  ansible.builtin.set_fact:
+    PAS:                               'pas'
+    pga_temp_l4tb_std:                 "{{ ((ansible_memory_mb.real.total * 0.7) * 0.2) | round | int }}"
+    pga_temp_l4tb_dis:                 "{{ ((ansible_memory_mb.real.total * 0.85) * 0.2) | round | int }}"
+    # pga_temp_g4tb:                       "{{ ((ansible_memory_mb.real.total*0.85)*0.2) |round |int }}"
+- name:                                "ORACLE Post Processing: Set the SGA and PGA Sizes for RAM < 4TB"
+  ansible.builtin.set_fact:
+    main_mem1:                         "{{ ansible_memory_mb.real.total }}"
+    ora_sga:                           "{{ (ansible_memory_mb.real.total * 0.85) | round | int }}"
+    ora_pga:                           "{{ [(pga_temp_l4tb_std | int), 4194304] | min }}"
+
+  when:
+    - ansible_memory_mb.real.total < 4194304
+    - "PAS not in supported_tiers"
+- name:                                "ORACLE Post Processing: Set the SGA and PGA Sizes for RAM < 4TB Single Node Deployments"
+  ansible.builtin.set_fact:
+    main_mem1:                         "{{ ansible_memory_mb.real.total }}"
+    ora_sga:                           "{{ (ansible_memory_mb.real.total * 0.7) | round | int }}"
+    ora_pga:                           "{{ [(pga_temp_l4tb_std | int), 4194304] | min }}"
+  when:
+    - ansible_memory_mb.real.total < 4194304
+    - "PAS in supported_tiers"
+
+- name:                                "ORACLE Post Processing: Show Main Memory"
+  ansible.builtin.debug:
+    msg:
+      - "Total memory:         {{ main_mem1 }}"
+      - "sga_max_size:         {{ ora_sga }}"
+      - "pga_aggregate_target: {{ ora_pga }}"
+
+- name:                                "Set the SGA and PGA Sizes for RAM > 4TB"
+  ansible.builtin.set_fact:
+    ora_sga:                           "{{ (ansible_memory_mb.real.total * 0.95) | round | int }}"
+    ora_pga:                           "{{ ((ansible_memory_mb.real.total * 0.95) * 0.2) | round | int }}"
+  when:
+    - ansible_memory_mb.real.total > 4194304
+    - supported_tiers != "pas"
+    - supported_tiers == "scs"
+
+
+- name:                                "ORACLE Post Processing: Oracle SGA & PGA: create updatesga.sql"
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.blockinfile:
+    create: true
+    path: /etc/sap_deployment_automation/{{ db_sid | upper }}/updatesga.sql
+    marker_begin: "-- BEGIN"
+    marker_end:   "-- END"
+    block: |
+         ALTER SYSTEM SET sga_max_size={{ ora_sga }}M SCOPE=spfile;
+         ALTER SYSTEM SET pga_aggregate_target={{ ora_pga }}M SCOPE=spfile;
+         SHUTDOWN IMMEDIATE;
+         exit
+    mode: '0755'
+
+- name:                                "ORACLE Post Processing: Oracle Startup: create startup.sql"
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.blockinfile:
+    create: true
+    path: /etc/sap_deployment_automation/{{ db_sid | upper }}/startup.sql
+    marker_begin: "-- BEGIN"
+    marker_end:   "-- END"
+    block: |
+         STARTUP;
+         exit
+    mode: '0755'
+
+- name:                                "ORACLE Post Processing: Oracle SGA Change Execution"
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.shell: |
+                                       set -o pipefail
+                                       sqlplus / as sysdba @updatesga.sql | tee updatesga.log
+  register:                            updatesga_results
+  failed_when:                         updatesga_results.rc != 0
+  args:
+    creates:                           /etc/sap_deployment_automation/{{ db_sid | upper }}/sgaupdated.txt
+    chdir:                             /etc/sap_deployment_automation/{{ db_sid | upper }}
+    executable:                        /bin/csh
+
+
+- name:                                "ORACLE Post Processing: Create sgaupdated.txt"
+  ansible.builtin.file:
+    path:                              /etc/sap_deployment_automation/{{ db_sid | upper }}/sgaupdated.txt
+    state:                             touch
+    mode:                              '0755'
+  when:                                updatesga_results.rc == 0
+
+- name:                                "ORACLE Post Processing: Start Oracle after SGA Change"
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.shell: |
+                                       set -o pipefail
+                                       sqlplus / as sysdba @startup.sql | tee startup.log
+  register:                            dbstarted_results
+  failed_when:                         dbstarted_results.rc != 0
+  args:
+    creates:                           /etc/sap_deployment_automation/{{ db_sid | upper }}/db_startup_completed.txt
+    chdir:                             /etc/sap_deployment_automation/{{ db_sid | upper }}
+    executable:                        /bin/csh
+
+- name:                                "ORACLE Post Processing: Create db_startup_completed.txt"
+  ansible.builtin.file:
+    path:                              /etc/sap_deployment_automation/{{ db_sid | upper }}/db_startup_completed.txt
+    state:                             touch
+    mode:                              '0755'
+  when:                                updatesga_results.rc == 0
+
+- name:                                "ORACLE Post Processing: Create sgaupdated.txt"
+  ansible.builtin.file:
+    path:                              /etc/sap_deployment_automation/{{ db_sid | upper }}/ora_sga_updated.txt
+    state:                             touch
+    mode:                              '0755'
+  when:                                updatesga_results.rc == 0

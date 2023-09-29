@@ -1,0 +1,47 @@
+---
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |      This pipeline removes the Control Plane via Terraform.                |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+name: Removal
+
+parameters:
+  - name: deployer
+    displayName: "Deployer configuration name, use this format: ENV-LOCA-VNET-INFRASTRUCTURE"
+    type: string
+    default: MGMT-WEEU-DEP01-INFRASTRUCTURE
+
+  - name: library
+    displayName: "Library configuration name, use this format: ENV-LOCA-SAP_LIBRARY"
+    type: string
+    default: MGMT-WEEU-SAP_LIBRARY
+
+  - name: deployer_environment
+    displayName: Deployer Environment name (MGMT, DEV, QA, PRD, ...)
+    type: string
+    default: MGMT
+
+  - name: use_deployer
+    displayName: Run removal on self hosted agent
+    type: boolean
+    default: false
+
+trigger: none
+
+pool:
+  name: $[coalesce(variables['run_on'], variables['Agent'])]
+
+extends:
+  template: ./resources.yml
+  parameters:
+    stages:
+      - template: deploy\pipelines\12-remove-control-plane.yaml@sap-automation
+        parameters:
+          sap_automation_repo_path: $(Build.SourcesDirectory)/sap-automation
+          config_repo_path: $(Build.SourcesDirectory)/config
+          deployer: ${{ parameters.deployer }}
+          library: ${{ parameters.library }}
+          deployer_environment: ${{ parameters.deployer_environment }}
+          use_deployer: ${{ parameters.use_deployer }}

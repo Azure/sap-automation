@@ -1,0 +1,38 @@
+{
+  "db": {
+    "Default": {
+      "compute": {
+        "vm_size"                                : "Standard_E4s_v3"
+      },
+      "storage": [
+        {
+          "name"                                 : "os",
+          "fullname"                             : "",
+          "count"                                : 1,
+          "disk_type"                            : "Premium_LRS",
+          "size_gb"                              : 64,
+          "caching"                              : "ReadWrite"
+        },
+        {
+          "name"                                 : "data",
+          "fullname"                             : "",
+          "count"                                : 1,
+          "disk_type"                            : "Premium_LRS",
+          "size_gb"                              : 256,
+          "caching"                              : "None",
+          "write_accelerator"                    : false,
+          "lun_start"                            : 0
+        },
+        {
+          "name"                                 : "log",
+          "fullname"                             : "",
+          "count"                                : 1,
+          "disk_type"                            : "Premium_LRS",
+          "size_gb"                              : 128,
+          "caching"                              : "None",
+          "write_accelerator"                    : false,
+          "lun_start"                            : 9
+        }
+      ]
+    } }
+}

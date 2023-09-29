@@ -1,0 +1,51 @@
+---
+
+# ###################  Activate Secondary  DB  as Standby at DB level  #########################
+
+- name:                           "DB2 - Add the DB2 HADR ports on both primary and secondary Services file"
+  ansible.builtin.lineinfile:
+    path:                         "{{ item.path }}"
+    insertafter:                  "{{ item.insafter }}"
+    line:                         "{{ item.line }}"
+  loop:
+    - { path: '/etc/services',       insafter: '^sapdb2{{ db_sid }}',    line: '{{ db_sid | upper }}_HADR_1  {{ db2hadr_port1 }}/tcp' }
+    - { path: '/etc/services',       insafter: '^sapdb2{{ db_sid }}',    line: '{{ db_sid | upper }}_HADR_2  {{ db2hadr_port2 }}/tcp' }
+
+- name:                                "DB2 - Activate HADR on Secondary DB "
+  block:
+    - name:                            "DB2 Secondary DB - Activate Secondary as standby "
+      ansible.builtin.shell: |
+        db2 deactivate database {{ db_sid | lower }}
+        db2 start hadr on database {{ db_sid }} as standby
+      args:
+        executable:                    /bin/csh
+      environment:
+        PATH:                          "{{ ansible_env.PATH }}:/db2/db2{{ db_sid | lower }}/sqllib/gskit/bin"
+        TMPDIR:                        "{{ tmp_directory }}/{{ sap_sid | upper }}"
+  when:
+    - ansible_hostname == secondary_instance_name
+  become:                              true
+  become_user:                         db2{{ db_sid | lower }}
+
+# ###################  Activate Primary  DB  as primary at DB level  #########################
+
+- name:                                "DB2 - Activate HADR on Primary DB"
+  block:
+    - name:                            "DB2 Primary DB - Activate Primary node as primary "
+      ansible.builtin.shell: |
+        db2 deactivate database {{ db_sid | lower }}
+        db2 start hadr on database {{ db_sid }} as primary
+      args:
+        executable:                    /bin/csh
+      environment:
+        PATH:                          "{{ ansible_env.PATH }}:/db2/db2{{ db_sid | lower }}/sqllib/gskit/bin"
+        TMPDIR:                        "{{ tmp_directory }}/{{ sap_sid | upper }}"
+  when:
+    - ansible_hostname == primary_instance_name
+  become:                              true
+  become_user:                         db2{{ db_sid | lower }}
+
+
+# ################### End of Section for Primary DB   ######################
+
+...

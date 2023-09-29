@@ -1,0 +1,55 @@
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |         Post Installation activities                                       |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+---
+
+- name:                                             "Post Installation: Create run logs directory"
+  delegate_to:                                      localhost
+  become_user:                                      "{{ become_user_name }}"
+  become:                                           true
+  ansible.builtin.file:
+    path:                                           "{{ _workspace_directory }}/logs"
+    state:                                          directory
+    mode:                                           0777
+
+- name:                                             "Post Installation: Show path"
+  ansible.builtin.debug:
+    msg:                                            '{{ log_dir_windows }}\sapinst_logs'
+
+- name:                                             "Post Installation: Find the log files (SAPINST)"
+  ansible.windows.win_find:
+    paths:                                          '{{ log_dir_windows }}\sapinst_logs'
+    file_type:                                      file
+    patterns:                                       'sa*.log,Hd*.log'
+    recurse:                                        true
+  register:                                         sapinst_log_files
+
+- name:                                             "Post Installation: (sapinst_log_files)"
+  block:
+    - name:                                         "Post Installation: Copy Logs Files in a Folder"
+      ansible.windows.win_copy:
+        src:                                        "{{ item.path }}"
+        dest:                                       '{{ tmp_directory_windows }}\{{ sap_sid | upper }}'
+        remote_src:                                 true
+      with_items: "{{ sapinst_log_files.files }}"
+
+    - name:                                         "Post Installation: Compress the installation log files"
+      community.windows.win_zip:
+        src:                                        '{{ tmp_directory_windows }}\{{ sap_sid | upper }}'
+        dest:                                       '{{ tmp_directory_windows }}\{{ sap_sid | upper }}.zip'
+
+    - name:                                         "Post Installation: Copy installation logs to the controller machine"
+      ansible.builtin.fetch:
+        src:                                        '{{ tmp_directory_windows }}\{{ sap_sid | upper }}.zip'
+        dest:                                       "{{ _workspace_directory }}/logs/{{ ansible_hostname }}_{{ sap_sid }}{{ suffix }}.zip"
+        flat:                                       true
+  when:
+    - sapinst_log_files.files is defined
+    - sapinst_log_files.files | length > 0
+...
+# /*---------------------------------------------------------------------------8
+# |                                   END                                      |
+# +------------------------------------4--------------------------------------*/

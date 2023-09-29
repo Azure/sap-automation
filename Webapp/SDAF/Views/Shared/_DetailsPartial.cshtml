@@ -1,0 +1,95 @@
+<table class="details-table">
+    <caption>@Model.SapObject.Id parameter details</caption>
+    <thead>
+        <tr>
+            <th>Parameter</th>
+            <th>Value</th>
+            <th class="is-null-value">Section</th>
+        </tr>
+    </thead>
+    <tbody>
+        @{ bool everyOther = true; }
+        @foreach (Grouping g in Model.ParameterGroupings)
+        {
+            bool firstRow = true;
+            var rowSpan = g.Parameters.Length;
+            @foreach (ParameterModel p in g.Parameters)
+            {
+                var prop = Model.SapObject.GetType().GetProperty(p.Name);
+                var value = (p.Type != "image_dropdown" && prop != null) ? prop.GetValue(Model.SapObject) : null;
+                var nullClass = (value == null) ? "is-null-value" : "";
+                if (value != null && value.GetType() == typeof(Image))
+                {
+                    Image img = (Image)value;
+                    if (!img.IsInitialized) nullClass = "is-null-value";
+                }
+                <tr class="@nullClass">
+                    <td>@p.Name</td>
+
+                    @if (value == null)
+                    {
+                        <td> </td>
+                    }
+                    else
+                    {
+                        @if (value.GetType() == typeof(Image))
+                        {
+                            Image img = (Image)value;
+                            if (img.IsInitialized)
+                            {
+                                <td>
+                                    os_type:         @img.os_type <br>
+                                    source_image_id: @img.source_image_id <br>
+                                    publisher:       @img.publisher <br>
+                                    offer:           @img.offer <br>
+                                    sku:             @img.sku <br>
+                                    version:         @img.version <br>
+                                    type:            @img.type
+                                </td>
+                            }
+                            else
+                            {
+                                <td> </td>
+                            }
+                        }
+                        else
+                        {
+                            <td>
+                                @if (p.Type == "list")
+                                {
+                                    var tmp = (string[])value;
+                                    @foreach (var t in tmp)
+                                    {
+                                        @t <br>
+                                    }
+
+                                }
+                                else if (p.Type == "tag")
+                                {
+                                    Tag[] tags = (Tag[])value;
+
+                                    @foreach (Tag t in tags)
+                                    {
+                                        <span>@t.Key: @t.Value</span> <br>
+                                    }
+                                }
+                                else
+                                {
+                                    @value.ToString()
+                                }
+                            </td>
+                        }
+                    }
+                    @if (firstRow)
+                    {
+                        <td rowspan="@rowSpan" class="details-section is-null-value" style="@(everyOther ? "background: #eee" : "background: none")">
+                            @g.Section
+                        </td>
+                        firstRow = false;
+                        everyOther = !everyOther;
+                    }
+                </tr>
+            }
+        }
+    </tbody>
+</table>

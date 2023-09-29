@@ -1,0 +1,63 @@
+---
+- name:                                "aggregate_bom: - Informational"
+  ansible.builtin.debug:
+    var:                               bom_dir
+    verbosity:                         1
+
+- name:                                 "aggregate_bom: - One time block"
+  when:
+    - first_pass is not defined # Causes to only be run on first pass when called in a loop
+  block:
+    - name:                            "aggregate_bom: - new bom name"
+      when:                            new_bom_name is not defined
+      ansible.builtin.set_fact:
+        new_bom_name:                  "{{ bom_base_name }}{{ bom_suffix }}"
+
+    - name:                            "Informational"
+      ansible.builtin.debug:
+        var:                           new_bom_name
+        verbosity:                     1
+
+    # Create download directory structure
+    - name:                            "aggregate_bom: - Create temporary BOM directories"
+      delegate_to:                     localhost
+      become:                          "{{ bom_processing_become }}"
+      become_user:                     "{{ orchestration_ansible_user }}"
+      ansible.builtin.file:
+        path:                          "{{ download_directory }}/bom/{{ new_bom_name }}"
+        state:                         directory
+        mode:                          0755
+
+    # Write aggregated bom
+    - name:                            "aggregate_bom: - write aggregated BOM"
+      delegate_to:                     localhost
+      become:                          "{{ bom_processing_become }}"
+      become_user:                     "{{ orchestration_ansible_user }}"
+      ansible.builtin.copy:
+        content:                       "{{ new_bom | default('NOT DEFINED') }}"
+        dest:                          "{{ download_directory }}/bom/{{ new_bom_name }}/{{ new_bom_name }}.yaml"
+        mode:                          0644
+        force:                         true
+      register:                        first_pass
+
+# Find local bom directories
+- name:                                 "aggregate_bom: - find files and directories"
+  when:                                 bom_dir.location == 'local'
+  ansible.builtin.find:
+    paths:                              "{{ bom_dir.path }}"
+    file_type:                          any
+    recurse:                            true
+  register:                             bom_directory_all_files
+
+# Process file objects
+- name:                                 "aggregate_bom: - process file objects"
+  when:                                 bom_directory_all_files.files is defined
+  ansible.builtin.include_tasks:        aggregate_bom_files.yaml
+  vars:
+    task_prefix:                        aggregate_bom_files
+    this_bom_name:                      "{{ bom_dir.path | basename }}"
+  loop:                                 "{{ bom_directory_all_files.files | flatten(levels=1) }}"
+  loop_control:
+    loop_var:                           bom_directory_object
+
+...

@@ -1,0 +1,447 @@
+{
+  "db": {
+    "256": {
+      "compute": {
+        "vm_size"                                : "Standard_E4ds_v4"
+      },
+      "storage": [
+        {
+          "name"                                 : "os",
+          "fullname"                             : "",
+          "count"                                : 1,
+          "disk_type"                            : "Premium_LRS",
+          "size_gb"                              : 64,
+          "caching"                              : "ReadWrite"
+        },
+        {
+          "name"                                 : "sap",
+          "fullname"                             : "",
+          "count"                                : 1,
+          "disk_type"                            : "Premium_LRS",
+          "size_gb"                              : 128,
+          "caching"                              : "ReadWrite",
+          "lun_start": 0
+        },
+        {
+          "name"                                 : "db2",
+          "fullname"                             : "",
+          "count"                                : 1,
+          "disk_type"                            : "Premium_LRS",
+          "size_gb"                              : 64,
+          "caching"                              : "None",
+          "lun_start": 1
+        },
+        {
+          "name"                                 : "sapdata",
+          "fullname"                             : "",
+          "count"                                : 2,
+          "disk_type"                            : "Premium_LRS",
+          "size_gb"                              : 128,
+          "caching"                              : "ReadOnly",
+          "write_accelerator": false,
+          "lun_start": 2
+        },
+        {
+          "name"                                 : "saptmp",
+          "fullname"                             : "",
+          "count"                                : 1,
+          "disk_type"                            : "Premium_LRS",
+          "size_gb"                              : 64,
+          "caching"                              : "None",
+          "write_accelerator": false,
+          "lun_start": 4
+        },
+        {
+          "name"                                 : "log_dir",
+          "fullname"                             : "",
+          "count"                                : 2,
+          "disk_type"                            : "Premium_LRS",
+          "size_gb"                              : 64,
+          "caching"                              : "None",
+          "write_accelerator": false,
+          "lun_start": 5
+        },
+        {
+          "name"                                 : "offline_log_dir",
+          "fullname"                             : "",
+          "count"                                : 1,
+          "disk_type"                            : "Premium_LRS",
+          "size_gb"                              : 128,
+          "caching"                              : "None",
+          "write_accelerator": false,
+          "lun_start": 7
+        }
+      ]
+    },
+    "512": {
+      "compute": {
+        "vm_size"                                : "Standard_E8ds_v4",
+        "accelerated_networking"                 : true
+      },
+      "storage": [
+        {
+          "name"                                 : "os",
+          "fullname"                             : "",
+          "count"                                : 1,
+          "disk_type"                            : "Premium_LRS",
+          "size_gb"                              : 64,
+          "caching"                              : "ReadWrite"
+        },
+        {
+          "name"                                 : "sap",
+          "fullname"                             : "",
+          "count"                                : 1,
+          "disk_type"                            : "Premium_LRS",
+          "size_gb"                              : 128,
+          "caching"                              : "ReadWrite",
+          "lun_start": 0
+        },
+        {
+          "name"                                 : "db2",
+          "fullname"                             : "",
+          "count"                                : 1,
+          "disk_type"                            : "Premium_LRS",
+          "size_gb"                              : 64,
+          "caching"                              : "None",
+          "lun_start": 1
+        },
+        {
+          "name"                                 : "sapdata",
+          "fullname"                             : "",
+          "count"                                : 2,
+          "disk_type"                            : "Premium_LRS",
+          "size_gb"                              : 256,
+          "caching"                              : "ReadOnly",
+          "write_accelerator": false,
+          "lun_start": 2
+        },
+        {
+          "name"                                 : "saptmp",
+          "fullname"                             : "",
+          "count"                                : 1,
+          "disk_type"                            : "Premium_LRS",
+          "size_gb"                              : 64,
+          "caching"                              : "None",
+          "write_accelerator": false,
+          "lun_start": 4
+        },
+        {
+          "name"                                 : "log_dir",
+          "fullname"                             : "",
+          "count"                                : 2,
+          "disk_type"                            : "Premium_LRS",
+          "size_gb"                              : 128,
+          "caching"                              : "None",
+          "write_accelerator": false,
+          "lun_start": 5
+        },
+        {
+          "name"                                 : "offline_log_dir",
+          "fullname"                             : "",
+          "count"                                : 1,
+          "disk_type"                            : "Premium_LRS",
+          "size_gb"                              : 128,
+          "caching"                              : "None",
+          "write_accelerator": false,
+          "lun_start": 7
+        }
+      ]
+    },
+    "1024": {
+      "compute": {
+        "vm_size"                                : "Standard_E16ds_v4",
+        "accelerated_networking"                 : true
+      },
+      "storage": [
+        {
+          "name"                                 : "os",
+          "fullname"                             : "",
+          "count"                                : 1,
+          "disk_type"                            : "Premium_LRS",
+          "size_gb"                              : 64,
+          "caching"                              : "ReadWrite"
+        },
+        {
+          "name"                                 : "sap",
+          "fullname"                             : "",
+          "count"                                : 1,
+          "disk_type"                            : "Premium_LRS",
+          "size_gb"                              : 128,
+          "caching"                              : "ReadWrite",
+          "lun_start": 0
+        },
+        {
+          "name"                                 : "db2",
+          "fullname"                             : "",
+          "count"                                : 1,
+          "disk_type"                            : "Premium_LRS",
+          "size_gb"                              : 64,
+          "caching"                              : "None",
+          "lun_start": 1
+        },
+        {
+          "name"                                 : "sapdata",
+          "fullname"                             : "",
+          "count"                                : 4,
+          "disk_type"                            : "Premium_LRS",
+          "size_gb"                              : 256,
+          "caching"                              : "ReadOnly",
+          "write_accelerator": false,
+          "lun_start": 2
+        },
+        {
+          "name"                                 : "saptmp",
+          "fullname"                             : "",
+          "count"                                : 2,
+          "disk_type"                            : "Premium_LRS",
+          "size_gb"                              : 64,
+          "caching"                              : "None",
+          "write_accelerator": false,
+          "lun_start": 10
+        },
+        {
+          "name"                                 : "log_dir",
+          "fullname"                             : "",
+          "count"                                : 2,
+          "disk_type"                            : "Premium_LRS",
+          "size_gb"                              : 256,
+          "caching"                              : "None",
+          "write_accelerator": false,
+          "lun_start": 14
+        },
+        {
+          "name"                                 : "offline_log_dir",
+          "fullname"                             : "",
+          "count"                                : 1,
+          "disk_type"                            : "Premium_LRS",
+          "size_gb"                              : 128,
+          "caching"                              : "None",
+          "write_accelerator": false,
+          "lun_start": 18
+        }
+      ]
+    },
+    "2048": {
+      "compute": {
+        "vm_size"                                : "Standard_E32ds_v4",
+        "accelerated_networking"                 : true
+      },
+      "storage": [
+        {
+          "name"                                 : "os",
+          "fullname"                             : "",
+          "count"                                : 1,
+          "disk_type"                            : "Premium_LRS",
+          "size_gb"                              : 64,
+          "caching"                              : "ReadWrite"
+        },
+        {
+          "name"                                 : "sap",
+          "fullname"                             : "",
+          "count"                                : 1,
+          "disk_type"                            : "Premium_LRS",
+          "size_gb"                              : 128,
+          "caching"                              : "ReadWrite",
+          "lun_start": 0
+        },
+        {
+          "name"                                 : "db2",
+          "fullname"                             : "",
+          "count"                                : 1,
+          "disk_type"                            : "Premium_LRS",
+          "size_gb"                              : 64,
+          "caching"                              : "None",
+          "lun_start": 1
+        },
+        {
+          "name"                                 : "sapdata",
+          "fullname"                             : "",
+          "count"                                : 2,
+          "disk_type"                            : "Premium_LRS",
+          "size_gb"                              : 1024,
+          "caching"                              : "ReadOnly",
+          "write_accelerator": false,
+          "lun_start": 2
+        },
+        {
+          "name"                                 : "saptmp",
+          "fullname"                             : "",
+          "count"                                : 2,
+          "disk_type"                            : "Premium_LRS",
+          "size_gb"                              : 128,
+          "caching"                              : "None",
+          "write_accelerator": false,
+          "lun_start": 10
+        },
+        {
+          "name"                                 : "log_dir",
+          "fullname"                             : "",
+          "count"                                : 2,
+          "disk_type"                            : "Premium_LRS",
+          "size_gb"                              : 512,
+          "caching"                              : "None",
+          "write_accelerator": false,
+          "lun_start": 14
+        },
+        {
+          "name"                                 : "offline_log_dir",
+          "fullname"                             : "",
+          "count"                                : 1,
+          "disk_type"                            : "Premium_LRS",
+          "size_gb"                              : 256,
+          "caching"                              : "None",
+          "write_accelerator": false,
+          "lun_start": 18
+        }
+      ]
+    },
+    "4096": {
+      "compute": {
+        "vm_size"                                : "Standard_E64ds_v4",
+        "accelerated_networking"                 : true
+      },
+      "storage": [
+        {
+          "name"                                 : "os",
+          "fullname"                             : "",
+          "count"                                : 1,
+          "disk_type"                            : "Premium_LRS",
+          "size_gb"                              : 64,
+          "caching"                              : "ReadWrite"
+        },
+        {
+          "name"                                 : "sap",
+          "fullname"                             : "",
+          "count"                                : 1,
+          "disk_type"                            : "Premium_LRS",
+          "size_gb"                              : 128,
+          "caching"                              : "ReadWrite",
+          "lun_start": 0
+        },
+        {
+          "name"                                 : "db2",
+          "fullname"                             : "",
+          "count"                                : 1,
+          "disk_type"                            : "Premium_LRS",
+          "size_gb"                              : 64,
+          "caching"                              : "None",
+          "lun_start": 1
+        },
+        {
+          "name"                                 : "sapdata",
+          "fullname"                             : "",
+          "count"                                : 4,
+          "disk_type"                            : "Premium_LRS",
+          "size_gb"                              : 1024,
+          "caching"                              : "ReadOnly",
+          "write_accelerator": false,
+          "lun_start": 2
+        },
+        {
+          "name"                                 : "saptmp",
+          "fullname"                             : "",
+          "count"                                : 2,
+          "disk_type"                            : "Premium_LRS",
+          "size_gb"                              : 256,
+          "caching"                              : "None",
+          "write_accelerator": false,
+          "lun_start": 10
+        },
+        {
+          "name"                                 : "log_dir",
+          "fullname"                             : "",
+          "count"                                : 4,
+          "disk_type"                            : "Premium_LRS",
+          "size_gb"                              : 512,
+          "caching"                              : "None",
+          "write_accelerator": false,
+          "lun_start": 14
+        },
+        {
+          "name"                                 : "offline_log_dir",
+          "fullname"                             : "",
+          "count"                                : 1,
+          "disk_type"                            : "Premium_LRS",
+          "size_gb"                              : 512,
+          "caching"                              : "None",
+          "write_accelerator": false,
+          "lun_start": 22
+        }
+      ]
+    },
+    "8912": {
+      "compute": {
+        "vm_size"                                : "Standard_M128s",
+        "accelerated_networking"                 : true
+      },
+      "storage": [
+        {
+          "name"                                 : "os",
+          "fullname"                             : "",
+          "count"                                : 1,
+          "disk_type"                            : "Premium_LRS",
+          "size_gb"                              : 128,
+          "caching"                              : "ReadWrite"
+        },
+        {
+          "name"                                 : "sap",
+          "fullname"                             : "",
+          "count"                                : 1,
+          "disk_type"                            : "Premium_LRS",
+          "size_gb"                              : 128,
+          "caching"                              : "ReadWrite",
+          "lun_start": 0
+        },
+        {
+          "name"                                 : "db2",
+          "fullname"                             : "",
+          "count"                                : 1,
+          "disk_type"                            : "Premium_LRS",
+          "size_gb"                              : 128,
+          "caching"                              : "None",
+          "lun_start": 1
+        },
+        {
+          "name"                                 : "sapdata",
+          "fullname"                             : "",
+          "count"                                : 4,
+          "disk_type"                            : "Premium_LRS",
+          "size_gb"                              : 2048,
+          "caching"                              : "ReadOnly",
+          "write_accelerator": false,
+          "lun_start": 2
+        },
+        {
+          "name"                                 : "saptmp",
+          "fullname"                             : "",
+          "count"                                : 2,
+          "disk_type"                            : "Premium_LRS",
+          "size_gb"                              : 512,
+          "caching"                              : "None",
+          "write_accelerator": false,
+          "lun_start": 10
+        },
+        {
+          "name"                                 : "log_dir",
+          "fullname"                             : "",
+          "count"                                : 4,
+          "disk_type"                            : "Premium_LRS",
+          "size_gb"                              : 1024,
+          "caching"                              : "None",
+          "write_accelerator": true,
+          "lun_start": 14
+        },
+        {
+          "name"                                 : "offline_log_dir",
+          "fullname"                             : "",
+          "count"                                : 1,
+          "disk_type"                            : "Premium_LRS",
+          "size_gb"                              : 1024,
+          "caching"                              : "None",
+          "write_accelerator": false,
+          "lun_start": 22
+        }
+      ]
+    }
+  }
+}

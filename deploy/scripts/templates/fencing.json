@@ -1,0 +1,15 @@
+{
+    "Name": "Linux Fence Agent Role",
+    "description": "Allows to power-off and start virtual machines",
+    "assignableScopes": [
+  
+    ],
+    "actions": [
+            "Microsoft.Compute/*/read",
+            "Microsoft.Compute/virtualMachines/powerOff/action",
+            "Microsoft.Compute/virtualMachines/start/action"
+    ],
+    "notActions": [],
+    "dataActions": [],
+    "notDataActions": []
+}

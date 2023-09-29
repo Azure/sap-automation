@@ -1,0 +1,44 @@
+---
+
+# sapcontrol EXITCODES
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |     Pre checks                                                             |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+
+- name:                                "5.6 SCSERS - Check the required cluster password is set"
+  ansible.builtin.assert:
+    that:
+      - "password_ha_db_cluster is defined"
+      - "password_ha_db_cluster | trim | length > 0"
+
+- name:                                "5.6 SCSERS - Check the required Clustering scripts are available"
+  ansible.builtin.stat:
+    path:                              "/usr/sbin/crm"
+  register:                            cluster_scripts_status_results
+  failed_when:                         not cluster_scripts_status_results.stat.exists
+  when:                                ansible_os_family | upper == 'SUSE'
+
+- name:                                "5.6 SCSERS - Check if a cluster has already been prepared"
+  ansible.builtin.command:             "{{ cluster_status_cmd[ansible_os_family] }}"
+  register:                            ascs_cluster_existence_check_result
+  changed_when:                        false
+  failed_when:                         false
+
+- name:                                "5.6 SCSERS - Set fact ASCS/ERS instance number"
+  ansible.builtin.set_fact:
+    ascs_instance:                     "{{ instance_type | upper }}{{ scs_instance_number }}"
+    ers_instance:                      "ERS{{ ers_instance_number }}"
+
+- name:                                "5.6 SCSERS - Check if a cluster has already been prepared (save)"
+  ansible.builtin.set_fact:
+    cluster_existence_check:           "{{ (ascs_instance in ascs_cluster_existence_check_result.stdout_lines) | bool and
+                                            (ers_instance in ascs_cluster_existence_check_result.stdout_lines) | bool }}"
+
+- name:                                "5.6 SCSERS - Check if a cluster has already been prepared (show)"
+  ansible.builtin.debug:
+    msg:
+      - "Cluster check return value: {{ cluster_existence_check }}"

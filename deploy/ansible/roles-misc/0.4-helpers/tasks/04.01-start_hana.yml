@@ -1,0 +1,45 @@
+---
+
+# sapcontrol EXITCODES
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |     0  Last web method call successful
+# |     1  Last web method call failed, invalid parameter
+# |     2  StartWait, StopWait, WaitforStarted, WaitforStopped, RestartServiceWait
+# |        timed out
+# |        CheckSystemCertificates detected warnings
+# |     3  GetProcessList succeeded, all processes running correctly
+# |        CheckSystemCertificates detected errors
+# |     4  GetProcessList succeeded, all processes stopped
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+- name:                                "Determine if HANA is running on {{ ansible_hostname }}"
+  become_user:                         "{{ db_sid | lower }}adm"
+  become:                              true
+  ansible.builtin.command:             "{{ sapcontrol_command }} -function GetProcessList"
+  changed_when:                        false
+  failed_when:                         false
+  register:                            is_hana_running
+
+- name:                                "Determine if HANA is running on {{ ansible_hostname }}"
+  ansible.builtin.debug:
+    var:                               is_hana_running
+    verbosity:                         2
+
+- name:                                "Ensure HANA is running on {{ ansible_hostname }}"
+  become_user:                         "{{ db_sid | lower }}adm"
+  become:                              true
+  ansible.builtin.command:             "{{ sapcontrol_command }} -function StartWait {{ hana_stop_start_timeout_in_seconds }} {{ hana_stop_start_delay_in_seconds }}"
+  changed_when:                        false
+
+- name:                                "Validate HANA is running  on {{ ansible_hostname }}"
+  become_user:                         "{{ db_sid | lower }}adm"
+  become:                              true
+  ansible.builtin.command:             "{{ sapcontrol_command }} -function GetProcessList"
+  changed_when:                        false
+  register:                            hana_running
+  failed_when:                         hana_running.rc != 3
+
+...

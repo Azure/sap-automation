@@ -1,0 +1,19 @@
+{
+  "name": "automationform",
+  "version": "1.0.0",
+  "description": "UI for sap automation",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://azurecat-sapdeploy@dev.azure.com/azurecat-sapdeploy/sap_deployment_automation/_git/persius"
+  },
+  "author": "Will Sheehan",
+  "license": "ISC",
+  "devDependencies": {},
+  "dependencies": {
+    "@fluentui/web-components": "^2.0.1"
+  }
+}

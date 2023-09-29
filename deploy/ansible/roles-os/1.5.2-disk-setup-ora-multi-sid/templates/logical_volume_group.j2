@@ -1,0 +1,50 @@
+{% set lvg = [] %}
+{#
+    Outer Loop: Loop over disk types
+#}
+{% for disktype in disktypes %}
+{#
+    Initialise VG dictionary with VG name derived from disk type
+#}
+{%     set vg = {'vg': 'vg_' ~ (disk_type_to_name_map[disktype] |
+                                default(disktype))} %}
+{#
+    Inner Loop: Loop over list of disks that match the execution host and the disk type
+    Note: '_' used as dummy variable that can be ignored
+#}
+{#
+    Add list of pvs and diskcount to VG dictionary
+    Note: '_' used as dummy variable that can be ignored
+#}
+{%  if ('sapdata' in disktype ) %}
+{%     set _ = vg.update({'lv': 'lv_' + (disk_type_to_name_map[disktype] | default(disktype)) }) %}
+{%     set _ = vg.update({'fstype': 'xfs'}) %}
+{%     set _ = vg.update({'stripesize': '256'}) %}
+{%     set _ = vg.update({'size': '100%FREE'}) %}
+{%     set _ = vg.update({'tier': 'sapos'}) %}
+{%     set _ = vg.update({'node_tier': 'oracle-multi-sid'}) %}
+{%  elif ('sap' in disktype ) %}
+{%     set _ = vg.update({'lv': 'lv_usr' + (disk_type_to_name_map[disktype] | default(disktype)) }) %}
+{%     set _ = vg.update({'fstype': 'xfs'}) %}
+{%     set _ = vg.update({'stripesize': '128'}) %}
+{%     set _ = vg.update({'size': '64g'}) %}
+{%     set _ = vg.update({'tier': 'sapos'}) %}
+{%     set _ = vg.update({'node_tier': 'oracle-multi-sid'}) %}
+{% else %}
+{%     set _ = vg.update({'lv': 'lv_' + (disk_type_to_name_map[disktype] | default(disktype)) }) %}
+{%     set _ = vg.update({'fstype': 'xfs'}) %}
+{%     set _ = vg.update({'stripesize': '128'}) %}
+{%     set _ = vg.update({'size': '100%FREE'}) %}
+{%     set _ = vg.update({'tier': 'sapos'}) %}
+{%     set _ = vg.update({'node_tier': 'oracle-multi-sid'}) %}
+{% endif %}
+{#
+    Append VG dictionary to list of VGs
+    Note: '_' used as dummy variable that can be ignored
+#}
+{%     set _ = lvg.append(vg) %}
+{% endfor %}
+{#
+    Output List of Dictionaries
+#}
+{{ lvg }}

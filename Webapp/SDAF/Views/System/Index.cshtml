@@ -1,0 +1,48 @@
+@model AutomationForm.Models.SapObjectIndexModel<SystemModel>
+
+@{
+    ViewBag.Title = "Systems";
+    ViewBag.SapObjectType = "System";
+    ViewBag.SapObjectDisplayName = "System";
+    ViewBag.MoreInformationUrl = "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main";
+}
+<script>
+    window.onload = function() {
+        $('.notificationContainer').delay(6000).fadeOut();
+    }
+</script>
+
+<fluent-breadcrumb>
+    <fluent-breadcrumb-item href="@Url.Action("Index", "Home")">Home</fluent-breadcrumb-item>
+    <fluent-breadcrumb-item href="#">Systems</fluent-breadcrumb-item>
+</fluent-breadcrumb>
+
+@await Html.PartialAsync("_IndexPartial", Model)  
+
+<div class="text-center">
+    <h2>Virtual Machine Images</h2>
+</div>
+
+<div class="table-scroll">
+    <table class="table" aria-label="Virtual Machine Images">
+        <thead>
+            <tr>
+                <th>
+                    File ID
+                </th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>
+                    @Html.DisplayFor(model => Model.ImagesFile.Id)
+                </td>
+                <td class="td-align-right">
+                    @Html.ActionLink("Edit", "Edit", "File", new { id = Model.ImagesFile.Id, sourceController = "System", fileName = "VM-Images.json", type = 0 }, null) |
+                    @Html.ActionLink("Download", "Download", "File", new { id = Model.ImagesFile.Id, sourceController = "System", fileName = "VM-Images.json", type= 0 }, null)
+                </td>
+            </tr>
+            </tbody>
+    </table>
+</div>

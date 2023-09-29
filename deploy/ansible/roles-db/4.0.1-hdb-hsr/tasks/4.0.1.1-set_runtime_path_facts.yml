@@ -1,0 +1,81 @@
+---
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |     Set runtime values
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+- name:                                "HANA HSR: - Determine runtime value of SAP global path"
+  become_user:                         "{{ db_sid_admin_user }}"
+  become:                              true
+  ansible.builtin.shell: >
+                                       set -o pipefail && grep '^alias cdglo=' ~/.sapenv.sh | sed -e 's/^.* //' -e 's/$SAPSYSTEMNAME/{{ db_sid | upper }}/' -e "s/'//"
+  register:                            global_path_status
+  changed_when:                        false
+
+- name:                                "HANA HSR: - Ensure SAP global directory fact is set"
+  ansible.builtin.set_fact:
+    hana_global_dir: "                 {{ global_path_status.stdout_lines[0] }}"
+
+- name:                                "HANA HSR: - Load the disk configuration settings"
+  ansible.builtin.include_vars:        disks_config.yml
+
+- name:                                "HANA HSR: - Check if the backup disk exists on DB Server"
+  ansible.builtin.set_fact:
+    backupdisks_count:             "{{ disks | selectattr('host', 'defined') |
+      selectattr('host', 'equalto', inventory_hostname) |
+      selectattr('type', 'equalto', 'backup') |
+      map(attribute='type') | sort | unique |
+      list | length | int }}"
+
+- name:                                "HANA HSR: -  Set the hana backup facts"
+  ansible.builtin.set_fact:
+    db_sid_backup_dir:                 "{% if (backupdisks_count | int) == 0 %}/hana/data/backup{% else %}{{ hana_backup_path }}{% endif %}"
+
+- name:                                "HANA HSR: - Ensure associated SAP global directory facts are set"
+  ansible.builtin.set_fact:
+    path_global_ini:                   "{{ hana_global_dir }}/hdb/custom/config/global.ini"
+    path_ssfs_dat:                     "{{ hana_global_dir }}/security/rsecssfs/data/SSFS_{{ db_sid | upper }}.DAT"
+    path_ssfs_key:                     "{{ hana_global_dir }}/security/rsecssfs/key/SSFS_{{ db_sid | upper }}.KEY"
+    path_xsa_ssfs_dat:                 "{{ hana_global_dir }}/xsa/security/ssfs/data/SSFS_{{ db_sid | upper }}.DAT"
+    path_xsa_ssfs_key:                 "{{ hana_global_dir }}/xsa/security/ssfs/key/SSFS_{{ db_sid | upper }}.KEY"
+
+- name:                                "HANA HSR: - Ensure HANA backup file names are set"
+  ansible.builtin.set_fact:
+    backup_file_for_systemdb_full_path: "{{ db_sid_backup_dir }}/INITIAL_SYSTEMDB_BACKUP"
+    backup_file_for_tenant_full_path:   "{{ db_sid_backup_dir }}/INITIAL_{{ hana_tenant_database_name }}_BACKUP"
+
+- name:                                "HANA HSR: - Ensure the Primary node SSFS files are present on the primary node"
+  block:
+    - name:                            "HANA HSR: - Ensure the Primary node SSFS_{{ db_sid | upper }}.DAT file exists"
+      ansible.builtin.stat:
+        path:                          "{{ path_ssfs_dat }}"
+      register:                        primary_dat_file_result
+      failed_when:                     primary_dat_file_result.failed
+
+    - name:                            "HANA HSR: - Ensure the Primary node SSFS_{{ db_sid | upper }}.KEY file exists"
+      ansible.builtin.stat:
+        path:                          "{{ path_ssfs_key }}"
+      register:                        primary_key_file_result
+      failed_when:                     primary_key_file_result.failed
+  when: ansible_hostname == primary_instance_name
+
+- name:                                "HANA HSR: - Ensure HANA DB version is checked and captured"
+  block:
+
+    - name:                            "HANA HSR: - Check HANA DB Version and register"
+      become_user:                     "{{ db_sid_admin_user }}"
+      become:                          true
+      ansible.builtin.command:         /hana/shared/{{ db_sid | upper }}/HDB{{ db_instance_number }}/HDB version
+      register:                        hdbversion
+      changed_when:                    false
+
+    - name:                            "HANA HSR: - capture the Hana DB version"
+      ansible.builtin.set_fact:
+        hdb_version:                   "{{ hdbversion.stdout_lines.1.split().1 }}"
+
+    - name:                            "HANA HSR: - Print HDB version"
+      ansible.builtin.debug:
+        msg:                           "HANA Version: {{ hdb_version }}"
+
+  when: ansible_hostname == primary_instance_name

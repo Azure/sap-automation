@@ -1,0 +1,33 @@
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                Perform the Sybase ASE Software installation                |
+# |                  Step 3: Check for OS Users                        |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+---
+
+# Check whether the user exists or not for SYBASE DB Install
+- name:                                "SAP Sybase: Check if user '{{ sidadm_user }}' was already created"
+  ansible.builtin.user:
+    name:                              "{{ sidadm_user }}"
+    state:                             present
+  check_mode:                          true
+  register:                            sidadm_user_status
+
+- name:                                "SAP Sybase: Ensure group '{{ sapinst_user_group }} exists"
+  ansible.builtin.group:
+    name:                              "{{ sapinst_user_group }}"
+    gid:                               "{{ sapinst_gid }}"
+    state:                             present
+
+- name:                                "SAP Sybase: Add current user to '{{ sapinst_user_group }}' group"
+  ansible.builtin.user:
+    name:                              "{{ ansible_user_id }}"
+    group:                             "{{ sapinst_user_group }}"
+
+- name:                                "SAP Sybase: Ensure root user has root as primary group"
+  ansible.builtin.user:
+    name:                              root
+    group:                             root
+
+...

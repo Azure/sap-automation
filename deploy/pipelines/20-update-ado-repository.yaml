@@ -1,0 +1,170 @@
+---
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |               This pipeline updates the ADO repository                     |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+name:                                   Update Azure DevOps repository from GitHub $(branch) branch
+trigger:                                none
+
+parameters:
+  - name:                              repository
+    displayName:                       Source repository
+    type:                              string
+    default:                           https://github.com/Azure/sap-automation.git
+
+  - name:                              branch
+    displayName:                       Source branch to update from
+    type:                              string
+    default:                           main
+
+  - name:                              tag
+    displayName:                       Git tag to fetch
+    type:                              string
+    default:                           latest
+
+  - name:                              force
+    displayName:                       Force the update
+    type:                              boolean
+    default:                           false
+
+  #--------------------------------------------------------------------
+  # Change:                                                        
+  #   20230516 MKD
+  #
+  # Notes:
+  #   Establish debug framework.
+  #--------------------------------------------------------------------
+  #>>>> START OF INSERTION <<<<
+  - name:                              p_debug
+    displayName:                       Debug Mode
+    type:                              boolean
+    default:                           false
+  #>>>> END   OF INSERTION <<<<
+  #--------------------------------------------------------------------
+
+pool:
+  vmImage:                             ubuntu-latest
+
+variables:
+  - name:                              repository
+    value:                             ${{ parameters.repository }}
+  - name:                              branch
+    value:                             ${{ parameters.branch }}
+  - name:                              tag
+    value:                             ${{ parameters.tag }}
+  - name:                              force
+    value:                             ${{ parameters.force }}
+  - name:                              log
+    value:                             logfile_$(Build.BuildId)
+  #--------------------------------------------------------------------
+  # Change:                                                        
+  #   20230516 MKD
+  #
+  # Notes:
+  #   Establish debug framework.
+  #--------------------------------------------------------------------
+  #>>>> START OF INSERTION <<<<
+  - name:                              v_debug
+    value:                             ${{ parameters.p_debug }}
+  #>>>> END   OF INSERTION <<<<
+  #--------------------------------------------------------------------
+
+stages:
+  - stage:                             Update_ADO_repository
+    displayName:                       Update ADO repository
+    jobs:
+      - job:                           Update_ADO_repository
+        displayName:                   Update ADO repository
+        steps:
+          - checkout:                  self
+            persistCredentials:        true
+          - bash: |
+              #!/bin/bash
+              green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
+              #--------------------------------------------------------------------
+              # Change:                                                        
+              #   20230516 MKD
+              #
+              # Notes:
+              #   Establish debug framework.
+              #--------------------------------------------------------------------
+              #>>>> START OF INSERTION <<<<
+              debug=$(v_debug)
+              [ "$debug" = True ] && set -x                                                   # Debugging On
+              #>>>> END   OF INSERTION <<<<
+              #--------------------------------------------------------------------
+
+              git config --global user.email "$(Build.RequestedForEmail)"
+              git config --global user.name "$(Build.RequestedFor)"
+              git config --global pull.ff false
+              git config --global pull.rebase false
+
+              #--------------------------------------------------------------------
+              # Change:                                                        
+              #   20230516 MKD
+              #
+              # Notes:
+              #   
+              #--------------------------------------------------------------------
+              #>>>> START OF INSERTION <<<<
+              git checkout $(branch)
+              #>>>> END   OF INSERTION <<<<
+              #--------------------------------------------------------------------
+
+              git pull -q
+
+              git remote add remote-repo $(repository) >> /tmp/$(log) 2>&1
+
+              git fetch --all --tags 
+
+              git pull -q --commit remote-repo $(branch)  >> /tmp/$(log) 2>&1
+              return_code=$?
+
+              grep CONFLICT /tmp/$(log) | while read -r conflict ; do
+                echo $conflict
+                echo "##vso[task.logissue type=error]$conflict"
+              done
+
+              if [[ "$(force)" == "True" ]]; then
+                echo "running git push to ADO with force option"
+                if ! git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --force origin HEAD:$(branch)  >> /tmp/$(log) 2>&1
+                then
+                   echo -e "$red--- Failed to push ---$reset"
+                   exit 1
+                fi
+              else
+                echo "running git push to ADO"
+                if ! git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push  >> /tmp/$(log) 2>&1
+                then
+                   echo -e "$red--- Failed to push ---$reset"
+                   exit 1
+                fi
+
+              fi
+              # If Pull already failed then keep that error code
+              if [ 0 != $return_code ]; then
+                return_code=$?
+              fi
+
+              exit $return_code
+
+            displayName:               Update ADO repository
+            env:
+              SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
+            #--------------------------------------------------------------------
+            # Change:                                                        
+            #   20230516 MKD
+            #
+            # Notes:
+            #   
+            #--------------------------------------------------------------------
+            #>>>> START OF DELETION <<<<
+            # failOnStderr:              true
+            #>>>> END   OF DELETION <<<<
+            #>>>> START OF INSERTION <<<<
+            failOnStderr:              false
+            #>>>> END   OF INSERTION <<<<
+            #--------------------------------------------------------------------
+...

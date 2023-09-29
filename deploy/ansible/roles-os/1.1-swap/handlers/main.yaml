@@ -1,0 +1,12 @@
+# ---
+
+- name:                                Restart waagent
+  ansible.builtin.service:
+    name:                              waagent
+    state:                             restarted
+
+- name:                                "Swap reboot"
+  ansible.builtin.reboot:
+
+
+# ...

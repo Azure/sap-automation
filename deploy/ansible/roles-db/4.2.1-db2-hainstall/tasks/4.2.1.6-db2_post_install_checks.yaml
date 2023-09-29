@@ -1,0 +1,38 @@
+---
+########################### the playbook checks the status of replication in both primary and secondary instance#####
+
+- name:                                "DB2 Primary Instance: - Ensure replication status is active"
+  become_user:                         db2{{ db_sid | lower }}
+  become:                              true
+  ansible.builtin.shell:               set -o pipefail && db2pd -hadr -db {{ db_sid | upper }} | grep -e 'HADR_STATE = PEER' -e 'HADR_CONNECT_STATUS = CONNECTED'
+  register:                            grep_result
+  until:                               grep_result.rc == 0 or grep_result.rc == 1
+  failed_when:                         grep_result.rc != 0 and grep_result.rc != 1
+  changed_when:                        false
+  retries:                             5
+  delay:                               5
+  when:                                ansible_hostname == primary_instance_name
+
+- name:                                "DB2 Primary Instance  Replication - Status"
+  ansible.builtin.debug:
+    var:                               grep_result
+    verbosity:                         2
+
+- name:                                "DB2 Secondary Instance: - Ensure replication status is active"
+  become_user:                         db2{{ db_sid | lower }}
+  become:                              true
+  ansible.builtin.shell:               set -o pipefail && db2pd -hadr -db {{ db_sid | upper }} | grep -e 'HADR_STATE = PEER' -e 'HADR_CONNECT_STATUS = CONNECTED'
+  register:                            grep_result
+  until:                               grep_result.rc == 0 or grep_result.rc == 1
+  failed_when:                         grep_result.rc != 0 and grep_result.rc != 1
+  changed_when:                        false
+  retries:                             5
+  delay:                               5
+  when:                                ansible_hostname == secondary_instance_name
+
+- name:                                "DB2 Secondary Instance Replication - Status"
+  ansible.builtin.debug:
+    var:                               grep_result
+    verbosity:                         2
+
+...

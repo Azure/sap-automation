@@ -1,0 +1,42 @@
+#--------------------------------------+---------------------------------------8
+#                                                                              |
+# Defines the parameters and variables for the Control Plane removal           |
+#                                                                              |
+#--------------------------------------+---------------------------------------8
+
+parameters:
+  deployer: ""
+  deployer_environment: ""
+  library: ""
+  use_deployer: ""
+
+variables:
+  - group:                             "SDAF-General"
+  - group:                             SDAF-${{ parameters.deployer_environment }}
+
+  - name:                              parent_variable_group
+    value:                             SDAF-${{ parameters.deployer_environment }}
+
+  - name:                              run_on
+    value:                             $[replace(replace('True',eq(${{ parameters.use_deployer }}, 'True'), variables['POOL']),'True',variables['Agent'])]
+
+  - name:                              deployer_folder
+    value:                             ${{ parameters.deployer }}
+
+  - name:                              deployer_configuration_file
+    value:                             ${{ parameters.deployer }}.tfvars
+
+  - name:                              library_folder
+    value:                             ${{ parameters.library }}
+
+  - name:                              library_configuration_file
+    value:                             ${{ parameters.library }}.tfvars
+
+  - name:                              tf_url
+    value:                             https://releases.hashicorp.com/terraform/$(tf_version)/terraform_$(tf_version)_linux_amd64.zip
+
+  - name:                              run_on
+    value:                             $[replace(replace('True',eq(${{ parameters.use_deployer }}, 'True'), variables['POOL']),'True',variables['Agent'])]
+
+  - name:                              this_agent
+    value:                             $[lower(variables['run_on'])]

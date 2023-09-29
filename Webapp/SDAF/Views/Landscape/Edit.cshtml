@@ -1,0 +1,104 @@
+﻿@model AutomationForm.Models.FormViewModel<LandscapeModel>;
+@using AutomationForm.Models
+@using System.Text.Json
+
+@{
+    ViewBag.Title = "Edit workload zone";
+    List<SelectListItem> imageOptions = ViewBag.ImageOptions;
+}
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script>
+
+    $(document).ready(function () {
+        var landscape = @Html.Raw(JsonSerializer.Serialize(Model.SapObject));
+        createModel(landscape);
+        setDataFromResource();
+        retainFormValues();
+        getEnvironmentsFromAdo(@ViewBag.IsPipelineDeployment);
+
+        var formHeader = $("#form-sticky-header");
+        var sticky = $("#form-sticky-header").offset().top;
+        $(window).scroll(function () { stickifyHeader(formHeader, sticky) });
+    });
+
+    window.onload = function () {
+        $(".js-example-placeholder-single").select2({
+            placeholder: "Search...",
+            allowClear: true,
+            tags: true
+        });
+        $(".js-example-placeholder-multiple").select2({
+            placeholder: "Add items...",
+            tags: true
+        });
+    }
+
+    var submitting = false;
+    window.onbeforeunload = function(){
+        if (!submitting) {
+            return "";
+        }
+    };
+
+</script>
+
+<div id="loading-background">
+    <fluent-progress-ring class="width-full"></fluent-progress-ring>
+</div>
+
+<fluent-breadcrumb>
+    <fluent-breadcrumb-item href="@Url.Action("Index", "Home")">Home</fluent-breadcrumb-item>
+    <fluent-breadcrumb-item href="@Url.Action("Index", "Landscape")">Workload zones</fluent-breadcrumb-item>
+    <fluent-breadcrumb-item href="#">Edit</fluent-breadcrumb-item>
+</fluent-breadcrumb>
+
+<div>
+
+    <div class="text-center">
+        <h2 style="text-align: center">@Model.SapObject.Id</h2>
+        <p>
+            <a href="https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main" target="_blank" rel="noopener noreferrer">
+                More information on configuring the workload zone
+            </a>
+        </p>
+    </div>
+
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="notificationContainer" style="display: flex; background: rgb(253, 231, 233);">
+            <div class="notificationInner">
+                <span class="notificationText">
+                    @Html.ValidationSummary(false)
+                </span>
+            </div>
+        </div>
+    }
+    
+    <div id="form-sticky-header">
+        <div class="filter-checkboxes">
+            <fluent-checkbox checked class="parameters-filter" onchange="toggleParams(this, 1)" id="basic-filter">Basic</fluent-checkbox>
+            <fluent-checkbox checked class="parameters-filter" onchange="toggleParams(this, 2)" id="advanced-filter">Advanced</fluent-checkbox>
+            <fluent-checkbox checked class="parameters-filter" onchange="toggleParams(this, 3)" id="expert-filter">Expert</fluent-checkbox>
+        </div>
+
+        <div id="checkbox-and-searchbar">
+            <input id="searchbar" placeholder="Filter..." class="ms-TextField-field" onkeyup="filterResults(this.value)" />
+        </div>
+    </div>
+
+    <form class="wrapper" asp-controller="landscape" asp-action="edit">
+        @Html.AntiForgeryToken()
+
+        @await Html.PartialAsync("_FormPartial", Model)
+
+        <fluent-button appearance="accent" style="margin-top: 15px" type="submit" onclick="submitting=true">
+            <i class="ms-Icon ms-Icon--Save" aria-hidden="true"></i> Update
+        </fluent-button>
+
+        <fluent-anchor href="@Url.Action("Index", "Landscape")">
+            Cancel
+        </fluent-anchor>
+
+    </form>
+</div>

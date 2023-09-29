@@ -1,0 +1,88 @@
+---
+# Windows cluster pre-requisites
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |     1  Add failover cluster DSC module                                     |
+# |     2  Add required cluster features                                       |
+# |     3  Reboot the nodes if any of the feature installation requires it     |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+# some modules are added in case we come here directly
+- name:                                "WinCluster-PreReq: Calculate clustername for SCS/ERS cluster"
+  ansible.builtin.set_fact:
+    cluster_name:                      "{{ sap_sid | lower }}scs{{ scs_instance_number }}cl"
+    cacheable:                         true
+  when:
+    - node_tier | lower in ['scs','ers']
+
+- name:                                "WinCluster-PreReq: Calculate clustername for DB cluster"
+  ansible.builtin.set_fact:
+    cluster_name:                      "{{ sap_sid | lower }}{{ db_sid | lower }}db{{ db_instance_number }}cl"
+    cacheable:                         true
+  when:
+    - node_tier | lower == 'sqlserver'
+
+- name:                                "WinCluster-PreReq: Ensure DSC modules are installed"
+  community.windows.win_psmodule:
+    name:                              "{{ item }}"
+    state:                             present
+    accept_license:                    true
+  loop:
+    - FailOverClusterDsc
+    - PSDesiredStateConfiguration
+    - ServerManager
+    - StorageDsc
+
+- name:                                "WinCluster-PreReq: Add the windows cluster features"
+  ansible.windows.win_feature:
+    name:                              "{{ item }}"
+    state:                             present
+    include_management_tools:          true
+    include_sub_features:              true
+  with_items:
+    - Failover-Clustering
+    - RSAT-Clustering
+    - RSAT-Clustering-PowerShell
+    - RSAT-Clustering-CmdInterface
+  register: cluster_features
+
+- name:                                "WinCluster-PreReq: Ensure Registry Services is Running"
+  ansible.windows.win_dsc:
+    resource_name:                     Service
+    Name:                              "{{ item }}"
+    State:                             Running
+    StartupType:                       Automatic
+  loop:
+    - TermService
+    - RemoteRegistry
+
+- name:                                "WinCluster-PreReq: add registry key to set keepalive interval"
+  ansible.windows.win_regedit:
+    path:                              HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters
+    name:                              KeepAliveTime
+    data:                              120000
+    type:                              dword
+    state:                             present
+
+- name:                                "WinCluster-PreReq: add registry key to set keepalive interval"
+  ansible.windows.win_regedit:
+    path:                              HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters
+    name:                              KeepAliveInterval
+    data:                              120000
+    type:                              dword
+    state:                             present
+
+- name:                                "Inspect cluster features"
+  ansible.builtin.debug:
+    msg:                               "{{ cluster_features }}"
+    verbosity:                         2
+
+
+- name:                                "WinCluster-PreReq: Reboot '{{ ansible_hostname }}' if needed"
+  ansible.windows.win_reboot:
+    post_reboot_delay: 60
+  when: (cluster_features.results | selectattr('reboot_required', 'equalto', true)) | list | count > 0
+
+...

@@ -1,0 +1,108 @@
+@model AutomationForm.Models.AppFile
+
+@{
+    ViewBag.Title = "Edit file";
+    string sourceController = ViewBag.SourceController;
+    bool isImagesFile = false;
+    int type = ViewBag.Type;
+    string filePattern = "VM-Images.json";
+    if (ViewBag.Type==1)
+    {
+        filePattern = ViewBag.FilePattern;
+    }
+    if (ViewBag.Type == 2)
+    {
+        filePattern = ViewBag.FilePattern;
+    }
+    try
+    {
+        isImagesFile = ViewBag.IsImagesFile;
+    }
+    catch
+    {}
+    
+    string language = (isImagesFile) ? "language-json" : "language-hcl";
+}
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script type="text/javascript">
+
+    var submitting = false;
+    window.onbeforeunload = function(){
+        if (!submitting) {
+            return "";
+        }
+    };
+
+    $(function () {
+        $("#file-form").submit(function () {
+            submitting = true;
+            var fileContent = document.getElementById('file-content').textContent;
+            $('<input />').attr('type', 'hidden').attr('name', 'id').attr('value', '@Model.Id').appendTo('#file-form');
+            $('<input />').attr('type', 'hidden').attr('name', 'fileContent').attr('value', fileContent).appendTo('#file-form');
+            $('<input />').attr('type', 'hidden').attr('name', 'sourceController').attr('value', "@sourceController").appendTo('#file-form');
+            $('<input />').attr('type', 'hidden').attr('name', 'isImagesFile').attr('value', "@isImagesFile").appendTo('#file-form');
+            return true;
+        });
+    });
+
+</script>
+
+<fluent-breadcrumb>
+    <fluent-breadcrumb-item href="@Url.Action("Index", "Home")">Home</fluent-breadcrumb-item>
+    <fluent-breadcrumb-item href="@Url.Action("Index", "File")">Files</fluent-breadcrumb-item>
+    <fluent-breadcrumb-item href="#">Edit</fluent-breadcrumb-item>
+</fluent-breadcrumb>
+
+<div class="text-center">
+    <h2>@Model.Id</h2>
+</div>
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="notificationContainer" style="display: flex; background: rgb(253, 231, 233);">
+        <div class="notificationInner">
+            <span class="notificationText">
+                @Html.ValidationSummary(false)
+            </span>
+        </div>
+    </div>
+}
+
+<div>
+    <pre class="line-numbers editable"><code id="file-content" class="@language" contenteditable="true" spellcheck="false">@ViewBag.Message</code></pre>
+
+    <form class="wrapper" id="file-form" asp-controller="file" asp-action="edit">
+        @Html.AntiForgeryToken()
+
+        <div class="ms-TextField @(isImagesFile ? "hidden" : "")">
+            <div class="left-input">
+                @Html.Label("newId", "File name", new { @class = $"ms-Label required" })
+                <p>Enter a name for the file, ending in .tfvars</p>
+            </div>
+
+            <div class="right-input">
+                @Html.TextBox("newId", Model.Id, new { @class = "ms-TextField-field", required = "required", pattern = isImagesFile ? filePattern : @"^[\w-]+\.tfvars$" })
+            </div>
+        </div>
+
+        <div class="bottom-buttons">
+            <fluent-button appearance="accent" value="Save" type="submit">
+                <i class="ms-Icon ms-Icon--Save" aria-hidden="true"></i> Save
+            </fluent-button>
+
+            <fluent-anchor href="@Url.Action("Index", $"{sourceController}")">
+                Back to list
+            </fluent-anchor>
+
+            @if (!isImagesFile)
+            {
+            <fluent-button appearance="accent" style="float: right" type="submit" onclick="submitting=true" formaction="/File/SubmitNew">
+                Save as new file
+            </fluent-button>
+            }
+        </div>
+        
+    </form>
+
+</div>

@@ -1,0 +1,16 @@
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                Perform the Sybase ASE Software installation                |
+# |                  Step 7: Cleanup ini files                                 |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+---
+
+- name:                                "SYBASE Install: Cleanup ini file {{ ansible_hostname }}"
+  ansible.builtin.file:
+    path:                              "{{ dir_params }}/{{ sap_inifile }}"
+    state:                             absent
+  when:
+    - sybase_installation.rc == 0
+
+...

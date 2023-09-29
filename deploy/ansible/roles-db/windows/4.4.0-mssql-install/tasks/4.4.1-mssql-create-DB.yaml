@@ -1,0 +1,63 @@
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                Perform DB Creation using PowerShell                        |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+# - name: Ensure SqlServer PowerShell module Exists
+#   win_psmodule:
+#     name: SqlServer
+#     state: present
+- name:                                 "WIN-SQL: Ensure Run Flag Directory is Existing"
+  ansible.windows.win_file:
+    path:                               '{{ sap_deployment_automation }}\{{ sap_sid | upper }}'
+    state:                              directory
+
+- name:                                 "WIN-SQL: Check if DB is already existing"
+  ansible.windows.win_stat:
+    path:                               '{{ sap_deployment_automation }}\{{ sid_to_be_deployed.sid | upper }}\sap_deployment_sqldb_create.txt'
+  register:                             db_creation
+
+- name:                                 "WIN-SQL: DB status"
+  ansible.builtin.debug:
+    msg:                                "WIN-SQL: DB is already existing"
+  when:
+    - db_creation.stat.exists
+
+- name:                                 "WIN-SQL: Create a new DB on {{ ansible_hostname }}"
+  ansible.windows.win_shell: |
+                                        $sql = @'
+                                        CREATE DATABASE [{{ db_sid }}]
+                                        CONTAINMENT = NONE
+                                        ON  PRIMARY
+                                        ( NAME = N'WIN4DATA1', FILENAME = N'F:\WINDATA1\WIN4DATA1.mdf' , SIZE = 2097152KB , MAXSIZE = UNLIMITED, FILEGROWTH = 61440KB ),
+                                        ( NAME = N'WIN4DATA2', FILENAME = N'F:\WINDATA2\WIN4DATA2.mdf' , SIZE = 2097152KB , MAXSIZE = UNLIMITED, FILEGROWTH = 61440KB ),
+                                        ( NAME = N'WIN4DATA3', FILENAME = N'G:\WINDATA3\WIN4DATA3.mdf' , SIZE = 2097152KB , MAXSIZE = UNLIMITED, FILEGROWTH = 61440KB ),
+                                        ( NAME = N'WIN4DATA4', FILENAME = N'G:\WINDATA4\WIN4DATA4.mdf' , SIZE = 2097152KB , MAXSIZE = UNLIMITED, FILEGROWTH = 61440KB ),
+                                        ( NAME = N'WIN4DATA5', FILENAME = N'H:\WINDATA5\WIN4DATA5.mdf' , SIZE = 2097152KB , MAXSIZE = UNLIMITED, FILEGROWTH = 61440KB ),
+                                        ( NAME = N'WIN4DATA6', FILENAME = N'H:\WINDATA6\WIN4DATA6.mdf' , SIZE = 2097152KB , MAXSIZE = UNLIMITED, FILEGROWTH = 61440KB ),
+                                        ( NAME = N'WIN4DATA7', FILENAME = N'I:\WINDATA7\WIN4DATA7.mdf' , SIZE = 2097152KB , MAXSIZE = UNLIMITED, FILEGROWTH = 61440KB ),
+                                        ( NAME = N'WIN4DATA8', FILENAME = N'I:\WINDATA8\WIN4DATA8.mdf' , SIZE = 2097152KB , MAXSIZE = UNLIMITED, FILEGROWTH = 61440KB )
+                                        LOG ON
+                                        ( NAME = N'WIN4LOG1', FILENAME = N'J:\WINLOG1\WIN4LOG1.ldf' , SIZE = 1155072KB , MAXSIZE = 2048GB , FILEGROWTH = 65536KB )
+                                        WITH CATALOG_COLLATION = DATABASE_DEFAULT
+                                        GO
+                                        '@
+
+                                        Invoke-SqlCmd -Query $sql
+  args:
+    creates:                            '{{ sap_deployment_automation }}\{{ sap_sid | upper }}\sap_deployment_sqldb_create.txt'
+  register:                             sql_output
+  failed_when:                          sql_output.rc != 0
+  become:                               true
+  become_method:                        ansible.builtin.runas
+
+# - name:                                 "WIN-SQL: DB Creation || Flag File"
+#   block:
+- name:                                "WIN-SQL: DB Creation || Flag File"
+  ansible.windows.win_file:
+    path:                              '{{ sap_deployment_automation }}\{{ sap_sid | upper }}\sap_deployment_sqldb_create.txt'
+    state:                             touch
+  # when:
+  #   - sql_output.rc is defined
+  #   - sql_output.rc == 0

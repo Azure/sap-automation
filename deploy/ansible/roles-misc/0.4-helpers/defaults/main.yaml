@@ -1,0 +1,8 @@
+# /*---------------------------------------------------------------------------8
+# |                           HANA utility commands                            |
+# +------------------------------------4--------------------------------------*/
+
+sapcontrol_command:                    "sapcontrol -nr {{ db_instance_number }}"
+
+hana_stop_start_timeout_in_seconds:    600
+hana_stop_start_delay_in_seconds:      10

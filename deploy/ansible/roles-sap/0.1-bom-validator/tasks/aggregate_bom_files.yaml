@@ -1,0 +1,104 @@
+---
+# Directory Object handling for BOM aggregation
+
+# Collect object statistics
+- name:                                 "{{ task_prefix }}: - file stats"
+  ansible.builtin.stat:
+    path:                               "{{ bom_directory_object.path }}"
+  register:                             object_stats
+
+# Directory block
+- name:                                 "{{ task_prefix }}: - Directory block"
+  vars:
+    destination:                        "{{ download_directory }}/bom/{{ new_bom_name }}"
+    sub_path:                           "{{ object_stats.stat.path | regex_search('(?:.*/' + this_bom_name + '/)(?P<relative_path>.*)', '\\g<relative_path>') | join }}"
+  when: object_stats.stat.mimetype  == "inode/directory"
+  block:
+    # Informational
+    - name:                             "{{ task_prefix }}: - Informational"
+      ansible.builtin.debug:
+        msg: |-
+                                        path:             {{ object_stats.stat.path }}
+                                        mimetype:         {{ object_stats.stat.mimetype }}
+                                        sub_path:         {{ sub_path }}
+                                        destination:      {{ destination }}
+        verbosity:                      1
+
+    # Create directories
+    - name:                             "{{ task_prefix }}: - consolidate_bom: - Create temporary BOM directories"
+      delegate_to:                      localhost
+      become:                          "{{ bom_processing_become }}"
+      ansible.builtin.file:
+        path:                           "{{ destination }}/{{ sub_path }}"
+        state:                          directory
+        mode:                           0755
+
+# Preserve original BOM block
+- name:                                 "{{ task_prefix }}: - Original BOM block"
+  vars:
+    destination:                        "{{ download_directory }}/bom/{{ new_bom_name }}"
+    sub_path:                           "{{ object_stats.stat.path | regex_search('(?:.*/' + this_bom_name + '/)(?P<relative_path>.*)', '\\g<relative_path>') | join }}"
+    dir_path:                           "{{ sub_path | dirname }}"
+    file_name:                          "{{ sub_path | basename }}"
+    new_file_name:                      "{{ sub_path | basename }}.original"
+  when:
+    - object_stats.stat.mimetype  == "text/plain"
+    - file_name                   == this_bom_name + ".yaml"
+  block:
+    - name:                             "{{ task_prefix }}: - Informational"
+      ansible.builtin.debug:
+        msg: |-
+                                        path:             {{ object_stats.stat.path }}
+                                        mimetype:         {{ object_stats.stat.mimetype }}
+                                        sub_path:         {{ sub_path }}
+                                        dir_path:         {{ dir_path }}
+                                        file_name:        {{ file_name }}
+                                        new_file_name:    {{ new_file_name }}
+                                        destination:      {{ destination }}
+        verbosity:                      1
+
+    - name:                             "{{ task_prefix }}: - copy and rename original BOM"
+      delegate_to:                      localhost
+      become:                          "{{ bom_processing_become }}"
+      ansible.builtin.copy:
+        src:                            "{{ object_stats.stat.path }}"
+        dest:                           "{{ destination }}/{% if dir_path != '' %}{{ dir_path }}/{% endif %}{{ new_file_name }}"
+        force:                          true
+        mode:                           0755
+
+# File block
+- name:                                 "{{ task_prefix }}: - Original BOM block"
+  vars:
+    destination:                        "{{ download_directory }}/bom/{{ new_bom_name }}"
+    sub_path:                           "{{ object_stats.stat.path | regex_search('(?:.*/' + this_bom_name + '/)(?P<relative_path>.*)', '\\g<relative_path>') | join }}"
+    dir_path:                           "{{ sub_path | dirname }}"
+    file_name:                          "{{ sub_path | basename }}"
+    new_file_name:                      "{{ sub_path | basename | regex_replace(this_bom_name, new_bom_name) }}"
+  when:
+    - object_stats.stat.mimetype  == "text/plain"         or
+      object_stats.stat.mimetype  == "application/pdf"    or
+      object_stats.stat.mimetype  == "text/xml"
+    - file_name                   != this_bom_name + ".yaml"
+  block:
+    - name:                             "{{ task_prefix }}: - Informational"
+      ansible.builtin.debug:
+        msg: |-
+                                        path:             {{ object_stats.stat.path }}
+                                        mimetype:         {{ object_stats.stat.mimetype }}
+                                        sub_path:         {{ sub_path }}
+                                        dir_path:         {{ dir_path }}
+                                        file_name:        {{ file_name }}
+                                        new_file_name:    {{ new_file_name }}
+                                        destination:      {{ destination }}
+        verbosity:                      1
+
+    - name:                             "{{ task_prefix }}: - copy and rename files"
+      become:                          "{{ bom_processing_become }}"
+      delegate_to:                      localhost
+      ansible.builtin.copy:
+        src:                            "{{ object_stats.stat.path }}"
+        dest:                           "{{ destination }}/{% if dir_path != '' %}{{ dir_path }}/{% endif %}{{ new_file_name }}"
+        force:                          true
+        mode:                           0755
+
+...
