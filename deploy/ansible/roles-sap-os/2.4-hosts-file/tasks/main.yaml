@@ -129,7 +129,7 @@
         msg:
           - "pas_hostname:             {{ pas_hostname }} "
           - "pas_virtual_hostname:     {{ pas_virtual_hostname }} "
-          - "pas_virtualhost_from_inventory: {{ pas_virtualhost_from_inventory }}"
+          - "virtualhost_in_inventory: {{ pas_virtualhost_from_inventory }}"
 
     - name:                            "2.4 Hosts: - Get the line from /etc/hosts with virtual_host"
       ansible.builtin.slurp:

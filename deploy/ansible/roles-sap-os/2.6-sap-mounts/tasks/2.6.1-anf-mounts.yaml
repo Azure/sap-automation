@@ -315,7 +315,11 @@
     - item.item is changed
   register: set_immutable_attribute
 
-- name:                                "ANF Mount: sapmnt/{{ sap_sid | upper }} - Standalone"
+- name:                                "ANF Mount: Debug"
+  ansible.builtin.debug:
+    msg:                               'isHA:{{ scs_high_availability }} | node_tier:{{ node_tier }} | tier:{{ tier }} | sapmnt:{{ sap_mnt }}'
+
+- name:                                "ANF Mount: sapmnt/{{ sap_sid | upper }} - Distributed Non-HA"
   ansible.posix.mount:
     src:                               "{{ item.src }}"
     path:                              "{{ item.path }}"
@@ -325,10 +329,27 @@
   loop:
     - { type: 'nfs4',  src: '{{ sap_mnt }}/sapmnt{{ sap_sid | upper }}',    path: '/sapmnt/{{ sap_sid | upper }}'      }
   when:
-    - not scs_high_availability
-    - tier in ['sapos']
-    - node_tier != 'hana'
+    - tier == 'sapos'
     - sap_mnt is defined
+    - not scs_high_availability
+    - ansible_play_hosts_all | length > 1
+    - node_tier != 'hana'
+
+- name:                                "ANF Mount: sapmnt/{{ sap_sid | upper }} - Single instance"
+  ansible.posix.mount:
+    src:                               "{{ item.src }}"
+    path:                              "{{ item.path }}"
+    fstype:                            "{{ item.type }}"
+    opts:                              'rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp'
+    state:                             mounted
+  loop:
+    - { type: 'nfs4',  src: '{{ sap_mnt }}/sapmnt{{ sap_sid | upper }}',    path: '/sapmnt/{{ sap_sid | upper }}'      }
+  when:
+    - tier == 'sapos'
+    - sap_mnt is defined
+    - not scs_high_availability
+    - ansible_play_hosts_all | length == 1
+
 
 - name:                                "ANF Mount: sapmnt/{{ sap_sid | upper }} - Standalone MULTI_SIDS"
   become:                              true
@@ -345,7 +366,7 @@
     - sap_mnt is defined
     - MULTI_SIDS is defined
 
-- name:                                "ANF Mount: sapmnt/{{ sap_sid | upper }}"
+- name:                                "ANF Mount: sapmnt/{{ sap_sid | upper }} - High Availability"
   ansible.posix.mount:
     src:                               "{{ item.src }}"
     path:                              "{{ item.path }}"

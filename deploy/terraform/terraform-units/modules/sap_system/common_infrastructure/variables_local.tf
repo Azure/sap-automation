@@ -47,8 +47,7 @@ locals {
   // If the environment deployment created a route table use it to populate a route
   route_table_name = try(split("/", var.landscape_tfstate.route_table_id)[8], "")
 
-
-  db_ha = try(var.database.high_availability, "false")
+  db_ha  = try(var.database.high_availability, "false")
 
   //If custom image is used, we do not overwrite os reference with default value
   db_custom_image = try(var.database.os.source_image_id, "") != "" ? true : false

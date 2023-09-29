@@ -108,7 +108,7 @@ module "hdb_node" {
     azurerm.deployer                            = azurerm
     azurerm.main                                = azurerm.system
     azurerm.dnsmanagement                       = azurerm.dnsmanagement
-//    azapi.api             = azapi.api
+    # azapi.api                                 = azapi.api
   }
 
   admin_subnet                                  = module.common_infrastructure.admin_subnet
