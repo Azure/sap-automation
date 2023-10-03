@@ -469,7 +469,6 @@ variable "public_network_access_enabled" {
   type        = bool
 
 }
-
 variable "subnets_to_add_to_firewall_for_keyvaults_and_storage" {
   description = "List of subnets to add to storage account and keyvaults firewall"
   default     = null

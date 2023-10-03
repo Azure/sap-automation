@@ -51,6 +51,27 @@ stages:
               green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
 
               echo -e "$green--- Validations ---$reset"
+
+                # Check if running on deployer
+                if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
+                  echo -e "$green --- Install dos2unix ---$reset"
+                    sudo apt-get -qq install dos2unix
+
+                  echo -e "$green --- Install terraform ---$reset"
+
+                    wget -q $(tf_url)
+                    return_code=$?
+                    if [ 0 != $return_code ]; then
+                      echo "##vso[task.logissue type=error]Unable to download Terraform version $(tf_version)."
+                      exit 2
+                    fi
+                    unzip -qq terraform_$(tf_version)_linux_amd64.zip ; sudo mv terraform /bin/
+                    rm -f terraform_$(tf_version)_linux_amd64.zip
+                else
+                  source /etc/profile.d/deploy_server.sh
+                fi
+                export AZURE_DEVOPS_EXT_PAT=$PAT
+
                 HOME_CONFIG=${CONFIG_REPO_PATH}/$(Deployment_Configuration_Path)
                 cd $HOME_CONFIG; mkdir -p .sap_deployment_automation
                 if [ ! -f $HOME_CONFIG/SYSTEM/$(sap_system_folder)/$(sap_system_configuration) ]; then
@@ -81,27 +102,6 @@ stages:
               echo -e "$green--- Checkout $(Build.SourceBranchName) ---$reset"
                 cd $CONFIG_REPO_PATH
                 git checkout -q $(Build.SourceBranchName)
-
-              # Check if running on deployer
-              if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-                echo -e "$green --- Install dos2unix ---$reset"
-                  sudo apt-get -qq install dos2unix
-
-                echo -e "$green --- Install terraform ---$reset"
-
-                  wget -q $(tf_url)
-                  return_code=$?
-                  if [ 0 != $return_code ]; then
-                    echo "##vso[task.logissue type=error]Unable to download Terraform version $(tf_version)."
-                    exit 2
-                  fi
-                  unzip -qq terraform_$(tf_version)_linux_amd64.zip ; sudo mv terraform /bin/
-                  rm -f terraform_$(tf_version)_linux_amd64.zip
-              else
-                source /etc/profile.d/deploy_server.sh
-                export AZURE_DEVOPS_EXT_PAT=$PAT
-
-              fi
 
               echo -e "$green--- Convert config file to UX format ---$reset"
                 dos2unix -q $HOME_CONFIG/SYSTEM/$(sap_system_folder)/$(sap_system_configuration)
@@ -216,6 +216,8 @@ stages:
               echo -e "$green--- Configure devops CLI extension ---$reset"
 
                 az config set extension.use_dynamic_install=yes_without_prompt --output none
+
+                export AZURE_DEVOPS_EXT_PAT=$PAT
 
                 az extension add --name azure-devops --output none
 
