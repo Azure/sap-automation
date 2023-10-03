@@ -70,7 +70,7 @@
   become_user:                         "oracle"
   ansible.builtin.shell:               lsnrctl start
   register:                            lsnrctl_start_secondary_results
-  failed_when:                         lsnrctl_start_secondary_results.rc > 1
+  failed_when:                         lsnrctl_start_secondary_results.rc > 0
   args:
     creates:                           /etc/sap_deployment_automation/dgscripts/lsnrctl_started_sec.txt
     chdir:                             /etc/sap_deployment_automation/dgscripts

@@ -151,11 +151,12 @@
 
     - name:                            "DBLoad: - Check if the backup disk exists on DB Server"
       ansible.builtin.set_fact:
-        backupdisks_count:             "{{ disks | selectattr('host', 'defined') |
-          selectattr('host', 'equalto', inventory_hostname) |
-          selectattr('type', 'equalto', 'backup') |
-          map(attribute='type') | sort | unique |
-          list | length | int }}"
+        backupdisks_count: >-
+                                       {{ disks | selectattr('host', 'defined') |
+                                           selectattr('host', 'equalto', db_server[0]) |
+                                           selectattr('type', 'equalto', 'backup') |
+                                           map(attribute='type') | sort | unique |
+                                           list | length | int }}
 
     - name:                            "DBLoad: -  Set the hana backup facts"
       ansible.builtin.set_fact:
@@ -163,7 +164,11 @@
 
     - name:                            "Hana backup directory"
       ansible.builtin.debug:
-        msg:                           "Backup path: {{ backup_path }}"
+        msg:
+          - "DB Server:                {{ db_server[0] }}"
+          - "Backup disk count:        {{ backupdisks_count | int }}"
+          - "HANA Backup path:         {{ hana_backup_path }}"
+          - "Backup path:              {{ backup_path }}"
 
     - name:                            "DBLoad: - Include roles-sap/3.3.1-bom-utility role"
       ansible.builtin.include_role:

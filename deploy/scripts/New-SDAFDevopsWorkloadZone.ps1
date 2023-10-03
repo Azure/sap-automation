@@ -78,7 +78,7 @@ if ($url.Length -eq 0) {
   exit
 }
 
-$Project_ID = (az devops project list --organization $ADO_ORGANIZATION --query "[value[]] | [0] | [? name=='$ADO_PROJECT'].id | [0]")
+$Project_ID = (az devops project list --organization $ADO_ORGANIZATION --query "[value[]] | [0] | [?name=='$ADO_Project'].id | [0]")
 
 if ($Project_ID.Length -eq 0) {
   Write-Host "Project " $ADO_PROJECT " was not found" -ForegroundColor Red
@@ -96,6 +96,9 @@ $workload_zone_spn_name = $Workload_zonePrefix + " Deployment credential"
 
 if ($Env:SDAF_WorkloadZone_SPN_NAME.Length -ne 0) {
   $workload_zone_spn_name = $Env:SDAF_WorkloadZone_SPN_NAME
+}
+else {
+  $workload_zone_spn_name = Read-Host "Please provide the Service Principal name to be used for the deployments in the workload zone"
 }
 
 $SPN_Created = $false
@@ -132,37 +135,45 @@ else {
 
 $Service_Connection_Name = $Workload_zone_code + "_WorkloadZone_Service_Connection"
 
-$GroupID = (az pipelines variable-group list --query "[?name=='$WorkloadZonePrefix'].id | [0]" --only-show-errors )
+$GroupID = (az pipelines variable-group list --query "[?name=='$WorkloadZonePrefix'].id | [0]" --organization $ADO_ORGANIZATION --project $ADO_Project --only-show-errors )
 if ($GroupID.Length -eq 0) {
   Write-Host "Creating the variable group" $WorkloadZonePrefix -ForegroundColor Green
-  az pipelines variable-group create --name $WorkloadZonePrefix --variables Agent='Azure Pipelines' ARM_CLIENT_ID=$ARM_CLIENT_ID ARM_OBJECT_ID=$ARM_OBJECT_ID ARM_CLIENT_SECRET=$ARM_CLIENT_SECRET ARM_SUBSCRIPTION_ID=$Workload_zone_subscriptionID ARM_TENANT_ID=$ARM_TENANT_ID WZ_PAT='Enter your personal access token here' POOL=$Pool_Name AZURE_CONNECTION_NAME=$Service_Connection_Name TF_LOG=OFF Logon_Using_SPN=true --output none
-  $GroupID = (az pipelines variable-group list --query "[?name=='$WorkloadZonePrefix'].id | [0]" --only-show-errors)
+  az pipelines variable-group create --name $WorkloadZonePrefix --variables Agent='Azure Pipelines' ARM_CLIENT_ID=$ARM_CLIENT_ID ARM_OBJECT_ID=$ARM_OBJECT_ID ARM_CLIENT_SECRET=$ARM_CLIENT_SECRET ARM_SUBSCRIPTION_ID=$Workload_zone_subscriptionID ARM_TENANT_ID=$ARM_TENANT_ID WZ_PAT='Enter your personal access token here' POOL=$Pool_Name AZURE_CONNECTION_NAME=$Service_Connection_Name TF_LOG=OFF Logon_Using_SPN=true --output none --authorize true  --organization $ADO_ORGANIZATION --project $ADO_Project
+  $GroupID = (az pipelines variable-group list --query "[?name=='$WorkloadZonePrefix'].id | [0]"  --organization $ADO_ORGANIZATION --project $ADO_Project --only-show-errors)
 }
 
-$PAT = Read-Host -Prompt "If you have a PAT token please enter it otherwise please create one before proceeding: "
-az pipelines variable-group variable update --group-id $GroupID --name "WZ_PAT" --value $PAT --secret true --only-show-errors --output none
+$idx = $url.IndexOf("_api")
+$pat_url = ($url.Substring(0, $idx) + "_usersSettings/tokens").Replace("""", "")
 
+
+Write-Host ""
+Write-Host "The browser will now open, please create a Personal Access Token. Ensure that Read & manage is selected for Agent Pools, Read & write is selected for Code, Read & execute is selected for Build, and Read, create, & manage is selected for Variable Groups"
+Start-Process $pat_url
+
+$PAT = Read-Host -Prompt "Please enter the PAT token: "
+az pipelines variable-group variable update --group-id $GroupID --name "WZ_PAT" --value $PAT --secret true --only-show-errors --organization $ADO_ORGANIZATION --project $ADO_Project --output none
+$Env:AZURE_DEVOPS_EXT_AZURE_RM_SERVICE_PRINCIPAL_KEY = $ARM_CLIENT_SECRET
 
 if ($ARM_CLIENT_SECRET -ne "Please update") {
-  az pipelines variable-group variable update --group-id $GroupID --name "ARM_CLIENT_SECRET" --value $ARM_CLIENT_SECRET --secret true --output none --only-show-errors
-  az pipelines variable-group variable update --group-id $GroupID --name "ARM_CLIENT_ID" --value $ARM_CLIENT_ID --output none --only-show-errors
-  az pipelines variable-group variable update --group-id $GroupID --name "ARM_OBJECT_ID" --value $ARM_OBJECT_ID --output none --only-show-errors
-  $Env:AZURE_DEVOPS_EXT_AZURE_RM_SERVICE_PRINCIPAL_KEY = $ARM_CLIENT_SECRET
+  az pipelines variable-group variable update --group-id $GroupID --name "ARM_CLIENT_SECRET" --value $ARM_CLIENT_SECRET --secret true  --organization $ADO_ORGANIZATION --project $ADO_Project --output none --only-show-errors
+  az pipelines variable-group variable update --group-id $GroupID --name "ARM_CLIENT_ID" --value $ARM_CLIENT_ID  --organization $ADO_ORGANIZATION --project $ADO_Project --output none --only-show-errors
+  az pipelines variable-group variable update --group-id $GroupID --name "ARM_OBJECT_ID" --value $ARM_OBJECT_ID  --organization $ADO_ORGANIZATION --project $ADO_Project --output none --only-show-errors
+
 
   $epExists = (az devops service-endpoint list --query "[?name=='$Service_Connection_Name'].name | [0]")
   if ($epExists.Length -eq 0) {
     Write-Host "Creating Service Endpoint" $Service_Connection_Name -ForegroundColor Green
-    az devops service-endpoint azurerm create --azure-rm-service-principal-id $ARM_CLIENT_ID --azure-rm-subscription-id $Workload_zone_subscriptionID --azure-rm-subscription-name $Workload_zoneSubscriptionName --azure-rm-tenant-id $ARM_TENANT_ID --name $Service_Connection_Name --output none --only-show-errors
-    $epId = az devops service-endpoint list --query "[?name=='$Service_Connection_Name'].id" -o tsv
-    az devops service-endpoint update --id $epId --enable-for-all true --output none --only-show-errors
+    az devops service-endpoint azurerm create --azure-rm-service-principal-id $ARM_CLIENT_ID --azure-rm-subscription-id $Workload_zone_subscriptionID --azure-rm-subscription-name $Workload_zoneSubscriptionName --azure-rm-tenant-id $ARM_TENANT_ID --name $Service_Connection_Name  --organization $ADO_ORGANIZATION --project $ADO_Project --output none --only-show-errors
+    $epId = az devops service-endpoint list --query "[?name=='$Service_Connection_Name'].id" -o tsv  --organization $ADO_ORGANIZATION --project $ADO_Project
+    az devops service-endpoint update --id $epId --enable-for-all true --output none --only-show-errors  --organization $ADO_ORGANIZATION --project $ADO_Project
   }
   else {
     Write-Host "Service Endpoint already exists, recreating it with the updated credentials" -ForegroundColor Green
-    $epId = az devops service-endpoint list --query "[?name=='$Service_Connection_Name'].id" -o tsv
-    az devops service-endpoint delete --id $epId --yes
-    az devops service-endpoint azurerm create --azure-rm-service-principal-id $ARM_CLIENT_ID --azure-rm-subscription-id $Workload_zone_subscriptionID --azure-rm-subscription-name $Workload_zoneSubscriptionName --azure-rm-tenant-id $ARM_TENANT_ID --name $Service_Connection_Name --output none --only-show-errors
-    $epId = az devops service-endpoint list --query "[?name=='$Service_Connection_Name'].id" -o tsv
-    az devops service-endpoint update --id $epId --enable-for-all true --output none --only-show-errors
+    $epId = az devops service-endpoint list --query "[?name=='$Service_Connection_Name'].id" -o tsv  --organization $ADO_ORGANIZATION --project $ADO_Project
+    az devops service-endpoint delete --id $epId --yes  --organization $ADO_ORGANIZATION --project $ADO_Project
+    az devops service-endpoint azurerm create --azure-rm-service-principal-id $ARM_CLIENT_ID --azure-rm-subscription-id $Workload_zone_subscriptionID --azure-rm-subscription-name $Workload_zoneSubscriptionName --azure-rm-tenant-id $ARM_TENANT_ID --name $Service_Connection_Name --output none --only-show-errors  --organization $ADO_ORGANIZATION --project $ADO_Project
+    $epId = az devops service-endpoint list --query "[?name=='$Service_Connection_Name'].id" -o tsv  --organization $ADO_ORGANIZATION --project $ADO_Project
+    az devops service-endpoint update --id $epId --enable-for-all true --output none --only-show-errors  --organization $ADO_ORGANIZATION --project $ADO_Project
   }
 
 }
