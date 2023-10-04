@@ -326,3 +326,8 @@ variable "public_network_access_enabled" {
   description = "Defines if the public access should be enabled for keyvaults and storage accounts"
   type        = bool
 }
+
+variable "control_plane_principal_id" {
+  description = "The principal id of the control plane"
+  type        = string
+}

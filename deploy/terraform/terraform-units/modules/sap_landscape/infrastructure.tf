@@ -42,6 +42,18 @@ resource "azurerm_virtual_network" "vnet_sap" {
   address_space = [local.vnet_sap_addr]
 }
 
+
+resource "azurerm_role_assignment" "vnet_sap" {
+  provider = azurerm.main
+  count = local.vnet_sap_exists ? 0 : length(var.control_plane_principal_id) > 0 ? 1 : 0
+  scope = local.vnet_sap_exists ? (
+    data.azurerm_virtual_network.vnet_sap[0].id) : (
+    azurerm_virtual_network.vnet_sap[0].id
+  )
+  role_definition_name = "Network Contributor"
+  principal_id         = var.control_plane_principal_id
+}
+
 // Imports data of existing SAP VNET
 data "azurerm_virtual_network" "vnet_sap" {
   provider            = azurerm.main
@@ -231,7 +243,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "storage" {
   depends_on = [
     azurerm_virtual_network.vnet_sap
   ]
-  count = local.use_Azure_native_DNS  && var.use_private_endpoint ? 1 : 0
+  count = local.use_Azure_native_DNS && var.use_private_endpoint ? 1 : 0
   name = format("%s%s%s%s-blob",
     var.naming.resource_prefixes.dns_link,
     local.prefix,
