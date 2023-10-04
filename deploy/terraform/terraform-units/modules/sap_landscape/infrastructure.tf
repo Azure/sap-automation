@@ -192,7 +192,7 @@ resource "azurerm_route" "admin" {
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "vnet_sap" {
-  provider = azurerm.dnsmanagement
+  provider = azurerm.main
   depends_on = [
     azurerm_virtual_network.vnet_sap
   ]
@@ -212,7 +212,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vnet_sap" {
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "vnet_sap_file" {
-  provider = azurerm.dnsmanagement
+  provider = azurerm.main
   count    = local.use_Azure_native_DNS && var.use_private_endpoint ? 1 : 0
   depends_on = [
     azurerm_virtual_network.vnet_sap
