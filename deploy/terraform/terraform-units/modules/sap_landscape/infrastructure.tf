@@ -42,18 +42,6 @@ resource "azurerm_virtual_network" "vnet_sap" {
   address_space = [local.vnet_sap_addr]
 }
 
-
-resource "azurerm_role_assignment" "vnet_sap" {
-  provider = azurerm.main
-  count = local.vnet_sap_exists ? 0 : length(var.control_plane_principal_id) > 0 ? 1 : 0
-  scope = local.vnet_sap_exists ? (
-    data.azurerm_virtual_network.vnet_sap[0].id) : (
-    azurerm_virtual_network.vnet_sap[0].id
-  )
-  role_definition_name = "Network Contributor"
-  principal_id         = var.control_plane_principal_id
-}
-
 // Imports data of existing SAP VNET
 data "azurerm_virtual_network" "vnet_sap" {
   provider            = azurerm.main
