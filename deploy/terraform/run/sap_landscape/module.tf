@@ -16,7 +16,7 @@ module "sap_landscape" {
   Agent_IP                                     = var.Agent_IP
   ANF_settings                                 = local.ANF_settings
   authentication                               = local.authentication
-  control_plane_principal_id                   = local.cp_spn.object_id
+  control_plane_principal_id                   = local.cp_spn.client_id
   create_vaults_and_storage_dns_a_records      = var.create_vaults_and_storage_dns_a_records
   deployer_tfstate                             = try(data.terraform_remote_state.deployer[0].outputs, [])
   diagnostics_storage_account                  = local.diagnostics_storage_account
