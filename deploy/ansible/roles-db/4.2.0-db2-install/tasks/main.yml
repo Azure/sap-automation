@@ -68,19 +68,17 @@
         db2_cd_package_db2client:      "{{ db2_archive_path }}/db2client"
         db2_cd_package_software:       "{{ db2_archive_path }}/db2server/LINUXX86_64"
         db2_cd_package_kernel:         "{{ target_media_location }}/download_basket/"
-        sap_db_hostname:               "{{ hostvars[query('inventory_hostnames', '{{ sap_sid | upper }}_DB') | first]['virtual_host'] }}"
+        sap_db_hostname:               "{{ virtual_host }}"
         db2_encryption_algo_type:      "AES"
         db2_ase_encryption_length:     "256"
         db2_encryption_keystore_dir:   /db2/db2{{ db_sid | lower }}/keystore
-        db2_sslencryption_label:       "sap_db2{{ db_sid }}_{{ sap_db_hostname }}_ssl_comm_000"
-        sap_scs_hostname:              "{{ hostvars[query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') | first]['virtual_host'] }}"
+        db2_sslencryption_label:       "sap_db2{{ db_sid }}_{{ virtual_host }}_ssl_comm_000"
+        sap_scs_hostname:              "{{ custom_scs_virtual_hostname | default(hostvars[query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') | first]['virtual_host'], true) }}"
         sap_profile_dir:               "/sapmnt/{{ sap_sid | upper }}/profile"
         tier:                          "db2S"
         db2_memory:                    "{{ mem_size | int }}"
         param_directory:               "{{ dir_params }}"
-    # +--------------------------------4--------------------------------------*/
-    #
-    # - name:                          "SAP DB2 install: variables"
+
     - name:                            "DB2 Install: install variables"
       ansible.builtin.debug:
         msg:
@@ -102,7 +100,6 @@
     # *================================4=======================================8
     #   SAP DB2: Install
     #   2230669 - System Provisioning Using a Parameter Input File
-    #
 
     - name:                            "DB2 Install - SAPINST DB2 Install"
       ansible.builtin.shell: |

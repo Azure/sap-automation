@@ -28,8 +28,8 @@
     - name:                            "HSR: 4.0.1.7 - Check if SAP DEFAULT.PFL changes are needed"
       ansible.builtin.lineinfile:
         path:                          "/sapmnt/{{ sap_sid | upper }}/profile/DEFAULT.PFL"
-        regexp:                        "^SAPDBHOST = {{ db_lb_virtual_host }}"
-        line:                          "SAPDBHOST = {{ db_lb_virtual_host }}"
+        regexp:                        "^SAPDBHOST = {{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) }}"
+        line:                          "SAPDBHOST = {{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) }}"
         state:                         present
       check_mode:                      true
       register:                        check_default_pfl
@@ -51,7 +51,7 @@
     - name:                            "HSR: 4.0.1.7 - SAP DEFAULT.PFL changes - add db virtual hostname "
       ansible.builtin.lineinfile:
         path:                          /sapmnt/{{ sap_sid | upper }}/profile/DEFAULT.PFL
-        line:                          SAPDBHOST = {{ db_lb_virtual_host }}
+        line:                          SAPDBHOST = {{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) }}
         insertafter:                   '#SAPDBHOST'
       when:
         - check_default_pfl is changed
@@ -64,8 +64,8 @@
         - name:                        "HSR: 4.0.1.7 - Check if SAP DEFAULT.PFL changes are needed for JAVA"
           ansible.builtin.lineinfile:
             path:                      "/sapmnt/{{ sap_sid | upper }}/profile/DEFAULT.PFL"
-            regexp:                    "^j2ee/dbhost = {{ db_lb_virtual_host }}"
-            line:                      "j2ee/dbhost = {{ db_lb_virtual_host }}"
+            regexp:                    "^j2ee/dbhost = {{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) }}"
+            line:                      "j2ee/dbhost = {{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) }}"
             state:                     present
           check_mode:                  true
           register:                    check_default_pfl
@@ -87,7 +87,7 @@
         - name:                        "HSR: 4.0.1.7 - SAP DEFAULT.PFL changes - add db virtual hostname for JAVA"
           ansible.builtin.lineinfile:
             path:                      /sapmnt/{{ sap_sid | upper }}/profile/DEFAULT.PFL
-            line:                      j2ee/dbhost = {{ db_lb_virtual_host }}
+            line:                      j2ee/dbhost = {{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) }}
             insertafter:               '#j2ee/dbhost'
           when:
             - check_default_pfl is changed

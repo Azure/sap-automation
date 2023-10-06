@@ -34,7 +34,6 @@ always_upload_jinja_templates:         true
 # -------------------------------------+---------------------------------------8
 
 # SAP Configuration for templates and install
-
 hana_use_master_password:              y
 hana_password_copy:                    ""
 hana_backup_path:                      /hana/backup
@@ -43,7 +42,6 @@ download_basket_dir:                   "{{ target_media_location }}/download_bas
 db_sid:                                "XDB"                                   # Default
 db_instance_number:                    "00"                                    # Default
 hana_schema:                           "SAPHANADB"
-pas_hostname:                          ""
 pas_instance_number:                   "00"
 web_instance_number:                   "00"
 main_password:                         ""                                      # SAP Install
@@ -62,6 +60,12 @@ hana_components:                       "all"
 instance_type:                         "ASCS"
 
 dbload_retry_count:                    120
+
+# Custom virtual hostnames
+custom_db_virtual_hostname:            ""
+custom_ers_virtual_hostname:           ""
+custom_pas_virtual_hostname:           ""
+custom_scs_virtual_hostname:           ""
 
 # DB2 specific parameters
 db2sysadm_gid:                         3000

@@ -199,7 +199,7 @@
                                        awk '/ha_dr_SAPHanaSR.*crm_attribute/ \
                                        { printf "%s %s %s %s\n",$2,$3,$5,$16 }' nameserver_* | tail -n 1
           args:
-            chdir:                     /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/{{ primary_instance_name }}/trace
+            chdir:                     /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/{{ hostvars[primary_instance_name]['virtual_host'] }}/trace
           register:                    saphanasr
           until:                       saphanasr.stdout is search("SOK")
           retries:                     10
@@ -218,7 +218,7 @@
                                        awk '/ha_dr_SAPHanaSR.*crm_attribute/ \
                                        { printf "%s %s %s %s\n",$2,$3,$5,$16 }' nameserver_* | tail -n 1
           args:
-            chdir:                     /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/{{ primary_instance_name }}/trace
+            chdir:                     /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/{{ hostvars[primary_instance_name]['virtual_host'] }}/trace
           register:                    saphanasr
           until:                       saphanasr.stdout is search("SOK")
           retries:                     10
