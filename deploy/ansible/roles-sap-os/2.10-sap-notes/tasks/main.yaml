@@ -73,7 +73,7 @@
           - "resourceGroup_name:            {{ resource_group_name }}"
           - "vmName:                        {{ vm_name }}"
 
-    - name:                            "2.10.1 sap-notes: Reboot app VMs after selinux is configured"
+    - name:                            "2.10.1 sap-notes: Including Task for VM Agent Actions"
       ansible.builtin.include_tasks:   roles-misc/0.7-VmAgentActions/tasks/main.yaml
       vars:
         subscriptionId:                "{{ subscription_id }}"

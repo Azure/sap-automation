@@ -51,6 +51,7 @@
       ansible.builtin.debug:
         msg:                           "SCS status: {{ is_running.stdout_lines }}"
         verbosity:                     2
+      when:                            is_running.stdout_lines is defined
 
     # when the rc is 3, the SCS is running on ansible_hostname.
     # if the ansible_hostname is not the primary_instance_name, then failover cluster resources for ASCS/SCS

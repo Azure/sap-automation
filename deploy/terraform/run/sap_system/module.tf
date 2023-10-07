@@ -116,8 +116,8 @@ module "hdb_node" {
   cloudinit_growpart_config                     = null # This needs more consideration module.common_infrastructure.cloudinit_growpart_config
   custom_disk_sizes_filename                    = try(coalesce(var.custom_disk_sizes_filename, var.db_disk_sizes_filename), "")
   database                                      = local.database
-  database_cluster_disk_size                    = var.database_cluster_disk_size
   database_cluster_disk_lun                     = var.database_cluster_disk_lun
+  database_cluster_disk_size                    = var.database_cluster_disk_size
   database_dual_nics                            = try(module.common_infrastructure.admin_subnet, null) == null ? false : var.database_dual_nics
   database_server_count                         = upper(try(local.database.platform, "HANA")) == "HANA" ? (
                                                     local.database.high_availability ? (
@@ -281,7 +281,6 @@ module "anydb_node" {
   use_observer                                  = var.use_observer
   use_scalesets_for_deployment                  = var.use_scalesets_for_deployment
   use_secondary_ips                             = var.use_secondary_ips
-
 }
 
 #########################################################################################

@@ -58,7 +58,6 @@ module "sap_landscape" {
   vm_settings                                  = local.vm_settings
   witness_storage_account                      = local.witness_storage_account
 
-
 }
 
 module "sap_namegenerator" {

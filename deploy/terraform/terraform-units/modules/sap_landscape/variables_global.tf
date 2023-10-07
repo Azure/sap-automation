@@ -326,4 +326,3 @@ variable "public_network_access_enabled" {
   description = "Defines if the public access should be enabled for keyvaults and storage accounts"
   type        = bool
 }
-
