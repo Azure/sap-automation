@@ -92,6 +92,17 @@
       ansible.builtin.debug:
         var:                                bom.materials.media[bom_media_index]
         verbosity:                          1
+
+    - name:                                 "Dynamic processing - Show BOM platformNumber_list"
+      ansible.builtin.debug:
+        var:                                platformNumber_list[1]
+        verbosity:                          1
+
+    - name:                                 "Dynamic processing - Show sap_platform_map_lookup.number"
+      ansible.builtin.debug:
+        var:                                sap_platform_map_lookup.number
+        verbosity:                          1
+
 # Step: 03-02 - END
 # -------------------------------------+---------------------------------------8
 

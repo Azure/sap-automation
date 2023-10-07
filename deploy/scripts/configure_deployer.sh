@@ -281,7 +281,7 @@ required_pkgs=(
     curl
     apt-transport-https
     lsb-release
-    gnupgno
+    gnupg
     sshpass
     dos2unix
 )

@@ -18,6 +18,11 @@
   # -------------------------------------+---------------------------------------8
 
   tasks:
+    - name:                            "0.0 Validations - Show SDAF Version"
+      ansible.builtin.debug:
+        msg:
+          - "SDAF Version: {{ SDAF_Version }}"
+
     - name:                            "0.0 Validations - ensure jmespath is installed in the playbook python"
       ansible.builtin.pip:
         name:                          jmespath
