@@ -41,6 +41,7 @@ provider "azurerm" {
 
   partner_id = "25c87b5f-716a-4067-bcd8-116956916dd6"
   alias      = "workload"
+  skip_provider_registration = true
 
 }
 
