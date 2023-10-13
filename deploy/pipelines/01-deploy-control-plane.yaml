@@ -345,6 +345,7 @@ stages:
                       TF_VAR_agent_ado_url:           $(System.CollectionUri)
                       TF_VAR_spn_id:                  $(CP_ARM_OBJECT_ID)
                       TF_VAR_deployer_kv_user_arm_id: $(Deployer_Key_Vault)
+                      TF_VAR_tf_version:              $(tf_version)
                       AZURE_DEVOPS_EXT_PAT:           $(PAT)
                       IS_PIPELINE_DEPLOYMENT:         true
                       WEB_APP_CLIENT_SECRET:          $(WEB_APP_CLIENT_SECRET)
@@ -824,6 +825,7 @@ stages:
                       TF_VAR_spn_id:               $(CP_ARM_OBJECT_ID)
                       TF_VAR_agent_pool:           $(POOL)
                       TF_VAR_agent_ado_url:        $(System.CollectionUri)
+                      TF_VAR_tf_version:           $(tf_version)
                       AZURE_DEVOPS_EXT_PAT:        $(PAT)
                       IS_PIPELINE_DEPLOYMENT:      true
                       WEB_APP_CLIENT_SECRET:       $(WEB_APP_CLIENT_SECRET)

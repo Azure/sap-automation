@@ -38,7 +38,7 @@ output "created_resource_group_subscription_id" {
 
 output "vnet_sap_id" {
   description = "Azure resource identifier for the Virtual Network"
-  value       = try(local.vnet_sap_exists ? data.azurerm_virtual_network.vnet_sap[0].id : azurerm_virtual_network.vnet_sap[0].id, "")
+  value       = local.vnet_sap_exists ? data.azurerm_virtual_network.vnet_sap[0].id : azurerm_virtual_network.vnet_sap[0].id
 }
 
 output "random_id" {

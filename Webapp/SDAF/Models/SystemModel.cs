@@ -87,6 +87,8 @@ namespace AutomationForm.Models
     public bool? use_msi_for_clusters { get; set; } = true;
 
     public bool? use_simple_mount { get; set; } = false;
+    public bool? upgrade_packages { get; set; } = true;
+
 
     public string fencing_role_name { get; set; }
 

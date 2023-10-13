@@ -10,12 +10,19 @@ $Control_plane_subscriptionID = $Env:SDAF_ControlPlaneSubscriptionID
 $Workload_zone_subscriptionID = $Env:SDAF_WorkloadZoneSubscriptionID
 $ControlPlaneSubscriptionName = $Env:SDAF_ControlPlaneSubscriptionName
 $Workload_zoneSubscriptionName = $Env:SDAF_WorkloadZoneSubscriptionName
+
+$ARM_TENANT_ID = $Env:ARM_TENANT_ID
 #endregion
-if ($Env:ARM_TENANT_ID.Length -eq 0) {
+
+az logout
+
+az account clear
+
+if ($ARM_TENANT_ID.Length -eq 0) {
   az login --output none --only-show-errors
 }
 else {
-  az login --output none --tenant $Env:ARM_TENANT_ID --only-show-errors
+  az login --output none --tenant $ARM_TENANT_ID --only-show-errors
 }
 
 Write-Host ""
@@ -27,6 +34,8 @@ if (Test-Path .\start.md) {
 }
 
 az config set extension.use_dynamic_install=yes_without_prompt --only-show-errors
+
+az extension add --name azure-devops --only-show-errors
 
 #region Validate parameters
 
@@ -494,7 +503,7 @@ Write-Host "Creating the variable group SDAF-General" -ForegroundColor Green
 
 $general_group_id = (az pipelines variable-group list --query "[?name=='SDAF-General'].id | [0]" --only-show-errors)
 if ($general_group_id.Length -eq 0) {
-  az pipelines variable-group create --name SDAF-General --variables ANSIBLE_HOST_KEY_CHECKING=false Deployment_Configuration_Path=WORKSPACES Branch=main tf_version="1.5.6" ansible_core_version="2.13" S-Username=$SUserName S-Password=$SPassword --output yaml --authorize true --output none
+  az pipelines variable-group create --name SDAF-General --variables ANSIBLE_HOST_KEY_CHECKING=false Deployment_Configuration_Path=WORKSPACES Branch=main tf_version="1.6.0" ansible_core_version="2.13" S-Username=$SUserName S-Password=$SPassword --output yaml --authorize true --output none
   $general_group_id = (az pipelines variable-group list --query "[?name=='SDAF-General'].id | [0]" --only-show-errors)
   az pipelines variable-group variable update --group-id $general_group_id --name "S-Password" --value $SPassword --secret true --output none --only-show-errors
 

@@ -156,6 +156,14 @@ if [ 1 == $called_from_ado ] ; then
     echo "Agent IP: $this_ip"
 fi
 
+#Plugins
+if [ ! -d "$HOME/.terraform.d/plugin-cache" ]
+then
+    mkdir "$HOME/.terraform.d/plugin-cache"
+fi
+export TF_PLUGIN_CACHE_DIR="$HOME/.terraform.d/plugin-cache"
+
+
 parallelism=10
 
 #Provide a way to limit the number of parallell tasks for Terraform
