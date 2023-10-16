@@ -181,7 +181,9 @@ resource "azurerm_storage_account_network_rules" "witness" {
     )) ? local.deployer_subnet_management_id : null
     ]
   )
-
+ lifecycle {
+    ignore_changes = [virtual_network_subnet_ids]
+  }
 }
 
 resource "azurerm_private_dns_a_record" "witness_storage" {
@@ -337,6 +339,9 @@ resource "azurerm_storage_account_network_rules" "transport" {
 
     ]
   )
+ lifecycle {
+    ignore_changes = [virtual_network_subnet_ids]
+  }
 
 }
 
@@ -571,6 +576,9 @@ resource "azurerm_storage_account_network_rules" "install" {
 
     ]
   )
+ lifecycle {
+    ignore_changes = [virtual_network_subnet_ids]
+  }
 
 }
 

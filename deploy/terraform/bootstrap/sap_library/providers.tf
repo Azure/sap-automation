@@ -24,6 +24,7 @@ provider "azurerm" {
     }
 
   }
+  skip_provider_registration = true
 }
 
 provider "azurerm" {
@@ -39,6 +40,7 @@ provider "azurerm" {
   tenant_id       = var.use_deployer ? local.spn.tenant_id : null
 
   alias = "main"
+  skip_provider_registration = true
 }
 
 
@@ -46,6 +48,7 @@ provider "azurerm" {
   features {
   }
   alias = "deployer"
+  skip_provider_registration = true
 }
 
 provider "azurerm" {

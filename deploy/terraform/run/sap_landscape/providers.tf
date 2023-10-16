@@ -81,6 +81,7 @@ provider "azurerm" {
   client_secret   = var.use_spn ? local.cp_spn.client_secret : null
   tenant_id       = var.use_spn ? local.cp_spn.tenant_id : null
   alias           = "peering"
+  skip_provider_registration = true
 }
 
 

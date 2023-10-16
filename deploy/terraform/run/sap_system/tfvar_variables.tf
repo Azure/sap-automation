@@ -1213,3 +1213,8 @@ variable "configuration_settings" {
   description = "This is a dictionary that will contain values persisted to the sap-parameters.file"
   default     = {}
 }
+
+variable "upgrade_packages" {
+  description = "If defined, will upgrade the packages on the virtual machines"
+  default     = false
+}

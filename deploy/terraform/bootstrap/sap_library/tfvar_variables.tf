@@ -179,6 +179,16 @@ variable "library_ansible_blob_container_name" {
   default     = "ansible"
 }
 
+variable "library_terraform_vars_blob_container_is_existing" {
+  description = "If defined use an existing blob container for terraform vars"
+  default     = false
+}
+
+variable "library_terraform_vars_blob_container_name" {
+  description = "If defined, the blob container name to create"
+  default     = "tfvars"
+}
+
 
 variable "use_private_endpoint" {
   description = "Boolean value indicating if private endpoint should be used for the deployment"

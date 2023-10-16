@@ -129,6 +129,15 @@ resource "local_file" "ansible_inventory_new_yml" {
   directory_permission = "0770"
 }
 
+# resource "azurerm_storage_blob" "hosts_yaml" {
+#   provider               = azurerm.deployer
+#   name                   = format("%s_hosts.yml", trimspace(var.sap_sid))
+#   storage_account_name   = local.tfstate_storage_account_name
+#   storage_container_name = lower(format("tfvars/SYSTEM/%s", var.naming.prefix.SDU))
+#   type                   = "Block"
+#   source                 = local_file.ansible_inventory_new_yml.filename
+# }
+
 resource "local_file" "sap-parameters_yml" {
   content = templatefile(format("%s/sap-parameters.yml.tmpl", path.module), {
     sid            = var.sap_sid,
@@ -203,6 +212,7 @@ resource "local_file" "sap-parameters_yml" {
     is_use_simple_mount = var.use_simple_mount
 
     app_instance_number = var.app_instance_number
+    upgrade_packages    = var.upgrade_packages
 
     }
   )
@@ -210,6 +220,16 @@ resource "local_file" "sap-parameters_yml" {
   file_permission      = "0660"
   directory_permission = "0770"
 }
+
+# resource "azurerm_storage_blob" "params_yaml" {
+#   provider               = azurerm.deployer
+#   name                   = "sap-parameters.yaml"
+#   storage_account_name   = local.tfstate_storage_account_name
+#   storage_container_name = lower(format("tfvars/SYSTEM/%s", var.naming.prefix.SDU))
+#   type                   = "Block"
+#   source                 = local_file.sap-parameters_yml.filename
+# }
+
 
 resource "local_file" "sap_inventory_md" {
   content = templatefile(format("%s/sap_application.tmpl", path.module), {

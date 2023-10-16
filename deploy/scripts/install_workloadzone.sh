@@ -1059,4 +1059,23 @@ fi
 
 unset TF_DATA_DIR
 
+
+#################################################################################
+#                                                                               #
+#                           Copy tfvars to storage account                      #
+#                                                                               #
+#                                                                               #
+#################################################################################
+
+container_exists=$(az storage container exists --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --name tfvars --only-show-errors --query exists)
+
+if [ "${container_exists}" == "false" ]; then
+    az storage container create --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --name tfvars --only-show-errors
+fi
+
+
+az storage blob upload --file "${parameterfile}" --container-name tfvars/LANDSCAPE/"${key}" --name "${parameterfile_name}" --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}"  --no-progress --overwrite --only-show-errors
+
+
+
 exit $return_value

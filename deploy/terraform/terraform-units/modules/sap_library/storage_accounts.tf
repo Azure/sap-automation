@@ -58,17 +58,13 @@ resource "azurerm_storage_account_network_rules" "storage_tfstate" {
       try(var.deployer_tfstate.Agent_IP, "")
     ]
   )
-  virtual_network_subnet_ids = var.use_webapp ? (
-    compact(flatten(compact([
-      var.deployer_tfstate.subnet_mgmt_id,
-      try(var.deployer_tfstate.subnet_webapp_id, ""),
-      try(var.deployer_tfstate.subnets_to_add_to_firewall_for_keyvaults_and_storage, "")])
-      ))) : flatten(compact((
+  virtual_network_subnet_ids = tolist(compact(flatten(
       [
         var.deployer_tfstate.subnet_mgmt_id,
-        try(var.deployer_tfstate.subnets_to_add_to_firewall_for_keyvaults_and_storage, "")
+        local.virtual_additional_network_ids
       ]
   )))
+
   lifecycle {
     ignore_changes = [virtual_network_subnet_ids]
   }
@@ -260,15 +256,10 @@ resource "azurerm_storage_account_network_rules" "storage_sapbits" {
       try(var.deployer_tfstate.Agent_IP, "")
     ]
   )
-  virtual_network_subnet_ids = var.use_webapp ? (
-    compact(flatten(compact([
-      var.deployer_tfstate.subnet_mgmt_id,
-      try(var.deployer_tfstate.subnet_webapp_id, ""),
-      try(var.deployer_tfstate.subnets_to_add_to_firewall_for_keyvaults_and_storage, "")])
-      ))) : flatten(compact((
+  virtual_network_subnet_ids = tolist(compact(flatten(
       [
         var.deployer_tfstate.subnet_mgmt_id,
-        try(var.deployer_tfstate.subnets_to_add_to_firewall_for_keyvaults_and_storage, "")
+        local.virtual_additional_network_ids
       ]
   )))
   lifecycle {
@@ -451,4 +442,35 @@ resource "azurerm_management_lock" "storage_tfstate" {
   lifecycle {
     prevent_destroy = false
   }
+}
+
+// Creates the storage container inside the storage account for sapsystem
+resource "azurerm_storage_container" "storagecontainer_tfvars" {
+  provider = azurerm.main
+  count    = var.storage_account_tfstate.tfvars_blob_container.is_existing ? 0 : 1
+  name     = var.storage_account_tfstate.tfvars_blob_container.name
+  storage_account_name = local.sa_tfstate_exists ? (
+    data.azurerm_storage_account.storage_tfstate[0].name) : (
+    azurerm_storage_account.storage_tfstate[0].name
+  )
+  container_access_type = "private"
+
+  depends_on = [
+    time_sleep.wait_for_dns_refresh,
+    azurerm_private_endpoint.storage_tfstate
+  ]
+}
+
+data "azurerm_storage_container" "storagecontainer_tfvars" {
+  provider = azurerm.main
+  count    = var.storage_account_tfstate.tfvars_blob_container.is_existing ? 1 : 0
+  name     = var.storage_account_tfstate.tfvars_blob_container.name
+  storage_account_name = local.sa_tfstate_exists ? (
+    data.azurerm_storage_account.storage_tfstate[0].name) : (
+    azurerm_storage_account.storage_tfstate[0].name
+  )
+  depends_on = [
+    time_sleep.wait_for_dns_refresh,
+    azurerm_private_endpoint.storage_tfstate
+  ]
 }
