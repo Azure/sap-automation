@@ -453,6 +453,13 @@ stages:
                               sed -i 's/step=3/step=1/' $deployer_environment_file_name
                           fi
 
+                          keyvault_parameter=""
+                          if [ -n "${keyvault}" ]; then
+                              if [ "${keyvault}" != "$(Deployer_Key_Vault)" ]; then
+                                keyvault_parameter=" --vault ${keyvault} "
+                              fi
+                          fi
+
                       echo -e "$green--- Validations ---$reset"
 
                           if [ -z ${TF_VAR_ansible_core_version} ]; then
@@ -665,10 +672,10 @@ stages:
                           $SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh                               \
                              --deployer_parameter_file ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/$(deployerconfig) \
                              --library_parameter_file ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/$(libraryconfig)     \
-                             --subscription $CP_ARM_SUBSCRIPTION_ID --spn_id $CP_ARM_CLIENT_ID                                \
-                             --spn_secret $CP_ARM_CLIENT_SECRET --tenant_id $CP_ARM_TENANT_ID                                 \
+                             --subscription $CP_ARM_SUBSCRIPTION_ID --spn_id $CP_ARM_CLIENT_ID                          \
+                             --spn_secret $CP_ARM_CLIENT_SECRET --tenant_id $CP_ARM_TENANT_ID                           \
                              --auto-approve --ado                                                                       \
-                             ${storage_account_parameter}
+                             "${storage_account_parameter}" "${keyvault_parameter}"
                           return_code=$?
 
                           if [ 0 != $return_code ]; then
@@ -834,6 +841,7 @@ stages:
                       IS_PIPELINE_DEPLOYMENT:      true
                       WEB_APP_CLIENT_SECRET:       $(WEB_APP_CLIENT_SECRET)
                       APP_REGISTRATION_APP_ID:     $(APP_REGISTRATION_APP_ID)
+                      keyvault:                    $(Deployer_Key_Vault)
                       POOL:                        $(POOL)
                       SAP_AUTOMATION_REPO_PATH:    ${{ parameters.sap_automation_repo_path }}
                       CONFIG_REPO_PATH:            ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
