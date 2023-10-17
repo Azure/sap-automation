@@ -665,10 +665,6 @@ stages:
 
                           sudo chmod +x $SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh
 
-                          set -x
-                          set -e
-
-
                           $SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh                               \
                              --deployer_parameter_file ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/$(deployerconfig) \
                              --library_parameter_file ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/$(libraryconfig)     \
