@@ -675,7 +675,7 @@ stages:
                              --subscription $CP_ARM_SUBSCRIPTION_ID --spn_id $CP_ARM_CLIENT_ID                          \
                              --spn_secret $CP_ARM_CLIENT_SECRET --tenant_id $CP_ARM_TENANT_ID                           \
                              --auto-approve --ado                                                                       \
-                             "${storage_account_parameter}" "${keyvault_parameter}"
+                             ${storage_account_parameter} ${keyvault_parameter}
                           return_code=$?
 
                           if [ 0 != $return_code ]; then
