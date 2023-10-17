@@ -38,7 +38,7 @@ output "created_resource_group_subscription_id" {
 
 output "vnet_sap_id" {
   description = "Azure resource identifier for the Virtual Network"
-  value       = local.vnet_sap_exists ? data.azurerm_virtual_network.vnet_sap[0].id : azurerm_virtual_network.vnet_sap[0].id
+  value       = local.SAP_virtualnetwork_exists ? data.azurerm_virtual_network.vnet_sap[0].id : azurerm_virtual_network.vnet_sap[0].id
 }
 
 output "random_id" {
@@ -47,7 +47,7 @@ output "random_id" {
 
 output "route_table_id" {
   description = "Azure resource identifier for the route table"
-  value       = local.vnet_sap_exists ? "" : try(azurerm_route_table.rt[0].id, "")
+  value       = local.SAP_virtualnetwork_exists ? "" : try(azurerm_route_table.rt[0].id, "")
 }
 
 output "admin_subnet_id" {
@@ -178,7 +178,7 @@ output "storageaccount_name" {
   )
 }
 
-output "storageaccount_rg_name" {
+output "storageaccount_resourcegroup_name" {
   value = length(var.diagnostics_storage_account.arm_id) > 0 ? (
     data.azurerm_storage_account.storage_bootdiag[0].resource_group_name) : (
     try(azurerm_storage_account.storage_bootdiag[0].resource_group_name, "")

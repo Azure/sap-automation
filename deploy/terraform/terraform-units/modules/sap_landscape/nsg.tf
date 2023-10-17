@@ -3,8 +3,8 @@ resource "azurerm_network_security_group" "admin" {
   provider            = azurerm.main
   count               = local.admin_subnet_defined && !local.admin_subnet_nsg_exists ? 1 : 0
   name                = local.admin_subnet_nsg_name
-  resource_group_name = local.vnet_sap_exists ? data.azurerm_virtual_network.vnet_sap[0].resource_group_name : azurerm_virtual_network.vnet_sap[0].resource_group_name
-  location            = local.vnet_sap_exists ? data.azurerm_virtual_network.vnet_sap[0].location : azurerm_virtual_network.vnet_sap[0].location
+  resource_group_name = local.SAP_virtualnetwork_exists ? data.azurerm_virtual_network.vnet_sap[0].resource_group_name : azurerm_virtual_network.vnet_sap[0].resource_group_name
+  location            = local.SAP_virtualnetwork_exists ? data.azurerm_virtual_network.vnet_sap[0].location : azurerm_virtual_network.vnet_sap[0].location
 }
 
 # Associates admin nsg to admin subnet
@@ -25,8 +25,8 @@ resource "azurerm_network_security_group" "db" {
   provider            = azurerm.main
   count               = local.database_subnet_defined && !local.database_subnet_nsg_exists ? 1 : 0
   name                = local.database_subnet_nsg_name
-  resource_group_name = local.vnet_sap_exists ? data.azurerm_virtual_network.vnet_sap[0].resource_group_name : azurerm_virtual_network.vnet_sap[0].resource_group_name
-  location            = local.vnet_sap_exists ? data.azurerm_virtual_network.vnet_sap[0].location : azurerm_virtual_network.vnet_sap[0].location
+  resource_group_name = local.SAP_virtualnetwork_exists ? data.azurerm_virtual_network.vnet_sap[0].resource_group_name : azurerm_virtual_network.vnet_sap[0].resource_group_name
+  location            = local.SAP_virtualnetwork_exists ? data.azurerm_virtual_network.vnet_sap[0].location : azurerm_virtual_network.vnet_sap[0].location
 }
 
 # Associates SAP db nsg to SAP db subnet
@@ -46,8 +46,8 @@ resource "azurerm_network_security_group" "app" {
   provider            = azurerm.main
   count               = local.application_subnet_defined && !local.application_subnet_nsg_exists ? 1 : 0
   name                = local.application_subnet_nsg_name
-  resource_group_name = local.vnet_sap_exists ? data.azurerm_virtual_network.vnet_sap[0].resource_group_name : azurerm_virtual_network.vnet_sap[0].resource_group_name
-  location            = local.vnet_sap_exists ? data.azurerm_virtual_network.vnet_sap[0].location : azurerm_virtual_network.vnet_sap[0].location
+  resource_group_name = local.SAP_virtualnetwork_exists ? data.azurerm_virtual_network.vnet_sap[0].resource_group_name : azurerm_virtual_network.vnet_sap[0].resource_group_name
+  location            = local.SAP_virtualnetwork_exists ? data.azurerm_virtual_network.vnet_sap[0].location : azurerm_virtual_network.vnet_sap[0].location
 }
 
 # Associates app nsg to app subnet
@@ -70,8 +70,8 @@ resource "azurerm_network_security_group" "web" {
   ]
   count               = local.web_subnet_defined && !local.web_subnet_nsg_exists ? 1 : 0
   name                = local.web_subnet_nsg_name
-  resource_group_name = local.vnet_sap_exists ? data.azurerm_virtual_network.vnet_sap[0].resource_group_name : azurerm_virtual_network.vnet_sap[0].resource_group_name
-  location            = local.vnet_sap_exists ? data.azurerm_virtual_network.vnet_sap[0].location : azurerm_virtual_network.vnet_sap[0].location
+  resource_group_name = local.SAP_virtualnetwork_exists ? data.azurerm_virtual_network.vnet_sap[0].resource_group_name : azurerm_virtual_network.vnet_sap[0].resource_group_name
+  location            = local.SAP_virtualnetwork_exists ? data.azurerm_virtual_network.vnet_sap[0].location : azurerm_virtual_network.vnet_sap[0].location
 }
 
 # Associates SAP web nsg to SAP web subnet
@@ -91,7 +91,7 @@ resource "azurerm_network_security_rule" "nsr_controlplane_app" {
   ]
   count = local.application_subnet_nsg_exists ? 0 : 1
   name  = "ConnectivityToSAPApplicationSubnetFromControlPlane-ssh-rdp-winrm"
-  resource_group_name = local.vnet_sap_exists ? (
+  resource_group_name = local.SAP_virtualnetwork_exists ? (
     data.azurerm_virtual_network.vnet_sap[0].resource_group_name) : (
     azurerm_virtual_network.vnet_sap[0].resource_group_name
   )
@@ -114,7 +114,7 @@ resource "azurerm_network_security_rule" "nsr_controlplane_web" {
   ]
   count = local.web_subnet_defined ? local.web_subnet_nsg_exists ? 0 : 1 : 0
   name  = "ConnectivityToSAPApplicationSubnetFromControlPlane-ssh-rdp-winrm"
-  resource_group_name = local.vnet_sap_exists ? (
+  resource_group_name = local.SAP_virtualnetwork_exists ? (
     data.azurerm_virtual_network.vnet_sap[0].resource_group_name) : (
     azurerm_virtual_network.vnet_sap[0].resource_group_name
   )
@@ -137,7 +137,7 @@ resource "azurerm_network_security_rule" "nsr_controlplane_db" {
   ]
   count = local.database_subnet_nsg_exists ? 0 : 1
   name  = "ConnectivityToSAPApplicationSubnetFromControlPlane-ssh-rdp-winrm"
-  resource_group_name = local.vnet_sap_exists ? (
+  resource_group_name = local.SAP_virtualnetwork_exists ? (
     data.azurerm_virtual_network.vnet_sap[0].resource_group_name) : (
     azurerm_virtual_network.vnet_sap[0].resource_group_name
   )
@@ -160,7 +160,7 @@ resource "azurerm_network_security_rule" "nsr_controlplane_admin" {
   ]
   count = local.admin_subnet_nsg_exists ? 0 : 1
   name  = "ConnectivityToSAPApplicationSubnetFromControlPlane-ssh-rdp-winrm"
-  resource_group_name = local.vnet_sap_exists ? (
+  resource_group_name = local.SAP_virtualnetwork_exists ? (
     data.azurerm_virtual_network.vnet_sap[0].resource_group_name) : (
     azurerm_virtual_network.vnet_sap[0].resource_group_name
   )

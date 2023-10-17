@@ -73,6 +73,11 @@ variable "network_address_space" {
   default     = ""
 }
 
+variable "additional_network_address_space" {
+  description = "The address space of the virtual network"
+  default     = [""]
+}
+
 variable "network_arm_id" {
   description = "If provided, the Azure resource id of the virtual network"
   default     = ""

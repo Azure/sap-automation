@@ -7,126 +7,127 @@
 
 locals {
   // Resources naming
-  storageaccount_name                             = var.naming.storageaccount_names.WORKLOAD_ZONE.landscape_storageaccount_name
-  witness_storageaccount_name                     = var.naming.storageaccount_names.WORKLOAD_ZONE.witness_storageaccount_name
-  landscape_shared_transport_storage_account_name = var.naming.storageaccount_names.WORKLOAD_ZONE.landscape_shared_transport_storage_account_name
-  landscape_shared_install_storage_account_name   = var.naming.storageaccount_names.WORKLOAD_ZONE.landscape_shared_install_storage_account_name
   landscape_keyvault_names                        = var.naming.keyvault_names.WORKLOAD_ZONE
-  sid_keyvault_names                              = var.naming.keyvault_names.SDU
+  landscape_shared_install_storage_account_name   = var.naming.storageaccount_names.WORKLOAD_ZONE.landscape_shared_install_storage_account_name
+  landscape_shared_transport_storage_account_name = var.naming.storageaccount_names.WORKLOAD_ZONE.landscape_shared_transport_storage_account_name
   resource_suffixes                               = var.naming.resource_suffixes
+  sid_keyvault_names                              = var.naming.keyvault_names.SDU
+  storageaccount_name                             = var.naming.storageaccount_names.WORKLOAD_ZONE.landscape_storageaccount_name
   virtualmachine_names                            = var.naming.virtualmachine_names.ISCSI_COMPUTERNAME
+  witness_storageaccount_name                     = var.naming.storageaccount_names.WORKLOAD_ZONE.witness_storageaccount_name
+
 
   // Region and metadata
-  region = var.infrastructure.region
-  prefix = trimspace(var.naming.prefix.WORKLOAD_ZONE)
 
-  vnet_mgmt_id = try(var.deployer_tfstate.vnet_mgmt_id, try(var.deployer_tfstate.vnet_mgmt.id, ""))
-  firewall_ip  = try(var.deployer_tfstate.firewall_ip, "")
+  prefix                                          = trimspace(var.naming.prefix.WORKLOAD_ZONE)
+  region                                          = var.infrastructure.region
+
 
   // Firewall
-  firewall_id     = try(var.deployer_tfstate.firewall_id, "")
-  firewall_exists = length(local.firewall_id) > 0
-  firewall_name   = local.firewall_exists ? try(split("/", local.firewall_id)[8], "") : ""
-  firewall_rgname = local.firewall_exists ? try(split("/", local.firewall_id)[4], "") : ""
+  firewall_exists                                 = length(local.firewall_id) > 0
+  firewall_id                                     = try(var.deployer_tfstate.firewall_id, "")
+  firewall_ip                                     = try(var.deployer_tfstate.firewall_ip, "")
+  firewall_name                                   = local.firewall_exists ? try(split("/", local.firewall_id)[8], "") : ""
+  firewall_rgname                                 = local.firewall_exists ? try(split("/", local.firewall_id)[4], "") : ""
+  firewall_service_tags                           = format("AzureCloud.%s", local.region)
 
-  firewall_service_tags = format("AzureCloud.%s", local.region)
-
-  deployer_subnet_management_id = try(var.deployer_tfstate.subnet_mgmt_id, "")
-  management_subnet_exists      = length(local.deployer_subnet_management_id) > 0
-
-  deployer_public_ip_address = try(var.deployer_tfstate.deployer_public_ip_address, "")
+  deployer_public_ip_address                      = try(var.deployer_tfstate.deployer_public_ip_address, "")
+  deployer_subnet_management_id                   = try(var.deployer_tfstate.subnet_mgmt_id, "")
+  deployer_virtualnetwork_id                      = try(var.deployer_tfstate.deployer_virtualnetwork_id, try(var.deployer_tfstate.vnet_mgmt.id, ""))
+  management_subnet_exists                        = length(local.deployer_subnet_management_id) > 0
 
 
   // Resource group
-  resource_group_exists = length(try(var.infrastructure.resource_group.arm_id, "")) > 0
-  rg_name = local.resource_group_exists ? (
-    try(split("/", var.infrastructure.resource_group.arm_id)[4], "")) : (
-    length(try(var.infrastructure.resource_group.name, "")) > 0 ? (
-      var.infrastructure.resource_group.name) : (
-      format("%s%s%s",
-        var.naming.resource_prefixes.vnet_rg,
-        local.prefix,
-        local.resource_suffixes.vnet_rg
-      )
-    )
-  )
+  resource_group_exists                           = length(try(var.infrastructure.resource_group.arm_id, "")) > 0
+  resourcegroup_name                              = local.resource_group_exists ? (
+                                                      try(split("/", var.infrastructure.resource_group.arm_id)[4], "")) : (
+                                                      length(try(var.infrastructure.resource_group.name, "")) > 0 ? (
+                                                        var.infrastructure.resource_group.name) : (
+                                                        format("%s%s%s",
+                                                          var.naming.resource_prefixes.vnet_rg,
+                                                          local.prefix,
+                                                          local.resource_suffixes.vnet_rg
+                                                        )
+                                                      )
+                                                    )
 
   // SAP vnet
-  vnet_sap_arm_id = try(var.infrastructure.vnets.sap.arm_id, "")
-  vnet_sap_exists = length(local.vnet_sap_arm_id) > 0
-  vnet_sap_name = local.vnet_sap_exists ? (
-    try(split("/", local.vnet_sap_arm_id)[8], "")) : (
-    coalesce(
-      var.infrastructure.vnets.sap.name,
-      format("%s%s%s", var.naming.resource_prefixes.vnet, local.prefix, local.resource_suffixes.vnet)
-    )
-  )
-  vnet_sap_addr = local.vnet_sap_exists ? "" : try(var.infrastructure.vnets.sap.address_space, "")
+  SAP_virtualnetwork_id                           = try(var.infrastructure.vnets.sap.arm_id, "")
+  SAP_virtualnetwork_exists                       = length(local.SAP_virtualnetwork_id) > 0
+  SAP_virtualnetwork_name                         = local.SAP_virtualnetwork_exists ? (
+                                                      try(split("/", local.SAP_virtualnetwork_id)[8], "")) : (
+                                                      coalesce(
+                                                        var.infrastructure.vnets.sap.name,
+                                                        format("%s%s%s", var.naming.resource_prefixes.vnet, local.prefix, local.resource_suffixes.vnet)
+                                                      )
+                                                    )
+
+  network_address_space                           = local.SAP_virtualnetwork_exists ? "" : var.infrastructure.vnets.sap.address_space
 
   // By default, Ansible ssh key for SID uses generated public key.
   // Provide sshkey.path_to_public_key and path_to_private_key overides it
 
-  sid_public_key = local.sid_key_exist ? (
-    data.azurerm_key_vault_secret.sid_pk[0].value) : (
-    try(file(var.authentication.path_to_public_key), try(tls_private_key.sid[0].public_key_openssh, ""))
-  )
-  sid_private_key = local.sid_key_exist ? (
-    data.azurerm_key_vault_secret.sid_ppk[0].value) : (
-    try(file(var.authentication.path_to_private_key), try(tls_private_key.sid[0].private_key_pem, ""))
-  )
+  sid_public_key                                  = local.sid_key_exist ? (
+                                                      data.azurerm_key_vault_secret.sid_pk[0].value) : (
+                                                      try(file(var.authentication.path_to_public_key), try(tls_private_key.sid[0].public_key_openssh, ""))
+                                                    )
+  sid_private_key                                 = local.sid_key_exist ? (
+                                                      data.azurerm_key_vault_secret.sid_ppk[0].value) : (
+                                                      try(file(var.authentication.path_to_private_key), try(tls_private_key.sid[0].private_key_pem, ""))
+                                                    )
 
   // Current service principal
-  service_principal = try(var.service_principal, {})
+  service_principal                               = try(var.service_principal, {})
 
   // If the user specifies arm id of key vaults in input,
   // the key vault will be imported instead of creating new key vaults
 
-  user_key_vault_id   = try(var.key_vault.kv_user_id, "")
-  user_keyvault_exist = length(local.user_key_vault_id) > 0
+  user_key_vault_id                               = try(var.key_vault.kv_user_id, "")
+  user_keyvault_exist                             = length(local.user_key_vault_id) > 0
 
   enable_landscape_kv = !local.user_keyvault_exist
 
   // If the user specifies the secret name of key pair/password in input,
   // the secrets will be imported instead of creating new secrets
-  input_sid_public_key_secret_name  = try(var.key_vault.kv_sid_sshkey_pub, "")
-  input_sid_private_key_secret_name = try(var.key_vault.kv_sid_sshkey_prvt, "")
-  sid_key_exist                     = try(length(local.input_sid_public_key_secret_name) > 0, false)
+  input_sid_public_key_secret_name                = try(var.key_vault.kv_sid_sshkey_pub, "")
+  input_sid_private_key_secret_name               = try(var.key_vault.kv_sid_sshkey_prvt, "")
+  sid_key_exist                                   = try(length(local.input_sid_public_key_secret_name) > 0, false)
 
-  input_sid_username = try(var.authentication.username, "azureadm")
-  input_sid_password = length(try(var.authentication.password, "")) > 0 ? (
-    var.authentication.password) : (
-    random_password.created_password.result
-  )
+  input_sid_username                              = try(var.authentication.username, "azureadm")
+  input_sid_password                              = length(try(var.authentication.password, "")) > 0 ? (
+                                                      var.authentication.password) : (
+                                                      random_password.created_password.result
+                                                    )
 
-  sid_ppk_name = local.sid_key_exist ? (
-    local.input_sid_private_key_secret_name) : (
-    trimprefix(
-      format("%s-sid-sshkey",
-        length(local.prefix) > 0 ? (
-          local.prefix) : (
-          var.infrastructure.environment
-        )
-      ),
-      "-"
-    )
-  )
+  sid_ppk_name                                    = local.sid_key_exist ? (
+                                                      local.input_sid_private_key_secret_name) : (
+                                                      trimprefix(
+                                                        format("%s-sid-sshkey",
+                                                          length(local.prefix) > 0 ? (
+                                                            local.prefix) : (
+                                                            var.infrastructure.environment
+                                                          )
+                                                        ),
+                                                        "-"
+                                                      )
+                                                    )
 
-  sid_pk_name = local.sid_key_exist ? (
-    local.input_sid_public_key_secret_name) : (
-    trimprefix(
-      format("%s-sid-sshkey-pub",
-        length(local.prefix) > 0 ? (
-          local.prefix) : (
-          var.infrastructure.environment
-        )
-      ),
-      "-"
-    )
-  )
+  sid_pk_name                                     = local.sid_key_exist ? (
+                                                      local.input_sid_public_key_secret_name) : (
+                                                      trimprefix(
+                                                        format("%s-sid-sshkey-pub",
+                                                          length(local.prefix) > 0 ? (
+                                                            local.prefix) : (
+                                                            var.infrastructure.environment
+                                                          )
+                                                        ),
+                                                        "-"
+                                                      )
+                                                    )
 
-  input_sid_username_secret_name = try(var.key_vault.kv_sid_username, "")
-  input_sid_password_secret_name = try(var.key_vault.kv_sid_pwd, "")
-  sid_credentials_secret_exist   = length(local.input_sid_username_secret_name) > 0
+  input_sid_username_secret_name                  = try(var.key_vault.kv_sid_username, "")
+  input_sid_password_secret_name                  = try(var.key_vault.kv_sid_pwd, "")
+  sid_credentials_secret_exist                    = length(local.input_sid_username_secret_name) > 0
 
   sid_username_secret_name = local.sid_credentials_secret_exist ? (
     local.input_sid_username_secret_name) : (
@@ -159,7 +160,7 @@ locals {
     local.landscape_keyvault_names.user_access
   )
 
-  user_keyvault_rg_name = local.user_keyvault_exist ? (
+  user_keyvault_resourcegroup_name = local.user_keyvault_exist ? (
     split("/", local.user_key_vault_id)[4]) : (
     ""
   )
@@ -647,6 +648,6 @@ locals {
     )]
   )
 
-  use_Azure_native_DNS = length(var.dns_label) > 0 && !var.use_custom_dns_a_registration && !local.vnet_sap_exists
+  use_Azure_native_DNS = length(var.dns_label) > 0 && !var.use_custom_dns_a_registration && !local.SAP_virtualnetwork_exists
 
 }

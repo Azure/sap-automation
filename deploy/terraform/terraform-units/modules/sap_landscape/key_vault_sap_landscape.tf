@@ -66,7 +66,7 @@ data "azurerm_key_vault" "kv_user" {
   provider            = azurerm.main
   count               = var.key_vault.exists ? 1 : 0
   name                = local.user_keyvault_name
-  resource_group_name = local.user_keyvault_rg_name
+  resource_group_name = local.user_keyvault_resourcegroup_name
 }
 
 

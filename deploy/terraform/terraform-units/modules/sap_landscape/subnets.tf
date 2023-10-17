@@ -3,8 +3,8 @@ resource "azurerm_subnet" "admin" {
   provider             = azurerm.main
   count                = local.admin_subnet_defined && !local.admin_subnet_existing ? 1 : 0
   name                 = local.admin_subnet_name
-  resource_group_name  = local.vnet_sap_exists ? data.azurerm_virtual_network.vnet_sap[0].resource_group_name : azurerm_virtual_network.vnet_sap[0].resource_group_name
-  virtual_network_name = local.vnet_sap_exists ? data.azurerm_virtual_network.vnet_sap[0].name : azurerm_virtual_network.vnet_sap[0].name
+  resource_group_name  = local.SAP_virtualnetwork_exists ? data.azurerm_virtual_network.vnet_sap[0].resource_group_name : azurerm_virtual_network.vnet_sap[0].resource_group_name
+  virtual_network_name = local.SAP_virtualnetwork_exists ? data.azurerm_virtual_network.vnet_sap[0].name : azurerm_virtual_network.vnet_sap[0].name
   address_prefixes     = [local.admin_subnet_prefix]
 
   private_endpoint_network_policies_enabled     = var.use_private_endpoint
@@ -22,8 +22,8 @@ resource "azurerm_subnet" "db" {
   provider             = azurerm.main
   count                = local.database_subnet_defined && !local.database_subnet_existing ? 1 : 0
   name                 = local.database_subnet_name
-  resource_group_name  = local.vnet_sap_exists ? data.azurerm_virtual_network.vnet_sap[0].resource_group_name : azurerm_virtual_network.vnet_sap[0].resource_group_name
-  virtual_network_name = local.vnet_sap_exists ? data.azurerm_virtual_network.vnet_sap[0].name : azurerm_virtual_network.vnet_sap[0].name
+  resource_group_name  = local.SAP_virtualnetwork_exists ? data.azurerm_virtual_network.vnet_sap[0].resource_group_name : azurerm_virtual_network.vnet_sap[0].resource_group_name
+  virtual_network_name = local.SAP_virtualnetwork_exists ? data.azurerm_virtual_network.vnet_sap[0].name : azurerm_virtual_network.vnet_sap[0].name
   address_prefixes     = [local.database_subnet_prefix]
 
   private_endpoint_network_policies_enabled     = var.use_private_endpoint
@@ -41,8 +41,8 @@ resource "azurerm_subnet" "app" {
   provider             = azurerm.main
   count                = local.application_subnet_defined && !local.application_subnet_existing ? 1 : 0
   name                 = local.application_subnet_name
-  resource_group_name  = local.vnet_sap_exists ? data.azurerm_virtual_network.vnet_sap[0].resource_group_name : azurerm_virtual_network.vnet_sap[0].resource_group_name
-  virtual_network_name = local.vnet_sap_exists ? data.azurerm_virtual_network.vnet_sap[0].name : azurerm_virtual_network.vnet_sap[0].name
+  resource_group_name  = local.SAP_virtualnetwork_exists ? data.azurerm_virtual_network.vnet_sap[0].resource_group_name : azurerm_virtual_network.vnet_sap[0].resource_group_name
+  virtual_network_name = local.SAP_virtualnetwork_exists ? data.azurerm_virtual_network.vnet_sap[0].name : azurerm_virtual_network.vnet_sap[0].name
   address_prefixes     = [local.application_subnet_prefix]
 
   private_endpoint_network_policies_enabled     = var.use_private_endpoint
@@ -60,8 +60,8 @@ resource "azurerm_subnet" "web" {
   provider             = azurerm.main
   count                = local.web_subnet_defined && !local.web_subnet_existing ? 1 : 0
   name                 = local.web_subnet_name
-  resource_group_name  = local.vnet_sap_exists ? data.azurerm_virtual_network.vnet_sap[0].resource_group_name : azurerm_virtual_network.vnet_sap[0].resource_group_name
-  virtual_network_name = local.vnet_sap_exists ? data.azurerm_virtual_network.vnet_sap[0].name : azurerm_virtual_network.vnet_sap[0].name
+  resource_group_name  = local.SAP_virtualnetwork_exists ? data.azurerm_virtual_network.vnet_sap[0].resource_group_name : azurerm_virtual_network.vnet_sap[0].resource_group_name
+  virtual_network_name = local.SAP_virtualnetwork_exists ? data.azurerm_virtual_network.vnet_sap[0].name : azurerm_virtual_network.vnet_sap[0].name
   address_prefixes     = [local.web_subnet_prefix]
 
   private_endpoint_network_policies_enabled     = var.use_private_endpoint
@@ -85,8 +85,8 @@ resource "azurerm_subnet" "anf" {
     0
   )
   name                 = local.ANF_subnet_name
-  resource_group_name  = local.vnet_sap_exists ? data.azurerm_virtual_network.vnet_sap[0].resource_group_name : azurerm_virtual_network.vnet_sap[0].resource_group_name
-  virtual_network_name = local.vnet_sap_exists ? data.azurerm_virtual_network.vnet_sap[0].name : azurerm_virtual_network.vnet_sap[0].name
+  resource_group_name  = local.SAP_virtualnetwork_exists ? data.azurerm_virtual_network.vnet_sap[0].resource_group_name : azurerm_virtual_network.vnet_sap[0].resource_group_name
+  virtual_network_name = local.SAP_virtualnetwork_exists ? data.azurerm_virtual_network.vnet_sap[0].name : azurerm_virtual_network.vnet_sap[0].name
   address_prefixes     = [local.ANF_subnet_prefix]
 
   delegation {
@@ -113,7 +113,7 @@ resource "azurerm_subnet_route_table_association" "admin" {
     azurerm_subnet.admin
   ]
 
-  count          = local.admin_subnet_defined && !local.vnet_sap_exists && !local.admin_subnet_existing ? 1 : 0
+  count          = local.admin_subnet_defined && !local.SAP_virtualnetwork_exists && !local.admin_subnet_existing ? 1 : 0
   subnet_id      = local.admin_subnet_existing ? var.infrastructure.vnets.sap.subnet_admin.arm_id : azurerm_subnet.admin[0].id
   route_table_id = azurerm_route_table.rt[0].id
 }
@@ -125,7 +125,7 @@ resource "azurerm_subnet_route_table_association" "db" {
     azurerm_subnet.db
   ]
 
-  count          = local.database_subnet_defined && !local.vnet_sap_exists && !local.database_subnet_existing ? 1 : 0
+  count          = local.database_subnet_defined && !local.SAP_virtualnetwork_exists && !local.database_subnet_existing ? 1 : 0
   subnet_id      = local.database_subnet_existing ? var.infrastructure.vnets.sap.subnet_db.arm_id : azurerm_subnet.db[0].id
   route_table_id = azurerm_route_table.rt[0].id
 }
@@ -136,7 +136,7 @@ resource "azurerm_subnet_route_table_association" "app" {
     azurerm_route_table.rt,
     azurerm_subnet.db
   ]
-  count          = local.application_subnet_defined && !local.vnet_sap_exists && !local.application_subnet_existing ? 1 : 0
+  count          = local.application_subnet_defined && !local.SAP_virtualnetwork_exists && !local.application_subnet_existing ? 1 : 0
   subnet_id      = local.application_subnet_existing ? var.infrastructure.vnets.sap.subnet_app.arm_id : azurerm_subnet.app[0].id
   route_table_id = azurerm_route_table.rt[0].id
 }
@@ -147,7 +147,7 @@ resource "azurerm_subnet_route_table_association" "web" {
     azurerm_route_table.rt,
     azurerm_subnet.web
   ]
-  count          = local.web_subnet_defined && !local.vnet_sap_exists && !local.web_subnet_existing ? 1 : 0
+  count          = local.web_subnet_defined && !local.SAP_virtualnetwork_exists && !local.web_subnet_existing ? 1 : 0
   subnet_id      = local.web_subnet_existing ? var.infrastructure.vnets.sap.subnet_web.arm_id : azurerm_subnet.web[0].id
   route_table_id = azurerm_route_table.rt[0].id
 }
@@ -157,7 +157,7 @@ resource "azurerm_network_security_rule" "nsr_internal_db" {
   provider                     = azurerm.main
   count                        = local.database_subnet_nsg_exists ? 0 : 0
   name                         = "allow-internal-traffic"
-  resource_group_name          = local.vnet_sap_exists ? data.azurerm_virtual_network.vnet_sap[0].resource_group_name : azurerm_virtual_network.vnet_sap[0].resource_group_name
+  resource_group_name          = local.SAP_virtualnetwork_exists ? data.azurerm_virtual_network.vnet_sap[0].resource_group_name : azurerm_virtual_network.vnet_sap[0].resource_group_name
   network_security_group_name  = azurerm_network_security_group.db[0].name
   priority                     = 101
   direction                    = "Inbound"
@@ -165,7 +165,7 @@ resource "azurerm_network_security_rule" "nsr_internal_db" {
   protocol                     = "Tcp"
   source_port_range            = "*"
   destination_port_range       = "*"
-  source_address_prefixes      = !local.vnet_sap_exists ? azurerm_virtual_network.vnet_sap[0].address_space : data.azurerm_virtual_network.vnet_sap[0].address_space
+  source_address_prefixes      = !local.SAP_virtualnetwork_exists ? azurerm_virtual_network.vnet_sap[0].address_space : data.azurerm_virtual_network.vnet_sap[0].address_space
   destination_address_prefixes = azurerm_subnet.db[0].address_prefixes
 }
 
@@ -175,7 +175,7 @@ resource "azurerm_network_security_rule" "nsr_external_db" {
 
   count               = local.database_subnet_nsg_exists ? 0 : 0
   name                = "deny-inbound-traffic"
-  resource_group_name = local.vnet_sap_exists ? data.azurerm_virtual_network.vnet_sap[0].resource_group_name : azurerm_virtual_network.vnet_sap[0].resource_group_name
+  resource_group_name = local.SAP_virtualnetwork_exists ? data.azurerm_virtual_network.vnet_sap[0].resource_group_name : azurerm_virtual_network.vnet_sap[0].resource_group_name
 
   network_security_group_name  = azurerm_network_security_group.db[0].name
   priority                     = 102

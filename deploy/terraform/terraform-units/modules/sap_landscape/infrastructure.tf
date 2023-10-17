@@ -7,7 +7,7 @@
 resource "azurerm_resource_group" "resource_group" {
   provider = azurerm.main
   count    = local.resource_group_exists ? 0 : 1
-  name     = local.rg_name
+  name     = local.resourcegroup_name
   location = local.region
   tags     = var.infrastructure.tags
 
@@ -23,15 +23,15 @@ resource "azurerm_resource_group" "resource_group" {
 data "azurerm_resource_group" "resource_group" {
   provider = azurerm.main
   count    = local.resource_group_exists ? 1 : 0
-  name     = local.rg_name
+  name     = local.resourcegroup_name
 }
 
 // Creates the SAP VNET
 resource "azurerm_virtual_network" "vnet_sap" {
-  provider = azurerm.main
-  count    = local.vnet_sap_exists ? 0 : 1
-  name     = local.vnet_sap_name
-  location = local.resource_group_exists ? (
+  provider                             = azurerm.main
+  count                                = local.SAP_virtualnetwork_exists ? 0 : 1
+  name                                 = local.SAP_virtualnetwork_name
+  location                             = local.resource_group_exists ? (
     data.azurerm_resource_group.resource_group[0].location) : (
     azurerm_resource_group.resource_group[0].location
   )
@@ -39,21 +39,21 @@ resource "azurerm_virtual_network" "vnet_sap" {
     data.azurerm_resource_group.resource_group[0].name) : (
     azurerm_resource_group.resource_group[0].name
   )
-  address_space = [local.vnet_sap_addr]
+  address_space = local.network_address_space
 }
 
 // Imports data of existing SAP VNET
 data "azurerm_virtual_network" "vnet_sap" {
   provider            = azurerm.main
-  count               = local.vnet_sap_exists ? 1 : 0
-  name                = split("/", local.vnet_sap_arm_id)[8]
-  resource_group_name = split("/", local.vnet_sap_arm_id)[4]
+  count               = local.SAP_virtualnetwork_exists ? 1 : 0
+  name                = split("/", local.SAP_virtualnetwork_id)[8]
+  resource_group_name = split("/", local.SAP_virtualnetwork_id)[4]
 }
 
 resource "azurerm_virtual_network_dns_servers" "vnet_sap_dns_servers" {
   provider = azurerm.main
-  count    = local.vnet_sap_exists && length(var.dns_server_list) > 0 ? 1 : 0
-  virtual_network_id = local.vnet_sap_exists ? (
+  count    = local.SAP_virtualnetwork_exists && length(var.dns_server_list) > 0 ? 1 : 0
+  virtual_network_id = local.SAP_virtualnetwork_exists ? (
     data.azurerm_virtual_network.vnet_sap[0].id) : (
     azurerm_virtual_network.vnet_sap[0].id
   )
@@ -72,13 +72,13 @@ resource "azurerm_virtual_network_peering" "peering_management_sap" {
   ]
 
   count = var.peer_with_control_plane_vnet ? (
-    local.vnet_sap_exists || !var.use_deployer ? 0 : 1) : (
+    local.SAP_virtualnetwork_exists || !var.use_deployer ? 0 : 1) : (
     0
   )
   name = substr(
     format("%s_to_%s",
-      split("/", local.vnet_mgmt_id)[8],
-      local.vnet_sap_exists ? (
+      split("/", local.deployer_virtualnetwork_id)[8],
+      local.SAP_virtualnetwork_exists ? (
         data.azurerm_virtual_network.vnet_sap[0].name) : (
         azurerm_virtual_network.vnet_sap[0].name
       )
@@ -86,9 +86,9 @@ resource "azurerm_virtual_network_peering" "peering_management_sap" {
     0,
     80
   )
-  virtual_network_name = split("/", local.vnet_mgmt_id)[8]
-  resource_group_name  = split("/", local.vnet_mgmt_id)[4]
-  remote_virtual_network_id = local.vnet_sap_exists ? (
+  virtual_network_name = split("/", local.deployer_virtualnetwork_id)[8]
+  resource_group_name  = split("/", local.deployer_virtualnetwork_id)[4]
+  remote_virtual_network_id = local.SAP_virtualnetwork_exists ? (
     data.azurerm_virtual_network.vnet_sap[0].id) : (
     azurerm_virtual_network.vnet_sap[0].id
   )
@@ -107,28 +107,28 @@ resource "azurerm_virtual_network_peering" "peering_sap_management" {
 
   ]
   count = var.peer_with_control_plane_vnet ? (
-    local.vnet_sap_exists || !var.use_deployer ? 0 : 1) : (
+    local.SAP_virtualnetwork_exists || !var.use_deployer ? 0 : 1) : (
     0
   )
   name = substr(
     format("%s_to_%s",
-      local.vnet_sap_exists ? (
+      local.SAP_virtualnetwork_exists ? (
         data.azurerm_virtual_network.vnet_sap[0].name) : (
         azurerm_virtual_network.vnet_sap[0].name
-      ), split("/", local.vnet_mgmt_id)[8]
+      ), split("/", local.deployer_virtualnetwork_id)[8]
     ),
     0,
     80
   )
-  resource_group_name = local.vnet_sap_exists ? (
+  resource_group_name = local.SAP_virtualnetwork_exists ? (
     data.azurerm_virtual_network.vnet_sap[0].resource_group_name) : (
     azurerm_virtual_network.vnet_sap[0].resource_group_name
   )
-  virtual_network_name = local.vnet_sap_exists ? (
+  virtual_network_name = local.SAP_virtualnetwork_exists ? (
     data.azurerm_virtual_network.vnet_sap[0].name) : (
     azurerm_virtual_network.vnet_sap[0].name
   )
-  remote_virtual_network_id    = local.vnet_mgmt_id
+  remote_virtual_network_id    = local.deployer_virtualnetwork_id
   allow_virtual_network_access = true
   allow_forwarded_traffic      = true
 }
@@ -136,7 +136,7 @@ resource "azurerm_virtual_network_peering" "peering_sap_management" {
 //Route table
 resource "azurerm_route_table" "rt" {
   provider = azurerm.main
-  count    = local.vnet_sap_exists ? 0 : 1
+  count    = local.SAP_virtualnetwork_exists ? 0 : 1
   depends_on = [
     azurerm_virtual_network.vnet_sap
   ]
@@ -146,11 +146,11 @@ resource "azurerm_route_table" "rt" {
     var.naming.separator,
     local.resource_suffixes.routetable
   )
-  resource_group_name = local.vnet_sap_exists ? (
+  resource_group_name = local.SAP_virtualnetwork_exists ? (
     data.azurerm_virtual_network.vnet_sap[0].resource_group_name) : (
     azurerm_virtual_network.vnet_sap[0].resource_group_name
   )
-  location = local.vnet_sap_exists ? (
+  location = local.SAP_virtualnetwork_exists ? (
     data.azurerm_virtual_network.vnet_sap[0].location) : (
     azurerm_virtual_network.vnet_sap[0].location
   )
@@ -162,14 +162,14 @@ resource "azurerm_route" "admin" {
   depends_on = [
     azurerm_route_table.rt
   ]
-  count = length(local.firewall_ip) > 0 ? local.vnet_sap_exists ? 0 : 1 : 0
+  count = length(local.firewall_ip) > 0 ? local.SAP_virtualnetwork_exists ? 0 : 1 : 0
   name = format("%s%s%s%s",
     var.naming.resource_prefixes.fw_route,
     local.prefix,
     var.naming.separator,
     local.resource_suffixes.fw_route
   )
-  resource_group_name = local.vnet_sap_exists ? (
+  resource_group_name = local.SAP_virtualnetwork_exists ? (
     data.azurerm_virtual_network.vnet_sap[0].resource_group_name) : (
     azurerm_virtual_network.vnet_sap[0].resource_group_name
   )
@@ -253,8 +253,8 @@ data "azurerm_private_dns_zone" "storage" {
 
 resource "azurerm_management_lock" "vnet_sap" {
   provider   = azurerm.main
-  count      = (local.vnet_sap_exists) ? 0 : var.place_delete_lock_on_resources ? 1 : 0
-  name       = format("%s-lock", local.vnet_sap_name)
+  count      = (local.SAP_virtualnetwork_exists) ? 0 : var.place_delete_lock_on_resources ? 1 : 0
+  name       = format("%s-lock", local.SAP_virtualnetwork_name)
   scope      = azurerm_virtual_network.vnet_sap[0].id
   lock_level = "CanNotDelete"
   notes      = "Locked because it's needed by the Workload"

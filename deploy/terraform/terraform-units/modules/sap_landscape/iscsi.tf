@@ -12,11 +12,11 @@ resource "azurerm_subnet" "iscsi" {
   provider = azurerm.main
   count    = local.enable_sub_iscsi ? (local.sub_iscsi_exists ? 0 : 1) : 0
   name     = local.sub_iscsi_name
-  resource_group_name = local.vnet_sap_exists ? (
+  resource_group_name = local.SAP_virtualnetwork_exists ? (
     data.azurerm_virtual_network.vnet_sap[0].resource_group_name) : (
     azurerm_virtual_network.vnet_sap[0].resource_group_name
   )
-  virtual_network_name = local.vnet_sap_exists ? (
+  virtual_network_name = local.SAP_virtualnetwork_exists ? (
     data.azurerm_virtual_network.vnet_sap[0].name) : (
     azurerm_virtual_network.vnet_sap[0].name
   )

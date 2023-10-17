@@ -78,7 +78,7 @@ resource "azurerm_private_endpoint" "storage_bootdiag" {
     var.naming.resource_suffixes.nic
   )
 
-  resource_group_name = local.rg_name
+  resource_group_name = local.resourcegroup_name
   location            = local.resource_group_exists ? data.azurerm_resource_group.resource_group[0].location : azurerm_resource_group.resource_group[0].location
   subnet_id           = local.application_subnet_existing ? var.infrastructure.vnets.sap.subnet_app.arm_id : azurerm_subnet.app[0].id
 
@@ -228,7 +228,7 @@ resource "azurerm_private_endpoint" "witness_storage" {
     local.resource_suffixes.nic
   )
 
-  resource_group_name = local.rg_name
+  resource_group_name = local.resourcegroup_name
   location = local.resource_group_exists ? (
     data.azurerm_resource_group.resource_group[0].location) : (
     azurerm_resource_group.resource_group[0].location
@@ -444,7 +444,7 @@ resource "azurerm_private_endpoint" "transport" {
     var.naming.resource_suffixes.nic
   )
 
-  resource_group_name = local.rg_name
+  resource_group_name = local.resourcegroup_name
   location = local.resource_group_exists ? (
     data.azurerm_resource_group.resource_group[0].location) : (
     azurerm_resource_group.resource_group[0].location
@@ -526,7 +526,7 @@ resource "azurerm_storage_account" "install" {
     "/[^a-z0-9]/",
     ""
   )
-  resource_group_name = local.rg_name
+  resource_group_name = local.resourcegroup_name
   location = local.resource_group_exists ? (
     data.azurerm_resource_group.resource_group[0].location) : (
     azurerm_resource_group.resource_group[0].location
@@ -679,7 +679,7 @@ resource "azurerm_private_endpoint" "install" {
     var.naming.resource_suffixes.nic
   )
 
-  resource_group_name = local.rg_name
+  resource_group_name = local.resourcegroup_name
   location = local.resource_group_exists ? (
     data.azurerm_resource_group.resource_group[0].location) : (
     azurerm_resource_group.resource_group[0].location

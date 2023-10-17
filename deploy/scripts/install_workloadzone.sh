@@ -728,19 +728,19 @@ then
     exit $return_value
 fi
 
-echo "TEST_ONLY: " $TEST_ONLY
-if [ "${TEST_ONLY}" == "True" ]; then
-    echo ""
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo -e "#                                 $cyan Running plan only. $resetformatting                                  #"
-    echo "#                                                                                       #"
-    echo "#                                  No deployment performed.                             #"
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
-    echo ""
-    exit 0
-fi
+  echo "TEST_ONLY: " $TEST_ONLY
+  if [ "${TEST_ONLY}" == "True" ]; then
+      echo ""
+      echo "#########################################################################################"
+      echo "#                                                                                       #"
+      echo -e "#                                 $cyan Running plan only. $resetformatting                                  #"
+      echo "#                                                                                       #"
+      echo "#                                  No deployment performed.                             #"
+      echo "#                                                                                       #"
+      echo "#########################################################################################"
+      echo ""
+      exit 0
+  fi
 
 
 ok_to_proceed=0
