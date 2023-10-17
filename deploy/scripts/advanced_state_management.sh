@@ -323,6 +323,21 @@ fi
 echo "Looking for resource:" "${moduleID}"
 
 terraform  -chdir="${module_dir}" state list > resources.lst
+
+if [ "${operation}" == "list" ] ; then
+  echo "#########################################################################################"
+  echo "#                                                                                       #"
+  echo -e "#                                    $cyan  Resources: $resetformatting                                      #"
+  echo "#                                                                                       #"
+  echo "#########################################################################################"
+  echo ""
+  unset TF_DATA_DIR
+
+  exit 0
+
+fi
+
+
 shorter_name=$(echo "${moduleID}" | cut -d[ -f1)
 tf_resource=$(grep "${shorter_name}" resources.lst)
 echo "Result after grep: " "${tf_resource}"
