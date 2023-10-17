@@ -209,21 +209,14 @@ if [ 3 == $step ]; then
     spn_secret="none"
 fi
 
-
 if [ -n "$keyvault" ]; then
-  save_config_var "keyvault" "${deployer_config_information}"
-  step=3
-  save_config_var "step" "${deployer_config_information}"
   set_executing_user_environment_variables "none"
 else
   set_executing_user_environment_variables "${spn_secret}"
 fi
 
 
-
-
 load_config_vars "${deployer_config_information}" "step"
-
 load_config_vars "${deployer_config_information}" "keyvault"
 
 
