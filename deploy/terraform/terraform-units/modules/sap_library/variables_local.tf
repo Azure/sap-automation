@@ -58,7 +58,7 @@ locals {
 
   keyvault_id = try(var.deployer_tfstate.deployer_kv_user_arm_id,"")
 
-  virtual_additional_network_ids=flatten([var.deployer_tfstate.subnet_mgmt_id, var.deployer_tfstate.subnet_webapp_id], try(var.deployer_tfstate.subnets_to_add_to_firewall_for_keyvaults_and_storage, []))
+  virtual_additional_network_ids=flatten([var.deployer_tfstate.subnet_mgmt_id, var.deployer_tfstate.subnet_webapp_id, try(var.deployer_tfstate.subnets_to_add_to_firewall_for_keyvaults_and_storage, [])])
 
 
 
