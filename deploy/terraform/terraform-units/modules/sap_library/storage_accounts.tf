@@ -59,10 +59,10 @@ resource "azurerm_storage_account_network_rules" "storage_tfstate" {
     ]
   )
   virtual_network_subnet_ids = tolist(compact(flatten(
-      [
-        var.deployer_tfstate.subnet_mgmt_id,
-        local.virtual_additional_network_ids
-      ]
+    [
+      var.deployer_tfstate.subnet_mgmt_id,
+      local.virtual_additional_network_ids
+    ]
   )))
 
   lifecycle {
@@ -257,10 +257,10 @@ resource "azurerm_storage_account_network_rules" "storage_sapbits" {
     ]
   )
   virtual_network_subnet_ids = tolist(compact(flatten(
-      [
-        var.deployer_tfstate.subnet_mgmt_id,
-        local.virtual_additional_network_ids
-      ]
+    [
+      var.deployer_tfstate.subnet_mgmt_id,
+      local.virtual_additional_network_ids
+    ]
   )))
   lifecycle {
     ignore_changes = [virtual_network_subnet_ids]
