@@ -571,12 +571,15 @@
         mode:                          '0755'
 
     - name:                            "Oracle ASM: Pre Processing set permissions GRID"
+      become:                          true
+      become_user:                     "root"
       ansible.builtin.file:
         path:                          "/oracle/GRID/{{ ora_version }}/bin/oradism"
         state:                         file
-        mode:                          '0750'
-        owner:                         oracle
+        owner:                         root
         group:                         oinstall
+        mode:                          u+rw
+
 
     # - name:                           "debug 2308 Patching"
     #   fail:                            
@@ -592,7 +595,7 @@
        - name:                            "Oracle ASM: Post Processing - GRID SBP Patching"
          become:                          true
          become_user:                     "oracle"
-         ansible.builtin.shell:            $IHRDBMS/MOPatch/mopatch.sh -v -s {{ target_media_location }}/GSBP/{{ oraclegrid_sbp_patch }}
+         ansible.builtin.shell:          $IHRDBMS/MOPatch/mopatch.sh -v -s {{ target_media_location }}/GSBP/{{ oraclegrid_sbp_patch }}
          environment:
            OHGRID:                         /oracle/GRID/{{ ora_version }}
            ORACLE_HOME:                    /oracle/GRID/{{ ora_version }}
@@ -622,7 +625,7 @@
          register:                        removelinkfiles
          failed_when:                     removelinkfiles.rc >= 2
          args:
-           chdir:                         $HOME/GSBP
+           chdir:                         "{{ target_media_location }}/GSBP"
            executable:                    /bin/csh
       
        - name:                            "Oracle ASM: Prepare for GRID SBP Patching"
