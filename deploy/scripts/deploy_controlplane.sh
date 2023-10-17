@@ -40,7 +40,7 @@ force=0
 recover=0
 ado_flag=""
 
-INPUT_ARGUMENTS=$(getopt -n deploy_controlplane -o k:d:l:s:c:p:t:a:ifohrv --longoptions vault:,deployer_parameter_file:,library_parameter_file:,subscription:,spn_id:,spn_secret:,tenant_id:,storageaccountname:,auto-approve,force,only_deployer,help,recover,ado -- "$@")
+INPUT_ARGUMENTS=$(getopt -n deploy_controlplane -o d:l:s:c:p:t:a:k:ifohrv --longoptions deployer_parameter_file:,library_parameter_file:,subscription:,spn_id:,spn_secret:,tenant_id:,storageaccountname:,vault:,auto-approve,force,only_deployer,help,recover,ado -- "$@")
 VALID_ARGUMENTS=$?
 
 if [ "$VALID_ARGUMENTS" != "0" ]; then
