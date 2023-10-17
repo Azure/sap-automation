@@ -186,7 +186,7 @@ locals {
                                            logical_name  = coalesce(var.network_logical_name, try(var.infrastructure.vnets.sap.logical_name, ""))
 
                                            arm_id        = try(var.infrastructure.vnets.sap.arm_id, var.network_arm_id)
-                                           address_space = compact(flatten([var.network_address_space, var.additional_network_address_space]))
+                                           address_space = tolist(split(",", var.network_address_space))
                                          }
 
   subnet_admin                         = merge((
