@@ -5,22 +5,21 @@
 
 
 locals {
-  // Resources naming
-  vnet_prefix                 = trimspace(var.naming.prefix.WORKLOAD_ZONE)
-  sid_keyvault_names          = var.naming.keyvault_names.SDU
-  anchor_virtualmachine_names = var.naming.virtualmachine_names.ANCHOR_VMNAME
-  anchor_computer_names       = var.naming.virtualmachine_names.ANCHOR_COMPUTERNAME
-  resource_suffixes           = var.naming.resource_suffixes
   //Region and metadata
-  region = var.infrastructure.region
-  sid    = upper(var.application_tier.sid)
+  anchor_computer_names       = var.naming.virtualmachine_names.ANCHOR_COMPUTERNAME
+  anchor_virtualmachine_names = var.naming.virtualmachine_names.ANCHOR_VMNAME
+  resource_suffixes           = var.naming.resource_suffixes
+  sid_keyvault_names          = var.naming.keyvault_names.SDU
+  vnet_prefix                 = trimspace(var.naming.prefix.WORKLOAD_ZONE)
+  region                      = var.infrastructure.region
+  sid                         = upper(var.application_tier.sid)
   prefix = length(trimspace(var.custom_prefix)) > 0 ? (
     trimspace(var.custom_prefix)) : (
     trimspace(var.naming.prefix.SDU)
   )
   resource_group_exists = length(try(var.infrastructure.resource_group.arm_id, "")) > 0
   // Resource group
-  rg_name = local.resource_group_exists ? (
+  resourcegroup_name = local.resource_group_exists ? (
     try(split("/", var.infrastructure.resource_group.arm_id)[4], "")) : (
     coalesce(
       try(var.infrastructure.resource_group.name, ""),
@@ -30,12 +29,10 @@ locals {
         local.resource_suffixes.sdu_rg
       )
     )
-
   )
 
-
-  db_zones         = try(var.database.zones, [])
   app_zones        = try(var.application_tier.app_zones, [])
+  db_zones         = try(var.database.zones, [])
   scs_zones        = try(var.application_tier.scs_zones, [])
   web_zones        = try(var.application_tier.web_zones, [])
   zones            = distinct(concat(local.db_zones, local.app_zones, local.scs_zones, local.web_zones))
@@ -47,7 +44,7 @@ locals {
   // If the environment deployment created a route table use it to populate a route
   route_table_name = try(split("/", var.landscape_tfstate.route_table_id)[8], "")
 
-  db_ha  = try(var.database.high_availability, "false")
+  db_ha = try(var.database.high_availability, "false")
 
   //If custom image is used, we do not overwrite os reference with default value
   db_custom_image = try(var.database.os.source_image_id, "") != "" ? true : false
@@ -429,9 +426,9 @@ locals {
     local.sid_keyvault_names.user_access
   )
 
-  user_keyvault_rg_name = length(local.user_key_vault_id) > 0 ? (
+  user_keyvault_resourcegroup_name = length(local.user_key_vault_id) > 0 ? (
     split("/", local.user_key_vault_id)[4]) : (
-    local.rg_name
+    local.resourcegroup_name
   )
 
   use_local_credentials = length(var.authentication) > 0
@@ -490,6 +487,6 @@ locals {
 
   app_tier_os = upper(try(var.application_tier.app_os.os_type, "LINUX"))
 
-
+  no_resource_in_ppg = !(var.application_tier.app_use_ppg || var.application_tier.scs_use_ppg || var.application_tier.web_use_ppg || var.database.use_ppg)
 
 }

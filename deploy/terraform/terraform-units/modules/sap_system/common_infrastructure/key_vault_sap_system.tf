@@ -1,7 +1,7 @@
 ###############################################################################
-#                                                                             # 
-#                Retrieve secrets from workload zone key vault                # 
-#                                                                             # 
+#                                                                             #
+#                Retrieve secrets from workload zone key vault                #
+#                                                                             #
 ###############################################################################
 data "azurerm_key_vault_secret" "sid_pk" {
   provider     = azurerm.main
@@ -31,10 +31,10 @@ data "azurerm_key_vault_secret" "sid_password" {
 }
 
 ###############################################################################
-#                                                                             # 
-#                Optional local keyvault,                                     # 
-#                controlled by local.use_local_credentials                    # 
-#                                                                             # 
+#                                                                             #
+#                Optional local keyvault,                                     #
+#                controlled by local.use_local_credentials                    #
+#                                                                             #
 ###############################################################################
 resource "azurerm_key_vault" "sid_keyvault_user" {
   provider = azurerm.main
@@ -71,7 +71,7 @@ data "azurerm_key_vault" "sid_keyvault_user" {
   provider            = azurerm.main
   count               = (local.enable_sid_deployment && length(local.user_key_vault_id) > 0) ? 1 : 0
   name                = local.user_keyvault_name
-  resource_group_name = local.user_keyvault_rg_name
+  resource_group_name = local.user_keyvault_resourcegroup_name
 }
 
 /* Comment out code with users.object_id for the time being
@@ -93,7 +93,7 @@ resource "random_id" "sapsystem" {
   byte_length = 4
 }
 
-// Generate random password if password is set as authentication type and 
+// Generate random password if password is set as authentication type and
 # user doesn't specify a password, and save in Key Vault
 resource "random_password" "password" {
   count            = length(trimspace(try(var.authentication.password, ""))) > 0 ? 0 : 1

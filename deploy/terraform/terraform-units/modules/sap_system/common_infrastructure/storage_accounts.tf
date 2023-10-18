@@ -123,7 +123,7 @@ resource "azurerm_private_endpoint" "sapmnt" {
     local.resource_suffixes.storage_private_link_sapmnt
   )
 
-  resource_group_name = local.rg_name
+  resource_group_name = local.resourcegroup_name
   location = local.resource_group_exists ? (
     data.azurerm_resource_group.resource_group[0].location) : (
     azurerm_resource_group.resource_group[0].location
