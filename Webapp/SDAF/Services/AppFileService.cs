@@ -21,7 +21,7 @@ namespace AutomationForm.Services
 
     public async Task<List<AppFile>> GetNAsync(int n)
     {
-      List<AppFile> files = new List<AppFile>();
+      List<AppFile> files = new();
       await foreach (BlobItem blobItem in blobContainerClient.GetBlobsAsync())
       {
         files.Add(new AppFile() { Id = blobItem.Name, Content = blobItem.Properties.ContentHash });
@@ -31,7 +31,7 @@ namespace AutomationForm.Services
 
     public async Task<List<AppFile>> GetAllAsync()
     {
-      List<AppFile> files = new List<AppFile>();
+      List<AppFile> files = new();
       await foreach (BlobItem blobItem in blobContainerClient.GetBlobsAsync())
       {
         files.Add(new AppFile() { Id = blobItem.Name, Content = blobItem.Properties.ContentHash });
@@ -41,7 +41,7 @@ namespace AutomationForm.Services
 
     public async Task<List<AppFile>> GetAllAsync(string partitionKey)
     {
-      List<AppFile> files = new List<AppFile>();
+      List<AppFile> files = new();
       await foreach (BlobItem blobItem in blobContainerClient.GetBlobsAsync())
       {
         files.Add(new AppFile() { Id = blobItem.Name, Content = blobItem.Properties.ContentHash });
@@ -66,7 +66,7 @@ namespace AutomationForm.Services
     {
       BlobClient blobClient = blobContainerClient.GetBlobClient(file.Id);
       await blobClient.UploadAsync(new BinaryData(file.Content));
-      AppFileEntity fileEntity = new AppFileEntity(file.Id, blobClient.Uri.ToString());
+      AppFileEntity fileEntity = new(file.Id, blobClient.Uri.ToString());
       await client.AddEntityAsync(fileEntity);
     }
 
@@ -74,7 +74,7 @@ namespace AutomationForm.Services
     {
       BlobClient blobClient = blobContainerClient.GetBlobClient(file.Id);
       await blobClient.UploadAsync(new BinaryData(file.Content), overwrite: blobClient.Exists());
-      AppFileEntity fileEntity = new AppFileEntity(file.Id, blobClient.Uri.ToString());
+      AppFileEntity fileEntity = new(file.Id, blobClient.Uri.ToString());
       await client.UpsertEntityAsync(fileEntity, TableUpdateMode.Merge);
     }
 

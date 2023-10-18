@@ -1,4 +1,4 @@
-﻿@model AutomationForm.Models.FormViewModel<LandscapeModel>
+@model AutomationForm.Models.FormViewModel<LandscapeModel>
 
 @{
     ViewBag.Title = "Deploy workload zone";
@@ -48,9 +48,8 @@
                 @Html.Label("deployer_environment_parameter", "Control plane environment", new { @class = $"ms-Label required" })
                 <p>Deployer environment name</p>
             </div>
-
             <div class="right-input">
-                @Html.DropDownList("deployer_environment_parameter", environments, new { @class = "js-example-placeholder-single", @style = "width: 100%;", @onchange = $"toggleDisableViaNInputs(['deployer_environment_parameter', 'workload_environment_parameter', 'deployer_region_parameter'], 'confirm-deploy-landscape-checkbox')" })
+                @Html.Label("deployer_environment_parameter", Model.SapObject.controlPlaneEnvironment , new { @class = "ms-TextField-field" })
             </div>
         </div>
 
@@ -61,22 +60,22 @@
             </div>
 
             <div class="right-input">
-                @Html.DropDownList("deployer_region_parameter", locations, new { @class = "js-example-placeholder-single", @style = "width: 100%;", @onchange = $"toggleDisableViaNInputs(['deployer_environment_parameter', 'workload_environment_parameter', 'deployer_region_parameter'], 'confirm-deploy-landscape-checkbox')" })
+                @Html.Label("deployer_region_parameter", Model.SapObject.controlPlaneLocation , new { @class = "ms-TextField-field" })
             </div>
         </div>
 
         <div class="ms-TextField">                    
             <div class="left-input">
                 @Html.Label("workload_environment_parameter", "Workload Zone Environment", new { @class = $"ms-Label required" })
-                <p>Please specify the workload environment to deploy to</p>
+                <p>Workload environment to deploy to</p>
             </div>
 
             <div class="right-input">
-                @Html.DropDownList("workload_environment_parameter", environments, new { @class = "js-example-placeholder-single", @style = "width: 100%;", @onchange = $"toggleDisableViaNInputs(['deployer_environment_parameter', 'workload_environment_parameter', 'deployer_region_parameter'], 'confirm-deploy-landscape-checkbox')" })
+                @Html.Label("workload_environment_parameter", Model.SapObject.environment, new { @class = "ms-TextField-field" })
             </div>
         </div>
 
-        <fluent-checkbox id="confirm-deploy-landscape-checkbox" onchange="toggleDisableViaCheckbox(this, 'deploy-landscape-button')" disabled>I confirm that I wish to deploy this workload zone</fluent-checkbox><br />
+        <fluent-checkbox id="confirm-deploy-landscape-checkbox" onchange="toggleDisableViaCheckbox(this, 'deploy-landscape-button')" >I confirm that I wish to deploy this workload zone</fluent-checkbox><br />
 
         <fluent-button id="deploy-landscape-button" appearance="accent" value="Deploy" type="submit" disabled>
             <i class="ms-Icon ms-Icon--Send" aria-hidden="true"></i> Deploy
