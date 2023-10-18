@@ -603,12 +603,11 @@
          environment:
            OHGRID:                         /oracle/GRID/{{ ora_version }}
            ORACLE_HOME:                    /oracle/GRID/{{ ora_version }}
-           IHRDBMS:                        /oracle/{{ db_sid | upper}}/{{ ora_release }}
+          #  IHRDBMS:                        /oracle/{{ db_sid | upper}}/{{ ora_release }}
            SBPFUSER:                       /usr/sbin/fuser
            OPATCH_DEBUG:                   "TRUE"
-           # ORACLE_SID:                     "{{ db_sid | upper}}"
          register:                         gridsbpscript_results
-         failed_when:                      gridsbpscript_results.rc >= 2
+         failed_when:                      gridsbpscript_results.rc >= 1
          args:
            creates:                        "/etc/sap_deployment_automation/{{ sap_sid | upper }}/gridsbp_installed.txt"
            chdir:                          "{{ target_media_location }}/SBP"
@@ -651,11 +650,9 @@
          ansible.builtin.shell:            $OHGRID/MOPatch/mopatch.sh -v -s {{ oraclegrid_sbp_patch }}
          environment:
            OHGRID:                         /oracle/GRID/{{ ora_version }}
-           # ORACLE_BASE:                    /oracle/GRID/
            ORACLE_HOME:                    /oracle/GRID/{{ ora_version }}
-           IHRDBMS:                        /oracle/{{ db_sid | upper}}/{{ ora_release }}
+          #  IHRDBMS:                        /oracle/{{ db_sid | upper}}/{{ ora_release }}
            SBPFUSER:                       /usr/sbin/fuser
-           # ORACLE_SID:                     "{{ db_sid | upper}}"
            OPATCH_DEBUG:                   "TRUE"
          register:                         gridsbpscript_results
          failed_when:                      gridsbpscript_results.rc >= 2
