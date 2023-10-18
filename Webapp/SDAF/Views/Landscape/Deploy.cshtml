@@ -43,17 +43,17 @@
     {
         @Html.AntiForgeryToken()
 
-        <div class="ms-TextField">                    
+        <div class="ms-TextField">
             <div class="left-input">
-                @Html.Label("deployer_environment_parameter", "Control plane environment", new { @class = $"ms-Label required" })
+                @Html.Label("environment", "Control plane environment", new { @class = $"ms-Label required" })
                 <p>Deployer environment name</p>
             </div>
             <div class="right-input">
-                @Html.Label("deployer_environment_parameter", Model.SapObject.controlPlaneEnvironment , new { @class = "ms-TextField-field" })
+                @Html.Label("environment", Model.SapObject.controlPlaneEnvironment , new { @class = "ms-TextField-field" })
             </div>
         </div>
 
-        <div class="ms-TextField">                    
+        <div class="ms-TextField">
             <div class="left-input">
                 @Html.Label("deployer_region_parameter", "Control plane location code", new { @class = $"ms-Label required" })
                 <p>Deployer Control plane location code</p>
@@ -64,14 +64,14 @@
             </div>
         </div>
 
-        <div class="ms-TextField">                    
+        <div class="ms-TextField">
             <div class="left-input">
-                @Html.Label("workload_environment_parameter", "Workload Zone Environment", new { @class = $"ms-Label required" })
+                @Html.Label("workload_environment", "Workload Zone Environment", new { @class = $"ms-Label required" })
                 <p>Workload environment to deploy to</p>
             </div>
 
             <div class="right-input">
-                @Html.Label("workload_environment_parameter", Model.SapObject.environment, new { @class = "ms-TextField-field" })
+                @Html.Label("workload_environment", Model.SapObject.environment, new { @class = "ms-TextField-field" })
             </div>
         </div>
 
