@@ -561,14 +561,14 @@
     
     # Copy the GSBP patch to local folder to avoid failures.
 
-    - name:                            "Copy the GRID SBP Patches to local folders"
-      ansible.builtin.copy:
-        src:                           "{{ target_media_location }}/GSBP"
-        dest:                          /home/oracle/
-        remote_src:                    true
-        owner:                         oracle
-        group:                         oinstall
-        mode:                          '0755'
+    # - name:                            "Copy the GRID SBP Patches to local folders"
+    #   ansible.builtin.copy:
+    #     src:                           "{{ target_media_location }}/GSBP"
+    #     dest:                          /home/oracle/
+    #     remote_src:                    true
+    #     owner:                         oracle
+    #     group:                         oinstall
+    #     mode:                          '0755'
 
     - name:                            "Oracle ASM: Pre Processing set permissions GRID"
       become:                          true
@@ -595,7 +595,7 @@
        - name:                            "Oracle ASM: Post Processing - GRID SBP Patching"
          become:                          true
          become_user:                     "oracle"
-         ansible.builtin.shell:          $OHGRID/MOPatch/mopatch.sh -v -s {{ target_media_location }}/SBP/{{ oraclegrid_sbp_patch }}
+         ansible.builtin.shell:          $OHGRID/MOPatch/mopatch.sh -v -s {{ oraclegrid_sbp_patch }}
          environment:
            OHGRID:                         /oracle/GRID/{{ ora_version }}
            ORACLE_HOME:                    /oracle/GRID/{{ ora_version }}
@@ -640,7 +640,7 @@
        - name:                            "Oracle ASM: Post Processing - GRID SBP Patching"
          become:                          true
          become_user:                     "oracle"
-         ansible.builtin.shell:            $OHGRID/MOPatch/mopatch.sh -v -s {{ target_media_location }}/SBP/{{ oraclegrid_sbp_patch }}
+         ansible.builtin.shell:            $OHGRID/MOPatch/mopatch.sh -v -s {{ oraclegrid_sbp_patch }}
          environment:
            OHGRID:                         /oracle/GRID/{{ ora_version }}
            # ORACLE_BASE:                    /oracle/GRID/
