@@ -572,7 +572,7 @@
     #     remote_src:                    true
     #     owner:                         oracle
     #     group:                         oinstall
-    #     mode:                          '0755'
+    #     mode:                          '0775'
 
     - name:                            "Oracle ASM: Pre Processing set permissions GRID"
       become:                          true
@@ -589,9 +589,9 @@
     #   fail:                            
     #     msg:                          "fail here for manual GRID SBP installation"
 
-    - name:                            "File update wait for 15 sec to avoid multiple locks"
-      ansible.builtin.wait_for:
-        timeout:                       30
+    # - name:                            "File update wait for 15 sec to avoid multiple locks"
+    #   ansible.builtin.wait_for:
+    #     timeout:                       30
 
 
     - name:                            "Oracle GRID Patching Error Handling Block"
@@ -640,9 +640,9 @@
          args:
            creates:                       /etc/sap_deployment_automation/{{ sap_sid | upper }}/gridpreinstall.txt
 
-       - name:                            "Wait to shutdown  Oracle processes for 15 sec"
-         ansible.builtin.wait_for:
-          timeout:                       30
+      #  - name:                            "Wait to shutdown  Oracle processes for 15 sec"
+      #    ansible.builtin.wait_for:
+      #     timeout:                       30
 
        - name:                            "Oracle ASM: Post Processing - GRID SBP Patching"
          become:                          true
@@ -655,7 +655,7 @@
            SBPFUSER:                       /usr/sbin/fuser
            OPATCH_DEBUG:                   "TRUE"
          register:                         gridsbpscript_results
-         failed_when:                      gridsbpscript_results.rc >= 2
+         failed_when:                      gridsbpscript_results.rc >= 1
          args:
            creates:                        "/etc/sap_deployment_automation/{{ sap_sid | upper }}/gridsbp_installed.txt"
            chdir:                          "{{ target_media_location }}/SBP"
@@ -704,6 +704,8 @@
       args:
         chdir:                         /oracle/GRID/{{ ora_version }}
         creates:                       /etc/sap_deployment_automation/{{ sap_sid | upper }}/sbp-grid-postprocess.txt
+      when:
+        - gridsbpscript_results.rc >= 1
 
     - name:                            "Oracle ASM: Create flag after a successful change"
       ansible.builtin.file:
