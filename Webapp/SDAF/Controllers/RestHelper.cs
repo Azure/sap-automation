@@ -25,6 +25,7 @@ namespace AutomationForm.Controllers
     private readonly string branch;
     private readonly string sdafGeneralId;
     private readonly string sdafControlPlaneEnvironment;
+    private readonly string sdafControlPlaneLocation;
 
     private readonly string sampleUrl = "https://api.github.com/repos/Azure/SAP-automation-samples";
     private HttpClient client;
@@ -37,6 +38,7 @@ namespace AutomationForm.Controllers
       branch = configuration["SourceBranch"];
       sdafGeneralId = configuration["SDAF_GENERAL_GROUP_ID"];
       sdafControlPlaneEnvironment = configuration["CONTROLPLANE_ENV"];
+      sdafControlPlaneLocation = configuration["CONTROLPLANE_LOC"];
 
       client = new HttpClient();
 
