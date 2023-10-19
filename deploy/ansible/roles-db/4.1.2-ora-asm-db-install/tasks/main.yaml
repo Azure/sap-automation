@@ -233,7 +233,7 @@
 #  MOPATCH for SBP
     - name:                            "Oracle ASM: Find MOPatch"
       ansible.builtin.find:
-        paths:                         "{{ target_media_location }}/SBP/SAPSBP/OLD/"
+        paths:                         "{{ target_media_location }}/SBP/SAPSBP"
         patterns:                      ["MOPatch"]
         file_type:                     directory
         recurse:                       true
@@ -254,7 +254,7 @@
 
     - name:                            "Oracle ASM: Find MOPatch for GRID"
       ansible.builtin.find:
-        paths:                         "{{ target_media_location }}/SBP/SGR19P"
+        paths:                         "{{ target_media_location }}/SBP/GSBP/SGR19P"
         patterns:                      ["MOPatch"]
         file_type:                     directory
         recurse:                       true
@@ -295,7 +295,7 @@
       # become:                              true
       # become_user:                         "oracle"
       ansible.builtin.copy:
-        src:                           "{{ target_media_location }}/SBP/OPATCH/OLD/OPatch"
+        src:                           "{{ target_media_location }}/SBP/OPATCH/OPatch"
         dest:                          /oracle/{{ db_sid | upper }}/{{ ora_version }}
         remote_src:                    true
         mode:                          '0755'
@@ -492,7 +492,7 @@
       # become:                              true
       # become_user:                         "oracle"
       ansible.builtin.copy:
-        src:                           "{{ target_media_location }}/SBP/OPATCH/OLD/OPatch"
+        src:                           "{{ target_media_location }}/SBP/GSBP/OPATCH/OPatch"
         dest:                          /oracle/GRID/{{ ora_version }}
         remote_src:                    true
         mode:                          '0755'
