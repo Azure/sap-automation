@@ -295,7 +295,7 @@
       # become:                              true
       # become_user:                         "oracle"
       ansible.builtin.copy:
-        src:                           "{{ target_media_location }}/SBP/OPATCH/OPatch"
+        src:                           "{{ target_media_location }}/SBP/OPATCH/OLD/OPatch"
         dest:                          /oracle/{{ db_sid | upper }}/{{ ora_version }}
         remote_src:                    true
         mode:                          '0755'
