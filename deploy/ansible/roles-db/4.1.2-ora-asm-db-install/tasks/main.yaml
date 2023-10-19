@@ -233,7 +233,7 @@
 #  MOPATCH for SBP
     - name:                            "Oracle ASM: Find MOPatch"
       ansible.builtin.find:
-        paths:                         "{{ target_media_location }}/SBP/SAPSBP/OLD"
+        paths:                         "{{ target_media_location }}/SBP/SAPSBP/OLD/"
         patterns:                      ["MOPatch"]
         file_type:                     directory
         recurse:                       true
