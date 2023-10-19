@@ -252,10 +252,10 @@
             msg:                        "{{ package_result | try_get_error_code_results(task_tag='update_os_packages') }}"
 
 
-- name:                                "1.4 Packages: - Update OS packages: {{ distro_name }} {{ node_tier }}"
+- name:                                "1.4 Packages: - Update OS packages: {{ distro_name }} on node: {{ node_tier }}"
   block:
 
-    - name:                            "1.4 Packages: - Update OS packages: {{ distro_name }} {{ node_tier }}"
+    - name:                            "1.4 Packages: - Update OS packages: {{ distro_name }} on node: {{ node_tier }}"
       ansible.builtin.package:
         name:                          "{{ packages_for_tier |
                                            selectattr('state', 'equalto', item.state) |
@@ -276,9 +276,9 @@
       ansible.builtin.pause:
         seconds:                       60
 
-    - name:                              "1.4 Packages: -  Update OS packages: {{ distro_name }} and rescue"
+    - name:                              "1.4 Packages: -  Update OS packages: {{ distro_name }} on node: {{ node_tier }} and rescue"
       block:
-        - name:                            "1.4 Packages: -  Update OS packages: {{ distro_name }}"
+        - name:                            "1.4 Packages: -  Update OS packages: {{ distro_name }} on node: {{ node_tier }}"
           ansible.builtin.package:
             name:                          "{{ packages_for_tier |
                                               selectattr('state', 'equalto', item.state) |
