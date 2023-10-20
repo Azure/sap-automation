@@ -580,14 +580,6 @@
         mode:                          '0755'
       when:                            sbpscript_results.rc < 2
 
-    - name:                            "Oracle ASM: Permissions"
-      ansible.builtin.file:
-        path:                          /oracle/{{ db_sid | upper }}/{{ ora_version }}/bin/oracle
-        state:                         file
-        owner:                         oracle
-        group:                         oinstall
-        mode:                          '6751'
-
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
 # | Step 5 SBP Patching for Oracle  RDBMS                                           |
@@ -712,7 +704,13 @@
         owner:                         oracle
         group:                         oinstall
 
-
+    - name:                            "Oracle ASM: Permissions"
+      ansible.builtin.file:
+        path:                          /oracle/{{ db_sid | upper }}/{{ ora_version }}/bin/oracle
+        state:                         file
+        owner:                         oracle
+        group:                         oinstall
+        mode:                          '6751'
     # - name:                                Remove SAPSBP
     #   ansible.builtin.file:
     #     path:                              "{{ mopatch_path }}"
