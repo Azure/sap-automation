@@ -202,6 +202,7 @@ locals {
                                         ) : (
                                         0
                                       )
+    web_instance_number             = var.web_instance_number
     web_sku                         = try(coalesce(var.webdispatcher_server_sku, var.application_tier.web_sku), "")
     web_use_ppg                     = var.use_scalesets_for_deployment ? (
                                         false) : (

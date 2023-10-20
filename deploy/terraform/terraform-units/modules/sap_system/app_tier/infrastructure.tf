@@ -583,3 +583,15 @@ resource "azurerm_private_dns_a_record" "ers" {
   ttl                 = 300
   records             = [azurerm_lb.scs[0].frontend_ip_configuration[1].private_ip_address]
 }
+
+resource "azurerm_private_dns_a_record" "web" {
+  provider = azurerm.dnsmanagement
+  count    = local.enable_web_lb_deployment && length(local.dns_label) > 0 && var.register_virtual_network_to_dns ? 1 : 0
+  name = lower(format("%sweb%s",
+    local.sid, var.application_tier.web_instance_number
+  ))
+  resource_group_name = coalesce(var.management_dns_resourcegroup_name, var.landscape_tfstate.dns_resource_group_name)
+  zone_name           = local.dns_label
+  ttl                 = 300
+  records             = [azurerm_lb.web[0].frontend_ip_configuration[1].private_ip_address]
+}

@@ -128,19 +128,19 @@ pkg_mgr_init()
     typeset -g pkg_mgr
 
     case "$(get_distro_name)" in
-    (ubuntu|debian)
+      (ubuntu|debian)
         pkg_mgr="apt-get"
         pkg_type="deb"
         ;;
-    (sles|opensuse*)
+      (sles|opensuse*)
         pkg_mgr="zypper"
         pkg_type="rpm"
         ;;
-    (rhel|centos|fedora)
+      (rhel|centos|fedora)
         pkg_mgr="yum"
         pkg_type="rpm"
         ;;
-    (*)
+      (*)
         error "Unsupported distibution: '$${distro_name}'"
         exit 1
         ;;
@@ -160,14 +160,14 @@ pkg_mgr_refresh()
     fi
 
     case "$${pkg_mgr}" in
-    (apt-get)
-        sudo $${pkg_mgr} update --quiet
+      apt-get)
+        sudo "$${pkg_mgr}" update --quiet
         ;;
-    (zypper)
-        sudo $${pkg_mgr} --gpg-auto-import-keys --quiet refresh
+      zypper)
+        sudo "$${pkg_mgr}" --gpg-auto-import-keys --quiet refresh
         ;;
-    (yum)
-        sudo $${pkg_mgr} update --quiet
+      yum)
+        sudo "$${pkg_mgr}" update --quiet
         ;;
     esac
 
@@ -188,37 +188,40 @@ pkg_mgr_upgrade()
     fi
 
     case "$${pkg_mgr}" in
-    (apt-get)
-        sudo $${pkg_mgr} upgrade --quiet -y
+      apt-get)
+        sudo "$${pkg_mgr}" upgrade --quiet -y
         ;;
-    (zypper)
-        sudo $${pkg_mgr} --gpg-auto-import-keys --non-interactive patch
+      zypper)
+        sudo "$${pkg_mgr}" --gpg-auto-import-keys --non-interactive patch
         ;;
-    (yum)
-        sudo $${pkg_mgr} upgrade --quiet -y
+      yum)
+        sudo "$${pkg_mgr}" upgrade --quiet -y
         ;;
     esac
 
     pkg_mgr_upgraded=true
 }
 
-pkg_mgr_install()
-{
-    typeset -g pkg_mgr
+pkg_mgr_install() {
+  typeset -g pkg_mgr
 
-    pkg_mgr_refresh
+  pkg_mgr_refresh
 
-    case "$${pkg_mgr}" in
-    (apt-get)
-        sudo env DEBIAN_FRONTEND=noninteractive $${pkg_mgr} --quiet --yes install "$${@}"
-        ;;
-    (zypper)
-        sudo $${pkg_mgr} --gpg-auto-import-keys --quiet --non-interactive install --no-confirm "$${@}"
-        ;;
-    (yum)
-        sudo $${pkg_mgr} --nogpgcheck --quiet  install --assumeyes "$${@}"
-        ;;
-    esac
+  case "$${pkg_mgr}" in
+    apt-get)
+      sudo env DEBIAN_FRONTEND=noninteractive "$${pkg_mgr}" --quiet --yes install "$${@}"
+      ;;
+    zypper)
+      sudo "$${pkg_mgr}" --gpg-auto-import-keys --quiet --non-interactive install --no-confirm "$${@}"
+      ;;
+    yum)
+      sudo "$${pkg_mgr}" --nogpgcheck --quiet install --assumeyes "$${@}"
+      ;;
+    *)
+      echo "Unsupported package manager: $${pkg_mgr}"
+      return 1
+      ;;
+  esac
 }
 
 
@@ -227,28 +230,28 @@ pkg_mgr_install()
 #
 
 # Ansible installation directories
-ansible_base=/opt/ansible
-ansible_bin=$${ansible_base}/bin
-ansible_venv=$${ansible_base}/venv/$${ansible_version}
-ansible_venv_bin=$${ansible_venv}/bin
-ansible_collections=$${ansible_base}/collections
-ansible_pip3=$${ansible_venv_bin}/pip3
+ansible_base="/opt/ansible"
+ansible_bin="$${ansible_base}/bin"
+ansible_venv="$${ansible_base}/venv/$${ansible_version}"
+ansible_venv_bin="$${ansible_venv}/bin"
+ansible_collections="$${ansible_base}/collections"
+ansible_pip3="$${ansible_venv_bin}/pip3"
 
 # Azure SAP Automated Deployment directories
 asad_home="/home/$${local_user}/Azure_SAP_Automated_Deployment"
 asad_ws="$${asad_home}/WORKSPACES"
 asad_repo="https://github.com/Azure/sap-automation.git"
-asad_dir="$${asad_home}/$(basename $${asad_repo} .git)"
+asad_dir="$${asad_home}/$(basename "$${asad_repo}" .git)"
 
 asad_sample_repo="https://github.com/Azure/sap-automation-samples.git"
 asad_dir="$${asad_home}/$(basename $${asad_repo} .git)"
 asad_sample_dir="$${asad_home}/samples"
 
 # Terraform installation directories
-tf_base=/opt/terraform
-tf_dir=$${tf_base}/terraform_$${tfversion}
-tf_bin=$${tf_base}/bin
-tf_zip=terraform_$${tfversion}_linux_amd64.zip
+tf_base="/opt/terraform"
+tf_dir="$${tf_base}/terraform_$${tfversion}"
+tf_bin="$${tf_base}/bin"
+tf_zip="terraform_$${tfversion}_linux_amd64.zip"
 
 #
 #Don't re-run the following if the script is already installed
@@ -351,11 +354,11 @@ else
 
     # Prepare Azure SAP Automated Deployment folder structure
     mkdir -p \
-        $${asad_ws}/LOCAL/$${rg_name} \
-        $${asad_ws}/LIBRARY \
-        $${asad_ws}/SYSTEM \
-        $${asad_ws}/LANDSCAPE \
-        $${asad_ws}/DEPLOYER
+      "$${asad_ws}/LOCAL/${rg_name}" \
+      "$${asad_ws}/LIBRARY" \
+      "$${asad_ws}/SYSTEM" \
+      "$${asad_ws}/LANDSCAPE" \
+      "$${asad_ws}/DEPLOYER"
 
     #
     # Clone Azure SAP Automated Deployment project repository
@@ -376,11 +379,11 @@ else
     # Install terraform for all users
     #
     sudo mkdir -p \
-        $${tf_dir} \
-        $${tf_bin}
-    wget -nv -O /tmp/$${tf_zip} https://releases.hashicorp.com/terraform/$${tfversion}/$${tf_zip}
-    sudo unzip -o /tmp/$${tf_zip} -d $${tf_dir}
-    sudo ln -vfs ../$(basename $${tf_dir})/terraform $${tf_bin}/terraform
+        "$${tf_dir}" \
+        "$${tf_bin}"
+    wget -nv -O "/tmp/$${tf_zip}" "https://releases.hashicorp.com/terraform/$${tfversion}/$${tf_zip}"
+    sudo unzip -o "/tmp/$${tf_zip}" -d "$${tf_dir}"
+    sudo ln -vfs "../$(basename "$${tf_dir}")/terraform" "$${tf_bin}/terraform"
 
     # Uninstall Azure CLI - For some platforms
     case "$(get_distro_name)" in
@@ -421,7 +424,7 @@ else
         sudo zypper addrepo --name 'Azure CLI' --check https://packages.microsoft.com/yumrepos/azure-cli azure-cli
         sudo zypper install --from azure-cli azure-cli
         ;;
-     (rhel*)
+    (rhel*)
         sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc
         sudo dnf install -y https://packages.microsoft.com/config/rhel/8/packages-microsoft-prod.rpm
         sudo dnf install azure-cli
@@ -450,7 +453,7 @@ else
 
 
     # If the deployer will be an ADO agent install the devops cli
-    if [[ -n $${TOKEN} ]];
+    if [[ -n "$${TOKEN}" ]];
     then
         az extension add -n azure-devops > /dev/null
     fi
@@ -463,15 +466,15 @@ else
 
     case "$(get_distro_name)" in
     (rhel)
-        sudo python -m venv $${ansible_venv}
+        sudo python -m venv "$${ansible_venv}"
         source "$${ansible_venv_bin}/activate"
 
         ;;
     (ubuntu|sles)
         # Create a Python3 based venv into which we will install Ansible.
         if [[ ! -e "$${ansible_venv_bin}/activate" ]]; then
-            sudo rm -rf $${ansible_venv}
-            sudo virtualenv --python python3 $${ansible_venv}
+            sudo rm -rf "$${ansible_venv}"
+            sudo virtualenv --python python3 "$${ansible_venv}"
         fi
         ;;
     esac
@@ -483,7 +486,7 @@ else
     # Install latest Ansible revision of specified version for all users.
     #
     sudo mkdir -p \
-        $${ansible_bin}
+        "$${ansible_bin}"
 
 
     # Fail if pip3 doesn't exist in the venv
@@ -494,7 +497,7 @@ else
 
 
     # Ensure that standard tools are up to date
-    sudo $${ansible_venv_bin}/pip3 install --upgrade \
+    sudo "$${ansible_venv_bin}/pip3" install --upgrade \
         pip \
         wheel \
         setuptools
@@ -512,7 +515,7 @@ else
     # ansible-lint \
     #  yamllint \
 
-    sudo $${ansible_venv_bin}/pip3 install \
+    sudo "$${ansible_venv_bin}/pip3" install \
         "ansible-core>=$${ansible_major}.$${ansible_minor},<$${ansible_major}.$((ansible_minor + 1))" \
         argcomplete \
         'pywinrm>=0.3.0' \
@@ -554,21 +557,21 @@ else
     relative_path="$(realpath --relative-to $${ansible_bin} $${ansible_venv_bin})"
     for vcmd in "$${ansible_venv_commands[@]}"
     do
-        sudo ln -vfs $${relative_path}/$${vcmd} $${ansible_bin}/$${vcmd}
+        sudo ln -vfs "$${relative_path}/$${vcmd}" "$${ansible_bin}/$${vcmd}"
     done
 
 
     # Ensure that Python argcomplete is enabled for all users interactive shell sessions
-    sudo $${ansible_bin}/activate-global-python-argcomplete
+    sudo "$${ansible_bin}/activate-global-python-argcomplete"
 
     # Install Ansible collections under the ANSIBLE_COLLECTIONS_PATHS for all users.
-    sudo mkdir -p $${ansible_collections}
-    sudo -H $${ansible_venv_bin}/ansible-galaxy collection install ansible.windows --force --collections-path $${ansible_collections}
-    sudo -H $${ansible_venv_bin}/ansible-galaxy collection install ansible.posix --force --collections-path $${ansible_collections}
-    sudo -H $${ansible_venv_bin}/ansible-galaxy collection install ansible.utils --force --collections-path $${ansible_collections}
-    sudo -H $${ansible_venv_bin}/ansible-galaxy collection install ansible.netcommon:5.1.2 --force --collections-path $${ansible_collections}
-    sudo -H $${ansible_venv_bin}/ansible-galaxy collection install community.windows --force --collections-path $${ansible_collections}
-    sudo -H $${ansible_venv_bin}/ansible-galaxy collection install community.general --force --collections-path $${ansible_collections}
+    sudo mkdir -p "$${ansible_collections}"
+    sudo -H "$${ansible_venv_bin}/ansible-galaxy" collection install ansible.windows --force --collections-path "$${ansible_collections}"
+    sudo -H "$${ansible_venv_bin}/ansible-galaxy" collection install ansible.posix --force --collections-path "$${ansible_collections}"
+    sudo -H "$${ansible_venv_bin}/ansible-galaxy" collection install ansible.utils --force --collections-path "$${ansible_collections}"
+    sudo -H "$${ansible_venv_bin}/ansible-galaxy" collection install ansible.netcommon:5.1.2 --force --collections-path "$${ansible_collections}"
+    sudo -H "$${ansible_venv_bin}/ansible-galaxy" collection install community.windows --force --collections-path "$${ansible_collections}"
+    sudo -H "$${ansible_venv_bin}/ansible-galaxy" collection install community.general --force --collections-path "$${ansible_collections}"
     #
     # Create /etc/profile.d script to setup environment for interactive sessions
     #
@@ -578,7 +581,7 @@ else
 
     # Set env for ansible
     echo export ANSIBLE_HOST_KEY_CHECKING=False | sudo tee -a /etc/profile.d/deploy_server.sh
-    echo export ANSIBLE_COLLECTIONS_PATHS=$${ansible_collections} | sudo tee -a /etc/profile.d/deploy_server.sh
+    echo export ANSIBLE_COLLECTIONS_PATHS="$${ansible_collections}" | sudo tee -a /etc/profile.d/deploy_server.sh
 
     case "$(get_distro_name)" in
     (ubuntu|sles)
@@ -589,10 +592,10 @@ else
     esac
 
     # Set env for MSI
-    echo export ARM_USE_MSI=true | sudo tee -a /etc/profile.d/deploy_server.sh
-    echo export ARM_CLIENT_ID=$${client_id} | sudo tee -a /etc/profile.d/deploy_server.sh
-    echo export ARM_SUBSCRIPTION_ID=$${subscription_id} | sudo tee -a /etc/profile.d/deploy_server.sh
-    echo export ARM_TENANT_ID=$${tenant_id} | sudo tee -a /etc/profile.d/deploy_server.sh
+    (echo export ARM_USE_MSI=true | sudo tee -a /etc/profile.d/deploy_server.sh) > /dev/null 2>&1
+    (echo export ARM_CLIENT_ID="$${client_id}" | sudo tee -a /etc/profile.d/deploy_server.sh) > /dev/null 2>&1
+    (echo export ARM_SUBSCRIPTION_ID="$${subscription_id}" | sudo tee -a /etc/profile.d/deploy_server.sh) > /dev/null 2>&1
+    (echo export ARM_TENANT_ID="$${tenant_id}" | sudo tee -a /etc/profile.d/deploy_server.sh) > /dev/null 2>&1
 
     # if [[ -n $${TOKEN} ]]; then
     #     echo export AZURE_DEVOPS_EXT_PAT=$${TOKEN} | sudo tee -a /etc/profile.d/deploy_server.sh
@@ -616,59 +619,63 @@ else
     agent_home="/home/$${local_user}/agent"
 
     if [ -f "/home/$${local_user}/agent/agent_installed" ]; then
-        echo "Agent already installed"
+      echo "Agent already installed"
     else
-        sudo mkdir -p "$${agent_home}"; cd $_
+      sudo mkdir -p "$${agent_home}"; cd "$${agent_home}"
 
-        sudo wget -nv https://aka.ms/AAftpys -O agent.tar.gz
-        sudo tar zxvf agent.tar.gz >/dev/null 2>&1
+      sudo wget -nv https://aka.ms/AAftpys -O agent.tar.gz
+      sudo tar zxvf agent.tar.gz >/dev/null 2>&1
 
-        sudo touch $${agent_home}/agent_installed
+      sudo touch "$${agent_home}/agent_installed"
 
-        sudo chown -R "$${local_user}" $${agent_home}
+      sudo chown -R "$${local_user}" "$${agent_home}"
     fi
 
-    if [[ -n $${TOKEN} ]]; then
-        sudo touch $${agent_home}/tok
+    # turn tracing off when you are here
+    set +o xtrace
+
+    if [ -n "$${TOKEN}" ]; then
+      echo "Token specified and using it"
+      sudo touch "$${agent_home}/tok"
     else
-        sudo touch $${agent_home}/no_tok
+      echo "Token not specified for usage"
+      sudo touch "$${agent_home}/no_tok"
     fi
+
+    set -o xtrace
     if [ -f "/home/$${local_user}/agent/agent_configured" ]; then
-        echo "Agent already configured"
+      echo "Agent already configured"
     else
-        if [[ -n $${TOKEN} ]];
-        then
-            sudo chmod -R 744 $${agent_home}
+      set +o xtrace
+      if [[ -n "$${TOKEN}" ]]; then
+        sudo chmod -R 744 "$${agent_home}"
+        set -o xtrace
+        cd "$${agent_home}"
+        ./env.sh
 
-            cd $${agent_home}
-            ./env.sh
-
-            if [ -f $${agent_home}/config_fixed_params.sh ]; then
-                sudo rm $${agent_home}/config_fixed_params.sh
-            fi
-
-            echo $${agent_home}/config.sh  --unattended --url $${DEVURL} --auth pat --token "$${TOKEN}" --pool "$${POOL}" --agent "$${AGENTNAME}" --replace --acceptTeeEula | sudo tee -a $${agent_home}/config_fixed_params.sh
-            sudo chmod +x $${agent_home}/config_fixed_params.sh
-
-            sudo runuser -l "$${local_user}" -c $${agent_home}/config_fixed_params.sh  | sudo tee -a $${agent_home}/log.txt
-
-            # automatic start configuration after VM reboot
-
-            sudo ./svc.sh install "$${local_user}" | sudo tee -a $${agent_home}/log.txt
-
-            # start the deamon
-            sudo ./svc.sh start | sudo tee -a $${agent_home}/log.txt
-
-            sudo rm $${agent_home}/config_fixed_params.sh
-
-            sudo touch $${agent_home}/agent_configured
-        else
-            echo export SAP_AUTOMATION_REPO_PATH='$${HOME}/Azure_SAP_Automated_Deployment/sap-automation' | sudo tee -a /etc/profile.d/deploy_server.sh
-            echo export DEPLOYMENT_REPO_PATH='$${HOME}/Azure_SAP_Automated_Deployment/sap-automation' | sudo tee -a /etc/profile.d/deploy_server.sh
-            echo export CONFIG_REPO_PATH='$${HOME}/Azure_SAP_Automated_Deployment/WORKSPACES' | sudo tee -a /etc/profile.d/deploy_server.sh
-
+        if [ -f "$${agent_home}/config_fixed_params.sh" ]; then
+          sudo rm "$${agent_home}/config_fixed_params.sh"
         fi
+
+        (echo "$${agent_home}/config.sh"  --unattended --url "$${DEVURL}" --auth pat --token "$${TOKEN}" --pool "$${POOL}" --agent "$${AGENTNAME}" --replace --acceptTeeEula | sudo tee -a "$${agent_home}/config_fixed_params.sh") > /dev/null 2>&1
+        sudo chmod +x "$${agent_home}/config_fixed_params.sh"
+
+        sudo runuser -l "$${local_user}" -c "$${agent_home}/config_fixed_params.sh"  | sudo tee -a "$${agent_home}/log.txt"
+
+        # automatic start configuration after VM reboot
+
+        sudo "$${agent_home}/svc.sh" install "$${local_user}" | sudo tee -a "$${agent_home}/log.txt"
+
+        # start the daemon
+        sudo "$${agent_home}/svc.sh" start | sudo tee -a "$${agent_home}/log.txt"
+
+        sudo rm "$${agent_home}/config_fixed_params.sh"
+
+        sudo touch "$${agent_home}/agent_configured"
+      else
+        echo "export SAP_AUTOMATION_REPO_PATH='$${HOME}/Azure_SAP_Automated_Deployment/sap-automation'" | sudo tee -a /etc/profile.d/deploy_server.sh
+        echo "export DEPLOYMENT_REPO_PATH='$${HOME}/Azure_SAP_Automated_Deployment/sap-automation'" | sudo tee -a /etc/profile.d/deploy_server.sh
+        echo "export CONFIG_REPO_PATH='$${HOME}/Azure_SAP_Automated_Deployment/WORKSPACES'" | sudo tee -a /etc/profile.d/deploy_server.sh
+      fi
     fi
-
-
 fi

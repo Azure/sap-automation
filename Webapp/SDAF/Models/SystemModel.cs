@@ -256,7 +256,7 @@ namespace AutomationForm.Models
 
     public bool? application_server_no_ppg { get; set; } = false;
 
-    public bool? application_server_use_ppg { get; set; }
+    public bool? application_server_use_ppg { get; set; } = true;
 
     // SAP Central Services
 
