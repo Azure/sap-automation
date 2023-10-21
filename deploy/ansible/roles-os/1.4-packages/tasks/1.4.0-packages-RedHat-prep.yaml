@@ -8,20 +8,6 @@
 - name:                                "1.4 Packages: - Import package list"
   ansible.builtin.include_vars:        os-packages.yaml
 
-- name:                                "1.4 Packages: - Prepare the package managers etc."
-  ansible.builtin.include_tasks:       "1.4.0-packages-{{ ansible_os_family }}-prep.yaml"
-
-- name:                                "1.4 Packages: - SDAF defined packages"
-  ansible.builtin.include_tasks:       "1.4.1-packages.yaml"
-
-- name:                                "1.4 Packages: - Custom packages"
-  ansible.builtin.include_tasks:       "1.4.2-custom-packages.yaml"
-
-- name:                                "1.4 Packages: - Update packages"
-  ansible.builtin.include_tasks:       "1.4.3-update-packages-{{ ansible_os_family }}.yaml"
-  when:
-    - upgrade_packages is defined
-    - upgrade_packages
 
 # /*----------------------------------------------------------------------------8
 # |                                    END                                      |
