@@ -60,9 +60,13 @@
     public:                            true
   when:                                bom.InstanceType is defined
 
+- name:                                "DBLoad: -  Set the product ID"
+  ansible.builtin.set_fact:
+    product_id:                        "{{ bom.product_ids.dbl }}"
+
 - name:                                "DBLoad: - Set dbload path"
   ansible.builtin.set_fact:
-    db_load_path:                      "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}/sapinst_instdir/{{ bom.product_ids.dbl.replace('.', '/').replace('/{{ instance_type }}', '').split(':')[1] }}/INSTALL/DISTRIBUTED/{{ instance_type }}/DB"
+    db_load_path:                      "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}/sapinst_instdir/{{ product_id.replace('.', '/').replace('/' + instance_type, '').split(':')[1] }}/INSTALL/DISTRIBUTED/{{ instance_type }}/DB"
 
 - name:                                "DBLoad: Check if DBLoad has been tried on this server"
   ansible.builtin.stat:
@@ -207,7 +211,7 @@
         msg:
           - "INSTALLED:  {{ dbload_installed.stat.exists }}"
           - "INIFILE:    {{ sap_inifile }}"
-          - "PRODUCT ID: {{ bom.product_ids.dbl }}"
+          - "PRODUCT ID: {{ product_id }}"
           - "INSTANCE:   {{ db_instance_number }}"
           - "SCSHOST:    {{ scs_server }}"
           - "DBHOST:     {{ db_virtual_host }}"
@@ -233,7 +237,7 @@
       ansible.builtin.shell: |
                                        umask {{ custom_umask | default('022') }} ;
                                        ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }} \
-                                                 SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.dbl }}            \
+                                                 SAPINST_EXECUTE_PRODUCT_ID={{ product_id }}            \
                                                  SAPINST_SKIP_DIALOGS=true                                       \
                                                  SAPINST_START_GUISERVER=false
       args:
@@ -313,6 +317,20 @@
     # - import_tasks:                    "oracle-postprocessing.yaml"
     #   when:
     #     - node_tier in ["oracle","oracle-asm"]
+
+    - name:                            "DBLoad Install: Get DEFAULT.PFL"
+      ansible.builtin.slurp:
+        src:                           "/sapmnt/{{ sap_sid | upper }}/profile/DEFAULT.PFL"
+      register: profilefile
+
+    - name:                            "DBLoad Install: Get schema name"
+      ansible.builtin.set_fact:
+        schema_name:                   "{{ profilefile['content'] | b64decode | split('\n') | select('search', 'dbs/hdb/schema') | first | split('=') | last | trim | default('{{ hana_schema }}') }}"
+
+    - name:                            "DBLoad Install: Installation results"
+      ansible.builtin.debug:
+        msg:                           "Schema name {{ schema_name }}"
+
     - name:                            "DBLoad: Get hdbuserstore path"
       become:                          true
       become_user:                     "{{ sid_to_be_deployed.sid | lower }}adm"
@@ -350,7 +368,7 @@
       become:                          true
       become_user:                     "{{ sid_to_be_deployed.sid | lower }}adm"
       ansible.builtin.shell: |
-                                       {{ hdbuserstore_path }} SET DEFAULT {{ db_lb_virtual_host }}:3{{ db_instance_number }}13@{{ db_sid | upper }} {{ hana_schema }} {{ main_password }}
+                                       {{ hdbuserstore_path }} SET DEFAULT {{ db_lb_virtual_host }}:3{{ db_instance_number }}13@{{ db_sid | upper }} {{ schema_name }} {{ main_password }}
       environment:
         SAPSYSTEMNAME:                 "{{ sid_to_be_deployed.sid | upper }}"
         TMPDIR:                        "{{ hdbuserstore_path }}"
