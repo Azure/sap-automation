@@ -1,8 +1,9 @@
-#########################################################################################
-#                                                                                       #
-#  Environment definitioms                                                              #
-#                                                                                       #
-#########################################################################################
+
+#######################################4#######################################8
+#                                                                              #
+#  Environment definitioms                                                     #
+#                                                                              #
+#######################################4#######################################8
 
 variable "environment" {
   type        = string
@@ -987,6 +988,11 @@ variable "sapmnt_private_endpoint_id" {
   description = "Azure Resource Identifier for an private endpoint connection"
   type        = string
   default     = ""
+}
+
+variable "Use_AFS_for_Installation" {
+  description = "If true, will use AFS for installation media."
+  default     = false
 }
 
 #########################################################################################
