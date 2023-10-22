@@ -23,7 +23,7 @@ resource "azurerm_storage_account" "storage_tfstate" {
   account_tier             = var.storage_account_tfstate.account_tier
   account_kind             = var.storage_account_tfstate.account_kind
 
-  public_network_access_enabled = try(var.deployer_tfstate.public_network_access_enabled, true)
+  public_network_access_enabled = try(var.deployer_tfstate.public_network_access_enabled, var.bootstrap ? !local.enable_firewall_for_keyvaults_and_storage : local.enable_firewall_for_keyvaults_and_storage)
 
   enable_https_traffic_only = true
   blob_properties {
@@ -46,7 +46,7 @@ resource "azurerm_storage_account" "storage_tfstate" {
 
 resource "azurerm_storage_account_network_rules" "storage_tfstate" {
   provider           = azurerm.main
-  count              = local.sa_tfstate_exists ? 0 : 1
+  count              = local.enable_firewall_for_keyvaults_and_storage && !local.sa_tfstate_exists ? 1 : 0
   storage_account_id = azurerm_storage_account.storage_tfstate[0].id
   default_action     = "Deny"
 
@@ -55,7 +55,8 @@ resource "azurerm_storage_account_network_rules" "storage_tfstate" {
       local.deployer_public_ip_address
     ]) : compact(
     [
-      try(var.deployer_tfstate.Agent_IP, "")
+      try(var.deployer_tfstate.Agent_IP, ""),
+      try(var.Agent_IP, "")
     ]
   )
 
@@ -241,7 +242,7 @@ resource "azurerm_storage_account" "storage_sapbits" {
 
 resource "azurerm_storage_account_network_rules" "storage_sapbits" {
   provider           = azurerm.main
-  count              = local.sa_sapbits_exists ? 0 : 1
+  count              = local.enable_firewall_for_keyvaults_and_storage && !local.sa_tfstate_exists ? 1 : 0
   storage_account_id = azurerm_storage_account.storage_sapbits[0].id
   default_action     = "Deny"
   ip_rules = local.deployer_public_ip_address_used ? (
@@ -249,7 +250,8 @@ resource "azurerm_storage_account_network_rules" "storage_sapbits" {
       local.deployer_public_ip_address
     ]) : compact(
     [
-      try(var.deployer_tfstate.Agent_IP, "")
+      try(var.deployer_tfstate.Agent_IP, ""),
+      try(var.Agent_IP, "")
     ]
   )
   virtual_network_subnet_ids = local.virtual_additional_network_ids

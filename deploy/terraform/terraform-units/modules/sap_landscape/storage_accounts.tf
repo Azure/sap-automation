@@ -154,7 +154,7 @@ resource "azurerm_storage_account" "witness_storage" {
 
 resource "azurerm_storage_account_network_rules" "witness" {
   provider                             = azurerm.main
-  count                                = length(var.witness_storage_account.arm_id) == 0 ? 1 : 0
+  count                                = var.enable_firewall_for_keyvaults_and_storage && length(var.witness_storage_account.arm_id) == 0 ? 1 : 0
   depends_on                           = [
                                            azurerm_storage_account.witness_storage,
                                            azurerm_subnet.db,

@@ -13,7 +13,7 @@ resource "azurerm_key_vault_secret" "saplibrary_access_key" {
   )
   key_vault_id = var.key_vault.kv_spn_id
 
-  expiration_date = var.deployer_tfstate.set_secret_expiry ? (
+  expiration_date = try(var.deployer_tfstate.set_secret_expiry, false) ? (
     time_offset.secret_expiry_date.rfc3339) : (
     null
   )
@@ -29,7 +29,7 @@ resource "azurerm_key_vault_secret" "sapbits_location_base_path" {
     azurerm_storage_container.storagecontainer_sapbits[0].id
   )
   key_vault_id = var.key_vault.kv_spn_id
-  expiration_date = var.deployer_tfstate.set_secret_expiry ? (
+  expiration_date = try(var.deployer_tfstate.set_secret_expiry, false)  ? (
     time_offset.secret_expiry_date.rfc3339) : (
     null
   )
@@ -45,7 +45,7 @@ resource "azurerm_key_vault_secret" "sa_connection_string" {
     azurerm_storage_account.storage_tfstate[0].primary_connection_string
   )
   key_vault_id = var.key_vault.kv_spn_id
-  expiration_date = var.deployer_tfstate.set_secret_expiry ? (
+  expiration_date = try(var.deployer_tfstate.set_secret_expiry, false)  ? (
     time_offset.secret_expiry_date.rfc3339) : (
     null
   )
