@@ -17,7 +17,7 @@ output "loadbalancers" {
 
 output "hdb_sid" {
   sensitive = false
-  value     = local.hdb_sid
+  value     = local.database_sid
 }
 
 // Output for DNS

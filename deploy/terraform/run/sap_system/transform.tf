@@ -141,7 +141,7 @@ locals {
                     ) : (
                   substr(var.database_platform, 0, 3))
                ))
-               instance_number = upper(local.databases_temp.platform) == "HANA" ? (
+               number = upper(local.databases_temp.platform) == "HANA" ? (
                   coalesce(var.database_instance_number, try(var.databases[0].instance_number, "00"))
                   ) : (
                   "00"
@@ -587,9 +587,9 @@ locals {
     length(var.webdispatcher_server_nic_secondary_ips) > 0 ? { web_nic_secondary_ips = var.webdispatcher_server_nic_secondary_ips } : null), (
     length(local.web_admin_nic_ips) > 0                    ? { web_admin_nic_ips = local.web_admin_nic_ips } : null), (
     length(local.web_lb_ips) > 0                           ? { web_lb_ips = local.web_lb_ips } : null), (
-    length(local.app_tags) > 0                             ? { app_tags = local.app_tags } : null), (
-    length(local.scs_tags) > 0                             ? { scs_tags = local.scs_tags } : null), (
-    length(local.web_tags) > 0                             ? { web_tags = local.web_tags } : null
+    length(local.app_tags) > 0                             ? { app_tags = local.app_tags } : { app_tags = local.app_tags }), (
+    length(local.scs_tags) > 0                             ? { scs_tags = local.scs_tags } : { scs_tags = local.scs_tags }), (
+    length(local.web_tags) > 0                             ? { web_tags = local.web_tags } : { web_tags = local.web_tags }
     )
   )
 

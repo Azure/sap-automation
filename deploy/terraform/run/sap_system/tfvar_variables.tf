@@ -1218,3 +1218,8 @@ variable "upgrade_packages" {
   description = "If defined, will upgrade the packages on the virtual machines"
   default     = false
 }
+
+variable "tags" {
+  description = "If provided, tags for all resources"
+  default     = {}
+}

@@ -293,3 +293,14 @@ variable "landscape_tfstate" {
 variable "use_scalesets_for_deployment" {
   description = "Use Flexible Virtual Machine Scale Sets for the deployment"
 }
+
+#########################################################################################
+#                                                                                       #
+#  Tags                                                                                 #
+#                                                                                       #
+#########################################################################################
+
+variable "tags" {
+  description = "If provided, tags for all resources"
+}
+
