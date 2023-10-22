@@ -48,9 +48,12 @@ module "sap_landscape" {
   register_virtual_network_to_dns              = var.register_virtual_network_to_dns
   service_principal                            = var.use_spn ? local.service_principal : local.account
   storage_account_replication_type             = var.storage_account_replication_type
+  tags                                         = var.tags
+  terraform_template_version                   = local.version_label
   transport_private_endpoint_id                = var.transport_private_endpoint_id
   transport_storage_account_id                 = var.transport_storage_account_id
   transport_volume_size                        = var.transport_volume_size
+  use_AFS_for_installation_media               = var.use_AFS_for_installation_media
   use_custom_dns_a_registration                = var.use_custom_dns_a_registration
   use_deployer                                 = length(var.deployer_tfstate_key) > 0
   use_private_endpoint                         = var.use_private_endpoint
