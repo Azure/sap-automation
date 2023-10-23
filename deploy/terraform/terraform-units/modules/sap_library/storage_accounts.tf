@@ -343,22 +343,6 @@ resource "azurerm_private_endpoint" "storage_sapbits" {
   }
 }
 
-
-// Imports existing storage blob container for SAP bits
-data "azurerm_storage_container" "storagecontainer_sapbits" {
-  provider = azurerm.main
-  count    = var.storage_account_sapbits.sapbits_blob_container.is_existing ? 1 : 0
-  name     = var.storage_account_sapbits.sapbits_blob_container.name
-  storage_account_name = local.sa_sapbits_exists ? (
-    data.azurerm_storage_account.storage_sapbits[0].name) : (
-    azurerm_storage_account.storage_sapbits[0].name
-  )
-  depends_on = [
-    azurerm_private_endpoint.storage_sapbits,
-    time_sleep.wait_for_dns_refresh
-  ]
-}
-
 // Creates the storage container inside the storage account for SAP bits
 resource "azurerm_storage_container" "storagecontainer_sapbits" {
   provider = azurerm.main
@@ -371,8 +355,20 @@ resource "azurerm_storage_container" "storagecontainer_sapbits" {
   container_access_type = "private"
   depends_on = [
     azurerm_private_endpoint.storage_sapbits,
-    time_sleep.wait_for_dns_refresh
+    time_sleep.wait_for_dns_refresh,
+    azurerm_private_dns_a_record.storage_sapbits_pep_a_record_registry
   ]
+}
+
+// Imports existing storage blob container for SAP bits
+data "azurerm_storage_container" "storagecontainer_sapbits" {
+  provider = azurerm.main
+  count    = var.storage_account_sapbits.sapbits_blob_container.is_existing ? 1 : 0
+  name     = var.storage_account_sapbits.sapbits_blob_container.name
+  storage_account_name = local.sa_sapbits_exists ? (
+    data.azurerm_storage_account.storage_sapbits[0].name) : (
+    azurerm_storage_account.storage_sapbits[0].name
+  )
 }
 
 // Creates file share inside the storage account for SAP bits
