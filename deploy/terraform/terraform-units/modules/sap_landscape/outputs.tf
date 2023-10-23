@@ -194,7 +194,7 @@ output "sid_password_secret_name"               {
 
 output "workload_zone_prefix"                   {
                                                   description = "Workload zone prefix"
-                                                  value       = local.workload_zone_prefix
+                                                  value       = local.prefix
                                                 }
 
 
@@ -283,7 +283,7 @@ output "privatelink_file_id"                    {
 
 output "ANF_pool_settings"                      {
                                                    description = "json structure with ANF information"
-                                                   value       = var.ANF_settings.use ?
+                                                   value       = var.ANF_settings.use ? (
                                                                    {
                                                                      use_ANF = var.NFS_provider == "ANF"
                                                                      account_name = length(var.ANF_settings.arm_id) > 0 ? (
@@ -329,7 +329,7 @@ output "ANF_pool_settings"                      {
                                                                        data.azurerm_resource_group.resource_group[0].location) : (
                                                                        azurerm_resource_group.resource_group[0].location
                                                                      )
-                                                                   } :
+                                                                   }) : (
                                                                    {
                                                                      use_ANF             = false
                                                                      account_name        = ""
@@ -340,7 +340,7 @@ output "ANF_pool_settings"                      {
                                                                      subnet_id           = ""
                                                                      resource_group_name = ""
                                                                      location            = ""
-                                                                  }
+                                                                  })
                                                 }
 
 ###############################################################################

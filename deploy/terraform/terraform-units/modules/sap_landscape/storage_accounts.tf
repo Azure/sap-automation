@@ -316,6 +316,7 @@ resource "azurerm_storage_account" "transport" {
 
   public_network_access_enabled        = var.public_network_access_enabled
 
+  tags                                 = var.tags
 
 }
 
@@ -554,6 +555,8 @@ resource "azurerm_storage_account" "install" {
   enable_https_traffic_only            = false
   min_tls_version                      = "TLS1_2"
   public_network_access_enabled        = var.public_network_access_enabled
+  tags                                 = var.tags
+
 
 }
 
