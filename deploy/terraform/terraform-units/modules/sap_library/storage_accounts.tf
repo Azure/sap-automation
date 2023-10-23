@@ -229,9 +229,9 @@ resource "azurerm_storage_account" "storage_sapbits" {
 
   allow_nested_items_to_be_public      = false
 
-  public_network_access_enabled        = var.bootstrap ? (
+  public_network_access_enabled        = try(var.deployer_tfstate.public_network_access_enabled, var.bootstrap ? (
                                            !local.enable_firewall_for_keyvaults_and_storage) : (
-                                           local.enable_firewall_for_keyvaults_and_storage
+                                           local.enable_firewall_for_keyvaults_and_storage)
                                          )
 
   routing {
