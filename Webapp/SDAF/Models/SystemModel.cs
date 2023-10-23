@@ -459,6 +459,8 @@ namespace AutomationForm.Models
 
     public string web_instance_number { get; set; } = "00";
 
+    public Tag[] tags { get; set; }
+
   }
 
   public class Tag

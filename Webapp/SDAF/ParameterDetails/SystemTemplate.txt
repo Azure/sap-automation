@@ -793,3 +793,12 @@ $$bom_name$$
 
 # configuration_settings is a dictionary containing values that will be persisted in sap-parameters.yaml
 $$configuration_settings$$
+
+############################################################################################
+#                                                                                          #
+#                                  Tags for all resources                                  #
+#                                                                                          #
+############################################################################################
+
+# These tags will be applied to all resources
+$$tags$$

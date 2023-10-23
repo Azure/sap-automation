@@ -274,5 +274,7 @@ namespace AutomationForm.Models
     public string controlPlaneEnvironment { get; set; }
 
     public string controlPlaneLocation { get; set; }
+    public Tag[] tags { get; set; }
+
   }
 }
