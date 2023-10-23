@@ -350,8 +350,7 @@ resource "azurerm_storage_container" "storagecontainer_sapbits" {
   count                                = var.storage_account_sapbits.sapbits_blob_container.is_existing ? 0 : 1
   depends_on                           = [
                                            azurerm_private_endpoint.storage_sapbits,
-                                           time_sleep.wait_for_dns_refresh,
-                                           azurerm_private_dns_a_record.storage_sapbits_pep_a_record_registry
+                                           azurerm_storage_account_network_rules.storage_tfstate
                                          ]
   name                                 = var.storage_account_sapbits.sapbits_blob_container.name
                                            storage_account_name = local.sa_sapbits_exists ? (
@@ -439,7 +438,7 @@ resource "azurerm_storage_container" "storagecontainer_tfvars" {
   provider                             = azurerm.main
   count                                = var.storage_account_tfstate.tfvars_blob_container.is_existing ? 0 : 1
   depends_on                           = [
-                                           time_sleep.wait_for_dns_refresh,
+                                           azurerm_storage_account_network_rules.storage_tfstate,
                                            azurerm_private_endpoint.storage_tfstate
                                          ]
   name                                 = var.storage_account_tfstate.tfvars_blob_container.name
