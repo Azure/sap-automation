@@ -912,9 +912,11 @@ if ($AlreadySet) {
 
 if (!$AlreadySet -or $ResetPAT ) {
 
+  $POOL_ID = 0
   $POOL_NAME_FOUND = (az pipelines pool list --query "[?name=='$Pool_Name'].name | [0]")
   if ($POOL_NAME_FOUND.Length -gt 0) {
     Write-Host "Agent pool" $Pool_Name "already exists" -ForegroundColor Yellow
+    $POOL_ID = (az pipelines pool list --query "[?name=='$Pool_Name'].id | [0]" --output tsv)
   }
   else {
 
@@ -922,7 +924,7 @@ if (!$AlreadySet -or $ResetPAT ) {
 
     Set-Content -Path pool.json -Value (ConvertTo-Json @{name = $Pool_Name; autoProvision = $true })
     az devops invoke --area distributedtask --resource pools --http-method POST --api-version "7.1-preview" --in-file .\pool.json --query-parameters authorizePipelines=true --query id --output none --only-show-errors
-    $POOL_ID = (az pipelines pool list --query "[?name=='$Pool_Name'].id | [0]" --output tsv).Replace("""", "")
+    $POOL_ID = (az pipelines pool list --query "[?name=='$Pool_Name'].id | [0]" --output tsv)
     Write-Host "Agent pool" $Pool_Name "created"
 
   }
@@ -954,6 +956,20 @@ if (!$AlreadySet -or $ResetPAT ) {
                 $response=Invoke-RestMethod -Method PATCH -Uri $pipeline_permission_url -Headers @{Authorization = "Basic $base64AuthInfo"} -Body $body -ContentType "application/json"
            }
   }
+
+  Read-Host -Prompt "Press any key to continue"
+
+  $pipeline_permission_url=$ADO_ORGANIZATION + "/" + $Project_ID+"/_apis/pipelines/pipelinePermissions/queue/"+$POOL_ID.ToString() + "?api-version=5.1-preview.1"
+  $bodyText.resource.id=$POOL_ID
+  $bodyText.resource.type="queue"
+  foreach($pipeline in $pipelines)
+  {
+       $bodyText.pipelines[0].id=$pipeline
+       $body = $bodyText | ConvertTo-Json -Depth 10
+       Write-Host "  Allowing pipeline id:" $pipeline.ToString() -ForegroundColor Yellow
+       $response=Invoke-RestMethod -Method PATCH -Uri $pipeline_permission_url -Headers @{Authorization = "Basic $base64AuthInfo"} -Body $body -ContentType "application/json"
+  }
+
 
 }
 
