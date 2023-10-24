@@ -937,8 +937,8 @@ if ($ARM_CLIENT_SECRET -ne "Please update") {
 $AlreadySet = [Boolean](az pipelines variable-group variable list --group-id $GroupID --query PAT.isSecret --only-show-errors)
 
 if ($AlreadySet) {
-  Read-Host
-  $confirmation = "The PAT is already set. Do you want to reset it y/n" -ForegroundColor Green
+
+  $confirmation = Read-Host "The PAT is already set. Do you want to reset it y/n" -ForegroundColor Green
   if ($confirmation -eq 'y') {
     $AlreadySet = $false
   }
