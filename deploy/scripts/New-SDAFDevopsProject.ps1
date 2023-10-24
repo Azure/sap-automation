@@ -957,18 +957,18 @@ if (!$AlreadySet -or $ResetPAT ) {
            }
   }
 
-  Read-Host -Prompt "Press any key to continue"
+  # Read-Host -Prompt "Press any key to continue"
 
-  $pipeline_permission_url=$ADO_ORGANIZATION + "/" + $Project_ID+"/_apis/pipelines/pipelinePermissions/queue/"+$POOL_ID.ToString() + "?api-version=5.1-preview.1"
-  $bodyText.resource.id=$POOL_ID
-  $bodyText.resource.type="queue"
-  foreach($pipeline in $pipelines)
-  {
-       $bodyText.pipelines[0].id=$pipeline
-       $body = $bodyText | ConvertTo-Json -Depth 10
-       Write-Host "  Allowing pipeline id:" $pipeline.ToString() -ForegroundColor Yellow
-       $response=Invoke-RestMethod -Method PATCH -Uri $pipeline_permission_url -Headers @{Authorization = "Basic $base64AuthInfo"} -Body $body -ContentType "application/json"
-  }
+  # $pipeline_permission_url=$ADO_ORGANIZATION + "/" + $Project_ID+"/_apis/pipelines/pipelinePermissions/queue/"+$POOL_ID.ToString() + "?api-version=5.1-preview.1"
+  # $bodyText.resource.id=$POOL_ID
+  # $bodyText.resource.type="queue"
+  # foreach($pipeline in $pipelines)
+  # {
+  #      $bodyText.pipelines[0].id=$pipeline
+  #      $body = $bodyText | ConvertTo-Json -Depth 10
+  #      Write-Host "  Allowing pipeline id:" $pipeline.ToString() -ForegroundColor Yellow
+  #      $response=Invoke-RestMethod -Method PATCH -Uri $pipeline_permission_url -Headers @{Authorization = "Basic $base64AuthInfo"} -Body $body -ContentType "application/json"
+  # }
 
 
 }
