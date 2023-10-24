@@ -512,7 +512,6 @@ $bodyText = [PSCustomObject]@{
     })
 }
 
-
 Write-Host "Creating the variable group SDAF-General" -ForegroundColor Green
 
 $general_group_id = (az pipelines variable-group list --query "[?name=='SDAF-General'].id | [0]" --only-show-errors)
@@ -910,34 +909,9 @@ if ($AlreadySet) {
 
 if (!$AlreadySet -or $ResetPAT ) {
 
-  Write-Host ""
-  Write-Host "The browser will now open, please create a Personal Access Token. Ensure that Read & manage is selected for Agent Pools, Read & write is selected for Code, Read & execute is selected for Build, and Read, create, & manage is selected for Variable Groups"
-  Start-Process $pat_url
-  $PAT = Read-Host -Prompt "Please enter the PAT "
-  az pipelines variable-group variable update --group-id $Control_plane_groupID --name "PAT" --value $PAT --secret true --only-show-errors --output none
-  az pipelines variable-group variable update --group-id $GroupID --name "WZ_PAT" --value $PAT --secret true --only-show-errors --output none
-  # Create header with PAT
-  $base64AuthInfo = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes((":{0}" -f $PAT)))
-
-  foreach($group in $groups)
-  {
-      $bodyText.resource.id=$group
-      $pipeline_permission_url=$ADO_ORGANIZATION + "/" + $Project_ID+"/_apis/pipelines/pipelinePermissions/variablegroup/"+$group.ToString() + "?api-version=5.1-preview.1"
-      Write-Host "Setting permissions for variable group:" + $group.ToString() -ForegroundColor Yellow
-
-      foreach($pipeline in $pipelines)
-           {
-                $bodyText.pipelines[0].id=$pipeline
-                $body = $bodyText | ConvertTo-Json -Depth 10
-                Write-Host "  Allowing pipeline id:" + $pipeline.ToString() -ForegroundColor Yellow
-                Invoke-RestMethod -Method PATCH -Uri $pipeline_permission_url -Headers @{Authorization = "Basic $base64AuthInfo"} -Body $body -ContentType "application/json"
-           }
-  }
-
   $POOL_NAME_FOUND = (az pipelines pool list --query "[?name=='$Pool_Name'].name | [0]")
   if ($POOL_NAME_FOUND.Length -gt 0) {
     Write-Host "Agent pool" $Pool_Name "already exists" -ForegroundColor Yellow
-
   }
   else {
 
@@ -953,6 +927,32 @@ if (!$AlreadySet -or $ResetPAT ) {
   if (Test-Path .\pool.json) {
     Remove-Item .\pool.json
   }
+
+  Write-Host ""
+  Write-Host "The browser will now open, please create a Personal Access Token. Ensure that Read & manage is selected for Agent Pools, Read & write is selected for Code, Read & execute is selected for Build, and Read, create, & manage is selected for Variable Groups"
+  Start-Process $pat_url
+  $PAT = Read-Host -Prompt "Please enter the PAT "
+  az pipelines variable-group variable update --group-id $Control_plane_groupID --name "PAT" --value $PAT --secret true --only-show-errors --output none
+  az pipelines variable-group variable update --group-id $GroupID --name "WZ_PAT" --value $PAT --secret true --only-show-errors --output none
+  # Create header with PAT
+  $base64AuthInfo = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes((":{0}" -f $PAT)))
+
+  foreach($group in $groups)
+  {
+      $bodyText.resource.id=$group
+      $pipeline_permission_url=$ADO_ORGANIZATION + "/" + $Project_ID+"/_apis/pipelines/pipelinePermissions/variablegroup/"+$group.ToString() + "?api-version=5.1-preview.1"
+      Write-Host "Setting permissions for variable group:" $group.ToString() -ForegroundColor Yellow
+      Read-Host -Prompt "Press any key to continue"
+
+      foreach($pipeline in $pipelines)
+           {
+                $bodyText.pipelines[0].id=$pipeline
+                $body = $bodyText | ConvertTo-Json -Depth 10
+                Write-Host "  Allowing pipeline id:" $pipeline.ToString() -ForegroundColor Yellow
+                Invoke-RestMethod -Method PATCH -Uri $pipeline_permission_url -Headers @{Authorization = "Basic $base64AuthInfo"} -Body $body -ContentType "application/json"
+           }
+  }
+
 }
 
 Write-Host ""
