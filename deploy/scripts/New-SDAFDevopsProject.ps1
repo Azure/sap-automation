@@ -938,7 +938,7 @@ $AlreadySet = [Boolean](az pipelines variable-group variable list --group-id $Gr
 
 if ($AlreadySet) {
 
-  $confirmation = Read-Host "The PAT is already set. Do you want to reset it y/n" -ForegroundColor Green
+  $confirmation = Read-Host "The PAT is already set. Do you want to reset it y/n"
   if ($confirmation -eq 'y') {
     $AlreadySet = $false
   }
