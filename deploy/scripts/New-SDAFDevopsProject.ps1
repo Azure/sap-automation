@@ -526,13 +526,20 @@ $this_pipeline_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Proj
 $log = ("[" + $pipeline_name + "](" + $this_pipeline_url + ")")
 Add-Content -Path $fname -Value $log
 
+
 $bodyText = [PSCustomObject]@{
+  allPipelines = @{
+    authorized = $false
+  }
+  resource = @{
+    id = 123
+    type= "variablegroup"
+  }
   pipelines = @([ordered]@{
       id         = $sample_pipeline_id
-      authorized = $true
+      authorized = $false
     })
 }
-
 
 $pipeline_name = 'Deploy Control plane'
 $control_plane_pipeline_id = (az pipelines list --query "[?name=='$pipeline_name'].id | [0]")
@@ -942,8 +949,29 @@ else {
   # Create header with PAT
   $base64AuthInfo = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes((":{0}" -f $PAT)))
 
-  # To be added later
-  # $body = $bodyText | ConvertTo-Json -Depth 10
+  $bodyText.resource.id=$general_group_id
+
+  $pipeline_permission_url=$("$ADO_ORGANIZATION + "/" + $Project_ID/_apis/pipelines/pipelinePermissions/variablegroup/$general_group_id.ToString()?api-version=5.1-preview.1")
+  $body = $bodyText | ConvertTo-Json -Depth 10
+
+  $bodyText | ConvertTo-Json -Depth 10
+
+  Invoke-RestMethod -Method PATCH -Uri $pipeline_permission_url -Headers @{Authorization = "Basic $base64AuthInfo"} -Body $body -ContentType "application/json"
+
+  $bodyText.resource.id=$Control_plane_groupID
+
+  $pipeline_permission_url=$("$ADO_ORGANIZATION + "/" + $Project_ID/_apis/pipelines/pipelinePermissions/variablegroup/$Control_plane_groupID.ToString()?api-version=5.1-preview.1")
+  $body = $bodyText | ConvertTo-Json -Depth 10
+
+  Invoke-RestMethod -Method PATCH -Uri $pipeline_permission_url -Headers @{Authorization = "Basic $base64AuthInfo"} -Body $body -ContentType "application/json"
+
+  $bodyText.resource.id=$GroupID
+
+  $pipeline_permission_url=$("$ADO_ORGANIZATION + "/" + $Project_ID/_apis/pipelines/pipelinePermissions/variablegroup/$GroupID.ToString()?api-version=5.1-preview.1")
+  $body = $bodyText | ConvertTo-Json -Depth 10
+
+  Invoke-RestMethod -Method PATCH -Uri $pipeline_permission_url -Headers @{Authorization = "Basic $base64AuthInfo"} -Body $body -ContentType "application/json"
+
   #
   #$body = $bodyText | ConvertTo-Json -Depth 10 | Out-File -FilePath "body.json" -Encoding utf8 -Force
 
