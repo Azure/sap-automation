@@ -937,9 +937,15 @@ if ($ARM_CLIENT_SECRET -ne "Please update") {
 $AlreadySet = [Boolean](az pipelines variable-group variable list --group-id $GroupID --query PAT.isSecret --only-show-errors)
 
 if ($AlreadySet) {
-  Write-Host "The PAT is already set" -ForegroundColor Green
+  Read-Host
+  $confirmation = "The PAT is already set. Do you want to reset it y/n" -ForegroundColor Green
+  if ($confirmation -eq 'y') {
+    $AlreadySet = $false
+  }
 }
-else {
+
+if ($AlreadySet) {
+
   Write-Host ""
   Write-Host "The browser will now open, please create a Personal Access Token. Ensure that Read & manage is selected for Agent Pools, Read & write is selected for Code, Read & execute is selected for Build, and Read, create, & manage is selected for Variable Groups"
   Start-Process $pat_url
@@ -954,6 +960,8 @@ else {
   $pipeline_permission_url=$ADO_ORGANIZATION + "/" + $Project_ID+"/_apis/pipelines/pipelinePermissions/variablegroup/"+$general_group_id.ToString() + "?api-version=5.1-preview.1"
 
   $body = $bodyText | ConvertTo-Json -Depth 10
+
+  $bodyText | ConvertTo-Json -Depth 10
 
   Invoke-RestMethod -Method PATCH -Uri $pipeline_permission_url -Headers @{Authorization = "Basic $base64AuthInfo"} -Body $body -ContentType "application/json"
 
