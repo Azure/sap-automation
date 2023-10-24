@@ -199,11 +199,12 @@ else {
     }
   }
   else {
-    Write-Host "The repository already exists" -ForegroundColor Yellow
-    Write-Host "Creating repository 'SDAF Configuration'" -ForegroundColor Green
-    $repo_id = (az repos create --name "SDAF Configuration" --query id --output tsv)
-
-    az repos import create --git-url https://github.com/Azure/SAP-automation-bootstrap --repository $repo_id --output none
+    $confirmation = Read-Host "The repository already exists, use it? y/n"
+    if ($confirmation -ne 'y') {
+      Write-Host "Creating repository 'SDAF Configuration'" -ForegroundColor Green
+      $repo_id = (az repos create --name "SDAF Configuration" --query id --output tsv)
+      az repos import create --git-url https://github.com/Azure/SAP-automation-bootstrap --repository $repo_id --output none
+    }
   }
 
   az repos update --repository $repo_id --default-branch main --output none
