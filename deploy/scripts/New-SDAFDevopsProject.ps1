@@ -951,7 +951,7 @@ if (!$AlreadySet -or $ResetPAT ) {
                 $bodyText.pipelines[0].id=$pipeline
                 $body = $bodyText | ConvertTo-Json -Depth 10
                 Write-Host "  Allowing pipeline id:" $pipeline.ToString() -ForegroundColor Yellow
-                Invoke-RestMethod -Method PATCH -Uri $pipeline_permission_url -Headers @{Authorization = "Basic $base64AuthInfo"} -Body $body -ContentType "application/json"
+                $response=Invoke-RestMethod -Method PATCH -Uri $pipeline_permission_url -Headers @{Authorization = "Basic $base64AuthInfo"} -Body $body -ContentType "application/json"
            }
   }
 
