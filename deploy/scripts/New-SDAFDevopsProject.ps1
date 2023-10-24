@@ -502,6 +502,9 @@ $groups= New-Object System.Collections.Generic.List[System.Object]
 $pipelines= New-Object System.Collections.Generic.List[System.Object]
 
 $bodyText = [PSCustomObject]@{
+  allPipelines= @{
+  authorized = $false
+  }
   resource = @{
     id = 000
     type= "variablegroup"
@@ -942,7 +945,6 @@ if (!$AlreadySet -or $ResetPAT ) {
       $bodyText.resource.id=$group
       $pipeline_permission_url=$ADO_ORGANIZATION + "/" + $Project_ID+"/_apis/pipelines/pipelinePermissions/variablegroup/"+$group.ToString() + "?api-version=5.1-preview.1"
       Write-Host "Setting permissions for variable group:" $group.ToString() -ForegroundColor Yellow
-      Read-Host -Prompt "Press any key to continue"
 
       foreach($pipeline in $pipelines)
            {
