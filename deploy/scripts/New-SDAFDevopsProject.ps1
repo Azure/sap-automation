@@ -151,7 +151,7 @@ if ($extension_name.Length -eq 0) {
 #endregion
 
 #region Create DevOps project
-$Project_ID = (az devops project list --organization $ADO_ORGANIZATION --query "[value[]] | [0] | [? name=='$ADO_PROJECT'].id | [0]").Replace("""", "")
+$Project_ID = (az devops project list --organization $ADO_ORGANIZATION --query "[value[]] | [0] | [? name=='$ADO_PROJECT'].id | [0]" --out tsv)
 
 if ($Project_ID.Length -eq 0) {
   Write-Host "Creating the project: " $ADO_PROJECT -ForegroundColor Green
@@ -162,7 +162,7 @@ if ($Project_ID.Length -eq 0) {
 
   az devops configure --defaults organization=$ADO_ORGANIZATION project=$ADO_PROJECT
 
-  $repo_id = (az repos list --query "[?name=='$ADO_Project'].id | [0]").Replace("""", "")
+  $repo_id = (az repos list --query "[?name=='$ADO_Project'].id | [0]" --out tsv)
 
   Write-Host "Importing the content from GitHub" -ForegroundColor Green
   az repos import create --git-url https://github.com/Azure/SAP-automation-bootstrap --repository $repo_id --output none
@@ -178,7 +178,7 @@ else {
 
   Write-Host "Using an existing project"
 
-  $repo_id = (az repos list --query "[?name=='$ADO_Project'].id | [0]").Replace("""", "")
+  $repo_id = (az repos list --query "[?name=='$ADO_Project'].id | [0]" --out tsv)
   az devops configure --defaults organization=$ADO_ORGANIZATION project=$ADO_PROJECT
 
   $repo_size=(az repos list --query "[?id=='$repo_id'].size | [0]")
@@ -221,7 +221,7 @@ if ($confirmation -ne 'y') {
   $repo_name = "sap-automation"
   Write-Host "Creating $repo_name repository" -ForegroundColor Green
   az repos create --name $repo_name --query id --output none
-  $code_repo_id = (az repos list --query "[?name=='$repo_name'].id | [0]").Replace("""", "")
+  $code_repo_id = (az repos list --query "[?name=='$repo_name'].id | [0]" --out tsv)
   az repos import create --git-url https://github.com/Azure/SAP-automation --repository $code_repo_id --output none
   az repos update --repository $code_repo_id --default-branch main --output none
 
@@ -229,7 +229,7 @@ if ($confirmation -ne 'y') {
   $repo_name = "sap-samples"
   Write-Host "Creating $repo_name repository" -ForegroundColor Green
   az repos create --name $repo_name --query id --output none
-  $sample_repo_id = (az repos list --query "[?name=='$repo_name'].id | [0]").Replace("""", "")
+  $sample_repo_id = (az repos list --query "[?name=='$repo_name'].id | [0]" --out tsv)
   az repos import create --git-url https://github.com/Azure/SAP-automation-samples --repository $sample_repo_id --output none
   az repos update --repository $sample_repo_id --default-branch main --output none
 
@@ -347,7 +347,7 @@ if ($confirmation -ne 'y') {
     Remove-Item $templatename
   }
 
-  $code_repo_id = (az repos list --query "[?name=='sap-automation'].id | [0]").Replace("""", "")
+  $code_repo_id = (az repos list --query "[?name=='sap-automation'].id | [0]" --out tsv)
 
   $queryString = "?api-version=6.0-preview"
   $pipeline_permission_url = "$ADO_ORGANIZATION/$projectID/_apis/pipelines/pipelinePermissions/repository/$projectID.$code_repo_id$queryString"
@@ -366,7 +366,7 @@ else {
   Start-Process $gh_connection_url
   Read-Host "Please press enter when you have created the connection"
 
-  $ghConn = (az devops service-endpoint list --query "[?type=='github'].name | [0]").Replace("""", "")
+  $ghConn = (az devops service-endpoint list --query "[?type=='github'].name | [0]" --out tsv)
 
   $objectId = (az devops invoke --area git --resource refs --route-parameters project=$ADO_Project repositoryId=$repo_id --query-parameters filter=heads/main --query value[0] | ConvertFrom-Json).objectId
 
@@ -485,8 +485,8 @@ else {
 
 #endregion
 
-$repo_id = (az repos list --query "[?name=='$ADO_Project'].id | [0]").Replace("""", "")
-$repo_name = (az repos list --query "[?name=='$ADO_Project'].name | [0]").Replace("""", "")
+$repo_id = (az repos list --query "[?name=='$ADO_Project'].id | [0]" --out tsv)
+$repo_name = (az repos list --query "[?name=='$ADO_Project'].name | [0]" --out tsv)
 
 $SUserName = 'Enter your S User'
 $SPassword = 'Enter your S user password'
