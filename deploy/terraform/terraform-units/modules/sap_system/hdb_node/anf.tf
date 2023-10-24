@@ -109,6 +109,8 @@ resource "azurerm_netapp_volume" "hanalog" {
   subnet_id                            = local.ANF_pool_settings.subnet_id
   zone                                 = local.db_zone_count > 0 && var.hana_ANF_volumes.use_zones ? try(local.zones[count.index], null) : null
 
+  network_features                     = "Standard"
+  protocols                            = ["NFSv4.1"]
   storage_quota_in_gb                  = var.hana_ANF_volumes.log_volume_size
   throughput_in_mibps                  = var.hana_ANF_volumes.log_volume_throughput
   snapshot_directory_visible           = true
@@ -181,7 +183,7 @@ resource "azurerm_netapp_volume" "hanashared" {
   service_level                        = local.ANF_pool_settings.service_level
   subnet_id                            = local.ANF_pool_settings.subnet_id
   network_features                     = "Standard"
-
+  protocols                            = ["NFSv4.1"]
   storage_quota_in_gb                  = var.hana_ANF_volumes.shared_volume_size
   throughput_in_mibps                  = var.hana_ANF_volumes.shared_volume_throughput
 
