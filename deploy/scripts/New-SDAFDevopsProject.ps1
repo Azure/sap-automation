@@ -951,23 +951,23 @@ else {
 
   $bodyText.resource.id=$general_group_id
 
-  $pipeline_permission_url=$("$ADO_ORGANIZATION + "/" + $Project_ID/_apis/pipelines/pipelinePermissions/variablegroup/$general_group_id.ToString()?api-version=5.1-preview.1")
-  $body = $bodyText | ConvertTo-Json -Depth 10
+  $pipeline_permission_url=$ADO_ORGANIZATION + "/" + $Project_ID+"/_apis/pipelines/pipelinePermissions/variablegroup/"+$general_group_id.ToString() + "?api-version=5.1-preview.1"
 
-  $bodyText | ConvertTo-Json -Depth 10
+  $body = $bodyText | ConvertTo-Json -Depth 10
 
   Invoke-RestMethod -Method PATCH -Uri $pipeline_permission_url -Headers @{Authorization = "Basic $base64AuthInfo"} -Body $body -ContentType "application/json"
 
   $bodyText.resource.id=$Control_plane_groupID
 
-  $pipeline_permission_url=$("$ADO_ORGANIZATION + "/" + $Project_ID/_apis/pipelines/pipelinePermissions/variablegroup/$Control_plane_groupID.ToString()?api-version=5.1-preview.1")
+  $pipeline_permission_url=$ADO_ORGANIZATION + "/" + $Project_ID+"/_apis/pipelines/pipelinePermissions/variablegroup/"+$Control_plane_groupID.ToString() + "?api-version=5.1-preview.1"
   $body = $bodyText | ConvertTo-Json -Depth 10
 
   Invoke-RestMethod -Method PATCH -Uri $pipeline_permission_url -Headers @{Authorization = "Basic $base64AuthInfo"} -Body $body -ContentType "application/json"
 
   $bodyText.resource.id=$GroupID
 
-  $pipeline_permission_url=$("$ADO_ORGANIZATION + "/" + $Project_ID/_apis/pipelines/pipelinePermissions/variablegroup/$GroupID.ToString()?api-version=5.1-preview.1")
+
+  $pipeline_permission_url=$ADO_ORGANIZATION + "/" + $Project_ID+"/_apis/pipelines/pipelinePermissions/variablegroup/"+$GroupID.ToString() + "?api-version=5.1-preview.1"
   $body = $bodyText | ConvertTo-Json -Depth 10
 
   Invoke-RestMethod -Method PATCH -Uri $pipeline_permission_url -Headers @{Authorization = "Basic $base64AuthInfo"} -Body $body -ContentType "application/json"
