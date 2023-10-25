@@ -11,6 +11,8 @@ namespace AutomationForm.Models
     public int id { get; set; }
     public Variables variables { get; set; }
     public VariableGroupProjectReference[] variableGroupProjectReferences { get; set; }
+
+    public string sdafControlPlaneEnvironment { get; set; }
   }
 
   public class Variables
@@ -23,6 +25,17 @@ namespace AutomationForm.Models
     public Variable ARM_TENANT_ID { get; set; }
     public Variable sap_fqdn { get; set; }
     public Variable POOL { get; set; }
+    public Variable Terraform_Remote_Storage_Account_Name { get; set; }
+
+    public Variable Terraform_Remote_Storage_Subscription { get; set; }
+
+    public Variable Deployer_State_FileName { get; set; }
+
+    public Variable Deployer_Key_Vault { get; set; }
+
+    public Variable IsControlPlane { get; set; }
+
+    
   }
 
   public class Variable

@@ -54,8 +54,12 @@ resource "azurerm_key_vault" "kv_user" {
       ))
     }
   }
-}
 
+  lifecycle {
+    ignore_changes = [network_acls]
+  }
+
+}
 
 
 // Import an existing user Key Vault

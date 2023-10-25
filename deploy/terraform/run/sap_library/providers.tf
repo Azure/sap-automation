@@ -20,6 +20,7 @@ data "azurerm_client_config" "current" {
 provider "azurerm" {
   features {
   }
+  skip_provider_registration = true
 }
 
 
@@ -37,6 +38,7 @@ provider "azurerm" {
   partner_id      = "140c3bc9-c937-4139-874f-88288bab08bb"
 
   alias = "main"
+  skip_provider_registration = true
 }
 
 provider "azurerm" {

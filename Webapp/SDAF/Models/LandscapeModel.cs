@@ -270,5 +270,11 @@ namespace AutomationForm.Models
     public string[] utility_vm_nic_ips { get; set; }
 
     public string storage_account_replication_type { get; set; } = "LRS";
+
+    public string controlPlaneEnvironment { get; set; }
+
+    public string controlPlaneLocation { get; set; }
+    public Tag[] tags { get; set; }
+
   }
 }

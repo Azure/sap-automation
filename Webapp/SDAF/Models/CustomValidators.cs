@@ -1,4 +1,6 @@
 using AutomationForm.Controllers;
+using Azure.ResourceManager.Resources;
+using Microsoft.Extensions.FileSystemGlobbing.Internal;
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -42,8 +44,29 @@ namespace AutomationForm.Models
     {
       public override bool IsValid(object value)
       {
+        if (value == null) return true;
+        string addresses = value.ToString();
         string pattern = @"^\d+\.\d+\.\d+\.\d+\/\d+$";
-        return RegexValidation(value, pattern);
+
+        if (addresses.Contains(","))
+        {
+          bool returnValue = true;
+          foreach(string address in addresses.Split(','))
+            {
+              if(!RegexValidation(address, pattern))
+                {
+                  returnValue = false;
+                }
+            }
+          return returnValue;
+
+        }
+        else
+        {
+          
+          return RegexValidation(value, pattern);
+        }
+      
       }
     }
     public class IpAddressValidator : ValidationAttribute

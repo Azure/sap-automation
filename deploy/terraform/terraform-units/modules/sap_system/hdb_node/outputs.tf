@@ -17,7 +17,7 @@ output "loadbalancers" {
 
 output "hdb_sid" {
   sensitive = false
-  value     = local.hdb_sid
+  value     = local.database_sid
 }
 
 // Output for DNS
@@ -115,7 +115,10 @@ output "db_server_ips" {
 }
 
 output "db_server_secondary_ips" {
-  value = local.enable_deployment && var.use_secondary_ips ? azurerm_network_interface.nics_dbnodes_db[*].private_ip_addresses[1] : []
+  value = local.enable_deployment && var.use_secondary_ips ? (
+    try(azurerm_network_interface.nics_dbnodes_db[*].private_ip_addresses[1], [])) : (
+    []
+  )
 }
 
 

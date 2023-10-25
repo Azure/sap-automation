@@ -142,6 +142,46 @@
                 @Html.ValidationMessageFor(m => m.variables.POOL)
             </div>
         </div>
+        <div class="ms-TextField">
+            <div class="left-input">
+                @Html.LabelFor(m => m.variables.Deployer_Key_Vault, new { @class = $"ms-Label" })
+                <p>Enter the name of the Control Plane keyvault.</p>
+            </div>
+            <div class="right-input">
+                @Html.TextBoxFor(m => m.variables.Deployer_Key_Vault.value, new { @class = "ms-TextField-field" })
+                @Html.ValidationMessageFor(m => m.variables.Deployer_Key_Vault)
+            </div>
+        </div>
+        <div class="ms-TextField">
+            <div class="left-input">
+                @Html.LabelFor(m => m.variables.Deployer_State_FileName, new { @class = $"ms-Label" })
+                <p>Enter the name of the state file for the Deployer.</p>
+            </div>
+            <div class="right-input">
+                @Html.TextBoxFor(m => m.variables.Deployer_State_FileName.value, new { @class = "ms-TextField-field" })
+                @Html.ValidationMessageFor(m => m.variables.Deployer_State_FileName)
+            </div>
+        </div>
+        <div class="ms-TextField">
+            <div class="left-input">
+                @Html.LabelFor(m => m.variables.Terraform_Remote_Storage_Account_Name, new { @class = $"ms-Label" })
+                <p>Enter the name of the storage account containing the Terraform state files.</p>
+            </div>
+            <div class="right-input">
+                @Html.TextBoxFor(m => m.variables.Terraform_Remote_Storage_Account_Name.value, new { @class = "ms-TextField-field" })
+                @Html.ValidationMessageFor(m => m.variables.Terraform_Remote_Storage_Account_Name)
+            </div>
+        </div>
+        <div class="ms-TextField">
+            <div class="left-input">
+                @Html.LabelFor(m => m.variables.Terraform_Remote_Storage_Subscription, new { @class = $"ms-Label" })
+                <p>Enter the Id of the subscription containing the storage account containing the Terraform state files.</p>
+            </div>
+            <div class="right-input">
+                @Html.TextBoxFor(m => m.variables.Terraform_Remote_Storage_Subscription.value, new { @class = "ms-TextField-field" })
+                @Html.ValidationMessageFor(m => m.variables.Terraform_Remote_Storage_Subscription)
+            </div>
+        </div>
 
     </div>
 

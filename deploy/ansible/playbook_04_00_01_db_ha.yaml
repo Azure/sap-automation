@@ -81,16 +81,34 @@
       block:
         - name:                        "Install HANA System Replication"
           block:
-            - name:                    Initialize facts
+            - name:                    "Retrieve Azure Instance Metadata results"
+              ansible.builtin.uri:
+                url:                   http://169.254.169.254/metadata/instance?api-version=2021-02-01
+                use_proxy:             false
+                headers:
+                  Metadata:            true
+              register: azmetadata
+
+            - name:                    "Show IMDS results"
+              ansible.builtin.debug:
+                var:                   azmetadata.json
+                verbosity:             2
+
+            - name:                    "Set the primary intance nic and secondary instance nic IP"
+              ansible.builtin.set_fact:
+                primary_ip:            "{{ azmetadata.json.network.interface[0].ipv4.ipAddress[0].privateIpAddress }}"
+                subnet_prefix:         "{{ azmetadata.json.network.interface[0].ipv4.subnet[0].prefix }}"
+
+            - name:                    "Initialize facts for hdb-hsr role"
               ansible.builtin.set_fact:
                 tier:                      hdb                                      # Actions for HANA DB Servers
                 primary_instance_name :    "{{ ansible_play_hosts_all[0] }}"        # Setting up Primary Instance Name
-                primary_instance_ip_db:    "{{ hostvars[ansible_play_hosts_all[0]]['ansible_eth0']['ipv4']['address'] }}"
+                primary_instance_ip_db:    "{{ hostvars[ansible_play_hosts_all[0]]['primary_ip'] | string }}"
                 secondary_instance_name:   "{{ ansible_play_hosts_all[1] }}"         # Setting up Secondary Instance Name
-                secondary_instance_ip_db:  "{{ hostvars[ansible_play_hosts_all[1]]['ansible_eth0']['ipv4']['address'] }}"
+                secondary_instance_ip_db:  "{{ hostvars[ansible_play_hosts_all[1]]['primary_ip'] | string }}"
                 main_password:             "{{ hostvars.localhost.sap_password }}"
 
-            - name:                    Run the db/hdb-hsr role
+            - name:                    "Run the db/hdb-hsr role"
               ansible.builtin.include_role:
                 name:                  roles-db/4.0.1-hdb-hsr
               tags:
@@ -98,15 +116,15 @@
 
         - name:                        "Install HANA Pacemaker resources"
           block:
-            - name:                    Initialize facts
+            - name:                    "Initialize facts for HANA pacemaker resources"
               ansible.builtin.set_fact:
                 tier:                      ha
                 password_ha_db_cluster:    "{{ hostvars.localhost.db_cluster_password }}"
                 main_password:             "{{ hostvars.localhost.sap_password }}"
                 primary_instance_name:     "{{ ansible_play_hosts_all[0] }}"         # Setting up Primary Instance Name
-                primary_instance_ip_db:    "{{ hostvars[ansible_play_hosts_all[0]]['ansible_eth0']['ipv4']['address'] }}"
+                primary_instance_ip_db:    "{{ hostvars[ansible_play_hosts_all[0]]['primary_ip'] | string }}"
                 secondary_instance_name:   "{{ ansible_play_hosts_all[1] }}"         # Setting up Secondary Instance Name
-                secondary_instance_ip_db:  "{{ hostvars[ansible_play_hosts_all[1]]['ansible_eth0']['ipv4']['address'] }}"
+                secondary_instance_ip_db:  "{{ hostvars[ansible_play_hosts_all[1]]['primary_ip'] | string }}"
                 fencing_spn_client_id:     "{% if not use_msi_for_clusters %}{{ hostvars.localhost.sap_fencing_spn_client_id }}{% endif %}"
                 fencing_spn_client_pwd:    "{% if not use_msi_for_clusters %}{{ hostvars.localhost.sap_fencing_spn_pwd }}{% endif %}"
                 fencing_spn_tenant_id:     "{% if not use_msi_for_clusters %}{{ hostvars.localhost.sap_fencing_spn_tenant_id }}{% endif %}"

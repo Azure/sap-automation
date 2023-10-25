@@ -40,7 +40,7 @@ force=0
 recover=0
 ado_flag=""
 
-INPUT_ARGUMENTS=$(getopt -n deploy_controlplane -o d:l:s:c:p:t:a:ifohrv --longoptions deployer_parameter_file:,library_parameter_file:,subscription:,spn_id:,spn_secret:,tenant_id:,storageaccountname:,auto-approve,force,only_deployer,help,recover,ado -- "$@")
+INPUT_ARGUMENTS=$(getopt -n deploy_controlplane -o d:l:s:c:p:t:a:k:ifohrv --longoptions deployer_parameter_file:,library_parameter_file:,subscription:,spn_id:,spn_secret:,tenant_id:,storageaccountname:,vault:,auto-approve,force,only_deployer,help,recover,ado -- "$@")
 VALID_ARGUMENTS=$?
 
 if [ "$VALID_ARGUMENTS" != "0" ]; then
@@ -58,6 +58,7 @@ do
         -p | --spn_secret)                         spn_secret="$2"                  ; shift 2 ;;
         -t | --tenant_id)                          tenant_id="$2"                   ; shift 2 ;;
         -a | --storageaccountname)                 REMOTE_STATE_SA="$2"             ; shift 2 ;;
+        -k | --vault)                              keyvault="$2"                    ; shift 2 ;;
         -v | --ado)                                ado_flag="--ado"                 ; shift ;;
         -f | --force)                              force=1                          ; shift ;;
         -o | --only_deployer)                      only_deployer=1                  ; shift ;;
@@ -208,10 +209,14 @@ if [ 3 == $step ]; then
     spn_secret="none"
 fi
 
-set_executing_user_environment_variables "${spn_secret}"
+if [ -n "$keyvault" ]; then
+  set_executing_user_environment_variables "none"
+else
+  set_executing_user_environment_variables "${spn_secret}"
+fi
+
 
 load_config_vars "${deployer_config_information}" "step"
-
 load_config_vars "${deployer_config_information}" "keyvault"
 
 
@@ -394,7 +399,7 @@ if [ 1 == $step ] || [ 3 == $step ] ; then
     if [ -z $kv_name_check ]; then
         echo "#########################################################################################"
         echo "#                                                                                       #"
-        echo -e "#                               $boldred  Unable to access keyvault $resetformatting                            #"
+        echo -e "#                               $boldred  Unable to access keyvault: $keyvault $resetformatting                            #"
         echo "#                             Please ensure the key vault exists.                       #"
         echo "#                                                                                       #"
         echo "#########################################################################################"

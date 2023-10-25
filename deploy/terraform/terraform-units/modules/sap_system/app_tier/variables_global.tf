@@ -149,18 +149,13 @@ variable "management_dns_subscription_id" {
 }
 
 variable "management_dns_resourcegroup_name" {
-  description = "String value giving the possibility to register custom dns a records in a separate resourcegroup"
-  default     = null
-  type        = string
-}
+                                               description = "String value giving the possibility to register custom dns a records in a separate resourcegroup"
+                                               default     = null
+                                               type        = string
+                                             }
 
-variable "scs_cluster_disk_lun" {
-  description = "The LUN of the shared disk for the SAP Central Services cluster"
-}
-
-variable "scs_cluster_disk_size" {
-  description = "The size of the shared disk for the SAP Central Services cluster"
-}
+variable "scs_cluster_disk_lun"              { description = "The LUN of the shared disk for the SAP Central Services cluster" }
+variable "scs_cluster_disk_size"             { description = "The size of the shared disk for the SAP Central Services cluster" }
 
 #########################################################################################
 #                                                                                       #
@@ -168,10 +163,14 @@ variable "scs_cluster_disk_size" {
 #                                                                                       #
 #########################################################################################
 
-variable "use_scalesets_for_deployment" {
-  description = "Use Flexible Virtual Machine Scale Sets for the deployment"
-}
+variable "use_scalesets_for_deployment"      { description = "Use Flexible Virtual Machine Scale Sets for the deployment" }
 
-variable "scale_set_id" {
-  description = "Azure resource identifier for scale set"
-}
+variable "scale_set_id"                      { description = "Azure resource identifier for scale set" }
+
+#########################################################################################
+#                                                                                       #
+#  Tags                                                                                 #
+#                                                                                       #
+#########################################################################################
+
+variable "tags"                              { description = "If provided, tags for all resources" }

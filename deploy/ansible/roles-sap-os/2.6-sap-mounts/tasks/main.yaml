@@ -404,4 +404,14 @@
         - { mode: '0755', path: '/hana/log' }
         - { mode: '0755', path: '/hana/shared' }
 
+# Import custom NFS mounts.
+- name:                                "2.6 Custom Mounts"
+  ansible.builtin.include_tasks:       "2.6.9-custom-mounts.yaml"
+  loop:                                "{{ custom_mounts }}"
+  loop_control:
+    loop_var:                          custom_mount
+  when:
+    - custom_mounts is defined
+
+
 ...

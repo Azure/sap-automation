@@ -86,6 +86,7 @@ module "common_infrastructure" {
   sapmnt_private_endpoint_id                    = var.sapmnt_private_endpoint_id
   sapmnt_volume_size                            = var.sapmnt_volume_size
   service_principal                             = var.use_spn ? local.service_principal : local.account
+  tags                                          = var.tags
   terraform_template_version                    = var.terraform_template_version
   use_custom_dns_a_registration                 = try(data.terraform_remote_state.landscape.outputs.use_custom_dns_a_registration, true)
   use_private_endpoint                          = var.use_private_endpoint
@@ -156,6 +157,7 @@ module "hdb_node" {
   sid_username                                  = module.common_infrastructure.sid_username
   storage_bootdiag_endpoint                     = module.common_infrastructure.storage_bootdiag_endpoint
   storage_subnet                                = module.common_infrastructure.storage_subnet
+  tags                                          = var.tags
   terraform_template_version                    = var.terraform_template_version
   use_custom_dns_a_registration                 = try(data.terraform_remote_state.landscape.outputs.use_custom_dns_a_registration, false)
   use_loadbalancers_for_standalone_deployments  = var.use_loadbalancers_for_standalone_deployments
@@ -212,6 +214,7 @@ module "app_tier" {
   sid_password                                  = module.common_infrastructure.sid_password
   sid_username                                  = module.common_infrastructure.sid_username
   storage_bootdiag_endpoint                     = module.common_infrastructure.storage_bootdiag_endpoint
+  tags                                          = var.tags
   terraform_template_version                    = var.terraform_template_version
   use_custom_dns_a_registration                 = try(data.terraform_remote_state.landscape.outputs.use_custom_dns_a_registration, false)
   use_loadbalancers_for_standalone_deployments  = var.use_loadbalancers_for_standalone_deployments
@@ -274,6 +277,7 @@ module "anydb_node" {
   sid_password                                  = module.common_infrastructure.sid_password
   sid_username                                  = module.common_infrastructure.sid_username
   storage_bootdiag_endpoint                     = module.common_infrastructure.storage_bootdiag_endpoint
+  tags                                          = var.tags
   terraform_template_version                    = var.terraform_template_version
   use_custom_dns_a_registration                 = data.terraform_remote_state.landscape.outputs.use_custom_dns_a_registration
   use_loadbalancers_for_standalone_deployments  = var.use_loadbalancers_for_standalone_deployments
@@ -417,5 +421,6 @@ module "output_files" {
                                                   )
   web_server_count                              = try(local.application_tier.webdispatcher_count, 0)
   use_simple_mount                              = local.validated_use_simple_mount
+  upgrade_packages                              = var.upgrade_packages
 
 }

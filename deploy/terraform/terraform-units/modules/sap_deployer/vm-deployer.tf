@@ -209,7 +209,7 @@ resource "azurerm_virtual_machine_extension" "configure" {
   publisher            = "Microsoft.Azure.Extensions"
   type                 = "CustomScript"
   type_handler_version = "2.1"
-  settings = jsonencode(
+  protected_settings = jsonencode(
     {
       "script" = base64encode(
         templatefile(

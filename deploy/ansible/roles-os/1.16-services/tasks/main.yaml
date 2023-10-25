@@ -90,5 +90,81 @@
 #  when:                                item.service in ansible_facts.services
 
 # /*----------------------------------------------------------------------------8
+# |                             Custom services                                 |
+# +------------------------------------4---------------------------------------*/
+
+- name:                                "1.16 - Populate service facts : {{ distro_name }}"
+  ansible.builtin.service_facts:
+
+# Analyse the service list for this distribution selecting only those
+# services assigned to the active tier or 'all'.
+- name:                                "1.16 - Determine custom defined services appropriate for tier"
+  ansible.builtin.set_fact:
+    custom_services_to_process:        "{{ custom_services[distribution_full_id] |
+                                         selectattr('tier', 'in', ['all', tier]) |
+                                         selectattr('node_tier', 'in', ['all', node_tier]) |
+                                         list }}"
+  when:                                custom_services is defined
+
+- name:                                "1.16 - Process custom services"
+  block:
+    # Print list of matching services if verbosity is 1 or greater
+    - name:                            "[DEBUG] 1.16 - Show custom defined services"
+      ansible.builtin.debug:
+        var:                           custom_services_to_process
+        verbosity:                     2
+
+    - name:                            "1.16 - Start custom defined services : {{ distro_name }}"
+      ansible.builtin.service:
+        name:                          "{{ item.service }}"
+        state:                         started
+      loop:                            "{{ custom_services_to_process |
+                                            selectattr('state', 'equalto', 'started') |
+                                            list }}"
+
+    - name:                            "1.16 - Restart custom defined services : {{ distro_name }}"
+      ansible.builtin.service:
+        name:                          "{{ item.service }}"
+        state:                         restarted
+      loop:                            "{{ custom_services_to_process |
+                                            selectattr('state', 'equalto', 'restarted') |
+                                            list }}"
+
+    - name:                            "1.16 - Reload custom defined services : {{ distro_name }}"
+      ansible.builtin.service:
+        name:                          "{{ item.service }}"
+        state:                         restarted
+      loop:                            "{{ custom_services_to_process |
+                                            selectattr('state', 'equalto', 'reloded') |
+                                            list }}"
+
+    - name:                            "1.16 - Enable custom defined services : {{ distro_name }}"
+      ansible.builtin.service:
+        name:                          "{{ item.service }}"
+        enabled:                       true
+      loop:                            "{{ custom_services_to_process |
+                                          selectattr('state', 'equalto', 'enabled') |
+                                          list }}"
+
+    - name:                            "1.16 - Stop custom defined services : {{ distro_name }}"
+      ansible.builtin.service:
+        name:                          "{{ item.service }}"
+        state:                         stopped
+      loop:                            "{{ custom_services_to_process |
+                                            selectattr('state', 'equalto', 'stopped') |
+                                            list }}"
+
+    - name:                            "1.16 - Disable custom defined services : {{ distro_name }}"
+      ansible.builtin.service:
+        name:                          "{{ item.service }}"
+        enabled:                       false
+      loop:                            "{{ custom_services_to_process |
+                                          selectattr('state', 'equalto', 'disabled') |
+                                          list }}"
+
+  when:                                custom_services_to_process is defined
+
+
+# /*----------------------------------------------------------------------------8
 # |                                    END                                      |
 # +------------------------------------4---------------------------------------*/

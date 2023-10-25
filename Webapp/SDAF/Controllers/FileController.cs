@@ -48,8 +48,8 @@ namespace AutomationForm.Controllers
       string[] landscapeFilePaths = restHelper.GetTemplateFileNames("Terraform/WORKSPACES/LANDSCAPE").Result;
       string[] systemFilePaths = restHelper.GetTemplateFileNames("Terraform/WORKSPACES/SYSTEM").Result;
 
-      Dictionary<string, string[]> filePaths = new Dictionary<string, string[]>
-            {
+      Dictionary<string, string[]> filePaths = new()
+      {
                 { "landscapes", landscapeFilePaths },
                 { "systems", systemFilePaths }
             };
@@ -109,14 +109,14 @@ namespace AutomationForm.Controllers
             // For more information, see the topic that accompanies
             // this sample.
 
-            AppFile file = new AppFile()
+            AppFile file = new()
             {
               Content = formFileContent,
               UntrustedName = formFile.FileName,
               Size = formFile.Length,
-              UploadDT = DateTime.UtcNow
+              UploadDT = DateTime.UtcNow,
+              Id = WebUtility.HtmlEncode(formFile.FileName)
             };
-            file.Id = WebUtility.HtmlEncode(formFile.FileName);
 
             await _appFileService.CreateAsync(file);
 
@@ -198,7 +198,7 @@ namespace AutomationForm.Controllers
       {
         byte[] bytes = Encoding.UTF8.GetBytes(fileContent);
 
-        AppFile file = new AppFile()
+        AppFile file = new()
         {
           Id = WebUtility.HtmlEncode(id),
           Content = bytes,
@@ -446,7 +446,7 @@ namespace AutomationForm.Controllers
 
         byte[] byteContent = System.IO.File.ReadAllBytes("ParameterDetails/" + newName);
 
-        using (MemoryStream memory = new MemoryStream(byteContent))
+        using (MemoryStream memory = new(byteContent))
         {
           file = new AppFile()
           {

@@ -172,3 +172,13 @@ variable "use_scalesets_for_deployment" {
 variable "scale_set_id" {
   description = "Azure resource identifier for scale set"
 }
+
+#########################################################################################
+#                                                                                       #
+#  Tags                                                                                 #
+#                                                                                       #
+#########################################################################################
+
+variable "tags" {
+  description = "If provided, tags for all resources"
+}

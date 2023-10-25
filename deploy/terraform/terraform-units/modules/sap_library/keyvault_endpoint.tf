@@ -31,7 +31,7 @@ resource "azurerm_private_endpoint" "kv_user" {
   )
 
   dynamic "private_dns_zone_group" {
-    for_each = range((local.use_local_private_dns && var.use_private_endpoint) ? 1 : 0)
+    for_each = range((!var.use_custom_dns_a_registration && var.use_private_endpoint) ? 1 : 0)
     content {
       name                 = "privatelink.vaultcore.azure.net"
       private_dns_zone_ids = [(local.use_local_private_dns && var.use_private_endpoint) ? azurerm_private_dns_zone.vault[0].id : data.azurerm_private_dns_zone.vault[0].id]
