@@ -90,11 +90,9 @@
     - name:                                 "Dynamic processing - Search results"
       ansible.builtin.debug:
         msg:                                "Search results: {{ sap_asset_search.stdout
-                                                | regex_search(
-                                                                '(?:.*(?P<first_part><feed.*))(?P<second_part>.*?feed>)',
+                                                | regex_search('(?:.*(?P<first_part><feed.*))(?P<second_part>.*?feed>)',
                                                                 '\\g<first_part>',
-                                                                '\\g<second_part>'
-                                                              )
+                                                                '\\g<second_part>')
                                                 | join
                                                 | parse_xml(role_path + '/templates/sap_search.tmpl')
                                             }}"

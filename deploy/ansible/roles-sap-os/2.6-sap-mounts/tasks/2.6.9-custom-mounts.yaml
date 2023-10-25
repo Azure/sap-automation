@@ -1,4 +1,3 @@
-
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
 # |                Perform the mounts                                          |
@@ -17,10 +16,6 @@
   register:                            is_created_now
   when:
     - node_tier in custom_mount.target_nodes or custom_mount.target_nodes == ['all']
-
-# - name:                                "Custom Mount: Create SAP Directories ({{ custom_mount.path }})"
-#   ansible.builtin.debug:
-#     var:                               is_created_now
 
 - name:                                "Custom Mount: Change attribute only when we create SAP Directories ({{ custom_mount.temppath }})"
   become:                              true
