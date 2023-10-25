@@ -501,20 +501,6 @@ if ($provideSUser -eq 'y') {
 $groups= New-Object System.Collections.Generic.List[System.Object]
 $pipelines= New-Object System.Collections.Generic.List[System.Object]
 
-$bodyText = [PSCustomObject]@{
-  allPipelines= @{
-  authorized = $false
-  }
-  resource = @{
-    id = 000
-    type= "variablegroup"
-  }
-  pipelines = @([ordered]@{
-      id         = 000
-      authorized = $true
-    })
-}
-
 Write-Host "Creating the variable group SDAF-General" -ForegroundColor Green
 
 $general_group_id = (az pipelines variable-group list --query "[?name=='SDAF-General'].id | [0]" --only-show-errors)
@@ -942,6 +928,20 @@ if (!$AlreadySet -or $ResetPAT ) {
   # Create header with PAT
   $base64AuthInfo = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes((":{0}" -f $PAT)))
 
+  $bodyText = [PSCustomObject]@{
+    allPipelines= @{
+    authorized = $false
+    }
+    resource = @{
+      id = 000
+      type= "variablegroup"
+    }
+    pipelines = @([ordered]@{
+        id         = 000
+        authorized = $true
+      })
+  }
+
   foreach($group in $groups)
   {
       $bodyText.resource.id=$group
@@ -957,18 +957,29 @@ if (!$AlreadySet -or $ResetPAT ) {
            }
   }
 
+  $bodyText = [PSCustomObject]@{
+    allPipelines= @{
+    authorized = $false
+    }
+    pipelines = @([ordered]@{
+        id         = 000
+        authorized = $true
+      })
+  }
+
+
   # Read-Host -Prompt "Press any key to continue"
 
-  # $pipeline_permission_url=$ADO_ORGANIZATION + "/" + $Project_ID+"/_apis/pipelines/pipelinePermissions/queue/"+$POOL_ID.ToString() + "?api-version=5.1-preview.1"
-  # $bodyText.resource.id=$POOL_ID
-  # $bodyText.resource.type="queue"
-  # foreach($pipeline in $pipelines)
-  # {
-  #      $bodyText.pipelines[0].id=$pipeline
-  #      $body = $bodyText | ConvertTo-Json -Depth 10
-  #      Write-Host "  Allowing pipeline id:" $pipeline.ToString() -ForegroundColor Yellow
-  #      $response=Invoke-RestMethod -Method PATCH -Uri $pipeline_permission_url -Headers @{Authorization = "Basic $base64AuthInfo"} -Body $body -ContentType "application/json"
-  # }
+  $pipeline_permission_url=$ADO_ORGANIZATION + "/" + $Project_ID+"/_apis/pipelines/pipelinePermissions/queue/"+$POOL_ID.ToString() + "?api-version=5.1-preview.1"
+  $bodyText.resource.id=$POOL_ID
+  $bodyText.resource.type="queue"
+  foreach($pipeline in $pipelines)
+  {
+       $bodyText.pipelines[0].id=$pipeline
+       $body = $bodyText | ConvertTo-Json -Depth 10
+       Write-Host "  Allowing pipeline id:" $pipeline.ToString() -ForegroundColor Yellow
+       $response=Invoke-RestMethod -Method PATCH -Uri $pipeline_permission_url -Headers @{Authorization = "Basic $base64AuthInfo"} -Body $body -ContentType "application/json"
+  }
 
 
 }
