@@ -67,6 +67,10 @@ custom_ers_virtual_hostname:           ""
 custom_pas_virtual_hostname:           ""
 custom_scs_virtual_hostname:           ""
 
+# Custom ASCS and ERS NFS filesystem devices when not using AFS or ANF
+ascs_filesystem_device:                ""
+ers_filesystem_device:                 ""
+
 # DB2 specific parameters
 db2sysadm_gid:                         3000
 db2sysctrl_gid:                        3001
