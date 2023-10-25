@@ -453,10 +453,14 @@ else
 
 
     # If the deployer will be an ADO agent install the devops cli
+    # turn tracing off when you are here
+    set +o xtrace
     if [[ -n "$${TOKEN}" ]];
     then
         az extension add -n azure-devops > /dev/null
     fi
+
+    set -o xtrace
 
     /usr/bin/az extension add --name storage-blob-preview > /dev/null
 
