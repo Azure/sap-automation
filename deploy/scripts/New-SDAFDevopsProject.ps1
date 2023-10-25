@@ -898,6 +898,13 @@ if ($AlreadySet) {
 
 if (!$AlreadySet -or $ResetPAT ) {
 
+  Write-Host ""
+  Write-Host "The browser will now open, please create a Personal Access Token. Ensure that Read & manage is selected for Agent Pools, Read & write is selected for Code, Read & execute is selected for Build, and Read, create, & manage is selected for Variable Groups"
+  Start-Process $pat_url
+  $PAT = Read-Host -Prompt "Please enter the PAT "
+  az pipelines variable-group variable update --group-id $Control_plane_groupID --name "PAT" --value $PAT --secret true --only-show-errors --output none
+  az pipelines variable-group variable update --group-id $GroupID --name "WZ_PAT" --value $PAT --secret true --only-show-errors --output none
+
   $POOL_ID = 0
   $POOL_NAME_FOUND = (az pipelines pool list --query "[?name=='$Pool_Name'].name | [0]")
   if ($POOL_NAME_FOUND.Length -gt 0) {
@@ -921,12 +928,6 @@ if (!$AlreadySet -or $ResetPAT ) {
     Remove-Item .\pool.json
   }
 
-  Write-Host ""
-  Write-Host "The browser will now open, please create a Personal Access Token. Ensure that Read & manage is selected for Agent Pools, Read & write is selected for Code, Read & execute is selected for Build, and Read, create, & manage is selected for Variable Groups"
-  Start-Process $pat_url
-  $PAT = Read-Host -Prompt "Please enter the PAT "
-  az pipelines variable-group variable update --group-id $Control_plane_groupID --name "PAT" --value $PAT --secret true --only-show-errors --output none
-  az pipelines variable-group variable update --group-id $GroupID --name "WZ_PAT" --value $PAT --secret true --only-show-errors --output none
   # Create header with PAT
   $base64AuthInfo = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes((":{0}" -f $PAT)))
 
