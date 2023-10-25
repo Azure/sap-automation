@@ -27,7 +27,6 @@
         var:                           zypper_patch_output
         verbosity:                     2
 
-
     - name:                            "1.4 Packages: - Reboot the instance"
       ansible.builtin.reboot:
       when:
@@ -39,10 +38,8 @@
       ansible.builtin.wait_for_connection:
         timeout:                       120
 
-
 - name:                                "1.4 Packages: - Create packages installed flag"
   ansible.builtin.file:
     path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}/packages_installed.txt"
     state:                             touch
     mode:                              0755
-

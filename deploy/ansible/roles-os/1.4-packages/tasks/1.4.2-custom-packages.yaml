@@ -18,7 +18,7 @@
     var:                               custom_packages_for_specific_tier
     verbosity:                         2
   when:
-     - custom_packages_for_specific_tier is defined
+    - custom_packages_for_specific_tier is defined
 
 - name:                                "1.4 Packages: - Update custom packages: {{ distribution_full_id }} and rescue"
   block:
