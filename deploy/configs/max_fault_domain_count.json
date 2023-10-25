@@ -68,7 +68,7 @@
     "MaximumFaultDomainCount": "3"
   },
   {
-    "Location": "Francesouth",
+    "Location": "francesouth",
     "MaximumFaultDomainCount": "2"
   },
   {

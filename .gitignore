@@ -45,6 +45,9 @@ Webapp/.npmrc
 
 # Visual Studio 2015/2017 cache/options directory
 .vs/
+# SDU Importer files - KFO20230710
+Importer/SDAF SDU Importer/.vs
+Importer/SDAF SDU Importer/SDAFSDUImporter/bin
 
 # Python Tools for Visual Studio (PTVS)
 __pycache__/

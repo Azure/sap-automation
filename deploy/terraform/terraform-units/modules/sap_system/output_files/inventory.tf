@@ -173,6 +173,7 @@ resource "local_file" "sap-parameters_yml" {
       var.scs_instance_number
     )
     ers_instance_number = var.ers_instance_number
+
     install_path = length(trimspace(var.install_path)) > 0 ? (
       format("usr_sap_install_mountpoint:    %s", var.install_path)) : (
       ""

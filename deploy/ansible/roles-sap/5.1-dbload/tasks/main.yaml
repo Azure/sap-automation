@@ -13,7 +13,7 @@
     sap_inifile:                       "{{ bom_base_name }}-dbload-{{ sid_to_be_deployed.sid | lower }}-{{ ansible_hostname }}.params"
     sap_inifile_template:              "{{ bom_base_name }}{{ bom_suffix }}-dbload-inifile-param.j2"
     dir_params:                        "{{ tmp_directory }}/.params"
-
+    pas_virtual_hostname:              "{% if pas_hostname | type_debug != 'NoneType' and pas_hostname | length != 0 %}{{ pas_hostname }}{% else %}{{ virtual_host }}{% endif %}"
 - name:                                "DBLoad: -  Create directories"
   ansible.builtin.file:
     path:                              "{{ item.path }}"
@@ -368,7 +368,7 @@
       become:                          true
       become_user:                     "{{ sid_to_be_deployed.sid | lower }}adm"
       ansible.builtin.shell: |
-                                       {{ hdbuserstore_path }} SET DEFAULT {{ db_lb_virtual_host }}:3{{ db_instance_number }}13@{{ db_sid | upper }} {{ schema_name }} {{ main_password }}
+                                       {{ hdbuserstore_path }} -H {{ pas_virtual_hostname }} SET DEFAULT {{ db_lb_virtual_host }}:3{{ db_instance_number }}13@{{ db_sid | upper }} {{ schema_name }} {{ main_password }}
       environment:
         SAPSYSTEMNAME:                 "{{ sid_to_be_deployed.sid | upper }}"
         TMPDIR:                        "{{ hdbuserstore_path }}"
@@ -438,7 +438,7 @@
       become:                          true
       become_user:                     "{{ sid_to_be_deployed.sid | lower }}adm"
       ansible.builtin.shell: |
-                                       {{ hdbuserstore_path }} SET DEFAULT {{ db_lb_virtual_host }}:3{{ db_instance_number }}13@{{ db_sid | upper }} {{ hana_schema }} {{ main_password }}
+                                       {{ hdbuserstore_path }} -H {{ pas_virtual_hostname }} SET DEFAULT {{ db_lb_virtual_host }}:3{{ db_instance_number }}13@{{ db_sid | upper }} {{ hana_schema }} {{ main_password }}
       environment:
         SAPSYSTEMNAME:                 "{{ sid_to_be_deployed.sid | upper }}"
         TMPDIR:                        "{{ hdbuserstore_path }}"
