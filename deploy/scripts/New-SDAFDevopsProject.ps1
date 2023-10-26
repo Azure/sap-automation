@@ -100,15 +100,17 @@ else {
   Write-Host "Using Workload zone code: $Workload_zone_code" -foregroundColor Yellow
 }
 
+$ControlPlanePrefix = "SDAF-" + $Control_plane_code
+$WorkloadZonePrefix = "SDAF-" + $Workload_zone_code
+
+$Pool_Name = $ControlPlanePrefix + "-POOL"
+
 $ApplicationName = $ControlPlanePrefix + "-configuration-app"
 
 if ($Env:SDAF_APP_NAME.Length -ne 0) {
   $ApplicationName = $Env:SDAF_APP_NAME
 }
 
-$ControlPlanePrefix = "SDAF-" + $Control_plane_code
-$WorkloadZonePrefix = "SDAF-" + $Workload_zone_code
-$Pool_Name = $ControlPlanePrefix + "-POOL"
 
 $confirmation = Read-Host "Use Agent pool with name '$Pool_Name' y/n?"
 if ($confirmation -ne 'y') {
