@@ -39,8 +39,10 @@ namespace AutomationForm.Controllers
     }
     private FormViewModel<SystemModel> SetViewData()
     {
-      systemView = new FormViewModel<SystemModel>();
-      systemView.SapObject = new SystemModel();
+      systemView = new FormViewModel<SystemModel>
+      {
+        SapObject = new SystemModel()
+      };
       try
       {
         Grouping[] parameterArray = Helper.ReadJson<Grouping[]>("ParameterDetails/SystemDetails.json");
@@ -58,7 +60,7 @@ namespace AutomationForm.Controllers
     [ActionName("Index")]
     public async Task<IActionResult> Index()
     {
-      SapObjectIndexModel<SystemModel> systemIndex = new SapObjectIndexModel<SystemModel>();
+      SapObjectIndexModel<SystemModel> systemIndex = new();
 
       try
       {
@@ -184,7 +186,7 @@ namespace AutomationForm.Controllers
             await UnsetDefault(system.Id);
           }
           system.Id = Helper.GenerateId(system);
-          SystemEntity systemEntity = new SystemEntity(system);
+          SystemEntity systemEntity = new(system);
           await _systemService.CreateAsync(systemEntity);
           TempData["success"] = "Successfully created system " + system.Id;
           return RedirectToAction("Index");
@@ -275,7 +277,7 @@ namespace AutomationForm.Controllers
         string pipelineId = _configuration["SYSTEM_PIPELINE_ID"];
         string branch = _configuration["SourceBranch"];
         parameters.sap_system = id;
-        PipelineRequestBody requestBody = new PipelineRequestBody
+        PipelineRequestBody requestBody = new()
         {
           resources = new Resources
           {
@@ -331,7 +333,7 @@ namespace AutomationForm.Controllers
 
         string pipelineId = _configuration["SAP_INSTALL_PIPELINE_ID"];
         string branch = _configuration["SourceBranch"];
-        PipelineRequestBody requestBody = new PipelineRequestBody
+        PipelineRequestBody requestBody = new()
         {
           resources = new Resources
           {
@@ -526,7 +528,7 @@ namespace AutomationForm.Controllers
         // Update current system as default
         SystemModel system = await GetById(id, partitionKey);
         system.IsDefault = true;
-        SystemEntity systemEntity = new SystemEntity(system);
+        SystemEntity systemEntity = new(system);
         await _systemService.UpdateAsync(systemEntity);
       }
       catch (Exception e)

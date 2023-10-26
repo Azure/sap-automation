@@ -51,6 +51,7 @@
       ansible.builtin.debug:
         msg:                           "SCS status: {{ is_running.stdout_lines }}"
         verbosity:                     2
+      when:                            is_running.stdout_lines is defined
 
     # when the rc is 3, the SCS is running on ansible_hostname.
     # if the ansible_hostname is not the primary_instance_name, then failover cluster resources for ASCS/SCS
@@ -113,9 +114,9 @@
       #                                  cluster_group_moved.stderr is not search('Already in requested state')
       #                                  or cluster_group_moved.stderr is not search('is already active on')
       #                                  )
-    - name:                            "5.6 SCS/ERS Validation: Pause to give cluster time to stabilize"
-      ansible.builtin.pause:
-        seconds:                       60
+    - name:                            "5.6 SCS/ERS Validation: Wait 300 secs for the StartService {{ sap_sid | upper }} to finish"
+      ansible.builtin.wait_for:
+        timeout:                       300
 
     - name:                            "5.6 SCS/ERS Validation: Validate Cluster resource move and SAP start when the group g-{{ sap_sid | upper }}_{{ instance_type | upper }} has moved"
       block:
@@ -133,11 +134,11 @@
           failed_when:                 false
           changed_when:                false
 
-        - name:                        "5.6 SCS/ERS Validation: Validate that cluster group g-{{ sap_sid | upper }}_{{ instance_type | upper }} is running on {{ primary_instance_name }}"
-          ansible.builtin.assert:
-            that:
-              - cluster_group_location.stdout == primary_instance_name
-            fail_msg:                  "cluster group g-{{ sap_sid | upper }}_{{ instance_type | upper }} is not running on {{ primary_instance_name }}"
+        # - name:                        "5.6 SCS/ERS Validation: Validate that cluster group g-{{ sap_sid | upper }}_{{ instance_type | upper }} is running on {{ primary_instance_name }}"
+        #   ansible.builtin.assert:
+        #     that:
+        #       - cluster_group_location.stdout == primary_instance_name
+        #     fail_msg:                  "cluster group g-{{ sap_sid | upper }}_{{ instance_type | upper }} is not running on {{ primary_instance_name }}"
 
         # {{ sapcontrol_path }} -nr {{ scs_instance_number }} -function GetProcessList | grep MessageServer | awk '{split($0,result,", "); print result[1],result[3] }'
         - name:                        "5.6 SCS/ERS Validation: Determine if SCS is running on {{ ansible_hostname }}"

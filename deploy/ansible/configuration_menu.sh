@@ -61,7 +61,7 @@ export ANSIBLE_PASSWORD=$password_secret
 export           ANSIBLE_HOST_KEY_CHECKING=False
 export           ANSIBLE_INVENTORY="${sap_sid}_hosts.yaml"
 export           ANSIBLE_PRIVATE_KEY_FILE=sshkey
-export           ANSIBLE_COLLECTIONS_PATHS=/opt/ansible/collections${ANSIBLE_COLLECTIONS_PATHS:+${ANSIBLE_COLLECTIONS_PATHS}}
+export           ANSIBLE_COLLECTIONS_PATHS=/opt/ansible/collections:${ANSIBLE_COLLECTIONS_PATHS:+${ANSIBLE_COLLECTIONS_PATHS}}
 
 # We really should be determining the user dynamically, or requiring
 # that it be specified in the inventory settings (currently true)

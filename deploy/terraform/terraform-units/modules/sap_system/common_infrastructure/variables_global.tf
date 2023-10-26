@@ -8,16 +8,17 @@ variable "application_tier" {
 
   validation {
     condition = (
-      contains(keys(var.application_tier), "scs_cluster_type") ?
-      (
-        (var.application_tier.scs_cluster_type == "ASD") && (length(try(var.application_tier.scs_zones, [])) <= 1)
-        ) : (
+      var.application_tier.scs_high_availability ? (
+        var.application_tier.scs_cluster_type != "ASD" ? (
+          true) : (
+          length(try(var.application_tier.scs_zones, [])) <= 1
+        )) : (
         true
       )
     )
+
     error_message = "Cluster type 'ASD' does not support cross zonal deployments."
   }
-
 }
 variable "database" {
   validation {
@@ -292,3 +293,14 @@ variable "landscape_tfstate" {
 variable "use_scalesets_for_deployment" {
   description = "Use Flexible Virtual Machine Scale Sets for the deployment"
 }
+
+#########################################################################################
+#                                                                                       #
+#  Tags                                                                                 #
+#                                                                                       #
+#########################################################################################
+
+variable "tags" {
+  description = "If provided, tags for all resources"
+}
+

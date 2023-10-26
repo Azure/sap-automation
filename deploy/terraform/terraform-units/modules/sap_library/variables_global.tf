@@ -124,3 +124,9 @@ variable "place_delete_lock_on_resources" {
 variable "bootstrap" {
 
 }
+
+variable "Agent_IP" {
+  description = "If provided, contains the IP address of the agent"
+  type        = string
+  default     = ""
+}

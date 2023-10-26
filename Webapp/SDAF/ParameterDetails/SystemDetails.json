@@ -205,6 +205,15 @@
         "Display": 2
       },
       {
+        "Name": "upgrade_packages",
+        "Required": false,
+        "Description": "Defines if the packages on the Virtual Machine will be upgraded to the latest version",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
         "Name": "use_prefix",
         "Required": false,
         "Description": "Defines if a prefix will be added to the resource names. See <a href='https://learn.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-naming' target='_blank' rel='noopener noreferrer'>automation naming</a>",
@@ -257,6 +266,15 @@
         "Options": [],
         "Overrules": "",
         "Display": 3
+      },
+      {
+        "Name": "tags",
+        "Required": false,
+        "Description": "Defines a list of tags to be applied to all resources",
+        "Type": "tag",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
       }
     ]
   },

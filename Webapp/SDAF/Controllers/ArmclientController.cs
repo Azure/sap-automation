@@ -23,10 +23,10 @@ namespace AutomationForm.Controllers
     [HttpGet] // #subscription
     public ActionResult GetSubscriptionOptions()
     {
-      List<SelectListItem> options = new List<SelectListItem>
-            {
-                new SelectListItem { Text = "", Value = "" }
-            };
+      List<SelectListItem> options = new()
+      {
+          new SelectListItem { Text = "", Value = "" }
+      };
       try
       {
         SubscriptionCollection subscriptions = _armClient.GetSubscriptions();
@@ -52,7 +52,7 @@ namespace AutomationForm.Controllers
     {
       try
       {
-        ResourceIdentifier rsc = new ResourceIdentifier(resourceId);
+        ResourceIdentifier rsc = new(resourceId);
         if (rsc.SubscriptionId == null) return null;
         string subscriptionId = "/subscriptions/" + rsc.SubscriptionId;
         return Json(subscriptionId);
@@ -68,7 +68,7 @@ namespace AutomationForm.Controllers
     {
       try
       {
-        ResourceIdentifier rsc = new ResourceIdentifier(resourceId);
+        ResourceIdentifier rsc = new(resourceId);
         if (rsc.SubscriptionId == null) return null;
         int subnetsIndex = resourceId.IndexOf("/subnets");
         if (subnetsIndex <= 0) return null;
@@ -84,8 +84,8 @@ namespace AutomationForm.Controllers
     [HttpGet] // #location
     public ActionResult GetLocationOptions(bool useRegionMapping = false)
     {
-      List<SelectListItem> options = new List<SelectListItem>
-            {
+      List<SelectListItem> options = new()
+      {
                 new SelectListItem { Text = "", Value = "" }
             };
       try
@@ -110,8 +110,8 @@ namespace AutomationForm.Controllers
     [HttpGet] // #resourcegroup_arm_id
     public ActionResult GetResourceGroupOptions(string subscriptionId)
     {
-      List<SelectListItem> options = new List<SelectListItem>
-            {
+      List<SelectListItem> options = new()
+      {
                 new SelectListItem { Text = "", Value = "" }
             };
       try
@@ -138,8 +138,8 @@ namespace AutomationForm.Controllers
     [HttpGet] // #network_arm_id
     public ActionResult GetVNetOptions(string subscriptionId)
     {
-      List<SelectListItem> options = new List<SelectListItem>
-            {
+      List<SelectListItem> options = new()
+      {
                 new SelectListItem { Text = "", Value = "" }
             };
       try
@@ -166,13 +166,13 @@ namespace AutomationForm.Controllers
     [HttpGet] // #[various]_subnet_arm_id
     public ActionResult GetSubnetOptions(string vnetId)
     {
-      List<SelectListItem> options = new List<SelectListItem>
-            {
+      List<SelectListItem> options = new()
+      {
                 new SelectListItem { Text = "", Value = "" }
             };
       try
       {
-        ResourceIdentifier id = new ResourceIdentifier(vnetId);
+        ResourceIdentifier id = new(vnetId);
         SubscriptionResource subscription = _armClient.GetSubscriptions().Get(id.SubscriptionId);
         ResourceGroupResource resourceGroup = subscription.GetResourceGroups().Get(id.ResourceGroupName);
         VirtualNetworkResource virtualNetwork = resourceGroup.GetVirtualNetworks().Get(id.Name);
@@ -197,13 +197,13 @@ namespace AutomationForm.Controllers
     [HttpGet] // #[various]_subnet_nsg_arm_id
     public ActionResult GetNsgOptions(string vnetId)
     {
-      List<SelectListItem> options = new List<SelectListItem>
-            {
+      List<SelectListItem> options = new()
+      {
                 new SelectListItem { Text = "", Value = "" }
             };
       try
       {
-        ResourceIdentifier id = new ResourceIdentifier(vnetId);
+        ResourceIdentifier id = new(vnetId);
         SubscriptionResource subscription = _armClient.GetSubscriptions().Get(id.SubscriptionId);
         ResourceGroupResource resourceGroup = subscription.GetResourceGroups().Get(id.ResourceGroupName);
         NetworkSecurityGroupCollection nsgs = resourceGroup.GetNetworkSecurityGroups();
@@ -227,8 +227,8 @@ namespace AutomationForm.Controllers
     [HttpGet] // #[various]_storage_account_arm_id
     public ActionResult GetStorageAccountOptions(string subscriptionId)
     {
-      List<SelectListItem> options = new List<SelectListItem>
-            {
+      List<SelectListItem> options = new()
+      {
                 new SelectListItem { Text = "", Value = "" }
             };
       try
@@ -255,8 +255,8 @@ namespace AutomationForm.Controllers
     [HttpGet] // #[various]_private_endpoint_id
     public ActionResult GetPrivateEndpointOptions(string subscriptionId)
     {
-      List<SelectListItem> options = new List<SelectListItem>
-            {
+      List<SelectListItem> options = new()
+      {
                 new SelectListItem { Text = "", Value = "" }
             };
       try
@@ -283,8 +283,8 @@ namespace AutomationForm.Controllers
     [HttpGet] // #[various]_keyvault_id
     public ActionResult GetKeyvaultOptions(string subscriptionId)
     {
-      List<SelectListItem> options = new List<SelectListItem>
-            {
+      List<SelectListItem> options = new()
+      {
                 new SelectListItem { Text = "", Value = "" }
             };
       try
@@ -311,8 +311,8 @@ namespace AutomationForm.Controllers
     [HttpGet] // #proximityplacementgroup_arm_ids
     public ActionResult GetPPGroupOptions(string subscriptionId)
     {
-      List<SelectListItem> options = new List<SelectListItem>
-            {
+      List<SelectListItem> options = new()
+      {
                 new SelectListItem { Text = "", Value = "" }
             };
       try
@@ -339,8 +339,8 @@ namespace AutomationForm.Controllers
     [HttpGet] // #[various]_avset_arm_id
     public ActionResult GetAvSetOptions(string subscriptionId)
     {
-      List<SelectListItem> options = new List<SelectListItem>
-            {
+      List<SelectListItem> options = new()
+      {
                 new SelectListItem { Text = "", Value = "" }
             };
       try

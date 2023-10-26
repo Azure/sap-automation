@@ -25,11 +25,13 @@ provider "azurerm" {
 
   partner_id = "3179cd51-f54b-4c73-ac10-8e99417efce7"
   alias      = "system"
+  skip_provider_registration = true
 }
 
 provider "azurerm" {
   features {}
   subscription_id = length(local.deployer_subscription_id) > 0 ? local.deployer_subscription_id : null
+  skip_provider_registration = true
 }
 
 provider "azurerm" {

@@ -227,10 +227,10 @@ packages:
     - { tier: 'sapos', package: 'autofs',                                       node_tier: 'all',     state: 'present' }
     - { tier: 'sapos', package: 'nfs4-acl-tools',                               node_tier: 'all',     state: 'present' }
     - { tier: 'sapos', package: 'tuned-profiles-sap*',                          node_tier: 'all',     state: 'present' }
+    - { tier: 'sapos', package: 'compat-sap-c++-*',                             node_tier: 'all',     state: 'present' }
     - { tier: 'sapos', package: 'libatomic',                                    node_tier: 'all',     state: 'present' }
     - { tier: 'sapos', package: 'uuidd',                                        node_tier: 'all',     state: 'present' }
     - { tier: 'sapos', package: 'csh',                                          node_tier: 'all',     state: 'present' }
-    - { tier: 'sapos', package: 'chkconfig',                                    node_tier: 'hana',    state: 'present' }
     # ------------------------- Begin - Packages required for Clustering ---------------------------------------8
     - { tier: 'ha',    package: 'pcs',                                          node_tier: 'all',     state: 'present' }
     - { tier: 'ha',    package: 'pacemaker',                                    node_tier: 'all',     state: 'present' }
@@ -260,7 +260,9 @@ packages:
   redhat8.6:
   redhat8.8:
   redhat9.0:
+    - { tier: 'sapos', package: 'chkconfig',                                    node_tier: 'hana',    state: 'present' }
   redhat9.2:
+    - { tier: 'sapos', package: 'chkconfig',                                    node_tier: 'hana',    state: 'present' }
 
   sles_sap12:
     - { tier: 'os',    package: 'chrony',                                       node_tier: 'all',     state: 'present' }

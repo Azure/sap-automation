@@ -134,6 +134,15 @@
         ],
         "Overrules": "resourcegroup_name",
         "Display": 3
+      },
+      {
+        "Name": "tags",
+        "Required": false,
+        "Description": "Defines a list of tags to be applied to all resources",
+        "Type": "tag",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
       }
     ]
   },

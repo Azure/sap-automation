@@ -347,7 +347,7 @@ variable "deployer_diagnostics_account_arm_id" {
 
 variable "tf_version" {
   description = "Terraform version to install on deployer"
-  default     = "1.5.6"
+  default     = "1.6.0"
 }
 
 variable "name_override_file" {
@@ -458,16 +458,15 @@ variable "enable_firewall_for_keyvaults_and_storage" {
 
 variable "public_network_access_enabled" {
   description = "Boolean value indicating if public access should be enabled for key vaults and storage"
-  default     = false
+  default     = true
   type        = bool
 }
 
 
 variable "subnets_to_add_to_firewall_for_keyvaults_and_storage" {
   description = "List of subnets to add to storage account and keyvaults firewall"
-  default     = null
+  default     = []
 }
-
 variable "Agent_IP" {
   description = "IP address of the agent"
   default     = ""

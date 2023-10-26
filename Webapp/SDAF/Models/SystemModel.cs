@@ -87,6 +87,8 @@ namespace AutomationForm.Models
     public bool? use_msi_for_clusters { get; set; } = true;
 
     public bool? use_simple_mount { get; set; } = false;
+    public bool? upgrade_packages { get; set; } = false;
+
 
     public string fencing_role_name { get; set; }
 
@@ -254,7 +256,7 @@ namespace AutomationForm.Models
 
     public bool? application_server_no_ppg { get; set; } = false;
 
-    public bool? application_server_use_ppg { get; set; }
+    public bool? application_server_use_ppg { get; set; } = true;
 
     // SAP Central Services
 
@@ -456,6 +458,8 @@ namespace AutomationForm.Models
     public string web_sid { get; set; }
 
     public string web_instance_number { get; set; } = "00";
+
+    public Tag[] tags { get; set; }
 
   }
 

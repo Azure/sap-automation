@@ -407,6 +407,9 @@ function validate_dependencies {
         echo "#                                                                                       #"
         echo "#########################################################################################"
         echo ""
+        if [ -f stdout.az ]; then
+            rm stdout.az
+        fi
         return 2 #No such file or directory
     fi
     # Checking for valid az session

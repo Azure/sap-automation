@@ -1,0 +1,46 @@
+# /*----------------------------------------------------------------------------8
+# |                             Custom packages                                 |
+# +------------------------------------4---------------------------------------*/
+
+# Analyse the package list for this distribution selecting only those
+# packages assigned to the active tier or 'all'.
+- name:                                "1.4 Packages: - Determine custom packages appropriate for tier on: {{ distribution_full_id }}"
+  ansible.builtin.set_fact:
+    custom_packages_for_specific_tier: "{{ custom_packages[distribution_full_id] |
+                                          selectattr('tier', 'in', ['all', tier]) |
+                                          selectattr('node_tier', 'in', ['all', node_tier]) |
+                                          list }}"
+  when:
+    - custom_packages is defined
+
+- name:                                "1.4 Packages: - show custom packages appropriate for tier on: {{ distribution_full_id }}"
+  ansible.builtin.debug:
+    var:                               custom_packages_for_specific_tier
+    verbosity:                         2
+  when:
+    - custom_packages_for_specific_tier is defined
+
+- name:                                "1.4 Packages: - Update custom packages: {{ distribution_full_id }} and rescue"
+  block:
+    - name:                            "1.4 Packages: - Update custom packages: {{ distribution_full_id }}"
+      ansible.builtin.package:
+        name:                          "{{ custom_packages_for_specific_tier |
+                                          selectattr('state', 'equalto', item.state) |
+                                          map(attribute='package') |
+                                          list }}"
+        state:                         "{{ item.state }}"
+      register:                         custom_package_result
+      loop:
+        - { state: 'present' }  # First install required packages
+        - { state: 'absent' }   # Then remove packages that we don't want
+  rescue:
+    - name:                            "1.4 Packages: - Print stderr before getting error code"
+      ansible.builtin.debug:
+        msg:                           "debug statement: {{ package_result }}"
+
+    - name:                            "1.4 Packages: - Error handling - Update custom packages: {{ distribution_full_id }}"
+      ansible.builtin.fail:
+        msg:                        "{{ package_result | try_get_error_code_results(task_tag='update_os_packages') }}"
+  when:
+    - custom_packages_for_specific_tier is defined
+    - custom_packages_for_specific_tier | list | length > 0

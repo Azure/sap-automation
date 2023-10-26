@@ -207,8 +207,8 @@
                     "size_gb"                    : 80,
                     "caching"                    : "None",
                     "write_accelerator"          : false,
-                    "disk-iops-read-write"       : 1800,
-                    "disk-mbps-read-write"       : 250,
+                    "disk_iops_read_write"       : 1800,
+                    "disk_mbps_read_write"       : 250,
                     "lun_start"                  : 9
                 },
                 {
@@ -268,8 +268,8 @@
                     "size_gb"                    : 80,
                     "caching"                    : "None",
                     "write_accelerator"          : false,
-                    "disk-iops-read-write"       : 1800,
-                    "disk-mbps-read-write"       : 250,
+                    "disk_iops_read_write"       : 1800,
+                    "disk_mbps_read_write"       : 250,
                     "lun_start"                  : 9
                 },
                 {
@@ -329,8 +329,8 @@
                     "size_gb"                    : 128,
                     "caching"                    : "None",
                     "write_accelerator"          : false,
-                    "disk-iops-read-write"       : 1800,
-                    "disk-mbps-read-write"       : 250,
+                    "disk_iops_read_write"       : 1800,
+                    "disk_mbps_read_write"       : 250,
                     "lun_start"                  : 9
                 },
                 {
@@ -390,8 +390,8 @@
                     "size_gb"                    : 128,
                     "caching"                    : "None",
                     "write_accelerator"          : false,
-                    "disk-iops-read-write"       : 1800,
-                    "disk-mbps-read-write"       : 250,
+                    "disk_iops_read_write"       : 1800,
+                    "disk_mbps_read_write"       : 250,
                     "lun_start"                  : 9
                 },
                 {
@@ -451,8 +451,8 @@
                     "size_gb"                    : 192,
                     "caching"                    : "None",
                     "write_accelerator"          : false,
-                    "disk-iops-read-write"       : 1800,
-                    "disk-mbps-read-write"       : 250,
+                    "disk_iops_read_write"       : 1800,
+                    "disk_mbps_read_write"       : 250,
                     "lun_start"                  : 9
                 },
                 {
@@ -512,8 +512,8 @@
                     "size_gb"                    : 192,
                     "caching"                    : "None",
                     "write_accelerator"          : false,
-                    "disk-iops-read-write"       : 1800,
-                    "disk-mbps-read-write"       : 250,
+                    "disk_iops_read_write"       : 1800,
+                    "disk_mbps_read_write"       : 250,
                     "lun_start"                  : 9
                 },
                 {
@@ -573,8 +573,8 @@
                     "size_gb"                    : 220,
                     "caching"                    : "None",
                     "write_accelerator"          : false,
-                    "disk-iops-read-write"       : 1800,
-                    "disk-mbps-read-write"       : 250,
+                    "disk_iops_read_write"       : 1800,
+                    "disk_mbps_read_write"       : 250,
                     "lun_start"                  : 9
                 },
                 {
@@ -634,8 +634,8 @@
                     "size_gb"                    : 256,
                     "caching"                    : "None",
                     "write_accelerator"          : false,
-                    "disk-iops-read-write"       : 1800,
-                    "disk-mbps-read-write"       : 250,
+                    "disk_iops_read_write"       : 1800,
+                    "disk_mbps_read_write"       : 250,
                     "lun_start"                  : 9
                 },
                 {
@@ -695,8 +695,8 @@
                     "size_gb"                    : 256,
                     "caching"                    : "None",
                     "write_accelerator"          : false,
-                    "disk-iops-read-write"       : 1800,
-                    "disk-mbps-read-write"       : 250,
+                    "disk_iops_read_write"       : 1800,
+                    "disk_mbps_read_write"       : 250,
                     "lun_start"                  : 9
                 },
                 {
@@ -756,8 +756,8 @@
                     "size_gb"                    : 256,
                     "caching"                    : "None",
                     "write_accelerator"          : false,
-                    "disk-iops-read-write"       : 1800,
-                    "disk-mbps-read-write"       : 250,
+                    "disk_iops_read_write"       : 1800,
+                    "disk_mbps_read_write"       : 250,
                     "lun_start"                  : 9
                 },
                 {

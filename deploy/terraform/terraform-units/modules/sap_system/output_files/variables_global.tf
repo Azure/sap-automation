@@ -321,3 +321,7 @@ variable "db_server_count" {
   description = "Number of Database Servers"
   type    = number
 }
+
+variable "upgrade_packages" {
+  description = "If defined, will upgrade the packages on the virtual machines"
+}

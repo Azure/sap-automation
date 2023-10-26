@@ -1,20 +1,46 @@
+# /*---------------------------------------------------------------------------8
+# |                                   END                                      |
+# +------------------------------------4--------------------------------------*/
 ---
 sap_logon_url:                          "https://launchpad.support.sap.com"
 
 # ------------------------- Begin - SAP Platform Map --------------------------8
 sap_platform_map:
+  swpm10sp3:
+    - { number: '20009697',     platform: 'AIX',     description: 'AIX 64bit'               }
+    - { number: '20009698',     platform: 'HPUX',    description: 'HP-UX on IA64 64bit'     }
+    - { number: '20009612',     platform: 'LNXZ',    description: 'Linux on zSeries 64bit'  }
+    - { number: '20009708',     platform: 'OS400',   description: 'OS/400'                  }
+    - { number: '20009702',     platform: 'SPARC',   description: 'Solaris on SPARC 64bit'  }
+    - { number: '20009703',     platform: 'SOL',     description: 'Solaris on x86_64 64bit' }
+    - { number: '20009707',     platform: 'WIN',     description: 'Windows on x64 64bit'    }
+    - { number: '80001308',     platform: 'ZOS',     description: 'z/OS 64bit'              }
+    - { number: '20009701',     platform: 'LNX',     description: 'Linux on x86_64 64bit'   }
+    - { number: '70002492',     platform: 'LNXLE',   description: 'Linux on Power LE 64bit' }
+  sum11:
+    - { number: '80006797',     platform: 'AIX',     description: 'AIX 64bit'               }
+    - { number: '80006858',     platform: 'HPUX',    description: 'HP-UX on IA64 64bit'     }
+    - { number: '80006857',     platform: 'LNXZ',    description: 'Linux on zSeries 64bit'  }
+    - { number: '80006854',     platform: 'OS400',   description: 'OS/400'                  }
+    - { number: '80006856',     platform: 'SPARC',   description: 'Solaris on SPARC 64bit'  }
+    - { number: '80006855',     platform: 'SOL',     description: 'Solaris on x86_64 64bit' }
+    - { number: '80006853',     platform: 'WIN',     description: 'Windows on x64 64bit'    }
+    - { number: '80006857',     platform: 'ZOS',     description: 'z/OS 64bit'              }
+    - { number: '80006800',     platform: 'LNX',     description: 'Linux on x86_64 64bit'   }
+    - { number: '80006851',     platform: 'LNXBE',   description: 'Linux on Power BE 64bit' }
+    - { number: '80006861',     platform: 'LNXLE',   description: 'Linux on Power LE 64bit' }
   swpm20:
-    - { number: '70003174',     platform: 'AIX',      description: 'AIX 64bit'                }
-    - { number: '70003175',     platform: 'HPUX',     description: 'HP-UX on IA64 64bit'      }
-    - { number: '70003177',     platform: 'LNXZ',     description: 'Linux on zSeries 64bit'   }
-    - { number: '70003179',     platform: 'OS400',    description: 'OS/400'                   }
-    - { number: '70003180',     platform: 'SPARC',    description: 'Solaris on SPARC 64bit'   }
-    - { number: '70003211',     platform: 'SOL',      description: 'Solaris on x86_64 64bit'  }
-    - { number: '70003212',     platform: 'WIN',      description: 'Windows on x64 64bit'     }
-    - { number: '70003213',     platform: 'ZOS',      description: 'z/OS 64bit'               }
-    - { number: '80003424',     platform: 'LNX',      description: 'Linux on x86_64 64bit'    }
-    - { number: '80003425',     platform: 'LNXBE',    description: 'Linux on Power BE 64bit'  }
-    - { number: '80003426',     platform: 'LNXLE',    description: 'Linux on Power LE 64bit'  }
+    - { number: '70003174',     platform: 'AIX',      description: 'AIX 64bit'               }
+    - { number: '70003175',     platform: 'HPUX',     description: 'HP-UX on IA64 64bit'     }
+    - { number: '70003177',     platform: 'LNXZ',     description: 'Linux on zSeries 64bit'  }
+    - { number: '70003179',     platform: 'OS400',    description: 'OS/400'                  }
+    - { number: '70003180',     platform: 'SPARC',    description: 'Solaris on SPARC 64bit'  }
+    - { number: '70003211',     platform: 'SOL',      description: 'Solaris on x86_64 64bit' }
+    - { number: '70003212',     platform: 'WIN',      description: 'Windows on x64 64bit'    }
+    - { number: '70003213',     platform: 'ZOS',      description: 'z/OS 64bit'              }
+    - { number: '80003424',     platform: 'LNX',      description: 'Linux on x86_64 64bit'   }
+    - { number: '80003425',     platform: 'LNXBE',    description: 'Linux on Power BE 64bit' }
+    - { number: '80003426',     platform: 'LNXLE',    description: 'Linux on Power LE 64bit' }
   sum20:
     - { number: '80002454',     platform: 'AIX',      description: 'AIX 64bit'                }
     - { number: '80002455',     platform: 'HPUX',     description: 'HP-UX on IA64 64bit'      }
@@ -50,7 +76,7 @@ sap_sso_parameters:
   # Unicode Character:
   #   Character:      ✓
   #   Character Name: CHECK MARK
-  #   Unicode:        U+2713
+  #  Unicode:        U+2713
   #   UTF-8:          E2 9C 93
   #   urlencoded:     %E2%9C%93
   # ------------------------------

@@ -55,7 +55,7 @@ set -o pipefail
 #
 
 if [ -z "${TF_VERSION}" ]; then
-  TF_VERSION="1.5.6"
+  TF_VERSION="1.6.0"
 fi
 
 
@@ -281,7 +281,7 @@ required_pkgs=(
     curl
     apt-transport-https
     lsb-release
-    gnupgno
+    gnupg
     sshpass
     dos2unix
 )
@@ -618,7 +618,9 @@ export PATH="${PATH}":"${ansible_bin}":"${tf_bin}":"${HOME}"/Azure_SAP_Automated
 echo "# Configure environment settings for deployer interactive sessions" | tee -a /tmp/deploy_server.sh
 
 echo "export ARM_SUBSCRIPTION_ID=${subscription_id}" | tee -a /tmp/deploy_server.sh
-echo "export DEPLOYMENT_REPO_PATH=$HOME/Azure_SAP_Automated_Deployment/sap-automation" | tee -a  /tmp/deploy_server.sh
+echo "export SAP_AUTOMATION_REPO_PATH=$HOME/Azure_SAP_Automated_Deployment/sap-automation" | tee -a /tmp/deploy_server.sh
+echo "export DEPLOYMENT_REPO_PATH=$HOME/Azure_SAP_Automated_Deployment/sap-automation" | tee -a /tmp/deploy_server.sh
+echo "export CONFIG_REPO_PATH=$HOME/Azure_SAP_Automated_Deployment/WORKSPACES" | tee -a /tmp/deploy_server.sh
 
 echo export "PATH=${ansible_bin}:${tf_bin}:${PATH}:${HOME}/Azure_SAP_Automated_Deployment/sap-automation/deploy/scripts:${HOME}/Azure_SAP_Automated_Deployment/sap-automation/deploy/ansible" | tee -a /tmp/deploy_server.sh
 

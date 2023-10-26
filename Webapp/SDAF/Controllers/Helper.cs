@@ -20,7 +20,7 @@ namespace AutomationForm.Controllers
 {
   public class Helper : Controller
   {
-    public static readonly Dictionary<string, string> regionMapping = new Dictionary<string, string>()
+    public static readonly Dictionary<string, string> regionMapping = new()
             {
                 {"australiacentral", "auce"},
                 {"australiacentral2", "auc2"},
@@ -85,12 +85,12 @@ namespace AutomationForm.Controllers
         return $"Error generating terraform variables file: No template file {path} was found";
       }
 
-      StringBuilder stringBuilder = new StringBuilder();
+      StringBuilder stringBuilder = new();
 
       foreach (string line in System.IO.File.ReadLines(path))
       {
         string lineToAdd = line;
-        Regex paramRegex = new Regex(@"\$\$\w*\$\$");
+        Regex paramRegex = new(@"\$\$\w*\$\$");
 
         if (paramRegex.IsMatch(line))
         {
@@ -113,7 +113,7 @@ namespace AutomationForm.Controllers
     // Create the text that sets a model property to its value for a tfvars file
     public static string WriteTfLine<T>(PropertyInfo property, T model)
     {
-      StringBuilder str = new StringBuilder();
+      StringBuilder str = new();
       var value = property.GetValue(model);
       if (property.PropertyType.GetElementType() == typeof(Tag))
       {
@@ -182,7 +182,7 @@ namespace AutomationForm.Controllers
     }
     public static StringContent CreateHttpContent(string changeType, string path, string content, GitRequestBody requestBody)
     {
-      Commit commit = new Commit()
+      Commit commit = new()
       {
         comment = $"{changeType}ed {path}",
         changes = new Change[]
@@ -296,7 +296,7 @@ namespace AutomationForm.Controllers
 
         return Array.Empty<byte>();
       }
-      Regex rx = new Regex(@"^\w{0,5}-\w{4}-\w{0,7}-\w{0,15}\.tfvars$");
+      Regex rx = new(@"^\w{0,5}-\w{4}-\w{0,7}-\w{0,15}\.tfvars$");
       if (!rx.IsMatch(formFile.FileName))
       {
         modelState.AddModelError(formFile.Name,
@@ -358,8 +358,8 @@ namespace AutomationForm.Controllers
 
     public static string TfvarToJson(string hclString)
     {
-      StringReader stringReader = new StringReader(hclString);
-      StringBuilder jsonString = new StringBuilder();
+      StringReader stringReader = new(hclString);
+      StringBuilder jsonString = new();
       jsonString.AppendLine("{");
       while (true)
       {
@@ -462,7 +462,7 @@ namespace AutomationForm.Controllers
       {
         byte[] byteContent = System.IO.File.ReadAllBytes("ParameterDetails/" + filename);
 
-        using MemoryStream memory = new MemoryStream(byteContent);
+        using MemoryStream memory = new(byteContent);
         file = new AppFile()
         {
           Id = WebUtility.HtmlEncode(filename),

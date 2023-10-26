@@ -134,7 +134,6 @@
     - name:                            "5.6 SCSERS - SUSE - ENSA2 - Configure Co-location Constraints"
       ansible.builtin.shell: |
                                        crm configure colocation col_sap_{{ sap_sid }}_no_both -5000: g-{{ sap_sid | upper }}_ERS g-{{ sap_sid | upper }}_{{ instance_type | upper }}
-                                       crm configure location loc_sap_{{ sap_sid }}_failover_to_ers rsc_sap_{{ sap_sid }}_{{ instance_type | upper }}{{ scs_instance_number }} rule 2000: runs_ers_{{ sap_sid }} eq 1
                                        crm configure order ord_sap_{{ sap_sid }}_first_start_ascs Optional: rsc_sap_{{ sap_sid }}_{{ instance_type | upper }}{{ scs_instance_number }}:start rsc_sap_{{ sap_sid }}_ERS{{ ers_instance_number }}:stop symmetrical=false
       register:                        co_location
       failed_when:                     co_location.rc > 1

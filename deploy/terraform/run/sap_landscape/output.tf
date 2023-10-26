@@ -209,7 +209,7 @@ output "storageaccount_name" {
 
 output "storageaccount_rg_name" {
   description = "Diagnostics storage account resource group name"
-  value       = try(module.sap_landscape.storageaccount_rg_name, "")
+  value       = module.sap_landscape.storageaccount_resourcegroup_name
 }
 
 output "transport_storage_account_id" {

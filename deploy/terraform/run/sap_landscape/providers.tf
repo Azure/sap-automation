@@ -41,6 +41,7 @@ provider "azurerm" {
 
   partner_id = "25c87b5f-716a-4067-bcd8-116956916dd6"
   alias      = "workload"
+  skip_provider_registration = true
 
 }
 
@@ -80,6 +81,7 @@ provider "azurerm" {
   client_secret   = var.use_spn ? local.cp_spn.client_secret : null
   tenant_id       = var.use_spn ? local.cp_spn.tenant_id : null
   alias           = "peering"
+  skip_provider_registration = true
 }
 
 

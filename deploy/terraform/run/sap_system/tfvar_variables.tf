@@ -1,8 +1,9 @@
-#########################################################################################
-#                                                                                       #
-#  Environment definitioms                                                              #
-#                                                                                       #
-#########################################################################################
+
+#######################################4#######################################8
+#                                                                              #
+#  Environment definitioms                                                     #
+#                                                                              #
+#######################################4#######################################8
 
 variable "environment" {
   type        = string
@@ -493,6 +494,8 @@ variable "database_use_premium_v2_storage" {
 
 
 
+
+
 #########################################################################################
 #                                                                                       #
 #  Application tier variables                                                           #
@@ -887,7 +890,7 @@ variable "use_loadbalancers_for_standalone_deployments" {
 
 variable "idle_timeout_scs_ers" {
   description = "Sets the idle timeout setting for the SCS and ERS loadbalancer"
-  default     = 4
+  default     = 30
 }
 
 variable "bom_name" {
@@ -985,6 +988,11 @@ variable "sapmnt_private_endpoint_id" {
   description = "Azure Resource Identifier for an private endpoint connection"
   type        = string
   default     = ""
+}
+
+variable "Use_AFS_for_Installation" {
+  description = "If true, will use AFS for installation media."
+  default     = false
 }
 
 #########################################################################################
@@ -1209,5 +1217,15 @@ variable "subscription" {
 
 variable "configuration_settings" {
   description = "This is a dictionary that will contain values persisted to the sap-parameters.file"
+  default     = {}
+}
+
+variable "upgrade_packages" {
+  description = "If defined, will upgrade the packages on the virtual machines"
+  default     = false
+}
+
+variable "tags" {
+  description = "If provided, tags for all resources"
   default     = {}
 }
