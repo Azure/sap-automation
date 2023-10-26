@@ -61,18 +61,21 @@
   ansible.builtin.set_fact:
     app_bom_id:                        "{{ bom.product_ids.app }}"
 
-- name:                                "APP Install: Get DEFAULT.PFL"
-  ansible.builtin.slurp:
-    src:                               "/sapmnt/{{ sap_sid | upper }}/profile/DEFAULT.PFL"
-  register: profilefile
+- name:                                "APP Install: Set schema_name variable for HANA"
+  when: platform == "HANA"
+  block:
+    - name:                            "APP Install: Get DEFAULT.PFL"
+      ansible.builtin.slurp:
+        src:                           "/sapmnt/{{ sap_sid | upper }}/profile/DEFAULT.PFL"
+      register: profilefile
 
-- name:                                "APP Install: Get schema name"
-  ansible.builtin.set_fact:
-    schema_name:                       "{{ profilefile['content'] | b64decode | split('\n') | select('search', 'dbs/hdb/schema') | first | split('=') | last | trim | default('{{ hana_schema }}') }}"
+    - name:                            "APP Install: Get schema name"
+      ansible.builtin.set_fact:
+        schema_name:                   "{{ profilefile['content'] | b64decode | split('\n') | select('search', 'dbs/hdb/schema') | first | split('=') | last | trim | default('{{ hana_schema }}') }}"
 
-- name:                                "APP Install: Installation results"
-  ansible.builtin.debug:
-    msg:                               "Schema name {{ schema_name }}"
+    - name:                            "APP Install: Show schema name"
+      ansible.builtin.debug:
+        msg:                           "Schema name {{ schema_name }}"
 
 # *====================================4=======================================8
 #   SAP APP: Install

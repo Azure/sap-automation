@@ -78,18 +78,21 @@
     pas_bom_instance_type:             "{% if bom.InstanceType is defined %}{{ bom.InstanceType }}{% else %}ABAP{% endif %}"
     public:                            true
 
-- name:                                "PAS Install: Get DEFAULT.PFL"
-  ansible.builtin.slurp:
-    src:                               "/sapmnt/{{ sap_sid | upper }}/profile/DEFAULT.PFL"
-  register: profilefile
+- name:                                "PAS Install: Set schema_name variable for HANA"
+  when: platform == "HANA"
+  block:
+    - name:                            "PAS Install: Get DEFAULT.PFL"
+      ansible.builtin.slurp:
+        src:                           "/sapmnt/{{ sap_sid | upper }}/profile/DEFAULT.PFL"
+      register: profilefile
 
-- name:                                "PAS Install: Get schema name"
-  ansible.builtin.set_fact:
-    schema_name:                       "{{ profilefile['content'] | b64decode | split('\n') | select('search', 'dbs/hdb/schema') | first | split('=') | last | trim | default('{{ hana_schema }}') }}"
+    - name:                            "PAS Install: Get schema name"
+      ansible.builtin.set_fact:
+        schema_name:                   "{{ profilefile['content'] | b64decode | split('\n') | select('search', 'dbs/hdb/schema') | first | split('=') | last | trim | default('{{ hana_schema }}') }}"
 
-- name:                                "PAS Install: Installation results"
-  ansible.builtin.debug:
-    msg:                               "Schema name {{ schema_name }}"
+    - name:                            "PAS Install: Show schema name"
+      ansible.builtin.debug:
+        msg:                           "Schema name {{ schema_name }}"
 
 - name:                                "PAS Install"
   block:
