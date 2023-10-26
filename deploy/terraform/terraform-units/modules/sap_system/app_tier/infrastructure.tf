@@ -466,5 +466,5 @@ resource "azurerm_private_dns_a_record" "web" {
   resource_group_name                  = coalesce(var.management_dns_resourcegroup_name, var.landscape_tfstate.dns_resource_group_name)
   zone_name                            = local.dns_label
   ttl                                  = 300
-  records                              = [azurerm_lb.web[0].frontend_ip_configuration[1].private_ip_address]
+  records                              = [azurerm_lb.web[0].frontend_ip_configuration[0].private_ip_address]
 }
