@@ -35,18 +35,6 @@
     dir_params:                        '{{ tmp_directory_windows }}\{{ sid_to_be_deployed.sid | lower }}-params\'
     ha_identifier:                     "_ha"
 
-- name:                                "5.6 SCSERS - Set the SCS Virtual Instance hostname"
-  ansible.builtin.set_fact:
-    scs_virtual_hostname:              "{{ sap_sid | lower }}scs{{ scs_instance_number }}cl1"
-  when:
-    - scs_high_availability
-
-- name:                                "5.6 SCSERS - Set the ERS Virtual Instance hostname"
-  ansible.builtin.set_fact:
-    ers_virtual_hostname:              "{{ sap_sid | lower }}ers{{ ers_instance_number }}cl2"
-  when:
-    - scs_high_availability
-
 # /*---------------------------------------------------------------------------8
 # |                   Windows cluster configuration : START                    |
 # +------------------------------------4--------------------------------------*/
@@ -505,8 +493,7 @@
         sap_ciBtcWPNumber:
         sap_installSAPHostAgent:
         sap_profile_dir:
-        sap_scs_hostname:              "{{ virtual_host }}"
-        ers_virtual_hostname:          "{{ ansible_hostname }}"
+        sap_scs_hostname:              "{{ scs_virtual_hostname }}"
         sap_db_hostname:
         sap_ciVirtualHostname:
         sap_appVirtualHostname:

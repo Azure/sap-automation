@@ -315,7 +315,7 @@
   block:
     - name:                            "Calculate the SCS Virtual Instance hostname"
       ansible.builtin.set_fact:
-        scs_virtual_hostname:          "{{ sap_sid | lower }}scs{{ scs_instance_number }}cl1"
+        scs_virtual_hostname:          "{{ custom_scs_virtual_hostname | default(sap_sid | lower ~ 'scs' ~ scs_instance_number ~ 'cl1', true) }}"
 
     - name:                            "Set environment variables required for AlwaysON required by SAP"
       ansible.windows.win_environment:

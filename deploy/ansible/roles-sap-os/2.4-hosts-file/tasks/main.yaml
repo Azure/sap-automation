@@ -38,19 +38,19 @@
 
 - name:                                "2.4 Hosts - Set the SCS Virtual Instance hostname"
   ansible.builtin.set_fact:
-    scs_virtual_hostname:              "{{ sap_sid | lower }}scs{{ scs_instance_number }}cl1"
+    scs_virtual_hostname:              "{{ custom_scs_virtual_hostname | default(sap_sid | lower ~ 'scs' ~ scs_instance_number ~ 'cl1', true) }}"
   when:
     - scs_high_availability
 
 - name:                                "2.4 Hosts - Set the ERS Virtual Instance hostname"
   ansible.builtin.set_fact:
-    ers_virtual_hostname:              "{{ sap_sid | lower }}ers{{ ers_instance_number }}cl2"
+    ers_virtual_hostname:              "{{ custom_ers_virtual_hostname | default(sap_sid | lower ~ 'ers' ~ ers_instance_number ~ 'cl2', true) }}"
   when:
     - scs_high_availability
 
 - name:                                "2.4 Hosts: - Set the DB Virtual Instance hostname"
   ansible.builtin.set_fact:
-    db_virtual_hostname:               "{{ sap_sid | lower }}{{ db_sid | lower }}db{{ db_instance_number }}cl"
+    db_virtual_hostname:               "{{ custom_db_virtual_hostname | default(sap_sid | lower ~ db_sid | lower ~ 'db' ~ db_instance_number ~ 'cl', true) }}"
   when:
     - db_high_availability
 
@@ -59,7 +59,6 @@
     scs_server_list:                   "{{ scs_server_list | default([]) + [item] }}"
   with_items:
     - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') }}"
-
 
 - name:                                "2.4 Hosts: - Setup Virtual host name resolution - SCS & ERS"
   ansible.builtin.blockinfile:
@@ -103,31 +102,21 @@
 
 - name:                                "2.4 Hosts: Process pas_hostname variable and update host file when it is defined"
   when:
-    - pas_hostname is defined
-    - pas_hostname | type_debug != 'NoneType'
-    - pas_hostname | length != 0
+    - custom_scs_virtual_hostname | default(false, true)
   block:
-    - name:                            "2.4 Hosts: - Get the PAS Server name list"
-      ansible.builtin.set_fact:
-        pas_server_list:               "{{ pas_server_list | default([]) + [item] }}"
-      with_items:
-        - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_PAS') }}"
-
     - name:                            "2.4 Hosts: - Set virtual_host fact from the fetched PAS server list"
       ansible.builtin.set_fact:
-        pas_virtualhost_from_inventory: "{{ hostvars[pas_server_list[0]]['virtual_host'] }}"
-      when:
-        - pas_server_list is defined
-        - pas_server_list | length > 0
+        pas_virtualhost_from_inventory: "{{ hostvars[query('inventory_hostnames', '{{ sap_sid | upper }}_PAS') | first]['virtual_host'] }}"
+      when: query('inventory_hostnames', sap_sid | upper ~ '_PAS') | length > 0
 
     - name:                            "2.4 Hosts: - Set fact for the PAS if pas_hostname is defined"
       ansible.builtin.set_fact:
-        pas_virtual_hostname:          "{% if pas_hostname | type_debug != 'NoneType' and pas_hostname | length != 0 %}{{ pas_hostname }}{% else %}{{ pas_virtualhost_from_inventory }}{% endif %}"
+        pas_virtual_hostname:          "{{ custom_pas_virtual_hostname | default(pas_virtualhost_from_inventory, true) }}"
 
     - name:                            "2.4 Hosts: - Display the variables being used"
       ansible.builtin.debug:
         msg:
-          - "pas_hostname:             {{ pas_hostname }} "
+          - "pas_hostname:             {{ custom_pas_virtual_hostname }} "
           - "pas_virtual_hostname:     {{ pas_virtual_hostname }} "
           - "virtualhost_in_inventory: {{ pas_virtualhost_from_inventory }}"
 
@@ -141,11 +130,13 @@
         virtual_host_line:             "{{ (hosts_content['content'] | b64decode).split('\n') | select('search', pas_virtualhost_from_inventory) | first }}"
 
     - name:                            "2.4 Hosts: - Duplicate the line with virtual_host and replace with pas_virtual_hostname in /etc/hosts"
+      when:
+        - virtual_host_line is defined
+        - pas_virtual_hostname is defined
       ansible.builtin.lineinfile:
         path:                          /etc/hosts
         line:                          "{{ virtual_host_line | replace(pas_virtualhost_from_inventory, pas_virtual_hostname) }}"
         insertbefore:                  "{{ virtual_host_line }}"
-      when: virtual_host_line is defined and pas_virtual_hostname is defined
 
 - name:                                "2.4 Hosts: - Remove duplicate lines from /etc/hosts"
   block:

@@ -28,7 +28,7 @@ module "sap_library" {
                                       )
   use_private_endpoint              = var.use_private_endpoint
   use_webapp                        = var.use_webapp
-
+  Agent_IP                          = var.Agent_IP
 }
 
 module "sap_namegenerator" {

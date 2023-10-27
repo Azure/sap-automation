@@ -39,7 +39,7 @@
                                         {%- set lv_parts = item.lv.split('_') -%}
                                         {%- if lv_parts| length == 2 -%}
                                         {%- set _path = '/' ~ lv_parts[-1] -%}
-                                        {%- elif ('offline' in lv_parts) and
+                                        {%- elif ('offline_logdir' in item.lv or 'log_dir' in item.lv) and
                                             (lv_parts| length == 4 ) -%}
                                         {%- set _path = ['/' ~ lv_parts[-3],
                                           db_sid | upper,
@@ -54,8 +54,7 @@
     fstype:                            "{{ item.fstype }}"
     opts:                              defaults
     state:                             mounted
-  loop:                                "{{ logical_volumes |
-                                            sort(attribute='lv') }}"
+  loop:                                "{{ logical_volumes | sort(attribute='lv') }}"
   register:  db2fsmounts
   when:
     - item.node_tier == "db2"
