@@ -134,7 +134,7 @@
         sap_ciBtcWPNumber:
         sap_installSAPHostAgent:
         sap_profile_dir:
-        sap_scs_hostname:              "{{ virtual_host }}"
+        sap_scs_hostname:              "{{ scs_virtual_hostname }}"
         sap_db_hostname:
         sap_ciVirtualHostname:
         sap_appVirtualHostname:
@@ -152,7 +152,7 @@
           - "PRODUCT ID: {{ bom.product_ids.scs }}"
           - "INSTANCE:   {{ sid_to_be_deployed.ascs_inst_no }}"
           - "MEDIA:      {{ target_media_location }}"
-          - "HOST:       {{ virtual_host }}"
+          - "HOST:       {{ scs_virtual_hostname }}"
           - "SID:        {{ sid_to_be_deployed.sid | upper }}"
 
     - name:                            "SCS Install: Default instance type"
@@ -214,13 +214,13 @@
       ansible.builtin.debug:
         msg:                           "Start SCS Installation"
 
-    - name:                            "SCS Install: SAP SCS Install on {{ ansible_hostname }}"
+    - name:                            "SCS Install: SAP SCS Install on {{ scs_virtual_hostname }}"
       ansible.builtin.shell: |
                                        umask {{ custom_umask | default('022') }} ;
                                        ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }}  \
                                                  SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.scs }}             \
                                                  SAPINST_SKIP_DIALOGS=true                                        \
-                                                 SAPINST_USE_HOSTNAME={{ virtual_host }}                          \
+                                                 SAPINST_USE_HOSTNAME={{ scs_virtual_hostname }}                          \
                                                  SAPINST_START_GUISERVER=false
       args:
         chdir:                         "{{ target_media_location }}/SWPM"

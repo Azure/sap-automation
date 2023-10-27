@@ -25,6 +25,9 @@
       ansible.builtin.command:         pcs node standby {{ secondary_instance_name }}
 
     - name:                            "5.6 SCSERS - RHEL - Set fact for ASCS Filesystem"
+      when:
+        - NFS_provider in ['AFS', 'ANF']
+        - sap_mnt is defined
       ansible.builtin.set_fact:
         ascs_filesystem_device:        "{{ sap_mnt }}/usrsap{{ sap_sid | upper }}{{ instance_type | lower }}{{ scs_instance_number }}"
 
@@ -165,6 +168,9 @@
       ansible.builtin.command:         pcs node standby {{ primary_instance_name }}
 
     - name:                            "5.6 SCSERS - RHEL - ERS - Set fact for ERS Filesystem"
+      when:
+        - NFS_provider in ['AFS', 'ANF']
+        - sap_mnt is defined
       ansible.builtin.set_fact:
         ers_filesystem_device:        "{{ sap_mnt }}/usrsap{{ sap_sid | upper }}ers{{ ers_instance_number }}"
 
