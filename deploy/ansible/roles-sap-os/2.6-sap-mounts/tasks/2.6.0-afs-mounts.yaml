@@ -144,6 +144,7 @@
   when:
     - tier == 'sapos'
     - "'scs' in supported_tiers"
+    - sap_mnt is defined
 
 - name:                                "AFS Mount: install"
   ansible.builtin.include_tasks:       2.6.0.1-afs-mount.yaml
