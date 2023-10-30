@@ -315,7 +315,8 @@
     {{ sap_sid | upper }}_ERS :
     {{ sap_sid | upper }}_PAS :
     {{ sap_sid | upper }}_APP :
-    {{ sap_sid | upper }}_WEB"
+    {{ sap_sid | upper }}_WEB :
+    {{ sap_sid | upper }}_OBSERVER_DB"
 
   name:                                "0.0 Validations - Validate SAP-Parameters"
   gather_facts:                        false
