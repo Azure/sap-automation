@@ -282,7 +282,7 @@ resource "azurerm_private_endpoint" "witness_storage" {
 
 resource "azurerm_storage_account" "transport" {
   provider                             = azurerm.main
-  count                                = var.NFS_provider == "AFS" ? (
+  count                                = var.create_transport_storage && var.NFS_provider == "AFS" ? (
                                            length(var.transport_storage_account_id) > 0 ? (
                                              0) : (
                                              1
@@ -322,7 +322,7 @@ resource "azurerm_storage_account" "transport" {
 
 resource "azurerm_storage_account_network_rules" "transport" {
   provider                             = azurerm.main
-  count                                = var.NFS_provider == "AFS" && length(var.transport_storage_account_id) == 0 ? 1 : 0
+  count                                = var.create_transport_storage && var.NFS_provider == "AFS" && length(var.transport_storage_account_id) == 0 ? 1 : 0
   storage_account_id                   = azurerm_storage_account.transport[0].id
   default_action                       = "Deny"
 
@@ -358,7 +358,7 @@ resource "azurerm_storage_account_network_rules" "transport" {
 
 resource "azurerm_private_dns_a_record" "transport" {
   provider                             = azurerm.dnsmanagement
-  count                                = local.use_Azure_native_DNS && var.NFS_provider == "AFS" && length(var.transport_private_endpoint_id) == 0 ? 1 : 0
+  count                                = var.create_transport_storage && local.use_Azure_native_DNS && var.NFS_provider == "AFS" && length(var.transport_private_endpoint_id) == 0 ? 1 : 0
   name                                 = replace(
                                            lower(
                                              format("%s", local.landscape_shared_transport_storage_account_name)
@@ -379,7 +379,7 @@ resource "azurerm_private_dns_a_record" "transport" {
 
 data "azurerm_private_dns_a_record" "transport" {
   provider                             = azurerm.dnsmanagement
-  count                                = var.use_private_endpoint && length(var.transport_private_endpoint_id) > 0 ? 1 : 0
+  count                                = var.create_transport_storage && var.use_private_endpoint && length(var.transport_private_endpoint_id) > 0 ? 1 : 0
   name                                 = replace(
                                            lower(
                                              format("%s", local.landscape_shared_transport_storage_account_name)
@@ -394,7 +394,7 @@ data "azurerm_private_dns_a_record" "transport" {
 
 resource "azurerm_storage_share" "transport" {
   provider                             = azurerm.main
-  count                                = var.NFS_provider == "AFS" ? (
+  count                                = var.create_transport_storage && var.NFS_provider == "AFS" ? (
                                            length(var.transport_storage_account_id) > 0 ? (
                                              var.install_always_create_fileshares ? 1 : 0) : (
                                              1
@@ -415,7 +415,7 @@ resource "azurerm_storage_share" "transport" {
 
 data "azurerm_storage_account" "transport" {
   provider                             = azurerm.main
-  count                                = var.NFS_provider == "AFS" ? (
+  count                                = var.create_transport_storage && var.NFS_provider == "AFS" ? (
                                           length(var.transport_storage_account_id) > 0 ? (
                                             1) : (
                                             0
@@ -432,7 +432,7 @@ resource "azurerm_private_endpoint" "transport" {
                                            azurerm_subnet.app,
                                            azurerm_private_dns_zone_virtual_network_link.vnet_sap_file
                                          ]
-  count                                = var.NFS_provider == "AFS" ? (
+  count                                = var.create_transport_storage && var.NFS_provider == "AFS" ? (
                                            length(var.transport_storage_account_id) > 0 ? (
                                              0) : (
                                              1
@@ -499,7 +499,7 @@ resource "azurerm_private_endpoint" "transport" {
 
 data "azurerm_private_endpoint_connection" "transport" {
   provider                             = azurerm.main
-  count                                = var.NFS_provider == "AFS" ? (
+  count                                = var.create_transport_storage && var.NFS_provider == "AFS" ? (
                                           length(var.transport_private_endpoint_id) > 0 ? (
                                             1) : (
                                             0

@@ -17,6 +17,7 @@ module "sap_landscape" {
   ANF_settings                                 = local.ANF_settings
   authentication                               = local.authentication
   create_vaults_and_storage_dns_a_records      = var.create_vaults_and_storage_dns_a_records
+  create_transport_storage                     = var.create_transport_storage
   deployer_tfstate                             = try(data.terraform_remote_state.deployer[0].outputs, [])
   diagnostics_storage_account                  = local.diagnostics_storage_account
   dns_label                                    = var.dns_label
