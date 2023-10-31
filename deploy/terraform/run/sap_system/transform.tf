@@ -93,6 +93,7 @@ locals {
                                         false) : (
                                         tobool(var.database_no_ppg) == null ? (length(var.proximityplacementgroup_arm_ids) > 0 && !var.database_use_ppg) || var.database_use_ppg : !var.database_no_ppg
                                       )
+    database_server_count           = var.database_high_availability ? 2 * var.database_server_count : var.database_server_count
   }
 
   db_os = {

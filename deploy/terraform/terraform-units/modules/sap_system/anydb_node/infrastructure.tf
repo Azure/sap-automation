@@ -125,10 +125,10 @@ resource "azurerm_availability_set" "anydb" {
   resource_group_name                  = var.resource_group[0].name
   platform_update_domain_count         = 20
   platform_fault_domain_count          = local.faultdomain_count
-  proximity_placement_group_id         = var.database.use_ppg ? (
+  proximity_placement_group_id         = try(var.database.use_ppg ? (
                                            var.ppg[count.index % max(local.db_zone_count, 1)]) : (
                                            null
-                                         )
+                                         ), null)
   managed                              = true
   tags                                 = var.tags
 }
