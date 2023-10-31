@@ -216,35 +216,30 @@ logical_volumes:
 
   - tier:       'sapos'
     node_tier:  'db2'
-    vg:         'vg_db2_sapdata'
+    vg:         'vg_db2_sapdata1'
     lv:         'lv_db2_sapdata1'
-    size:       '25%VG'
-    stripesize: 256
+    size:       '100%FREE'
     fstype:     'xfs'
 
   - tier:       'sapos'
     node_tier:  'db2'
-    vg:         'vg_db2_sapdata'
+    vg:         'vg_db2_sapdata2'
     lv:         'lv_db2_sapdata2'
-    size:       '25%VG'
-    stripesize: 256
+    size:       '100%FREE'
     fstype:     'xfs'
 
   - tier:       'sapos'
     node_tier:  'db2'
-    vg:         'vg_db2_sapdata'
+    vg:         'vg_db2_sapdata3'
     lv:         'lv_db2_sapdata3'
-    size:       '25%VG'
-    stripesize: 256
+    size:       '100%FREE'
     fstype:     'xfs'
-  # Here we are left with 25%VG so we assign 100%FREE so as to not fail because
-  # the calculated size is less than what is available on disk xD
+
   - tier:       'sapos'
     node_tier:  'db2'
-    vg:         'vg_db2_sapdata'
+    vg:         'vg_db2_sapdata4'
     lv:         'lv_db2_sapdata4'
     size:       '100%FREE'
-    stripesize: 256
     fstype:     'xfs'
 
   - tier:       'sapos'
@@ -252,7 +247,6 @@ logical_volumes:
     vg:         'vg_db2_log_dir'
     lv:         'lv_db2_log_dir'
     size:       '100%FREE'
-    stripesize: 64
     fstype:     'xfs'
 
   - tier:       'sapos'
