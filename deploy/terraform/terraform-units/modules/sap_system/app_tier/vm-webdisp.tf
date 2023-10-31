@@ -582,7 +582,7 @@ resource "azurerm_availability_set" "web" {
   resource_group_name                  = var.resource_group[0].name
   platform_update_domain_count         = 20
   platform_fault_domain_count          = local.faultdomain_count
-  proximity_placement_group_id         = local.web_zonal_deployment ? var.ppg[count.index % length(local.web_zones)] : var.ppg[0]
+  proximity_placement_group_id         = try(local.web_zonal_deployment ? var.ppg[count.index % length(local.web_zones)] : var.ppg[0], null)
   managed                              = true
 
   tags                                 = var.tags
