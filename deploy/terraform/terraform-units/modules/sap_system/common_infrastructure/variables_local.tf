@@ -488,14 +488,6 @@ locals {
 
   app_tier_os                          = upper(try(var.application_tier.app_os.os_type, "LINUX"))
 
-  no_resource_in_ppg                   =  !(
-                                            var.application_tier.app_use_ppg && var.application_tier.application_server_count >0
-                                          ) ||  (
-                                            var.application_tier.scs_use_ppg && (var.application_tier.scs_server_count * (var.application_tier.scs_high_availability ? 2 : 1) >0
-                                          ) ||  (
-                                            var.application_tier.web_use_ppg && var.application_tier.webdispatcher_count > 0
-                                          ) ||  (
-                                            var.database.use_ppg && var.database.database_server_count > 0)
-                                          )
+  create_ppg                           = var.application_tier.app_use_ppg || var.application_tier.scs_use_ppg || var.application_tier.web_use_ppg || var.database.use_ppg
 
 }
