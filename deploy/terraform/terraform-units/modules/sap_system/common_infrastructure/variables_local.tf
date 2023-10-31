@@ -488,6 +488,6 @@ locals {
 
   app_tier_os                          = upper(try(var.application_tier.app_os.os_type, "LINUX"))
 
-  no_resource_in_ppg                   = !(var.application_tier.app_use_ppg || var.application_tier.scs_use_ppg || var.application_tier.web_use_ppg || var.database.use_ppg)
+  no_resource_in_ppg                   = !(var.application_tier.app_use_ppg && !var.application_tier.scs_use_ppg && !var.application_tier.web_use_ppg && !var.database.use_ppg)
 
 }
