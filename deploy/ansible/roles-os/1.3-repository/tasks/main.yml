@@ -26,125 +26,6 @@
 # ----------------------------------------
 
 
-# ----------------------------------------
-# BEGIN
-#
-# TODO: 20210127 - This only takes into account pay-as-you-go deployments.
-#                  Need to support BYOL with SUSE Manager Registrations.
-#                  Is there a better way to do this other than using
-#                  'command' or 'shell'?
-# ----------------------------------------
-
-# -------------------------------------+---------------------------------------8
-
-- name:                                "1.3 Repository - Ensure zypper repo is configured on SLE VMs"
-  block:
-    # If there are no repos configured zypper lr will fail with rc == 6
-    - name:                            "1.3 Repository - Check that zypper repos are registered"
-      ansible.builtin.command:         zypper lr
-      # command/shell actions always report changed even if they are
-      # not making any changes; we know this command action doesn't
-      # change anything so ensure it doesn't report as changed.
-      changed_when:                    false
-
-    - name:                            "1.3 Repository - Check connect to SUSE repos via SUSEConnect"
-      ansible.builtin.command:         SUSEConnect --status
-      # command/shell actions always report changed even if they are
-      # not making any changes; we know this command action doesn't
-      # change anything so ensure it doesn't report as changed.
-      changed_when:                    false
-
-  rescue:
-    # Attempt to configure the repos by re-registering instance
-
-    - name:                            "1.3 Repository - Attempt to re-register SLE instance with Public Cloud Update Infrastructure and rescue"
-      block:
-        - name:                        "1.3 Repository - Attempt to re-register SLE instance with Public Cloud Update Infrastructure"
-          ansible.builtin.shell:      |
-                                          rm -f /etc/SUSEConnect
-                                          rm -f /etc/zypp/{repos,services,credentials}.d/*
-                                          rm -f /usr/lib/zypp/plugins/services/*
-                                          sed -i '/^# Added by SMT reg/,+1d' /etc/hosts
-                                          export PYTHONWARNINGS="ignore:Unverified HTTPS request"
-                                          /usr/sbin/registercloudguest --force-new
-
-          register:                    reg_result
-          # registercloudguest rc == 1 when successful
-          failed_when:                     reg_result.rc > 1
-
-        - name:                        "1.3 Packages - Wait 30 secs before retrying"
-          ansible.builtin.wait_for:
-            timeout:                   30
-
-        - name:                        "1.3 Repository - Verify that zypper repos are configured after re-registering SLE instance"
-          ansible.builtin.command:     zypper lr
-          register:                    zypper_lr_result
-      rescue:
-        - name:                        "Print stderr before error handling"
-          ansible.builtin.debug:
-            msg:                       "Result obj: {{ zypper_lr_result }}"
-
-        - name:                        "Error handling: 1.3 Repository - Verify that zypper repos are configured after re-registering SLE instance"
-          ansible.builtin.fail:
-            msg:                       "{{ zypper_lr_result.msg | try_get_error_code(task_tag='zypper_registration') }}"
-
-  when:     ansible_os_family | upper == 'SUSE'
-
-# ----------------------------------------
-# END
-#
-# TODO: 20210127 - This only takes into account pay-as-you-go deployments.
-#                  Need to support BYOL with SUSE Manager Registrations.
-#                  Is there a better way to do this other than using
-#                  'command' or 'shell'?
-# ----------------------------------------
-
-# ----------------------------------------
-# BEGIN
-#
-# TODO: 20210127 - This only takes into account pay-as-you-go deployments.
-#                  Need to support BYOL with RHEL satellite Registrations.
-#                  Is there a better way to do this other than using
-#                  'command' or 'shell'?
-# ----------------------------------------
-
-- name:                                "1.3 Repository - Ensure yum repos are configured on Redhat VMs"
-  block:
-    - name:                            "1.3 Repository - Check that yum repos are registered"
-      ansible.builtin.command:         yum repolist # noqa: command-instead-of-module
-
-  when:     ansible_os_family | upper == 'REDHAT'
-
-# KFO 08/05/2023 this is broken
-# - name:                                "1.3 Repository - Ensure repos is configured on {{ ansible_distribution_major_version }}"
-#   ansible.builtin.shell:      |
-#                                        subscription-manager repos --enable codeready-builder-for-rhel-8-x86_64-rpms
-#   when: (ansible_distribution | lower ~ ansible_distribution_major_version) == 'redhat8'
-
-# ----------------------------------------
-# END
-#
-# TODO: 20210127 - This only takes into account pay-as-you-go deployments.
-#                  Need to support BYOL with RHEL satellite Registrations.
-#                  Is there a better way to do this other than using
-#                  'command' or 'shell'?
-# ----------------------------------------
-
-# ----------------------------------------
-# BEGIN
-#
-# TODO: 20210824 - This only takes into account pay-as-you-go deployments.
-#                  Need to support BYOL with OEL satellite Registrations.
-#                  Is there a better way to do this other than using
-#                  'command' or 'shell'?
-# ----------------------------------------
-
-- name:                                "1.3 Repository - Ensure yum repos are configured on OEL VMs"
-  block:
-    - name:                            "1.3 Repository - Check that yum repos are registered"
-      ansible.builtin.command:         yum repolist # noqa: command-instead-of-module
-
-  when:     ansible_os_family | upper == 'Oracle'
 
 # ----------------------------------------
 # END
@@ -165,108 +46,35 @@
 #                  'command' or 'shell'?
 # ----------------------------------------
 
-- name:                                "1.3 Repository - Ensure yum repos are configured on Oracle Linux VMs"
-  block:
-    - name:                            "1.3 Repository - Check that yum repos are registered"
-      ansible.builtin.command:         yum repolist # noqa: command-instead-of-module
-
-  when:                                ansible_os_family | upper == 'ORACLELINUX'
-
-# ----------------------------------------
-# END
-
-- name:                                "1.3 Repository - Ensure additional zypper repo is configured on SLE VMs and rescue"
-  block:
-    # If there are no repos configured zypper lr will fail with rc == 6
-    - name:                            "1.3 Repository - Check that zypper repos are registered"
-      ansible.builtin.command:         zypper lr
-      # command/shell actions always report changed even if they are
-      # not making any changes; we know this command action doesn't
-      # change anything so ensure it doesn't report as changed.
-      register:                        zypper_lr_result
-      changed_when:                    false
-
-  rescue:
-    - name:                            "Print stderr before error handling"
-      ansible.builtin.debug:
-        msg:                           "Result object: {{ zypper_lr_result }}"
-    - name:                            "Error handling 1.3 Repository - Check that zypper repos are registered"
-      ansible.builtin.fail:
-        msg:                           "{{ zypper_lr_result.msg | try_get_error_code(task_tag='zypper_registration') }}"
-
-  when:     ansible_os_family | upper == 'SUSE'
-
-# ----------------------------------------
-#
-# 20210722 -  Adding support for additional repos
-#
-# ----------------------------------------
-
-
-- name:                                "1.3 Repos:  - Import repo list"
-  ansible.builtin.include_vars:        repos.yaml
-
-# Analyse the repo list for this distribution selecting only those
-# packages assigned to the active tier or 'all'.
-- name:                                "1.3 Repository - Determine repos appropriate for tier {{ distribution_full_id }}"
-  ansible.builtin.set_fact:
-    repos_for_tier:                    "{{ repos[distribution_full_id] |
-                                             selectattr('tier', 'in', ['all', tier]) |
-                                             list }}"
-
-# Print list of matching repos if verbosity it 1 or greater
-- name:                                "1.3 Repos: Print matching repos"
-  ansible.builtin.debug:
-    var:                               "{{ repos_for_tier }}"
-    verbosity:                         2
-  when:
-    - repos_for_tier is defined
-    - repos_for_tier | length > 0
-
-# Add repositories
-- name:                                "1.3 Repos: Add the repositories {{ ansible_os_family }}"
-  community.general.zypper_repository:
-    repo:                              "{{ item.repo }}"
-    state:                             "{{ item.state }}"
-    overwrite_multiple:                true
-    disable_gpg_check:                 true
-    auto_import_keys:                  true
-  loop:                                "{{ repos_for_tier }}"
-  register:                            zypresult
-  ignore_errors:                       true
-  failed_when:
-    - zypresult.rc != 0
-    - zypresult.rc != 4
+- name:                                "1.3 Repository: - Prepare the repositories."
+  ansible.builtin.include_tasks:       "1.3.0-preparation-Suse.yaml"
   when:                                ansible_os_family | upper == 'SUSE'
 
-- name:                                "1.3 Repos: Add the repositories {{ ansible_os_family }}"
-  ansible.builtin.dnf:
-    name:                              "{{ item.url }}"
-    state:                             "{{ item.state }}"
-    disable_gpg_check:                 true
-  loop:                                "{{ repos_for_tier }}"
-  register:                            zypresult
-  ignore_errors:                       true
+# Doing it this way to handle also Oracle Distros
+- name:                                "1.3 Repository: - Prepare the repositories."
+  ansible.builtin.include_tasks:       "1.3.0-preparation-RedHat.yaml"
   when:                                ansible_os_family | upper != 'SUSE'
 
-- name:                                "1.3 Repos: Add the repositories result"
-  ansible.builtin.debug:
-    var:                               zypresult
-    verbosity:                         2
+- name:                                "1.3 Repository: - Manage the repositories."
+  ansible.builtin.include_tasks:       "1.3.1-repositories-Suse.yaml"
+  when:                                ansible_os_family | upper == 'SUSE'
 
-- name:                                "1.3 Repos: Add the repositories result"
-  ansible.builtin.debug:
-    var:                               zypresult
-    verbosity:                         2
+# Doing it this way to handle also Oracle Distros
+- name:                                "1.3 Repository: - Prepare the repositories."
+  ansible.builtin.include_tasks:       "1.3.1-repositories-RedHat.yaml"
+  when:                                ansible_os_family | upper != 'SUSE'
 
-- name:                                "1.3 Repos: Add the HA repositories for RHEL"
-  ansible.builtin.dnf:
-    enablerepo:                        rhel-9-for-x86_64-highavailability-rpms
-    disable_gpg_check:                 true
-  changed_when:                        false
-  when:
-    - distribution_id in ['redhat9']
-    - node_tier == 'ha'
+
+- name:                                "1.3 Repository: - Manage the repositories."
+  ansible.builtin.include_tasks:       "1.3.2-custom-repositories-Suse.yaml"
+  when:                                ansible_os_family | upper == 'SUSE'
+
+# Doing it this way to handle also Oracle Distros
+- name:                                "1.3 Repository: - Prepare the repositories."
+  ansible.builtin.include_tasks:       "1.3.2-custom-repositories-RedHat.yaml"
+  when:                                ansible_os_family | upper != 'SUSE'
+
+
 
 # - name:                                "1.3 Repos: Install EPEL repo"
 #   ansible.builtin.yum_repository:

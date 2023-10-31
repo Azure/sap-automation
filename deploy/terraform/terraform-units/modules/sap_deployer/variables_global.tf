@@ -127,7 +127,6 @@ variable "configure" {
 
 variable "tf_version" {
   description = "Terraform version to install on deployer"
-  default     = ""
 }
 
 variable "bastion_deployment" {
@@ -185,7 +184,6 @@ variable "agent_ado_url" {
 
 variable "ansible_core_version" {
   description = "If provided, the version of ansible core to be installed"
-  default     = "2.13"
 }
 
 variable "Agent_IP" {

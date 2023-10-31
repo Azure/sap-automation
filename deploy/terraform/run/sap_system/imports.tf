@@ -56,9 +56,8 @@ data "azurerm_key_vault_secret" "tenant_id" {
 // Import current service principal
 data "azuread_service_principal" "sp" {
   count          = var.use_spn ? 1 : 0
-  client_id      = local.spn.client_id
+  application_id = local.spn.client_id
 }
-
 
 data "azurerm_key_vault_secret" "cp_subscription_id" {
   count        = length(try(data.terraform_remote_state.landscape.outputs.controlplane_environment, "")) > 0 ? 1 : 0

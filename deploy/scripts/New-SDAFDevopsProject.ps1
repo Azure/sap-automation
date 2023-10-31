@@ -14,6 +14,8 @@ $Workload_zoneSubscriptionName = $Env:SDAF_WorkloadZoneSubscriptionName
 $ARM_TENANT_ID = $Env:ARM_TENANT_ID
 #endregion
 
+$versionLabel="v.3.9.3.0"
+
 az logout
 
 az account clear
@@ -98,15 +100,17 @@ else {
   Write-Host "Using Workload zone code: $Workload_zone_code" -foregroundColor Yellow
 }
 
+$ControlPlanePrefix = "SDAF-" + $Control_plane_code
+$WorkloadZonePrefix = "SDAF-" + $Workload_zone_code
+
+$Pool_Name = $ControlPlanePrefix + "-POOL"
+
 $ApplicationName = $ControlPlanePrefix + "-configuration-app"
 
 if ($Env:SDAF_APP_NAME.Length -ne 0) {
   $ApplicationName = $Env:SDAF_APP_NAME
 }
 
-$ControlPlanePrefix = "SDAF-" + $Control_plane_code
-$WorkloadZonePrefix = "SDAF-" + $Workload_zone_code
-$Pool_Name = $ControlPlanePrefix + "-POOL"
 
 $confirmation = Read-Host "Use Agent pool with name '$Pool_Name' y/n?"
 if ($confirmation -ne 'y') {
@@ -259,7 +263,7 @@ if ($confirmation -ne 'y') {
     Add-Content -Path $templatename "    - repository: sap-automation"
     Add-Content -Path $templatename "      type: git"
     Add-Content -Path $templatename "      name: $ADO_Project/sap-automation"
-    Add-Content -Path $templatename "      ref: refs/tags/v3.9.2.0"
+    Add-Content -Path $templatename -Value ("      ref: refs/tags/" + $versionLabel)
 
     $cont = Get-Content -Path $templatename -Raw
 
@@ -307,7 +311,7 @@ if ($confirmation -ne 'y') {
     Add-Content -Path $templatename "    - repository: sap-automation"
     Add-Content -Path $templatename "      type: git"
     Add-Content -Path $templatename "      name: $ADO_Project/sap-automation"
-    Add-Content -Path $templatename "      ref: refs/tags/v3.9.2.0"
+    Add-Content -Path $templatename -Value ("      ref: refs/tags/" + $versionLabel)
     Add-Content -Path $templatename "    - repository: sap-samples"
     Add-Content -Path $templatename "      type: git"
     Add-Content -Path $templatename "      name: $ADO_Project/sap-samples"
@@ -390,7 +394,7 @@ else {
   Add-Content -Path $templatename "      type: GitHub"
   Add-Content -Path $templatename -Value ("      endpoint: " + $ghConn)
   Add-Content -Path $templatename "      name: Azure/sap-automation"
-  Add-Content -Path $templatename "      ref: refs/tags/v3.9.2.0"
+  Add-Content -Path $templatename -Value ("      ref: refs/tags/" + $versionLabel)
 
   $cont = Get-Content -Path $templatename -Raw
 
@@ -439,7 +443,7 @@ else {
   Add-Content -Path $templatename "     type: GitHub"
   Add-Content -Path $templatename -Value ("     endpoint: " + $ghConn)
   Add-Content -Path $templatename "     name: Azure/sap-automation"
-  Add-Content -Path $templatename "     ref: refs/tags/v3.9.2.0"
+  Add-Content -Path $templatename -Value ("      ref: refs/tags/" + $versionLabel)
   Add-Content -Path $templatename "   - repository: sap-samples"
   Add-Content -Path $templatename "     type: GitHub"
   Add-Content -Path $templatename -Value ("     endpoint: " + $ghConn)

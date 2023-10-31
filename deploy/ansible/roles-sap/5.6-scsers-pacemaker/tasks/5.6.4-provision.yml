@@ -46,7 +46,6 @@
     - use_simple_mount
     - ansible_os_family | upper == "SUSE"
 
-
 - name:                                "5.6 SCSERS: Post SCS HA Install check if installed"
   become:                              true
   ansible.builtin.stat:

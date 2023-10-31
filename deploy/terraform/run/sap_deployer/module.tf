@@ -31,7 +31,6 @@ module "sap_deployer" {
   deployer                                             = local.deployer
   deployer_vm_count                                    = var.deployer_count
   enable_firewall_for_keyvaults_and_storage            = var.enable_firewall_for_keyvaults_and_storage
-
   enable_purge_control_for_keyvaults                   = var.enable_purge_control_for_keyvaults
   firewall_deployment                                  = local.firewall_deployment
   infrastructure                                       = local.infrastructure

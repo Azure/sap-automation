@@ -74,7 +74,7 @@
   ansible.builtin.set_fact:
     scs_server:                        "{{ hostvars[scs_server_temp | first]['virtual_host'] }}"
     scs_sapmnt_server:                 "{% if scs_high_availability %}{{ sid_to_be_deployed.sid | lower }}scs{{ scs_instance_number }}cl1{% else %}{{ hostvars[scs_server_temp | first]['virtual_host'] }}{% endif %}"
-    db_virtual_host:                   "{{ hostvars[db_server_temp | first]['virtual_host'] }}"
+    db_virtual_hostname:               "{{ hostvars[db_server_temp | first]['virtual_host'] }}"
     file_path:                         "{% if scs_high_availability %}INSTALL/HA/ABAP/APP1{% else %}INSTALL/DISTRIBUTED/ABAP/APP1{% endif %}"
     db_lb_virtual_host:                "{% if db_high_availability %}{{ sid_to_be_deployed.sid | lower }}{{ db_sid | lower }}db{{ db_instance_number }}cl{% else %}{{ hostvars[db_server_temp | first]['virtual_host'] }}{% endif %}"
 
@@ -109,14 +109,14 @@
     sap_installSAPHostAgent:           "false"
     sap_profile_dir:                   '\\{{ scs_sapmnt_server }}\sapmnt\{{ sid_to_be_deployed.sid | upper }}\SYS\profile'
     sap_scs_hostname:                  "{{ scs_sapmnt_server }}"
-    sap_db_hostname:                   "{{ db_virtual_host }}"
+    sap_db_hostname:                   "{{ custom_db_virtual_hostname | default(db_virtual_hostname, true) }}"
     sap_ciVirtualHostname:
     sap_appVirtualHostname:            "{{ virtual_host }}"
     param_directory:                   "{{ dir_params }}"
     sap_sid:                           "{{ sid_to_be_deployed.sid }}"
     scs_instance_number:               "{{ sid_to_be_deployed.ascs_inst_no }}"
     sidadm_uid:                        "{{ sid_to_be_deployed.sidadm_uid }}"
-    virt_do_not_resolve_hostname:      "{{ db_lb_virtual_host }}"
+    virt_do_not_resolve_hostname:      "{{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) }}"
 
 - name:                                "APP Install: register variables"
   ansible.builtin.set_fact:
@@ -129,7 +129,7 @@
       - "INIFILE:    {{ sap_inifile }}"
       - "PRODUCT ID: {{ app_bom_id }}"
       - "INSTANCE:   {{ instance_number }}"
-      - "DBHOST:     {{ db_virtual_host }}"
+      - "DBHOST:     {{ custom_db_virtual_hostname | default(db_virtual_hostname, true) }}"
       - "HOST:       {{ virtual_host }}"
       - "SID:        {{ sid_to_be_deployed.sid | upper }}"
 

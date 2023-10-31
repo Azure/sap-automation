@@ -133,6 +133,8 @@ variable "witness_storage_account"                      {
                                                                     }
                                                         }
 
+variable "create_transport_storage"                     { description = "Boolean file indicating if storage should be created for SAP transport" }
+
 variable "transport_volume_size"                        { description = "The volume size in GB for transport volume" }
 
 variable "install_volume_size"                          { description = "The volume size in GB for install volume" }

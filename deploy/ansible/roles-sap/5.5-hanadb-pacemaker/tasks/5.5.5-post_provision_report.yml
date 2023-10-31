@@ -53,7 +53,7 @@
                                        read -a saphanasr_status <<< ${get_saphanasr_rc}
                                        echo "${saphanasr_status[-1]}"
       args:
-        chdir:                         /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/{{ primary_instance_name }}/trace
+        chdir:                         /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/{{ hostvars[primary_instance_name]['virtual_host'] }}/trace
       register:                        saphanasr
       when:                            inventory_hostname == primary_instance_name
   rescue:
@@ -73,7 +73,7 @@
                                        read -a saphanasr_status <<< ${get_saphanasr_rc}
                                        echo "${saphanasr_status[-1]}"
       args:
-        chdir:                         /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/{{ primary_instance_name }}/trace
+        chdir:                         /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/{{ hostvars[primary_instance_name]['virtual_host'] }}/trace
       register:                        saphanasr
       when:                            inventory_hostname == primary_instance_name
 

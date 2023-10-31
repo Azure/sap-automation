@@ -755,6 +755,15 @@
         "Display": 1
       },
       {
+        "Name": "create_transport_storage",
+        "Required": false,
+        "Description": "Defines if the workload zone will host storage for the transport data.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
         "Name": "transport_volume_size",
         "Required": false,
         "Description": "Defines the size of the transport volume.",

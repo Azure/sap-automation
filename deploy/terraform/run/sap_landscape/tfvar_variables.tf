@@ -6,18 +6,19 @@
 
 
 variable "environment"                           {
+                                                   description = "This is the environment name for the deployment"
                                                    type        = string
-                                                                                                   description = "This is the environment name of the deployer"
                                                    default     = ""
                                                  }
 
 variable "codename"                              {
-                                                   type    = string
-                                                   default = ""
+                                                   description = "This is the code name name for the deployment"
+                                                   type        = string
+                                                   default     = ""
                                                  }
 
 variable "location"                              {
-                                                                                                  description = "The Azure region for the resources"
+                                                  description = "The Azure region for the resources"
                                                   type        = string
                                                   default     = ""
                                                 }
@@ -49,7 +50,7 @@ variable "resourcegroup_arm_id"                 {
                                                 }
 
 variable "resourcegroup_tags"                   {
-                                                                                                  description = "Tags to be applied to the resource group"
+                                                  description = "Tags to be applied to the resource group"
                                                   default     = {}
                                                 }
 
@@ -66,12 +67,12 @@ variable "network_name"                         {
                                                 }
 
 variable "network_logical_name"                 {
-                                                                                                  description = "The logical name of the virtual network, used for resource naming"
+                                                  description = "The logical name of the virtual network, used for resource naming"
                                                   default     = ""
                                                 }
 
 variable "network_address_space"                {
-                                                                                                  description = "The address space of the virtual network"
+                                                  description = "The address space of the virtual network"
                                                   default     = ""
                                                 }
 
@@ -118,7 +119,7 @@ variable "peer_with_control_plane_vnet"         {
 #######################################4#######################################8
 
 variable "admin_subnet_address_prefix"          {
-                                                                                                  description = "The address prefix for the admin subnet"
+                                                  description = "The address prefix for the admin subnet"
                                                   default     = ""
                                                 }
 
@@ -160,7 +161,7 @@ variable "db_subnet_arm_id"                     {
                                                 }
 
 variable "db_subnet_address_prefix"             {
-                                                                                                  description = "The address prefix for the db subnet"
+                                                  description = "The address prefix for the db subnet"
                                                   default     = ""
                                                 }
 
@@ -192,7 +193,7 @@ variable "app_subnet_arm_id"                    {
                                                 }
 
 variable "app_subnet_address_prefix"            {
-                                                                                                  description = "The address prefix for the app subnet"
+                                                  description = "The address prefix for the app subnet"
                                                   default     = ""
                                                 }
 
@@ -354,6 +355,12 @@ variable "diagnostics_storage_account_arm_id"   {
 variable "witness_storage_account_arm_id"       {
                                                   description = "If provided, Azure resource id for the witness storage account"
                                                   default     = ""
+                                                }
+
+variable "create_transport_storage"             {
+                                                  description = "Boolean file indicating if storage should be created for SAP transport"
+                                                  type        = bool
+                                                  default     = true
                                                 }
 
 variable "transport_storage_account_id"         {
@@ -663,4 +670,21 @@ variable "utility_vm_nic_ips"                   {
 variable "tags"                                 {
                                                    description = "If provided, tags for all resources"
                                                    default     = {}
+                                                }
+
+
+#########################################################################################
+#                                                                                       #
+#  Export Share Control                                                                 #
+#                                                                                       #
+#########################################################################################
+
+variable "export_install_path"                  {
+                                                   description = "If provided, export mount path for the installation media"
+                                                   default     = true
+                                                }
+
+variable "export_transport_path"                {
+                                                   description = "If provided, export mount path for the transport media"
+                                                   default     = true
                                                 }

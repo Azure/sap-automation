@@ -248,7 +248,7 @@ output "witness_storage_account_key"            {
 
 output "transport_storage_account_id" {
                                                   description = "Transport storage account ID"
-                                                  value       = var.NFS_provider == "AFS" ? (
+                                                  value       = var.create_transport_storage && var.NFS_provider == "AFS" ? (
                                                                   length(var.transport_storage_account_id) > 0 ? (
                                                                     var.transport_storage_account_id) : (
                                                                     try(azurerm_storage_account.transport[0].id, "")
@@ -351,7 +351,7 @@ output "ANF_pool_settings"                      {
 
 output "saptransport_path"                     {
                                                  description = "Path to the SAP transport volume"
-                                                 value       = var.NFS_provider == "AFS" ? (
+                                                 value       = var.create_transport_storage && var.NFS_provider == "AFS" ? (
                                                               length(var.transport_private_endpoint_id) == 0 ? (
                                                                 format("%s:/%s/%s", try(azurerm_private_endpoint.transport[0].private_dns_zone_configs[0].record_sets[0].fqdn,
                                                                   try(azurerm_private_endpoint.transport[0].private_service_connection[0].private_ip_address, "")),
@@ -373,7 +373,7 @@ output "saptransport_path"                     {
                                                                   ),
                                                                 try(azurerm_storage_share.transport[0].name, ""))
                                                               )) : (
-                                                              var.NFS_provider == "ANF" ? (
+                                                              var.create_transport_storage && var.NFS_provider == "ANF" ? (
                                                                 format("%s:/%s",
                                                                   var.ANF_settings.use_existing_transport_volume ? (
                                                                     data.azurerm_netapp_volume.transport[0].mount_ip_addresses[0]) : (

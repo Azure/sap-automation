@@ -16,6 +16,8 @@
 
 - name:                                "1.4 Packages: - Custom packages"
   ansible.builtin.include_tasks:       "1.4.2-custom-packages.yaml"
+  when:
+    - custom_packages is defined
 
 - name:                                "1.4 Packages: - Update packages"
   ansible.builtin.include_tasks:       "1.4.3-update-packages-{{ ansible_os_family }}.yaml"
