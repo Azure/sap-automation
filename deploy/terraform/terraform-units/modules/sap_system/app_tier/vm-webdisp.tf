@@ -415,6 +415,7 @@ resource "azurerm_virtual_machine_extension" "web_lnx_aem_extension" {
                                              "system": "SAP"
                                            }
                                          )
+  tags                                 = var.tags
 }
 
 
@@ -434,6 +435,7 @@ resource "azurerm_virtual_machine_extension" "web_win_aem_extension" {
                                              "system": "SAP"
                                            }
                                          )
+  tags                                 = var.tags
 }
 
 resource "azurerm_virtual_machine_extension" "configure_ansible_web" {
@@ -457,6 +459,7 @@ resource "azurerm_virtual_machine_extension" "configure_ansible_web" {
                                               "commandToExecute": "powershell.exe -ExecutionPolicy Unrestricted -File configure_ansible.ps1 -Verbose"
                                            }
                                          )
+  tags                                 = var.tags
 }
 
 #######################################4#######################################8

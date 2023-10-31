@@ -168,11 +168,11 @@ locals {
     app_sku                         = try(coalesce(var.application_server_sku, var.application_tier.app_sku), "")
     app_use_ppg                     = var.use_scalesets_for_deployment ? (
                                         false) : (
-                                        tobool(var.application_server_no_ppg) == null ? (length(var.proximityplacementgroup_arm_ids) > 0 && !var.application_server_use_ppg) || var.application_server_use_ppg : !var.application_server_no_ppg
+                                        var.application_server_use_ppg
                                       )
     app_use_avset                   = var.use_scalesets_for_deployment ? (
                                         false) : (
-                                        tobool(var.application_server_no_avset) == null ? var.application_server_use_avset : !var.application_server_no_avset
+                                        var.application_server_use_avset
                                       )
     avset_arm_ids                   = var.application_server_vm_avset_arm_ids
     scs_server_count                = local.enable_app_tier_deployment ? (
@@ -191,11 +191,11 @@ locals {
     scs_sku                         = try(coalesce(var.scs_server_sku, var.application_tier.scs_sku), "")
     scs_use_ppg                     = var.use_scalesets_for_deployment ? (
                                         false) : (
-                                        tobool(var.scs_server_no_ppg) == null ? (length(var.proximityplacementgroup_arm_ids) > 0 && !var.scs_server_use_ppg) || var.scs_server_use_ppg : !var.scs_server_no_ppg
+                                        var.scs_server_use_ppg
                                       )
     scs_use_avset                   = var.use_scalesets_for_deployment ? (
                                         false) : (
-                                        tobool(var.scs_server_no_avset) == null ? var.scs_server_use_avset : !var.scs_server_no_avset
+                                        var.scs_server_use_avset
                                       )
     webdispatcher_count             = local.enable_app_tier_deployment ? (
                                         max(var.webdispatcher_server_count, try(var.application_tier.webdispatcher_count, 0))
@@ -206,11 +206,11 @@ locals {
     web_sku                         = try(coalesce(var.webdispatcher_server_sku, var.application_tier.web_sku), "")
     web_use_ppg                     = var.use_scalesets_for_deployment ? (
                                         false) : (
-                                        tobool(var.webdispatcher_server_no_ppg) == null ? var.webdispatcher_server_use_ppg : !var.webdispatcher_server_no_ppg
+                                        var.webdispatcher_server_use_ppg
                                       )
     web_use_avset                   = var.use_scalesets_for_deployment ? (
                                         false) : (
-                                        tobool(var.webdispatcher_server_no_avset) == null ? var.webdispatcher_server_use_avset : !var.webdispatcher_server_no_avset
+                                        var.webdispatcher_server_use_avset
                                       )
     deploy_v1_monitoring_extension  = var.deploy_v1_monitoring_extension
   }

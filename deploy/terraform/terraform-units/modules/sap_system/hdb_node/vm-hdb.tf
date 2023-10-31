@@ -385,10 +385,7 @@ resource "azurerm_virtual_machine_extension" "hdb_linux_extension" {
                                              "system": "SAP"
                                            }
                                          )
-
-  lifecycle {
-    ignore_changes = [tags]
-  }
+  tags                                 = var.tags
 }
 
 

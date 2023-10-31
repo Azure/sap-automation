@@ -758,7 +758,7 @@
         "Name": "create_transport_storage",
         "Required": false,
         "Description": "Defines if the workload zone will host storage for the transport data.",
-        "Type": "field",
+        "Type": "checkbox",
         "Options": [],
         "Overrules": "",
         "Display": 2

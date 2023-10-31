@@ -21,16 +21,16 @@ module "sap_namegenerator" {
   db_ostype                                     = upper(try(local.database.os.os_type, "LINUX"))
 
   db_server_count                               = var.database_server_count
-  app_server_count                              = try(local.application_tier.application_server_count, 0)
-  web_server_count                              = try(local.application_tier.webdispatcher_count, 0)
-  scs_server_count                              = local.application_tier.scs_high_availability ? (
+  app_server_count                              = local.enable_app_tier_deployment ? try(local.application_tier.application_server_count, 0) : 0
+  web_server_count                              = local.enable_app_tier_deployment ? try(local.application_tier.webdispatcher_count, 0) : 0
+  scs_server_count                              = local.enable_app_tier_deployment ? local.application_tier.scs_high_availability ? (
                                                     2 * local.application_tier.scs_server_count) : (
                                                     local.application_tier.scs_server_count
-                                                  )
+                                                  ) : 0
 
-  app_zones                                     = try(local.application_tier.app_zones, [])
-  scs_zones                                     = try(local.application_tier.scs_zones, [])
-  web_zones                                     = try(local.application_tier.web_zones, [])
+  app_zones                                     = local.enable_app_tier_deployment ? try(local.application_tier.app_zones, []) : []
+  scs_zones                                     = local.enable_app_tier_deployment ? try(local.application_tier.scs_zones, []) : []
+  web_zones                                     = local.enable_app_tier_deployment ? try(local.application_tier.web_zones, []) : []
   db_zones                                      = try(local.database.zones, [])
 
   resource_offset                               = try(var.resource_offset, 0)
