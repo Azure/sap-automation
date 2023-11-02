@@ -490,7 +490,7 @@ variable "ANF_service_level"                    {
 
 variable "ANF_pool_size"                        {
                                                   description = "The NetApp Pool size in TB"
-  default     = 4
+                                                  default     = 4
                                                 }
 
 variable "ANF_qos_type"                         {
