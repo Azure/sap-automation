@@ -457,3 +457,11 @@ output "nics_iscsi"                            {
                                                                )
                                                 }
 
+output "iSCSI_server_ips"                       {
+                                                  description = "IPs for iSCSI devices"
+                                                  value = local.iscsi_count > 0 ? (
+                                                    azurerm_network_interface.iscsi[*].private_ip_address) : (
+                                                    []
+                                                  )
+                                                }
+

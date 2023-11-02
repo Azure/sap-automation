@@ -122,6 +122,12 @@ resource "local_file" "ansible_inventory_new_yml" {
     app_os_type = upper(var.app_tier_os_types["app"]) == "WINDOWS" ? "windows" : "linux"
     web_os_type = upper(var.app_tier_os_types["web"]) == "WINDOWS" ? "windows" : "linux"
 
+    upgrade_packages = var.upgrade_packages
+
+    ips_ip_iscsi  = var.iSCSI_server_ips
+    iscsi_servers = var.iSCSI_server_names
+
+
     }
   )
   filename             = format("%s/%s_hosts.yaml", path.cwd, var.sap_sid)

@@ -280,3 +280,22 @@ output "controlplane_environment"                {
                                                    description = "Control plane environment"
                                                    value       = try(data.terraform_remote_state.deployer[0].outputs.environment, "")
                                                  }
+###############################################################################
+#                                                                             #
+#                                 iSCSI                                       #
+#                                                                             #
+###############################################################################
+
+output "iSCSI_server_ips"                        {
+                                                  description = "IP addesses for the iSCSI Servers"
+                                                  value = var.iscsi_count > 0 ? (
+                                                    module.sap_landscape.iSCSI_server_ips) : (
+                                                    []
+                                                  )
+                                                }
+
+output "iSCSI_server_names"                     {
+                                                  value = var.iscsi_count > 0 ? (
+                                                    length(var.name_override_file) > 0 ? local.custom_names.virtualmachine_names.ISCSI_COMPUTERNAME : module.sap_namegenerator.naming.virtualmachine_names.ISCSI_COMPUTERNAME
+                                                    ) :    []
+                                                }

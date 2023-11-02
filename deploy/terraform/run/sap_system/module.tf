@@ -423,4 +423,10 @@ module "output_files" {
   use_simple_mount                              = local.validated_use_simple_mount
   upgrade_packages                              = var.upgrade_packages
 
+  #########################################################################################
+  #  iSCSI                                                                                #
+  #########################################################################################
+  iSCSI_server_ips                              = var.database_cluster_type == "ISCSI" || var.scs_cluster_type == "ISCSI" ? data.terraform_remote_state.landscape.outputs.iSCSI_server_ips : []
+  iSCSI_server_names                            = var.database_cluster_type == "ISCSI" || var.scs_cluster_type == "ISCSI" ? data.terraform_remote_state.landscape.outputs.iSCSI_server_names : []
+
 }

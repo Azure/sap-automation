@@ -145,3 +145,20 @@ ${sid}_OBSERVER_DB:
   vars:
     node_tier             : observer
     supported_tiers       : [observer]
+
+${sid}_ISCS:
+  hosts:
+%{~ for idx,ip_iscsi in ips_ip_iscsi }
+    ${iscsi_servers[idx]}:
+      ansible_host        : ${ip_iscsi}
+      ansible_user        : ${ansible_user}
+      ansible_connection  : ssh
+      connection_type     : key
+      virtual_host        : ${iscsi_servers[idx]}
+      become_user         : root
+      os_type             : linux
+
+%{~ endfor }
+  vars:
+    node_tier             : iscsi
+    supported_tiers       : [iscsi]

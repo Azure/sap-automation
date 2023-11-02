@@ -1,121 +1,46 @@
-variable "database" {}
-variable "infrastructure" {}
-variable "authentication" {}
-
-
-variable "nics_dbnodes_admin" {
-  description = "Admin NICs of HANA database nodes"
-}
-
-
-variable "loadbalancers" {
-  description = "List of LoadBalancers created for HANA Databases"
-}
-
-variable "sap_sid" {
-  description = "SAP SID"
-}
-
-variable "db_sid" {
-  description = "Database SID"
-}
-
-variable "scs_server_ips" {
-  description = "List of IP addresses for the SCS Servers"
-}
-
-variable "scs_server_secondary_ips" {
-  description = "List of secondary IP addresses for the SCS Servers"
-}
-
-variable "application_server_ips" {
-  description = "List of IP addresses for the Application Servers"
-}
-
-variable "application_server_secondary_ips" {
-  description = "List of secondary IP addresses for the Application Servers"
-}
-
-variable "webdispatcher_server_ips" {
-  description = "List of IP addresses for the Web dispatchers"
-}
-
-variable "webdispatcher_server_secondary_ips" {
-  description = "List of secondary IP addresses for the Web dispatchers"
-}
-
-variable "db_server_ips" {
-  description = "List of IP addresses for the database servers"
-}
-
-variable "db_server_secondary_ips" {
-  description = "List of secondary IP addresses for the database servers"
-}
-
-variable "db_subnet_netmask" {
-  description = "netmask for the database subnet"
-}
-
-variable "app_subnet_netmask" {
-  description = "netmask for the SAP application subnet"
-}
-
-variable "nics_scs_admin" {
-  description = "List of NICs for the SCS Application VMs"
-}
-
-variable "nics_app_admin" {
-  description = "List of NICs for the Application Instance VMs"
-}
-
-variable "nics_web_admin" {
-  description = "List of NICs for the Web dispatcher VMs"
-}
-
-// Any DB
-variable "nics_anydb_admin" {
-  description = "List of Admin NICs for the anyDB VMs"
-}
-
-variable "random_id" {
-  description = "Random hex string"
-}
-
-variable "anydb_loadbalancers" {
-  description = "List of LoadBalancers created for HANA Databases"
-}
+variable "database"                             {}
+variable "infrastructure"                       {}
+variable "authentication"                       {}
+variable "nics_dbnodes_admin"                   { description = "Admin NICs of HANA database nodes" }
+variable "loadbalancers"                        { description = "List of LoadBalancers created for HANA Databases" }
+variable "sap_sid"                              { description = "SAP SID" }
+variable "db_sid"                               { description = "Database SID" }
+variable "scs_server_ips"                       { description = "List of IP addresses for the SCS Servers" }
+variable "scs_server_secondary_ips"             { description = "List of secondary IP addresses for the SCS Servers" }
+variable "application_server_ips"               { description = "List of IP addresses for the Application Servers" }
+variable "application_server_secondary_ips"     { description = "List of secondary IP addresses for the Application Servers" }
+variable "webdispatcher_server_ips"             { description = "List of IP addresses for the Web dispatchers" }
+variable "webdispatcher_server_secondary_ips"   { description = "List of secondary IP addresses for the Web dispatchers" }
+variable "db_server_ips"                        { description = "List of IP addresses for the database servers" }
+variable "db_server_secondary_ips"              { description = "List of secondary IP addresses for the database servers" }
+variable "db_subnet_netmask"                    { description = "netmask for the database subnet" }
+variable "app_subnet_netmask"                   { description = "netmask for the SAP application subnet" }
+variable "nics_scs_admin"                       { description = "List of NICs for the SCS Application VMs" }
+variable "nics_app_admin"                       { description = "List of NICs for the Application Instance VMs" }
+variable "nics_web_admin"                       { description = "List of NICs for the Web dispatcher VMs" }
+variable "nics_anydb_admin"                     { description = "List of Admin NICs for the anyDB VMs" }
+variable "random_id"                            { description = "Random hex string" }
+variable "anydb_loadbalancers"                  { description = "List of LoadBalancers created for HANA Databases" }
+variable "landscape_tfstate"                    { description = "Landscape remote tfstate file" }
+variable "tfstate_resource_id"                  { description = "Resource ID for tf state file" }
+variable "app_tier_os_types"                    { description = "Defines the app tier os types" }
+variable "naming"                               { description = "Defines the names for the resources" }
+variable "sid_keyvault_user_id"                 { description = "Defines the names for the resources" }
+variable "use_local_credentials"                { description = "SDU has unique credentials" }
+variable "upgrade_packages"                     { description = "Upgrade packages" }
+variable "disks"                                { description = "List of disks" }
+variable "iSCSI_server_ips"                     {
+                                                  description = "List of IP addresses for the iSCSI Servers"
+                                                  default     = []
+                                                }
+variable "iSCSI_server_names"                   {
+                                                  description = "List of host names for the iSCSI Servers"
+                                                  default     = []
+                                                }
 
 variable "software" {
   description = "Contain information about downloader, sapbits, etc."
   default     = {}
-}
-
-variable "landscape_tfstate" {
-  description = "Landscape remote tfstate file"
-}
-
-variable "tfstate_resource_id" {
-  description = "Resource ID for tf state file"
-}
-
-variable "app_tier_os_types" {
-  description = "Defines the app tier os types"
-}
-
-variable "naming" {
-  description = "Defines the names for the resources"
-}
-
-variable "sid_keyvault_user_id" {
-  description = "Defines the names for the resources"
-}
-
-variable "disks" {
-  description = "List of disks"
-}
-
-variable "use_local_credentials" {
-  description = "SDU has unique credentials"
 }
 
 variable "authentication_type" {
@@ -129,9 +54,29 @@ variable "db_ha" {
   default     = false
 }
 
+variable "database_high_availability" {
+  description = "If true, the database tier will be configured for high availability"
+  default     = false
+}
+
+variable "database_cluster_type" {
+  description   = "Cluster quorum type; AFA (Azure Fencing Agent), ASD (Azure Shared Disk), ISCSI"
+  default       = "AFA"
+}
+
 variable "scs_ha" {
   description = "Is the SCS deployment highly available"
   default     = false
+}
+
+variable "scs_high_availability" {
+  description = "If true, the SAP Central Services tier will be configured for high availability"
+  default     = false
+}
+
+variable "scs_cluster_type" {
+  description   = "Cluster quorum type; AFA (Azure Fencing Agent), ASD (Azure Shared Disk), ISCSI"
+  default       = "AFA"
 }
 
 variable "ansible_user" {
@@ -320,8 +265,4 @@ variable "web_server_count" {
 variable "db_server_count" {
   description = "Number of Database Servers"
   type    = number
-}
-
-variable "upgrade_packages" {
-  description = "If defined, will upgrade the packages on the virtual machines"
 }
