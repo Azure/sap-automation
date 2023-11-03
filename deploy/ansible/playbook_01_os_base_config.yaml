@@ -279,6 +279,13 @@
           ansible.builtin.set_fact:
             tier: issci
 
+        - name:                        "Create directories"
+          become:                      true
+          ansible.builtin.file:
+            path:                      '/etc/sap_deployment_automation/{{ sap_sid | upper }}'
+            state:                     directory
+            mode:                      '0755'
+
         - name:                        "OS configuration playbook: - Ensure the packages are registered"
           ansible.builtin.include_role:
             name:                      roles-os/1.4-packages
