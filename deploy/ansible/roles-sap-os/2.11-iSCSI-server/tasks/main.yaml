@@ -1,0 +1,152 @@
+---
+
+- name:                               "2.11: SBD - Create Directory"
+  ansible.builtin.file:
+    path:                             "{{ item.path }}"
+    state:                            directory
+    mode:                             0755
+  loop:
+    - { path: '/sbd' }
+  when:
+    - node_tier == 'iscsi'
+
+- name:                               "2.11: SBD create sbdnfs"
+  become_user:                        "{{ orchestration_ansible_user }}"
+  become:                             true
+  ansible.builtin.command:            "targetcli backstores/fileio create sbdnfs /sbd/sbdnfs 50M write_back=false"
+  register:                           sbd_create
+  when:
+    - node_tier == 'iscsi'
+
+- name:                               "2.11: SBD create iscsi"
+  become_user:                        "{{ orchestration_ansible_user }}"
+  become:                             true
+  ansible.builtin.command:            "targetcli iscsi/ create iqn.2006-04.nfs.local:nfs"
+  register:                           iscsi_create
+  when:
+    - node_tier == 'iscsi'
+
+- name:                               "2.11: SBD create iscsi/iqn"
+  become_user:                        "{{ orchestration_ansible_user }}"
+  become:                             true
+  ansible.builtin.command:            "targetcli iscsi/iqn.2006-04.nfs.local:nfs/tpg1/luns/ create /backstores/fileio/sbdnfs"
+  register:                           iscsi_create2
+  when:
+    - node_tier == 'iscsi'
+
+- name:                               "2.11: SBD create iscsi/iqn"
+  become_user:                        "{{ orchestration_ansible_user }}"
+  become:                             true
+  ansible.builtin.command:            "targetcli iscsi/iqn.2006-04.nfs.local:nfs/tpg1/acls/ create iqn.2006-04.nfs-0.local:nfs-0"
+  register:                           iscsi_create3
+  when:
+    - node_tier == 'iscsi'
+
+- name:                               "2.11: SBD create iscsi/iqn"
+  become_user:                        "{{ orchestration_ansible_user }}"
+  become:                             true
+  ansible.builtin.command:            "targetcli iscsi/iqn.2006-04.nfs.local:nfs/tpg1/acls/ create iqn.2006-04.nfs-0.local:nfs-0"
+  register:                           iscsi_create4
+  when:
+    - node_tier == 'iscsi'
+
+- name:                               "2.11: SBD create sbdnfs SCS"
+  become_user:                        "{{ orchestration_ansible_user }}"
+  become:                             true
+  ansible.builtin.command:            "targetcli backstores/fileio create sbdascsnw1 /sbd/sbdascs{{ sap_sid }} 50M write_back=false"
+  register:                           sbd_create_scs
+  when:
+    - node_tier == 'iscsi'
+
+- name:                               "2.11: SBD create iscsi SCS"
+  become_user:                        "{{ orchestration_ansible_user }}"
+  become:                             true
+  ansible.builtin.command:            "targetcli iscsi/ create iqn.2006-04.ascs{{ sap_sid }}.local:ascs{{ sap_sid }}"
+  register:                           iscsi_create_scs
+  when:
+    - node_tier == 'iscsi'
+
+- name:                               "2.11: SBD create iscsi/iqn SCS"
+  become_user:                        "{{ orchestration_ansible_user }}"
+  become:                             true
+  ansible.builtin.command:            "targetcli iscsi/iqn.2006-04.ascs{{ sap_sid }}.local:ascs{{ sap_sid }}/tpg1/luns/ create /backstores/fileio/sbdascs{{ sap_sid }}"
+  register:                           iscsi_create2_scs
+  when:
+    - node_tier == 'iscsi'
+
+- name:                               "2.11: SBD create iscsi/iqn SCS"
+  become_user:                        "{{ orchestration_ansible_user }}"
+  become:                             true
+  ansible.builtin.command:            "targetcli iscsi/iqn.2006-04.ascs{{ sap_sid }}.local:ascs{{ sap_sid }}/tpg1/acls/ create iqn.2006-04.{{ sap_sid }}-xscs-0.local:{{ sap_sid }}-xscs-0"
+  register:                           iscsi_create3_scs
+  when:
+    - node_tier == 'iscsi'
+
+- name:                               "2.11: SBD create iscsi/iqn SCS"
+  become_user:                        "{{ orchestration_ansible_user }}"
+  become:                             true
+  ansible.builtin.command:            "targetcli iscsi/iqn.2006-04.ascs{{ sap_sid }}.local:ascs{{ sap_sid }}/tpg1/acls/ create iqn.2006-04.{{ sap_sid }}-xscs-1.local:{{ sap_sid }}-xscs-1"
+  register:                           iscsi_create4_scs
+  when:
+    - node_tier == 'iscsi'
+
+- name:                               "2.11: SBD create sbdnfs DB"
+  become_user:                        "{{ orchestration_ansible_user }}"
+  become:                             true
+  ansible.builtin.command:            "targetcli backstores/fileio create sbddb{{ sap_sid }} /sbd/sbddb{{ sap_sid }} 50M write_back=false"
+  register:                           sbd_create_db
+  when:
+    - node_tier == 'iscsi'
+
+- name:                               "2.11: SBD create iscsi DB"
+  become_user:                        "{{ orchestration_ansible_user }}"
+  become:                             true
+  ansible.builtin.command:            "targetcli iscsi/ create iqn.2006-04.db{{ sap_sid }}.local:db{{ sap_sid }}"
+  register:                           iscsi_create_db
+  when:
+    - node_tier == 'iscsi'
+
+- name:                               "2.11: SBD create iscsi/iqn DB"
+  become_user:                        "{{ orchestration_ansible_user }}"
+  become:                             true
+  ansible.builtin.command:            "targetcli iscsi/iqn.2006-04.db{{ sap_sid }}.local:db{{ sap_sid }}/tpg1/luns/ create /backstores/fileio/sbddb{{ sap_sid }}"
+  register:                           iscsi_create2_db
+  when:
+    - node_tier == 'iscsi'
+
+- name:                               "2.11: SBD create iscsi/iqn DB"
+  become_user:                        "{{ orchestration_ansible_user }}"
+  become:                             true
+  ansible.builtin.command:            "targetcli iscsi/iqn.2006-04.db{{ sap_sid }}.local:db{{ sap_sid }}/tpg1/acls/ create iqn.2006-04.{{ sap_sid }}-db-0.local:{{ sap_sid }}-db-0"
+  register:                           iscsi_create3_db
+  when:
+    - node_tier == 'iscsi'
+
+- name:                               "2.11: SBD create iscsi/iqn DB"
+  become_user:                        "{{ orchestration_ansible_user }}"
+  become:                             true
+  ansible.builtin.command:            "targetcli iscsi/iqn.2006-04.db{{ sap_sid }}.local:db{{ sap_sid }}/tpg1/acls/ create iqn.2006-04.{{ sap_sid }}-db-1.local:{{ sap_sid }}-db-1"
+  register:                           iscsi_create4_db
+  when:
+    - node_tier == 'iscsi'
+
+- name:                               "2.11: Save CLI"
+  become_user:                        "{{ orchestration_ansible_user }}"
+  become:                             true
+  ansible.builtin.command:            "targetcli saveconfig"
+  register:                           cli_save
+  when:
+    - node_tier == 'iscsi'
+
+- name:                               "2.11: Show CLI"
+  become_user:                        "{{ orchestration_ansible_user }}"
+  become:                             true
+  ansible.builtin.command:            "targetcli ls"
+  register:                           cli_ls
+  when:
+    - node_tier == 'iscsi'
+
+- name:                               "2.11: Show CLI results"
+  ansible.builtin.debug:
+    var:                              cli_ls
+
