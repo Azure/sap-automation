@@ -7,70 +7,70 @@ resource "local_file" "ansible_inventory_new_yml" {
       ) : (
       var.platform == "HANA" ? var.naming.virtualmachine_names.HANA_COMPUTERNAME : var.naming.virtualmachine_names.ANYDB_COMPUTERNAME
     )
-    ips_scs = length(local.ips_scs) > 0 ? (
-      length(local.ips_scs) > 1 ? (
-        slice(local.ips_scs, 0, 1)) : (
-        local.ips_scs
+    ips_scs = length(var.scs_server_ips) > 0 ? (
+      length(var.scs_server_ips) > 1 ? (
+        slice(var.scs_server_ips, 0, 1)) : (
+        var.scs_server_ips
       )) : (
       []
     )
-    ips_ers = length(local.ips_scs) > 1 ? (
-      slice(local.ips_scs, 1, length(local.ips_scs))) : (
+    ips_ers = length(var.scs_server_ips) > 1 ? (
+      slice(var.scs_server_ips, 1, length(var.scs_server_ips))) : (
       []
     )
 
-    ips_pas = length(local.ips_app) > 0 ? slice(local.ips_app, 0, 1) : [],
-    ips_app = length(local.ips_app) > 1 ? slice(local.ips_app, 1, length(local.ips_app)) : []
-    ips_web = length(local.ips_web) > 0 ? local.ips_web : [],
+    ips_pas = length(var.application_server_ips) > 0 ? slice(var.application_server_ips, 0, 1) : [],
+    ips_app = length(var.application_server_ips) > 1 ? slice(var.application_server_ips, 1, length(var.application_server_ips)) : []
+    ips_web = length(var.webdispatcher_server_ips) > 0 ? var.webdispatcher_server_ips : [],
     sid     = var.sap_sid,
 
-    pas_servers = length(local.ips_app) > 0 ? (
+    pas_servers = length(var.application_server_ips) > 0 ? (
       slice(var.naming.virtualmachine_names.APP_COMPUTERNAME, 0, 1)) : (
       []
     ),
 
     virt_pas_servers = var.use_secondary_ips ? (
-      length(local.ips_app) > 0 ? slice(var.naming.virtualmachine_names.APP_SECONDARY_DNSNAME, 0, 1) : []) : (
-      length(local.ips_app) > 0 ? slice(var.naming.virtualmachine_names.APP_COMPUTERNAME, 0, 1) : []
+      length(var.application_server_ips) > 0 ? slice(var.naming.virtualmachine_names.APP_SECONDARY_DNSNAME, 0, 1) : []) : (
+      length(var.application_server_ips) > 0 ? slice(var.naming.virtualmachine_names.APP_COMPUTERNAME, 0, 1) : []
     ),
 
-    app_servers = length(local.ips_app) > 1 ? (
-      slice(var.naming.virtualmachine_names.APP_COMPUTERNAME, 1, length(local.ips_app))) : (
+    app_servers = length(var.application_server_ips) > 1 ? (
+      slice(var.naming.virtualmachine_names.APP_COMPUTERNAME, 1, length(var.application_server_ips))) : (
       []
     ),
 
     virt_app_servers = var.use_secondary_ips ? (
-      length(local.ips_app) > 1 ? slice(var.naming.virtualmachine_names.APP_SECONDARY_DNSNAME, 1, length(local.ips_app)) : []) : (
-      length(local.ips_app) > 1 ? slice(var.naming.virtualmachine_names.APP_COMPUTERNAME, 1, length(local.ips_app)) : []
+      length(var.application_server_ips) > 1 ? slice(var.naming.virtualmachine_names.APP_SECONDARY_DNSNAME, 1, length(var.application_server_ips)) : []) : (
+      length(var.application_server_ips) > 1 ? slice(var.naming.virtualmachine_names.APP_COMPUTERNAME, 1, length(var.application_server_ips)) : []
     ),
 
-    scs_servers = length(local.ips_scs) > 0 ? (
+    scs_servers = length(var.scs_server_ips) > 0 ? (
       slice(var.naming.virtualmachine_names.SCS_COMPUTERNAME, 0, 1)) : (
       []
     ),
 
     virt_scs_servers = var.use_secondary_ips ? (
-      length(local.ips_scs) > 0 ? slice(var.naming.virtualmachine_names.SCS_SECONDARY_DNSNAME, 0, 1) : []) : (
-      length(local.ips_scs) > 0 ? slice(var.naming.virtualmachine_names.SCS_COMPUTERNAME, 0, 1) : []
+      length(var.scs_server_ips) > 0 ? slice(var.naming.virtualmachine_names.SCS_SECONDARY_DNSNAME, 0, 1) : []) : (
+      length(var.scs_server_ips) > 0 ? slice(var.naming.virtualmachine_names.SCS_COMPUTERNAME, 0, 1) : []
     ),
 
-    ers_servers = length(local.ips_scs) > 1 ? (
-      slice(var.naming.virtualmachine_names.SCS_COMPUTERNAME, 1, length(local.ips_scs))) : (
+    ers_servers = length(var.scs_server_ips) > 1 ? (
+      slice(var.naming.virtualmachine_names.SCS_COMPUTERNAME, 1, length(var.scs_server_ips))) : (
       []
     ),
 
     virt_ers_servers = var.use_secondary_ips ? (
-      length(local.ips_scs) > 1 ? slice(var.naming.virtualmachine_names.SCS_SECONDARY_DNSNAME, 1, length(local.ips_scs)) : []) : (
-      length(local.ips_scs) > 1 ? slice(var.naming.virtualmachine_names.SCS_COMPUTERNAME, 1, length(local.ips_scs)) : []
+      length(var.scs_server_ips) > 1 ? slice(var.naming.virtualmachine_names.SCS_SECONDARY_DNSNAME, 1, length(var.scs_server_ips)) : []) : (
+      length(var.scs_server_ips) > 1 ? slice(var.naming.virtualmachine_names.SCS_COMPUTERNAME, 1, length(var.scs_server_ips)) : []
     ),
 
-    web_servers = length(local.ips_web) > 0 ? (
-      slice(var.naming.virtualmachine_names.WEB_COMPUTERNAME, 0, length(local.ips_web))) : (
+    web_servers = length(var.webdispatcher_server_ips) > 0 ? (
+      slice(var.naming.virtualmachine_names.WEB_COMPUTERNAME, 0, length(var.webdispatcher_server_ips))) : (
       []
     ),
     virt_web_servers = var.use_secondary_ips ? (
-      length(local.ips_web) > 0 ? slice(var.naming.virtualmachine_names.WEB_SECONDARY_DNSNAME, 0, length(local.ips_web)) : []) : (
-      length(local.ips_web) > 0 ? slice(var.naming.virtualmachine_names.WEB_COMPUTERNAME, 0, length(local.ips_web)) : []
+      length(var.webdispatcher_server_ips) > 0 ? slice(var.naming.virtualmachine_names.WEB_SECONDARY_DNSNAME, 0, length(var.webdispatcher_server_ips)) : []) : (
+      length(var.webdispatcher_server_ips) > 0 ? slice(var.naming.virtualmachine_names.WEB_COMPUTERNAME, 0, length(var.webdispatcher_server_ips)) : []
     ),
 
     prefix              = var.naming.prefix.SDU,
@@ -187,7 +187,6 @@ resource "local_file" "sap-parameters_yml" {
     NFS_provider        = var.NFS_provider
     pas_instance_number = var.pas_instance_number
 
-
     settings = local.settings
 
     hana_data = length(try(var.hana_data[0], "")) > 1 ? (
@@ -219,7 +218,8 @@ resource "local_file" "sap-parameters_yml" {
     is_use_simple_mount = var.use_simple_mount
 
     app_instance_number = var.app_instance_number
-    upgrade_packages    = var.upgrade_packages
+    upgrade_packages    = var.upgrade_packages ? "true" : "false"
+
 
     }
   )
@@ -243,7 +243,7 @@ resource "local_file" "sap_inventory_md" {
     sid           = var.sap_sid,
     db_sid        = var.db_sid
     kv_name       = local.kv_name,
-    scs_lb_ip     = length(var.scs_lb_ip) > 0 ? var.scs_lb_ip : try(local.ips_scs[0], "")
+    scs_lb_ip     = length(var.scs_lb_ip) > 0 ? var.scs_lb_ip : try(var.scs_server_ips[0], "")
     platform      = lower(var.platform)
     kv_pwd_secret = format("%s-%s-sap-password", local.secret_prefix, var.sap_sid)
     }
@@ -302,7 +302,7 @@ resource "local_file" "sap_inventory_for_wiki_md" {
     sid                 = var.sap_sid,
     db_sid              = var.db_sid
     kv_name             = local.kv_name,
-    scs_lb_ip           = length(var.scs_lb_ip) > 0 ? var.scs_lb_ip : try(local.ips_scs[0], "")
+    scs_lb_ip           = length(var.scs_lb_ip) > 0 ? var.scs_lb_ip : try(var.scs_server_ips[0], "")
     platform            = upper(var.platform)
     kv_pwd_secret       = format("%s-%s-sap-password", local.secret_prefix, var.sap_sid)
     db_servers          = var.platform == "HANA" ? join(",", var.naming.virtualmachine_names.HANA_COMPUTERNAME) : join(",", var.naming.virtualmachine_names.ANYDB_COMPUTERNAME)

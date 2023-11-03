@@ -10,9 +10,6 @@ locals {
   landscape_tfstate = var.landscape_tfstate
   ips_dbnodes_admin = [for key, value in var.nics_dbnodes_admin : value.private_ip_address]
 
-  ips_scs = var.scs_server_ips
-  ips_app = var.application_server_ips
-  ips_web = var.webdispatcher_server_ips
 
   # ips_scs = [for key, value in local.ips_primary_scs : value.private_ip_address]
   # ips_app = [for key, value in local.ips_primary_app : value.private_ip_address]

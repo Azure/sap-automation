@@ -465,3 +465,8 @@ output "iSCSI_server_ips"                       {
                                                   )
                                                 }
 
+output "iSCSI_servers"                          {
+                                                  value = distinct(flatten([for idx, vm in var.naming.virtualmachine_names.ISCSI_COMPUTERNAME : [
+                                                            format("{ host: '%s', IP: %s }", vm, azurerm_network_interface.iscsi[idx].private_ip_address)]
+                                                          ]))
+                                                }

@@ -299,3 +299,10 @@ output "iSCSI_server_names"                     {
                                                     length(var.name_override_file) > 0 ? local.custom_names.virtualmachine_names.ISCSI_COMPUTERNAME : module.sap_namegenerator.naming.virtualmachine_names.ISCSI_COMPUTERNAME
                                                     ) :    []
                                                 }
+
+output "iSCSI_servers"                          {
+                                                  value = var.iscsi_count > 0 ? (
+                                                    module.sap_landscape.iSCSI_servers) : (
+                                                    []
+                                                  )
+                                                }
