@@ -146,7 +146,7 @@ ${sid}_OBSERVER_DB:
     node_tier             : observer
     supported_tiers       : [observer]
 
-${sid}_ISCS:
+${sid}_ISCSI:
   hosts:
 %{~ for idx,ip_iscsi in ips_ip_iscsi }
     ${iscsi_servers[idx]}:

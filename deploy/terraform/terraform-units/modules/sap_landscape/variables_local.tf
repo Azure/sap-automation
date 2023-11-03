@@ -501,14 +501,14 @@ locals {
   iscsi_public_key                                = local.enable_iscsi_auth_key ? (
                                                       local.iscsi_key_exist ? (
                                                         data.azurerm_key_vault_secret.iscsi_pk[0].value) : (
-                                                        try(file(var.authentication.path_to_public_key), tls_private_key.iscsi[0].public_key_openssh)
+                                                        try(file(var.authentication.path_to_public_key), tls_private_key.sid[0].public_key_openssh)
                                                       )) : (
                                                       null
                                                     )
   iscsi_private_key                               = local.enable_iscsi_auth_key ? (
                                                       local.iscsi_key_exist ? (
                                                         data.azurerm_key_vault_secret.iscsi_ppk[0].value) : (
-                                                        try(file(var.authentication.path_to_private_key), tls_private_key.iscsi[0].private_key_pem)
+                                                        try(file(var.authentication.path_to_private_key), tls_private_key.sid[0].private_key_pem)
                                                       )) : (
                                                       null
                                                     )
