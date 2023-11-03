@@ -249,11 +249,11 @@
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
-# |       Playbook for performing general baseline OS configuration tasks      |
+# |       Playbook for configuring the iSCSI hosts                             |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-- hosts: "{{ sap_sid | upper }}_ISCSI_DB"
+- hosts: "{{ sap_sid | upper }}_ISCSI"
 
   name:                                "ISCSI - Base Configuration"
   remote_user:                         "{{ orchestration_ansible_user }}"
