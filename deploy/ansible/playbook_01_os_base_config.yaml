@@ -300,7 +300,7 @@
 
         - name:                        "OS configuration playbook: - Ensure the needed services are started"
           ansible.builtin.include_role:
-            name:                      roles-sap-os/2.11-iSCSI-server
+            name:                      roles-sap-os/2.11-iscsi-server
           tags:
             - 2.11-iSCSI-server
 
