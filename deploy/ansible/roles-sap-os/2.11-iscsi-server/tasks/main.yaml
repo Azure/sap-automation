@@ -16,6 +16,9 @@
   ansible.builtin.command:            "targetcli backstores/fileio create sbdnfs /sbd/sbdnfs 50M write_back=false"
   register:                           sbd_create
   failed_when:                        sbd_create.rc not in [0,1]
+  changed_when:                       sbd_create.rc == 0
+  when:
+    - node_tier == 'iscsi'
   when:
     - node_tier == 'iscsi'
 
@@ -25,6 +28,7 @@
   ansible.builtin.command:            "targetcli iscsi/ create iqn.2006-04.nfs.local:nfs"
   register:                           iscsi_create
   failed_when:                        iscsi_create.rc not in [0,1]
+  changed_when:                       iscsi_create.rc == 0
   when:
     - node_tier == 'iscsi'
 
@@ -34,6 +38,7 @@
   ansible.builtin.command:            "targetcli iscsi/iqn.2006-04.nfs.local:nfs/tpg1/luns/ create /backstores/fileio/sbdnfs"
   register:                           iscsi_create2
   failed_when:                        iscsi_create2.rc not in [0,1]
+  changed_when:                       iscsi_create2.rc == 0
   when:
     - node_tier == 'iscsi'
 
@@ -43,6 +48,7 @@
   ansible.builtin.command:            "targetcli iscsi/iqn.2006-04.nfs.local:nfs/tpg1/acls/ create iqn.2006-04.nfs-0.local:nfs-0"
   register:                           iscsi_create3
   failed_when:                        iscsi_create3.rc not in [0,1]
+  changed_when:                       iscsi_create3.rc == 0
   when:
     - node_tier == 'iscsi'
 
@@ -52,6 +58,7 @@
   ansible.builtin.command:            "targetcli iscsi/iqn.2006-04.nfs.local:nfs/tpg1/acls/ create iqn.2006-04.nfs-0.local:nfs-1"
   register:                           iscsi_create4
   failed_when:                        iscsi_create4.rc not in [0,1]
+  changed_when:                       iscsi_create4.rc == 0
   when:
     - node_tier == 'iscsi'
 
@@ -61,6 +68,7 @@
   ansible.builtin.command:            "targetcli backstores/fileio create sbdascsnw1 /sbd/sbdascs{{ sap_sid }} 50M write_back=false"
   register:                           sbd_create_scs
   failed_when:                        sbd_create_scs.rc not in [0,1]
+  changed_when:                       sbd_create_scs.rc == 0
   when:
     - node_tier == 'iscsi'
 
@@ -70,6 +78,7 @@
   ansible.builtin.command:            "targetcli iscsi/ create iqn.2006-04.ascs{{ sap_sid }}.local:ascs{{ sap_sid }}"
   register:                           iscsi_create_scs
   failed_when:                        iscsi_create_scs.rc not in [0,1]
+  changed_when:                       iscsi_create_scs.rc == 0
   when:
     - node_tier == 'iscsi'
 
@@ -79,6 +88,7 @@
   ansible.builtin.command:            "targetcli iscsi/iqn.2006-04.ascs{{ sap_sid }}.local:ascs{{ sap_sid }}/tpg1/luns/ create /backstores/fileio/sbdascs{{ sap_sid }}"
   register:                           iscsi_create2_scs
   failed_when:                        iscsi_create2_scs.rc not in [0,1]
+  changed_when:                       iscsi_create2_scs.rc == 0
   when:
     - node_tier == 'iscsi'
 
@@ -88,6 +98,7 @@
   ansible.builtin.command:            "targetcli iscsi/iqn.2006-04.ascs{{ sap_sid }}.local:ascs{{ sap_sid }}/tpg1/acls/ create iqn.2006-04.{{ sap_sid }}-xscs-0.local:{{ sap_sid }}-xscs-0"
   register:                           iscsi_create3_scs
   failed_when:                        iscsi_create3_scs.rc not in [0,1]
+  changed_when:                       iscsi_create3_scs.rc == 0
   when:
     - node_tier == 'iscsi'
 
@@ -97,6 +108,9 @@
   ansible.builtin.command:            "targetcli iscsi/iqn.2006-04.ascs{{ sap_sid }}.local:ascs{{ sap_sid }}/tpg1/acls/ create iqn.2006-04.{{ sap_sid }}-xscs-1.local:{{ sap_sid }}-xscs-1"
   register:                           iscsi_create4_scs
   failed_when:                        iscsi_create4_scs.rc not in [0,1]
+  changed_when:                       iscsi_create4_scs.rc == 0
+  when:
+    - node_tier == 'iscsi'
   when:
     - node_tier == 'iscsi'
 
@@ -104,8 +118,11 @@
   become_user:                        root
   become:                             true
   ansible.builtin.command:            "targetcli backstores/fileio create sbddb{{ sap_sid }} /sbd/sbddb{{ sap_sid }} 50M write_back=false"
-  failed_when:                        sbd_create_db.rc not in [0,1]
   register:                           sbd_create_db
+  failed_when:                        sbd_create_db.rc not in [0,1]
+  changed_when:                       sbd_create_db.rc == 0
+  when:
+    - node_tier == 'iscsi'
 
   when:
     - node_tier == 'iscsi'
@@ -116,6 +133,7 @@
   ansible.builtin.command:            "targetcli iscsi/ create iqn.2006-04.db{{ sap_sid }}.local:db{{ sap_sid }}"
   register:                           iscsi_create_db
   failed_when:                        iscsi_create_db.rc not in [0,1]
+  changed_when:                       iscsi_create_db.rc == 0
   when:
     - node_tier == 'iscsi'
 
@@ -125,6 +143,7 @@
   ansible.builtin.command:            "targetcli iscsi/iqn.2006-04.db{{ sap_sid }}.local:db{{ sap_sid }}/tpg1/luns/ create /backstores/fileio/sbddb{{ sap_sid }}"
   register:                           iscsi_create2_db
   failed_when:                        iscsi_create2_db.rc not in [0,1]
+  changed_when:                       iscsi_create2_db.rc == 0
   when:
     - node_tier == 'iscsi'
 
@@ -134,6 +153,7 @@
   ansible.builtin.command:            "targetcli iscsi/iqn.2006-04.db{{ sap_sid }}.local:db{{ sap_sid }}/tpg1/acls/ create iqn.2006-04.{{ sap_sid }}-db-0.local:{{ sap_sid }}-db-0"
   register:                           iscsi_create3_db
   failed_when:                        iscsi_create3_db.rc not in [0,1]
+  changed_when:                       iscsi_create3_db.rc == 0
   when:
     - node_tier == 'iscsi'
 
@@ -143,6 +163,9 @@
   ansible.builtin.command:            "targetcli iscsi/iqn.2006-04.db{{ sap_sid }}.local:db{{ sap_sid }}/tpg1/acls/ create iqn.2006-04.{{ sap_sid }}-db-1.local:{{ sap_sid }}-db-1"
   register:                           iscsi_create4_db
   failed_when:                        iscsi_create4_db.rc not in [0,1]
+  changed_when:                       iscsi_create4_db.rc == 0
+  when:
+    - node_tier == 'iscsi'
   when:
     - node_tier == 'iscsi'
 
@@ -164,5 +187,5 @@
 
 - name:                               "2.11: Show CLI results"
   ansible.builtin.debug:
-    var:                              cli_ls
+    msg:                              "{{ cli_ls.stdout_lines }}"
 
