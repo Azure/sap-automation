@@ -151,6 +151,16 @@ resource "azurerm_private_endpoint" "storage_tfstate" {
 
   subnet_id                            = var.deployer_tfstate.subnet_mgmt_id
 
+  custom_network_interface_name        = format("%s%s%s%s",
+                                           var.naming.resource_prefixes.storage_private_link_tf,
+                                           length(local.prefix) > 0 ? (
+                                             local.prefix) : (
+                                             var.infrastructure.environment
+                                           ),
+                                           var.naming.resource_suffixes.storage_private_link_tf,
+                                           var.naming.resource_suffixes.nic
+                                         )
+
   private_service_connection {
                                name = format("%s%s%s", var.naming.resource_prefixes.storage_private_svc_tf,
                                  local.prefix,
@@ -313,6 +323,15 @@ resource "azurerm_private_endpoint" "storage_sapbits" {
                                            azurerm_resource_group.library[0].location
                                          )
   subnet_id                            = var.deployer_tfstate.subnet_mgmt_id
+  custom_network_interface_name        = format("%s%s%s%s",
+                                           var.naming.resource_prefixes.storage_private_link_sap,
+                                           length(local.prefix) > 0 ? (
+                                             local.prefix) : (
+                                             var.infrastructure.environment
+                                           ),
+                                           var.naming.resource_suffixes.storage_private_link_sap,
+                                           var.naming.resource_suffixes.nic
+                                         )
 
   private_service_connection {
                                name = format("%s%s%s",
