@@ -428,7 +428,7 @@ $$iscsi_subnet_nsg_name$$
 # Number of iSCSI devices to be created
 $$iscsi_count$$
 
-#Size of iSCSI Virtual Machines to be created
+# Size of iSCSI Virtual Machines to be created
 $$iscsi_size$$
 
 # Defines if the iSCSI devices use DHCP
@@ -445,6 +445,10 @@ $$iscsi_authentication_username$$
 
 # Defines the IP Addresses for the iSCSI devices
 $$iscsi_nic_ips$$
+
+# Defines the Availability zones for the iSCSI devices
+$$iscsi_vm_zones$$
+
 
 ##########################################################################################
 #                                                                                        #
