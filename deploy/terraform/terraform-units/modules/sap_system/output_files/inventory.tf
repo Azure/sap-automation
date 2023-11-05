@@ -152,81 +152,79 @@ resource "local_file" "ansible_inventory_new_yml" {
 
 resource "local_file" "sap-parameters_yml" {
   content = templatefile(format("%s/sap-parameters.yml.tmpl", path.module), {
-    sid            = var.sap_sid,
-    db_sid         = var.db_sid
-    kv_name        = local.kv_name,
-    secret_prefix  = local.secret_prefix,
-    disks          = var.disks
-    scs_ha         = var.scs_ha
-    scs_lb_ip      = var.scs_lb_ip
-    ers_lb_ip      = var.ers_lb_ip
-    scs_clst_lb_ip = try(format("%s/%s", var.scs_clst_lb_ip, var.app_subnet_netmask), "")
+              sid                 = var.sap_sid,
+              db_sid              = var.db_sid
+              kv_name             = local.kv_name,
+              secret_prefix       = local.secret_prefix,
+              disks               = var.disks
+              scs_ha              = var.scs_ha
+              scs_lb_ip           = var.scs_lb_ip
+              ers_lb_ip           = var.ers_lb_ip
+              scs_clst_lb_ip      = try(format("%s/%s", var.scs_clst_lb_ip, var.app_subnet_netmask), "")
 
-    db_lb_ip           = var.db_lb_ip
-    db_clst_lb_ip      = try(format("%s/%s", var.db_clst_lb_ip, var.db_subnet_netmask), "")
-    db_ha              = var.db_ha
-    db_instance_number = try(var.database.instance.instance_number, "00")
+              db_lb_ip            = var.db_lb_ip
+              db_clst_lb_ip       = try(format("%s/%s", var.db_clst_lb_ip, var.db_subnet_netmask), "")
+              db_ha               = var.db_ha
+              db_instance_number  = try(var.database.instance.instance_number, "00")
 
-    dns = local.dns_label
-    bom = ""
+              dns                 = local.dns_label
+              bom                 = length(var.bom_name) > 0 ? var.bom_name : ""
 
-    sap_mnt = length(var.sap_mnt) > 1 ? (
-      format("sap_mnt:                       %s", var.sap_mnt)) : (
-      ""
-    )
+              sap_mnt             = length(var.sap_mnt) > 1 ? (
+                                      format("sap_mnt:                       %s", var.sap_mnt)) : (
+                                      ""
+                                    )
 
-    sap_transport = length(trimspace(var.sap_transport)) > 0 ? (
-      format("sap_trans:                     %s", var.sap_transport)) : (
-      ""
-    )
-    platform = var.platform
-    scs_instance_number = (local.app_server_count + local.scs_server_count) == 0 ? (
-      "01") : (
-      var.scs_instance_number
-    )
-    ers_instance_number = var.ers_instance_number
+              sap_transport       = length(trimspace(var.sap_transport)) > 0 ? (
+                                      format("sap_trans:                     %s", var.sap_transport)) : (
+                                      ""
+                                    )
+              platform            = var.platform
+              scs_instance_number = (local.app_server_count + local.scs_server_count) == 0 ? (
+                                      "01") : (
+                                      var.scs_instance_number
+                                    )
+              ers_instance_number = var.ers_instance_number
+              install_path        = length(trimspace(var.install_path)) > 0 ? (
+                                      format("usr_sap_install_mountpoint:    %s", var.install_path)) : (
+                                      ""
+                                    )
+              NFS_provider        = var.NFS_provider
+              pas_instance_number = var.pas_instance_number
 
-    install_path = length(trimspace(var.install_path)) > 0 ? (
-      format("usr_sap_install_mountpoint:    %s", var.install_path)) : (
-      ""
-    )
-    NFS_provider        = var.NFS_provider
-    pas_instance_number = var.pas_instance_number
+              settings            = local.settings
 
-    settings = local.settings
+              hana_data           = length(try(var.hana_data[0], "")) > 1 ? (
+                                      format("hana_data_mountpoint:          %s", jsonencode(var.hana_data))) : (
+                                      ""
+                                    )
+              hana_log            = length(try(var.hana_log[0], "")) > 1 ? (
+                                      format("hana_log_mountpoint:           %s", jsonencode(var.hana_log))) : (
+                                      ""
+                                    )
+              hana_shared         = length(try(var.hana_shared[0], "")) > 1 ? (
+                                      format("hana_shared_mountpoint:        %s", jsonencode(var.hana_shared))) : (
+                                      ""
+                                    )
 
-    hana_data = length(try(var.hana_data[0], "")) > 1 ? (
-      format("hana_data_mountpoint:          %s", jsonencode(var.hana_data))) : (
-      ""
-    )
-    hana_log = length(try(var.hana_log[0], "")) > 1 ? (
-      format("hana_log_mountpoint:           %s", jsonencode(var.hana_log))) : (
-      ""
-    )
-    hana_shared = length(try(var.hana_shared[0], "")) > 1 ? (
-      format("hana_shared_mountpoint:        %s", jsonencode(var.hana_shared))) : (
-      ""
-    )
+              usr_sap             = length(var.usr_sap) > 1 ? (
+                                      format("usr_sap_mountpoint:            %s", var.usr_sap)) : (
+                                      ""
+                                    )
 
-    usr_sap = length(var.usr_sap) > 1 ? (
-      format("usr_sap_mountpoint:            %s", var.usr_sap)) : (
-      ""
-    )
+              web_sid             = var.web_sid
 
-    web_sid = var.web_sid
+             web_instance_number  = var.web_instance_number
 
-    web_instance_number = var.web_instance_number
+             use_msi_for_clusters = var.use_msi_for_clusters
 
-    use_msi_for_clusters = var.use_msi_for_clusters
+             dns                  = var.dns
 
-    dns = var.dns
+             is_use_simple_mount  = var.use_simple_mount
 
-    is_use_simple_mount = var.use_simple_mount
-
-    app_instance_number = var.app_instance_number
-    upgrade_packages    = var.upgrade_packages ? "true" : "false"
-
-
+             app_instance_number  = var.app_instance_number
+             upgrade_packages     = var.upgrade_packages ? "true" : "false"
+             iscsi_server_list    = var.iSCSI_servers
     }
   )
   filename             = format("%s/sap-parameters.yaml", path.cwd)
@@ -246,14 +244,14 @@ resource "local_file" "sap-parameters_yml" {
 
 resource "local_file" "sap_inventory_md" {
   content = templatefile(format("%s/sap_application.tmpl", path.module), {
-    sid           = var.sap_sid,
-    db_sid        = var.db_sid
-    kv_name       = local.kv_name,
-    scs_lb_ip     = length(var.scs_lb_ip) > 0 ? var.scs_lb_ip : try(var.scs_server_ips[0], "")
-    platform      = lower(var.platform)
-    kv_pwd_secret = format("%s-%s-sap-password", local.secret_prefix, var.sap_sid)
-    }
-  )
+              sid                 = var.sap_sid,
+              db_sid              = var.db_sid
+              kv_name             = local.kv_name,
+              scs_lb_ip           = length(var.scs_lb_ip) > 0 ? var.scs_lb_ip : try(var.scs_server_ips[0], "")
+              platform            = lower(var.platform)
+              kv_pwd_secret       = format("%s-%s-sap-password", local.secret_prefix, var.sap_sid)
+              }
+            )
   filename             = format("%s/%s.md", path.cwd, var.sap_sid)
   file_permission      = "0660"
   directory_permission = "0770"
