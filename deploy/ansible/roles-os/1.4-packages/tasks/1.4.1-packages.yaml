@@ -46,8 +46,6 @@
                                            map(attribute='package') |
                                            list }}"
         state:                         "{{ item.state }}"
-      environment:
-        ZYPP_LOCK_TIMEOUT: 20
       register:                        package_result
       loop:
         - { state: 'present' }  # First install required packages
@@ -71,8 +69,6 @@
                                               map(attribute='package') |
                                               list }}"
             state:                         "{{ item.state }}"
-          environment:
-            ZYPP_LOCK_TIMEOUT: 20
           register:                        package_result
           loop:
             - { state: 'present' }  # First install required packages
@@ -95,8 +91,6 @@
                                            map(attribute='package') |
                                            list }}"
         state:                         "{{ item.state }}"
-      environment:
-        ZYPP_LOCK_TIMEOUT: 20
       register:                        package_result
       loop:
         - { state: 'present' }  # First install required packages
@@ -145,8 +139,6 @@
                                            list }}"
         state:                         "{{ item.state }}"
       register:                        package_result
-      environment:
-        ZYPP_LOCK_TIMEOUT: 20
       loop:
         - { state: 'present' }  # First install required packages
         - { state: 'absent' }   # Then remove packages that we don't want
@@ -193,8 +185,6 @@
                                            list }}"
         state:                         "{{ item.state }}"
       register:                        package_result
-      environment:
-        ZYPP_LOCK_TIMEOUT: 20
       loop:
         - { state: 'present' }  # First install required packages
         - { state: 'absent' }   # Then remove packages that we don't want

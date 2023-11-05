@@ -109,8 +109,6 @@
   changed_when:                       iscsi_create4_scs.rc == 0
   when:
     - node_tier == 'iscsi'
-  when:
-    - node_tier == 'iscsi'
 
 - name:                               "2.11: SBD create sbdnfs DB"
   become_user:                        root
@@ -119,9 +117,6 @@
   register:                           sbd_create_db
   failed_when:                        sbd_create_db.rc not in [0,1]
   changed_when:                       sbd_create_db.rc == 0
-  when:
-    - node_tier == 'iscsi'
-
   when:
     - node_tier == 'iscsi'
 
@@ -162,8 +157,6 @@
   register:                           iscsi_create4_db
   failed_when:                        iscsi_create4_db.rc not in [0,1]
   changed_when:                       iscsi_create4_db.rc == 0
-  when:
-    - node_tier == 'iscsi'
   when:
     - node_tier == 'iscsi'
 
