@@ -12,7 +12,7 @@
     name:                              '*'
     state:                             latest
   environment:
-    ZYPP_LOCK_TIMEOUT:                 20
+    ZYPP_LOCK_TIMEOUT:                 "20"
   tags:
     - skip_ansible_lint
 
