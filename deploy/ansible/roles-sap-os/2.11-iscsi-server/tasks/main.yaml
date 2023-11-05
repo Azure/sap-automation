@@ -179,3 +179,6 @@
 - name:                               "2.11: Show CLI results"
   ansible.builtin.debug:
     msg:                              "{{ cli_ls.stdout_lines }}"
+  when:
+    - cli_ls is defined
+    - node_tier == 'iscsi'
