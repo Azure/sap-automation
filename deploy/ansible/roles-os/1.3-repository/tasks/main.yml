@@ -26,7 +26,6 @@
 # ----------------------------------------
 
 
-
 # ----------------------------------------
 # END
 #
@@ -73,7 +72,6 @@
 - name:                                "1.3 Repository: - Prepare the repositories."
   ansible.builtin.include_tasks:       "1.3.2-custom-repositories-RedHat.yaml"
   when:                                ansible_os_family | upper != 'SUSE'
-
 
 
 # - name:                                "1.3 Repos: Install EPEL repo"

@@ -31,4 +31,3 @@
     path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}/packages_installed.txt"
     state:                             touch
     mode:                              0755
-

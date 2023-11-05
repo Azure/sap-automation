@@ -19,8 +19,6 @@
   changed_when:                       sbd_create.rc == 0
   when:
     - node_tier == 'iscsi'
-  when:
-    - node_tier == 'iscsi'
 
 - name:                               "2.11: SBD create iscsi"
   become_user:                        root
