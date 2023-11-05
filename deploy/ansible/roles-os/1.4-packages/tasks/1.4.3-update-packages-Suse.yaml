@@ -29,7 +29,6 @@
       become:                          true
       ansible.builtin.shell:           "zypper patch --auto-agree-with-licenses --with-interactive --no-confirm"
       ignore_errors:                   true
-
       register:                        zypper_patch_output
       failed_when:
         - zypper_patch_output.rc != 0
