@@ -7,8 +7,6 @@
     mode:                             0755
   loop:
     - { path: '/sbd' }
-  when:
-    - node_tier == 'iscsi'
 
 - name:                               "2.11: SBD create sbdnfs"
   become_user:                        root
@@ -17,8 +15,6 @@
   register:                           sbd_create
   failed_when:                        sbd_create.rc not in [0,1]
   changed_when:                       sbd_create.rc == 0
-  when:
-    - node_tier == 'iscsi'
 
 - name:                               "2.11: SBD create iscsi"
   become_user:                        root
@@ -27,8 +23,6 @@
   register:                           iscsi_create
   failed_when:                        iscsi_create.rc not in [0,1]
   changed_when:                       iscsi_create.rc == 0
-  when:
-    - node_tier == 'iscsi'
 
 - name:                               "2.11: SBD create iscsi/iqn"
   become_user:                        root
@@ -37,8 +31,6 @@
   register:                           iscsi_create2
   failed_when:                        iscsi_create2.rc not in [0,1]
   changed_when:                       iscsi_create2.rc == 0
-  when:
-    - node_tier == 'iscsi'
 
 - name:                               "2.11: SBD create iscsi/iqn"
   become_user:                        root
@@ -47,8 +39,6 @@
   register:                           iscsi_create3
   failed_when:                        iscsi_create3.rc not in [0,1]
   changed_when:                       iscsi_create3.rc == 0
-  when:
-    - node_tier == 'iscsi'
 
 - name:                               "2.11: SBD create iscsi/iqn"
   become_user:                        root
@@ -57,8 +47,6 @@
   register:                           iscsi_create4
   failed_when:                        iscsi_create4.rc not in [0,1]
   changed_when:                       iscsi_create4.rc == 0
-  when:
-    - node_tier == 'iscsi'
 
 - name:                               "2.11: SBD create sbdnfs SCS"
   become_user:                        root
@@ -67,8 +55,6 @@
   register:                           sbd_create_scs
   failed_when:                        sbd_create_scs.rc not in [0,1]
   changed_when:                       sbd_create_scs.rc == 0
-  when:
-    - node_tier == 'iscsi'
 
 - name:                               "2.11: SBD create iscsi SCS"
   become_user:                        root
@@ -77,8 +63,6 @@
   register:                           iscsi_create_scs
   failed_when:                        iscsi_create_scs.rc not in [0,1]
   changed_when:                       iscsi_create_scs.rc == 0
-  when:
-    - node_tier == 'iscsi'
 
 - name:                               "2.11: SBD create iscsi/iqn SCS"
   become_user:                        root
@@ -87,8 +71,6 @@
   register:                           iscsi_create2_scs
   failed_when:                        iscsi_create2_scs.rc not in [0,1]
   changed_when:                       iscsi_create2_scs.rc == 0
-  when:
-    - node_tier == 'iscsi'
 
 - name:                               "2.11: SBD create iscsi/iqn SCS"
   become_user:                        root
@@ -97,8 +79,6 @@
   register:                           iscsi_create3_scs
   failed_when:                        iscsi_create3_scs.rc not in [0,1]
   changed_when:                       iscsi_create3_scs.rc == 0
-  when:
-    - node_tier == 'iscsi'
 
 - name:                               "2.11: SBD create iscsi/iqn SCS"
   become_user:                        root
@@ -107,8 +87,6 @@
   register:                           iscsi_create4_scs
   failed_when:                        iscsi_create4_scs.rc not in [0,1]
   changed_when:                       iscsi_create4_scs.rc == 0
-  when:
-    - node_tier == 'iscsi'
 
 - name:                               "2.11: SBD create sbdnfs DB"
   become_user:                        root
@@ -117,8 +95,6 @@
   register:                           sbd_create_db
   failed_when:                        sbd_create_db.rc not in [0,1]
   changed_when:                       sbd_create_db.rc == 0
-  when:
-    - node_tier == 'iscsi'
 
 - name:                               "2.11: SBD create iscsi DB"
   become_user:                        root
@@ -127,8 +103,6 @@
   register:                           iscsi_create_db
   failed_when:                        iscsi_create_db.rc not in [0,1]
   changed_when:                       iscsi_create_db.rc == 0
-  when:
-    - node_tier == 'iscsi'
 
 - name:                               "2.11: SBD create iscsi/iqn DB"
   become_user:                        root
@@ -137,8 +111,6 @@
   register:                           iscsi_create2_db
   failed_when:                        iscsi_create2_db.rc not in [0,1]
   changed_when:                       iscsi_create2_db.rc == 0
-  when:
-    - node_tier == 'iscsi'
 
 - name:                               "2.11: SBD create iscsi/iqn DB"
   become_user:                        root
@@ -147,8 +119,6 @@
   register:                           iscsi_create3_db
   failed_when:                        iscsi_create3_db.rc not in [0,1]
   changed_when:                       iscsi_create3_db.rc == 0
-  when:
-    - node_tier == 'iscsi'
 
 - name:                               "2.11: SBD create iscsi/iqn DB"
   become_user:                        root
@@ -157,28 +127,21 @@
   register:                           iscsi_create4_db
   failed_when:                        iscsi_create4_db.rc not in [0,1]
   changed_when:                       iscsi_create4_db.rc == 0
-  when:
-    - node_tier == 'iscsi'
 
 - name:                               "2.11: Save CLI"
   become_user:                        root
   become:                             true
   ansible.builtin.command:            "targetcli saveconfig"
   register:                           cli_save
-  when:
-    - node_tier == 'iscsi'
 
 - name:                               "2.11: Show CLI"
   become_user:                        root
   become:                             true
   ansible.builtin.command:            "targetcli ls"
   register:                           cli_ls
-  when:
-    - node_tier == 'iscsi'
 
 - name:                               "2.11: Show CLI results"
   ansible.builtin.debug:
     msg:                              "{{ cli_ls.stdout_lines }}"
   when:
     - cli_ls is defined
-    - node_tier == 'iscsi'
