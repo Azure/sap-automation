@@ -138,4 +138,19 @@ disks:
   - ${disk}
 %{~ endfor }
 
+#############################################################################
+#                                                                           #
+#                                iSCSI                                      #
+#                                                                           #
+#############################################################################
+
+# This dictionary lists the deployed disks and their types
+# Each "type" will create a volume group
+# If there are multiple disks of the same type they will be placed in an LVM
+
+iscsi_servers:
+%{~ for server in iscsi_server_list }
+  - ${server}
+%{~ endfor }
+
 ...

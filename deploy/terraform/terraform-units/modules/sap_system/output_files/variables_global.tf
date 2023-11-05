@@ -37,6 +37,10 @@ variable "iSCSI_server_names"                   {
                                                   description = "List of host names for the iSCSI Servers"
                                                   default     = []
                                                 }
+variable "iSCSI_servers"                        {
+                                                  description = "List of host names and IPs for the iSCSI Servers"
+                                                  default     = []
+                                                }
 
 variable "software" {
   description = "Contain information about downloader, sapbits, etc."

@@ -1,132 +1,138 @@
+#######################################4#######################################8
+#                                                                              #
+#                           Logic for Hosts file                               #
+#                                                                              #
+#######################################4#######################################8
+
 resource "local_file" "ansible_inventory_new_yml" {
-  content = templatefile(format("%s%s", path.module, "/ansible_inventory.tmpl"), {
-    ips_dbnodes = var.db_server_ips
-    dbnodes     = var.platform == "HANA" ? var.naming.virtualmachine_names.HANA_COMPUTERNAME : var.naming.virtualmachine_names.ANYDB_COMPUTERNAME
-    virt_dbnodes = var.use_secondary_ips ? (
-      var.platform == "HANA" ? var.naming.virtualmachine_names.HANA_SECONDARY_DNSNAME : var.naming.virtualmachine_names.ANYDB_SECONDARY_DNSNAME
-      ) : (
-      var.platform == "HANA" ? var.naming.virtualmachine_names.HANA_COMPUTERNAME : var.naming.virtualmachine_names.ANYDB_COMPUTERNAME
-    )
-    ips_scs = length(var.scs_server_ips) > 0 ? (
-      length(var.scs_server_ips) > 1 ? (
-        slice(var.scs_server_ips, 0, 1)) : (
-        var.scs_server_ips
-      )) : (
-      []
-    )
-    ips_ers = length(var.scs_server_ips) > 1 ? (
-      slice(var.scs_server_ips, 1, length(var.scs_server_ips))) : (
-      []
-    )
+  content       = templatefile(format("%s%s", path.module, "/ansible_inventory.tmpl"), {
+                    ips_dbnodes         = var.db_server_ips
+                    dbnodes             = var.platform == "HANA" ? var.naming.virtualmachine_names.HANA_COMPUTERNAME : var.naming.virtualmachine_names.ANYDB_COMPUTERNAME
+                    virt_dbnodes        = var.use_secondary_ips ? (
+                                            var.platform == "HANA" ? var.naming.virtualmachine_names.HANA_SECONDARY_DNSNAME : var.naming.virtualmachine_names.ANYDB_SECONDARY_DNSNAME
+                                            ) : (
+                                            var.platform == "HANA" ? var.naming.virtualmachine_names.HANA_COMPUTERNAME : var.naming.virtualmachine_names.ANYDB_COMPUTERNAME
+                                          )
+                    ips_scs             = length(var.scs_server_ips) > 0 ? (
+                                            length(var.scs_server_ips) > 1 ? (
+                                              slice(var.scs_server_ips, 0, 1)) : (
+                                              var.scs_server_ips
+                                            )) : (
+                                            []
+                                          )
+                    ips_ers             = length(var.scs_server_ips) > 1 ? (
+                                            slice(var.scs_server_ips, 1, length(var.scs_server_ips))) : (
+                                            []
+                                          )
 
-    ips_pas = length(var.application_server_ips) > 0 ? slice(var.application_server_ips, 0, 1) : [],
-    ips_app = length(var.application_server_ips) > 1 ? slice(var.application_server_ips, 1, length(var.application_server_ips)) : []
-    ips_web = length(var.webdispatcher_server_ips) > 0 ? var.webdispatcher_server_ips : [],
-    sid     = var.sap_sid,
+                    ips_pas             = length(var.application_server_ips) > 0 ? slice(var.application_server_ips, 0, 1) : [],
+                    ips_app             = length(var.application_server_ips) > 1 ? slice(var.application_server_ips, 1, length(var.application_server_ips)) : []
+                    ips_web             = length(var.webdispatcher_server_ips) > 0 ? var.webdispatcher_server_ips : [],
+                    sid                 = var.sap_sid,
 
-    pas_servers = length(var.application_server_ips) > 0 ? (
-      slice(var.naming.virtualmachine_names.APP_COMPUTERNAME, 0, 1)) : (
-      []
-    ),
+                    pas_servers         = length(var.application_server_ips) > 0 ? (
+                                            slice(var.naming.virtualmachine_names.APP_COMPUTERNAME, 0, 1)) : (
+                                            []
+                                          ),
 
-    virt_pas_servers = var.use_secondary_ips ? (
-      length(var.application_server_ips) > 0 ? slice(var.naming.virtualmachine_names.APP_SECONDARY_DNSNAME, 0, 1) : []) : (
-      length(var.application_server_ips) > 0 ? slice(var.naming.virtualmachine_names.APP_COMPUTERNAME, 0, 1) : []
-    ),
+                    virt_pas_servers    = var.use_secondary_ips ? (
+                                            length(var.application_server_ips) > 0 ? slice(var.naming.virtualmachine_names.APP_SECONDARY_DNSNAME, 0, 1) : []) : (
+                                            length(var.application_server_ips) > 0 ? slice(var.naming.virtualmachine_names.APP_COMPUTERNAME, 0, 1) : []
+                                          ),
 
-    app_servers = length(var.application_server_ips) > 1 ? (
-      slice(var.naming.virtualmachine_names.APP_COMPUTERNAME, 1, length(var.application_server_ips))) : (
-      []
-    ),
+                    app_servers         = length(var.application_server_ips) > 1 ? (
+                                            slice(var.naming.virtualmachine_names.APP_COMPUTERNAME, 1, length(var.application_server_ips))) : (
+                                            []
+                                          ),
 
-    virt_app_servers = var.use_secondary_ips ? (
-      length(var.application_server_ips) > 1 ? slice(var.naming.virtualmachine_names.APP_SECONDARY_DNSNAME, 1, length(var.application_server_ips)) : []) : (
-      length(var.application_server_ips) > 1 ? slice(var.naming.virtualmachine_names.APP_COMPUTERNAME, 1, length(var.application_server_ips)) : []
-    ),
+                    virt_app_servers    = var.use_secondary_ips ? (
+                                            length(var.application_server_ips) > 1 ? slice(var.naming.virtualmachine_names.APP_SECONDARY_DNSNAME, 1, length(var.application_server_ips)) : []) : (
+                                            length(var.application_server_ips) > 1 ? slice(var.naming.virtualmachine_names.APP_COMPUTERNAME, 1, length(var.application_server_ips)) : []
+                                          ),
 
-    scs_servers = length(var.scs_server_ips) > 0 ? (
-      slice(var.naming.virtualmachine_names.SCS_COMPUTERNAME, 0, 1)) : (
-      []
-    ),
+                    scs_servers         = length(var.scs_server_ips) > 0 ? (
+                                            slice(var.naming.virtualmachine_names.SCS_COMPUTERNAME, 0, 1)) : (
+                                            []
+                                          ),
 
-    virt_scs_servers = var.use_secondary_ips ? (
-      length(var.scs_server_ips) > 0 ? slice(var.naming.virtualmachine_names.SCS_SECONDARY_DNSNAME, 0, 1) : []) : (
-      length(var.scs_server_ips) > 0 ? slice(var.naming.virtualmachine_names.SCS_COMPUTERNAME, 0, 1) : []
-    ),
+                    virt_scs_servers    = var.use_secondary_ips ? (
+                                            length(var.scs_server_ips) > 0 ? slice(var.naming.virtualmachine_names.SCS_SECONDARY_DNSNAME, 0, 1) : []) : (
+                                            length(var.scs_server_ips) > 0 ? slice(var.naming.virtualmachine_names.SCS_COMPUTERNAME, 0, 1) : []
+                                          ),
 
-    ers_servers = length(var.scs_server_ips) > 1 ? (
-      slice(var.naming.virtualmachine_names.SCS_COMPUTERNAME, 1, length(var.scs_server_ips))) : (
-      []
-    ),
+                    ers_servers         = length(var.scs_server_ips) > 1 ? (
+                                            slice(var.naming.virtualmachine_names.SCS_COMPUTERNAME, 1, length(var.scs_server_ips))) : (
+                                            []
+                                          ),
 
-    virt_ers_servers = var.use_secondary_ips ? (
-      length(var.scs_server_ips) > 1 ? slice(var.naming.virtualmachine_names.SCS_SECONDARY_DNSNAME, 1, length(var.scs_server_ips)) : []) : (
-      length(var.scs_server_ips) > 1 ? slice(var.naming.virtualmachine_names.SCS_COMPUTERNAME, 1, length(var.scs_server_ips)) : []
-    ),
+                    virt_ers_servers    = var.use_secondary_ips ? (
+                                            length(var.scs_server_ips) > 1 ? slice(var.naming.virtualmachine_names.SCS_SECONDARY_DNSNAME, 1, length(var.scs_server_ips)) : []) : (
+                                            length(var.scs_server_ips) > 1 ? slice(var.naming.virtualmachine_names.SCS_COMPUTERNAME, 1, length(var.scs_server_ips)) : []
+                                          ),
 
-    web_servers = length(var.webdispatcher_server_ips) > 0 ? (
-      slice(var.naming.virtualmachine_names.WEB_COMPUTERNAME, 0, length(var.webdispatcher_server_ips))) : (
-      []
-    ),
-    virt_web_servers = var.use_secondary_ips ? (
-      length(var.webdispatcher_server_ips) > 0 ? slice(var.naming.virtualmachine_names.WEB_SECONDARY_DNSNAME, 0, length(var.webdispatcher_server_ips)) : []) : (
-      length(var.webdispatcher_server_ips) > 0 ? slice(var.naming.virtualmachine_names.WEB_COMPUTERNAME, 0, length(var.webdispatcher_server_ips)) : []
-    ),
+                    web_servers         = length(var.webdispatcher_server_ips) > 0 ? (
+                                            slice(var.naming.virtualmachine_names.WEB_COMPUTERNAME, 0, length(var.webdispatcher_server_ips))) : (
+                                            []
+                                          ),
+                    virt_web_servers    = var.use_secondary_ips ? (
+                                            length(var.webdispatcher_server_ips) > 0 ? slice(var.naming.virtualmachine_names.WEB_SECONDARY_DNSNAME, 0, length(var.webdispatcher_server_ips)) : []) : (
+                                            length(var.webdispatcher_server_ips) > 0 ? slice(var.naming.virtualmachine_names.WEB_COMPUTERNAME, 0, length(var.webdispatcher_server_ips)) : []
+                                          ),
 
-    prefix              = var.naming.prefix.SDU,
-    separator           = var.naming.separator,
-    platform            = var.shared_home ? format("%s-multi-sid", lower(var.platform)) : lower(var.platform),
-    db_connection       = var.platform == "SQLSERVER" ? "winrm" : "ssh"
-    db_become_user      = var.platform == "SQLSERVER" ? var.ansible_user : "root"
-    scs_connection      = upper(var.app_tier_os_types["scs"]) == "WINDOWS" ? "winrm" : "ssh"
-    scs_become_user     = upper(var.app_tier_os_types["scs"]) == "WINDOWS" ? var.ansible_user : "root"
-    ers_connection      = upper(var.app_tier_os_types["scs"]) == "WINDOWS" ? "winrm" : "ssh"
-    app_connection      = upper(var.app_tier_os_types["app"]) == "WINDOWS" ? "winrm" : "ssh"
-    app_become_user     = upper(var.app_tier_os_types["app"]) == "WINDOWS" ? var.ansible_user : "root"
-    web_connection      = upper(var.app_tier_os_types["web"]) == "WINDOWS" ? "winrm" : "ssh"
-    web_become_user     = upper(var.app_tier_os_types["web"]) == "WINDOWS" ? var.ansible_user : "root"
-    app_connectiontype  = try(var.authentication_type, "key")
-    web_connectiontype  = try(var.authentication_type, "key")
-    scs_connectiontype  = try(var.authentication_type, "key")
-    ers_connectiontype  = try(var.authentication_type, "key")
-    db_connectiontype   = try(var.db_auth_type, "key")
-    ansible_user        = var.ansible_user
-    db_supported_tiers  = local.db_supported_tiers
-    scs_supported_tiers = local.scs_supported_tiers
-    ips_observers       = var.observer_ips
-    observers           = length(var.observer_ips) > 0 ? var.naming.virtualmachine_names.OBSERVER_COMPUTERNAME : []
+                    prefix              = var.naming.prefix.SDU,
+                    separator           = var.naming.separator,
+                    platform            = var.shared_home ? format("%s-multi-sid", lower(var.platform)) : lower(var.platform),
+                    db_connection       = var.platform == "SQLSERVER" ? "winrm" : "ssh"
+                    db_become_user      = var.platform == "SQLSERVER" ? var.ansible_user : "root"
+                    scs_connection      = upper(var.app_tier_os_types["scs"]) == "WINDOWS" ? "winrm" : "ssh"
+                    scs_become_user     = upper(var.app_tier_os_types["scs"]) == "WINDOWS" ? var.ansible_user : "root"
+                    ers_connection      = upper(var.app_tier_os_types["scs"]) == "WINDOWS" ? "winrm" : "ssh"
+                    app_connection      = upper(var.app_tier_os_types["app"]) == "WINDOWS" ? "winrm" : "ssh"
+                    app_become_user     = upper(var.app_tier_os_types["app"]) == "WINDOWS" ? var.ansible_user : "root"
+                    web_connection      = upper(var.app_tier_os_types["web"]) == "WINDOWS" ? "winrm" : "ssh"
+                    web_become_user     = upper(var.app_tier_os_types["web"]) == "WINDOWS" ? var.ansible_user : "root"
+                    app_connectiontype  = try(var.authentication_type, "key")
+                    web_connectiontype  = try(var.authentication_type, "key")
+                    scs_connectiontype  = try(var.authentication_type, "key")
+                    ers_connectiontype  = try(var.authentication_type, "key")
+                    db_connectiontype   = try(var.db_auth_type, "key")
+                    ansible_user        = var.ansible_user
+                    db_supported_tiers  = local.db_supported_tiers
+                    scs_supported_tiers = local.scs_supported_tiers
+                    ips_observers       = var.observer_ips
+                    observers           = length(var.observer_ips) > 0 ? var.naming.virtualmachine_names.OBSERVER_COMPUTERNAME : []
 
-    # Only create these if the operating system is Windows
-    ansible_winrm_server_cert_validation = var.platform == "SQLSERVER" ? (
-      "ansible_winrm_server_cert_validation : ignore") : (
-      upper(var.app_tier_os_types["scs"]) == "WINDOWS" ? "ansible_winrm_server_cert_validation : ignore" : ""
-    )
+                    # Only create these if the operating system is Windows
+                    winrm_cert_valid    = var.platform == "SQLSERVER" ? (
+                                            "ansible_winrm_server_cert_validation : ignore") : (
+                                            upper(var.app_tier_os_types["scs"]) == "WINDOWS" ? "ansible_winrm_server_cert_validation : ignore" : ""
+                                          )
 
-    ansible_winrm_operation_timeout_sec = var.platform == "SQLSERVER" ? (
-      "ansible_winrm_operation_timeout_sec  : 120") : (
-      upper(var.app_tier_os_types["scs"]) == "WINDOWS" ? "ansible_winrm_operation_timeout_sec  : 120" : ""
-    )
+                    winrm_timeout_sec   = var.platform == "SQLSERVER" ? (
+                                            "ansible_winrm_operation_timeout_sec  : 120") : (
+                                            upper(var.app_tier_os_types["scs"]) == "WINDOWS" ? "ansible_winrm_operation_timeout_sec  : 120" : ""
+                                          )
 
-    ansible_winrm_read_timeout_sec = var.platform == "SQLSERVER" ? (
-      "ansible_winrm_read_timeout_sec       : 150") : (
-      upper(var.app_tier_os_types["scs"]) == "WINDOWS" ? "ansible_winrm_read_timeout_sec       : 150" : ""
-    )
+                    winrm_read_timeout  = var.platform == "SQLSERVER" ? (
+                                            "ansible_winrm_read_timeout_sec       : 150") : (
+                                            upper(var.app_tier_os_types["scs"]) == "WINDOWS" ? "ansible_winrm_read_timeout_sec       : 150" : ""
+                                          )
 
-    ansible_winrm_transport = var.platform == "SQLSERVER" ? (
-      "ansible_winrm_transport              : credssp") : (
-      upper(var.app_tier_os_types["scs"]) == "WINDOWS" ? "ansible_winrm_transport              : credssp" : ""
-    )
+                    winrm_transport     = var.platform == "SQLSERVER" ? (
+                                            "ansible_winrm_transport              : credssp") : (
+                                            upper(var.app_tier_os_types["scs"]) == "WINDOWS" ? "ansible_winrm_transport              : credssp" : ""
+                                          )
 
-    db_os_type  = var.platform == "SQLSERVER" ? "windows" : "linux"
-    scs_os_type = upper(var.app_tier_os_types["scs"]) == "WINDOWS" ? "windows" : "linux"
-    app_os_type = upper(var.app_tier_os_types["app"]) == "WINDOWS" ? "windows" : "linux"
-    web_os_type = upper(var.app_tier_os_types["web"]) == "WINDOWS" ? "windows" : "linux"
+                    db_os_type          = var.platform == "SQLSERVER" ? "windows" : "linux"
+                    scs_os_type         = upper(var.app_tier_os_types["scs"]) == "WINDOWS" ? "windows" : "linux"
+                    app_os_type         = upper(var.app_tier_os_types["app"]) == "WINDOWS" ? "windows" : "linux"
+                    web_os_type         = upper(var.app_tier_os_types["web"]) == "WINDOWS" ? "windows" : "linux"
 
-    upgrade_packages = var.upgrade_packages
+                    upgrade_packages    = var.upgrade_packages
 
-    ips_ip_iscsi  = var.iSCSI_server_ips
-    iscsi_servers = var.iSCSI_server_names
-
+                    ips_ip_iscsi        = var.iSCSI_server_ips
+                    iscsi_servers       = var.iSCSI_server_names
+                    iscsi_server_list   = var.iSCSI_servers
 
     }
   )
