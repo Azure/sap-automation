@@ -51,7 +51,9 @@ locals {
 
   iscsi_scs_servers  = var.scs_cluster_type == "ISCSI" ? distinct(flatten([for idx, vm in var.iSCSI_server_names : [
                                                             format("{ host: '%s', iqn: %s, type: 'scs' }", vm, local.scs_iqn)]
-                                                          ])) : []
+                                                          ])) : distinct(flatten([for idx, vm in var.iSCSI_server_names : [
+                                                            format("{ host: '%s', iqn: %s, type: 'scs' }", vm, local.scs_iqn)]
+                                                          ]))
   iscsi_db_servers  = var.database_cluster_type == "ISCSI" ? distinct(flatten([for idx, vm in var.iSCSI_server_names : [
                                                             format("{ host: '%s', iqn: %s, type: 'db' }", vm, local.db_iqn)]
                                                           ])) : []
