@@ -151,7 +151,12 @@ iscsi_servers:
   - ${server}
 %{~ endfor }
 
-${test1}
 
-${test2}
+%{~ for t1 in test1 }
+  - ${t1}
+%{~ endfor }
+
+%{~ for t1 in test2 }
+  - ${t2}
+%{~ endfor }
 ...

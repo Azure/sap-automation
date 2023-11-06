@@ -266,3 +266,11 @@ output "scs_ha" {
   description = "Defines if high availability is used"
   value       = var.application_tier.scs_high_availability
 }
+
+
+output "iscsiservers" {
+  description = "Defines if high availability is used"
+  value = var.application_tier.scs_cluster_type == "ISCSI" ? [for vm in ["ascs1", "ascs2", "ascs3"] :
+    format("{ iscsi_host: '%s', iqn: '%s', type: 'scs' }", vm, format("iqn.2006-04.ascs%s.local:ascs%s", var.sap_sid, var.sap_sid))
+  ] : []
+}
