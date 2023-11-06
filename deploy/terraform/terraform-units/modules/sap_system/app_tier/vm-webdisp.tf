@@ -233,6 +233,13 @@ resource "azurerm_linux_virtual_machine" "web" {
   boot_diagnostics {
                      storage_account_uri = var.storage_bootdiag_endpoint
                    }
+  dynamic "identity"   {
+                         for_each = range(length(var.application_tier.user_assigned_identity_id) > 0 ? 1 : 0)
+                         content {
+                                   type         = "UserAssigned"
+                                   identity_ids = [var.application_tier.user_assigned_identity_id]
+                                 }
+                       }
 
 
 }
@@ -355,6 +362,13 @@ resource "azurerm_windows_virtual_machine" "web" {
   boot_diagnostics {
                      storage_account_uri = var.storage_bootdiag_endpoint
                    }
+  dynamic "identity"   {
+                         for_each = range(length(var.application_tier.user_assigned_identity_id) > 0 ? 1 : 0)
+                         content {
+                                   type         = "UserAssigned"
+                                   identity_ids = [var.application_tier.user_assigned_identity_id]
+                                 }
+                       }
 
 }
 

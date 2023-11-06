@@ -94,6 +94,7 @@ locals {
                                         tobool(var.database_no_ppg) == null ? (length(var.proximityplacementgroup_arm_ids) > 0 && !var.database_use_ppg) || var.database_use_ppg : !var.database_no_ppg
                                       ) : false
     database_server_count           = var.database_high_availability ? 2 * var.database_server_count : var.database_server_count
+    user_assigned_identity_id       = var.user_assigned_identity_id
   }
 
   db_os = {
@@ -214,6 +215,7 @@ locals {
                                         var.webdispatcher_server_use_avset
                                       ) : false
     deploy_v1_monitoring_extension  = var.deploy_v1_monitoring_extension
+    user_assigned_identity_id       = var.user_assigned_identity_id
   }
 
   app_zones_temp                    = distinct(concat(var.application_server_zones, try(var.application_tier.app_zones, [])))
