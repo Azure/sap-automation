@@ -49,10 +49,14 @@ locals {
   scs_iqn = format("iqn.2006-04.ascs%s.local:ascs%s", var.sap_sid, var.sap_sid)
   db_iqn  = format("iqn.2006-04.db%s.local:db%s", var.sap_sid, var.sap_sid)
 
-  iscsi_scs_servers    = var.scs_cluster_type == "ISCSI" ? [for vm in var.iSCSI_server_names :
-                           format("{ iscsi_host: '%s', iqn: '%s', type: 'scs' }", vm, local.scs_iqn)
-                           ] : []
+  # iscsi_scs_servers    = var.scs_cluster_type == "ISCSI" ? [for vm in var.iSCSI_server_names :
+  #                          format("{ iscsi_host: '%s', iqn: '%s', type: 'scs' }", vm, local.scs_iqn)
+  #                          ] : []
   iscsi_db_servers    = var.database_cluster_type == "ISCSI" ? [for vm in var.iSCSI_server_names :
                            format("{ iscsi_host: '%s', iqn: '%s', type: 'db' }", vm, local.db_iqn)
                            ] : []
+  iscsi_scs_servers  = distinct(flatten([for idx, vm in var.iSCSI_server_names : [
+                                                            format("{ host: '%s', iqn: %s, type: 'scs' }", vm, scs_iqn)]
+                                                          ]))
+
 }
