@@ -226,6 +226,8 @@ resource "local_file" "sap-parameters_yml" {
              upgrade_packages     = var.upgrade_packages ? "true" : "false"
 
              iscsi_server_list    = var.iSCSI_servers
+             test1                = local.iscsi_scs_servers
+             test2                = local.iscsi_db_servers
 
     }
   )
