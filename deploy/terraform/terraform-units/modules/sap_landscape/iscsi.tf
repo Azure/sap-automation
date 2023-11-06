@@ -178,6 +178,13 @@ resource "azurerm_linux_virtual_machine" "iscsi" {
                        azurerm_storage_account.storage_bootdiag[0].primary_blob_endpoint
                      )
                    }
+  dynamic "identity"   {
+                         for_each = range(length(var.infrastructure.iscsi.user_assigned_identity_id) > 0 ? 1 : 0)
+                         content {
+                                   type         = "UserAssigned"
+                                   identity_ids = [var.infrastructure.iscsi.user_assigned_identity_id]
+                                 }
+                       }
 
 }
 

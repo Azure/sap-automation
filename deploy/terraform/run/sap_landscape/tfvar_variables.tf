@@ -341,6 +341,11 @@ variable "use_spn"                              {
                                                   default     = true
                                                 }
 
+variable "user_assigned_identity_id"            {
+                                                  description = "If provided defines the user assigned identity to assign to the virtual machines"
+                                                  default     = ""
+                                                }
+
 #########################################################################################
 #                                                                                       #
 #  Storage Account variables                                                            #
