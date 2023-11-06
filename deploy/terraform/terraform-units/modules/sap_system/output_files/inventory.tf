@@ -225,7 +225,7 @@ resource "local_file" "sap-parameters_yml" {
              app_instance_number  = var.app_instance_number
              upgrade_packages     = var.upgrade_packages ? "true" : "false"
 
-             iscsi_server_list    = local.iscsi_scs_servers
+             iscsi_server_list    = var.iSCSI_servers
 
     }
   )
