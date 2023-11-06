@@ -56,7 +56,7 @@ locals {
                            format("{ iscsi_host: '%s', iqn: '%s', type: 'db' }", vm, local.db_iqn)
                            ] : []
   iscsi_scs_servers  = distinct(flatten([for idx, vm in var.iSCSI_server_names : [
-                                                            format("{ host: '%s', iqn: %s, type: 'scs' }", vm, scs_iqn)]
+                                                            format("{ host: '%s', iqn: %s, type: 'scs' }", vm, local.scs_iqn)]
                                                           ]))
 
 }
