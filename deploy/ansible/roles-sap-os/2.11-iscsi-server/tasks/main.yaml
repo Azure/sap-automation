@@ -8,46 +8,6 @@
   loop:
     - { path: '/sbd' }
 
-- name:                               "2.11: SBD create sbdnfs"
-  become_user:                        root
-  become:                             true
-  ansible.builtin.command:            "targetcli backstores/fileio create sbdnfs /sbd/sbdnfs 50M write_back=false"
-  register:                           sbd_create
-  failed_when:                        sbd_create.rc not in [0,1]
-  changed_when:                       sbd_create.rc == 0
-
-- name:                               "2.11: SBD create iscsi"
-  become_user:                        root
-  become:                             true
-  ansible.builtin.command:            "targetcli iscsi/ create iqn.2006-04.nfs.local:nfs"
-  register:                           iscsi_create
-  failed_when:                        iscsi_create.rc not in [0,1]
-  changed_when:                       iscsi_create.rc == 0
-
-- name:                               "2.11: SBD create iscsi/iqn"
-  become_user:                        root
-  become:                             true
-  ansible.builtin.command:            "targetcli iscsi/iqn.2006-04.nfs.local:nfs/tpg1/luns/ create /backstores/fileio/sbdnfs"
-  register:                           iscsi_create2
-  failed_when:                        iscsi_create2.rc not in [0,1]
-  changed_when:                       iscsi_create2.rc == 0
-
-- name:                               "2.11: SBD create iscsi/iqn"
-  become_user:                        root
-  become:                             true
-  ansible.builtin.command:            "targetcli iscsi/iqn.2006-04.nfs.local:nfs/tpg1/acls/ create iqn.2006-04.nfs-0.local:nfs-0"
-  register:                           iscsi_create3
-  failed_when:                        iscsi_create3.rc not in [0,1]
-  changed_when:                       iscsi_create3.rc == 0
-
-- name:                               "2.11: SBD create iscsi/iqn"
-  become_user:                        root
-  become:                             true
-  ansible.builtin.command:            "targetcli iscsi/iqn.2006-04.nfs.local:nfs/tpg1/acls/ create iqn.2006-04.nfs-0.local:nfs-1"
-  register:                           iscsi_create4
-  failed_when:                        iscsi_create4.rc not in [0,1]
-  changed_when:                       iscsi_create4.rc == 0
-
 - name:                               "2.11: SBD create sbdnfs SCS"
   become_user:                        root
   become:                             true
