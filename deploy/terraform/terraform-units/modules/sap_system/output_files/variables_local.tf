@@ -46,10 +46,13 @@ locals {
   encoded_configuration = replace(yamlencode(var.configuration_settings), "\"", "")
   settings              = length(local.encoded_configuration) > 4 ? local.encoded_configuration : ""
 
+  scs_iqn = format("iqn.2006-04.ascs%s.local:ascs%s", var.sap_sid, var.sap_sid)
+  db_iqn  = format("iqn.2006-04.db%s.local:db%s", var.sap_sid, var.sap_sid)
+
   iscsi_scs_servers    = var.scs_cluster_type == "ISCSI" ? [for vm in var.iSCSI_servers :
-                           format("{ iscsi_host: '%s', iqn: '%s', type: 'scs' }", vm.host, format("iqn.2006-04.ascs%s.local:ascs%s", var.sap_sid, var.sap_sid))
+                           format("{ iscsi_host: '%s', iqn: '%s', type: 'scs' }", vm.host, local.scs_iqn)
                            ] : []
   iscsi_db_servers    = var.scs_cluster_type == "ISCSI" ? [for vm in var.iSCSI_servers :
-                           format("{ iscsi_host: '%s', iqn: '%s', type: 'db' }", vm.host, format("iqn.2006-04.db%s.local:db%s", var.sap_sid, var.sap_sid))
+                           format("{ iscsi_host: '%s', iqn: '%s', type: 'db' }", vm.host, local.db_iqn)
                            ] : []
 }
