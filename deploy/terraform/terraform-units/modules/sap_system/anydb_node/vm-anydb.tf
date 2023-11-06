@@ -350,10 +350,10 @@ resource "azurerm_windows_virtual_machine" "dbserver" {
                      storage_account_uri = var.storage_bootdiag_endpoint
                    }
   dynamic "identity"   {
-                         for_each = range(length(var.application_tier.user_assigned_identity_id) > 0 ? 1 : 0)
+                         for_each = range(length(var.database.user_assigned_identity_id) > 0 ? 1 : 0)
                          content {
                                    type         = "UserAssigned"
-                                   identity_ids = [var.application_tier.user_assigned_identity_id]
+                                   identity_ids = [var.database.user_assigned_identity_id]
                                  }
                        }
 
