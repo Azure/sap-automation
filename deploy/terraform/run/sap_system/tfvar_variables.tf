@@ -46,16 +46,6 @@ variable "custom_disk_sizes_filename"           {
                                                   default     = ""
 }
 
-variable "use_scalesets_for_deployment"         {
-                                                  description = "Use Flexible Virtual Machine Scale Sets for the deployment"
-                                                  default     = false
-                                                }
-
-variable "scaleset_id"                          {
-                                                  description = "If defined the Flexible Virtual Machine Scale Sets for the deployment"
-                                                  default     = ""
-                                                }
-
 
 #########################################################################################
 #                                                                                       #
@@ -105,6 +95,16 @@ variable "use_private_endpoint"                 {
                                                   description = "Boolean value indicating if private endpoint should be used for the deployment"
                                                   default     = false
                                                   type        = bool
+                                                }
+
+variable "use_scalesets_for_deployment"         {
+                                                  description = "Use Flexible Virtual Machine Scale Sets for the deployment"
+                                                  default     = false
+                                                }
+
+variable "scaleset_id"                          {
+                                                  description = "If defined the Flexible Virtual Machine Scale Sets for the deployment"
+                                                  default     = ""
                                                 }
 
 
