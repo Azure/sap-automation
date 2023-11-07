@@ -266,7 +266,7 @@ namespace AutomationForm.Models
 
     public string NFS_provider { get; set; }
 
-    public bool? create_transport_storage { get; set; } = true;
+    public bool create_transport_storage { get; set; } = true;
 
     public int? transport_volume_size { get; set; }
 
@@ -321,7 +321,7 @@ namespace AutomationForm.Models
 
     public string iscsi_size { get; set; } = "Standard_D2s_v3";
 
-    public bool? iscsi_useDHCP { get; set; } = true;
+    public bool iscsi_useDHCP { get; set; } = true;
 
     public Image iscsi_image { get; set; }
 

@@ -224,6 +224,16 @@ namespace AutomationForm.Models
         }
       }
     }
+    
+    public class UserAssignedIdentityIdValidator : ValidationAttribute
+    {
+      public override bool IsValid(object value)
+      {
+        string pattern = @"^\/subscriptions\/\w{8}-\w{4}-\w{4}-\w{4}-\w{12}\/resourceGroups\/[a-zA-Z0-9-_]+\/providers\/Microsoft.ManagedIdentity\/userAssignedIdentities\/[a-zA-Z0-9-_]+$";
+        return RegexValidation(value, pattern);
+      }
+    }
+
     public class SubnetRequired : ValidationAttribute
     {
       private readonly string thisProperty;

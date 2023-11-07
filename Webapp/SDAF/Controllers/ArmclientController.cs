@@ -363,5 +363,63 @@ namespace AutomationForm.Controllers
       }
       return Json(options);
     }
+
+    [HttpGet] // #[various]_user_assigned_identity_id
+    public ActionResult GetUserAssignedIdentityOptions(string subscriptionId)
+    {
+      List<SelectListItem> options = new List<SelectListItem>
+            {
+                new SelectListItem { Text = "", Value = "" }
+            };
+      try
+      {
+        SubscriptionResource subscription = _armClient.GetSubscriptionResource(new ResourceIdentifier(subscriptionId));
+        Pageable<GenericResource> userIDs = subscription.GetGenericResources("resourceType eq 'Microsoft.ManagedIdentity/userAssignedIdentities'");
+
+        foreach (GenericResource userId in userIDs)
+        {
+          options.Add(new SelectListItem
+          {
+            Text = userId.Data.Name,
+            Value = userId.Id
+          });
+        }
+      }
+      catch
+      {
+        return null;
+      }
+      return Json(options);
+    }
+
+    [HttpGet] // #[various]_user_assigned_identity_id
+    public ActionResult GetVMSSOptions(string subscriptionId)
+    {
+      List<SelectListItem> options = new List<SelectListItem>
+            {
+                new SelectListItem { Text = "", Value = "" }
+            };
+      try
+      {
+        SubscriptionResource subscription = _armClient.GetSubscriptionResource(new ResourceIdentifier(subscriptionId));
+        Pageable<GenericResource> userIDs = subscription.GetGenericResources("resourceType eq 'Microsoft.Compute/virtualMachineScaleSets'");
+
+        foreach (GenericResource userId in userIDs)
+        {
+          options.Add(new SelectListItem
+          {
+            Text = userId.Data.Name,
+            Value = userId.Id
+          });
+        }
+      }
+      catch
+      {
+        return null;
+      }
+      return Json(options);
+    }
+
+
   }
 }

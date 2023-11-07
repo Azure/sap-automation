@@ -51,6 +51,9 @@ namespace AutomationForm.Models
     [DisplayName("System ID")]
     public string sid { get; set; }
 
+
+    // Common Infrastructure
+
     [SubscriptionIdValidator(ErrorMessage = "Invalid subscription")]
     public string subscription { get; set; }
 
@@ -73,6 +76,11 @@ namespace AutomationForm.Models
     public bool? database_use_premium_v2_storage { get; set; } = false;
 
     public Tag[] tags { get; set; }
+
+    [UserAssignedIdentityIdValidator(ErrorMessage = "Invalid User Assigned id")]
+    public string user_assigned_identity_id { get; set; }
+
+    public string scaleset_id { get; set; }
 
     /*---------------------------------------------------------------------------8
     |                                                                            |
@@ -194,17 +202,21 @@ namespace AutomationForm.Models
     |                       Cluster information                                  |
     |                                                                            |
     +------------------------------------4--------------------------------------*/
+
+    public string fencing_role_name { get; set; }
+
     public bool? use_msi_for_clusters { get; set; } = true;
 
     public bool? use_simple_mount { get; set; } = false;
 
-    public string fencing_role_name { get; set; }
+    public string database_cluster_type { get; set; } = "AFA";
+    public string scs_cluster_type { get; set; } = "AFA";
 
-/*---------------------------------------------------------------------------8
-|                                                                            |
-|                          PPG information                                   |
-|                                                                            |
-+------------------------------------4--------------------------------------*/
+    /*---------------------------------------------------------------------------8
+    |                                                                            |
+    |                          PPG information                                   |
+    |                                                                            |
+    +------------------------------------4--------------------------------------*/
 
     public string[] proximityplacementgroup_names { get; set; }
 
@@ -422,7 +434,7 @@ namespace AutomationForm.Models
 
     public string automation_path_to_private_key { get; set; }
 
-    public int resource_offset { get; set; } = 0;
+    public int? resource_offset { get; set; }
 
     public string vm_disk_encryption_set_id { get; set; }
 
@@ -431,7 +443,7 @@ namespace AutomationForm.Models
     |                               NFS Support                                  |
     |                                                                            |
     +------------------------------------4--------------------------------------*/
-        
+
     public string NFS_provider { get; set; }
 
     public int? sapmnt_volume_size { get; set; }
