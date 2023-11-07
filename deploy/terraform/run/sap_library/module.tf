@@ -23,7 +23,7 @@ module "sap_library" {
   software                          = var.software
   storage_account_sapbits           = local.storage_account_sapbits
   storage_account_tfstate           = local.storage_account_tfstate
-  use_custom_dns_a_registration     = var.use_custom_dns_a_registration || !(
+  use_custom_dns_a_registration     = var.use_custom_dns_a_registration || (
                                         (var.management_dns_subscription_id != local.saplib_subscription_id) || (var.management_dns_resourcegroup_name != local.saplib_resource_group_name)
                                       )
   use_private_endpoint              = var.use_private_endpoint
