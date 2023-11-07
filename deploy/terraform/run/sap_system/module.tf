@@ -85,6 +85,7 @@ module "common_infrastructure" {
   options                                       = local.options
   sapmnt_private_endpoint_id                    = var.sapmnt_private_endpoint_id
   sapmnt_volume_size                            = var.sapmnt_volume_size
+  scaleset_id                                   = var.scaleset_id
   service_principal                             = var.use_spn ? local.service_principal : local.account
   tags                                          = var.tags
   terraform_template_version                    = var.terraform_template_version
@@ -150,7 +151,7 @@ module "hdb_node" {
   register_virtual_network_to_dns               = try(data.terraform_remote_state.landscape.outputs.register_virtual_network_to_dns, true)
   resource_group                                = module.common_infrastructure.resource_group
   sap_sid                                       = local.sap_sid
-  scale_set_id                                  = module.common_infrastructure.scale_set_id
+  scale_set_id                                  = length(var.scaleset_id) > 0 ? var.scaleset_id : module.common_infrastructure.scale_set_id
   sdu_public_key                                = module.common_infrastructure.sdu_public_key
   sid_keyvault_user_id                          = module.common_infrastructure.sid_keyvault_user_id
   sid_password                                  = module.common_infrastructure.sid_password

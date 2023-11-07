@@ -51,6 +51,11 @@ variable "use_scalesets_for_deployment"         {
                                                   default     = false
                                                 }
 
+variable "scaleset_id"                          {
+                                                  description = "If defined the Flexible Virtual Machine Scale Sets for the deployment"
+                                                  default     = ""
+                                                }
+
 
 #########################################################################################
 #                                                                                       #

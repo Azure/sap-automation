@@ -112,7 +112,7 @@ data "template_cloudinit_config" "config_growpart" {
 resource "azurerm_orchestrated_virtual_machine_scale_set" "scale_set" {
 
   provider                             = azurerm.main
-  count                                = var.use_scalesets_for_deployment ? 1 : 0
+  count                                = var.use_scalesets_for_deployment && length(var.scaleset_id) == 0 ? 1 : 0
 
   name                                 = format("%s%s%s",
                                            var.naming.resource_prefixes.vmss,
@@ -136,3 +136,14 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "scale_set" {
   zones                                = local.zones
   tags                                 = var.tags
 }
+
+data "azurerm_orchestrated_virtual_machine_scale_set" "scale_set" {
+
+  provider                             = azurerm.main
+  count                                = var.use_scalesets_for_deployment && length(var.scaleset_id) > 0 ? 1 : 0
+
+  name                                 = split("/", var.scaleset_id)[8]
+  resource_group_name                  = split("/", var.scaleset_id)[4]
+                                                                    }
+
+
