@@ -11,7 +11,7 @@
 - name:                               "2.11: SBD create sbdnfs SCS"
   become_user:                        root
   become:                             true
-  ansible.builtin.command:            "targetcli backstores/fileio create sbdascsnw1 /sbd/sbdascs{{ sap_sid }} 50M write_back=false"
+  ansible.builtin.command:            "targetcli backstores/fileio create sbdascs{{ sap_sid }} /sbd/sbdascs{{ sap_sid }} 50M write_back=false"
   register:                           sbd_create_scs
   failed_when:                        sbd_create_scs.rc not in [0,1]
   changed_when:                       sbd_create_scs.rc == 0

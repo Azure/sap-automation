@@ -471,7 +471,7 @@ locals {
   enable_iscsi                                    = local.iscsi_count > 0
   iscsi_size                                      = try(var.infrastructure.iscsi.size, "Standard_D2s_v3")
 
-  use_DHCP                                        = try(var.infrastructure.iscsi.use_DHCP, false)
+  use_DHCP                                        = var.infrastructure.iscsi.use_DHCP
 
   iscsi_os                                        = try(var.infrastructure.iscsi.os,
                                                      {
@@ -493,7 +493,7 @@ locals {
                                                       )) : (
                                                       ""
                                                     )
-  iscsi_nic_ips                                   = local.sub_iscsi_exists ? try(var.infrastructure.iscsi.iscsi_nic_ips, []) : []
+  iscsi_nic_ips                                   = try(var.infrastructure.iscsi.iscsi_nic_ips, [])
 
   // By default, ssh key for iSCSI uses generated public key.
   // Provide sshkey.path_to_public_key and path_to_private_key overides it
