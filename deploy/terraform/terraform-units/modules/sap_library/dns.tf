@@ -42,6 +42,14 @@ resource "azurerm_private_dns_zone" "vault" {
                                          )
 }
 
+data "azurerm_private_dns_zone" "vault" {
+  provider                             = azurerm.dnsmanagement
+  count                                = !local.use_local_private_dns && var.use_private_endpoint ? 1 : 0
+  name                                 = "privatelink.vaultcore.azure.net"
+  resource_group_name                  = var.management_dns_resourcegroup_name
+}
+
+
 resource "azurerm_private_dns_zone" "file" {
   provider                             = azurerm.main
   count                                = local.use_local_private_dns && var.use_private_endpoint ? 1 : 0
