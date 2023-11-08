@@ -592,7 +592,7 @@ variable "iscsi_size"                           {
 
 variable "iscsi_useDHCP"                        {
                                                   description = "value indicating if iSCSI Virtual Machine should use DHCP"
-                                                  default     = true
+                                                  default     = false
                                                 }
 
 variable "iscsi_image"                          {

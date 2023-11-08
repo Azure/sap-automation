@@ -37,6 +37,11 @@ variable "place_delete_lock_on_resources"        {
                                                    default     = false
                                                  }
 
+variable "short_named_endpoints_nics"           {
+                                                   description = "If defined, uses short names for private endpoints nics"
+                                                   default     = false
+                                                 }
+
 
 #######################################4#######################################8
 #                                                                              #

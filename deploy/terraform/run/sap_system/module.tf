@@ -298,7 +298,6 @@ module "output_files" {
   source                                        = "../../terraform-units/modules/sap_system/output_files"
   depends_on                                    = [module.anydb_node, module.common_infrastructure, module.app_tier, module.hdb_node]
   providers = {
-    azurerm.deployer                            = azurerm
     azurerm.main                                = azurerm.system
     azurerm.dnsmanagement                       = azurerm.dnsmanagement
   }

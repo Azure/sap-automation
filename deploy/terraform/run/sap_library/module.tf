@@ -20,6 +20,7 @@ module "sap_library" {
   naming                            = length(var.name_override_file) > 0 ? local.custom_names : module.sap_namegenerator.naming
   place_delete_lock_on_resources    = var.place_delete_lock_on_resources
   service_principal                 = var.use_deployer ? local.service_principal : local.account
+  short_named_endpoints_nics        = var.short_named_endpoints_nics
   software                          = var.software
   storage_account_sapbits           = local.storage_account_sapbits
   storage_account_tfstate           = local.storage_account_tfstate
