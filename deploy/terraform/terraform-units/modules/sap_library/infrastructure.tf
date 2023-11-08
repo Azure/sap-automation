@@ -8,7 +8,7 @@ resource "azurerm_resource_group" "library" {
   provider                             = azurerm.main
   count                                = local.resource_group_exists ? 0 : 1
   name                                 = local.resource_group_name
-  location                             = local.region
+  location                             = var.infrastructure.region
   tags                                 = var.infrastructure.tags
 
   lifecycle {
