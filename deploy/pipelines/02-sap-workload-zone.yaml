@@ -541,6 +541,7 @@ stages:
 
               echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
                 cd $(Build.Repository.LocalPath)
+                git pull
 
                 echo -e "$green--- Pull latest ---$reset"
                 cd $CONFIG_REPO_PATH
