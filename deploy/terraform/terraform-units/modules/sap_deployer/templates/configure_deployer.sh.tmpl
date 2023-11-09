@@ -76,6 +76,26 @@ ansible_version="$${ansible_version:-2.15}"
 ansible_major="$${ansible_version%%.*}"
 ansible_minor=$(echo "$${ansible_version}." | cut -d . -f 2)
 
+    case "$(get_distro_name)" in
+    (ubuntu|sles)
+      rel=$(lsb_release -a | grep Release | cut -d':' -f2 | xargs)
+      # Ubuntu 20.04 (Focal Fossa)
+      if [ "$rel" == "20.04" ]; then
+        ansible_version="$${ansible_version:-2.13}"
+        ansible_major="$${ansible_version%%.*}"
+        ansible_minor=$(echo "$${ansible_version}." | cut -d . -f 2)
+      fi
+      if [ "$rel" == "18.04" ]; then
+        ansible_version="$${ansible_version:-2.13}"
+        ansible_major="$${ansible_version%%.*}"
+        ansible_minor=$(echo "$${ansible_version}." | cut -d . -f 2)
+      fi
+      ;;
+    esac
+ansible_version="$${ansible_version:-2.15}"
+ansible_major="$${ansible_version%%.*}"
+ansible_minor=$(echo "$${ansible_version}." | cut -d . -f 2)
+
 #
 # Utility Functions
 #
@@ -311,6 +331,7 @@ else
             python3-virtualenv
             apt-transport-https
             lsb-release
+            software-properties-common
         )
         ;;
     (sles)
@@ -451,6 +472,13 @@ else
         ;;
     esac
 
+    # Install Ansible
+    case "$(get_distro_name)" in
+    (ubuntu)
+        sudo add-apt-repository --yes --update ppa:ansible/ansible
+        ;;
+    esac
+
 
     # If the deployer will be an ADO agent install the devops cli
     # turn tracing off when you are here
@@ -498,7 +526,6 @@ else
         echo "Using the wrong pip3: '$${found_pip3}' != '$${ansible_venv_bin}/pip3'"
         exit 1
     fi
-
 
     # Ensure that standard tools are up to date
     sudo "$${ansible_venv_bin}/pip3" install --upgrade \
