@@ -71,7 +71,7 @@ steps:
     if [ -f $PARAMETERS_FOLDER/extra-params.yaml ]; then
       echo "Extra parameter file passed: " $PARAMETERS_FOLDER/extra-params.yaml
 
-      EXTRA_PARAM_FILE="-e $PARAMETERS_FOLDER/extra-params.yaml"
+      EXTRA_PARAM_FILE="-e @$PARAMETERS_FOLDER/extra-params.yaml"
     fi
 
 
