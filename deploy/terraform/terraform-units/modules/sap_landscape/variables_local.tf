@@ -471,7 +471,7 @@ locals {
   enable_iscsi                                    = local.iscsi_count > 0
   iscsi_size                                      = try(var.infrastructure.iscsi.size, "Standard_D2s_v3")
 
-  use_DHCP                                        = var.infrastructure.iscsi.use_DHCP
+  use_DHCP                                        = try(var.infrastructure.iscsi.use_DHCP, true)
 
   iscsi_os                                        = try(var.infrastructure.iscsi.os,
                                                      {
