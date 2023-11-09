@@ -262,7 +262,7 @@ output "apptier_disks" {
   )
 }
 
-output "scs_ha" {
+output "scs_high_availability" {
   description = "Defines if high availability is used"
   value       = var.application_tier.scs_high_availability
 }
@@ -273,4 +273,16 @@ output "iscsiservers" {
   value = var.application_tier.scs_cluster_type == "ISCSI" ? [for vm in ["ascs1", "ascs2", "ascs3"] :
     format("{ iscsi_host: '%s', iqn: '%s', type: 'scs' }", vm, format("iqn.2006-04.ascs%s.local:ascs%s", var.sap_sid, var.sap_sid))
   ] : []
+}
+
+output "scs_asd" {
+  value = distinct(
+            flatten(
+              [for vm in var.naming.virtualmachine_names.SCS_COMPUTERNAME :
+                [for idx, disk in azurerm_virtual_machine_data_disk_attachment.cluster :
+                  format("{ host: '%s', lun: %d, type: 'ASD' }", vm, disk.lun)
+                ]
+              ]
+            )
+          )
 }

@@ -378,9 +378,10 @@ module "output_files" {
   nics_web_admin                                = module.app_tier.nics_web_admin
   pas_instance_number                           = var.pas_instance_number
   sid_keyvault_user_id                          = module.common_infrastructure.sid_keyvault_user_id
+  scs_asd                                       = module.app_tier.scs_asd
   scs_clst_lb_ip                                = module.app_tier.cluster_lb_ip
   scs_cluster_type                              = var.scs_cluster_type
-  scs_ha                                        = module.app_tier.scs_ha
+  scs_high_availability                         = module.app_tier.scs_high_availability
   scs_instance_number                           = var.scs_instance_number
   scs_lb_ip                                     = module.app_tier.scs_lb_ip
   scs_server_ips                                = module.app_tier.scs_server_ips

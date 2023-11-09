@@ -138,6 +138,20 @@ disks:
   - ${disk}
 %{~ endfor }
 
+%{~ if length(scs_asd) != 0 }
+
+
+# SBD Devices
+#   ASD = Azure Shared Disks
+
+sbdDevices:
+%{~   for line in scs_asd }
+  - ${line}
+%{~   endfor }
+%{~ endif }
+
+%{~ if length(iscsi_server_list) != 0 }
+
 #############################################################################
 #                                                                           #
 #                                iSCSI                                      #
@@ -150,5 +164,6 @@ iscsi_servers:
 %{~ for server in iscsi_server_list }
   - ${server}
 %{~ endfor }
+%{~ endif }
 
 ...

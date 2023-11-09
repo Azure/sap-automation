@@ -157,7 +157,8 @@ resource "local_file" "sap-parameters_yml" {
               kv_name             = local.kv_name,
               secret_prefix       = local.secret_prefix,
               disks               = var.disks
-              scs_ha              = var.scs_ha
+              scs_asd             = var.scs_asd
+              scs_ha              = var.scs_high_availability
               scs_lb_ip           = var.scs_lb_ip
               ers_lb_ip           = var.ers_lb_ip
               scs_clst_lb_ip      = try(format("%s/%s", var.scs_clst_lb_ip, var.app_subnet_netmask), "")
