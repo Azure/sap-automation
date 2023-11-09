@@ -345,7 +345,7 @@ data "azurerm_private_endpoint_connection" "kv_user" {
 resource "azurerm_private_endpoint" "kv_user" {
   provider                             = azurerm.main
   count                                = (length(var.keyvault_private_endpoint_id) == 0 &&
-                                           local.admin_subnet_defined &&
+                                           local.application_subnet_defined &&
                                            var.use_private_endpoint &&
                                            local.enable_landscape_kv &&
                                            !local.user_keyvault_exist
