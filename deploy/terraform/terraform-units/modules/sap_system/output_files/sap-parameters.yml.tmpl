@@ -28,7 +28,6 @@ wd_instance_number:           "${web_instance_number}"
 
 # scs_high_availability is a boolean flag indicating
 # if the SAP Central Services are deployed using high availability
-# scs_high_availability:          ${scs_ha}                                   # {scs_ha} Depracate this in favor of scs_high_availability
 scs_high_availability:          ${scs_high_availability}                      # {scs_high_availability}
 scs_cluster_type:               ${scs_cluster_type}
 
@@ -79,7 +78,6 @@ platform:                      ${platform}
 
 # db_high_availability is a boolean flag indicating if the
 # SAP database servers are deployed using high availability
-db_high_availability:           ${db_ha}                                      # {db_ha} Depracate this in favor of database_high_availability
 database_high_availability:     ${database_high_availability}
 database_cluster_type:          ${database_cluster_type}
 # db_lb_ip is the IP address of the load balancer for the database virtual machines
