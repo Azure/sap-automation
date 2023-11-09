@@ -503,18 +503,6 @@ variable "resource_suffixes" {
   }
 }
 
-variable "dns_zone_names" {
-  type        = map(string)
-  description = "Private DNS zone names"
-
-  default = {
-
-    "file_dns_zone_name"                  = "privatelink.file.core.windows.net"
-    "blob_dns_zone_name"                  = "privatelink.blob.core.windows.net"
-    "vault_dns_zone_name"                 = "privatelink.vaultcore.azure.net"
-  }
-}
-
 variable "app_zones" {
   type        = list(string)
   description = "List of availability zones for application tier"
