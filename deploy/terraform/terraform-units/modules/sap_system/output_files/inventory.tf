@@ -152,81 +152,70 @@ resource "local_file" "ansible_inventory_new_yml" {
 
 resource "local_file" "sap-parameters_yml" {
   content = templatefile(format("%s/sap-parameters.yml.tmpl", path.module), {
-              sid                 = var.sap_sid,
-              db_sid              = var.db_sid
-              kv_name             = local.kv_name,
-              secret_prefix       = local.secret_prefix,
-              disks               = var.disks
-              scs_asd             = var.scs_asd
-              scs_ha              = var.scs_high_availability
-              scs_lb_ip           = var.scs_lb_ip
-              ers_lb_ip           = var.ers_lb_ip
-              scs_clst_lb_ip      = try(format("%s/%s", var.scs_clst_lb_ip, var.app_subnet_netmask), "")
-
-              db_lb_ip            = var.db_lb_ip
-              db_clst_lb_ip       = try(format("%s/%s", var.db_clst_lb_ip, var.db_subnet_netmask), "")
-              db_ha               = var.db_ha
-              db_instance_number  = try(var.database.instance.instance_number, "00")
-
-              dns                 = local.dns_label
-              bom                 = length(var.bom_name) > 0 ? var.bom_name : ""
-
-              sap_mnt             = length(var.sap_mnt) > 1 ? (
-                                      format("sap_mnt:                       %s", var.sap_mnt)) : (
-                                      ""
-                                    )
-
-              sap_transport       = length(trimspace(var.sap_transport)) > 0 ? (
-                                      format("sap_trans:                     %s", var.sap_transport)) : (
-                                      ""
-                                    )
-              platform            = var.platform
-              scs_instance_number = (local.app_server_count + local.scs_server_count) == 0 ? (
-                                      "01") : (
-                                      var.scs_instance_number
-                                    )
-              ers_instance_number = var.ers_instance_number
-              install_path        = length(trimspace(var.install_path)) > 0 ? (
-                                      format("usr_sap_install_mountpoint:    %s", var.install_path)) : (
-                                      ""
-                                    )
-              NFS_provider        = var.NFS_provider
-              pas_instance_number = var.pas_instance_number
-
-              settings            = local.settings
-
-              hana_data           = length(try(var.hana_data[0], "")) > 1 ? (
-                                      format("hana_data_mountpoint:          %s", jsonencode(var.hana_data))) : (
-                                      ""
-                                    )
-              hana_log            = length(try(var.hana_log[0], "")) > 1 ? (
-                                      format("hana_log_mountpoint:           %s", jsonencode(var.hana_log))) : (
-                                      ""
-                                    )
-              hana_shared         = length(try(var.hana_shared[0], "")) > 1 ? (
-                                      format("hana_shared_mountpoint:        %s", jsonencode(var.hana_shared))) : (
-                                      ""
-                                    )
-
-              usr_sap             = length(var.usr_sap) > 1 ? (
-                                      format("usr_sap_mountpoint:            %s", var.usr_sap)) : (
-                                      ""
-                                    )
-
-              web_sid             = var.web_sid
-
-             web_instance_number  = var.web_instance_number
-
-             use_msi_for_clusters = var.use_msi_for_clusters
-
-             dns                  = var.dns
-
-             is_use_simple_mount  = var.use_simple_mount
-
-             app_instance_number  = var.app_instance_number
-             upgrade_packages     = var.upgrade_packages ? "true" : "false"
-
-             iscsi_server_list    = concat(local.iscsi_scs_servers, local.iscsi_db_servers)
+              app_instance_number         = var.app_instance_number
+              bom                         = length(var.bom_name) > 0 ? var.bom_name : ""
+              database_cluster_type       = var.database_cluster_type
+              database_high_availability  = var.database_high_availability
+              db_clst_lb_ip               = try(format("%s/%s", var.db_clst_lb_ip, var.db_subnet_netmask), "")
+              db_ha                       = var.db_ha
+              db_instance_number          = try(var.database.instance.instance_number, "00")
+              db_lb_ip                    = var.db_lb_ip
+              db_sid                      = var.db_sid
+              disks                       = var.disks
+              dns                         = local.dns_label
+              dns                         = var.dns
+              ers_instance_number         = var.ers_instance_number
+              ers_lb_ip                   = var.ers_lb_ip
+              hana_data                   = length(try(var.hana_data[0], "")) > 1 ? (
+                                              format("hana_data_mountpoint:          %s", jsonencode(var.hana_data))) : (
+                                              ""
+                                            )
+              hana_log                    = length(try(var.hana_log[0], "")) > 1 ? (
+                                              format("hana_log_mountpoint:           %s", jsonencode(var.hana_log))) : (
+                                              ""
+                                            )
+              hana_shared                 = length(try(var.hana_shared[0], "")) > 1 ? (
+                                              format("hana_shared_mountpoint:        %s", jsonencode(var.hana_shared))) : (
+                                              ""
+                                            )
+              install_path                = length(trimspace(var.install_path)) > 0 ? (
+                                              format("usr_sap_install_mountpoint:    %s", var.install_path)) : (
+                                              ""
+                                            )
+              is_use_simple_mount         = var.use_simple_mount
+              iscsi_server_list           = concat(local.iscsi_scs_servers, local.iscsi_db_servers)
+              kv_name                     = local.kv_name,
+              NFS_provider                = var.NFS_provider
+              pas_instance_number         = var.pas_instance_number
+              platform                    = var.platform
+              sap_mnt                     = length(var.sap_mnt) > 1 ? (
+                                              format("sap_mnt:                       %s", var.sap_mnt)) : (
+                                              ""
+                                            )
+              sap_transport               = length(trimspace(var.sap_transport)) > 0 ? (
+                                              format("sap_trans:                     %s", var.sap_transport)) : (
+                                              ""
+                                            )
+              scs_asd                     = var.scs_asd
+              scs_clst_lb_ip              = try(format("%s/%s", var.scs_clst_lb_ip, var.app_subnet_netmask), "")
+              scs_cluster_type            = var.scs_cluster_type
+              scs_high_availability       = var.scs_high_availability
+              scs_instance_number         = (local.app_server_count + local.scs_server_count) == 0 ? (
+                                              "01") : (
+                                              var.scs_instance_number
+                                            )
+              scs_lb_ip                   = var.scs_lb_ip
+              secret_prefix               = local.secret_prefix,
+              settings                    = local.settings
+              sid                         = var.sap_sid,
+              upgrade_packages            = var.upgrade_packages ? "true" : "false"
+              use_msi_for_clusters        = var.use_msi_for_clusters
+              usr_sap                     = length(var.usr_sap) > 1 ? (
+                                              format("usr_sap_mountpoint:            %s", var.usr_sap)) : (
+                                              ""
+                                            )
+              web_instance_number         = var.web_instance_number
+              web_sid                     = var.web_sid
 
     }
   )

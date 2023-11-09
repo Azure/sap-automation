@@ -76,7 +76,7 @@ locals {
   db_tags                           = try(coalesce(var.database_tags, try(var.databases[0].tags, {})), {})
 
   databases_temp = {
-    database_cluster_type           = coalesce(var.database_cluster_type, try(var.databases[0].database_cluster_type, ""))
+    database_cluster_type           = var.database_cluster_type
     database_vm_sku                 = var.database_vm_sku
     db_sizing_key                   = coalesce(var.db_sizing_dictionary_key, var.database_size, try(var.databases[0].size, ""))
     deploy_v1_monitoring_extension  = var.deploy_v1_monitoring_extension
@@ -187,7 +187,7 @@ locals {
                                         ) : (
                                         false
                                       )
-    scs_cluster_type                = coalesce(var.scs_cluster_type,    try(var.application_tier.scs_cluster_type, ""))
+    scs_cluster_type                = var.scs_cluster_type
     scs_instance_number             = coalesce(var.scs_instance_number, try(var.application_tier.scs_instance_number, "00"))
     ers_instance_number             = coalesce(var.ers_instance_number, try(var.application_tier.ers_instance_number, "02"))
     scs_sku                         = try(coalesce(var.scs_server_sku, var.application_tier.scs_sku), "")
