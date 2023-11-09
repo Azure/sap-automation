@@ -69,7 +69,7 @@ tfversion=$TF_VERSION
 #
 # Ansible Version settings
 #
-ansible_version="${ansible_version:-2.13}"
+ansible_version="${ansible_version:-2.15}"
 ansible_major="${ansible_version%%.*}"
 ansible_minor=$(echo "${ansible_version}." | cut -d . -f 2)
 
