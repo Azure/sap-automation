@@ -38,7 +38,7 @@ resource "azurerm_private_dns_a_record" "storage_bootdiag" {
   count                                = var.use_custom_dns_a_registration ? 0 : 0
   name                                 = lower(local.storageaccount_name)
 
-  zone_name                            = var.naming.private_dns_zone_names.blob_dns_zone_name
+  zone_name                            = var.dns_zone_names.blob_dns_zone_name
   resource_group_name                  = local.resource_group_exists ? (
                                            data.azurerm_resource_group.resource_group[0].name) : (
                                            azurerm_resource_group.resource_group[0].name
@@ -110,7 +110,7 @@ resource "azurerm_private_endpoint" "storage_bootdiag" {
   dynamic "private_dns_zone_group" {
                                      for_each = range(var.use_private_endpoint && !var.use_custom_dns_a_registration ? 1 : 0)
                                      content {
-                                       name                 = var.naming.private_dns_zone_names.blob_dns_zone_name
+                                       name                 = var.dns_zone_names.blob_dns_zone_name
                                        private_dns_zone_ids = [data.azurerm_private_dns_zone.storage[0].id]
                                      }
                                    }
@@ -190,7 +190,7 @@ resource "azurerm_private_dns_a_record" "witness_storage" {
   provider                             = azurerm.dnsmanagement
   count                                = var.use_custom_dns_a_registration ? 0 : 0
   name                                 = lower(local.witness_storageaccount_name)
-  zone_name                            = var.naming.private_dns_zone_names.blob_dns_zone_name
+  zone_name                            = var.dns_zone_names.blob_dns_zone_name
   resource_group_name                  = var.management_dns_resourcegroup_name
   ttl                                  = 3600
   records                              = [data.azurerm_network_interface.witness_storage[count.index].ip_configuration[0].private_ip_address]
@@ -267,7 +267,7 @@ resource "azurerm_private_endpoint" "witness_storage" {
   dynamic "private_dns_zone_group" {
                                      for_each = range(var.use_private_endpoint && !var.use_custom_dns_a_registration ? 1 : 0)
                                      content {
-                                       name                 = var.naming.private_dns_zone_names.blob_dns_zone_name
+                                       name                 = var.dns_zone_names.blob_dns_zone_name
                                        private_dns_zone_ids = [data.azurerm_private_dns_zone.storage[0].id]
                                      }
                                    }

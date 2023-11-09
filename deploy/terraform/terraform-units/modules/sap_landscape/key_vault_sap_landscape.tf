@@ -419,7 +419,7 @@ resource "azurerm_private_endpoint" "kv_user" {
   dynamic "private_dns_zone_group" {
                                       for_each = range(var.use_private_endpoint ? 1 : 0)
                                       content {
-                                        name                 = var.naming.private_dns_zone_names.vault_dns_zone_name
+                                        name                 = var.dns_zone_names.vault_dns_zone_name
                                         private_dns_zone_ids = [data.azurerm_private_dns_zone.keyvault[0].id]
                                       }
                                     }
@@ -429,7 +429,7 @@ resource "azurerm_private_endpoint" "kv_user" {
 data "azurerm_private_dns_zone" "keyvault" {
   provider                             = azurerm.dnsmanagement
   count                                = var.use_private_endpoint && !var.use_custom_dns_a_registration ? 1 : 0
-  name                                 = var.naming.private_dns_zone_names.vault_dns_zone_name
+  name                                 = var.dns_zone_names.vault_dns_zone_name
   resource_group_name                  = var.management_dns_resourcegroup_name
 }
 
@@ -439,7 +439,7 @@ resource "azurerm_private_dns_a_record" "keyvault" {
   name                                 = lower(
                                            format("%s", local.user_keyvault_name)
                                          )
-  zone_name                            = var.naming.private_dns_zone_names.vault_dns_zone_name
+  zone_name                            = var.dns_zone_names.vault_dns_zone_name
   resource_group_name                  = var.management_dns_resourcegroup_name
   ttl                                  = 10
   records                              = [
@@ -466,7 +466,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vault" {
                                            "vault"
                                          )
   resource_group_name                  = var.management_dns_resourcegroup_name
-  private_dns_zone_name                = var.naming.private_dns_zone_names.vault_dns_zone_name
+  private_dns_zone_name                = var.dns_zone_names.vault_dns_zone_name
   virtual_network_id                   = azurerm_virtual_network.vnet_sap[0].id
   registration_enabled                 = false
 }
@@ -474,7 +474,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vault" {
 data "azurerm_private_dns_zone" "vault" {
   provider                             = azurerm.dnsmanagement
   count                                = var.use_private_endpoint ? 1 : 0
-  name                                 = var.naming.private_dns_zone_names.vault_dns_zone_name
+  name                                 = var.dns_zone_names.vault_dns_zone_name
   resource_group_name                  = var.management_dns_resourcegroup_name
 }
 
