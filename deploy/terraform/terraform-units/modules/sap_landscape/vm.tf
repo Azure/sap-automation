@@ -51,6 +51,7 @@ resource "azurerm_windows_virtual_machine" "utility_vm" {
                                            var.naming.virtualmachine_names.WORKLOAD_VMNAME[count.index],
                                            local.resource_suffixes.vm
                                          )
+  computer_name                        = var.naming.virtualmachine_names.WORKLOAD_VMNAME[count.index]
   location                             = local.resource_group_exists ? (
                                            data.azurerm_resource_group.resource_group[0].location) : (
                                            azurerm_resource_group.resource_group[0].location
