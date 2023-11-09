@@ -141,9 +141,12 @@ disks:
 
 %{~ if length(scs_asd) != 0 }
 
-
-# SBD Devices
-#   ASD = Azure Shared Disks
+#############################################################################
+#                                                                           #
+# SBD Devices                                                               #
+#   ASD = Azure Shared Disks                                                #
+#                                                                           #
+#############################################################################
 
 sbdDevices:
 %{~   for line in scs_asd }
