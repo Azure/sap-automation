@@ -200,7 +200,7 @@ resource "azurerm_network_security_rule" "nsr_controlplane_db" {
 // Add network security rule
 resource "azurerm_network_security_rule" "nsr_controlplane_admin" {
   provider                             = azurerm.main
-  count                                = local.admin_subnet_nsg_exists ? 0 : 1
+  count                                = local.admin_subnet_nsg_exists ? 0 : (local.admin_subnet_defined ? 1 : 0)
   depends_on                           = [
                                            azurerm_network_security_group.admin
                                          ]
