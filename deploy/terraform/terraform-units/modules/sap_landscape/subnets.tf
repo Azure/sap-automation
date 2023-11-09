@@ -8,7 +8,6 @@ resource "azurerm_subnet" "admin" {
   address_prefixes                     = [local.admin_subnet_prefix]
 
   private_endpoint_network_policies_enabled     = var.use_private_endpoint
-  private_link_service_network_policies_enabled = false
 
   service_endpoints                    = var.use_service_endpoint ? (
                                           ["Microsoft.Storage", "Microsoft.KeyVault"]
@@ -27,7 +26,6 @@ resource "azurerm_subnet" "db" {
   address_prefixes                     = [local.database_subnet_prefix]
 
   private_endpoint_network_policies_enabled     = var.use_private_endpoint
-  private_link_service_network_policies_enabled = false
   service_endpoints                    = var.use_service_endpoint ? (
                                            ["Microsoft.Storage", "Microsoft.KeyVault"]
                                            ) : (
@@ -45,7 +43,6 @@ resource "azurerm_subnet" "app" {
   address_prefixes                     = [local.application_subnet_prefix]
 
   private_endpoint_network_policies_enabled     = var.use_private_endpoint
-  private_link_service_network_policies_enabled = false
 
   service_endpoints                    = var.use_service_endpoint ? (
                                            ["Microsoft.Storage", "Microsoft.KeyVault"]
@@ -64,7 +61,6 @@ resource "azurerm_subnet" "web" {
   address_prefixes                     = [local.web_subnet_prefix]
 
   private_endpoint_network_policies_enabled     = var.use_private_endpoint
-  private_link_service_network_policies_enabled = false
 
   service_endpoints                    = var.use_service_endpoint ? (
                                            ["Microsoft.Storage", "Microsoft.KeyVault"]

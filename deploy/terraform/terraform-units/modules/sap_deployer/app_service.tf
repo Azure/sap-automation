@@ -23,7 +23,6 @@ resource "azurerm_subnet" "webapp" {
   address_prefixes                              = [local.webapp_subnet_prefix]
 
   private_endpoint_network_policies_enabled     = var.use_private_endpoint
-  private_link_service_network_policies_enabled = false
 
   service_endpoints                             = var.use_service_endpoint ? (
                                                     var.use_webapp ? (
