@@ -65,7 +65,6 @@ variable "database_high_availability" {
 
 variable "database_cluster_type" {
   description   = "Cluster quorum type; AFA (Azure Fencing Agent), ASD (Azure Shared Disk), ISCSI"
-  default       = "AFA"
 }
 
 variable "scs_ha" {
@@ -80,7 +79,6 @@ variable "scs_high_availability" {
 
 variable "scs_cluster_type" {
   description   = "Cluster quorum type; AFA (Azure Fencing Agent), ASD (Azure Shared Disk), ISCSI"
-  default       = "AFA"
 }
 
 variable "ansible_user" {
