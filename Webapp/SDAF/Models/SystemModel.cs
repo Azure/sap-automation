@@ -80,6 +80,7 @@ namespace AutomationForm.Models
     [UserAssignedIdentityIdValidator(ErrorMessage = "Invalid User Assigned id")]
     public string user_assigned_identity_id { get; set; }
 
+    [ScaleSetIdValidator(ErrorMessage = "Invalid Scaleset id")]
     public string scaleset_id { get; set; }
 
     /*---------------------------------------------------------------------------8

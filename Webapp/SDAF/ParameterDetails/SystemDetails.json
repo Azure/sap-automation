@@ -195,7 +195,7 @@
         "Name": "scaleset_id",
         "Required": false,
         "Description": "Azure resource identifier for Virtual Machine Scale Sets.",
-        "Type": "list",
+        "Type": "lookup",
         "Options": [],
         "Overrules": "",
         "Display": 3
@@ -249,7 +249,7 @@
         "Name": "user_assigned_identity_id",
         "Required": false,
         "Description": "Azure resource identifier for User assigned identity.",
-        "Type": "list",
+        "Type": "lookup",
         "Options": [],
         "Overrules": "",
         "Display": 3
@@ -1278,7 +1278,7 @@
         "Name": "scs_cluster_type",
         "Required": false,
         "Description": "Cluster quorum type; AFA (Azure Fencing Agent), ASD (Azure Shared Disk), ISCSI",
-        "Type": "list",
+        "Type": "lookup",
         "Options": [
           {
             "Text": "Azure Fencing Agent",
@@ -1300,7 +1300,7 @@
         "Name": "database_cluster_type",
         "Required": false,
         "Description": "Cluster quorum type; AFA (Azure Fencing Agent), ASD (Azure Shared Disk), ISCSI",
-        "Type": "list",
+        "Type": "lookup",
         "Options": [
           {
             "Text": "Azure Fencing Agent",

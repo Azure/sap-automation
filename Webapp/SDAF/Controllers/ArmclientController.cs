@@ -238,16 +238,25 @@ namespace AutomationForm.Controllers
 
         foreach (StorageAccountResource sa in storageAccounts)
         {
-          options.Add(new SelectListItem
+          try
           {
-            Text = sa.Data.Name,
-            Value = sa.Id
-          });
+            SelectListItem li = new SelectListItem
+            {
+              Text = sa.Data.Name,
+              Value = sa.Id
+            };
+            options.Add(li);
+          }
+          catch (System.Exception Ex)
+          {
+            string errorMessage = Ex.Message;
+          }
+
         }
       }
-      catch
+      catch(System.Exception Ex)
       {
-        return null;
+        string errorMessage= Ex.Message;
       }
       return Json(options);
     }

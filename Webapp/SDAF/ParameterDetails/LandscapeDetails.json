@@ -1059,6 +1059,15 @@
         ],
         "Overrules": "",
         "Display": 3
+      },
+      {
+        "Name": "user_assigned_identity_id",
+        "Required": false,
+        "Description": "Azure resource identifier for User assigned identity.",
+        "Type": "lookup",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
       }
 
     ]

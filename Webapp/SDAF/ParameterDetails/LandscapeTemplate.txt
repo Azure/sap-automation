@@ -397,7 +397,7 @@ $$ANF_install_volume_size$$
 
 ###########################################################################
 #                                                                         #
-#                                    ISCSI                                #
+#                                    ISCSI Networking                     #
 #                                                                         #
 ###########################################################################
 
@@ -449,6 +449,8 @@ $$iscsi_nic_ips$$
 # Defines the Availability zones for the iSCSI devices
 $$iscsi_vm_zones$$
 
+# user_assigned_identity_id defines the user assigned identity to be assigned to the Virtual machines
+$$user_assigned_identity_id$$
 
 ##########################################################################################
 #                                                                                        #

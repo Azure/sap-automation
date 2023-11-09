@@ -331,5 +331,8 @@ namespace AutomationForm.Models
     public string[] iscsi_vm_zones { get; set; }
 
     public string[] iscsi_nic_ips { get; set; }
+
+    [UserAssignedIdentityIdValidator(ErrorMessage = "Invalid User Assigned id")]
+    public string user_assigned_identity_id { get; set; }
   }
 }
