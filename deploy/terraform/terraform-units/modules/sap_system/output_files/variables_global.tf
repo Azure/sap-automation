@@ -242,6 +242,17 @@ variable "configuration_settings" {
   description = "This is a dictionary that will contain values persisted to the sap-parameters.file"
 }
 
+variable "dns_zone_names"                       {
+                                                  description = "Private DNS zone names"
+                                                  type        = map(string)
+
+                                                  default = {
+                                                              "file_dns_zone_name"  = "privatelink.file.core.windows.net"
+                                                              "blob_dns_zone_name"  = "privatelink.blob.core.windows.net"
+                                                              "vault_dns_zone_name" = "privatelink.vaultcore.azure.net"
+                                                            }
+                                                }
+
 variable "db_clst_lb_ip" {
   description = "This is a Cluster IP address for Windows load balancer for the database"
 }

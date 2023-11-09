@@ -66,6 +66,7 @@ module "common_infrastructure" {
   deploy_application_security_groups            = var.deploy_application_security_groups
   deployer_tfstate                              = length(var.deployer_tfstate_key) > 0 ? data.terraform_remote_state.deployer[0].outputs : null
   deployment                                    = var.deployment
+  dns_zone_names                                = var.dns_zone_names
   enable_purge_control_for_keyvaults            = var.enable_purge_control_for_keyvaults
   ha_validator                                  = format("%d%d-%s",
                                                     local.application_tier.scs_high_availability ? 1 : 0,
@@ -410,6 +411,7 @@ module "output_files" {
   use_custom_dns_a_registration                 = try(data.terraform_remote_state.landscape.outputs.use_custom_dns_a_registration, false)
   management_dns_subscription_id                = try(data.terraform_remote_state.landscape.outputs.management_dns_subscription_id, null)
   management_dns_resourcegroup_name             = try(data.terraform_remote_state.landscape.outputs.management_dns_resourcegroup_name, local.saplib_resource_group_name)
+  dns_zone_names                                = var.dns_zone_names
 
 
   #########################################################################################

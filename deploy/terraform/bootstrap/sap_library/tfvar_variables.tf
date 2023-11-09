@@ -209,6 +209,31 @@ variable "spn_keyvault_id"                      {
                                                 }
 
 
+#########################################################################################
+#                                                                                       #
+#  Web App definitioms                                                                  #
+#                                                                                       #
+#########################################################################################
+
+variable "use_webapp"                            {
+                                                   description = "Boolean value indicating if a webapp should be created"
+                                                   default     = false
+                                                 }
+
+
+variable "Agent_IP"                              {
+                                                   description = "If provided, contains the IP address of the agent"
+                                                   type        = string
+                                                   default     = ""
+                                                 }
+
+
+#########################################################################################
+#                                                                                       #
+#  DNS settings                                                                         #
+#                                                                                       #
+#########################################################################################
+
 variable "use_custom_dns_a_registration"         {
                                                    description = "Boolean value indicating if a custom dns a record should be created when using private endpoints"
                                                    default     = false
@@ -228,20 +253,13 @@ variable "management_dns_resourcegroup_name"     {
                                                  }
 
 
-#########################################################################################
-#                                                                                       #
-#  Web App definitioms                                                                  #
-#                                                                                       #
-#########################################################################################
-
-variable "use_webapp"                            {
-                                                   description = "Boolean value indicating if a webapp should be created"
-                                                   default     = false
+variable "dns_zone_names"                        {
+                                                   description = "Private DNS zone names"
+                                                   type        = map(string)
+                                                   default = {
+                                                     "file_dns_zone_name"  = "privatelink.file.core.windows.net"
+                                                     "blob_dns_zone_name"  = "privatelink.blob.core.windows.net"
+                                                     "vault_dns_zone_name" = "privatelink.vaultcore.azure.net"
+                                                   }
                                                  }
 
-
-variable "Agent_IP"                              {
-                                                   description = "If provided, contains the IP address of the agent"
-                                                   type        = string
-                                                   default     = ""
-                                                 }

@@ -234,6 +234,16 @@ variable "management_dns_resourcegroup_name"     {
                                                     default     = null
                                                     type        = string
                                                  }
+variable "dns_zone_names"                        {
+                                                  description = "Private DNS zone names"
+                                                  type        = map(string)
+
+                                                  default = {
+                                                              "file_dns_zone_name"  = "privatelink.file.core.windows.net"
+                                                              "blob_dns_zone_name"  = "privatelink.blob.core.windows.net"
+                                                              "vault_dns_zone_name" = "privatelink.vaultcore.azure.net"
+                                                            }
+                                                }
 
 variable "sapmnt_private_endpoint_id"            {
                                                     description = "Azure Resource Identifier for an private endpoint connection"

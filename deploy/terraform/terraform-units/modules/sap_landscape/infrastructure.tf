@@ -214,7 +214,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vnet_sap_file" {
 
   resource_group_name                  = var.management_dns_resourcegroup_name
 
-  private_dns_zone_name                = var.naming.dns_zone_names.file_dns_zone_name
+  private_dns_zone_name                = var.dns_zone_names.file_dns_zone_name
   virtual_network_id                   = azurerm_virtual_network.vnet_sap[0].id
   registration_enabled                 = false
 }
@@ -222,7 +222,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vnet_sap_file" {
 data "azurerm_private_dns_zone" "file" {
   provider                             = azurerm.dnsmanagement
   count                                = var.use_private_endpoint ? 1 : 0
-  name                                 = var.naming.dns_zone_names.file_dns_zone_name
+  name                                 = var.dns_zone_names.file_dns_zone_name
   resource_group_name                  = var.management_dns_resourcegroup_name
 }
 

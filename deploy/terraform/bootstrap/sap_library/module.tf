@@ -14,6 +14,7 @@ module "sap_library" {
   deployer                          = local.deployer
   deployer_tfstate                  = try(data.terraform_remote_state.deployer[0].outputs, [])
   dns_label                         = var.dns_label
+  dns_zone_names                    = var.dns_zone_names
   infrastructure                    = local.infrastructure
   key_vault                         = local.key_vault
   management_dns_resourcegroup_name = trimspace(var.management_dns_resourcegroup_name)

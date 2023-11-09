@@ -366,7 +366,7 @@ resource "azurerm_private_dns_a_record" "transport" {
                                            "/[^a-z0-9]/",
                                            ""
                                          )
-  zone_name                            = var.naming.dns_zone_names.file_dns_zone_name
+  zone_name                            = var.dns_zone_names.file_dns_zone_name
   resource_group_name                  = var.management_dns_resourcegroup_name
   ttl                                  = 10
   records                              = [
@@ -387,7 +387,7 @@ data "azurerm_private_dns_a_record" "transport" {
                                            "/[^a-z0-9]/",
                                            ""
                                          )
-  zone_name                            = var.naming.dns_zone_names.file_dns_zone_name
+  zone_name                            = var.dns_zone_names.file_dns_zone_name
   resource_group_name                  = var.management_dns_resourcegroup_name
 }
 
@@ -486,7 +486,7 @@ resource "azurerm_private_endpoint" "transport" {
   dynamic "private_dns_zone_group" {
                                      for_each = range(var.use_private_endpoint ? 1 : 0)
                                      content {
-                                       name                 = var.naming.dns_zone_names.file_dns_zone_name
+                                       name                 = var.dns_zone_names.file_dns_zone_name
                                        private_dns_zone_ids = [data.azurerm_private_dns_zone.file[0].id]
                                      }
                                    }
@@ -610,7 +610,7 @@ resource "azurerm_private_dns_a_record" "install" {
                                            "/[^a-z0-9]/",
                                            ""
                                          )
-  zone_name                            = var.naming.dns_zone_names.file_dns_zone_name
+  zone_name                            = var.dns_zone_names.file_dns_zone_name
   resource_group_name                  = var.management_dns_resourcegroup_name
   ttl                                  = 10
   records                              = [
@@ -635,7 +635,7 @@ data "azurerm_private_dns_a_record" "install" {
                                           "/[^a-z0-9]/",
                                           ""
                                         )
-  zone_name                            = var.naming.dns_zone_names.file_dns_zone_name
+  zone_name                            = var.dns_zone_names.file_dns_zone_name
   resource_group_name                  = var.management_dns_resourcegroup_name
 }
 
@@ -729,7 +729,7 @@ resource "azurerm_private_endpoint" "install" {
   dynamic "private_dns_zone_group" {
                                      for_each = range(var.use_private_endpoint ? 1 : 0)
                                      content {
-                                       name                 = var.naming.dns_zone_names.file_dns_zone_name
+                                       name                 = var.dns_zone_names.file_dns_zone_name
                                        private_dns_zone_ids = [data.azurerm_private_dns_zone.file[0].id]
                                      }
                                    }

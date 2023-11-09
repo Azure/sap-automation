@@ -56,7 +56,7 @@ resource "azurerm_private_dns_zone" "file" {
   depends_on                           = [
                                            azurerm_resource_group.library
                                          ]
-  name                                 = var.naming.dns_zone_names.file_dns_zone_name
+  name                                 = var.dns_zone_names.file_dns_zone_name
   resource_group_name                  = local.resource_group_exists ? (
                                            split("/", var.infrastructure.resource_group.arm_id)[4]) : (
                                            azurerm_resource_group.library[0].name
