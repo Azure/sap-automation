@@ -63,6 +63,18 @@ steps:
     echo "Extra parameters passed: " $EXTRA_PARAMS
     echo "Check for file: ${filename}"
 
+    command="ansible --version"
+    eval $command
+
+    EXTRA_PARAM_FILE=""
+
+    if [ -f $PARAMETERS_FOLDER/extra-params.yaml ]; then
+      echo "Extra parameter file passed: " $PARAMETERS_FOLDER/extra-params.yaml
+
+      EXTRA_PARAM_FILE="-e $PARAMETERS_FOLDER/extra-params.yaml"
+    fi
+
+
     ############################################################################################
     #                                                                                          #
     # Run Pre tasks if Ansible playbook with the correct naming exists                         #
@@ -72,12 +84,12 @@ steps:
     if [ -f  "${filename}" ]; then
       echo "##[group]- preconfiguration"
 
-      redacted_command="ansible-playbook -i $INVENTORY -e @$SAP_PARAMS $EXTRA_PARAMS ${filename}"
+      redacted_command="ansible-playbook -i $INVENTORY -e @$SAP_PARAMS $EXTRA_PARAMS @"$EXTRA_PARAM_FILE" ${filename}"
       echo "##[section]Executing [$redacted_command]..."
 
       command="ansible-playbook -i $INVENTORY --private-key $PARAMETERS_FOLDER/sshkey  \
             -e @$SAP_PARAMS -e 'download_directory=$(Agent.TempDirectory)' -e '_workspace_directory=$PARAMETERS_FOLDER' $EXTRA_PARAMS  \
-            -e ansible_ssh_pass='${password_secret}' ${filename}"
+            -e ansible_ssh_pass='${password_secret}' @"$EXTRA_PARAM_FILE" ${filename}"
 
       eval $command
       return_code=$?
@@ -86,13 +98,13 @@ steps:
 
     fi
 
-    command="ansible-playbook -i $INVENTORY --private-key $PARAMETERS_FOLDER/sshkey  \
-      -e @$SAP_PARAMS -e 'download_directory=$(Agent.TempDirectory)' -e '_workspace_directory=$PARAMETERS_FOLDER' $EXTRA_PARAMS  \
-      -e ansible_ssh_pass='${password_secret}'                                                                                   \
+    command="ansible-playbook -i $INVENTORY --private-key $PARAMETERS_FOLDER/sshkey                               \
+      -e @$SAP_PARAMS -e 'download_directory=$(Agent.TempDirectory)' -e '_workspace_directory=$PARAMETERS_FOLDER' \
+      -e ansible_ssh_pass='${password_secret}' $EXTRA_PARAMS @"$EXTRA_PARAM_FILE"                                   \
        $ANSIBLE_FILE_PATH"
 
 
-    redacted_command="ansible-playbook -i $INVENTORY -e @$SAP_PARAMS $EXTRA_PARAMS $ANSIBLE_FILE_PATH"
+    redacted_command="ansible-playbook -i $INVENTORY -e @$SAP_PARAMS $EXTRA_PARAMS @"$EXTRA_PARAM_FILE" $ANSIBLE_FILE_PATH"
 
     echo "##[section]Executing [$redacted_command]..."
     echo "##[group]- output"
@@ -115,12 +127,12 @@ steps:
     if [ -f  ${filename} ]; then
 
       echo "##[group]- postconfiguration"
-      redacted_command="ansible-playbook -i "$INVENTORY" -e @"$SAP_PARAMS" "$EXTRA_PARAMS" "${filename}""
+      redacted_command="ansible-playbook -i "$INVENTORY" -e @"$SAP_PARAMS" "$EXTRA_PARAMS" @"$EXTRA_PARAM_FILE" "${filename}""
       echo "##[section]Executing [$redacted_command]..."
 
-      command="ansible-playbook -i "$INVENTORY" --private-key $PARAMETERS_FOLDER/sshkey  \
-            -e @$SAP_PARAMS -e 'download_directory=$(Agent.TempDirectory)' -e '_workspace_directory=$PARAMETERS_FOLDER' $EXTRA_PARAMS  \
-            -e ansible_ssh_pass='${password_secret}' ${filename}"
+      command="ansible-playbook -i "$INVENTORY" --private-key $PARAMETERS_FOLDER/sshkey                                 \
+            -e @$SAP_PARAMS -e 'download_directory=$(Agent.TempDirectory)' -e '_workspace_directory=$PARAMETERS_FOLDER' \
+            -e ansible_ssh_pass='${password_secret}' ${filename}  $EXTRA_PARAMS @"$EXTRA_PARAM_FILE""
 
       eval $command
       return_code=$?
