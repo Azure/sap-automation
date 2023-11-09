@@ -7,6 +7,8 @@ output "naming" {
       web = local.web_avset_names
     }
 
+    private_dns_zone_names = local.dns_zone_names
+
     keyvault_names = {
       DEPLOYER = {
         private_access = local.deployer_private_keyvault_name

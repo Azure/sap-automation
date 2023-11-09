@@ -83,7 +83,7 @@ resource "azurerm_storage_account_network_rules" "sapmnt" {
 #     "/[^a-z0-9]/",
 #     ""
 #   )
-#   zone_name           = "privatelink.file.core.windows.net"
+#   zone_name           = var.naming.dns_zone_names.file_dns_zone_name
 #   resource_group_name = var.management_dns_resourcegroup_name
 #   ttl                 = 3600
 #   records             = [data.azurerm_network_interface.sapmnt[count.index].ip_configuration[0].private_ip_address]
@@ -161,7 +161,7 @@ resource "azurerm_private_endpoint" "sapmnt" {
   dynamic "private_dns_zone_group" {
                                      for_each = range(length(try(var.landscape_tfstate.privatelink_file_id, "")) > 0 ? 1 : 0)
                                      content {
-                                       name                 = "privatelink.file.core.windows.net"
+                                       name                 = var.naming.dns_zone_names.file_dns_zone_name
                                        private_dns_zone_ids = [var.landscape_tfstate.privatelink_file_id]
                                      }
                                    }

@@ -103,7 +103,7 @@ resource "azurerm_private_dns_a_record" "storage_tfstate_pep_a_record_registry" 
                                            azurerm_private_dns_zone.blob
                                          ]
   name                                 = lower(azurerm_storage_account.storage_tfstate[0].name)
-  zone_name                            = "privatelink.blob.core.windows.net"
+  zone_name                            = var.naming.private_dns_zone_names.blob_dns_zone_name
   resource_group_name                  = coalesce(
                                            var.management_dns_resourcegroup_name,
                                            local.resource_group_exists ? (
@@ -179,7 +179,7 @@ resource "azurerm_private_endpoint" "storage_tfstate" {
   dynamic "private_dns_zone_group" {
                                      for_each = range(var.use_private_endpoint && !var.use_custom_dns_a_registration ? 1 : 0)
                                      content {
-                                               name                 = "privatelink.blob.core.windows.net"
+                                               name                 = var.naming.private_dns_zone_names.blob_dns_zone_name
                                                private_dns_zone_ids = [local.use_local_private_dns ? azurerm_private_dns_zone.blob[0].id : data.azurerm_private_dns_zone.storage[0].id]
                                              }
                                    }
@@ -282,7 +282,7 @@ resource "azurerm_private_dns_a_record" "storage_sapbits_pep_a_record_registry" 
                                          ]
 
   name                                 = lower(azurerm_storage_account.storage_sapbits[0].name)
-  zone_name                            = "privatelink.blob.core.windows.net"
+  zone_name                            = var.naming.private_dns_zone_names.blob_dns_zone_name
   resource_group_name                  = coalesce(
                                             var.management_dns_resourcegroup_name,
                                             local.resource_group_exists ? (
@@ -352,7 +352,7 @@ resource "azurerm_private_endpoint" "storage_sapbits" {
   dynamic "private_dns_zone_group" {
                                       for_each = range(var.use_private_endpoint && !var.use_custom_dns_a_registration ? 1 : 0)
                                       content {
-                                                name                 = "privatelink.blob.core.windows.net"
+                                                name                 = var.naming.private_dns_zone_names.blob_dns_zone_name
                                                 private_dns_zone_ids = [local.use_local_private_dns ? azurerm_private_dns_zone.blob[0].id : data.azurerm_private_dns_zone.storage[0].id]
                                               }
 
@@ -424,7 +424,7 @@ resource "azurerm_role_assignment" "storage_sapbits_contributor_ssi" {
 data "azurerm_private_dns_zone" "storage" {
   provider                             = azurerm.dnsmanagement
   count                                = !local.use_local_private_dns && var.use_private_endpoint ? 1 : 0
-  name                                 = "privatelink.blob.core.windows.net"
+  name                                 = var.naming.private_dns_zone_names.blob_dns_zone_name
   resource_group_name                  = var.management_dns_resourcegroup_name
 
 }
