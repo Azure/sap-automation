@@ -61,6 +61,12 @@ instance_type:                         "ASCS"
 
 dbload_retry_count:                    120
 
+# Default sizes for volumes
+
+sapmnt_volume_size:                    32g
+usrsap_volume_size:                    32g
+hanashared_volume_size:                32g
+
 # Custom virtual hostnames
 custom_db_virtual_hostname:            ""
 custom_ers_virtual_hostname:           ""
