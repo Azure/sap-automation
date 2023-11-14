@@ -234,3 +234,15 @@ resource "azurerm_virtual_machine_extension" "configure" {
   )
 
 }
+
+resource "azurerm_management_lock" "deployer" {
+  provider                             = azurerm.main
+  count                                = var.deployer_vm_count
+  name                                 = format("%s-lock", "Deployer")
+  scope                                = azurerm_linux_virtual_machine.deployer[count.index].id
+  lock_level                           = "CanNotDelete"
+  notes                                = "Locked because it's needed by Terraform"
+  lifecycle {
+    prevent_destroy = false
+  }
+}
