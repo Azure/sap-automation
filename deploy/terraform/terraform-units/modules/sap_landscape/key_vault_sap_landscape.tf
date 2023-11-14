@@ -509,6 +509,24 @@ resource "azurerm_key_vault_access_policy" "kv_user_additional_users" {
                                          ]
 }
 
+resource "azurerm_role_assignment" "kv_user_additional_users" {
+  provider                             = azurerm.main
+  count                                = var.enable_rbac_authorization_for_keyvault ? (
+                                           length(compact(var.additional_users_to_add_to_keyvault_policies)) > 0 ? (
+                                             length(var.additional_users_to_add_to_keyvault_policies)) : (
+                                             0
+                                           )) : (
+                                           0
+                                         )
+
+  scope                                = local.user_keyvault_exist ? (
+                                                                       local.user_key_vault_id) : (
+                                                                       azurerm_key_vault.kv_user[0].id
+                                                                     )
+  role_definition_name                 = "Key Vault Secrets Officer"
+  principal_id                         = local.service_principal.object_id
+}
+
 resource "azurerm_management_lock" "keyvault" {
   provider                             = azurerm.main
   count                                = var.key_vault.exists ? 0 : var.place_delete_lock_on_resources ? 1 : 0
