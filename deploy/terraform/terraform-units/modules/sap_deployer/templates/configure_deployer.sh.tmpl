@@ -76,22 +76,22 @@ ansible_version="$${ansible_version:-2.15}"
 ansible_major="$${ansible_version%%.*}"
 ansible_minor=$(echo "$${ansible_version}." | cut -d . -f 2)
 
-    case "$(get_distro_name)" in
-    (ubuntu|sles)
-      rel=$(lsb_release -a | grep Release | cut -d':' -f2 | xargs)
-      # Ubuntu 20.04 (Focal Fossa)
-      if [ "$rel" == "20.04" ]; then
-        ansible_version="$${ansible_version:-2.13}"
-        ansible_major="$${ansible_version%%.*}"
-        ansible_minor=$(echo "$${ansible_version}." | cut -d . -f 2)
-      fi
-      if [ "$rel" == "18.04" ]; then
-        ansible_version="$${ansible_version:-2.13}"
-        ansible_major="$${ansible_version%%.*}"
-        ansible_minor=$(echo "$${ansible_version}." | cut -d . -f 2)
-      fi
-      ;;
-    esac
+case "$(get_distro_name)" in
+(ubuntu|sles)
+  rel=$(lsb_release -a | grep Release | cut -d':' -f2 | xargs)
+  # Ubuntu 20.04 (Focal Fossa)
+  if [ "$rel" == "20.04" ]; then
+    ansible_version="$${ansible_version:-2.13}"
+    ansible_major="$${ansible_version%%.*}"
+    ansible_minor=$(echo "$${ansible_version}." | cut -d . -f 2)
+  fi
+  if [ "$rel" == "18.04" ]; then
+    ansible_version="$${ansible_version:-2.13}"
+    ansible_major="$${ansible_version%%.*}"
+    ansible_minor=$(echo "$${ansible_version}." | cut -d . -f 2)
+  fi
+  ;;
+esac
 ansible_version="$${ansible_version:-2.15}"
 ansible_major="$${ansible_version%%.*}"
 ansible_minor=$(echo "$${ansible_version}." | cut -d . -f 2)
@@ -232,6 +232,7 @@ pkg_mgr_install() {
       sudo env DEBIAN_FRONTEND=noninteractive "$${pkg_mgr}" --quiet --yes install "$${@}"
       ;;
     zypper)
+      sudo "$${pkg_mgr}" patch --auto-agree-with-licenses --with-interactive --no-confirm
       sudo "$${pkg_mgr}" --gpg-auto-import-keys --quiet --non-interactive install --no-confirm "$${@}"
       ;;
     yum)
@@ -634,7 +635,7 @@ else
 
     # Add new /opt bin directories to start of PATH to ensure the versions we installed
     # are preferred over any installed standard system versions.
-    echo export "PATH=$${ansible_bin}:$${tf_bin}:"'$${PATH}':'$${HOME}/Azure_SAP_Automated_Deployment/sap-automation/deploy/scripts' | sudo tee -a /etc/profile.d/deploy_server.sh
+    echo export "PATH=$${ansible_bin}:$${tf_bin}:"'$$PATH':'$$HOME/Azure_SAP_Automated_Deployment/sap-automation/deploy/scripts' | sudo tee -a /etc/profile.d/deploy_server.sh
 
     # Ensure that the user's account is logged in to Azure with specified creds
     echo az login --identity --allow-no-subscriptions --output none | sudo tee -a /etc/profile.d/deploy_server.sh
@@ -674,7 +675,7 @@ else
     fi
 
     set -o xtrace
-    if [ -f "/home/$${local_user}/agent/agent_configured" ]; then
+    if [ -f "$${agent_home}/agent_configured" ]; then
       echo "Agent already configured"
     else
       set +o xtrace
