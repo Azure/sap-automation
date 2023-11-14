@@ -232,8 +232,11 @@ pkg_mgr_install() {
       sudo env DEBIAN_FRONTEND=noninteractive "$${pkg_mgr}" --quiet --yes install "$${@}"
       ;;
     zypper)
+      set +o errexit
       sudo "$${pkg_mgr}" patch --auto-agree-with-licenses --with-interactive --no-confirm
+      sleep 60
       sudo "$${pkg_mgr}" --gpg-auto-import-keys --quiet --non-interactive install --no-confirm "$${@}"
+      set -o errexit
       ;;
     yum)
       sudo "$${pkg_mgr}" --nogpgcheck --quiet install --assumeyes "$${@}"
