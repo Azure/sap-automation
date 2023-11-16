@@ -9,17 +9,17 @@
     - { path: '/sbd' }
 
 - name:                                   "Build SBD Dictionary"
-      ansible.builtin.set_fact:
-        sbdMap:                               "{{ sbdMap + sbdMap_update }}"
-      vars:
-        sbdMap_update:
-                                              - { host:       "{{ item.host }}" ,
-                                                  lun:        "{{ item.lun }}"  ,
-                                                  blockDev:   ''                ,
-                                                  diskByLun:  ''                ,
-                                                  diskById:   ''                  }
-      loop:                                   "{{ sbdDevices }}"
-      when:                                   item.host == ansible_hostname
+  ansible.builtin.set_fact:
+    sbdMap:                               "{{ sbdMap + sbdMap_update }}"
+  vars:
+    sbdMap_update:
+                                          - { host:       "{{ item.host }}" ,
+                                              lun:        "{{ item.lun }}"  ,
+                                              blockDev:   ''                ,
+                                              diskByLun:  ''                ,
+                                              diskById:   ''                  }
+  loop:                                   "{{ sbdDevices }}"
+  when:                                   item.host == ansible_hostname
 
 - name:                               "2.11: SBD create sbdnfs SCS"
   become_user:                        root

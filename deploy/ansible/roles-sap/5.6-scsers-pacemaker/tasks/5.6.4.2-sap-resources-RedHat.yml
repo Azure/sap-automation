@@ -18,7 +18,7 @@
       ansible.builtin.command: >
                                        pcs resource create rsc_sap_{{ sap_sid }}_{{ instance_type | upper }}{{ scs_instance_number }} SAPInstance \
                                        InstanceName={{ instance_name }} START_PROFILE="{{ start_profile_path }}" \
-                                       AUTOMATIC_RECOVER=true \
+                                       AUTOMATIC_RECOVER=false \
                                        meta resource-stickiness=5000 migration-threshold=1 failure-timeout=60 \
                                        op monitor interval=20 on-fail=restart timeout={{ clus_sap_mon_timeout | int }} \
                                        op start interval=0 timeout=600 op stop interval=0 timeout=600 \
@@ -33,7 +33,7 @@
       ansible.builtin.command: >
                                        pcs resource create rsc_sap_{{ sap_sid }}_ERS{{ ers_instance_number }} SAPInstance \
                                        InstanceName={{ sap_sid }}_ERS{{ ers_instance_number }}_{{ ers_virtual_hostname }} START_PROFILE="/sapmnt/{{ sap_sid }}/profile/{{ sap_sid }}_ERS{{ ers_instance_number }}_{{ ers_virtual_hostname }}" \
-                                       AUTOMATIC_RECOVER=true IS_ERS=true \
+                                       AUTOMATIC_RECOVER=false IS_ERS=true \
                                        op monitor interval=20 on-fail=restart timeout={{ clus_sap_mon_timeout | int }} \
                                        op start interval=0 timeout=600 \
                                        op stop interval=0 timeout=600 \
@@ -72,7 +72,7 @@
       ansible.builtin.command: >
                                        pcs resource create rsc_sap_{{ sap_sid }}_{{ instance_type | upper }}{{ scs_instance_number }} SAPInstance \
                                        InstanceName={{ instance_name }} START_PROFILE="{{ start_profile_path }}" \
-                                       AUTOMATIC_RECOVER=true \
+                                       AUTOMATIC_RECOVER=false \
                                        meta resource-stickiness=5000 \
                                        op monitor interval=20 on-fail=restart timeout={{ clus_sap_mon_timeout | int }} \
                                        op start interval=0 timeout=600 op stop interval=0 timeout=600 \
@@ -87,7 +87,7 @@
       ansible.builtin.command: >
                                        pcs resource create rsc_sap_{{ sap_sid }}_ERS{{ ers_instance_number }} SAPInstance \
                                        InstanceName={{ sap_sid }}_ERS{{ ers_instance_number }}_{{ ers_virtual_hostname }} START_PROFILE="/sapmnt/{{ sap_sid }}/profile/{{ sap_sid }}_ERS{{ ers_instance_number }}_{{ ers_virtual_hostname }}" \
-                                       AUTOMATIC_RECOVER=true IS_ERS=true \
+                                       AUTOMATIC_RECOVER=false IS_ERS=true \
                                        op monitor interval=20 on-fail=restart timeout={{ clus_sap_mon_timeout | int }} \
                                        op start interval=0 timeout=600 \
                                        op stop interval=0 timeout=600 \
