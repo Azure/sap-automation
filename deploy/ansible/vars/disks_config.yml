@@ -353,7 +353,7 @@ logical_volumes_sapmnt:
     node_tier:  'scs'
     vg:         'vg_sap'
     lv:         'lv_sapmnt'
-    size:       '32g'
+    size:       "{% if sapmnt_volume_size is defined %}{{ sapmnt_volume_size }}{% else %}32g{% endif %}"
     fstype:     'xfs'
 
 logical_volumes_install:
