@@ -13,11 +13,11 @@
     sbdMap:                               "{{ sbdMap + sbdMap_update }}"
   vars:
     sbdMap_update:
-                                          - { host:       "{{ item.host }}" ,
-                                              lun:        "{{ item.lun }}"  ,
-                                              blockDev:   ''                ,
-                                              diskByLun:  ''                ,
-                                              diskById:   ''                  }
+      - { host:       "{{ item.host }}" ,
+          lun:        "{{ item.lun }}"  ,
+          blockDev:   ''                ,
+          diskByLun:  ''                ,
+          diskById:   ''                  }
   loop:                                   "{{ sbdDevices }}"
   when:                                   item.host == ansible_hostname
 
