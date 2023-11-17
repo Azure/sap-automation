@@ -231,6 +231,9 @@ $$spn_keyvault_id$$
 # enable_purge_control_for_keyvaults is an optional parameter that czan be used to disable the purge protection fro Azure keyvaults
 $$enable_purge_control_for_keyvaults$$
 
+# enable_rbac_authorization_for_keyvault Controls the access policy model for the workload zone keyvault.
+$$enable_rbac_authorization_for_keyvault$$
+
 #########################################################################################
 #                                                                                       #
 #  Credentials                                                                          #

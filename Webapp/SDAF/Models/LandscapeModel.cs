@@ -263,6 +263,8 @@ namespace AutomationForm.Models
     [GuidValidator]
     public string[] additional_users_to_add_to_keyvault_policies { get; set; }
 
+    public bool? enable_rbac_authorization_for_keyvault { get; set; } = false;
+
 
     public string NFS_provider { get; set; }
 
