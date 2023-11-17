@@ -384,11 +384,11 @@ locals {
 
   scs_nic_ips                        = distinct(concat(var.scs_server_app_nic_ips, try(var.application_tier.scs_nic_ips, [])))
   scs_admin_nic_ips                  = distinct(concat(var.scs_server_admin_nic_ips, try(var.application_tier.scs_admin_nic_ips, [])))
-  scs_lb_ips                         = distinct(concat(var.scs_server_loadbalancer_ips, try(var.application_tier.scs_lb_ips, [])))
+  scs_server_loadbalancer_ips        = distinct(concat(var.scs_server_loadbalancer_ips, try(var.application_tier.scs_server_loadbalancer_ips, [])))
 
   web_nic_ips                        = distinct(concat(var.webdispatcher_server_app_nic_ips, try(var.application_tier.web_nic_ips, [])))
   web_admin_nic_ips                  = distinct(concat(var.webdispatcher_server_admin_nic_ips, try(var.application_tier.web_admin_nic_ips, [])))
-  web_lb_ips                         = distinct(concat(var.webdispatcher_server_loadbalancer_ips, try(var.application_tier.web_lb_ips, [])))
+  webdispatcher_loadbalancer_ips                         = distinct(concat(var.webdispatcher_server_loadbalancer_ips, try(var.application_tier.webdispatcher_loadbalancer_ips, [])))
 
   subnet_admin = merge((
     {
@@ -586,11 +586,11 @@ locals {
     length(local.scs_nic_ips) > 0                          ? { scs_nic_ips = local.scs_nic_ips } : null), (
     length(var.scs_server_nic_secondary_ips) > 0           ? { scs_nic_secondary_ips = var.scs_server_nic_secondary_ips } : null), (
     length(local.scs_admin_nic_ips) > 0                    ? { scs_admin_nic_ips = local.scs_admin_nic_ips } : null), (
-    length(local.scs_lb_ips) > 0                           ? { scs_lb_ips = local.scs_lb_ips } : null), (
+    length(local.scs_server_loadbalancer_ips) > 0                           ? { scs_server_loadbalancer_ips = local.scs_server_loadbalancer_ips } : null), (
     length(local.web_nic_ips) > 0                          ? { web_nic_ips = local.web_nic_ips } : null), (
     length(var.webdispatcher_server_nic_secondary_ips) > 0 ? { web_nic_secondary_ips = var.webdispatcher_server_nic_secondary_ips } : null), (
     length(local.web_admin_nic_ips) > 0                    ? { web_admin_nic_ips = local.web_admin_nic_ips } : null), (
-    length(local.web_lb_ips) > 0                           ? { web_lb_ips = local.web_lb_ips } : null), (
+    length(local.webdispatcher_loadbalancer_ips) > 0                           ? { webdispatcher_loadbalancer_ips = local.webdispatcher_loadbalancer_ips } : null), (
     length(local.app_tags) > 0                             ? { app_tags = local.app_tags } : { app_tags = local.app_tags }), (
     length(local.scs_tags) > 0                             ? { scs_tags = local.scs_tags } : { scs_tags = local.scs_tags }), (
     length(local.web_tags) > 0                             ? { web_tags = local.web_tags } : { web_tags = local.web_tags }

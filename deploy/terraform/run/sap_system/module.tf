@@ -95,9 +95,7 @@ module "common_infrastructure" {
   use_random_id_for_storageaccounts             = var.use_random_id_for_storageaccounts
   use_scalesets_for_deployment                  = var.use_scalesets_for_deployment
   use_service_endpoint                          = var.use_service_endpoint
-
 }
-
 
 #-------------------------------------------------------------------------------
 #                                                                              #
@@ -320,35 +318,29 @@ module "output_files" {
   #########################################################################################
   #  Database tier                                                                        #
   #########################################################################################
-  nics_anydb_admin                              = module.anydb_node.nics_anydb_admin
-  nics_dbnodes_admin                            = module.hdb_node.nics_dbnodes_admin
   database_cluster_type                         = var.database_cluster_type
-  db_server_ips                                 = upper(try(local.database.platform, "HANA")) == "HANA" ? (module.hdb_node.db_server_ips
-                                                  ) : (module.anydb_node.db_server_ips
+  database_server_ips                           = upper(try(local.database.platform, "HANA")) == "HANA" ? (module.hdb_node.database_server_ips
+                                                  ) : (module.anydb_node.database_server_ips
                                                   )
-  db_server_secondary_ips                       = upper(try(local.database.platform, "HANA")) == "HANA" ? (module.hdb_node.db_server_secondary_ips
-                                                  ) : (module.anydb_node.db_server_secondary_ips
+  database_server_secondary_ips                 = upper(try(local.database.platform, "HANA")) == "HANA" ? (module.hdb_node.database_server_secondary_ips
+                                                  ) : (module.anydb_node.database_server_secondary_ips
                                                   )
-  disks                                         = distinct(compact(concat(module.hdb_node.dbtier_disks,
-                                                    module.anydb_node.dbtier_disks,
+  disks                                         = distinct(compact(concat(module.hdb_node.database_disks,
+                                                    module.anydb_node.database_disks,
                                                     module.app_tier.apptier_disks
                                                   )))
-  anydb_loadbalancers                           = module.anydb_node.anydb_loadbalancers
   loadbalancers                                 = module.hdb_node.loadbalancers
-  db_ha                                         = upper(try(local.database.platform, "HANA")) == "HANA" ? (
-                                                    module.hdb_node.db_ha) : (
-                                                    module.anydb_node.db_ha
-                                                  )
-  db_lb_ip                                      = upper(try(local.database.platform, "HANA")) == "HANA" ? (
-                                                    module.hdb_node.db_lb_ip[0]) : (
-                                                    module.anydb_node.db_lb_ip[0]
-                                                  )
+  database_high_availability                    = local.database.high_availability
   database_admin_ips                            = upper(try(local.database.platform, "HANA")) == "HANA" ? (
                                                     module.hdb_node.db_admin_ip) : (
-                                                    module.anydb_node.anydb_admin_ip
+                                                    module.anydb_node.database_server_admin_ips
                                                   ) #TODO Change to use Admin IP
-  db_auth_type                                  = try(local.database.authentication.type, "key")
-  db_clst_lb_ip                                 = module.anydb_node.db_clst_lb_ip
+  database_authentication_type                  = try(local.database.authentication.type, "key")
+  database_loadbalancer_ip                                      = upper(try(local.database.platform, "HANA")) == "HANA" ? (
+                                                    module.hdb_node.database_loadbalancer_ip[0]) : (
+                                                    module.anydb_node.database_loadbalancer_ip[0]
+                                                  )
+  database_cluster_ip                           = module.anydb_node.database_cluster_ip
   db_subnet_netmask                             = module.common_infrastructure.db_subnet_netmask
 
   #########################################################################################
@@ -372,18 +364,15 @@ module "output_files" {
   application_server_ips                        = module.app_tier.application_server_ips
   application_server_secondary_ips              = module.app_tier.application_server_secondary_ips
   ers_instance_number                           = var.ers_instance_number
-  ers_lb_ip                                     = module.app_tier.ers_lb_ip
-  nics_app_admin                                = module.app_tier.nics_app_admin
-  nics_scs_admin                                = module.app_tier.nics_scs_admin
-  nics_web_admin                                = module.app_tier.nics_web_admin
+  ers_server_loadbalancer_ip                    = module.app_tier.ers_server_loadbalancer_ip
   pas_instance_number                           = var.pas_instance_number
   sid_keyvault_user_id                          = module.common_infrastructure.sid_keyvault_user_id
   scs_asd                                       = module.app_tier.scs_asd
-  scs_clst_lb_ip                                = module.app_tier.cluster_lb_ip
+  scs_clst_lb_ip                                = module.app_tier.cluster_loadbalancer_ip
   scs_cluster_type                              = var.scs_cluster_type
   scs_high_availability                         = module.app_tier.scs_high_availability
   scs_instance_number                           = var.scs_instance_number
-  scs_lb_ip                                     = module.app_tier.scs_lb_ip
+  scs_server_loadbalancer_ip                    = module.app_tier.scs_server_loadbalancer_ip
   scs_server_ips                                = module.app_tier.scs_server_ips
   scs_server_secondary_ips                      = module.app_tier.scs_server_secondary_ips
   use_local_credentials                         = module.common_infrastructure.use_local_credentials

@@ -21,7 +21,7 @@ resource "azurerm_lb" "anydb" {
 
   dynamic "frontend_ip_configuration" {
                                         iterator = pub
-                                        for_each = local.fpips
+                                        for_each = local.frontend_ips
                                         content {
                                           name                          = pub.value.name
                                           subnet_id                     = pub.value.subnet_id

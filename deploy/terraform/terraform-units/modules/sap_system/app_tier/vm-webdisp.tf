@@ -509,7 +509,7 @@ resource "azurerm_lb" "web" {
                               private_ip_address = var.application_tier.use_DHCP ? (
                                 null) : (
                                 try(
-                                  local.web_lb_ips[0],
+                                  local.webdispatcher_loadbalancer_ips[0],
                                   cidrhost(
                                     local.web_subnet_deployed.address_prefixes[0],
                                     local.ip_offsets.web_lb

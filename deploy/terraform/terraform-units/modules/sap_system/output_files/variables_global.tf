@@ -2,7 +2,6 @@ variable "ansible_user"                         {
                                                   description = "The ansible remote user account to use"
                                                   default     = "azureadm"
                                                 }
-variable "anydb_loadbalancers"                  { description = "List of LoadBalancers created for HANA Databases" }
 variable "app_instance_number"                  {
                                                   description = "Instance number for Additional Application Server"
                                                   default     = "00"
@@ -35,16 +34,12 @@ variable "database_high_availability"           {
                                                   default     = false
                                                 }
 variable "database"                             { description = "Dictionary with information on the database tier"}
-variable "db_auth_type"                         {
+variable "database_authentication_type"         {
                                                   description = "Platform to use"
                                                   default = "key"
                                                 }
-variable "db_clst_lb_ip"                        { description = "This is a Cluster IP address for Windows load balancer for the database" }
-variable "db_ha"                                {
-                                                  description = "Is the DB deployment highly available"
-                                                  default     = false
-                                                }
-variable "db_lb_ip"                             {
+variable "database_cluster_ip"                        { description = "This is a Cluster IP address for Windows load balancer for the database" }
+variable "database_loadbalancer_ip"                             {
                                                   description = "DB Load Balancer IP"
                                                   default     = ""
                                                 }
@@ -52,8 +47,8 @@ variable "db_server_count"                      {
                                                   description = "Number of Database Servers"
                                                   type    = number
                                                 }
-variable "db_server_ips"                        { description = "List of IP addresses for the database servers" }
-variable "db_server_secondary_ips"              { description = "List of secondary IP addresses for the database servers" }
+variable "database_server_ips"                  { description = "List of IP addresses for the database servers" }
+variable "database_server_secondary_ips"              { description = "List of secondary IP addresses for the database servers" }
 variable "db_sid"                               { description = "Database SID" }
 variable "db_subnet_netmask"                    { description = "netmask for the database subnet" }
 variable "disks"                                { description = "List of disks" }
@@ -74,7 +69,7 @@ variable "ers_instance_number"                  {
                                                   description = "Instance number for ERS"
                                                   default     = "02"
                                                 }
-variable "ers_lb_ip"                            {
+variable "ers_server_loadbalancer_ip"                            {
                                                   description = "ERS Load Balancer IP"
                                                   default     = ""
                                                 }
@@ -115,11 +110,6 @@ variable "NFS_provider"                         {
                                                   description = "Defines the NFS provider"
                                                   type        = string
                                                 }
-variable "nics_anydb_admin"                     { description = "List of Admin NICs for the anyDB VMs" }
-variable "nics_app_admin"                       { description = "List of NICs for the Application Instance VMs" }
-variable "nics_dbnodes_admin"                   { description = "Admin NICs of HANA database nodes" }
-variable "nics_scs_admin"                       { description = "List of NICs for the SCS Application VMs" }
-variable "nics_web_admin"                       { description = "List of NICs for the Web dispatcher VMs" }
 variable "observer_ips"                         { description = "List of NICs for the Observer VMs" }
 variable "observer_vms"                         { description = "List of Observer VMs" }
 variable "pas_instance_number"                  {
@@ -158,7 +148,7 @@ variable "scs_instance_number"                  {
                                                   description = "Instance number for SCS"
                                                   default     = "00"
                                                 }
-variable "scs_lb_ip"                            {
+variable "scs_server_loadbalancer_ip"           {
                                                   description = "SCS Load Balancer IP"
                                                   default     = ""
                                                 }

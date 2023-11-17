@@ -50,7 +50,7 @@ resource "azurerm_private_dns_a_record" "db_secondary" {
   zone_name           = var.dns
   resource_group_name = var.management_dns_resourcegroup_name
   ttl                 = 3600
-  records             = [try(var.db_server_secondary_ips[count.index], "")]
+  records             = [try(var.database_server_secondary_ips[count.index], "")]
 
 
   lifecycle {

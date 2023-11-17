@@ -6,7 +6,7 @@
 
 resource "local_file" "ansible_inventory_new_yml" {
   content       = templatefile(format("%s%s", path.module, "/ansible_inventory.tmpl"), {
-                    ips_dbnodes         = var.db_server_ips
+                    ips_dbnodes         = var.database_server_ips
                     dbnodes             = var.platform == "HANA" ? var.naming.virtualmachine_names.HANA_COMPUTERNAME : var.naming.virtualmachine_names.ANYDB_COMPUTERNAME
                     virt_dbnodes        = var.use_secondary_ips ? (
                                             var.platform == "HANA" ? var.naming.virtualmachine_names.HANA_SECONDARY_DNSNAME : var.naming.virtualmachine_names.ANYDB_SECONDARY_DNSNAME
@@ -95,7 +95,7 @@ resource "local_file" "ansible_inventory_new_yml" {
                     web_connectiontype  = try(var.authentication_type, "key")
                     scs_connectiontype  = try(var.authentication_type, "key")
                     ers_connectiontype  = try(var.authentication_type, "key")
-                    db_connectiontype   = try(var.db_auth_type, "key")
+                    db_connectiontype   = try(var.database_authentication_type, "key")
                     ansible_user        = var.ansible_user
                     db_supported_tiers  = local.db_supported_tiers
                     scs_supported_tiers = local.scs_supported_tiers
@@ -156,15 +156,15 @@ resource "local_file" "sap-parameters_yml" {
               bom                         = length(var.bom_name) > 0 ? var.bom_name : ""
               database_cluster_type       = var.database_cluster_type
               database_high_availability  = var.database_high_availability
-              db_clst_lb_ip               = try(format("%s/%s", var.db_clst_lb_ip, var.db_subnet_netmask), "")
+              database_cluster_ip         = try(format("%s/%s", var.database_cluster_ip, var.db_subnet_netmask), "")
               db_instance_number          = try(var.database.instance.instance_number, "00")
-              db_lb_ip                    = var.db_lb_ip
+              database_loadbalancer_ip    = var.database_loadbalancer_ip
               db_sid                      = var.db_sid
               disks                       = var.disks
               dns                         = local.dns_label
               dns                         = var.dns
               ers_instance_number         = var.ers_instance_number
-              ers_lb_ip                   = var.ers_lb_ip
+              ers_server_loadbalancer_ip  = var.ers_server_loadbalancer_ip
               hana_data                   = length(try(var.hana_data[0], "")) > 1 ? (
                                               format("hana_data_mountpoint:          %s", jsonencode(var.hana_data))) : (
                                               ""
@@ -203,7 +203,7 @@ resource "local_file" "sap-parameters_yml" {
                                               "01") : (
                                               var.scs_instance_number
                                             )
-              scs_lb_ip                   = var.scs_lb_ip
+              scs_server_loadbalancer_ip  = var.scs_server_loadbalancer_ip
               secret_prefix               = local.secret_prefix,
               settings                    = local.settings
               sid                         = var.sap_sid,
@@ -235,12 +235,12 @@ resource "local_file" "sap-parameters_yml" {
 
 resource "local_file" "sap_inventory_md" {
   content = templatefile(format("%s/sap_application.tmpl", path.module), {
-              sid                 = var.sap_sid,
-              db_sid              = var.db_sid
-              kv_name             = local.kv_name,
-              scs_lb_ip           = length(var.scs_lb_ip) > 0 ? var.scs_lb_ip : try(var.scs_server_ips[0], "")
-              platform            = lower(var.platform)
-              kv_pwd_secret       = format("%s-%s-sap-password", local.secret_prefix, var.sap_sid)
+              sid                         = var.sap_sid,
+              db_sid                      = var.db_sid
+              kv_name                     = local.kv_name,
+              scs_server_loadbalancer_ip  = length(var.scs_server_loadbalancer_ip) > 0 ? var.scs_server_loadbalancer_ip : try(var.scs_server_ips[0], "")
+              platform                    = lower(var.platform)
+              kv_pwd_secret               = format("%s-%s-sap-password", local.secret_prefix, var.sap_sid)
               }
             )
   filename             = format("%s/%s.md", path.cwd, var.sap_sid)
@@ -297,7 +297,7 @@ resource "local_file" "sap_inventory_for_wiki_md" {
     sid                 = var.sap_sid,
     db_sid              = var.db_sid
     kv_name             = local.kv_name,
-    scs_lb_ip           = length(var.scs_lb_ip) > 0 ? var.scs_lb_ip : try(var.scs_server_ips[0], "")
+    scs_server_loadbalancer_ip           = length(var.scs_server_loadbalancer_ip) > 0 ? var.scs_server_loadbalancer_ip : try(var.scs_server_ips[0], "")
     platform            = upper(var.platform)
     kv_pwd_secret       = format("%s-%s-sap-password", local.secret_prefix, var.sap_sid)
     db_servers          = var.platform == "HANA" ? join(",", var.naming.virtualmachine_names.HANA_COMPUTERNAME) : join(",", var.naming.virtualmachine_names.ANYDB_COMPUTERNAME)
