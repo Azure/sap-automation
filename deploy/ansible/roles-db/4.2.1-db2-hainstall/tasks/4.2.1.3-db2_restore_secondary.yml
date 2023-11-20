@@ -33,7 +33,6 @@
         - { dest: '/db2/{{ db_sid }}/saptmp2' }
         - { dest: '/db2/{{ db_sid }}/saptmp3' }
         - { dest: '/db2/{{ db_sid }}/saptmp4' }
-      run_once: true
 
     - name:                            "DB2 - check if database is already started"
       ansible.builtin.shell:           ps -eaf | grep -i {{ db_sid | upper }} | grep db2sysc | grep -v grep | wc -l
@@ -69,9 +68,9 @@
         msg:                           "DB2 - Restoring database, please wait"
 
 
-      # ##################### Start of Restore without Encryption ##################################
-    - name:                            "DB2 - Restore without encryption"
-      ansible.builtin.shell:           db2 restore database {{ db_sid }} from {{ db_sid_backup_dir }} taken at {{ backup_timestamp }} on /db2/{{ db_sid }} no encrypt without prompting
+      # ##################### Start of Restore with Encryption ##################################
+    - name:                            "DB2 - Restore with encryption"
+      ansible.builtin.shell:           db2 restore database {{ db_sid }} from {{ db_sid_backup_dir }} taken at {{ backup_timestamp }} on /db2/{{ db_sid }} encrypt without prompting
       args:
         executable:                    /bin/csh
       register:                        db2_restore_result
@@ -79,7 +78,7 @@
         PATH:                          "{{ ansible_env.PATH }}:/db2/db2{{ db_sid | lower }}/sqllib/gskit/bin"
       failed_when:                     db2_restore_result.rc > 2
       when:                            db2_started.rc == 0
-      # ######### ########### End of Restore without Encryption ####################################
+      # ######### ########### End of Restore with Encryption ####################################
   when:
     - ansible_hostname == secondary_instance_name
   become:                              true
