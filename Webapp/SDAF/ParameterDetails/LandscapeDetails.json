@@ -2,6 +2,7 @@
   {
     "Section": "Set as default",
     "Link": "https://learn.microsoft.com/en-us/azure/sap/automation/configure-workload-zone",
+    "Link": "https://learn.microsoft.com/en-us/azure/sap/automation/configure-workload-zone",
     "Parameters": [
       {
         "Name": "IsDefault",
