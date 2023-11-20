@@ -160,7 +160,7 @@ stages:
                             storage_account_parameter=""
                         echo -e "$green--- Validations ---$reset"
                             if [ -z ${TF_VAR_ansible_core_version} ]; then
-                                export TF_VAR_ansible_core_version=2.13
+                                export TF_VAR_ansible_core_version=2.15
                             fi
                             if [ -z ${ARM_SUBSCRIPTION_ID} ]; then
                                 echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined."
@@ -478,7 +478,7 @@ stages:
                       echo -e "$green--- Validations ---$reset"
 
                           if [ -z ${TF_VAR_ansible_core_version} ]; then
-                              export TF_VAR_ansible_core_version=2.13
+                              export TF_VAR_ansible_core_version=2.15
                           fi
                           if [ -z ${CP_ARM_SUBSCRIPTION_ID} ]; then
                               echo "##vso[task.logissue type=error]Variable CP_ARM_SUBSCRIPTION_ID was not defined."

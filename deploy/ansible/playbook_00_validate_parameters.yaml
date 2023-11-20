@@ -253,6 +253,18 @@
       when:
         - platform == 'SQLSERVER'
 
+
+    - name:                            "0.0 Validations - Get Access Token"
+      ansible.builtin.command: >-
+        az account get-access-token --query accessToken -o tsv
+      changed_when:                    false
+      register:                        access_token_data
+
+    - name:                            "0.0 Validations - Save the access token"
+      ansible.builtin.set_fact:
+        access_token:                  "{{ access_token_data.stdout }}"
+      no_log: true
+
     - name:                            "0.0 Validations - Retrieve Subscription ID and Resource Group Name"
       ansible.builtin.uri:
         url:                           http://169.254.169.254/metadata/instance?api-version=2021-02-01
@@ -291,16 +303,6 @@
       tags:
         - 0.0-agent-diskspace
 
-    - name:                            "0.0 Validations - Get Access Token"
-      ansible.builtin.command: >-
-        az account get-access-token --query accessToken -o tsv
-      changed_when:                    false
-      register:                        access_token_data
-
-    - name:                            "0.0 Validations - Save the access token"
-      ansible.builtin.set_fact:
-        access_token:                  "{{ access_token_data.stdout }}"
-      no_log: true
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |

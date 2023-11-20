@@ -1,3 +1,4 @@
+
 - name:                                "1.3 Repository - Ensure zypper repo is configured on SLE VMs"
   block:
     # If there are no repos configured zypper lr will fail with rc == 6
@@ -67,3 +68,4 @@
     - name:                            "Error handling 1.3 Repository - Check that zypper repos are registered"
       ansible.builtin.fail:
         msg:                           "{{ zypper_lr_result.msg | try_get_error_code(task_tag='zypper_registration') }}"
+

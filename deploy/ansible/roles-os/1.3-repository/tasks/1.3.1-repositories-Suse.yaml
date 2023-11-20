@@ -52,3 +52,4 @@
   when:
     - distribution_id in ['redhat9']
     - node_tier == 'ha'
+

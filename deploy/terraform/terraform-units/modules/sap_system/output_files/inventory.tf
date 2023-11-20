@@ -196,7 +196,7 @@ resource "local_file" "sap-parameters_yml" {
                                               ""
                                             )
               scs_asd                     = var.scs_asd
-              scs_clst_lb_ip              = try(format("%s/%s", var.scs_clst_lb_ip, var.app_subnet_netmask), "")
+              scs_server_loadbalancer_ip  = try(format("%s/%s", var.scs_clst_lb_ip, var.app_subnet_netmask), "")
               scs_cluster_type            = var.scs_cluster_type
               scs_high_availability       = var.scs_high_availability
               scs_instance_number         = (local.app_server_count + local.scs_server_count) == 0 ? (
