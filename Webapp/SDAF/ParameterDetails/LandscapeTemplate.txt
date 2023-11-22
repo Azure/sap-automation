@@ -275,9 +275,6 @@ $$install_private_endpoint_id$$
 # create_transport_storage defines if the workload zone will host storage for the transport data
 $$create_transport_storage$$
 
-# create_transport_storage defines if the workload zone will host storage for the transport data
-$$create_transport_storage$$
-
 # Defines the size of the transport volume
 $$transport_volume_size$$
 
