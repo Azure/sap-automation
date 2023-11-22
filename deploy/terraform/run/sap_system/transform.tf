@@ -86,12 +86,12 @@ locals {
     use_ANF                         = var.database_HANA_use_ANF_scaleout_scenario || try(var.databases[0].use_ANF, false)
     use_avset                       = var.database_server_count > 0 ? var.use_scalesets_for_deployment ? (
                                         false) : (
-                                        tobool(var.database_no_avset) == null ? var.database_use_avset : !var.database_no_avset
+                                        var.database_use_avset
                                       ) : false
     use_DHCP                        = var.database_vm_use_DHCP || try(var.databases[0].use_DHCP, false)
     use_ppg                         = var.database_server_count > 0 ? var.use_scalesets_for_deployment ? (
                                         false) : (
-                                        tobool(var.database_no_ppg) == null ? (length(var.proximityplacementgroup_arm_ids) > 0 && !var.database_use_ppg) || var.database_use_ppg : !var.database_no_ppg
+                                        var.database_use_ppg
                                       ) : false
     database_server_count           = var.database_high_availability ? 2 * var.database_server_count : var.database_server_count
     user_assigned_identity_id       = var.user_assigned_identity_id

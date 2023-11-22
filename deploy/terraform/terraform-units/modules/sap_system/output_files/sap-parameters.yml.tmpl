@@ -79,6 +79,7 @@ platform:                      ${platform}
 # db_high_availability is a boolean flag indicating if the
 # SAP database servers are deployed using high availability
 db_high_availability:           ${database_high_availability}
+database_high_availability:     ${database_high_availability}
 database_cluster_type:          ${database_cluster_type}
 # database_loadbalancer_ip is the IP address of the load balancer for the database virtual machines
 db_lb_ip:                       ${database_loadbalancer_ip}
@@ -139,7 +140,7 @@ disks:
   - ${disk}
 %{~ endfor }
 
-%{~ if length(scs_asd) != 0 }
+%{~ if length(asd_disks) != 0 }
 
 #############################################################################
 #                                                                           #
@@ -149,7 +150,7 @@ disks:
 #############################################################################
 
 sbdDevices:
-%{~   for line in scs_asd }
+%{~   for line in asd_disks }
   - ${line}
 %{~   endfor }
 %{~ endif }

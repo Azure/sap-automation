@@ -48,9 +48,10 @@ variable "db_server_count"                      {
                                                   type    = number
                                                 }
 variable "database_server_ips"                  { description = "List of IP addresses for the database servers" }
-variable "database_server_secondary_ips"              { description = "List of secondary IP addresses for the database servers" }
+variable "database_server_secondary_ips"        { description = "List of secondary IP addresses for the database servers" }
+variable "database_shared_disks"                { description = "Database Azure Shared Disk" }
 variable "db_sid"                               { description = "Database SID" }
-variable "db_subnet_netmask"                    { description = "netmask for the database subnet" }
+variable "database_subnet_netmask"              { description = "netmask for the database subnet" }
 variable "disks"                                { description = "List of disks" }
 variable "dns_zone_names"                       {
                                                   description = "Private DNS zone names"
@@ -134,8 +135,9 @@ variable "save_naming_information"              {
                                                   description = "If defined, will save the naming information for the resources"
                                                   default     = false
                                                 }
-variable "scs_asd"                              { description = "SCS Azure Shared Disk" }
-variable "scs_clst_lb_ip"                       { description = "This is a Cluster IP address for Windows load balancer for central services" }
+variable "scs_shared_disks"                     { description = "SCS Azure Shared Disk" }
+
+variable "scs_cluster_loadbalancer_ip"          { description = "This is a Cluster IP address for Windows load balancer for central services" }
 variable "scs_cluster_type"                     {
                                                   description   = "Cluster quorum type; AFA (Azure Fencing Agent), ASD (Azure Shared Disk), ISCSI"
                                                   type          = string

@@ -156,7 +156,7 @@ resource "local_file" "sap-parameters_yml" {
               bom                         = length(var.bom_name) > 0 ? var.bom_name : ""
               database_cluster_type       = var.database_cluster_type
               database_high_availability  = var.database_high_availability
-              database_cluster_ip         = try(format("%s/%s", var.database_cluster_ip, var.db_subnet_netmask), "")
+              database_cluster_ip         = try(format("%s/%s", var.database_cluster_ip, var.database_subnet_netmask), "")
               db_instance_number          = try(var.database.instance.instance_number, "00")
               database_loadbalancer_ip    = var.database_loadbalancer_ip
               db_sid                      = var.db_sid
@@ -195,7 +195,7 @@ resource "local_file" "sap-parameters_yml" {
                                               format("sap_trans:                     %s", var.sap_transport)) : (
                                               ""
                                             )
-              scs_asd                     = var.scs_asd
+              asd_disks                   = concat(var.scs_shared_disks, var.database_shared_disks)
               scs_cluster_loadbalancer_ip = try(format("%s/%s", var.scs_cluster_loadbalancer_ip, var.app_subnet_netmask), "")
               scs_cluster_type            = var.scs_cluster_type
               scs_high_availability       = var.scs_high_availability

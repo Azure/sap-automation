@@ -102,30 +102,32 @@ output "db_subnet"                               {
                                                  }
 
 output "db_subnet_netmask"                       {
-  value = local.enable_db_deployment ? (
-    local.database_subnet_exists ? (
-      split("/", data.azurerm_subnet.db[0].address_prefixes[0])[1]) : (
-      split("/", azurerm_subnet.db[0].address_prefixes[0])[1]
-    )) : (
-    null
-  )
+                                                   description = "Database subnet netmask"
+                                                   value       = local.enable_db_deployment ? (
+                                                                   local.database_subnet_exists ? (
+                                                                     split("/", data.azurerm_subnet.db[0].address_prefixes[0])[1]) : (
+                                                                     split("/", azurerm_subnet.db[0].address_prefixes[0])[1]
+                                                                   )) : (
+                                                                   null
+                                                                 )
                                                  }
-output "storage_subnet" {
-  value = local.enable_db_deployment && local.enable_storage_subnet ? (
-    local.sub_storage_exists ? (
-      data.azurerm_subnet.storage[0]) : (
-      azurerm_subnet.storage[0]
-    )) : (
-    null
-  )
+output "storage_subnet"                          {
+                                                   description = "Database subnet netmask"
+                                                   value       = local.enable_db_deployment && local.enable_storage_subnet ? (
+                                                                   local.sub_storage_exists ? (
+                                                                     data.azurerm_subnet.storage[0]) : (
+                                                                     azurerm_subnet.storage[0]
+                                                                   )) : (
+                                                                   null
+                                                                 )
                                                  }
 
-output "route_table_id" {
+output "route_table_id"                          {
                                                    description = "Azure resource ID of the route table"
                                                    value       = try(var.landscape_tfstate.route_table_id, "")
                                                  }
 
-output "firewall_id" {
+output "firewall_id"                             {
                                                    description = "Azure resource ID of the firewall"
                                                    value       = try(var.deployer_tfstate.firewall_id, "")
                                                  }
@@ -136,7 +138,7 @@ output "firewall_id" {
 #                                                                             #
 ###############################################################################
 
-output "sid_keyvault_user_id" {
+output "sid_keyvault_user_id"                    {
                                                    description = "User credentials keyvault"
                                                    value       = local.enable_sid_deployment && local.use_local_credentials && length(local.user_key_vault_id) == 0 ? (
                                                                    azurerm_key_vault.sid_keyvault_user[0].id) : (

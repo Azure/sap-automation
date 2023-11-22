@@ -462,5 +462,5 @@ resource "azurerm_virtual_machine_data_disk_attachment" "cluster" {
                                            )
                                          )
   caching                              = "None"
-  lun                                  = local.database_cluster_disk_lun
+  lun                                  = var.database_cluster_disk_lun
 }

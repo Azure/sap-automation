@@ -301,47 +301,51 @@ module "output_files" {
     azurerm.dnsmanagement                       = azurerm.dnsmanagement
   }
 
-  database                                      = local.database
-  infrastructure                                = local.infrastructure
   authentication                                = local.authentication
   authentication_type                           = try(local.application_tier.authentication.type, "key")
-  tfstate_resource_id                           = var.tfstate_resource_id
+  configuration_settings                        = var.configuration_settings
+  database                                      = local.database
+  database_shared_disks                         = upper(try(local.database.platform, "HANA")) == "HANA" ? (
+                                                    module.hdb_node.database_shared_disks) : (
+                                                    module.anydb_node.database_shared_disks
+                                                  )
+  infrastructure                                = local.infrastructure
   landscape_tfstate                             = data.terraform_remote_state.landscape.outputs
   naming                                        = length(var.name_override_file) > 0 ? (
                                                     local.custom_names) : (
                                                     module.sap_namegenerator.naming
                                                   )
-  save_naming_information                       = var.save_naming_information
-  configuration_settings                        = var.configuration_settings
   random_id                                     = module.common_infrastructure.random_id
+  save_naming_information                       = var.save_naming_information
+  tfstate_resource_id                           = var.tfstate_resource_id
 
   #########################################################################################
   #  Database tier                                                                        #
   #########################################################################################
+  database_admin_ips                            = upper(try(local.database.platform, "HANA")) == "HANA" ? (
+                                                    module.hdb_node.db_admin_ip) : (
+                                                    module.anydb_node.database_server_admin_ips
+                                                  ) #TODO Change to use Admin IP
+  database_authentication_type                  = try(local.database.authentication.type, "key")
   database_cluster_type                         = var.database_cluster_type
+  database_cluster_ip                           = module.anydb_node.database_cluster_ip
+  database_high_availability                    = local.database.high_availability
+  database_loadbalancer_ip                      = upper(try(local.database.platform, "HANA")) == "HANA" ? (
+                                                    module.hdb_node.database_loadbalancer_ip[0]) : (
+                                                    module.anydb_node.database_loadbalancer_ip[0]
+                                                  )
   database_server_ips                           = upper(try(local.database.platform, "HANA")) == "HANA" ? (module.hdb_node.database_server_ips
                                                   ) : (module.anydb_node.database_server_ips
                                                   )
   database_server_secondary_ips                 = upper(try(local.database.platform, "HANA")) == "HANA" ? (module.hdb_node.database_server_secondary_ips
                                                   ) : (module.anydb_node.database_server_secondary_ips
                                                   )
+  database_subnet_netmask                       = module.common_infrastructure.db_subnet_netmask
   disks                                         = distinct(compact(concat(module.hdb_node.database_disks,
                                                     module.anydb_node.database_disks,
                                                     module.app_tier.apptier_disks
                                                   )))
   loadbalancers                                 = module.hdb_node.loadbalancers
-  database_high_availability                    = local.database.high_availability
-  database_admin_ips                            = upper(try(local.database.platform, "HANA")) == "HANA" ? (
-                                                    module.hdb_node.db_admin_ip) : (
-                                                    module.anydb_node.database_server_admin_ips
-                                                  ) #TODO Change to use Admin IP
-  database_authentication_type                  = try(local.database.authentication.type, "key")
-  database_loadbalancer_ip                                      = upper(try(local.database.platform, "HANA")) == "HANA" ? (
-                                                    module.hdb_node.database_loadbalancer_ip[0]) : (
-                                                    module.anydb_node.database_loadbalancer_ip[0]
-                                                  )
-  database_cluster_ip                           = module.anydb_node.database_cluster_ip
-  db_subnet_netmask                             = module.common_infrastructure.db_subnet_netmask
 
   #########################################################################################
   #  SAP Application information                                                          #
@@ -367,8 +371,8 @@ module "output_files" {
   ers_server_loadbalancer_ip                    = module.app_tier.ers_server_loadbalancer_ip
   pas_instance_number                           = var.pas_instance_number
   sid_keyvault_user_id                          = module.common_infrastructure.sid_keyvault_user_id
-  scs_asd                                       = module.app_tier.scs_asd
-  scs_clst_lb_ip                                = module.app_tier.cluster_loadbalancer_ip
+  scs_shared_disks                              = module.app_tier.scs_asd
+  scs_cluster_loadbalancer_ip                   = module.app_tier.cluster_loadbalancer_ip
   scs_cluster_type                              = var.scs_cluster_type
   scs_high_availability                         = module.app_tier.scs_high_availability
   scs_instance_number                           = var.scs_instance_number

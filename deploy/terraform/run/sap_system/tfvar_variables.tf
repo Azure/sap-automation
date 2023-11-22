@@ -28,7 +28,6 @@ variable "name_override_file"                   {
                                                   default     = ""
                                                 }
 
-
 variable "custom_prefix"                        {
                                                   description = "Optional custom prefix for the deployment"
                                                   type        = string
@@ -338,7 +337,7 @@ variable "use_simple_mount"                     {
 
 variable "database_cluster_disk_lun"            {
                                                   description = "The LUN of the shared disk for the Database cluster"
-                                                  default     = 5
+                                                  default     = 8
                                                 }
 
 variable "database_cluster_disk_size"           {
