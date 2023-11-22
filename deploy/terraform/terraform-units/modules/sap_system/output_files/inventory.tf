@@ -238,7 +238,7 @@ resource "local_file" "sap_inventory_md" {
               sid                         = var.sap_sid,
               db_sid                      = var.db_sid
               kv_name                     = local.kv_name,
-              scs_server_loadbalancer_ip  = length(var.scs_server_loadbalancer_ip) > 0 ? var.scs_server_loadbalancer_ip : try(var.scs_server_ips[0], "")
+              scs_lb_ip                   = length(var.scs_server_loadbalancer_ip) > 0 ? var.scs_server_loadbalancer_ip : try(var.scs_server_ips[0], "")
               platform                    = lower(var.platform)
               kv_pwd_secret               = format("%s-%s-sap-password", local.secret_prefix, var.sap_sid)
               }
