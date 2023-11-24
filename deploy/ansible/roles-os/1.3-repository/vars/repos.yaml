@@ -10,6 +10,8 @@
 # See the definition of 'distribution_full_id' to determine what to use when
 # creating an entry for a new distribution.
 # For example, XX.Y where XX is the major version and Y is the minor version
+#     - { tier:   'ha', repo: 'epel', url: 'https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm', state: 'present' }
+
 repos:
   redhat7.4:
   redhat7.6:
@@ -17,15 +19,10 @@ repos:
   redhat7.9:
   redhat8.1:
   redhat8.2:
-    - { tier:   'ha', repo: 'epel', url: 'https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm', state: 'present' }
   redhat8.4:
-    - { tier:    'ha', repo: 'epel', url: 'https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm', state: 'present' }
   redhat8.6:
-    - { tier:   'ha', repo: 'epel', url: 'https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm', state: 'present' }
   redhat8.8:
-    - { tier:   'ha', repo: 'epel', url: 'https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm', state: 'present' }
   redhat8.9:
-    - { tier:   'ha', repo: 'epel', url: 'https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm', state: 'present' }
   redhat9.0:
   redhat9.2:
   # do not have any repos that are needed for RedHat at the moment.
