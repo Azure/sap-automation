@@ -40,10 +40,28 @@
     secondary_vm_name:                 "{{ azure_metadata.json.compute.name }}"
   when:                                ansible_hostname == secondary_instance_name
 
+- name:                                "Wait for the facts to be defined in secondary vm"
+  when:                                ansible_hostname == primary_instance_name
+  ansible.builtin.set_fact:
+    is_secondary_fact_completed:             "{{ hostvars[secondary_instance_name].primary_ip is defined }}"
+  retries:                             30
+  delay:                               60
+  until:                               is_secondary_fact_completed
+
+- name:                                "Wait for the facts to be defined in primary vm"
+  when:                                ansible_hostname == secondary_instance_name
+  ansible.builtin.set_fact:
+    is_primary_fact_completed:             "{{ hostvars[primary_instance_name].primary_ip is defined }}"
+  retries:                             30
+  delay:                               60
+  until:                               is_primary_fact_completed
+
+
 - name:                                "1.17 Generic Pacemaker - Extract NIC IPs"
   ansible.builtin.set_fact:
     primary_instance_ip:               "{{ hostvars[primary_instance_name]['primary_ip'] | string }}"
     secondary_instance_ip:             "{{ hostvars[secondary_instance_name]['primary_ip'] | string }}"
+  
 
 - name:                                "1.17 Generic Pacemaker - Show Details"
   ansible.builtin.debug:
