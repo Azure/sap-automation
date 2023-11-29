@@ -65,19 +65,19 @@ sapmnt_volume_size:                    32g
 usrsap_volume_size:                    32g
 hanashared_volume_size:                32g
 
-hana_data_stripe_size                  256
-hana_log_stripe_size                   64
+hana_data_stripe_size:                 256
+hana_log_stripe_size:                  64
 
-db2_log_stripe_size                    64
-db2_data_stripe_size                   256
-db2_temp_stripe_size                   128
+db2_log_stripe_size:                   64
+db2_data_stripe_size:                  256
+db2_temp_stripe_size:                  128
 
-sybase_data_stripe_size                256
-sybase_log_stripe_size                 64
-sybase_temp_stripe_size                128
+sybase_data_stripe_size:               256
+sybase_log_stripe_size:                64
+sybase_temp_stripe_size:               128
 
-oracle_data_stripe_size                256
-oracle_log_stripe_size                 128
+oracle_data_stripe_size:               256
+oracle_log_stripe_size:                128
 
 # Custom virtual hostnames
 custom_db_virtual_hostname:            ""
