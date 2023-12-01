@@ -370,6 +370,8 @@
       ansible.builtin.wait_for:
         timeout:                       30
 
+
+
     # Debug for testing
     - name:                            "Oracle ASM: Prepare for GRID SBP Patching print output"
       ansible.builtin.debug:
@@ -400,12 +402,12 @@
                                        set -o pipefail
                                        chown -R oracle:oinstall $OHGRID/suptools/orachk
                                        chmod -R u+w $OHGRID/suptools/orachk
-                                       rm -f $OHGRID/suptools/orachk/orachk
+                                       rm -f $IHRDBMS/suptools/orachk/orachk
       register:                        orachkdeletion
       environment:
            OHGRID:                         /oracle/GRID/{{ ora_version }}
            ORACLE_HOME:                    /oracle/GRID/{{ ora_version }}
-          #  IHRDBMS:                        /oracle/{{ db_sid | upper}}/{{ ora_release }}
+           IHRDBMS:                        /oracle/{{ db_sid | upper}}/{{ ora_release }}
            SBPFUSER:                       /usr/sbin/fuser
            # ORACLE_SID:                     "{{ db_sid | upper}}"
       args:
@@ -444,9 +446,9 @@
         mode:                          u+rw
 
 
-    # - name:                           "debug 2308 Patching"
-    #   fail:                            
-    #     msg:                          "fail here for manual GRID SBP installation"
+    - name:                           "debug 2311 Patching"
+      fail:                            
+        msg:                          "fail here for manual GRID SBP installation"
 
     - name:                            "File update wait for 15 sec to avoid multiple locks"
       ansible.builtin.wait_for:
