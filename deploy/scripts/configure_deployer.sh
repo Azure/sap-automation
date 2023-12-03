@@ -281,6 +281,15 @@ case "$(get_distro_name_version)" in
     ;;
 esac
 
+if [ "$(get_distro_version)" == "15.4" ]; then
+    error "Unsupported distro: $${distro_name_version} at this time."
+    exit 1
+fi
+if [ "$(get_distro_version)" == "15.5" ]; then
+    error "Unsupported distro: $${distro_name_version} at this time."
+    exit 1
+fi
+
 
 case "$(get_distro_name_version)" in
 (sles*)
@@ -446,7 +455,17 @@ case "$(get_distro_name)" in
       set +o errexit
       sudo zypper rm -y --clean-deps azure-cli
       set -o errexit
-    fi
+  fi
+  if [ "$(get_distro_version)" == "15.4" ]; then
+      set +o errexit
+      sudo zypper rm -y --clean-deps azure-cli
+      set -o errexit
+  fi
+  if [ "$(get_distro_version)" == "15.5" ]; then
+      set +o errexit
+      sudo zypper rm -y --clean-deps azure-cli
+      set -o errexit
+  fi
   ;;
 esac
 
