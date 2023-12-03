@@ -506,3 +506,81 @@ resource "azurerm_virtual_machine_extension" "configure_ansible" {
                                          )
   tags                                 = var.tags
 }
+
+
+#########################################################################################
+#                                                                                       #
+#  Azure Shared Disk for SBD                                                            #
+#                                                                                       #
+#######################################+#################################################
+resource "azurerm_managed_disk" "cluster" {
+  provider                             = azurerm.main
+  count                                = (
+                                           local.enable_deployment &&
+                                           var.database.high_availability &&
+                                           (
+                                             upper(var.database.os.os_type) == "WINDOWS" ||
+                                             (
+                                               upper(var.database.os.os_type) == "LINUX" &&
+                                               upper(var.database.database_cluster_type) == "ASD"
+                                             )
+                                           )
+                                         ) ? 1 : 0
+  lifecycle {
+    ignore_changes                     = [tags]
+    }
+
+  name                                 = format("%s%s%s%s",
+                                           var.naming.resource_prefixes.database_cluster_disk,
+                                           local.prefix,
+                                           var.naming.separator,
+                                           var.naming.resource_suffixes.database_cluster_disk
+                                         )
+  location                             = var.resource_group[0].location
+  resource_group_name                  = var.resource_group[0].name
+  create_option                        = "Empty"
+  storage_account_type                 = "Premium_LRS"
+  disk_size_gb                         = var.database_cluster_disk_size
+  disk_encryption_set_id               = try(var.options.disk_encryption_set_id, null)
+  max_shares                           = var.database_server_count
+  tags                                 = var.tags
+
+  zone                                 = local.zonal_deployment && !local.use_avset ? (
+                                           upper(local.anydb_ostype) == "LINUX" ? (
+                                             azurerm_linux_virtual_machine.dbserver[local.anydb_disks[count.index].vm_index].zone) : (
+                                             azurerm_windows_virtual_machine.dbserver[local.anydb_disks[count.index].vm_index].zone
+                                         )) : (
+                                           null
+                                         )
+
+}
+
+resource "azurerm_virtual_machine_data_disk_attachment" "cluster" {
+  provider                             = azurerm.main
+  count                                = (
+                                           local.enable_deployment &&
+                                           var.database.high_availability &&
+                                           (
+                                             upper(var.database.os.os_type) == "WINDOWS" ||
+                                             (
+                                               upper(var.database.os.os_type) == "LINUX" &&
+                                               upper(var.database.database_cluster_type) == "ASD"
+                                             )
+                                           )
+                                         ) ? var.database_server_count : 0
+
+  managed_disk_id                      = azurerm_managed_disk.cluster[0].id
+  virtual_machine_id                   = (upper(var.database.os.os_type) == "LINUX"                                # If Linux
+                                         ) ? (
+                                           azurerm_linux_virtual_machine.dbserver[count.index].id
+                                         ) : (
+                                           (upper(var.database.os.os_type) == "WINDOWS"                            # If Windows
+                                           ) ? (
+                                             null
+                                           ) : (
+                                             null                                                                  # If Other
+                                           )
+                                         )
+  caching                              = "None"
+  lun                                  = var.database_cluster_disk_lun
+}

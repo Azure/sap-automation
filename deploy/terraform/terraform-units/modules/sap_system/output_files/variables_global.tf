@@ -38,8 +38,8 @@ variable "database_authentication_type"         {
                                                   description = "Platform to use"
                                                   default = "key"
                                                 }
-variable "database_cluster_ip"                        { description = "This is a Cluster IP address for Windows load balancer for the database" }
-variable "database_loadbalancer_ip"                             {
+variable "database_cluster_ip"                  { description = "This is a Cluster IP address for Windows load balancer for the database" }
+variable "database_loadbalancer_ip"             {
                                                   description = "DB Load Balancer IP"
                                                   default     = ""
                                                 }

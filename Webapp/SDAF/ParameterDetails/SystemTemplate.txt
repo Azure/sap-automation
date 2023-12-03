@@ -637,6 +637,15 @@ $$proximityplacementgroup_names$$
 
 $$proximityplacementgroup_arm_ids$$
 
+# Boolean value indicating if an proximity placement group should be used for the app tier VMs
+$$use_app_proximityplacementgroups$$
+
+# If provided, names of the application proximity placement groups
+$$app_proximityplacementgroup_names$$
+
+# If provided, azure resource ids for the application proximity placement groups
+$$app_proximityplacementgroup_arm_ids$$
+
 #########################################################################################
 #                                                                                       #
 #  Key Vault variables                                                                  #

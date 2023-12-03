@@ -51,25 +51,27 @@
       tags:
         - 0.1-win-passwords
 
-    - name:                                "WinCluster-Create: Get witness account details"
+    - name:                                 "WinCluster-Create: Get witness account details"
       ansible.builtin.include_role:
-        name:                      roles-misc/0.2-kv-secrets
-        tasks_from:                wincluster-witness.yaml
-        public:                    true
-      when:
-        - platform | upper == "SQLSERVER"
-        - scs_high_availability or db_high_availability
-      tags:
-        - 0.2-wincluster-witness
-
-    - name:                            "SCS Installation Playbook: - Read/Create key vault secrets"
-      ansible.builtin.include_role:
-        name:                          roles-misc/0.2-kv-secrets
-        public:                        true
+        name:                               roles-misc/0.2-kv-secrets
+        tasks_from:                         wincluster-witness.yaml
+        public:                             true
       vars:
-        tier:                          fencing
+        operation:                          fencing
+      when:
+                                            - platform | upper == "SQLSERVER"
+                                            - scs_high_availability or database_high_availability
       tags:
-        - kv-secrets
+                                            - 0.2-wincluster-witness
+# MKD - These two tasks (Above & Below) seem to achieve the same thing?
+    - name:                                 "SCS Installation Playbook: - Read/Create key vault secrets"
+      ansible.builtin.include_role:
+        name:                               roles-misc/0.2-kv-secrets
+        public:                             true
+      vars:
+        operation:                          fencing
+      tags:
+                                            - kv-secrets
 
     - name:                            "SCS Installation Playbook: - Read storage account details"
       ansible.builtin.include_role:
@@ -106,10 +108,14 @@
             'pas_inst_no': '{{ pas_instance_number }}',
             'app_inst_no': '{{ app_instance_number }}'
           }
+      tags:
+        - always
 
     - name:                            "SCS Installation Playbook: Define list of SIDs"
       ansible.builtin.set_fact:
         all_sids:                      "{% if MULTI_SIDS is defined %}{{ MULTI_SIDS }}{% else %}{{ all_sids | default([]) + [this_sid] }}{% endif %}"
+      tags:
+        - always
 
     - name:                            Generic Users and Groups for SAP Installation
       become:                          true
@@ -144,23 +150,23 @@
         - platform in ['ORACLE', 'ORACLE-ASM']
         - scs_high_availability
       block:
-        - name:                        Generic Users and Groups for SAP Installation for Oracle SCS High availability
+        - name:                         Generic Users and Groups for SAP Installation for Oracle SCS High availability
           ansible.builtin.include_role:
-            name:                      roles-sap-os/2.5-sap-users
-            tasks_from:                user_nw.yaml
+            name:                       roles-sap-os/2.5-sap-users
+            tasks_from:                 user_nw.yaml
           vars:
-            sap_sid:                  "{{ sid_to_be_deployed.sid }}"
-            scs_instance_number:      "{{ sid_to_be_deployed.ascs_inst_no }}"
-            sidadm_uid:               "{{ sid_to_be_deployed.sidadm_uid }}"
-            tier:                      generic
-            main_password:             "{{ hostvars.localhost.sap_password }}"
-            sapbits_location_base_path:    "{{ hostvars.localhost.sapbits_location_base_path }}"
-            sapbits_sas_token:         "{{ hostvars.localhost.sapbits_sas_token }}"
-          loop:                        "{{ all_sids }}"
+            sap_sid:                    "{{ sid_to_be_deployed.sid }}"
+            scs_instance_number:        "{{ sid_to_be_deployed.ascs_inst_no }}"
+            sidadm_uid:                 "{{ sid_to_be_deployed.sidadm_uid }}"
+            tier:                       generic
+            main_password:              "{{ hostvars.localhost.sap_password }}"
+            sapbits_location_base_path: "{{ hostvars.localhost.sapbits_location_base_path }}"
+            sapbits_sas_token:          "{{ hostvars.localhost.sapbits_sas_token }}"
+          loop:                         "{{ all_sids }}"
           loop_control:
-            loop_var:                  sid_to_be_deployed
+            loop_var:                   sid_to_be_deployed
           tags:
-            - 2.5-sap-users
+                                        - 2.5-sap-users
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
 # |                       Playbook for SAP SCS Install                         |
@@ -235,19 +241,19 @@
             msg:                       "{{ hostvars.localhost.sap_password }}"
             verbosity:                 4
 
-        - name:                        "Run the SCS Installation on Linux"
-          become:                      true
+        - name:                                 "Run the SCS Installation on Linux"
+          become:                               true
           block:
-            - name:                    "SCS Installation - Linux based systems"
+            - name:                             "SCS Installation - Linux based systems"
               block:
-                - name:                    "SCS Installation Playbook: - Install SAPInst"
+                - name:                         "SCS Installation Playbook: - Install SAPInst"
                   ansible.builtin.include_role:
-                    name:                  roles-sap/5.0.0-scs-install
+                    name:                       roles-sap/5.0.0-scs-install
                   vars:
-                    scs_instance_number:   "{{ sid_to_be_deployed.ascs_inst_no }}"
-                  loop:                    "{{ all_sids }}"
+                    scs_instance_number:        "{{ sid_to_be_deployed.ascs_inst_no }}"
+                  loop:                         "{{ all_sids }}"
                   loop_control:
-                    loop_var:              sid_to_be_deployed
+                    loop_var:                   sid_to_be_deployed
 
                 - name:                "SCS Installation Playbook: - Ensure scs-install-done flag exists"
                   delegate_to:         localhost
@@ -401,7 +407,7 @@
 # Build the list of tasks to be executed in order here.
 #
 # -------------------------------------+---------------------------------------8
-    - name:                            "SCS HA Installation Playbook: - HA SCS Setup"
+    - name:                            "SCS HA Installation Playbook: - LNX - Preparation for SCS HA installation"
       become:                          true
       when:
         - ansible_os_family != "Windows"
@@ -414,22 +420,31 @@
               - sap_mnt is defined
             fail_msg:                  A highly available SCS deployment requires a shared sap_mnt
 
-        - name:                        "SCS HA Installation Playbook: - Initialize facts"
+        - name:                                 "SCS HA Installation Playbook: - Initialize facts... General"
           ansible.builtin.set_fact:
-            tier:                       ha
-            password_ha_db_cluster:     "{{ hostvars.localhost.db_cluster_password }}"
-            main_password:              "{{ hostvars.localhost.sap_password }}"
-            primary_instance_name:      "{{ ansible_play_hosts_all[0] }}"         # Setting up Primary Instance Name
-            secondary_instance_name:    "{{ ansible_play_hosts_all[1] }}"         # Setting up Secondary Instance Name
-            sapbits_location_base_path: "{{ hostvars.localhost.sapbits_location_base_path }}"
-            sapbits_sas_token:          "{{ hostvars.localhost.sapbits_sas_token }}"
-            sa_enabled:                 true
-            fencing_spn_client_id:      "{% if not use_msi_for_clusters %}{{ hostvars.localhost.sap_fencing_spn_client_id }}{% endif %}"
-            fencing_spn_client_pwd:     "{% if not use_msi_for_clusters %}{{ hostvars.localhost.sap_fencing_spn_pwd }}{% endif %}"
-            fencing_spn_tenant_id:      "{% if not use_msi_for_clusters %}{{ hostvars.localhost.sap_fencing_spn_tenant_id }}{% endif %}"
-            always_upload_jinja_templates:    false
+            tier:                               ha
+            password_ha_db_cluster:             "{{ hostvars.localhost.db_cluster_password }}"
+            main_password:                      "{{ hostvars.localhost.sap_password }}"
+            primary_instance_name:              "{{ ansible_play_hosts_all[0] }}"         # Setting up Primary Instance Name
+            secondary_instance_name:            "{{ ansible_play_hosts_all[1] }}"         # Setting up Secondary Instance Name
+            sapbits_location_base_path:         "{{ hostvars.localhost.sapbits_location_base_path }}"
+            sapbits_sas_token:                  "{{ hostvars.localhost.sapbits_sas_token }}"
+            sa_enabled:                         true
+            always_upload_jinja_templates:      false
+            scs_virtual_hostname:               "{{ sap_sid | lower }}scs{{ scs_instance_number }}cl1"
+            ers_virtual_hostname:               "{{ sap_sid | lower }}ers{{ ers_instance_number }}cl2"
           tags:
-            - always
+                                                - always
+
+        - name:                                 "SCS HA Installation Playbook: - Initialize facts... Fencing"
+          ansible.builtin.set_fact:
+            fencing_spn_client_id:              "{% if not use_msi_for_clusters %}{{ hostvars.localhost.sap_fencing_spn_client_id }}{% endif %}"
+            fencing_spn_client_pwd:             "{% if not use_msi_for_clusters %}{{ hostvars.localhost.sap_fencing_spn_pwd }}{% endif %}"
+            fencing_spn_tenant_id:              "{% if not use_msi_for_clusters %}{{ hostvars.localhost.sap_fencing_spn_tenant_id }}{% endif %}"
+          when:
+                                                - scs_cluster_type == "AFA"             # scs_high_availability = true is already assumed
+          tags:
+                                                - always
 
         - name:                        "SCS HA Installation Playbook: - Ensure the repositories are registered"
           ansible.builtin.include_role:
@@ -472,7 +487,7 @@
           tags:
             - 2.6-sap-mounts
 
-    - name:                            "SCS HA Installation Playbook: - HA SCS Setup"
+    - name:                            "SCS HA Installation Playbook: - LNX - HA SCS Setup"
       when:
         - scs_high_availability
         - "'scs' in supported_tiers or 'ers' in supported_tiers "

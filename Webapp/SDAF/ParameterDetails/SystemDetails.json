@@ -272,6 +272,34 @@
         "Overrules": "",
         "Display": 3
       },
+
+      {
+        "Name": "use_app_proximityplacementgroups",
+        "Required": false,
+        "Description": "Defines if an proximity placement group should be used for the app tier VMs.",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "app_proximityplacementgroup_names",
+        "Required": false,
+        "Description": "Defines the names of the app tier proximity placement groups. Only use this if the default naming is not suitable.",
+        "Type": "list",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "app_proximityplacementgroup_arm_ids",
+        "Required": false,
+        "Description": "A list of Azure resource identifiers specifying existing app tier proximity placement groups.",
+        "Type": "list",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
       {
         "Name": "upgrade_packages",
         "Required": false,

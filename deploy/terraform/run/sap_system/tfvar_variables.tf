@@ -94,6 +94,23 @@ variable "proximityplacementgroup_arm_ids"      {
                                                   default     = []
                                                 }
 
+variable "use_app_proximityplacementgroups"     {
+                                                  description = "Boolean value indicating if an proximity placement group should be used for the app tier VMs"
+                                                  default     = false
+                                                  type        = bool
+                                                }
+
+variable "app_proximityplacementgroup_names"    {
+                                                  description = "If provided, names of the application proximity placement groups"
+                                                  default     = []
+                                                }
+
+variable "app_proximityplacementgroup_arm_ids"  {
+                                                  description = "If provided, azure resource ids for the application proximity placement groups"
+                                                  default     = []
+                                                }
+
+
 variable "use_service_endpoint"                 {
                                                   description = "Boolean value indicating if service endpoints should be used for the deployment"
                                                   default     = false

@@ -1,7 +1,7 @@
 [
   {
     "Section": "Set as default",
-    "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main",
+    "Link": "https://learn.microsoft.com/en-us/azure/sap/automation/configure-workload-zone",
     "Parameters": [
       {
         "Name": "IsDefault",
@@ -648,6 +648,73 @@
     ]
   },
   {
+    "Section": "Azure keyvault support",
+    "Link": "https://learn.microsoft.com/en-us/azure/sap/automation/automation-configure-workload-zone#key-vault-parameters",
+    "Parameters": [
+      {
+        "Name": "user_keyvault_id",
+        "Required": false,
+        "Description": "Specifies the Azure resource identifier for an existing key vault designed to host secrets for the administrative users.",
+        "Type": "lookup",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "spn_keyvault_id",
+        "Required": false,
+        "Description": "Specifies the Azure resource identifier for an existing key vault. Designed to host the deployment credentials used by the automation.",
+        "Type": "lookup",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "enable_purge_control_for_keyvaults",
+        "Required": false,
+        "Description": "Disables the purge protection for Azure key vaults",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "additional_users_to_add_to_keyvault_policies",
+        "Required": false,
+        "Description": "Additional users (object IDs) to add to the key vault policies.",
+        "Type": "list",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "",
+        "Display": 2
+      },
+
+      {
+        "Name": "enable_rbac_authorization_for_keyvault",
+        "Required": false,
+        "Description": "Controls the access policy model for the workload zone keyvault",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      }
+    ]
+  },
+  {
     "Section": "DNS",
     "Link": "https://learn.microsoft.com/en-us/azure/sap/automation/configure-workload-zone#dns-support",
     "Parameters": [
@@ -975,8 +1042,44 @@
           }
         ],
         "Overrules": "",
-        "Display": 2
+        "Display": 3
+      },
+      {
+        "Name": "iscsi_vm_zones",
+        "Required": false,
+        "Description": "Defines the Availability zones for the iSCSI devices.",
+        "Type": "list",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          },
+          {
+            "Text": "1",
+            "Value": "1"
+          },
+          {
+            "Text": "2",
+            "Value": "2"
+          },
+          {
+            "Text": "3",
+            "Value": "3"
+          }
+        ],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "user_assigned_identity_id",
+        "Required": false,
+        "Description": "Azure resource identifier for User assigned identity.",
+        "Type": "lookup",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
       }
+
     ]
   },
   {

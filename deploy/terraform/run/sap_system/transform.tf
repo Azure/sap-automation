@@ -3,12 +3,13 @@ locals {
 
   enable_app_tier_deployment = var.enable_app_tier_deployment && try(var.application_tier.enable_deployment, true)
 
-  temp_infrastructure = {
-    environment            = coalesce(var.environment, try(var.infrastructure.environment, ""))
-    region                 = lower(coalesce(var.location, try(var.infrastructure.region, "")))
-    codename               = try(var.codename, try(var.infrastructure.codename, ""))
-    tags                   = try(merge(var.resourcegroup_tags, try(var.infrastructure.tags, {})), {})
-                        }
+  temp_infrastructure    = {
+                              environment                      = coalesce(var.environment, try(var.infrastructure.environment, ""))
+                              region                           = lower(coalesce(var.location, try(var.infrastructure.region, "")))
+                              codename                         = try(var.codename, try(var.infrastructure.codename, ""))
+                              tags                             = try(merge(var.resourcegroup_tags, try(var.infrastructure.tags, {})), {})
+                              use_app_proximityplacementgroups = var.use_app_proximityplacementgroups
+                           }
 
 
   resource_group         = {
@@ -23,6 +24,14 @@ locals {
                              names   = distinct(concat(var.proximityplacementgroup_names, try(var.infrastructure.ppg.names, [])))
                            }
   ppg_defined            = (length(local.ppg.names) + length(local.ppg.arm_ids)) > 0
+
+  app_ppg                = {
+                             arm_ids = distinct(var.app_proximityplacementgroup_arm_ids)
+                             names   = distinct(var.app_proximityplacementgroup_names)
+                           }
+  app_ppg_defined        = var.use_app_proximityplacementgroups ? (length(local.app_ppg.names) + length(local.app_ppg.arm_ids)) > 0 : false
+
+
 
   deploy_anchor_vm       = var.deploy_anchor_vm || length(try(var.infrastructure.anchor_vms, {})) > 0
 
@@ -567,6 +576,7 @@ locals {
 
   infrastructure = merge(local.temp_infrastructure, (
     local.resource_group_defined ? { resource_group = local.resource_group } : null), (
+    local.app_ppg_defined        ? { ppg = local.app_ppg } : null), (
     local.ppg_defined            ? { ppg = local.ppg } : null), (
     local.deploy_anchor_vm       ? { anchor_vms = local.anchor_vms } : null),
     { vnets = local.temp_vnet }

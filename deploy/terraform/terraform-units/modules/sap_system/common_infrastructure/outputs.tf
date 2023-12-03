@@ -68,6 +68,16 @@ output "ppg"                                     {
                                                                  )
                                                  }
 
+output "app_ppg"                                 {
+                                                   description = "Proximity placement group Id for application tier"
+                                                   value       = !var.infrastructure.use_app_proximityplacementgroups || var.use_scalesets_for_deployment ? (
+                                                                     []) : (
+                                                                     local.app_ppg_exists ? (
+                                                                       data.azurerm_proximity_placement_group.app_ppg[*].id) : (
+                                                                       azurerm_proximity_placement_group.app_ppg[*].id)
+                                                                   )
+                                                 }
+
 
 ###############################################################################
 #                                                                             #

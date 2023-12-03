@@ -177,6 +177,7 @@ locals {
                                            )
                                          ])
 
+  app_ppg_exists                       = try(length(var.infrastructure.app_ppg.arm_ids) > 0 ? true : false, false)
   isHANA                               = try(upper(var.database.platform), "NONE") == "HANA"
 
   ##############################################################################################
@@ -488,6 +489,10 @@ locals {
 
   app_tier_os                          = upper(try(var.application_tier.app_os.os_type, "LINUX"))
 
-  create_ppg                           = var.application_tier.app_use_ppg || var.application_tier.scs_use_ppg || var.application_tier.web_use_ppg || var.database.use_ppg
+  create_ppg                           = var.infrastructure.use_app_proximityplacementgroups ? (
+                                           var.database.use_ppg) : (
+                                           var.application_tier.app_use_ppg || var.application_tier.scs_use_ppg || var.application_tier.web_use_ppg || var.database.use_ppg
+                                         )
+
 
 }

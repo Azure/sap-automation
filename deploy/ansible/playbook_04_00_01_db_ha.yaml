@@ -14,6 +14,7 @@
 
     - name:                            Initialization
       block:
+
         - name:                        Create Progress folder
           ansible.builtin.file:
             path:                      "{{ _workspace_directory }}/.progress"
@@ -25,42 +26,55 @@
             path:                      "{{ _workspace_directory }}/.progress/db-ha-done"
             state:                      absent
 
-        - name:                        Initialize facts
-          ansible.builtin.set_fact:
-            tier:                      fencing
+# MKD - Fencing is not a tier... it is a misuse to code for that
+#       To detect we should be using:
+#         database_high_availability
+#           AND
+#         database_cluster_type == "AFA"
+#         database_cluster_type == "ASD"
+#         database_cluster_type == "ISCSI"
 
-        - name:                        Run the misc/password role
-          ansible.builtin.include_role:
-            name:                      roles-misc/0.1-passwords
-            public:                    true
-          tags:
-            - 0.1-passwords
-        - name:                            "OS configuration playbook: - Read password"
-          ansible.builtin.include_role:
-            name:                          roles-misc/0.1-passwords
-            tasks_from:                    windows.yaml
-            public:                        true
-          when: platform == "SQLSERVER"
-          tags:
-            - 0.1-win-passwords
+        # - name:                           Initialize facts
+        #   ansible.builtin.set_fact:
+        #     tier:                         fencing
 
-        - name:                                "WinCluster-Create: Get witness account details"
+        - name:                                 "Run the misc/password role"
           ansible.builtin.include_role:
-            name:                      roles-misc/0.2-kv-secrets
-            tasks_from:                wincluster-witness.yaml
-            public:                    true
+            name:                               roles-misc/0.1-passwords
+            public:                             true
+          tags:
+                                                - 0.1-passwords
+
+        - name:                                 "OS configuration playbook: - Read password"
+          ansible.builtin.include_role:
+            name:                               roles-misc/0.1-passwords
+            tasks_from:                         windows.yaml
+            public:                             true
+          when:                                 platform == "SQLSERVER"
+          tags:
+                                                - 0.1-win-passwords
+
+        - name:                                 "WinCluster-Create: Get witness account details"
+          ansible.builtin.include_role:
+            name:                               roles-misc/0.2-kv-secrets
+            tasks_from:                         wincluster-witness.yaml
+            public:                             true
+          vars:
+            operation:                          fencing
           when:
-            - platform | upper == "SQLSERVER"
-            - scs_high_availability or db_high_availability
+                                                - platform | upper == "SQLSERVER"
           tags:
-            - 0.2-wincluster-witness
+                                                - 0.2-wincluster-witness
 
-        - name:                        Run the keyvault role
+        - name:                                 Run the keyvault role
           ansible.builtin.include_role:
-            name:                      roles-misc/0.2-kv-secrets
+            name:                               roles-misc/0.2-kv-secrets
+          vars:
+            operation:                          fencing
           tags:
-            - kv-secrets
-      when:                            db_high_availability
+                                                - kv-secrets
+
+      when:                                     database_high_availability
 # +------------------------------------4--------------------------------------*/
 
 - hosts:                               "{{ sap_sid | upper }}_DB"

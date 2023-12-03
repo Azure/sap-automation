@@ -141,3 +141,15 @@ output "observer_vms"                  {
                                                        )
                                        }
 
+output "database_shared_disks"         {
+                                         description = "List of Azure shared disks"
+                                         value       = distinct(
+                                                         flatten(
+                                                           [for vm in var.naming.virtualmachine_names.HANA_COMPUTERNAME :
+                                                             [for idx, disk in azurerm_virtual_machine_data_disk_attachment.cluster :
+                                                               format("{ host: '%s', lun: %d, type: 'ASD' }", vm, disk.lun)
+                                                             ]
+                                                           ]
+                                                         )
+                                                       )
+                                       }

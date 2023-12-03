@@ -4,7 +4,7 @@ Description:
   Example to deploy deployer(s) using local backend.
 */
 module "sap_deployer" {
-  source                                               = "../../terraform-units/modules/sap_deployer"
+  source                                       = "../../terraform-units/modules/sap_deployer"
   providers                                    = {
                                                    azurerm.dnsmanagement = azurerm.dnsmanagement
                                                    azurerm.main          = azurerm.main

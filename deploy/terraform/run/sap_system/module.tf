@@ -50,13 +50,14 @@ module "sap_namegenerator" {
 
 module "common_infrastructure" {
   source                                        = "../../terraform-units/modules/sap_system/common_infrastructure"
-  providers = {
-    azurerm.deployer                            = azurerm
-    azurerm.main                                = azurerm.system
-    azurerm.dnsmanagement                       = azurerm.dnsmanagement
-  }
+  providers                                     = {
+                                                    azurerm.deployer       = azurerm
+                                                    azurerm.main           = azurerm.system
+                                                    azurerm.dnsmanagement  = azurerm.dnsmanagement
+                                                  }
   Agent_IP                                      = var.Agent_IP
   application_tier                              = local.application_tier
+  application_tier_ppg_names                    = module.sap_namegenerator.naming_new.app_ppg_names
   authentication                                = local.authentication
   azure_files_sapmnt_id                         = var.azure_files_sapmnt_id
   custom_disk_sizes_filename                    = try(coalesce(var.custom_disk_sizes_filename, var.db_disk_sizes_filename), "")
@@ -105,12 +106,12 @@ module "common_infrastructure" {
 module "hdb_node" {
   source                                        = "../../terraform-units/modules/sap_system/hdb_node"
   depends_on                                    = [module.common_infrastructure]
-  providers = {
-    azurerm.deployer                            = azurerm
-    azurerm.main                                = azurerm.system
-    azurerm.dnsmanagement                       = azurerm.dnsmanagement
-    # azapi.api                                 = azapi.api
-  }
+  providers                                     = {
+                                                    azurerm.deployer       = azurerm
+                                                    azurerm.main           = azurerm.system
+                                                    azurerm.dnsmanagement  = azurerm.dnsmanagement
+                                                    # azapi.api                                 = azapi.api
+                                                  }
 
   admin_subnet                                  = module.common_infrastructure.admin_subnet
   anchor_vm                                     = module.common_infrastructure.anchor_vm // Workaround to create dependency from anchor to db to app
@@ -141,8 +142,8 @@ module "hdb_node" {
   infrastructure                                = local.infrastructure
   landscape_tfstate                             = data.terraform_remote_state.landscape.outputs
   license_type                                  = var.license_type
-  management_dns_subscription_id                = try(data.terraform_remote_state.landscape.outputs.management_dns_subscription_id, null)
   management_dns_resourcegroup_name             = coalesce(data.terraform_remote_state.landscape.outputs.management_dns_resourcegroup_name, local.saplib_resource_group_name)
+  management_dns_subscription_id                = coalesce(data.terraform_remote_state.landscape.outputs.management_dns_subscription_id, local.saplib_subscription_id)
   naming                                        = length(var.name_override_file) > 0 ? local.custom_names : module.sap_namegenerator.naming
   NFS_provider                                  = var.NFS_provider
   options                                       = local.options
@@ -164,8 +165,6 @@ module "hdb_node" {
   use_msi_for_clusters                          = var.use_msi_for_clusters
   use_scalesets_for_deployment                  = var.use_scalesets_for_deployment
   use_secondary_ips                             = var.use_secondary_ips
-
-
 }
 
 #########################################################################################
@@ -176,11 +175,13 @@ module "hdb_node" {
 
 module "app_tier" {
   source                                        = "../../terraform-units/modules/sap_system/app_tier"
-  providers = {
-    azurerm.deployer                            = azurerm
-    azurerm.main                                = azurerm.system
-    azurerm.dnsmanagement                       = azurerm.dnsmanagement
-  }
+  providers                                     = {
+                                                    azurerm.deployer       = azurerm
+                                                    azurerm.main           = azurerm.system
+                                                    azurerm.dnsmanagement  = azurerm.dnsmanagement
+                                                    # azapi.api                                 = azapi.api
+                                                  }
+
   depends_on                                    = [module.common_infrastructure]
   admin_subnet                                  = module.common_infrastructure.admin_subnet
   application_tier                              = local.application_tier
@@ -201,7 +202,7 @@ module "app_tier" {
   network_resource_group                        = module.common_infrastructure.network_resource_group
   options                                       = local.options
   order_deployment                              = null
-  ppg                                           = module.common_infrastructure.ppg
+  ppg                                           = var.use_app_proximityplacementgroups ? module.common_infrastructure.app_ppg : module.common_infrastructure.ppg
   register_virtual_network_to_dns               = try(data.terraform_remote_state.landscape.outputs.register_virtual_network_to_dns, true)
   resource_group                                = module.common_infrastructure.resource_group
   route_table_id                                = module.common_infrastructure.route_table_id
@@ -231,11 +232,13 @@ module "app_tier" {
 
 module "anydb_node" {
   source                                        = "../../terraform-units/modules/sap_system/anydb_node"
-  providers = {
-    azurerm.deployer                            = azurerm
-    azurerm.main                                = azurerm.system
-    azurerm.dnsmanagement                       = azurerm.dnsmanagement
-  }
+  providers                                     = {
+                                                    azurerm.deployer       = azurerm
+                                                    azurerm.main           = azurerm.system
+                                                    azurerm.dnsmanagement  = azurerm.dnsmanagement
+                                                    # azapi.api                                 = azapi.api
+                                                  }
+
   depends_on                                    = [module.common_infrastructure]
 
   admin_subnet                                  = try(module.common_infrastructure.admin_subnet, null)
@@ -250,6 +253,8 @@ module "anydb_node" {
                                                   0) : (
                                                     local.database.high_availability ? 2 * var.database_server_count : var.database_server_count
                                                   )
+  database_cluster_disk_lun                     = var.database_cluster_disk_lun
+  database_cluster_disk_size                    = var.database_cluster_disk_size
   db_asg_id                                     = module.common_infrastructure.db_asg_id
   db_subnet                                     = module.common_infrastructure.db_subnet
   deploy_application_security_groups            = var.deploy_application_security_groups
@@ -296,10 +301,11 @@ module "anydb_node" {
 module "output_files" {
   source                                        = "../../terraform-units/modules/sap_system/output_files"
   depends_on                                    = [module.anydb_node, module.common_infrastructure, module.app_tier, module.hdb_node]
-  providers = {
-    azurerm.main                                = azurerm.system
-    azurerm.dnsmanagement                       = azurerm.dnsmanagement
-  }
+  providers                                     = {
+                                                    azurerm.main           = azurerm.system
+                                                    azurerm.dnsmanagement  = azurerm.dnsmanagement
+                                                    # azapi.api                                 = azapi.api
+                                                  }
 
   authentication                                = local.authentication
   authentication_type                           = try(local.application_tier.authentication.type, "key")
@@ -427,5 +433,4 @@ module "output_files" {
   iSCSI_server_ips                              = var.database_cluster_type == "ISCSI" || var.scs_cluster_type == "ISCSI" ? data.terraform_remote_state.landscape.outputs.iSCSI_server_ips : []
   iSCSI_server_names                            = var.database_cluster_type == "ISCSI" || var.scs_cluster_type == "ISCSI" ? data.terraform_remote_state.landscape.outputs.iSCSI_server_names : []
   iSCSI_servers                                 = var.database_cluster_type == "ISCSI" || var.scs_cluster_type == "ISCSI" ? data.terraform_remote_state.landscape.outputs.iSCSI_servers : []
-
 }

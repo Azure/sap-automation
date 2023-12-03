@@ -43,7 +43,11 @@ data "azurerm_storage_account" "storage_bootdiag" {
 // PROXIMITY PLACEMENT GROUP
 resource "azurerm_proximity_placement_group" "ppg" {
   provider                             = azurerm.main
-  count                                = local.ppg_exists || var.use_scalesets_for_deployment || !local.create_ppg ? 0 : (local.zonal_deployment ? max(length(local.zones), 1) : 1)
+  count                                = (local.ppg_exists || var.use_scalesets_for_deployment || !local.create_ppg) ? (
+                                           0) : ((
+                                           local.zonal_deployment ? (
+                                             max(length(local.zones), 1)) : (
+                                             1)))
   name                                 = format("%s%s", local.prefix, var.naming.ppg_names[count.index])
   resource_group_name                  = local.resource_group_exists ? (
                                          data.azurerm_resource_group.resource_group[0].name) : (
@@ -64,6 +68,35 @@ data "azurerm_proximity_placement_group" "ppg" {
   resource_group_name                  = split("/", local.ppg_arm_ids[count.index])[4]
 }
 
+resource "azurerm_proximity_placement_group" "app_ppg" {
+  provider                             = azurerm.main
+  count                                = var.infrastructure.use_app_proximityplacementgroups ? (
+                                          (local.app_ppg_exists || var.use_scalesets_for_deployment ) ? (
+                                             0) : ((
+                                             local.zonal_deployment ? (
+                                               max(length(local.zones), 1)) : (
+                                               1)))) : (
+                                          0
+                                        )
+  name                                 = format("%s%s", local.prefix, var.application_tier_ppg_names[count.index])
+  resource_group_name                  = local.resource_group_exists ? (
+                                         data.azurerm_resource_group.resource_group[0].name) : (
+                                         azurerm_resource_group.resource_group[0].name
+                                       )
+  location                             = local.resource_group_exists ? (
+                                           data.azurerm_resource_group.resource_group[0].location) : (
+                                           azurerm_resource_group.resource_group[0].location
+                                         )
+  tags                                 = var.tags
+
+}
+
+data "azurerm_proximity_placement_group" "app_ppg" {
+  provider                             = azurerm.main
+  count                                = var.infrastructure.use_app_proximityplacementgroups ? (local.app_ppg_exists ? max(length(local.zones), 1) : 0) : 0
+  name                                 = split("/", var.infrastructure.app_ppg.arm_id[count.index])[8]
+  resource_group_name                  = split("/", var.infrastructure.app_ppg.arm_id[count.index])[4]
+}
 
 //ASG
 

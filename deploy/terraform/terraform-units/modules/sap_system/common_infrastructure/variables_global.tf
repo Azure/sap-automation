@@ -20,6 +20,13 @@ variable "application_tier"                      {
                                                               error_message = "Cluster type 'ASD' does not support cross zonal deployments."
                                                   }
                                                  }
+
+variable "application_tier_ppg_names"            {
+                                                    description = "Application tier proximity placement group names"
+                                                    default     = []
+                                                    type        = list(string)
+                                                 }
+
 variable "database"                              {
                                        validation {
                                                     condition = (
