@@ -489,7 +489,10 @@ case "$(get_distro_name)" in
       sudo zypper install -y --from azure-cli azure-cli
     else
       sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc
-      sudo zypper addrepo --name 'Azure CLI' --check https://packages.microsoft.com/yumrepos/azure-cli azure-cli
+      repo_found=$(zypper repos | grep "Azure CLI")
+      if [ -z "$repo_found" ]; then
+        sudo zypper addrepo --name 'Azure CLI' --check https://packages.microsoft.com/yumrepos/azure-cli azure-cli
+      fi
       sudo touch /home/${local_user}/repos_configured
       sudo zypper install -y --from azure-cli azure-cli
     fi
