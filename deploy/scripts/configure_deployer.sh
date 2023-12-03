@@ -50,6 +50,8 @@ set -o errexit
 set -o pipefail
 
 
+export local_user=$USER
+
 #
 # Terraform Version settings
 #
@@ -70,6 +72,8 @@ tfversion=$TF_VERSION
 ansible_version="${ansible_version:-2.13}"
 ansible_major="${ansible_version%%.*}"
 ansible_minor=$(echo "${ansible_version}." | cut -d . -f 2)
+
+
 
 #
 # Utility Functions
@@ -278,21 +282,13 @@ case "$(get_distro_name_version)" in
 esac
 
 
-if [ "$(get_distro_version)" == "15.1" ]; then
+case "$(get_distro_name_version)" in
+(sles*)
       set +o errexit
       zypper addrepo https://download.opensuse.org/repositories/network/SLE_15/network.repo
       set -o errexit
-fi
-if [ "$(get_distro_version)" == "15.3" ]; then
-      set +o errexit
-      zypper addrepo https://download.opensuse.org/repositories/network/SLE_15/network.repo
-      set -o errexit
-fi
-if [ "$(get_distro_version)" == "15.5" ]; then
-      set +o errexit
-      zypper addrepo https://download.opensuse.org/repositories/network/SLE_15/network.repo
-      set -o errexit
-fi
+    ;;
+esac
 
 echo "Set ansible version for specific distros"
 echo ""
@@ -308,31 +304,17 @@ case "$(get_distro_name)" in
   ;;
 (sles)
   echo "we are inside sles"
-  if [ "$(get_distro_version)" == "15.3" ]; then
-    ansible_version="2.11"
-    ansible_major="${ansible_version%%.*}"
-    ansible_minor=$(echo "${ansible_version}." | cut -d . -f 2)
-    # Ansible installation directories
-    ansible_base="/opt/ansible"
-    ansible_bin="${ansible_base}/bin"
-    ansible_venv="${ansible_base}/venv/${ansible_version}"
-    ansible_venv_bin="${ansible_venv}/bin"
-    ansible_collections="${ansible_base}/collections"
-    ansible_pip3="${ansible_venv_bin}/pip3"
-    sudo python3 -m pip install virtualenv;
-  elif [ "$(get_distro_version)" == "15.5" ]; then
-    ansible_version="2.11"
-    ansible_major="${ansible_version%%.*}"
-    ansible_minor=$(echo "${ansible_version}." | cut -d . -f 2)
-    # Ansible installation directories
-    ansible_base="/opt/ansible"
-    ansible_bin="${ansible_base}/bin"
-    ansible_venv="${ansible_base}/venv/${ansible_version}"
-    ansible_venv_bin="${ansible_venv}/bin"
-    ansible_collections="${ansible_base}/collections"
-    ansible_pip3="${ansible_venv_bin}/pip3"
-    sudo python3 -m pip install virtualenv;
-  fi
+  ansible_version="2.11"
+  ansible_major="${ansible_version%%.*}"
+  ansible_minor=$(echo "${ansible_version}." | cut -d . -f 2)
+  # Ansible installation directories
+  ansible_base="/opt/ansible"
+  ansible_bin="${ansible_base}/bin"
+  ansible_venv="${ansible_base}/venv/${ansible_version}"
+  ansible_venv_bin="${ansible_venv}/bin"
+  ansible_collections="${ansible_base}/collections"
+  ansible_pip3="${ansible_venv_bin}/pip3"
+  sudo python3 -m pip install virtualenv;
   ;;
 (*)
   echo "we are in the default case statement"
