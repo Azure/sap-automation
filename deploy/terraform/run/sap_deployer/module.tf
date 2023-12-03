@@ -20,6 +20,7 @@ module "sap_deployer" {
   agent_pool                                    = var.agent_pool
   ansible_core_version                          = var.ansible_core_version
   app_registration_app_id                       = var.app_registration_app_id
+  app_service                                   = local.app_service
   arm_client_id                                 = var.arm_client_id
   assign_subscription_permissions               = var.deployer_assign_subscription_permissions
   authentication                                = local.authentication

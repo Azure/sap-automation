@@ -113,7 +113,7 @@ resource "azurerm_network_interface_backend_address_pool_association" "anydb" {
 resource "azurerm_availability_set" "anydb" {
   provider                             = azurerm.main
   count                                = local.enable_deployment && !var.use_scalesets_for_deployment  ? (
-                                            local.use_avset && !local.availabilitysets_exist ? max(length(local.zones), 1) : 0) : (
+                                            var.database.use_avset && !local.availabilitysets_exist ? max(length(local.zones), 1) : 0) : (
                                             0
                                           )
   name                                 = format("%s%s%s",

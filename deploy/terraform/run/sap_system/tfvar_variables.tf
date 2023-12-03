@@ -1200,7 +1200,7 @@ variable "deploy_anchor_vm"                     {
 
 variable "anchor_vm_sku"                        {
                                                   description = "SKU of the Anchor VM"
-                                                  default     = ""
+                                                  default     = "Standard_D2s_v4"
                                                 }
 
 variable "anchor_vm_use_DHCP"                   {
@@ -1211,12 +1211,12 @@ variable "anchor_vm_use_DHCP"                   {
 variable "anchor_vm_image" {
                                                   description = "Image of the Anchor VM"
                                                   default = {
-                                                              "os_type"         = ""
+                                                              "os_type"         = "LINUX"
                                                               "source_image_id" = ""
                                                               "publisher"       = "SUSE"
                                                               "offer"           = "sles-sap-15-sp3"
                                                               "sku"             = "gen2"
-                                                              "version"         = ""
+                                                              "version"         = "latest"
                                                             }
                                                 }
 
