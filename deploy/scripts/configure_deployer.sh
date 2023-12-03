@@ -277,6 +277,23 @@ case "$(get_distro_name_version)" in
     ;;
 esac
 
+
+if [ "$(get_distro_version)" == "15.1" ]; then
+      set +o errexit
+      zypper addrepo https://download.opensuse.org/repositories/network/SLE_15/network.repo
+      set -o errexit
+fi
+if [ "$(get_distro_version)" == "15.3" ]; then
+      set +o errexit
+      zypper addrepo https://download.opensuse.org/repositories/network/SLE_15/network.repo
+      set -o errexit
+fi
+if [ "$(get_distro_version)" == "15.5" ]; then
+      set +o errexit
+      zypper addrepo https://download.opensuse.org/repositories/network/SLE_15/network.repo
+      set -o errexit
+fi
+
 echo "Set ansible version for specific distros"
 echo ""
 case "$(get_distro_name)" in
