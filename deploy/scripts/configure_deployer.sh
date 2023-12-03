@@ -485,6 +485,7 @@ case "$(get_distro_name)" in
     sudo apt-get install azure-cli
     ;;
 (sles)
+    set +o errexit
     if [ -f /home/${local_user}/repos_configured ]; then
       sudo zypper install -y --from azure-cli azure-cli
     else
@@ -496,6 +497,7 @@ case "$(get_distro_name)" in
       sudo touch /home/${local_user}/repos_configured
       sudo zypper install -y --from azure-cli azure-cli
     fi
+    set -o errexit
     ;;
   (rhel*)
     sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc
