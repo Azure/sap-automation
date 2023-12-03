@@ -501,7 +501,7 @@ case "$(get_distro_name)" in
     ;;
 esac
 
-sudo az upgrade --all --yes --only-show-errors --output none
+# sudo az upgrade --all --yes --only-show-errors --output none
 
 export DOTNET_INSTALL_DIR=/opt/dotnet
 
