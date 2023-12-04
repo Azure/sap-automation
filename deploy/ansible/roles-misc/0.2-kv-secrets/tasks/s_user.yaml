@@ -72,7 +72,6 @@
 #     - operation == "bom"
 
 
-
 - name:                                "0.2 Key Vault - S-User: - Retrieve S User details"
   block:
     - name:                            "BoM Secrets: Retrieve S User detail secret"

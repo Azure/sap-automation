@@ -201,8 +201,8 @@
     # | sbd config file
     # |
     # +------------------------------------4
-    ## Type: string
-    ## Default: ""
+    # Type: string
+    # Default: ""
     #
     # SBD_DEVICE specifies the devices to use for exchanging sbd messages
     # and to monitor. If specifying more than one path, use ";" as

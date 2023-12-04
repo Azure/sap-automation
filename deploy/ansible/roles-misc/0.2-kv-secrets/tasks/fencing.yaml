@@ -20,7 +20,7 @@
 #
 # -------------------------------------+---------------------------------------8
 
-#MKD - Does not need to be in block, since when clause is present in the main.yaml
+# MKD - Does not need to be in block, since when clause is present in the main.yaml
 # - name:                                "0.2 Key Vault - Fencing: - Fencing SPN"
 #   block:
 
@@ -31,7 +31,7 @@
     fencing_spn_tenant_id:         "{{ secret_prefix }}-fencing-spn-tenant"
 
 - name:                            "0.2 Key Vault - Fencing: - Retrieve Fencing agent SPN Client ID details"
-#TODO: Recognize when key is not present and output a useful error message
+# TODO: Recognize when key is not present and output a useful error message
   ansible.builtin.command: >-
     az keyvault secret show
       --vault-name {{ kv_name }}
@@ -41,7 +41,6 @@
   changed_when:                    false
   register:                        keyvault_secret_show_fencing_spn_client_value
   no_log:                          false
-
 
 # -------------------------------------+---------------------------------------8
 #
@@ -70,12 +69,11 @@
     cacheable:                     true
   no_log:                          true
 
-
 # -------------------------------------+---------------------------------------8
 #
 # -------------------------------------+---------------------------------------8
 - name:                            "0.2 Key Vault - Fencing: - Retrieve Fencing agent SPN Tenant details"
-#TODO: Recognize when key is not present and output a useful error message
+# TODO: Recognize when key is not present and output a useful error message
   ansible.builtin.command: >-
     az keyvault secret show
       --vault-name {{ kv_name }}

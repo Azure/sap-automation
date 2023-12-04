@@ -6,7 +6,7 @@
 
 
 - name:                                "1.17.1 iSCSI packages"
-  ansible.builtin.zypper:
+  community.general.zypper:
     name:                              "{{ item }}"
     state:                             present
   loop:
@@ -26,9 +26,9 @@
   ansible.builtin.set_fact:
     iscsi_node_type: >-
                                        {%- set _clusterType = 'scs' -%}
-                                       {%- if ( ['hana','db2'] in supported_tiers ) -%}
+                                       {%- if (['hana', 'db2'] in supported_tiers) -%}
                                        {%-   set _clusterType = 'db' -%}
-                                       {%- endif -%}
+                                       {%- endif -%} {{- _clusterType -}}
                                        {{- _clusterType -}}
 
 - name:                                "1.17.1 iSCSI packages - Get initiator name"
@@ -154,13 +154,8 @@
     - iscsi_initiator_name is defined
   ansible.builtin.debug:
     msg:                               "{{ iscsi_configuration_result }}"
+    verbosity:                         2
 
-    # iscsi_host_diskmap:                "{{ groups[(sap_sid | upper)~'_'~(iscsi_node_type | upper)] |
-    #                                        map('extract', hostvars, ['ansible_hostname']) |
-    #                                        product( iscsi_configuration_result.results | selectattr('devicenodes', 'defined') |
-    #                                        map(attribute='devicenodes') | select() )|
-    #                                        default([]) | unique | list }}"
-    # iscsi_clients:                     "{{ groups[(sap_sid | upper)~'_'~(iscsi_node_type | upper)] }}"
 - name:                                "1.17.1 iSCSI packages - product of vms in group and iscsi_configuration_result devicenodes attribute"
   ansible.builtin.set_fact:
     iscsi_devices_on_client:           "{{ iscsi_configuration_result.results | selectattr('devicenodes', 'defined') |
@@ -171,7 +166,7 @@
 
 - name:                                "1.17.1 iSCSI packages - product of ansible_play_hosts_all in group and iscsi_configuration_result devices on client"
   ansible.builtin.set_fact:
-    iscsi_device_map:                  "{{ [ansible_hostname] | product( iscsi_devices_on_client ) |
+    iscsi_device_map:                  "{{ [ansible_hostname] | product(iscsi_devices_on_client) |
                                            default([]) | unique | list }}"
   when:
     - iscsi_configuration_result is defined
