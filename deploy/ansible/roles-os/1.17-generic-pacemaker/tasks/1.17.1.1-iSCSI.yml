@@ -45,10 +45,10 @@
 
 - name:                                "1.17.1 iSCSI packages - Set the acl names"
   ansible.builtin.set_fact:
-    acl_name_scs_1:                    "iqn.2006-04.{{ sap_sid | lower }}-x{{ iscsi_node_type }}-0.local:{{ sap_sid|lower }}-x{{ iscsi_node_type }}-0"
-    acl_name_scs_2:                    "iqn.2006-04.{{ sap_sid | lower }}-x{{ iscsi_node_type }}-1.local:{{ sap_sid|lower }}-x{{ iscsi_node_type }}-1"
-    acl_name_db_1:                     "iqn.2006-04.{{ sap_sid | lower }}-x{{ iscsi_node_type }}-0.local:{{ sap_sid|lower }}-x{{ iscsi_node_type }}-0"
-    acl_name_db_2:                     "iqn.2006-04.{{ sap_sid | lower }}-x{{ iscsi_node_type }}-1.local:{{ sap_sid|lower }}-x{{ iscsi_node_type }}-1"
+    acl_name_scs_1:                    "iqn.2006-04.{{ sap_sid | lower }}-x{{ iscsi_node_type }}-0.local:{{ sap_sid | lower }}-x{{ iscsi_node_type }}-0"
+    acl_name_scs_2:                    "iqn.2006-04.{{ sap_sid | lower }}-x{{ iscsi_node_type }}-1.local:{{ sap_sid | lower }}-x{{ iscsi_node_type }}-1"
+    acl_name_db_1:                     "iqn.2006-04.{{ sap_sid | lower }}-x{{ iscsi_node_type }}-0.local:{{ sap_sid | lower }}-x{{ iscsi_node_type }}-0"
+    acl_name_db_2:                     "iqn.2006-04.{{ sap_sid | lower }}-x{{ iscsi_node_type }}-1.local:{{ sap_sid | lower }}-x{{ iscsi_node_type }}-1"
 
 - name:                                "1.17.1 iSCSI packages - print acl names"
   ansible.builtin.debug:

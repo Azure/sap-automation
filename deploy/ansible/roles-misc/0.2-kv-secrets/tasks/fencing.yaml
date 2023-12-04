@@ -52,7 +52,7 @@
   no_log:                          false
 
 - name:                            "0.2 Key Vault - Fencing: - Retrieve Fencing agent SPN password details"
-#TODO: Recognize when key is not present and output a useful error message
+# TODO: Recognize when key is not present and output a useful error message
   ansible.builtin.command: >-
     az keyvault secret show
       --vault-name {{ kv_name }}
