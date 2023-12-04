@@ -209,7 +209,7 @@
     # separator.
     # SBD_DEVICE="/dev/sdb1;/dev/sdc1;/dev/sdc2"
     #
-    #SBD_DEVICE=""
+    # SBD_DEVICE=""
     - name:                                   "SBD config file"
       ansible.builtin.lineinfile:
         path:                                 /etc/sysconfig/sbd

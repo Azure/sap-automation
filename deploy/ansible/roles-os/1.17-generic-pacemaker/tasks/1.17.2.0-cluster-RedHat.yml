@@ -281,9 +281,6 @@
           - "output_truthiness:        {{ azure_scheduled_events_status.stdout | int == ansible_play_hosts_all | length }}"
         verbosity:                     2
 
-
-
-
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
 # | Azure scheduled events - BEGIN                                             |
