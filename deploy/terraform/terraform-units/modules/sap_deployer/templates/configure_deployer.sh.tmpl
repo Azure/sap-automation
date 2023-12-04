@@ -293,6 +293,15 @@ else
         exit 1
         ;;
     esac
+    if [ "$(get_distro_version)" == "15.4" ]; then
+        error "Unsupported distro: $${distro_name_version} at this time."
+        exit 1
+    fi
+    if [ "$(get_distro_version)" == "15.5" ]; then
+        error "Unsupported distro: $${distro_name_version} at this time."
+        exit 1
+    fi
+
 
     echo "Set ansible version for specific distros"
     echo ""
@@ -776,7 +785,9 @@ else
               sudo /home/$${local_user}/dotnet-install.sh --install-dir "$${DOTNET_ROOT}" --channel 7.0
               ;;
           (rhel*)
-            sudo dnf install dotnet-sdk-7.0 -y
+              sudo wget https://dot.net/v1/dotnet-install.sh -O "/home/$${local_user}/dotnet-install.sh"
+              sudo chmod +x "/home/$${local_user}/dotnet-install.sh"
+              sudo /home/$${local_user}/dotnet-install.sh --install-dir "$${DOTNET_ROOT}" --channel 7.0
             ;;
         esac
       else

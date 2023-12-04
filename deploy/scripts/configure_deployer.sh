@@ -565,7 +565,7 @@ case "$(get_distro_name)" in
   (rhel*)
     if [[ ! -e "${ansible_venv_bin}/activate" ]]; then
         sudo rm -rf ${ansible_venv}
-        sudo python -m venv ansible_venv
+        sudo python3 -m venv ansible_venv
         source "${ansible_venv_bin}/activate"
     fi
     ;;
