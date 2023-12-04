@@ -248,7 +248,7 @@
     "web": {
         "Default": {
             "compute": {
-                "vm_size"                        : "53",
+                "vm_size"                        : "Standard_E4s_v3",
                 "accelerated_networking"         : true
             },
             "storage": [

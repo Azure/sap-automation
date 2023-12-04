@@ -109,9 +109,9 @@
     - name:                            "5.6 SCSERS - RHEL - ENSA2 - Set the Cluster out of maintenance mode"
       ansible.builtin.command:         pcs property set maintenance-mode=false
 
-    - name:                            "5.6 SCSERS - RHEL - ENSA2 - pause the execution for 2 minutes"
-      ansible.builtin.wait_for:
-        timeout:                       120
+    # - name:                            "5.6 SCSERS - RHEL - ENSA2 - pause the execution for 2 minutes"
+    #   ansible.builtin.wait_for:
+    #     timeout:                       120
 
 # +------------------------------------4---------------------------------------*|
 # | 5.6.6-validate.yml - Validate the SAP ASCS/SCS and ERS resources            |
@@ -126,8 +126,8 @@
 
 - name:                                "5.6 SCSERS - RHEL - Reboot the primary/secondary instance"
   ansible.builtin.reboot:
-    reboot_timeout:                    300
-    post_reboot_delay:                 300
+#    reboot_timeout:                    300
+#    post_reboot_delay:                 300
 
 - name:                                "5.6 SCSERS - RHEL - Set the Cluster out of maintenance mode"
   ansible.builtin.command:             pcs property set maintenance-mode=false
@@ -136,6 +136,18 @@
   ansible.builtin.wait_for:
     timeout:                           120
   register:                            wait_for_connection_results
+
+- name:                                "5.6 SCSERS - RHEL ensure SAPInstance resources are started"
+  ansible.builtin.shell: |
+                                       set -o pipefail
+                                       pcs status --full | grep SAPInstance | grep Started | wc -l
+  register:                            sap_instance_status
+  retries:                             40
+  delay:                               15
+  until:                               (sap_instance_status.stdout | int) == ([(ansible_play_hosts_all | length), 2] | max | int)
+  run_once:                            true
+  failed_when:                         false
+
 
 - name:                                "5.6 SCSERS - RHEL - SCS cluster group validation"
   ansible.builtin.include_tasks:

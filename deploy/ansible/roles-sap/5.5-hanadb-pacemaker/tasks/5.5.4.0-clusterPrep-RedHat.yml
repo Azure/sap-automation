@@ -69,7 +69,7 @@
 
         - name:                        "Check if ANF hana mounts did not error on {{ primary_instance_name }}"
           ansible.builtin.set_fact:
-            chk_nfs_mounts_node1:      "{{ nfs_mounts_node1.results | selectattr('rc', 'ne', 0) | rejectattr('stderr', 'search', 'already exists') | list }}"
+            chk_nfs_mounts_node1:      "{{ nfs_mounts_node1.results | selectattr('rc', 'ne', 0) | rejectattr('stderr', 'search', 'already exists') | default([]) | list }}"
 
         - name:                        "Fail when ANF hana mounts errored on {{ primary_instance_name }}"
           ansible.builtin.fail:
@@ -110,7 +110,7 @@
 
         - name:                        "Check if ANF hana mounts did not error on {{ secondary_instance_name }}"
           ansible.builtin.set_fact:
-            chk_nfs_mounts_node2:      "{{ nfs_mounts_node2.results | selectattr('rc', 'ne', 0) | rejectattr('stderr', 'search', 'already exists') | list }}"
+            chk_nfs_mounts_node2:      "{{ nfs_mounts_node2.results | selectattr('rc', 'ne', 0) | rejectattr('stderr', 'search', 'already exists') | default([]) | list }}"
 
         - name:                        "Fail when ANF hana mounts errored on {{ secondary_instance_name }}"
           ansible.builtin.fail:

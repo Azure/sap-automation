@@ -8,19 +8,6 @@
   loop:
     - { path: '/sbd' }
 
-- name:                                   "Build SBD Dictionary"
-  ansible.builtin.set_fact:
-    sbdMap:                               "{{ sbdMap + sbdMap_update }}"
-  vars:
-    sbdMap_update:
-      - { host:       "{{ item.host }}" ,
-          lun:        "{{ item.lun }}"  ,
-          blockDev:   ''                ,
-          diskByLun:  ''                ,
-          diskById:   ''                  }
-  loop:                                   "{{ sbdDevices }}"
-  when:                                   item.host == ansible_hostname
-
 - name:                               "2.11: SBD create sbdnfs SCS"
   become_user:                        root
   become:                             true
@@ -71,7 +58,7 @@
 - name:                               "2.11: SBD create iscsi/iqn SCS"
   become_user:                        root
   become:                             true
-  ansible.builtin.command:            "targetcli iscsi/{{ item.iqn }}/tpg1/acls/ create iqn.2006-04.{{ sap_sid }}-xscs-0.local:{{ sap_sid }}-xscs-1"
+  ansible.builtin.command:            "targetcli iscsi/{{ item.iqn }}/tpg1/acls/ create iqn.2006-04.{{ sap_sid }}-xscs-1.local:{{ sap_sid }}-xscs-1"
   register:                           iscsi_create4_scs
   failed_when:                        iscsi_create4_scs.rc not in [0,1]
   changed_when:                       iscsi_create4_scs.rc == 0

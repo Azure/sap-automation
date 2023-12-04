@@ -304,7 +304,6 @@
           tags:
             - 2.11-iSCSI-server
 
-
 - hosts:                               localhost
   name:                                "OS configuration playbook: - Initialization"
   gather_facts:                        true

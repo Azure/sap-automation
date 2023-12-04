@@ -34,7 +34,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA" {
                                storage_quota_in_gb          = pub.value.storage_quota_in_gb
                                throughput_in_mibps          = pub.value.throughput_in_mibps
                                protocols                    = ["NFSv4.1"]
-                               security_style               = "Unix"
+                               security_style               = "unix"
                                snapshot_directory_visible   = false
 
                                export_policy_rule {
