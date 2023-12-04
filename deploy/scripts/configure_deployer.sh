@@ -376,6 +376,7 @@ case "$(get_distro_name)" in
         sshpass
         python36
         python3-pip
+        python3-virtualenv
     )
     ;;
 esac
@@ -502,7 +503,7 @@ case "$(get_distro_name)" in
   (rhel*)
     sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc
     sudo dnf install -y https://packages.microsoft.com/config/rhel/8/packages-microsoft-prod.rpm
-    sudo dnf install azure-cli
+    sudo dnf install -y azure-cli
     ;;
 esac
 
@@ -565,7 +566,7 @@ case "$(get_distro_name)" in
   (rhel*)
     if [[ ! -e "${ansible_venv_bin}/activate" ]]; then
         sudo rm -rf ${ansible_venv}
-        sudo python3 -m venv ansible_venv
+        sudo python3 -m venv ${ansible_venv}
         source "${ansible_venv_bin}/activate"
     fi
     ;;
