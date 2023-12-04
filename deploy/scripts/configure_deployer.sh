@@ -388,7 +388,7 @@ case "$(get_distro_name)" in
     )
     required_pkgs+=(
         sshpass
-        python39
+        python36
         python3-pip
         python3-virtualenv
     )
