@@ -302,4 +302,3 @@
   when:
     - node_tier == 'scs'
     - (sap_trans is undefined) or (usr_sap_install_mountpoint is undefined) or (sap_mnt is undefined)
-
