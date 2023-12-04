@@ -140,7 +140,7 @@
             "lun_start"                            : 2
           },
           {
-            "name"                                 : "sapdata",
+            "name"                                 : "sapdata_1",
             "fullname"                             : "",
             "count"                                : 2,
             "disk_type"                            : "Premium_LRS",
@@ -150,7 +150,7 @@
             "lun_start"                            : 3
           },
           {
-            "name"                                 : "saplog",
+            "name"                                 : "saplog_1",
             "fullname"                             : "",
             "count"                                : 1,
             "disk_type"                            : "Premium_LRS",
@@ -246,7 +246,7 @@
             "write_accelerator"                    : false
           },
           {
-            "name"                                 : "sapdata",
+            "name"                                 : "sapdata_1",
             "fullname"                             : "",
             "count"                                : 2,
             "disk_type"                            : "Premium_LRS",
@@ -256,7 +256,7 @@
             "lun_start"                            : 5
           },
           {
-            "name"                                 : "saplog",
+            "name"                                 : "saplog_1",
             "fullname"                             : "",
             "count"                                : 1,
             "disk_type"                            : "Premium_LRS",
@@ -352,7 +352,7 @@
             "write_accelerator"                    : false
           },
           {
-            "name"                                 : "sapdata1",
+            "name"                                 : "sapdata_1",
             "fullname"                             : "",
             "count"                                : 2,
             "disk_type"                            : "Premium_LRS",
@@ -362,7 +362,7 @@
             "lun_start"                            : 5
           },
           {
-            "name"                                 : "sapdata2",
+            "name"                                 : "sapdata_2",
             "fullname"                             : "",
             "count"                                : 2,
             "disk_type"                            : "Premium_LRS",
@@ -372,7 +372,7 @@
             "lun_start"                            : 8
           },
           {
-            "name"                                 : "sapdata3",
+            "name"                                 : "sapdata_3",
             "fullname"                             : "",
             "count"                                : 2,
             "disk_type"                            : "Premium_LRS",
@@ -382,7 +382,7 @@
             "lun_start"                            : 11
           },
           {
-            "name"                                 : "sapdata4",
+            "name"                                 : "sapdata_4",
             "fullname"                             : "",
             "count"                                : 2,
             "disk_type"                            : "Premium_LRS",
@@ -392,7 +392,7 @@
             "lun_start"                            : 14
           },
           {
-            "name"                                 : "saplog1",
+            "name"                                 : "saplog_1",
             "fullname"                             : "",
             "count"                                : 1,
             "disk_type"                            : "Premium_LRS",

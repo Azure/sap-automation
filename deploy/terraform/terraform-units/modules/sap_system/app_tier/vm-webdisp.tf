@@ -233,6 +233,13 @@ resource "azurerm_linux_virtual_machine" "web" {
   boot_diagnostics {
                      storage_account_uri = var.storage_bootdiag_endpoint
                    }
+  dynamic "identity"   {
+                         for_each = range(length(var.application_tier.user_assigned_identity_id) > 0 ? 1 : 0)
+                         content {
+                                   type         = "UserAssigned"
+                                   identity_ids = [var.application_tier.user_assigned_identity_id]
+                                 }
+                       }
 
 
 }
@@ -355,6 +362,13 @@ resource "azurerm_windows_virtual_machine" "web" {
   boot_diagnostics {
                      storage_account_uri = var.storage_bootdiag_endpoint
                    }
+  dynamic "identity"   {
+                         for_each = range(length(var.application_tier.user_assigned_identity_id) > 0 ? 1 : 0)
+                         content {
+                                   type         = "UserAssigned"
+                                   identity_ids = [var.application_tier.user_assigned_identity_id]
+                                 }
+                       }
 
 }
 
@@ -415,6 +429,7 @@ resource "azurerm_virtual_machine_extension" "web_lnx_aem_extension" {
                                              "system": "SAP"
                                            }
                                          )
+  tags                                 = var.tags
 }
 
 
@@ -434,6 +449,7 @@ resource "azurerm_virtual_machine_extension" "web_win_aem_extension" {
                                              "system": "SAP"
                                            }
                                          )
+  tags                                 = var.tags
 }
 
 resource "azurerm_virtual_machine_extension" "configure_ansible_web" {
@@ -457,6 +473,7 @@ resource "azurerm_virtual_machine_extension" "configure_ansible_web" {
                                               "commandToExecute": "powershell.exe -ExecutionPolicy Unrestricted -File configure_ansible.ps1 -Verbose"
                                            }
                                          )
+  tags                                 = var.tags
 }
 
 #######################################4#######################################8
@@ -492,7 +509,7 @@ resource "azurerm_lb" "web" {
                               private_ip_address = var.application_tier.use_DHCP ? (
                                 null) : (
                                 try(
-                                  local.web_lb_ips[0],
+                                  local.webdispatcher_loadbalancer_ips[0],
                                   cidrhost(
                                     local.web_subnet_deployed.address_prefixes[0],
                                     local.ip_offsets.web_lb
@@ -579,7 +596,7 @@ resource "azurerm_availability_set" "web" {
   resource_group_name                  = var.resource_group[0].name
   platform_update_domain_count         = 20
   platform_fault_domain_count          = local.faultdomain_count
-  proximity_placement_group_id         = local.web_zonal_deployment ? var.ppg[count.index % length(local.web_zones)] : var.ppg[0]
+  proximity_placement_group_id         = try(local.web_zonal_deployment ? var.ppg[count.index % length(local.web_zones)] : var.ppg[0], null)
   managed                              = true
 
   tags                                 = var.tags

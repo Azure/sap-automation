@@ -6,18 +6,19 @@
 
 
 variable "environment"                           {
+                                                   description = "This is the environment name for the deployment"
                                                    type        = string
-                                                                                                   description = "This is the environment name of the deployer"
                                                    default     = ""
                                                  }
 
 variable "codename"                              {
-                                                   type    = string
-                                                   default = ""
+                                                   description = "This is the code name name for the deployment"
+                                                   type        = string
+                                                   default     = ""
                                                  }
 
 variable "location"                              {
-                                                                                                  description = "The Azure region for the resources"
+                                                  description = "The Azure region for the resources"
                                                   type        = string
                                                   default     = ""
                                                 }
@@ -49,7 +50,7 @@ variable "resourcegroup_arm_id"                 {
                                                 }
 
 variable "resourcegroup_tags"                   {
-                                                                                                  description = "Tags to be applied to the resource group"
+                                                  description = "Tags to be applied to the resource group"
                                                   default     = {}
                                                 }
 
@@ -66,12 +67,12 @@ variable "network_name"                         {
                                                 }
 
 variable "network_logical_name"                 {
-                                                                                                  description = "The logical name of the virtual network, used for resource naming"
+                                                  description = "The logical name of the virtual network, used for resource naming"
                                                   default     = ""
                                                 }
 
 variable "network_address_space"                {
-                                                                                                  description = "The address space of the virtual network"
+                                                  description = "The address space of the virtual network"
                                                   default     = ""
                                                 }
 
@@ -118,7 +119,7 @@ variable "peer_with_control_plane_vnet"         {
 #######################################4#######################################8
 
 variable "admin_subnet_address_prefix"          {
-                                                                                                  description = "The address prefix for the admin subnet"
+                                                  description = "The address prefix for the admin subnet"
                                                   default     = ""
                                                 }
 
@@ -160,7 +161,7 @@ variable "db_subnet_arm_id"                     {
                                                 }
 
 variable "db_subnet_address_prefix"             {
-                                                                                                  description = "The address prefix for the db subnet"
+                                                  description = "The address prefix for the db subnet"
                                                   default     = ""
                                                 }
 
@@ -192,7 +193,7 @@ variable "app_subnet_arm_id"                    {
                                                 }
 
 variable "app_subnet_address_prefix"            {
-                                                                                                  description = "The address prefix for the app subnet"
+                                                  description = "The address prefix for the app subnet"
                                                   default     = ""
                                                 }
 
@@ -340,6 +341,11 @@ variable "use_spn"                              {
                                                   default     = true
                                                 }
 
+variable "user_assigned_identity_id"            {
+                                                  description = "If provided defines the user assigned identity to assign to the virtual machines"
+                                                  default     = ""
+                                                }
+
 #########################################################################################
 #                                                                                       #
 #  Storage Account variables                                                            #
@@ -354,6 +360,12 @@ variable "diagnostics_storage_account_arm_id"   {
 variable "witness_storage_account_arm_id"       {
                                                   description = "If provided, Azure resource id for the witness storage account"
                                                   default     = ""
+                                                }
+
+variable "create_transport_storage"             {
+                                                  description = "Boolean file indicating if storage should be created for SAP transport"
+                                                  type        = bool
+                                                  default     = true
                                                 }
 
 variable "transport_storage_account_id"         {
@@ -414,23 +426,23 @@ variable "storage_account_replication_type"     {
 #########################################################################################
 
 
-variable "use_custom_dns_a_registration"        {
-                                                  description = "Boolean value indicating if a custom dns a record should be created when using private endpoints"
-                                                  default     = false
-                                                  type        = bool
-                                                }
+variable "use_custom_dns_a_registration"           {
+                                                     description = "Boolean value indicating if a custom dns a record should be created when using private endpoints"
+                                                     default     = false
+                                                     type        = bool
+                                                   }
 
-variable "management_dns_subscription_id"       {
-                                                  description = "String value giving the possibility to register custom dns a records in a separate subscription"
-                                                  default     = null
-                                                  type        = string
-                                                }
+variable "management_dns_subscription_id"          {
+                                                     description = "String value giving the possibility to register custom dns a records in a separate subscription"
+                                                     default     = ""
+                                                     type        = string
+                                                   }
 
-variable "management_dns_resourcegroup_name"    {
-                                                  description = "String value giving the possibility to register custom dns a records in a separate resourcegroup"
-                                                  default     = ""
-                                                  type        = string
-                                                }
+variable "management_dns_resourcegroup_name"       {
+                                                     description = "String value giving the possibility to register custom dns a records in a separate resourcegroup"
+                                                     default     = ""
+                                                     type        = string
+                                                   }
 
 variable "create_vaults_and_storage_dns_a_records" {
                                                      description = "Boolean value indicating if dns a records should be created for the vaults and storage accounts"
@@ -438,17 +450,27 @@ variable "create_vaults_and_storage_dns_a_records" {
                                                      type        = bool
                                                    }
 
-variable "dns_server_list"                      {
-                                                  description = "DNS server list"
-                                                  default     = []
-                                                }
+variable "dns_server_list"                         {
+                                                     description = "DNS server list"
+                                                     default     = []
+                                                   }
 
 
-variable "register_virtual_network_to_dns"      {
-                                                  description = "Boolean value indicating if the vnet should be registered to the dns zone"
-                                                  default     = true
-                                                  type        = bool
-                                                }
+variable "register_virtual_network_to_dns"         {
+                                                     description = "Boolean value indicating if the vnet should be registered to the dns zone"
+                                                     default     = true
+                                                     type        = bool
+                                                   }
+variable "dns_zone_names"                          {
+                                                     description = "Private DNS zone names"
+                                                     type        = map(string)
+
+                                                     default = {
+                                                                 "file_dns_zone_name"  = "privatelink.file.core.windows.net"
+                                                                 "blob_dns_zone_name"  = "privatelink.blob.core.windows.net"
+                                                                 "vault_dns_zone_name" = "privatelink.vaultcore.azure.net"
+                                                               }
+                                                   }
 
 #########################################################################################
 #                                                                                       #
@@ -456,85 +478,85 @@ variable "register_virtual_network_to_dns"      {
 #                                                                                       #
 #########################################################################################
 
-variable "ANF_account_arm_id"                   {
-                                                  description = "If provided, The resource identifier for the NetApp account"
-                                                  default     = ""
-                                                }
+variable "ANF_account_arm_id"                      {
+                                                     description = "If provided, The resource identifier for the NetApp account"
+                                                     default     = ""
+                                                   }
 
-variable "ANF_account_name"                     {
-                                                  description = "If provided, the NetApp account name"
-                                                  default     = ""
-                                                }
+variable "ANF_account_name"                        {
+                                                     description = "If provided, the NetApp account name"
+                                                     default     = ""
+                                                   }
 
-variable "ANF_use_existing_pool"                {
-                                                  description = "Use existing storage pool"
-                                                  default     = false
-                                                }
+variable "ANF_use_existing_pool"                   {
+                                                     description = "Use existing storage pool"
+                                                     default     = false
+                                                   }
 
-variable "ANF_pool_name"                        {
-                                                  description = "If provided, the NetApp capacity pool name (if any)"
-                                                  default     = ""
-                                                }
+variable "ANF_pool_name"                           {
+                                                     description = "If provided, the NetApp capacity pool name (if any)"
+                                                     default     = ""
+                                                   }
 
-variable "ANF_service_level"                    {
-                                                  description = "The NetApp Service Level"
-                                                  default     = "Premium"
-                                                }
+variable "ANF_service_level"                       {
+                                                     description = "The NetApp Service Level"
+                                                     default     = "Premium"
+                                                   }
 
-variable "ANF_pool_size"                        {
-                                                  description = "The NetApp Pool size in TB"
-  default     = 4
-                                                }
+variable "ANF_pool_size"                           {
+                                                     description = "The NetApp Pool size in TB"
+                                                     default     = 4
+                                                   }
 
-variable "ANF_qos_type"                         {
-                                                  description = "The Quality of Service type of the pool (Auto or Manual)"
-                                                  default     = "Manual"
-                                                }
+variable "ANF_qos_type"                            {
+                                                     description = "The Quality of Service type of the pool (Auto or Manual)"
+                                                     default     = "Manual"
+                                                   }
 
-variable "ANF_transport_volume_use_existing"    {
-                                                  description = "Use existing transport volume"
-                                                  default     = false
-                                                }
+variable "ANF_transport_volume_use_existing"       {
+                                                     description = "Use existing transport volume"
+                                                     default     = false
+                                                   }
 
-variable "ANF_transport_volume_name"            {
-                                                  description = "f defined provides the Transport volume name"
-                                                  default     = false
-                                                }
+variable "ANF_transport_volume_name"               {
+                                                     description = "f defined provides the Transport volume name"
+                                                     default     = false
+                                                   }
 
-variable "ANF_transport_volume_throughput"      {
-                                                  description = "f defined provides the throughput of the transport volume"
-                                                  default     = 128
-                                                }
+variable "ANF_transport_volume_throughput"         {
+                                                     description = "f defined provides the throughput of the transport volume"
+                                                     default     = 128
+                                                   }
 
-variable "ANF_transport_volume_size"            {
-                                                  description = "f defined provides the size of the transport volume"
-                                                  default     = 128
-                                                }
+variable "ANF_transport_volume_size"               {
+                                                     description = "f defined provides the size of the transport volume"
+                                                     default     = 128
+                                                   }
 
-variable "ANF_install_volume_use_existing"      {
-                                                  description = "Use existing install volume"
-                                                  default     = false
-                                                }
+variable "ANF_install_volume_use_existing"         {
+                                                     description = "Use existing install volume"
+                                                     default     = false
+                                                   }
 
-variable "ANF_install_volume_name"              {
-                                                  description = "nstall volume name"
-                                                  default     = ""
-                                                }
+variable "ANF_install_volume_name"                 {
+                                                     description = "nstall volume name"
+                                                     default     = ""
+                                                   }
 
-variable "ANF_install_volume_throughput"        {
-                                                  description = "f defined provides the throughput of the install volume"
-                                                  default     = 128
-                                                }
+variable "ANF_install_volume_throughput"           {
+                                                     description = "f defined provides the throughput of the install volume"
+                                                     default     = 128
+                                                   }
 
-variable "ANF_install_volume_size"              {
-                                                  description = "f defined provides the size of the install volume"
-                                                  default     = 1024
-                                                }
+variable "ANF_install_volume_size"                 {
+                                                     description = "f defined provides the size of the install volume"
+                                                     default     = 1024
+                                                   }
 
-variable "use_AFS_for_installation_media"       {
-                                                  description = "f true, will use AFS for installation media."
-                                                  default = false
-                                                }
+variable "use_AFS_for_installation_media"          {
+                                                     description = "f true, will use AFS for installation media."
+                                                     default = false
+                                                   }
 
 
 #########################################################################################
@@ -543,76 +565,76 @@ variable "use_AFS_for_installation_media"       {
 #                                                                                       #
 #########################################################################################
 
-variable "iscsi_subnet_name"                    {
-                                                  description = "If provided, the name of the iSCSI subnet"
-                                                  default     = ""
-                                                }
+variable "iscsi_subnet_name"                       {
+                                                     description = "If provided, the name of the iSCSI subnet"
+                                                     default     = ""
+                                                   }
 
-variable "iscsi_subnet_arm_id"                  {
-                                                  description = "If provided, Azure resource id for the iSCSI subnet"
-                                                  default     = ""
-                                                }
+variable "iscsi_subnet_arm_id"                     {
+                                                     description = "If provided, Azure resource id for the iSCSI subnet"
+                                                     default     = ""
+                                                   }
 
-variable "iscsi_subnet_address_prefix"          {
-                                                  description = "The address prefix for the iSCSI subnet"
-                                                  default     = ""
-                                                }
+variable "iscsi_subnet_address_prefix"             {
+                                                     description = "The address prefix for the iSCSI subnet"
+                                                     default     = ""
+                                                   }
 
-variable "iscsi_subnet_nsg_name"                {
-                                                  description = "If provided, the name of the iSCSI subnet NSG"
-                                                  default     = ""
-                                                }
+variable "iscsi_subnet_nsg_name"                   {
+                                                     description = "If provided, the name of the iSCSI subnet NSG"
+                                                     default     = ""
+                                                   }
 
-variable "iscsi_subnet_nsg_arm_id"              {
-                                                  description = "If provided, Azure resource id for the iSCSI subnet NSG"
-                                                  default     = ""
-                                                }
+variable "iscsi_subnet_nsg_arm_id"                 {
+                                                     description = "If provided, Azure resource id for the iSCSI subnet NSG"
+                                                     default     = ""
+                                                   }
 
-variable "iscsi_count"                          {
-                                                  description = "The number of iSCSI Virtual Machines to create"
-                                                  default     = 0
-                                                }
+variable "iscsi_count"                             {
+                                                     description = "The number of iSCSI Virtual Machines to create"
+                                                     default     = 0
+                                                   }
 
-variable "iscsi_size"                           {
-                                                  description = "The size of the iSCSI Virtual Machine"
-                                                  default     = ""
-                                                }
+variable "iscsi_size"                              {
+                                                     description = "The size of the iSCSI Virtual Machine"
+                                                     default     = ""
+                                                   }
 
-variable "iscsi_useDHCP"                        {
-                                                  description = "value indicating if iSCSI Virtual Machine should use DHCP"
-                                                  default     = false
-                                                }
+variable "iscsi_useDHCP"                           {
+                                                     description = "value indicating if iSCSI Virtual Machine should use DHCP"
+                                                     default     = false
+                                                   }
 
-variable "iscsi_image"                          {
-                                                  description = "The virtual machine image for the iSCSI Virtual Machine"
-                                                  default     = {
-                                                                  "source_image_id" = ""
-                                                                  "publisher"       = "SUSE"
-                                                                  "offer"           = "sles-sap-15-sp5"
-                                                                  "sku"             = "gen1"
-                                                                  "version"         = "latest"
-                                                                }
-                                                }
-variable "iscsi_authentication_type"            {
-                                                  description = "SCSI Virtual Machine authentication type"
-                                                  default     = "key"
-                                                }
+variable "iscsi_image"                             {
+                                                     description = "The virtual machine image for the iSCSI Virtual Machine"
+                                                     default     = {
+                                                                     "source_image_id" = ""
+                                                                     "publisher"       = "SUSE"
+                                                                     "offer"           = "sles-sap-15-sp5"
+                                                                     "sku"             = "gen1"
+                                                                     "version"         = "latest"
+                                                                   }
+                                                   }
+variable "iscsi_authentication_type"               {
+                                                     description = "SCSI Virtual Machine authentication type"
+                                                     default     = "key"
+                                                   }
 
-variable "iscsi_authentication_username"        {
-                                                  description = "User name for iSCSI Virtual Machine"
-                                                  default     = "azureadm"
-                                                }
+variable "iscsi_authentication_username"           {
+                                                     description = "User name for iSCSI Virtual Machine"
+                                                     default     = "azureadm"
+                                                   }
 
 
-variable "iscsi_nic_ips"                        {
-                                                  description = "P addresses for the iSCSI Virtual Machine NICs"
-                                                  default     = []
-                                                }
+variable "iscsi_nic_ips"                           {
+                                                     description = "P addresses for the iSCSI Virtual Machine NICs"
+                                                     default     = []
+                                                   }
 
-variable "iscsi_vm_zones"                       {
-                                                  description = "If provided, the iSCSI will be deployed in the specified zones"
-                                                  default     = []
-                                                }
+variable "iscsi_vm_zones"                          {
+                                                     description = "If provided, the iSCSI will be deployed in the specified zones"
+                                                     default     = []
+                                                   }
 
 
 #######################################4#######################################8
@@ -622,37 +644,37 @@ variable "iscsi_vm_zones"                       {
 #######################################4#######################################8
 
 
-variable "utility_vm_count"                     {
-                                                  description = "The number of utility_vmes to create"
-                                                  default     = 0
-                                                }
+variable "utility_vm_count"                        {
+                                                     description = "The number of utility_vmes to create"
+                                                     default     = 0
+                                                   }
 
-variable "utility_vm_size"                      {
-                                                  description = "The size of the utility_vm Virtual Machine"
-                                                  default     = "Standard_D4ds_v4"
-                                                }
+variable "utility_vm_size"                         {
+                                                     description = "The size of the utility_vm Virtual Machine"
+                                                     default     = "Standard_D4ds_v4"
+                                                   }
 
-variable "utility_vm_useDHCP"                   {
-                                                  description = "value indicating if utility_vm should use DHCP"
-                                                  default     = true
-                                                }
+variable "utility_vm_useDHCP"                      {
+                                                     description = "value indicating if utility_vm should use DHCP"
+                                                     default     = true
+                                                   }
 
-variable "utility_vm_image"                     {
-                                                  description = "The virtual machine image for the utility_vm Virtual Machine"
-                                                  default     = {
-                                                                  "os_type"         = "WINDOWS"
-                                                                  "source_image_id" = ""
-                                                                  "publisher"       = "MicrosoftWindowsServer"
-                                                                  "offer"           = "windowsserver"
-                                                                  "sku"             = "2019-datacenter"
-                                                                  "version"         = "latest"
-                                                                }
-                                                }
+variable "utility_vm_image"                        {
+                                                     description = "The virtual machine image for the utility_vm Virtual Machine"
+                                                     default     = {
+                                                                     "os_type"         = "WINDOWS"
+                                                                     "source_image_id" = ""
+                                                                     "publisher"       = "MicrosoftWindowsServer"
+                                                                     "offer"           = "windowsserver"
+                                                                     "sku"             = "2019-datacenter"
+                                                                     "version"         = "latest"
+                                                                   }
+                                                   }
 
-variable "utility_vm_nic_ips"                   {
-                                                  description = "IP addresses for the utility_vm Virtual Machine NICs"
-                                                  default     = []
-                                                }
+variable "utility_vm_nic_ips"                      {
+                                                     description = "IP addresses for the utility_vm Virtual Machine NICs"
+                                                     default     = []
+                                                   }
 
 #########################################################################################
 #                                                                                       #
@@ -660,7 +682,24 @@ variable "utility_vm_nic_ips"                   {
 #                                                                                       #
 #########################################################################################
 
-variable "tags"                                 {
-                                                   description = "If provided, tags for all resources"
-                                                   default     = {}
-                                                }
+variable "tags"                                    {
+                                                      description = "If provided, tags for all resources"
+                                                      default     = {}
+                                                   }
+
+
+#########################################################################################
+#                                                                                       #
+#  Export Share Control                                                                 #
+#                                                                                       #
+#########################################################################################
+
+variable "export_install_path"                     {
+                                                      description = "If provided, export mount path for the installation media"
+                                                      default     = true
+                                                   }
+
+variable "export_transport_path"                   {
+                                                      description = "If provided, export mount path for the transport media"
+                                                      default     = true
+                                                   }

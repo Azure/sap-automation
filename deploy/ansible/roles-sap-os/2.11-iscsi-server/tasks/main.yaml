@@ -1,0 +1,147 @@
+---
+
+- name:                               "2.11: SBD - Create Directory"
+  ansible.builtin.file:
+    path:                             "{{ item.path }}"
+    state:                            directory
+    mode:                             0755
+  loop:
+    - { path: '/sbd' }
+
+- name:                               "2.11: SBD create sbdnfs SCS"
+  become_user:                        root
+  become:                             true
+  ansible.builtin.command:            "targetcli backstores/fileio create sbdascs{{ sap_sid }} /sbd/sbdascs{{ sap_sid }} 50M write_back=false"
+  register:                           sbd_create_scs
+  failed_when:                        sbd_create_scs.rc not in [0,1]
+  changed_when:                       sbd_create_scs.rc == 0
+
+- name:                               "2.11: SBD create iscsi SCS"
+  become_user:                        root
+  become:                             true
+  ansible.builtin.command:            "targetcli iscsi/ create {{ item.iqn }}"
+  register:                           iscsi_create_scs
+  failed_when:                        iscsi_create_scs.rc not in [0,1]
+  changed_when:                       iscsi_create_scs.rc == 0
+  loop:                               "{{ iscsi_servers }}"
+  when:
+    - iscsi_servers is defined
+    - item.host == ansible_hostname
+    - item.type == 'scs'
+
+- name:                               "2.11: SBD create iscsi/iqn SCS"
+  become_user:                        root
+  become:                             true
+  ansible.builtin.command:            "targetcli iscsi/{{ item.iqn }}/tpg1/luns/ create /backstores/fileio/sbdascs{{ sap_sid }}"
+  register:                           iscsi_create2_scs
+  failed_when:                        iscsi_create2_scs.rc not in [0,1]
+  changed_when:                       iscsi_create2_scs.rc == 0
+  loop:                               "{{ iscsi_servers }}"
+  when:
+    - iscsi_servers is defined
+    - item.host == ansible_hostname
+    - item.type == 'scs'
+
+- name:                               "2.11: SBD create iscsi/iqn SCS"
+  become_user:                        root
+  become:                             true
+  ansible.builtin.command:            "targetcli iscsi/{{ item.iqn }}/tpg1/acls/ create iqn.2006-04.{{ sap_sid }}-xscs-0.local:{{ sap_sid }}-xscs-0"
+  register:                           iscsi_create3_scs
+  failed_when:                        iscsi_create3_scs.rc not in [0,1]
+  changed_when:                       iscsi_create3_scs.rc == 0
+  loop:                               "{{ iscsi_servers }}"
+  when:
+    - iscsi_servers is defined
+    - item.host == ansible_hostname
+    - item.type == 'scs'
+
+- name:                               "2.11: SBD create iscsi/iqn SCS"
+  become_user:                        root
+  become:                             true
+  ansible.builtin.command:            "targetcli iscsi/{{ item.iqn }}/tpg1/acls/ create iqn.2006-04.{{ sap_sid }}-xscs-1.local:{{ sap_sid }}-xscs-1"
+  register:                           iscsi_create4_scs
+  failed_when:                        iscsi_create4_scs.rc not in [0,1]
+  changed_when:                       iscsi_create4_scs.rc == 0
+  loop:                               "{{ iscsi_servers }}"
+  when:
+    - iscsi_servers is defined
+    - item.host == ansible_hostname
+    - item.type == 'scs'
+
+- name:                               "2.11: SBD create sbdnfs DB"
+  become_user:                        root
+  become:                             true
+  ansible.builtin.command:            "targetcli backstores/fileio create sbddb{{ sap_sid }} /sbd/sbddb{{ sap_sid }} 50M write_back=false"
+  register:                           sbd_create_db
+  failed_when:                        sbd_create_db.rc not in [0,1]
+  changed_when:                       sbd_create_db.rc == 0
+
+- name:                               "2.11: SBD create iscsi DB"
+  become_user:                        root
+  become:                             true
+  ansible.builtin.command:            "targetcli iscsi/ create {{ item.iqn }}"
+  register:                           iscsi_create_db
+  failed_when:                        iscsi_create_db.rc not in [0,1]
+  changed_when:                       iscsi_create_db.rc == 0
+  loop:                               "{{ iscsi_servers }}"
+  when:
+    - iscsi_servers is defined
+    - item.host == ansible_hostname
+    - item.type == 'db'
+
+- name:                               "2.11: SBD create iscsi/iqn DB"
+  become_user:                        root
+  become:                             true
+  ansible.builtin.command:            "targetcli iscsi/{{ item.iqn }}/tpg1/luns/ create /backstores/fileio/sbddb{{ sap_sid }}"
+  register:                           iscsi_create2_db
+  failed_when:                        iscsi_create2_db.rc not in [0,1]
+  changed_when:                       iscsi_create2_db.rc == 0
+  loop:                               "{{ iscsi_servers }}"
+  when:
+    - iscsi_servers is defined
+    - item.host == ansible_hostname
+    - item.type == 'db'
+
+- name:                               "2.11: SBD create iscsi/iqn DB"
+  become_user:                        root
+  become:                             true
+  ansible.builtin.command:            "targetcli iscsi/{{ item.iqn }}/tpg1/acls/ create iqn.2006-04.{{ sap_sid }}-db-0.local:{{ sap_sid }}-db-0"
+  register:                           iscsi_create3_db
+  failed_when:                        iscsi_create3_db.rc not in [0,1]
+  changed_when:                       iscsi_create3_db.rc == 0
+  loop:                               "{{ iscsi_servers }}"
+  when:
+    - iscsi_servers is defined
+    - item.host == ansible_hostname
+    - item.type == 'db'
+
+- name:                               "2.11: SBD create iscsi/iqn DB"
+  become_user:                        root
+  become:                             true
+  ansible.builtin.command:            "targetcli iscsi/{{ item.iqn }}/tpg1/acls/ create iqn.2006-04.{{ sap_sid }}-db-1.local:{{ sap_sid }}-db-1"
+  register:                           iscsi_create4_db
+  failed_when:                        iscsi_create4_db.rc not in [0,1]
+  changed_when:                       iscsi_create4_db.rc == 0
+  loop:                               "{{ iscsi_servers }}"
+  when:
+    - iscsi_servers is defined
+    - item.host == ansible_hostname
+    - item.type == 'db'
+
+- name:                               "2.11: Save CLI"
+  become_user:                        root
+  become:                             true
+  ansible.builtin.command:            "targetcli saveconfig"
+  register:                           cli_save
+
+- name:                               "2.11: Show CLI"
+  become_user:                        root
+  become:                             true
+  ansible.builtin.command:            "targetcli ls"
+  register:                           cli_ls
+
+- name:                               "2.11: Show CLI results"
+  ansible.builtin.debug:
+    msg:                              "{{ cli_ls.stdout_lines }}"
+  when:
+    - cli_ls is defined

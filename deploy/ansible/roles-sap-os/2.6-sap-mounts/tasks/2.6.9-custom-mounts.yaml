@@ -5,7 +5,7 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-- name:                                "Custom Mount: Create SAP Directories ({{ custom_mount.path }})"
+- name:                                "Custom Mount: Create Directories ({{ custom_mount.path }})"
   ansible.builtin.file:
     owner:                             '{{ sidadm_uid }}'
     group:                             sapsys

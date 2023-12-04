@@ -1,5 +1,8 @@
 variable "admin_subnet"                                 { description = "Information about SAP admin subnet" }
-variable "anchor_vm"                                    { description = "Deployed anchor VM" }
+variable "anchor_vm"                                    {
+                                                          description = "Deployed anchor VM"
+                                                          default     = null
+                                                        }
 variable "cloudinit_growpart_config"                    { description = "A cloud-init config that configures automatic growpart expansion of root partition" }
 variable "custom_disk_sizes_filename"                   {
                                                           description = "Disk size json file"

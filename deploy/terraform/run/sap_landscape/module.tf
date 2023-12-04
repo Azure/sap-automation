@@ -17,10 +17,12 @@ module "sap_landscape" {
   ANF_settings                                 = local.ANF_settings
   authentication                               = local.authentication
   create_vaults_and_storage_dns_a_records      = var.create_vaults_and_storage_dns_a_records
+  create_transport_storage                     = var.create_transport_storage
   deployer_tfstate                             = try(data.terraform_remote_state.deployer[0].outputs, [])
   diagnostics_storage_account                  = local.diagnostics_storage_account
   dns_label                                    = var.dns_label
   dns_server_list                              = var.dns_server_list
+  dns_zone_names                               = var.dns_zone_names
   enable_firewall_for_keyvaults_and_storage    = var.enable_firewall_for_keyvaults_and_storage
   enable_purge_control_for_keyvaults           = var.enable_purge_control_for_keyvaults
   enable_rbac_authorization_for_keyvault       = var.enable_rbac_authorization_for_keyvault

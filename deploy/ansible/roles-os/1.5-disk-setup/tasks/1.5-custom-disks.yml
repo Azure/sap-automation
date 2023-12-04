@@ -1,0 +1,122 @@
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                         OS Base Disk Configuration                         |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+---
+# -------------------------------------+---------------------------------------8
+#
+# Task: 1.5     - os-disk-setup
+#
+# -------------------------------------+---------------------------------------8
+
+# -------------------------------------+---------------------------------------8
+#
+# <Comment Header>
+#
+# -------------------------------------+---------------------------------------8
+
+# ----------------------------------------
+# BEGIN
+# ----------------------------------------
+
+# ----------------------------------------
+# END
+# ----------------------------------------
+
+# -------------------------------------+---------------------------------------8
+#
+
+
+- name:                                "1.5.1 Custom Disk setup - Load the disk configuration settings"
+  ansible.builtin.include_vars:        disks_config.yml
+
+- name:                                "1.5.1 Custom Disk setup - Show disk info"
+  ansible.builtin.debug:
+    msg:
+      - "Unique disks:                 {{ disktypes }} "
+      - "Volume groups:                {{ volume_groups }} "
+      - "Logical volumes:              {{ custom_logical_volumes }} "
+    verbosity:                         2
+
+# CREATE LOGICAL VOLUMES BASED ON VGCREATEDLIST
+# -------------------------------------+---------------------------------------8
+#
+- name:                                "1.5.1 Custom Disk setup - Logical Volume creation"
+  community.general.lvol:
+    lv:                                "{{ item.lv }}"
+    vg:                                "{{ item.vg }}"
+    size:                              "{{ item.size }}"
+    active:                            true
+    state:                             present
+    shrink:                            false
+    resizefs:                          false
+  loop:                                "{{ custom_logical_volumes }}"
+  register:                            custom_lvscreated
+  when:
+    - tier == "sapos"
+    - item.node_tier | intersect([ 'all', supported_tiers ] | flatten(levels=1)) or
+      item.node_tier in [ 'all', supported_tiers ] | flatten(levels=1)
+    - item.vg in vgcreatedlist
+
+- name:                                "1.5.1 Custom Disk setup - Filter the logical volumes created results"
+  ansible.builtin.set_fact:
+    custom_lvcreatedlist_tmp:          "{{ custom_lvscreated.results | rejectattr('skipped', 'defined') | list }}"
+  when:
+    - tier == "sapos"
+
+- name:                                "1.5.1 Custom Disk setup - Get the logical volumes from the list"
+  ansible.builtin.set_fact:
+    custom_lvcreatedlist:              "{{ custom_lvcreatedlist_tmp | map(attribute='item.lv') | list }}"
+  when:
+    - tier == "sapos"
+
+- name:                                "1.5.1 Custom Disk setup - Filesystem creation"
+  community.general.filesystem:
+    dev:                               "{{ dev_path_from_lv_item }}"
+    fstype:                            "{{ item.fstype }}"
+    opts:                              "{{ item.fsopts | default('') }}"
+  loop:                                "{{ custom_logical_volumes }}"
+  register :                           custom_filesystemscreated
+  when:
+    - item.tier in ["all", tier ]
+    - item.node_tier | intersect([ 'all', supported_tiers ] | flatten(levels=1)) or
+      item.node_tier in [ 'all', supported_tiers ] | flatten(levels=1)
+    - item.fstype is defined
+    - item.lv in custom_lvcreatedlist
+
+- name:                                "1.5.1 Custom Disk setup - Filter the filesystem created results"
+  ansible.builtin.set_fact:
+    custom_fscreatedlist_tmp:          "{{ custom_filesystemscreated.results | rejectattr('skipped', 'defined') | list }}"
+  when:
+    - tier == "sapos"
+
+- name:                                "1.5.1 Custom Disk setup - Debug disk information"
+  ansible.builtin.debug:
+    msg:
+      - "Created Volume Groups:    {{ vgcreatedlist }} "
+      - "Created Logical Volumes:  {{ custom_lvcreatedlist }} "
+      - "Created Filesystems:      {{ custom_filesystemscreated }} "
+    verbosity:                         2
+  when:
+    - tier == "sapos"
+
+- name:                                "1.5.1 Custom Disk setup: - Mount local file systems"
+  ansible.posix.mount:
+    src:                               "{{ dev_path_from_lv_item }}"
+    path:                              "{{ item.path }}"
+    fstype:                            "{{ item.fstype }}"
+    opts:                              defaults
+    state:                             mounted
+  loop:                                "{{ custom_logical_volumes }}"
+  register :                           filesystemscreated
+  when:
+    - item.tier in ["all", tier ]
+    - item.node_tier | intersect([ 'all', supported_tiers ] | flatten(levels=1)) or
+      item.node_tier in [ 'all', supported_tiers ] | flatten(levels=1)
+    - item.fstype is defined
+    - item.lv in custom_lvcreatedlist
+...
+# /*---------------------------------------------------------------------------8
+# |                                   END                                      |
+# +------------------------------------4--------------------------------------*/

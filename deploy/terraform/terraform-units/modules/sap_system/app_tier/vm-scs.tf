@@ -233,11 +233,13 @@ resource "azurerm_linux_virtual_machine" "scs" {
                    }
 
   dynamic "identity" {
-                       for_each = range(var.use_msi_for_clusters && var.application_tier.scs_high_availability ? 1 : 0)
+                       for_each = range((var.use_msi_for_clusters && var.application_tier.scs_high_availability) || length(var.application_tier.user_assigned_identity_id) > 0 ? 1 : 0)
                        content {
-                         type = "SystemAssigned"
+                         type         = var.use_msi_for_clusters && length(var.application_tier.user_assigned_identity_id) > 0 ? "SystemAssigned, UserAssigned" : var.use_msi_for_clusters ? "SystemAssigned" : "UserAssigned"
+                         identity_ids = length(var.application_tier.user_assigned_identity_id) > 0 ? [var.application_tier.user_assigned_identity_id] : null
                        }
                      }
+
 
 }
 
@@ -409,6 +411,13 @@ resource "azurerm_windows_virtual_machine" "scs" {
   boot_diagnostics {
                      storage_account_uri = var.storage_bootdiag_endpoint
                    }
+  dynamic "identity"   {
+                         for_each = range(length(var.application_tier.user_assigned_identity_id) > 0 ? 1 : 0)
+                         content {
+                                   type         = "UserAssigned"
+                                   identity_ids = [var.application_tier.user_assigned_identity_id]
+                                 }
+                       }
 
 }
 
@@ -472,7 +481,7 @@ resource "azurerm_virtual_machine_extension" "scs_lnx_aem_extension" {
                                              "system": "SAP"
                                            }
                                          )
-
+  tags                                 = var.tags
 }
 
 
@@ -492,7 +501,7 @@ resource "azurerm_virtual_machine_extension" "scs_win_aem_extension" {
                                              "system": "SAP"
                                            }
                                          )
-
+  tags                                 = var.tags
 }
 
 resource "azurerm_virtual_machine_extension" "configure_ansible_scs" {
@@ -516,6 +525,7 @@ resource "azurerm_virtual_machine_extension" "configure_ansible_scs" {
                                               "commandToExecute": "powershell.exe -ExecutionPolicy Unrestricted -File configure_ansible.ps1 -Verbose"
                                            }
                                          )
+  tags                                 = var.tags
 }
 
 

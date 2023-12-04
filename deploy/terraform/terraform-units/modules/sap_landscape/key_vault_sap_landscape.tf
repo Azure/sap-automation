@@ -345,7 +345,7 @@ data "azurerm_private_endpoint_connection" "kv_user" {
 resource "azurerm_private_endpoint" "kv_user" {
   provider                             = azurerm.main
   count                                = (length(var.keyvault_private_endpoint_id) == 0 &&
-                                           local.admin_subnet_defined &&
+                                           local.application_subnet_defined &&
                                            var.use_private_endpoint &&
                                            local.enable_landscape_kv &&
                                            !local.user_keyvault_exist
@@ -419,7 +419,7 @@ resource "azurerm_private_endpoint" "kv_user" {
   dynamic "private_dns_zone_group" {
                                       for_each = range(var.use_private_endpoint ? 1 : 0)
                                       content {
-                                        name                 = "privatelink.vaultcore.azure.net"
+                                        name                 = var.dns_zone_names.vault_dns_zone_name
                                         private_dns_zone_ids = [data.azurerm_private_dns_zone.keyvault[0].id]
                                       }
                                     }
@@ -429,7 +429,7 @@ resource "azurerm_private_endpoint" "kv_user" {
 data "azurerm_private_dns_zone" "keyvault" {
   provider                             = azurerm.dnsmanagement
   count                                = var.use_private_endpoint && !var.use_custom_dns_a_registration ? 1 : 0
-  name                                 = "privatelink.vaultcore.azure.net"
+  name                                 = var.dns_zone_names.vault_dns_zone_name
   resource_group_name                  = var.management_dns_resourcegroup_name
 }
 
@@ -439,7 +439,7 @@ resource "azurerm_private_dns_a_record" "keyvault" {
   name                                 = lower(
                                            format("%s", local.user_keyvault_name)
                                          )
-  zone_name                            = "privatelink.vaultcore.azure.net"
+  zone_name                            = var.dns_zone_names.vault_dns_zone_name
   resource_group_name                  = var.management_dns_resourcegroup_name
   ttl                                  = 10
   records                              = [
@@ -466,7 +466,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vault" {
                                            "vault"
                                          )
   resource_group_name                  = var.management_dns_resourcegroup_name
-  private_dns_zone_name                = "privatelink.vaultcore.azure.net"
+  private_dns_zone_name                = var.dns_zone_names.vault_dns_zone_name
   virtual_network_id                   = azurerm_virtual_network.vnet_sap[0].id
   registration_enabled                 = false
 }
@@ -474,7 +474,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vault" {
 data "azurerm_private_dns_zone" "vault" {
   provider                             = azurerm.dnsmanagement
   count                                = var.use_private_endpoint ? 1 : 0
-  name                                 = "privatelink.vaultcore.azure.net"
+  name                                 = var.dns_zone_names.vault_dns_zone_name
   resource_group_name                  = var.management_dns_resourcegroup_name
 }
 
@@ -507,6 +507,24 @@ resource "azurerm_key_vault_access_policy" "kv_user_additional_users" {
                                            "Get",
                                            "List"
                                          ]
+}
+
+resource "azurerm_role_assignment" "kv_user_additional_users" {
+  provider                             = azurerm.main
+  count                                = var.enable_rbac_authorization_for_keyvault ? (
+                                           length(compact(var.additional_users_to_add_to_keyvault_policies)) > 0 ? (
+                                             length(var.additional_users_to_add_to_keyvault_policies)) : (
+                                             0
+                                           )) : (
+                                           0
+                                         )
+
+  scope                                = local.user_keyvault_exist ? (
+                                                                       local.user_key_vault_id) : (
+                                                                       azurerm_key_vault.kv_user[0].id
+                                                                     )
+  role_definition_name                 = "Key Vault Secrets Officer"
+  principal_id                         = local.service_principal.object_id
 }
 
 resource "azurerm_management_lock" "keyvault" {

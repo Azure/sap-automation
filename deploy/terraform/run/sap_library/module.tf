@@ -13,19 +13,18 @@ module "sap_library" {
   deployer                          = local.deployer
   deployer_tfstate                  = try(data.terraform_remote_state.deployer[0].outputs, [])
   dns_label                         = var.dns_label
+  dns_zone_names                    = var.dns_zone_names
   infrastructure                    = local.infrastructure
   key_vault                         = local.key_vault
-  management_dns_subscription_id    = trimspace(var.management_dns_subscription_id)
-  management_dns_resourcegroup_name = trimspace(var.management_dns_resourcegroup_name)
+  management_dns_subscription_id    = var.management_dns_subscription_id
+  management_dns_resourcegroup_name = var.management_dns_resourcegroup_name
   naming                            = length(var.name_override_file) > 0 ? local.custom_names : module.sap_namegenerator.naming
   place_delete_lock_on_resources    = var.place_delete_lock_on_resources
   service_principal                 = var.use_deployer ? local.service_principal : local.account
-  software                          = var.software
+  short_named_endpoints_nics        = var.short_named_endpoints_nics
   storage_account_sapbits           = local.storage_account_sapbits
   storage_account_tfstate           = local.storage_account_tfstate
-  use_custom_dns_a_registration     = var.use_custom_dns_a_registration || !(
-                                        (var.management_dns_subscription_id != local.saplib_subscription_id) || (var.management_dns_resourcegroup_name != local.saplib_resource_group_name)
-                                      )
+  use_custom_dns_a_registration     = var.use_custom_dns_a_registration
   use_private_endpoint              = var.use_private_endpoint
   use_webapp                        = var.use_webapp
   Agent_IP                          = var.Agent_IP

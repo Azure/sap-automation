@@ -149,40 +149,41 @@ locals {
                                            }
                                            add_system_assigned_identity = var.add_system_assigned_identity
                                            os = {
-                                             os_type = "LINUX"
-                                             type = try(var.deployer_image.type, "marketplace")
-                                             source_image_id = try(coalesce(
-                                               var.deployer_image.source_image_id,
-                                               try(var.deployers[0].os.source_image_id, "")
-                                               ),
-                                               ""
-                                             )
-                                             publisher = try(coalesce(
-                                               var.deployer_image.publisher,
-                                               try(var.deployers[0].os.publisher, "")
-                                             ), "")
-                                             offer = try(coalesce(
-                                               var.deployer_image.offer,
-                                               try(var.deployers[0].os.offer, "")
-                                             ), "")
-                                             sku = try(coalesce(
-                                               var.deployer_image.sku,
-                                               try(var.deployers[0].os.sku, "")
-                                             ), "")
-                                             version = try(coalesce(
-                                               var.deployer_image.version,
-                                               try(var.deployers[0].sku, "")
-                                             ), "")
-                                           }
+                                                   os_type         = "LINUX"
+                                                   type            = try(var.deployer_image.type, "marketplace")
+                                                   source_image_id = try(coalesce(
+                                                                       var.deployer_image.source_image_id,
+                                                                       try(var.deployers[0].os.source_image_id, "")
+                                                                       ),
+                                                                       ""
+                                                                     )
+                                                   publisher       = try(coalesce(
+                                                                       var.deployer_image.publisher,
+                                                                       try(var.deployers[0].os.publisher, "")
+                                                                     ), "")
+                                                   offer           = try(coalesce(
+                                                                       var.deployer_image.offer,
+                                                                       try(var.deployers[0].os.offer, "")
+                                                                     ), "")
+                                                   sku             = try(coalesce(
+                                                                       var.deployer_image.sku,
+                                                                       try(var.deployers[0].os.sku, "")
+                                                                     ), "")
+                                                   version         = try(coalesce(
+                                                                       var.deployer_image.version,
+                                                                       try(var.deployers[0].sku, "")
+                                                                     ), "")
+                                                 }
 
                                            plan = var.plan
 
                                            private_ip_address = try(coalesce(
-                                             var.deployer_private_ip_address,
-                                             try(var.deployers[0].private_ip_address, "")
-                                           ), "")
+                                                                  var.deployer_private_ip_address,
+                                                                  try(var.deployers[0].private_ip_address, "")
+                                                                ), "")
 
                                            deployer_diagnostics_account_arm_id = var.deployer_diagnostics_account_arm_id
+                                           app_service_SKU                     = var.app_service_SKU_name
 
                                          }
 
@@ -194,15 +195,14 @@ locals {
 
                                           }
   key_vault                            = {
-                                          kv_user_id     = var.user_keyvault_id
-                                          kv_exists      = length(var.user_keyvault_id) > 0 ? true : false
-                                          kv_sshkey_prvt = var.deployer_private_key_secret_name
-                                          kv_sshkey_pub  = var.deployer_public_key_secret_name
-                                          kv_username    = var.deployer_username_secret_name
-                                          kv_pwd         = var.deployer_password_secret_name
+                                           kv_user_id           = var.user_keyvault_id
+                                           kv_exists            = length(var.user_keyvault_id) > 0 ? true : false
+                                           kv_sshkey_prvt       = var.deployer_private_key_secret_name
+                                           kv_sshkey_pub        = var.deployer_public_key_secret_name
+                                           kv_username          = var.deployer_username_secret_name
+                                           kv_pwd               = var.deployer_password_secret_name
 
                                         }
-
   options                              = {
                                             enable_deployer_public_ip = var.deployer_enable_public_ip || try(var.options.enable_deployer_public_ip, false)
                                          }
@@ -212,4 +212,9 @@ locals {
   firewall_allowed_ipaddresses         = try(var.firewall_allowed_ipaddresses, [])
 
   assign_subscription_permissions      = try(var.deployer_assign_subscription_permissions, false)
+  app_service                          = {
+                                           use = var.use_webapp
+                                           app_id = var.app_registration_app_id
+                                           client_secret = var.webapp_client_secret
+                                         }
 }

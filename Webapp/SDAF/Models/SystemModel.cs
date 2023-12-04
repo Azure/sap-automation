@@ -80,6 +80,7 @@ namespace AutomationForm.Models
     [UserAssignedIdentityIdValidator(ErrorMessage = "Invalid User Assigned id")]
     public string user_assigned_identity_id { get; set; }
 
+    [ScaleSetIdValidator(ErrorMessage = "Invalid Scaleset id")]
     public string scaleset_id { get; set; }
 
     /*---------------------------------------------------------------------------8
@@ -218,10 +219,19 @@ namespace AutomationForm.Models
     |                                                                            |
     +------------------------------------4--------------------------------------*/
 
+    
     public string[] proximityplacementgroup_names { get; set; }
 
     [PpgIdValidator]
     public string[] proximityplacementgroup_arm_ids { get; set; }
+
+    public bool? use_app_proximityplacementgroups { get; set; } = false;
+
+    public string[] app_proximityplacementgroup_names { get; set; }
+
+    [PpgIdValidator]
+    public string[] app_proximityplacementgroup_arm_ids { get; set; }
+
 
     /*---------------------------------------------------------------------------8
     |                                                                            |

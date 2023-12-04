@@ -18,78 +18,94 @@
 
 # -------------------------------------+---------------------------------------8
 #
+# -------------------------------------+---------------------------------------8
 
-- name:                                "0.2 Key Vault - Fencing: - Fencing SPN"
-  block:
+# MKD - Does not need to be in block, since when clause is present in the main.yaml
+# - name:                                "0.2 Key Vault - Fencing: - Fencing SPN"
+#   block:
 
-    - name:                            "0.2 Key Vault - Fencing: - Construct SPN Fencing ID secret name"
-      ansible.builtin.set_fact:
-        fencing_spn_client_id:         "{{ secret_prefix }}-fencing-spn-id"
-        fencing_spn_pwd:               "{{ secret_prefix }}-fencing-spn-pwd"
-        fencing_spn_tenant_id:         "{{ secret_prefix }}-fencing-spn-tenant"
+- name:                            "0.2 Key Vault - Fencing: - Construct SPN Fencing ID secret name"
+  ansible.builtin.set_fact:
+    fencing_spn_client_id:         "{{ secret_prefix }}-fencing-spn-id"
+    fencing_spn_pwd:               "{{ secret_prefix }}-fencing-spn-pwd"
+    fencing_spn_tenant_id:         "{{ secret_prefix }}-fencing-spn-tenant"
 
-    - name:                            "0.2 Key Vault - Fencing: - Retrieve Fencing agent SPN Client ID details"
-      ansible.builtin.command: >-
-        az keyvault secret show
-          --vault-name {{ kv_name }}
-          --name {{ fencing_spn_client_id }}
-          --query value
-          --output tsv
-      changed_when:                    false
-      register:                        keyvault_secret_show_fencing_spn_client_value
-      no_log:                          false
+- name:                            "0.2 Key Vault - Fencing: - Retrieve Fencing agent SPN Client ID details"
+# TODO: Recognize when key is not present and output a useful error message
+  ansible.builtin.command: >-
+    az keyvault secret show
+      --vault-name {{ kv_name }}
+      --name {{ fencing_spn_client_id }}
+      --query value
+      --output tsv
+  changed_when:                    false
+  register:                        keyvault_secret_show_fencing_spn_client_value
+  no_log:                          false
 
-    - name:                            "0.2 Key Vault - Fencing: - Extract Fencing agent SPN Client ID"
-      ansible.builtin.set_fact:
-        sap_fencing_spn_client_id:     "{{ keyvault_secret_show_fencing_spn_client_value.stdout }}"
-        cacheable:                     true
-      no_log:                          false
+# -------------------------------------+---------------------------------------8
+#
+# -------------------------------------+---------------------------------------8
+- name:                            "0.2 Key Vault - Fencing: - Extract Fencing agent SPN Client ID"
+  ansible.builtin.set_fact:
+    sap_fencing_spn_client_id:     "{{ keyvault_secret_show_fencing_spn_client_value.stdout }}"
+    cacheable:                     true
+  no_log:                          false
 
-    - name:                            "0.2 Key Vault - Fencing: - Retrieve Fencing agent SPN password details"
-      ansible.builtin.command: >-
-        az keyvault secret show
-          --vault-name {{ kv_name }}
-          --name {{ fencing_spn_pwd }}
-          --query value
-          --output tsv
-      changed_when:                    false
-      register:                        keyvault_secret_show_fencing_spn_pwd
-      no_log:                          true
+- name:                            "0.2 Key Vault - Fencing: - Retrieve Fencing agent SPN password details"
+# TODO: Recognize when key is not present and output a useful error message
+  ansible.builtin.command: >-
+    az keyvault secret show
+      --vault-name {{ kv_name }}
+      --name {{ fencing_spn_pwd }}
+      --query value
+      --output tsv
+  changed_when:                    false
+  register:                        keyvault_secret_show_fencing_spn_pwd
+  no_log:                          true
 
-    - name:                            "0.2 Key Vault - Fencing: - Extract Fencing agent SPN password"
-      ansible.builtin.set_fact:
-        sap_fencing_spn_pwd:           "{{ keyvault_secret_show_fencing_spn_pwd.stdout }}"
-        cacheable:                     true
-      no_log:                          true
+- name:                            "0.2 Key Vault - Fencing: - Extract Fencing agent SPN password"
+  ansible.builtin.set_fact:
+    sap_fencing_spn_pwd:           "{{ keyvault_secret_show_fencing_spn_pwd.stdout }}"
+    cacheable:                     true
+  no_log:                          true
 
-    - name:                            "0.2 Key Vault - Fencing: - Retrieve Fencing agent SPN Tenant details"
-      ansible.builtin.command: >-
-        az keyvault secret show
-          --vault-name {{ kv_name }}
-          --name {{ fencing_spn_tenant_id }}
-          --query value
-          --output tsv
-      changed_when:                    false
-      register:                        keyvault_secret_show_fencing_spn_tenant_id
-      no_log:                          true
+# -------------------------------------+---------------------------------------8
+#
+# -------------------------------------+---------------------------------------8
+- name:                            "0.2 Key Vault - Fencing: - Retrieve Fencing agent SPN Tenant details"
+# TODO: Recognize when key is not present and output a useful error message
+  ansible.builtin.command: >-
+    az keyvault secret show
+      --vault-name {{ kv_name }}
+      --name {{ fencing_spn_tenant_id }}
+      --query value
+      --output tsv
+  changed_when:                    false
+  register:                        keyvault_secret_show_fencing_spn_tenant_id
+  no_log:                          true
 
-    - name:                            "BoM Secrets: Extract Fencing agent SPN Tenant"
-      ansible.builtin.set_fact:
-        sap_fencing_spn_tenant_id:     "{{ keyvault_secret_show_fencing_spn_tenant_id.stdout }}"
-        cacheable:                     true
-      no_log:                          true
+- name:                            "BoM Secrets: Extract Fencing agent SPN Tenant"
+  ansible.builtin.set_fact:
+    sap_fencing_spn_tenant_id:     "{{ keyvault_secret_show_fencing_spn_tenant_id.stdout }}"
+    cacheable:                     true
+  no_log:                          true
 
-    - name:                            "0.2 Key Vault - Fencing: - Show fencing agent SPN Details"
-      ansible.builtin.debug:
-        msg:
-          - "App ID:     {{ sap_fencing_spn_client_id }}"
-          - "Tenant ID:  {{ sap_fencing_spn_tenant_id }}"
-        verbosity:                     2
 
-  when:
-    - scs_high_availability or db_high_availability
-    - not use_msi_for_clusters
-...
+# -------------------------------------+---------------------------------------8
+#
+# -------------------------------------+---------------------------------------8
+- name:                            "0.2 Key Vault - Fencing: - Show fencing agent SPN Details"
+  ansible.builtin.debug:
+    msg:
+      - "App ID:     {{ sap_fencing_spn_client_id }}"
+      - "Tenant ID:  {{ sap_fencing_spn_tenant_id }}"
+    verbosity:                     2
+
+  # when:
+  #   - scs_high_availability or db_high_availability
+  #   - not use_msi_for_clusters
+
 # /*---------------------------------------------------------------------------8
-# |                                   END                                     |
+# |                                   END                                      |
 # +------------------------------------4--------------------------------------*/
+...
