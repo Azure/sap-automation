@@ -400,8 +400,8 @@ pkg_mgr_refresh
 # Install required packages as determined above
 pkg_mgr_install "${required_pkgs[@]}"
 
-# Install required packages as determined above
-pkg_mgr_install "${distro_required_pkgs[@]}"
+# # Install required packages as determined above
+# pkg_mgr_install "${distro_required_pkgs[@]}"
 
 rg_name=$(curl -H Metadata:true --noproxy "*" "http://169.254.169.254/metadata/instance?api-version=2021-02-01" -s | jq .compute.resourceGroupName)
 
@@ -526,7 +526,9 @@ case "$(get_distro_name)" in
     sudo /home/${local_user}/dotnet-install.sh --install-dir "${DOTNET_ROOT}" --channel 7.0
     ;;
   (rhel*)
-    sudo dnf install dotnet-sdk-7.0
+    sudo wget https://dot.net/v1/dotnet-install.sh -O "/home/${local_user}/dotnet-install.sh"
+    sudo chmod +x "/home/${local_user}/dotnet-install.sh"
+    sudo /home/${local_user}/dotnet-install.sh --install-dir "${DOTNET_ROOT}" --channel 7.0
     ;;
 esac
 

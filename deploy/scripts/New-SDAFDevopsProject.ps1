@@ -14,7 +14,7 @@ $Workload_zoneSubscriptionName = $Env:SDAF_WorkloadZoneSubscriptionName
 $ARM_TENANT_ID = $Env:ARM_TENANT_ID
 #endregion
 
-$versionLabel="v3.9.3.0"
+$versionLabel="v3.10.0.0"
 
 az logout
 
