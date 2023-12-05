@@ -19,7 +19,6 @@ variable "infrastructure"              {
 
 variable "storage_account_sapbits"     {}
 variable "storage_account_tfstate"     {}
-variable "software"                    {}
 variable "deployer"                    {
                                          description = "Details of deployer"
                                          default     = {}
@@ -68,7 +67,18 @@ variable "dns_label"                   {
                                           error_message = "The dns_label must be specified."
                                         }
 
-                                      }
+                                       }
+
+variable "dns_zone_names"              {
+                                         description = "Private DNS zone names"
+                                         type        = map(string)
+                                         default = {
+                                                     "file_dns_zone_name"  = "privatelink.file.core.windows.net"
+                                                     "blob_dns_zone_name"  = "privatelink.blob.core.windows.net"
+                                                     "vault_dns_zone_name" = "privatelink.vaultcore.azure.net"
+                                                   }
+                                       }
+
 
 variable "naming"                     {
                                         description = "naming convention data structure"
@@ -127,3 +137,9 @@ variable "Agent_IP"                       {
                                           }
 
 variable "bootstrap"                      {}
+
+
+variable "short_named_endpoints_nics"     {
+                                            description = "If defined, uses short names for private endpoints nics"
+                                            default     = false
+                                          }

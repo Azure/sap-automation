@@ -18,94 +18,56 @@
 
 # -------------------------------------+---------------------------------------8
 #
-
-- name:                                "0.2 Key Vault: - Retrieve Deployer Keyvault details"
-  block:
-
-    - name:                            "0.2 Key Vault: - Check required variables are present and not empty"
-      ansible.builtin.assert:
-        that:
-          - "kv_name is defined"                    # Has the variable been defined
-          - "kv_name | type_debug != 'NoneType'"    # and given a value
-          - "kv_name | string | length != 0 "       # Detect null values
-        fail_msg:                      "Please define the kv_name parameter"
-
-    - name:                            "0.2 Key Vault: - Get Deployer key vault name from workload zone key vault"
-      ansible.builtin.command: >-
-                                       az keyvault secret show
-                                        --vault-name {{ kv_name }}
-                                        --name {{ deployer_kv_name_secret }}
-                                        --query value
-                                        --output tsv
-      changed_when:                    false
-      register:                        deployer_kv_name_secret
-      when:                            bom_processing is not defined
-
-    - name:                            "0.2 Key Vault: - Save Deployer key vault name"
-      ansible.builtin.set_fact:
-        deployer_kv_name:              "{{ deployer_kv_name_secret.stdout }}"
-        cacheable:                     true
-  rescue:
-    - name:                            "0.2 Key Vault: - Rescue - perform az login"
-      ansible.builtin.command: >-
-                                       az login --identity --allow-no-subscriptions --output none
-      changed_when:                    false
-
-    - name:                              "0.2 Key Vault: - Get Deployer key vault name from workload zone key vault and rescue"
-      block:
-        - name:                            "0.2 Key Vault: - Get Deployer key vault name from workload zone key vault"
-          ansible.builtin.command: >-
-                                          az keyvault secret show
-                                              --vault-name {{ kv_name }}
-                                              --name {{ deployer_kv_name_secret }}
-                                              --query value
-                                              --output tsv
-          changed_when:                    false
-          register:                        deployer_kv_name_secret
-          when:                            bom_processing is not defined
-      rescue:
-        - name:                         Rescue Log the error message to be transformed
-          ansible.builtin.debug:
-            msg:                        "Error message to transform: {{ deployer_kv_name_secret.stderr }}"
-
-        - name:                         "Rescue 0.2 Key Vault: - Get Deployer key vault name from workload zone key vault"
-          ansible.builtin.fail:
-            msg:                        "{{ deployer_kv_name_secret.stderr | try_get_error_code }}"
-
-    - name:                            "0.2 Key Vault: - Save Deployer key vault name"
-      ansible.builtin.set_fact:
-        deployer_kv_name:              "{{ deployer_kv_name_secret.stdout }}"
-        cacheable:                     true
-
-
-  when: deployer_kv_name is not defined
-
-- name:                                "0.2 Key Vault: - Show Deployer key vault name"
+# Show parameters used for cluster aware coding
+#
+# -------------------------------------+---------------------------------------8
+- name:                                   "Cluster aware code..."
   ansible.builtin.debug:
-    var:                               deployer_kv_name
-  when:
-    - tier == "bom"
+    msg:                                    # Best method for formatting output with Azure Devops Logs
+                                            - "operation:                       {{ operation }}"
+                                            - "database_high_availability:      {{ database_high_availability }}"
+                                            - "database_cluster_type:           {{ database_cluster_type }}"
+                                            - "scs_high_availability:           {{ scs_high_availability }}"
+                                            - "scs_cluster_type:                {{ scs_cluster_type }}"
+                                            - "use_msi_for_clusters:            {{ use_msi_for_clusters }}"
+                                            - "platform:                        {{ platform | upper }}"
+    verbosity:                              2
+  when:                                   operation == "fencing"
 
-- name:                                "0.2 Key Vault: - Import S User tasks"
-  ansible.builtin.import_tasks:        "s_user.yaml"
+# -------------------------------------+---------------------------------------8
+#
+# -------------------------------------+---------------------------------------8
+- name:                                   "0.2 Key Vault: - Import S User tasks"
+  ansible.builtin.import_tasks:           "s_user.yaml"
   when:
-    - tier == "bom"
+                                          - operation == "bom"
 
-- name:                                "0.2 Key Vault: - Import Fencing secrets"
-  ansible.builtin.import_tasks:        "fencing.yaml"
+
+# -------------------------------------+---------------------------------------8
+#
+# -------------------------------------+---------------------------------------8
+- name:                                   "0.2 Key Vault: - Import Fencing secrets"
+  ansible.builtin.import_tasks:           "fencing.yaml"
   when:
-    - tier == "fencing"
-    - (scs_high_availability or db_high_availability)
-    - not use_msi_for_clusters
+                                          - operation == "fencing"
+                                          - (database_high_availability and database_cluster_type == "AFA") or
+                                            (scs_high_availability      and      scs_cluster_type == "AFA")         # AFA (Azure Fencing Agent)
+                                          - not use_msi_for_clusters
 
-- name:                                "0.2 Key Vault: - Import witness account detials"
-  ansible.builtin.import_tasks:        "wincluster-witness.yaml"
+
+# -------------------------------------+---------------------------------------8
+#
+# -------------------------------------+---------------------------------------8
+- name:                                   "0.2 Key Vault: - Import witness account detials"
+  ansible.builtin.import_tasks:           "wincluster-witness.yaml"
+  # TODO: update when clause more appropriately
   when:
-    - platform | upper == "SQLSERVER"
-    - (scs_high_availability or db_high_availability)
-    - not use_msi_for_clusters
+                                          - operation == "fencing"
+                                          - (scs_high_availability or database_high_availability)
+                                          - not use_msi_for_clusters
+                                          - platform | upper == "SQLSERVER"
 
-...
 # /*---------------------------------------------------------------------------8
-# |                                   END                                     |
+# |                                   END                                      |
 # +------------------------------------4--------------------------------------*/
+...

@@ -110,7 +110,7 @@ output "landscape_key_vault_spn_arm_id"          {
 
 output "landscape_key_vault_user_arm_id"         {
                                                    description = "Azure resource identifier for the user credential keyvault"
-                                                   value       = length(var.user_keyvault_id) > 0 ? var.user_keyvault_id : try(module.sap_landscape.kv_user, "")
+                                                   value       = length(var.user_keyvault_id) > 0 ? var.user_keyvault_id : module.sap_landscape.kv_user
                                                  }
 
 output "sid_password_secret_name"                {
@@ -280,3 +280,29 @@ output "controlplane_environment"                {
                                                    description = "Control plane environment"
                                                    value       = try(data.terraform_remote_state.deployer[0].outputs.environment, "")
                                                  }
+###############################################################################
+#                                                                             #
+#                                 iSCSI                                       #
+#                                                                             #
+###############################################################################
+
+output "iSCSI_server_ips"                        {
+                                                  description = "IP addesses for the iSCSI Servers"
+                                                  value = var.iscsi_count > 0 ? (
+                                                    module.sap_landscape.iSCSI_server_ips) : (
+                                                    []
+                                                  )
+                                                }
+
+output "iSCSI_server_names"                     {
+                                                  value = var.iscsi_count > 0 ? (
+                                                    length(var.name_override_file) > 0 ? local.custom_names.virtualmachine_names.ISCSI_COMPUTERNAME : module.sap_namegenerator.naming.virtualmachine_names.ISCSI_COMPUTERNAME
+                                                    ) :    []
+                                                }
+
+output "iSCSI_servers"                          {
+                                                  value = var.iscsi_count > 0 ? (
+                                                    module.sap_landscape.iSCSI_servers) : (
+                                                    []
+                                                  )
+                                                }

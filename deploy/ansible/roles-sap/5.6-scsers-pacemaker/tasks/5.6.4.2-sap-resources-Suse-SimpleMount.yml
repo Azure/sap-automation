@@ -51,7 +51,7 @@
                                        crm configure primitive rsc_sap_{{ sap_sid | upper }}_{{ instance_type | upper }}{{ scs_instance_number }} SAPInstance \
                                        op monitor interval=11 timeout={{ clus_sap_mon_timeout | int }} on-fail=restart \
                                        params InstanceName={{ instance_name }} START_PROFILE="{{ start_profile_path }}" \
-                                       AUTOMATIC_RECOVER=true MINIMAL_PROBE=true \
+                                       AUTOMATIC_RECOVER=false MINIMAL_PROBE=true \
                                        meta resource-stickiness=5000 failure-timeout=60 \
                                        migration-threshold=1 priority=10
       register:                        ascs_rsc_sap
@@ -63,7 +63,7 @@
                                        op monitor interval=11 timeout={{ clus_sap_mon_timeout | int }} on-fail=restart \
                                        params InstanceName={{ sap_sid | upper }}_ERS{{ ers_instance_number }}_{{ ers_virtual_hostname }} \
                                        START_PROFILE="/sapmnt/{{ sap_sid | upper }}/profile/{{ sap_sid | upper }}_ERS{{ ers_instance_number }}_{{ ers_virtual_hostname }}" \
-                                       AUTOMATIC_RECOVER=true IS_ERS=true MINIMAL_PROBE=true \
+                                       AUTOMATIC_RECOVER=false IS_ERS=true MINIMAL_PROBE=true \
                                        meta priority=1000
       register:                        ers_rsc_sap
       failed_when:                     ers_rsc_sap.rc > 1
@@ -145,7 +145,7 @@
                                        crm configure primitive rsc_sap_{{ sap_sid | upper }}_{{ instance_type | upper }}{{ scs_instance_number }} SAPInstance \
                                        op monitor interval=11 timeout={{ clus_sap_mon_timeout | int }} on-fail=restart \
                                        params InstanceName={{ instance_name }} START_PROFILE="{{ start_profile_path }}" \
-                                       AUTOMATIC_RECOVER=true MINIMAL_PROBE=true \
+                                       AUTOMATIC_RECOVER=false MINIMAL_PROBE=true \
                                        meta resource-stickiness=5000 priority=100
       register:                        ascs_rsc_sap
       failed_when:                     ascs_rsc_sap.rc > 1
@@ -156,7 +156,7 @@
                                        op monitor interval=11 timeout={{ clus_sap_mon_timeout | int }} on-fail=restart \
                                        params InstanceName={{ sap_sid | upper }}_ERS{{ ers_instance_number }}_{{ ers_virtual_hostname }} \
                                        START_PROFILE="/sapmnt/{{ sap_sid | upper }}/profile/{{ sap_sid | upper }}_ERS{{ ers_instance_number }}_{{ ers_virtual_hostname }}" \
-                                       AUTOMATIC_RECOVER=true IS_ERS=true MINIMAL_PROBE=true
+                                       AUTOMATIC_RECOVER=false IS_ERS=true MINIMAL_PROBE=true
       register:                        ers_rsc_sap
       failed_when:                     ers_rsc_sap.rc > 1
 

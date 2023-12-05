@@ -37,15 +37,14 @@ resource "azurerm_private_endpoint" "kv_user" {
                                                                 ]
                              }
 
-
   dynamic "private_dns_zone_group" {
-                                     for_each = range((!var.use_custom_dns_a_registration && var.use_private_endpoint) ? 1 : 0)
+                                     for_each = range(var.use_private_endpoint && !var.use_custom_dns_a_registration ? 1 : 0)
                                      content {
-                                       name                 = "privatelink.vaultcore.azure.net"
-                                       private_dns_zone_ids = [(local.use_local_private_dns && var.use_private_endpoint) ? azurerm_private_dns_zone.vault[0].id : data.azurerm_private_dns_zone.vault[0].id]
-                                     }
-
+                                               name                 = var.dns_zone_names.vault_dns_zone_name
+                                               private_dns_zone_ids = [local.use_local_private_dns ? azurerm_private_dns_zone.vault[0].id : data.azurerm_private_dns_zone.vault[0].id]
+                                             }
                                    }
+
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "vault" {
@@ -68,15 +67,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vault" {
                                            )) : (
                                            var.management_dns_resourcegroup_name
                                          )
-  private_dns_zone_name                = "privatelink.vaultcore.azure.net"
+  private_dns_zone_name                = var.dns_zone_names.vault_dns_zone_name
   virtual_network_id                   = var.deployer_tfstate.vnet_mgmt_id
   registration_enabled                 = false
-}
-
-data "azurerm_private_dns_zone" "vault" {
-  provider                             = azurerm.dnsmanagement
-  count                                = !local.use_local_private_dns && var.use_private_endpoint ? 1 : 0
-  name                                 = "privatelink.vaultcore.azure.net"
-  resource_group_name                  = var.management_dns_resourcegroup_name
-
 }

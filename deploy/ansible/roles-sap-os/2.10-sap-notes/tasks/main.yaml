@@ -110,7 +110,6 @@
     - platform == 'HANA'
     - distribution_id in ['redhat8', 'redhat9']
 
-
 # ToDo RHEL7 and also the other SAP nodes
 # -------------------------------------+---------------------------------------8
 

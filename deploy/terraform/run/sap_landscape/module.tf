@@ -22,6 +22,7 @@ module "sap_landscape" {
   diagnostics_storage_account                  = local.diagnostics_storage_account
   dns_label                                    = var.dns_label
   dns_server_list                              = var.dns_server_list
+  dns_zone_names                               = var.dns_zone_names
   enable_firewall_for_keyvaults_and_storage    = var.enable_firewall_for_keyvaults_and_storage
   enable_purge_control_for_keyvaults           = var.enable_purge_control_for_keyvaults
   enable_rbac_authorization_for_keyvault       = var.enable_rbac_authorization_for_keyvault

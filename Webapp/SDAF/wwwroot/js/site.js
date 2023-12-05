@@ -1,4 +1,4 @@
-﻿// ================
+// ================
 // VALUE RETAINMENT
 // ================
 
@@ -515,7 +515,23 @@ $("#subscription").on("change", function () {
             input: {
                 subscriptionId: subscriptionid
             }
-        }
+        },
+        {
+            ids: ["user_assigned_identity_id"],
+            controller: "/Armclient/GetUserAssignedIdentityOptions",
+            errorMessage: "Error retrieving user assigned identities for specified subscription",
+            input: {
+              subscriptionId: subscriptionid
+            }
+        },
+        {
+            ids: ["scaleset_id"],
+            controller: "/Armclient/GetVMSSOptions",
+            errorMessage: "Error retrieving Virtual machine scalesets for specified subscription",
+            input: {
+              subscriptionId: subscriptionid
+            }
+      }
     ];
     if (subscriptionid) {
         Promise.all(dropdownsAffected.map(updateAndSetDropdowns));

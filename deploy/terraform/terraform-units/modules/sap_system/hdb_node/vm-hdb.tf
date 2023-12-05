@@ -285,11 +285,13 @@ resource "azurerm_linux_virtual_machine" "vm_dbnode" {
 
 
   dynamic "identity" {
-                       for_each = range(var.use_msi_for_clusters && var.database.high_availability ? 1 : 0)
+                       for_each = range((var.use_msi_for_clusters && var.database.high_availability) || length(var.database.user_assigned_identity_id) > 0 ? 1 : 0)
                        content {
-                                  type = "SystemAssigned"
-                               }
+                         type         = var.use_msi_for_clusters && length(var.database.user_assigned_identity_id) > 0 ? "SystemAssigned, UserAssigned" : var.use_msi_for_clusters ? "SystemAssigned" : "UserAssigned"
+                         identity_ids = length(var.database.user_assigned_identity_id) > 0 ? [var.database.user_assigned_identity_id] : null
+                       }
                      }
+
 
 }
 
@@ -385,10 +387,7 @@ resource "azurerm_virtual_machine_extension" "hdb_linux_extension" {
                                              "system": "SAP"
                                            }
                                          )
-
-  lifecycle {
-    ignore_changes = [tags]
-  }
+  tags                                 = var.tags
 }
 
 
@@ -463,5 +462,5 @@ resource "azurerm_virtual_machine_data_disk_attachment" "cluster" {
                                            )
                                          )
   caching                              = "None"
-  lun                                  = local.database_cluster_disk_lun
+  lun                                  = var.database_cluster_disk_lun
 }

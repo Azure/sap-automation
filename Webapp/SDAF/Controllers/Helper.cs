@@ -123,7 +123,7 @@ namespace AutomationForm.Controllers
         {
           if (t.Key != null && t.Key.Length > 0)
           {
-            str.AppendLine($"  {t.Key} = \"{t.Value}\",");
+            str.AppendLine($"  \"{t.Key}\" = \"{t.Value}\",");
           }
         }
         str.Append("}");

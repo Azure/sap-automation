@@ -23,6 +23,13 @@ namespace AutomationForm.Models
 
     public bool IsDefault { get; set; } = false;
 
+    /*---------------------------------------------------------------------------8
+    |                                                                            |
+    |                         Generic information                                |
+    |                                                                            |
+    +------------------------------------4--------------------------------------*/
+
+
     [DisplayName("Workload zone")]
     public string workload_zone { get; set; }
 
@@ -44,63 +51,51 @@ namespace AutomationForm.Models
     [DisplayName("System ID")]
     public string sid { get; set; }
 
-    //[Required]
-    [AddressPrefixValidator(ErrorMessage = "Admin subnet address space must be a valid RFC 1918 address")]
-    public string admin_subnet_address_prefix { get; set; }
-
-    //[Required]
-    [AddressPrefixValidator(ErrorMessage = "DB subnet address space must be a valid RFC 1918 address")]
-    public string db_subnet_address_prefix { get; set; }
-
-    //[Required]
-    [AddressPrefixValidator(ErrorMessage = "App subnet address space must be a valid RFC 1918 address")]
-    public string app_subnet_address_prefix { get; set; }
-
-    //[Required]
-    [AddressPrefixValidator(ErrorMessage = "Web subnet address space must be a valid RFC 1918 address")]
-    public string web_subnet_address_prefix { get; set; }
-
-    public string automation_username { get; set; }
-
-    public bool? use_service_endpoint { get; set; }
-
-
-    // ======= EXPERT =======
 
     // Common Infrastructure
 
     [SubscriptionIdValidator(ErrorMessage = "Invalid subscription")]
     public string subscription { get; set; }
 
-    [RgArmIdValidator(ErrorMessage = "Invalid resource group arm id")]
-    public string resourcegroup_arm_id { get; set; }
+    public string custom_disk_sizes_filename { get; set; }
 
-    public string resourcegroup_name { get; set; }
+    public bool? save_naming_information { get; set; } = false;
 
-    public string custom_prefix { get; set; }
+    public string name_override_file { get; set; }
 
-    public bool? use_prefix { get; set; } = true;
-    public bool? use_secondary_ips { get; set; } = false;
+    public bool? use_loadbalancers_for_standalone_deployments { get; set; } = true;
 
-    public bool? use_zonal_markers { get; set; } = true;
+    public bool? dual_nics { get; set; } = true;
 
-    public bool? use_msi_for_clusters { get; set; } = true;
+    public bool? deploy_application_security_groups { get; set; } = true;
 
-    public bool? use_simple_mount { get; set; } = false;
-    public bool? upgrade_packages { get; set; } = false;
+    public bool? deploy_v1_monitoring_extension { get; set; } = true;
 
+    public bool? use_scalesets_for_deployment { get; set; } = false;
 
-    public string fencing_role_name { get; set; }
+    public bool? database_use_premium_v2_storage { get; set; } = false;
 
-    public string[] proximityplacementgroup_names { get; set; }
+    public Tag[] tags { get; set; }
 
-    [PpgIdValidator]
-    public string[] proximityplacementgroup_arm_ids { get; set; }
+    [UserAssignedIdentityIdValidator(ErrorMessage = "Invalid User Assigned id")]
+    public string user_assigned_identity_id { get; set; }
 
+    [ScaleSetIdValidator(ErrorMessage = "Invalid Scaleset id")]
+    public string scaleset_id { get; set; }
+
+    /*---------------------------------------------------------------------------8
+    |                                                                            |
+    |                       Networking information                               |
+    |                       provides override capabilities                       |
+    |                                                                            |
+    +------------------------------------4--------------------------------------*/
     [NetworkAddressValidator]
     public string network_arm_id { get; set; }
 
     // Admin Subnet
+
+    [AddressPrefixValidator(ErrorMessage = "Admin subnet address space must be a valid RFC 1918 address")]
+    public string admin_subnet_address_prefix { get; set; }
 
     [SubnetArmIdValidator(ErrorMessage = "Invalid admin subnet arm id")]
     public string admin_subnet_arm_id { get; set; }
@@ -114,6 +109,10 @@ namespace AutomationForm.Models
 
     // Database subnet
 
+    //[Required]
+    [AddressPrefixValidator(ErrorMessage = "DB subnet address space must be a valid RFC 1918 address")]
+    public string db_subnet_address_prefix { get; set; }
+
     [SubnetArmIdValidator(ErrorMessage = "Invalid db subnet arm id")]
     public string db_subnet_arm_id { get; set; }
     public string db_subnet_name { get; set; }
@@ -124,6 +123,10 @@ namespace AutomationForm.Models
     public string db_subnet_nsg_name { get; set; }
 
     // Application Subnet
+
+    //[Required]
+    [AddressPrefixValidator(ErrorMessage = "App subnet address space must be a valid RFC 1918 address")]
+    public string app_subnet_address_prefix { get; set; }
 
     [SubnetArmIdValidator(ErrorMessage = "Invalid app subnet arm id")]
     public string app_subnet_arm_id { get; set; }
@@ -137,6 +140,10 @@ namespace AutomationForm.Models
 
     // Web subnet
 
+    //[Required]
+    [AddressPrefixValidator(ErrorMessage = "Web subnet address space must be a valid RFC 1918 address")]
+    public string web_subnet_address_prefix { get; set; }
+
     [SubnetArmIdValidator(ErrorMessage = "Invalid web subnet arm id")]
     public string web_subnet_arm_id { get; set; }
 
@@ -147,7 +154,90 @@ namespace AutomationForm.Models
 
     public string web_subnet_nsg_name { get; set; }
 
-    // Database Tier
+    public bool? use_service_endpoint { get; set; }
+
+    public bool? nsg_asg_with_vnet { get; set; } = false;
+
+    /*---------------------------------------------------------------------------8
+    |                                                                            |
+    |                       Miscallaneous information                            |
+    |                                                                            |
+    +------------------------------------4--------------------------------------*/
+
+    public string automation_username { get; set; }
+
+    /*---------------------------------------------------------------------------8
+    |                                                                            |
+    |                       Resource Group information                           |
+    |                                                                            |
+    +------------------------------------4--------------------------------------*/
+
+    [RgArmIdValidator(ErrorMessage = "Invalid resource group arm id")]
+    public string resourcegroup_arm_id { get; set; }
+
+    public string resourcegroup_name { get; set; }
+
+    /*---------------------------------------------------------------------------8
+    |                                                                            |
+    |                       Miscallaneous information                            |
+    |                                                                            |
+    +------------------------------------4--------------------------------------*/
+
+    public string custom_prefix { get; set; }
+
+    public bool? use_prefix { get; set; } = true;
+
+    public bool? use_secondary_ips { get; set; } = false;
+
+    public bool? use_zonal_markers { get; set; } = true;
+
+    public bool? upgrade_packages { get; set; } = false;
+
+    public string bom_name { get; set; }
+
+    public Tag[] configuration_settings { get; set; }
+
+
+    /*---------------------------------------------------------------------------8
+    |                                                                            |
+    |                       Cluster information                                  |
+    |                                                                            |
+    +------------------------------------4--------------------------------------*/
+
+    public string fencing_role_name { get; set; }
+
+    public bool? use_msi_for_clusters { get; set; } = true;
+
+    public bool? use_simple_mount { get; set; } = false;
+
+    public string database_cluster_type { get; set; } = "AFA";
+    public string scs_cluster_type { get; set; } = "AFA";
+
+    /*---------------------------------------------------------------------------8
+    |                                                                            |
+    |                          PPG information                                   |
+    |                                                                            |
+    +------------------------------------4--------------------------------------*/
+
+    
+    public string[] proximityplacementgroup_names { get; set; }
+
+    [PpgIdValidator]
+    public string[] proximityplacementgroup_arm_ids { get; set; }
+
+    public bool? use_app_proximityplacementgroups { get; set; } = false;
+
+    public string[] app_proximityplacementgroup_names { get; set; }
+
+    [PpgIdValidator]
+    public string[] app_proximityplacementgroup_arm_ids { get; set; }
+
+
+    /*---------------------------------------------------------------------------8
+    |                                                                            |
+    |                            Database information                            |
+    |                                                                            |
+    +------------------------------------4--------------------------------------*/
 
     [DatabasePlatformValidator]
     public string database_platform { get; set; }
@@ -165,8 +255,6 @@ namespace AutomationForm.Models
     public string database_sid { get; set; }
 
     public string database_instance_number { get; set; }
-
-    public string custom_disk_sizes_filename { get; set; }
 
     public bool? database_vm_use_DHCP { get; set; } = true;
 
@@ -197,8 +285,6 @@ namespace AutomationForm.Models
 
     public string database_HANA_use_ANF_scaleout_scenario { get; set; }
 
-    public bool? dual_nics { get; set; } = true;
-
     [IpAddressValidator]
     public string[] database_vm_db_nic_secondary_ips { get; set; }
 
@@ -208,6 +294,11 @@ namespace AutomationForm.Models
     [IpAddressValidator]
     public string[] database_vm_storage_nic_ips { get; set; }
 
+    /*---------------------------------------------------------------------------8
+    |                                                                            |
+    |                          App Tier information                              |
+    |                                                                            |
+    +------------------------------------4--------------------------------------*/
     // Application Tier
 
     public bool? enable_app_tier_deployment { get; set; } = true;
@@ -220,13 +311,11 @@ namespace AutomationForm.Models
 
     public string app_tier_sizing_dictionary_key { get; set; } = "Optimized";
 
-    public bool? save_naming_information { get; set; } = false;
-
-    public string name_override_file { get; set; }
-
-    public bool? use_loadbalancers_for_standalone_deployments { get; set; } = true;
-
-    // Application Servers
+    /*---------------------------------------------------------------------------8
+    |                                                                            |
+    |                    Application Server information                          |
+    |                                                                            |
+    +------------------------------------4--------------------------------------*/
 
     public int? application_server_count { get; set; } = 1;
 
@@ -258,9 +347,13 @@ namespace AutomationForm.Models
 
     public bool? application_server_use_ppg { get; set; } = true;
 
-    // SAP Central Services
+    /*---------------------------------------------------------------------------8
+    |                                                                            |
+    |                   SAP Central Services information                         |
+    |                                                                            |
+    +------------------------------------4--------------------------------------*/
 
-    public int? scs_server_count { get; set; } = 1;
+    public int scs_server_count { get; set; } = 1;
 
     public string scs_server_sku { get; set; }
 
@@ -298,7 +391,11 @@ namespace AutomationForm.Models
 
     public bool? scs_server_no_ppg { get; set; }
 
-    // Web Dispatchers
+    /*---------------------------------------------------------------------------8
+    |                                                                            |
+    |                 Web Dispatcher Tier information                            |
+    |                                                                            |
+    +------------------------------------4--------------------------------------*/
 
     public int? webdispatcher_server_count { get; set; } = 0;
 
@@ -326,12 +423,20 @@ namespace AutomationForm.Models
 
     public bool? webdispatcher_server_use_ppg { get; set; } = false;
 
-
     public bool? webdispatcher_server_no_avset { get; set; }
 
     public bool? webdispatcher_server_no_ppg { get; set; }
 
-    // Authentication
+    [DisplayName("Web SID")]
+    public string web_sid { get; set; }
+
+    public string web_instance_number { get; set; } = "00";
+
+    /*---------------------------------------------------------------------------8
+    |                                                                            |
+    |                            Authentication                                  |
+    |                                                                            |
+    +------------------------------------4--------------------------------------*/
 
     public string automation_password { get; set; }
 
@@ -343,9 +448,11 @@ namespace AutomationForm.Models
 
     public string vm_disk_encryption_set_id { get; set; }
 
-    public bool? nsg_asg_with_vnet { get; set; } = false;
-
-    // NFS Support
+    /*---------------------------------------------------------------------------8
+    |                                                                            |
+    |                               NFS Support                                  |
+    |                                                                            |
+    +------------------------------------4--------------------------------------*/
 
     public string NFS_provider { get; set; }
 
@@ -358,7 +465,11 @@ namespace AutomationForm.Models
     [PrivateEndpointIdValidator]
     public string sapmnt_private_endpoint_id { get; set; }
 
-    // ANF Settings
+    /*---------------------------------------------------------------------------8
+    |                                                                            |
+    |                               ANF Support                                  |
+    |                                                                            |
+    +------------------------------------4--------------------------------------*/
 
     public bool? ANF_HANA_data { get; set; }
 
@@ -412,7 +523,13 @@ namespace AutomationForm.Models
 
     public bool? ANF_sapmnt_use_clone_in_secondary_zone { get; set; }
 
-    // Anchor VM
+    public bool? ANF_HANA_use_AVG { get; set; } = false;
+
+    /*---------------------------------------------------------------------------8
+    |                                                                            |
+    |                            Anchor Support                                  |
+    |                                                                            |
+    +------------------------------------4--------------------------------------*/
 
     public string anchor_vm_authentication_username { get; set; }
 
@@ -431,10 +548,11 @@ namespace AutomationForm.Models
 
     public bool? anchor_vm_use_DHCP { get; set; }
 
-    public string bom_name { get; set; }
-
-    public Tag[] configuration_settings { get; set; }
-
+    /*---------------------------------------------------------------------------8
+    |                                                                            |
+    |                           Key Vault Support                                |
+    |                                                                            |
+    +------------------------------------4--------------------------------------*/
 
     [KeyvaultIdValidator]
     public string user_keyvault_id { get; set; }
@@ -443,23 +561,6 @@ namespace AutomationForm.Models
     public string spn_keyvault_id { get; set; }
 
     public bool? enable_purge_control_for_keyvaults { get; set; } = false;
-
-    public bool? deploy_application_security_groups { get; set; } = true;
-
-    public bool? deploy_v1_monitoring_extension { get; set; } = true;
-
-    public bool? use_scalesets_for_deployment { get; set; } = false;
-
-    public bool? database_use_premium_v2_storage { get; set; } = false;
-
-    public bool? ANF_HANA_use_AVG { get; set; } = false;
-
-    [DisplayName("Web SID")]
-    public string web_sid { get; set; }
-
-    public string web_instance_number { get; set; } = "00";
-
-    public Tag[] tags { get; set; }
 
   }
 

@@ -233,8 +233,8 @@ variable "deployer_image"                       {
                                                                   source_image_id = ""
                                                                   type            = "marketplace"
                                                                   publisher       = "Canonical"
-                                                                  offer           = "0001-com-ubuntu-server-focal"
-                                                                  sku             = "20_04-lts-gen2"
+                                                                  offer           = "0001-com-ubuntu-server-jammy"
+                                                                  sku             = "22_04-lts-gen2"
                                                                   version         = "latest"
                                                                   type            = "marketplace"
                                                                 }
@@ -426,6 +426,18 @@ variable "management_dns_resourcegroup_name"          {
                                                         default     = null
                                                         type        = string
                                                       }
+
+variable "dns_zone_names"                             {
+                                                        description = "Private DNS zone names"
+                                                        type        = map(string)
+
+                                                        default = {
+                                                          "file_dns_zone_name"  = "privatelink.file.core.windows.net"
+                                                          "blob_dns_zone_name"  = "privatelink.blob.core.windows.net"
+                                                          "vault_dns_zone_name" = "privatelink.vaultcore.azure.net"
+                                                        }
+                                                      }
+
 
 #########################################################################################
 #                                                                                       #

@@ -27,6 +27,9 @@
         wincluster_witness_key:        "{{ secret_prefix }}-witness-accesskey"
         wincluster_witness_name:       "{{ secret_prefix }}-witness-name"
 
+# -------------------------------------+---------------------------------------8
+# witness_storage_account_key
+# -------------------------------------+---------------------------------------8
     - name:                            "0.2 Key Vault - WinCluster: - Retrieve witness storage account key details"
       ansible.builtin.command: >-
         az keyvault secret show
@@ -44,6 +47,9 @@
         cacheable:                     true
       no_log:                          false
 
+# -------------------------------------+---------------------------------------8
+# witness_storage_account_name
+# -------------------------------------+---------------------------------------8
     - name:                            "0.2 Key Vault - WinCluster: - Retrieve witness storage account details"
       ansible.builtin.command: >-
         az keyvault secret show
@@ -63,9 +69,9 @@
 
   when:
     - platform | upper == "SQLSERVER"
-    - scs_high_availability or db_high_availability
+    - scs_high_availability or database_high_availability
 
-...
 # /*---------------------------------------------------------------------------8
-# |                                   END                                     |
+# |                                   END                                      |
 # +------------------------------------4--------------------------------------*/
+...

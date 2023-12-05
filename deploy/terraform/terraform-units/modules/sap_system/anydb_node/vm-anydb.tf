@@ -133,7 +133,7 @@ resource "azurerm_linux_virtual_machine" "dbserver" {
                                          )
 
   //If more than one servers are deployed into a single zone put them in an availability set and not a zone
-  availability_set_id                  = local.use_avset ? (
+  availability_set_id                  = var.database.use_avset ? (
                                            local.availabilitysets_exist ? (
                                              data.azurerm_availability_set.anydb[count.index % max(local.db_zone_count, 1)].id) : (
                                              azurerm_availability_set.anydb[count.index % max(local.db_zone_count, 1)].id
@@ -142,7 +142,7 @@ resource "azurerm_linux_virtual_machine" "dbserver" {
 
   virtual_machine_scale_set_id         = length(var.scale_set_id) > 0 ? var.scale_set_id : null
 
-  zone                                 = local.zonal_deployment && !local.use_avset ? try(local.zones[count.index % max(local.db_zone_count, 1)], null) : null
+  zone                                 = local.zonal_deployment && !var.database.use_avset ? try(local.zones[count.index % max(local.db_zone_count, 1)], local.zones[0]) : null
 
   network_interface_ids                = local.anydb_dual_nics ? (
                                           var.options.legacy_nic_order ? (
@@ -222,6 +222,13 @@ resource "azurerm_linux_virtual_machine" "dbserver" {
   boot_diagnostics {
                      storage_account_uri = var.storage_bootdiag_endpoint
                    }
+  dynamic "identity" {
+                       for_each = range((var.use_msi_for_clusters && var.database.high_availability) || length(var.database.user_assigned_identity_id) > 0 ? 1 : 0)
+                       content {
+                         type         = var.use_msi_for_clusters && length(var.database.user_assigned_identity_id) > 0 ? "SystemAssigned, UserAssigned" : var.use_msi_for_clusters ? "SystemAssigned" : "UserAssigned"
+                         identity_ids = length(var.database.user_assigned_identity_id) > 0 ? [var.database.user_assigned_identity_id] : null
+                       }
+                     }
 
   lifecycle {
     ignore_changes = [
@@ -264,7 +271,7 @@ resource "azurerm_windows_virtual_machine" "dbserver" {
                                          )
 
   //If more than one servers are deployed into a single zone put them in an availability set and not a zone
-  availability_set_id                  = local.use_avset ? (
+  availability_set_id                  = var.database.use_avset ? (
                                            local.availabilitysets_exist ? (
                                              data.azurerm_availability_set.anydb[count.index % max(local.db_zone_count, 1)].id) : (
                                              azurerm_availability_set.anydb[count.index % max(local.db_zone_count, 1)].id
@@ -273,7 +280,7 @@ resource "azurerm_windows_virtual_machine" "dbserver" {
 
   virtual_machine_scale_set_id         = length(var.scale_set_id) > 0 ? var.scale_set_id : null
 
-  zone                                 = local.zonal_deployment && !local.use_avset ? try(local.zones[count.index % max(local.db_zone_count, 1)], null) : null
+  zone                                 = local.zonal_deployment && !var.database.use_avset ? try(local.zones[count.index % max(local.db_zone_count, 1)], local.zones[0]) : null
 
   network_interface_ids                = local.anydb_dual_nics ? (
                                           var.options.legacy_nic_order ? (
@@ -342,6 +349,13 @@ resource "azurerm_windows_virtual_machine" "dbserver" {
   boot_diagnostics {
                      storage_account_uri = var.storage_bootdiag_endpoint
                    }
+  dynamic "identity"   {
+                         for_each = range(length(var.database.user_assigned_identity_id) > 0 ? 1 : 0)
+                         content {
+                                   type         = "UserAssigned"
+                                   identity_ids = [var.database.user_assigned_identity_id]
+                                 }
+                       }
 
   lifecycle {
     ignore_changes = [
@@ -384,7 +398,7 @@ resource "azurerm_managed_disk" "disks" {
                                             null
                                           )
 
-  zone                                 = local.zonal_deployment && !local.use_avset ? (
+  zone                                 = local.zonal_deployment && !var.database.use_avset ? (
                                            upper(local.anydb_ostype) == "LINUX" ? (
                                              azurerm_linux_virtual_machine.dbserver[local.anydb_disks[count.index].vm_index].zone) : (
                                              azurerm_windows_virtual_machine.dbserver[local.anydb_disks[count.index].vm_index].zone
@@ -434,6 +448,7 @@ resource "azurerm_virtual_machine_extension" "anydb_lnx_aem_extension" {
                                              "system": "SAP"
                                            }
                                          )
+  tags                                 = var.tags
 }
 
 
@@ -457,6 +472,7 @@ resource "azurerm_virtual_machine_extension" "anydb_win_aem_extension" {
                                              "system": "SAP"
                                            }
                                          )
+  tags                                 = var.tags
 }
 
 
@@ -488,4 +504,116 @@ resource "azurerm_virtual_machine_extension" "configure_ansible" {
                                               "commandToExecute": "powershell.exe -ExecutionPolicy Unrestricted -File configure_ansible.ps1 -Verbose"
                                            }
                                          )
+  tags                                 = var.tags
+}
+
+
+#########################################################################################
+#                                                                                       #
+#  Azure Shared Disk for SBD                                                            #
+#                                                                                       #
+#######################################+#################################################
+resource "azurerm_managed_disk" "cluster" {
+  provider                             = azurerm.main
+  count                                = (
+                                           local.enable_deployment &&
+                                           var.database.high_availability &&
+                                           (
+                                             upper(var.database.os.os_type) == "WINDOWS" ||
+                                             (
+                                               upper(var.database.os.os_type) == "LINUX" &&
+                                               upper(var.database.database_cluster_type) == "ASD"
+                                             )
+                                           )
+                                         ) ? 1 : 0
+  lifecycle {
+    ignore_changes                     = [tags]
+    }
+
+  name                                 = format("%s%s%s%s",
+                                           var.naming.resource_prefixes.database_cluster_disk,
+                                           local.prefix,
+                                           var.naming.separator,
+                                           var.naming.resource_suffixes.database_cluster_disk
+                                         )
+  location                             = var.resource_group[0].location
+  resource_group_name                  = var.resource_group[0].name
+  create_option                        = "Empty"
+  storage_account_type                 = "Premium_LRS"
+  disk_size_gb                         = var.database_cluster_disk_size
+  disk_encryption_set_id               = try(var.options.disk_encryption_set_id, null)
+  max_shares                           = var.database_server_count
+  tags                                 = var.tags
+
+  zone                                 = local.zonal_deployment && !var.database.use_avset ? (
+                                           upper(local.anydb_ostype) == "LINUX" ? (
+                                             azurerm_linux_virtual_machine.dbserver[local.anydb_disks[count.index].vm_index].zone) : (
+                                             azurerm_windows_virtual_machine.dbserver[local.anydb_disks[count.index].vm_index].zone
+                                         )) : (
+                                           null
+                                         )
+
+}
+
+resource "azurerm_virtual_machine_data_disk_attachment" "cluster" {
+  provider                             = azurerm.main
+  count                                = (
+                                           local.enable_deployment &&
+                                           var.database.high_availability &&
+                                           (
+                                             upper(var.database.os.os_type) == "WINDOWS" ||
+                                             (
+                                               upper(var.database.os.os_type) == "LINUX" &&
+                                               upper(var.database.database_cluster_type) == "ASD"
+                                             )
+                                           )
+                                         ) ? var.database_server_count : 0
+
+  managed_disk_id                      = azurerm_managed_disk.cluster[0].id
+  virtual_machine_id                   = (upper(var.database.os.os_type) == "LINUX"                                # If Linux
+                                         ) ? (
+                                           azurerm_linux_virtual_machine.dbserver[count.index].id
+                                         ) : (
+                                           (upper(var.database.os.os_type) == "WINDOWS"                            # If Windows
+                                           ) ? (
+                                             null
+                                           ) : (
+                                             null                                                                  # If Other
+                                           )
+                                         )
+  caching                              = "None"
+  lun                                  = var.database_cluster_disk_lun
+}
+
+
+resource "azurerm_role_assignment" "role_assignment_msi" {
+  provider                             = azurerm.main
+  count                                = (
+                                           var.use_msi_for_clusters &&
+                                           length(var.fencing_role_name) > 0 &&
+                                           var.database_server_count > 1
+                                           ) ? (
+                                           var.database_server_count
+                                           ) : (
+                                           0
+                                         )
+  scope                                = azurerm_linux_virtual_machine.dbserver[count.index].id
+  role_definition_name                 = var.fencing_role_name
+  principal_id                         = azurerm_linux_virtual_machine.dbserver[count.index].identity[0].principal_id
+}
+
+resource "azurerm_role_assignment" "role_assignment_msi_ha" {
+  provider                             = azurerm.main
+  count                                = (
+                                          var.use_msi_for_clusters &&
+                                          length(var.fencing_role_name) > 0 &&
+                                          var.database_server_count > 1
+                                          ) ? (
+                                          var.database_server_count
+                                          ) : (
+                                          0
+                                        )
+  scope                                = azurerm_linux_virtual_machine.dbserver[count.index].id
+  role_definition_name                 = var.fencing_role_name
+  principal_id                         = azurerm_linux_virtual_machine.dbserver[(count.index +1) % var.database_server_count].identity[0].principal_id
 }

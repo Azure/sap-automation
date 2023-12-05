@@ -8,7 +8,7 @@ resource "azurerm_resource_group" "library" {
   provider                             = azurerm.main
   count                                = local.resource_group_exists ? 0 : 1
   name                                 = local.resource_group_name
-  location                             = local.region
+  location                             = var.infrastructure.region
   tags                                 = var.infrastructure.tags
 
   lifecycle {
@@ -75,7 +75,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vnet_mgmt_blob" {
                                            )) : (
                                            var.management_dns_resourcegroup_name
                                          )
-  private_dns_zone_name                = "privatelink.blob.core.windows.net"
+  private_dns_zone_name                = var.dns_zone_names.blob_dns_zone_name
   virtual_network_id                   = var.deployer_tfstate.vnet_mgmt_id
   registration_enabled                 = false
 }

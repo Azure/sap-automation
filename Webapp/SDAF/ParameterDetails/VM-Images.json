@@ -144,6 +144,30 @@
     }
   },
   {
+    "name": "Red Hat 9.2",
+    "data": {
+      "os_type": "LINUX",
+      "source_image_id": "",
+      "publisher": "RedHat",
+      "offer": "RHEL-SAP-APPS",
+      "sku": "9_2",
+      "version": "latest",
+      "type": "marketplace"
+    }
+  },
+  {
+    "name": "Red Hat 9.2 HA",
+    "data": {
+      "os_type": "LINUX",
+      "source_image_id": "",
+      "publisher": "RedHat",
+      "offer": "RHEL-SAP-HA",
+      "sku": "92sapha-gen2",
+      "version": "latest",
+      "type": "marketplace"
+    }
+  },
+  {
     "name": "SUSE 12 SP5",
     "data": {
       "os_type": "LINUX",

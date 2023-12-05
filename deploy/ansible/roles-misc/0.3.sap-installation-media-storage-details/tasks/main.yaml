@@ -9,30 +9,47 @@
 - name:                                "0.4 Installation Media: - Retrieve Deployer Keyvault details"
   block:
 
-    - name:                            Check required variables are present and not empty
+    - name:                                   Check required variables are present and not empty
       ansible.builtin.assert:
         that:
           - "kv_name is defined"                    # Has the variable been defined
           - "kv_name | type_debug != 'NoneType'"    # and given a value
           - "kv_name | string | length != 0 "       # Detect null values
-        fail_msg:                          "Please define the kv_name parameter"
+        fail_msg:                             "Please define the kv_name parameter"
 
-    - name:                            "0.4 Installation Media: - Get Deployer key vault name workload zone key vault"
+    - name:                                   "Parameters to be used..."
+      ansible.builtin.debug:
+        msg:                                  # Best method for formatting output with Azure Devops Logs
+                                              - "kv_name:                         {{ kv_name }}"
+                                              - "deployer_kv_name_secret:    {{ deployer_kv_name_secret }}"
+        verbosity:                            2
+
+    - name:                                   "0.4 Installation Media: - Get Deployer key vault name workload zone key vault"
       ansible.builtin.command: >-
-                                       az keyvault secret show
-                                         --vault-name {{ kv_name }}
-                                         --name {{ deployer_kv_name_secret }}
-                                         --query value
-                                         --output tsv
-      changed_when:                    false
-      register:                        deployer_kv_name_secret
-      when:                            bom_processing is not defined
+                                              az keyvault secret show
+                                                --vault-name {{ kv_name }}
+                                                --name {{ deployer_kv_name_secret }}
+                                                --query value
+                                                --output tsv
+      changed_when:                           false
+      register:                               deployer_kv_name_secret_result
+      when:                                   bom_processing is not defined
 
-    - name:                            "0.4 Installation Media: - Save Deployer key vault name"
+    - name:                                   "0.4 Installation Media: - Save Deployer key vault name"
       ansible.builtin.set_fact:
-        deployer_kv_name:              "{{ deployer_kv_name_secret.stdout }}"
-        cacheable:                     true
+        deployer_kv_name:                     "{{ deployer_kv_name_secret_result.stdout }}"
+        cacheable:                            true
+
   when: deployer_kv_name is not defined
+
+- name:                                   "Parameter review..."
+  ansible.builtin.debug:
+    msg:                                  # Best method for formatting output with Azure Devops Logs
+                                          - "kv_name:                         {{ kv_name }}"
+                                          - "deployer_kv_name_secret:    {{ deployer_kv_name_secret }}"
+                                          - "deployer_kv_name_secret_result:  {{ deployer_kv_name_secret_result }}"
+                                          - "deployer_kv_name:                {{ deployer_kv_name }}"
+    verbosity:                            2
 
 - name:                                "0.4 Installation Media: - Extract SAP Binaries Storage Account secrets"
   block:

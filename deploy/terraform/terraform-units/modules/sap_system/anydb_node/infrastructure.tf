@@ -21,7 +21,7 @@ resource "azurerm_lb" "anydb" {
 
   dynamic "frontend_ip_configuration" {
                                         iterator = pub
-                                        for_each = local.fpips
+                                        for_each = local.frontend_ips
                                         content {
                                           name                          = pub.value.name
                                           subnet_id                     = pub.value.subnet_id
@@ -113,7 +113,7 @@ resource "azurerm_network_interface_backend_address_pool_association" "anydb" {
 resource "azurerm_availability_set" "anydb" {
   provider                             = azurerm.main
   count                                = local.enable_deployment && !var.use_scalesets_for_deployment  ? (
-                                            local.use_avset && !local.availabilitysets_exist ? max(length(local.zones), 1) : 0) : (
+                                            var.database.use_avset && !local.availabilitysets_exist ? max(length(local.zones), 1) : 0) : (
                                             0
                                           )
   name                                 = format("%s%s%s",
@@ -125,10 +125,10 @@ resource "azurerm_availability_set" "anydb" {
   resource_group_name                  = var.resource_group[0].name
   platform_update_domain_count         = 20
   platform_fault_domain_count          = local.faultdomain_count
-  proximity_placement_group_id         = var.database.use_ppg ? (
+  proximity_placement_group_id         = try(var.database.use_ppg ? (
                                            var.ppg[count.index % max(local.db_zone_count, 1)]) : (
                                            null
-                                         )
+                                         ), null)
   managed                              = true
   tags                                 = var.tags
 }
