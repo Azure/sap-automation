@@ -25,6 +25,9 @@
 
     - name:                            "DB2 - Take offline backup of Primary DB"
       ansible.builtin.import_tasks:    4.2.1.1-db2_primary_backup.yml
+
+    - name:                            "DB2 - Keystore Setup, Part 1"
+      ansible.builtin.import_tasks:    4.2.1.8-db2_copy_keystore_files.yml
   always:
     - name:                            "DB2 Primary System Install: result"
       ansible.builtin.debug:
@@ -41,11 +44,14 @@
   when:
     - ansible_hostname == primary_instance_name
 
-- name:                                "DB2 Secodary System Setup"
+- name:                                "DB2 Secondary System Setup"
   block:
 
-    - name:                            "DB2 Secondary System Install "
+    - name:                            "DB2 Secondary System Install"
       ansible.builtin.import_tasks:    4.2.1.2-db2_ha_install_secondary.yml
+
+    - name:                            "DB2 - Keystore Setup, Part 2"
+      ansible.builtin.import_tasks:    4.2.1.8-db2_copy_keystore_files.yml
 
     - name:                            "DB2 - Restore Secondary with backup of Primary DB"
       ansible.builtin.import_tasks:    4.2.1.3-db2_restore_secondary.yml
