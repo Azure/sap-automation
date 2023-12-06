@@ -67,6 +67,7 @@ hanashared_volume_size:                32g
 
 hana_data_stripe_size:                 256
 hana_log_stripe_size:                  64
+hana_bkp_stripe_size:                  1024
 
 db2_log_stripe_size:                   64
 db2_data_stripe_size:                  256

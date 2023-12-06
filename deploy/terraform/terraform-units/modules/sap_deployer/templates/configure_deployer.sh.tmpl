@@ -698,9 +698,11 @@ else
     #     echo export AZURE_DEVOPS_EXT_PAT=$${TOKEN} | sudo tee -a /etc/profile.d/deploy_server.sh
     # fi
 
+    export AZADHOME="/home/$${local_user}"
+
     # Add new /opt bin directories to start of PATH to ensure the versions we installed
     # are preferred over any installed standard system versions.
-    echo export "PATH=$${ansible_bin}:$${tf_bin}:"'$${PATH}'::"$${DOTNET_ROOT}":'$${HOME}/Azure_SAP_Automated_Deployment/sap-automation/deploy/scripts' | sudo tee -a /etc/profile.d/deploy_server.sh
+    echo export "PATH=$${ansible_bin}:$${tf_bin}:"'$${PATH}'::"$${DOTNET_ROOT}":'$${AZADHOME}/Azure_SAP_Automated_Deployment/sap-automation/deploy/scripts' | sudo tee -a /etc/profile.d/deploy_server.sh
 
     # Ensure that the user's account is logged in to Azure with specified creds
     echo az login --identity --allow-no-subscriptions --output none | sudo tee -a /etc/profile.d/deploy_server.sh
@@ -712,7 +714,7 @@ else
     # Create Agent
     #
     # Azure SAP Automated Deployment directories
-    agent_home="/home/$${local_user}/agent"
+    export agent_home="/home/$${local_user}/agent"
 
     if [ -f "/home/$${local_user}/agent/agent_installed" ]; then
       echo "Agent already installed"
@@ -791,9 +793,9 @@ else
             ;;
         esac
       else
-        echo "export SAP_AUTOMATION_REPO_PATH='$${HOME}/Azure_SAP_Automated_Deployment/sap-automation'" | sudo tee -a /etc/profile.d/deploy_server.sh
-        echo "export DEPLOYMENT_REPO_PATH='$${HOME}/Azure_SAP_Automated_Deployment/sap-automation'" | sudo tee -a /etc/profile.d/deploy_server.sh
-        echo "export CONFIG_REPO_PATH='$${HOME}/Azure_SAP_Automated_Deployment/WORKSPACES'" | sudo tee -a /etc/profile.d/deploy_server.sh
+        echo "export SAP_AUTOMATION_REPO_PATH='$${AZADHOME}/Azure_SAP_Automated_Deployment/sap-automation'" | sudo tee -a /etc/profile.d/deploy_server.sh
+        echo "export DEPLOYMENT_REPO_PATH='$${AZADHOME}/Azure_SAP_Automated_Deployment/sap-automation'" | sudo tee -a /etc/profile.d/deploy_server.sh
+        echo "export CONFIG_REPO_PATH='$${AZADHOME}/Azure_SAP_Automated_Deployment/WORKSPACES'" | sudo tee -a /etc/profile.d/deploy_server.sh
       fi
     fi
 fi
