@@ -1,5 +1,8 @@
 variable "admin_subnet"                                 { description = "Information about SAP admin subnet" }
-variable "anchor_vm"                                    { description = "Deployed anchor VM" }
+variable "anchor_vm"                                    {
+                                                          description = "Deployed anchor VM"
+                                                          default     = null
+                                                        }
 variable "cloudinit_growpart_config"                    { description = "A cloud-init config that configures automatic growpart expansion of root partition" }
 variable "custom_disk_sizes_filename"                   {
                                                           description = "Disk size json file"
@@ -8,6 +11,8 @@ variable "custom_disk_sizes_filename"                   {
                                                         }
 variable "database"                                     {}
 variable "database_cluster_disk_size"                   { description = "The size of the shared disk for the Database cluster" }
+variable "database_cluster_disk_lun"                    { description = "The LUN of the shared disk for the Database cluster" }
+
 variable "database_dual_nics"                           {
                                                           description = "Defines if the HANA DB uses dual network interfaces"
                                                           default     = true
@@ -101,3 +106,21 @@ variable "register_virtual_network_to_dns"             {
 #########################################################################################
 
 variable "hana_ANF_volumes"                           { description = "Defines HANA ANF volumes" }
+
+#########################################################################################
+#                                                                                       #
+#  Tags                                                                                 #
+#                                                                                       #
+#########################################################################################
+
+variable "tags"                                       { description = "If provided, tags for all resources" }
+
+#########################################################################################
+#                                                                                       #
+#  Scale Set                                                                            #
+#                                                                                       #
+#########################################################################################
+
+variable "use_scalesets_for_deployment"               { description = "Use Flexible Virtual Machine Scale Sets for the deployment" }
+
+variable "scale_set_id"                               { description = "Azure resource identifier for scale set" }

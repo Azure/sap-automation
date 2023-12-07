@@ -156,6 +156,14 @@ if [ 1 == $called_from_ado ] ; then
     echo "Agent IP: $this_ip"
 fi
 
+#Plugins
+if [ ! -d "$HOME/.terraform.d/plugin-cache" ]
+then
+    mkdir "$HOME/.terraform.d/plugin-cache"
+fi
+export TF_PLUGIN_CACHE_DIR="$HOME/.terraform.d/plugin-cache"
+
+
 parallelism=10
 
 #Provide a way to limit the number of parallell tasks for Terraform
@@ -601,10 +609,12 @@ then
     exit $return_value
 fi
 
+state_path="SYSTEM"
 if [ 0 == $return_value ] ; then
 
     if [ "${deployment_system}" == sap_deployer ]
     then
+        state_path="DEPLOYER"
 
         deployer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output deployer_public_ip_address | tr -d \")
         save_config_var "deployer_public_ip_address" "${system_config_information}"
@@ -642,7 +652,9 @@ if [ 0 == $return_value ] ; then
     fi
 
     if [ "${deployment_system}" == sap_landscape ]
+
     then
+        state_path="LANDSCAPE"
         if [ $landscape_tfstate_key_exists == false ]
         then
             save_config_vars "${system_config_information}" \
@@ -652,6 +664,7 @@ if [ 0 == $return_value ] ; then
 
     if [ "${deployment_system}" == sap_library ]
     then
+      state_path="LIBRARY"
       if [ "$deployment_parameter" == " " ]
         then  # This is not a new deployment. Reusing variable previously declared in the shell script above.
           tfstate_resource_id=$(terraform -chdir="${terraform_module_directory}" output tfstate_resource_id| tr -d \")
@@ -682,6 +695,13 @@ if [ 0 == $return_value ] ; then
     ok_to_proceed=true
 
 fi
+
+container_exists=$(az storage container exists --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --name tfvars --only-show-errors --query exists)
+
+if [ "${container_exists}" == "false" ]; then
+    az storage container create --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --name tfvars --only-show-errors
+fi
+
 
 fatal_errors=0
 # HANA VM
@@ -1230,7 +1250,9 @@ then
     #     fi
     # fi
 
-    az login --service-principal --username $ARM_CLIENT_ID --password=$ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID  --output none
+    if [ -n ${ARM_CLIENT_SECRET} ] ; then
+      az login --service-principal --username "${ARM_CLIENT_ID}" --password=$ARM_CLIENT_SECRET --tenant "${ARM_TENANT_ID}"  --output none
+    fi
 
     rg_name=$(terraform -chdir="${terraform_module_directory}"  output -no-color -raw created_resource_group_name | tr -d \")
 
@@ -1327,6 +1349,23 @@ if [ -f "${system_config_information}".err ]; then
    cat "${system_config_information}".err
 fi
 
-
 unset TF_DATA_DIR
+
+#################################################################################
+#                                                                               #
+#                           Copy tfvars to storage account                      #
+#                                                                               #
+#                                                                               #
+#################################################################################
+
+az storage blob upload --file "${parameterfile}" --container-name tfvars/"${state_path}"/"${key}" --name "${parameterfile_name}" --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}"  --no-progress --overwrite --only-show-errors --output none
+
+if [ "${deployment_system}" == sap_system ] ; then
+  echo "Uploading the yaml files from ${param_dirname} to the storage account"
+  az storage blob upload --file sap-parameters.yaml --container-name tfvars/"${state_path}"/"${key}" --name sap-parameters.yaml --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}"  --no-progress --overwrite --only-show-errors --output none
+  hosts_file=$(ls *_hosts.yaml)
+  az storage blob upload --file "${hosts_file}" --container-name tfvars/"${state_path}"/"${key}" --name "${hosts_file}" --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}"  --no-progress --overwrite --only-show-errors --output none
+
+fi
+
 exit $return_value

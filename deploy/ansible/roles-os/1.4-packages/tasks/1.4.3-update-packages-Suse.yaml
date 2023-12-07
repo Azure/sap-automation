@@ -1,0 +1,71 @@
+# /*----------------------------------------------------------------------------8
+# |                             Update packages                                 |
+# +------------------------------------4---------------------------------------*/
+
+- name:                                "1.4 Packages: - check if {{ sid_to_be_deployed.sid | upper }} is updated"
+  ansible.builtin.stat:
+    path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}/packages_installed.txt"
+  register:                            packages_installed
+
+- name:                                "1.4 Packages: - Upgrade all: {{ distribution_full_id }}"  # noqa package-latest
+  community.general.zypper:
+    name:                              '*'
+    state:                             latest
+  environment:
+    ZYPP_LOCK_TIMEOUT:                 "20"
+  tags:
+    - skip_ansible_lint
+
+- name:                                "1.4 Packages: - Upgrade Stack only: {{ distribution_full_id }}"
+  become:                              true
+  ansible.builtin.command:             "zypper patch --updatestack-only --auto-agree-with-licenses --no-confirm"
+  register:                            zypper_patch_stack_output
+  ignore_errors:                       true
+  failed_when:                         zypper_patch_stack_output.rc not in [0, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112]  # noqa package-latest
+
+- name:                                "1.4 Packages: - Upgrade all: {{ distribution_full_id }}"
+  block:
+    - name:                            "1.4 Packages: - Upgrade all: {{ distribution_full_id }}"
+      become:                          true
+      ansible.builtin.shell:           "zypper patch --auto-agree-with-licenses --with-interactive --no-confirm"
+      ignore_errors:                   true
+      register:                        zypper_patch_output
+      failed_when:
+        - zypper_patch_output.rc != 0
+        - zypper_patch_output.rc != 102
+        - zypper_patch_output.rc != 103
+  rescue:
+    - name:                            "1.4 Packages: - Upgrade all: {{ distribution_full_id }}"
+      become:                          true
+      ansible.builtin.shell:           "zypper patch --auto-agree-with-licenses --with-interactive --no-confirm"
+      register:                        zypper_patch_output
+      failed_when:                     zypper_patch_output.rc not in [0, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112]  # noqa package-latest
+      when:
+        - zypper_patch_output.rc == 103
+
+- name:                                "1.4 Packages: - Show zypper_patch_output"
+  ansible.builtin.debug:
+    var:                               zypper_patch_output
+    verbosity:                         2
+
+- name:                                "Package updates"
+  when:
+    - not packages_installed.stat.exists
+  block:
+
+    - name:                            "1.4 Packages: - Reboot the instance"
+      ansible.builtin.reboot:
+      when:
+        - zypper_patch_output is defined
+        - zypper_patch_output.rc == 102
+      register:                        reboot_output
+
+    - name:                            "1.4 Packages: - Wait for system to become reachable"
+      ansible.builtin.wait_for_connection:
+        timeout:                       120
+
+- name:                                "1.4 Packages: - Create packages installed flag"
+  ansible.builtin.file:
+    path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}/packages_installed.txt"
+    state:                             touch
+    mode:                              0755

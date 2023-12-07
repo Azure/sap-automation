@@ -68,18 +68,17 @@
 
 # -------------------------------------+---------------------------------------8
 # Step: 03-01
-    - name:                                 "Dynamic processing - Show media entry"  # noqa jinja[spacing]
+    - name:                             "Dynamic processing - Show media entry"  # noqa jinja[spacing]
       ansible.builtin.debug:
         msg: |-
-                                            Name:     {{ bom_media_entry.name }}
-                                            Platform: {{ bom_media_entry.platform }}
-
-                                            SAP Platform Map:
-                                            Platform | Number    | Description
-                                            ---------+-----------+-----------------------------
-                                            {% for line in sap_platform_map[bom_media_entry.name] %}
-                                            {{ "%-9s" | format(line.platform) }} | {{ "%-10s" | format(line.number) }} | {{ line.description }}
-                                            {% endfor %}
+                                        Name:     {{ bom_media_entry.name }}
+                                        Platform: {{ bom_media_entry.platform }}
+                                        SAP Platform Map:
+                                        Platform | Number    | Description
+                                        ---------+-----------+-----------------------------
+                                        {% for line in sap_platform_map[bom_media_entry.name] %}
+                                        {{ "%-9s" | format(line.platform) }} | {{ "%-10s" | format(line.number) }} | {{ line.description }}
+                                        {% endfor %}
         verbosity:                          1
 # Step: 03-01 - END
 # -------------------------------------+---------------------------------------8
@@ -88,10 +87,55 @@
 # Step: 03-02
 # Description:
 #
+    - name:                                 "Dynamic processing - Search results"
+      ansible.builtin.debug:
+        msg:                                "Search results: {{ sap_asset_search.stdout
+                                                | regex_search('(?:.*(?P<first_part><feed.*))(?P<second_part>.*?feed>)',
+                                                                '\\g<first_part>',
+                                                                '\\g<second_part>')
+                                                | join
+                                                | parse_xml(role_path + '/templates/sap_search.tmpl')
+                                            }}"
+        verbosity:                          1
+
+    - name:                                 "Dynamic processing - Show sap_platform_map_lookup.number"
+      ansible.builtin.set_fact:
+        platformNumber:                     "{{ sap_platform_map[bom_media_entry.name]
+                                                | selectattr('platform', '==', bom_media_entry.platform) | map(attribute='number')
+                                            }}"
+
     - name:                                 "Dynamic processing - Show BOM entry BEFORE Dynamic Processing"
       ansible.builtin.debug:
         var:                                bom.materials.media[bom_media_index]
-        verbosity:                          1
+        verbosity:                          4
+
+#
+    - name:                                 "Dynamic processing - Show entries"  # noqa jinja[spacing]
+      ansible.builtin.debug:
+        msg:
+          - "sap_platform_map_lookup: {{ sap_platform_map_lookup }}"
+          - "sap_search_results:      {{ sap_search_results }}"
+          - "platformNumber:          {{ platformNumber }}"
+          - "Title:                   {{ item.Title }}"
+        verbosity:                          4
+      vars:
+        sap_platform_map_lookup:            "{{ sap_platform_map[bom_media_entry.name]
+                                                | selectattr('platform', '==', bom_media_entry.platform)
+                                                | first
+                                            }}"
+        sap_search_results:                 "{{ sap_asset_search.stdout
+                                                | regex_search(
+                                                                '(?:.*(?P<first_part><feed.*))(?P<second_part>.*?feed>)',
+                                                                '\\g<first_part>',
+                                                                '\\g<second_part>'
+                                                              )
+                                                | join
+                                                | parse_xml(role_path + '/templates/sap_search.tmpl')
+                                            }}"
+        platformNumber_list:                "{{ item.Title | regex_search('(?P<prefix>^.*)[-](?P<hwid>.*)[.](?P<suffix>.*$)', '\\g<prefix>', '\\g<hwid>', '\\g<suffix>')}}"
+                                            # setting the checksum value to true is used during download to update field with correct checksum.
+      loop:                                 "{{ sap_search_results.entry | flatten(levels = 1) }}"
+
 # Step: 03-02 - END
 # -------------------------------------+---------------------------------------8
 

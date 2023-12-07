@@ -13,7 +13,7 @@
     sap_inifile:                       "{{ bom_base_name }}-dbload-{{ sid_to_be_deployed.sid | lower }}-{{ ansible_hostname }}.params"
     sap_inifile_template:              "{{ bom_base_name }}{{ bom_suffix }}-dbload-inifile-param.j2"
     dir_params:                        "{{ tmp_directory }}/.params"
-
+    pas_virtual_hostname:              "{{ custom_pas_virtual_hostname | default(virtual_host, true) }}"
 - name:                                "DBLoad: -  Create directories"
   ansible.builtin.file:
     path:                              "{{ item.path }}"
@@ -60,9 +60,13 @@
     public:                            true
   when:                                bom.InstanceType is defined
 
+- name:                                "DBLoad: -  Set the product ID"
+  ansible.builtin.set_fact:
+    product_id:                        "{{ bom.product_ids.dbl }}"
+
 - name:                                "DBLoad: - Set dbload path"
   ansible.builtin.set_fact:
-    db_load_path:                      "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}/sapinst_instdir/{{ bom.product_ids.dbl.replace('.', '/').replace('/{{ instance_type }}', '').split(':')[1] }}/INSTALL/DISTRIBUTED/{{ instance_type }}/DB"
+    db_load_path:                      "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}/sapinst_instdir/{{ product_id.replace('.', '/').replace('/' + instance_type, '').split(':')[1] }}/INSTALL/DISTRIBUTED/{{ instance_type }}/DB"
 
 - name:                                "DBLoad: Check if DBLoad has been tried on this server"
   ansible.builtin.stat:
@@ -131,7 +135,7 @@
     - name:                            "DBLoad: -  Set the server facts"
       ansible.builtin.set_fact:
         scs_server:                    "{% if scs_high_availability %}{{ sid_to_be_deployed.sid | lower }}scs{{ scs_instance_number }}cl1{% else %}{{ hostvars[scs_server_temp | first]['virtual_host'] }}{% endif %}"
-        db_virtual_host:               "{{ hostvars[db_server_temp | first]['virtual_host'] }}"
+        db_virtual_hostname:               "{{ hostvars[db_server_temp | first]['virtual_host'] }}"
 
     - name:                            "DBLoad: check media exists"
       ansible.builtin.stat:
@@ -151,11 +155,12 @@
 
     - name:                            "DBLoad: - Check if the backup disk exists on DB Server"
       ansible.builtin.set_fact:
-        backupdisks_count:             "{{ disks | selectattr('host', 'defined') |
-          selectattr('host', 'equalto', inventory_hostname) |
-          selectattr('type', 'equalto', 'backup') |
-          map(attribute='type') | sort | unique |
-          list | length | int }}"
+        backupdisks_count: >-
+                                       {{ disks | selectattr('host', 'defined') |
+                                           selectattr('host', 'equalto', db_server[0]) |
+                                           selectattr('type', 'equalto', 'backup') |
+                                           map(attribute='type') | sort | unique |
+                                           list | length | int }}
 
     - name:                            "DBLoad: -  Set the hana backup facts"
       ansible.builtin.set_fact:
@@ -163,7 +168,11 @@
 
     - name:                            "Hana backup directory"
       ansible.builtin.debug:
-        msg:                           "Backup path: {{ backup_path }}"
+        msg:
+          - "DB Server:                {{ db_server[0] }}"
+          - "Backup disk count:        {{ backupdisks_count | int }}"
+          - "HANA Backup path:         {{ hana_backup_path }}"
+          - "Backup path:              {{ backup_path }}"
 
     - name:                            "DBLoad: - Include roles-sap/3.3.1-bom-utility role"
       ansible.builtin.include_role:
@@ -185,8 +194,8 @@
         sap_ciBtcWPNumber:
         sap_installSAPHostAgent:
         sap_profile_dir:               "/sapmnt/{{ sid_to_be_deployed.sid | upper }}/profile"
-        sap_scs_hostname:              "{{ scs_server }}"
-        sap_db_hostname:               "{{ db_virtual_host }}"
+        sap_scs_hostname:              "{{ custom_scs_virtual_hostname | default(scs_server, true) }}"
+        sap_db_hostname:               "{{ custom_db_virtual_hostname | default(db_virtual_hostname, true) }}"
         sap_ciVirtualHostname:
         sap_appVirtualHostname:
         param_directory:               "{{ dir_params }}"
@@ -202,10 +211,10 @@
         msg:
           - "INSTALLED:  {{ dbload_installed.stat.exists }}"
           - "INIFILE:    {{ sap_inifile }}"
-          - "PRODUCT ID: {{ bom.product_ids.dbl }}"
+          - "PRODUCT ID: {{ product_id }}"
           - "INSTANCE:   {{ db_instance_number }}"
-          - "SCSHOST:    {{ scs_server }}"
-          - "DBHOST:     {{ db_virtual_host }}"
+          - "SCSHOST:    {{ custom_scs_virtual_hostname | default(scs_server, true) }}"
+          - "DBHOST:     {{ custom_db_virtual_hostname | default(db_virtual_hostname, true) }}"
           - "SID:        {{ sid_to_be_deployed.sid | upper }}"
 
         # Import this task only if the tier is ora.
@@ -228,7 +237,7 @@
       ansible.builtin.shell: |
                                        umask {{ custom_umask | default('022') }} ;
                                        ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }} \
-                                                 SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.dbl }}            \
+                                                 SAPINST_EXECUTE_PRODUCT_ID={{ product_id }}            \
                                                  SAPINST_SKIP_DIALOGS=true                                       \
                                                  SAPINST_START_GUISERVER=false
       args:
@@ -308,6 +317,24 @@
     # - import_tasks:                    "oracle-postprocessing.yaml"
     #   when:
     #     - node_tier in ["oracle","oracle-asm"]
+
+    - name:                            "DBLoad Install: Get DEFAULT.PFL"
+      ansible.builtin.slurp:
+        src:                           "/sapmnt/{{ sap_sid | upper }}/profile/DEFAULT.PFL"
+      register: profilefile
+
+    - name:                            "DBLoad Install: Get schema name"
+      ansible.builtin.set_fact:
+        schema_name:                   "{{ profilefile['content'] | b64decode | split('\n') | select('search', 'dbs/hdb/schema') | first | split('=') | last | trim | default('{{ hana_schema }}') }}"
+      when:
+        - platform == 'HANA'
+
+    - name:                            "DBLoad Install: Installation results"
+      ansible.builtin.debug:
+        msg:                           "Schema name {{ schema_name }}"
+      when:
+        - platform == 'HANA'
+
     - name:                            "DBLoad: Get hdbuserstore path"
       become:                          true
       become_user:                     "{{ sid_to_be_deployed.sid | lower }}adm"
@@ -341,11 +368,11 @@
         - db_high_availability
         - platform == 'HANA'
 
-    - name:                            "DBLoad: Set DB Virtual Host name ({{ db_lb_virtual_host }})"
+    - name:                            "DBLoad: Set DB Virtual Host name ({{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) }})"
       become:                          true
       become_user:                     "{{ sid_to_be_deployed.sid | lower }}adm"
       ansible.builtin.shell: |
-                                       {{ hdbuserstore_path }} SET DEFAULT {{ db_lb_virtual_host }}:3{{ db_instance_number }}13@{{ db_sid | upper }} {{ hana_schema }} {{ main_password }}
+                                       {{ hdbuserstore_path }} -H {{ pas_virtual_hostname }} SET DEFAULT {{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) }}:3{{ db_instance_number }}13@{{ db_sid | upper }} {{ schema_name }} {{ main_password }}
       environment:
         SAPSYSTEMNAME:                 "{{ sid_to_be_deployed.sid | upper }}"
         TMPDIR:                        "{{ hdbuserstore_path }}"
@@ -411,11 +438,11 @@
         - db_high_availability
         - platform == 'HANA'
 
-    - name:                            "DBLoad: Set DB Virtual Host name ({{ db_lb_virtual_host }})"
+    - name:                            "DBLoad: Set DB Virtual Host name ({{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) }})"
       become:                          true
       become_user:                     "{{ sid_to_be_deployed.sid | lower }}adm"
       ansible.builtin.shell: |
-                                       {{ hdbuserstore_path }} SET DEFAULT {{ db_lb_virtual_host }}:3{{ db_instance_number }}13@{{ db_sid | upper }} {{ hana_schema }} {{ main_password }}
+                                       {{ hdbuserstore_path }} -H {{ pas_virtual_hostname }} SET DEFAULT {{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) }}:3{{ db_instance_number }}13@{{ db_sid | upper }} {{ hana_schema }} {{ main_password }}
       environment:
         SAPSYSTEMNAME:                 "{{ sid_to_be_deployed.sid | upper }}"
         TMPDIR:                        "{{ hdbuserstore_path }}"

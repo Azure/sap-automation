@@ -9,17 +9,38 @@
 # 3. create os based cluster resources yaml where you actually create the cluster resources
 
 # Clustering commands are based on the Host OS
-- name:                                "5.6 SCSERS: ERS Install: check if installed"
-  ansible.builtin.stat:
-    path:                              /etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_ers.txt
-  register:                            is_installed
-  when:                                ansible_hostname == secondary_instance_name
-
 - name:                                "5.6 SCSERS: SCS HA Install: check if installed"
   ansible.builtin.stat:
     path:                              /etc/sap_deployment_automation//{{ sap_sid | upper }}/sap_deployment_scs.txt
-  register:                            is_installed
+  register:                            scs_installed
   when:                                ansible_hostname == primary_instance_name
+
+- name:                                "Wait for SCS check on first node to finish"
+  when:                                ansible_hostname == secondary_instance_name
+  ansible.builtin.set_fact:
+    is_scs_check_complete:             "{{ hostvars[primary_instance_name].scs_installed is defined }}"
+  retries:                             30
+  delay:                               60
+  until:                               is_scs_check_complete
+
+- name:                                "5.6 SCSERS: ERS Install: check if installed"
+  ansible.builtin.stat:
+    path:                              /etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_ers.txt
+  register:                            ers_installed
+  when:                                ansible_hostname == secondary_instance_name
+
+- name:                                "Wait for ERS check on second node to finish"
+  when:                                ansible_hostname == primary_instance_name
+  ansible.builtin.set_fact:
+    is_ers_check_complete:             "{{ hostvars[secondary_instance_name].ers_installed is defined }}"
+  retries:                             30
+  delay:                               60
+  until:                               is_ers_check_complete
+
+- name:                                "5.6 SCSERS: SCS HA Install: check if installed"
+  ansible.builtin.set_fact:
+    scs_is_installed:                  "{{ hostvars[primary_instance_name].scs_installed.stat.exists }}"
+    ers_is_installed:                  "{{ hostvars[secondary_instance_name].ers_installed.stat.exists }}"
 
 - name:                                "5.6 SCSERS: Cluster based on OS in VM"
   ansible.builtin.include_tasks:
@@ -30,7 +51,7 @@
       tags:
         - "5.6.4.0-cluster"
   when:
-#    - (scs_installed is defined and not scs_installed.stat.exists) or (ers_installed is defined and not ers_installed.stat.exists)
+    - not scs_is_installed or not ers_is_installed
     - not use_simple_mount
 
 - name:                                "5.6 SCSERS: Cluster based on OS in VM"
@@ -42,10 +63,9 @@
       tags:
         - "5.6.4.0-cluster-simplemount"
   when:
-#    - (scs_installed is defined and not scs_installed.stat.exists) or (ers_installed is defined and not ers_installed.stat.exists)
+    - not scs_is_installed or not ers_is_installed
     - use_simple_mount
     - ansible_os_family | upper == "SUSE"
-
 
 - name:                                "5.6 SCSERS: Post SCS HA Install check if installed"
   become:                              true

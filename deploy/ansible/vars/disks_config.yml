@@ -89,7 +89,7 @@ logical_volumes:
     node_tier:  'all'
     vg:         'vg_sap'
     lv:         'lv_usrsap'
-    size:       "{% if sap_mnt is defined and usr_sap_install_mountpoint is defined %}100%FREE{% elif sap_mnt is defined %}50%FREE{% else %}32g{% endif %}"
+    size:       "{% if sap_mnt is defined and usr_sap_install_mountpoint is defined %}100%FREE{% elif sap_mnt is defined %}50%FREE{% else %}{{ usrsap_volume_size }}{% endif %}"
     fstype:     'xfs'
   # ---------------------- End - disks required for usrsap --------------------8
 
@@ -99,7 +99,7 @@ logical_volumes:
     vg:         'vg_hana_data'
     lv:         'lv_hana_data'
     size:       '100%FREE'
-    stripesize: 256
+    stripesize: "{{ hana_data_stripe_size }}"
     fstype:     'xfs'
 
   - tier:       'sapos'
@@ -107,14 +107,20 @@ logical_volumes:
     vg:         'vg_hana_log'
     lv:         'lv_hana_log'
     size:       '100%FREE'
-    stripesize: 64
+    stripesize: "{{ hana_log_stripe_size }}"
     fstype:     'xfs'
-
+  # Add a default stripesize of 1MB for the hana backup volume.
+  # There are essentially two sizes we can consider:
+  # 1. Use the same stripesize as the data volume
+  # 2. Use 1MB stripe size based on older recommendations
+  # Note: Most customers are moving away from disk based backup solutions.
+  # So, this might get removed in the future.
   - tier:       'sapos'
     node_tier:  'hana'
     vg:         'vg_hana_backup'
     lv:         'lv_hana_backup'
     size:       '100%FREE'
+    stripesize: "{{ hana_bkp_stripe_size }}"
     fstype:     'xfs'
   # ---------------------- End - disks required for HANA ---------------------8
 
@@ -125,7 +131,7 @@ logical_volumes:
     vg:         'vg_oracle_sapdata1'
     lv:         'lv_oracle_sapdata1'
     size:       '100%FREE'
-    stripesize: 256
+    stripesize: "{{ oracle_data_stripe_size }}"
     fstype:     'xfs'
 
   - tier:       'sapos'
@@ -133,7 +139,7 @@ logical_volumes:
     vg:         'vg_oracle_sapdata2'
     lv:         'lv_oracle_sapdata2'
     size:       '100%FREE'
-    stripesize: 256
+    stripesize: "{{ oracle_data_stripe_size }}"
     fstype:     'xfs'
 
   - tier:       'sapos'
@@ -141,7 +147,7 @@ logical_volumes:
     vg:         'vg_oracle_sapdata3'
     lv:         'lv_oracle_sapdata3'
     size:       '100%FREE'
-    stripesize: 256
+    stripesize: "{{ oracle_data_stripe_size }}"
     fstype:     'xfs'
 
   - tier:       'sapos'
@@ -149,7 +155,7 @@ logical_volumes:
     vg:         'vg_oracle_sapdata4'
     lv:         'lv_oracle_sapdata4'
     size:       '100%FREE'
-    stripesize: 256
+    stripesize: "{{ oracle_data_stripe_size }}"
     fstype:     'xfs'
 
   - tier:       'sapos'
@@ -157,7 +163,7 @@ logical_volumes:
     vg:         'vg_oracle_origlogA'
     lv:         'lv_oracle_origlogA'
     size:       '100%FREE'
-    stripesize: 128
+    stripesize: "{{ oracle_log_stripe_size }}"
     fstype:     'xfs'
 
   - tier:       'sapos'
@@ -165,7 +171,7 @@ logical_volumes:
     vg:         'vg_oracle_origlogB'
     lv:         'lv_oracle_origlogB'
     size:       '100%FREE'
-    stripesize: 128
+    stripesize: "{{ oracle_log_stripe_size }}"
     fstype:     'xfs'
 
   - tier:       'sapos'
@@ -173,7 +179,7 @@ logical_volumes:
     vg:         'vg_oracle_mirrlogA'
     lv:         'lv_oracle_mirrlogA'
     size:       '100%FREE'
-    stripesize: 128
+    stripesize: "{{ oracle_log_stripe_size }}"
     fstype:     'xfs'
 
   - tier:       'sapos'
@@ -181,7 +187,7 @@ logical_volumes:
     vg:         'vg_oracle_mirrlogB'
     lv:         'lv_oracle_mirrlogB'
     size:       '100%FREE'
-    stripesize: 128
+    stripesize: "{{ oracle_log_stripe_size }}"
     fstype:     'xfs'
 
   - tier:       'sapos'
@@ -219,7 +225,7 @@ logical_volumes:
     vg:         'vg_db2_sapdata'
     lv:         'lv_db2_sapdata1'
     size:       '25%VG'
-    stripesize: 256
+    stripesize: "{{ db2_data_stripe_size }}"
     fstype:     'xfs'
 
   - tier:       'sapos'
@@ -227,7 +233,7 @@ logical_volumes:
     vg:         'vg_db2_sapdata'
     lv:         'lv_db2_sapdata2'
     size:       '25%VG'
-    stripesize: 256
+    stripesize: "{{ db2_data_stripe_size }}"
     fstype:     'xfs'
 
   - tier:       'sapos'
@@ -235,7 +241,7 @@ logical_volumes:
     vg:         'vg_db2_sapdata'
     lv:         'lv_db2_sapdata3'
     size:       '25%VG'
-    stripesize: 256
+    stripesize: "{{ db2_data_stripe_size }}"
     fstype:     'xfs'
   # Here we are left with 25%VG so we assign 100%FREE so as to not fail because
   # the calculated size is less than what is available on disk xD
@@ -244,7 +250,7 @@ logical_volumes:
     vg:         'vg_db2_sapdata'
     lv:         'lv_db2_sapdata4'
     size:       '100%FREE'
-    stripesize: 256
+    stripesize: "{{ db2_data_stripe_size }}"
     fstype:     'xfs'
 
   - tier:       'sapos'
@@ -252,7 +258,7 @@ logical_volumes:
     vg:         'vg_db2_log_dir'
     lv:         'lv_db2_log_dir'
     size:       '100%FREE'
-    stripesize: 64
+    stripesize: "{{ db2_log_stripe_size }}"
     fstype:     'xfs'
 
   - tier:       'sapos'
@@ -267,7 +273,7 @@ logical_volumes:
     vg:         'vg_db2_saptmp'
     lv:         'lv_db2_saptmp'
     size:       '100%FREE'
-    stripesize: 128
+    stripesize: "{{ db2_temp_stripe_size }}"
     fstype:     'xfs'
   # ----------------------- End - disks required for DB2 ----------------------8
 
@@ -277,7 +283,7 @@ logical_volumes:
     vg:         'vg_sybase_sapdata_1'
     lv:         'lv_sybase_sapdata_1'
     size:       '100%VG'
-    stripesize: 256
+    stripesize: "{{ sybase_data_stripe_size }}"
     fstype:     'xfs'
 
   - tier:       'sapos'
@@ -285,7 +291,7 @@ logical_volumes:
     vg:         'vg_sybase_saplog_1'
     lv:         'lv_sybase_saplog_1'
     size:       '100%FREE'
-    stripesize: 64
+    stripesize: "{{ sybase_log_stripe_size }}"
     fstype:     'xfs'
 
   - tier:       'sapos'
@@ -300,7 +306,7 @@ logical_volumes:
     vg:         'vg_sybase_saptemp'
     lv:         'lv_sybase_saptemp'
     size:       '100%FREE'
-    stripesize: 128
+    stripesize: "{{ sybase_temp_stripe_size }}"
     fstype:     'xfs'
 
   - tier:       'sapos'
@@ -353,7 +359,7 @@ logical_volumes_sapmnt:
     node_tier:  'scs'
     vg:         'vg_sap'
     lv:         'lv_sapmnt'
-    size:       '32g'
+    size:       "{% if sapmnt_volume_size is defined %}{{ sapmnt_volume_size }}{% else %}32g{% endif %}"
     fstype:     'xfs'
 
 logical_volumes_install:
@@ -369,7 +375,7 @@ logical_volumes_hanashared:
     node_tier:  'hana'
     vg:         "{% if shareddisk == '1' %}vg_hana_shared{% else %}vg_sap{% endif %}"
     lv:         'lv_hana_shared'
-    size:       "{% if shareddisk == '1' %}100%FREE{% else %}32g{% endif %}"
+    size:       "{% if shareddisk == '1' %}100%FREE{% else %}{{ hanashared_volume_size }}{% endif %}"
     fstype:     'xfs'
 
 

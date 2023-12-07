@@ -4,6 +4,72 @@
 # |                             S User secret                                  |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
+- name:                                "0.2 Key Vault: - Retrieve Deployer Keyvault details"
+  block:
+
+# TODO: Move check to validation playbook (MKD)
+    - name:                            "0.2 Key Vault: - Check required variables are present and not empty"
+      ansible.builtin.assert:
+        that:
+          - "kv_name is defined"                    # Has the variable been defined
+          - "kv_name | type_debug != 'NoneType'"    # and given a value
+          - "kv_name | string | length != 0 "       # Detect null values
+        fail_msg:                      "Please define the kv_name parameter"
+
+    - name:                            "0.2 Key Vault: - Get Deployer key vault name from workload zone key vault"
+      ansible.builtin.command: >-
+                                       az keyvault secret show
+                                        --vault-name {{ kv_name }}
+                                        --name {{ deployer_kv_name_secret }}
+                                        --query value
+                                        --output tsv
+      changed_when:                    false
+      register:                        deployer_kv_name_secret_result
+      when:                            bom_processing is not defined
+
+    - name:                            "0.2 Key Vault: - Save Deployer key vault name"
+      ansible.builtin.set_fact:
+        deployer_kv_name:              "{{ deployer_kv_name_secret_result.stdout }}"
+        cacheable:                     true
+  rescue:
+    - name:                            "0.2 Key Vault: - Rescue - perform az login"
+      ansible.builtin.command: >-
+                                       az login --identity --allow-no-subscriptions --output none
+      changed_when:                    false
+
+    - name:                              "0.2 Key Vault: - Get Deployer key vault name from workload zone key vault and rescue"
+      block:
+        - name:                            "0.2 Key Vault: - Get Deployer key vault name from workload zone key vault"
+          ansible.builtin.command: >-
+                                          az keyvault secret show
+                                              --vault-name {{ kv_name }}
+                                              --name {{ deployer_kv_name_secret }}
+                                              --query value
+                                              --output tsv
+          changed_when:                    false
+          register:                        deployer_kv_name_secret_result
+          when:                            bom_processing is not defined
+      rescue:
+        - name:                         Rescue Log the error message to be transformed
+          ansible.builtin.debug:
+            msg:                        "Error message to transform: {{ deployer_kv_name_secret_result.stderr }}"
+
+        - name:                         "Rescue 0.2 Key Vault: - Get Deployer key vault name from workload zone key vault"
+          ansible.builtin.fail:
+            msg:                        "{{ deployer_kv_name_secret_result.stderr | try_get_error_code }}"
+
+    - name:                            "0.2 Key Vault: - Save Deployer key vault name"
+      ansible.builtin.set_fact:
+        deployer_kv_name:              "{{ deployer_kv_name_secret_result.stdout }}"
+        cacheable:                     true
+
+  when: deployer_kv_name is not defined
+
+# - name:                                "0.2 Key Vault: - Show Deployer key vault name"
+#   ansible.builtin.debug:
+#     var:                               deployer_kv_name
+#   when:
+#     - operation == "bom"
 
 
 - name:                                "0.2 Key Vault - S-User: - Retrieve S User details"
@@ -52,4 +118,7 @@
   when:
     - s_password is not defined
 
+# /*---------------------------------------------------------------------------8
+# |                                   END                                      |
+# +------------------------------------4--------------------------------------*/
 ...

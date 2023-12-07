@@ -160,7 +160,7 @@ stages:
                             storage_account_parameter=""
                         echo -e "$green--- Validations ---$reset"
                             if [ -z ${TF_VAR_ansible_core_version} ]; then
-                                export TF_VAR_ansible_core_version=2.13
+                                export TF_VAR_ansible_core_version=2.15
                             fi
                             if [ -z ${ARM_SUBSCRIPTION_ID} ]; then
                                 echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined."
@@ -332,6 +332,21 @@ stages:
                                 else
                                     az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name Deployer_Key_Vault --value ${file_key_vault} --output none --only-show-errors
                                 fi
+                                az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "ControlPlaneEnvironment.value")
+                                if [ -z ${az_var} ]; then
+                                    az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name ControlPlaneEnvironment --value ${ENVIRONMENT} --output none --only-show-errors
+                                else
+                                    az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name ControlPlaneEnvironment --value ${ENVIRONMENT} --output none --only-show-errors
+                                fi
+
+                                az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "ControlPlaneLocation.value")
+                                if [ -z ${az_var} ]; then
+                                    az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name ControlPlaneLocation --value ${LOCATION} --output none --only-show-errors
+                                else
+                                    az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name ControlPlaneLocation --value ${LOCATION} --output none --only-show-errors
+                                fi
+
+
                             fi
                         exit $return_code
 
@@ -345,6 +360,7 @@ stages:
                       TF_VAR_agent_ado_url:           $(System.CollectionUri)
                       TF_VAR_spn_id:                  $(CP_ARM_OBJECT_ID)
                       TF_VAR_deployer_kv_user_arm_id: $(Deployer_Key_Vault)
+                      TF_VAR_tf_version:              $(tf_version)
                       AZURE_DEVOPS_EXT_PAT:           $(PAT)
                       IS_PIPELINE_DEPLOYMENT:         true
                       WEB_APP_CLIENT_SECRET:          $(WEB_APP_CLIENT_SECRET)
@@ -452,10 +468,17 @@ stages:
                               sed -i 's/step=3/step=1/' $deployer_environment_file_name
                           fi
 
+                          keyvault_parameter=""
+                          if [ -n "${keyvault}" ]; then
+                              if [ "${keyvault}" != "$(Deployer_Key_Vault)" ]; then
+                                keyvault_parameter=" --vault ${keyvault} "
+                              fi
+                          fi
+
                       echo -e "$green--- Validations ---$reset"
 
                           if [ -z ${TF_VAR_ansible_core_version} ]; then
-                              export TF_VAR_ansible_core_version=2.13
+                              export TF_VAR_ansible_core_version=2.15
                           fi
                           if [ -z ${CP_ARM_SUBSCRIPTION_ID} ]; then
                               echo "##vso[task.logissue type=error]Variable CP_ARM_SUBSCRIPTION_ID was not defined."
@@ -660,10 +683,10 @@ stages:
                           $SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh                               \
                              --deployer_parameter_file ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/$(deployerconfig) \
                              --library_parameter_file ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/$(libraryconfig)     \
-                             --subscription $CP_ARM_SUBSCRIPTION_ID --spn_id $CP_ARM_CLIENT_ID                                \
-                             --spn_secret $CP_ARM_CLIENT_SECRET --tenant_id $CP_ARM_TENANT_ID                                 \
+                             --subscription $CP_ARM_SUBSCRIPTION_ID --spn_id $CP_ARM_CLIENT_ID                          \
+                             --spn_secret $CP_ARM_CLIENT_SECRET --tenant_id $CP_ARM_TENANT_ID                           \
                              --auto-approve --ado                                                                       \
-                             ${storage_account_parameter}
+                             ${storage_account_parameter} ${keyvault_parameter}
                           return_code=$?
 
                           if [ 0 != $return_code ]; then
@@ -811,6 +834,22 @@ stages:
                               else
                                   az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name Deployer_Key_Vault --value ${file_key_vault} --output none --only-show-errors
                               fi
+
+                              az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "ControlPlaneEnvironment.value")
+                              if [ -z ${az_var} ]; then
+                                  az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name ControlPlaneEnvironment --value ${ENVIRONMENT} --output none --only-show-errors
+                              else
+                                  az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name ControlPlaneEnvironment --value ${ENVIRONMENT} --output none --only-show-errors
+                              fi
+
+                              az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "ControlPlaneLocation.value")
+                              if [ -z ${az_var} ]; then
+                                  az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name ControlPlaneLocation --value ${LOCATION} --output none --only-show-errors
+                              else
+                                  az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name ControlPlaneLocation --value ${LOCATION} --output none --only-show-errors
+                              fi
+
+
                           fi
                       exit $return_code
 
@@ -824,10 +863,12 @@ stages:
                       TF_VAR_spn_id:               $(CP_ARM_OBJECT_ID)
                       TF_VAR_agent_pool:           $(POOL)
                       TF_VAR_agent_ado_url:        $(System.CollectionUri)
+                      TF_VAR_tf_version:           $(tf_version)
                       AZURE_DEVOPS_EXT_PAT:        $(PAT)
                       IS_PIPELINE_DEPLOYMENT:      true
                       WEB_APP_CLIENT_SECRET:       $(WEB_APP_CLIENT_SECRET)
                       APP_REGISTRATION_APP_ID:     $(APP_REGISTRATION_APP_ID)
+                      keyvault:                    $(Deployer_Key_Vault)
                       POOL:                        $(POOL)
                       SAP_AUTOMATION_REPO_PATH:    ${{ parameters.sap_automation_repo_path }}
                       CONFIG_REPO_PATH:            ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
@@ -901,7 +942,9 @@ stages:
                           -SYSTEM_PIPELINE_ID $(SYSTEM_PIPELINE_ID)
                           -SAP_INSTALL_PIPELINE_ID $(SAP_INSTALL_PIPELINE_ID)
                           -SDAF_GENERAL_GROUP_ID $(SDAF_GENERAL_GROUP_ID)
-                          -IS_PIPELINE_DEPLOYMENT true'
+                          -IS_PIPELINE_DEPLOYMENT true
+                          -CONTROLPLANE_ENV $(ControlPlaneEnvironment)
+                          -CONTROLPLANE_LOC $(ControlPlaneLocation)'
                   env:
                       ARM_SUBSCRIPTION_ID:      $(CP_ARM_SUBSCRIPTION_ID)
                       SYSTEM_PIPELINE_ID:       $(SYSTEM_PIPELINE_ID)

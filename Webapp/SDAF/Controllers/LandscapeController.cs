@@ -1,4 +1,4 @@
-﻿using AutomationForm.Models;
+using AutomationForm.Models;
 using AutomationForm.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -24,6 +24,8 @@ namespace AutomationForm.Controllers
     private ImageDropdown[] imagesOffered;
     private List<SelectListItem> imageOptions;
     private Dictionary<string, Image> imageMapping;
+    private readonly string sdafControlPlaneEnvironment;
+    private readonly string sdafControlPlaneLocation;
 
     public LandscapeController(ITableStorageService<LandscapeEntity> landscapeService, ITableStorageService<AppFile> appFileService, IConfiguration configuration)
     {
@@ -34,11 +36,15 @@ namespace AutomationForm.Controllers
       landscapeView = SetViewData();
       imagesOffered = Helper.GetOfferedImages(_appFileService).Result;
       InitializeImageOptionsAndMapping();
+      sdafControlPlaneEnvironment = configuration["CONTROLPLANE_ENV"];
+      sdafControlPlaneLocation = configuration["CONTROLPLANE_LOC"];
     }
     private FormViewModel<LandscapeModel> SetViewData()
     {
-      landscapeView = new FormViewModel<LandscapeModel>();
-      landscapeView.SapObject = new LandscapeModel();
+      landscapeView = new FormViewModel<LandscapeModel>
+      {
+        SapObject = new LandscapeModel()
+      };
       try
       {
         Grouping[] parameterArray = Helper.ReadJson<Grouping[]>("ParameterDetails/LandscapeDetails.json");
@@ -56,7 +62,7 @@ namespace AutomationForm.Controllers
     [ActionName("Index")]
     public async Task<IActionResult> Index()
     {
-      SapObjectIndexModel<LandscapeModel> landscapeIndex = new SapObjectIndexModel<LandscapeModel>();
+      SapObjectIndexModel<LandscapeModel> landscapeIndex = new();
 
       try
       {
@@ -99,8 +105,8 @@ namespace AutomationForm.Controllers
     [HttpGet]
     public async Task<ActionResult> GetWorkloadZones()
     {
-      List<SelectListItem> options = new List<SelectListItem>
-            {
+      List<SelectListItem> options = new()
+      {
                 new SelectListItem { Text = "", Value = "" }
             };
       try
@@ -203,10 +209,13 @@ namespace AutomationForm.Controllers
       try
       {
         LandscapeModel landscape = await GetById(id, partitionKey);
+        landscape.controlPlaneEnvironment = sdafControlPlaneEnvironment;
+        landscape.controlPlaneLocation = sdafControlPlaneLocation;
         landscapeView.SapObject = landscape;
 
         List<SelectListItem> environments = restHelper.GetEnvironmentsList().Result;
         ViewBag.Environments = environments;
+        
 
         return View(landscapeView);
       }
@@ -233,7 +242,7 @@ namespace AutomationForm.Controllers
         string pipelineId = _configuration["WORKLOADZONE_PIPELINE_ID"];
         string branch = _configuration["SourceBranch"];
         parameters.workload_zone = id;
-        PipelineRequestBody requestBody = new PipelineRequestBody
+        PipelineRequestBody requestBody = new()
         {
           resources = new Resources
           {
@@ -428,7 +437,7 @@ namespace AutomationForm.Controllers
         LandscapeModel landscape = result.Value;
 
         landscape.IsDefault = true;
-        LandscapeEntity landscapeEntity = new LandscapeEntity(landscape);
+        LandscapeEntity landscapeEntity = new(landscape);
         await _landscapeService.UpdateAsync(landscapeEntity);
         TempData["success"] = id + " is now the default workload zone";
       }

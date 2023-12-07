@@ -85,25 +85,25 @@
 
 # Huge pages for Oracle Database VMs
 # SAP Note 1672954 : Usage of hugepages on a Linux system that runs an Oracle database.
-- name:                                "Oracle Specific Parameters"
+- name:                                "1.9 Kernel parameters - Oracle Specific Parameters"
   block:
-    - name:                            "Calculate the Huge Pages when RAM  < 4TB"
+    - name:                            "1.9 Kernel parameters - Calculate the Huge Pages when RAM < 4TB"
       ansible.builtin.set_fact:
         huge_pages:                    "{{ ((ansible_memory_mb.real.total * 0.95 * 1024 * 1024) / (2 * 1024 * 1024)) | round | int }}"
       when:                            ansible_memory_mb.real.total < 4194304
 
-    - name:                            "Calculate the Huge Pages when RAM > 4TB "
+    - name:                            "1.9 Kernel parameters - Calculate the Huge Pages when RAM > 4TB "
       ansible.builtin.set_fact:
         huge_pages:                    "{{ ((ansible_memory_mb.real.total * 0.95 * 1024 * 1024) / (2 * 1024 * 1024)) | round | int }}"
       when:                            ansible_memory_mb.real.total > 4194304
 
     # print only when -vv, otherwise you will have terminal nausea
-    - name:                            "Display Huge pages value"
+    - name:                            "1.9 Kernel parameters - Display Huge pages value"
       ansible.builtin.debug:
         var:                           huge_pages
         verbosity:                     2
 
-    - name:                            "Set Huge pages parameters"
+    - name:                            "1.9 Kernel parameters - Set Huge pages parameters"
       become:                          true
       ansible.posix.sysctl:
         name:                          "vm.nr_hugepages"
@@ -113,7 +113,7 @@
         reload:                        true
         ignoreerrors:                  true
 
-    - name:                            "Set limits"
+    - name:                            "1.9 Kernel parameters - Set limits"
       ansible.builtin.blockinfile:
         path:                          /etc/security/limits.conf
         insertafter:                   '#@student        -       maxlogins       4'
@@ -128,7 +128,7 @@
   when:
     - node_tier in ["oracle","oracle-asm","oracle-multi-sid"]
 
-- name:                                "Set limits for DB2"
+- name:                                "1.9 Kernel parameters - Set limits for DB2"
   ansible.builtin.blockinfile:
     path:                              /etc/security/limits.conf
     insertafter:                       '#@student        -       maxlogins       4'
@@ -136,12 +136,12 @@
     block: |
                 @sapsys    hard    nproc    unlimited
                 @sapsys    soft    nproc    unlimited
-                @db2{{ db_sid | lower }}adm      hard    nproc    unlimited
-                @db{{ db_sid | lower }}adm       soft    nproc    unlimited
+                @db{{ db_sid | lower }}adm      hard    nproc    unlimited
+                @db{{ db_sid | lower }}adm      soft    nproc    unlimited
   when:
     - node_tier == 'db2'
 
-- name:                                "Set limits for HANA"
+- name:                                "1.9 Kernel parameters - Set limits for HANA"
   ansible.builtin.blockinfile:
     path:                              /etc/security/limits.conf
     insertafter:                       '#@student        -       maxlogins       4'
@@ -154,7 +154,7 @@
   when:
     - node_tier == 'hana'
 
-- name:                                "Set limits for app tier"
+- name:                                "1.9 Kernel parameters - Set limits for app tier"
   ansible.builtin.blockinfile:
     path:                              /etc/security/limits.conf
     insertafter:                       '#@student        -       maxlogins       4'
@@ -170,6 +170,33 @@
 # ----------------------------------------
 # END
 # ----------------------------------------
+
+
+# /*----------------------------------------------------------------------------8
+# |                       Custom kernel parameters                              |
+# +------------------------------------4---------------------------------------*/
+
+
+- name:                                "1.9 Kernel parameters - Gather list of custom defined parameters which need to be applied"
+  ansible.builtin.set_fact:
+    get_custom_parameters_to_apply:    '{{ ((custom_parameters[distribution_id] | default([]))) | unique }}'
+  when:
+    - custom_parameters is defined
+
+- name:                                "1.9 Kernel parameters - Set relevant custom defined kernel parameters"
+  become:                              true
+  ansible.posix.sysctl:
+    name:                              "{{ item.name }}"
+    value:                             "{{ item.value }}"
+    state:                             "{{ item.state }}"
+    sysctl_set:                        true
+    reload:                            true
+    ignoreerrors:                      true
+  loop:                                "{{ get_custom_parameters_to_apply }}"
+  when:
+    - get_custom_parameters_to_apply is defined
+    - item.tier in ["all", tier]
+    - item.node_tier in ["all", node_tier]
 
 ...
 # /*----------------------------------------------------------------------------8

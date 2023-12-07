@@ -18,7 +18,7 @@
       ansible.builtin.command: >
                                        pcs resource create rsc_sap_{{ sap_sid }}_{{ instance_type | upper }}{{ scs_instance_number }} SAPInstance \
                                        InstanceName={{ instance_name }} START_PROFILE="{{ start_profile_path }}" \
-                                       AUTOMATIC_RECOVER=true \
+                                       AUTOMATIC_RECOVER=false \
                                        meta resource-stickiness=5000 migration-threshold=1 failure-timeout=60 \
                                        op monitor interval=20 on-fail=restart timeout={{ clus_sap_mon_timeout | int }} \
                                        op start interval=0 timeout=600 op stop interval=0 timeout=600 \
@@ -33,7 +33,7 @@
       ansible.builtin.command: >
                                        pcs resource create rsc_sap_{{ sap_sid }}_ERS{{ ers_instance_number }} SAPInstance \
                                        InstanceName={{ sap_sid }}_ERS{{ ers_instance_number }}_{{ ers_virtual_hostname }} START_PROFILE="/sapmnt/{{ sap_sid }}/profile/{{ sap_sid }}_ERS{{ ers_instance_number }}_{{ ers_virtual_hostname }}" \
-                                       AUTOMATIC_RECOVER=true IS_ERS=true \
+                                       AUTOMATIC_RECOVER=false IS_ERS=true \
                                        op monitor interval=20 on-fail=restart timeout={{ clus_sap_mon_timeout | int }} \
                                        op start interval=0 timeout=600 \
                                        op stop interval=0 timeout=600 \
@@ -55,9 +55,9 @@
     - name:                            "5.6 SCSERS - RHEL - ENSA1 - Set the Cluster out of maintenance mode"
       ansible.builtin.command:         pcs property set maintenance-mode=false
 
-    - name:                           "5.6 SCSERS - RHEL - ENSA2 - pause the execution for 2 minutes"
-      ansible.builtin.pause:
-        seconds:                       120
+    - name:                            "5.6 SCSERS - RHEL - ENSA2 - pause the execution for 2 minutes"
+      ansible.builtin.wait_for:
+        timeout:                       120
 
 # Use the following if using ENSA2
 - name:                                "5.6 SCSERS - RHEL - SAP Resources - Cluster Configuration after Install"
@@ -72,7 +72,7 @@
       ansible.builtin.command: >
                                        pcs resource create rsc_sap_{{ sap_sid }}_{{ instance_type | upper }}{{ scs_instance_number }} SAPInstance \
                                        InstanceName={{ instance_name }} START_PROFILE="{{ start_profile_path }}" \
-                                       AUTOMATIC_RECOVER=true \
+                                       AUTOMATIC_RECOVER=false \
                                        meta resource-stickiness=5000 \
                                        op monitor interval=20 on-fail=restart timeout={{ clus_sap_mon_timeout | int }} \
                                        op start interval=0 timeout=600 op stop interval=0 timeout=600 \
@@ -87,7 +87,7 @@
       ansible.builtin.command: >
                                        pcs resource create rsc_sap_{{ sap_sid }}_ERS{{ ers_instance_number }} SAPInstance \
                                        InstanceName={{ sap_sid }}_ERS{{ ers_instance_number }}_{{ ers_virtual_hostname }} START_PROFILE="/sapmnt/{{ sap_sid }}/profile/{{ sap_sid }}_ERS{{ ers_instance_number }}_{{ ers_virtual_hostname }}" \
-                                       AUTOMATIC_RECOVER=true IS_ERS=true \
+                                       AUTOMATIC_RECOVER=false IS_ERS=true \
                                        op monitor interval=20 on-fail=restart timeout={{ clus_sap_mon_timeout | int }} \
                                        op start interval=0 timeout=600 \
                                        op stop interval=0 timeout=600 \
@@ -109,22 +109,45 @@
     - name:                            "5.6 SCSERS - RHEL - ENSA2 - Set the Cluster out of maintenance mode"
       ansible.builtin.command:         pcs property set maintenance-mode=false
 
-    - name:                           "5.6 SCSERS - RHEL - ENSA2 - pause the execution for 2 minutes"
-      ansible.builtin.pause:
-        seconds:                       120
+    # - name:                            "5.6 SCSERS - RHEL - ENSA2 - pause the execution for 2 minutes"
+    #   ansible.builtin.wait_for:
+    #     timeout:                       120
 
 # +------------------------------------4---------------------------------------*|
 # | 5.6.6-validate.yml - Validate the SAP ASCS/SCS and ERS resources            |
+# | These are common tasks
+# +------------------------------------+---------------------------------------*|
 - name:                                "5.6 SCSERS - RHEL - Enable Maintenance mode for the cluster"
   ansible.builtin.command:             pcs property set maintenance-mode=true
 
+- name:                                "5.6 SCSERS - RHEL - Reboot and wait 5 minutes"
+  ansible.builtin.debug:
+    msg:                               "Reboot and wait 5 minutes"
+
 - name:                                "5.6 SCSERS - RHEL - Reboot the primary/secondary instance"
   ansible.builtin.reboot:
-    reboot_timeout:                    300
-    post_reboot_delay:                 300
+#    reboot_timeout:                    300
+#    post_reboot_delay:                 300
 
 - name:                                "5.6 SCSERS - RHEL - Set the Cluster out of maintenance mode"
   ansible.builtin.command:             pcs property set maintenance-mode=false
+
+- name:                                "5.6 SCSERS - RHEL - Wait for 120 seconds for the cluster to stabilize"
+  ansible.builtin.wait_for:
+    timeout:                           120
+  register:                            wait_for_connection_results
+
+- name:                                "5.6 SCSERS - RHEL ensure SAPInstance resources are started"
+  ansible.builtin.shell: |
+                                       set -o pipefail
+                                       pcs status --full | grep SAPInstance | grep Started | wc -l
+  register:                            sap_instance_status
+  retries:                             40
+  delay:                               15
+  until:                               (sap_instance_status.stdout | int) == ([(ansible_play_hosts_all | length), 2] | max | int)
+  run_once:                            true
+  failed_when:                         false
+
 
 - name:                                "5.6 SCSERS - RHEL - SCS cluster group validation"
   ansible.builtin.include_tasks:

@@ -1,0 +1,4 @@
+- name:                                "1.3 Repository - Ensure yum repos are configured on Redhat VMs"
+  block:
+    - name:                            "1.3 Repository - Check that yum repos are registered"
+      ansible.builtin.command:         yum repolist # noqa: command-instead-of-module

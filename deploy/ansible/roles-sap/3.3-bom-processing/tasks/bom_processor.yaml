@@ -73,6 +73,17 @@
 
 # Download Files
 # ------------------<DEBUGGING>-------------------
+- name:                                "3.3 BoM Processing: - Check if dynamic BOM download was performed successfully."
+  block:
+    - name:                             "3.3 BoM Processing: - Check if the item has dynamic property"
+      ansible.builtin.fail:
+        msg:                            "INSTALL:0023:Error while donwloading BOM contents. Invalid BOM structure detected."
+      when:
+        - item.download is undefined or item.download
+        - item.dynamic is defined or item.archive is undefined
+      loop:       "{{ bom.materials.media | flatten(levels=1) }}"
+  when:
+    - is_executed_by_acss
 
 - name:                             "3.3 BoM Processing: - List files"
   ansible.builtin.debug:

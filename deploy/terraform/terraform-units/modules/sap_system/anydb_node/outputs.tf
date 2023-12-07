@@ -1,144 +1,155 @@
-output "anydb_vms" {
-  value = local.enable_deployment ? (
-    coalesce(azurerm_linux_virtual_machine.dbserver[*].id,
-      azurerm_windows_virtual_machine.dbserver[*].id
-    )
-    ) : (
-    [""]
-  )
-}
-output "nics_anydb" {
-  value = local.enable_deployment ? azurerm_network_interface.anydb_db : []
-}
+#######################################4#######################################8
+#                                                                              #
+#                               AnyDB definitions                              #
+#                                                                              #
+#######################################4#######################################8
 
-output "nics_anydb_admin" {
-  value = local.enable_deployment ? azurerm_network_interface.anydb_admin : []
-}
+output "database_cluster_ip"           {
+                                         description = "AnyDB load balancer cluster IPs"
+                                         value       = var.database.high_availability && local.windows_high_availability ? (
+                                                         try(azurerm_lb.anydb[0].frontend_ip_configuration[1].private_ip_address, "")) : (
+                                                         ""
+                                                       )
+                                       }
+output "database_loadbalancer_id"                      {
+                                         description = "AnyDB load balancer Id"
+                                         value       = [
+                                                         local.enable_db_lb_deployment && (var.use_loadbalancers_for_standalone_deployments || var.database.high_availability) ? (
+                                                           try(azurerm_lb.anydb[0].id, "")) : (
+                                                           ""
+                                                         )
+                                                       ]
+                                       }
 
-output "anydb_admin_ip" {
-  value = local.enable_deployment ? (
-    local.anydb_dual_nics ? (
-      azurerm_network_interface.anydb_admin[*].private_ip_address) : (
-    azurerm_network_interface.anydb_db[*].private_ip_address)
-  ) : []
-}
+output "database_loadbalancer_ip"      {
+                                         description = "AnyDB load balancer IPs"
+                                         value       = [
+                                                         local.enable_db_lb_deployment && (var.use_loadbalancers_for_standalone_deployments || var.database.high_availability) ? (
+                                                           try(azurerm_lb.anydb[0].frontend_ip_configuration[0].private_ip_address, "")) : (
+                                                           ""
+                                                         )
+                                                       ]
+                                       }
+output "database_server_admin_ips"     {
+                                         description = "AnyDB Virtual machine Admin interface IPs"
+                                         value       = local.enable_deployment ? (
+                                                         local.anydb_dual_nics ? (
+                                                           azurerm_network_interface.anydb_admin[*].private_ip_address) : (
+                                                         azurerm_network_interface.anydb_db[*].private_ip_address)
+                                                       ) : []
+                                       }
 
-output "db_server_ips" {
-  value = local.enable_deployment ? azurerm_network_interface.anydb_db[*].private_ip_addresses[0] : []
-}
+output "database_server_ips"           {
+                                         description = "AnyDB Virtual machine db interface IPs"
+                                         value       = local.enable_deployment ? azurerm_network_interface.anydb_db[*].private_ip_addresses[0] : []
+                                       }
 
-output "db_server_secondary_ips" {
-  value = local.enable_deployment && var.use_secondary_ips ? try(azurerm_network_interface.anydb_db[*].private_ip_addresses[1], []) : []
-}
+output "database_server_secondary_ips" {
+                                         description = "AnyDB Virtual machine db interface IPs"
+                                         value       = local.enable_deployment && var.use_secondary_ips ? try(azurerm_network_interface.anydb_db[*].private_ip_addresses[1], []) : []
+                                       }
 
-output "db_lb_ip" {
-  value = [
-    local.enable_db_lb_deployment && (var.use_loadbalancers_for_standalone_deployments || local.anydb_ha) ? (
-      try(azurerm_lb.anydb[0].frontend_ip_configuration[0].private_ip_address, "")) : (
-      ""
-    )
-  ]
-}
+output "database_server_vm_ips"        {
+                                         description = "AnyDB Virtual machine resource IDs"
+                                         value       = local.enable_deployment ? (
+                                                      coalesce(azurerm_linux_virtual_machine.dbserver[*].id,
+                                                        azurerm_windows_virtual_machine.dbserver[*].id
+                                                      )
+                                                      ) : (
+                                                      [""]
+                                                     )
+                                       }
 
-output "db_clst_lb_ip" {
-  value = local.anydb_ha && local.winHA ? (
-    try(azurerm_lb.anydb[0].frontend_ip_configuration[1].private_ip_address, "")) : (
-    ""
-  )
+output "database_disks"                {
+                                         description = "AnyDB Virtual machine disks"
+                                         value       = local.enable_deployment ? local.db_disks_ansible : []
+                                       }
 
-}
+#######################################4#######################################8
+#                                                                              #
+#                                         DNS                                  #
+#                                                                              #
+#######################################4#######################################8
+output "dns_info_vms"                  {
+                                         description = "DNS Information for the virtual machines"
+                                         value       = local.enable_deployment ? (
+                                                         local.anydb_dual_nics ? (
+                                                           zipmap(
+                                                             compact(
+                                                               concat(
+                                                                 slice(var.naming.virtualmachine_names.ANYDB_VMNAME, 0, length(azurerm_linux_virtual_machine.dbserver) + length(azurerm_windows_virtual_machine.dbserver)),
+                                                                 slice(var.naming.virtualmachine_names.ANYDB_SECONDARY_DNSNAME, 0, length(azurerm_linux_virtual_machine.dbserver) + length(azurerm_windows_virtual_machine.dbserver))
+                                                               )
+                                                             ),
+                                                             compact(
+                                                               concat(
+                                                                 slice(azurerm_network_interface.anydb_admin[*].private_ip_address, 0, length(azurerm_linux_virtual_machine.dbserver) + length(azurerm_windows_virtual_machine.dbserver)),
+                                                                 slice(azurerm_network_interface.anydb_db[*].private_ip_address, 0, length(azurerm_linux_virtual_machine.dbserver) + length(azurerm_windows_virtual_machine.dbserver))
+                                                               )
+                                                             )
+                                                           )
+                                                           ) : (
+                                                           zipmap(
+                                                             compact(
+                                                               concat(
+                                                                 slice(var.naming.virtualmachine_names.ANYDB_VMNAME, 0, length(azurerm_linux_virtual_machine.dbserver) + length(azurerm_windows_virtual_machine.dbserver))
+                                                               )
+                                                             ),
+                                                             compact(
+                                                               concat(
+                                                                 slice(azurerm_network_interface.anydb_db[*].private_ip_address, 0, length(azurerm_linux_virtual_machine.dbserver) + length(azurerm_windows_virtual_machine.dbserver))
+                                                               )
+                                                             )
+                                                           )
+                                                         )
+                                                         ) : (
+                                                         null
+                                                       )
+                                       }
 
-output "db_lb_id" {
-  value = [
-    local.enable_db_lb_deployment && (var.use_loadbalancers_for_standalone_deployments || local.anydb_ha) ? (
-      try(azurerm_lb.anydb[0].id, "")) : (
-      ""
-    )
-  ]
-}
+output "dns_info_loadbalancers"        {
+                                         description = "DNS Information for the virtual machines"
+                                         value       = local.enable_db_lb_deployment ? (
+                                                         zipmap([format("%s%s%s%s",
+                                                           var.naming.resource_prefixes.db_alb,
+                                                           local.prefix,
+                                                           var.naming.separator,
+                                                           local.resource_suffixes.db_alb
+                                                         )], [try(azurerm_lb.anydb[0].private_ip_addresses[0], "")])) : (
+                                                         null
+                                                       )
+                                       }
 
-output "anydb_loadbalancers" {
-  value = azurerm_lb.anydb
-}
 
-// Output for DNS
-output "dns_info_vms" {
-  value = local.enable_deployment ? (
-    local.anydb_dual_nics ? (
-      zipmap(
-        compact(
-          concat(
-            slice(var.naming.virtualmachine_names.ANYDB_VMNAME, 0, length(azurerm_linux_virtual_machine.dbserver) + length(azurerm_windows_virtual_machine.dbserver)),
-            slice(var.naming.virtualmachine_names.ANYDB_SECONDARY_DNSNAME, 0, length(azurerm_linux_virtual_machine.dbserver) + length(azurerm_windows_virtual_machine.dbserver))
-          )
-        ),
-        compact(
-          concat(
-            slice(azurerm_network_interface.anydb_admin[*].private_ip_address, 0, length(azurerm_linux_virtual_machine.dbserver) + length(azurerm_windows_virtual_machine.dbserver)),
-            slice(azurerm_network_interface.anydb_db[*].private_ip_address, 0, length(azurerm_linux_virtual_machine.dbserver) + length(azurerm_windows_virtual_machine.dbserver))
-          )
-        )
-      )
-      ) : (
-      zipmap(
-        compact(
-          concat(
-            slice(var.naming.virtualmachine_names.ANYDB_VMNAME, 0, length(azurerm_linux_virtual_machine.dbserver) + length(azurerm_windows_virtual_machine.dbserver))
-          )
-        ),
-        compact(
-          concat(
-            slice(azurerm_network_interface.anydb_db[*].private_ip_address, 0, length(azurerm_linux_virtual_machine.dbserver) + length(azurerm_windows_virtual_machine.dbserver))
-          )
-        )
-      )
-    )
-    ) : (
-    null
-  )
-}
 
-output "dns_info_loadbalancers" {
-  value = local.enable_db_lb_deployment ? (
-    zipmap([format("%s%s%s%s",
-      var.naming.resource_prefixes.db_alb,
-      local.prefix,
-      var.naming.separator,
-      local.resource_suffixes.db_alb
-    )], [try(azurerm_lb.anydb[0].private_ip_addresses[0], "")])) : (
-    null
-  )
-}
+output "observer_ips"                  {
+                                         description = "IP adresses for observer nodes"
+                                         value       = local.enable_deployment && local.deploy_observer ? (
+                                                         azurerm_network_interface.observer[*].private_ip_address) : (
+                                                         []
+                                                       )
+                                       }
 
-output "anydb_vm_ids" {
-  value = local.enable_deployment ? concat(
-    azurerm_windows_virtual_machine.dbserver[*].id,
-    azurerm_linux_virtual_machine.dbserver[*].id
-  ) : []
-}
+output "observer_vms"                  {
+                                         description = "Resource IDs for observer nodes"
+                                         value       = local.enable_deployment ? (
+                                                         coalesce(
+                                                           azurerm_linux_virtual_machine.observer[*].id,
+                                                           azurerm_windows_virtual_machine.observer[*].id
+                                                         )) : (
+                                                         [""]
+                                                       )
+                                       }
 
-output "dbtier_disks" {
-  value = local.enable_deployment ? local.db_disks_ansible : []
-}
-
-output "db_ha" {
-  value = local.anydb_ha
-}
-
-output "observer_ips" {
-  value = local.enable_deployment && local.deploy_observer ? (
-    azurerm_network_interface.observer[*].private_ip_address) : (
-    []
-  )
-}
-
-output "observer_vms" {
-  value = local.enable_deployment ? (
-    coalesce(
-      azurerm_linux_virtual_machine.observer[*].id,
-      azurerm_windows_virtual_machine.observer[*].id
-    )) : (
-    [""]
-  )
-}
-
+output "database_shared_disks"         {
+                                         description = "List of Azure shared disks"
+                                         value       = distinct(
+                                                         flatten(
+                                                           [for vm in var.naming.virtualmachine_names.HANA_COMPUTERNAME :
+                                                             [for idx, disk in azurerm_virtual_machine_data_disk_attachment.cluster :
+                                                               format("{ host: '%s', lun: %d, type: 'ASD' }", vm, disk.lun)
+                                                             ]
+                                                           ]
+                                                         )
+                                                       )
+                                       }

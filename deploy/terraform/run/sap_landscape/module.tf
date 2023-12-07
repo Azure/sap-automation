@@ -17,10 +17,12 @@ module "sap_landscape" {
   ANF_settings                                 = local.ANF_settings
   authentication                               = local.authentication
   create_vaults_and_storage_dns_a_records      = var.create_vaults_and_storage_dns_a_records
+  create_transport_storage                     = var.create_transport_storage
   deployer_tfstate                             = try(data.terraform_remote_state.deployer[0].outputs, [])
   diagnostics_storage_account                  = local.diagnostics_storage_account
   dns_label                                    = var.dns_label
   dns_server_list                              = var.dns_server_list
+  dns_zone_names                               = var.dns_zone_names
   enable_firewall_for_keyvaults_and_storage    = var.enable_firewall_for_keyvaults_and_storage
   enable_purge_control_for_keyvaults           = var.enable_purge_control_for_keyvaults
   enable_rbac_authorization_for_keyvault       = var.enable_rbac_authorization_for_keyvault
@@ -48,9 +50,12 @@ module "sap_landscape" {
   register_virtual_network_to_dns              = var.register_virtual_network_to_dns
   service_principal                            = var.use_spn ? local.service_principal : local.account
   storage_account_replication_type             = var.storage_account_replication_type
+  tags                                         = var.tags
+  terraform_template_version                   = local.version_label
   transport_private_endpoint_id                = var.transport_private_endpoint_id
   transport_storage_account_id                 = var.transport_storage_account_id
   transport_volume_size                        = var.transport_volume_size
+  use_AFS_for_installation_media               = var.use_AFS_for_installation_media
   use_custom_dns_a_registration                = var.use_custom_dns_a_registration
   use_deployer                                 = length(var.deployer_tfstate_key) > 0
   use_private_endpoint                         = var.use_private_endpoint

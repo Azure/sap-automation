@@ -24,6 +24,8 @@ namespace AutomationForm.Controllers
     private readonly string PAT;
     private readonly string branch;
     private readonly string sdafGeneralId;
+    private readonly string sdafControlPlaneEnvironment;
+    private readonly string sdafControlPlaneLocation;
 
     private readonly string sampleUrl = "https://api.github.com/repos/Azure/SAP-automation-samples";
     private HttpClient client;
@@ -35,6 +37,8 @@ namespace AutomationForm.Controllers
       PAT = configuration["PAT"];
       branch = configuration["SourceBranch"];
       sdafGeneralId = configuration["SDAF_GENERAL_GROUP_ID"];
+      sdafControlPlaneEnvironment = configuration["CONTROLPLANE_ENV"];
+      sdafControlPlaneLocation = configuration["CONTROLPLANE_LOC"];
 
       client = new HttpClient();
 
@@ -78,12 +82,12 @@ namespace AutomationForm.Controllers
       path = pathBase + path;
 
       // Create request body
-      Refupdate refUpdate = new Refupdate()
+      Refupdate refUpdate = new()
       {
         name = $"refs/heads/{branch}",
         oldObjectId = ooId
       };
-      GitRequestBody requestBody = new GitRequestBody()
+      GitRequestBody requestBody = new()
       {
         refUpdates = new Refupdate[] { refUpdate },
       };
@@ -113,7 +117,7 @@ namespace AutomationForm.Controllers
       string postUri = $"{collectionUri}{project}/_apis/pipelines/{pipelineId}/runs?api-version=6.0-preview.1";
 
       string requestJson = JsonSerializer.Serialize(requestBody, typeof(PipelineRequestBody), new JsonSerializerOptions() { IgnoreNullValues = true });
-      StringContent content = new StringContent(requestJson, Encoding.ASCII, "application/json");
+      StringContent content = new(requestJson, Encoding.ASCII, "application/json");
 
       HttpResponseMessage response = await client.PostAsync(postUri, content);
       string responseBody = await response.Content.ReadAsStringAsync();
@@ -128,7 +132,7 @@ namespace AutomationForm.Controllers
       string responseBody = await response.Content.ReadAsStringAsync();
       HandleResponse(response, responseBody);
 
-      List<string> fileNames = new List<string>();
+      List<string> fileNames = new();
 
       JsonElement values = JsonDocument.Parse(responseBody).RootElement;
       foreach (var value in values.EnumerateArray())
@@ -186,15 +190,20 @@ namespace AutomationForm.Controllers
     {
       JsonElement values = await GetVariableGroupsJson();
 
-      List<EnvironmentModel> variableGroups = new List<EnvironmentModel>();
+      List<EnvironmentModel> variableGroups = new();
 
       foreach (var value in values.EnumerateArray())
       {
         EnvironmentModel environment = JsonSerializer.Deserialize<EnvironmentModel>(value.ToString());
-        if (environment.name.StartsWith("SDAF-"))
+
+        environment.sdafControlPlaneEnvironment = sdafControlPlaneEnvironment;
+        if (!environment.name.EndsWith("-" + sdafControlPlaneEnvironment))
         {
-          environment.name = environment.name.Replace("SDAF-", "");
-          variableGroups.Add(environment);
+          if (environment.name.StartsWith("SDAF-"))
+          {
+            environment.name = environment.name.Replace("SDAF-", "");
+            variableGroups.Add(environment);
+          }
         }
 
       }
@@ -207,8 +216,8 @@ namespace AutomationForm.Controllers
     {
       JsonElement values = await GetVariableGroupsJson();
 
-      List<SelectListItem> variableGroups = new List<SelectListItem>
-            {
+      List<SelectListItem> variableGroups = new()
+      {
                 new SelectListItem { Text = "", Value = "" }
             };
 
@@ -316,7 +325,7 @@ namespace AutomationForm.Controllers
           };
 
       string requestJson = JsonSerializer.Serialize(environment, typeof(EnvironmentModel), new JsonSerializerOptions() { IgnoreNullValues = true });
-      StringContent content = new StringContent(requestJson, Encoding.ASCII, "application/json");
+      StringContent content = new(requestJson, Encoding.ASCII, "application/json");
 
       HttpResponseMessage response = await client.PostAsync(postUri, content);
       string responseBody = await response.Content.ReadAsStringAsync();
@@ -367,7 +376,7 @@ namespace AutomationForm.Controllers
 
       // Make the put call
       string requestJson = JsonConvert.SerializeObject(dynamicEnvironment, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
-      StringContent content = new StringContent(requestJson, Encoding.ASCII, "application/json");
+      StringContent content = new(requestJson, Encoding.ASCII, "application/json");
 
       HttpResponseMessage putResponse = await client.PutAsync(uri, content);
       string putResponseBody = await putResponse.Content.ReadAsStringAsync();

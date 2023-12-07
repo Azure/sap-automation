@@ -50,14 +50,16 @@
       tags:
         - 0.1-win-passwords
 
-    - name:                            "Database Installation Playbook: - Read/Create key vault secrets"
+    - name:                                 "Database Installation Playbook: - Read/Create key vault secrets"
       ansible.builtin.include_role:
-        name:                          roles-misc/0.2-kv-secrets
-        public:                        true
+        name:                               roles-misc/0.2-kv-secrets
+        public:                             true
       vars:
-        tier:                          fencing
+        # tier:                               fencing
+        operation:                          fencing
+      when:                                 (database_high_availability and database_cluster_type == "AFA")
       tags:
-        - 0.2-kv-secrets
+                                            - 0.2-kv-secrets
 
     - name:                            "Database Installation Playbook: - Read storage account details"
       ansible.builtin.include_role:
@@ -153,19 +155,29 @@
     - name:                            "Database Installation Playbook: - Install Pacemaker (base)"
       become:                          true
       when:
-        - db_high_availability
+        # - db_high_availability
+        - database_high_availability
         - node_tier == 'hana'
       block:
-        - name:                        "Database Installation Playbook: - Setting the facts"
+        - name:                         "Database Installation Playbook: - Setting the facts"
           ansible.builtin.set_fact:
-            tier:                      ha
-            main_password:             "{{ hostvars.localhost.sap_password }}"
-            password_ha_db_cluster:    "{{ hostvars.localhost.db_cluster_password }}"
-            primary_instance_name:     "{{ ansible_play_hosts_all[0] }}"         # Setting up Primary Instance Name
-            secondary_instance_name:   "{{ ansible_play_hosts_all[1] }}"         # Setting up Secondary Instance Name
-            fencing_spn_client_id:     "{% if not use_msi_for_clusters %}{{ hostvars.localhost.sap_fencing_spn_client_id }}{% endif %}"
-            fencing_spn_client_pwd:    "{% if not use_msi_for_clusters %}{{ hostvars.localhost.sap_fencing_spn_pwd }}{% endif %}"
-            fencing_spn_tenant_id:     "{% if not use_msi_for_clusters %}{{ hostvars.localhost.sap_fencing_spn_tenant_id }}{% endif %}"
+            tier:                       ha
+            main_password:              "{{ hostvars.localhost.sap_password }}"
+            password_ha_db_cluster:     "{{ hostvars.localhost.db_cluster_password }}"
+            primary_instance_name:      "{{ ansible_play_hosts_all[0] }}"         # Setting up Primary Instance Name
+            secondary_instance_name:    "{{ ansible_play_hosts_all[1] }}"         # Setting up Secondary Instance Name
+            # fencing_spn_client_id:     "{% if not use_msi_for_clusters %}{{ hostvars.localhost.sap_fencing_spn_client_id }}{% endif %}"
+            # fencing_spn_client_pwd:    "{% if not use_msi_for_clusters %}{{ hostvars.localhost.sap_fencing_spn_pwd }}{%- endif %}"
+            # fencing_spn_tenant_id:     "{% if not use_msi_for_clusters %}{{ hostvars.localhost.sap_fencing_spn_tenant_id }}{%- endif %}"
+
+        - name:                         "Database Installation Playbook: - Setting the facts for fencing"
+          ansible.builtin.set_fact:
+            fencing_spn_client_id:      "{{ hostvars.localhost.sap_fencing_spn_client_id }}"
+            fencing_spn_client_pwd:     "{{ hostvars.localhost.sap_fencing_spn_pwd }}"
+            fencing_spn_tenant_id:      "{{ hostvars.localhost.sap_fencing_spn_tenant_id }}"
+          when:
+                                        - database_cluster_type == "AFA"
+                                        - not use_msi_for_clusters
 
         - name:                        "Database Installation Playbook: - Ensure the correct repositories are set"
           ansible.builtin.include_role:
@@ -227,7 +239,6 @@
 # |                      CREATE USERS for SAP Installation                     |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
-
 - hosts:                               "{{ sap_sid | upper }}_DB"
   name:                                DB Installation - Oracle
   remote_user:                         "{{ orchestration_ansible_user }}"
@@ -241,7 +252,6 @@
 # Build the list of tasks to be executed in order here.
 #
 # -------------------------------------+---------------------------------------8
-
     - name:                            "Database Installation Playbook: - Install Oracle"
       become:                          true
       become_user:                     root
@@ -262,13 +272,11 @@
             name:                      roles-os/1.11-accounts
 
 
-# /*----------------------------------------------------------------------------8
+# /*---------------------------------------------------------------------------8
 # |                                                                            |
-# |                      Playbook for Oracle DB Install                           |
+# |                      Playbook for Oracle DB Install                        |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
-
-
 - hosts:                               "{{ sap_sid | upper }}_DB"
   name:                                DB Installation - Oracle
   remote_user:                         "{{ orchestration_ansible_user }}"
@@ -282,7 +290,6 @@
 # Build the list of tasks to be executed in order here.
 #
 # -------------------------------------+---------------------------------------8
-
     - name:                            "Database Installation Playbook: - Install Oracle"
       become:                          true
       become_user:                     root

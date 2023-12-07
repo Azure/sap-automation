@@ -1,0 +1,51 @@
+---
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |               Task: 1.4       - Package Installation for OS                |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+- name:                                "1.4 Packages: - Import package list"
+  ansible.builtin.include_vars:        os-packages.yaml
+
+# SLES 12 Activate public cloud extension
+- name:                                "1.4 Packages - Activate public cloud extension"
+  block:
+    - name:                            "1.4 Packages - Activate public cloud extension ({{ ansible_distribution_major_version }})"
+      ansible.builtin.command: |
+                                       SUSEConnect -p sle-module-public-cloud/12/x86_64
+      register:                        cloud_extension
+  rescue:
+    - name:                            "1.4 Packages - Wait 10 secs before retrying"
+      ansible.builtin.wait_for:
+        timeout:                       10
+    - name:                            "1.4 Packages - Activate public cloud extension ({{ ansible_distribution_major_version }})"
+      ansible.builtin.command: |
+                                       SUSEConnect -p sle-module-public-cloud/12/x86_64
+      register:                        cloud_extension
+  when:
+    - ansible_distribution_major_version == "12"
+    - tier == 'os'
+
+# SLES 15 Activate public cloud extension
+- name:                                "1.4 Packages - Activate public cloud extension"
+  block:
+    - name:                            "1.4 Packages - Activate public cloud extension ({{ ansible_distribution_major_version }})"
+      ansible.builtin.command: |
+                                       SUSEConnect -p sle-module-public-cloud/{{ ansible_distribution_version }}/x86_64
+      register:                        cloud_extension
+  rescue:
+    - name:                            "1.4 Packages - Wait 10 secs before retrying"
+      ansible.builtin.wait_for:
+        timeout:                       10
+    - name:                            "1.4 Packages - Activate public cloud extension ({{ ansible_distribution_major_version }})"
+      ansible.builtin.command: |
+                                       SUSEConnect -p sle-module-public-cloud/{{ ansible_distribution_version }}/x86_64
+      register:                        cloud_extension
+  when:
+    - ansible_distribution_major_version == "15"
+    - tier == 'os'
+
+# /*----------------------------------------------------------------------------8
+# |                                    END                                      |
+# +------------------------------------4---------------------------------------*/

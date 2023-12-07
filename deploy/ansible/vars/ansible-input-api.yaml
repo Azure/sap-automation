@@ -3,6 +3,10 @@
 
 become_user_name:                       root
 
+# ------------------- Begin - SDAF Ansible Version ---------------------------8
+SDAF_Version:                   "3.9.3.0"
+# ------------------- End - SDAF Ansible Version ---------------------------8
+
 # ------------------- Begin - OS Config Settings variables -------------------8
 chrony_pool:                            ""
 chrony_servers:                         []
@@ -22,7 +26,7 @@ check_storage_account:                  true
 bom_processing_become:                  true                                    # BOM processing as root user
 deployer_free_temp_disk_space:          100                                     # Free disk space requirement on deployer
 is_run_with_infraCreate_only:           false                                   # For situations when you want to run the playbooks 01 & 02 without a BOM
-
+is_executed_by_acss:                    false                                   # For situations when code is executed by acss
 BOM_directory:                         "{{ playbook_dir }}/BOM-catalog"
 
 always_upload_jinja_templates:         true
@@ -30,22 +34,16 @@ always_upload_jinja_templates:         true
 # -------------------------------------+---------------------------------------8
 
 # SAP Configuration for templates and install
-
 hana_use_master_password:              y
-hana_password_copy:                         ""
+hana_password_copy:                    ""
 hana_backup_path:                      /hana/backup
-aas_hostname:                          ""
-aas_instance_number:                   "00"
 sap_sid:                               ""                                      # REQUIRED - SAP Install
 download_basket_dir:                   "{{ target_media_location }}/download_basket"
-hdb_hostname:                          ""
 db_sid:                                "XDB"                                   # Default
 db_instance_number:                    "00"                                    # Default
 hana_schema:                           "SAPHANADB"
-pas_hostname:                          ""
 pas_instance_number:                   "00"
 web_instance_number:                   "00"
-password_hana_system:                  ""
 main_password:                         ""                                      # SAP Install
 sap_fqdn:                              ""                                      # SAP Install
 sapadm_uid:                            2100
@@ -54,14 +52,43 @@ sapsys_gid:                            2000
 drop_schema:                           false
 
 sap_trans_permissions:                 775
-
 use_msi_for_clusters:                  false
-
 hana_components:                       "all"
 
 instance_type:                         "ASCS"
 
 dbload_retry_count:                    120
+
+# Default sizes for volumes
+
+sapmnt_volume_size:                    32g
+usrsap_volume_size:                    32g
+hanashared_volume_size:                32g
+
+hana_data_stripe_size:                 256
+hana_log_stripe_size:                  64
+hana_bkp_stripe_size:                  1024
+
+db2_log_stripe_size:                   64
+db2_data_stripe_size:                  256
+db2_temp_stripe_size:                  128
+
+sybase_data_stripe_size:               256
+sybase_log_stripe_size:                64
+sybase_temp_stripe_size:               128
+
+oracle_data_stripe_size:               256
+oracle_log_stripe_size:                128
+
+# Custom virtual hostnames
+custom_db_virtual_hostname:            ""
+custom_ers_virtual_hostname:           ""
+custom_pas_virtual_hostname:           ""
+custom_scs_virtual_hostname:           ""
+
+# Custom ASCS and ERS NFS filesystem devices when not using AFS or ANF
+ascs_filesystem_device:                ""
+ers_filesystem_device:                 ""
 
 # DB2 specific parameters
 db2sysadm_gid:                         3000
@@ -102,7 +129,6 @@ orasid_uid:                            3100
 oracle_uid:                            3101
 hdbshm_gid:                            2002
 observer_uid:                          4000
-scs_hostname:                          ""
 scs_instance_number:                   "00"                                    # SAP Install
 ers_instance_number:                   "02"
 app_instance_number:                   "00"

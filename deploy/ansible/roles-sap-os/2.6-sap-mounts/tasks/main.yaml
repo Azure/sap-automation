@@ -335,13 +335,13 @@
   when:
     - node_tier == "sybase"
 
-# Import this task only if the sap_mnt is defined, i.e. AFS is used
+# Import this task only if the any of the AFS mountpoints are defined
 - name:                                "2.6 SAP Mounts: - Import AFS tasks"
   ansible.builtin.import_tasks:        2.6.0-afs-mounts.yaml
   when:
     - sap_mnt is defined or sap_trans is defined or usr_sap_install_mountpoint is defined
     - not use_simple_mount
-    - NFS_provider == 'AFS'
+    - NFS_provider in ['AFS', 'NONE']
 
 - name:                                "2.6 SAP Mounts: - Import AFS simple mount tasks"
   ansible.builtin.import_tasks:        2.6.7-afs-mounts-simplemount.yaml
@@ -403,5 +403,15 @@
         - { mode: '0755', path: '/hana/data' }
         - { mode: '0755', path: '/hana/log' }
         - { mode: '0755', path: '/hana/shared' }
+
+# Import custom NFS mounts.
+- name:                                "2.6 Custom Mounts"
+  ansible.builtin.include_tasks:       "2.6.9-custom-mounts.yaml"
+  loop:                                "{{ custom_mounts }}"
+  loop_control:
+    loop_var:                          custom_mount
+  when:
+    - custom_mounts is defined
+
 
 ...

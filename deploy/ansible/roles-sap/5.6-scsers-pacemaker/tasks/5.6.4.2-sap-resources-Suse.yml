@@ -33,7 +33,7 @@
                                        op monitor interval=11 timeout=60 on-fail=restart \
                                        params InstanceName={{ instance_name }} \
                                        START_PROFILE="{{ start_profile_path }}" \
-                                       AUTOMATIC_RECOVER=true \
+                                       AUTOMATIC_RECOVER=false \
                                        meta resource-stickiness=5000 failure-timeout=60 \
                                        migration-threshold=1 priority=10
       register:                        ascs_rsc_sap
@@ -46,7 +46,7 @@
                                        op monitor interval=11 timeout=60 on-fail=restart \
                                        params InstanceName={{ sap_sid }}_ERS{{ ers_instance_number }}_{{ ers_virtual_hostname }} \
                                        START_PROFILE="/sapmnt/{{ sap_sid }}/profile/{{ sap_sid }}_ERS{{ ers_instance_number }}_{{ ers_virtual_hostname }}" \
-                                       AUTOMATIC_RECOVER=true IS_ERS=true \
+                                       AUTOMATIC_RECOVER=false IS_ERS=true \
                                        meta priority=1000
       register:                        ers_rsc_sap
       failed_when:                     ers_rsc_sap.rc > 1
@@ -108,7 +108,7 @@
                                        op monitor interval=11 timeout={{ clus_sap_mon_timeout | int }} on-fail=restart \
                                        params InstanceName={{ instance_name }} \
                                        START_PROFILE="{{ start_profile_path }}" \
-                                       AUTOMATIC_RECOVER=true \
+                                       AUTOMATIC_RECOVER=false \
                                        meta resource-stickiness=5000
       register:                        ascs_rsc_sap
       failed_when:                     ascs_rsc_sap.rc > 1
@@ -120,7 +120,7 @@
                                        op monitor interval=11 timeout={{ clus_sap_mon_timeout | int }} on-fail=restart \
                                        params InstanceName={{ sap_sid }}_ERS{{ ers_instance_number }}_{{ ers_virtual_hostname }} \
                                        START_PROFILE="/sapmnt/{{ sap_sid }}/profile/{{ sap_sid }}_ERS{{ ers_instance_number }}_{{ ers_virtual_hostname }}" \
-                                       AUTOMATIC_RECOVER=true IS_ERS=true
+                                       AUTOMATIC_RECOVER=false IS_ERS=true
       register:                        ers_rsc_sap
       failed_when:                     ers_rsc_sap.rc > 1
 
@@ -134,7 +134,6 @@
     - name:                            "5.6 SCSERS - SUSE - ENSA2 - Configure Co-location Constraints"
       ansible.builtin.shell: |
                                        crm configure colocation col_sap_{{ sap_sid }}_no_both -5000: g-{{ sap_sid | upper }}_ERS g-{{ sap_sid | upper }}_{{ instance_type | upper }}
-                                       crm configure location loc_sap_{{ sap_sid }}_failover_to_ers rsc_sap_{{ sap_sid }}_{{ instance_type | upper }}{{ scs_instance_number }} rule 2000: runs_ers_{{ sap_sid }} eq 1
                                        crm configure order ord_sap_{{ sap_sid }}_first_start_ascs Optional: rsc_sap_{{ sap_sid }}_{{ instance_type | upper }}{{ scs_instance_number }}:start rsc_sap_{{ sap_sid }}_ERS{{ ers_instance_number }}:stop symmetrical=false
       register:                        co_location
       failed_when:                     co_location.rc > 1
