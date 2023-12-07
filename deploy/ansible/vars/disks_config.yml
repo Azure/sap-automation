@@ -109,12 +109,18 @@ logical_volumes:
     size:       '100%FREE'
     stripesize: "{{ hana_log_stripe_size }}"
     fstype:     'xfs'
-
+  # Add a default stripesize of 1MB for the hana backup volume.
+  # There are essentially two sizes we can consider:
+  # 1. Use the same stripesize as the data volume
+  # 2. Use 1MB stripe size based on older recommendations
+  # Note: Most customers are moving away from disk based backup solutions.
+  # So, this might get removed in the future.
   - tier:       'sapos'
     node_tier:  'hana'
     vg:         'vg_hana_backup'
     lv:         'lv_hana_backup'
     size:       '100%FREE'
+    stripesize: "{{ hana_bkp_stripe_size }}"
     fstype:     'xfs'
   # ---------------------- End - disks required for HANA ---------------------8
 
