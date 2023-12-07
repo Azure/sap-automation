@@ -670,7 +670,7 @@ else
     echo export ANSIBLE_COLLECTIONS_PATHS="$${ansible_collections}" | sudo tee -a /etc/profile.d/deploy_server.sh
 
     export DOTNET_INSTALL_DIR=/opt/dotnet
-    export DOTNET_ROOT=${DOTNET_INSTALL_DIR}
+    export DOTNET_ROOT=$${DOTNET_INSTALL_DIR}
 
     sudo mkdir -p $${DOTNET_INSTALL_DIR}
 
