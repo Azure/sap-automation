@@ -57,7 +57,7 @@
   "app": {
     "Default": {
       "compute": {
-        "vm_size": "Standard_D4s_v3",
+        "vm_size": "Standard_D4s_v5",
         "accelerated_networking": true
       },
       "storage": [
@@ -81,7 +81,7 @@
     },
     "Optimized": {
       "compute": {
-        "vm_size": "Standard_D4s_v3",
+        "vm_size": "Standard_D4s_v5",
         "accelerated_networking": true
       },
       "storage": [
@@ -107,7 +107,7 @@
   "scs": {
     "Default": {
       "compute": {
-        "vm_size": "Standard_D4s_v3",
+        "vm_size": "Standard_D4s_v5",
         "accelerated_networking": true
       },
       "storage": [
@@ -133,7 +133,7 @@
   "scsha": {
     "Default": {
       "compute": {
-        "vm_size": "Standard_D4s_v3",
+        "vm_size": "Standard_D4s_v5",
         "accelerated_networking": true
       },
       "storage": [
@@ -157,7 +157,7 @@
     },
     "Optimized": {
       "compute": {
-        "vm_size": "Standard_D4s_v3",
+        "vm_size": "Standard_D4s_v5",
         "accelerated_networking": true
       },
       "storage": [
@@ -183,7 +183,7 @@
   "web": {
     "Default": {
       "compute": {
-        "vm_size": "Standard_D4s_v3",
+        "vm_size": "Standard_D4s_v5",
         "accelerated_networking": true
       },
       "storage": [

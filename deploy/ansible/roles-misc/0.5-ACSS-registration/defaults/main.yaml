@@ -11,6 +11,6 @@ ers_virtual_hostname:                  "{{ sap_sid | lower }}ers{{ ers_instance_
 
 sapcontrol_command:                    "sapcontrol -nr {{ scs_instance_number }}"
 
-acss_cli_extension_url:                "https://aka.ms/ACSSCLI"
+acss_cli_extension_url:                "https://files.pythonhosted.org/packages/ce/f3/91b1a5fdff7a7f0cc8bdfc9a7177f1c1dbab909f857a5ba4cc837650635e/azure_mgmt_workloads-1.0.0-py3-none-any.whl"
 
 ...

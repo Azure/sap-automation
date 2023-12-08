@@ -1,0 +1,113 @@
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                 Playbook for SAP Web Dispatcher Install                    |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+# -------------------------------------+---------------------------------------8
+# Role: 5.4 Web Dispatcher Installation
+#
+# Description:
+#
+# -------------------------------------+---------------------------------------8
+
+---
+
+- hosts:                               localhost
+  name:                                "ACSS Registration Playbook: - Initialization"
+  gather_facts:                        true
+  vars_files:
+    - vars/ansible-input-api.yaml                               # API Input template with defaults
+
+  tasks:
+
+    - name:                            "ACSS Registration Playbook: - Create Progress folder"
+      ansible.builtin.file:
+        path:                          "{{ _workspace_directory }}/.progress"
+        state:                         directory
+        mode:                          0755
+
+    - name:                            "ACSS Registration Playbook: - Remove acss-registration-done flag"
+      ansible.builtin.file:
+        path:                          "{{ _workspace_directory }}/.progress/acss-registration-done"
+        state:                          absent
+
+    - name:                            "ACSS Registration Playbook: - Read/Create passwords"
+      ansible.builtin.include_role:
+        name:                          roles-misc/0.1-passwords
+        public:                        true
+      tags:
+        - 0.1-passwords
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                 Playbook for SAP Web Dispatcher Install                    |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+- hosts:                                "{{ sap_sid | upper }}_DB  :
+                                         {{ sap_sid | upper }}_SCS :
+                                         {{ sap_sid | upper }}_ERS :
+                                         {{ sap_sid | upper }}_PAS :
+                                         {{ sap_sid | upper }}_APP :
+                                         {{ sap_sid | upper }}_WEB"
+
+  name:                                ACSS Registration
+  remote_user:                         "{{ orchestration_ansible_user }}"
+  become:                              true
+  gather_facts:                        true                                    # Important to collect hostvars information
+  vars_files:
+    - vars/ansible-input-api.yaml                                              # API Input template with defaults
+
+  tasks:
+# -------------------------------------+---------------------------------------8
+#
+# Build the list of tasks to be executed in order here.
+#
+# -------------------------------------+---------------------------------------8
+
+    - name:                            "ACSS Registration Playbook: Define this SID"
+      ansible.builtin.set_fact:
+        this_sid:
+          {
+            'sid': '{{ sap_sid | upper }}',
+            'web_sid': '{{ web_sid | upper }}',
+            'dbsid_uid': '{{ hdbadm_uid }}',
+            'sidadm_uid': '{{ sidadm_uid }}',
+            'ascs_inst_no': '{{ scs_instance_number }}',
+            'pas_inst_no': '{{ pas_instance_number }}' ,
+            'app_inst_no': '{{ app_instance_number }}'
+          }
+
+    - name:                            "ACSS Registration Playbook: Define list of SIDs"
+      ansible.builtin.set_fact:
+        all_sids:                      "{% if MULTI_SIDS is defined %}{{ MULTI_SIDS }}{% else %}{{ all_sids | default([]) + [this_sid] }}{% endif %}"
+
+    - name:                            "Run the ACSS Regisration"
+      when:
+        - acssEnvironment is defined
+        - acssSapProduct is defined
+      ansible.builtin.include_role:
+        name:                          "roles-misc/0.5-ACSS-registration"
+      vars:
+        acss_environment:              "{{ acssEnvironment }}"
+        acss_sap_product:              "{{ acssSapProduct }}"
+      loop:                            "{{ all_sids }}"
+      loop_control:
+        loop_var:                      sid_to_be_deployed
+      tags:
+        - 6.0-acss-registration
+
+    - name:                            "ACSS Registration Playbook: - Create acss-registration-done flag"
+      delegate_to:                     localhost
+      become:                          false
+      ansible.builtin.file:
+        path:                          "{{ _workspace_directory }}/.progress/acss-registration-done"
+        state:                         touch
+        mode:                          0755
+
+...
+
+# /*---------------------------------------------------------------------------8
+# |                                    END                                     |
+# +------------------------------------4--------------------------------------*/
