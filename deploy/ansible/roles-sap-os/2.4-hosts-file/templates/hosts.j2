@@ -80,15 +80,15 @@ ansible_facts.
 {# Check if there are IPs available for the current host #}
 {% if host_ips %}
 {# Print the primary host entry #}
-{{ '%-19s' | format(host_ips[0]) }}{{ '%-50s' | format(host + '.' + sap_fqdn) }}{{ '%-21s' | format(host) }}
+{{ '%-19s' | format(host_ips[0]) }}{{ '%-80s ' | format(host + '.' + sap_fqdn) }}{{ '%-21s' | format(host) }}
 
 {# If there's only one IP, also use it for the virtual_host #}
 {% if host_ips|length == 1 %}
-{{ '%-19s' | format(host_ips[0]) }}{{ '%-50s' | format(virtual_host_name + '.' + sap_fqdn) }}{{ '%-21s' | format(virtual_host_name) }}
+{{ '%-19s' | format(host_ips[0]) }}{{ '%-80s ' | format(virtual_host_name + '.' + sap_fqdn) }}{{ '%-21s' | format(virtual_host_name) }}
 {% else %}
 {# Loop through remaining IPs for the virtual host #}
 {% for ip in host_ips[1:] %}
-{{ '%-19s' | format(ip) }}{{ '%-50s' | format(virtual_host_name + '.' + sap_fqdn) }}{{ '%-21s' | format(virtual_host_name) }}
+{{ '%-19s' | format(ip) }}{{ '%-80s ' | format(virtual_host_name + '.' + sap_fqdn) }}{{ '%-21s' | format(virtual_host_name) }}
 {% endfor %}
 {% endif %}
 {% endif %}
