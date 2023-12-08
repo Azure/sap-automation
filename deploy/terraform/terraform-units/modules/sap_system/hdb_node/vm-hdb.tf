@@ -167,7 +167,7 @@ resource "azurerm_linux_virtual_machine" "vm_dbnode" {
   location                             = var.resource_group[0].location
 
   proximity_placement_group_id         = var.database.use_ppg ? (
-                                           var.ppg[count.index]) : (
+                                           var.ppg[count.index % max(local.db_zone_count, 1)]) : (
                                            null
                                          )
 
