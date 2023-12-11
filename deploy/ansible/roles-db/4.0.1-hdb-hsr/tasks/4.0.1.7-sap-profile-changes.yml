@@ -109,8 +109,6 @@
           tags:
             - dbhostpara
 
-
-
 - name:                                "4.0.1.7 - Check if SAP DEFAULT.PFL changes are needed for rsdb/ssfs_connect"
   ansible.builtin.lineinfile:
     path:                              "/sapmnt/{{ sap_sid | upper }}/profile/DEFAULT.PFL"
