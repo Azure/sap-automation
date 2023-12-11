@@ -13,11 +13,18 @@
       ansible.builtin.set_fact:
         deployment_type:               "STANDALONE"
 
+    - name:                            "Backward Compatibility - Check required Database HA variables"
+      ansible.builtin.set_fact:
+        database_high_availability:    "{{ db_high_availability | default(false) }}"
+      when:
+        - db_high_availability is defined
+        - database_high_availability is not defined
+
     - name:                            "SDAF: Set Deployment Type"
       delegate_to:                     localhost
       ansible.builtin.set_fact:
         deployment_type:               "HA"
-      when:                            db_high_availability
+      when:                            database_high_availability
 
     - name:                            "SDAF: Create ARM deployment name"
       delegate_to:                     localhost

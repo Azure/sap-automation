@@ -136,6 +136,12 @@
 # To connect to the primary instance of the HADR configuration, the SAP application layer needs to use the      #
 # virtual IP address that you defined and configured for the Azure Load Balancer                                #
 #################################################################################################################
+- name:                            "Backward Compatibility - Check required Database HA variables"
+  ansible.builtin.set_fact:
+    database_high_availability:    "{{ db_high_availability | default(false) }}"
+  when:
+    - db_high_availability is defined
+    - database_high_availability is not defined
 
 - name:                                "5.6 - SCS / ASCS profile changes - DB2 Installations"
   become:                              true
@@ -183,7 +189,7 @@
   when:
     - inventory_hostname == primary_instance_name
     - platform == 'DB2'
-    - db_high_availability
+    - database_high_availability
     - ensa1 | default(false)
 
 ...

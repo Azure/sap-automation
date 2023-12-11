@@ -51,6 +51,13 @@
       tags:
         - 0.1-win-passwords
 
+    - name:                            "Backward Compatibility - Check required Database HA variables"
+      ansible.builtin.set_fact:
+        database_high_availability:    "{{ db_high_availability | default(false) }}"
+      when:
+        - db_high_availability is defined
+        - database_high_availability is not defined
+
     - name:                                 "WinCluster-Create: Get witness account details"
       ansible.builtin.include_role:
         name:                               roles-misc/0.2-kv-secrets

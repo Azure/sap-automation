@@ -120,9 +120,16 @@
       register:                        resource_defaults
       failed_when:                     resource_defaults.rc > 1
 
+    - name:                            "Backward Compatibility - Check required Database HA variables"
+      ansible.builtin.set_fact:
+        database_high_availability:    "{{ db_high_availability | default(false) }}"
+      when:
+        - db_high_availability is defined
+        - database_high_availability is not defined
+
     - name:                            "5.5.4.1 HANA Cluster configuration - Configure cluster constraints for SAP HANA and ANF"
       when:
-        - db_high_availability
+        - database_high_availability
         - NFS_provider == "ANF"
         - ansible_hostname == primary_instance_name
       block:
