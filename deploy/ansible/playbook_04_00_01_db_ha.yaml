@@ -12,6 +12,13 @@
     - vars/ansible-input-api.yaml      # API Input template with defaults
   tasks:
 
+    - name:                            "Backward Compatibility - Check required Database HA variables"
+      ansible.builtin.set_fact:
+        database_high_availability:    "{{ db_high_availability | default(false) }}"
+      when:
+        - db_high_availability is defined
+        - database_high_availability is not defined
+
     - name:                            Initialization
       block:
 
@@ -26,13 +33,13 @@
             path:                      "{{ _workspace_directory }}/.progress/db-ha-done"
             state:                      absent
 
-# MKD - Fencing is not a tier... it is a misuse to code for that
-#       To detect we should be using:
-#         database_high_availability
-#           AND
-#         database_cluster_type == "AFA"
-#         database_cluster_type == "ASD"
-#         database_cluster_type == "ISCSI"
+        # MKD - Fencing is not a tier... it is a misuse to code for that
+        #       To detect we should be using:
+        #         database_high_availability
+        #           AND
+        #         database_cluster_type == "AFA"
+        #         database_cluster_type == "ASD"
+        #         database_cluster_type == "ISCSI"
 
         # - name:                           Initialize facts
         #   ansible.builtin.set_fact:
@@ -90,8 +97,15 @@
   # Build the list of tasks to be executed in order here.
   #
   # -------------------------------------+---------------------------------------8
+    - name:                            "Backward Compatibility - Check required Database HA variables"
+      ansible.builtin.set_fact:
+        database_high_availability:    "{{ db_high_availability | default(false) }}"
+      when:
+        - db_high_availability is defined
+        - database_high_availability is not defined
+
     - name:                            "HANA HA Setup"
-      become:                              true
+      become:                          true
       block:
         - name:                        "Install HANA System Replication"
           block:
@@ -159,7 +173,7 @@
                 - 5.5-hanadb-pacemaker
 
       when:
-        - db_high_availability
+        - database_high_availability
         - platform == 'HANA'
 
 # -------------------------------------+---------------------------------------8
@@ -179,10 +193,16 @@
     - vars/ansible-input-api.yaml                               # API Input template with defaults
 
   tasks:
+    - name:                            "Backward Compatibility - Check required Database HA variables"
+      ansible.builtin.set_fact:
+        database_high_availability:    "{{ db_high_availability | default(false) }}"
+      when:
+        - db_high_availability is defined
+        - database_high_availability is not defined
 
     - name:                            "Oracle Data Guard Setup"
       when:
-        - db_high_availability
+        - database_high_availability
         - platform in ['ORACLE', 'ORACLE-ASM']
       become:                          true
       block:
@@ -208,10 +228,16 @@
     - vars/ansible-input-api.yaml                               # API Input template with defaults
 
   tasks:
+    - name:                            "Backward Compatibility - Check required Database HA variables"
+      ansible.builtin.set_fact:
+        database_high_availability:    "{{ db_high_availability | default(false) }}"
+      when:
+        - db_high_availability is defined
+        - database_high_availability is not defined
 
     - name:                            "Oracle Data Guard Setup"
       when:
-        - db_high_availability
+        - database_high_availability
         - platform in ['ORACLE', 'ORACLE-ASM']
       become:                          true
       block:
@@ -244,10 +270,16 @@
     - vars/ansible-input-api.yaml                               # API Input template with defaults
 
   tasks:
+    - name:                            "Backward Compatibility - Check required Database HA variables"
+      ansible.builtin.set_fact:
+        database_high_availability:    "{{ db_high_availability | default(false) }}"
+      when:
+        - db_high_availability is defined
+        - database_high_availability is not defined
 
     - name:                            "Oracle Data Guard Setup"
       when:
-        - db_high_availability
+        - database_high_availability
         - platform in ['ORACLE', 'ORACLE-ASM']
       become:                          true
       block:
@@ -287,10 +319,17 @@
     - vars/ansible-input-api.yaml                                              # API Input template with defaults
 
   tasks:
+    - name:                            "Backward Compatibility - Check required Database HA variables"
+      ansible.builtin.set_fact:
+        database_high_availability:    "{{ db_high_availability | default(false) }}"
+      when:
+        - db_high_availability is defined
+        - database_high_availability is not defined
+
     - name:                            "Oracle: Observer setup"
       become:                          true
       when:
-        - db_high_availability
+        - database_high_availability
         - platform in ['ORACLE', 'ORACLE-ASM']
       block:
         - name:                            "Observer Playbook: Setting the DB facts"
@@ -365,6 +404,12 @@
   #
   # -----------------------------------+---------------------------------------8
   tasks:
+    - name:                            "Backward Compatibility - Check required Database HA variables"
+      ansible.builtin.set_fact:
+        database_high_availability:    "{{ db_high_availability | default(false) }}"
+      when:
+        - db_high_availability is defined
+        - database_high_availability is not defined
 
     - name:                            "DB2 HA - Install SAP DB2 on both nodes"
       become:                          true
@@ -482,7 +527,7 @@
                 - 5.7-db2-pacemaker
 
       when:
-        - db_high_availability
+        - database_high_availability
         - platform == 'DB2'
 
 # # /*-------------------------------------------------------------------------8
@@ -504,10 +549,16 @@
   #
   # -----------------------------------+---------------------------------------8
   tasks:
+    - name:                            "Backward Compatibility - Check required Database HA variables"
+      ansible.builtin.set_fact:
+        database_high_availability:    "{{ db_high_availability | default(false) }}"
+      when:
+        - db_high_availability is defined
+        - database_high_availability is not defined
 
     - name:                            "SQLServer HA - Install SQL4SAP on both nodes"
       when:
-        - db_high_availability
+        - database_high_availability
         - platform | upper == 'SQLSERVER'
         - node_tier == 'sqlserver'
       become:                          true
@@ -627,12 +678,19 @@
   vars_files:
     - vars/ansible-input-api.yaml      # API Input template with defaults
   tasks:
+    - name:                            "Backward Compatibility - Check required Database HA variables"
+      ansible.builtin.set_fact:
+        database_high_availability:    "{{ db_high_availability | default(false) }}"
+      when:
+        - db_high_availability is defined
+        - database_high_availability is not defined
+
     - name:                            Ensure db-ha-done file exists
       ansible.builtin.file:
         path:                          "{{ _workspace_directory }}/.progress/db-ha-done"
         state:                         touch
         mode:                          0755
-      when:                            db_high_availability
+      when:                            database_high_availability
 
 ...
 # /*----------------------------------------------------------------------------8

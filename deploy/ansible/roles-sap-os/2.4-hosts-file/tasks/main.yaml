@@ -48,11 +48,18 @@
   when:
     - scs_high_availability
 
+- name:                            "Backward Compatibility - Check required Database HA variables"
+  ansible.builtin.set_fact:
+    database_high_availability:    "{{ db_high_availability | default(false) }}"
+  when:
+    - db_high_availability is defined
+    - database_high_availability is not defined
+
 - name:                                "2.4 Hosts: - Set the DB Virtual Instance hostname"
   ansible.builtin.set_fact:
     db_virtual_hostname:               "{{ custom_db_virtual_hostname | default(sap_sid | lower ~ db_sid | lower ~ 'db' ~ db_instance_number ~ 'cl', true) }}"
   when:
-    - db_high_availability
+    - database_high_availability
 
 - name:                                "2.4 Hosts: - Get the Server name list"
   ansible.builtin.set_fact:
@@ -84,7 +91,7 @@
       {{ '%-19s' | format(db_lb_ip) }} {{ '%-50s' | format(db_virtual_hostname + '.' + sap_fqdn) }} {{ '%-21s' | format(db_virtual_hostname) }}
     marker:                            "# {mark} DB Entries {{ db_virtual_hostname }}"
   when:
-    - db_high_availability
+    - database_high_availability
     - platform == 'HANA'
 
 - name:                                "2.4 Hosts: - Setup Virtual host name resolution - DB"
@@ -97,7 +104,7 @@
       {{ '%-19s' | format(db_lb_ip) }} {{ '%-50s' | format(db_virtual_hostname + '.' + sap_fqdn) }} {{ '%-21s' | format(db_virtual_hostname) }}
     marker:                            "# {mark} DB Entries {{ db_virtual_hostname }}"
   when:
-    - db_high_availability
+    - database_high_availability
     - platform == 'DB2'
 
 - name:                                "2.4 Hosts: Process pas_hostname variable and update host file when it is defined"
