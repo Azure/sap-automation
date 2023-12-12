@@ -129,11 +129,18 @@
       tags:
         - skip_ansible_lint
 
+    - name:                            "0.5.1 acss registration: - perform az login"
+      ansible.builtin.command: >-
+                                       az login --identity --allow-no-subscriptions --output none
+      no_log:                          true
+      changed_when:                    false
+
     - name:                            "0.5.1 acss registration: - Get Access Token"
       ansible.builtin.shell: >-
                                        az account get-access-token --resource https://management.azure.com \
                                        --query accessToken -o tsv
       register:                        acss_access_token
+      changed_when:                    false
       no_log:                          true
       tags:
         - skip_ansible_lint
