@@ -188,7 +188,7 @@
                                            "sapProduct": "{{ acss_sap_product }}",
                                            "configuration": {
                                              "configurationType": "Discovery",
-                                             "centralServerVmId": "/subscriptions/{{ acss_subscription_id }}/resourceGroups/{{ acss_resource_group }}/providers/Microsoft.Compute/virtualMachines/{{ hostvars[ansible_hostname]['scs_running_on'] }}"
+                                             "centralServerVmId": "{{ acss_resource_id }}"
                                            }
                                          },
                                          "location": "{{ acss_location }}"
