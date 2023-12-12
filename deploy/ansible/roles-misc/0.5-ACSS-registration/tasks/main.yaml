@@ -151,23 +151,40 @@
       tags:
         - skip_ansible_lint
 
+    - name:                            "0.5.1 acss registration: - Debug [ACSS] virtual instance parameters"
+      ansible.builtin.debug:
+        msg:                           
+          - "acss_resource_id:         {{ acss_resource_id }}"
+          - "acss_subscription_id:     {{ acss_subscription_id }}"
+          - "acss_resource_group:      {{ acss_resource_group }}"
+          - "acss_location:            {{ acss_location }}"
+          - "acss_sid:                 {{ acss_sid }}"
+          - "acss_instance_type:       {{ acss_instance_type }}"
+          - "acss_environment:         {{ acss_environment }}"
+          - "acss_sap_product:         {{ acss_sap_product }}"
+          - "acss_guid:                {{ acss_guid.stdout }}"
+          - "acss_access_token:        {{ acss_access_token.stdout }}"
+          - "acss_vm_id:               {{ hostvars[ansible_hostname]['scs_running_on'] }}"
+      tags:
+        - skip_ansible_lint
+
     - name:                            "0.5.1 acss registration: - Create [ACSS] virtual instance"
       ansible.builtin.uri:
         url:                           "https://management.azure.com/subscriptions/{{ acss_subscription_id }}/resourceGroups/{{ acss_resource_group }}/providers/Microsoft.Workloads/sapVirtualInstances/{{ acss_sid }}?api-version=2023-04-01"
         method:                        PUT
         body_format:                   json
         body: |
-          {
-            "properties": {
-              "environment": "{{ acss_environment }}",
-              "sapProduct": "{{ acss_sap_product }}",
-              "configuration": {
-                "configurationType": "Discovery",
-                "centralServerVmId": "/subscriptions/{{ acss_subscription_id }}/resourceGroups/{{ acss_resource_group }}/providers/Microsoft.Compute/virtualMachines/{{ hostvars[ansible_hostname]['scs_running_on'] }}"
-              }
-            },
-            "location": "{{ acss_location }}"
-          }
+                                       {
+                                         "properties": {
+                                           "environment": "{{ acss_environment }}",
+                                           "sapProduct": "{{ acss_sap_product }}",
+                                           "configuration": {
+                                             "configurationType": "Discovery",
+                                             "centralServerVmId": "/subscriptions/{{ acss_subscription_id }}/resourceGroups/{{ acss_resource_group }}/providers/Microsoft.Compute/virtualMachines/{{ hostvars[ansible_hostname]['scs_running_on'] }}"
+                                           }
+                                         },
+                                         "location": "{{ acss_location }}"
+                                       }
         # status_code:                   [200, 201]
         headers:
           Authorization:               "Bearer {{ acss_access_token.stdout }}"
