@@ -192,7 +192,13 @@
           x-ms-client-request-id:      "SDAF-{{ acss_guid.stdout }}"
       register:                        create_vis_response
       failed_when:                     create_vis_response.json.properties.provisioningState != 'Accepted'
-      no_log:                          true
+      no_log:                          false
+
+    - name:                            "0.5.1 acss registration: - Debug [ACSS] virtual instance creation response"
+      ansible.builtin.debug:
+        msg:                           "{{ create_vis_response }}"
+      tags:
+        - skip_ansible_lint
 
     - name:                            "0.5.1 acss registration: - Check the registered [ACSS] virtual instance"
       ansible.builtin.uri:
