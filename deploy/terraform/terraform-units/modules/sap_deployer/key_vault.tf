@@ -29,7 +29,7 @@ resource "azurerm_key_vault" "kv_user" {
 
 
   dynamic "network_acls" {
-                           for_each                     = range(true ? 1 : 0)
+                           for_each                     = range(!var.public_network_access_enabled ? 1 : 0)
                            content {
 
                               bypass                     = "AzureServices"
