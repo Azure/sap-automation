@@ -151,6 +151,13 @@
       tags:
         - skip_ansible_lint
 
+    - name:                            "0.5.1 acss registration: - Check if we have [ACSS] virtual instance write"
+      ansible.builtin.shell: >-
+                                       az provider show --namespace Microsoft.Workloads \
+                                       --query "resourceTypes[?resourceType=='sapVirtualInstances'].permissions[?contains(@.actions, 'Microsoft.Workloads/sapVirtualInstances/write')]"
+      register:                        acss_virtual_instance_write
+      changed_when:                    false
+
     - name:                            "0.5.1 acss registration: - Debug [ACSS] virtual instance parameters"
       ansible.builtin.debug:
         msg:                           
@@ -163,8 +170,9 @@
           - "acss_environment:         {{ acss_environment }}"
           - "acss_sap_product:         {{ acss_sap_product }}"
           - "acss_guid:                {{ acss_guid.stdout }}"
-          - "acss_access_token:        {{ acss_access_token.stdout }}"
           - "acss_vm_id:               {{ hostvars[ansible_hostname]['scs_running_on'] }}"
+          - "acss_write_auth:          {{ acss_virtual_instance_write.stdout }}"
+        verbosity:                     2
       tags:
         - skip_ansible_lint
 
