@@ -67,6 +67,20 @@
       ansible.builtin.debug:
         msg:                           "DB2 - Restoring database, please wait"
 
+      # ##################### Start of Restore without Encryption ##################################
+    - name:                            "DB2 - Restore without encryption"
+      ansible.builtin.shell:           db2 restore database {{ db_sid }} from {{ db_sid_backup_dir }} taken at {{ backup_timestamp }} on /db2/{{ db_sid }} no encrypt without prompting
+      args:
+        executable:                    /bin/csh
+      register:                        db2_restore_result
+      environment:
+        PATH:                          "{{ ansible_env.PATH }}:/db2/db2{{ db_sid | lower }}/sqllib/gskit/bin"
+      failed_when:                     db2_restore_result.rc > 2
+      when:
+        - db2_started.rc == 0
+        - hostvars[primary_instance_name]['db_encrypted'] is defined
+        - not hostvars[primary_instance_name]['db_encrypted']
+      # ######### ########### End of Restore without Encryption ####################################
 
       # ##################### Start of Restore with Encryption ##################################
     - name:                            "DB2 - Restore with encryption"
@@ -77,7 +91,10 @@
       environment:
         PATH:                          "{{ ansible_env.PATH }}:/db2/db2{{ db_sid | lower }}/sqllib/gskit/bin"
       failed_when:                     db2_restore_result.rc > 2
-      when:                            db2_started.rc == 0
+      when:
+        - db2_started.rc == 0
+        - hostvars[primary_instance_name]['db_encrypted'] is defined
+        - hostvars[primary_instance_name]['db_encrypted']
       # ######### ########### End of Restore with Encryption ####################################
   when:
     - ansible_hostname == secondary_instance_name
