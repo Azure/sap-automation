@@ -75,19 +75,6 @@
         crm_resource --resource g-{{ sap_sid | upper }}_{{ instance_type | upper }} --locate | cut -d ':' -f 2| cut -d " " -f 2
       when:
         - scs_high_availability
-        - ansible_os_family | upper == 'SUSE'
-      register:                        cluster_group_location
-      failed_when:                     cluster_group_location.stdout != hostvars[ansible_hostname]['scs_running_on']
-      tags:
-        - skip_ansible_lint
-
-    - name:                            "0.5.1 acss registration: - Check where the cluster group g-{{ sap_sid | upper }}_{{ instance_type | upper }} is running"
-      ansible.builtin.shell: >-
-        set -o pipefail;
-        pcs constraint location show resources g-{{ sap_sid | upper }}_{{ instance_type | upper }} | grep "Node" | awk '{print $2}'
-      when:
-        - scs_high_availability
-        - ansible_os_family | upper == 'REDHAT'
       register:                        cluster_group_location
       failed_when:                     cluster_group_location.stdout != hostvars[ansible_hostname]['scs_running_on']
       tags:
