@@ -358,7 +358,7 @@ resource "azurerm_storage_account_network_rules" "transport" {
 
 resource "azurerm_private_dns_a_record" "transport" {
   provider                             = azurerm.dnsmanagement
-  count                                = var.create_transport_storage && local.use_Azure_native_DNS && var.NFS_provider == "AFS" && length(var.transport_private_endpoint_id) == 0 ? 1 : 0
+  count                                = var.use_private_endpoint && var.create_transport_storage && local.use_Azure_native_DNS && var.NFS_provider == "AFS" && length(var.transport_private_endpoint_id) == 0 ? 1 : 0
   name                                 = replace(
                                            lower(
                                              format("%s", local.landscape_shared_transport_storage_account_name)
@@ -602,7 +602,7 @@ resource "azurerm_storage_account_network_rules" "install" {
 
 resource "azurerm_private_dns_a_record" "install" {
   provider                             = azurerm.dnsmanagement
-  count                                = local.use_Azure_native_DNS && local.use_AFS_for_install && length(var.install_private_endpoint_id) == 0 ? 1 : 0
+  count                                = var.use_private_endpoint && local.use_Azure_native_DNS && local.use_AFS_for_install && length(var.install_private_endpoint_id) == 0 ? 1 : 0
   name                                 = replace(
                                            lower(
                                              format("%s", local.landscape_shared_install_storage_account_name)
