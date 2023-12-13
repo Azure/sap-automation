@@ -93,11 +93,11 @@
     - vars/ansible-input-api.yaml                                              # API Input template with defaults
 
   tasks:
-# -------------------------------------+---------------------------------------8
-#
-# Build the list of tasks to be executed in order here.
-#
-# -------------------------------------+---------------------------------------8
+  # -------------------------------------+---------------------------------------8
+  #
+  # Build the list of tasks to be executed in order here.
+  #
+  # -------------------------------------+---------------------------------------8
     - name:                            "Backward Compatibility - Check required Database HA variables"
       ansible.builtin.set_fact:
         database_high_availability:    "{{ db_high_availability | default(false) }}"
@@ -260,11 +260,11 @@
     - vars/ansible-input-api.yaml                               # API Input template with defaults
 
   tasks:
-# -------------------------------------+---------------------------------------8
-#
-# Build the list of tasks to be executed in order here.
-#
-# -------------------------------------+---------------------------------------8
+  # -------------------------------------+---------------------------------------8
+  #
+  # Build the list of tasks to be executed in order here.
+  #
+  # -------------------------------------+---------------------------------------8
     - name:                            "Database Installation Playbook: - Install Oracle"
       become:                          true
       become_user:                     root
@@ -298,11 +298,11 @@
     - vars/ansible-input-api.yaml                               # API Input template with defaults
 
   tasks:
-# -------------------------------------+---------------------------------------8
-#
-# Build the list of tasks to be executed in order here.
-#
-# -------------------------------------+---------------------------------------8
+  # -------------------------------------+---------------------------------------8
+  #
+  # Build the list of tasks to be executed in order here.
+  #
+  # -------------------------------------+---------------------------------------8
     - name:                            "Database Installation Playbook: - Install Oracle"
       become:                          true
       become_user:                     root
@@ -458,11 +458,11 @@
     - vars/ansible-input-api.yaml                               # API Input template with defaults
 
   tasks:
-# -------------------------------------+---------------------------------------8
-#
-# Build the list of tasks to be executed in order here.
-#
-# -------------------------------------+---------------------------------------8
+  # -------------------------------------+---------------------------------------8
+  #
+  # Build the list of tasks to be executed in order here.
+  #
+  # -------------------------------------+---------------------------------------8
     - name:                            "Backward Compatibility - Check required Database HA variables"
       ansible.builtin.set_fact:
         database_high_availability:    "{{ db_high_availability | default(false) }}"
@@ -524,11 +524,11 @@
     - vars/ansible-input-api.yaml                               # API Input template with defaults
 
   tasks:
-# -------------------------------------+---------------------------------------8
-#
-# Build the list of tasks to be executed in order here.
-#
-# -------------------------------------+---------------------------------------8
+  # -------------------------------------+---------------------------------------8
+  #
+  # Build the list of tasks to be executed in order here.
+  #
+  # -------------------------------------+---------------------------------------8
     - name:                            "Backward Compatibility - Check required Database HA variables"
       ansible.builtin.set_fact:
         database_high_availability:    "{{ db_high_availability | default(false) }}"
@@ -594,11 +594,11 @@
     - vars/ansible-input-api.yaml                               # API Input template with defaults
 
   tasks:
-# -------------------------------------+---------------------------------------8
-#
-# Build the list of tasks to be executed in order here.
-#
-# -------------------------------------+---------------------------------------8
+  # -------------------------------------+---------------------------------------8
+  #
+  # Build the list of tasks to be executed in order here.
+  #
+  # -------------------------------------+---------------------------------------8
     - name:                            "Backward Compatibility - Check required Database HA variables"
       ansible.builtin.set_fact:
         database_high_availability:    "{{ db_high_availability | default(false) }}"
