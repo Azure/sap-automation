@@ -239,8 +239,6 @@ stages:
                   new_parameters="$EXTRA_PARAMETERS $PIPELINE_EXTRA_PARAMETERS"
                 fi
 
-                echo "${new_parameters}"
-
                 echo "##vso[task.setvariable variable=SSH_KEY_NAME;isOutput=true]${workload_prefix}-sid-sshkey"
                 echo "##vso[task.setvariable variable=VAULT_NAME;isOutput=true]$workload_key_vault"
                 echo "##vso[task.setvariable variable=PASSWORD_KEY_NAME;isOutput=true]${workload_prefix}-sid-password"
