@@ -658,6 +658,11 @@ variable "utility_vm_os_disk_size"                 {
                                                      default     = "128"
                                                    }
 
+variable "utility_vm_os_disk_type"                 {
+                                                     description = "The type of the OS disk for the Virtual Machine"
+                                                     default     = "Premium_LRS"
+                                                   }
+
 
 variable "utility_vm_useDHCP"                      {
                                                      description = "value indicating if utility_vm should use DHCP"
