@@ -653,6 +653,11 @@ variable "utility_vm_size"                         {
                                                      description = "The size of the utility_vm Virtual Machine"
                                                      default     = "Standard_D4ds_v4"
                                                    }
+variable "utility_vm_os_disk_size"                 {
+                                                     description = "The size of the OS disk for the Virtual Machine"
+                                                     default     = "128"
+                                                   }
+
 
 variable "utility_vm_useDHCP"                      {
                                                      description = "value indicating if utility_vm should use DHCP"
