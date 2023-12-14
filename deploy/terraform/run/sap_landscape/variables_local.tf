@@ -86,15 +86,6 @@ locals {
                                           null
                                         )
 
-  vm_settings                          = {
-                                           count              = var.utility_vm_count
-                                           size               = var.utility_vm_size
-                                           use_DHCP           = var.utility_vm_useDHCP
-                                           image              = var.utility_vm_image
-                                           private_ip_address = var.utility_vm_nic_ips
-
-                                         }
-
   is_DNS_info_different                = (
                                            var.management_dns_subscription_id != data.azurerm_key_vault_secret.subscription_id.value
                                            ) || (
