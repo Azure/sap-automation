@@ -304,7 +304,7 @@ function set_executing_user_environment_variables() {
         az_user_name=$(az ad signed-in-user show --query userPrincipalName -o tsv)
 
         # this is the user object id but exporeted as client_id to make it easier to use in TF
-        export TF_VAR_Agent_IP=${az_user_obj_id}
+        export TF_VAR_arm_client_id=${az_user_obj_id}
 
         echo -e "\t[set_executing_user_environment_variables]: logged in user id: ${az_user_obj_id} (${az_user_name})"
         echo -e "\t[set_executing_user_environment_variables]: Initializing state with user: ${az_user_name}"
@@ -418,10 +418,14 @@ function get_region_code() {
         "eastasia")           export region_code="EAAS" ;;
         "eastus")             export region_code="EAUS" ;;
         "eastus2")            export region_code="EUS2" ;;
+        "eastus2euap")        export region_code="EUSA" ;;
+        "eastusstg")          export region_code="EUSG" ;;
         "francecentral")      export region_code="FRCE" ;;
         "francesouth")        export region_code="FRSO" ;;
         "germanynorth")       export region_code="GENO" ;;
         "germanywestcentral") export region_code="GEWC" ;;
+        "israelcentral")      export region_code="ISCE" ;;
+        "italynorth")         export region_code="ITNO" ;;
         "japaneast")          export region_code="JAEA" ;;
         "japanwest")          export region_code="JAWE" ;;
         "jioindiacentral")    export region_code="JINC" ;;
@@ -432,6 +436,8 @@ function get_region_code() {
         "northeurope")        export region_code="NOEU" ;;
         "norwayeast")         export region_code="NOEA" ;;
         "norwaywest")         export region_code="NOWE" ;;
+        "polandcentral")      export region_code="PLCE" ;;
+        "qatarcentral")       export region_code="QACE" ;;
         "southafricanorth")   export region_code="SANO" ;;
         "southafricawest")    export region_code="SAWE" ;;
         "southcentralus")     export region_code="SCUS" ;;

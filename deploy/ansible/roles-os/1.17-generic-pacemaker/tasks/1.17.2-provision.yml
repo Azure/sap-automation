@@ -12,6 +12,7 @@
 
 # SSH access between nodes is only required on SUSE for crm_clustering
 - name:                                "1.17 Generic Pacemaker - SUSE specific network and SSH configuration"
+  when:                                ansible_os_family | upper == "SUSE"
   block:
     # Change the configuration file for the network interface to prevent the cloud
     # network plugin from removing the virtual IP address (Pacemaker must control
@@ -52,9 +53,8 @@
       changed_when:                    false
       failed_when:                     secondary_to_primary_ssh_result.stdout_lines[0] != primary_instance_name
       when:                            ansible_hostname == secondary_instance_name
-  when: ansible_os_family | upper == "SUSE"
 
 # Clustering commands are based on the Host OS
 - name:                                "1.17 Generic Pacemaker - Cluster based on {{ ansible_os_family }} on VM {{ ansible_hostname }}"
   ansible.builtin.include_tasks:       "1.17.2.0-cluster-{{ ansible_os_family }}.yml"
-  when:                                cluster_existence_check != 0
+  # when:                                cluster_existence_check != 0

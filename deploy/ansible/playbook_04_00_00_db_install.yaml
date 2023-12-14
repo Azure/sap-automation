@@ -50,14 +50,23 @@
       tags:
         - 0.1-win-passwords
 
-    - name:                            "Database Installation Playbook: - Read/Create key vault secrets"
+    - name:                            "Backward Compatibility - Check required Database HA variables"
+      ansible.builtin.set_fact:
+        database_high_availability:    "{{ db_high_availability | default(false) }}"
+      when:
+        - db_high_availability is defined
+        - database_high_availability is not defined
+
+    - name:                                 "Database Installation Playbook: - Read/Create key vault secrets"
       ansible.builtin.include_role:
-        name:                          roles-misc/0.2-kv-secrets
-        public:                        true
+        name:                               roles-misc/0.2-kv-secrets
+        public:                             true
       vars:
-        tier:                          fencing
+        # tier:                               fencing
+        operation:                          fencing
+      when:                                 (database_high_availability and database_cluster_type == "AFA")
       tags:
-        - 0.2-kv-secrets
+                                            - 0.2-kv-secrets
 
     - name:                            "Database Installation Playbook: - Read storage account details"
       ansible.builtin.include_role:
@@ -84,11 +93,17 @@
     - vars/ansible-input-api.yaml                                              # API Input template with defaults
 
   tasks:
-# -------------------------------------+---------------------------------------8
-#
-# Build the list of tasks to be executed in order here.
-#
-# -------------------------------------+---------------------------------------8
+  # -------------------------------------+---------------------------------------8
+  #
+  # Build the list of tasks to be executed in order here.
+  #
+  # -------------------------------------+---------------------------------------8
+    - name:                            "Backward Compatibility - Check required Database HA variables"
+      ansible.builtin.set_fact:
+        database_high_availability:    "{{ db_high_availability | default(false) }}"
+      when:
+        - db_high_availability is defined
+        - database_high_availability is not defined
 
     - name:                            "Database Installation Playbook: - Install HANA"
       become:                          true
@@ -153,19 +168,29 @@
     - name:                            "Database Installation Playbook: - Install Pacemaker (base)"
       become:                          true
       when:
-        - db_high_availability
+        # - db_high_availability
+        - database_high_availability
         - node_tier == 'hana'
       block:
-        - name:                        "Database Installation Playbook: - Setting the facts"
+        - name:                         "Database Installation Playbook: - Setting the facts"
           ansible.builtin.set_fact:
-            tier:                      ha
-            main_password:             "{{ hostvars.localhost.sap_password }}"
-            password_ha_db_cluster:    "{{ hostvars.localhost.db_cluster_password }}"
-            primary_instance_name:     "{{ ansible_play_hosts_all[0] }}"         # Setting up Primary Instance Name
-            secondary_instance_name:   "{{ ansible_play_hosts_all[1] }}"         # Setting up Secondary Instance Name
-            fencing_spn_client_id:     "{% if not use_msi_for_clusters %}{{ hostvars.localhost.sap_fencing_spn_client_id }}{% endif %}"
-            fencing_spn_client_pwd:    "{% if not use_msi_for_clusters %}{{ hostvars.localhost.sap_fencing_spn_pwd }}{% endif %}"
-            fencing_spn_tenant_id:     "{% if not use_msi_for_clusters %}{{ hostvars.localhost.sap_fencing_spn_tenant_id }}{% endif %}"
+            tier:                       ha
+            main_password:              "{{ hostvars.localhost.sap_password }}"
+            password_ha_db_cluster:     "{{ hostvars.localhost.db_cluster_password }}"
+            primary_instance_name:      "{{ ansible_play_hosts_all[0] }}"         # Setting up Primary Instance Name
+            secondary_instance_name:    "{{ ansible_play_hosts_all[1] }}"         # Setting up Secondary Instance Name
+            # fencing_spn_client_id:     "{% if not use_msi_for_clusters %}{{ hostvars.localhost.sap_fencing_spn_client_id }}{% endif %}"
+            # fencing_spn_client_pwd:    "{% if not use_msi_for_clusters %}{{ hostvars.localhost.sap_fencing_spn_pwd }}{%- endif %}"
+            # fencing_spn_tenant_id:     "{% if not use_msi_for_clusters %}{{ hostvars.localhost.sap_fencing_spn_tenant_id }}{%- endif %}"
+
+        - name:                         "Database Installation Playbook: - Setting the facts for fencing"
+          ansible.builtin.set_fact:
+            fencing_spn_client_id:      "{{ hostvars.localhost.sap_fencing_spn_client_id }}"
+            fencing_spn_client_pwd:     "{{ hostvars.localhost.sap_fencing_spn_pwd }}"
+            fencing_spn_tenant_id:      "{{ hostvars.localhost.sap_fencing_spn_tenant_id }}"
+          when:
+                                        - database_cluster_type == "AFA"
+                                        - not use_msi_for_clusters
 
         - name:                        "Database Installation Playbook: - Ensure the correct repositories are set"
           ansible.builtin.include_role:
@@ -227,7 +252,6 @@
 # |                      CREATE USERS for SAP Installation                     |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
-
 - hosts:                               "{{ sap_sid | upper }}_DB"
   name:                                DB Installation - Oracle
   remote_user:                         "{{ orchestration_ansible_user }}"
@@ -236,12 +260,11 @@
     - vars/ansible-input-api.yaml                               # API Input template with defaults
 
   tasks:
-# -------------------------------------+---------------------------------------8
-#
-# Build the list of tasks to be executed in order here.
-#
-# -------------------------------------+---------------------------------------8
-
+  # -------------------------------------+---------------------------------------8
+  #
+  # Build the list of tasks to be executed in order here.
+  #
+  # -------------------------------------+---------------------------------------8
     - name:                            "Database Installation Playbook: - Install Oracle"
       become:                          true
       become_user:                     root
@@ -262,13 +285,11 @@
             name:                      roles-os/1.11-accounts
 
 
-# /*----------------------------------------------------------------------------8
+# /*---------------------------------------------------------------------------8
 # |                                                                            |
-# |                      Playbook for Oracle DB Install                           |
+# |                      Playbook for Oracle DB Install                        |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
-
-
 - hosts:                               "{{ sap_sid | upper }}_DB"
   name:                                DB Installation - Oracle
   remote_user:                         "{{ orchestration_ansible_user }}"
@@ -277,12 +298,11 @@
     - vars/ansible-input-api.yaml                               # API Input template with defaults
 
   tasks:
-# -------------------------------------+---------------------------------------8
-#
-# Build the list of tasks to be executed in order here.
-#
-# -------------------------------------+---------------------------------------8
-
+  # -------------------------------------+---------------------------------------8
+  #
+  # Build the list of tasks to be executed in order here.
+  #
+  # -------------------------------------+---------------------------------------8
     - name:                            "Database Installation Playbook: - Install Oracle"
       become:                          true
       become_user:                     root
@@ -438,17 +458,24 @@
     - vars/ansible-input-api.yaml                               # API Input template with defaults
 
   tasks:
-# -------------------------------------+---------------------------------------8
-#
-# Build the list of tasks to be executed in order here.
-#
-# -------------------------------------+---------------------------------------8
+  # -------------------------------------+---------------------------------------8
+  #
+  # Build the list of tasks to be executed in order here.
+  #
+  # -------------------------------------+---------------------------------------8
+    - name:                            "Backward Compatibility - Check required Database HA variables"
+      ansible.builtin.set_fact:
+        database_high_availability:    "{{ db_high_availability | default(false) }}"
+      when:
+        - db_high_availability is defined
+        - database_high_availability is not defined
+
     - name:                            "Install SAP DB2"
       become:                          true
       become_user:                     root
       when:
         - platform == 'DB2'
-        - not db_high_availability
+        - not database_high_availability
       block:
 
         - name:                        "DB2 : Setting the DB facts"
@@ -497,14 +524,25 @@
     - vars/ansible-input-api.yaml                               # API Input template with defaults
 
   tasks:
-# -------------------------------------+---------------------------------------8
-#
-# Build the list of tasks to be executed in order here.
-#
-# -------------------------------------+---------------------------------------8
+  # -------------------------------------+---------------------------------------8
+  #
+  # Build the list of tasks to be executed in order here.
+  #
+  # -------------------------------------+---------------------------------------8
+    - name:                            "Backward Compatibility - Check required Database HA variables"
+      ansible.builtin.set_fact:
+        database_high_availability:    "{{ db_high_availability | default(false) }}"
+      when:
+        - db_high_availability is defined
+        - database_high_availability is not defined
+
     - name:                            "Install SAP DB2"
       become:                          true
       become_user:                     root
+      when:
+        - platform == 'DB2'
+        - database_high_availability
+        - (ansible_play_hosts_all | length) >= 2
       block:
 
         - name:                        Setting the DB facts
@@ -516,23 +554,22 @@
             bom_processing:            true
             primary_instance_name:     "{{ ansible_play_hosts_all[0] }}"         # Setting up Primary Instance Name
             secondary_instance_name:   "{{ ansible_play_hosts_all[1] }}"         # Setting up Secondary Instance Name
-
           tags:
             - always
 
-        - name:                        "DB2 : Install DB2 specific packages"
+        - name:                        "DB2 Installation Play: Install DB2 specific packages"
           ansible.builtin.include_role:
             name:                      roles-os/1.4-packages
 
-        - name:                        Check for file system mounts
+        - name:                        "DB2 Installation Play: Check for file system mounts"
           ansible.builtin.include_role:
             name:                      roles-sap-os/2.6-sap-mounts
 
-        - name:                        Installing DB2
+        - name:                        "DB2 Installation Play: Installing DB2"
           ansible.builtin.include_role:
             name:                      roles-db/4.2.1-db2-hainstall
 
-        - name:                        "Database Installation Playbook: - Run post installation routines"
+        - name:                        "DB2 Installation Play: : - Run post installation routines"
           ansible.builtin.include_role:
             name:                      roles-sap/7.0.0-post-install
           vars:
@@ -541,10 +578,7 @@
             prefix:                    "{{ bom.product_ids.dblha.replace('.', '/').replace('/ABAP', '').split(':')[1] }}"
             path:                      "INSTALL/DISTRIBUTED/ABAP/DB"
             this_sid:                  "{{ sap_sid }}"
-      when:
-        - platform == 'DB2'
-        - db_high_availability
-        - (ansible_play_hosts_all | length) >= 2
+
 
 # /*----------------------------------------------------------------------------8
 # |                                                                            |
@@ -560,20 +594,27 @@
     - vars/ansible-input-api.yaml                               # API Input template with defaults
 
   tasks:
-# -------------------------------------+---------------------------------------8
-#
-# Build the list of tasks to be executed in order here.
-#
-# -------------------------------------+---------------------------------------8
+  # -------------------------------------+---------------------------------------8
+  #
+  # Build the list of tasks to be executed in order here.
+  #
+  # -------------------------------------+---------------------------------------8
+    - name:                            "Backward Compatibility - Check required Database HA variables"
+      ansible.builtin.set_fact:
+        database_high_availability:    "{{ db_high_availability | default(false) }}"
+      when:
+        - db_high_availability is defined
+        - database_high_availability is not defined
+
     - name:                            "Install SAP ASE"
       become:                          true
       become_user:                     root
       when:
         - platform == 'SYBASE'
-        - not db_high_availability
+        - not database_high_availability
       block:
 
-        - name:                        "ASE : Setting the DB facts"
+        - name:                        "ASE Installation Play: Setting the DB facts"
           ansible.builtin.set_fact:
             tier:                      sybase
             main_password:             "{{ hostvars.localhost.sap_password }}"
@@ -584,17 +625,28 @@
           tags:
             - always
 
-        - name:                        "SYBASE : Install DB2 specific packages"
+        - name:                        "ASE Installation Play: Install ASE specific packages"
           ansible.builtin.include_role:
             name:                      roles-os/1.4-packages
 
-        - name:                        "ASE : Check for file system mounts"
+        - name:                        "ASE Installation Play: Check for file system mounts"
           ansible.builtin.include_role:
             name:                      roles-sap-os/2.6-sap-mounts
 
-        - name:                        Installing ASE
+        - name:                        "ASE Installation Play: Installing ASE"
           ansible.builtin.include_role:
             name:                      roles-db/4.3.0-ase-install
+
+        - name:                        "ASE Installation Play: Run post installation routines"
+          ansible.builtin.include_role:
+            name:                      roles-sap/7.0.0-post-install
+          vars:
+            suffix:                    "_DB"
+            prefix:                    "{{ bom.product_ids.dbl.replace('.', '/').replace('/ABAP', '').split(':')[1] }}"
+            path:                      "INSTALL/DISTRIBUTED/ABAP/DB"
+            tier:                      'sybase'
+            this_sid:                  "{{ sap_sid | upper }}"
+            work_log_component_name: "ASE{{ db_instance_number }}"
 
 
 # /*----------------------------------------------------------------------------8

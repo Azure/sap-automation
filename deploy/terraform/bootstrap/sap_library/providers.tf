@@ -14,78 +14,83 @@ Description:
 */
 
 data "azurerm_client_config" "current" {
-  provider = azurerm.deployer
-}
+                                         provider = azurerm.deployer
+                                       }
 
-provider "azurerm" {
-  features {
-    resource_group {
-      prevent_deletion_if_contains_resources = true
-    }
+provider "azurerm"                     {
+                                         features {
+                                                    resource_group {
+                                                                     prevent_deletion_if_contains_resources = true
+                                                                   }
 
-  }
-}
+                                                  }
+                                         skip_provider_registration = true
+                                       }
 
-provider "azurerm" {
-  features {
-    resource_group {
-      prevent_deletion_if_contains_resources = true
-    }
+provider "azurerm"                     {
+                                         features {
+                                                    resource_group {
+                                                                     prevent_deletion_if_contains_resources = true
+                                                                   }
 
-  }
-  subscription_id = var.use_deployer ? local.spn.subscription_id : null
-  client_id       = var.use_deployer ? local.spn.client_id : null
-  client_secret   = var.use_deployer ? local.spn.client_secret : null
-  tenant_id       = var.use_deployer ? local.spn.tenant_id : null
+                                                  }
 
-  alias = "main"
-}
+                                         subscription_id            = var.use_deployer ? local.spn.subscription_id : null
+                                         client_id                  = var.use_deployer ? local.spn.client_id : null
+                                         client_secret              = var.use_deployer ? local.spn.client_secret : null
+                                         tenant_id                  = var.use_deployer ? local.spn.tenant_id : null
+
+                                         alias                      = "main"
+                                         skip_provider_registration = true
+                                       }
 
 
-provider "azurerm" {
-  features {
-  }
-  alias = "deployer"
-}
+provider "azurerm"                     {
+                                         features {
+                                                  }
+                                         alias                      = "deployer"
+                                         skip_provider_registration = true
+                                       }
 
-provider "azurerm" {
-  features {}
-  alias                      = "dnsmanagement"
-  subscription_id            = try(coalesce(var.management_dns_subscription_id, local.spn.subscription_id), null)
-  client_id                  = var.use_deployer ? local.spn.client_id : null
-  client_secret              = var.use_deployer ? local.spn.client_secret : null
-  tenant_id                  = var.use_deployer ? local.spn.tenant_id : null
-  skip_provider_registration = true
-}
+provider "azurerm"                     {
+                                         features {}
+                                         subscription_id            = try(coalesce(var.management_dns_subscription_id, local.spn.subscription_id), null)
+                                         client_id                  = var.use_deployer ? local.spn.client_id : null
+                                         client_secret              = var.use_deployer ? local.spn.client_secret : null
+                                         tenant_id                  = var.use_deployer ? local.spn.tenant_id : null
+                                         alias                      = "dnsmanagement"
+                                         skip_provider_registration = true
+                                       }
 
-provider "azuread" {
-  client_id     = local.spn.client_id
-  client_secret = local.spn.client_secret
-  tenant_id     = local.spn.tenant_id
-}
+provider "azuread"                     {
+                                         client_id     = local.spn.client_id
+                                         client_secret = local.spn.client_secret
+                                         tenant_id     = local.spn.tenant_id
+                                       }
 
-terraform {
-  required_version = ">= 1.0"
-  required_providers {
-    external = {
-      source = "hashicorp/external"
-    }
-    local = {
-      source = "hashicorp/local"
-    }
-    random = {
-      source = "hashicorp/random"
-    }
-    null = {
-      source = "hashicorp/null"
-    }
-    azuread = {
-      source  = "hashicorp/azuread"
-      version = "~> 2.2"
-    }
-    azurerm = {
-      source  = "hashicorp/azurerm"
-      version = ">=3.3"
-    }
-  }
-}
+terraform                              {
+                                         required_version = ">= 1.0"
+                                         required_providers {
+                                                              external = {
+                                                                           source = "hashicorp/external"
+                                                                         }
+                                                              local    = {
+                                                                           source = "hashicorp/local"
+                                                                         }
+                                                              random   = {
+                                                                           source = "hashicorp/random"
+                                                                         }
+                                                              null =     {
+                                                                           source = "hashicorp/null"
+                                                                         }
+                                                              azuread =  {
+                                                                           source  = "hashicorp/azuread"
+                                                                           version = ">=2.2"
+                                                                         }
+                                                              azurerm =  {
+                                                                           source  = "hashicorp/azurerm"
+                                                                           version = ">=3.3"
+                                                                         }
+                                                            }
+                                       }
+

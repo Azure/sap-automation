@@ -38,28 +38,34 @@
 
 - name:                                "2.4 Hosts - Set the SCS Virtual Instance hostname"
   ansible.builtin.set_fact:
-    scs_virtual_hostname:              "{{ sap_sid | lower }}scs{{ scs_instance_number }}cl1"
+    scs_virtual_hostname:              "{{ custom_scs_virtual_hostname | default(sap_sid | lower ~ 'scs' ~ scs_instance_number ~ 'cl1', true) }}"
   when:
     - scs_high_availability
 
 - name:                                "2.4 Hosts - Set the ERS Virtual Instance hostname"
   ansible.builtin.set_fact:
-    ers_virtual_hostname:              "{{ sap_sid | lower }}ers{{ ers_instance_number }}cl2"
+    ers_virtual_hostname:              "{{ custom_ers_virtual_hostname | default(sap_sid | lower ~ 'ers' ~ ers_instance_number ~ 'cl2', true) }}"
   when:
     - scs_high_availability
 
+- name:                            "Backward Compatibility - Check required Database HA variables"
+  ansible.builtin.set_fact:
+    database_high_availability:    "{{ db_high_availability | default(false) }}"
+  when:
+    - db_high_availability is defined
+    - database_high_availability is not defined
+
 - name:                                "2.4 Hosts: - Set the DB Virtual Instance hostname"
   ansible.builtin.set_fact:
-    db_virtual_hostname:               "{{ sap_sid | lower }}{{ db_sid | lower }}db{{ db_instance_number }}cl"
+    db_virtual_hostname:               "{{ custom_db_virtual_hostname | default(sap_sid | lower ~ db_sid | lower ~ 'db' ~ db_instance_number ~ 'cl', true) }}"
   when:
-    - db_high_availability
+    - database_high_availability
 
 - name:                                "2.4 Hosts: - Get the Server name list"
   ansible.builtin.set_fact:
     scs_server_list:                   "{{ scs_server_list | default([]) + [item] }}"
   with_items:
     - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') }}"
-
 
 - name:                                "2.4 Hosts: - Setup Virtual host name resolution - SCS & ERS"
   ansible.builtin.blockinfile:
@@ -85,7 +91,7 @@
       {{ '%-19s' | format(db_lb_ip) }} {{ '%-50s' | format(db_virtual_hostname + '.' + sap_fqdn) }} {{ '%-21s' | format(db_virtual_hostname) }}
     marker:                            "# {mark} DB Entries {{ db_virtual_hostname }}"
   when:
-    - db_high_availability
+    - database_high_availability
     - platform == 'HANA'
 
 - name:                                "2.4 Hosts: - Setup Virtual host name resolution - DB"
@@ -98,7 +104,74 @@
       {{ '%-19s' | format(db_lb_ip) }} {{ '%-50s' | format(db_virtual_hostname + '.' + sap_fqdn) }} {{ '%-21s' | format(db_virtual_hostname) }}
     marker:                            "# {mark} DB Entries {{ db_virtual_hostname }}"
   when:
-    - db_high_availability
+    - database_high_availability
     - platform == 'DB2'
+
+- name:                                "2.4 Hosts: Process pas_hostname variable and update host file when it is defined"
+  when:
+    - custom_scs_virtual_hostname | default(false, true)
+  block:
+    - name:                            "2.4 Hosts: - Set virtual_host fact from the fetched PAS server list"
+      ansible.builtin.set_fact:
+        pas_virtualhost_from_inventory: "{{ hostvars[query('inventory_hostnames', '{{ sap_sid | upper }}_PAS') | first]['virtual_host'] }}"
+      when: query('inventory_hostnames', sap_sid | upper ~ '_PAS') | length > 0
+
+    - name:                            "2.4 Hosts: - Set fact for the PAS if pas_hostname is defined"
+      ansible.builtin.set_fact:
+        pas_virtual_hostname:          "{{ custom_pas_virtual_hostname | default(pas_virtualhost_from_inventory, true) }}"
+
+    - name:                            "2.4 Hosts: - Display the variables being used"
+      ansible.builtin.debug:
+        msg:
+          - "pas_hostname:             {{ custom_pas_virtual_hostname }} "
+          - "pas_virtual_hostname:     {{ pas_virtual_hostname }} "
+          - "virtualhost_in_inventory: {{ pas_virtualhost_from_inventory }}"
+
+    - name:                            "2.4 Hosts: - Get the line from /etc/hosts with virtual_host"
+      ansible.builtin.slurp:
+        src:                           /etc/hosts
+      register: hosts_content
+
+    - name:                            "2.4 Hosts: - Extract the line with virtual_host"
+      ansible.builtin.set_fact:
+        virtual_host_line:             "{{ (hosts_content['content'] | b64decode).split('\n') | select('search', pas_virtualhost_from_inventory) | first }}"
+
+    - name:                            "2.4 Hosts: - Duplicate the line with virtual_host and replace with pas_virtual_hostname in /etc/hosts"
+      when:
+        - virtual_host_line is defined
+        - pas_virtual_hostname is defined
+      ansible.builtin.lineinfile:
+        path:                          /etc/hosts
+        line:                          "{{ virtual_host_line | replace(pas_virtualhost_from_inventory, pas_virtual_hostname) }}"
+        insertbefore:                  "{{ virtual_host_line }}"
+
+- name:                                "2.4 Hosts: - Setup iSCSI host name resolution"
+  ansible.builtin.lineinfile:
+    path:                              /etc/hosts
+    line:
+      "{{ '%-19s' | format(iscsi_server.ip) }} {{ '%-50s' | format(iscsi_server.host + '.' + sap_fqdn) }} {{ '%-21s' | format(iscsi_server.host) }}"
+  loop:                                           "{{ iscsi_servers }}"
+  loop_control:
+    loop_var:                          iscsi_server
+  when:                                iscsi_servers is defined
+
+- name:                                "2.4 Hosts: - Remove duplicate lines from /etc/hosts"
+  block:
+    - name:                            "2.4 Hosts: - Get the line from /etc/hosts with virtual_host"
+      ansible.builtin.slurp:
+        src:                           /etc/hosts
+      register:                        hosts_content_after
+
+    - name:                            "2.4 Hosts: - Get unique lines from /etc/hosts"
+      ansible.builtin.set_fact:
+        unique_lines:                  "{{ (hosts_content_after['content'] | b64decode).split('\n') | unique }}"
+
+    - name:                            "2.4 Hosts: - Write unique lines back to /etc/hosts"
+      ansible.builtin.copy:
+        dest:                          /etc/hosts
+        content:                       "{{ unique_lines | join('\n') }}"
+        mode:                          0644
+        backup:                        true
+      when: (hosts_content_after['content'] | b64decode).split('\n') | unique | length != (hosts_content_after['content'] | b64decode).split('\n') | length
 
 ...

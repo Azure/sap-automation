@@ -1,4 +1,4 @@
-﻿@model AutomationForm.Models.FormViewModel<SystemModel>;
+@model AutomationForm.Models.FormViewModel<SystemModel>;
 @using System.Text.Json
 
 @{
@@ -89,7 +89,31 @@
     <form class="wrapper" asp-controller="system" asp-action="edit">
         @Html.AntiForgeryToken()
 
-        @await Html.PartialAsync("_FormPartial", Model) 
+        @await Html.PartialAsync("_FormPartial", Model)
+
+        <table class="table" aria-label="Custom naming and sizing">
+            <thead>
+                <tr>
+                    <th>
+                        Custom naming and sizing files
+                    </th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="td-align-left">
+                        @Html.ActionLink(@Model.SapObject.Id+ "_custom_sizes.json", "Edit", "File", new { id = @Model.SapObject.Id, sourceController = "System", fileName ="custom_sizes.json", type = 1 }, null)
+                    </td>
+                </tr>
+                <tr>
+                    <td class="td-align-left">
+                        @Html.ActionLink(@Model.SapObject.Id+ "_custom_naming.json", "Edit", "File", new { id = @Model.SapObject.Id, sourceController = "System", fileName ="custom_naming.json", type = 2 }, null)
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
 
         <fluent-button appearance="accent" style="margin-top: 15px" type="submit" onclick="submitting=true">
             <i class="ms-Icon ms-Icon--Save" aria-hidden="true"></i> Save

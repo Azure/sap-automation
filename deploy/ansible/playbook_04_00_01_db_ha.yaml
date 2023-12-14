@@ -12,8 +12,16 @@
     - vars/ansible-input-api.yaml      # API Input template with defaults
   tasks:
 
+    - name:                            "Backward Compatibility - Check required Database HA variables"
+      ansible.builtin.set_fact:
+        database_high_availability:    "{{ db_high_availability | default(false) }}"
+      when:
+        - db_high_availability is defined
+        - database_high_availability is not defined
+
     - name:                            Initialization
       block:
+
         - name:                        Create Progress folder
           ansible.builtin.file:
             path:                      "{{ _workspace_directory }}/.progress"
@@ -25,42 +33,55 @@
             path:                      "{{ _workspace_directory }}/.progress/db-ha-done"
             state:                      absent
 
-        - name:                        Initialize facts
-          ansible.builtin.set_fact:
-            tier:                      fencing
+        # MKD - Fencing is not a tier... it is a misuse to code for that
+        #       To detect we should be using:
+        #         database_high_availability
+        #           AND
+        #         database_cluster_type == "AFA"
+        #         database_cluster_type == "ASD"
+        #         database_cluster_type == "ISCSI"
 
-        - name:                        Run the misc/password role
-          ansible.builtin.include_role:
-            name:                      roles-misc/0.1-passwords
-            public:                    true
-          tags:
-            - 0.1-passwords
-        - name:                            "OS configuration playbook: - Read password"
-          ansible.builtin.include_role:
-            name:                          roles-misc/0.1-passwords
-            tasks_from:                    windows.yaml
-            public:                        true
-          when: platform == "SQLSERVER"
-          tags:
-            - 0.1-win-passwords
+        # - name:                           Initialize facts
+        #   ansible.builtin.set_fact:
+        #     tier:                         fencing
 
-        - name:                                "WinCluster-Create: Get witness account details"
+        - name:                                 "Run the misc/password role"
           ansible.builtin.include_role:
-            name:                      roles-misc/0.2-kv-secrets
-            tasks_from:                wincluster-witness.yaml
-            public:                    true
+            name:                               roles-misc/0.1-passwords
+            public:                             true
+          tags:
+                                                - 0.1-passwords
+
+        - name:                                 "OS configuration playbook: - Read password"
+          ansible.builtin.include_role:
+            name:                               roles-misc/0.1-passwords
+            tasks_from:                         windows.yaml
+            public:                             true
+          when:                                 platform == "SQLSERVER"
+          tags:
+                                                - 0.1-win-passwords
+
+        - name:                                 "WinCluster-Create: Get witness account details"
+          ansible.builtin.include_role:
+            name:                               roles-misc/0.2-kv-secrets
+            tasks_from:                         wincluster-witness.yaml
+            public:                             true
+          vars:
+            operation:                          fencing
           when:
-            - platform | upper == "SQLSERVER"
-            - scs_high_availability or db_high_availability
+                                                - platform | upper == "SQLSERVER"
           tags:
-            - 0.2-wincluster-witness
+                                                - 0.2-wincluster-witness
 
-        - name:                        Run the keyvault role
+        - name:                                 Run the keyvault role
           ansible.builtin.include_role:
-            name:                      roles-misc/0.2-kv-secrets
+            name:                               roles-misc/0.2-kv-secrets
+          vars:
+            operation:                          fencing
           tags:
-            - kv-secrets
-      when:                            db_high_availability
+                                                - kv-secrets
+
+      when:                                     database_high_availability
 # +------------------------------------4--------------------------------------*/
 
 - hosts:                               "{{ sap_sid | upper }}_DB"
@@ -76,21 +97,46 @@
   # Build the list of tasks to be executed in order here.
   #
   # -------------------------------------+---------------------------------------8
+    - name:                            "Backward Compatibility - Check required Database HA variables"
+      ansible.builtin.set_fact:
+        database_high_availability:    "{{ db_high_availability | default(false) }}"
+      when:
+        - db_high_availability is defined
+        - database_high_availability is not defined
+
     - name:                            "HANA HA Setup"
-      become:                              true
+      become:                          true
       block:
         - name:                        "Install HANA System Replication"
           block:
-            - name:                    Initialize facts
+            - name:                    "Retrieve Azure Instance Metadata results"
+              ansible.builtin.uri:
+                url:                   http://169.254.169.254/metadata/instance?api-version=2021-02-01
+                use_proxy:             false
+                headers:
+                  Metadata:            true
+              register: azmetadata
+
+            - name:                    "Show IMDS results"
+              ansible.builtin.debug:
+                var:                   azmetadata.json
+                verbosity:             2
+
+            - name:                    "Set the primary intance nic and secondary instance nic IP"
+              ansible.builtin.set_fact:
+                primary_ip:            "{{ azmetadata.json.network.interface[0].ipv4.ipAddress[0].privateIpAddress }}"
+                subnet_prefix:         "{{ azmetadata.json.network.interface[0].ipv4.subnet[0].prefix }}"
+
+            - name:                    "Initialize facts for hdb-hsr role"
               ansible.builtin.set_fact:
                 tier:                      hdb                                      # Actions for HANA DB Servers
                 primary_instance_name :    "{{ ansible_play_hosts_all[0] }}"        # Setting up Primary Instance Name
-                primary_instance_ip_db:    "{{ hostvars[ansible_play_hosts_all[0]]['ansible_eth0']['ipv4']['address'] }}"
+                primary_instance_ip_db:    "{{ hostvars[ansible_play_hosts_all[0]]['primary_ip'] | string }}"
                 secondary_instance_name:   "{{ ansible_play_hosts_all[1] }}"         # Setting up Secondary Instance Name
-                secondary_instance_ip_db:  "{{ hostvars[ansible_play_hosts_all[1]]['ansible_eth0']['ipv4']['address'] }}"
+                secondary_instance_ip_db:  "{{ hostvars[ansible_play_hosts_all[1]]['primary_ip'] | string }}"
                 main_password:             "{{ hostvars.localhost.sap_password }}"
 
-            - name:                    Run the db/hdb-hsr role
+            - name:                    "Run the db/hdb-hsr role"
               ansible.builtin.include_role:
                 name:                  roles-db/4.0.1-hdb-hsr
               tags:
@@ -98,15 +144,15 @@
 
         - name:                        "Install HANA Pacemaker resources"
           block:
-            - name:                    Initialize facts
+            - name:                    "Initialize facts for HANA pacemaker resources"
               ansible.builtin.set_fact:
                 tier:                      ha
                 password_ha_db_cluster:    "{{ hostvars.localhost.db_cluster_password }}"
                 main_password:             "{{ hostvars.localhost.sap_password }}"
                 primary_instance_name:     "{{ ansible_play_hosts_all[0] }}"         # Setting up Primary Instance Name
-                primary_instance_ip_db:    "{{ hostvars[ansible_play_hosts_all[0]]['ansible_eth0']['ipv4']['address'] }}"
+                primary_instance_ip_db:    "{{ hostvars[ansible_play_hosts_all[0]]['primary_ip'] | string }}"
                 secondary_instance_name:   "{{ ansible_play_hosts_all[1] }}"         # Setting up Secondary Instance Name
-                secondary_instance_ip_db:  "{{ hostvars[ansible_play_hosts_all[1]]['ansible_eth0']['ipv4']['address'] }}"
+                secondary_instance_ip_db:  "{{ hostvars[ansible_play_hosts_all[1]]['primary_ip'] | string }}"
                 fencing_spn_client_id:     "{% if not use_msi_for_clusters %}{{ hostvars.localhost.sap_fencing_spn_client_id }}{% endif %}"
                 fencing_spn_client_pwd:    "{% if not use_msi_for_clusters %}{{ hostvars.localhost.sap_fencing_spn_pwd }}{% endif %}"
                 fencing_spn_tenant_id:     "{% if not use_msi_for_clusters %}{{ hostvars.localhost.sap_fencing_spn_tenant_id }}{% endif %}"
@@ -127,7 +173,7 @@
                 - 5.5-hanadb-pacemaker
 
       when:
-        - db_high_availability
+        - database_high_availability
         - platform == 'HANA'
 
 # -------------------------------------+---------------------------------------8
@@ -147,10 +193,16 @@
     - vars/ansible-input-api.yaml                               # API Input template with defaults
 
   tasks:
+    - name:                            "Backward Compatibility - Check required Database HA variables"
+      ansible.builtin.set_fact:
+        database_high_availability:    "{{ db_high_availability | default(false) }}"
+      when:
+        - db_high_availability is defined
+        - database_high_availability is not defined
 
     - name:                            "Oracle Data Guard Setup"
       when:
-        - db_high_availability
+        - database_high_availability
         - platform in ['ORACLE', 'ORACLE-ASM']
       become:                          true
       block:
@@ -176,10 +228,16 @@
     - vars/ansible-input-api.yaml                               # API Input template with defaults
 
   tasks:
+    - name:                            "Backward Compatibility - Check required Database HA variables"
+      ansible.builtin.set_fact:
+        database_high_availability:    "{{ db_high_availability | default(false) }}"
+      when:
+        - db_high_availability is defined
+        - database_high_availability is not defined
 
     - name:                            "Oracle Data Guard Setup"
       when:
-        - db_high_availability
+        - database_high_availability
         - platform in ['ORACLE', 'ORACLE-ASM']
       become:                          true
       block:
@@ -206,16 +264,22 @@
 
 - hosts:                               "{{ sap_sid | upper }}_DB[0]"
   name:                                DB Dataguard setup - Oracle
-  remote_user:                         "root"
+  remote_user:                         "{{ orchestration_ansible_user }}"
   gather_facts:                        true
   vars_files:
     - vars/ansible-input-api.yaml                               # API Input template with defaults
 
   tasks:
+    - name:                            "Backward Compatibility - Check required Database HA variables"
+      ansible.builtin.set_fact:
+        database_high_availability:    "{{ db_high_availability | default(false) }}"
+      when:
+        - db_high_availability is defined
+        - database_high_availability is not defined
 
     - name:                            "Oracle Data Guard Setup"
       when:
-        - db_high_availability
+        - database_high_availability
         - platform in ['ORACLE', 'ORACLE-ASM']
       become:                          true
       block:
@@ -255,10 +319,17 @@
     - vars/ansible-input-api.yaml                                              # API Input template with defaults
 
   tasks:
+    - name:                            "Backward Compatibility - Check required Database HA variables"
+      ansible.builtin.set_fact:
+        database_high_availability:    "{{ db_high_availability | default(false) }}"
+      when:
+        - db_high_availability is defined
+        - database_high_availability is not defined
+
     - name:                            "Oracle: Observer setup"
       become:                          true
       when:
-        - db_high_availability
+        - database_high_availability
         - platform in ['ORACLE', 'ORACLE-ASM']
       block:
         - name:                            "Observer Playbook: Setting the DB facts"
@@ -333,6 +404,12 @@
   #
   # -----------------------------------+---------------------------------------8
   tasks:
+    - name:                            "Backward Compatibility - Check required Database HA variables"
+      ansible.builtin.set_fact:
+        database_high_availability:    "{{ db_high_availability | default(false) }}"
+      when:
+        - db_high_availability is defined
+        - database_high_availability is not defined
 
     - name:                            "DB2 HA - Install SAP DB2 on both nodes"
       become:                          true
@@ -450,7 +527,7 @@
                 - 5.7-db2-pacemaker
 
       when:
-        - db_high_availability
+        - database_high_availability
         - platform == 'DB2'
 
 # # /*-------------------------------------------------------------------------8
@@ -472,10 +549,16 @@
   #
   # -----------------------------------+---------------------------------------8
   tasks:
+    - name:                            "Backward Compatibility - Check required Database HA variables"
+      ansible.builtin.set_fact:
+        database_high_availability:    "{{ db_high_availability | default(false) }}"
+      when:
+        - db_high_availability is defined
+        - database_high_availability is not defined
 
     - name:                            "SQLServer HA - Install SQL4SAP on both nodes"
       when:
-        - db_high_availability
+        - database_high_availability
         - platform | upper == 'SQLSERVER'
         - node_tier == 'sqlserver'
       become:                          true
@@ -569,11 +652,11 @@
                 domain_service_password:      "{{ hostvars.localhost.adsvc_password }}"
                 witness_storage_account_name: "{{ hostvars.localhost.witness_storage_account_name }}"
                 witness_storage_account_key:  "{{ hostvars.localhost.witness_storage_account_key }}"
-                win_sql_svc_account:          '{{ sql_svc_account }}'
-                win_sql_svc_password:         '{{ sql_svc_password }}'
-                win_sqlagent_svc_account:     '{{ sql_agent_account }}'
-                win_sqlagent_svc_password:    '{{ sql_agent_password }}'
-                scs_server_name:              "{{ scs_server }}"
+                win_sql_svc_account:          "{{ sql_svc_account }}"
+                win_sql_svc_password:         "{{ sql_svc_password }}"
+                win_sqlagent_svc_account:     "{{ sql_agent_account }}"
+                win_sqlagent_svc_password:    "{{ sql_agent_password }}"
+                scs_server_name:              "{{ custom_scs_virtual_hostname | default(scs_server, true) }}"
               tags:
                 - 4.4.1.0-mssql-alwayson
 
@@ -595,12 +678,19 @@
   vars_files:
     - vars/ansible-input-api.yaml      # API Input template with defaults
   tasks:
+    - name:                            "Backward Compatibility - Check required Database HA variables"
+      ansible.builtin.set_fact:
+        database_high_availability:    "{{ db_high_availability | default(false) }}"
+      when:
+        - db_high_availability is defined
+        - database_high_availability is not defined
+
     - name:                            Ensure db-ha-done file exists
       ansible.builtin.file:
         path:                          "{{ _workspace_directory }}/.progress/db-ha-done"
         state:                         touch
         mode:                          0755
-      when:                            db_high_availability
+      when:                            database_high_availability
 
 ...
 # /*----------------------------------------------------------------------------8

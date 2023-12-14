@@ -151,7 +151,7 @@
 
     - name:                            "Copy probe port setup script"
       become:                          true
-      become_method:                   "runas"
+      become_method:                   ansible.builtin.runas
       ansible.windows.win_template:
         src:                           "Set-AzLBHealthProbeSQL.j2"
         dest:                          "{{ sap_deployment_automation }}\\Set-AzLBHealthProbeSQL.ps1"
@@ -159,7 +159,7 @@
 
     - name:                            "Execute probe port setup script"
       become:                          true
-      become_method:                   "runas"
+      become_method:                   ansible.builtin.runas
       ansible.windows.win_shell:       "{{ sap_deployment_automation }}\\Set-AzLBHealthProbeSQL.ps1 -verbose"
 
 
@@ -311,11 +311,11 @@
 
 - name:                                "Set environment variables required for SAP"
   become:                              true
-  become_method:                       runas
+  become_method:                       ansible.builtin.runas
   block:
     - name:                            "Calculate the SCS Virtual Instance hostname"
       ansible.builtin.set_fact:
-        scs_virtual_hostname:          "{{ sap_sid | lower }}scs{{ scs_instance_number }}cl1"
+        scs_virtual_hostname:          "{{ custom_scs_virtual_hostname | default(sap_sid | lower ~ 'scs' ~ scs_instance_number ~ 'cl1', true) }}"
 
     - name:                            "Set environment variables required for AlwaysON required by SAP"
       ansible.windows.win_environment:
@@ -345,7 +345,7 @@
         ansible_become_password:       '{{ domain_user_password }}'
 
     - name:                            "Update DEFAULT.PFL - make changes for HA"
-      ansible.builtin.win_lineinfile:
+      community.windows.win_lineinfile:
         backup:                        true
         path:                          '\\{{ scs_virtual_hostname }}\sapmnt\{{ sap_sid | upper }}\SYS\profile\DEFAULT.PFL'
         regexp:                        '{{ item.regex }}'

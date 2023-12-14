@@ -1,20 +1,22 @@
 ---
 
 # Validate that the SCS cluster is working as expected
-- name:                            "0.0 Validations: - Set Python version {{ distribution_id }}"
+- name:                                "0.5.1 acss registration: - Set Python version {{ distribution_id }}"
   ansible.builtin.set_fact:
-    python_version: "python3"
+    python_version:                    "python3"
 
-- name:                                "0.0 Validations: - Set Python version {{ distribution_id }}"
+- name:                                "0.5.1 acss registration: - Set Python version {{ distribution_id }}"
   ansible.builtin.set_fact:
-    python_version: "python2"
+    python_version:                    "python2"
   when: (ansible_distribution | lower ~ ansible_distribution_major_version) in ['sles_sap12']
 
-- name:                                "Determine if SCS is running on {{ ansible_hostname }}"
+- name:                                "0.5.1 acss registration: - Determine if SCS is running on {{ ansible_hostname }}"
   become_user:                         "{{ sap_sid | lower }}adm"
   become:                              true
+  when:
+    - "'scs' in supported_tiers"
   block:
-    - name:                            "PAS Install: Get sapcontrol path"
+    - name:                            "0.5.1 acss registration: - Get sapcontrol path"
       ansible.builtin.find:
         paths:                         "/usr/sap/{{ sap_sid | upper }}"
         file_type:                     file
@@ -23,14 +25,14 @@
         follow:                        true
       register:                        sapcontrol_file
 
-    - name:                            "PAS Install: Set sapcontrol path"
+    - name:                            "0.5.1 acss registration: - Set sapcontrol path"
       ansible.builtin.set_fact:
         sapcontrol_path:               "{{ sapcontrol_file.files[0].path }}"
       when:
         - sapcontrol_file | length > 0
 
     # {{ sapcontrol_path }} -nr {{ scs_instance_number }} -function GetProcessList | grep MessageServer | awk '{split($0,result,", "); print result[1],result[3] }'
-    - name:                            "Determine if SCS is running on {{ ansible_hostname }}"
+    - name:                            "0.5.1 acss registration: - Determine if SCS is running on {{ ansible_hostname }}"
       ansible.builtin.command:         "{{ sapcontrol_path }} -nr {{ scs_instance_number }} -function GetProcessList"
       changed_when:                    false
       failed_when:                     false
@@ -50,46 +52,175 @@
       tags:
         - skip_ansible_lint
 
-    - name:                                "Show if SCS is running on {{ ansible_hostname }}"
+    - name:                            "0.5.1 acss registration: - Show if SCS is running on {{ ansible_hostname }}"
       ansible.builtin.debug:
         var: is_running
 
-    # when the rc is 3, the SCS is running on ansible_hostname.
-    # if the ansible_hostname is not the primary_instance_name, then failover cluster resources for ASCS/SCS
-    # start the SAP instance on primary_instance_name. This is a failover scenario.
-    - name:                            "Validate that SCS is running on {{ ansible_hostname }}"
+    - name:                            "0.5.1 acss registration: - Validate that SCS is running on {{ ansible_hostname }}"
       ansible.builtin.set_fact:
-        scs_running_on:               "{{ ansible_hostname }}"
+        scs_running_on:                "{{ ansible_hostname }}"
       when:
         - is_running.rc == 3
         - is_running.stdout | regex_search('MessageServer')
 
-    - name:                            "Check where the cluster group g-{{ sap_sid }}_{{ instance_type | upper }} is running"
-      become:                          true
-      become_user:                     root
+- name:                                "0.5.1 acss registration: - Check cluster Group and get the metadata"
+  become:                              true
+  become_user:                         root
+  when:
+    - hostvars[ansible_hostname]['scs_running_on'] is defined
+  block:
+    - name:                            "0.5.1 acss registration: - Check where the cluster group g-{{ sap_sid | upper }}_{{ instance_type | upper }} is running"
       ansible.builtin.shell: >-
         set -o pipefail;
-        crm_resource --resource g-{{ sap_sid }}_{{ instance_type | upper }} --locate | cut -d ':' -f 2| cut -d " " -f 2
+        crm_resource --resource g-{{ sap_sid | upper }}_{{ instance_type | upper }} --locate | cut -d ':' -f 2| cut -d " " -f 2
       when:
-        - ansible_hostname == primary_instance_name
-      failed_when:                     false
+        - scs_high_availability
       register:                        cluster_group_location
+      failed_when:                     cluster_group_location.stdout != hostvars[ansible_hostname]['scs_running_on']
       tags:
         - skip_ansible_lint
 
-    - name:                            "Install [ACSS] cli extension"
-      delegate_to:                     localhost
-      ansible.builtin.command: >-
-              "az extension add --name workloads --yes || exit 1"
-      tags:
-        - skip_ansible_lint
-
-    - name:                            "Create [ACSS] virtual instance"
-      ansible.builtin.command:         "az workloads sap-virtual-instance create --sap-virtual-instance-name {{ acss_sid }} --resource-group {{ acss_resource_group }} --location {{ acss_location }} --environment {{ acss_environment }} --sap-product {{ acss_sap_product }} --configuration {{ acss_configuration }}"
+    - name:                            "0.5.1 acss registration: - Get Azure instance metadata"
+      ansible.builtin.uri:
+        url:                           http://169.254.169.254/metadata/instance?api-version=2021-02-01
+        use_proxy:                     false
+        headers:
+          Metadata:                    true
+      register:                        azure_metadata
       when:
-        - ansible_hostname == primary_instance_name
-        - cluster_group_location.stdout != ansible_hostname
+        - hostvars[ansible_hostname]['scs_running_on'] is defined
+        - ansible_hostname == hostvars[ansible_hostname]['scs_running_on']
+
+    - name:                            "0.5.1 acss registration: - Set variables from Azure IMDS"
+      delegate_facts:                  true
+      delegate_to:                     localhost
+      ansible.builtin.set_fact:
+        acss_scs_instance_metadata:    "{{ azure_metadata }}"
+      when:
+        - hostvars[ansible_hostname]['scs_running_on'] is defined
+        - ansible_hostname == hostvars[ansible_hostname]['scs_running_on']
+
+- name:                                "0.5.1 acss registration: - Register SAP System to ACSS"
+  delegate_to:                         localhost
+  when:
+    - hostvars[ansible_hostname]['scs_running_on'] is defined
+  block:
+    - name:                            "0.5.1 acss registration: - Get Azure metadata from the VM where scs_running_on is defined"
+      ansible.builtin.set_fact:
+        az_instance_metadata:          "{{ hostvars.localhost.acss_scs_instance_metadata }}"
+
+    - name:                            "0.5.1 acss registration: - Print metadata"
+      ansible.builtin.debug:
+        var:                           az_instance_metadata
+        verbosity:                     2
+
+    - name:                            "0.5.1 acss registration: - Set variables from Azure IMDS"
+      ansible.builtin.set_fact:
+        acss_resource_id:              "{{ az_instance_metadata.json.compute.resourceId }}"
+        acss_subscription_id:          "{{ az_instance_metadata.json.compute.subscriptionId }}"
+        acss_resource_group:           "{{ az_instance_metadata.json.compute.resourceGroupName }}"
+        acss_location:                 "{{ az_instance_metadata.json.compute.location }}"
+        acss_sid:                      "{{ sap_sid | upper }}"
+        acss_instance_type:            "{{ instance_type }}"
+
+    - name:                            "0.5.1 acss registration: - Install [ACSS] cli extension"
+      ansible.builtin.shell: >-
+                                       az extension add --name workloads --yes || exit 1
       tags:
         - skip_ansible_lint
+
+    - name:                            "0.5.1 acss registration: - perform az login"
+      ansible.builtin.command: >-
+                                       az login --identity --allow-no-subscriptions --output none
+      no_log:                          true
+      changed_when:                    false
+
+    - name:                            "0.5.1 acss registration: - Get Access Token"
+      ansible.builtin.shell: >-
+                                       az account get-access-token --resource https://management.azure.com \
+                                       --query accessToken -o tsv
+      register:                        acss_access_token
+      changed_when:                    false
+      no_log:                          true
+      tags:
+        - skip_ansible_lint
+
+    - name:                            "0.5.1 acss registration: - Generate a guid for the ACSS instance"
+      ansible.builtin.command:         uuidgen
+      register:                        acss_guid
+      tags:
+        - skip_ansible_lint
+
+    - name:                            "0.5.1 acss registration: - Check if we have [ACSS] virtual instance write"
+      ansible.builtin.shell: >-
+                                       az provider show --namespace Microsoft.Workloads \
+                                       --query "resourceTypes[?resourceType=='sapVirtualInstances'].permissions[?contains(@.actions, 'Microsoft.Workloads/sapVirtualInstances/write')]"
+      register:                        acss_virtual_instance_write
+      changed_when:                    false
+
+    - name:                            "0.5.1 acss registration: - Debug [ACSS] virtual instance parameters"
+      ansible.builtin.debug:
+        msg:                           
+          - "acss_resource_id:         {{ acss_resource_id }}"
+          - "acss_subscription_id:     {{ acss_subscription_id }}"
+          - "acss_resource_group:      {{ acss_resource_group }}"
+          - "acss_location:            {{ acss_location }}"
+          - "acss_sid:                 {{ acss_sid }}"
+          - "acss_instance_type:       {{ acss_instance_type }}"
+          - "acss_environment:         {{ acss_environment }}"
+          - "acss_sap_product:         {{ acss_sap_product }}"
+          - "acss_guid:                {{ acss_guid.stdout }}"
+          - "acss_vm_id:               {{ hostvars[ansible_hostname]['scs_running_on'] }}"
+          - "acss_write_auth:          {{ acss_virtual_instance_write.stdout }}"
+        verbosity:                     2
+      tags:
+        - skip_ansible_lint
+
+    - name:                            "0.5.1 acss registration: - Create [ACSS] virtual instance"
+      ansible.builtin.uri:
+        url:                           "https://management.azure.com/subscriptions/{{ acss_subscription_id }}/resourceGroups/{{ acss_resource_group }}/providers/Microsoft.Workloads/sapVirtualInstances/{{ acss_sid }}?api-version=2023-04-01"
+        method:                        PUT
+        body_format:                   json
+        body: |
+                                       {
+                                         "properties": {
+                                           "environment": "{{ acss_environment }}",
+                                           "sapProduct": "{{ acss_sap_product }}",
+                                           "configuration": {
+                                             "configurationType": "Discovery",
+                                             "centralServerVmId": "{{ acss_resource_id }}"
+                                           }
+                                         },
+                                         "location": "{{ acss_location }}"
+                                       }
+        # status_code:                   [200, 201]
+        headers:
+          Authorization:               "Bearer {{ acss_access_token.stdout }}"
+          x-ms-rpaas-new-resource:     "true"
+          x-ms-client-request-id:      "SDAF-{{ acss_guid.stdout }}"
+      register:                        create_vis_response
+      failed_when:                     create_vis_response.json.properties.provisioningState != 'Accepted'
+      no_log:                          false
+
+    - name:                            "0.5.1 acss registration: - Debug [ACSS] virtual instance creation response"
+      ansible.builtin.debug:
+        msg:                           "{{ create_vis_response }}"
+      tags:
+        - skip_ansible_lint
+
+    - name:                            "0.5.1 acss registration: - Check the registered [ACSS] virtual instance"
+      ansible.builtin.uri:
+        url:                           "https://management.azure.com/subscriptions/{{ acss_subscription_id }}/resourceGroups/{{ acss_resource_group }}/providers/Microsoft.Workloads/sapVirtualInstances/{{ acss_sid }}?api-version=2023-04-01"
+        method:                        GET
+        # status_code:                   [200, 201]
+        headers:
+          Authorization:               "Bearer {{ acss_access_token.stdout }}"
+          x-ms-rpaas-new-resource:     "true"
+          x-ms-client-request-id:      "SDAF-{{ acss_guid.stdout }}"
+      register:                        get_vis_response
+      until:                           get_vis_response.json.properties.provisioningState == 'Succeeded'
+      retries:                         10
+      delay:                           60
+      no_log:                          true
 
 ...

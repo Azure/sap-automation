@@ -105,7 +105,7 @@
         state:                         present
       register:                        chrony_conf_updated
       when:
-        - ansible_os_family | upper == 'SUSE'
+        - ansible_os_family | upper == "SUSE"
 
     - name:                            "1.7 chrony: - Set chrony facts"
       ansible.builtin.set_fact:

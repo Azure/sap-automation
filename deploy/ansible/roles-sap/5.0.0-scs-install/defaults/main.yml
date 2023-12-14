@@ -1,3 +1,6 @@
 ---
+distro_name:          "{{ ansible_distribution | upper }}-{{ ansible_distribution_major_version }}"
+distribution_id:      "{{ ansible_distribution | lower ~ ansible_distribution_major_version }}"
+distribution_full_id: "{{ ansible_distribution | lower ~ ansible_distribution_version }}"
 
-scs_virtual_hostname: "{% if scs_high_availability is defined %}{{ sap_sid | lower }}scs{{ scs_instance_number }}cl1{% else %}{{ hostvars[query('inventory_hostnames', '{{ sap_sid | upper }}_SCS')]['virtual_host'] | first }}{% endif %}"
+scs_virtual_hostname: "{{ custom_scs_virtual_hostname | default(virtual_host, true) }}"

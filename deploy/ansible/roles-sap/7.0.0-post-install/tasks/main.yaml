@@ -49,11 +49,54 @@
     - tier != 'oracle'
     - sap_installation_tried.stat.exists
 
+- name:                               "Get the additional log files from the work directory"
+  become_user:                        root
+  become:                             true
+  ansible.builtin.find:
+    paths:                            "/usr/sap/{{ this_sid }}/{{ work_log_component_name }}/work"
+    file_type:                        file
+    patterns:                         'dev_ms,sap_cluster_connector.log,dev_enq_server,dev_enq_replicator,dev_w0,dev_disp'
+    recurse:                          false
+  register:                           work_log_files
+  when:
+    - tier != 'hana'
+    - tier != 'oracle'
+    - sap_installation_tried.stat.exists
+    - work_log_component_name is defined
+
+- name:                                "Post Installation: Gather other logs"
+  block:
+    - name:                            "Post Installation: Attempt to obtain other logs"
+      become_user:                     root
+      become:                          true
+      ansible.builtin.find:
+        paths:                         ["/var/log", "/var/log/pacemaker", "/var/log/cluster", "/usr/sap/{{ sap_sid | upper }}"]
+        patterns:                      "pacemaker.log,corosync.log,trans.log"
+        file_type:                     file
+      register:                        other_log_files
+
+  rescue:
+    - name:                            "Post Installation: Error while acquiring other SAP logs"
+      ansible.builtin.debug:
+        msg:                           "Error occurred while acquiring other SAP logs."
+
 - name:                                "Post Installation: Debug (sapinst_log_files)"
   ansible.builtin.debug:
     var:                               sapinst_log_files
     verbosity:                         2
   when:                                sapinst_log_files is defined
+
+- name:                                "Post Installation: Debug (work_log_files)"
+  ansible.builtin.debug:
+    var:                               work_log_files
+    verbosity:                         2
+  when:                                work_log_files is defined
+
+- name:                                "Post Installation: Debug (other_log_files)"
+  ansible.builtin.debug:
+    var:                               other_log_files
+    verbosity:                         2
+  when:                                other_log_files is defined
 
 - name:                                "Post Installation: Create List (log files)"
   ansible.builtin.set_fact:
@@ -62,22 +105,79 @@
     - sapinst_log_files.files is defined
     - sapinst_log_files.files | length > 0
 
+- name:                                "Post Installation: Create List (work_log_files)"
+  ansible.builtin.set_fact:
+    work_log_list_of_files:            "{{ work_log_files.files | map(attribute='path') | list }}"
+  when:
+    - work_log_files is defined
+    - work_log_files.files is defined
+    - work_log_files.files | length > 0
+
+- name:                                "Post Installation: Create List (other_log_files)"
+  ansible.builtin.set_fact:
+    other_log_list_of_files:            "{{ other_log_files.files | map(attribute='path') | list }}"
+  when:
+    - other_log_files is defined
+    - other_log_files.files is defined
+    - other_log_files.files | length > 0
+
 - name:                                "Post Installation: Debug (sapinst_list_of_files)"
   ansible.builtin.debug:
     msg:                               "{{ sapinst_list_of_files }}"
-    verbosity:                         0
+    verbosity:                         2
   when:                                sapinst_list_of_files is defined
+
+- name:                                "Post Installation: Debug (work_log_list_of_files)"
+  ansible.builtin.debug:
+    msg:                               "{{ work_log_list_of_files }}"
+    verbosity:                         2
+  when:                                work_log_list_of_files is defined
+
+- name:                                "Post Installation: Debug (other_log_list_of_files)"
+  ansible.builtin.debug:
+    msg:                               "{{ other_log_list_of_files }}"
+    verbosity:                         2
+  when:                                other_log_list_of_files is defined
+
+- name:                                "Post Installation: Create an empty list to populate the log files that are to be compressed."
+  ansible.builtin.set_fact:
+    list_of_files_to_compress:         []
+
+- name:                                "Post Installation: Add logs to the final list of logs to compress"
+  block:
+    - name:                            "Post Installation: Add the sapinst logs to the final list of logs to compress"
+      ansible.builtin.set_fact:
+        list_of_files_to_compress:     "{{ list_of_files_to_compress + sapinst_list_of_files }}"
+      when:                            sapinst_list_of_files is defined
+
+    - name:                            "Post Installation: Add the work logs to the final list of logs to compress"
+      ansible.builtin.set_fact:
+        list_of_files_to_compress:     "{{ list_of_files_to_compress + work_log_list_of_files }}"
+      when:                            work_log_list_of_files is defined
+
+    - name:                            "Post Installation: Add the other logs to the final list of logs to compress"
+      ansible.builtin.set_fact:
+        list_of_files_to_compress:     "{{ list_of_files_to_compress + other_log_list_of_files }}"
+      when:                            other_log_list_of_files is defined
+
+    - name:                            "Show the final list of logs to be compressed"
+      ansible.builtin.debug:
+        msg:                           "{{ list_of_files_to_compress }}"
+        verbosity:                     2
 
 - name:                                "Post Installation: Compress the installation log files"
   become_user:                         root
   become:                              true
   community.general.archive:
-    path:                              "{{ sapinst_list_of_files }}"
+    path:                              "{{ list_of_files_to_compress }}"
     dest:                              "{{ tmp_directory }}/{{ this_sid }}/{{ this_sid }}{{ suffix }}.zip"
     format:                            zip
     mode:                              0755
   when:
-    - sapinst_list_of_files is defined
+    - tier != 'hana'
+    - tier != 'oracle'
+    - list_of_files_to_compress is defined
+    - list_of_files_to_compress | length > 0
 
 - name:                                "Post Installation: Copy installation logs"
   become_user:                         root
@@ -87,9 +187,13 @@
     dest:                              "{{ _workspace_directory }}/logs/{{ this_sid }}{{ suffix }}.zip"
     flat:                              true
   when:
+    - tier != 'hana'
+    - tier != 'oracle'
     - sapinst_list_of_files is defined
 
 - name:                                "Post Installation: HANA"
+  when:
+    - tier == 'hana'
   block:
 
     - name:                            "Post Installation: Find the log files (HDBLCM)"
@@ -125,13 +229,10 @@
       become:                          true
       ansible.builtin.fetch:
         src:                           "{{ tmp_directory }}/{{ db_sid }}{{ suffix }}{{ ansible_hostname }}.zip"
-        dest:                          "{{ _workspace_directory }}/logs/{{ sap_sid }}{{ suffix }}{{ ansible_hostname }}.zip"
+        dest:                          "{{ _workspace_directory }}/logs/{{ db_sid }}{{ suffix }}{{ ansible_hostname }}.zip"
         flat:                          true
       when:
         - hana_list_of_files is defined
-
-  when:
-    - tier == 'hana'
 
 
 - name:                                "Post Installation: ORACLE"

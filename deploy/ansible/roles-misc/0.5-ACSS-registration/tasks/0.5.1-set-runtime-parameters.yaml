@@ -8,13 +8,13 @@
 
 # Validate that the SCS cluster is working as expected
 
-- name:                            "0.5.1 acss registration: - Set Python version {{ distribution_id }}"
+- name:                                "0.5.1 acss registration: - Set Python version {{ distribution_id }}"
   ansible.builtin.set_fact:
-    python_version: "python3"
+    python_version:                    "python3"
 
 - name:                                "0.5.1 acss registration: - Set Python version {{ distribution_id }}"
   ansible.builtin.set_fact:
-    python_version: "python2"
+    python_version:                    "python2"
   when: (ansible_distribution | lower ~ ansible_distribution_major_version) in ['sles_sap12']
 
 # Get BOM bom object
@@ -55,7 +55,7 @@
     use_proxy:                         false
     headers:
       Metadata:                        true
-  register: azure_metadata
+  register:                            azure_metadata
 
 - name:                                "0.5.1 acss registration: Set variables from Azure IMDS"
   ansible.builtin.set_fact:
@@ -64,10 +64,4 @@
     acss_sid:                           "{{ sap_sid | upper }}"
     acss_instance_type:                 "{{ instance_type }}"
 
-# --sap-virtual-instance-name  "${acss_sid}"            \
-# --resource-group             "${acss_resource_group}" \
-# --location                   "${acss_location}"       \
-# --environment                "${acss_environment}"    \
-# --sap-product                "${acss_sap_product}"    \
-# --configuration              "${acss_configuration}"
 ...

@@ -42,7 +42,7 @@
     sap_inifile:                       "{{ bom_base_name }}-dbload-{{ sid_to_be_deployed.sid | lower }}-{{ ansible_hostname }}.params"
     sap_inifile_template:              "{{ bom_base_name }}{{ bom_suffix }}-dbload-inifile-param.j2"
     scs_server:                        "{{ hostvars[scs_server_temp | first]['virtual_host'] }}"
-    db_virtual_host:                   "{{ hostvars[db_server_temp | first]['virtual_host'] }}"
+    db_virtual_hostname:                   "{{ hostvars[db_server_temp | first]['virtual_host'] }}"
     scs_sapmnt_server:                 "{% if scs_high_availability %}{{ sid_to_be_deployed.sid | lower }}scs{{ scs_instance_number }}cl1{% else %}{{ hostvars[scs_server_temp | first]['virtual_host'] }}{% endif %}"
     dir_params:                        '{{ tmp_directory_windows }}\params'
     product_catalog:                   '{{ download_directory_windows }}\SWPM\product.catalog'
@@ -52,8 +52,8 @@
     msg:
       - "INIFILE:                      {{ sap_inifile }}"
       - "TEMPLATE:                     {{ sap_inifile_template }}"
-      - "SAP SWPM SERVER:              {{ scs_server }}"
-      - "DB VIRTUAL HOST:              {{ db_virtual_host }}"
+      - "SAP SWPM SERVER:              {{ custom_scs_virtual_hostname | default(scs_server, true) }}"
+      - "DB VIRTUAL HOST:              {{ custom_db_virtual_hostname | default(db_virtual_hostname, true) }}"
       - "DOWNLOAD DIR:                 {{ download_directory_windows }}"
       - "PARAMS DIR:                   {{ dir_params }}"
       - "CATALOG PATH:                 {{ product_catalog }}"
@@ -76,7 +76,7 @@
     state:                             directory
   vars:
     ansible_become:                    true
-    ansible_become_method:             runas
+    ansible_become_method:             ansible.builtin.runas
     ansible_become_user:               '{{ sap_sid }}adm@{{ domain_name }}'
     ansible_become_password:           "{{ domain_user_password }}"
 
@@ -94,7 +94,7 @@
     arguments:                         '/norestart /log vcredist_x64.log /quiet'
   vars:
     ansible_become:                    true
-    ansible_become_method:             runas
+    ansible_become_method:             ansible.builtin.runas
     ansible_become_user:               '{{ sap_sid }}adm@{{ domain_name }}'
     ansible_become_password:           "{{ domain_user_password }}"
   register:                            vcredist2013_output
@@ -107,7 +107,7 @@
     arguments:                         '/norestart /log vcredist_x64.log /quiet'
   vars:
     ansible_become:                    true
-    ansible_become_method:             runas
+    ansible_become_method:             ansible.builtin.runas
     ansible_become_user:               '{{ sap_sid }}adm@{{ domain_name }}'
     ansible_become_password:           "{{ domain_user_password }}"
   register:                            vcredist2017_output
@@ -163,7 +163,7 @@
     sap_installSAPHostAgent:
     sap_profile_dir:                   '\\{{ scs_sapmnt_server }}\sapmnt\{{ sid_to_be_deployed.sid | upper }}\SYS\profile'
     sap_scs_hostname:                  "{{ scs_sapmnt_server }}"
-    sap_db_hostname:                   "{{ db_virtual_host }}"
+    sap_db_hostname:                   "{{ custom_db_virtual_hostname | default(db_virtual_hostname, true) }}"
     sap_ciVirtualHostname:
     sap_appVirtualHostname:
     param_directory:                   "{{ dir_params }}"
@@ -179,7 +179,7 @@
       - "INIFILE:    {{ sap_inifile }}"
       - "PRODUCT ID: {{ bom.product_ids.dbl }}"
       - "SCSHOST:    {{ scs_sapmnt_server }}"
-      - "DBHOST:     {{ db_virtual_host }}"
+      - "DBHOST:     {{ custom_db_virtual_hostname | default(db_virtual_hostname, true) }}"
       - "SID:        {{ sid_to_be_deployed.sid | upper }}"
 
 - name:                                "DBLoad: - status"
@@ -220,7 +220,7 @@
         creates:                       '{{ download_directory_windows }}\sap_extract\sapinst.exe'
       vars:
         ansible_become:                true
-        ansible_become_method:         runas
+        ansible_become_method:         ansible.builtin.runas
         ansible_become_user:           '{{ sap_sid }}adm@{{ domain_name }}'
         ansible_become_password:       "{{ domain_user_password }}"
       register:                        scs_extraction
@@ -239,7 +239,7 @@
         creates:                       '{{ sap_deployment_automation }}\{{ sid_to_be_deployed.sid | upper }}\sap_deployment_dbload.txt'
       vars:
         ansible_become:                true
-        ansible_become_method:         runas
+        ansible_become_method:         ansible.builtin.runas
         ansible_become_user:           '{{ sap_sid }}adm@{{ domain_name }}'
         ansible_become_password:       "{{ domain_user_password }}"
       register:                        dbload_results

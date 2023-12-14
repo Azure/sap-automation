@@ -1,0 +1,28 @@
+# /*----------------------------------------------------------------------------8
+# |                       Custom repositories                                   |
+# +------------------------------------4---------------------------------------*/
+
+# Analyse the repo list for this distribution selecting only those
+# packages assigned to the active tier or 'all'.
+- name:                                "1.3 Repository - Determine custom repos appropriate for tier {{ distribution_full_id }}"
+  ansible.builtin.set_fact:
+    custom_repos_for_tier:             "{{ custom_repos[distribution_full_id] |
+                                             selectattr('tier', 'in', ['all', tier]) |
+                                             list }}"
+  when:                                custom_repos[distribution_full_id] is defined
+
+- name:                                "1.3 Repos: Add the custom repositories {{ ansible_os_family }}"
+  community.general.zypper_repository:
+    repo:                              "{{ item.repo }}"
+    state:                             "{{ item.state }}"
+    overwrite_multiple:                true
+    disable_gpg_check:                 true
+    auto_import_keys:                  true
+  loop:                                "{{ custom_repos_for_tier }}"
+  register:                            zypresult
+  ignore_errors:                       true
+  failed_when:
+    - zypresult.rc != 0
+    - zypresult.rc != 4
+  when:
+    - custom_repos_for_tier is defined

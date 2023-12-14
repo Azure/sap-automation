@@ -40,7 +40,7 @@ force=0
 recover=0
 ado_flag=""
 
-INPUT_ARGUMENTS=$(getopt -n deploy_controlplane -o d:l:s:c:p:t:a:ifohrv --longoptions deployer_parameter_file:,library_parameter_file:,subscription:,spn_id:,spn_secret:,tenant_id:,storageaccountname:,auto-approve,force,only_deployer,help,recover,ado -- "$@")
+INPUT_ARGUMENTS=$(getopt -n deploy_controlplane -o d:l:s:c:p:t:a:k:ifohrv --longoptions deployer_parameter_file:,library_parameter_file:,subscription:,spn_id:,spn_secret:,tenant_id:,storageaccountname:,vault:,auto-approve,force,only_deployer,help,recover,ado -- "$@")
 VALID_ARGUMENTS=$?
 
 if [ "$VALID_ARGUMENTS" != "0" ]; then
@@ -58,6 +58,7 @@ do
         -p | --spn_secret)                         spn_secret="$2"                  ; shift 2 ;;
         -t | --tenant_id)                          tenant_id="$2"                   ; shift 2 ;;
         -a | --storageaccountname)                 REMOTE_STATE_SA="$2"             ; shift 2 ;;
+        -k | --vault)                              keyvault="$2"                    ; shift 2 ;;
         -v | --ado)                                ado_flag="--ado"                 ; shift ;;
         -f | --force)                              force=1                          ; shift ;;
         -o | --only_deployer)                      only_deployer=1                  ; shift ;;
@@ -190,7 +191,7 @@ if [ -n "${subscription}" ]; then
     echo ""
     az account set --sub "${subscription}"
     export ARM_SUBSCRIPTION_ID="${subscription}"
-    kv_found=$(az keyvault list --subscription $subscription --query [].name | grep  "${keyvault}")
+    kv_found=$(az keyvault list --subscription "${subscription}" --query [].name | grep  "${keyvault}")
 
     if [ -z "${kv_found}" ] ; then
         echo "#########################################################################################"
@@ -208,10 +209,14 @@ if [ 3 == $step ]; then
     spn_secret="none"
 fi
 
-set_executing_user_environment_variables "${spn_secret}"
+if [ -n "$keyvault" ]; then
+  set_executing_user_environment_variables "none"
+else
+  set_executing_user_environment_variables "${spn_secret}"
+fi
+
 
 load_config_vars "${deployer_config_information}" "step"
-
 load_config_vars "${deployer_config_information}" "keyvault"
 
 
@@ -280,7 +285,7 @@ if [ 0 == $step ]; then
         save_config_var "tenant_id" "${deployer_config_information}"
     fi
 
-    if [ -n $FORCE_RESET ]; then
+    if [ -n "${FORCE_RESET}" ]; then
       step=3
       save_config_var "step" "${deployer_config_information}"
       exit 0
@@ -313,9 +318,8 @@ if [ 0 == $step ]; then
                 echo "#                                                                                       #"
                 echo "#########################################################################################"
                 echo ""
-
                 temp_file=$(mktemp)
-                ppk=$(az keyvault secret show --vault-name "${keyvault}" --name "${sshsecret}" | jq -r .value)
+                ppk=$(az keyvault secret show --vault-name "${keyvault}" --name "${sshsecret}" --query value --output tsv)
                 echo "${ppk}" > "${temp_file}"
                 chmod 600 "${temp_file}"
 
@@ -353,7 +357,25 @@ fi
 
 cd "$root_dirname" || exit
 
-if [ 1 == $step ]; then
+if [ 1 == $step ] || [ 3 == $step ] ; then
+
+    if [ -z "$keyvault" ]; then
+
+      key=$(echo "${deployer_file_parametername}" | cut -d. -f1)
+      if [ $recover == 1 ]; then
+        terraform_module_directory="$SAP_AUTOMATION_REPO_PATH"/deploy/terraform/run/sap_deployer/
+        terraform -chdir="${terraform_module_directory}" init -upgrade=true     \
+        --backend-config "subscription_id=${STATE_SUBSCRIPTION}"                \
+        --backend-config "resource_group_name=${REMOTE_STATE_RG}"               \
+        --backend-config "storage_account_name=${REMOTE_STATE_SA}"              \
+        --backend-config "container_name=tfstate"                               \
+        --backend-config "key=${key}.terraform.tfstate"
+
+        keyvault=$(terraform -chdir="${terraform_module_directory}"  output deployer_kv_user_name | tr -d \")
+      fi
+    fi
+
+
     secretname="${environment}"-client-id
     echo ""
     echo "#########################################################################################"
@@ -377,7 +399,7 @@ if [ 1 == $step ]; then
     if [ -z $kv_name_check ]; then
         echo "#########################################################################################"
         echo "#                                                                                       #"
-        echo -e "#                               $boldred  Unable to access keyvault $resetformatting                            #"
+        echo -e "#                               $boldred  Unable to access keyvault: $keyvault $resetformatting                            #"
         echo "#                             Please ensure the key vault exists.                       #"
         echo "#                                                                                       #"
         echo "#########################################################################################"
@@ -431,8 +453,10 @@ if [ 1 == $step ]; then
             fi
         fi
         cd "${curdir}" || exit
-        step=2
-        save_config_var "step" "${deployer_config_information}"
+        if [ 1 == $step ] ; then
+          step=2
+          save_config_var "step" "${deployer_config_information}"
+        fi
     else
         az_subscription_id=$(az account show --query id -o tsv)
         printf -v val %-40.40s "$az_subscription_id"
@@ -443,8 +467,8 @@ if [ 1 == $step ]; then
         echo "#########################################################################################"
         echo "User account ${val} does not have access to: $keyvault" > "${deployer_config_information}".err
 
-        exit 65
         echo "##vso[task.setprogress value=40;]Progress Indicator"
+        exit 65
 
     fi
 else
@@ -487,6 +511,8 @@ if [ 2 == $step ]; then
     return_code=$?
     if [ 0 != $return_code ]; then
         echo "Bootstrapping of the SAP Library failed" > "${deployer_config_information}".err
+        step=1
+        save_config_var "step" "${deployer_config_information}"
         exit 20
     fi
     terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/sap_library/
@@ -558,7 +584,6 @@ if [ 3 == $step ]; then
         rm post_deployment.sh
     fi
 
-
     secretname=sa-connection-string
     deleted=$(az keyvault secret list-deleted --vault-name "${keyvault}" --query "[].{Name:name} | [? contains(Name,'${secretname}')] | [0]" | tr -d \")
     if [ "${deleted}" == "${secretname}"  ]; then
@@ -574,6 +599,13 @@ if [ 3 == $step ]; then
       export TF_VAR_sa_connection_string
 
     fi
+
+    if [[ -z $REMOTE_STATE_SA ]];
+    then
+        echo "Loading the State file information"
+        load_config_vars "${deployer_config_information}" "REMOTE_STATE_SA"
+    fi
+
     allParams=$(printf " --parameterfile %s --storageaccountname %s --type sap_deployer %s %s " "${deployer_file_parametername}" "${REMOTE_STATE_SA}" "${approveparam}" "${ado_flag}" )
 
     echo -e "$cyan calling installer.sh with parameters: $allParams"
@@ -640,7 +672,7 @@ echo "#                                                                         
 echo "#########################################################################################"
 
 if [ -f "${deployer_config_information}".err ]; then
-    "${deployer_config_information}".err
+    rm "${deployer_config_information}".err
 fi
 
 now=$(date)
@@ -667,13 +699,13 @@ export deployer_ip="${deployer_public_ip_address}"
 export terraform_state_storage_account="${REMOTE_STATE_SA}"
 
 if [ 5 == $step ]; then
-    if [ $ado_flag != "--ado" ] ; then
+    if [ "${ado_flag}" != "--ado" ] ; then
         cd "${curdir}" || exit
 
         load_config_vars "${deployer_config_information}" "sshsecret"
         load_config_vars "${deployer_config_information}" "keyvault"
         load_config_vars "${deployer_config_information}" "deployer_public_ip_address"
-        if [ "$this_ip" != "$deployer_public_ip_address" ] ; then
+        if [ ! -f /etc/profile.d/deploy_server.sh ] ; then
             # Only run this when not on deployer
             echo "#########################################################################################"
             echo "#                                                                                       #"

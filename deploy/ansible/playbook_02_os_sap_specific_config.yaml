@@ -84,6 +84,20 @@
           tags:
             - always
 
+        - name:                        "SAP OS configuration playbook: - Retrieve Subscription ID, Resource Group Name and Virtual Machine name"
+          ansible.builtin.uri:
+            url:                       http://169.254.169.254/metadata/instance?api-version=2021-02-01
+            use_proxy:                 false
+            headers:
+              Metadata:                true
+          register: azure_metadata
+
+        - name:                        "SAP OS configuration playbook: - : Extract Subscription ID, Resource Group Name and Virtual Machine name"
+          ansible.builtin.set_fact:
+            subscription_id:           "{{ azure_metadata.json.compute.subscriptionId }}"
+            resource_group_name:       "{{ azure_metadata.json.compute.resourceGroupName }}"
+            vm_name:                   "{{ azure_metadata.json.compute.name }}"
+
         - name:                        "SAP OS configuration playbook: - Set sapos storage account facts"
           ansible.builtin.set_fact:
             sapbits_location_base_path: "{{ hostvars.localhost.sapbits_location_base_path }}"
@@ -95,6 +109,38 @@
           tags:
             - is_run_with_infraCreate_only
 
+        - name:                        "SAP OS configuration playbook: - Get the IP information from instance meta data service"
+          ansible.builtin.uri:
+            url:                       http://169.254.169.254/metadata/instance/network/interface/0?api-version=2021-02-01
+            use_proxy:                 false
+            headers:
+              Metadata:                true
+          register: azure_network_metadata
+
+        - name:                        "SAP OS configuration playbook: - Filter out the values for IPAddresses in json format"
+          ansible.builtin.set_fact:
+            private_ips_info:          "{{ azure_network_metadata.json.ipv4.ipAddress }}"
+
+        - name:                        "SAP OS configuration playbook: - Convert ips to list"
+          ansible.builtin.set_fact:
+            ipadd:                     "{{ private_ips_info | map(attribute='privateIpAddress') | list }}"
+
+        # add assertion to validate if ipadd is not empty and has at least one ip address
+        - name:                        "SAP OS configuration playbook: - Assert if IP Address is not empty"
+          ansible.builtin.assert:
+            that:
+              - ipadd is defined
+              - ipadd | type_debug != 'NoneType'
+              - ipadd | length > 0
+          tags:
+            - always
+
+        # The variable ipaddr only has the values of the IP addresses of the this
+        # host in the play. This causes the IP addresses to repeat in the hosts file.
+        # Since ipadd is already set as a fact, we can use it directly in the
+        # hosts file. We do not need to set ipaddr to ipadd.
+        # vars:
+        #   ipaddr:                    "{{ ipadd }}"
         - name:                        "SAP OS configuration playbook: - Create hosts file"
           ansible.builtin.include_role:
             name:                      roles-sap-os/2.4-hosts-file
@@ -165,6 +211,12 @@
           tags:
             - 2.2-sapPermissions
 
+        - name:                        "SAP OS configuration playbook: - Configurations according to SAP Notes"
+          ansible.builtin.include_role:
+            name:                      roles-sap-os/2.10-sap-notes
+          tags:
+            - 2.10-sap-notes
+
         - name:                        "SAP OS configuration playbook: - configure exports"
           ansible.builtin.include_role:
             name:                      roles-sap-os/2.3-sap-exports
@@ -177,11 +229,6 @@
           tags:
             - 2.6-sap-mounts
 
-        - name:                        "SAP OS configuration playbook: - Configurations according to SAP Notes"
-          ansible.builtin.include_role:
-            name:                      roles-sap-os/2.10-sap-notes
-          tags:
-            - 2.10-sap-notes
       when:
         - ansible_os_family != "Windows"
 

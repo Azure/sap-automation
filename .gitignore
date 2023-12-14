@@ -43,9 +43,13 @@ Webapp/.npmrc
 # Ignore OS files         - MKD 20221221
 **/.DS_Store
 
-# Ignore Python cache directories
-__pycache__
+# Visual Studio 2015/2017 cache/options directory
+.vs/
+# SDU Importer files - KFO20230710
+Importer/SDAF SDU Importer/.vs
+Importer/SDAF SDU Importer/SDAFSDUImporter/bin
 
-# Additional files to ignore
-owners.txt
-NuGet.config
+# Python Tools for Visual Studio (PTVS)
+__pycache__/
+__pycache__
+*.pyc

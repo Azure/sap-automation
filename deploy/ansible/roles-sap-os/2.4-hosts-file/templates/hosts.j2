@@ -63,11 +63,34 @@ Notes:
 
 Loop through all the hosts that are referenced by the Playbook.
 If we do not sort it, then the order can change randomly.
+This is not a problem, but it makes it harder to compare the output
+Use azure instance metadata to get the IP addresses for the current host.
+This standardizes the values across all hosts and is not dependent on the
+ansible_facts.
 
 #}
-{%  for host in ansible_play_hosts|sort %}
-{{ '%-19s' | format(hostvars[host]['ansible_default_ipv4']['address']) }}{{ '%-50s' | format(host + '.' + sap_fqdn) }}{{ '%-21s' | format(host) }}
-{%    for ips in hostvars[host]['ansible_all_ipv4_addresses'] | sort if ips != hostvars[host]['ansible_default_ipv4']['address'] %}
-{{ '%-19s' | format(ips) }}{{ '%-50s' | format(hostvars[host]['virtual_host'] + '.' + sap_fqdn) }}{{ '%-21s' | format(hostvars[host]['virtual_host']) }}
-{%    endfor %}
-{%  endfor %}
+
+{# This template generates host entries based on the provided data #}
+{% for host in ansible_play_hosts|sort %}
+{# Set variables for the current host #}
+{% set virtual_host_name = hostvars[host]['virtual_host'] %}
+{# Determine the IPs for the current host from ipaddr variable. Do not sort it, the order is already correct. #}
+{% set host_ips = hostvars[host]['ipadd'] %}
+
+{# Check if there are IPs available for the current host #}
+{% if host_ips %}
+{# Print the primary host entry #}
+{{ '%-19s' | format(host_ips[0]) }}{{ '%-80s ' | format(host + '.' + sap_fqdn) }}{{ '%-21s' | format(host) }}
+
+{# If there's only one IP, also use it for the virtual_host #}
+{% if host_ips|length == 1 %}
+{{ '%-19s' | format(host_ips[0]) }}{{ '%-80s ' | format(virtual_host_name + '.' + sap_fqdn) }}{{ '%-21s' | format(virtual_host_name) }}
+{% else %}
+{# Loop through remaining IPs for the virtual host #}
+{% for ip in host_ips[1:] %}
+{{ '%-19s' | format(ip) }}{{ '%-80s ' | format(virtual_host_name + '.' + sap_fqdn) }}{{ '%-21s' | format(virtual_host_name) }}
+{% endfor %}
+{% endif %}
+{% endif %}
+{% endfor %}
+

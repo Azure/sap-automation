@@ -18,6 +18,7 @@
 - name:                                Output cluster status
   ansible.builtin.debug:
     msg:                               "{{ cluster_status_report.stdout }}"
+    verbosity:                         2
 
 - name:                                Check the SBD devices status
   ansible.builtin.shell:               set -o pipefail && crm_mon -1 | grep sbd
@@ -42,6 +43,7 @@
   block:
     - name:                            "Verify the hook Installation"
       become_user:                     "{{ db_sid | lower }}adm"
+      become:                          true
       ansible.builtin.shell: |
                                        set -o pipefail
                                        IFS=' '
@@ -51,7 +53,7 @@
                                        read -a saphanasr_status <<< ${get_saphanasr_rc}
                                        echo "${saphanasr_status[-1]}"
       args:
-        chdir:                         /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/{{ primary_instance_name }}/trace
+        chdir:                         /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/{{ hostvars[primary_instance_name]['virtual_host'] }}/trace
       register:                        saphanasr
       when:                            inventory_hostname == primary_instance_name
   rescue:
@@ -61,6 +63,7 @@
 
     - name:                            "[Rescue] - Verify the hook Installation"
       become_user:                     "{{ db_sid | lower }}adm"
+      become:                          true
       ansible.builtin.shell: |
                                        set -o pipefail
                                        IFS=' '
@@ -70,7 +73,7 @@
                                        read -a saphanasr_status <<< ${get_saphanasr_rc}
                                        echo "${saphanasr_status[-1]}"
       args:
-        chdir:                         /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/{{ primary_instance_name }}/trace
+        chdir:                         /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/{{ hostvars[primary_instance_name]['virtual_host'] }}/trace
       register:                        saphanasr
       when:                            inventory_hostname == primary_instance_name
 

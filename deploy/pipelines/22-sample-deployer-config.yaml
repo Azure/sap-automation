@@ -120,10 +120,13 @@ stages:
                         "EAAS" { "eastasia" }
                         "EAUS" { "eastus" }
                         "EUS2" { "eastus2" }
+                        "EUSG" { "eastusstg"}
                         "FRCE" { "francecentral" }
                         "FRSO" { "francesouth" }
                         "GENO" { "germanynorth" }
                         "GEWC" { "germanywestcentral" }
+                        "ISCE" { "israelcentral" }
+                        "ITNO" { "italynorth" }
                         "JAEA" { "japaneast" }
                         "JAWE" { "japanwest" }
                         "JINC" { "jioindiacentral" }
@@ -134,6 +137,8 @@ stages:
                         "NOEU" { "northeurope" }
                         "NOEA" { "norwayeast" }
                         "NOWE" { "norwaywest" }
+                        "PLCE" { "polandcentral" }
+                        "QACE" { "qatarcentral" }
                         "SANO" { "southafricanorth" }
                         "SAWE" { "southafricawest" }
                         "SCUS" { "southcentralus" }
@@ -253,7 +258,7 @@ stages:
                         Add-Content $(library_file) "environment = ""$(deployer_environment)"""
                         Add-Content $(library_file) "location = ""$region"""
                         Add-Content $(library_file) ""
-                        Add-Content $(library_file) "dns_label = ""sap.contoso.net"""
+                        Add-Content $(library_file) "dns_label = ""azure.sdaf.contoso.net"""
                         git config --global user.email "$(Build.RequestedForEmail)"
                         git config --global user.name "$(Build.RequestedFor)"
                         git add -f $(library_file)

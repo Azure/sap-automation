@@ -1,0 +1,69 @@
+- name:                                "1.3 Repository - Ensure zypper repo is configured on SLE VMs"
+  block:
+    # If there are no repos configured zypper lr will fail with rc == 6
+    - name:                            "1.3 Repository - Check that zypper repos are registered"
+      ansible.builtin.command:         zypper lr
+      # command/shell actions always report changed even if they are
+      # not making any changes; we know this command action doesn't
+      # change anything so ensure it doesn't report as changed.
+      changed_when:                    false
+
+    - name:                            "1.3 Repository - Check connect to SUSE repos via SUSEConnect"
+      ansible.builtin.command:         SUSEConnect --status
+      # command/shell actions always report changed even if they are
+      # not making any changes; we know this command action doesn't
+      # change anything so ensure it doesn't report as changed.
+      changed_when:                    false
+
+  rescue:
+    # Attempt to configure the repos by re-registering instance
+
+    - name:                            "1.3 Repository - Attempt to re-register SLE instance with Public Cloud Update Infrastructure and rescue"
+      block:
+        - name:                        "1.3 Repository - Attempt to re-register SLE instance with Public Cloud Update Infrastructure"
+          ansible.builtin.shell:      |
+                                          rm -f /etc/SUSEConnect
+                                          rm -f /etc/zypp/{repos,services,credentials}.d/*
+                                          rm -f /usr/lib/zypp/plugins/services/*
+                                          sed -i '/^# Added by SMT reg/,+1d' /etc/hosts
+                                          export PYTHONWARNINGS="ignore:Unverified HTTPS request"
+                                          /usr/sbin/registercloudguest --force-new
+
+          register:                    reg_result
+          # registercloudguest rc == 1 when successful
+          failed_when:                     reg_result.rc > 1
+
+        - name:                        "1.3 Packages - Wait 30 secs before retrying"
+          ansible.builtin.wait_for:
+            timeout:                   30
+
+        - name:                        "1.3 Repository - Verify that zypper repos are configured after re-registering SLE instance"
+          ansible.builtin.command:     zypper lr
+          register:                    zypper_lr_result
+      rescue:
+        - name:                        "Print stderr before error handling"
+          ansible.builtin.debug:
+            msg:                       "Result obj: {{ zypper_lr_result }}"
+
+        - name:                        "Error handling: 1.3 Repository - Verify that zypper repos are configured after re-registering SLE instance"
+          ansible.builtin.fail:
+            msg:                       "{{ zypper_lr_result.msg | try_get_error_code(task_tag='zypper_registration') }}"
+
+- name:                                "1.3 Repository - Ensure additional zypper repo is configured on SLE VMs and rescue"
+  block:
+    # If there are no repos configured zypper lr will fail with rc == 6
+    - name:                            "1.3 Repository - Check that zypper repos are registered"
+      ansible.builtin.command:         zypper lr
+      # command/shell actions always report changed even if they are
+      # not making any changes; we know this command action doesn't
+      # change anything so ensure it doesn't report as changed.
+      register:                        zypper_lr_result
+      changed_when:                    false
+
+  rescue:
+    - name:                            "Print stderr before error handling"
+      ansible.builtin.debug:
+        msg:                           "Result object: {{ zypper_lr_result }}"
+    - name:                            "Error handling 1.3 Repository - Check that zypper repos are registered"
+      ansible.builtin.fail:
+        msg:                           "{{ zypper_lr_result.msg | try_get_error_code(task_tag='zypper_registration') }}"

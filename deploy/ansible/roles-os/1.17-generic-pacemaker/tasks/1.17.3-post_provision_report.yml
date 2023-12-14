@@ -13,6 +13,7 @@
 - name:                                "1.17 Generic Pacemaker - Output cluster status"
   ansible.builtin.debug:
     msg:                               "{{ cluster_status_report.stdout }}"
+    verbosity:                         2
 
 # - name:                                Check the SBD devices status
 #   ansible.builtin.shell:              >
@@ -21,9 +22,9 @@
 #   register:                            sbd_status_report
 #   changed_when:                        false
 #   failed_when:                         false
-#   when:                                ansible_os_family == 'Suse'
+#   when:                                ansible_os_family | upper == "SUSE"
 
 # - name:                                Output SBD status
 #   ansible.builtin.debug:
 #     msg:                               "{{ sbd_status_report.stdout }}"
-#   when:                                ansible_os_family == 'Suse'
+#   when:                                ansible_os_family | upper == "SUSE"

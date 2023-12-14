@@ -1,0 +1,57 @@
+---
+
+######################################################################################################
+# This playbook is used to reboot all VMs in a resource group when the VM agent status is not ready. #
+######################################################################################################
+
+- name:                                "Get VM list from resource_group: {{ resourceGroup_name }}"
+  delegate_to:                         localhost
+  become:                              false
+  ansible.builtin.command: >-
+                                       az vm list --resource-group {{ resourceGroup_name }} \
+                                       --subscription {{ subscriptionId }} --query [].name -o tsv
+  register:                            rg_vm_list
+  changed_when:                        false
+  failed_when:                         false
+
+- name:                                "Get the agent status for each VM in resource_group: {{ resourceGroup_name }}"
+  block:
+
+    # foreach vm in rg_vm_list, find the agent status and reboot the VM when status is not ready
+    - name:                            "Get the agent status for each VM in resource_group: {{ resourceGroup_name }}"
+      delegate_to:                     localhost
+      become:                          false
+      ansible.builtin.command: >-
+                                       az vm get-instance-view --name {{ item }} --resource-group {{ resourceGroup_name }} \
+                                           --subscription {{ subscriptionId }} \
+                                           --query "[name, instanceView.vmAgent.statuses[].displayStatus | [0]]" \
+                                           -o tsv
+      register:                        vm_agent_status
+      changed_when:                    false
+      loop:                            "{{ rg_vm_list.stdout_lines }}"
+      when:
+        - item | length > 2
+
+    - name:                            "Reboot VM when agent status is not ready"
+      delegate_to:                     localhost
+      become:                          false
+      ansible.builtin.command: >-
+                                       az vm restart --name {{ vm_agent_status[0] }} --resource-group {{ resourceGroup_name }} \
+                                           --subscription {{ subscriptionId }}
+      when:
+        - vm_agent_status is defined
+        - vm_agent_status | length == 2
+        - vm_agent_status[1] != 'Ready'
+      register:                        vm_reboot
+      changed_when:                    false
+
+    # - name:                                "Wait for 120 seconds"
+    #   delegate_to:                         localhost
+    #   become:                              false
+    #   ansible.builtin.pause:
+    #     seconds:                           120
+    #   when:                                vm_reboot is changed
+  when:
+    - rg_vm_list is defined
+    - rg_vm_list.rc == 0
+    - rg_vm_list.stdout_lines | length > 0

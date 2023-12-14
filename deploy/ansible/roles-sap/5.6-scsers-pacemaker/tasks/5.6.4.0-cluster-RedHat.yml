@@ -7,60 +7,116 @@
 # [1] Configure cluster default properties
 # [1] Create a virtual IP resource and health-probe for the ASCS instance
 
+- name:                                "5.6 SCSERS - RHEL - SCS - Check if installation succeeded"
+  ansible.builtin.stat:
+    path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_scs.txt"
+  register:                            scs_installed
+
 - name:                                "5.6 SCSERS - RHEL - Cluster Configuration before Install"
   throttle:                            1
   block:
 
-    - name:                            "5.6 SCSERS - RHEL - Configure cluster default properties"
+    - name:                            "5.6 SCSERS - RHEL - SCS - Configure cluster default properties"
       ansible.builtin.shell: |
                                        pcs resource defaults resource-stickiness=1
                                        pcs resource defaults migration-threshold=3
 
-    - name:                            "5.6 SCSERS - RHEL - Put Secondary host on standby"
+    - name:                            "5.6 SCSERS - RHEL - SCS - Put Secondary host on standby"
       ansible.builtin.command:         pcs node standby {{ secondary_instance_name }}
 
     - name:                            "5.6 SCSERS - RHEL - Set fact for ASCS Filesystem"
+      when:
+        - NFS_provider in ['AFS', 'ANF']
+        - sap_mnt is defined
       ansible.builtin.set_fact:
-        ascs_filesystem_device:        "{{ sap_mnt }}/usrsap{{ sap_sid }}{{ instance_type | lower }}{{ scs_instance_number }}"
+        ascs_filesystem_device:        "{{ sap_mnt }}/usrsap{{ sap_sid | upper }}{{ instance_type | lower }}{{ scs_instance_number }}"
 
     - name:                            "5.6 SCSERS - RHEL - SCS - Configure File system resources"
       ansible.builtin.command: >
-                                       pcs resource create fs_{{ sap_sid }}_{{ instance_type | upper }} Filesystem \
+                                       pcs resource create fs_{{ sap_sid | upper }}_{{ instance_type | upper }} Filesystem \
                                        device='{{ ascs_filesystem_device }}' \
                                        directory='{{ profile_directory }}' fstype='nfs' force_unmount=safe options='sec=sys,vers=4.1' \
                                        op start interval=0 timeout=60 \
                                        op stop interval=0 timeout=120 \
-                                       op monitor interval=200 timeout=40 \
-                                       --group g-{{ sap_sid }}_{{ instance_type | upper }}
+                                       op monitor interval=200 timeout={{ clus_fs_mon_timeout | int }} \
+                                       --group g-{{ sap_sid | upper }}_{{ instance_type | upper }}
       register:                        ascs_fs_resource
       failed_when:                     ascs_fs_resource.rc > 1
 
     - name:                            "5.6 SCSERS - RHEL - SCS - Create ASCS VIP - This is LB frontend ASCS/SCS IP"
       ansible.builtin.command: >
-                                       pcs resource create vip_{{ sap_sid }}_{{ instance_type | upper }} IPaddr2 \
+                                       pcs resource create vip_{{ sap_sid | upper }}_{{ instance_type | upper }} IPaddr2 \
                                        ip={{ scs_lb_ip }} cidr_netmask={{ subnet_prefix }} \
-                                       --group g-{{ sap_sid }}_{{ instance_type | upper }}
+                                       --group g-{{ sap_sid | upper }}_{{ instance_type | upper }}
       register:                        ascs_vip
       failed_when:                     ascs_vip.rc > 1
 
     - name:                            "5.6 SCSERS - RHEL - SCS - create Azure LB resource"
       ansible.builtin.command: >
-                                       pcs resource create nc_{{ sap_sid }}_{{ instance_type | upper }} azure-lb port=620{{ scs_instance_number }} \
-                                       --group g-{{ sap_sid }}_{{ instance_type | upper }}
+                                       pcs resource create nc_{{ sap_sid | upper }}_{{ instance_type | upper }} azure-lb port=620{{ scs_instance_number }} \
+                                       --group g-{{ sap_sid | upper }}_{{ instance_type | upper }}
       register:                        ascs_lb
       failed_when:                     ascs_lb.rc > 1
 
-  when: inventory_hostname == primary_instance_name
+  when:
+    - inventory_hostname == primary_instance_name
+    - not scs_installed.stat.exists
 
 # [1] Install SAP NetWeaver ASCS - this is where we call the SCS role
 - name:                                "5.6 SCSERS - RHEL - SCS - Install SCS on Primary host"
   throttle:                            1
   block:
-    - name:                            "5.6 SCSERS - RHEL - Bring Primary host online "
+    - name:                            "5.6 SCSERS - RHEL - SCS Bring Primary host online "
       ansible.builtin.command:         pcs node unstandby {{ primary_instance_name }}
 
-    - name:                            "5.6 SCSERS - RHEL - Put Secondary host on standby"
+    - name:                            "5.6 SCSERS - RHEL - SCS - Put Secondary host on standby"
       ansible.builtin.command:         pcs node standby {{ secondary_instance_name }}
+
+    - name:                            "5.6 SCSERS - RHEL - SCS - wait until SCS fs resource has come online"
+      ansible.builtin.shell: >-
+                                       set -o pipefail;
+                                       pcs resource show | grep fs_{{ sap_sid | upper }}_{{ instance_type | upper }}
+      register:                        fs_resource_status
+      until:                           fs_resource_status.stdout is search ('Started')
+      retries:                         10
+      delay:                           30
+      changed_when:                    false
+      when:                            ansible_distribution_major_version == "7"
+
+    - name:                            "5.6 SCSERS - RHEL - SCS - wait until SCS fs resource has come online"
+      ansible.builtin.shell: >-
+                                       set -o pipefail;
+                                       pcs resource status | grep fs_{{ sap_sid | upper }}_{{ instance_type | upper }}
+      register:                        fs_resource_status
+      until:                           fs_resource_status.stdout is search ('Started')
+      retries:                         10
+      delay:                           30
+      changed_when:                    false
+      when:                            ansible_distribution_major_version in ["8", "9"]
+
+
+    - name:                            "5.6 SCSERS - RHEL - SCS - Check if NFS mount /usr/sap/{{ sap_sid | upper }}/SYS is available before proceeding"
+      ansible.builtin.shell: >-
+                                       set -o pipefail;
+                                       df -kHT | grep '/usr/sap/{{ sap_sid | upper }}/SYS'
+      register:                        nfs_sys_mounted
+      changed_when:                    false
+
+    - name:                            "5.6 SCSERS - RHEL - SCS - attempt to mount SYS directory"
+      ansible.builtin.include_role:
+        name:                          roles-sap-os/2.6-sap-mounts
+        apply:
+          tags:
+            - sap_app_ha_sys_mount
+      when: inventory_hostname == primary_instance_name and nfs_sys_mounted.rc >= 1
+
+    - name:                            "5.6 SCSERS - RHEL - SCS - Check if NFS mount for instance directory is available before proceeding"
+      ansible.builtin.shell: >-
+                                       set -o pipefail;
+                                       df -kHT | grep '/usr/sap/{{ sap_sid | upper }}/{{ instance_type | upper }}{{ scs_instance_number }}'
+      register:                        nfs_instdir_mounted
+      failed_when:                     nfs_instdir_mounted.rc >= 1
+      changed_when:                    false
 
     - name:                            "5.6 SCSERS - RHEL - SCS - Assign ownership"
       ansible.builtin.file:
@@ -72,7 +128,7 @@
       loop:
         - { path: '/sapmnt/{{ sap_sid | upper }}', mode: '0755' }
         - { path: '/usr/sap/{{ sap_sid | upper }}/SYS', mode: '0700' }
-        - { path: '/usr/sap/{{ sap_sid }}/{{ instance_type | upper }}{{ scs_instance_number }}', mode: '0755' }
+        - { path: '/usr/sap/{{ sap_sid | upper }}/{{ instance_type | upper }}{{ scs_instance_number }}', mode: '0755' }
       when: inventory_hostname == primary_instance_name
 
     - name:                            "5.6 SCSERS - RHEL - SCS - Install SCS on Primary host"
@@ -82,58 +138,72 @@
     - name:                            "5.6 SCSERS - RHEL - SCS - Check if installation succeeded"
       ansible.builtin.stat:
         path:                          "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_scs.txt"
-      register:                        scs_installed
+      register:                        scs_installed_final
 
     - name:                            "ErrorHandling"
       ansible.builtin.fail:
         msg:                           "INSTALL:0014:SCS HA installation failed"
       when:
-        - not scs_installed.stat.exists
+        - not scs_installed_final.stat.exists
 
-  when: inventory_hostname == primary_instance_name
+  when:
+    - inventory_hostname == primary_instance_name
+    - not scs_installed.stat.exists
 
 # [1] Create a virtual IP resource and health-probe for the ERS instance
+
+- name:                                "5.6 SCSERS - RHEL - ERS - Check if installation succeeded before"
+  ansible.builtin.stat:
+    path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_ers.txt"
+  register:                            ers_installed
+  when: inventory_hostname == secondary_instance_name
+
 - name:                                "5.6 SCSERS - RHEL - ERS - Cluster Configuration before Install "
   throttle:                            1
   block:
-    - name:                            "5.6 SCSERS - RHEL - Put Secondary host on online"
+    - name:                            "5.6 SCSERS - RHEL - ERS - Put Secondary host on online"
       ansible.builtin.command:         pcs node unstandby {{ secondary_instance_name }}
 
-    - name:                            "5.6 SCSERS - RHEL - Put Primary host on standby"
+    - name:                            "5.6 SCSERS - RHEL - ERS - Put Primary host on standby"
       ansible.builtin.command:         pcs node standby {{ primary_instance_name }}
 
-    - name:                            "5.6 SCSERS - RHEL - Set fact for ERS Filesystem"
+    - name:                            "5.6 SCSERS - RHEL - ERS - Set fact for ERS Filesystem"
+      when:
+        - NFS_provider in ['AFS', 'ANF']
+        - sap_mnt is defined
       ansible.builtin.set_fact:
-        ers_filesystem_device:        "{{ sap_mnt }}/usrsap{{ sap_sid }}ers{{ ers_instance_number }}"
+        ers_filesystem_device:        "{{ sap_mnt }}/usrsap{{ sap_sid | upper }}ers{{ ers_instance_number }}"
 
     - name:                            "5.6 SCSERS - RHEL - ERS - Configure File system resources"
       ansible.builtin.command: >
-                                       pcs resource create fs_{{ sap_sid }}_ERS Filesystem \
+                                       pcs resource create fs_{{ sap_sid | upper }}_ERS Filesystem \
                                        device='{{ ers_filesystem_device }}' \
                                        directory='/usr/sap/{{ sap_sid | upper }}/ERS{{ ers_instance_number }}' fstype='nfs' force_unmount=safe options='sec=sys,vers=4.1' \
                                        op start interval=0 timeout=60 \
                                        op stop interval=0 timeout=120 \
-                                       op monitor interval=200 timeout=40 \
-                                       --group g-{{ sap_sid }}_ERS
+                                       op monitor interval=200 timeout={{ clus_fs_mon_timeout | int }} \
+                                       --group g-{{ sap_sid | upper }}_ERS
       register:                        ers_fs_resource
       failed_when:                     ers_fs_resource.rc > 1
 
     - name:                            "5.6 SCSERS - RHEL - ERS - Create ERS VIP - This is LB frontend ERS IP"
       ansible.builtin.command: >
-                                       pcs resource create vip_{{ sap_sid }}_ERS IPaddr2 \
+                                       pcs resource create vip_{{ sap_sid | upper }}_ERS IPaddr2 \
                                        ip={{ ers_lb_ip }} cidr_netmask={{ subnet_prefix }} \
-                                       --group g-{{ sap_sid }}_ERS
+                                       --group g-{{ sap_sid | upper }}_ERS
       register:                        ers_vip
       failed_when:                     ers_vip.rc > 1
 
     - name:                            "5.6 SCSERS - RHEL - ERS - create Azure LB resource "
       ansible.builtin.command: >
-                                       pcs resource create nc_{{ sap_sid }}_ERS azure-lb port=621{{ ers_instance_number }} \
-                                       --group g-{{ sap_sid }}_ERS
+                                       pcs resource create nc_{{ sap_sid | upper }}_ERS azure-lb port=621{{ ers_instance_number }} \
+                                       --group g-{{ sap_sid | upper }}_ERS
       register:                        ers_alb
       failed_when:                     ers_alb.rc > 1
 
-  when: inventory_hostname == primary_instance_name
+  when:
+    - inventory_hostname == secondary_instance_name
+    - not ers_installed.stat.exists
 
 # [2] Install SAP NetWeaver ERS - Build a new role for ERS Installation - done
 
@@ -141,11 +211,77 @@
   throttle:                            1
   block:
 
-    - name:                            "5.6 SCSERS - RHEL - Bring Secondary host online"
+    - name:                            "5.6 SCSERS - RHEL - ERS - Bring Secondary host online"
       ansible.builtin.command:         pcs node unstandby {{ secondary_instance_name }}
 
-    - name:                            "5.6 SCSERS - RHEL - Put Primary host on standby"
+    - name:                            "5.6 SCSERS - RHEL - ERS - Put Primary host on standby"
       ansible.builtin.command:         pcs node standby {{ primary_instance_name }}
+
+    - name:                            "5.6 SCSERS - RHEL - ERS - wait until ERS fs resource has come online"
+      ansible.builtin.shell: >-
+                                       set -o pipefail;
+                                       pcs resource show | grep fs_{{ sap_sid | upper }}_ERS
+      register:                        ers_fs_resource_status
+      until:                           ers_fs_resource_status.stdout is search ('Started')
+      retries:                         10
+      delay:                           30
+      changed_when:                    false
+      when:                            ansible_distribution_major_version == "7"
+
+    - name:                            "5.6 SCSERS - RHEL - ERS - wait until ERS fs resource has come online"
+      ansible.builtin.shell: >-
+                                       set -o pipefail;
+                                       pcs resource status | grep fs_{{ sap_sid | upper }}_ERS
+      register:                        ers_fs_resource_status
+      until:                           ers_fs_resource_status.stdout is search ('Started')
+      retries:                         10
+      delay:                           30
+      changed_when:                    false
+      when:                            ansible_distribution_major_version in ["8", "9"]
+
+
+    - name:                            "5.6 SCSERS - RHEL - ERS - List NFS mounts"
+      ansible.builtin.command:         df -kHT
+      register:                        nfs_instdir_mounted_debug
+      changed_when:                    false
+
+    - name:                            "5.6 SCSERS - RHEL - ERS - Show NFS mounts"
+      ansible.builtin.debug:
+        var:                           nfs_instdir_mounted_debug
+        verbosity:                     4
+
+    - name:                            "5.6 SCSERS - RHEL - ERS - Check Cluster status"
+      ansible.builtin.command:         pcs status --full
+      register:                        cluster_status_debug
+      changed_when:                    false
+
+    - name:                            "5.6 SCSERS - RHEL - ERS - Show Cluster status"
+      ansible.builtin.debug:
+        var:                           cluster_status_debug
+        verbosity:                     2
+
+    - name:                            "5.6 SCSERS - RHEL - ERS - Check if NFS mount /usr/sap/{{ sap_sid | upper }}/SYS is available before proceeding"
+      ansible.builtin.shell: >-
+                                       set -o pipefail;
+                                       df -kHT | grep '/usr/sap/{{ sap_sid | upper }}/SYS'
+      register:                        nfs_sys_mounted
+      changed_when:                    false
+
+    - name:                            "5.6 SCSERS - RHEL - ERS - attempt to mount SYS directory"
+      ansible.builtin.include_role:
+        name:                          roles-sap-os/2.6-sap-mounts
+        apply:
+          tags:
+            - sap_app_ha_sys_mount
+      when: inventory_hostname == secondary_instance_name and nfs_sys_mounted.rc >= 1
+
+    - name:                            "5.6 SCSERS - RHEL - ERS - Check if NFS mount for instance directory is available before proceeding"
+      ansible.builtin.shell: >-
+                                       set -o pipefail;
+                                       df -kHT | grep '/usr/sap/{{ sap_sid | upper }}/ERS{{ ers_instance_number }}'
+      register:                        nfs_instdir_mounted
+      failed_when:                     nfs_instdir_mounted.rc >= 1
+      changed_when:                    false
 
     - name:                            "5.6 SCSERS - RHEL - ERS - Assign ownership"
       ansible.builtin.file:
@@ -165,7 +301,7 @@
         name:                          roles-sap/5.0.2-ers-ha-install
 
   always:
-    - name:                            "5.6 SCSERS - RHEL - Put Primary host on line"
+    - name:                            "5.6 SCSERS - RHEL - ERS - Put Primary host on line"
       ansible.builtin.command:         pcs node unstandby {{ primary_instance_name }}
       register:                        primary_online
       changed_when:                    primary_online.rc != 0
@@ -173,16 +309,18 @@
     - name:                            "5.6 SCSERS - RHEL - ERS - Check if installation succeeded"
       ansible.builtin.stat:
         path:                          "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_ers.txt"
-      register:                        ers_installed
+      register:                        ers_installed_final
 
     - name:                            "ErrorHandling"
       ansible.builtin.fail:
         msg:                           "INSTALL:0014:ERS installation failed"
       when:
-        - not ers_installed.stat.exists
+        - not ers_installed_final.stat.exists
 
 
-  when: inventory_hostname == secondary_instance_name
+  when:
+    - inventory_hostname == secondary_instance_name
+    - not ers_installed.stat.exists
 
 # [A] Add firewall rules for ASCS and ERS on both nodes Add the firewall rules for ASCS and ERS on both nodes.
 - name:                                 "5.6 SCSERS - RHEL - Add firewall rules for ASCS and ERS on both nodes"

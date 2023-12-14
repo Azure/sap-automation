@@ -7,16 +7,21 @@
 # [1] Create the SAP cluster resources - if using ENSA1 -
 
 - name:                                "5.6 SCSERS - SUSE - ENSA1 - SAP Resources - Cluster Configuration after Install "
+  when:
+    - inventory_hostname == primary_instance_name
+    - ensa1 | default(false)
   block:
-    - name:                            "5.6 SCSERS - SUSE - ENSA1 - SAP Resources - Get the cluster maintenance mode status"
-      ansible.builtin.command:         crm configure get_property maintenance-mode
+    - name:                            "Get the cluster maintenance mode status"
+      ansible.builtin.shell:           crm configure get_property maintenance-mode
       register:                        get_status_maintenance_mode
       changed_when:                    false
+      ignore_errors:                   true
 
-    - name:                            "5.6 SCSERS - SUSE - ENSA1 - SAP Resources - Set the cluster maintenance mode"
-      ansible.builtin.command:         crm configure property maintenance-mode=true
-      when:
-        - get_status_maintenance_mode.stdout == 'false'
+    - name:                            "Set the cluster maintenance mode if not already in maintenance mode"
+      ansible.builtin.shell:           crm configure property maintenance-mode=true
+      when: >-
+        get_status_maintenance_mode.stdout is not search('true') or
+        get_status_maintenance_mode.stdout is search('false')
 
     # - name:                            "5.6 SCSERS - SUSE - ENSA1 - Set the cluster on maintenance mode"
     #   ansible.builtin.command:         crm configure property maintenance-mode=true
@@ -27,7 +32,7 @@
                                        operations \$id=rsc_sap_{{ sap_sid }}_{{ instance_type | upper }}{{ scs_instance_number }}-operations \
                                        op monitor interval=11 timeout=60 on-fail=restart \
                                        params InstanceName={{ instance_name }} \
-                                       START_PROFILE="/sapmnt/{{ start_profile_path }}" \
+                                       START_PROFILE="{{ start_profile_path }}" \
                                        AUTOMATIC_RECOVER=false \
                                        meta resource-stickiness=5000 failure-timeout=60 \
                                        migration-threshold=1 priority=10
@@ -48,14 +53,14 @@
 
     - name:                            "5.6 SCSERS - SUSE - ENSA1 - Modify SCS and ERS groups"
       ansible.builtin.shell: |
-                                      crm configure modgroup g-{{ sap_sid }}_{{ instance_type | upper }} add rsc_sap_{{ sap_sid }}_{{ instance_type | upper }}{{ scs_instance_number }}
-                                      crm configure modgroup g-{{ sap_sid }}_ERS add rsc_sap_{{ sap_sid }}_ERS{{ ers_instance_number }}
+                                      crm configure modgroup g-{{ sap_sid | upper }}_{{ instance_type | upper }} add rsc_sap_{{ sap_sid }}_{{ instance_type | upper }}{{ scs_instance_number }}
+                                      crm configure modgroup g-{{ sap_sid | upper }}_ERS add rsc_sap_{{ sap_sid }}_ERS{{ ers_instance_number }}
       register:                       scs_ers_group
       failed_when:                    scs_ers_group.rc > 1
 
     - name:                           "5.6 SCSERS - SUSE - ENSA1 - Configure Co-location Constraints"
       ansible.builtin.shell: |
-                                      crm configure colocation col_sap_{{ sap_sid }}_no_both -5000: g-{{ sap_sid }}_ERS g-{{ sap_sid }}_{{ instance_type | upper }}
+                                      crm configure colocation col_sap_{{ sap_sid }}_no_both -5000: g-{{ sap_sid | upper }}_ERS g-{{ sap_sid | upper }}_{{ instance_type | upper }}
                                       crm configure location loc_sap_{{ sap_sid }}_failover_to_ers rsc_sap_{{ sap_sid }}_{{ instance_type | upper }}{{ scs_instance_number }} rule 2000: runs_ers_{{ sap_sid }} eq 1
                                       crm configure order ord_sap_{{ sap_sid }}_first_start_ascs Optional: rsc_sap_{{ sap_sid }}_{{ instance_type | upper }}{{ scs_instance_number }}:start rsc_sap_{{ sap_sid }}_ERS{{ ers_instance_number }}:stop symmetrical=false
       register:                       co_location
@@ -67,25 +72,31 @@
     - name:                           "5.6 SCSERS - SUSE - ENSA1 - Set the Cluster out of maintenance mode"
       ansible.builtin.command:        crm configure property maintenance-mode=false
 
-  when:
-    - inventory_hostname == primary_instance_name
-    - ensa1 | default(false)
+    - name:                           "5.6 SCSERS - SUSE - ENSA1 - pause the execution for 2 minutes"
+      ansible.builtin.pause:
+        seconds:                       120
+
 
 # [1] Create the SAP cluster resources - if using ENSA2 -
-#   sudo crm configure colocation col_sap_{{ sap_sid }}_no_both -5000: g-{{ sap_sid }}_ERS g-{{ sap_sid }}_ASCS
+#   sudo crm configure colocation col_sap_{{ sap_sid }}_no_both -5000: g-{{ sap_sid | upper }}_ERS g-{{ sap_sid | upper }}_ASCS
 #   sudo crm configure order ord_sap_{{ sap_sid }}_first_start_ascs Optional: rsc_sap_{{ sap_sid }}_ASCS00:start rsc_sap_{{ sap_sid }}_ERS01:stop symmetrical=false
 
 - name:                               "5.6 SCSERS - SUSE - ENSA2 - SAP Resources - Cluster Configuration after Install"
+  when:
+    - inventory_hostname == primary_instance_name
+    - ensa2 | default(false)
   block:
-    - name:                            "5.6 SCSERS - SUSE - ENSA2 - SAP Resources - Get the cluster maintenance mode status"
-      ansible.builtin.command:         crm configure get_property maintenance-mode
+    - name:                            "Get the cluster maintenance mode status"
+      ansible.builtin.shell:           crm configure get_property maintenance-mode
       register:                        get_status_maintenance_mode
       changed_when:                    false
+      ignore_errors:                   true
 
-    - name:                            "5.6 SCSERS - SUSE - ENSA2 - SAP Resources - Set the cluster maintenance mode"
-      ansible.builtin.command:         crm configure property maintenance-mode=true
-      when:
-        - get_status_maintenance_mode.stdout == 'false'
+    - name:                            "Set the cluster maintenance mode if not already in maintenance mode"
+      ansible.builtin.shell:           crm configure property maintenance-mode=true
+      when: >-
+        get_status_maintenance_mode.stdout is not search('true') or
+        get_status_maintenance_mode.stdout is search('false')
 
     # - name:                            "5.6 SCSERS - SUSE - ENSA2 - Set the cluster on maintenance mode"
     #   ansible.builtin.command:         crm configure property maintenance-mode=true
@@ -94,7 +105,7 @@
       ansible.builtin.shell: >
                                        crm configure primitive rsc_sap_{{ sap_sid }}_{{ instance_type | upper }}{{ scs_instance_number }} SAPInstance \
                                        operations \$id=rsc_sap_{{ sap_sid }}_{{ instance_type | upper }}{{ scs_instance_number }}-operations \
-                                       op monitor interval=11 timeout=60 on-fail=restart \
+                                       op monitor interval=11 timeout={{ clus_sap_mon_timeout | int }} on-fail=restart \
                                        params InstanceName={{ instance_name }} \
                                        START_PROFILE="{{ start_profile_path }}" \
                                        AUTOMATIC_RECOVER=false \
@@ -106,7 +117,7 @@
       ansible.builtin.shell: >
                                        crm configure primitive rsc_sap_{{ sap_sid }}_ERS{{ ers_instance_number }} SAPInstance \
                                        operations \$id=rsc_sap_{{ sap_sid }}_ERS{{ ers_instance_number }}-operations \
-                                       op monitor interval=11 timeout=60 on-fail=restart \
+                                       op monitor interval=11 timeout={{ clus_sap_mon_timeout | int }} on-fail=restart \
                                        params InstanceName={{ sap_sid }}_ERS{{ ers_instance_number }}_{{ ers_virtual_hostname }} \
                                        START_PROFILE="/sapmnt/{{ sap_sid }}/profile/{{ sap_sid }}_ERS{{ ers_instance_number }}_{{ ers_virtual_hostname }}" \
                                        AUTOMATIC_RECOVER=false IS_ERS=true
@@ -115,16 +126,14 @@
 
     - name:                            "5.6 SCSERS - SUSE - ENSA2 - Modify SCS and ERS groups"
       ansible.builtin.shell: |
-                                       crm configure modgroup g-{{ sap_sid }}_{{ instance_type | upper }} add rsc_sap_{{ sap_sid }}_{{ instance_type | upper }}{{ scs_instance_number }}
-                                       crm configure modgroup g-{{ sap_sid }}_ERS add rsc_sap_{{ sap_sid }}_ERS{{ ers_instance_number }}
+                                       crm configure modgroup g-{{ sap_sid | upper }}_{{ instance_type | upper }} add rsc_sap_{{ sap_sid }}_{{ instance_type | upper }}{{ scs_instance_number }}
+                                       crm configure modgroup g-{{ sap_sid | upper }}_ERS add rsc_sap_{{ sap_sid }}_ERS{{ ers_instance_number }}
       register:                        scs_ers_group
       failed_when:                     scs_ers_group.rc > 1
-# +------------------------------------4---------------------------------------*|
 
     - name:                            "5.6 SCSERS - SUSE - ENSA2 - Configure Co-location Constraints"
       ansible.builtin.shell: |
-                                       crm configure colocation col_sap_{{ sap_sid }}_no_both -5000: g-{{ sap_sid }}_ERS g-{{ sap_sid }}_{{ instance_type | upper }}
-                                       crm configure location loc_sap_{{ sap_sid }}_failover_to_ers rsc_sap_{{ sap_sid }}_{{ instance_type | upper }}{{ scs_instance_number }} rule 2000: runs_ers_{{ sap_sid }} eq 1
+                                       crm configure colocation col_sap_{{ sap_sid }}_no_both -5000: g-{{ sap_sid | upper }}_ERS g-{{ sap_sid | upper }}_{{ instance_type | upper }}
                                        crm configure order ord_sap_{{ sap_sid }}_first_start_ascs Optional: rsc_sap_{{ sap_sid }}_{{ instance_type | upper }}{{ scs_instance_number }}:start rsc_sap_{{ sap_sid }}_ERS{{ ers_instance_number }}:stop symmetrical=false
       register:                        co_location
       failed_when:                     co_location.rc > 1
@@ -135,20 +144,26 @@
     - name:                            "5.6 SCSERS - SUSE - ENSA2 - Set the Cluster out of maintenance mode"
       ansible.builtin.command:         crm configure property maintenance-mode=false
 
-  when:
-    - inventory_hostname == primary_instance_name
-    - ensa2 | default(false)
+    - name:                           "5.6 SCSERS - SUSE - ENSA2 - pause the execution for 2 minutes"
+      ansible.builtin.wait_for:
+        timeout:                       120
 
-- name:                            "5.6 SCSERS - SUSE - ENSA2 - Set the cluster on maintenance mode"
+
+# +------------------------------------4---------------------------------------*|
+# | 5.6.6-validate.yml - Validate the SAP ASCS/SCS and ERS resources            |
+- name:                            "5.6 SCSERS - SUSE - Set the cluster on maintenance mode"
   ansible.builtin.command:         crm configure property maintenance-mode=true
 
-- name:                            "5.6 SCS ERS Reboot the primary/secondaryinstance"
+- name:                            "5.6 SCSERS - SUSE - Reboot the primary/secondary instance"
   ansible.builtin.reboot:
+    reboot_timeout:                300
+    post_reboot_delay:             300
 
-- name:                            "5.6 SCSERS - SUSE - ENSA2 - Set the Cluster out of maintenance mode"
+
+- name:                            "5.6 SCSERS - SUSE - Set the Cluster out of maintenance mode"
   ansible.builtin.command:         crm configure property maintenance-mode=false
 
-- name:                            "5.6 SCS cluster group validation"
+- name:                            "5.6 SCSERS - SUSE - cluster group validation"
   ansible.builtin.include_tasks:
     file:                          "5.6.6-validate.yml"
     apply:
@@ -158,7 +173,7 @@
         - "5.6.6-validate"
   when:
     - inventory_hostname == primary_instance_name
-    - ensa2 | default(false)
+    # - ensa2 | default(false)
 
 # End of SAP Resources Cluster configuration
 ...

@@ -74,3 +74,5 @@ variables:
   - name:                              connection_name
     value:                             ${{ parameters.connection_name }}
 
+  - name:                              deployer_environment
+    value:                             ${{ parameters.environment }}

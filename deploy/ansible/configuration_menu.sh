@@ -31,7 +31,8 @@ cmd_dir="$(dirname "$(readlink -e "${BASH_SOURCE[0]}")")"
 #           playbook_05_01_sap_dbload.yaml                                                \
 #           playbook_05_02_sap_pas_install.yaml                                           \
 #           playbook_05_03_sap_app_install.yaml                                           \
-#           playbook_05_04_sap_web_install.yaml
+#           playbook_05_04_sap_web_install.yaml                                           \
+#           playbook_06_00_acss_registration.yaml
 
 # The SAP System parameters file which should exist in the current directory
 sap_params_file=sap-parameters.yaml
@@ -61,7 +62,7 @@ export ANSIBLE_PASSWORD=$password_secret
 export           ANSIBLE_HOST_KEY_CHECKING=False
 export           ANSIBLE_INVENTORY="${sap_sid}_hosts.yaml"
 export           ANSIBLE_PRIVATE_KEY_FILE=sshkey
-export           ANSIBLE_COLLECTIONS_PATHS=/opt/ansible/collections${ANSIBLE_COLLECTIONS_PATHS:+${ANSIBLE_COLLECTIONS_PATHS}}
+export           ANSIBLE_COLLECTIONS_PATHS=/opt/ansible/collections:${ANSIBLE_COLLECTIONS_PATHS:+${ANSIBLE_COLLECTIONS_PATHS}}
 
 # We really should be determining the user dynamically, or requiring
 # that it be specified in the inventory settings (currently true)
@@ -110,6 +111,7 @@ options=(
         "Application Server installations"
         "Web Dispatcher installations"
         "HCMT"
+        "ACSS Registration"
 
         # Special menu entries
         "BOM Download"
@@ -139,6 +141,7 @@ all_playbooks=(
         ${cmd_dir}/playbook_05_03_sap_app_install.yaml
         ${cmd_dir}/playbook_05_04_sap_web_install.yaml
         ${cmd_dir}/playbook_04_00_02_db_hcmt.yaml
+        ${cmd_dir}/playbook_06_00_acss_registration.yaml
         ${cmd_dir}/playbook_bom_downloader.yaml
         ${cmd_dir}/playbook_07_00_00_post_installation.yaml
 )

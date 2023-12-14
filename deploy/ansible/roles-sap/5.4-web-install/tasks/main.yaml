@@ -12,13 +12,13 @@
 
 ---
 
-- name:                                "Web Install: Set BOM facts"
+- name:                                "SAP Web Dispatcher Install: Set BOM facts"
   ansible.builtin.set_fact:
     sap_inifile:                       "{{ bom_base_name }}-web-{{ sid_to_be_deployed.web_sid | lower }}-{{ ansible_hostname }}.params"
     sap_inifile_template:              "{{ bom_base_name }}{{ bom_suffix }}-web-inifile-param.j2"
     dir_params:                        "{{ tmp_directory }}/.{{ sid_to_be_deployed.web_sid | lower }}-params"
 
-- name:                                "Web Install: Create directories"
+- name:                                "SAP Web Dispatcher Install: Create directories"
   ansible.builtin.file:
     path:                              "{{ item.path }}"
     state:                             directory
@@ -28,25 +28,25 @@
     - { mode: '0755', path: '{{ tmp_directory }}/{{ sid_to_be_deployed.web_sid | upper }}' }
     - { mode: '0755', path: '/etc/sap_deployment_automation/{{ sid_to_be_deployed.web_sid | upper }}' }
 
-- name:                                "Web Install: reset"
+- name:                                "SAP Web Dispatcher Install: reset"
   ansible.builtin.file:
     path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.web_sid | upper }}/sap_deployment_web.txt"
     state:                             absent
   when:                                reinstall
 
-- name:                                "Web Install: check if {{ sid_to_be_deployed.web_sid | upper }} is installed"
+- name:                                "SAP Web Dispatcher Install: check if {{ sid_to_be_deployed.web_sid | upper }} is installed"
   ansible.builtin.stat:
     path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.web_sid | upper }}/sap_deployment_web.txt"
   register:                            web_installed
 
 # Returns bom object
-- name:                                "Web Install: Register BoM"
+- name:                                "SAP Web Dispatcher Install: Register BoM"
   ansible.builtin.include_role:
     name:                              roles-sap/3.3.1-bom-utility
     tasks_from:                        bom-register
   vars:
     bom_name:                          "{{ bom_base_name }}"
-    task_prefix:                       "Web Install: "
+    task_prefix:                       "SAP Web Dispatcher Install: "
     sa_enabled:                        true
 
 - name:                                "Web install: register variables"
@@ -57,18 +57,18 @@
   become:                              true
   block:
 
-    - name:                            "Web Install: Get the SCS Server name list"
+    - name:                            "SAP Web Dispatcher Install: Get the SCS Server name list"
       ansible.builtin.set_fact:
         scs_server_temp:               "{{ scs_server_temp | default([]) + [item] }}"
       with_items:
         - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') }}"
         - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
 
-    - name:                            "Web Install: Set the SCS Server name"
+    - name:                            "SAP Web Dispatcher Install: Set the SCS Server name"
       ansible.builtin.set_fact:
         scs_server:                     "{% if scs_high_availability %}{{ sap_sid | lower }}scs{{ scs_instance_number }}cl1{% else %}{{ scs_server_temp | first }}{% endif %}"
 
-    - name:                            "Web Install: check media exists"
+    - name:                            "SAP Web Dispatcher Install: check media exists"
       ansible.builtin.stat:
         path:                          "{{ target_media_location }}/SWPM/sapinst"
       register:                        sapinst_found
@@ -78,12 +78,12 @@
         msg:                           "INSTALL:0008:Unable to find sapinst, please check that the installation media is mounted"
       when: not sapinst_found.stat.exists
 
-    - name:                            "Web Install: Include roles-sap/3.3.1-bom-utility role"
+    - name:                            "SAP Web Dispatcher Install: Include roles-sap/3.3.1-bom-utility role"
       ansible.builtin.include_role:
         name:                          roles-sap/3.3.1-bom-utility
         tasks_from:                    bom-template
       vars:
-        task_prefix:                   "Web Install: "
+        task_prefix:                   "SAP Web Dispatcher Install: "
         always_upload_jinja_templates: false
         param_directory:               "{{ dir_params }}"
         bom_name:                      "{{ bom_base_name }}{{ bom_suffix }}"
@@ -96,8 +96,8 @@
         web_instance_number:           "{{ wd_instance_number }}"
         sap_ciInstanceNumber:          "{{ scs_instance_number }}"
         sap_profile_dir:               /sapmnt/{{ sap_sid | upper }}/profile
-        sap_scs_hostname:              "{{ scs_server }}"
-        sap_webVirtualHostname:        "{{ inventory_hostname }}"
+        sap_scs_hostname:              "{{ custom_scs_virtual_hostname | default(scs_server, true) }}"
+        sap_webVirtualHostname:        "{{ virtual_host }}"
         sap_installSAPHostAgent:       "false"
         hdb_instance_number:           "{{ db_instance_number }}"
         web_sid:                       "{{ sid_to_be_deployed.web_sid | upper }}"
@@ -107,7 +107,7 @@
       ansible.builtin.command:         "whoami"
       register:                        whoami
 
-    - name:                            "Web Install: install variables"
+    - name:                            "SAP Web Dispatcher Install: install variables"
       ansible.builtin.debug:
         msg:
           - "INSTALLED:  {{ web_installed.stat.exists }}"
@@ -116,7 +116,7 @@
           - "SAPSID:     {{ sap_sid }}"
           - "PRODUCT ID: {{ web_bom_id }}"
           - "INSTANCE:   {{ web_instance_number }}"
-          - "SCSHOST:    {{ scs_server }}"
+          - "SCSHOST:    {{ custom_scs_virtual_hostname | default(scs_server, true) }}"
           - "WHOAMI :    {{ whoami.stdout }}"
           - "LOCATION:   {{ target_media_location }}/SWPM"
           - "TMPDIR:     {{ tmp_directory }}/{{ sid_to_be_deployed.web_sid | upper }}"
@@ -125,7 +125,7 @@
 # 2230669 - System Provisioning Using a Parameter Input File
 #
 
-    - name:                            "Create temp directory for sid"
+    - name:                            "SAP Web Dispatcher Install: Create temp directory for sid"
       ansible.builtin.file:
         path:                          "{{ tmp_directory }}/{{ sid_to_be_deployed.web_sid | upper }}"
         state:                         directory
@@ -153,17 +153,17 @@
       failed_when:                     web_installation.rc > 0
       when:                            node_tier == 'web'
 
-    - name:                            "WEB Install: Installation results"
+    - name:                            "SAP Web Dispatcher Install: Installation results"
       ansible.builtin.debug:
         var:                           web_installation
       when:                            web_installation.rc > 0
 
-    - name:                            "WEB Install: Installation results"
+    - name:                            "SAP Web Dispatcher Install: Installation results"
       ansible.builtin.debug:
-        msg:                           "WEB Installation succeeded"
+        msg:                           "Web Dispatcher Installation succeeded"
       when:                            web_installation.rc == 0
 
-    - name:                            "Web Install: flag"
+    - name:                            "SAP Web Dispatcher Install: flag"
       ansible.builtin.file:
         path:                          "/etc/sap_deployment_automation/{{ sid_to_be_deployed.web_sid | upper }}/sap_deployment_web.txt"
         state:                         touch

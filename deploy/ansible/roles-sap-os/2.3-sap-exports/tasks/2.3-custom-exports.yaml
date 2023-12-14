@@ -1,0 +1,20 @@
+---
+
+- name:                               "2.3 Custom Exports: Create Directories"
+  ansible.builtin.file:
+    path:                             "{{ item.path }}"
+    state:                            directory
+    mode:                             0755
+  loop:                               "{{ custom_exports }}"
+
+- name:                               "2.3 Custom Exports: - NFS Server Config on Suse (install)"
+  ansible.builtin.lineinfile:
+    path:                             '/etc/exports'
+    regexp:                           "^{{ item.path }}"
+    line:                             "{{ item.path }} *(rw,sync,no_wdelay,no_root_squash)"
+    owner:                            root
+    group:                            root
+    mode:                             0644
+  loop:                               "{{ custom_exports }}"
+  when:
+    - node_tier == 'scs'

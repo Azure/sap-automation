@@ -10,16 +10,23 @@
 # BEGIN
 # ----------------------------------------
 
+- name:                                "5.6 SCSERS - Retrieve Subscription ID and Resource Group Name"
+  ansible.builtin.uri:
+    url:                               http://169.254.169.254/metadata/instance?api-version=2021-02-01
+    use_proxy:                         false
+    headers:
+      Metadata:                        true
+  register: azure_metadata
 
 - name:                                "5.6 SCSERS - Set the primary intance nic and secondary instance nic IP"
   ansible.builtin.set_fact:
-    primary_instance_ip:               "{{ hostvars[primary_instance_name]['ansible_eth0']['ipv4']['address'] }}"
-    secondary_instance_ip:             "{{ hostvars[secondary_instance_name]['ansible_eth0']['ipv4']['address'] }}"
+    primary_ip:                        "{{ azure_metadata.json.network.interface[0].ipv4.ipAddress[0].privateIpAddress }}"
+    subnet_prefix:                     "{{ azure_metadata.json.network.interface[0].ipv4.subnet[0].prefix }}"
 
-- name:                                "5.6 SCSERS - Set the SCS and ERS Virtual Instance hostname"
+- name:                                "5.6 SCSERS - Extract NIC IPs"
   ansible.builtin.set_fact:
-    scs_virtual_hostname:              "{{ sap_sid | lower }}scs{{ scs_instance_number }}cl1"
-    ers_virtual_hostname:              "{{ sap_sid | lower }}ers{{ ers_instance_number }}cl2"
+    primary_instance_ip:               "{{ hostvars[primary_instance_name]['primary_ip'] | string }}"
+    secondary_instance_ip:             "{{ hostvars[secondary_instance_name]['primary_ip'] | string }}"
 
 - name:                                "5.6 SCSERS - Print - Virtual Instance hostnames"
   ansible.builtin.debug:
@@ -27,13 +34,6 @@
       - "The SCS Virtual hostname is {{ scs_virtual_hostname }}"
       - "The ERS Virtual hostname is {{ ers_virtual_hostname }}"
     verbosity:                         2
-
-
-- name:                                "5.6 SCSERS - Set the subnet prefix"
-  ansible.builtin.set_fact:
-    subnet_prefix: "{{ ((hostvars[ansible_hostname]['ansible_eth0']['ipv4']['address'] | string) + '/' +
-                        (hostvars[ansible_hostname]['ansible_eth0']['ipv4']['netmask'] | string)) | ansible.utils.ipaddr('prefix')
-     }}"
 
 # Returns bom object
 - name:                                "5.6 SCSERS: SCS HA Install - Register BoM"
@@ -72,18 +72,53 @@
     start_profile_path:                "/sapmnt/{{ sap_sid }}/profile/{{ sap_sid }}_{{ instance_type }}{{ scs_instance_number }}_{{ scs_virtual_hostname }}"
     profile_directory:                 "/usr/sap/{{ sap_sid | upper }}/{{ instance_type }}{{ scs_instance_number }}"
 
+  # Set fact for the timeout value of monitor operation for filesystem and ASCS/ERS resources
+  # Since we only configure NFS4.1, the timeout value is set to 40 seconds for non-ANF and 105 seconds for ANF
+- name:                                "5.6 SCS HA install calculate filesystem timeout"
+  ansible.builtin.set_fact:
+    clus_fs_mon_timeout:  >-
+                                       {%- set _timeoutvalue = 40 -%}
+                                       {%- if (NFS_provider == "ANF") -%}
+                                       {%-    if NFS_version != "NFSv3" -%}
+                                       {%-      set _timeoutvalue = 40 -%}
+                                       {%-    elif NFS_version == "NFSv4.1" -%}
+                                       {%-      set _timeoutvalue = 105 -%}
+                                       {%-    endif -%}
+                                       {%- else -%}
+                                       {%-   set _timeoutvalue = 40 -%}
+                                       {%- endif -%}
+                                       {{- _timeoutvalue -}}
+  when:
+    - scs_high_availability
+
+- name:                                "5.6 SCS HA install calculate SAP resource monitor timeout"
+  ansible.builtin.set_fact:
+    clus_sap_mon_timeout:  >-
+                                       {%- set _timeoutvalue = 60 -%}
+                                       {%- if (NFS_provider == "ANF") -%}
+                                       {%-    if NFS_version != "NFSv3" -%}
+                                       {%-      set _timeoutvalue = 60 -%}
+                                       {%-    elif NFS_version == "NFSv4.1" -%}
+                                       {%-      set _timeoutvalue = 105 -%}
+                                       {%-    endif -%}
+                                       {%- else -%}
+                                       {%-   set _timeoutvalue = 60 -%}
+                                       {%- endif -%}
+                                       {{- _timeoutvalue -}}
+  when:
+    - scs_high_availability
 
 - name:                                "ASCS/ERS check if installed"
   become:                              true
   block:
     - name:                            "SCS HA Install: check if installed"
       ansible.builtin.stat:
-        path:                          /etc/sap_deployment_automation/sap_deployment_scs.txt
+        path:                          /etc/sap_deployment_automation//{{ sap_sid | upper }}/sap_deployment_scs.txt
       register:                        scs_installed
 
     - name:                            "ERS Install: check if installed"
       ansible.builtin.stat:
-        path:                          /etc/sap_deployment_automation/sap_deployment_ers.txt
+        path:                          /etc/sap_deployment_automation//{{ sap_sid | upper }}/sap_deployment_ers.txt
       register:                        ers_installed
 
 # /*---------------------------------------------------------------------------8

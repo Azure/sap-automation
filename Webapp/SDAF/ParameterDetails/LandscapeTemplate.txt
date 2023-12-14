@@ -79,6 +79,8 @@ $$peer_with_control_plane_vnet$$
 # Defines if access to the key vaults and storage accounts is restricted to the SAP and deployer VNets
 $$enable_firewall_for_keyvaults_and_storage$$
 
+# Defines if public access is allowed for the storage accounts and key vaults
+$$public_network_access_enabled$$
 
 # place_delete_lock_on_resources, If defined, a delete lock will be placed on the key resources
 $$place_delete_lock_on_resources$$
@@ -208,6 +210,10 @@ $$management_dns_subscription_id$$
 # Defines if a custom dns solution is used
 $$use_custom_dns_a_registration$$
 
+# Defines if the Virtual network for the Virtual machines is registered with DNS
+# This also controls the creation of DNS entries for the load balancers
+$$register_virtual_network_to_dns$$
+
 #########################################################################################
 #                                                                                       #
 #  Azure Keyvault support                                                               #
@@ -224,6 +230,9 @@ $$spn_keyvault_id$$
 
 # enable_purge_control_for_keyvaults is an optional parameter that czan be used to disable the purge protection fro Azure keyvaults
 $$enable_purge_control_for_keyvaults$$
+
+# enable_rbac_authorization_for_keyvault Controls the access policy model for the workload zone keyvault.
+$$enable_rbac_authorization_for_keyvault$$
 
 #########################################################################################
 #                                                                                       #
@@ -262,6 +271,9 @@ $$install_storage_account_id$$
 
 # azurerm_private_endpoint_connection_install_id defines the Azure resource id for the install storage account's private endpoint connection
 $$install_private_endpoint_id$$
+
+# create_transport_storage defines if the workload zone will host storage for the transport data
+$$create_transport_storage$$
 
 # Defines the size of the transport volume
 $$transport_volume_size$$
@@ -388,7 +400,7 @@ $$ANF_install_volume_size$$
 
 ###########################################################################
 #                                                                         #
-#                                    ISCSI                                #
+#                                    ISCSI Networking                     #
 #                                                                         #
 ###########################################################################
 
@@ -419,7 +431,7 @@ $$iscsi_subnet_nsg_name$$
 # Number of iSCSI devices to be created
 $$iscsi_count$$
 
-#Size of iSCSI Virtual Machines to be created
+# Size of iSCSI Virtual Machines to be created
 $$iscsi_size$$
 
 # Defines if the iSCSI devices use DHCP
@@ -436,6 +448,12 @@ $$iscsi_authentication_username$$
 
 # Defines the IP Addresses for the iSCSI devices
 $$iscsi_nic_ips$$
+
+# Defines the Availability zones for the iSCSI devices
+$$iscsi_vm_zones$$
+
+# user_assigned_identity_id defines the user assigned identity to be assigned to the Virtual machines
+$$user_assigned_identity_id$$
 
 ##########################################################################################
 #                                                                                        #
@@ -474,3 +492,12 @@ $$utility_vm_image$$
 
 # Defines if the utility virtual machine IP
 $$utility_vm_nic_ips$$
+
+############################################################################################
+#                                                                                          #
+#                                  Tags for all resources                                  #
+#                                                                                          #
+############################################################################################
+
+# These tags will be applied to all resources
+$$tags$$

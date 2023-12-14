@@ -8,5 +8,5 @@ distribution_full_id:                  "{{ ansible_distribution | lower ~ ansibl
 
 use_AFS:                               "{{ NFS_provider == 'AFS' }}"
 
-scs_virtual_hostname:                  "{{ sap_sid | lower }}scs{{ scs_instance_number }}cl1"
+scs_virtual_hostname:                  "{{ custom_scs_virtual_hostname | default(sap_sid | lower ~ 'scs' ~ scs_instance_number ~ 'cl1', true) }}"
 ...

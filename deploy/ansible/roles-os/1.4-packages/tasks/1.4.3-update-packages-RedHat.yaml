@@ -1,0 +1,33 @@
+# /*----------------------------------------------------------------------------8
+# |                             Update packages                                 |
+# +------------------------------------4---------------------------------------*/
+
+- name:                                "1.4 Packages: - check if {{ sap_sid }} is updated"
+  ansible.builtin.stat:
+    path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}/packages_installed.txt"
+  register:                            packages_installed
+
+
+# Analyse the package list for this distribution selecting only those
+# packages assigned to the active tier or 'all'.
+# - name:                                "1.4 Packages: - Upgrade all: {{ distribution_full_id }}"  # noqa package-latest
+#   become:                              true
+#   ansible.builtin.yum:
+#     name:                              '*'
+#     state:                             latest
+#     skip_broken:                       true
+#   register:                            reboot_output
+#   when:
+#     - tier == 'os'
+
+# - name:                                "1.4 Packages: - Upgrade all: {{ distribution_full_id }} output"
+#   ansible.builtin.debug:
+#     var:                               reboot_output
+#     verbosity:                         2
+# ToDo Implement reboot logic if needed
+
+- name:                                "1.4 Packages: - Create packages installed flag"
+  ansible.builtin.file:
+    path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}/packages_installed.txt"
+    state:                             touch
+    mode:                              0755

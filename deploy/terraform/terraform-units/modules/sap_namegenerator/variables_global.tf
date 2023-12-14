@@ -47,7 +47,6 @@ variable "web_sid" {
   default     = ""
 }
 
-
 variable "db_sid" {
   description = "Database SID"
   default     = ""
@@ -123,9 +122,19 @@ variable "database_high_availability" {
   default = false
 }
 
+variable "database_cluster_type" {
+  description   = "Cluster quorum type; AFA (Azure Fencing Agent), ASD (Azure Shared Disk), ISCSI"
+  default       = "AFA"
+}
+
 variable "scs_high_availability" {
   type    = bool
   default = false
+}
+
+variable "scs_cluster_type" {
+  description   = "Cluster quorum type; AFA (Azure Fencing Agent), ASD (Azure Shared Disk), ISCSI"
+  default       = "AFA"
 }
 
 variable "use_zonal_markers" {
@@ -199,6 +208,8 @@ variable "region_mapping" {
     "francesouth"        = "frso"
     "germanynorth"       = "geno"
     "germanywestcentral" = "gewc"
+    "israelcentral"      = "isce"
+    "italynorth"         = "itno"
     "japaneast"          = "jaea"
     "japanwest"          = "jawe"
     "jioindiacentral"    = "jinc"
@@ -209,6 +220,7 @@ variable "region_mapping" {
     "northeurope"        = "noeu"
     "norwayeast"         = "noea"
     "norwaywest"         = "nowe"
+    "polandcentral"      = "plce"
     "qatarcentral"       = "qace"
     "southafricanorth"   = "sano"
     "southafricawest"    = "sawe"
@@ -249,10 +261,10 @@ variable "resource_prefixes" {
     "app_avset"                      = ""
     "app_subnet"                     = ""
     "app_subnet_nsg"                 = ""
-    "app_service_plan"                = ""
+    "app_service_plan"               = ""
     "bastion_host"                   = ""
     "bastion_pip"                    = ""
-    "cluster_disk"                   = ""
+    "database_cluster_disk"          = ""
     "db_alb"                         = ""
     "db_alb_bepool"                  = ""
     "db_alb_feip"                    = ""
@@ -331,6 +343,7 @@ variable "resource_prefixes" {
     "scs_clst_feip"                  = ""
     "scs_clst_rule"                  = ""
     "scs_clst_hp"                    = ""
+    "scs_cluster_disk"               = ""
     "scs_ers_feip"                   = ""
     "scs_ers_hp"                     = ""
     "scs_ers_rule"                   = ""
@@ -381,7 +394,7 @@ variable "resource_suffixes" {
     "app_subnet_nsg"                 = "appSubnet-nsg"
     "bastion_host"                   = "bastion-host"
     "bastion_pip"                    = "bastion-pip"
-    "cluster_disk"                   = "cluster-disks"
+    "database_cluster_disk"          = "db-cluster-disk"
     "db_alb"                         = "db-alb"
     "db_alb_bepool"                  = "dbAlb-bePool"
     "db_alb_feip"                    = "dbAlb-feip"
@@ -461,6 +474,7 @@ variable "resource_suffixes" {
     "scs_clst_feip"                  = "scsClst-feip"
     "scs_clst_rule"                  = "scsClst-rule"
     "scs_clst_hp"                    = "scsClst-hp"
+    "scs_cluster_disk"               = "scs-cluster-disk"
     "scs_ers_feip"                   = "scsErs-feip"
     "scs_ers_hp"                     = "scsErs-hp"
     "scs_ers_rule"                   = "scsErs-rule"

@@ -19,7 +19,9 @@ skip_list:
   - yaml[braces]
   - yaml[colons]
   - yaml[commas]
+  - yaml[indentation]
   - yaml[line-length]
   - yaml[octal-values]
   - name[template]
   - command-instead-of-shell # csh is not supported in commands
+  - jinja[spacing]

@@ -175,6 +175,19 @@
   when:
     - tier == "sapos"
 
+- name:                                "1.5 Disk setup - Show Custom Logical Volumes"
+  ansible.builtin.debug:
+    var:                               custom_logical_volumes
+  when:
+    - custom_logical_volumes is defined
+
+
+- name:                                "1.5 Disk setup: - Custom Disks"
+  ansible.builtin.include_tasks:       "1.5-custom-disks.yml"
+  when:
+    - custom_logical_volumes is defined
+
+
 ...
 # /*---------------------------------------------------------------------------8
 # |                                   END                                      |

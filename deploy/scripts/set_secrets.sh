@@ -232,7 +232,7 @@ else
     if is_valid_guid "${subscription}" ; then
         echo "Valid subscription specified"
     else
-        printf -v val %-40.40s "$subscription"
+        printf -v val %-40.40s "${subscription}"
         echo "#########################################################################################"
         echo "#                                                                                       #"
         echo -e "#     The provided subscription is not valid:$boldred ${val} $resetformatting #"

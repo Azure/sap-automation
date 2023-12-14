@@ -21,7 +21,7 @@
     - name:                            "4.2.1.7 - SAP DEFAULT.PFL changes - add db virtual hostname "
       ansible.builtin.lineinfile:
         path:                          /sapmnt/{{ sap_sid | upper }}/profile/DEFAULT.PFL
-        line:                          SAPDBHOST = {{ db_virtual_hostname }}
+        line:                          SAPDBHOST = {{ custom_db_virtual_hostname | default(db_virtual_hostname, true) }}
         insertafter:                   '#SAPDBHOST'
       tags:
         - dbhostpara
@@ -29,8 +29,8 @@
     - name:                            "4.2.1.7 - SAP DEFAULT.PFL changes - add db virtual hostname "
       ansible.builtin.lineinfile:
         path:                          /sapmnt/{{ sap_sid | upper }}/profile/DEFAULT.PFL
-        line:                          j2ee/dbhost = {{ db_virtual_hostname }}
-        insertafter:                   'SAPDBHOST'
+        line:                          j2ee/dbhost = {{ custom_db_virtual_hostname | default(db_virtual_hostname, true) }}
+        insertafter:                   '#SAPDBHOST'
       tags:
         - j2eedbhostpara
 
@@ -46,7 +46,7 @@
     - name:                            "4.2.1.7 - SAP db2cli.ini profile changes "
       ansible.builtin.lineinfile:
         path:                          /sapmnt/{{ sap_sid | upper }}/global/db6/db2cli.ini
-        line:                          Hostname = {{ db_virtual_hostname }}
+        line:                          Hostname = {{ custom_db_virtual_hostname | default(db_virtual_hostname, true) }}
         insertafter:                   '#Hostname'
       tags:
         - virtdbhostpara

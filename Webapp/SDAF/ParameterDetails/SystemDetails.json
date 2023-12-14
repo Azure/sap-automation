@@ -114,6 +114,102 @@
         "Display": 1
       },
       {
+        "Name": "name_override_file",
+        "Required": false,
+        "Description": "If provided,defines a json formatted file defining the name overrides, see <a href='https://learn.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-naming-module#provide-name-overrides-using-a-json-file' target='_blank' rel='noopener noreferrer'>custom naming</a>.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "save_naming_information",
+        "Required": false,
+        "Description": "If defined, will create a naming information json file for the resources, see <a href='https://learn.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-naming-module#provide-name-overrides-using-a-json-file' target='_blank' rel='noopener noreferrer'>custom naming</a>.",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "custom_disk_sizes_filename",
+        "Required": false,
+        "Description": "If provided,defines a json formatted file defining the custom disk sizes. See <a href='https://learn.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-extra-disks' target='_blank' rel='noopener noreferrer'>custom disk sizing</a>.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "use_prefix",
+        "Required": false,
+        "Description": "Defines if a prefix will be added to the resource names. See <a href='https://learn.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-naming' target='_blank' rel='noopener noreferrer'>automation naming</a>",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "custom_prefix",
+        "Required": false,
+        "Description": "If provided, defines the name of the custom prefix to be prepended to resources. See <a href='https://learn.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-naming' target='_blank' rel='noopener noreferrer'>automation naming</a>",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "use_zonal_markers",
+        "Required": false,
+        "Description": "Defines if a zonal indicators will be added to the resource names. See <a href='https://learn.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-naming' target='_blank' rel='noopener noreferrer'>automation naming</a>",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "tags",
+        "Required": false,
+        "Description": "Defines a list of tags to be applied to all resources",
+        "Type": "tag",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      }
+    ]
+  },
+  {
+    "Section": "Infrastructure settings",
+    "Link": "https://learn.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system#environment-parameters",
+    "Parameters": [
+      {
+        "Name": "database_use_premium_v2_storage",
+        "Required": false,
+        "Description": "Defines if the database tier will use premium v2 storage",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "use_scalesets_for_deployment",
+        "Required": false,
+        "Description": "Defines if Flexible Virtual Machine Scale Sets are used for the deployment",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "scaleset_id",
+        "Required": false,
+        "Description": "Azure resource identifier for Virtual Machine Scale Sets.",
+        "Type": "lookup",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
         "Name": "network_arm_id",
         "Required": false,
         "Description": "Specifies Azure resource identifier for the existing virtual network.",
@@ -128,6 +224,60 @@
         "Display": 3
       },
       {
+        "Name": "deploy_application_security_groups",
+        "Required": false,
+        "Description": "Defines if application security groups will be created.",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "nsg_asg_with_vnet",
+        "Required": false,
+        "Description": "Controls where the Application Security Groups are created.",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "deploy_v1_monitoring_extension",
+        "Required": false,
+        "Description": "Defines if the Microsoft.AzureCAT.AzureEnhancedMonitoring extension will be deployed.",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "vm_disk_encryption_set_id",
+        "Required": false,
+        "Description": "Azure resource identifier for custom encryption key to use for disk encryption.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "user_assigned_identity_id",
+        "Required": false,
+        "Description": "Azure resource identifier for User assigned identity.",
+        "Type": "lookup",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "upgrade_packages",
+        "Required": false,
+        "Description": "Defines if the packages on the Virtual Machine will be upgraded to the latest version",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
         "Name": "use_secondary_ips",
         "Required": false,
         "Description": "Controls if the virtual machines should be deployed with two IP addresses. Required for SAP Virtual Hostname support",
@@ -137,32 +287,21 @@
         "Display": 3
       },
       {
-        "Name": "save_naming_information",
+        "Name": "use_private_endpoint",
         "Required": false,
-        "Description": "If defined, will create a naming information json file for the resources, see <a href='https://learn.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-naming-module#provide-name-overrides-using-a-json-file' target='_blank' rel='noopener noreferrer'>custom naming</a>.",
+        "Description": "Use private endpoint for the storage accounts and the key vaults in the deployment.",
         "Type": "checkbox",
         "Options": [],
         "Overrules": "",
         "Display": 2
-      },
-      {
-        "Name": "name_override_file",
-        "Required": false,
-        "Description": "If provided,defines a json formatted file defining the name overrides, see <a href='https://learn.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-naming-module#provide-name-overrides-using-a-json-file' target='_blank' rel='noopener noreferrer'>custom naming</a>.",
-        "Type": "field",
-        "Options": [],
-        "Overrules": "",
-        "Display": 2
-      },
-      {
-        "Name": "custom_disk_sizes_filename",
-        "Required": false,
-        "Description": "If provided,defines a json formatted file defining the custom disk sizes. See <a href='https://learn.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-extra-disks' target='_blank' rel='noopener noreferrer'>custom disk sizing</a>.",
-        "Type": "field",
-        "Options": [],
-        "Overrules": "",
-        "Display": 2
-      },
+      }
+
+    ]
+  },
+  {
+    "Section": "Resource group",
+    "Link": "https://learn.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#database-tier-parameters",
+    "Parameters": [
       {
         "Name": "resourcegroup_name",
         "Required": false,
@@ -185,66 +324,55 @@
         ],
         "Overrules": "resourcegroup_name",
         "Display": 3
-      },
+      }
+    ]
+  },
+  {
+    "Section": "Proximity placement group settings",
+    "Link": "https://learn.microsoft.com/en-us/azure/sap/automation/configure-system#infrastructure-parameters",
+    "Parameters": [
       {
-        "Name": "use_scalesets_for_deployment",
+        "Name": "proximityplacementgroup_names",
         "Required": false,
-        "Description": "Defines if Flexible Virtual Machine Scale Sets are used for the deployment",
-        "Type": "checkbox",
+        "Description": "Defines the names of the proximity placement groups. Only use this if the default naming is not suitable.",
+        "Type": "list",
         "Options": [],
         "Overrules": "",
-        "Display": 2
+        "Display": 3
       },
       {
-        "Name": "database_use_premium_v2_storage",
+        "Name": "proximityplacementgroup_arm_ids",
         "Required": false,
-        "Description": "Defines if the database tier will use premium v2 storage",
-        "Type": "checkbox",
+        "Description": "A list of Azure resource identifiers specifying existing proximity placement groups.",
+        "Type": "list",
         "Options": [],
         "Overrules": "",
-        "Display": 2
+        "Display": 3
       },
+
       {
-        "Name": "use_prefix",
+        "Name": "use_app_proximityplacementgroups",
         "Required": false,
-        "Description": "Defines if a prefix will be added to the resource names. See <a href='https://learn.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-naming' target='_blank' rel='noopener noreferrer'>automation naming</a>",
+        "Description": "Defines if an proximity placement group should be used for the app tier VMs.",
         "Type": "checkbox",
         "Options": [],
         "Overrules": "",
         "Display": 3
       },
       {
-        "Name": "use_zonal_markers",
+        "Name": "app_proximityplacementgroup_names",
         "Required": false,
-        "Description": "Defines if a zonal indicators will be added to the resource names. See <a href='https://learn.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-naming' target='_blank' rel='noopener noreferrer'>automation naming</a>",
-        "Type": "checkbox",
+        "Description": "Defines the names of the app tier proximity placement groups. Only use this if the default naming is not suitable.",
+        "Type": "list",
         "Options": [],
         "Overrules": "",
         "Display": 3
       },
       {
-        "Name": "custom_prefix",
+        "Name": "app_proximityplacementgroup_arm_ids",
         "Required": false,
-        "Description": "If provided, defines the name of the custom prefix to be prepended to resources. See <a href='https://learn.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-naming' target='_blank' rel='noopener noreferrer'>automation naming</a>",
-        "Type": "field",
-        "Options": [],
-        "Overrules": "",
-        "Display": 3
-      },
-      {
-        "Name": "use_msi_for_clusters",
-        "Required": false,
-        "Description": "If provided, defines the that fencing agent uses a managed identity</a>",
-        "Type": "checkbox",
-        "Options": [],
-        "Overrules": "",
-        "Display": 3
-      },
-      {
-        "Name": "fencing_role_name",
-        "Required": false,
-        "Description": "If provided, the role to assign to the managed identities</a>",
-        "Type": "field",
+        "Description": "A list of Azure resource identifiers specifying existing app tier proximity placement groups.",
+        "Type": "list",
         "Options": [],
         "Overrules": "",
         "Display": 3
@@ -365,7 +493,7 @@
         "Name": "database_vm_sku",
         "Required": false,
         "Description": "If provided overrides the Virtual Machine SKU used for the database virtual machines.",
-        "Type": "lookup",
+        "Type": "field",
         "Options": [
           {
             "Text": "",
@@ -647,15 +775,6 @@
         "Name": "use_loadbalancers_for_standalone_deployments",
         "Required": false,
         "Description": "Used to control if standalone deployments (non HA) will be deployed with load balancers.",
-        "Type": "checkbox",
-        "Options": [],
-        "Overrules": "",
-        "Display": 3
-      },
-      {
-        "Name": "use_msi_for_clusters",
-        "Required": false,
-        "Description": "Used to control if managed identities should be used for clustering.",
         "Type": "checkbox",
         "Options": [],
         "Overrules": "",
@@ -1187,6 +1306,83 @@
     ]
   },
   {
+    "Section": "Cluster settings",
+    "Link": "https://learn.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system#environment-parameters",
+    "Parameters": [
+      {
+        "Name": "scs_cluster_type",
+        "Required": false,
+        "Description": "Cluster quorum type; AFA (Azure Fencing Agent), ASD (Azure Shared Disk), ISCSI",
+        "Type": "lookup",
+        "Options": [
+          {
+            "Text": "Azure Fencing Agent",
+            "Value": "AFA"
+          },
+          {
+            "Text": "Azure Shared Disk",
+            "Value": "ASD"
+          },
+          {
+            "Text": "iSCSI devices",
+            "Value": "ISCSI"
+          }
+        ],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "database_cluster_type",
+        "Required": false,
+        "Description": "Cluster quorum type; AFA (Azure Fencing Agent), ASD (Azure Shared Disk), ISCSI",
+        "Type": "lookup",
+        "Options": [
+          {
+            "Text": "Azure Fencing Agent",
+            "Value": "AFA"
+          },
+          {
+            "Text": "Azure Shared Disk",
+            "Value": "ASD"
+          },
+          {
+            "Text": "iSCSI devices",
+            "Value": "ISCSI"
+          }
+        ],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "use_msi_for_clusters",
+        "Required": false,
+        "Description": "If provided, defines that the fencing agent uses a managed identity",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "use_simple_mount",
+        "Required": false,
+        "Description": "If provided, defines that simple mounts are used (Applicable for SLES 15 SP# or newer)",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "fencing_role_name",
+        "Required": false,
+        "Description": "If provided, the role to assign to the managed identities",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      }
+    ]
+  },
+  {
     "Section": "Admin subnet",
     "Link": "https://learn.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#network-parameters",
     "Parameters": [
@@ -1550,15 +1746,6 @@
         "Display": 1
       },
       {
-        "Name": "use_private_endpoint",
-        "Required": false,
-        "Description": "Use private endpoint for the storage accounts and the key vaults in the deployment.",
-        "Type": "checkbox",
-        "Options": [],
-        "Overrules": "",
-        "Display": 2
-      },
-      {
         "Name": "sapmnt_volume_size",
         "Required": false,
         "Description": "The volume in GB of the sapmnt file share.",
@@ -1582,15 +1769,6 @@
         "Display": 3
       },
       {
-        "Name": "use_random_id_for_storageaccounts",
-        "Required": false,
-        "Description": "Defines if the sapmnt storage account name will have a random suffix. (this decreases the risk of name conflicts)",
-        "Type": "checkbox",
-        "Options": [],
-        "Overrules": "",
-        "Display": 2
-      },
-      {
         "Name": "sapmnt_private_endpoint_id",
         "Required": false,
         "Description": "Azure Resource Identifier for an private endpoint connection for the sapmnt storage account",
@@ -1603,6 +1781,15 @@
         ],
         "Overrules": "",
         "Display": 3
+      },
+      {
+        "Name": "use_random_id_for_storageaccounts",
+        "Required": false,
+        "Description": "Defines if the sapmnt storage account name will have a random suffix. (this decreases the risk of name conflicts)",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
       },
       {
         "Name": "ANF_HANA_use_AVG",
@@ -2010,61 +2197,6 @@
         "Options": [],
         "Overrules": "",
         "Display": 2
-      },
-      {
-        "Name": "nsg_asg_with_vnet",
-        "Required": false,
-        "Description": "Controls where the Application Security Groups are created.",
-        "Type": "checkbox",
-        "Options": [],
-        "Overrules": "",
-        "Display": 3
-      },
-      {
-        "Name": "deploy_application_security_groups",
-        "Required": false,
-        "Description": "Defines if application security groups will be created.",
-        "Type": "checkbox",
-        "Options": [],
-        "Overrules": "",
-        "Display": 3
-      },
-      {
-        "Name": "deploy_v1_monitoring_extension",
-        "Required": false,
-        "Description": "Defines if the Microsoft.AzureCAT.AzureEnhancedMonitoring extension will be deployed.",
-        "Type": "checkbox",
-        "Options": [],
-        "Overrules": "",
-        "Display": 3
-      },
-
-      {
-        "Name": "vm_disk_encryption_set_id",
-        "Required": false,
-        "Description": "Azure resource identifier for custom encryption key to use for disk encryption.",
-        "Type": "field",
-        "Options": [],
-        "Overrules": "",
-        "Display": 3
-      },
-      {
-        "Name": "proximityplacementgroup_names",
-        "Required": false,
-        "Description": "Defines the names of the proximity placement groups. Only use this if the default naming is not suitable.",
-        "Type": "list",
-        "Options": [],
-        "Overrules": "",
-        "Display": 3
-      },
-      {
-        "Name": "proximityplacementgroup_arm_ids",
-        "Required": false,
-        "Description": "A list of Azure resource identifiers specifying existing proximity placement groups.",
-        "Type": "list",
-        "Options": [],
-        "Overrules": "",
-        "Display": 3
       }
     ]
   }

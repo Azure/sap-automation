@@ -1,4 +1,4 @@
-﻿@model AutomationForm.Models.SapObjectIndexModel<SystemModel>
+@model AutomationForm.Models.SapObjectIndexModel<SystemModel>
 
 @{
     ViewBag.Title = "Systems";
@@ -39,8 +39,8 @@
                     @Html.DisplayFor(model => Model.ImagesFile.Id)
                 </td>
                 <td class="td-align-right">
-                    @Html.ActionLink("Edit", "Edit", "File", new { id = Model.ImagesFile.Id, sourceController = "System", isImagesFile = true }, null) |
-                    @Html.ActionLink("Download", "Download", "File", new { id = Model.ImagesFile.Id, sourceController = "System", isImagesFile = true }, null)
+                    @Html.ActionLink("Edit", "Edit", "File", new { id = Model.ImagesFile.Id, sourceController = "System", fileName = "VM-Images.json", type = 0 }, null) |
+                    @Html.ActionLink("Download", "Download", "File", new { id = Model.ImagesFile.Id, sourceController = "System", fileName = "VM-Images.json", type= 0 }, null)
                 </td>
             </tr>
             </tbody>

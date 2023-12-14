@@ -7,6 +7,7 @@
         "storage": [
           {
             "name"                                 : "os",
+            "fullname"                             : "",
             "count"                                : 1,
             "disk_type"                            : "Premium_LRS",
             "size_gb"                              : 64,
@@ -14,6 +15,7 @@
             },
           {
             "name"                                 : "sybdb",
+            "fullname"                             : "",
             "count"                                : 1,
             "disk_type"                            : "Premium_LRS",
             "size_gb"                              : 32,
@@ -23,6 +25,7 @@
           },
           {
             "name"                                 : "sapdiag",
+            "fullname"                             : "",
             "count"                                : 1,
             "disk_type"                            : "Premium_LRS",
             "size_gb"                              : 32,
@@ -32,6 +35,7 @@
           },
           {
             "name"                                 : "saptemp",
+            "fullname"                             : "",
             "count"                                : 1,
             "disk_type"                            : "Premium_LRS",
             "size_gb"                              : 64,
@@ -41,6 +45,7 @@
           },
           {
             "name"                                 : "sybsystem",
+            "fullname"                             : "",
             "count"                                : 1,
             "disk_type"                            : "Premium_LRS",
             "size_gb"                              : 32,
@@ -50,6 +55,7 @@
           },
           {
             "name"                                 : "sybtemp",
+            "fullname"                             : "",
             "count"                                : 1,
             "disk_type"                            : "Premium_LRS",
             "size_gb"                              : 32,
@@ -59,6 +65,7 @@
           },
           {
             "name"                                 : "sapdata_1",
+            "fullname"                             : "",
             "count"                                : 2,
             "disk_type"                            : "Premium_LRS",
             "size_gb"                              : 128,
@@ -68,6 +75,7 @@
           },
           {
             "name"                                 : "saplog_1",
+            "fullname"                             : "",
             "count"                                : 1,
             "disk_type"                            : "Premium_LRS",
             "size_gb"                              : 128,
@@ -77,6 +85,7 @@
           },
           {
             "name"                                 : "backup",
+            "fullname"                             : "",
             "count"                                : 1,
             "disk_type"                            : "Premium_LRS",
             "size_gb"                              : 128,
@@ -93,6 +102,7 @@
         "storage": [
           {
             "name"                                 : "os",
+            "fullname"                             : "",
             "count"                                : 1,
             "disk_type"                            : "Premium_LRS",
             "size_gb"                              : 64,
@@ -101,6 +111,7 @@
           },
           {
             "name"                                 : "syb",
+            "fullname"                             : "",
             "count"                                : 1,
             "disk_type"                            : "Premium_LRS",
             "size_gb"                              : 32,
@@ -110,6 +121,7 @@
           },
           {
             "name"                                 : "sapdiag",
+            "fullname"                             : "",
             "count"                                : 1,
             "disk_type"                            : "Premium_LRS",
             "size_gb"                              : 32,
@@ -119,6 +131,7 @@
           },
           {
             "name"                                 : "saptemp",
+            "fullname"                             : "",
             "count"                                : 1,
             "disk_type"                            : "Premium_LRS",
             "size_gb"                              : 32,
@@ -127,7 +140,8 @@
             "lun_start"                            : 2
           },
           {
-            "name"                                 : "sapdata",
+            "name"                                 : "sapdata_1",
+            "fullname"                             : "",
             "count"                                : 2,
             "disk_type"                            : "Premium_LRS",
             "size_gb"                              : 256,
@@ -136,7 +150,8 @@
             "lun_start"                            : 3
           },
           {
-            "name"                                 : "saplog",
+            "name"                                 : "saplog_1",
+            "fullname"                             : "",
             "count"                                : 1,
             "disk_type"                            : "Premium_LRS",
             "size_gb"                              : 128,
@@ -146,6 +161,7 @@
           },
           {
             "name"                                 : "backup",
+            "fullname"                             : "",
             "count"                                : 1,
             "disk_type"                            : "Premium_LRS",
             "size_gb"                              : 128,
@@ -155,6 +171,7 @@
           },
           {
             "name"                                 : "sap",
+            "fullname"                             : "",
             "count"                                : 1,
             "disk_type"                            : "Premium_LRS",
             "size_gb"                              : 64,
@@ -171,6 +188,7 @@
         "storage": [
           {
             "name"                                 : "os",
+            "fullname"                             : "",
             "count"                                : 1,
             "disk_type"                            : "Premium_LRS",
             "size_gb"                              : 64,
@@ -179,6 +197,7 @@
           },
           {
             "name"                                 : "sybsystem",
+            "fullname"                             : "",
             "count"                                : 1,
             "disk_type"                            : "Premium_LRS",
             "size_gb"                              : 64,
@@ -188,6 +207,7 @@
           },
           {
             "name"                                 : "sybsecurity",
+            "fullname"                             : "",
             "count"                                : 1,
             "disk_type"                            : "Premium_LRS",
             "size_gb"                              : 32,
@@ -197,6 +217,7 @@
           },
           {
             "name"                                 : "sapdiag",
+            "fullname"                             : "",
             "count"                                : 1,
             "disk_type"                            : "Premium_LRS",
             "size_gb"                              : 32,
@@ -206,6 +227,7 @@
           },
           {
             "name"                                 : "saptemp",
+            "fullname"                             : "",
             "count"                                : 1,
             "disk_type"                            : "Premium_LRS",
             "size_gb"                              : 32,
@@ -215,6 +237,7 @@
           },
           {
             "name"                                 : "sybtemp",
+            "fullname"                             : "",
             "count"                                : 1,
             "disk_type"                            : "Premium_LRS",
             "size_gb"                              : 32,
@@ -223,7 +246,8 @@
             "write_accelerator"                    : false
           },
           {
-            "name"                                 : "sapdata",
+            "name"                                 : "sapdata_1",
+            "fullname"                             : "",
             "count"                                : 2,
             "disk_type"                            : "Premium_LRS",
             "size_gb"                              : 512,
@@ -232,7 +256,8 @@
             "lun_start"                            : 5
           },
           {
-            "name"                                 : "saplog",
+            "name"                                 : "saplog_1",
+            "fullname"                             : "",
             "count"                                : 1,
             "disk_type"                            : "Premium_LRS",
             "size_gb"                              : 128,
@@ -242,6 +267,7 @@
           },
           {
             "name"                                 : "sybbackup",
+            "fullname"                             : "",
             "count"                                : 2,
             "disk_type"                            : "Premium_LRS",
             "size_gb"                              : 128,
@@ -251,6 +277,7 @@
           },
           {
             "name"                                 : "sap",
+            "fullname"                             : "",
             "count"                                : 1,
             "disk_type"                            : "Premium_LRS",
             "size_gb"                              : 64,
@@ -267,6 +294,7 @@
         "storage": [
           {
             "name"                                 : "os",
+            "fullname"                             : "",
             "count"                                : 1,
             "disk_type"                            : "Premium_LRS",
             "size_gb"                              : 64,
@@ -275,6 +303,7 @@
           },
           {
             "name"                                 : "sybsystem",
+            "fullname"                             : "",
             "count"                                : 1,
             "disk_type"                            : "Premium_LRS",
             "size_gb"                              : 64,
@@ -284,6 +313,7 @@
           },
           {
             "name"                                 : "sybsecurity",
+            "fullname"                             : "",
             "count"                                : 1,
             "disk_type"                            : "Premium_LRS",
             "size_gb"                              : 32,
@@ -293,6 +323,7 @@
           },
           {
             "name"                                 : "sapdiag",
+            "fullname"                             : "",
             "count"                                : 1,
             "disk_type"                            : "Premium_LRS",
             "size_gb"                              : 32,
@@ -302,6 +333,7 @@
           },
           {
             "name"                                 : "saptemp",
+            "fullname"                             : "",
             "count"                                : 1,
             "disk_type"                            : "Premium_LRS",
             "size_gb"                              : 64,
@@ -311,6 +343,7 @@
           },
           {
             "name"                                 : "sybtemp",
+            "fullname"                             : "",
             "count"                                : 1,
             "disk_type"                            : "Premium_LRS",
             "size_gb"                              : 64,
@@ -319,7 +352,8 @@
             "write_accelerator"                    : false
           },
           {
-            "name"                                 : "sapdata1",
+            "name"                                 : "sapdata_1",
+            "fullname"                             : "",
             "count"                                : 2,
             "disk_type"                            : "Premium_LRS",
             "size_gb"                              : 256,
@@ -328,7 +362,8 @@
             "lun_start"                            : 5
           },
           {
-            "name"                                 : "sapdata2",
+            "name"                                 : "sapdata_2",
+            "fullname"                             : "",
             "count"                                : 2,
             "disk_type"                            : "Premium_LRS",
             "size_gb"                              : 256,
@@ -337,7 +372,8 @@
             "lun_start"                            : 8
           },
           {
-            "name"                                 : "sapdata3",
+            "name"                                 : "sapdata_3",
+            "fullname"                             : "",
             "count"                                : 2,
             "disk_type"                            : "Premium_LRS",
             "size_gb"                              : 256,
@@ -346,7 +382,8 @@
             "lun_start"                            : 11
           },
           {
-            "name"                                 : "sapdata4",
+            "name"                                 : "sapdata_4",
+            "fullname"                             : "",
             "count"                                : 2,
             "disk_type"                            : "Premium_LRS",
             "size_gb"                              : 256,
@@ -355,7 +392,8 @@
             "lun_start"                            : 14
           },
           {
-            "name"                                 : "saplog1",
+            "name"                                 : "saplog_1",
+            "fullname"                             : "",
             "count"                                : 1,
             "disk_type"                            : "Premium_LRS",
             "size_gb"                              : 256,
@@ -365,6 +403,7 @@
           },
           {
             "name"                                 : "sybbackup",
+            "fullname"                             : "",
             "count"                                : 1,
             "disk_type"                            : "Premium_LRS",
             "size_gb"                              : 128,
@@ -374,6 +413,7 @@
           },
           {
             "name"                                 : "sap",
+            "fullname"                             : "",
             "count"                                : 1,
             "disk_type"                            : "Premium_LRS",
             "size_gb"                              : 64,

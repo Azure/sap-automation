@@ -9,9 +9,10 @@ ${sid}_DB:
       virtual_host        : ${virt_dbnodes[idx]}
       become_user         : ${db_become_user}
       os_type             : ${db_os_type}
-      ${ansible_winrm_server_cert_validation}
-      ${ansible_winrm_operation_timeout_sec}
-      ${ansible_winrm_read_timeout_sec}
+      ${winrm_cert_valid}
+      ${winrm_timeout_sec}
+      ${winrm_read_timeout}
+      ${winrm_transport}
 
 %{~ endfor }
   vars:
@@ -29,9 +30,10 @@ ${sid}_SCS:
       virtual_host        : ${virt_scs_servers[idx]}
       become_user         : ${scs_become_user}
       os_type             : ${scs_os_type}
-      ${ansible_winrm_server_cert_validation}
-      ${ansible_winrm_operation_timeout_sec}
-      ${ansible_winrm_read_timeout_sec}
+      ${winrm_cert_valid}
+      ${winrm_timeout_sec}
+      ${winrm_read_timeout}
+      ${winrm_transport}
 
 %{~ endfor }
   vars:
@@ -49,9 +51,10 @@ ${sid}_ERS:
       virtual_host        : ${virt_ers_servers[idx]}
       become_user         : ${scs_become_user}
       os_type             : ${scs_os_type}
-      ${ansible_winrm_server_cert_validation}
-      ${ansible_winrm_operation_timeout_sec}
-      ${ansible_winrm_read_timeout_sec}
+      ${winrm_cert_valid}
+      ${winrm_timeout_sec}
+      ${winrm_read_timeout}
+      ${winrm_transport}
 
 %{~ endfor }
   vars:
@@ -70,9 +73,10 @@ ${sid}_PAS:
       virtual_host        : ${virt_pas_servers[idx]}
       become_user         : ${app_become_user}
       os_type             : ${app_os_type}
-      ${ansible_winrm_server_cert_validation}
-      ${ansible_winrm_operation_timeout_sec}
-      ${ansible_winrm_read_timeout_sec}
+      ${winrm_cert_valid}
+      ${winrm_timeout_sec}
+      ${winrm_read_timeout}
+      ${winrm_transport}
 
 %{~ endfor }
   vars:
@@ -90,9 +94,10 @@ ${sid}_APP:
       virtual_host        : ${virt_app_servers[idx]}
       become_user         : ${app_become_user}
       os_type             : ${app_os_type}
-      ${ansible_winrm_server_cert_validation}
-      ${ansible_winrm_operation_timeout_sec}
-      ${ansible_winrm_read_timeout_sec}
+      ${winrm_cert_valid}
+      ${winrm_timeout_sec}
+      ${winrm_read_timeout}
+      ${winrm_transport}
 
 %{~ endfor }
   vars:
@@ -110,9 +115,10 @@ ${sid}_WEB:
       virtual_host        : ${virt_web_servers[idx]}
       become_user         : ${web_become_user}
       os_type             : ${web_os_type}
-      ${ansible_winrm_server_cert_validation}
-      ${ansible_winrm_operation_timeout_sec}
-      ${ansible_winrm_read_timeout_sec}
+      ${winrm_cert_valid}
+      ${winrm_timeout_sec}
+      ${winrm_read_timeout}
+      ${winrm_transport}
 
 %{~ endfor }
   vars:
@@ -130,11 +136,29 @@ ${sid}_OBSERVER_DB:
       virtual_host        : ${observers[idx]}
       become_user         : ${db_become_user}
       os_type             : ${db_os_type}
-      ${ansible_winrm_server_cert_validation}
-      ${ansible_winrm_operation_timeout_sec}
-      ${ansible_winrm_read_timeout_sec}
+      ${winrm_cert_valid}
+      ${winrm_timeout_sec}
+      ${winrm_read_timeout}
+      ${winrm_transport}
 
 %{~ endfor }
   vars:
     node_tier             : observer
     supported_tiers       : [observer]
+
+${sid}_ISCSI:
+  hosts:
+%{~ for idx,ip_iscsi in ips_ip_iscsi }
+    ${iscsi_servers[idx]}:
+      ansible_host        : ${ip_iscsi}
+      ansible_user        : ${ansible_user}
+      ansible_connection  : ssh
+      connection_type     : key
+      virtual_host        : ${iscsi_servers[idx]}
+      become_user         : root
+      os_type             : linux
+
+%{~ endfor }
+  vars:
+    node_tier             : iscsi
+    supported_tiers       : [iscsi]

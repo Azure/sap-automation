@@ -1,0 +1,33 @@
+---
+
+# SLES Clustering - Deploy HANA clustering Resources
+# Ref: https://documentation.suse.com/sle-ha/12-SP4/html/SLE-HA-install-quick/index.html
+# Ref: https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/sap-hana-high-availability
+# Ref: https://learn.microsoft.com/en-us/azure/sap/workloads/sap-hana-high-availability-netapp-files-suse#create-file-system-resources
+
+- name:                            "Backward Compatibility - Check required Database HA variables"
+  ansible.builtin.set_fact:
+    database_high_availability:    "{{ db_high_availability | default(false) }}"
+  when:
+    - db_high_availability is defined
+    - database_high_availability is not defined
+
+- name:                                "Configure the ANF specific resources when relevant"
+  when:
+    - database_high_availability
+    - NFS_provider == "ANF"
+    - hana_data_mountpoint is defined
+    - hana_data_mountpoint | length > 1
+    - hana_log_mountpoint is defined
+    - hana_log_mountpoint | length > 1
+    - hana_shared_mountpoint is defined
+    - hana_shared_mountpoint | length > 1
+  block:
+    - name:                            "Create dummy file system cluster resource for monitoring"
+      ansible.builtin.file:
+        path:                          "{{ item.folderpath }}"
+        state:                         directory
+        mode:                          0755
+      loop:
+        - { folderpath: '/hana/shared/{{ db_sid | upper }}/check'}
+        - { folderpath: '/hana/shared/check'}

@@ -85,11 +85,10 @@
         sap_ciBtcWPNumber:
         sap_installSAPHostAgent:
         sap_profile_dir:               "/sapmnt/{{ sid_to_be_deployed.sid | upper }}/profile"
-        ers_virtual_hostname:          "{{ sid_to_be_deployed.sid | lower }}ers{{ ers_instance_number }}cl2"
         sap_db_hostname:
         sap_ciVirtualHostname:
         sap_appVirtualHostname:
-        sap_scs_hostname:              "{{ sid_to_be_deployed.sid | lower }}scs{{ scs_instance_number }}cl1"
+        sap_scs_hostname:              "{{ scs_virtual_hostname }}"
         param_directory:               "{{ dir_params }}"
         hdb_instance_number:           "{{ db_instance_number }}"
 
@@ -123,18 +122,23 @@
 #
 # *====================================4=======================================8
 
-    - name:                            "Create temp directory for sid"
+    - name:                            "ERS Install: Create temp directory for sid"
       ansible.builtin.file:
         path:                          "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
         state:                         directory
         mode:                          0755
 
-    - name:                            "ERS HA Installation"
-      ansible.builtin.debug:
-        msg:                           "Starting sapinst for {{ sid_to_be_deployed.sid | upper }}. Please wait"
-
-    - name:                            "ERS HA Installation"
+    - name:                            "ERS Installation Block"
       block:
+        - name:                        "ERS Install: Create Symlink"
+          ansible.builtin.import_tasks:  ../../../roles-sap-os/2.10-sap-notes/tasks/2.10.3119751.yaml
+          when:
+            - ansible_os_family == 'RedHat'
+
+        - name:                        "ERS Install: Status"
+          ansible.builtin.debug:
+            msg:                       "Starting sapinst for {{ sid_to_be_deployed.sid | upper }}. Please wait"
+
         - name:                        "ERS Install: SAPInst"
           ansible.builtin.shell: |
                                        umask {{ custom_umask | default('022') }} ;

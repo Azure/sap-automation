@@ -5,7 +5,28 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: ansible/ansible-lint-action@v6.16.0
+      - name: Checkout the code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
         with:
-          path: deploy/ansible
+          python-version: '3.x'
+
+      - name: Install Ansible and Ansible-Lint
+        run: |
+          python -m pip install --upgrade pip
+          pip install ansible-core ansible-lint==6.20.3 jmespath netaddr
+
+      - name: Install Ansible Collections
+        run: |
+          ansible-galaxy collection install ansible.windows --force
+          ansible-galaxy collection install ansible.posix --force
+          ansible-galaxy collection install ansible.utils --force
+          ansible-galaxy collection install ansible.netcommon:5.1.2 --force
+          ansible-galaxy collection install community.windows --force
+          ansible-galaxy collection install community.general --force
+
+      - name: Run ansible-lint
+        run: |
+          ansible-lint deploy/ansible -c .ansible-lint

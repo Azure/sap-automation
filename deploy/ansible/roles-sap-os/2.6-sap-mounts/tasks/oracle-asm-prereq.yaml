@@ -24,6 +24,7 @@
 - name:                                Print oravgstat
   ansible.builtin.debug:
     var:                               oravgstat
+    verbosity:                         2
 
 - name:                                Gather existing LVs
   ansible.builtin.set_fact:
@@ -32,6 +33,7 @@
 - name:                                Print lvexists
   ansible.builtin.debug:
     var:                               lvexists
+    verbosity:                         2
 
 - name:                                "SAP Mounts: - Create SAP Directories (sapmnt)"
   ansible.builtin.file:

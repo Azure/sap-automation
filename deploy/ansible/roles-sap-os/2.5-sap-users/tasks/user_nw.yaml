@@ -1,8 +1,8 @@
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
-# |             SAP: Register BOM                                              |
-# |         SAP SCS: deploy SCS Parameter file install template                |
-# |         SAP SCS: Install                                                   |
+# |         SAP: Register BOM                                                  |
+# |         SAP: deploy Generic Parameter file template                        |
+# |         SAP: SAP OS USERS and Group Creation                               |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
@@ -23,19 +23,6 @@
     - { mode: '0755', path: '{{ dir_params }}' }
     - { mode: '0755', path: '{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}' }
     - { mode: '0755', path: '/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}' }
-
-- name:                                "User Creation: Set the Server name list"
-  ansible.builtin.set_fact:
-    scs_server_temp:                   "{{ scs_server_temp | default([]) + [item] }}"
-  with_items:
-    - "{{ query('inventory_hostnames', '{{ sid_to_be_deployed.sid | upper }}_SCS') }}"
-    - "{{ query('inventory_hostnames', '{{ sid_to_be_deployed.sid | upper }}_DB') }}"
-    - "{{ query('inventory_hostnames', '{{ sid_to_be_deployed.sid | upper }}_PAS') }}"
-    - "{{ query('inventory_hostnames', '{{ sid_to_be_deployed.sid | upper }}_APP') }}"
-
-- name:                                "User Creation: Set the SCS Server name"
-  ansible.builtin.set_fact:
-    scs_server:                        "{{ scs_server_temp | first }}"
 
 - name:                                "User Creation: reset"
   ansible.builtin.file:
@@ -71,23 +58,8 @@
     always_upload_jinja_templates:     false
     task_prefix:                       "GENERIC: "
     bom_name:                          "{{ bom_base_name }}{{ bom_suffix }}"
-    sap_cd_package_cd1:
-    sap_cd_package_cd2:
-    sap_cd_package_cd3:
-    sap_cd_package_cd4:
-    sap_cd_package_cd5:
-    sap_cd_package_hdbclient:
-    sap_ciInstanceNumber:
-    app_instance_number:
-    sap_ciDialogWPNumber:
-    sap_ciBtcWPNumber:
-    sap_installSAPHostAgent:
-    sap_profile_dir:
-    sap_scs_hostname:                  "{{ scs_server }}"
-    sap_db_hostname:
-    sap_ciVirtualHostname:
-    sap_appVirtualHostname:
     param_directory:                   "{{ dir_params }}"
+    sap_sid:                           "{{ sid_to_be_deployed.sid }}"
     sidadm_uid:                        "{{ sid_to_be_deployed.sidadm_uid }}"
 
 - name:                                "User Creation: install variables"
@@ -100,14 +72,6 @@
 
 - name:                                "User Creation"
   block:
-
-# *====================================4=======================================8
-# |  SAP SCS: Install                                                          |
-# | 2230669 - System Provisioning Using a Parameter Input File                 |
-# *====================================4=======================================8
-
-
-#
     - name:                            "User Creation: check media exists"
       ansible.builtin.stat:
         path:                          "{{ target_media_location }}/SWPM/sapinst"

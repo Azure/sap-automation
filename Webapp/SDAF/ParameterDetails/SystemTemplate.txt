@@ -66,8 +66,18 @@ $$subscription$$
 # use_scalesets_for_deployment defines if Flexible Virtual Machine Scale Sets are used for the deployment
 $$use_scalesets_for_deployment$$
 
+# scaleset_id defines the scale set Azure resource Id
+$$scaleset_id$$
+
+
 # database_use_premium_v2_storage defines if the database tier will use premium v2 storage
 $$database_use_premium_v2_storage$$
+
+# upgrade_packages defines if all packages should be upgraded after installation
+$$upgrade_packages$$
+
+# user_assigned_identity_id defines the user assigned identity to be assigned to the Virtual machines
+$$user_assigned_identity_id$$
 
 #########################################################################################
 #                                                                                       #
@@ -105,11 +115,20 @@ $$use_private_endpoint$$
 #                                                                                       #
 #########################################################################################
 
+# scs_cluster_type defines cluster quorum type; AFA (Azure Fencing Agent), ASD (Azure Shared Disk), ISCSI
+$$scs_cluster_type$$
+
+# database_cluster_type defines cluster quorum type; AFA (Azure Fencing Agent), ASD (Azure Shared Disk), ISCSI
+$$database_cluster_type$$
+
 # use_msi_for_clusters if defined will use managed service identity for the Pacemaker cluster fencing
 $$use_msi_for_clusters$$
 
 # fencing_role_name, If specified the role name to use for the fencing agent
 $$fencing_role_name$$
+
+# use_simple_mount specifies if Simple mounts are used (Applicable for SLES 15 SP# or newer)
+$$use_simple_mount$$
 
 
 #########################################################################################
@@ -618,6 +637,15 @@ $$proximityplacementgroup_names$$
 
 $$proximityplacementgroup_arm_ids$$
 
+# Boolean value indicating if an proximity placement group should be used for the app tier VMs
+$$use_app_proximityplacementgroups$$
+
+# If provided, names of the application proximity placement groups
+$$app_proximityplacementgroup_names$$
+
+# If provided, azure resource ids for the application proximity placement groups
+$$app_proximityplacementgroup_arm_ids$$
+
 #########################################################################################
 #                                                                                       #
 #  Key Vault variables                                                                  #
@@ -787,3 +815,12 @@ $$bom_name$$
 
 # configuration_settings is a dictionary containing values that will be persisted in sap-parameters.yaml
 $$configuration_settings$$
+
+############################################################################################
+#                                                                                          #
+#                                  Tags for all resources                                  #
+#                                                                                          #
+############################################################################################
+
+# These tags will be applied to all resources
+$$tags$$

@@ -3,7 +3,7 @@
 # |                                                                            |
 # |               This pipeline performs the software installation             |
 # |              and must run on a self hosted deployment agent                |
-# |                      due to long run time                                  |
+# |                      due to long run time.                                 |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
@@ -239,7 +239,7 @@ stages:
               echo -e "$green--- az login ---$reset"
                 #If the deployer_file exists we run on a deployer configured by the framework instead of a azdo hosted one
                 deployer_file=/etc/profile.d/deploy_server.sh
-                az login --service-principal -u $AZURE_CLIENT_ID -p=$AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID --output none
+                az login --service-principal -u $AZURE_CLIENT_ID -p=$AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID  --output none
                 az account set --subscription $AZURE_SUBSCRIPTION_ID
 
                 return_code=$?
@@ -247,8 +247,8 @@ stages:
                   echo -e "$boldred--- Login failed ---$reset"
                   echo "##vso[task.logissue type=error]az login failed."
                   exit $return_code
+
                 fi
-                az account set --subscription $AZURE_SUBSCRIPTION_ID
 
                 az keyvault secret show --name ${workload_prefix}-sid-sshkey --vault-name $workload_key_vault --query value -o tsv > artifacts/${SAP_SYSTEM_CONFIGURATION_NAME}_sshkey
                 cp sap-parameters.yaml artifacts/.
@@ -459,20 +459,22 @@ stages:
           - ${{ if eq(parameters.acss_registration, true) }}:
               - template:                    templates\acss-registration.yaml
                 parameters:
-                  displayName:                 "ACSS Registration"
-                  scriptPath:                  ${{ parameters.sap_automation_repo_path }}/deploy/pipelines/templates
-                  azureClientId:               $(ARM_CLIENT_ID)
-                  azureClientSecret:           $(ARM_CLIENT_SECRET)
-                  azureTenantId:               $(ARM_TENANT_ID)
-                  azureSubscriptionId:         $(ARM_SUBSCRIPTION_ID)
-                  acssEnvironment:             ${{ parameters.acss_environment }}
-                  acssSapProduct:              ${{ parameters.acss_sap_product }}
-                  sapSystemConfigurationName:  ${{ parameters.sap_system_configuration_name }}
-                  parametersFolder:            $(Preparation.FOLDER)
-                  config_repo_path:            ${{ parameters.config_repo_path }}
-                  sap_automation_repo_path:    ${{ parameters.sap_automation_repo_path }}
-                  TF_Remote_SA_Name:           $(Terraform_Remote_Storage_Account_Name)
-                  TF_Remote_Storage_Subscription: $(Terraform_Remote_Storage_Subscription)
+                  displayName:               "ACSS Registration"
+                  ansibleFilePath:           ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_06_00_acss_registration.yaml
+                  secretName:                "$(Preparation.SSH_KEY_NAME)"
+                  passwordSecretName:        "$(Preparation.PASSWORD_KEY_NAME)"
+                  userNameSecretName:        "$(Preparation.USERNAME_KEY_NAME)"
+                  vaultName:                 $(Preparation.VAULT_NAME)
+                  parametersFolder:          $(Preparation.FOLDER)
+                  sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
+                  sidHosts:                  $(Preparation.HOSTS)
+                  extraParams:               ${{ parameters.extra_params }}
+                  azureClientId:             $(ARM_CLIENT_ID)
+                  azureClientSecret:         $(ARM_CLIENT_SECRET)
+                  azureTenantId:             $(ARM_TENANT_ID)
+                  azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
+                  acssEnvironment:           ${{ parameters.acss_environment }}
+                  acssSapProduct:            ${{ parameters.acss_sap_product }}
 
           - template:                          templates\collect-log-files.yaml
             parameters:

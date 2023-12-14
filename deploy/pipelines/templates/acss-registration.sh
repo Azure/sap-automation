@@ -26,8 +26,8 @@ set -x
 if [ -z "$(az extension list | grep \"name\": | grep \"workloads\")" ]
 then
   echo -e "$green--- Installing ACSS \"Workloads\" CLI extension ---$reset"
-  wget $acss_workloads_extension_url -O workloads-0.1.0-py3-none-any.whl || exit 1
-  az extension add --source=./workloads-0.1.0-py3-none-any.whl --yes || exit 1
+  # wget $acss_workloads_extension_url -O workloads-0.1.0-py3-none-any.whl || exit 1
+  az extension add --name workloads --yes || exit 1
 else
   echo -e "$green--- ACSS \"Workloads\" CLI extension already installed ---$reset"
 fi
@@ -70,7 +70,7 @@ init -upgrade=true                                                              
 --backend-config "resource_group_name=${TERRAFORM_REMOTE_STORAGE_RESOURCE_GROUP_NAME}"  \
 --backend-config "storage_account_name=${TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME}"        \
 --backend-config "container_name=tfstate"                                               \
---backend-config "key=${SAP_SYSTEM_CONFIGURATION_NAME}.terraform.tfstate"                           \
+--backend-config "key=${SAP_SYSTEM_CONFIGURATION_NAME}.terraform.tfstate"               \
 )
 [ $? -ne 0 ] && echo "$__output" && exit 1
 echo -e "$green--- Successfully configured the backend "azurerm"! Terraform will automatically use this backend unless the backend configuration changes. ---$reset"

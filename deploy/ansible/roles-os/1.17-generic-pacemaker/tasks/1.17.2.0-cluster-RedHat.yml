@@ -9,8 +9,20 @@
 # | RHEL Clustering                                                            |
 # | ref: https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-rhel-pacemaker
 # |                                                                            |
+# RHEL 8.4: resource-agents-4.1.1-90.13
+# RHEL 8.6: resource-agents-4.9.0-16.9
+# RHEL 8.8 and newer: resource-agents-4.9.0-40.1
+# RHEL 9.0 and newer: resource-agents-cloud-4.10.0-34.2
+
 # +------------------------------------4--------------------------------------*/
 
+- name:                                "1.17 Generic Pacemaker - Check if we are on RHEL 9 or newer"
+  ansible.builtin.set_fact:
+    is_rhel_9_or_newer:                "{{ ansible_distribution_major_version | int >= 9 }}"
+
+- name:                                "1.17 Generic Pacemaker - Check if we are on RHEL 8.4 or newer"
+  ansible.builtin.set_fact:
+    is_rhel_84_or_newer:               "{{ ansible_distribution_version is version('8.4', '>=') }}"
 
 - name:                                "1.17 Generic Pacemaker - Ensure HA Cluster password is set to something secure"
   ansible.builtin.user:
@@ -97,8 +109,16 @@
 
   when:                                ansible_hostname == primary_instance_name
 
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# | Fencing - BEGIN                                                              |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
 
 - name:                                "1.17 Generic Pacemaker - Configure the cluster STONITH device on the primary node"
+  when:
+                                        - scs_cluster_type    == "AFA" or database_cluster_type == "AFA"       # scs_high_availability = true is already assumed
+                                        - inventory_hostname  == primary_instance_name
   block:
     - name:                            "1.17 Generic Pacemaker - Ensure STONITH timeout is raised"
       ansible.builtin.command:         pcs property set stonith-timeout=900
@@ -184,21 +204,87 @@
 
     - name:                            "1.17 Generic Pacemaker - Ensure the STONITH device is enabled"
       ansible.builtin.command:         pcs property set stonith-enabled=true
-  when:                                ansible_hostname == primary_instance_name
 
-# - name:                                "1.17 Generic Pacemaker - Set the cluster maintenance mode"
-#   block:
-#     - name:                            "1.17 Generic Pacemaker - Get the cluster maintenance mode status"
-#       ansible.builtin.command:         pcs property config maintenance-mode
-#       register:                        get_status_maintenance_mode
-#       changed_when:                    false
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# | Fencing - END                                                              |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
 
-#     - name:                            "1.17 Generic Pacemaker - Set the cluster maintenance mode"
-#       ansible.builtin.command:         pcs property set maintenance-mode=true
-#       when: >-
-#         'maintenance-mode' not in get_status_maintenance_mode.stdout or
-#         'maintenance-mode: false' in get_status_maintenance_mode.stdout
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# | Azure scheduled events - BEGIN                                             |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
 
-#   when:                                ansible_hostname == primary_instance_name
+- name:                                "1.17 Generic Pacemaker - check if the OS version is RHEL 8.4 or newer"
+  ansible.builtin.set_fact:
+    is_rhel_84_or_newer:               "{{ ansible_distribution_version is version('8.4', '>=') }}"
+  when:                                ansible_distribution_major_version in ["8", "9"]
+
+- name:                                "1.17 Generic Pacemaker - Ensure Azure scheduled events is configured"
+  when:
+                                      - inventory_hostname == primary_instance_name
+                                      - is_rhel_84_or_newer
+  block:
+  # After configuring the Pacemaker resources for azure-events agent,
+  # when you place the cluster in or out of maintenance mode, you may get warning messages like:
+  #   WARNING: cib-bootstrap-options: unknown attribute 'hostName_ hostname'
+  #   WARNING: cib-bootstrap-options: unknown attribute 'azure-events_globalPullState'
+  #   WARNING: cib-bootstrap-options: unknown attribute 'hostName_ hostname'
+  # These warning messages can be ignored.
+    - name:                            "1.17 Generic Pacemaker - Ensure maintenance mode is set"
+      ansible.builtin.command:         pcs property set maintenance-mode=true
+
+    - name:                            "1.17 Generic Pacemaker - Set the node-health-strategy"
+      ansible.builtin.command:         pcs property set node-health-strategy=custom
+
+    - name:                            "1.17 Generic Pacemaker - Set the cluster health-node-strategy constraint"
+      ansible.builtin.command:         pcs constraint location 'regexp%!health-.*' rule score-attribute='#health-azure' defined '#uname'
+
+    - name:                            "1.17 Generic Pacemaker - Set the initial value of the cluster attributes"
+      ansible.builtin.shell:
+        cmd:                           crm_attribute --node {{ item }} --name '#health-azure' --update 0
+      loop:
+        - "{{ primary_instance_name }}"
+        - "{{ secondary_instance_name }}"
+
+    - name:                            "1.17 Generic Pacemaker - Configure the resources in Pacemaker"
+      ansible.builtin.command:         pcs resource create health-azure-events ocf:heartbeat:azure-events-az op monitor interval=10s
+
+    - name:                            "1.17 Generic Pacemaker - Ensure clone resource azure-events is configured"
+      ansible.builtin.command:         pcs resource clone health-azure-events allow-unhealthy-nodes=true
+
+    - name:                            "1.17 Generic Pacemaker - Ensure maintenance mode is disabled"
+      ansible.builtin.command:         pcs property set maintenance-mode=false
+
+    - name:                            "1.17 Generic Pacemaker - Clear any errors during enablement of the Azure scheduled events"
+      ansible.builtin.command:         pcs resource cleanup
+
+    - name:                            "1.17 Generic Pacemaker - Ensure the Azure scheduled events resource is started"
+      ansible.builtin.shell: |
+                                       set -o pipefail
+                                       pcs status --full | grep health-azure-events | grep Started | wc -l
+      register:                        azure_scheduled_events_status
+      retries:                         12
+      delay:                           10
+      until:                           azure_scheduled_events_status.stdout | int == ansible_play_hosts_all | length
+      when:                            inventory_hostname == primary_instance_name
+      failed_when:                     false
+
+    - name:                            "1.17 Generic Pacemaker - display output of Azure scheduled events"
+      when:                            inventory_hostname == primary_instance_name
+      ansible.builtin.debug:
+        msg:
+          - "output lines:             {{ azure_scheduled_events_status.stdout_lines }}"
+          - "output:                   {{ azure_scheduled_events_status.stdout | int }}"
+          - "output_truthiness:        {{ azure_scheduled_events_status.stdout | int == ansible_play_hosts_all | length }}"
+        verbosity:                     2
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# | Azure scheduled events - BEGIN                                             |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
 
 # End of Generic Pacemaker setup

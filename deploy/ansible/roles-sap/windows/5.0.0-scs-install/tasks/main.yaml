@@ -35,18 +35,6 @@
     dir_params:                        '{{ tmp_directory_windows }}\{{ sid_to_be_deployed.sid | lower }}-params\'
     ha_identifier:                     "_ha"
 
-- name:                                "5.6 SCSERS - Set the SCS Virtual Instance hostname"
-  ansible.builtin.set_fact:
-    scs_virtual_hostname:              "{{ sap_sid | lower }}scs{{ scs_instance_number }}cl1"
-  when:
-    - scs_high_availability
-
-- name:                                "5.6 SCSERS - Set the ERS Virtual Instance hostname"
-  ansible.builtin.set_fact:
-    ers_virtual_hostname:              "{{ sap_sid | lower }}ers{{ ers_instance_number }}cl2"
-  when:
-    - scs_high_availability
-
 # /*---------------------------------------------------------------------------8
 # |                   Windows cluster configuration : START                    |
 # +------------------------------------4--------------------------------------*/
@@ -73,7 +61,7 @@
         path:                          '{{ sap_deployment_automation }}\{{ sid_to_be_deployed.sid | upper }}\cluster_config_done.txt'
         state:                         touch
 
-    - name:                            "SCS Install: High availability flag"
+    - name:                            "SCS Install: Reboot Cluster nodes"
       ansible.windows.win_reboot:
         reboot_timeout:                600
         post_reboot_delay:             120
@@ -248,7 +236,7 @@
             chdir:                     '{{ download_directory_windows }}\sap_extract'
             creates:                   '{{ download_directory_windows }}\sap_extract\sapinst.exe'
           become:                      true
-          become_method:               runas
+          become_method:               ansible.builtin.runas
           become_user:                 '{{ sap_sid }}adm@{{ domain_name }}'
           vars:
             ansible_become_password:   "{{ domain_user_password }}"
@@ -263,7 +251,7 @@
           block:
             - name:                    "SCS Install: SAP SCS Install on {{ ansible_hostname }}"
               become:                  true
-              become_method:           runas
+              become_method:           ansible.builtin.runas
               become_user:             '{{ sap_sid }}adm@{{ domain_name }}'
               ansible.windows.win_shell: |
                                           {{ download_directory_windows }}\sap_extract\sapinst.exe SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}\{{ sap_inifile }}   `
@@ -313,7 +301,7 @@
 
             - name:                    "RESCUE - SCS Install: SAP SCS Install on {{ ansible_hostname }}"
               become:                  true
-              become_method:           runas
+              become_method:           ansible.builtin.runas
               become_user:             '{{ sap_sid }}adm@{{ domain_name }}'
               ansible.windows.win_shell: |
                                           {{ download_directory_windows }}\sap_extract\sapinst.exe SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}\{{ sap_inifile }}   `
@@ -369,6 +357,7 @@
         - name:                        "SCS Install: show"
           ansible.builtin.debug:
             var:                       scs_installed_according_to_sapinst
+            verbosity:                 2
 
         - name:                        "SCS Install: flag"
           ansible.windows.win_file:
@@ -504,8 +493,7 @@
         sap_ciBtcWPNumber:
         sap_installSAPHostAgent:
         sap_profile_dir:
-        sap_scs_hostname:              "{{ virtual_host }}"
-        ers_virtual_hostname:          "{{ ansible_hostname }}"
+        sap_scs_hostname:              "{{ scs_virtual_hostname }}"
         sap_db_hostname:
         sap_ciVirtualHostname:
         sap_appVirtualHostname:
@@ -562,7 +550,7 @@
             chdir:                     '{{ download_directory_windows }}\sap_extract'
             creates:                   '{{ download_directory_windows }}\sap_extract\sapinst.exe'
           become:                      true
-          become_method:               runas
+          become_method:               ansible.builtin.runas
           become_user:                 '{{ sap_sid }}adm@{{ domain_name }}'
           vars:
             ansible_become_password:   "{{ domain_user_password }}"
@@ -577,7 +565,7 @@
           block:
             - name:                    "ERS Install: SAP ERS Install on {{ ansible_hostname }}"
               become:                  true
-              become_method:           runas
+              become_method:           ansible.builtin.runas
               become_user:             '{{ sap_sid }}adm@{{ domain_name }}'
               ansible.windows.win_shell: |
                                          {{ download_directory_windows }}\sap_extract\sapinst.exe SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}\{{ sap_inifile }}   `
@@ -613,6 +601,7 @@
             - name:                    "RESCUE - ERS Install: Show installation result"
               ansible.builtin.debug:
                 var:                   ers_installation
+                verbosity:             2
               when:                    ers_installation is defined
 
             - name:                    'RESCUE - ERS Install: Cleanup {{ sap_drive }}\usr\sap\{{ sap_sid | upper }}\SYS\exe\uc\NTAMD64'
@@ -652,6 +641,7 @@
         - name:                        "ERS Install: show"
           ansible.builtin.debug:
             var:                       ers_installed_according_to_sapinst
+            verbosity:                 2
 
         - name:                        "ERS Install: flag"
           ansible.windows.win_file:

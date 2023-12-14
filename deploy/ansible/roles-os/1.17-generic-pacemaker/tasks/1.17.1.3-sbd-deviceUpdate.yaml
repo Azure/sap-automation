@@ -1,0 +1,92 @@
+---
+
+- name:                                       "Update Device Info: Parameters to be used..."
+  ansible.builtin.debug:
+    msg:                                      # Best method for formatting output with Azure Devops Logs
+                                              # - "_step:                           {{ _step }}"
+                                              - "scs_cluster_type:                {{ scs_cluster_type }}"
+                                              - "database_cluster_type:           {{ database_cluster_type }}"
+                                              - "sbdMap:                          {{ sbdMap }}"
+                                              - "sdbMap_entry:                    {{ sdbMap_entry }}"
+                                              - "sdbMap_index:                    {{ sdbMap_index }}"
+                                              - "sbdMap[sdbMap_index].lun:        {{ sbdMap[sdbMap_index].lun }}"
+                                              - "sdbMap_entry.lun:                {{ sdbMap_entry.lun }}"
+    verbosity:                                2
+  when:
+                                              - scs_cluster_type == 'ASD' or database_cluster_type == 'ASD'
+
+- name:                                       "Update Device Info: Get block device"
+  ansible.builtin.command:                    "readlink -f /dev/disk/azure/scsi1/lun{{ sbdMap[sdbMap_index].lun }}"
+  register:                                   blockDevice_results
+  when:
+                                              - scs_cluster_type == 'ASD' or database_cluster_type == 'ASD'
+
+
+- name:                                       "Update Device Info: Show block device results..."
+  ansible.builtin.debug:
+    var:                                      blockDevice_results.stdout
+    verbosity:                                2
+  when:
+                                              - scs_cluster_type == 'ASD' or database_cluster_type == 'ASD'
+
+
+- name:                                       "Update Device Info: Find scsi by id..."
+  ansible.builtin.find:
+    path:                                     /dev/disk/by-id
+    patterns:                                 'scsi-3*'
+    file_type:                                link
+    use_regex:                                false
+  register:                                   sscsiById
+
+- name:                                       "Update Device Info: Show scsi by id paths..."
+  ansible.builtin.debug:
+    var:                                      item.path
+    verbosity:                                2
+  loop:                                       "{{ sscsiById.files }}"
+
+
+- name:                                       "Update Device Info: Translate block device to scsi by id..."
+  ansible.builtin.stat:
+    path:                                     "{{ item.path }}"
+    follow:                                   false
+  loop:                                       "{{ sscsiById.files }}"
+  register:                                   statById
+
+
+- name:                                       "Update Device Info: Update SBD Dictionary - ASD"
+  ansible.builtin.set_fact:
+    sbdMap:                                   "{{ sbdMap_update }}"
+  vars:
+    sbdMap_update:                            "
+                                              {#-  -#}
+                                              {% set _ = sbdMap[sdbMap_index].update({'blockDev':   blockDevice_results.stdout})   -%}
+                                              {% set _ = sbdMap[sdbMap_index].update({'diskByLun':  blockDevice_results.cmd[2]})   -%}
+                                              {% set _ = sbdMap[sdbMap_index].update({'diskById':   item.stat.path})               -%}
+                                              {{ sbdMap }}
+                                              "
+  loop:                                       "{{ statById.results }}"
+  when:
+                                              - scs_cluster_type == 'ASD' or database_cluster_type == 'ASD'
+                                              - item.stat.lnk_source == blockDevice_results.stdout
+
+- name:                                       "Update Device Info: Update SBD Dictionary - ISCSI"
+  ansible.builtin.set_fact:
+    sbdMap:                                   "{{ sbdMap_update }}"
+  vars:
+    sbdMap_update:                            "
+                                              {#-  -#}
+                                              {% set _ = sbdMap[sdbMap_index].update({'diskById':   item.stat.path})               -%}
+                                              {{ sbdMap }}
+                                              "
+  loop:                                       "{{ statById.results }}"
+  when:
+                                              - scs_cluster_type == 'ISCI' or database_cluster_type == 'ISCSI'
+                                              - ansible_hostname == sbdMap[sdbMap_index].host
+                                              - item.stat.lnk_source == sbdMap[sdbMap_index].blockDev
+
+- name:                                       "Update Device Info: Show SBD Dictionary..."
+  ansible.builtin.debug:
+    var:                                      sbdMap
+    verbosity:                                2
+
+...

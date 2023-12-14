@@ -1,0 +1,55 @@
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                Perform the mounts                                          |
+# |                Create directories and make them immutable                  |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+- name:                                "Custom Mount: Create Directories ({{ custom_mount.path }})"
+  ansible.builtin.file:
+    owner:                             '{{ sidadm_uid }}'
+    group:                             sapsys
+    mode:                              0755
+    path:                              "{{ custom_mount.path }}"
+    state:                             directory
+    recurse:                           true
+  register:                            is_created_now
+  when:
+    - node_tier in custom_mount.target_nodes or custom_mount.target_nodes == ['all']
+
+- name:                                "Custom Mount: Change attribute only when we create SAP Directories ({{ custom_mount.temppath }})"
+  become:                              true
+  become_user:                         "root"
+  ansible.builtin.file:
+    path:                              "{{ is_created_now.path }}"
+    state:                             directory
+    mode:                              0755
+    attr:                              i+
+  when:
+    - node_tier in custom_mount.target_nodes or custom_mount.target_nodes == "all"
+    - is_created_now.changed
+    - custom_mount.set_chattr_on_dir
+
+- name:                                "Custom Mount"
+  when:
+    - node_tier in custom_mount.target_nodes or custom_mount.target_nodes == ['all']
+  block:
+    - name:                            "Custom Mount: ({{ custom_mount.path }} on {% if custom_mount.create_temp_folders %}{{ custom_mount.mount }}/{{ custom_mount.folder }}{% else %}{{ custom_mount.mount }}{% endif %})"
+      ansible.posix.mount:
+        src:                           "{{ custom_mount.mount }}"
+        path:                          "{{ custom_mount.path }}"
+        fstype:                        "nfs4"
+        opts:                          "{{ custom_mount.opts }}"
+        state:                         mounted
+  rescue:
+    - name:                            "Custom Mount: Sleep for 10 seconds and continue with play"
+      ansible.builtin.wait_for:
+        timeout:                       10
+
+    - name:                            "Custom Mount: {{ custom_mount.path }} on {{ custom_mount.mount }}"
+      ansible.posix.mount:
+        src:                           "{{ custom_mount.mount }}"
+        path:                          "{{ custom_mount.path }}"
+        fstype:                        "nfs4"
+        opts:                          "{{ custom_mount.opts }}"
+        state:                         mounted

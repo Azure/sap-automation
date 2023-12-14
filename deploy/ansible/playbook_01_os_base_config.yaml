@@ -223,12 +223,86 @@
             winadm_password:           "{{ hostvars.localhost.winadm_password }}"
             domain_service_password:   "{{ hostvars.localhost.adsvc_password }}"
             domain_service_account:    "{{ hostvars.localhost.adsvc_account }}"
-
           tags:
             - 1.11-domain-join
 
+        - name:                        "OS configuration playbook: - Checks"
+          block:
+            - name:                    "OS configuration playbook: - Check if required DNS entries are made"
+              ansible.windows.win_shell:     "[System.Net.DNS]::Resolve('{{ sap_sid | lower }}scs{{ scs_instance_number }}cl1')"
+              register:                dns_check_results
+              when:
+                - scs_high_availability
+              failed_when:             dns_check_results.rc > 0
+
+            - name:                    "OS configuration playbook: - Check if required DNS entries are made - show results"
+              ansible.builtin.debug:
+                msg:                   "DNS query results: {{ dns_check_results.stdout }}"
+                verbosity:             2
+              when:                    dns_check_results is defined
+          when:
+            - ansible_os_family == "Windows"
+
+
       when:
         - ansible_os_family == "Windows"
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |       Playbook for configuring the iSCSI hosts                             |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+- hosts: "{{ sap_sid | upper }}_ISCSI"
+
+  name:                                "ISCSI - Base Configuration"
+  remote_user:                         "{{ orchestration_ansible_user }}"
+  gather_facts:                        true # Important to collect hostvars information
+  any_errors_fatal:                    true
+  vars_files:
+    - vars/ansible-input-api.yaml # API Input template with defaults
+
+  # -----------------------------------+---------------------------------------8
+  #
+  # Build the list of tasks to be executed in order here.
+  #
+  # -----------------------------------+---------------------------------------8
+
+
+  tasks:
+    - name:                            "OS Configuration - Linux based systems"
+      become:                          true
+      become_user:                     "root"
+      block:
+
+        - name:                        "OS configuration playbook: - Set os fact"
+          ansible.builtin.set_fact:
+            tier: issci
+
+        - name:                        "Create directories"
+          become:                      true
+          ansible.builtin.file:
+            path:                      '/etc/sap_deployment_automation/{{ sap_sid | upper }}'
+            state:                     directory
+            mode:                      '0755'
+
+        - name:                        "OS configuration playbook: - Ensure the packages are registered"
+          ansible.builtin.include_role:
+            name:                      roles-os/1.4-packages
+          tags:
+            - 1.4-packages
+
+        - name:                        "OS configuration playbook: - Ensure the needed services are started"
+          ansible.builtin.include_role:
+            name:                      roles-os/1.16-services
+          tags:
+            - 1.16-services
+
+        - name:                        "OS configuration playbook: - Ensure the needed services are started"
+          ansible.builtin.include_role:
+            name:                      roles-sap-os/2.11-iscsi-server
+          tags:
+            - 2.11-iSCSI-server
 
 - hosts:                               localhost
   name:                                "OS configuration playbook: - Initialization"

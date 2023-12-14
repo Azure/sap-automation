@@ -29,7 +29,8 @@
   ansible.builtin.include_tasks:       2.10.0.yaml
   when:
     - node_tier == 'hana'
-    - distribution_id == ['suse12', 'suse15', 'sles_sap12', 'sles_sap15']
+    - distribution_id in ['suse12', 'suse15', 'sles_sap12', 'sles_sap15']
+
 # -------------------------------------+---------------------------------------8
 
 # -------------------------------------+---------------------------------------8
@@ -43,14 +44,44 @@
 # Disable SELinux
 # Disable core file creation
 
-- name:                                "2.10.1 sap-notes: - Disable SELinux"
-  ansible.posix.selinux:
-    policy:                            targeted
-    state:                             permissive
+- name:                                "2.10.1 sap-notes: - Disable SELinux and Reboot"
   when:
     - node_tier in ['scs', 'ers', 'pas', 'app', 'web']
-    - distribution_id in ['redhat7', 'redhat8', 'redhat9', 'oracle8']
-  notify:                              "2.10-sap-notes: Reboot after the selinux is configured"
+    - distribution_id in ['redhat7', 'redhat8', 'redhat9', 'oraclelinux8']
+  block:
+    - name:                            "2.10.1 sap-notes: - Disable SELinux"
+      ansible.posix.selinux:
+        state:                         disabled
+      register:                        selinux_disabled
+
+    - name:                            "2.10.1 sap-notes: Reboot app VMs after selinux is configured"
+      ansible.builtin.reboot:
+        reboot_timeout:                300
+        post_reboot_delay:             60
+      ignore_unreachable:              true
+      when:
+        - selinux_disabled.changed
+
+- name:                                "2.10.1 sap-notes: Check VM Agent Status"
+  when:
+    - selinux_disabled.changed
+    - node_tier in ['scs', 'ers', 'pas', 'app', 'web']
+    - distribution_id in ['redhat7', 'redhat8', 'redhat9', 'oraclelinux8']
+  block:
+    - name:                            "2.10.1 sap-notes: Clear the failed state of hosts"
+      ansible.builtin.meta:            clear_host_errors
+
+    - name:                            "2.10.1 sap-notes: Including Task for VM Agent Actions"
+      ansible.builtin.include_tasks:   roles-misc/0.7-VmAgentActions/tasks/main.yaml
+      vars:
+        subscriptionId:                "{{ subscription_id }}"
+        resourceGroup_name:            "{{ resource_group_name }}"
+        vmName:                        "{{ vm_name }}"
+
+    - name:                            "2.10.1 sap-notes: Wait for system to become reachable"
+      ansible.builtin.wait_for_connection:
+        timeout:                       300
+      register:                        wait_for_connection_results
 
 - name:                                2.10.1 - SAP Note 2777782
   ansible.builtin.include_tasks:       2.10.1.yaml
@@ -61,32 +92,23 @@
 - name:                                2.10.2 - SAP Note 2777782
   ansible.builtin.include_tasks:       2.10.2.yaml
   when:
-    - node_tier == 'oracle' or node_tier == 'oracle-asm'
+    - node_tier in ['oracle', 'oracle-asm']
     - distribution_id == 'oraclelinux8'
 
-- name:                                2.10.3 - SAP Note 1275776
-  ansible.builtin.include_tasks:       2.10.3.yaml
+- name:                                2.10.1275776 - SAP Note 1275776
+  ansible.builtin.include_tasks:       2.10.1275776.yaml
   when:
     - node_tier == 'sybase'
-    - distribution_id == 'redhat8'
+    - distribution_id in ['redhat8', 'redhat9']
+
+- name:                                "2.10 - Force all notified handlers to run now"
+  ansible.builtin.meta:                flush_handlers
 
 - name:                                2.10.3119751 - SAP Note 3119751
   ansible.builtin.include_tasks:       2.10.3119751.yaml
   when:
     - platform == 'HANA'
-    - distribution_id in ['redhat8']
-
-- name:                                "2.10 - Force all notified handlers to run now"
-  ansible.builtin.meta:                flush_handlers
-
-
-# - name:                                "2.10.1 sap-notes: - Disable SELinux"
-#   selinux:
-#     state:                             disabled
-#   notify:                              "2.10-sap-notes: Reboot after the selinux is configured"
-#   tags: ansible_skip_lint
-#   when:
-#    - distribution_id == 'oraclelinux8'
+    - distribution_id in ['redhat8', 'redhat9']
 
 # ToDo RHEL7 and also the other SAP nodes
 # -------------------------------------+---------------------------------------8

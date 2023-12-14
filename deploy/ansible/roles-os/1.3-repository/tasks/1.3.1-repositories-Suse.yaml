@@ -1,0 +1,54 @@
+- name:                                "1.3 Repos:  - Import repo list"
+  ansible.builtin.include_vars:        repos.yaml
+
+# Analyse the repo list for this distribution selecting only those
+# packages assigned to the active tier or 'all'.
+- name:                                "1.3 Repository - Determine repos appropriate for tier {{ distribution_full_id }}"
+  ansible.builtin.set_fact:
+    repos_for_tier:                    "{{ repos[distribution_full_id] |
+                                             selectattr('tier', 'in', ['all', tier]) |
+                                             list }}"
+
+# Print list of matching repos if verbosity it 1 or greater
+- name:                                "1.3 Repos: Print matching repos"
+  ansible.builtin.debug:
+    var:                               "{{ repos_for_tier }}"
+    verbosity:                         2
+  when:
+    - repos_for_tier is defined
+    - repos_for_tier | length > 0
+
+# Add repositories
+- name:                                "1.3 Repos: Add the repositories {{ ansible_os_family }}"
+  community.general.zypper_repository:
+    repo:                              "{{ item.repo }}"
+    state:                             "{{ item.state }}"
+    overwrite_multiple:                true
+    disable_gpg_check:                 true
+    auto_import_keys:                  true
+  loop:                                "{{ repos_for_tier }}"
+  register:                            zypresult
+  ignore_errors:                       true
+  failed_when:
+    - zypresult.rc != 0
+    - zypresult.rc != 4
+
+
+- name:                                "1.3 Repos: Add the repositories result"
+  ansible.builtin.debug:
+    var:                               zypresult
+    verbosity:                         2
+
+- name:                                "1.3 Repos: Add the repositories result"
+  ansible.builtin.debug:
+    var:                               zypresult
+    verbosity:                         2
+
+- name:                                "1.3 Repos: Add the HA repositories for RHEL"
+  ansible.builtin.dnf:
+    enablerepo:                        rhel-9-for-x86_64-highavailability-rpms
+    disable_gpg_check:                 true
+  changed_when:                        false
+  when:
+    - distribution_id in ['redhat9']
+    - node_tier == 'ha'
