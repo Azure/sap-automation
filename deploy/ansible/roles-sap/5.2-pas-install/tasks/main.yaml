@@ -248,7 +248,6 @@
                                            {{ hdbuserstore_path }} -H {{ pas_virtual_hostname }} SET DEFAULT {{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) }}:3{{ db_instance_number }}13@{{ db_sid | upper }} {{ schema_name }} {{ main_password }}
           environment:
             SAPSYSTEMNAME:                 "{{ sid_to_be_deployed.sid | upper }}"
-            TMPDIR:                        "{{ hdbuserstore_path }}"
             ssfs_connect:                  "1"
           register:                        hdbuserstore
           vars:
