@@ -231,6 +231,8 @@ stages:
                   export workload_prefix=${az_var} ; echo 'Workload Prefix' ${workload_prefix}; echo 'Workload Prefix' ${workload_prefix}
                 fi
 
+                echo $EXTRA_PARAMETERS
+
                 echo "##vso[task.setvariable variable=SSH_KEY_NAME;isOutput=true]${workload_prefix}-sid-sshkey"
                 echo "##vso[task.setvariable variable=VAULT_NAME;isOutput=true]$workload_key_vault"
                 echo "##vso[task.setvariable variable=PASSWORD_KEY_NAME;isOutput=true]${workload_prefix}-sid-password"
@@ -270,6 +272,7 @@ stages:
               CONFIG_REPO_PATH:              ${{ parameters.config_repo_path }}
               BOM_BASE_NAME:                 ${{ parameters.bom_base_name }}
               SAP_SYSTEM_CONFIGURATION_NAME: ${{ parameters.sap_system_configuration_name }}
+              EXTRA_PARAMETERS:              $(EXTRA_PARAMETERS)
           - template:                        templates\run-ansible.yaml
             parameters:
               displayName:                   "Parameter validation"
