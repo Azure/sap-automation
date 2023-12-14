@@ -233,10 +233,10 @@ stages:
 
                 if [ $EXTRA_PARAMETERS = '$(EXTRA_PARAMETERS)' ]; then
                   echo "##vso[task.logissue type=warning]No extra parameters were provided."
-                  new_parameters=$(${{ parameters.extra_params }})
+                  new_parameters=$PIPELINE_EXTRA_PARAMETERS
                 else
                   echo "##vso[task.logissue type=warning]Extra parameters were provided: $EXTRA_PARAMETERS"
-                  new_parameters=$(echo $EXTRA_PARAMETERS ${{ parameters.extra_params }})
+                  new_parameters=$(echo $EXTRA_PARAMETERS $PIPELINE_EXTRA_PARAMETERS)
                 fi
 
                 echo $new_parameters
@@ -281,6 +281,7 @@ stages:
               BOM_BASE_NAME:                 ${{ parameters.bom_base_name }}
               SAP_SYSTEM_CONFIGURATION_NAME: ${{ parameters.sap_system_configuration_name }}
               EXTRA_PARAMETERS:              $(EXTRA_PARAMETERS)
+              PIPELINE_EXTRA_PARAMETERS:     ${{ parameters.extra_params }}
           - template:                        templates\run-ansible.yaml
             parameters:
               displayName:                   "Parameter validation"
