@@ -1105,6 +1105,24 @@
         "Display": 3
       },
       {
+        "Name": "utility_vm_os_disk_size",
+        "Required": false,
+        "Description": "Defines the size of the OS disk for the Virtual Machine. Default size is 128",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "utility_vm_os_disk_type",
+        "Required": false,
+        "Description": "Defines the type of the OS disk for the Virtual Machine. Default size is Premium_LRS.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
         "Name": "utility_vm_useDHCP",
         "Required": false,
         "Description": "Defines if Azure subnet provided IP addresses should be used for the utility virtual machines.",
