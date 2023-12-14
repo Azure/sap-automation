@@ -114,22 +114,31 @@ resource "azurerm_linux_virtual_machine" "utility_vm" {
   network_interface_ids                = [azurerm_network_interface.utility_vm[count.index].id]
 
   size                                 = var.vm_settings.size
-  admin_username                       = local.iscsi.authentication.username
-  admin_password                       = local.iscsi_auth_password
-  disable_password_authentication      = local.enable_iscsi_auth_key
+  admin_username                       = local.input_sid_username
+  admin_password                       = local.input_sid_password
+  disable_password_authentication      = true
 
-  os_disk {
-                 name                 = format("%s%s%s%s%s",
-                                          var.naming.resource_prefixes.osdisk,
-                                          local.prefix,
-                                          var.naming.separator,
-                                          var.naming.virtualmachine_names.WORKLOAD_VMNAME[count.index],
-                                          local.resource_suffixes.osdisk
-                                        )
-                 caching              = "ReadWrite"
-                 storage_account_type = try(var.vm_settings.disk_type, "Premium_LRS")
-                 disk_size_gb         = try(var.vm_settings.disk_size, 128)
-          }
+  dynamic "admin_ssh_key"              {
+                                        for_each = range(1)
+                                        content {
+                                          username   = local.input_sid_username
+                                          public_key = local.sid_public_key
+                                        }
+                                      }
+
+
+  os_disk                             {
+                                         name                 = format("%s%s%s%s%s",
+                                                                  var.naming.resource_prefixes.osdisk,
+                                                                  local.prefix,
+                                                                  var.naming.separator,
+                                                                  var.naming.virtualmachine_names.WORKLOAD_VMNAME[count.index],
+                                                                  local.resource_suffixes.osdisk
+                                                                )
+                                         caching              = "ReadWrite"
+                                         storage_account_type = try(var.vm_settings.disk_type, "Premium_LRS")
+                                         disk_size_gb         = try(var.vm_settings.disk_size, 128)
+                                      }
 
   source_image_reference {
                            publisher  = var.vm_settings.image.publisher
