@@ -484,6 +484,13 @@ $$utility_vm_count$$
 # Defines the SKU for the workload virtual machine
 $$utility_vm_size$$
 
+# Defines the size of the OS disk for the Virtual Machine
+$$utility_vm_os_disk_size$$
+
+# Defines the type of the OS disk for the Virtual Machine
+$$utility_vm_os_disk_type$$
+    
+
 # Defines if the utility virtual machine uses DHCP
 $$utility_vm_useDHCP$$
 

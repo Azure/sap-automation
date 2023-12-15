@@ -231,10 +231,20 @@ stages:
                   export workload_prefix=${az_var} ; echo 'Workload Prefix' ${workload_prefix}; echo 'Workload Prefix' ${workload_prefix}
                 fi
 
+                if [ $EXTRA_PARAMETERS = '$(EXTRA_PARAMETERS)' ]; then
+                  echo "##vso[task.logissue type=warning]No extra parameters were provided."
+                  new_parameters=$PIPELINE_EXTRA_PARAMETERS
+                else
+                  echo "##vso[task.logissue type=warning]Extra parameters were provided: $EXTRA_PARAMETERS"
+                  new_parameters="$EXTRA_PARAMETERS $PIPELINE_EXTRA_PARAMETERS"
+                fi
+
                 echo "##vso[task.setvariable variable=SSH_KEY_NAME;isOutput=true]${workload_prefix}-sid-sshkey"
                 echo "##vso[task.setvariable variable=VAULT_NAME;isOutput=true]$workload_key_vault"
                 echo "##vso[task.setvariable variable=PASSWORD_KEY_NAME;isOutput=true]${workload_prefix}-sid-password"
                 echo "##vso[task.setvariable variable=USERNAME_KEY_NAME;isOutput=true]${workload_prefix}-sid-username"
+                echo "##vso[task.setvariable variable=NEW_PARAMETERS;isOutput=true]${new_parameters}"
+
 
               echo -e "$green--- az login ---$reset"
                 #If the deployer_file exists we run on a deployer configured by the framework instead of a azdo hosted one
@@ -270,6 +280,8 @@ stages:
               CONFIG_REPO_PATH:              ${{ parameters.config_repo_path }}
               BOM_BASE_NAME:                 ${{ parameters.bom_base_name }}
               SAP_SYSTEM_CONFIGURATION_NAME: ${{ parameters.sap_system_configuration_name }}
+              EXTRA_PARAMETERS:              $(EXTRA_PARAMETERS)
+              PIPELINE_EXTRA_PARAMETERS:     ${{ parameters.extra_params }}
           - template:                        templates\run-ansible.yaml
             parameters:
               displayName:                   "Parameter validation"
@@ -281,7 +293,7 @@ stages:
               parametersFolder:              $(Preparation.FOLDER)
               sapParams:                     "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
               sidHosts:                      $(Preparation.HOSTS)
-              extraParams:                   ${{ parameters.extra_params }}
+              extraParams:                   "$(Preparation.NEW_PARAMETERS)"
               azureClientId:                 $(ARM_CLIENT_ID)
               azureClientSecret:             $(ARM_CLIENT_SECRET)
               azureTenantId:                 $(ARM_TENANT_ID)
@@ -298,7 +310,7 @@ stages:
                   parametersFolder:          $(Preparation.FOLDER)
                   sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
                   sidHosts:                  $(Preparation.HOSTS)
-                  extraParams:               ${{ parameters.extra_params }}
+                  extraParams:               "$(Preparation.NEW_PARAMETERS)"
                   azureClientId:             $(ARM_CLIENT_ID)
                   azureClientSecret:         $(ARM_CLIENT_SECRET)
                   azureTenantId:             $(ARM_TENANT_ID)
@@ -315,7 +327,7 @@ stages:
                   parametersFolder:          $(Preparation.FOLDER)
                   sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
                   sidHosts:                  $(Preparation.HOSTS)
-                  extraParams:               ${{ parameters.extra_params }}
+                  extraParams:               "$(Preparation.NEW_PARAMETERS)"
                   azureClientId:             $(ARM_CLIENT_ID)
                   azureClientSecret:         $(ARM_CLIENT_SECRET)
                   azureTenantId:             $(ARM_TENANT_ID)
@@ -332,7 +344,7 @@ stages:
                   parametersFolder:          $(Preparation.FOLDER)
                   sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
                   sidHosts:                  $(Preparation.HOSTS)
-                  extraParams:               ${{ parameters.extra_params }}
+                  extraParams:               "$(Preparation.NEW_PARAMETERS)"
                   azureClientId:             $(ARM_CLIENT_ID)
                   azureClientSecret:         $(ARM_CLIENT_SECRET)
                   azureTenantId:             $(ARM_TENANT_ID)
@@ -349,7 +361,7 @@ stages:
                   parametersFolder:          $(Preparation.FOLDER)
                   sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
                   sidHosts:                  $(Preparation.HOSTS)
-                  extraParams:               ${{ parameters.extra_params }}
+                  extraParams:               "$(Preparation.NEW_PARAMETERS)"
                   azureClientId:             $(ARM_CLIENT_ID)
                   azureClientSecret:         $(ARM_CLIENT_SECRET)
                   azureTenantId:             $(ARM_TENANT_ID)
@@ -366,7 +378,7 @@ stages:
                   parametersFolder:          $(Preparation.FOLDER)
                   sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
                   sidHosts:                  $(Preparation.HOSTS)
-                  extraParams:               ${{ parameters.extra_params }}
+                  extraParams:               "$(Preparation.NEW_PARAMETERS)"
                   azureClientId:             $(ARM_CLIENT_ID)
                   azureClientSecret:         $(ARM_CLIENT_SECRET)
                   azureTenantId:             $(ARM_TENANT_ID)
@@ -383,7 +395,7 @@ stages:
                   parametersFolder:          $(Preparation.FOLDER)
                   sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
                   sidHosts:                  $(Preparation.HOSTS)
-                  extraParams:               ${{ parameters.extra_params }}
+                  extraParams:               "$(Preparation.NEW_PARAMETERS)"
                   azureClientId:             $(ARM_CLIENT_ID)
                   azureClientSecret:         $(ARM_CLIENT_SECRET)
                   azureTenantId:             $(ARM_TENANT_ID)
@@ -400,7 +412,7 @@ stages:
                   parametersFolder:          $(Preparation.FOLDER)
                   sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
                   sidHosts:                  $(Preparation.HOSTS)
-                  extraParams:               ${{ parameters.extra_params }}
+                  extraParams:               "$(Preparation.NEW_PARAMETERS)"
                   azureClientId:             $(ARM_CLIENT_ID)
                   azureClientSecret:         $(ARM_CLIENT_SECRET)
                   azureTenantId:             $(ARM_TENANT_ID)
@@ -417,7 +429,7 @@ stages:
                   parametersFolder:          $(Preparation.FOLDER)
                   sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
                   sidHosts:                  $(Preparation.HOSTS)
-                  extraParams:               ${{ parameters.extra_params }}
+                  extraParams:               "$(Preparation.NEW_PARAMETERS)"
                   azureClientId:             $(ARM_CLIENT_ID)
                   azureClientSecret:         $(ARM_CLIENT_SECRET)
                   azureTenantId:             $(ARM_TENANT_ID)
@@ -434,7 +446,7 @@ stages:
                   parametersFolder:          $(Preparation.FOLDER)
                   sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
                   sidHosts:                  $(Preparation.HOSTS)
-                  extraParams:               ${{ parameters.extra_params }}
+                  extraParams:               "$(Preparation.NEW_PARAMETERS)"
                   azureClientId:             $(ARM_CLIENT_ID)
                   azureClientSecret:         $(ARM_CLIENT_SECRET)
                   azureTenantId:             $(ARM_TENANT_ID)
@@ -451,7 +463,7 @@ stages:
                   parametersFolder:          $(Preparation.FOLDER)
                   sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
                   sidHosts:                  $(Preparation.HOSTS)
-                  extraParams:               ${{ parameters.extra_params }}
+                  extraParams:               "$(Preparation.NEW_PARAMETERS)"
                   azureClientId:             $(ARM_CLIENT_ID)
                   azureClientSecret:         $(ARM_CLIENT_SECRET)
                   azureTenantId:             $(ARM_TENANT_ID)
@@ -468,7 +480,7 @@ stages:
                   parametersFolder:          $(Preparation.FOLDER)
                   sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
                   sidHosts:                  $(Preparation.HOSTS)
-                  extraParams:               ${{ parameters.extra_params }}
+                  extraParams:               "$(Preparation.NEW_PARAMETERS)"
                   azureClientId:             $(ARM_CLIENT_ID)
                   azureClientSecret:         $(ARM_CLIENT_SECRET)
                   azureTenantId:             $(ARM_TENANT_ID)

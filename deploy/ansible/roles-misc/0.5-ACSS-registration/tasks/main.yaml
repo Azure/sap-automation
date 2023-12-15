@@ -160,7 +160,7 @@
 
     - name:                            "0.5.1 acss registration: - Debug [ACSS] virtual instance parameters"
       ansible.builtin.debug:
-        msg:                           
+        msg:
           - "acss_resource_id:         {{ acss_resource_id }}"
           - "acss_subscription_id:     {{ acss_subscription_id }}"
           - "acss_resource_group:      {{ acss_resource_group }}"
