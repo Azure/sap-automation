@@ -335,9 +335,19 @@
       when:
         - platform == 'HANA'
 
+    - name:                            "Backward Compatibility - Check required Database HA variables"
+      ansible.builtin.set_fact:
+        database_high_availability:    "{{ db_high_availability | default(false) }}"
+      when:
+        - db_high_availability is defined
+        - database_high_availability is not defined
+
     - name:                            "DBLoad: Get hdbuserstore path"
       become:                          true
       become_user:                     "{{ sid_to_be_deployed.sid | lower }}adm"
+      when:
+        - database_high_availability
+        - platform == 'HANA'
       ansible.builtin.find:
         paths:                         "/usr/sap/{{ sid_to_be_deployed.sid | upper }}/SYS/exe/uc/linuxx86_64/hdbclient/"
         file_type:                     file
@@ -346,31 +356,32 @@
       register:                        hdbuserstore_file
       environment:
         SAPSYSTEMNAME:                 "{{ sid_to_be_deployed.sid | upper }}"
-      when:
-        - db_high_availability
-        - platform == 'HANA'
 
     - name:                            "DBLoad: Set hdbuserstore path"
-      ansible.builtin.set_fact:
-        hdbuserstore_path:             "{{ hdbuserstore_file.files[0].path }}"
-        db_lb_virtual_host:            "{{ sid_to_be_deployed.sid | lower }}{{ db_sid | lower }}db{{ db_instance_number }}cl.{{ sap_fqdn }}"
       when:
-        - db_high_availability
+        - database_high_availability
         - platform == 'HANA'
         - hdbuserstore_file is defined
         - hdbuserstore_file | length > 0
+      ansible.builtin.set_fact:
+        hdbuserstore_path:             "{{ hdbuserstore_file.files[0].path }}"
+        db_lb_virtual_host:            "{{ sid_to_be_deployed.sid | lower }}{{ db_sid | lower }}db{{ db_instance_number }}cl.{{ sap_fqdn }}"
 
     - name:                            "DBLoad: show hdbuserstore path"
+      when:
+        - database_high_availability
+        - platform == 'HANA'
       ansible.builtin.debug:
         var:                           hdbuserstore_path
         verbosity:                     2
-      when:
-        - db_high_availability
-        - platform == 'HANA'
 
     - name:                            "DBLoad: Set DB Virtual Host name ({{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) }})"
       become:                          true
       become_user:                     "{{ sid_to_be_deployed.sid | lower }}adm"
+      when:
+        - database_high_availability
+        - platform == 'HANA'
+        - hdbuserstore_path is defined
       ansible.builtin.shell: |
                                        {{ hdbuserstore_path }} -H {{ pas_virtual_hostname }} SET DEFAULT {{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) }}:3{{ db_instance_number }}13@{{ db_sid | upper }} {{ schema_name }} {{ main_password }}
       environment:
@@ -380,10 +391,6 @@
       register:                        hdbuserstore
       vars:
         allow_world_readable_tmpfiles: true
-      when:
-        - db_high_availability
-        - platform == 'HANA'
-        - hdbuserstore_path is defined
 
   when:
     - not dbload_installed.stat.exists
@@ -405,9 +412,36 @@
       ansible.builtin.set_fact:
         dbload_already_performed:      true
 
+    - name:                            "Backward Compatibility - Check required Database HA variables"
+      ansible.builtin.set_fact:
+        database_high_availability:    "{{ db_high_availability | default(false) }}"
+      when:
+        - db_high_availability is defined
+        - database_high_availability is not defined
+
+    - name:                            "DBLoad Install: Get DEFAULT.PFL"
+      ansible.builtin.slurp:
+        src:                           "/sapmnt/{{ sap_sid | upper }}/profile/DEFAULT.PFL"
+      register: profilefile
+
+    - name:                            "DBLoad Install: Get schema name"
+      ansible.builtin.set_fact:
+        schema_name:                   "{{ profilefile['content'] | b64decode | split('\n') | select('search', 'dbs/hdb/schema') | first | split('=') | last | trim | default('{{ hana_schema }}') }}"
+      when:
+        - platform == 'HANA'
+
+    - name:                            "DBLoad Install: Installation results"
+      ansible.builtin.debug:
+        msg:                           "Schema name {{ schema_name }}"
+      when:
+        - platform == 'HANA'
+
     - name:                            "DBLoad: Get hdbuserstore path"
       become:                          true
       become_user:                     "{{ sid_to_be_deployed.sid | lower }}adm"
+      when:
+        - database_high_availability
+        - platform == 'HANA'
       ansible.builtin.find:
         paths:                         "/usr/sap/{{ sid_to_be_deployed.sid | upper }}/SYS/exe/uc/linuxx86_64/hdbclient/"
         file_type:                     file
@@ -416,31 +450,35 @@
       register:                        hdbuserstore_file
       environment:
         SAPSYSTEMNAME:                 "{{ sid_to_be_deployed.sid | upper }}"
-      when:
-        - db_high_availability
-        - platform == 'HANA'
+
 
     - name:                            "DBLoad: Set hdbuserstore path"
-      ansible.builtin.set_fact:
-        hdbuserstore_path:             "{{ hdbuserstore_file.files[0].path }}"
-        db_lb_virtual_host:            "{{ sid_to_be_deployed.sid | lower }}{{ db_sid | lower }}db{{ db_instance_number }}cl.{{ sap_fqdn }}"
       when:
-        - db_high_availability
+        - database_high_availability
         - platform == 'HANA'
         - hdbuserstore_file is defined
         - hdbuserstore_file | length > 0
+      ansible.builtin.set_fact:
+        hdbuserstore_path:             "{{ hdbuserstore_file.files[0].path }}"
+        db_lb_virtual_host:            "{{ sid_to_be_deployed.sid | lower }}{{ db_sid | lower }}db{{ db_instance_number }}cl.{{ sap_fqdn }}"
+
 
     - name:                            "DBLoad: show hdbuserstore path"
+      when:
+        - database_high_availability
+        - platform == 'HANA'
       ansible.builtin.debug:
         var:                           hdbuserstore_path
         verbosity:                     2
-      when:
-        - db_high_availability
-        - platform == 'HANA'
+
 
     - name:                            "DBLoad: Set DB Virtual Host name ({{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) }})"
       become:                          true
       become_user:                     "{{ sid_to_be_deployed.sid | lower }}adm"
+      when:
+        - database_high_availability
+        - platform == 'HANA'
+        - hdbuserstore_path is defined
       ansible.builtin.shell: |
                                        {{ hdbuserstore_path }} -H {{ pas_virtual_hostname }} SET DEFAULT {{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) }}:3{{ db_instance_number }}13@{{ db_sid | upper }} {{ hana_schema }} {{ main_password }}
       environment:
@@ -450,11 +488,6 @@
       register:                        hdbuserstore
       vars:
         allow_world_readable_tmpfiles: true
-      when:
-        - db_high_availability
-        - platform == 'HANA'
-        - hdbuserstore_path is defined
-
 
 ...
 # /*---------------------------------------------------------------------------8

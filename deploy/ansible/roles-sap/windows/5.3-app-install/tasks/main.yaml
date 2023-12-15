@@ -70,13 +70,20 @@
   with_items:
     - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
 
+- name:                            "Backward Compatibility - Check required Database HA variables"
+  ansible.builtin.set_fact:
+    database_high_availability:    "{{ db_high_availability | default(false) }}"
+  when:
+    - db_high_availability is defined
+    - database_high_availability is not defined
+
 - name:                                "APP Install: Set the SCS Server name"
   ansible.builtin.set_fact:
     scs_server:                        "{{ hostvars[scs_server_temp | first]['virtual_host'] }}"
     scs_sapmnt_server:                 "{% if scs_high_availability %}{{ sid_to_be_deployed.sid | lower }}scs{{ scs_instance_number }}cl1{% else %}{{ hostvars[scs_server_temp | first]['virtual_host'] }}{% endif %}"
     db_virtual_hostname:               "{{ hostvars[db_server_temp | first]['virtual_host'] }}"
     file_path:                         "{% if scs_high_availability %}INSTALL/HA/ABAP/APP1{% else %}INSTALL/DISTRIBUTED/ABAP/APP1{% endif %}"
-    db_lb_virtual_host:                "{% if db_high_availability %}{{ sid_to_be_deployed.sid | lower }}{{ db_sid | lower }}db{{ db_instance_number }}cl{% else %}{{ hostvars[db_server_temp | first]['virtual_host'] }}{% endif %}"
+    db_lb_virtual_host:                "{% if database_high_availability %}{{ sid_to_be_deployed.sid | lower }}{{ db_sid | lower }}db{{ db_instance_number }}cl{% else %}{{ hostvars[db_server_temp | first]['virtual_host'] }}{% endif %}"
 
 - name:                                "APP Install: Include 3.3.1-bom-utility role"
   ansible.builtin.include_role:

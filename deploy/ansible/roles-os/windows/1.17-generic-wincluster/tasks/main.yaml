@@ -14,9 +14,16 @@
     - domain_name | trim | length > 1
     - domain is not defined
 
+- name:                            "Backward Compatibility - Check required Database HA variables"
+  ansible.builtin.set_fact:
+    database_high_availability:    "{{ db_high_availability | default(false) }}"
+  when:
+    - db_high_availability is defined
+    - database_high_availability is not defined
+
 - name:                                "WinCluster: Prepare for cluster configuration"
   when:
-    - scs_high_availability or db_high_availability
+    - scs_high_availability or database_high_availability
     - ansible_os_family | upper == "WINDOWS"
   ansible.builtin.import_tasks:
     file:                              "1.17.0-wincluster-prerequisites.yaml"
@@ -25,7 +32,7 @@
 
 - name:                                "WinCluster: Configure cluster"
   when:
-    - scs_high_availability or db_high_availability
+    - scs_high_availability or database_high_availability
     - ansible_os_family | upper == "WINDOWS"
   ansible.builtin.import_tasks:
     file:                              "1.17.1-wincluster-createcluster.yaml"

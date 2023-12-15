@@ -302,6 +302,11 @@ namespace AutomationForm.Models
 
     public string utility_vm_size { get; set; }
 
+    public string utility_vm_os_disk_size { get; set; } = "128";
+
+    public string utility_vm_os_disk_type { get; set; } = "Premium_LRS";
+    
+
     public bool? utility_vm_useDHCP { get; set; } = true;
 
     public Image utility_vm_image { get; set; }

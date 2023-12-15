@@ -107,8 +107,15 @@
     var:                               sap_password
     verbosity:                         4
 
+- name:                            "Backward Compatibility - Check required Database HA variables"
+  ansible.builtin.set_fact:
+    database_high_availability:    "{{ db_high_availability | default(false) }}"
+  when:
+    - db_high_availability is defined
+    - database_high_availability is not defined
+
 - name:                                "0.1 Password: - Get Cluster passwords"
   ansible.builtin.include_tasks:       0.1.1-ha_clusterpasswords.yaml
-  when:                                db_high_availability or scs_high_availability
+  when:                                database_high_availability or scs_high_availability
 
 ...

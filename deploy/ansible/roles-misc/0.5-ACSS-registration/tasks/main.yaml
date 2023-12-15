@@ -75,19 +75,6 @@
         crm_resource --resource g-{{ sap_sid | upper }}_{{ instance_type | upper }} --locate | cut -d ':' -f 2| cut -d " " -f 2
       when:
         - scs_high_availability
-        - ansible_os_family | upper == 'SUSE'
-      register:                        cluster_group_location
-      failed_when:                     cluster_group_location.stdout != hostvars[ansible_hostname]['scs_running_on']
-      tags:
-        - skip_ansible_lint
-
-    - name:                            "0.5.1 acss registration: - Check where the cluster group g-{{ sap_sid | upper }}_{{ instance_type | upper }} is running"
-      ansible.builtin.shell: >-
-        set -o pipefail;
-        pcs constraint location show resources g-{{ sap_sid | upper }}_{{ instance_type | upper }} | grep "Node" | awk '{print $2}'
-      when:
-        - scs_high_availability
-        - ansible_os_family | upper == 'REDHAT'
       register:                        cluster_group_location
       failed_when:                     cluster_group_location.stdout != hostvars[ansible_hostname]['scs_running_on']
       tags:
@@ -142,11 +129,18 @@
       tags:
         - skip_ansible_lint
 
+    - name:                            "0.5.1 acss registration: - perform az login"
+      ansible.builtin.command: >-
+                                       az login --identity --allow-no-subscriptions --output none
+      no_log:                          true
+      changed_when:                    false
+
     - name:                            "0.5.1 acss registration: - Get Access Token"
       ansible.builtin.shell: >-
                                        az account get-access-token --resource https://management.azure.com \
                                        --query accessToken -o tsv
       register:                        acss_access_token
+      changed_when:                    false
       no_log:                          true
       tags:
         - skip_ansible_lint
@@ -157,23 +151,48 @@
       tags:
         - skip_ansible_lint
 
+    - name:                            "0.5.1 acss registration: - Check if we have [ACSS] virtual instance write"
+      ansible.builtin.shell: >-
+                                       az provider show --namespace Microsoft.Workloads \
+                                       --query "resourceTypes[?resourceType=='sapVirtualInstances'].permissions[?contains(@.actions, 'Microsoft.Workloads/sapVirtualInstances/write')]"
+      register:                        acss_virtual_instance_write
+      changed_when:                    false
+
+    - name:                            "0.5.1 acss registration: - Debug [ACSS] virtual instance parameters"
+      ansible.builtin.debug:
+        msg:
+          - "acss_resource_id:         {{ acss_resource_id }}"
+          - "acss_subscription_id:     {{ acss_subscription_id }}"
+          - "acss_resource_group:      {{ acss_resource_group }}"
+          - "acss_location:            {{ acss_location }}"
+          - "acss_sid:                 {{ acss_sid }}"
+          - "acss_instance_type:       {{ acss_instance_type }}"
+          - "acss_environment:         {{ acss_environment }}"
+          - "acss_sap_product:         {{ acss_sap_product }}"
+          - "acss_guid:                {{ acss_guid.stdout }}"
+          - "acss_vm_id:               {{ hostvars[ansible_hostname]['scs_running_on'] }}"
+          - "acss_write_auth:          {{ acss_virtual_instance_write.stdout }}"
+        verbosity:                     2
+      tags:
+        - skip_ansible_lint
+
     - name:                            "0.5.1 acss registration: - Create [ACSS] virtual instance"
       ansible.builtin.uri:
         url:                           "https://management.azure.com/subscriptions/{{ acss_subscription_id }}/resourceGroups/{{ acss_resource_group }}/providers/Microsoft.Workloads/sapVirtualInstances/{{ acss_sid }}?api-version=2023-04-01"
         method:                        PUT
         body_format:                   json
         body: |
-          {
-            "properties": {
-              "environment": "{{ acss_environment }}",
-              "sapProduct": "{{ acss_sap_product }}",
-              "configuration": {
-                "configurationType": "Discovery",
-                "centralServerVmId": "/subscriptions/{{ acss_subscription_id }}/resourceGroups/{{ acss_resource_group }}/providers/Microsoft.Compute/virtualMachines/{{ hostvars[ansible_hostname]['scs_running_on'] }}"
-              }
-            },
-            "location": "{{ acss_location }}"
-          }
+                                       {
+                                         "properties": {
+                                           "environment": "{{ acss_environment }}",
+                                           "sapProduct": "{{ acss_sap_product }}",
+                                           "configuration": {
+                                             "configurationType": "Discovery",
+                                             "centralServerVmId": "{{ acss_resource_id }}"
+                                           }
+                                         },
+                                         "location": "{{ acss_location }}"
+                                       }
         # status_code:                   [200, 201]
         headers:
           Authorization:               "Bearer {{ acss_access_token.stdout }}"
@@ -181,7 +200,13 @@
           x-ms-client-request-id:      "SDAF-{{ acss_guid.stdout }}"
       register:                        create_vis_response
       failed_when:                     create_vis_response.json.properties.provisioningState != 'Accepted'
-      no_log:                          true
+      no_log:                          false
+
+    - name:                            "0.5.1 acss registration: - Debug [ACSS] virtual instance creation response"
+      ansible.builtin.debug:
+        msg:                           "{{ create_vis_response }}"
+      tags:
+        - skip_ansible_lint
 
     - name:                            "0.5.1 acss registration: - Check the registered [ACSS] virtual instance"
       ansible.builtin.uri:
