@@ -262,6 +262,9 @@ tf_dir="$${tf_base}/terraform_$${tfversion}"
 tf_bin="$${tf_base}/bin"
 tf_zip="terraform_$${tfversion}_linux_amd64.zip"
 
+export AZADHOME="/home/$${local_user}"
+
+
 #
 #Don't re-run the following if the script is already installed
 #
@@ -696,9 +699,11 @@ else
 
     export PATH="$${PATH}":"$${ansible_bin}":"$${tf_bin}":"$${DOTNET_ROOT}"
 
+    (echo export AZADHOME="/home/$${local_user}" | sudo tee -a /etc/profile.d/deploy_server.sh) > /dev/null 2>&1
 
     # Set env for MSI
     (echo export ARM_USE_MSI=true | sudo tee -a /etc/profile.d/deploy_server.sh) > /dev/null 2>&1
+
     (echo export ARM_CLIENT_ID="$${client_id}" | sudo tee -a /etc/profile.d/deploy_server.sh) > /dev/null 2>&1
     (echo export ARM_SUBSCRIPTION_ID="$${subscription_id}" | sudo tee -a /etc/profile.d/deploy_server.sh) > /dev/null 2>&1
     (echo export ARM_TENANT_ID="$${tenant_id}" | sudo tee -a /etc/profile.d/deploy_server.sh) > /dev/null 2>&1
@@ -706,8 +711,6 @@ else
     # if [[ -n $${TOKEN} ]]; then
     #     echo export AZURE_DEVOPS_EXT_PAT=$${TOKEN} | sudo tee -a /etc/profile.d/deploy_server.sh
     # fi
-
-    export AZADHOME="/home/$${local_user}"
 
     # Add new /opt bin directories to start of PATH to ensure the versions we installed
     # are preferred over any installed standard system versions.
@@ -780,7 +783,7 @@ else
 
         sudo touch "$${agent_home}/agent_configured"
 
-
+        echo export "PATH=$${ansible_bin}:$${tf_bin}:"'$${PATH}'::"$${DOTNET_ROOT}" | sudo tee -a /etc/profile.d/deploy_server.sh
         # Install dotNet
         case "$(get_distro_name)" in
           (ubuntu)
@@ -802,6 +805,8 @@ else
             ;;
         esac
       else
+        echo export "PATH=$${ansible_bin}:$${tf_bin}:"'$${PATH}'::"$${DOTNET_ROOT}":'$${AZADHOME}/Azure_SAP_Automated_Deployment/sap-automation/deploy/scripts' | sudo tee -a /etc/profile.d/deploy_server.sh
+
         echo "export SAP_AUTOMATION_REPO_PATH='$${AZADHOME}/Azure_SAP_Automated_Deployment/sap-automation'" | sudo tee -a /etc/profile.d/deploy_server.sh
         echo "export DEPLOYMENT_REPO_PATH='$${AZADHOME}/Azure_SAP_Automated_Deployment/sap-automation'" | sudo tee -a /etc/profile.d/deploy_server.sh
         echo "export CONFIG_REPO_PATH='$${AZADHOME}/Azure_SAP_Automated_Deployment/WORKSPACES'" | sudo tee -a /etc/profile.d/deploy_server.sh

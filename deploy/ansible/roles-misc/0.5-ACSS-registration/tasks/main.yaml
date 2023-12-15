@@ -77,6 +77,7 @@
         - scs_high_availability
       register:                        cluster_group_location
       failed_when:                     cluster_group_location.stdout != hostvars[ansible_hostname]['scs_running_on']
+      failed_when:                     cluster_group_location.stdout != hostvars[ansible_hostname]['scs_running_on']
       tags:
         - skip_ansible_lint
 
@@ -160,7 +161,7 @@
 
     - name:                            "0.5.1 acss registration: - Debug [ACSS] virtual instance parameters"
       ansible.builtin.debug:
-        msg:                           
+        msg:
           - "acss_resource_id:         {{ acss_resource_id }}"
           - "acss_subscription_id:     {{ acss_subscription_id }}"
           - "acss_resource_group:      {{ acss_resource_group }}"
