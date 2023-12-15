@@ -77,7 +77,6 @@
         - scs_high_availability
       register:                        cluster_group_location
       failed_when:                     cluster_group_location.stdout != hostvars[ansible_hostname]['scs_running_on']
-      failed_when:                     cluster_group_location.stdout != hostvars[ansible_hostname]['scs_running_on']
       tags:
         - skip_ansible_lint
 
