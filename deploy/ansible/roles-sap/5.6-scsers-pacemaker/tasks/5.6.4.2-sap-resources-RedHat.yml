@@ -113,6 +113,47 @@
     #   ansible.builtin.wait_for:
     #     timeout:                       120
 
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# | Systemd-Based SAP Startup Framework - BEGIN                                |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+- name:                                "5.6 SCSERS - check if the OS version is RHEL 8.2 or newer"
+  ansible.builtin.set_fact:
+    is_rhel_82_or_newer:               "{{ ansible_distribution_version is version('8.2', '>=') }}"
+  when:                                ansible_distribution_major_version in ["8", "9"]
+
+- name:                                "5.6 SCSERS Pacemaker - (systemd) Create drop-in file"
+  when:
+    - ansible_distribution_major_version in ["8", "9"]
+    - is_rhel_82_or_newer is defined
+    - is_rhel_82_or_newer
+  become:                              true
+    ansible.builtin.blockinfile:
+      path:                          '{{ dropfile }}'
+      create:                        true
+      block: |
+                                      [Service]
+                                      Restart=no
+    loop:
+      - "/etc/systemd/system/SAP{{ sap_sid | upper }}_{{ scs_instance_number }}.service.d/HA.conf"
+      - "/etc/systemd/system/SAP{{ sap_sid | upper }}_{{ ers_instance_number }}.service.d/HA.conf"
+    loop_var: dropfile
+    register: dropinfile
+
+- name:                                "5.6 SCSERS - systemd reload"
+  ansible.builtin.systemd:
+    daemon_reload:                    yes
+  when:
+    - dropinfile.changed
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# | Systemd-Based SAP Startup Framework - END                                  |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
 # +------------------------------------4---------------------------------------*|
 # | 5.6.6-validate.yml - Validate the SAP ASCS/SCS and ERS resources            |
 # | These are common tasks
