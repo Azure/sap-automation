@@ -358,7 +358,7 @@ resource "azurerm_storage_account_network_rules" "transport" {
 
 resource "azurerm_private_dns_a_record" "transport" {
   provider                             = azurerm.dnsmanagement
-  count                                = var.create_transport_storage && local.use_Azure_native_DNS && var.NFS_provider == "AFS" && length(var.transport_private_endpoint_id) == 0 ? 1 : 0
+  count                                = var.use_private_endpoint && var.create_transport_storage && local.use_Azure_native_DNS && var.NFS_provider == "AFS" && length(var.transport_private_endpoint_id) == 0 ? 1 : 0
   name                                 = replace(
                                            lower(
                                              format("%s", local.landscape_shared_transport_storage_account_name)
@@ -432,7 +432,7 @@ resource "azurerm_private_endpoint" "transport" {
                                            azurerm_subnet.app,
                                            azurerm_private_dns_zone_virtual_network_link.vnet_sap_file
                                          ]
-  count                                = var.create_transport_storage && var.NFS_provider == "AFS" ? (
+  count                                = var.create_transport_storage && var.use_private_endpoint && var.NFS_provider == "AFS" ? (
                                            length(var.transport_storage_account_id) > 0 ? (
                                              0) : (
                                              1
@@ -602,7 +602,7 @@ resource "azurerm_storage_account_network_rules" "install" {
 
 resource "azurerm_private_dns_a_record" "install" {
   provider                             = azurerm.dnsmanagement
-  count                                = local.use_Azure_native_DNS && local.use_AFS_for_install && length(var.install_private_endpoint_id) == 0 ? 1 : 0
+  count                                = var.use_private_endpoint && local.use_Azure_native_DNS && local.use_AFS_for_install && length(var.install_private_endpoint_id) == 0 ? 1 : 0
   name                                 = replace(
                                            lower(
                                              format("%s", local.landscape_shared_install_storage_account_name)
@@ -678,7 +678,7 @@ resource "azurerm_private_endpoint" "install" {
                                            azurerm_storage_share.install,
                                            azurerm_storage_share.install_smb
                                          ]
-  count                                = local.use_AFS_for_install ? (
+  count                                = local.use_AFS_for_install && var.use_private_endpoint ? (
                                            length(var.install_private_endpoint_id) > 0 ? (
                                              0) : (
                                              1

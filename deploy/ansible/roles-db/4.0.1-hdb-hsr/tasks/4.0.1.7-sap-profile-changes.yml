@@ -5,8 +5,17 @@
 # To connect to the primary instance of the HSR configuration, the SAP application layer needs to use the    #
 # virtual IP address that you defined and configured for the Azure Load Balancer                             #
 ##############################################################################################################
+- name:                            "Backward Compatibility - Check required Database HA variables"
+  ansible.builtin.set_fact:
+    database_high_availability:    "{{ db_high_availability | default(false) }}"
+  when:
+    - db_high_availability is defined
+    - database_high_availability is not defined
 
 - name:                                "HSR 4.0.1.7 - SAP Profile changes - HANA Installations"
+  when:
+    - platform == 'HANA'
+    - database_high_availability
   block:
 
     - name:                            "HSR 4.0.1.7 - SAP Profile changes - Set the DB Server name list"
@@ -15,13 +24,13 @@
       with_items:
         - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
       when:
-        - db_high_availability
+        - database_high_availability
 
     - name:                            "HSR 4.0.1.7 - SAP Profile changes - Set the DB virtual_host name"
       ansible.builtin.set_fact:
-        db_lb_virtual_host:            "{% if db_high_availability %}{{ sap_sid | lower }}{{ db_sid | lower }}db{{ db_instance_number }}cl{% else %}{{ hostvars[db_server_temp | first]['virtual_host'] }}{% endif %}"
+        db_lb_virtual_host:            "{% if database_high_availability %}{{ sap_sid | lower }}{{ db_sid | lower }}db{{ db_instance_number }}cl{% else %}{{ hostvars[db_server_temp | first]['virtual_host'] }}{% endif %}"
       when:
-        - db_high_availability
+        - database_high_availability
         - db_server_temp is defined
         - db_server_temp | length > 0
 
@@ -34,7 +43,7 @@
       check_mode:                      true
       register:                        check_default_pfl
       when:
-        - db_high_availability
+        - database_high_availability
 
     - name:                            "HSR: 4.0.1.7 - SAP DEFAULT.PFL changes "
       ansible.builtin.replace:
@@ -44,7 +53,7 @@
         replace:                       '#SAPDBHOST'
       when:
         - check_default_pfl is changed
-        - db_high_availability
+        - database_high_availability
       tags:
         - dbhostcomment
 
@@ -55,11 +64,16 @@
         insertafter:                   '#SAPDBHOST'
       when:
         - check_default_pfl is changed
-        - db_high_availability
+        - database_high_availability
       tags:
         - dbhostpara
 
     - name:                            "HSR: 4.0.1.7 - SAP DEFAULT.PFL changes for JAVA"
+      when:
+        - platform == 'HANA'
+        - database_high_availability
+        - instance_type is defined
+        - instance_type == 'JAVA'
       block:
         - name:                        "HSR: 4.0.1.7 - Check if SAP DEFAULT.PFL changes are needed for JAVA"
           ansible.builtin.lineinfile:
@@ -70,7 +84,7 @@
           check_mode:                  true
           register:                    check_default_pfl
           when:
-            - db_high_availability
+            - database_high_availability
 
         - name:                        "HSR: 4.0.1.7 - SAP DEFAULT.PFL changes for JAVA"
           ansible.builtin.replace:
@@ -80,7 +94,7 @@
             replace:                   '#j2ee/dbhost'
           when:
             - check_default_pfl is changed
-            - db_high_availability
+            - database_high_availability
           tags:
             - dbhostcomment
 
@@ -91,17 +105,9 @@
             insertafter:               '#j2ee/dbhost'
           when:
             - check_default_pfl is changed
-            - db_high_availability
+            - database_high_availability
           tags:
             - dbhostpara
-      when:
-        - platform == 'HANA'
-        - db_high_availability
-        - instance_type is defined
-        - instance_type == 'JAVA'
-  when:
-    - platform == 'HANA'
-    - db_high_availability
 
 - name:                                "4.0.1.7 - Check if SAP DEFAULT.PFL changes are needed for rsdb/ssfs_connect"
   ansible.builtin.lineinfile:

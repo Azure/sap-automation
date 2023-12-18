@@ -50,6 +50,13 @@
       tags:
         - 0.1-win-passwords
 
+    - name:                            "Backward Compatibility - Check required Database HA variables"
+      ansible.builtin.set_fact:
+        database_high_availability:    "{{ db_high_availability | default(false) }}"
+      when:
+        - db_high_availability is defined
+        - database_high_availability is not defined
+
     - name:                                 "Database Installation Playbook: - Read/Create key vault secrets"
       ansible.builtin.include_role:
         name:                               roles-misc/0.2-kv-secrets
@@ -86,11 +93,17 @@
     - vars/ansible-input-api.yaml                                              # API Input template with defaults
 
   tasks:
-# -------------------------------------+---------------------------------------8
-#
-# Build the list of tasks to be executed in order here.
-#
-# -------------------------------------+---------------------------------------8
+  # -------------------------------------+---------------------------------------8
+  #
+  # Build the list of tasks to be executed in order here.
+  #
+  # -------------------------------------+---------------------------------------8
+    - name:                            "Backward Compatibility - Check required Database HA variables"
+      ansible.builtin.set_fact:
+        database_high_availability:    "{{ db_high_availability | default(false) }}"
+      when:
+        - db_high_availability is defined
+        - database_high_availability is not defined
 
     - name:                            "Database Installation Playbook: - Install HANA"
       become:                          true
@@ -247,11 +260,11 @@
     - vars/ansible-input-api.yaml                               # API Input template with defaults
 
   tasks:
-# -------------------------------------+---------------------------------------8
-#
-# Build the list of tasks to be executed in order here.
-#
-# -------------------------------------+---------------------------------------8
+  # -------------------------------------+---------------------------------------8
+  #
+  # Build the list of tasks to be executed in order here.
+  #
+  # -------------------------------------+---------------------------------------8
     - name:                            "Database Installation Playbook: - Install Oracle"
       become:                          true
       become_user:                     root
@@ -285,11 +298,11 @@
     - vars/ansible-input-api.yaml                               # API Input template with defaults
 
   tasks:
-# -------------------------------------+---------------------------------------8
-#
-# Build the list of tasks to be executed in order here.
-#
-# -------------------------------------+---------------------------------------8
+  # -------------------------------------+---------------------------------------8
+  #
+  # Build the list of tasks to be executed in order here.
+  #
+  # -------------------------------------+---------------------------------------8
     - name:                            "Database Installation Playbook: - Install Oracle"
       become:                          true
       become_user:                     root
@@ -445,17 +458,24 @@
     - vars/ansible-input-api.yaml                               # API Input template with defaults
 
   tasks:
-# -------------------------------------+---------------------------------------8
-#
-# Build the list of tasks to be executed in order here.
-#
-# -------------------------------------+---------------------------------------8
+  # -------------------------------------+---------------------------------------8
+  #
+  # Build the list of tasks to be executed in order here.
+  #
+  # -------------------------------------+---------------------------------------8
+    - name:                            "Backward Compatibility - Check required Database HA variables"
+      ansible.builtin.set_fact:
+        database_high_availability:    "{{ db_high_availability | default(false) }}"
+      when:
+        - db_high_availability is defined
+        - database_high_availability is not defined
+
     - name:                            "Install SAP DB2"
       become:                          true
       become_user:                     root
       when:
         - platform == 'DB2'
-        - not db_high_availability
+        - not database_high_availability
       block:
 
         - name:                        "DB2 : Setting the DB facts"
@@ -504,14 +524,25 @@
     - vars/ansible-input-api.yaml                               # API Input template with defaults
 
   tasks:
-# -------------------------------------+---------------------------------------8
-#
-# Build the list of tasks to be executed in order here.
-#
-# -------------------------------------+---------------------------------------8
+  # -------------------------------------+---------------------------------------8
+  #
+  # Build the list of tasks to be executed in order here.
+  #
+  # -------------------------------------+---------------------------------------8
+    - name:                            "Backward Compatibility - Check required Database HA variables"
+      ansible.builtin.set_fact:
+        database_high_availability:    "{{ db_high_availability | default(false) }}"
+      when:
+        - db_high_availability is defined
+        - database_high_availability is not defined
+
     - name:                            "Install SAP DB2"
       become:                          true
       become_user:                     root
+      when:
+        - platform == 'DB2'
+        - database_high_availability
+        - (ansible_play_hosts_all | length) >= 2
       block:
 
         - name:                        Setting the DB facts
@@ -523,7 +554,6 @@
             bom_processing:            true
             primary_instance_name:     "{{ ansible_play_hosts_all[0] }}"         # Setting up Primary Instance Name
             secondary_instance_name:   "{{ ansible_play_hosts_all[1] }}"         # Setting up Secondary Instance Name
-
           tags:
             - always
 
@@ -548,10 +578,7 @@
             prefix:                    "{{ bom.product_ids.dblha.replace('.', '/').replace('/ABAP', '').split(':')[1] }}"
             path:                      "INSTALL/DISTRIBUTED/ABAP/DB"
             this_sid:                  "{{ sap_sid }}"
-      when:
-        - platform == 'DB2'
-        - db_high_availability
-        - (ansible_play_hosts_all | length) >= 2
+
 
 # /*----------------------------------------------------------------------------8
 # |                                                                            |
@@ -567,17 +594,24 @@
     - vars/ansible-input-api.yaml                               # API Input template with defaults
 
   tasks:
-# -------------------------------------+---------------------------------------8
-#
-# Build the list of tasks to be executed in order here.
-#
-# -------------------------------------+---------------------------------------8
+  # -------------------------------------+---------------------------------------8
+  #
+  # Build the list of tasks to be executed in order here.
+  #
+  # -------------------------------------+---------------------------------------8
+    - name:                            "Backward Compatibility - Check required Database HA variables"
+      ansible.builtin.set_fact:
+        database_high_availability:    "{{ db_high_availability | default(false) }}"
+      when:
+        - db_high_availability is defined
+        - database_high_availability is not defined
+
     - name:                            "Install SAP ASE"
       become:                          true
       become_user:                     root
       when:
         - platform == 'SYBASE'
-        - not db_high_availability
+        - not database_high_availability
       block:
 
         - name:                        "ASE Installation Play: Setting the DB facts"

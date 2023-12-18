@@ -262,6 +262,9 @@ tf_dir="$${tf_base}/terraform_$${tfversion}"
 tf_bin="$${tf_base}/bin"
 tf_zip="terraform_$${tfversion}_linux_amd64.zip"
 
+export AZADHOME="/home/$${local_user}"
+
+
 #
 #Don't re-run the following if the script is already installed
 #
@@ -293,6 +296,7 @@ else
         exit 1
         ;;
     esac
+
     if [ "$(get_distro_version)" == "15.4" ]; then
         error "Unsupported distro: $${distro_name_version} at this time."
         exit 1
@@ -305,6 +309,7 @@ else
 
     echo "Set ansible version for specific distros"
     echo ""
+
     case "$(get_distro_name)" in
     (ubuntu)
       echo "we are inside ubuntu"
@@ -317,31 +322,31 @@ else
       ;;
     (sles)
       echo "we are inside sles"
-      if [ "$(get_distro_version)" == "15.3" ]; then
-        ansible_version="2.11"
-        ansible_major="$${ansible_version%%.*}"
-        ansible_minor=$(echo "$${ansible_version}." | cut -d . -f 2)
-        # Ansible installation directories
-        ansible_base="/opt/ansible"
-        ansible_bin="$${ansible_base}/bin"
-        ansible_venv="$${ansible_base}/venv/$${ansible_version}"
-        ansible_venv_bin="$${ansible_venv}/bin"
-        ansible_collections="$${ansible_base}/collections"
-        ansible_pip3="$${ansible_venv_bin}/pip3"
-        sudo python3 -m pip install virtualenv;
-      elif [ "$(get_distro_version)" == "15.5" ]; then
-        ansible_version="2.11"
-        ansible_major="$${ansible_version%%.*}"
-        ansible_minor=$(echo "$${ansible_version}." | cut -d . -f 2)
-        # Ansible installation directories
-        ansible_base="/opt/ansible"
-        ansible_bin="$${ansible_base}/bin"
-        ansible_venv="$${ansible_base}/venv/$${ansible_version}"
-        ansible_venv_bin="$${ansible_venv}/bin"
-        ansible_collections="$${ansible_base}/collections"
-        ansible_pip3="$${ansible_venv_bin}/pip3"
-        sudo python3 -m pip install virtualenv;
-      fi
+      ansible_version="2.11"
+      ansible_major="$${ansible_version%%.*}"
+      ansible_minor=$(echo "$${ansible_version}." | cut -d . -f 2)
+      # Ansible installation directories
+      ansible_base="/opt/ansible"
+      ansible_bin="$${ansible_base}/bin"
+      ansible_venv="$${ansible_base}/venv/$${ansible_version}"
+      ansible_venv_bin="$${ansible_venv}/bin"
+      ansible_collections="$${ansible_base}/collections"
+      ansible_pip3="$${ansible_venv_bin}/pip3"
+      sudo python3 -m pip install virtualenv;
+      ;;
+    (rhel)
+      echo "we are inside RHEL"
+      ansible_version="2.11"
+      ansible_major="$${ansible_version%%.*}"
+      ansible_minor=$(echo "$${ansible_version}." | cut -d . -f 2)
+      # Ansible installation directories
+      ansible_base="/opt/ansible"
+      ansible_bin="$${ansible_base}/bin"
+      ansible_venv="$${ansible_base}/venv/$${ansible_version}"
+      ansible_venv_bin="$${ansible_venv}/bin"
+      ansible_collections="$${ansible_base}/collections"
+      ansible_pip3="$${ansible_venv_bin}/pip3"
+      sudo python3 -m pip install virtualenv;
       ;;
     (*)
       echo "we are in the default case statement"
@@ -491,20 +496,24 @@ else
         sudo apt-get install azure-cli -y
         ;;
     (sles)
-        if [ -f /home/$${local_user}/repos_configured ]; then
+        set +o errexit
+        if [ -f /home/"$${local_user}"/repos_configured ]; then
           sudo zypper install -y --from azure-cli azure-cli
         else
           sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc
-          sudo zypper addrepo --name 'Azure CLI' --check https://packages.microsoft.com/yumrepos/azure-cli azure-cli
+          repo_found=$(zypper repos | grep "Azure CLI")
+          if [ -z "$${repo_found}" ]; then
+            sudo zypper addrepo --name 'Azure CLI' --check https://packages.microsoft.com/yumrepos/azure-cli azure-cli
+          fi
           sudo touch /home/$${local_user}/repos_configured
           sudo zypper install -y --from azure-cli azure-cli
         fi
-
+        set -o errexit
         ;;
     (rhel*)
         sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc
         sudo dnf install -y https://packages.microsoft.com/config/rhel/8/packages-microsoft-prod.rpm
-        sudo dnf install azure-cli
+        sudo dnf install -y azure-cli
         ;;
     esac
 
@@ -538,9 +547,11 @@ else
 
     case "$(get_distro_name)" in
     (rhel)
-        sudo python -m venv "$${ansible_venv}"
-        source "$${ansible_venv_bin}/activate"
-
+        if [[ ! -e "$${ansible_venv_bin}/activate" ]]; then
+            sudo rm -rf "$${ansible_venv}"
+            sudo python3 -m venv "$${ansible_venv}"
+            source "$${ansible_venv_bin}/activate"
+        fi
         ;;
     (ubuntu|sles)
         # Create a Python3 based venv into which we will install Ansible.
@@ -669,17 +680,18 @@ else
     echo export ANSIBLE_HOST_KEY_CHECKING=False | sudo tee -a /etc/profile.d/deploy_server.sh
     echo export ANSIBLE_COLLECTIONS_PATHS="$${ansible_collections}" | sudo tee -a /etc/profile.d/deploy_server.sh
 
-    export DOTNET_INSTALL_DIR=/opt/dotnet
+    export DOTNET_INSTALL_DIR='/opt/dotnet'
 
-    sudo mkdir -p $${DOTNET_INSTALL_DIR}
+    sudo mkdir -p "$${DOTNET_INSTALL_DIR}"
 
     case "$(get_distro_name)" in
     (ubuntu)
         echo "export DOTNET_ROOT=/snap/dotnet-sdk/current" | tee -a /tmp/deploy_server.sh
+        export DOTNET_ROOT='/snap/dotnet-sdk/current'
         ;;
     (sles)
         echo "export DOTNET_ROOT=$${DOTNET_INSTALL_DIR}" | tee -a /tmp/deploy_server.sh
-        export DOTNET_ROOT=$${DOTNET_INSTALL_DIR}
+        export DOTNET_ROOT="$${DOTNET_INSTALL_DIR}"
         ;;
       (rhel*)
         ;;
@@ -687,9 +699,11 @@ else
 
     export PATH="$${PATH}":"$${ansible_bin}":"$${tf_bin}":"$${DOTNET_ROOT}"
 
+    (echo export AZADHOME="/home/$${local_user}" | sudo tee -a /etc/profile.d/deploy_server.sh) > /dev/null 2>&1
 
     # Set env for MSI
     (echo export ARM_USE_MSI=true | sudo tee -a /etc/profile.d/deploy_server.sh) > /dev/null 2>&1
+
     (echo export ARM_CLIENT_ID="$${client_id}" | sudo tee -a /etc/profile.d/deploy_server.sh) > /dev/null 2>&1
     (echo export ARM_SUBSCRIPTION_ID="$${subscription_id}" | sudo tee -a /etc/profile.d/deploy_server.sh) > /dev/null 2>&1
     (echo export ARM_TENANT_ID="$${tenant_id}" | sudo tee -a /etc/profile.d/deploy_server.sh) > /dev/null 2>&1
@@ -700,10 +714,10 @@ else
 
     # Add new /opt bin directories to start of PATH to ensure the versions we installed
     # are preferred over any installed standard system versions.
-    echo export "PATH=$${ansible_bin}:$${tf_bin}:"'$${PATH}'::"$${DOTNET_ROOT}":'$${HOME}/Azure_SAP_Automated_Deployment/sap-automation/deploy/scripts' | sudo tee -a /etc/profile.d/deploy_server.sh
+    echo export "PATH=$${ansible_bin}:$${tf_bin}:$${PATH}":"$${DOTNET_ROOT}":"$${AZADHOME}/Azure_SAP_Automated_Deployment/sap-automation/deploy/scripts" | sudo tee -a /etc/profile.d/deploy_server.sh
 
     # Ensure that the user's account is logged in to Azure with specified creds
-    echo az login --identity --allow-no-subscriptions --output none | sudo tee -a /etc/profile.d/deploy_server.sh
+    echo 'az login --identity --allow-no-subscriptions --output none' | sudo tee -a /etc/profile.d/deploy_server.sh
     echo 'echo $${USER} account ready for use with Azure SAP Automated Deployment' | sudo tee -a /etc/profile.d/deploy_server.sh
 
     sudo runuser -l "$${local_user}" -c '/usr/bin/az login --identity --allow-no-subscriptions --output none'
@@ -712,7 +726,7 @@ else
     # Create Agent
     #
     # Azure SAP Automated Deployment directories
-    agent_home="/home/$${local_user}/agent"
+    export agent_home="/home/$${local_user}/agent"
 
     if [ -f "/home/$${local_user}/agent/agent_installed" ]; then
       echo "Agent already installed"
@@ -769,7 +783,7 @@ else
 
         sudo touch "$${agent_home}/agent_configured"
 
-
+        echo export "PATH=$${ansible_bin}:$${tf_bin}:"'$${PATH}'::"$${DOTNET_ROOT}" | sudo tee -a /etc/profile.d/deploy_server.sh
         # Install dotNet
         case "$(get_distro_name)" in
           (ubuntu)
@@ -791,9 +805,11 @@ else
             ;;
         esac
       else
-        echo "export SAP_AUTOMATION_REPO_PATH='$${HOME}/Azure_SAP_Automated_Deployment/sap-automation'" | sudo tee -a /etc/profile.d/deploy_server.sh
-        echo "export DEPLOYMENT_REPO_PATH='$${HOME}/Azure_SAP_Automated_Deployment/sap-automation'" | sudo tee -a /etc/profile.d/deploy_server.sh
-        echo "export CONFIG_REPO_PATH='$${HOME}/Azure_SAP_Automated_Deployment/WORKSPACES'" | sudo tee -a /etc/profile.d/deploy_server.sh
+        echo export "PATH=$${ansible_bin}:$${tf_bin}:"'$${PATH}'::"$${DOTNET_ROOT}":'$${AZADHOME}/Azure_SAP_Automated_Deployment/sap-automation/deploy/scripts' | sudo tee -a /etc/profile.d/deploy_server.sh
+
+        echo "export SAP_AUTOMATION_REPO_PATH='$${AZADHOME}/Azure_SAP_Automated_Deployment/sap-automation'" | sudo tee -a /etc/profile.d/deploy_server.sh
+        echo "export DEPLOYMENT_REPO_PATH='$${AZADHOME}/Azure_SAP_Automated_Deployment/sap-automation'" | sudo tee -a /etc/profile.d/deploy_server.sh
+        echo "export CONFIG_REPO_PATH='$${AZADHOME}/Azure_SAP_Automated_Deployment/WORKSPACES'" | sudo tee -a /etc/profile.d/deploy_server.sh
       fi
     fi
 fi
