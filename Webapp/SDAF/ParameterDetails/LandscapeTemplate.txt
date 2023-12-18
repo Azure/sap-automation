@@ -489,7 +489,7 @@ $$utility_vm_os_disk_size$$
 
 # Defines the type of the OS disk for the Virtual Machine
 $$utility_vm_os_disk_type$$
-    
+
 
 # Defines if the utility virtual machine uses DHCP
 $$utility_vm_useDHCP$$
