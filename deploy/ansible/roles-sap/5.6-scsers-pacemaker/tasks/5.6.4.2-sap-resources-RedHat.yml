@@ -112,7 +112,6 @@
     # - name:                            "5.6 SCSERS - RHEL - ENSA2 - pause the execution for 2 minutes"
     #   ansible.builtin.wait_for:
     #     timeout:                       120
-
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
 # | Systemd-Based SAP Startup Framework - BEGIN                                |
@@ -142,8 +141,8 @@
   ansible.builtin.set_fact:
     systemd_service_names:             "{{
                                            systemd_service_file_path.results
-                                           | selectattr('stat.exists')
-                                           | map(attribute='stat.exists')
+                                           | selectattr('stat.exists', 'equalto', true)
+                                           | map(attribute='stat.path')
                                            | regex_replace('/etc/systemd/system/', '')
                                          }}"
   when:
@@ -162,6 +161,8 @@
       ansible.builtin.systemd:
         name:                          "{{ service_name }}"
         enabled:                       false
+      failed_when:                     false
+      loop:                            "{{ systemd_service_names }}"
       loop:                            "{{ systemd_service_names }}"
       loop_control:
         loop_var:                      service_name
@@ -171,16 +172,34 @@
         - is_rhel_82_or_newer is defined
         - is_rhel_82_or_newer
       become:                          true
-      ansible.builtin.blockinfile:
+      ansible.builtin.lineinfile:
         path:                          '{{ dropfile }}'
         create:                        true
         backup:                        true
         owner:                         root
         group:                         root
         mode:                          '0644'
-        block: >-
-                                       [Service]
-                                       Restart=no
+        line:                          "[Service]"
+      loop:
+        - "/etc/systemd/system/SAP{{ sap_sid | upper }}_{{ scs_instance_number }}.service.d/HA.conf"
+        - "/etc/systemd/system/SAP{{ sap_sid | upper }}_{{ ers_instance_number }}.service.d/HA.conf"
+      loop_control:
+        loop_var:                      dropfile
+
+    - name:                            "5.6 SCSERS Pacemaker - (systemd) Update drop-in file"
+      when:
+        - is_rhel_82_or_newer is defined
+        - is_rhel_82_or_newer
+      become:                          true
+      ansible.builtin.lineinfile:
+        path:                          '{{ dropfile }}'
+        create:                        true
+        backup:                        true
+        owner:                         root
+        group:                         root
+        mode:                          '0644'
+        insertafter:                   '^[Service]$'
+        line:                          "Restart=no"
       loop:
         - "/etc/systemd/system/SAP{{ sap_sid | upper }}_{{ scs_instance_number }}.service.d/HA.conf"
         - "/etc/systemd/system/SAP{{ sap_sid | upper }}_{{ ers_instance_number }}.service.d/HA.conf"
@@ -210,6 +229,7 @@
 # | Systemd-Based SAP Startup Framework - END                                  |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
+
 
 # +------------------------------------4---------------------------------------*|
 # | 5.6.6-validate.yml - Validate the SAP ASCS/SCS and ERS resources            |
