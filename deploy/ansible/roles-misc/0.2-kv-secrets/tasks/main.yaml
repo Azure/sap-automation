@@ -32,9 +32,7 @@
                                             - "use_msi_for_clusters:            {{ use_msi_for_clusters }}"
                                             - "platform:                        {{ platform | upper }}"
     verbosity:                              2
-  when:
-                                          - operation is defined
-                                          - operation == "fencing"
+  when:                                   operation == "fencing"
 
 # -------------------------------------+---------------------------------------8
 #
@@ -42,7 +40,6 @@
 - name:                                   "0.2 Key Vault: - Import S User tasks"
   ansible.builtin.import_tasks:           "s_user.yaml"
   when:
-                                          - operation is defined
                                           - operation == "SoftwareAcquisition"
 
 
@@ -52,7 +49,6 @@
 - name:                                   "0.2 Key Vault: - Import Fencing secrets"
   ansible.builtin.import_tasks:           "fencing.yaml"
   when:
-                                          - operation is defined
                                           - operation == "fencing"
                                           - (database_high_availability and database_cluster_type == "AFA") or
                                             (scs_high_availability      and      scs_cluster_type == "AFA")         # AFA (Azure Fencing Agent)
@@ -66,7 +62,6 @@
   ansible.builtin.import_tasks:           "wincluster-witness.yaml"
   # TODO: update when clause more appropriately
   when:
-                                          - operation is defined
                                           - operation == "fencing"
                                           - (scs_high_availability or database_high_availability)
                                           - not use_msi_for_clusters
