@@ -94,7 +94,7 @@
         group:                         root
         mode:                          '0644'
         block: >-
-                                       [Service]
+                                       [Service]\n
                                        Restart=no
       loop:
         - "/etc/systemd/system/SAP{{ sap_sid | upper }}_{{ scs_instance_number }}.service.d/HA.conf"
