@@ -80,7 +80,7 @@ module "common_infrastructure" {
   key_vault                                     = local.key_vault
   landscape_tfstate                             = data.terraform_remote_state.landscape.outputs
   license_type                                  = var.license_type
-  management_dns_resourcegroup_name             = coalesce(data.terraform_remote_state.landscape.outputs.management_dns_resourcegroup_name, local.saplib_resource_group_name)
+  management_dns_resourcegroup_name             = try(data.terraform_remote_state.landscape.outputs.management_dns_resourcegroup_name, local.saplib_resource_group_name)
   management_dns_subscription_id                = try(data.terraform_remote_state.landscape.outputs.management_dns_subscription_id, null)
   naming                                        = length(var.name_override_file) > 0 ? local.custom_names : module.sap_namegenerator.naming
   NFS_provider                                  = var.NFS_provider
@@ -142,8 +142,8 @@ module "hdb_node" {
   infrastructure                                = local.infrastructure
   landscape_tfstate                             = data.terraform_remote_state.landscape.outputs
   license_type                                  = var.license_type
-  management_dns_resourcegroup_name             = coalesce(data.terraform_remote_state.landscape.outputs.management_dns_resourcegroup_name, local.saplib_resource_group_name)
-  management_dns_subscription_id                = coalesce(data.terraform_remote_state.landscape.outputs.management_dns_subscription_id, local.saplib_subscription_id)
+  management_dns_resourcegroup_name             = try(data.terraform_remote_state.landscape.outputs.management_dns_resourcegroup_name, local.saplib_resource_group_name)
+  management_dns_subscription_id                = try(data.terraform_remote_state.landscape.outputs.management_dns_subscription_id, null)
   naming                                        = length(var.name_override_file) > 0 ? local.custom_names : module.sap_namegenerator.naming
   NFS_provider                                  = var.NFS_provider
   options                                       = local.options
@@ -263,7 +263,7 @@ module "anydb_node" {
   infrastructure                                = local.infrastructure
   landscape_tfstate                             = data.terraform_remote_state.landscape.outputs
   license_type                                  = var.license_type
-  management_dns_resourcegroup_name             = coalesce(data.terraform_remote_state.landscape.outputs.management_dns_resourcegroup_name, local.saplib_resource_group_name)
+  management_dns_resourcegroup_name             = try(data.terraform_remote_state.landscape.outputs.management_dns_resourcegroup_name, local.saplib_resource_group_name)
   management_dns_subscription_id                = try(data.terraform_remote_state.landscape.outputs.management_dns_subscription_id, null)
   naming                                        = length(var.name_override_file) > 0 ? local.custom_names : module.sap_namegenerator.naming
   options                                       = local.options

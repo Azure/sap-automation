@@ -70,15 +70,6 @@
                                             - scs_high_availability or database_high_availability
       tags:
                                             - 0.2-wincluster-witness
-# MKD - These two tasks (Above & Below) seem to achieve the same thing?
-    - name:                                 "SCS Installation Playbook: - Read/Create key vault secrets"
-      ansible.builtin.include_role:
-        name:                               roles-misc/0.2-kv-secrets
-        public:                             true
-      vars:
-        operation:                          fencing
-      tags:
-                                            - kv-secrets
 
     - name:                            "SCS Installation Playbook: - Read storage account details"
       ansible.builtin.include_role:
@@ -442,6 +433,15 @@
             ers_virtual_hostname:               "{{ sap_sid | lower }}ers{{ ers_instance_number }}cl2"
           tags:
                                                 - always
+
+        - name:                                 "SCS HA Installation Playbook: - Read/Create key vault secrets"
+          ansible.builtin.include_role:
+            name:                               roles-misc/0.2-kv-secrets
+            public:                             true
+          vars:
+            operation:                          fencing
+          tags:
+                                                - kv-secrets
 
         - name:                                 "SCS HA Installation Playbook: - Initialize facts... Fencing"
           ansible.builtin.set_fact:
