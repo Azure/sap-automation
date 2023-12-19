@@ -182,15 +182,14 @@
 # | Systemd-Based SAP Startup Framework - BEGIN                                |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
+# Follow steps described in https://access.redhat.com/articles/6884531
 
 - name:                                "5.5.4.1 HANA Cluster configuration - check if the OS version is RHEL 8.2 or newer"
   ansible.builtin.set_fact:
-    is_rhel_82_or_newer:               "{{ ansible_distribution_version is version('8.2', '>=') }}"
-  when:                                ansible_distribution_major_version in ["8", "9"]
+    is_rhel_82_or_newer:               "{{ ansible_distribution_version is version('8.2', '>=') | default(false) }}"
 
-- name:                                "5.5.4.1 HANA Cluster configuration - (systemd) Create drop-in file"
+- name:                                "5.5.4.1 HANA Cluster configuration - (systemd) Creating drop-in file"
   when:
-    - ansible_distribution_major_version in ["8", "9"]
     - is_rhel_82_or_newer is defined
     - is_rhel_82_or_newer
   become:                              true

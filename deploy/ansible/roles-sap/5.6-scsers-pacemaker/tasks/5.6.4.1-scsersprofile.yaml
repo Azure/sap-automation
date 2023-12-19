@@ -31,8 +31,14 @@
   ansible.builtin.replace:
     backup:                            true
     path:                              /usr/sap/sapservices
-    regexp:                            '^LD_LIBRARY_PATH='
-    replace:                           "#LD_LIBRARY_PATH="
+    regexp:                            '^([^#\n].+{{ sapservice }}.+)$'
+    replace:                           '# \1'
+  loop:
+    - "{{ sap_sid | upper }}_{{ instance_type | upper }}{{ scs_instance_number }}_{{ scs_virtual_hostname }}"
+    - "{{ sap_sid | upper }}_ERS{{ ers_instance_number }}_{{ ers_virtual_hostname }}"
+  loop_control:
+    label:                             "{{ sapservice }}"
+    loop_var:                          sapservice
   when:
     - ansible_os_family | upper == "REDHAT"
 
@@ -43,29 +49,32 @@
 
 - name:                                "5.6 SCSERS - ASCS, ERS profile changes"
   become:                              true
-  block:
-
-    - name:                            "5.6 SCSERS - ASCS Profile - add service/halib"
-      ansible.builtin.blockinfile:
-        path:                          '{{ scs_instance_profile_path }}'
-        block: |
-                                       service/halib = $(DIR_CT_RUN)/saphascriptco.so
-                                       service/halib_cluster_connector = /usr/bin/sap_suse_cluster_connector
-      register: scsservicehalib
-
-    - name:                            "5.6 SCSERS - ERS Profile - add service/halib"
-      ansible.builtin.blockinfile:
-        path:                          '{{ ers_instance_profile_path }}'
-        block: |
-                                       service/halib = $(DIR_CT_RUN)/saphascriptco.so
-                                       service/halib_cluster_connector = /usr/bin/sap_suse_cluster_connector
-      register: ersservicehalib
   when:
     - ansible_os_family | upper  == "SUSE"
     - inventory_hostname == primary_instance_name
+  block:
+    - name:                            "5.6 SCSERS - ASCS Profile - add service/halib"
+      ansible.builtin.blockinfile:
+        path:                          '{{ scs_instance_profile_path }}'
+        block: |
+                                       service/halib = $(DIR_CT_RUN)/saphascriptco.so
+                                       service/halib_cluster_connector = /usr/bin/sap_suse_cluster_connector
+      register: scsservicehalib
+
+    - name:                            "5.6 SCSERS - ERS Profile - add service/halib"
+      ansible.builtin.blockinfile:
+        path:                          '{{ ers_instance_profile_path }}'
+        block: |
+                                       service/halib = $(DIR_CT_RUN)/saphascriptco.so
+                                       service/halib_cluster_connector = /usr/bin/sap_suse_cluster_connector
+      register: ersservicehalib
+
 
 - name:                                "5.6 SCSERS - ASCS, ERS profile changes"
   become:                              true
+  when:
+    - ansible_os_family | upper  == "REDHAT"
+    - inventory_hostname == primary_instance_name
   block:
     - name:                            "5.6 SCSERS - ASCS Profile - add service/halib"
       ansible.builtin.blockinfile:
@@ -82,12 +91,12 @@
                                        service/halib = $(DIR_CT_RUN)/saphascriptco.so
                                        service/halib_cluster_connector = /usr/bin/sap_cluster_connector
       register: ersservicehalib
-  when:
-    - ansible_os_family | upper  == "REDHAT"
-    - inventory_hostname == primary_instance_name
+
 
 - name:                                "5.6 SCSERS - ASCS, ERS profile changes"
   become:                              true
+  when:
+    - inventory_hostname == primary_instance_name
   block:
     # SAP introduced support for enqueue server 2, including replication, as of SAP NW 7.52.
     # Starting with ABAP Platform 1809, enqueue server 2 is installed by default
@@ -116,8 +125,7 @@
         replace:                       '# Autostart'
       tags:
         - ersautostart
-  when:
-    - inventory_hostname == primary_instance_name
+
 
 # Following are the changes in ASCS/ERS profiles based if ENSA1 is applicable
 - name:                            "5.6 SCSERS - Add the keep alive parameter, if using ENSA1"
