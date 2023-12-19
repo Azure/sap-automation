@@ -13,15 +13,10 @@ tar zxvf agent.tar.gz
 
 
 # run the configuration script
-./config.sh  
+./config.sh
 
 # automatic start configuration after VM reboot
-sudo ./svc.sh install azureadm
+sudo ./svc.sh install "${USER}"
 
 # start the deamon
 sudo ./svc.sh start
-
-# Install dotnet for the web app
-sudo snap install dotnet-sdk --classic --channel=3.1
-sudo snap alias dotnet-sdk.dotnet dotnet
-export DOTNET_ROOT=/snap/dotnet-sdk/current
