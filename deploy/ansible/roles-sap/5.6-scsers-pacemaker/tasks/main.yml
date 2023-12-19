@@ -26,6 +26,106 @@
       become:                          true
       become_user:                     root
 
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# | Systemd-Based SAP Startup Framework - BEGIN                                |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+- name:                                "5.6 SCSERS - check if the OS version is RHEL 8.2 or newer"
+  ansible.builtin.set_fact:
+    is_rhel_82_or_newer:               "{{ ansible_distribution_version is version('8.2', '>=') | default(false) }}"
+
+# For systemd services the SAP ASCS/SCS and ERS resources are created as systemd services
+# the path for the service file is /etc/systemd/system/SAP<SID>_<InstanceNumber>.service
+- name:                                "5.6 SCSERS - check if the SAP ASCS/SCS and ERS resources are created as systemd services"
+  when:
+    - is_rhel_82_or_newer is defined
+    - is_rhel_82_or_newer
+  ansible.builtin.stat:
+    path:                              "/etc/systemd/system/SAP{{ sap_sid | upper }}_{{ sap_instance_number }}.service"
+  register:                            systemd_service_file_path
+  loop:
+    - "{{ scs_instance_number }}"
+    - "{{ ers_instance_number }}"
+  loop_control:
+    loop_var:                          sap_instance_number
+
+- name:                                "5.6 SCSERS - Set fact for the systemd services existance"
+  ansible.builtin.set_fact:
+    systemd_service_names:             "{{
+                                           systemd_service_file_path.results
+                                           | selectattr('stat.exists')
+                                           | map(attribute='stat.exists')
+                                           | regex_replace('/etc/systemd/system/', '')
+                                         }}"
+  when:
+    - is_rhel_82_or_newer is defined
+    - is_rhel_82_or_newer
+
+- name:                                "5.6 SCSERS - Disable the services and stop auto-restart if they exist"
+  when:
+    - systemd_service_names is defined
+    - systemd_service_names | length > 0
+  block:
+    - name:                            "5.6 SCSERS - Disable the services if they exist"
+      when:
+        - is_rhel_82_or_newer is defined
+        - is_rhel_82_or_newer
+      ansible.builtin.systemd:
+        name:                          "{{ service_name }}"
+        enabled:                       false
+      loop:                            "{{ systemd_service_names }}"
+      loop_control:
+        loop_var:                      service_name
+
+    - name:                            "5.6 SCSERS Pacemaker - (systemd) Create drop-in file"
+      when:
+        - is_rhel_82_or_newer is defined
+        - is_rhel_82_or_newer
+      become:                          true
+      ansible.builtin.blockinfile:
+        path:                          '{{ dropfile }}'
+        create:                        true
+        backup:                        true
+        owner:                         root
+        group:                         root
+        mode:                          '0644'
+        block: >-
+                                       [Service]
+                                       Restart=no
+      loop:
+        - "/etc/systemd/system/SAP{{ sap_sid | upper }}_{{ scs_instance_number }}.service.d/HA.conf"
+        - "/etc/systemd/system/SAP{{ sap_sid | upper }}_{{ ers_instance_number }}.service.d/HA.conf"
+      loop_control:
+        loop_var:                      dropfile
+      register:                        dropinfile
+
+    - name:                                "5.6 SCSERS - systemd reload"
+      ansible.builtin.systemd:
+        daemon_reload:                     true
+      when:
+        - dropinfile.changed
+
+    - name:                            "5.6 SCSERS - validate that the drop-in file is active"
+      when:
+        - is_rhel_82_or_newer is defined
+        - is_rhel_82_or_newer
+      ansible.builtin.shell: >-
+                                       systemd-delta | grep 'SAP{{ sap_sid | upper }}_{{ scs_instance_number }}.service.d'
+      register:                        dropinfile_validation
+      changed_when:                    false
+      failed_when:                     dropinfile_validation.rc > 0
+
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# | Systemd-Based SAP Startup Framework - END                                  |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+
+
 - name:                                "5.6 SCSERS Pacemaker - provision"
   ansible.builtin.include_tasks:
     file:                              5.6.4-provision.yml

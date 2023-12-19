@@ -145,7 +145,6 @@
                                            | selectattr('stat.exists')
                                            | map(attribute='stat.exists')
                                            | regex_replace('/etc/systemd/system/', '')
-                                           | list
                                          }}"
   when:
     - is_rhel_82_or_newer is defined
