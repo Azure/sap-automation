@@ -25,17 +25,25 @@
                                            | regex_replace('/etc/systemd/system/', '')
                                          }}"
 
-
 - name:                                "5.6 SCSERS - Disable the services and stop auto-restart if they exist"
   when:
     - systemd_service_names is defined
     - systemd_service_names | length > 0
   block:
-    - name:                            "5.6 SCSERS - Disable the services if they exist"
+    # - name:                            "5.6 SCSERS - Disable the services if they exist"
+    #   ansible.builtin.systemd:
+    #     name:                          "{{ service_name }}"
+    #     enabled:                       false
+    #   failed_when:                     false
+    #   loop:                            "{{ systemd_service_names }}"
+    #   loop_control:
+    #     loop_var:                      service_name
+
+    - name:                            "5.6 SCSERS - Disable and Stop the services if they exist"
       ansible.builtin.systemd:
         name:                          "{{ service_name }}"
         enabled:                       false
-      failed_when:                     false
+        state:                         "stopped"
       loop:                            "{{ systemd_service_names }}"
       loop_control:
         loop_var:                      service_name
