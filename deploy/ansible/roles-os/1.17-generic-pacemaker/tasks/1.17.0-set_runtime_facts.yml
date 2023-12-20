@@ -251,7 +251,7 @@
 - name:                                           "Verify that the packages are the right version"
   ansible.builtin.assert:
     that:
-      - "ansible_facts.packages['{{ packages_list.name }}'][0].version is version('{{ packages_list.version }}', '>=', version_type='{{ packages_list.version_type }}')"
+      - 'ansible_facts.packages[ packages_list.name ][0].version is version( packages_list.version , ">=", version_type= packages_list.version_type )'
     fail_msg:                                     "{{ packages_list.name }} version is not greater than {{ packages_list.version }}"
     success_msg:                                  "{{ packages_list.name }} version is greater than {{ packages_list.version }}"
   register:                                       package_version_results
