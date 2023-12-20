@@ -235,7 +235,7 @@ locals {
   scs_nic_secondary_ips                = try(var.application_tier.scs_nic_secondary_ips, [])
   scs_admin_nic_ips                    = try(var.application_tier.scs_admin_nic_ips, [])
 
-  webdispatcher_loadbalancer_ips                           = try(var.application_tier.webdispatcher_loadbalancer_ips, [])
+  webdispatcher_loadbalancer_ips       = try(var.application_tier.webdispatcher_loadbalancer_ips, [])
   web_nic_ips                          = try(var.application_tier.web_nic_ips, [])
   web_nic_secondary_ips                = try(var.application_tier.web_nic_secondary_ips, [])
   web_admin_nic_ips                    = try(var.application_tier.web_admin_nic_ips, [])
@@ -283,7 +283,7 @@ locals {
 
 
   // Default VM config should be merged with any the user passes in
-  app_sizing                           = local.enable_deployment && local.application_server_count > 0 ? (
+  app_sizing                           = local.enable_deployment  ? (
                                            lookup(local.sizes.app, local.vm_sizing_dictionary_key)) : (
                                            null
                                          )
