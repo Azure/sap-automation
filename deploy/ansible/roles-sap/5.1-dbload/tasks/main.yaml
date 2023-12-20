@@ -60,13 +60,17 @@
     public:                            true
   when:                                bom.InstanceType is defined
 
+- name:                                "DBLoad: register application type"
+  ansible.builtin.set_fact:
+    application_type:                  "{% if instance_type == 'SCS' %}JAVA{% else %}ABAP{% endif %}"
+
 - name:                                "DBLoad: -  Set the product ID"
   ansible.builtin.set_fact:
     product_id:                        "{{ bom.product_ids.dbl }}"
 
 - name:                                "DBLoad: - Set dbload path"
   ansible.builtin.set_fact:
-    db_load_path:                      "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}/sapinst_instdir/{{ product_id.replace('.', '/').replace('/' + instance_type, '').split(':')[1] }}/INSTALL/DISTRIBUTED/{{ instance_type }}/DB"
+    db_load_path:                      "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}/sapinst_instdir/{{ product_id.replace('.', '/').replace('/' + application_type, '').split(':')[1] }}/INSTALL/DISTRIBUTED/{{ application_type }}/DB"
 
 - name:                                "DBLoad: Check if DBLoad has been tried on this server"
   ansible.builtin.stat:
@@ -92,7 +96,7 @@
     - name:                            "DBLoad: flag"
       ansible.builtin.file:
         path:                          "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_dbload.txt"
-        state:                             touch
+        state:                          touch
         mode:                          0755
       when:
         - dbload_performed_according_to_sapinst is defined
