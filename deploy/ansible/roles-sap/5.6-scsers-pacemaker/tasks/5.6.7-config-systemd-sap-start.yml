@@ -44,6 +44,7 @@
         name:                          "{{ service_name }}"
         enabled:                       false
         state:                         "stopped"
+      failed_when:                     false
       loop:                            "{{ systemd_service_names }}"
       loop_control:
         loop_var:                      service_name
