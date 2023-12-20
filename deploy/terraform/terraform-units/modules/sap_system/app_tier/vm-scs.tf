@@ -16,7 +16,7 @@ resource "azurerm_network_interface" "scs" {
                                          )
   location                             = var.resource_group[0].location
   resource_group_name                  = var.resource_group[0].name
-  enable_accelerated_networking        = local.app_sizing.compute.accelerated_networking
+  enable_accelerated_networking        = local.scs_sizing.compute.accelerated_networking
   tags                                 = var.tags
 
   dynamic "ip_configuration" {
