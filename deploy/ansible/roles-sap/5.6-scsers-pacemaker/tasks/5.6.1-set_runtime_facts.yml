@@ -36,7 +36,7 @@
     verbosity:                         2
 
 # Returns bom object
-- name:                                "5.6 SCSERS: SCS HA Install - Register BoM"
+- name:                                "5.6 SCSERS - SCS HA Install - Register BoM"
   ansible.builtin.include_role:
     name:                              roles-sap/3.3.1-bom-utility
     tasks_from:                        bom-register
@@ -46,12 +46,12 @@
     sa_enabled:                        true
   when:                                bom is not defined
 
-- name:                                "5.6 SCS HA Install: Default instance type"
+- name:                                "5.6 SCSERS - HA Install: Default instance type"
   ansible.builtin.set_fact:
     instance_type:                     "ASCS"
   when:                                bom.InstanceType is not defined
 
-- name:                                "5.6 SCS HA Install: register instance type"
+- name:                                "5.6 SCSERS - HA Install: register instance type"
   ansible.builtin.set_fact:
     instance_type:  >-
                                         {%- set _instance_type = 'ASCS' -%}
@@ -66,7 +66,7 @@
     public:                            true
   when:                                bom.InstanceType is defined
 
-- name:                                "5.6 SCS HA Install: Populate InstanceName for cluster resource"
+- name:                                "5.6 SCSERS - HA Install: Populate InstanceName for cluster resource"
   ansible.builtin.set_fact:
     instance_name:                     "{{ sap_sid }}_{{ instance_type }}{{ scs_instance_number }}_{{ scs_virtual_hostname }}"
     start_profile_path:                "/sapmnt/{{ sap_sid }}/profile/{{ sap_sid }}_{{ instance_type }}{{ scs_instance_number }}_{{ scs_virtual_hostname }}"
@@ -74,7 +74,7 @@
 
   # Set fact for the timeout value of monitor operation for filesystem and ASCS/ERS resources
   # Since we only configure NFS4.1, the timeout value is set to 40 seconds for non-ANF and 105 seconds for ANF
-- name:                                "5.6 SCS HA install calculate filesystem timeout"
+- name:                                "5.6 SCSERS - HA install calculate filesystem timeout"
   ansible.builtin.set_fact:
     clus_fs_mon_timeout:  >-
                                        {%- set _timeoutvalue = 40 -%}
@@ -91,7 +91,7 @@
   when:
     - scs_high_availability
 
-- name:                                "5.6 SCS HA install calculate SAP resource monitor timeout"
+- name:                                "5.6 SCSERS - HA install calculate SAP resource monitor timeout"
   ansible.builtin.set_fact:
     clus_sap_mon_timeout:  >-
                                        {%- set _timeoutvalue = 60 -%}
@@ -108,18 +108,27 @@
   when:
     - scs_high_availability
 
-- name:                                "ASCS/ERS check if installed"
+- name:                                "5.6 SCSERS - ASCS/ERS check if installed"
   become:                              true
   block:
-    - name:                            "SCS HA Install: check if installed"
+    - name:                            "5.6 SCSERS - SCS HA Install: check if installed"
       ansible.builtin.stat:
         path:                          /etc/sap_deployment_automation//{{ sap_sid | upper }}/sap_deployment_scs.txt
       register:                        scs_installed
 
-    - name:                            "ERS Install: check if installed"
+    - name:                            "5.6 SCSERS - ERS Install: check if installed"
       ansible.builtin.stat:
         path:                          /etc/sap_deployment_automation//{{ sap_sid | upper }}/sap_deployment_ers.txt
       register:                        ers_installed
+
+
+- name:                                "5.6 SCSERS - check if the OS version is RHEL 8.2 or newer"
+  ansible.builtin.set_fact:
+    is_rhel_82_or_newer:               "{{ ansible_distribution_version is version('8.2', '>=') | default(false) }}"
+
+- name:                                "5.6 SCSERS - check if the OS version is SLES 15 or newer"
+  ansible.builtin.set_fact:
+    is_sles_15_or_newer:               "{{ ansible_distribution_version is version('15', '>=') | default(false) }}"
 
 # /*---------------------------------------------------------------------------8
 # |                                   END                                     |
