@@ -97,9 +97,9 @@
 - name:                                "0.1 Password: - Ensure the password is set"
   ansible.builtin.assert:
     that:
-      - "{{ sap_password is defined }}" # Has the variable been defined
-      - "{{ sap_password | type_debug != 'NoneType' }}" # Is the variable not empty"
-      - "{{ sap_password | trim | length > 8 }}"
+      - sap_password is defined # Has the variable been defined
+      - sap_password | type_debug != 'NoneType' # Is the variable not empty"
+      - sap_password | trim | length > 8
     fail_msg: "The SAP main password was not set in key vault"
 
 - name:                                "0.1 Password: - Show SAP Password"

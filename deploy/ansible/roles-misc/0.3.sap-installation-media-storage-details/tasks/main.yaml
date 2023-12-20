@@ -167,8 +167,8 @@
 - name:                                 "0.0 Validations - Check required variables are present and not empty"
   ansible.builtin.assert:
     that:
-      - "{{ sapbits_sas_token is defined }}"                    # Has the variable been defined
-      - "{{ sapbits_sas_token | trim | length > 1 }}"           # Does the variable have a value
+      - sapbits_sas_token is defined                    # Has the variable been defined
+      - sapbits_sas_token | trim | length > 1           # Does the variable have a value
     fail_msg: >-
       "The variable 'sapbits_sas_token' is not defined or is empty. Please provide it in the deployer key vault, sap-parameters file or pass it in as a parameter."
 
