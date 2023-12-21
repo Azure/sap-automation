@@ -64,15 +64,19 @@
 - name:                                "PAS Install: Check if the DB load balancer port is available and listening"
   ansible.builtin.wait_for:
     host:                              "{{ db_lb_virtual_host }}"
-    port:                              "3{{ db_instance_number }}13"
+    port:                              "3{{ db_instance_number }}18"
     state:                             started
   register:                            db_port_open
-  when:                                database_high_availability
+  when:
+    - database_high_availability
+    - platform == "HANA"
 
 - name:                                "PAS Install: DEBUG - DB Loadbalancer check"
   ansible.builtin.debug:
     var:                               db_port_open
-  when:                                database_high_availability
+  when:
+    - database_high_availability
+    - platform == "HANA"
 
 # Returns bom object
 - name:                                "PAS Install: Register BoM"
