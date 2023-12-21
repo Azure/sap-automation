@@ -1365,7 +1365,15 @@ if [ "${deployment_system}" == sap_system ] ; then
   az storage blob upload --file sap-parameters.yaml --container-name tfvars/"${state_path}"/"${key}" --name sap-parameters.yaml --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}"  --no-progress --overwrite --only-show-errors --output none
   hosts_file=$(ls *_hosts.yaml)
   az storage blob upload --file "${hosts_file}" --container-name tfvars/"${state_path}"/"${key}" --name "${hosts_file}" --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}"  --no-progress --overwrite --only-show-errors --output none
-
 fi
+
+if [ "${deployment_system}" == sap_landscape ] ; then
+  az storage blob upload --file "${system_config_information}" --container-name tfvars/.sap_deployment_automation --name "${environment}${region_code}${network_logical_name}" --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}"  --no-progress --overwrite --only-show-errors --output none
+fi
+if [ "${deployment_system}" == sap_library ] ; then
+  deployer_config_information="${automation_config_directory}"/"${environment}""${region_code}"
+  az storage blob upload --file "${deployer_config_information}" --container-name tfvars/.sap_deployment_automation --name "${environment}${region_code}" --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}"  --no-progress --overwrite --only-show-errors --output none
+fi
+
 
 exit $return_value
