@@ -189,12 +189,11 @@
     is_rhel_82_or_newer:               "{{ ansible_distribution_version is version('8.2', '>=') | default(false) }}"
 
 - name:                                "5.5.4.1 HANA Cluster configuration - (systemd) Creating drop-in file"
-  block:
+  become:                              true
   when:
     - is_rhel_82_or_newer is defined
     - is_rhel_82_or_newer
-  become:                              true
-
+  block:
     - name:                            "5.5.4.1 HANA Cluster configuration - (systemd) Create drop-in file"
       ansible.builtin.lineinfile:
         path:                          /etc/systemd/system/pacemaker.service.d/00-pacemaker.conf
