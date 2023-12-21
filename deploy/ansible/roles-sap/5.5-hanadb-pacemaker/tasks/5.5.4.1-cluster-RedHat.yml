@@ -236,7 +236,7 @@
             mode:                          '0644'
             insertafter:                   '^Wants=SAP{{ db_sid | upper }}_{{ db_instance_number }}.service$'
             line:                          "After=SAP{{ db_sid | upper }}_{{ db_instance_number }}.service"
-            register: dropinfile
+          register:                        dropinfile
 
         - name:                            "5.5.4.1 HANA Cluster configuration - systemd reload"
           ansible.builtin.systemd:
