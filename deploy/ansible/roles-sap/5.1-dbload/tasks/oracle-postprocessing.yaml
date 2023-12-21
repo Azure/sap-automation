@@ -27,7 +27,7 @@
     msg:
       - "Total memory:         {{ main_mem1 }}"
       - "sga_max_size:         {{ ora_sga }}"
-      - "pga_aggregate_target: {{ ora_pga }}"
+      - "pga_aggregate_limit: {{ ora_pga }}"
 
 - name:                                "Set the SGA and PGA Sizes for RAM > 4TB"
   ansible.builtin.set_fact:
@@ -49,7 +49,8 @@
     marker_end:   "-- END"
     block: |
          ALTER SYSTEM SET sga_max_size={{ ora_sga }}M SCOPE=spfile;
-         ALTER SYSTEM SET pga_aggregate_target={{ ora_pga }}M SCOPE=spfile;
+         ALTER SYSTEM SET pga_aggregate_limit={{ ora_pga }}M SCOPE=spfile;
+         ALTER SYSTEM SET use_large_pages=only SCOPE=spfile;
          SHUTDOWN IMMEDIATE;
          exit
     mode: '0755'
