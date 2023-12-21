@@ -39,7 +39,6 @@
     #   loop_control:
     #     loop_var:                      service_name
 
-
     - name:                            "5.6 SCSERS - Disable and Stop the services if they exist"
       become:                          true
       become_user:                     root
