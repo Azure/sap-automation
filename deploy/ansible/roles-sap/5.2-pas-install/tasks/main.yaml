@@ -61,23 +61,6 @@
     path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_pas.txt"
   register:                            pas_installed
 
-- name:                                "PAS Install: Check if the DB load balancer port is available and listening"
-  ansible.builtin.wait_for:
-    host:                              "{{ db_lb_virtual_host }}"
-    port:                              "3{{ db_instance_number }}18"
-    state:                             started
-  register:                            db_port_open
-  when:
-    - database_high_availability
-    - platform == "HANA"
-
-- name:                                "PAS Install: DEBUG - DB Loadbalancer check"
-  ansible.builtin.debug:
-    var:                               db_port_open
-  when:
-    - database_high_availability
-    - platform == "HANA"
-
 # Returns bom object
 - name:                                "PAS Install: Register BoM"
   ansible.builtin.include_role:
@@ -106,6 +89,25 @@
   ansible.builtin.set_fact:
     pas_bom_instance_type:             "{% if bom.InstanceType is defined %}{{ bom.InstanceType }}{% else %}ABAP{% endif %}"
     public:                            true
+
+- name:                                "PAS Install: Check if the DB load balancer port is available and listening"
+  ansible.builtin.wait_for:
+    host:                              "{{ db_lb_virtual_host }}"
+    port:                              "3{{ db_instance_number }}18"
+    state:                             started
+    timeout:                           30
+  register:                            db_port_open
+  failed_when:                         false
+  when:
+    - database_high_availability
+    - platform == "HANA"
+
+- name:                                "PAS Install: DEBUG - DB Loadbalancer check"
+  ansible.builtin.debug:
+    var:                               db_port_open
+  when:
+    - database_high_availability
+    - platform == "HANA"
 
 - name:                                "PAS Install: Set schema_name variable for HANA"
   when: platform == "HANA"
