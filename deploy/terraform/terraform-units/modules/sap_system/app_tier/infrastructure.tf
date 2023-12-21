@@ -297,7 +297,7 @@ resource "azurerm_lb_rule" "fs" {
 resource "azurerm_availability_set" "scs" {
   provider                             = azurerm.main
   count                                = local.enable_deployment && local.use_scs_avset ? (
-                                           max(length(local.scs_zones), 1)) : (
+                                           length(var.ppg)) : (
                                            0
                                          )
   name                                 = format("%s%s%s",
@@ -309,10 +309,7 @@ resource "azurerm_availability_set" "scs" {
   resource_group_name                  = var.resource_group[0].name
   platform_update_domain_count         = 20
   platform_fault_domain_count          = local.faultdomain_count
-  proximity_placement_group_id         = try(local.scs_zonal_deployment ? (
-                                           var.ppg[count.index % length(local.scs_zones)]) : (
-                                           var.ppg[0]
-                                         ), null)
+  proximity_placement_group_id         = var.ppg[count.index]
   managed                              = true
   tags                                 = var.tags
 }
@@ -325,7 +322,7 @@ resource "azurerm_availability_set" "scs" {
 resource "azurerm_availability_set" "app" {
   provider                             = azurerm.main
   count                                = local.use_app_avset && length(var.application_tier.avset_arm_ids) == 0 ? (
-                                           max(length(local.app_zones), 1)) : (
+                                           length(var.ppg)) : (
                                            0
                                          )
   name                                 = format("%s%s%s",
@@ -337,10 +334,7 @@ resource "azurerm_availability_set" "app" {
   resource_group_name                  = var.resource_group[0].name
   platform_update_domain_count         = 20
   platform_fault_domain_count          = local.faultdomain_count
-  proximity_placement_group_id         = try(local.app_zonal_deployment ? (
-                                           var.ppg[count.index % local.app_zone_count]) : (
-                                           var.ppg[0]
-                                         ), null)
+  proximity_placement_group_id         = var.ppg[count.index]
   managed                              = true
   tags                                 = var.tags
 }
