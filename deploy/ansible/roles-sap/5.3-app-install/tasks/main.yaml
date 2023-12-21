@@ -73,6 +73,36 @@
   ansible.builtin.set_fact:
     app_bom_id:                        "{{ bom.product_ids.app }}"
 
+- name:                                "APP Install: Check if the DB load balancer port is available and listening"
+  ansible.builtin.wait_for:
+    host:                              "{{ db_lb_virtual_host }}"
+    port:                              "3{{ db_instance_number }}13"
+    state:                             started
+    timeout:                           30
+    msg:                               'INSTALL:0026:APP Install failed, database is unreachable.'
+  register:                            db_port_open
+  failed_when:                         false
+  when:
+    - database_high_availability
+    - platform == "HANA"
+
+- name:                                "APP Install: DEBUG - DB Loadbalancer check"
+  ansible.builtin.debug:
+    msg:                               "{{ db_port_open.msg }}"
+    verbosity:                         2
+  when:
+    - database_high_availability
+    - platform == "HANA"
+    - db_port_open.msg is defined
+
+- name:                                "ErrorHandling"
+  ansible.builtin.fail:
+    msg:                               "INSTALL:0026:APP Install failed, database is unreachable."
+  when:
+    - database_high_availability
+    - platform == "HANA"
+    - db_port_open.msg is defined
+
 - name:                                "APP Install: Set schema_name variable for HANA"
   when: platform == "HANA"
   block:
