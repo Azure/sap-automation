@@ -40,6 +40,8 @@
     #     loop_var:                      service_name
 
     - name:                            "5.6 SCSERS - Disable and Stop the services if they exist"
+      become:                          true
+      become_user:                     root
       ansible.builtin.systemd:
         name:                          "{{ service_name }}"
         enabled:                       false
@@ -51,6 +53,7 @@
 
     - name:                            "5.6 SCSERS Pacemaker - (systemd) Create drop-in file"
       become:                          true
+      become_user:                     root
       ansible.builtin.lineinfile:
         path:                          '{{ dropfile }}'
         create:                        true
@@ -67,6 +70,7 @@
 
     - name:                            "5.6 SCSERS Pacemaker - (systemd) Update drop-in file"
       become:                          true
+      become_user:                     root
       ansible.builtin.lineinfile:
         path:                          '{{ dropfile }}'
         create:                        true
