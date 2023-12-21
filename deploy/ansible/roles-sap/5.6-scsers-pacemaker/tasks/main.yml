@@ -55,8 +55,8 @@
   ansible.builtin.set_fact:
     systemd_service_names:             "{{
                                            systemd_service_file_path.results
-                                           | selectattr('stat.exists')
-                                           | map(attribute='stat.exists')
+                                           | selectattr('stat.exists', 'equalto', true)
+                                           | map(attribute='stat.path')
                                            | regex_replace('/etc/systemd/system/', '')
                                          }}"
   when:
