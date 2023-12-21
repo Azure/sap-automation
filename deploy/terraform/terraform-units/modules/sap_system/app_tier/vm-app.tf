@@ -124,7 +124,8 @@ resource "azurerm_linux_virtual_machine" "app" {
   resource_group_name                  = var.resource_group[0].name
 
   proximity_placement_group_id         = var.application_tier.app_use_ppg ? (
-                                           local.app_zonal_deployment ? var.ppg[count.index % max(local.app_zone_count, 1)] : var.ppg[0]) : (
+
+                                           var.ppg[count.index % max(length(var.ppg), 1)]) : (
                                            null
                                          )
 
