@@ -461,6 +461,8 @@ wget -nv -O /tmp/"${tf_zip}" "https://releases.hashicorp.com/terraform/${tfversi
 sudo unzip -o /tmp/"${tf_zip}" -d "${tf_dir}"
 sudo ln -vfs "../$(basename "${tf_dir}")/terraform" "${tf_bin}/terraform"
 
+sudo rm /tmp/"${tf_zip}"
+
 # Uninstall Azure CLI - For some platforms
 case "$(get_distro_name)" in
 (ubuntu|sles)
@@ -815,6 +817,7 @@ echo 'az login --identity --output none' | tee -a /tmp/deploy_server.sh
 echo 'echo ${USER} account ready for use with Azure SAP Automated Deployment' | tee -a /tmp/deploy_server.sh
 
 sudo cp /tmp/deploy_server.sh /etc/profile.d/deploy_server.sh
+sudo rm /tmp/deploy_server.sh
 
 /usr/bin/az login --identity --output none
 echo "${USER} account ready for use with Azure SAP Automated Deployment"
