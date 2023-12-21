@@ -68,10 +68,10 @@ done
 files=$(az storage blob list --container-name tfvars --account-name "${REMOTE_STATE_SA}" --subscription "${STATE_SUBSCRIPTION}" --query "[].name" -o tsv --only-show-errors --output tsv)
 for name in $files;
 do
-    if [ -n $name ] ; then
-        echo "Downloading file: " $name
-        dirName=$(dirname $name)
-        mkdir -p $dirName
+    if [ -n "$name" ] ; then
+        echo "Downloading file: " "$name"
+        dirName=$(dirname "$name")
+        mkdir -p "$dirName"
 
         az storage blob download --container-name tfvars --account-name "${REMOTE_STATE_SA}" --subscription "${STATE_SUBSCRIPTION}"  --file "${name}" --name "${name}" --only-show-errors --output none --no-progress
     fi
