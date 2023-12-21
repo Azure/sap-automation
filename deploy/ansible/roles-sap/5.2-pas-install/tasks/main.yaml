@@ -96,6 +96,7 @@
     port:                              "3{{ db_instance_number }}18"
     state:                             started
     timeout:                           30
+    msg:                               'INSTALL:0026:PAS Install failed, database is unreachable.'
   register:                            db_port_open
   failed_when:                         false
   when:
@@ -104,10 +105,19 @@
 
 - name:                                "PAS Install: DEBUG - DB Loadbalancer check"
   ansible.builtin.debug:
-    var:                               db_port_open
+    msg:                               "{{ db_port_open.msg }}"
   when:
     - database_high_availability
     - platform == "HANA"
+    - db_port_open.msg is defined
+
+- name:                                "ErrorHandling"
+  ansible.builtin.fail:
+    msg:                               "INSTALL:0026:PAS Install failed, database is unreachable."
+  when:
+    - database_high_availability
+    - platform == "HANA"
+    - db_port_open.msg is defined
 
 - name:                                "PAS Install: Set schema_name variable for HANA"
   when: platform == "HANA"

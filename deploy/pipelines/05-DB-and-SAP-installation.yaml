@@ -231,7 +231,7 @@ stages:
                   export workload_prefix=${az_var} ; echo 'Workload Prefix' ${workload_prefix}; echo 'Workload Prefix' ${workload_prefix}
                 fi
 
-                if [ $EXTRA_PARAMETERS = '$(EXTRA_PARAMETERS)' ]; then
+                if [[ $EXTRA_PARAMETERS == $(EXTRA_PARAMETERS) ]]; then
                   new_parameters=$PIPELINE_EXTRA_PARAMETERS
                 else
                   echo "##vso[task.logissue type=warning]Extra parameters were provided - '$EXTRA_PARAMETERS'"
