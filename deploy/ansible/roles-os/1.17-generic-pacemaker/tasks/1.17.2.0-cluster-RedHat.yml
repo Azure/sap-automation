@@ -205,6 +205,9 @@
     - name:                            "1.17 Generic Pacemaker - Ensure the STONITH device is enabled"
       ansible.builtin.command:         pcs property set stonith-enabled=true
 
+    - name:                            "1.17 Generic Pacemaker - Clear any errors during enablement of STONITH device"
+      ansible.builtin.command:         pcs resource cleanup
+
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
 # | Fencing - END                                                              |

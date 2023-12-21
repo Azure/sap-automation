@@ -231,11 +231,10 @@ stages:
                   export workload_prefix=${az_var} ; echo 'Workload Prefix' ${workload_prefix}; echo 'Workload Prefix' ${workload_prefix}
                 fi
 
-                if [ $EXTRA_PARAMETERS = '$(EXTRA_PARAMETERS)' ]; then
-                  echo "##vso[task.logissue type=warning]No extra parameters were provided."
+                if [[ $EXTRA_PARAMETERS = "'$(EXTRA_PARAMETERS)'" ]]; then
                   new_parameters=$PIPELINE_EXTRA_PARAMETERS
                 else
-                  echo "##vso[task.logissue type=warning]Extra parameters were provided: $EXTRA_PARAMETERS"
+                  echo "##vso[task.logissue type=warning]Extra parameters were provided - '$EXTRA_PARAMETERS'"
                   new_parameters="$EXTRA_PARAMETERS $PIPELINE_EXTRA_PARAMETERS"
                 fi
 
@@ -247,7 +246,7 @@ stages:
 
 
               echo -e "$green--- az login ---$reset"
-                #If the deployer_file exists we run on a deployer configured by the framework instead of a azdo hosted one
+                # If the deployer_file exists we run on a deployer configured by the framework instead of a azdo hosted one
                 deployer_file=/etc/profile.d/deploy_server.sh
                 az login --service-principal -u $AZURE_CLIENT_ID -p=$AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID  --output none
                 az account set --subscription $AZURE_SUBSCRIPTION_ID
@@ -257,7 +256,6 @@ stages:
                   echo -e "$boldred--- Login failed ---$reset"
                   echo "##vso[task.logissue type=error]az login failed."
                   exit $return_code
-
                 fi
 
                 az keyvault secret show --name ${workload_prefix}-sid-sshkey --vault-name $workload_key_vault --query value -o tsv > artifacts/${SAP_SYSTEM_CONFIGURATION_NAME}_sshkey

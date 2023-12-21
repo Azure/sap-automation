@@ -33,8 +33,8 @@
     sap_inifile:                       "{{ bom_base_name }}-pas-{{ sid_to_be_deployed.sid | lower }}-{{ ansible_hostname }}.params"
     sap_inifile_template:              "{{ bom_base_name }}{{ bom_suffix }}-pas-inifile-param.j2"
     dir_params:                        "{{ tmp_directory }}/.{{ sid_to_be_deployed.sid | lower }}-params"
-    db_lb_virtual_host_HANA:           "{% if database_high_availability %}{{ sid_to_be_deployed.sid | lower }}{{ db_sid | lower }}db{{ db_instance_number }}cl{% else %}{{ hostvars[db_server_temp | first]['virtual_host'] }}{% endif %}"
-    db_lb_virtual_host_AnyDB:          "{% if database_high_availability %}{{ sid_to_be_deployed.sid | lower }}{{ db_sid | lower }}db{{ db_instance_number }}cl{% else %}{{ db_server_temp }}{% endif %}"
+    db_lb_virtual_host_HANA:           "{% if database_high_availability %}{{ sid_to_be_deployed.sid | lower }}{{ db_sid | lower }}db{{ db_instance_number }}cl.{{ sap_fqdn }}{% else %}{{ hostvars[db_server_temp | first]['virtual_host'] }}{% endif %}"
+    db_lb_virtual_host_AnyDB:          "{% if database_high_availability %}{{ sid_to_be_deployed.sid | lower }}{{ db_sid | lower }}db{{ db_instance_number }}cl.{{ sap_fqdn }}{% else %}{{ db_server_temp }}{% endif %}"
 
 - name:                                "PAS Install: Set BOM facts db host"
   ansible.builtin.set_fact:
@@ -89,6 +89,36 @@
   ansible.builtin.set_fact:
     pas_bom_instance_type:             "{% if bom.InstanceType is defined %}{{ bom.InstanceType }}{% else %}ABAP{% endif %}"
     public:                            true
+
+- name:                                "PAS Install: Check if the DB load balancer port is available and listening"
+  ansible.builtin.wait_for:
+    host:                              "{{ db_lb_virtual_host }}"
+    port:                              "3{{ db_instance_number }}13"
+    state:                             started
+    timeout:                           30
+    msg:                               'INSTALL:0026:PAS Install failed, database is unreachable.'
+  register:                            db_port_open
+  failed_when:                         false
+  when:
+    - database_high_availability
+    - platform == "HANA"
+
+- name:                                "PAS Install: DEBUG - DB Loadbalancer check"
+  ansible.builtin.debug:
+    msg:                               "{{ db_port_open.msg }}"
+    verbosity:                         2
+  when:
+    - database_high_availability
+    - platform == "HANA"
+    - db_port_open.msg is defined
+
+- name:                                "ErrorHandling"
+  ansible.builtin.fail:
+    msg:                               "INSTALL:0026:PAS Install failed, database is unreachable."
+  when:
+    - database_high_availability
+    - platform == "HANA"
+    - db_port_open.msg is defined
 
 - name:                                "PAS Install: Set schema_name variable for HANA"
   when: platform == "HANA"

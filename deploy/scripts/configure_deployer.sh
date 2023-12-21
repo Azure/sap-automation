@@ -36,6 +36,13 @@
 # Setup some useful shell options
 #
 
+# Check if the script is running as root
+if [[ $EUID -eq 0 ]]; then
+    echo "This script should not be run as root or with sudo. Please run as a regular user."
+    exit 1
+fi
+
+
 # Print expanded commands as they are about to be executed
 set -o xtrace
 
@@ -306,7 +313,7 @@ case "$(get_distro_name)" in
   echo "we are inside ubuntu"
   rel=$(lsb_release -a | grep Release | cut -d':' -f2 | xargs)
   if [ "$rel" == "22.04" ]; then
-    ansible_version="${ansible_version:-2.15}"
+    ansible_version="2.15"
     ansible_major="${ansible_version%%.*}"
     ansible_minor=$(echo "${ansible_version}." | cut -d . -f 2)
   fi
@@ -453,6 +460,8 @@ sudo mkdir -p \
 wget -nv -O /tmp/"${tf_zip}" "https://releases.hashicorp.com/terraform/${tfversion}/${tf_zip}"
 sudo unzip -o /tmp/"${tf_zip}" -d "${tf_dir}"
 sudo ln -vfs "../$(basename "${tf_dir}")/terraform" "${tf_bin}/terraform"
+
+sudo rm /tmp/"${tf_zip}"
 
 # Uninstall Azure CLI - For some platforms
 case "$(get_distro_name)" in
@@ -733,11 +742,50 @@ export PATH="${PATH}":"${ansible_bin}":"${tf_bin}":"${HOME}"/Azure_SAP_Automated
 echo "# Configure environment settings for deployer interactive sessions" | tee -a /tmp/deploy_server.sh
 
 echo "export ARM_SUBSCRIPTION_ID=${subscription_id}" | tee -a /tmp/deploy_server.sh
-echo "export SAP_AUTOMATION_REPO_PATH=$HOME/Azure_SAP_Automated_Deployment/sap-automation" | tee -a /tmp/deploy_server.sh
-echo "export DEPLOYMENT_REPO_PATH=$HOME/Azure_SAP_Automated_Deployment/sap-automation" | tee -a /tmp/deploy_server.sh
-echo "export CONFIG_REPO_PATH=$HOME/Azure_SAP_Automated_Deployment/WORKSPACES" | tee -a /tmp/deploy_server.sh
 
-echo export "PATH=${ansible_bin}:${tf_bin}:${PATH}:${HOME}/Azure_SAP_Automated_Deployment/sap-automation/deploy/scripts:${HOME}/Azure_SAP_Automated_Deployment/sap-automation/deploy/ansible" | tee -a /tmp/deploy_server.sh
+# Replace with your actual agent directory
+AGENT_DIR="/home/${USER}/agent"
+
+# Check if the .agent file exists
+if [ -f "$AGENT_DIR/.agent" ]; then
+    echo "Azure DevOps Agent is configured."
+    echo export "PATH=${ansible_bin}:${tf_bin}:${PATH}" | tee -a /tmp/deploy_server.sh
+else
+    echo "Azure DevOps Agent is not configured."
+
+    echo "export SAP_AUTOMATION_REPO_PATH=$HOME/Azure_SAP_Automated_Deployment/sap-automation" | tee -a /tmp/deploy_server.sh
+    echo "export DEPLOYMENT_REPO_PATH=$HOME/Azure_SAP_Automated_Deployment/sap-automation" | tee -a /tmp/deploy_server.sh
+    echo "export CONFIG_REPO_PATH=$HOME/Azure_SAP_Automated_Deployment/WORKSPACES" | tee -a /tmp/deploy_server.sh
+
+    echo export "PATH=${ansible_bin}:${tf_bin}:${PATH}:${HOME}/Azure_SAP_Automated_Deployment/sap-automation/deploy/scripts:${HOME}/Azure_SAP_Automated_Deployment/sap-automation/deploy/ansible" | tee -a /tmp/deploy_server.sh
+
+    # Set env for MSI
+    echo "export ARM_USE_MSI=true" | tee -a /tmp/deploy_server.sh
+
+    /usr/bin/az login --identity 2>error.log || :
+    # Ensure that the user's account is logged in to Azure with specified creds
+
+    if [ ! -f error.log ]; then
+      /usr/bin/az account show > az.json
+      client_id=$(jq --raw-output .id az.json)
+      tenant_id=$(jq --raw-output .tenantId az.json)
+      rm az.json
+    else
+      client_id=''
+      tenant_id=''
+    fi
+
+    if [ -n "${client_id}" ]; then
+      export ARM_CLIENT_ID=${client_id}
+      echo "export ARM_CLIENT_ID=${client_id}" | tee -a /tmp/deploy_server.sh
+    fi
+
+    if [ -n "${tenant_id}" ]; then
+      export ARM_TENANT_ID=${tenant_id}
+      echo "export ARM_TENANT_ID=${tenant_id}" | tee -a /tmp/deploy_server.sh
+    fi
+fi
+
 
 # Set env for ansible
 echo "export ANSIBLE_HOST_KEY_CHECKING=False" | tee -a /tmp/deploy_server.sh
@@ -753,46 +801,23 @@ case "$(get_distro_name)" in
 (sles)
     echo "export DOTNET_ROOT=${DOTNET_ROOT}" | tee -a /tmp/deploy_server.sh
     ;;
-  (rhel*)
+(rhel*)
     ;;
 esac
 
 chown -R "${USER}" "${asad_home}"
 
-# Set env for MSI
-echo "export ARM_USE_MSI=true" | tee -a /tmp/deploy_server.sh
-
-/usr/bin/az login --identity 2>error.log || :
-# Ensure that the user's account is logged in to Azure with specified creds
-
-if [ ! -f error.log ]; then
-  /usr/bin/az account show > az.json
-  client_id=$(jq --raw-output .id az.json)
-  tenant_id=$(jq --raw-output .tenantId az.json)
-  rm az.json
-else
-  client_id=''
-  tenant_id=''
-fi
-
-if [ -n "${client_id}" ]; then
-  export ARM_CLIENT_ID=${client_id}
-  echo "export ARM_CLIENT_ID=${client_id}" | tee -a /tmp/deploy_server.sh
-fi
-
-if [ -n "${tenant_id}" ]; then
-  export ARM_TENANT_ID=${tenant_id}
-  echo "export ARM_TENANT_ID=${tenant_id}" | tee -a /tmp/deploy_server.sh
-fi
 
 # echo "export DOTNET_ROOT=/snap/dotnet-sdk/current" | tee -a /tmp/deploy_server.sh
 
 
 # Ensure that the user's account is logged in to Azure with specified creds
 echo 'az login --identity --output none' | tee -a /tmp/deploy_server.sh
+# shellcheck disable=SC2016
 echo 'echo ${USER} account ready for use with Azure SAP Automated Deployment' | tee -a /tmp/deploy_server.sh
 
 sudo cp /tmp/deploy_server.sh /etc/profile.d/deploy_server.sh
+sudo rm /tmp/deploy_server.sh
 
 /usr/bin/az login --identity --output none
 echo "${USER} account ready for use with Azure SAP Automated Deployment"
