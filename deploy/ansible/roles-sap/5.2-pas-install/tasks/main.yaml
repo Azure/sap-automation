@@ -93,7 +93,7 @@
 - name:                                "PAS Install: Check if the DB load balancer port is available and listening"
   ansible.builtin.wait_for:
     host:                              "{{ db_lb_virtual_host }}"
-    port:                              "3{{ db_instance_number }}18"
+    port:                              "3{{ db_instance_number }}13"
     state:                             started
     timeout:                           30
     msg:                               'INSTALL:0026:PAS Install failed, database is unreachable.'
@@ -106,6 +106,7 @@
 - name:                                "PAS Install: DEBUG - DB Loadbalancer check"
   ansible.builtin.debug:
     msg:                               "{{ db_port_open.msg }}"
+    verbosity:                         2
   when:
     - database_high_availability
     - platform == "HANA"
