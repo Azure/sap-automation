@@ -1,29 +1,168 @@
 parameters:
-    displayName: ''
-    scriptPath: ''
     azureClientId: ''
     azureClientSecret: ''
     azureTenantId: ''
     azureSubscriptionId: ''
+    displayName: ''
+    ansibleFilePath: ''
+    sidHosts:  ''
+    secretName: ''
+    vaultName: ''
+    parametersFolder: ''
+    extraParams: ''
+    sapParams: ''
+    passwordSecretName: ''
+    userNameSecretName: ''
     acssEnvironment: ''
     acssSapProduct: ''
-    sapSystemConfigurationName: ''
-    sap_automation_repo_path: ''
-    config_repo_path: ''
-    TF_Remote_SA_Name: ''
-    TF_Remote_Storage_Subscription: ''
+
 steps:
-- bash: ${{ parameters.scriptPath }}/acss-registration.sh
+- script: |
+    #!/bin/bash
+    # Exit immediately if a command exits with a non-zero status.
+    # Treat unset variables as an error when substituting.
+
+    #Stage could be executed on a different machine by default, need to login again for ansible
+    #If the deployer_file exists we run on a deployer configured by the framework instead of a azdo hosted one
+
+    # deployer_file=/etc/profile.d/deploy_server.sh
+    # if [ -f "$deployer_file" ]; then
+    #   echo "##[section]Running on a deployer..."
+    #   az login --identity --allow-no-subscriptions --output none
+    #   noAccess=$( az account show --query name | grep  "N/A(tenant level account)")
+
+    #   if [ -z "$noAccess" ]; then
+    #     az account set --subscription $AZURE_SUBSCRIPTION_ID --output none
+    #   fi
+    # else
+    #   echo "##[section]Running on an Azure DevOps agent..."
+    #   az login --service-principal -u $AZURE_CLIENT_ID -p=$AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID --output none
+    #   az account set --subscription $AZURE_SUBSCRIPTION_ID --output none
+
+    # fi
+
+    az login --service-principal -u "${AZURE_CLIENT_ID}" -p="$AZURE_CLIENT_SECRET" --tenant "$AZURE_TENANT_ID" --output none
+    az account set --subscription "$AZURE_SUBSCRIPTION_ID" --output none
+    set -eu
+
+    if [ ! -f $PARAMETERS_FOLDER/sshkey ]; then
+      echo "##[section]Retrieving sshkey..."
+      az keyvault secret show --name "$SSH_KEY_NAME" --vault-name "$VAULT_NAME" --query value -o tsv > "$PARAMETERS_FOLDER"/sshkey
+      sudo chmod 600 "$PARAMETERS_FOLDER"/sshkey
+    fi
+
+    password_secret=$(az keyvault secret show --name "$PASSWORD_KEY_NAME" --vault-name "$VAULT_NAME" --query value -o tsv)
+
+    echo "Extra parameters passed: " "$EXTRA_PARAMS"
+
+
+    base=$(basename "$ANSIBLE_FILE_PATH")
+
+    filename_without_prefix=$(echo "$base" | awk -F'.' '{print $1}')
+    filename=./config/Ansible/"${filename_without_prefix}"_pre.yml
+    return_code=0
+
+    echo "Extra parameters passed: " $EXTRA_PARAMS
+    echo "Check for file: ${filename}"
+
+    command="ansible --version"
+    eval $command
+
+    EXTRA_PARAM_FILE=""
+
+    if [ -f $PARAMETERS_FOLDER/extra-params.yaml ]; then
+      echo "Extra parameter file passed: " $PARAMETERS_FOLDER/extra-params.yaml
+
+      EXTRA_PARAM_FILE="-e @$PARAMETERS_FOLDER/extra-params.yaml"
+    fi
+
+
+    ############################################################################################
+    #                                                                                          #
+    # Run Pre tasks if Ansible playbook with the correct naming exists                         #
+    #                                                                                          #
+    ############################################################################################
+
+    if [ -f  "${filename}" ]; then
+      echo "##[group]- preconfiguration"
+
+      redacted_command="ansible-playbook -i $INVENTORY -e @$SAP_PARAMS $EXTRA_PARAMS $EXTRA_PARAM_FILE ${filename}"
+      echo "##[section]Executing [$redacted_command]..."
+
+      command="ansible-playbook -i $INVENTORY --private-key $PARAMETERS_FOLDER/sshkey  \
+            -e @$SAP_PARAMS -e 'download_directory=$(Agent.TempDirectory)' -e '_workspace_directory=$PARAMETERS_FOLDER' $EXTRA_PARAMS  \
+            -e ansible_ssh_pass='${password_secret}' $EXTRA_PARAM_FILE ${filename}"
+
+      eval $command
+      return_code=$?
+      echo "##[section]Ansible playbook ${filename} execution completed with exit code [$return_code]"
+      echo "##[endgroup]"
+
+    fi
+
+    command="ansible-playbook -i $INVENTORY --private-key $PARAMETERS_FOLDER/sshkey                                         \
+      -e @$SAP_PARAMS -e 'download_directory=$(Agent.TempDirectory)' -e '_workspace_directory=$PARAMETERS_FOLDER'           \
+      -e ansible_ssh_pass='${password_secret}' -e 'acssEnvironment=$ACSS_ENVIRONMENT' -e 'acssSapProduct=$ACSS_SAP_PRODUCT' \
+       $EXTRA_PARAMS $EXTRA_PARAM_FILE $ANSIBLE_FILE_PATH"
+
+
+    redacted_command="ansible-playbook -i $INVENTORY -e @$SAP_PARAMS $EXTRA_PARAMS $EXTRA_PARAM_FILE $ANSIBLE_FILE_PATH"
+
+    echo "##[section]Executing [$redacted_command]..."
+    echo "##[group]- output"
+    eval $command
+    return_code=$?
+    echo "##[section]Ansible playbook execution completed with exit code [$return_code]"
+    echo "##[endgroup]"
+
+
+    filename=./config/Ansible/"${filename_without_prefix}"_post.yml
+    echo "Check for file: ${filename}"
+
+
+    ############################################################################################
+    #                                                                                          #
+    # Run Post tasks if Ansible playbook with the correct naming exists                        #
+    #                                                                                          #
+    ############################################################################################
+
+    if [ -f  ${filename} ]; then
+
+      echo "##[group]- postconfiguration"
+      redacted_command="ansible-playbook -i "$INVENTORY" -e @"$SAP_PARAMS" "$EXTRA_PARAMS" $EXTRA_PARAM_FILE "${filename}""
+      echo "##[section]Executing [$redacted_command]..."
+
+      command="ansible-playbook -i "$INVENTORY" --private-key $PARAMETERS_FOLDER/sshkey                                 \
+            -e @$SAP_PARAMS -e 'download_directory=$(Agent.TempDirectory)' -e '_workspace_directory=$PARAMETERS_FOLDER' \
+            -e ansible_ssh_pass='${password_secret}' ${filename}  $EXTRA_PARAMS $EXTRA_PARAM_FILE"
+
+      eval $command
+      return_code=$?
+      echo "##[section]Ansible playbook ${filename} execution completed with exit code [$return_code]"
+      echo "##[endgroup]"
+
+    fi
+
+    exit $return_code
+
   displayName: "ACSS: ${{ parameters.displayName }}"
   env:
-    ARM_SUBSCRIPTION_ID: ${{ parameters.azureSubscriptionId }}
-    ARM_CLIENT_ID: ${{ parameters.azureClientId }}
-    ARM_CLIENT_SECRET: ${{ parameters.azureClientSecret }}
-    ARM_TENANT_ID: ${{ parameters.azureTenantId }}
-    ACSS_ENVIRONMENT: ${{ parameters.acssEnvironment }}
-    ACSS_SAP_PRODUCT: ${{ parameters.acssSapProduct }}
-    SAP_SYSTEM_CONFIGURATION_NAME: ${{ parameters.sapSystemConfigurationName }}
-    ROOT_FOLDER: ${{ parameters.config_repo_path }}
-    CODE_FOLDER: ${{ parameters.sap_automation_repo_path }}
-    TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME: ${{ parameters.TF_Remote_SA_Name }}
-    TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION: ${{ parameters.TF_Remote_Storage_Subscription }}
+    ACSS_ENVIRONMENT:               ${{ parameters.acssEnvironment }}
+    ACSS_SAP_PRODUCT:               ${{ parameters.acssSapProduct }}
+    AZURE_CLIENT_ID:                ${{ parameters.azureClientId }}
+    AZURE_CLIENT_SECRET:            ${{ parameters.azureClientSecret }}
+    AZURE_SUBSCRIPTION_ID:          ${{ parameters.azureSubscriptionId }}
+    AZURE_TENANT_ID:                ${{ parameters.azureTenantId }}
+    ANSIBLE_COLLECTIONS_PATHS:      ~/.ansible/collections:/opt/ansible/collections
+    ANSIBLE_PYTHON_INTERPRETER:     auto_silent
+    ANSIBLE_DISPLAY_SKIPPED_HOSTS:  false
+    ANSIBLE_HOST_KEY_CHECKING:      false
+    ANSIBLE_FILE_PATH:              ${{ parameters.ansibleFilePath }}
+    PARAMETERS_FOLDER:              ${{ parameters.parametersFolder }}
+    EXTRA_PARAMS:                   ${{ parameters.extraParams }}
+    SAP_PARAMS:                     ${{ parameters.sapParams }}
+    INVENTORY:                      ${{ parameters.parametersFolder }}/${{ parameters.sidHosts }}
+    SSH_KEY_NAME:                   ${{ parameters.secretName }}
+    VAULT_NAME:                     ${{ parameters.vaultName }}
+    PASSWORD_KEY_NAME:              ${{ parameters.passwordSecretName }}
+    USERNAME_KEY_NAME:              ${{ parameters.userNameSecretName }}

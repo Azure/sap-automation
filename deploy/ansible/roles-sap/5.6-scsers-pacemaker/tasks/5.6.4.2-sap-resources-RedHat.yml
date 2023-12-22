@@ -52,12 +52,12 @@
     - name:                            "5.6 SCSERS - RHEL - ENSA1 - Bring Primary node online"
       ansible.builtin.command:         pcs node unstandby {{ primary_instance_name }}
 
-    - name:                            "5.6 SCSERS - RHEL - ENSA1 - Set the Cluster out of maintenance mode"
-      ansible.builtin.command:         pcs property set maintenance-mode=false
+    # - name:                            "5.6 SCSERS - RHEL - ENSA1 - Set the Cluster out of maintenance mode"
+    #   ansible.builtin.command:         pcs property set maintenance-mode=false
 
-    - name:                            "5.6 SCSERS - RHEL - ENSA2 - pause the execution for 2 minutes"
-      ansible.builtin.wait_for:
-        timeout:                       120
+    # - name:                            "5.6 SCSERS - RHEL - ENSA2 - pause the execution for 2 minutes"
+    #   ansible.builtin.wait_for:
+    #     timeout:                       120
 
 # Use the following if using ENSA2
 - name:                                "5.6 SCSERS - RHEL - SAP Resources - Cluster Configuration after Install"
@@ -106,19 +106,45 @@
       register:                        co_location
       failed_when:                     co_location.rc > 1
 
-    - name:                            "5.6 SCSERS - RHEL - ENSA2 - Set the Cluster out of maintenance mode"
-      ansible.builtin.command:         pcs property set maintenance-mode=false
+    # - name:                            "5.6 SCSERS - RHEL - ENSA2 - Set the Cluster out of maintenance mode"
+    #   ansible.builtin.command:         pcs property set maintenance-mode=false
 
     # - name:                            "5.6 SCSERS - RHEL - ENSA2 - pause the execution for 2 minutes"
     #   ansible.builtin.wait_for:
     #     timeout:                       120
 
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# | Systemd-Based SAP Startup Framework - BEGIN                                |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+- name:                                "5.6 SCSERS - RHEL - Systemd-Based SAP Startup Framework"
+  ansible.builtin.include_tasks:
+    file:                              "5.6.7-config-systemd-sap-start.yml"
+    apply:
+      become:                          true
+      become_user:                     root
+      tags:
+        - "5.6.7-config-systemd-sap-start"
+  when:
+    - is_rhel_82_or_newer is defined
+    - is_rhel_82_or_newer | default(false)
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# | Systemd-Based SAP Startup Framework - END                                  |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+
 # +------------------------------------4---------------------------------------*|
 # | 5.6.6-validate.yml - Validate the SAP ASCS/SCS and ERS resources            |
-# | These are common tasks
+# | These are common tasks                                                      |
 # +------------------------------------+---------------------------------------*|
-- name:                                "5.6 SCSERS - RHEL - Enable Maintenance mode for the cluster"
-  ansible.builtin.command:             pcs property set maintenance-mode=true
+
+# - name:                                "5.6 SCSERS - RHEL - Enable Maintenance mode for the cluster"
+#   ansible.builtin.command:             pcs property set maintenance-mode=true
 
 - name:                                "5.6 SCSERS - RHEL - Reboot and wait 5 minutes"
   ansible.builtin.debug:
@@ -126,8 +152,8 @@
 
 - name:                                "5.6 SCSERS - RHEL - Reboot the primary/secondary instance"
   ansible.builtin.reboot:
-#    reboot_timeout:                    300
-#    post_reboot_delay:                 300
+    reboot_timeout:                    300
+    post_reboot_delay:                 300
 
 - name:                                "5.6 SCSERS - RHEL - Set the Cluster out of maintenance mode"
   ansible.builtin.command:             pcs property set maintenance-mode=false

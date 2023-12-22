@@ -88,12 +88,12 @@
     - name:                            " Bring primary node online "
       ansible.builtin.command:         crm node online {{ primary_instance_name }}
 
-    - name:                            "5.6 SCSERS - SUSE - ENSA1 - Set the Cluster out of maintenance mode"
-      ansible.builtin.command:         crm configure property maintenance-mode=false
+    # - name:                            "5.6 SCSERS - SUSE - ENSA1 - Set the Cluster out of maintenance mode"
+    #   ansible.builtin.command:         crm configure property maintenance-mode=false
 
-    - name:                            "5.6 SCSERS - SUSE - ENSA1 - pause the execution for 2 minutes"
-      ansible.builtin.pause:
-        seconds:                       120
+    # - name:                            "5.6 SCSERS - SUSE - ENSA1 - pause the execution for 2 minutes"
+    #   ansible.builtin.pause:
+    #     seconds:                       120
 
 
 # [1] Create the SAP cluster resources - if using ENSA2 -
@@ -180,34 +180,69 @@
     - name:                            "5.6 SCSERS - SUSE - ENSA2 - Bring primary node online "
       ansible.builtin.command:         crm node online {{ primary_instance_name }}
 
-    - name:                            "5.6 SCSERS - SUSE - ENSA2 - Set the Cluster out of maintenance mode"
-      ansible.builtin.command:         crm configure property maintenance-mode=false
+    # - name:                            "5.6 SCSERS - SUSE - ENSA2 - Set the Cluster out of maintenance mode"
+    #   ansible.builtin.command:         crm configure property maintenance-mode=false
 
-    - name:                           "5.6 SCSERS - SUSE - ENSA2 - pause the execution for 2 minutes"
-      ansible.builtin.wait_for:
-        timeout:                       120
+    # - name:                           "5.6 SCSERS - SUSE - ENSA2 - pause the execution for 2 minutes"
+    #   ansible.builtin.wait_for:
+    #     timeout:                       120
 
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# | Systemd-Based SAP Startup Framework - BEGIN                                |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+- name:                                "5.6 SCSERS - SLES - Systemd-Based SAP Startup Framework"
+  ansible.builtin.include_tasks:
+    file:                              "5.6.7-config-systemd-sap-start.yml"
+    apply:
+      become:                          true
+      become_user:                     root
+      tags:
+        - "5.6.7-config-systemd-sap-start"
+  when:
+    - is_sles_15_or_newer is defined
+    - is_sles_15_or_newer | default(false)
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# | Systemd-Based SAP Startup Framework - END                                  |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
 
 # +------------------------------------4---------------------------------------*|
 # | 5.6.6-validate.yml - Validate the SAP ASCS/SCS and ERS resources            |
-- name:                            "5.6 SCSERS - SUSE - Set the cluster on maintenance mode"
-  ansible.builtin.command:         crm configure property maintenance-mode=true
+- name:                                "Get the cluster maintenance mode status"
+  ansible.builtin.shell:               crm configure get_property maintenance-mode
+  register:                            get_status_maintenance_mode
+  changed_when:                        false
+  ignore_errors:                       true
 
-- name:                            "5.6 SCSERS - SUSE - Reboot the primary/secondary instance"
+- name:                                "Set the cluster maintenance mode if not already in maintenance mode"
+  ansible.builtin.shell:               crm configure property maintenance-mode=true
+  when: >-
+    get_status_maintenance_mode.stdout is not search('true') or
+    get_status_maintenance_mode.stdout is search('false')
+
+- name:                                "5.6 SCSERS - SLES - Reboot and wait 5 minutes"
+  ansible.builtin.debug:
+    msg:                               "Reboot and wait 5 minutes"
+
+- name:                                "5.6 SCSERS - SUSE - Reboot the primary/secondary instance"
   ansible.builtin.reboot:
-    reboot_timeout:                300
-    post_reboot_delay:             300
+    reboot_timeout:                    300
+    post_reboot_delay:                 300
 
+- name:                                "5.6 SCSERS - SUSE - Set the Cluster out of maintenance mode"
+  ansible.builtin.command:             crm configure property maintenance-mode=false
 
-- name:                            "5.6 SCSERS - SUSE - Set the Cluster out of maintenance mode"
-  ansible.builtin.command:         crm configure property maintenance-mode=false
-
-- name:                            "5.6 SCSERS - SUSE - cluster group validation"
+- name:                                "5.6 SCSERS - SUSE - cluster group validation"
   ansible.builtin.include_tasks:
-    file:                          "5.6.6-validate.yml"
+    file:                              "5.6.6-validate.yml"
     apply:
-      become:                      true
-      become_user:                 root
+      become:                          true
+      become_user:                     root
       tags:
         - "5.6.6-validate"
   when:

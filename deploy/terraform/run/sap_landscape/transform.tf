@@ -453,4 +453,15 @@ locals {
                                           ) : null)
                                         )
 
+  vm_settings                          = {
+                                           count              = var.utility_vm_count
+                                           size               = var.utility_vm_size
+                                           use_DHCP           = var.utility_vm_useDHCP
+                                           image              = var.utility_vm_image
+                                           private_ip_address = var.utility_vm_nic_ips
+                                           disk_size          = var.utility_vm_os_disk_size
+                                           disk_type          = var.utility_vm_os_disk_type
+
+                                         }
+
 }

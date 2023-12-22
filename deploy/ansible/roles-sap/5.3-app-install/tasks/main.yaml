@@ -19,13 +19,20 @@
   with_items:
     - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
 
+- name:                            "Backward Compatibility - Check required Database HA variables"
+  ansible.builtin.set_fact:
+    database_high_availability:    "{{ db_high_availability | default(false) }}"
+  when:
+    - db_high_availability is defined
+    - database_high_availability is not defined
+
 - name:                                "APP Install: Set BOM facts"
   ansible.builtin.set_fact:
     sap_inifile:                       "{{ bom_base_name }}-app-{{ sid_to_be_deployed.sid }}-{{ ansible_hostname }}.params"
     sap_inifile_template:              "{{ bom_base_name }}{{ bom_suffix }}-app-inifile-param.j2"
     dir_params:                        "{{ tmp_directory }}/.{{ sid_to_be_deployed.sid | upper }}-params"
-    db_lb_virtual_host_HANA:           "{% if db_high_availability %}{{ sid_to_be_deployed.sid | lower }}{{ db_sid | lower }}db{{ db_instance_number }}cl{% else %}{{ hostvars[db_server_temp | first]['virtual_host'] }}{% endif %}"
-    db_lb_virtual_host_AnyDB:          "{% if db_high_availability %}{{ sid_to_be_deployed.sid | lower }}{{ db_sid | lower }}db{{ db_instance_number }}cl{% else %}{{ db_server_temp }}{% endif %}"
+    db_lb_virtual_host_HANA:           "{% if database_high_availability %}{{ sid_to_be_deployed.sid | lower }}{{ db_sid | lower }}db{{ db_instance_number }}cl{% else %}{{ hostvars[db_server_temp | first]['virtual_host'] }}{% endif %}"
+    db_lb_virtual_host_AnyDB:          "{% if database_high_availability %}{{ sid_to_be_deployed.sid | lower }}{{ db_sid | lower }}db{{ db_instance_number }}cl{% else %}{{ db_server_temp }}{% endif %}"
 
 - name:                                "APP Install: Set BOM facts db host"
   ansible.builtin.set_fact:
@@ -65,6 +72,36 @@
 - name:                                "APP Install: register variables"
   ansible.builtin.set_fact:
     app_bom_id:                        "{{ bom.product_ids.app }}"
+
+- name:                                "APP Install: Check if the DB load balancer port is available and listening"
+  ansible.builtin.wait_for:
+    host:                              "{{ db_lb_virtual_host }}"
+    port:                              "3{{ db_instance_number }}13"
+    state:                             started
+    timeout:                           30
+    msg:                               'INSTALL:0026:APP Install failed, database is unreachable.'
+  register:                            db_port_open
+  failed_when:                         false
+  when:
+    - database_high_availability
+    - platform == "HANA"
+
+- name:                                "APP Install: DEBUG - DB Loadbalancer check"
+  ansible.builtin.debug:
+    msg:                               "{{ db_port_open.msg }}"
+    verbosity:                         2
+  when:
+    - database_high_availability
+    - platform == "HANA"
+    - db_port_open.msg is defined
+
+- name:                                "ErrorHandling"
+  ansible.builtin.fail:
+    msg:                               "INSTALL:0026:APP Install failed, database is unreachable."
+  when:
+    - database_high_availability
+    - platform == "HANA"
+    - db_port_open.msg is defined
 
 - name:                                "APP Install: Set schema_name variable for HANA"
   when: platform == "HANA"
@@ -153,7 +190,7 @@
     - name:                            "APP Install: HANA HSR - Update Profile"
       ansible.builtin.import_tasks:    ../../../roles-db/4.0.1-hdb-hsr/tasks/4.0.1.7-sap-profile-changes.yml
       when:
-        - db_high_availability
+        - database_high_availability
         - platform == "HANA"
 
     - name:                            "APP Install: Create temp directory for sid"
@@ -230,20 +267,20 @@
         recurse:                       true
       register:                        hdbuserstore_file
       when:
-        - db_high_availability
+        - database_high_availability
         - platform == 'HANA'
     - name:                            "APP Install: Set hdbuserstore path"
       ansible.builtin.set_fact:
         hdbuserstore_path:             "{{ hdbuserstore_file.files[0].path }}"
       when:
-        - db_high_availability
+        - database_high_availability
         - platform == 'HANA'
         - hdbuserstore_file | length > 0
     - name:                            "APP Install: show hdbuserstore path"
       ansible.builtin.debug:
         var:                           hdbuserstore_path
       when:
-        - db_high_availability
+        - database_high_availability
         - platform == 'HANA'
 
     - name:                            "APP Install: Set DB Virtual Host name"
@@ -257,7 +294,7 @@
       vars:
         allow_world_readable_tmpfiles: true
       when:
-        - db_high_availability
+        - database_high_availability
         - platform == 'HANA'
         - pas_installed_according_to_sapinst is defined
         - pas_installed_according_to_sapinst | length > 0
@@ -281,14 +318,14 @@
         recurse:                       true
       register:                        hdbuserstore_file
       when:
-        - db_high_availability
+        - database_high_availability
         - platform == 'HANA'
 
     - name:                            "APP Install: Set hdbuserstore path"
       ansible.builtin.set_fact:
         hdbuserstore_path:             "{{ hdbuserstore_file.files[0].path }}"
       when:
-        - db_high_availability
+        - database_high_availability
         - platform == 'HANA'
         - hdbuserstore_file | length > 0
 
@@ -296,7 +333,7 @@
       ansible.builtin.debug:
         var:                           hdbuserstore_path
       when:
-        - db_high_availability
+        - database_high_availability
         - platform == 'HANA'
 
     - name:                            "APP Install: Set DB Virtual Host name ({{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) }})"
@@ -310,7 +347,7 @@
       vars:
         allow_world_readable_tmpfiles: true
       when:
-        - db_high_availability
+        - database_high_availability
         - platform == 'HANA'
 
   when:
