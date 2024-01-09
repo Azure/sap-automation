@@ -1000,6 +1000,12 @@ variable "dns_zone_names"                       {
                                                             }
                                                 }
 
+variable "dns_a_records_for_secondary_names"    {
+                                                  description = "Boolean value indicating if dns a records should be created for the secondary DNS names"
+                                                  default     = true
+                                                  type        = bool
+                                                }
+
 #########################################################################################
 #                                                                                       #
 #  NFS and Shared Filed settings                                                        #

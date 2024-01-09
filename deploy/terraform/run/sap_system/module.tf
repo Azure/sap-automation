@@ -412,7 +412,7 @@ module "output_files" {
   management_dns_subscription_id                = try(data.terraform_remote_state.landscape.outputs.management_dns_subscription_id, null)
   management_dns_resourcegroup_name             = try(data.terraform_remote_state.landscape.outputs.management_dns_resourcegroup_name, local.saplib_resource_group_name)
   dns_zone_names                                = var.dns_zone_names
-
+  dns_a_records_for_secondary_names             = var.dns_a_records_for_secondary_names
 
   #########################################################################################
   #  Server counts                                                                        #
