@@ -105,7 +105,7 @@
 - name:                               "2.11: SBD create iscsi/iqn DB"
   become_user:                        root
   become:                             true
-  ansible.builtin.command:            "targetcli iscsi/{{ item.iqn }}/tpg1/acls/ create iqn.2006-04.{{ sap_sid }}-db-0.local:{{ sap_sid }}-db-0"
+  ansible.builtin.command:            "targetcli iscsi/{{ item.iqn }}/tpg1/acls/ create iqn.2006-04.{{ sap_sid }}-xdb-0.local:{{ sap_sid }}-xdb-0"
   register:                           iscsi_create3_db
   failed_when:                        iscsi_create3_db.rc not in [0,1]
   changed_when:                       iscsi_create3_db.rc == 0
@@ -118,7 +118,7 @@
 - name:                               "2.11: SBD create iscsi/iqn DB"
   become_user:                        root
   become:                             true
-  ansible.builtin.command:            "targetcli iscsi/{{ item.iqn }}/tpg1/acls/ create iqn.2006-04.{{ sap_sid }}-db-1.local:{{ sap_sid }}-db-1"
+  ansible.builtin.command:            "targetcli iscsi/{{ item.iqn }}/tpg1/acls/ create iqn.2006-04.{{ sap_sid }}-xdb-1.local:{{ sap_sid }}-xdb-1"
   register:                           iscsi_create4_db
   failed_when:                        iscsi_create4_db.rc not in [0,1]
   changed_when:                       iscsi_create4_db.rc == 0
