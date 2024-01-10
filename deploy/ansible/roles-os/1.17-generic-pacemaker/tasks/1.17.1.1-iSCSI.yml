@@ -26,9 +26,12 @@
   ansible.builtin.set_fact:
     iscsi_node_type: >-
                                        {%- set _clusterType = 'scs' -%}
-                                       {%- if (['hana', 'db2'] in supported_tiers) -%}
+                                       {%- if ('hana' in supported_tiers) -%}
                                        {%-   set _clusterType = 'db' -%}
-                                       {%- endif -%} {{- _clusterType -}}
+                                       {%- endif -%}
+                                       {%- if ('db2' in supported_tiers) -%}
+                                       {%-   set _clusterType = 'db' -%}
+                                       {%- endif -%}
                                        {{- _clusterType -}}
 
 - name:                                "1.17.1 iSCSI packages - Get initiator name"
