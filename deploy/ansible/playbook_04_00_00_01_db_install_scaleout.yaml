@@ -135,6 +135,7 @@
                 mode:                  0755
               when:
                 - hana_already_installed is defined or (hana_installation.rc is defined and hana_installation.rc == 0)
+                - db_scale_out | default(false) == true
 
           always:
             - name:                    "Database Installation Playbook: - Get the Error lines from installation output"
@@ -241,9 +242,9 @@
             path:                      "{{ _workspace_directory }}/.progress/pacemaker-install-done"
             state:                     touch
             mode:                      0755
-  when:
-    - db_scale_out is defined
-    - db_scale_out is true
+      when:
+        - db_scale_out | default(false) == true
+        - db_high_availability | default(false) == true
 
 # # /*----------------------------------------------------------------------------8
 # # |                                                                            |
