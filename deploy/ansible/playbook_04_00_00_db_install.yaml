@@ -104,10 +104,13 @@
       when:
         - db_high_availability is defined
         - database_high_availability is not defined
+        - db_scale_out | default(false) == false
 
     - name:                            "Database Installation Playbook: - Install HANA"
       become:                          true
-      when: node_tier == 'hana'
+      when: 
+      - node_tier == 'hana'
+      - db_scale_out | default(false) == false
       block:
         - name:                        "Database Installation Playbook: - Setting the DB facts"
           ansible.builtin.set_fact:
@@ -171,6 +174,7 @@
         # - db_high_availability
         - database_high_availability
         - node_tier == 'hana'
+        - db_scale_out | default(false) == false
       block:
         - name:                         "Database Installation Playbook: - Setting the facts"
           ansible.builtin.set_fact:

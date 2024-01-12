@@ -568,7 +568,9 @@
     - tier == 'sapos'
     - node_tier == 'hana'
 
-# Note: This block ( and one for second DB note) must run only for stand alone HANA, or HSR - pacemaker HANA ( including scale out with HSR )
+# Note: This block ( and one for second DB note) must run only for HSR - pacemaker HANA scale out
+# Currently we only support two node cluster + observer.
+# TODO: Add support for >2(even count) node cluster + observer
 - name:                                "ANF Mount: HANA data"
   ansible.builtin.include_tasks:       2.6.1.1-anf-mount.yaml
   loop:
@@ -595,6 +597,7 @@
     # For HSR based scale out, needs DB high availability
     - db_high_availability is defined
     - db_high_availability == true
+
 - name:                                "ANF Mount: HANA log"
   ansible.builtin.include_tasks:       2.6.1.1-anf-mount.yaml
   loop:
@@ -817,7 +820,7 @@
     - {
       'type':              'usrsap',
       'temppath':          'usrsap',
-      'folder':            "usr-sap-hanadb{{ lookup('ansible.utils.index_of', db_hosts, 'eq', ansible_hostname) }}",
+      'folder':            "usr-sap-hanadb{{ lookup('ansible.utils.index_of', db_hosts, 'eq', ansible_hostname)  }}",
       'mount':             '{{ hana_shared_mountpoint[0] }}',
       'opts':              '{{ mnt_options }}',
       'path':              '/usr/sap/{{ db_sid | upper }}',
@@ -870,6 +873,10 @@
     - db_scale_out is defined
     - db_scale_out == true
 
+- name:                                "DEBUG:ANF Mount: HANA Data - Scale out - Create mount list"
+  ansible.builtin.debug:
+    var:                               hana_data_scaleout_mountpoint
+
 - name:                                "ANF Mount: HANA Data - Scale out"
   ansible.builtin.include_tasks:       2.6.1.1-anf-mount.yaml
   # Do not change this to loop:. It Breaks. i don't know why but this modification only seems to work with with_items: despite multiple formatting attempts.
@@ -895,12 +902,12 @@
     - name:                             "Build HANA log mountpoints"
       ansible.builtin.set_fact:
         hana_log_scaleout_mountpoint:     "{{ hana_log_scaleout_mountpoint + logupdate }}"
-      loop:                                "{{ hana_log_mountpoint }}"
+      loop:                               "{{ hana_log_mountpoint }}"
       loop_control:
         index_var: my_index
       # Note the object structure and specific key:pair value. Do not modify those hard coded.
       vars: 
-        dataupdate: 
+        logupdate: 
           - { type: 'log',
               temppath: 'hanalog',
               folder:  'hanalog',
@@ -920,6 +927,10 @@
     - db_scale_out is defined
     - db_scale_out == true
 
+- name:                                "DEBUG:ANF Mount: HANA Log - Scale out - Create mount list"
+  ansible.builtin.debug:
+    var:                               hana_log_scaleout_mountpoint
+
 - name:                                "ANF Mount: HANA Log - Scale out"
   ansible.builtin.include_tasks:       2.6.1.1-anf-mount.yaml
   # Do not change this to loop:. It Breaks. i don't know why but this modification only seems to work with with_items: despite multiple formatting attempts.
@@ -937,7 +948,7 @@
 
 
 
-- name:                                "ANF Mount: Set Permissons on HANA Directories ({{ item.path }})"
+- name:                                "ANF Mount: Set Permissons on HANA (HSR) Directories ({{ item.path }})"
   ansible.builtin.file:
     owner:                             '{{ hdbadm_uid }}'
     group:                             sapsys
@@ -951,5 +962,26 @@
   when:
     - tier == 'sapos'
     - node_tier == 'hana'
+    - db_high_availability is defined
+    - db_high_availability == true
+
+
+- name:                                "ANF Mount: Set Permissons on HANA Directories ({{ item.path }})"
+  ansible.builtin.file:
+    owner:                             '{{ hdbadm_uid }}'
+    group:                             sapsys
+    path:                              "{{ item.path }}"
+    state:                             directory
+    recurse:                           true
+  loop:
+    - hana_log_scaleout_mountpoint 
+    - hana_data_scaleout_mountpoint
+    - { 'path': '/hana/shared' }
+    - { 'path': '/usr/sap/{{ db_sid | upper }}' }
+  when:
+    - tier == 'sapos'
+    - node_tier == 'hana'
+    - db_high_availability | default(false == false)
+    - db_scale_out == true
 
 ...
