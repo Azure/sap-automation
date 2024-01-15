@@ -55,7 +55,7 @@ module "sap_landscape" {
   transport_private_endpoint_id                = var.transport_private_endpoint_id
   transport_storage_account_id                 = var.transport_storage_account_id
   transport_volume_size                        = var.transport_volume_size
-  use_AFS_for_installation_media               = var.use_AFS_for_installation_media
+  use_AFS_for_shared_storage                   = var.use_AFS_for_shared_storage
   use_custom_dns_a_registration                = var.use_custom_dns_a_registration
   use_deployer                                 = length(var.deployer_tfstate_key) > 0
   use_private_endpoint                         = var.use_private_endpoint

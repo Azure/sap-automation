@@ -405,7 +405,7 @@ output "saptransport_path"                     {
 
 output "install_path"                           {
                                                  description = "Path to the SAP installation volume"
-                                                 value       = var.NFS_provider == "AFS" || local.use_AFS_for_install ? (
+                                                 value       = try(local.use_AFS_for_shared ? (
                                                                  length(var.install_private_endpoint_id) == 0 ? (
                                                                    var.use_private_endpoint ?
                                                                    format("%s:/%s/%s", try(azurerm_private_endpoint.install[0].private_dns_zone_configs[0].record_sets[0].fqdn,
