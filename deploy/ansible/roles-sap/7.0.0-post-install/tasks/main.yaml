@@ -70,11 +70,10 @@
       become_user:                     root
       become:                          true
       ansible.builtin.find:
-        paths:                         ["/var/log", "/var/log/pacemaker", "/var/log/cluster", "/usr/sap/{{ sap_sid | upper }}"]
+        paths:                         ["/var/log", "/var/log/pacemaker", "/var/log/cluster", "/usr/sap/{{ this_sid | upper }}"]
         patterns:                      "pacemaker.log,corosync.log,trans.log"
         file_type:                     file
       register:                        other_log_files
-
   rescue:
     - name:                            "Post Installation: Error while acquiring other SAP logs"
       ansible.builtin.debug:
