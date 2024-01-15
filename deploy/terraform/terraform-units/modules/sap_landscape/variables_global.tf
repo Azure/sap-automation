@@ -281,7 +281,7 @@ variable "enable_firewall_for_keyvaults_and_storage"     { description = "Boolea
 
 variable "public_network_access_enabled"                 { description = "Defines if the public access should be enabled for keyvaults and storage accounts" }
 
-variable "use_AFS_for_installation_media"                {
+variable "use_AFS_for_shared_storage"                    {
                                                            description = "If true, will use AFS for installation media."
                                                            default = false
                                                          }

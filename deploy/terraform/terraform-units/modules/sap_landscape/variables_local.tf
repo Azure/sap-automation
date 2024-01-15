@@ -654,6 +654,6 @@ locals {
   use_Azure_native_DNS                            = length(var.dns_label) > 0 && !var.use_custom_dns_a_registration && !local.SAP_virtualnetwork_exists
 
 
-  use_AFS_for_install                             = (var.NFS_provider == "ANF" && var.use_AFS_for_installation_media) || var.NFS_provider == "AFS"
+  use_AFS_for_shared                             = (var.NFS_provider == "ANF" && var.use_AFS_for_shared_storage) || var.NFS_provider == "AFS"
 
 }
