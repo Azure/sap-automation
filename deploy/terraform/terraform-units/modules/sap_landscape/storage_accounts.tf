@@ -630,13 +630,7 @@ data "azurerm_private_dns_a_record" "install" {
 
 data "azurerm_storage_account" "install" {
   provider                             = azurerm.main
-  count                                = local.use_AFS_for_shared (
-                                           length(var.install_storage_account_id) > 0 ? (
-                                             1) : (
-                                             0
-                                           )) : (
-                                           0
-                                         )
+  count                                = local.use_AFS_for_shared && length(var.install_storage_account_id) > 0 ? 1 : 0
   name                                 = split("/", var.install_storage_account_id)[8]
   resource_group_name                  = split("/", var.install_storage_account_id)[4]
 }
