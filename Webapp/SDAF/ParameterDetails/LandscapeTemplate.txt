@@ -334,6 +334,9 @@ $$dns_server_list$$
 # NFS indicates that a custom solution is used for NFS
 $$NFS_provider$$
 
+# use_AFS_for_installation_media defines if shared media is on AFS even when using ANF for data
+$$use_AFS_for_installation_media$$
+
 #########################################################################################
 #                                                                                       #
 #  Azure NetApp files support                                                           #
