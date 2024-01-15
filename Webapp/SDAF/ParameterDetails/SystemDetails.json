@@ -287,6 +287,15 @@
         "Display": 3
       },
       {
+        "Name": "dns_a_records_for_secondary_names",
+        "Required": false,
+        "Description": "Defines if DNS records should be created for the virtual host names.",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
         "Name": "use_private_endpoint",
         "Required": false,
         "Description": "Use private endpoint for the storage accounts and the key vaults in the deployment.",

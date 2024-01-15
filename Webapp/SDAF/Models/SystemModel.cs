@@ -197,7 +197,7 @@ namespace AutomationForm.Models
 
     public Tag[] configuration_settings { get; set; }
 
-
+    public bool? dns_a_records_for_secondary_names { get; set; } = true;
     /*---------------------------------------------------------------------------8
     |                                                                            |
     |                       Cluster information                                  |

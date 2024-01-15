@@ -268,6 +268,8 @@ namespace AutomationForm.Models
 
     public string NFS_provider { get; set; }
 
+    public bool? use_AFS_for_installation_media { get; set; } = true;
+
     public bool? create_transport_storage { get; set; } = true;
 
     public int? transport_volume_size { get; set; }
