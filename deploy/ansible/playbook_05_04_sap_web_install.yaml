@@ -62,7 +62,6 @@
 
   name:                                SAP Installation - WebDispatcher
   remote_user:                         "{{ orchestration_ansible_user }}"
-  become:                              true
   gather_facts:                        true                                    # Important to collect hostvars information
   vars_files:
     - vars/ansible-input-api.yaml                                              # API Input template with defaults
@@ -80,7 +79,7 @@
         sapbits_location_base_path:    "{{ hostvars.localhost.sapbits_location_base_path }}"
         sapbits_sas_token:             "{{ hostvars.localhost.sapbits_sas_token }}"
         always_upload_jinja_templates: false
-        file_path:                     /GENERIC/AS/WI_UC
+        file_path:                     AS/WI_UC
         sa_enabled:                    true
 
       tags:
@@ -126,7 +125,7 @@
             name:                      roles-sap/7.0.0-post-install
           vars:
             suffix:                    "_WEB"
-            prefix:                    ""
+            prefix:                    "GENERIC"
             path:                      "{{ file_path }}"
             tier:                      'web'
             this_sid:                  "{{ sid_to_be_deployed.web_sid | upper }}"
