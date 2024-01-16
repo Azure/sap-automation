@@ -153,6 +153,14 @@
             state:                     touch
             mode:                      0755
 
+        - name:                        "SAP HANA: Create backup folder"
+          ansible.builtin.file:
+            path:                      "{{ hana_backup_path }}"
+            state:                     directory
+            group:                     sapsys
+            owner:                     "{{ db_sid | lower }}adm"
+            mode:                      0755
+
         - name:                        "Retrieve Subscription ID and Resource Group Name"
           ansible.builtin.uri:
             url:                       http://169.254.169.254/metadata/instance?api-version=2021-02-01
@@ -195,15 +203,6 @@
         - hana_installation.rc is defined
         - hana_installation.rc < 1
 
-    - name:                            "SAP HANA: Create backup folder"
-      ansible.builtin.file:
-        path:                          "{{ hana_backup_path }}"
-        state:                         directory
-        group:                         sapsys
-        owner:                         "{{ db_sid | lower }}adm"
-        mode:                          0755
-
-
   when:
     - not hana_installed.stat.exists
 
@@ -217,6 +216,14 @@
     - name:                            "HANA: - return value"
       ansible.builtin.set_fact:
         hana_already_installed:         true
+
+    - name:                            "SAP HANA: Create backup folder"
+      ansible.builtin.file:
+        path:                          "{{ hana_backup_path }}"
+        state:                         directory
+        group:                         sapsys
+        owner:                         "{{ db_sid | lower }}adm"
+        mode:                          0755
 
     - name:                            "SAP HANA: check if ARM Deployment done"
       ansible.builtin.stat:
@@ -259,14 +266,6 @@
       when:
         - not hana_arm_deployment_done.stat.exists
 
-
-    - name:                            "SAP HANA: Create backup folder"
-      ansible.builtin.file:
-        path:                          "{{ hana_backup_path }}"
-        state:                         directory
-        group:                         sapsys
-        owner:                         "{{ db_sid | lower }}adm"
-        mode:                          0755
   when:
     - hana_installed.stat.exists
 
