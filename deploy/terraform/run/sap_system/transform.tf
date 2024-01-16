@@ -565,7 +565,7 @@ locals {
 
   infrastructure                       = merge(local.temp_infrastructure, (
                                            local.resource_group_defined ? { resource_group = local.resource_group } : null), (
-                                           local.app_ppg_defined        ? { ppg = local.app_ppg } : null), (
+                                           local.app_ppg_defined        ? { app_ppg = local.app_ppg } : null), (
                                            local.ppg_defined            ? { ppg = local.ppg } : null), (
                                            local.deploy_anchor_vm       ? { anchor_vms = local.anchor_vms } : null),
                                            { vnets = local.temp_vnet }
