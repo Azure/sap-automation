@@ -350,7 +350,7 @@ locals {
                                               "prefix" = try(var.infrastructure.vnets.sap.subnet_iscsi.prefix, var.iscsi_subnet_address_prefix)
                                             }
                                             ), (
-                                            local.subnet_web_nsg_defined ? (
+                                            local.subnet_iscsi_nsg_defined ? (
                                               {
                                                 "nsg" = {
                                                   "name"   = try(var.infrastructure.vnets.sap.subnet_iscsi.nsg.name, var.iscsi_subnet_nsg_name)
