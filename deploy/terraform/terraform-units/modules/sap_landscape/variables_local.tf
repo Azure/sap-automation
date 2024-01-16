@@ -562,11 +562,12 @@ locals {
 
   // iSCSI NSG
   var_sub_iscsi_nsg                               = try(var.infrastructure.vnets.sap.subnet_iscsi.nsg, {})
-  sub_iscsi_nsg_arm_id                            = try(var.infrastructure.vnets.sap.subnet_iscsi_nsg.arm_id, "")
+  sub_iscsi_nsg_arm_id                            = try(var.infrastructure.vnets.sap.subnet_iscsi.nsg.arm_id, "")
   sub_iscsi_nsg_exists                            = length(local.sub_iscsi_nsg_arm_id) > 0
   sub_iscsi_nsg_name                              = local.sub_iscsi_nsg_exists ? (
-                                                      try(split("/", local.sub_iscsi_nsg_arm_id)[8], "")) : (
-                                                      try(var.infrastructure.vnets.sap.subnet_iscsi_nsg.name,
+                                                      try(split("/", local.sub_iscsi.nsg.arm_id)[8], "")) : (
+                                                      length(try(var.infrastructure.vnets.sap.subnet_iscsi.nsg.name, "")) > 0 ? (
+                                                        var.infrastructure.vnets.sap.subnet_iscsi.nsg.name ) : (
                                                         format("%s%s%s%s",
                                                           var.naming.resource_prefixes.iscsi_subnet_nsg,
                                                           length(local.prefix) > 0 ? (
@@ -576,9 +577,7 @@ locals {
                                                           var.naming.separator,
                                                         local.resource_suffixes.iscsi_subnet_nsg)
                                                       )
-
                                                     )
-
 
   input_iscsi_public_key_secret_name              = try(var.key_vault.kv_iscsi_sshkey_pub, "")
   input_iscsi_private_key_secret_name             = try(var.key_vault.kv_iscsi_sshkey_prvt, "")
