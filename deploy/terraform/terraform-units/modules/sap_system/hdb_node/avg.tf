@@ -306,12 +306,12 @@ locals {
                  }
 
   volumes_primary   = [
-                        var.hana_ANF_volumes.use_for_data ? merge(local.hana_data1,local.hana_data3,local.hana_data5,local.hana_data7)  : null,
+                        var.hana_ANF_volumes.use_for_data ? concat(local.hana_data1,local.hana_data3,local.hana_data5,local.hana_data7)  : null,
                         var.hana_ANF_volumes.use_for_log ? local.hana_log1 : null,
                         var.hana_ANF_volumes.use_for_shared ? local.hana_shared1 : null
                       ]
   volumes_secondary = [
-                        var.hana_ANF_volumes.use_for_data ? merge(local.hana_data2,local.hana_data4,local.hana_data6,local.hana_data8) : null,
+                        var.hana_ANF_volumes.use_for_data ? concat(local.hana_data2,local.hana_data4,local.hana_data6,local.hana_data8) : null,
                         var.hana_ANF_volumes.use_for_log ? local.hana_log2 : null,
                         var.hana_ANF_volumes.use_for_shared ? local.hana_shared2 : null
                       ]
