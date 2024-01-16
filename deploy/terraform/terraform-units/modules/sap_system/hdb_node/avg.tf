@@ -6,7 +6,7 @@
 
 resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA" {
   provider                             = azurerm.main
-  count                                = local.use_avg ? length(var.ppg) : 0
+  count                                = var.NFS_provider == "ANF" && local.use_avg  ? length(var.ppg) : 0
   name                                 = format("%s%s%s%s%d",
                                            var.naming.resource_prefixes.hana_avg,
                                            local.prefix,
@@ -54,7 +54,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA" {
 
 data "azurerm_netapp_pool" "workload_netapp_pool" {
   provider                             = azurerm.main
-  count                                = length(local.ANF_pool_settings.pool_name) > 0 ? 1 : 0
+  count                                = var.NFS_provider == "ANF" && length(local.ANF_pool_settings.pool_name) > 0 ? 1 : 0
   resource_group_name                  = data.azurerm_netapp_account.workload_netapp_account[0].resource_group_name
   name                                 = try(local.ANF_pool_settings.pool_name, "")
   account_name                         = local.ANF_pool_settings.account_name
@@ -63,7 +63,7 @@ data "azurerm_netapp_pool" "workload_netapp_pool" {
 
 data "azurerm_netapp_account" "workload_netapp_account" {
   provider                             = azurerm.main
-  count                                = length(local.ANF_pool_settings.account_id) > 0 ? 1 : 0
+  count                                = var.NFS_provider == "ANF" && length(local.ANF_pool_settings.account_id) > 0 ? 1 : 0
   name                                 = try(split("/", local.ANF_pool_settings.account_id)[8], "")
   resource_group_name                  = try(split("/", local.ANF_pool_settings.account_id)[4], "")
 }
@@ -114,120 +114,6 @@ locals {
 
                }
 
-  hana_data3 = {
-                 name = format("%s%s%s%s%d",
-                   var.naming.resource_prefixes.hanadata,
-                   local.prefix,
-                   var.naming.separator,
-                   local.resource_suffixes.hanadata, 3
-                 )
-                 path = format("%s-%s%02d",
-                   var.sap_sid,
-                   local.resource_suffixes.hanadata,
-                   3
-                 )
-                 volumeSpecName          = "data"
-                 proximityPlacementGroup = length(var.scale_set_id) == 0 ? try(var.ppg[0], null) : null
-                 storage_quota_in_gb     = var.hana_ANF_volumes.data_volume_size
-                 throughput_in_mibps     = var.hana_ANF_volumes.data_volume_throughput
-                 zone                    = local.db_zone_count > 0 ? try(local.zones[0], null) : null
-               }
-
-  hana_data4 = {
-                 name = format("%s%s%s%s%d",
-                   var.naming.resource_prefixes.hanadata,
-                   local.prefix,
-                   var.naming.separator,
-                   local.resource_suffixes.hanadata, 4
-                 )
-                 path = format("%s-%s%02d",
-                   var.sap_sid,
-                   local.resource_suffixes.hanadata,
-                   4
-                 )
-                 volumeSpecName          = "data"
-                 proximityPlacementGroup = length(var.scale_set_id) == 0 ? (length(var.ppg) > 1 ? try(var.ppg[1], null) : try(var.ppg[0], null)) : null
-                 storage_quota_in_gb     = var.hana_ANF_volumes.data_volume_size
-                 throughput_in_mibps     = var.hana_ANF_volumes.data_volume_throughput
-                 zone                    = local.db_zone_count > 1 ? try(local.zones[1], null) : null
-
-               }
-  hana_data5 = {
-                 name = format("%s%s%s%s%d",
-                   var.naming.resource_prefixes.hanadata,
-                   local.prefix,
-                   var.naming.separator,
-                   local.resource_suffixes.hanadata, 5
-                 )
-                 path = format("%s-%s%02d",
-                   var.sap_sid,
-                   local.resource_suffixes.hanadata,
-                   5
-                 )
-                 volumeSpecName          = "data"
-                 proximityPlacementGroup = length(var.scale_set_id) == 0 ? try(var.ppg[0], null) : null
-                 storage_quota_in_gb     = var.hana_ANF_volumes.data_volume_size
-                 throughput_in_mibps     = var.hana_ANF_volumes.data_volume_throughput
-                 zone                    = local.db_zone_count > 0 ? try(local.zones[0], null) : null
-               }
-
-  hana_data6 = {
-                 name = format("%s%s%s%s%d",
-                   var.naming.resource_prefixes.hanadata,
-                   local.prefix,
-                   var.naming.separator,
-                   local.resource_suffixes.hanadata, 6
-                 )
-                 path = format("%s-%s%02d",
-                   var.sap_sid,
-                   local.resource_suffixes.hanadata,
-                   6
-                 )
-                 volumeSpecName          = "data"
-                 proximityPlacementGroup = length(var.scale_set_id) == 0 ? (length(var.ppg) > 1 ? try(var.ppg[1], null) : try(var.ppg[0], null)) : null
-                 storage_quota_in_gb     = var.hana_ANF_volumes.data_volume_size
-                 throughput_in_mibps     = var.hana_ANF_volumes.data_volume_throughput
-                 zone                    = local.db_zone_count > 1 ? try(local.zones[1], null) : null
-
-               }
-  hana_data7 = {
-                 name = format("%s%s%s%s%d",
-                   var.naming.resource_prefixes.hanadata,
-                   local.prefix,
-                   var.naming.separator,
-                   local.resource_suffixes.hanadata, 7
-                 )
-                 path = format("%s-%s%02d",
-                   var.sap_sid,
-                   local.resource_suffixes.hanadata,
-                   7
-                 )
-                 volumeSpecName          = "data"
-                 proximityPlacementGroup = length(var.scale_set_id) == 0 ? try(var.ppg[0], null) : null
-                 storage_quota_in_gb     = var.hana_ANF_volumes.data_volume_size
-                 throughput_in_mibps     = var.hana_ANF_volumes.data_volume_throughput
-                 zone                    = local.db_zone_count > 0 ? try(local.zones[0], null) : null
-               }
-
-  hana_data8 = {
-                 name = format("%s%s%s%s%d",
-                   var.naming.resource_prefixes.hanadata,
-                   local.prefix,
-                   var.naming.separator,
-                   local.resource_suffixes.hanadata, 8
-                 )
-                 path = format("%s-%s%02d",
-                   var.sap_sid,
-                   local.resource_suffixes.hanadata,
-                   8
-                 )
-                 volumeSpecName          = "data"
-                 proximityPlacementGroup = length(var.scale_set_id) == 0 ? (length(var.ppg) > 1 ? try(var.ppg[1], null) : try(var.ppg[0], null)) : null
-                 storage_quota_in_gb     = var.hana_ANF_volumes.data_volume_size
-                 throughput_in_mibps     = var.hana_ANF_volumes.data_volume_throughput
-                 zone                    = local.db_zone_count > 1 ? try(local.zones[1], null) : null
-
-               }
   hana_log1 = {
                 name = format("%s%s%s%s%d",
                   var.naming.resource_prefixes.hanalog,
@@ -305,15 +191,11 @@ locals {
                    zone                    = local.db_zone_count > 1 ? try(local.zones[1], null) : null
                  }
 
-  volumes_primary   = compact(flatten([
-                        var.hana_ANF_volumes.use_for_data ? [local.hana_data1,local.hana_data3,local.hana_data5,local.hana_data7] : [],
-                        var.hana_ANF_volumes.use_for_log ? local.hana_log1 : {},
-                        var.hana_ANF_volumes.use_for_shared ? local.hana_shared1 : {}
-                      ]))
-  volumes_secondary = compact(flatten([
-                        var.hana_ANF_volumes.use_for_data ? [local.hana_data2,local.hana_data4,local.hana_data6,local.hana_data8] : [],
-                        var.hana_ANF_volumes.use_for_log ? local.hana_log2 : {},
-                        var.hana_ANF_volumes.use_for_shared ? local.hana_shared2 : {}
-                      ]))
+  volumes_primary   = [
+                        local.hana_data1, local.hana_log1, local.hana_shared1
+                      ]
+  volumes_secondary = [
+                        local.hana_data2, local.hana_log2, local.hana_shared2
+                      ]
 
 }
