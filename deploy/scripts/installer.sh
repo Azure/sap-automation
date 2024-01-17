@@ -1133,6 +1133,12 @@ then
     echo ""
     echo ""
 
+    if [ -n ${ARM_CLIENT_SECRET} ] ; then
+      az login --service-principal --username "${ARM_CLIENT_ID}" --password=$ARM_CLIENT_SECRET --tenant "${ARM_TENANT_ID}"  --output none
+    else
+      az login --identity --output none
+    fi
+
     az deployment group create --resource-group ${created_resource_group_name} --name "ControlPlane_Deployer_${created_resource_group_name}" --template-file "${script_directory}/templates/empty-deployment.json" --output none
     return_value=0
     if [ 1 == $called_from_ado ] ; then
@@ -1249,12 +1255,6 @@ then
     #         terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" $allParams  2>error.log
     #     fi
     # fi
-
-    if [ -n ${ARM_CLIENT_SECRET} ] ; then
-      az login --service-principal --username "${ARM_CLIENT_ID}" --password=$ARM_CLIENT_SECRET --tenant "${ARM_TENANT_ID}"  --output none
-    else
-      az login --identity --output none
-    fi
 
     rg_name=$(terraform -chdir="${terraform_module_directory}"  output -no-color -raw created_resource_group_name | tr -d \")
 
