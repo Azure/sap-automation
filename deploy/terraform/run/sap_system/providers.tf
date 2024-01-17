@@ -19,9 +19,10 @@ provider "azurerm"                     {
                                                                    }
                                                   }
                                          subscription_id            = local.spn.subscription_id
-                                         client_id                  = local.spn.client_id
-                                         client_secret              = local.spn.client_secret
-                                         tenant_id                  = local.spn.tenant_id
+                                         client_id                  = var.use_spn ? local.spn.client_id : null
+                                         client_secret              = var.use_spn ? local.spn.client_secret : null
+                                         tenant_id                  = var.use_spn ? local.spn.tenant_id : null
+                                         use_msi                    = var.use_spn ? false : true
 
                                          partner_id                 = "3179cd51-f54b-4c73-ac10-8e99417efce7"
                                          alias                      = "system"
@@ -32,15 +33,17 @@ provider "azurerm"                     {
                                          features {}
                                          subscription_id            = length(local.deployer_subscription_id) > 0 ? local.deployer_subscription_id : null
                                          skip_provider_registration = true
+                                         use_msi                    = var.use_spn ? false : true
                                        }
 
 provider "azurerm"                     {
                                          features {}
                                          alias                      = "dnsmanagement"
                                          subscription_id            = length(try(data.terraform_remote_state.landscape.outputs.management_dns_subscription_id, "")) > 1 ? data.terraform_remote_state.landscape.outputs.management_dns_subscription_id : length(local.deployer_subscription_id) > 0 ? local.deployer_subscription_id : null
-                                         client_id                  = local.cp_spn.client_id
-                                         client_secret              = local.cp_spn.client_secret
-                                         tenant_id                  = local.cp_spn.tenant_id
+                                         use_msi                    = var.use_spn ? false : true
+                                         client_id                  = var.use_spn ? local.cp_spn.client_id : null
+                                         client_secret              = var.use_spn ? local.cp_spn.client_secret : null
+                                         tenant_id                  = var.use_spn ? local.cp_spn.tenant_id : null
                                          skip_provider_registration = true
                                        }
 
