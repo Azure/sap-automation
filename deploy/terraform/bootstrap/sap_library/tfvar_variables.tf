@@ -37,6 +37,10 @@ variable "place_delete_lock_on_resources"        {
                                                    default     = false
                                                  }
 
+variable "use_spn"                               {
+                                                  description = "Log in using a service principal when performing the deployment"
+                                                  default     = true
+                                                 }
 
 #######################################4#######################################8
 #                                                                              #
