@@ -263,7 +263,7 @@ variable "add_system_assigned_identity"         {
 
 variable "use_spn"                              {
                                                   description = "Log in using a service principal when performing the deployment"
-                                                  default     = false
+                                                  default     = true
                                                 }
 
 ###############################################################################
