@@ -396,6 +396,8 @@ stages:
               AZURE_DEVOPS_EXT_PAT:     $(WZ_PAT)
               SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
               CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
+              LOGON_USING_SPN:          $(Logon_Using_SPN)
+              USE_MSI:                  $(Use_MSI)
 
             failOnStderr:               false
 
@@ -721,5 +723,7 @@ stages:
               AZURE_DEVOPS_EXT_PAT:     $(WZ_PAT)
               SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
               CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
+              LOGON_USING_SPN:          $(Logon_Using_SPN)
+              USE_MSI:                  $(Use_MSI)
 
             failOnStderr:               false
