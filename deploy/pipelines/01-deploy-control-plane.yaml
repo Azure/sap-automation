@@ -680,13 +680,24 @@ stages:
 
                           sudo chmod +x $SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh
 
-                          $SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh                               \
-                             --deployer_parameter_file ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/$(deployerconfig) \
-                             --library_parameter_file ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/$(libraryconfig)     \
-                             --subscription $CP_ARM_SUBSCRIPTION_ID --spn_id $CP_ARM_CLIENT_ID                          \
-                             --spn_secret $CP_ARM_CLIENT_SECRET --tenant_id $CP_ARM_TENANT_ID                           \
-                             --auto-approve --ado                                                                       \
-                             ${storage_account_parameter} ${keyvault_parameter}
+                          if [ $USE_MSI == "true" ]; then
+                            $SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh                              \
+                              --deployer_parameter_file ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/$(deployerconfig) \
+                              --library_parameter_file ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/$(libraryconfig)     \
+                              --subscription $CP_ARM_SUBSCRIPTION_ID --spn_id $CP_ARM_CLIENT_ID                          \
+                              --spn_secret $CP_ARM_CLIENT_SECRET --tenant_id $CP_ARM_TENANT_ID                           \
+                              --auto-approve --ado --msi                                                                 \
+                              ${storage_account_parameter} ${keyvault_parameter}
+                          else
+                            $SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh                              \
+                              --deployer_parameter_file ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/$(deployerconfig) \
+                              --library_parameter_file ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/$(libraryconfig)     \
+                              --subscription $CP_ARM_SUBSCRIPTION_ID --spn_id $CP_ARM_CLIENT_ID                          \
+                              --spn_secret $CP_ARM_CLIENT_SECRET --tenant_id $CP_ARM_TENANT_ID                           \
+                              --auto-approve --ado                                                                       \
+                              ${storage_account_parameter} ${keyvault_parameter}
+                          fi
+
                           return_code=$?
 
                           if [ 0 != $return_code ]; then
@@ -877,6 +888,7 @@ stages:
                       TF_IN_AUTOMATION:            true
                       DEPLOYER_TFSTATE_KEY:        "${{ parameters.deployer }}.terraform.tfstate"
                       LOGON_USING_SPN:             $(Logon_Using_SPN)
+                      USE_MSI:                     $(Use_MSI)
 
                   failOnStderr: false
 
