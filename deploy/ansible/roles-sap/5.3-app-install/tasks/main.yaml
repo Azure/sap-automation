@@ -36,7 +36,7 @@
 
 - name:                                "APP Install: Set BOM facts db host"
   ansible.builtin.set_fact:
-    db_lb_virtual_host:                "{% if platform == 'HANA' %}{{ db_lb_virtual_host_HANA }}{% else %}{{ db_lb_virtual_host_AnyDB }}{% endif %}"
+    db_lb_virtual_host:                "{% if platform == 'HANA' %}{{ custom_db_virtual_hostname | default(db_lb_virtual_host_HANA, true) }}{% else %}{{ custom_db_virtual_hostname | default(db_lb_virtual_host_AnyDB, true) }}{% endif %}"
 
 - name:                                "APP Install: -  Create directories"
   ansible.builtin.file:
