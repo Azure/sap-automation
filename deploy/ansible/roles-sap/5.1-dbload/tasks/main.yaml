@@ -100,7 +100,7 @@
         mode:                          0755
       when:
         - dbload_performed_according_to_sapinst is defined
-        - dbload_performed_according_to_sapinst | length > 0
+        - dbload_performed_according_to_sapinst.matched == 1
   when:
     - dbload_performed.stat.exists
 
