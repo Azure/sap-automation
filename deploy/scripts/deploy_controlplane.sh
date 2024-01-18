@@ -52,20 +52,20 @@ eval set -- "$INPUT_ARGUMENTS"
 while :;
 do
     case "$1" in
-        -d | --deployer_parameter_file)            deployer_parameter_file="$2"     ; shift 2 ;;
-        -l | --library_parameter_file)             library_parameter_file="$2"      ; shift 2 ;;
-        -s | --subscription)                       subscription="$2"                ; shift 2 ;;
-        -c | --spn_id)                             client_id="$2"                   ; shift 2 ;;
-        -p | --spn_secret)                         spn_secret="$2"                  ; shift 2 ;;
-        -t | --tenant_id)                          tenant_id="$2"                   ; shift 2 ;;
         -a | --storageaccountname)                 REMOTE_STATE_SA="$2"             ; shift 2 ;;
+        -c | --spn_id)                             client_id="$2"                   ; shift 2 ;;
+        -d | --deployer_parameter_file)            deployer_parameter_file="$2"     ; shift 2 ;;
         -k | --vault)                              keyvault="$2"                    ; shift 2 ;;
-        -m | --msi)                                deploy_using_msi_only=1          ; shift ;;
-        -v | --ado)                                ado_flag="--ado"                 ; shift ;;
+        -l | --library_parameter_file)             library_parameter_file="$2"      ; shift 2 ;;
+        -p | --spn_secret)                         spn_secret="$2"                  ; shift 2 ;;
+        -s | --subscription)                       subscription="$2"                ; shift 2 ;;
+        -t | --tenant_id)                          tenant_id="$2"                   ; shift 2 ;;
         -f | --force)                              force=1                          ; shift ;;
+        -i | --auto-approve)                       approve="--auto-approve"         ; shift ;;
+        -m | --msi)                                deploy_using_msi_only=1          ; shift ;;
         -o | --only_deployer)                      only_deployer=1                  ; shift ;;
         -r | --recover)                            recover=1                        ; shift ;;
-        -i | --auto-approve)                       approve="--auto-approve"         ; shift ;;
+        -v | --ado)                                ado_flag="--ado"                 ; shift ;;
         -h | --help)                               control_plane_showhelp
         exit 3                           ; shift ;;
         --) shift; break ;;
