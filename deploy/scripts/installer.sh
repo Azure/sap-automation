@@ -311,6 +311,8 @@ account_set=0
 #setting the user environment variables
 set_executing_user_environment_variables "none"
 
+printenv | grep ARM
+
 if [[ -n ${subscription} ]]; then
     if is_valid_guid "${subscription}" ; then
         echo "Valid subscription format"
