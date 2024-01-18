@@ -309,9 +309,13 @@ resource "azurerm_key_vault_access_policy" "kv_user_msi" {
   object_id                            = var.deployer_tfstate.deployer_uai.principal_id
 
   secret_permissions                   = [
-                                           "Get",
-                                           "List",
-                                           "Set"
+                                          "Get",
+                                          "List",
+                                          "Set",
+                                          "Delete",
+                                          "Recover",
+                                          "Restore",
+                                          "Purge"
                                          ]
 }
 
