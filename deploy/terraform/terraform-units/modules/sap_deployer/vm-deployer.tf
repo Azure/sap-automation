@@ -98,7 +98,7 @@ data "azurerm_user_assigned_identity" "deployer" {
 # // Add role to be able to deploy resources
 resource "azurerm_role_assignment" "sub_contributor" {
   provider                             = azurerm.main
-  count                                = var.assign_subscription_permissions ? 1 : 0
+  count                                = var.assign_subscription_permissions && length(var.deployer.user_assigned_identity_id) == 0 ? 1 : 0
   scope                                = data.azurerm_subscription.primary.id
   role_definition_name                 = "Reader"
   principal_id                         = length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].principal_id : data.azurerm_user_assigned_identity.deployer[0].principal_id
