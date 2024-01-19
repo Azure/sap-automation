@@ -81,7 +81,7 @@ resource "azurerm_network_interface" "deployer" {
 
 // User defined identity for all Deployers, assign contributor to the current subscription
 resource "azurerm_user_assigned_identity" "deployer" {
-  count                                = length(var.deployer.user_assigned_identity_id) > 0 ? 1 : 0
+  count                                = length(var.deployer.user_assigned_identity_id) == 0 ? 1 : 0
   name                                 = format("%s%s%s", var.naming.resource_prefixes.msi, local.prefix, var.naming.resource_suffixes.msi)
   resource_group_name                  = local.resource_group_exists ? data.azurerm_resource_group.deployer[0].name : azurerm_resource_group.deployer[0].name
   location                             = local.resource_group_exists ? data.azurerm_resource_group.deployer[0].location : azurerm_resource_group.deployer[0].location
@@ -89,7 +89,7 @@ resource "azurerm_user_assigned_identity" "deployer" {
 
 // User defined identity for all Deployers, assign contributor to the current subscription
 data "azurerm_user_assigned_identity" "deployer" {
-  count                                = length(var.deployer.user_assigned_identity_id) == 0 ? 1 : 0
+  count                                = length(var.deployer.user_assigned_identity_id) > 0 ? 1 : 0
   name                                 = split("/", var.deployer.user_assigned_identity_id)[8]
   resource_group_name                  = split("/", var.deployer.user_assigned_identity_id)[4]
 }
