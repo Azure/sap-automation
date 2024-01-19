@@ -137,7 +137,7 @@ resource "azurerm_windows_web_app" "webapp" {
 
   identity {
     type         = "SystemAssigned, UserAssigned"
-    identity_ids = [azurerm_user_assigned_identity.deployer.id]
+    identity_ids = [length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].id : data.azurerm_user_assigned_identity.deployer[0].id ]
   }
   connection_string {
     name  = "sa_tfstate_conn_str"

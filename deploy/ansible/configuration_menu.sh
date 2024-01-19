@@ -46,12 +46,12 @@ fi
 # the inventory file name to use.
 sap_sid="$(awk '$1 == "sap_sid:" {print $2}' ${sap_params_file})"
 
-kv_name="$(awk '$1 == "kv_name:" {print $2}' ${sap_params_file})"
+workload_vault_name="$(awk '$1 == "kv_name:" {print $2}' ${sap_params_file})"
 
 prefix="$(awk '$1 == "secret_prefix:" {print $2}' ${sap_params_file})"
 password_secret_name=$prefix-sid-password
 
-password_secret=$(az keyvault secret show --vault-name ${kv_name} --name ${password_secret_name} | jq -r .value)
+password_secret=$(az keyvault secret show --vault-name ${workload_vault_name} --name ${password_secret_name} --query value --output table)
 export ANSIBLE_PASSWORD=$password_secret
 #
 # Ansible configuration settings.

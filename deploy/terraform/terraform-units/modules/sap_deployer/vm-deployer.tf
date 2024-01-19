@@ -39,8 +39,8 @@ resource "azurerm_public_ip" "deployer" {
 }
 
 resource "azurerm_network_interface" "deployer" {
-count                                = var.deployer_vm_count
-  name                               = format("%s%s%s%s%s",
+  count                                = var.deployer_vm_count
+  name                                 = format("%s%s%s%s%s",
                                          var.naming.resource_prefixes.nic,
                                          local.prefix,
                                          var.naming.separator,
@@ -81,10 +81,19 @@ count                                = var.deployer_vm_count
 
 // User defined identity for all Deployers, assign contributor to the current subscription
 resource "azurerm_user_assigned_identity" "deployer" {
+  count                                = length(var.deployer.user_assigned_identity_id) > 0 ? 1 : 0
   name                                 = format("%s%s%s", var.naming.resource_prefixes.msi, local.prefix, var.naming.resource_suffixes.msi)
   resource_group_name                  = local.resource_group_exists ? data.azurerm_resource_group.deployer[0].name : azurerm_resource_group.deployer[0].name
   location                             = local.resource_group_exists ? data.azurerm_resource_group.deployer[0].location : azurerm_resource_group.deployer[0].location
 }
+
+// User defined identity for all Deployers, assign contributor to the current subscription
+data "azurerm_user_assigned_identity" "deployer" {
+  count                                = length(var.deployer.user_assigned_identity_id) == 0 ? 1 : 0
+  name                                 = split("/", var.deployer.user_assigned_identity_id)[8]
+  resource_group_name                  = split("/", var.deployer.user_assigned_identity_id)[4]
+}
+
 
 # // Add role to be able to deploy resources
 resource "azurerm_role_assignment" "sub_contributor" {
@@ -92,7 +101,7 @@ resource "azurerm_role_assignment" "sub_contributor" {
   count                                = var.assign_subscription_permissions ? 1 : 0
   scope                                = data.azurerm_subscription.primary.id
   role_definition_name                 = "Reader"
-  principal_id                         = azurerm_user_assigned_identity.deployer.principal_id
+  principal_id                         = length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].principal_id : data.azurerm_user_assigned_identity.deployer[0].principal_id
 }
 
 // Linux Virtual Machine for Deployer
@@ -159,7 +168,7 @@ resource "azurerm_linux_virtual_machine" "deployer" {
 
   identity                                {
                                             type         = var.deployer.add_system_assigned_identity ? "SystemAssigned, UserAssigned" : "UserAssigned"
-                                            identity_ids = [azurerm_user_assigned_identity.deployer.id]
+                                            identity_ids = [length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].principal_id : data.azurerm_user_assigned_identity.deployer[0].principal_id ]
                                           }
 
   dynamic "admin_ssh_key"                 {

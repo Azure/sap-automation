@@ -19,7 +19,8 @@ resource "azurerm_key_vault" "kv_user" {
                                            data.azurerm_resource_group.deployer[0].location) : (
                                            azurerm_resource_group.deployer[0].location
                                          )
-  tenant_id                            = azurerm_user_assigned_identity.deployer.tenant_id
+  tenant_id                            = length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].tenant_id : data.azurerm_user_assigned_identity.deployer[0].tenant_id
+
   soft_delete_retention_days           = 7
   purge_protection_enabled             = var.enable_purge_control_for_keyvaults
 
@@ -277,8 +278,9 @@ resource "azurerm_key_vault_access_policy" "kv_user_msi" {
   provider                             = azurerm.main
 
   key_vault_id                         = var.key_vault.kv_exists ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id
-  tenant_id                            = azurerm_user_assigned_identity.deployer.tenant_id
-  object_id                            = azurerm_user_assigned_identity.deployer.principal_id
+  tenant_id                            = length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].tenant_id : data.azurerm_user_assigned_identity.deployer[0].tenant_id
+  object_id                            = length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].principal_id : data.azurerm_user_assigned_identity.deployer[0].principal_id
+
 
   secret_permissions                   = [
                                            "Get",
@@ -317,7 +319,7 @@ resource "azurerm_key_vault_access_policy" "kv_user_pre_deployer" {
   count                                = var.key_vault.kv_exists && length(var.spn_id) > 0 ? 0 : 1
 
   key_vault_id                         = azurerm_key_vault.kv_user[0].id
-  tenant_id                            = azurerm_user_assigned_identity.deployer.tenant_id
+  tenant_id                            = length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].tenant_id : data.azurerm_user_assigned_identity.deployer[0].tenant_id
   # If running as a normal user use the object ID of the user otherwise use the object_id from AAD
   object_id                            = coalesce(data.azurerm_client_config.deployer.object_id,
                                             var.spn_id,
@@ -347,7 +349,7 @@ resource "azurerm_key_vault_access_policy" "kv_user_additional_users" {
                                          )
   key_vault_id                         = azurerm_key_vault.kv_user[0].id
 
-  tenant_id                            = azurerm_user_assigned_identity.deployer.tenant_id
+  tenant_id                            = length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].tenant_id : data.azurerm_user_assigned_identity.deployer[0].tenant_id
   object_id                            = var.additional_users_to_add_to_keyvault_policies[count.index]
   secret_permissions                   = [
                                            "Get",

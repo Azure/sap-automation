@@ -255,17 +255,6 @@ variable "deployer_private_ip_address"          {
                                                   default = [""]
                                                 }
 
-variable "add_system_assigned_identity"         {
-                                                  description = "Boolean flag indicating if a system assigned identity should be added to the deployer"
-                                                  default     = false
-                                                  type        = bool
-                                                }
-
-variable "use_spn"                              {
-                                                  description = "Log in using a service principal when performing the deployment"
-                                                  default     = true
-                                                }
-
 ###############################################################################
 #                                                                             #
 #                            Deployer authentication                          #
@@ -528,3 +517,26 @@ variable "tfstate_resource_id"                       {
                                                                   }
 
                                                      }
+
+###############################################################################
+#                                                                             #
+#                                  Identity                                   #
+#                                                                             #
+###############################################################################
+
+variable "user_assigned_identity_id"                {
+                                                       description = "User assigned Identity resource Id"
+                                                       default     = ""
+                                                     }
+
+variable "add_system_assigned_identity"         {
+                                                  description = "Boolean flag indicating if a system assigned identity should be added to the deployer"
+                                                  default     = false
+                                                  type        = bool
+                                                }
+
+variable "use_spn"                              {
+                                                  description = "Log in using a service principal when performing the deployment"
+                                                  default     = true
+                                                }
+

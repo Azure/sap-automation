@@ -139,7 +139,7 @@
     - name:                            "DBLoad: -  Set the server facts"
       ansible.builtin.set_fact:
         scs_server:                    "{% if scs_high_availability %}{{ sid_to_be_deployed.sid | lower }}scs{{ scs_instance_number }}cl1{% else %}{{ hostvars[scs_server_temp | first]['virtual_host'] }}{% endif %}"
-        db_virtual_hostname:               "{{ hostvars[db_server_temp | first]['virtual_host'] }}"
+        db_virtual_hostname:           "{{ hostvars[db_server_temp | first]['virtual_host'] }}"
 
     - name:                            "DBLoad: check media exists"
       ansible.builtin.stat:
