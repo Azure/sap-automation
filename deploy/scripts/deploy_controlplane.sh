@@ -298,53 +298,10 @@ if [ 0 == $step ]; then
 
     cd "$root_dirname" || exit
 
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo -e "#                         $cyan  Copying the parameterfiles $resetformatting                                 #"
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
-    echo ""
-
     load_config_vars "${deployer_config_information}" "sshsecret"
     load_config_vars "${deployer_config_information}" "keyvault"
     load_config_vars "${deployer_config_information}" "deployer_public_ip_address"
 
-    if [ -n "${deployer_public_ip_address}" ]; then
-        if [ "$this_ip" != "$deployer_public_ip_address" ]; then
-            # Only run this when not on deployer
-            if [ -n "${sshsecret}" ]
-            then
-                echo "#########################################################################################"
-                echo "#                                                                                       #"
-                echo -e "#                            $cyan Collecting secrets from KV $resetformatting                               #"
-                echo "#                                                                                       #"
-                echo "#########################################################################################"
-                echo ""
-                temp_file=$(mktemp)
-                ppk=$(az keyvault secret show --vault-name "${keyvault}" --name "${sshsecret}" --query value --output tsv)
-                echo "${ppk}" > "${temp_file}"
-                chmod 600 "${temp_file}"
-
-                remote_deployer_dir="$HOME/Azure_SAP_Automated_Deployment/WORKSPACES/"$(dirname "$deployer_parameter_file")
-                remote_library_dir="$HOME/Azure_SAP_Automated_Deployment/WORKSPACES/"$(dirname "$library_parameter_file")
-                remote_config_dir="$CONFIG_REPO_PATH/.sap_deployment_automation"
-
-                ssh -i "${temp_file}" -o StrictHostKeyChecking=no -o ConnectTimeout=10 azureadm@"${deployer_public_ip_address}" "mkdir -p ${remote_deployer_dir}"/.terraform 2> /dev/null
-                scp -i "${temp_file}" -q -o StrictHostKeyChecking=no -o ConnectTimeout=120 "$deployer_parameter_file" azureadm@"${deployer_public_ip_address}":"${remote_deployer_dir}"/. 2> /dev/null
-                scp -i "${temp_file}" -q -o StrictHostKeyChecking=no -o ConnectTimeout=120 "$(dirname "$deployer_parameter_file")"/.terraform/terraform.tfstate azureadm@"${deployer_public_ip_address}":"${remote_deployer_dir}"/.terraform/terraform.tfstate 2> /dev/null
-                scp -i "${temp_file}" -q -o StrictHostKeyChecking=no -o ConnectTimeout=120 "$(dirname "$deployer_parameter_file")"/terraform.tfstate azureadm@"${deployer_public_ip_address}":"${remote_deployer_dir}"/terraform.tfstate 2> /dev/null
-
-                ssh -i "${temp_file}" -o StrictHostKeyChecking=no -o ConnectTimeout=10 azureadm@"${deployer_public_ip_address}" " mkdir -p ${remote_library_dir}"/.terraform 2> /dev/null
-                scp -i "${temp_file}" -q -o StrictHostKeyChecking=no -o ConnectTimeout=120 "$library_parameter_file" azureadm@"${deployer_public_ip_address}":"$remote_library_dir"/. 2> /dev/null
-
-                ssh -i "${temp_file}" -o StrictHostKeyChecking=no -o ConnectTimeout=10 azureadm@"${deployer_public_ip_address}" "mkdir -p ${remote_config_dir}" 2> /dev/null
-                scp -i "${temp_file}" -q -o StrictHostKeyChecking=no -o ConnectTimeout=120 "${deployer_config_information}" azureadm@"${deployer_public_ip_address}":"${remote_config_dir}"/. 2> /dev/null
-
-                rm "${temp_file}"
-            fi
-        fi
-
-    fi
     echo "##vso[task.setprogress value=20;]Progress Indicator"
 else
     echo ""
@@ -399,7 +356,7 @@ if [ 1 == $step ] || [ 3 == $step ] ; then
       echo ""
       echo "#########################################################################################"
       echo "#                                                                                       #"
-      echo -e "#                             $cyan  Retrying keyvault access $resetformatting                                #"
+      echo -e "#                             $cyan  Retrying keyvault access $resetformatting                               #"
       echo "#                                                                                       #"
       echo "#########################################################################################"
       echo ""
