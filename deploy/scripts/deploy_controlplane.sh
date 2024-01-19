@@ -379,7 +379,6 @@ if [ 1 == $step ] || [ 3 == $step ] ; then
 
     if [ -z "$keyvault" ]; then
         if [ $ado_flag != "--ado" ] ; then
-
             read -r -p "Deployer keyvault name: " keyvault
         else
             exit 10
@@ -405,7 +404,6 @@ if [ 1 == $step ] || [ 3 == $step ] ; then
       echo "#########################################################################################"
       echo ""
       sleep 60
-
       kv_name_check=$(az keyvault list --query "[?name=='$keyvault'].name | [0]")
     fi
 
@@ -422,8 +420,8 @@ if [ 1 == $step ] || [ 3 == $step ] ; then
 
     access_error=$(az keyvault secret list --vault "$keyvault" --only-show-errors | grep "The user, group or application")
     if [ -z "${access_error}" ]; then
-        save_config_var "client_id" "${deployer_config_information}"
-        save_config_var "tenant_id" "${deployer_config_information}"
+        # save_config_var "client_id" "${deployer_config_information}"
+        # save_config_var "tenant_id" "${deployer_config_information}"
 
         if [ -n "$spn_secret" ]; then
             allParams=$(printf " -e %s -r %s -v %s --spn_secret %s " "${environment}" "${region_code}" "${keyvault}" "${spn_secret}")
@@ -504,6 +502,8 @@ else
     echo "##vso[task.setprogress value=40;]Progress Indicator"
 fi
 unset TF_DATA_DIR
+
+exit 0
 cd "$root_dirname" || exit
 
 if [ 1 = "${only_deployer:-}" ]; then
