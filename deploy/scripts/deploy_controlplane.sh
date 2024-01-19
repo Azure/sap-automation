@@ -460,7 +460,6 @@ else
 fi
 unset TF_DATA_DIR
 
-exit 0
 cd "$root_dirname" || exit
 
 if [ 1 = "${only_deployer:-}" ]; then
