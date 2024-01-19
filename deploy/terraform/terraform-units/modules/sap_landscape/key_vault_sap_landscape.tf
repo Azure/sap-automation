@@ -96,7 +96,7 @@ resource "azurerm_role_assignment" "role_assignment_spn" {
 
 resource "azurerm_key_vault_access_policy" "kv_user" {
   provider                             = azurerm.main
-  count                                = (local.enable_landscape_kv && !local.user_keyvault_exist) && !var.enable_rbac_authorization_for_keyvault ? 1 : 0
+  count                                = (var.key_vault.exists || var.enable_rbac_authorization_for_keyvault) ? 0 : (var.deployer_tfstate.deployer_uai.principal_id == local.service_principal.object_id) ? 0 : 1)
   key_vault_id                         = local.user_keyvault_exist ? local.user_key_vault_id : azurerm_key_vault.kv_user[0].id
   tenant_id                            = local.service_principal.tenant_id
   object_id                            = local.service_principal.object_id != "" ? local.service_principal.object_id : "00000000-0000-0000-0000-000000000000"
