@@ -377,104 +377,129 @@ if [ 1 == $step ] || [ 3 == $step ] ; then
       fi
     fi
 
-    if [ 0 = "${deploy_using_msi_only:-}" ]; then
+    if [ -z "$keyvault" ]; then
+        if [ $ado_flag != "--ado" ] ; then
 
-        secretname="${environment}"-client-id
-        echo ""
-        echo "#########################################################################################"
-        echo "#                                                                                       #"
-        echo -e "#                          $cyan Validating keyvault access $resetformatting                                 #"
-        echo "#                                                                                       #"
-        echo "#########################################################################################"
-        echo ""
-
-        if [ -z "$keyvault" ]; then
-            if [ $ado_flag != "--ado" ] ; then
-
-                read -r -p "Deployer keyvault name: " keyvault
-            else
-                exit 10
-            fi
-        fi
-
-        kv_name_check=$(az keyvault list --query "[?name=='$keyvault'].name | [0]")
-
-        if [ -z $kv_name_check ]; then
-            echo "#########################################################################################"
-            echo "#                                                                                       #"
-            echo -e "#                               $boldred  Unable to access keyvault: $keyvault $resetformatting                            #"
-            echo "#                             Please ensure the key vault exists.                       #"
-            echo "#                                                                                       #"
-            echo "#########################################################################################"
-            echo ""
+            read -r -p "Deployer keyvault name: " keyvault
+        else
             exit 10
         fi
+    fi
 
-        access_error=$(az keyvault secret list --vault "$keyvault" --only-show-errors | grep "The user, group or application")
-        if [ -z "${access_error}" ]; then
-            save_config_var "client_id" "${deployer_config_information}"
-            save_config_var "tenant_id" "${deployer_config_information}"
+    secretname="${environment}"-subscription-id
+    echo ""
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo -e "#                          $cyan Validating keyvault access $resetformatting                                 #"
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
+    echo ""
 
-            if [ -n "$spn_secret" ]; then
-                allParams=$(printf " -e %s -r %s -v %s --spn_secret %s " "${environment}" "${region_code}" "${keyvault}" "${spn_secret}")
+    kv_name_check=$(az keyvault list --query "[?name=='$keyvault'].name | [0]")
+    if [ -z $kv_name_check ]; then
+      echo ""
+      echo "#########################################################################################"
+      echo "#                                                                                       #"
+      echo -e "#                             $cyan  Retrying keyvault access $resetformatting                                #"
+      echo "#                                                                                       #"
+      echo "#########################################################################################"
+      echo ""
+      sleep 60
 
-                "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/set_secrets.sh $allParams
-                if [ -f secret.err ]; then
-                    error_message=$(cat secret.err)
-                    echo "##vso[task.logissue type=error]${error_message}"
+      kv_name_check=$(az keyvault list --query "[?name=='$keyvault'].name | [0]")
+    fi
 
-                    exit 65
-                fi
+    if [ -z $kv_name_check ]; then
+        echo "#########################################################################################"
+        echo "#                                                                                       #"
+        echo -e "#                               $boldred  Unable to access keyvault: $keyvault $resetformatting                            #"
+        echo "#                             Please ensure the key vault exists.                       #"
+        echo "#                                                                                       #"
+        echo "#########################################################################################"
+        echo ""
+        exit 10
+    fi
 
-                return_code=$?
-                if [ 0 != $return_code ]; then
-                    echo "Could not set the secrets in key vault" > "${deployer_config_information}".err
-                    exit $return_code
-                fi
-            else
-                read -p "Do you want to specify the SPN Details Y/N?" ans
-                answer=${ans^^}
-                if [ "$answer" == 'Y' ]; then
-                    allParams=$(printf " -e %s -r %s -v %s " "${environment}" "${region_code}" "${keyvault}" )
+    access_error=$(az keyvault secret list --vault "$keyvault" --only-show-errors | grep "The user, group or application")
+    if [ -z "${access_error}" ]; then
+        save_config_var "client_id" "${deployer_config_information}"
+        save_config_var "tenant_id" "${deployer_config_information}"
 
-                    #$allParams as an array (); array math can be done in shell, allowing dynamic parameter lists to be created
-                    #"${allParams[@]}" - quotes all elements of the array
+        if [ -n "$spn_secret" ]; then
+            allParams=$(printf " -e %s -r %s -v %s --spn_secret %s " "${environment}" "${region_code}" "${keyvault}" "${spn_secret}")
 
-                    "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/set_secrets.sh $allParams
-                    return_code=$?
-                    if [ 0 != $return_code ]; then
-                        exit $return_code
-                    fi
-                fi
+            "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/set_secrets.sh $allParams
+            if [ -f secret.err ]; then
+                error_message=$(cat secret.err)
+                echo "##vso[task.logissue type=error]${error_message}"
+
+                exit 65
             fi
 
-            if [ -f post_deployment.sh ]; then
-                ./post_deployment.sh
-                return_code=$?
-                if [ 0 != $return_code ]; then
-                    exit $return_code
-                fi
-            fi
-            cd "${curdir}" || exit
-            if [ 1 == $step ] ; then
-              step=2
-              save_config_var "step" "${deployer_config_information}"
+            return_code=$?
+            if [ 0 != $return_code ]; then
+                echo "Could not set the secrets in key vault" > "${deployer_config_information}".err
+                exit $return_code
             fi
         else
-            az_subscription_id=$(az account show --query id -o tsv)
-            printf -v val %-40.40s "$az_subscription_id"
-            echo "#########################################################################################"
-            echo "#                                                                                       #"
-            echo -e "#$boldred User account ${val} does not have access to: $keyvault  $resetformatting"
-            echo "#                                                                                       #"
-            echo "#########################################################################################"
-            echo "User account ${val} does not have access to: $keyvault" > "${deployer_config_information}".err
+            if [ 0 = "${deploy_using_msi_only:-}" ]; then
 
-            echo "##vso[task.setprogress value=40;]Progress Indicator"
-            exit 65
 
+              read -p "Do you want to specify the SPN Details Y/N?" ans
+              answer=${ans^^}
+              if [ "$answer" == 'Y' ]; then
+                  allParams=$(printf " -e %s -r %s -v %s " "${environment}" "${region_code}" "${keyvault}" )
+
+                  #$allParams as an array (); array math can be done in shell, allowing dynamic parameter lists to be created
+                  #"${allParams[@]}" - quotes all elements of the array
+
+                  "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/set_secrets.sh $allParams
+                  return_code=$?
+                  if [ 0 != $return_code ]; then
+                      exit $return_code
+                  fi
+              fi
+            else
+              allParams=$(printf " -e %s -r %s -v %s --subscription %s --msi " "${environment}" "${region_code}" "${keyvault}" "${subscription}")
+
+              "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/set_secrets.sh $allParams
+              if [ -f secret.err ]; then
+                  error_message=$(cat secret.err)
+                  echo "##vso[task.logissue type=error]${error_message}"
+
+                  exit 65
+              fi
+
+            fi
         fi
+
+        if [ -f post_deployment.sh ]; then
+            ./post_deployment.sh
+            return_code=$?
+            if [ 0 != $return_code ]; then
+                exit $return_code
+            fi
+        fi
+        cd "${curdir}" || exit
+        if [ 1 == $step ] ; then
+          step=2
+          save_config_var "step" "${deployer_config_information}"
+        fi
+    else
+        az_subscription_id=$(az account show --query id -o tsv)
+        printf -v val %-40.40s "$az_subscription_id"
+        echo "#########################################################################################"
+        echo "#                                                                                       #"
+        echo -e "#$boldred User account ${val} does not have access to: $keyvault  $resetformatting"
+        echo "#                                                                                       #"
+        echo "#########################################################################################"
+        echo "User account ${val} does not have access to: $keyvault" > "${deployer_config_information}".err
+
+        echo "##vso[task.setprogress value=40;]Progress Indicator"
+        exit 65
+
     fi
+
 else
     echo "##vso[task.setprogress value=40;]Progress Indicator"
 fi
