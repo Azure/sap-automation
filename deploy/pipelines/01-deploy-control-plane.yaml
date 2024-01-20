@@ -79,13 +79,13 @@ stages:
                   continueOnError:     false
                   inputs:
                     azureSubscription: ${{parameters.connection_name}}
-                    scriptType:        ps
+                    scriptType:        bash
                     scriptLocation:    inlineScript
                     addSpnToEnvironment: true
                     inlineScript: |
-                      Write-Host "##vso[task.setvariable variable=azureClientId;isOutput=true]$($env:servicePrincipalId)"
-                      Write-Host "##vso[task.setvariable variable=azureClientSecret;isOutput=true]$($env:servicePrincipalKey)"
-                      Write-Host "##vso[task.setvariable variable=azureTenantId;isOutput=true]$($env:tenantId)"
+                      echo "##vso[task.setvariable variable=azureClientId;isOutput=true]$($servicePrincipalId)"
+                      echo "##vso[task.setvariable variable=azureClientSecret;isOutput=true]$($servicePrincipalKey)"
+                      echo "##vso[task.setvariable variable=azureTenantId;isOutput=true]$($tenantId)"
 
                 - bash: |
                       #!/bin/bash
