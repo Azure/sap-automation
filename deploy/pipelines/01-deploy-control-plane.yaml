@@ -387,9 +387,9 @@ stages:
                       TF_LOG:                         $(TF_LOG)
                       TF_IN_AUTOMATION:               true
                       DEPLOYER_TFSTATE_KEY:           "${{ parameters.deployer }}.terraform.tfstate"
-                      ARM_CLIENT_ID:                  $(setVariables.azureClientId)
-                      ARM_CLIENT_SECRET:              $(setVariables.azureClientSecret)
-                      ARM_TENANT_ID:                  $(setVariables.azureTenantId)
+                      ARM_CLIENT_ID:                  $(Set_Connection_Variables.azureClientId)
+                      ARM_CLIENT_SECRET:              $(Set_Connection_Variables.azureClientSecret)
+                      ARM_TENANT_ID:                  $(Set_Connection_Variables.azureTenantId)
 
                   failOnStderr: false
 
