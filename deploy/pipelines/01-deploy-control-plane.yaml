@@ -86,11 +86,6 @@ stages:
                       echo "##vso[task.setvariable variable=azureClientId;isOutput=true]$servicePrincipalId"
                       echo "##vso[task.setvariable variable=azureClientSecret;isOutput=true]$servicePrincipalKey"
                       echo "##vso[task.setvariable variable=azureTenantId;isOutput=true]$tenantId"
-                      echo "$servicePrincipalId"
-                      echo "$servicePrincipalKey"
-                      echo "$tenantId"
-
-                - bash: |
                       #!/bin/bash
 
                         echo "##vso[build.updatebuildnumber]Deploying the control plane defined in $(deployerfolder) $(libraryfolder)"
@@ -135,13 +130,13 @@ stages:
                                 key_vault=$(cat ${deployer_environment_file_name} | grep keyvault= -m1 | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer Key Vault' ${key_vault}
                               fi
 
-                              az login --service-principal --username $ARM_CLIENT_ID --password=$ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID --output none
-                              return_code=$?
-                              if [ 0 != $return_code ]; then
-                                  echo -e "$boldred--- Login failed ---$reset"
-                                  echo "##vso[task.logissue type=error]az login failed."
-                                  exit $return_code
-                              fi
+                              # az login --service-principal --username $ARM_CLIENT_ID --password=$ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID --output none
+                              # return_code=$?
+                              # if [ 0 != $return_code ]; then
+                              #     echo -e "$boldred--- Login failed ---$reset"
+                              #     echo "##vso[task.logissue type=error]az login failed."
+                              #     exit $return_code
+                              # fi
 
                               key_vault_id=$(az resource list --name "${key_vault}"  --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
                               export TF_VAR_deployer_kv_user_arm_id=${key_vault_id}
@@ -390,9 +385,9 @@ stages:
                       TF_LOG:                         $(TF_LOG)
                       TF_IN_AUTOMATION:               true
                       DEPLOYER_TFSTATE_KEY:           "${{ parameters.deployer }}.terraform.tfstate"
-                      ARM_CLIENT_ID:                  $(Set_Connection_Variables.azureClientId)
-                      ARM_CLIENT_SECRET:              $(Set_Connection_Variables.azureClientSecret)
-                      ARM_TENANT_ID:                  $(Set_Connection_Variables.azureTenantId)
+                      # ARM_CLIENT_ID:                  $(Set_Connection_Variables.azureClientId)
+                      # ARM_CLIENT_SECRET:              $(Set_Connection_Variables.azureClientSecret)
+                      # ARM_TENANT_ID:                  $(Set_Connection_Variables.azureTenantId)
 
                   failOnStderr: false
 
