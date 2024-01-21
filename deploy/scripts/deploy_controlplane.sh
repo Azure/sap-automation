@@ -215,8 +215,10 @@ if [ -n "$keyvault" ]; then
   set_executing_user_environment_variables "none"
 else
   if [ 0 = "${deploy_using_msi_only:-}" ]; then
+    echo "Using Service Principal for deployment"
     set_executing_user_environment_variables "${spn_secret}"
   else
+    echo "Using Managed Identity for deployment"
     set_executing_user_environment_variables "none"
   fi
 fi
@@ -350,12 +352,12 @@ if [ 1 == $step ] || [ 3 == $step ] ; then
     echo ""
     echo "#########################################################################################"
     echo "#                                                                                       #"
-    echo -e "#                          $cyan Validating keyvault access $resetformatting                                 #"
+    echo -e "#              $cyan Validating keyvault access to $keyvault $resetformatting                                 #"
     echo "#                                                                                       #"
     echo "#########################################################################################"
     echo ""
 
-    kv_name_check=$(az keyvault list --query "[?name=='$keyvault'].name | [0]")
+    kv_name_check=$(az keyvault list --query "[?name=='$keyvault'].name | [0]" --subscription "${STATE_SUBSCRIPTION}")
     if [ -z $kv_name_check ]; then
       echo ""
       echo "#########################################################################################"
@@ -365,7 +367,7 @@ if [ 1 == $step ] || [ 3 == $step ] ; then
       echo "#########################################################################################"
       echo ""
       sleep 60
-      kv_name_check=$(az keyvault list --query "[?name=='$keyvault'].name | [0]")
+      kv_name_check=$(az keyvault list --query "[?name=='$keyvault'].name | [0]" --subscription "${STATE_SUBSCRIPTION}")
     fi
 
     if [ -z $kv_name_check ]; then
