@@ -299,7 +299,7 @@ stages:
                             fi
                             if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/terraform.tfstate ]; then
                               sudo apt install zip
-                              pass=$(echo $ARM_CLIENT_SECRET | sed 's/-//g')
+                              pass=$(echo $deployer_random_id | sed 's/-//g')
                               zip -j -P "${pass}" ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/terraform.tfstate
                               git add -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip
                               added=1
@@ -339,6 +339,13 @@ stages:
                                     az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name ControlPlaneLocation --value ${LOCATION} --output none --only-show-errors
                                 else
                                     az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name ControlPlaneLocation --value ${LOCATION} --output none --only-show-errors
+                                fi
+
+                                az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "DEPLOYER_RANDOM_ID_SEED.value")
+                                if [ -z ${az_var} ]; then
+                                    az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name DEPLOYER_RANDOM_ID_SEED --value ${deployer_random_id} --output none --only-show-errors
+                                else
+                                    az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name DEPLOYER_RANDOM_ID_SEED --value ${deployer_random_id} --output none --only-show-errors
                                 fi
 
 
@@ -661,12 +668,12 @@ stages:
                           fi
 
                           if [ -f ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/state.zip ]; then
-                              pass=$(echo $CP_ARM_CLIENT_SECRET | sed 's/-//g')
+                              pass=$(echo $DEPLOYER_RANDOM_ID_SEED | sed 's/-//g')
                               unzip  -qq -o -P "${pass}" ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/state.zip -d ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)
                           fi
 
                           if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip ]; then
-                            pass=$(echo $CP_ARM_CLIENT_SECRET | sed 's/-//g')
+                            pass=$(echo $DEPLOYER_RANDOM_ID_SEED | sed 's/-//g')
                             unzip -qq -o -P "${pass}" ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip -d ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)
                           fi
 
@@ -745,7 +752,7 @@ stages:
                               if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/terraform.tfstate ]; then
                                   sudo apt install zip
                                   echo "Compressing the deployer state file"
-                                  pass=$(echo $CP_ARM_CLIENT_SECRET | sed 's/-//g')
+                                  pass=$(echo $DEPLOYER_RANDOM_ID_SEED | sed 's/-//g')
                                   zip -j -P "${pass}" ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/terraform.tfstate
                                   git add -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip
                                   added=1
@@ -769,7 +776,7 @@ stages:
                               if [ -f ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/terraform.tfstate ]; then
                                   sudo apt install zip
                                   echo "Compressing the library state file"
-                                  pass=$(echo $CP_ARM_CLIENT_SECRET | sed 's/-//g')
+                                  pass=$(echo $DEPLOYER_RANDOM_ID_SEED | sed 's/-//g')
                                   zip -j -P "${pass}" ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/state ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/terraform.tfstate
                                   git add -f ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/state.zip
                                   added=1
@@ -883,6 +890,7 @@ stages:
                       DEPLOYER_TFSTATE_KEY:        "${{ parameters.deployer }}.terraform.tfstate"
                       LOGON_USING_SPN:             $(Logon_Using_SPN)
                       USE_MSI:                     $(Use_MSI)
+                      DEPLOYER_RANDOM_ID_SEED:     $(DEPLOYER_RANDOM_ID_SEED)
 
                   failOnStderr: false
 
