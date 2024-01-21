@@ -74,8 +74,6 @@ stages:
                 - task:                PostBuildCleanup@3
                 # Set Variables.
                 - task:                AzureCLI@2
-                  name:                Set_Connection_Variables
-                  displayName:         Set Connection Variables
                   continueOnError:     false
                   inputs:
                     azureSubscription: ${{parameters.connection_name}}
