@@ -252,6 +252,7 @@ stages:
                             set +eu
 
                             if [ $USE_MSI == "true" ]; then
+                              export ARM_CLIENT_SECRET=$servicePrincipalKey
 
                               $SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh                               \
                                 --deployer_parameter_file ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/$(deployerconfig) \
