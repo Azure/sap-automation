@@ -387,7 +387,6 @@ stages:
                       # ARM_CLIENT_SECRET:              $(Set_Connection_Variables.azureClientSecret)
                       # ARM_TENANT_ID:                  $(Set_Connection_Variables.azureTenantId)
 
-                  failOnStderr: false
 
     - stage: Deploy_controlplane
       dependsOn:
