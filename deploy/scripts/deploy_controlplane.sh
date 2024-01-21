@@ -214,7 +214,11 @@ fi
 if [ -n "$keyvault" ]; then
   set_executing_user_environment_variables "none"
 else
-  set_executing_user_environment_variables "${spn_secret}"
+  if [ 0 = "${deploy_using_msi_only:-}" ]; then
+    set_executing_user_environment_variables "${spn_secret}"
+  else
+    set_executing_user_environment_variables "none"
+  fi
 fi
 
 

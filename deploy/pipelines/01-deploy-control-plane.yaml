@@ -81,9 +81,6 @@ stages:
                     scriptLocation:    inlineScript
                     addSpnToEnvironment: true
                     inlineScript: |
-                      echo "##vso[task.setvariable variable=azureClientId;isOutput=true]$servicePrincipalId"
-                      echo "##vso[task.setvariable variable=azureClientSecret;isOutput=true]$servicePrincipalKey"
-                      echo "##vso[task.setvariable variable=azureTenantId;isOutput=true]$tenantId"
                       #!/bin/bash
 
                         echo "##vso[build.updatebuildnumber]Deploying the control plane defined in $(deployerfolder) $(libraryfolder)"
@@ -254,12 +251,21 @@ stages:
                             export TF_LOG_PATH=$CONFIG_REPO_PATH/.sap_deployment_automation/terraform.log
                             set +eu
 
-                            $SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh                               \
-                               --deployer_parameter_file ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/$(deployerconfig) \
-                               --library_parameter_file ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/$(libraryconfig)     \
-                               --subscription $ARM_SUBSCRIPTION_ID --spn_id $ARM_CLIENT_ID                                \
-                               --spn_secret $ARM_CLIENT_SECRET --tenant_id $ARM_TENANT_ID                                 \
-                               --auto-approve --ado --only_deployer
+                            if [ $USE_MSI == "true" ]; then
+
+                              $SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh                               \
+                                --deployer_parameter_file ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/$(deployerconfig) \
+                                --library_parameter_file ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/$(libraryconfig)     \
+                                --subscription $ARM_SUBSCRIPTION_ID  --auto-approve --ado --only_deployer --msi
+                            else
+                              $SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh                               \
+                                --deployer_parameter_file ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/$(deployerconfig) \
+                                --library_parameter_file ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/$(libraryconfig)     \
+                                --subscription $ARM_SUBSCRIPTION_ID --spn_id $ARM_CLIENT_ID                                \
+                                --spn_secret $ARM_CLIENT_SECRET --tenant_id $ARM_TENANT_ID                                 \
+                                --auto-approve --ado --only_deployer
+
+                            fi
                             return_code=$?
                             echo "Return code from deploy_controlplane $return_code."
 
@@ -342,9 +348,9 @@ stages:
                   env:
                       SYSTEM_ACCESSTOKEN:             $(System.AccessToken)
                       ARM_SUBSCRIPTION_ID:            $(CP_ARM_SUBSCRIPTION_ID)
-#                      ARM_CLIENT_ID:                  $(CP_ARM_CLIENT_ID)
-#                      ARM_CLIENT_SECRET:              $(CP_ARM_CLIENT_SECRET)
-#                      ARM_TENANT_ID:                  $(CP_ARM_TENANT_ID)
+                      ARM_CLIENT_ID:                  $(CP_ARM_CLIENT_ID)
+                      ARM_CLIENT_SECRET:              $(CP_ARM_CLIENT_SECRET)
+                      ARM_TENANT_ID:                  $(CP_ARM_TENANT_ID)
                       TF_VAR_agent_ado_url:           $(System.CollectionUri)
                       TF_VAR_spn_id:                  $(CP_ARM_OBJECT_ID)
                       TF_VAR_deployer_kv_user_arm_id: $(Deployer_Key_Vault)
@@ -360,10 +366,7 @@ stages:
                       TF_LOG:                         $(TF_LOG)
                       TF_IN_AUTOMATION:               true
                       DEPLOYER_TFSTATE_KEY:           "${{ parameters.deployer }}.terraform.tfstate"
-                      # ARM_CLIENT_ID:                  $(Set_Connection_Variables.azureClientId)
-                      # ARM_CLIENT_SECRET:              $(Set_Connection_Variables.azureClientSecret)
-                      # ARM_TENANT_ID:                  $(Set_Connection_Variables.azureTenantId)
-
+                      USE_MSI:                        $(Use_MSI)
 
     - stage: Deploy_controlplane
       dependsOn:
