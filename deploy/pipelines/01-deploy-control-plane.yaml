@@ -614,6 +614,7 @@ stages:
                           fi
                         else
                           source /etc/profile.d/deploy_server.sh
+                          export ARM_SUBSCRIPTION_ID=$ARM_SUBSCRIPTION_ID
                         fi
                       fi
 
@@ -685,8 +686,7 @@ stages:
                             $SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh                              \
                               --deployer_parameter_file ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/$(deployerconfig) \
                               --library_parameter_file ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/$(libraryconfig)     \
-                              --subscription $CP_ARM_SUBSCRIPTION_ID --spn_id $CP_ARM_CLIENT_ID                          \
-                              --spn_secret $CP_ARM_CLIENT_SECRET --tenant_id $CP_ARM_TENANT_ID                           \
+                              --subscription $ARM_SUBSCRIPTION_ID                                                        \
                               --auto-approve --ado --msi                                                                 \
                               ${storage_account_parameter} ${keyvault_parameter}
                           else

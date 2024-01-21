@@ -191,8 +191,12 @@ if [ -n "${subscription}" ]; then
     echo "#                                                                                       #"
     echo "#########################################################################################"
     echo ""
-    az account set --sub "${subscription}"
-    export ARM_SUBSCRIPTION_ID="${subscription}"
+
+    if [ -n "${subscription}" ];
+    then
+      az account set --sub "${subscription}"
+      export ARM_SUBSCRIPTION_ID="${subscription}"
+    fi
     kv_found=$(az keyvault list --subscription "${subscription}" --query [].name | grep  "${keyvault}")
 
     if [ -z "${kv_found}" ] ; then
@@ -352,12 +356,12 @@ if [ 1 == $step ] || [ 3 == $step ] ; then
     echo ""
     echo "#########################################################################################"
     echo "#                                                                                       #"
-    echo -e "#              $cyan Validating keyvault access to $keyvault $resetformatting                                 #"
+    echo -e "#              $cyan Validating keyvault access to $keyvault $resetformatting                      #"
     echo "#                                                                                       #"
     echo "#########################################################################################"
     echo ""
 
-    kv_name_check=$(az keyvault list --query "[?name=='$keyvault'].name | [0]" --subscription "${STATE_SUBSCRIPTION}")
+    kv_name_check=$(az keyvault list --query "[?name=='$keyvault'].name | [0]" --subscription "${subscription}")
     if [ -z $kv_name_check ]; then
       echo ""
       echo "#########################################################################################"
@@ -367,7 +371,7 @@ if [ 1 == $step ] || [ 3 == $step ] ; then
       echo "#########################################################################################"
       echo ""
       sleep 60
-      kv_name_check=$(az keyvault list --query "[?name=='$keyvault'].name | [0]" --subscription "${STATE_SUBSCRIPTION}")
+      kv_name_check=$(az keyvault list --query "[?name=='$keyvault'].name | [0]" --subscription "${subscription}")
     fi
 
     if [ -z $kv_name_check ]; then
@@ -381,7 +385,7 @@ if [ 1 == $step ] || [ 3 == $step ] ; then
         exit 10
     fi
 
-    access_error=$(az keyvault secret list --vault "$keyvault" --only-show-errors | grep "The user, group or application")
+    access_error=$(az keyvault secret list --vault "$keyvault" --subscription "${subscription}" --only-show-errors | grep "The user, group or application")
     if [ -z "${access_error}" ]; then
         # save_config_var "client_id" "${deployer_config_information}"
         # save_config_var "tenant_id" "${deployer_config_information}"
