@@ -834,10 +834,10 @@ else {
   Write-Host ""
   Write-Host "The browser will now open, Please create a service connection with the name 'Control_Plane_Service_Connection'."
 
-  connections_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) +"/_settings/adminservices"
+  $connections_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) +"/_settings/adminservices"
 
   Start-Process $connections_url
-  Read-Host -Prompt "Once you have createdand validated the connection, Press any key to continue"
+  Read-Host -Prompt "Once you have created and validated the connection, Press any key to continue"
 
 }
 
