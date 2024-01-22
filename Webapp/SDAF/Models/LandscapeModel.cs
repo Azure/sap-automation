@@ -341,7 +341,23 @@ namespace AutomationForm.Models
 
     public string[] iscsi_nic_ips { get; set; }
 
+    /*---------------------------------------------------------------------------8
+    |                                                                            |
+    |                               Identity                                     |
+    |                                                                            |
+    +------------------------------------4--------------------------------------*/
+
     [UserAssignedIdentityIdValidator(ErrorMessage = "Invalid User Assigned id")]
     public string user_assigned_identity_id { get; set; }
+
+
+    /*---------------------------------------------------------------------------8
+    |                                                                            |
+    |                               Deployment                                   |
+    |                                                                            |
+    +------------------------------------4--------------------------------------*/
+
+    public bool? use_spn{ get; set; } = true;
+
   }
 }

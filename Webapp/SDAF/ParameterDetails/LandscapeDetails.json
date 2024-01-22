@@ -35,7 +35,7 @@
   },
   {
     "Section": "Environment",
-    "Link": "https://learn.microsoft.com/en-us/azure/sap/automation/automation-configure-workload-zone#resource-group-parameters",
+    "Link": "https://learn.microsoft.com/en-us/azure/sap/automation/automation-configure-workload-zone#environment-parameters",
     "Parameters": [
       {
         "Name": "environment",
@@ -112,6 +112,21 @@
         "Overrules": "",
         "Display": 2
       },
+      {
+        "Name": "use_spn",
+        "Required": false,
+        "Description": " If set, the deployment is performed using the Service Principal defined for the workload zone, otherwise the managed identity of the deployer is used",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      }
+    ]
+  },
+  {
+    "Section": "Resource Group",
+    "Link": "https://learn.microsoft.com/en-us/azure/sap/automation/configure-workload-zone#resource-group-parameters",
+    "Parameters": [
       {
         "Name": "resourcegroup_name",
         "Required": false,
