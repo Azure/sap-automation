@@ -36,7 +36,7 @@ parameters:
 
   - name:                              connection_name
     displayName:                       Service Connection Name
-    type:
+    type:                              string
 
 stages:
   - stage:                             Remove_control_plane_remote
