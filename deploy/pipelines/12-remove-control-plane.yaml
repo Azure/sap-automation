@@ -145,7 +145,9 @@ stages:
                 else
                   source /etc/profile.d/deploy_server.sh
                   export ARM_SUBSCRIPTION_ID=$ARM_SUBSCRIPTION_ID
-                  export ARM_USE_MSI=false
+                  export ARM_USE_MSI=true
+                  unset ARM_CLIENT_ID
+                  unset ARM_TENANT_ID
                 fi
 
               echo -e "$green--- Convert config files to UX format ---$reset"
