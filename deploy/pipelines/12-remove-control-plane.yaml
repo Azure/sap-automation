@@ -391,7 +391,14 @@ stages:
             parameters:
               getLatestFromBranch:     true
           - task:                      PostBuildCleanup@3
-          - bash: |
+          - task:                      AzureCLI@2
+            continueOnError:           false
+            inputs:
+              azureSubscription:       ${{parameters.connection_name}}
+              scriptType:              bash
+              scriptLocation:          inlineScript
+              addSpnToEnvironment:     true
+              inlineScript: |
               #!/bin/bash
               echo "##vso[build.updatebuildnumber]Removing the control plane defined in $(deployer_folder) $(library_folder)"
               green="\e[1;32m" ; reset="\e[0m"
@@ -724,4 +731,5 @@ stages:
               key_vault:                $(Deployer_Key_Vault)
               TF_IN_AUTOMATION:         true
               TF_LOG:                   $(TF_LOG)
+              USE_MSI:                  $(Use_MSI)
             failOnStderr:               false
