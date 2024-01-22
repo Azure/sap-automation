@@ -326,7 +326,7 @@ namespace AutomationForm.Models
     |                                                                            |
     +------------------------------------4--------------------------------------*/
 
-    public int iscsi_count { get; set; } = 0;
+    public int? iscsi_count { get; set; } = 0;
 
     public string iscsi_size { get; set; } = "Standard_D2s_v3";
 
