@@ -125,19 +125,21 @@ stages:
                     unzip -qq terraform_$(tf_version)_linux_amd64.zip ; sudo mv terraform /bin/
                     rm -f terraform_$(tf_version)_linux_amd64.zip
                 fi
-
-                az login --service-principal --username $CP_ARM_CLIENT_ID --password=$CP_ARM_CLIENT_SECRET --tenant $CP_ARM_TENANT_ID --output none
-                return_code=$?
-                if [ 0 != $return_code ]; then
-                  echo -e "$boldred--- Login failed ---$reset"
-                  echo "##vso[task.logissue type=error]az login failed."
-                  exit $return_code
+                if [ $USE_MSI != "true" ]; then
+                  echo "Login using SPN"
+                  export ARM_USE_MSI=false
+                  az login --service-principal --username $ARM_CLIENT_ID --password=$ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID --output none
+                  return_code=$?
+                  if [ 0 != $return_code ]; then
+                      echo -e "$boldred--- Login failed ---$reset"
+                      echo "##vso[task.logissue type=error]az login failed."
+                      exit $return_code
+                  fi
+                else
+                  source /etc/profile.d/deploy_server.sh
+                  export ARM_SUBSCRIPTION_ID=$ARM_SUBSCRIPTION_ID
+                  export ARM_USE_MSI=false
                 fi
-                export ARM_CLIENT_ID=$CP_ARM_CLIENT_ID
-                export ARM_CLIENT_SECRET=$CP_ARM_CLIENT_SECRET
-                export ARM_TENANT_ID=$CP_ARM_TENANT_ID
-                export ARM_SUBSCRIPTION_ID=$CP_ARM_SUBSCRIPTION_ID
-
 
               echo -e "$green--- Convert config files to UX format ---$reset"
                 dos2unix -q $CONFIG_REPO_PATH/DEPLOYER/$(deployer_folder)/$(deployer_configuration_file)
@@ -249,7 +251,7 @@ stages:
                   REMOTE_STATE_RG=$(cat ${deployer_environment_file_name}  | grep REMOTE_STATE_RG      | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file resource group' $REMOTE_STATE_RG
                 fi
 
-                export STATE_SUBSCRIPTION=$CP_ARM_SUBSCRIPTION_ID ; echo 'Terraform state file subscription' $STATE_SUBSCRIPTION
+                export STATE_SUBSCRIPTION=$ARM_SUBSCRIPTION_ID ; echo 'Terraform state file subscription' $STATE_SUBSCRIPTION
                 if [ -f ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/state.zip ]; then
                     pass=$(echo $CP_ARM_CLIENT_SECRET | sed 's/-//g')
                     unzip  -qq -o -P "${pass}" ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/state.zip -d ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)
@@ -351,15 +353,16 @@ stages:
             displayName:               Remove control plane
             env:
               SYSTEM_ACCESSTOKEN:       $(System.AccessToken)
-              CP_ARM_SUBSCRIPTION_ID:   $(CP_ARM_SUBSCRIPTION_ID)
-              CP_ARM_CLIENT_ID:         $(CP_ARM_CLIENT_ID)
-              CP_ARM_CLIENT_SECRET:     $(CP_ARM_CLIENT_SECRET)
-              CP_ARM_TENANT_ID:         $(CP_ARM_TENANT_ID)
+              ARM_SUBSCRIPTION_ID:      $(CP_ARM_SUBSCRIPTION_ID)
+              ARM_CLIENT_ID:            $(CP_ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:        $(CP_ARM_CLIENT_SECRET)
+              ARM_TENANT_ID:            $(CP_ARM_TENANT_ID)
               SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
               CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
               key_vault:                $(Deployer_Key_Vault)
               TF_IN_AUTOMATION:         true
               TF_LOG:                   $(TF_LOG)
+              USE_MSI:                        $(Use_MSI)
             failOnStderr: false
 
   - stage:                              Remove_control_plane
