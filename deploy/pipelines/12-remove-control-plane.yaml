@@ -732,4 +732,3 @@ stages:
               TF_IN_AUTOMATION:         true
               TF_LOG:                   $(TF_LOG)
               USE_MSI:                  $(Use_MSI)
-            failOnStderr:               false
