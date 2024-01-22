@@ -35,7 +35,7 @@ data "azurerm_key_vault_secret" "subscription_id"    {
                                                         key_vault_id = local.spn_key_vault_arm_id
                                                       }
 
-data "azurerm_key_vault§_secret" "client_id"          {
+data "azurerm_key_vault_secret" "client_id"          {
                                                         count        = var.use_spn ? 1 : 0
                                                         name         = format("%s-client-id", local.environment)
                                                         key_vault_id = local.spn_key_vault_arm_id
