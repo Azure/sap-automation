@@ -42,7 +42,13 @@ provider "azurerm"                     {
 provider "azurerm"                     {
                                          features {}
                                          alias                      = "dnsmanagement"
-                                         subscription_id            = length(try(data.terraform_remote_state.landscape.outputs.management_dns_subscription_id, "")) > 1 ? data.terraform_remote_state.landscape.outputs.management_dns_subscription_id : length(local.deployer_subscription_id) > 0 ? local.deployer_subscription_id : null
+                                         subscription_id            = length(try(data.terraform_remote_state.landscape.outputs.management_dns_subscription_id, "")) > 1 ? (
+                                                                        data.terraform_remote_state.landscape.outputs.management_dns_subscription_id) : (
+                                                                        length(local.deployer_subscription_id) > 0 ? (
+                                                                          local.deployer_subscription_id) : (
+                                                                          null
+                                                                        )
+                                                                      )
                                          use_msi                    = var.use_spn ? false : true
                                          client_id                  = var.use_spn ? local.cp_spn.client_id : null
                                          client_secret              = var.use_spn ? local.cp_spn.client_secret : null
