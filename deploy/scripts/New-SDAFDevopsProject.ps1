@@ -47,7 +47,7 @@ if (Test-Path .\start.md) {
   Remove-Item .\start.md
 }
 
-if ($Env:SDAF_AuthenticationMethodLength -ne 0) {
+if ($Env:SDAF_AuthenticationMethod.Length -ne 0) {
   $Title = "Select the authentication method to use"
   $data = @('Service Principal', 'Managed Identity')
   Show-Menu($data)
