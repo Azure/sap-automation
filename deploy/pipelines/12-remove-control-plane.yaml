@@ -270,14 +270,14 @@ stages:
                 fi
 
                 export STATE_SUBSCRIPTION=$ARM_SUBSCRIPTION_ID ; echo 'Terraform state file subscription' $STATE_SUBSCRIPTION
-                if [ -f ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/state.zip ]; then
+                if [ -f ${CONFIG_REPO_PATH}/LIBRARY/$(library_folder)/state.zip ]; then
                     pass=$(echo $DEPLOYER_RANDOM_ID_SEED | sed 's/-//g')
-                    unzip  -qq -o -P "${pass}" ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/state.zip -d ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)
+                    unzip  -qq -o -P "${pass}" ${CONFIG_REPO_PATH}/LIBRARY/$(library_folder)/state.zip -d ${CONFIG_REPO_PATH}/LIBRARY/$(library_folder)
                 fi
 
-                if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip ]; then
+                if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployer_folder)/state.zip ]; then
                   pass=$(echo $DEPLOYER_RANDOM_ID_SEED | sed 's/-//g')
-                  unzip -qq -o -P "${pass}" ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip -d ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)
+                  unzip -qq -o -P "${pass}" ${CONFIG_REPO_PATH}/DEPLOYER/$(deployer_folder)/state.zip -d ${CONFIG_REPO_PATH}/DEPLOYER/$(deployer_folder)
                 fi
 
               echo -e "$green--- Running the remove region script that destroys deployer VM and SAP library ---$reset"
@@ -313,25 +313,25 @@ stages:
                     changed=1
                 fi
                 if [$return_code !=  0] ; then
-                  backend=$(grep "local" LIBRARY/$(libraryfolder)/.terraform/terraform.tfstate || true)
+                  backend=$(grep "local" LIBRARY/$(library_folder)/.terraform/terraform.tfstate || true)
                   if [ -n "${backend}" ]; then
                       echo "Local Terraform state"
-                      if [ -f ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/terraform.tfstate ]; then
+                      if [ -f ${CONFIG_REPO_PATH}/LIBRARY/$(library_folder)/terraform.tfstate ]; then
                           sudo apt install zip
                           echo "Compressing the library state file"
                           pass=$(echo $CP_ARM_CLIENT_SECRET | sed 's/-//g')
-                          zip -j -P "${pass}" ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/state ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/terraform.tfstate
-                          git add -f ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/state.zip
+                          zip -j -P "${pass}" ${CONFIG_REPO_PATH}/LIBRARY/$(library_folder)/state ${CONFIG_REPO_PATH}/LIBRARY/$(library_folder)/terraform.tfstate
+                          git add -f ${CONFIG_REPO_PATH}/LIBRARY/$(library_folder)/state.zip
                           changed=1
                       fi
                   else
                       echo "Remote Terraform state"
-                      if [ -f ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/terraform.tfstate ]; then
-                          git rm -q -f --ignore-unmatch ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/terraform.tfstate
+                      if [ -f ${CONFIG_REPO_PATH}/LIBRARY/$(library_folder)/terraform.tfstate ]; then
+                          git rm -q -f --ignore-unmatch ${CONFIG_REPO_PATH}/LIBRARY/$(library_folder)/terraform.tfstate
                           added=1
                       fi
-                      if [ -f ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/state.zip ]; then
-                          git rm -q --ignore-unmatch -f ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/state.zip
+                      if [ -f ${CONFIG_REPO_PATH}/LIBRARY/$(library_folder)/state.zip ]; then
+                          git rm -q --ignore-unmatch -f ${CONFIG_REPO_PATH}/LIBRARY/$(library_folder)/state.zip
                           added=1
                       fi
                   fi
@@ -587,11 +587,6 @@ stages:
                         echo "##vso[task.logissue type=error]az login failed."
                         exit $return_code
                     fi
-                  else
-                    source /etc/profile.d/deploy_server.sh
-                    export ARM_SUBSCRIPTION_ID=$ARM_SUBSCRIPTION_ID
-                    export ARM_USE_MSI=true
-                    unset ARM_TENANT_ID
                   fi
                   az account set --subscription $ARM_SUBSCRIPTION_ID
 
