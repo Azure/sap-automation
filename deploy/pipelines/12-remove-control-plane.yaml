@@ -431,7 +431,7 @@ stages:
                   export ARM_TENANT_ID=$tenantId
                   export ARM_CLIENT_SECRET=$servicePrincipalKey
                 fi
-                printenv | grep ARM_
+
                 # Treat unset variables as an error when substituting.
                   set -ue
 

@@ -198,7 +198,7 @@ resource "azurerm_key_vault_secret" "web_pwd" {
   depends_on                           = [
                                            azurerm_key_vault_access_policy.kv_user_pre_deployer[0],
                                            azurerm_key_vault_access_policy.kv_user_msi,
-                                           azurerm_key_vault_access_policy.kv_user_systemidentity
+                                           azurerm_key_vault_access_policy.kv_user_systemidentity,
                                          ]
 
   name                                 = "WEB-PWD"
@@ -337,6 +337,12 @@ resource "azurerm_key_vault_access_policy" "kv_user_pre_deployer" {
                                            "Restore",
                                            "Purge"
                                          ]
+
+  lifecycle {
+    ignore_changes = [
+      object_id
+    ]
+  }
 
 }
 
