@@ -364,21 +364,21 @@ stages:
 
                   echo "Subscription: $subscription"
 
-                  az account set --subscription $ARM_SUBSCRIPTION_ID
+                  az account set --subscription $subscription
 
-                  rg=$(az group list --query "[?name=='$(library_folder)'].name | [0]" | grep $(library_folder))
+                  rg=$(az group list --subscription $subscription --query "[?name=='$(library_folder)'].name | [0]" | grep $(library_folder))
                   if [ ${#rg} != 0 ]; then
                     echo "Deleting resource group: $(library_folder)"
-                    az group delete --name $(library_folder) --yes --only-show-errors
+                    az group delete --subscription $subscription --name $(library_folder) --yes --only-show-errors
                     return_code=$?
                   else
                     echo "Resource group $(library_folder) does not exist."
                   fi
 
-                  rg=$(az group list --query "[?name=='$(deployer_folder)'].name  | [0]" | grep $(deployer_folder))
+                  rg=$(az group list --subscription $subscription --query "[?name=='$(deployer_folder)'].name  | [0]" | grep $(deployer_folder))
                   if [ ${#rg} != 0 ]; then
                     echo "Deleting resource group: $(deployer_folder)"
-                    az group delete --name $(deployer_folder) --yes --only-show-errors
+                    az group delete --subscription $subscription --name $(deployer_folder) --yes --only-show-errors
                     return_code=$?
                   else
                     echo "Resource group $(deployer_folder) does not exist"
