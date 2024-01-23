@@ -59,6 +59,7 @@ else {
   $authenticationMethod = $Env:SDAF_AuthenticationMethod
 }
 
+exit
 Write-Host "Using authentication method: $authenticationMethod" -ForegroundColor Yellow
 
 az config set extension.use_dynamic_install=yes_without_prompt --only-show-errors
