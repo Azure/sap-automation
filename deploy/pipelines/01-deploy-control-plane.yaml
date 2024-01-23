@@ -288,6 +288,7 @@ stages:
                                echo 'Deployer Key Vault' ${file_key_vault}
                                deployer_random_id=$(cat ${deployer_environment_file_name} | grep deployer_random_id= | awk -F'=' '{print $2}' | xargs)
                                library_random_id=$(cat ${deployer_environment_file_name} | grep library_random_id= | awk -F'=' '{print $2}' | xargs)
+                               echo 'Deployer Random ID' ${deployer_random_id}
 
                             fi
                         echo -e "$green--- Update repo ---$reset"
