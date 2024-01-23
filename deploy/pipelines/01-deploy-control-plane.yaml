@@ -226,7 +226,9 @@ stages:
                                 export TF_VAR_agent_pat=$(PAT)
                             fi
                             if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip ]; then
-                                pass=$(echo $ARM_CLIENT_SECRET | sed 's/-//g')
+                                deployer_random_id=$(cat ${deployer_environment_file_name} | grep deployer_random_id= | awk -F'=' '{print $2}' | xargs)
+
+                                pass=$(echo $deployer_random_id | sed 's/-//g')
                                 unzip -qq -o -P "${pass}" ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip -d ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)
                             fi
 
@@ -452,6 +454,15 @@ stages:
                               fi
                           fi
 
+                          az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "DEPLOYER_RANDOM_ID_SEED.value" | tr -d \")
+                          if [ -n "${az_var}"  ]; then
+                              deployer_random_id="${az_var}"
+                          else
+                              if [ -f ${deployer_environment_file_name} ] ; then
+                                  deployer_random_id=$(cat ${deployer_environment_file_name} | grep deployer_random_id= | awk -F'=' '{print $2}' | xargs)
+                              fi
+                          fi
+
                           az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Account_Name.value" | tr -d \")
                           if [ -n "${az_var}"  ]; then
                               REMOTE_STATE_SA="${az_var}"  ; echo 'Terraform state file storage account' $REMOTE_STATE_SA
@@ -481,24 +492,28 @@ stages:
                           if [ -z ${TF_VAR_ansible_core_version} ]; then
                               export TF_VAR_ansible_core_version=2.15
                           fi
-                          if [ -z ${CP_ARM_SUBSCRIPTION_ID} ]; then
-                              echo "##vso[task.logissue type=error]Variable CP_ARM_SUBSCRIPTION_ID was not defined."
-                              exit 2
-                          fi
 
-                          if [ -z ${CP_ARM_CLIENT_ID} ]; then
-                              echo "##vso[task.logissue type=error]Variable CP_ARM_CLIENT_ID was not defined."
-                              exit 2
-                          fi
+                          if [ $USE_MSI != "true" ]; then
 
-                          if [ -z ${CP_ARM_CLIENT_SECRET} ]; then
-                              echo "##vso[task.logissue type=error]Variable CP_ARM_CLIENT_SECRET was not defined."
-                              exit 2
-                          fi
+                            if [ -z ${CP_ARM_SUBSCRIPTION_ID} ]; then
+                                echo "##vso[task.logissue type=error]Variable CP_ARM_SUBSCRIPTION_ID was not defined."
+                                exit 2
+                            fi
 
-                          if [ -z ${CP_ARM_TENANT_ID} ]; then
-                              echo "##vso[task.logissue type=error]Variable CP_ARM_TENANT_ID was not defined."
-                              exit 2
+                            if [ -z ${CP_ARM_CLIENT_ID} ]; then
+                                echo "##vso[task.logissue type=error]Variable CP_ARM_CLIENT_ID was not defined."
+                                exit 2
+                            fi
+
+                            if [ -z ${CP_ARM_CLIENT_SECRET} ]; then
+                                echo "##vso[task.logissue type=error]Variable CP_ARM_CLIENT_SECRET was not defined."
+                                exit 2
+                            fi
+
+                            if [ -z ${CP_ARM_TENANT_ID} ]; then
+                                echo "##vso[task.logissue type=error]Variable CP_ARM_TENANT_ID was not defined."
+                                exit 2
+                            fi
                           fi
 
                           if [ $(use_webapp) == "true" ]; then
@@ -598,7 +613,7 @@ stages:
                           az account set --subscription $CP_ARM_SUBSCRIPTION_ID
 
                       else
-                        if [ $LOGON_USING_SPN == "true" ]; then
+                        if [ $USE_MSI != "true" ]; then
                           echo "Login using SPN"
                           export ARM_CLIENT_ID=$CP_ARM_CLIENT_ID
                           export ARM_CLIENT_SECRET=$CP_ARM_CLIENT_SECRET

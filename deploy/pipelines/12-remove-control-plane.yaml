@@ -260,18 +260,25 @@ stages:
                   REMOTE_STATE_RG=$(cat ${deployer_environment_file_name}  | grep REMOTE_STATE_RG      | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file resource group' $REMOTE_STATE_RG
                 fi
 
+                az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "DEPLOYER_RANDOM_ID_SEED.value" | tr -d \")
+                if [ -n "${az_var}"  ]; then
+                    deployer_random_id="${az_var}"
+                else
+                    if [ -f ${deployer_environment_file_name} ] ; then
+                        deployer_random_id=$(cat ${deployer_environment_file_name} | grep deployer_random_id= | awk -F'=' '{print $2}' | xargs)
+                    fi
+                fi
+
                 export STATE_SUBSCRIPTION=$ARM_SUBSCRIPTION_ID ; echo 'Terraform state file subscription' $STATE_SUBSCRIPTION
                 if [ -f ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/state.zip ]; then
-                    pass=$(echo $CP_ARM_CLIENT_SECRET | sed 's/-//g')
+                    pass=$(echo $DEPLOYER_RANDOM_ID_SEED | sed 's/-//g')
                     unzip  -qq -o -P "${pass}" ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/state.zip -d ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)
                 fi
 
                 if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip ]; then
-                  pass=$(echo $CP_ARM_CLIENT_SECRET | sed 's/-//g')
+                  pass=$(echo $DEPLOYER_RANDOM_ID_SEED | sed 's/-//g')
                   unzip -qq -o -P "${pass}" ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip -d ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)
                 fi
-
-
 
               echo -e "$green--- Running the remove region script that destroys deployer VM and SAP library ---$reset"
 
@@ -300,7 +307,7 @@ stages:
                 if [ -f DEPLOYER/$(deployer_folder)/terraform.tfstate ]; then
                     echo "Compressing the state file."
                     sudo apt install zip
-                    pass=$(echo $CP_ARM_CLIENT_SECRET | sed 's/-//g')
+                    pass=$(echo $DEPLOYER_RANDOM_ID_SEED | sed 's/-//g')
                     zip -j -P "${pass}" DEPLOYER/$(deployer_folder)/state DEPLOYER/$(deployer_folder)/terraform.tfstate
                     git add -f DEPLOYER/$(deployer_folder)/state.zip
                     changed=1
@@ -371,7 +378,8 @@ stages:
               key_vault:                $(Deployer_Key_Vault)
               TF_IN_AUTOMATION:         true
               TF_LOG:                   $(TF_LOG)
-              USE_MSI:                        $(Use_MSI)
+              USE_MSI:                  $(Use_MSI)
+              DEPLOYER_RANDOM_ID_SEED:  $(DEPLOYER_RANDOM_ID_SEED)
             failOnStderr: false
 
   - stage:                              Remove_control_plane
@@ -462,17 +470,20 @@ stages:
                     echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined."
                     exit 2
                   fi
-                  if [ -z $ARM_CLIENT_ID ]; then
-                    echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined."
-                    exit 2
-                  fi
-                  if [ -z $ARM_CLIENT_SECRET ]; then
-                    echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined."
-                    exit 2
-                  fi
-                  if [ -z $ARM_TENANT_ID ]; then
-                    echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined."
-                    exit 2
+                  if [ $USE_MSI != "true" ]; then
+
+                    if [ -z $ARM_CLIENT_ID ]; then
+                      echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined."
+                      exit 2
+                    fi
+                    if [ -z $ARM_CLIENT_SECRET ]; then
+                      echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined."
+                      exit 2
+                    fi
+                    if [ -z $ARM_TENANT_ID ]; then
+                      echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined."
+                      exit 2
+                    fi
                   fi
 
                 echo -e "$green--- Convert config files to UX format ---$reset"
@@ -566,12 +577,21 @@ stages:
 
                 echo -e "$green--- az login ---$reset"
 
-                  az login --service-principal --username $ARM_CLIENT_ID --password=$ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID --output none
-                  return_code=$?
-                  if [ 0 != $return_code ]; then
-                    echo -e "$boldred--- Login failed ---$reset"
-                    echo "##vso[task.logissue type=error]az login failed."
-                    exit $return_code
+                  if [ $USE_MSI != "true" ]; then
+                    echo "Login using SPN"
+                    export ARM_USE_MSI=false
+                    az login --service-principal --username $ARM_CLIENT_ID --password=$ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID --output none
+                    return_code=$?
+                    if [ 0 != $return_code ]; then
+                        echo -e "$boldred--- Login failed ---$reset"
+                        echo "##vso[task.logissue type=error]az login failed."
+                        exit $return_code
+                    fi
+                  else
+                    source /etc/profile.d/deploy_server.sh
+                    export ARM_SUBSCRIPTION_ID=$ARM_SUBSCRIPTION_ID
+                    export ARM_USE_MSI=true
+                    unset ARM_TENANT_ID
                   fi
                   az account set --subscription $ARM_SUBSCRIPTION_ID
 
@@ -596,7 +616,7 @@ stages:
                 echo -e "$green--- Running the remove_deployer script that destroys deployer VM ---$reset"
                   if [ -f $CONFIG_REPO_PATH/DEPLOYER/$(deployer_folder)/state.zip ]; then
                       echo "Unzipping state.zip"
-                      pass=$(echo $ARM_CLIENT_SECRET | sed 's/-//g')
+                      pass=$(echo $DEPLOYER_RANDOM_ID_SEED | sed 's/-//g')
                       unzip -qq -o -P "${pass}" $CONFIG_REPO_PATH/DEPLOYER/$(deployer_folder)/state.zip -d ${CONFIG_REPO_PATH}/DEPLOYER/$(deployer_folder)
                   fi
 
@@ -741,3 +761,4 @@ stages:
               TF_IN_AUTOMATION:         true
               TF_LOG:                   $(TF_LOG)
               USE_MSI:                  $(Use_MSI)
+              DEPLOYER_RANDOM_ID_SEED:  $(DEPLOYER_RANDOM_ID_SEED)
