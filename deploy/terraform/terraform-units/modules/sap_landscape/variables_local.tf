@@ -565,7 +565,7 @@ locals {
   sub_iscsi_nsg_arm_id                            = try(var.infrastructure.vnets.sap.subnet_iscsi.nsg.arm_id, "")
   sub_iscsi_nsg_exists                            = length(local.sub_iscsi_nsg_arm_id) > 0
   sub_iscsi_nsg_name                              = local.sub_iscsi_nsg_exists ? (
-                                                      try(split("/", local.sub_iscsi.nsg.arm_id)[8], "")) : (
+                                                      try(split("/", local.sub_iscsi_nsg_arm_id)[8], "")) : (
                                                       length(try(var.infrastructure.vnets.sap.subnet_iscsi.nsg.name, "")) > 0 ? (
                                                         var.infrastructure.vnets.sap.subnet_iscsi.nsg.name ) : (
                                                         format("%s%s%s%s",
