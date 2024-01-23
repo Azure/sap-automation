@@ -419,6 +419,7 @@ stages:
                 #!/bin/bash
                 echo "##vso[build.updatebuildnumber]Removing the control plane defined in $(deployer_folder) $(library_folder)"
                 green="\e[1;32m" ; reset="\e[0m"
+                printenv
                 # Treat unset variables as an error when substituting.
                   set -ue
 
