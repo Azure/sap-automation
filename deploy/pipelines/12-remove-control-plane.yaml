@@ -419,7 +419,17 @@ stages:
                 #!/bin/bash
                 echo "##vso[build.updatebuildnumber]Removing the control plane defined in $(deployer_folder) $(library_folder)"
                 green="\e[1;32m" ; reset="\e[0m"
-                printenv
+                export ARM_USE_MSI=false
+                if [ $USE_MSI != "true" ]; then
+                  export ARM_CLIENT_ID=$servicePrincipalId
+                  export ARM_TENANT_ID=$tenantId
+                  export ARM_CLIENT_SECRET=$servicePrincipalKey
+                else
+                  export ARM_CLIENT_ID=$CP_ARM_CLIENT_ID
+                  export ARM_TENANT_ID=$CP_ARM_TENANT_ID
+                  export ARM_CLIENT_SECRET=$CP_ARM_CLIENT_SECRET
+                fi
+                printenv | grep ARM_
                 # Treat unset variables as an error when substituting.
                   set -ue
 
@@ -487,10 +497,7 @@ stages:
                     fi
                   else
                     export ARM_SUBSCRIPTION_ID=$ARM_SUBSCRIPTION_ID
-                    export ARM_USE_MSI=false
-                    export ARM_CLIENT_ID=$servicePrincipalId
-                    export ARM_TENANT_ID=$tenantId
-                    # export ARM_CLIENT_SECRET=$servicePrincipalKey
+
                   fi
 
                 echo -e "$green--- Convert config files to UX format ---$reset"
@@ -754,9 +761,9 @@ stages:
             env:
               SYSTEM_ACCESSTOKEN:       $(System.AccessToken)
               ARM_SUBSCRIPTION_ID:      $(CP_ARM_SUBSCRIPTION_ID)
-              ARM_CLIENT_ID:            $(CP_ARM_CLIENT_ID)
-              ARM_CLIENT_SECRET:        $(CP_ARM_CLIENT_SECRET)
-              ARM_TENANT_ID:            $(CP_ARM_TENANT_ID)
+              CP_ARM_CLIENT_ID:         $(CP_ARM_CLIENT_ID)
+              CP_ARM_CLIENT_SECRET:     $(CP_ARM_CLIENT_SECRET)
+              CP_ARM_TENANT_ID:         $(CP_ARM_TENANT_ID)
               SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
               CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
               key_vault:                $(Deployer_Key_Vault)
