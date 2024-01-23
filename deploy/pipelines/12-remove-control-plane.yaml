@@ -484,6 +484,12 @@ stages:
                       echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined."
                       exit 2
                     fi
+                  else
+                    export ARM_SUBSCRIPTION_ID=$ARM_SUBSCRIPTION_ID
+                    export ARM_USE_MSI=false
+                    export ARM_CLIENT_ID=$servicePrincipalId
+                    export ARM_TENANT_ID=$tenantId
+                    export ARM_CLIENT_SECRET=$servicePrincipalKey
                   fi
 
                 echo -e "$green--- Convert config files to UX format ---$reset"
