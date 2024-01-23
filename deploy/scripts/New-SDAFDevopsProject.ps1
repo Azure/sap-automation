@@ -89,8 +89,6 @@ if ($Workload_zone_subscriptionID.Length -eq 0) {
   $Workload_zone_subscriptionID = Read-Host "Please enter your Workload zone subscription ID"
   az account set --sub $Workload_zone_subscriptionID
   $Workload_zoneSubscriptionName = (az account show --query name -o tsv)
-
-  exit
 }
 else {
   az account set --sub $Workload_zone_subscriptionID
