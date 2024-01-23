@@ -211,6 +211,8 @@ use_simple_mount:                       false
 database_cluster_type:                 "AFA"
 # scs_high_availability:                 false
 scs_cluster_type:                      "AFA"
+# Configure pacemaker for Azure scheduled events
+cluster_use_scheduled_events_agent:    true
 
 # ------------------- Begin - SAP SWAP settings variables --------------------8
 sap_swap:
@@ -227,4 +229,4 @@ sap_swap:
   - { tier: "oracle-multi-sid",   swap_size_mb: "20480" }
   - { tier: "observer",           swap_size_mb: "2048"  }
   - { tier: 'sqlserver',          swap_size_mb: '20480' }
-  # --------------------- End - SAP SWAP settings variables --------------------8
+# --------------------- End - SAP SWAP settings variables --------------------8
