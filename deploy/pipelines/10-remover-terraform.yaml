@@ -301,6 +301,8 @@ stages:
                 fi
               else
                 echo -e "$green --- Running on deployer ---$reset"
+                source /etc/profile.d/deploy_server.sh
+                export ARM_USE_MSI=true
               fi
 
               echo -e "$green--- Set variables ---$reset"
