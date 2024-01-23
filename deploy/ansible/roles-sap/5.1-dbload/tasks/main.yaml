@@ -396,6 +396,23 @@
       vars:
         allow_world_readable_tmpfiles: true
 
+    - name:                            "DBLoad: Set DB Virtual Host name ({{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) }})"
+      become:                          true
+      become_user:                     "{{ sid_to_be_deployed.sid | lower }}adm"
+      when:
+        - database_high_availability
+        - platform == 'HANA'
+        - hdbuserstore_path is defined
+      ansible.builtin.shell: |
+                                       {{ hdbuserstore_path }} SET DEFAULT {{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) }}:3{{ db_instance_number }}13@{{ db_sid | upper }} {{ schema_name }} {{ main_password }}
+      environment:
+        SAPSYSTEMNAME:                 "{{ sid_to_be_deployed.sid | upper }}"
+        TMPDIR:                        "{{ hdbuserstore_path }}"
+        ssfs_connect:                  "1"
+      register:                        hdbuserstore
+      vars:
+        allow_world_readable_tmpfiles: true
+
   when:
     - not dbload_installed.stat.exists
 
