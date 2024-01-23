@@ -421,13 +421,15 @@ stages:
                 green="\e[1;32m" ; reset="\e[0m"
                 export ARM_USE_MSI=false
                 if [ $USE_MSI != "true" ]; then
-                  export ARM_CLIENT_ID=$servicePrincipalId
-                  export ARM_TENANT_ID=$tenantId
-                  export ARM_CLIENT_SECRET=$servicePrincipalKey
-                else
+                  echo "use Service Principal"
                   export ARM_CLIENT_ID=$CP_ARM_CLIENT_ID
                   export ARM_TENANT_ID=$CP_ARM_TENANT_ID
                   export ARM_CLIENT_SECRET=$CP_ARM_CLIENT_SECRET
+                else
+                  echo "use MSI"
+                  export ARM_CLIENT_ID=$servicePrincipalId
+                  export ARM_TENANT_ID=$tenantId
+                  export ARM_CLIENT_SECRET=$servicePrincipalKey
                 fi
                 printenv | grep ARM_
                 # Treat unset variables as an error when substituting.

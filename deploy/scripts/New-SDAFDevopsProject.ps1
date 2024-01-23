@@ -26,7 +26,7 @@ $Workload_zoneSubscriptionName = $Env:SDAF_WorkloadZoneSubscriptionName
 $ARM_TENANT_ID = $Env:ARM_TENANT_ID
 #endregion
 
-$versionLabel = "v3.10.2.0"
+$versionLabel = "v3.10.1.0"
 
 az logout
 
@@ -898,7 +898,6 @@ if ($authenticationMethod -eq "Service Principal") {
   az role assignment create --assignee $ARM_CLIENT_ID --role "User Access Administrator" --subscription $Workload_zone_subscriptionID --scope /subscriptions/$Workload_zone_subscriptionID --output none
   az role assignment create --assignee $ARM_CLIENT_ID --role "Storage Account Contributor" --subscription $Control_plane_subscriptionID --scope /subscriptions/$Control_plane_subscriptionID --output none
 
-
   $Service_Connection_Name = $Workload_zone_code + "_WorkloadZone_Service_Connection"
 
   $GroupID = (az pipelines variable-group list --query "[?name=='$WorkloadZonePrefix'].id | [0]" --only-show-errors )
@@ -932,7 +931,7 @@ if ($authenticationMethod -eq "Service Principal") {
   }
 }
 else {
-  $Service_Connection_Name = $Workload_zone_code + "_WorkloadZone_Service_Connection"
+  $Service_Connection_Name = "Control_Plane_Service_Connection"
 
   $GroupID = (az pipelines variable-group list --query "[?name=='$WorkloadZonePrefix'].id | [0]" --only-show-errors )
   if ($GroupID.Length -eq 0) {
