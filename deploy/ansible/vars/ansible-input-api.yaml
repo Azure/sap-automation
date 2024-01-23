@@ -213,6 +213,9 @@ database_cluster_type:                 "AFA"
 scs_cluster_type:                      "AFA"
 # Configure pacemaker for Azure scheduled events
 cluster_use_scheduled_events_agent:    true
+# Custom pacemaker NFS filesystem and SAP monitor timeouts
+custom_cluster_fs_mon_timeout:         ""
+custom_cluster_sap_mon_timeout:        ""
 
 # ------------------- Begin - SAP SWAP settings variables --------------------8
 sap_swap:
