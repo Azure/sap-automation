@@ -489,7 +489,7 @@ stages:
                     export ARM_USE_MSI=false
                     export ARM_CLIENT_ID=$servicePrincipalId
                     export ARM_TENANT_ID=$tenantId
-                    export ARM_CLIENT_SECRET=$servicePrincipalKey
+                    # export ARM_CLIENT_SECRET=$servicePrincipalKey
                   fi
 
                 echo -e "$green--- Convert config files to UX format ---$reset"
