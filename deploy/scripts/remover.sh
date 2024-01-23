@@ -265,8 +265,6 @@ tfstate_parameter=" -var tfstate_resource_id=${tfstate_resource_id}"
 #setting the user environment variables
 set_executing_user_environment_variables "none"
 
-printenv | grep ARM
-
 if [ -n "${STATE_SUBSCRIPTION}" ]; then
     az account set --sub "${STATE_SUBSCRIPTION}"
 fi
