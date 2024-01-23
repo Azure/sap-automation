@@ -5,8 +5,8 @@
   block:
     - name:                            " DB2 Primary DB - Set Fact for hadr local host and remote host "
       ansible.builtin.set_fact:
-        db_hadr_local_host:            "{{ primary_instance_name }}.{{ sap_fqdn }}"
-        db_hadr_remote_host:           "{{ secondary_instance_name }}.{{ sap_fqdn }}"
+        db_hadr_local_host:            "{{ hostvars[primary_instance_name]['virtual_host'] }}.{{ sap_fqdn }}"
+        db_hadr_remote_host:           "{{ hostvars[secondary_instance_name]['virtual_host'] }}.{{ sap_fqdn }}"
 
     - name:                            "DB2 Primary DB- Switch user to db2<db_sid>"
       ansible.builtin.shell:           whoami
@@ -106,8 +106,8 @@
   block:
     - name:                            " DB2 Secondary DB - Set Fact for hadr local host and remote host "
       ansible.builtin.set_fact:
-        db_hadr_local_host:            "{{ secondary_instance_name }}.{{ sap_fqdn }}"
-        db_hadr_remote_host:           "{{ primary_instance_name }}.{{ sap_fqdn }}"
+        db_hadr_local_host:            "{{ hostvars[secondary_instance_name]['virtual_host'] }}.{{ sap_fqdn }}"
+        db_hadr_remote_host:           "{{ hostvars[primary_instance_name]['virtual_host'] }}.{{ sap_fqdn }}"
 
     - name:                            "DB2 Secondary DB- Switch user to db2<db_sid>"
       ansible.builtin.shell:           whoami
@@ -127,7 +127,7 @@
       failed_when:                      false
       changed_when:                     false
 
-    - name:                           "DB2  Secondary: Print return information from the Secondary db2status"
+    - name:                            "DB2 Secondary: Print return information from the Secondary db2status"
       ansible.builtin.debug:
         msg:                           "Result: {{ secdb2status.stdout }}"
 
