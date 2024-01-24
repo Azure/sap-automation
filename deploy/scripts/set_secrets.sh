@@ -48,7 +48,9 @@ function showhelp {
     echo "#########################################################################################"
 }
 
-INPUT_ARGUMENTS=$(getopt -n set_secrets -o e:r:v:s:c:p:t:b:hw --longoptions environment:,region:,vault:,subscription:,spn_id:,spn_secret:,tenant_id:,keyvault_subscription:,workload,help -- "$@")
+deploy_using_msi_only=0
+
+INPUT_ARGUMENTS=$(getopt -n set_secrets -o e:r:v:s:c:p:t:b:hwm --longoptions environment:,region:,vault:,subscription:,spn_id:,spn_secret:,tenant_id:,keyvault_subscription:,workload,help,msi -- "$@")
 VALID_ARGUMENTS=$?
 
 if [ "$VALID_ARGUMENTS" != "0" ]; then
@@ -92,6 +94,10 @@ while :; do
         ;;
     -w | --workload)
         workload=1
+        shift
+        ;;
+    -m | --msi)
+        deploy_using_msi_only=1
         shift
         ;;
     -h | --help)
@@ -175,57 +181,93 @@ if [ -z "$keyvault" ]; then
         return_code=65
         exit $return_code
     fi
-
+fi
+if [ -z "${keyvault}" ]; then
+    echo "Missing keyvault"
+    echo "No keyvault specified"  > secret.err
+    showhelp
+    return_code=65 #/* data format error */
+    echo $return_code
+    exit $return_code
 fi
 
-if [ -z "${client_id}" ]; then
-    load_config_vars "${environment_config_information}" "client_id"
-    if [ -z "$client_id" ]; then
-        read -r -p "SPN App ID: " client_id
-    fi
-else
-    if is_valid_guid "${client_id}" ; then
-        echo "Valid client_id specified"
-    else
-        printf -v val %-40.40s "$client_id"
-        echo "#########################################################################################"
-        echo "#                                                                                       #"
-        echo -e "#       The provided client_id is not valid:$boldred ${val} $resetformatting  #"
-        echo "#                                                                                       #"
-        echo "#########################################################################################"
-        return_code=65
-        echo "The provided client_id is not valid " "${val}"  > secret.err
-        exit $return_code
-    fi
-fi
 
-if [ ! -n "$client_secret" ]; then
-    #do not output the secret to screen
-    read -rs -p "        -> Kindly provide SPN Password: " client_secret
-    echo "********"
-fi
 
-if [ -z "${tenant_id}" ]; then
-    load_config_vars "${environment_config_information}" "tenant_id"
-    if [ -z "${tenant_id}" ]; then
-        read -r -p "SPN Tenant ID: " tenant_id
-    fi
-else
-    if is_valid_guid "${tenant_id}" ; then
-        echo "Valid tenant_id specified"
-    else
-        printf -v val %-40.40s "$tenant_id"
-        echo "#########################################################################################"
-        echo "#                                                                                       #"
-        echo -e "#       The provided tenant_id is not valid:$boldred ${val} $resetformatting  #"
-        echo "#                                                                                       #"
-        echo "#########################################################################################"
-        return_code=65
-        echo "The provided tenant_id is not valid " "${val}"  > secret.err
-        exit $return_code
-    fi
-fi
+if [ 0 = "${deploy_using_msi_only:-}" ]; then
+  if [ -z "${client_id}" ]; then
+      load_config_vars "${environment_config_information}" "client_id"
+      if [ -z "$client_id" ]; then
+          read -r -p "SPN App ID: " client_id
+      fi
+  else
+      if is_valid_guid "${client_id}" ; then
+          echo "Valid client_id specified"
+      else
+          printf -v val %-40.40s "$client_id"
+          echo "#########################################################################################"
+          echo "#                                                                                       #"
+          echo -e "#       The provided client_id is not valid:$boldred ${val} $resetformatting  #"
+          echo "#                                                                                       #"
+          echo "#########################################################################################"
+          return_code=65
+          echo "The provided client_id is not valid " "${val}"  > secret.err
+          exit $return_code
+      fi
+  fi
 
+  if [ ! -n "$client_secret" ]; then
+      #do not output the secret to screen
+      read -rs -p "        -> Kindly provide SPN Password: " client_secret
+      echo "********"
+  fi
+
+  if [ -z "${tenant_id}" ]; then
+      load_config_vars "${environment_config_information}" "tenant_id"
+      if [ -z "${tenant_id}" ]; then
+          read -r -p "SPN Tenant ID: " tenant_id
+      fi
+  else
+      if is_valid_guid "${tenant_id}" ; then
+          echo "Valid tenant_id specified"
+      else
+          printf -v val %-40.40s "$tenant_id"
+          echo "#########################################################################################"
+          echo "#                                                                                       #"
+          echo -e "#       The provided tenant_id is not valid:$boldred ${val} $resetformatting  #"
+          echo "#                                                                                       #"
+          echo "#########################################################################################"
+          return_code=65
+          echo "The provided tenant_id is not valid " "${val}"  > secret.err
+          exit $return_code
+      fi
+  fi
+  if [ -z "${client_id}" ]; then
+      echo "Missing client_id"
+      echo "No client_id specified"  > secret.err
+      showhelp
+      return_code=65 #/* data format error */
+      echo $return_code
+      exit $return_code
+  fi
+
+  if [ -z "$client_secret" ]; then
+      echo "Missing client_secret"
+      echo "No client_secret specified"  > secret.err
+      showhelp
+      return_code=65 #/* data format error */
+      echo $return_code
+      exit $return_code
+  fi
+
+  if [ -z "${tenant_id}" ]; then
+      echo "Missing tenant_id"
+      echo "No tenant_id specified"  > secret.err
+      showhelp
+      return_code=65 #/* data format error */
+      echo $return_code
+      exit $return_code
+  fi
+fi
 if [ -z "${subscription}" ]; then
     read -r -p "SPN Subscription: " subscription
 else
@@ -244,41 +286,6 @@ else
     fi
 fi
 
-if [ -z "${keyvault}" ]; then
-    echo "Missing keyvault"
-    echo "No keyvault specified"  > secret.err
-    showhelp
-    return_code=65 #/* data format error */
-    echo $return_code
-    exit $return_code
-fi
-
-if [ -z "${client_id}" ]; then
-    echo "Missing client_id"
-    echo "No client_id specified"  > secret.err
-    showhelp
-    return_code=65 #/* data format error */
-    echo $return_code
-    exit $return_code
-fi
-
-if [ -z "$client_secret" ]; then
-    echo "Missing client_secret"
-    echo "No client_secret specified"  > secret.err
-    showhelp
-    return_code=65 #/* data format error */
-    echo $return_code
-    exit $return_code
-fi
-
-if [ -z "${tenant_id}" ]; then
-    echo "Missing tenant_id"
-    echo "No tenant_id specified"  > secret.err
-    showhelp
-    return_code=65 #/* data format error */
-    echo $return_code
-    exit $return_code
-fi
 
 echo "#########################################################################################"
 echo "#                                                                                       #"
@@ -362,65 +369,66 @@ if [ -f stdout.az ]; then
 
   fi
 fi
-#turn off output, we do not want to show the details being uploaded to keyvault
-secretname="${environment}"-client-id
-deleted=$(az keyvault secret list-deleted --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --query "[].{Name:name} | [? contains(Name,'${secretname}')] | [0]" -o tsv)
-if [ "${deleted}" == "${secretname}"  ]; then
-    echo -e "\t $cyan Recovering secret ${secretname} in keyvault ${keyvault} $resetformatting \n"
-    az keyvault secret recover --name "${secretname}" --vault-name "${keyvault}" --subscription $STATE_SUBSCRIPTION
-    sleep 10
-fi
+if [ 0 = "${deploy_using_msi_only:-}" ]; then
+  #turn off output, we do not want to show the details being uploaded to keyvault
+  secretname="${environment}"-client-id
+  deleted=$(az keyvault secret list-deleted --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --query "[].{Name:name} | [? contains(Name,'${secretname}')] | [0]" -o tsv)
+  if [ "${deleted}" == "${secretname}"  ]; then
+      echo -e "\t $cyan Recovering secret ${secretname} in keyvault ${keyvault} $resetformatting \n"
+      az keyvault secret recover --name "${secretname}" --vault-name "${keyvault}" --subscription $STATE_SUBSCRIPTION
+      sleep 10
+  fi
 
-v=""
-secret=$(az keyvault secret list --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --query "[].{Name:name} | [? contains(Name,'${secretname}')] | [0]" -o tsv)
-if [ "${secret}" == "${secretname}"  ];
-then
-    v=$(az keyvault secret show --name "${secretname}" --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --query value -o tsv)
-    if [ "${v}" != "${client_id}" ] ; then
-        az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --value "${client_id}" --only-show-errors --output none
-    fi
-else
-    az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --value "${client_id}" --only-show-errors --output none
-fi
+  v=""
+  secret=$(az keyvault secret list --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --query "[].{Name:name} | [? contains(Name,'${secretname}')] | [0]" -o tsv)
+  if [ "${secret}" == "${secretname}"  ];
+  then
+      v=$(az keyvault secret show --name "${secretname}" --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --query value -o tsv)
+      if [ "${v}" != "${client_id}" ] ; then
+          az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --value "${client_id}" --only-show-errors --output none
+      fi
+  else
+      az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --value "${client_id}" --only-show-errors --output none
+  fi
 
-secretname="${environment}"-tenant-id
-deleted=$(az keyvault secret list-deleted --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --query "[].{Name:name} | [? contains(Name,'${secretname}')] | [0]" -o tsv)
-if [ "${deleted}" == "${secretname}"  ]; then
-    echo -e "\t $cyan Recovering secret ${secretname} in keyvault ${keyvault} $resetformatting \n"
-    az keyvault secret recover --name "${secretname}" --vault-name "${keyvault}" --subscription $STATE_SUBSCRIPTION
-    sleep 10
-fi
-v=""
-secret=$(az keyvault secret list --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --query "[].{Name:name} | [? contains(Name,'${secretname}')] | [0]" -o tsv)
-if [ "${secret}" == "${secretname}"  ];
-then
-    v=$(az keyvault secret show --name "${secretname}" --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --query value -o tsv)
-    if [ "${v}" != "${tenant_id}" ] ; then
-        az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --value "${tenant_id}" --only-show-errors --output none
-    fi
-else
-    az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --value "${tenant_id}" --only-show-errors --output none
-fi
+  secretname="${environment}"-tenant-id
+  deleted=$(az keyvault secret list-deleted --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --query "[].{Name:name} | [? contains(Name,'${secretname}')] | [0]" -o tsv)
+  if [ "${deleted}" == "${secretname}"  ]; then
+      echo -e "\t $cyan Recovering secret ${secretname} in keyvault ${keyvault} $resetformatting \n"
+      az keyvault secret recover --name "${secretname}" --vault-name "${keyvault}" --subscription $STATE_SUBSCRIPTION
+      sleep 10
+  fi
+  v=""
+  secret=$(az keyvault secret list --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --query "[].{Name:name} | [? contains(Name,'${secretname}')] | [0]" -o tsv)
+  if [ "${secret}" == "${secretname}"  ];
+  then
+      v=$(az keyvault secret show --name "${secretname}" --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --query value -o tsv)
+      if [ "${v}" != "${tenant_id}" ] ; then
+          az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --value "${tenant_id}" --only-show-errors --output none
+      fi
+  else
+      az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --value "${tenant_id}" --only-show-errors --output none
+  fi
 
-secretname="${environment}"-client-secret
-deleted=$(az keyvault secret list-deleted --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --query "[].{Name:name} | [? contains(Name,'${secretname}')] | [0]" -o tsv)
-if [ "${deleted}" == "${secretname}"  ]; then
-    echo -e "\t $cyan Recovering secret ${secretname} in keyvault ${keyvault} $resetformatting \n"
-    az keyvault secret recover --name "${secretname}" --vault-name "${keyvault}" --subscription $STATE_SUBSCRIPTION
-    sleep 10
-fi
+  secretname="${environment}"-client-secret
+  deleted=$(az keyvault secret list-deleted --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --query "[].{Name:name} | [? contains(Name,'${secretname}')] | [0]" -o tsv)
+  if [ "${deleted}" == "${secretname}"  ]; then
+      echo -e "\t $cyan Recovering secret ${secretname} in keyvault ${keyvault} $resetformatting \n"
+      az keyvault secret recover --name "${secretname}" --vault-name "${keyvault}" --subscription $STATE_SUBSCRIPTION
+      sleep 10
+  fi
 
-v=""
-secret=$(az keyvault secret list --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --query "[].{Name:name} | [? contains(Name,'${secretname}')] | [0]"  -o tsv)
-if [ "${secret}" == "${secretname}"  ];
-then
-    v=$(az keyvault secret show --name "${secretname}" --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --query value -o tsv)
-    if [ "${v}" != "${client_secret}" ] ; then
-        az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --value="${client_secret}" --only-show-errors --output none
-    fi
-else
-    az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --value="${client_secret}" --only-show-errors --output none
+  v=""
+  secret=$(az keyvault secret list --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --query "[].{Name:name} | [? contains(Name,'${secretname}')] | [0]"  -o tsv)
+  if [ "${secret}" == "${secretname}"  ];
+  then
+      v=$(az keyvault secret show --name "${secretname}" --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --query value -o tsv)
+      if [ "${v}" != "${client_secret}" ] ; then
+          az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --value="${client_secret}" --only-show-errors --output none
+      fi
+  else
+      az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --value="${client_secret}" --only-show-errors --output none
+  fi
 fi
-
 exit $return_code
 

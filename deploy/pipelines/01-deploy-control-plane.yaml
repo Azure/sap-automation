@@ -72,7 +72,15 @@ stages:
             steps:
                 - template:            templates\download.yaml
                 - task:                PostBuildCleanup@3
-                - bash: |
+                # Set Variables.
+                - task:                AzureCLI@2
+                  continueOnError:     false
+                  inputs:
+                    azureSubscription: ${{parameters.connection_name}}
+                    scriptType:        bash
+                    scriptLocation:    inlineScript
+                    addSpnToEnvironment: true
+                    inlineScript: |
                       #!/bin/bash
 
                         echo "##vso[build.updatebuildnumber]Deploying the control plane defined in $(deployerfolder) $(libraryfolder)"
@@ -117,13 +125,13 @@ stages:
                                 key_vault=$(cat ${deployer_environment_file_name} | grep keyvault= -m1 | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer Key Vault' ${key_vault}
                               fi
 
-                              az login --service-principal --username $ARM_CLIENT_ID --password=$ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID --output none
-                              return_code=$?
-                              if [ 0 != $return_code ]; then
-                                  echo -e "$boldred--- Login failed ---$reset"
-                                  echo "##vso[task.logissue type=error]az login failed."
-                                  exit $return_code
-                              fi
+                              # az login --service-principal --username $ARM_CLIENT_ID --password=$ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID --output none
+                              # return_code=$?
+                              # if [ 0 != $return_code ]; then
+                              #     echo -e "$boldred--- Login failed ---$reset"
+                              #     echo "##vso[task.logissue type=error]az login failed."
+                              #     exit $return_code
+                              # fi
 
                               key_vault_id=$(az resource list --name "${key_vault}"  --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
                               export TF_VAR_deployer_kv_user_arm_id=${key_vault_id}
@@ -161,22 +169,6 @@ stages:
                         echo -e "$green--- Validations ---$reset"
                             if [ -z ${TF_VAR_ansible_core_version} ]; then
                                 export TF_VAR_ansible_core_version=2.15
-                            fi
-                            if [ -z ${ARM_SUBSCRIPTION_ID} ]; then
-                                echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined."
-                                exit 2
-                            fi
-                            if [ -z ${ARM_CLIENT_ID} ]; then
-                                echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined."
-                                exit 2
-                            fi
-                            if [ -z ${ARM_CLIENT_SECRET} ]; then
-                                echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined."
-                                exit 2
-                            fi
-                            if [ -z ${ARM_TENANT_ID} ]; then
-                                echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined."
-                                exit 2
                             fi
                             export TF_VAR_use_webapp=$(use_webapp)
                         echo -e "$green--- Update .sap_deployment_automation/config as SAP_AUTOMATION_REPO_PATH can change on devops agent ---$reset"
@@ -217,13 +209,6 @@ stages:
                             echo -e "$green--- Configuring variables ---$reset"
                             deployer_environment_file_name=$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}$LOCATION
                         echo -e "$green--- az login ---$reset"
-                            az login --service-principal --username $ARM_CLIENT_ID --password=$ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID --output none
-                            return_code=$?
-                            if [ 0 != $return_code ]; then
-                                echo -e "$boldred--- Login failed ---$reset"
-                                echo "##vso[task.logissue type=error]az login failed."
-                                exit $return_code
-                            fi
                             az account set --subscription $ARM_SUBSCRIPTION_ID
                             echo -e "$green--- Deploy the Control Plane ---$reset"
                             if [ -n $(PAT) ]; then
@@ -241,7 +226,9 @@ stages:
                                 export TF_VAR_agent_pat=$(PAT)
                             fi
                             if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip ]; then
-                                pass=$(echo $ARM_CLIENT_SECRET | sed 's/-//g')
+                                deployer_random_id=$(cat ${deployer_environment_file_name} | grep deployer_random_id= | awk -F'=' '{print $2}' | xargs)
+
+                                pass=$(echo $deployer_random_id | sed 's/-//g')
                                 unzip -qq -o -P "${pass}" ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip -d ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)
                             fi
 
@@ -266,12 +253,22 @@ stages:
                             export TF_LOG_PATH=$CONFIG_REPO_PATH/.sap_deployment_automation/terraform.log
                             set +eu
 
-                            $SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh                               \
-                               --deployer_parameter_file ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/$(deployerconfig) \
-                               --library_parameter_file ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/$(libraryconfig)     \
-                               --subscription $ARM_SUBSCRIPTION_ID --spn_id $ARM_CLIENT_ID                                \
-                               --spn_secret $ARM_CLIENT_SECRET --tenant_id $ARM_TENANT_ID                                 \
-                               --auto-approve --ado --only_deployer
+                            if [ $USE_MSI == "true" ]; then
+                              export ARM_CLIENT_SECRET=$servicePrincipalKey
+
+                              $SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh                               \
+                                --deployer_parameter_file ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/$(deployerconfig) \
+                                --library_parameter_file ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/$(libraryconfig)     \
+                                --subscription $ARM_SUBSCRIPTION_ID  --auto-approve --ado --only_deployer --msi
+                            else
+                              $SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh                               \
+                                --deployer_parameter_file ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/$(deployerconfig) \
+                                --library_parameter_file ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/$(libraryconfig)     \
+                                --subscription $ARM_SUBSCRIPTION_ID --spn_id $ARM_CLIENT_ID                                \
+                                --spn_secret $ARM_CLIENT_SECRET --tenant_id $ARM_TENANT_ID                                 \
+                                --auto-approve --ado --only_deployer
+
+                            fi
                             return_code=$?
                             echo "Return code from deploy_controlplane $return_code."
 
@@ -291,6 +288,7 @@ stages:
                                echo 'Deployer Key Vault' ${file_key_vault}
                                deployer_random_id=$(cat ${deployer_environment_file_name} | grep deployer_random_id= | awk -F'=' '{print $2}' | xargs)
                                library_random_id=$(cat ${deployer_environment_file_name} | grep library_random_id= | awk -F'=' '{print $2}' | xargs)
+                               echo 'Deployer Random ID' ${deployer_random_id}
 
                             fi
                         echo -e "$green--- Update repo ---$reset"
@@ -304,7 +302,7 @@ stages:
                             fi
                             if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/terraform.tfstate ]; then
                               sudo apt install zip
-                              pass=$(echo $ARM_CLIENT_SECRET | sed 's/-//g')
+                              pass=$(echo $deployer_random_id | sed 's/-//g')
                               zip -j -P "${pass}" ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/terraform.tfstate
                               git add -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip
                               added=1
@@ -346,6 +344,15 @@ stages:
                                     az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name ControlPlaneLocation --value ${LOCATION} --output none --only-show-errors
                                 fi
 
+                                if [ -n $deployer_random_id ] ; then
+                                  az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "DEPLOYER_RANDOM_ID_SEED.value")
+                                  if [ -z ${az_var} ]; then
+                                      az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name DEPLOYER_RANDOM_ID_SEED --value ${deployer_random_id} --output none --only-show-errors
+                                  else
+                                      az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name DEPLOYER_RANDOM_ID_SEED --value ${deployer_random_id} --output none --only-show-errors
+                                  fi
+                                fi
+
 
                             fi
                         exit $return_code
@@ -372,8 +379,7 @@ stages:
                       TF_LOG:                         $(TF_LOG)
                       TF_IN_AUTOMATION:               true
                       DEPLOYER_TFSTATE_KEY:           "${{ parameters.deployer }}.terraform.tfstate"
-
-                  failOnStderr: false
+                      USE_MSI:                        $(Use_MSI)
 
     - stage: Deploy_controlplane
       dependsOn:
@@ -451,6 +457,15 @@ stages:
                               fi
                           fi
 
+                          az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "DEPLOYER_RANDOM_ID_SEED.value" | tr -d \")
+                          if [ -n "${az_var}"  ]; then
+                              deployer_random_id="${az_var}"
+                          else
+                              if [ -f ${deployer_environment_file_name} ] ; then
+                                  deployer_random_id=$(cat ${deployer_environment_file_name} | grep deployer_random_id= | awk -F'=' '{print $2}' | xargs)
+                              fi
+                          fi
+
                           az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Account_Name.value" | tr -d \")
                           if [ -n "${az_var}"  ]; then
                               REMOTE_STATE_SA="${az_var}"  ; echo 'Terraform state file storage account' $REMOTE_STATE_SA
@@ -480,24 +495,28 @@ stages:
                           if [ -z ${TF_VAR_ansible_core_version} ]; then
                               export TF_VAR_ansible_core_version=2.15
                           fi
-                          if [ -z ${CP_ARM_SUBSCRIPTION_ID} ]; then
-                              echo "##vso[task.logissue type=error]Variable CP_ARM_SUBSCRIPTION_ID was not defined."
-                              exit 2
-                          fi
 
-                          if [ -z ${CP_ARM_CLIENT_ID} ]; then
-                              echo "##vso[task.logissue type=error]Variable CP_ARM_CLIENT_ID was not defined."
-                              exit 2
-                          fi
+                          if [ $USE_MSI != "true" ]; then
 
-                          if [ -z ${CP_ARM_CLIENT_SECRET} ]; then
-                              echo "##vso[task.logissue type=error]Variable CP_ARM_CLIENT_SECRET was not defined."
-                              exit 2
-                          fi
+                            if [ -z ${CP_ARM_SUBSCRIPTION_ID} ]; then
+                                echo "##vso[task.logissue type=error]Variable CP_ARM_SUBSCRIPTION_ID was not defined."
+                                exit 2
+                            fi
 
-                          if [ -z ${CP_ARM_TENANT_ID} ]; then
-                              echo "##vso[task.logissue type=error]Variable CP_ARM_TENANT_ID was not defined."
-                              exit 2
+                            if [ -z ${CP_ARM_CLIENT_ID} ]; then
+                                echo "##vso[task.logissue type=error]Variable CP_ARM_CLIENT_ID was not defined."
+                                exit 2
+                            fi
+
+                            if [ -z ${CP_ARM_CLIENT_SECRET} ]; then
+                                echo "##vso[task.logissue type=error]Variable CP_ARM_CLIENT_SECRET was not defined."
+                                exit 2
+                            fi
+
+                            if [ -z ${CP_ARM_TENANT_ID} ]; then
+                                echo "##vso[task.logissue type=error]Variable CP_ARM_TENANT_ID was not defined."
+                                exit 2
+                            fi
                           fi
 
                           if [ $(use_webapp) == "true" ]; then
@@ -597,7 +616,7 @@ stages:
                           az account set --subscription $CP_ARM_SUBSCRIPTION_ID
 
                       else
-                        if [ $LOGON_USING_SPN == "true" ]; then
+                        if [ $USE_MSI != "true" ]; then
                           echo "Login using SPN"
                           export ARM_CLIENT_ID=$CP_ARM_CLIENT_ID
                           export ARM_CLIENT_SECRET=$CP_ARM_CLIENT_SECRET
@@ -613,6 +632,7 @@ stages:
                           fi
                         else
                           source /etc/profile.d/deploy_server.sh
+                          export ARM_SUBSCRIPTION_ID=$ARM_SUBSCRIPTION_ID
                         fi
                       fi
 
@@ -667,12 +687,12 @@ stages:
                           fi
 
                           if [ -f ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/state.zip ]; then
-                              pass=$(echo $CP_ARM_CLIENT_SECRET | sed 's/-//g')
+                              pass=$(echo $DEPLOYER_RANDOM_ID_SEED | sed 's/-//g')
                               unzip  -qq -o -P "${pass}" ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/state.zip -d ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)
                           fi
 
                           if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip ]; then
-                            pass=$(echo $CP_ARM_CLIENT_SECRET | sed 's/-//g')
+                            pass=$(echo $DEPLOYER_RANDOM_ID_SEED | sed 's/-//g')
                             unzip -qq -o -P "${pass}" ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip -d ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)
                           fi
 
@@ -680,13 +700,24 @@ stages:
 
                           sudo chmod +x $SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh
 
-                          $SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh                               \
-                             --deployer_parameter_file ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/$(deployerconfig) \
-                             --library_parameter_file ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/$(libraryconfig)     \
-                             --subscription $CP_ARM_SUBSCRIPTION_ID --spn_id $CP_ARM_CLIENT_ID                          \
-                             --spn_secret $CP_ARM_CLIENT_SECRET --tenant_id $CP_ARM_TENANT_ID                           \
-                             --auto-approve --ado                                                                       \
-                             ${storage_account_parameter} ${keyvault_parameter}
+                          if [ $USE_MSI == "true" ]; then
+                            echo  "Using MSI"
+                            $SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh                              \
+                              --deployer_parameter_file ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/$(deployerconfig) \
+                              --library_parameter_file ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/$(libraryconfig)     \
+                              --subscription $ARM_SUBSCRIPTION_ID                                                        \
+                              --auto-approve --ado --msi                                                                 \
+                              ${storage_account_parameter} ${keyvault_parameter}
+                          else
+                            $SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh                              \
+                              --deployer_parameter_file ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/$(deployerconfig) \
+                              --library_parameter_file ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/$(libraryconfig)     \
+                              --subscription $CP_ARM_SUBSCRIPTION_ID --spn_id $CP_ARM_CLIENT_ID                          \
+                              --spn_secret $CP_ARM_CLIENT_SECRET --tenant_id $CP_ARM_TENANT_ID                           \
+                              --auto-approve --ado                                                                       \
+                              ${storage_account_parameter} ${keyvault_parameter}
+                          fi
+
                           return_code=$?
 
                           if [ 0 != $return_code ]; then
@@ -740,7 +771,7 @@ stages:
                               if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/terraform.tfstate ]; then
                                   sudo apt install zip
                                   echo "Compressing the deployer state file"
-                                  pass=$(echo $CP_ARM_CLIENT_SECRET | sed 's/-//g')
+                                  pass=$(echo $DEPLOYER_RANDOM_ID_SEED | sed 's/-//g')
                                   zip -j -P "${pass}" ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/terraform.tfstate
                                   git add -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip
                                   added=1
@@ -764,7 +795,7 @@ stages:
                               if [ -f ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/terraform.tfstate ]; then
                                   sudo apt install zip
                                   echo "Compressing the library state file"
-                                  pass=$(echo $CP_ARM_CLIENT_SECRET | sed 's/-//g')
+                                  pass=$(echo $DEPLOYER_RANDOM_ID_SEED | sed 's/-//g')
                                   zip -j -P "${pass}" ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/state ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/terraform.tfstate
                                   git add -f ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/state.zip
                                   added=1
@@ -877,6 +908,8 @@ stages:
                       TF_IN_AUTOMATION:            true
                       DEPLOYER_TFSTATE_KEY:        "${{ parameters.deployer }}.terraform.tfstate"
                       LOGON_USING_SPN:             $(Logon_Using_SPN)
+                      USE_MSI:                     $(Use_MSI)
+                      DEPLOYER_RANDOM_ID_SEED:     $(DEPLOYER_RANDOM_ID_SEED)
 
                   failOnStderr: false
 

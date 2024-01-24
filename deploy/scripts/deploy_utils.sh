@@ -286,9 +286,9 @@ function set_executing_user_environment_variables() {
 
     set_azure_cloud_environment
 
-    az_exec_user_type=$(az account show | jq -r .user.type)
-    az_exec_user_name=$(az account show -o json | jq -r .user.name)
-    az_tenant_id=$(az account show -o json | jq -r .tenantId)
+    az_exec_user_type=$(az account show --query user.type --output tsv)
+    az_exec_user_name=$(az account show --query user.name  --output tsv)
+    az_tenant_id=$(az account show --query tenantId --output tsv)
 
     echo -e "\t\t[set_executing_user_environment_variables]: User type: "${az_exec_user_type}""
 
@@ -331,13 +331,13 @@ function set_executing_user_environment_variables() {
 
         case "${az_client_id}" in
             "systemAssignedIdentity")
-                echo -e "\t[set_executing_user_environment_variables]: logged in using '${az_exec_user_type}'"
+                echo -e "\t[set_executing_user_environment_variables]: logged in using System Assigned Identity '${az_exec_user_type}'"
                 echo -e "\t[set_executing_user_environment_variables]: unset ARM_CLIENT_SECRET"
                 unset ARM_CLIENT_SECRET
             ;;
             "userAssignedIdentity")
                 echo -e "\t[set_executing_user_environment_variables]: logged in using User Assigned Identity: '${az_exec_user_type}'"
-                echo -e "\t[set_executing_user_environment_variables]: logged in using User Assigned Identity: unset ARM_CLIENT_SECRET"
+                echo -e "\t[set_executing_user_environment_variables]: unset ARM_CLIENT_SECRET"
                 unset ARM_CLIENT_SECRET
             ;;
             *)

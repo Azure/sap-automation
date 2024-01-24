@@ -208,7 +208,7 @@ locals {
 #--------------------------------------+---------------------------------------8
   scs_server_count                     = var.application_tier.scs_server_count * (var.application_tier.scs_high_availability ? 2 : 1)
   firewall_exists                      = length(var.firewall_id) > 0
-  enable_deployment                    = var.application_tier.enable_deployment && length(try(var.landscape_tfstate.vnet_sap_arm_id, "")) > 0
+  enable_deployment                    = var.application_tier.enable_deployment
   scs_instance_number                  = var.application_tier.scs_instance_number
   ers_instance_number                  = var.application_tier.ers_instance_number
   application_server_count             = var.application_tier.application_server_count
@@ -378,19 +378,13 @@ locals {
   app_zonal_deployment                 = length(local.app_zones) > 0 ? true : false
   app_zone_count                       = length(local.app_zones)
   //If we deploy more than one server in zone put them in an availability set unless specified otherwise
-  use_app_avset                        = local.application_server_count > 0 && var.application_tier.app_use_avset ? (
-                                           true && local.enable_deployment) : (
-                                           false && local.enable_deployment
-                                         )
+  use_app_avset                        = var.application_tier.app_use_avset
 
   scs_zones                            = try(var.application_tier.scs_zones, [])
   scs_zonal_deployment                 = length(local.scs_zones) > 0 ? true : false
   scs_zone_count                       = length(local.scs_zones)
   //If we deploy more than one server in zone put them in an availability set
-  use_scs_avset                        = local.scs_server_count > 0 && (var.application_tier.scs_use_avset) ? (
-                                           !local.scs_zonal_deployment || local.scs_server_count != local.scs_zone_count) : (
-                                           false
-                                         )
+  use_scs_avset                        = var.application_tier.scs_use_avset
 
   web_zones                            = try(var.application_tier.web_zones, [])
   web_zonal_deployment                 = length(local.web_zones) > 0 ? true : false
