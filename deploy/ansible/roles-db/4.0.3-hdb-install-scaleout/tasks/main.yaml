@@ -82,12 +82,11 @@
         _rsp_root_password:            "{{ root_password }}"
         # Note: Last node in the DB list is marked as standby, while everything else except first node is marked as worker node
         # This is the way !!!
-
         _rsp_additional_hosts:         "{% for item in db_hosts[1:] %}
                                         {% if loop.index == db_hosts | length -1 %}
                                         {{ item }}:role=standby:group=default:workergroup=default
                                         {% else %}
-                                        {{ item }}:role=worker:group=default:workergroup=default
+                                        {{ item }}:role=worker:group=default:workergroup=default,
                                         {% endif %}
                                         {% endfor %}"
                                       
@@ -220,6 +219,95 @@
         group:                         sapsys
         owner:                         "{{ db_sid | lower }}adm"
         mode:                          0755
+  
+    - name:                            "SAP HANA: Configure global.ini"
+      block:
+        - name:                                "Prepare global.ini for domain name resolution."
+          become_user:                         root
+          become:                              true
+          community.general.ini_file:
+            path:                              "/hana/shared/{{ db_sid | upper }}/global/hdb/custom/config/global.ini"
+            section:                           communication
+            state:                             present
+            mode:                              0644
+            option:                            listeninterface
+            value:                             .internal
+
+        - name:                                "Prepare global.ini for internal network netmask."
+          become_user:                         root
+          become:                              true
+          community.general.ini_file:
+            path:                              "/hana/shared/{{ db_sid | upper }}/global/hdb/custom/config/global.ini"
+            section:                           communication
+            state:                             present
+            mode:                              0644
+            option:                            internal_network
+            value:                             "{{ (ansible_default_ipv4.network + '/' + ansible_default_ipv4.netmask) | ipaddr('network/prefix') }}"
+
+        - name:                                "Prepare global.ini for site hosts name resolution (Primary Site)"
+          community.general.ini_file:
+            path:                              "/hana/shared/{{ db_sid | upper }}/global/hdb/custom/config/global.ini"
+            section:                            "internal_hostname_resolution"
+            mode:                              0644
+            state:                             present
+            option:                            "{{ hostvars[item].ansible_host }}"
+            value:                             "{{ hostvars[item].virtual_host }}"
+          with_items:
+            - "{{ groups[(sap_sid | upper)~'_DB' ] }}"
+
+        - name:                                "Prepare global.ini for host name resolution"
+          community.general.ini_file:
+            path:                              "/hana/shared/{{ db_sid | upper }}/global/hdb/custom/config/global.ini"
+            section:                           "system_replication_hostname_resolution"
+            mode:                              0644
+            state:                             present
+            option:                            "{{ hostvars[item].ansible_host }}"
+            value:                             "{{ hostvars[item].virtual_host }}"
+          with_items:
+            - "{{ groups[(sap_sid | upper)~'_DB' ] }}"
+        
+        - name:                                "Prepare global.ini for NetApp storage optimizations"
+          community.general.ini_file:
+            path:                              "/hana/shared/{{ db_sid | upper }}/global/hdb/custom/config/global.ini"
+            section:                           "fileio"
+            mode:                              0644
+            state:                             present
+            option:                            "{{ item.key }}"
+            value:                             "{{ item.value }}"
+            loop:
+              - { key: "async_read_submit", value: "on" }
+              - { key: "max_parallel_io_requests", value: "128" }
+              - { key: "async_write_submit_active", value: "all" }
+              - { key: "async_write_submit_blocks", value: "all" }
+
+        - name:                                "Prepare global.ini for HANA data file storage optimizations"
+          community.general.ini_file:
+            path:                              "/hana/shared/{{ db_sid | upper }}/global/hdb/custom/config/global.ini"
+            section:                           "persistence"
+            mode:                              0644
+            state:                             present
+            option:                            "{{ item.key }}"
+            value:                             "{{ item.value }}"
+            loop:
+              - { key: "datavolume_striping", value: "true" }
+              - { key: "datavolume_striping_size_gb", value: "15000" }
+        
+    - name:                            "SAP HANA: Restart HANA"
+      block:
+        - name:                            Start HANA Database
+          ansible.builtin.import_tasks:   ../../../roles-misc/0.4-helpers/tasks/04.02-stop_hana.yml
+
+        - name:                            Wait 2 minutes for SAP system to stop
+          ansible.builtin.pause:
+            seconds:                       120
+
+        - name:                            Start HANA Database
+          ansible.builtin.import_tasks:   ../../../roles-misc/0.4-helpers/tasks/04.01-start_hana.yml
+      
+        - name:                            Wait 5 minutes for SAP system to start
+          ansible.builtin.pause:
+            seconds:                       300        
+
   when:
     - not hana_installed.stat.exists
     - db_high_availability | default(false) == false
@@ -229,6 +317,9 @@
 # TODO: add block for Scale out with HSR support here, same as regular installation.
 - name:                                "HANA Install - Scale Out - HSR"
   block:
+
+#- name:                                "HANA Install - Scale Out - HSR"
+
 
     - name:                            "SAP HANA: remove install response file if exists"
       ansible.builtin.file:

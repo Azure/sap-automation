@@ -80,11 +80,55 @@
       tags:
         - kv-sap-installation-media-storage-details
 
+    - name:                            "Database Installation Playbook: - Generate root password"
+      ansible.builtin.set_fact:
+        root_password:                 "{{ lookup('ansible.builtin.password', '/dev/null', seed=inventory_hostname) }}"
+
+
+    - name:                            "Database Installation Playbook: - Show Root password"
+      ansible.builtin.debug:
+        msg:                           "{{ root_password }}"
+        # verbosity:                      4
 # /*----------------------------------------------------------------------------8
 # |                                                                            |
 # |                      Playbook for HANA DB Install                           |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
+
+- hosts:                               "{{ sap_sid | upper }}_DB"
+  name:                                DB Installation - login configuration
+  remote_user:                         "{{ orchestration_ansible_user }}"
+  gather_facts:                        true
+  any_errors_fatal:                    true
+  vars_files:
+    - vars/ansible-input-api.yaml
+  tasks:
+    - name:                           "Configure root credential"
+      block:
+        - name:                            Reset root password
+          become:                          true
+          ansible.builtin.user:
+            name:                          root
+            update_password:               always
+            password:                      "{{ hostvars.localhost.root_password | password_hash('sha512') }}"
+    
+        - name:                            Enable {{ item.key }} in /etc/ssh/sshd_config
+          become:                          true
+          lineinfile:
+            path:                          "/etc/ssh/sshd_config"
+            regex:                         "^(# *)?{{ item.key }}"
+            line:                          "{{ item.key }} {{ item.value }}"
+            state:                         present
+          loop:
+            - { key: "PermitRootLogin", value: "yes" }
+            - { key: "PasswordAuthentication", value: "yes" }
+            - { key: "ChallengeResponseAuthentication", value: "yes" }
+          notify:
+            - restart sshd
+      when:
+        - db_high_availability | default(false) == false
+        - db_scale_out | default(false)  == true
+
 
 
 - hosts:                               "{{ sap_sid | upper }}_DB"
@@ -112,6 +156,7 @@
             main_password:             "{{ hostvars.localhost.sap_password }}"
             sapbits_location_base_path: "{{ hostvars.localhost.sapbits_location_base_path }}"
             sapbits_sas_token:         "{{ hostvars.localhost.sapbits_sas_token }}"
+            root_password:             "{{ hostvars.localhost.root_password }}"
           tags:
             - always
 
@@ -162,13 +207,17 @@
 
           tags:
             - 4.0.0-hdb-install
+      when:
+        - node_tier == 'hana'
+        - db_scale_out | default(false) == true
 
     - name:                            "Database Installation Playbook: - Install Pacemaker (base)"
       become:                          true
       when:
         # - db_high_availability
-        - database_high_availability
+        - database_high_availability | default(false) == true
         - node_tier == 'hana'
+        - db_scale_out | default(false) == true
       block:
         - name:                         "Database Installation Playbook: - Setting the facts"
           ansible.builtin.set_fact:
@@ -273,13 +322,12 @@
   gather_facts:                        true
   vars_files:
     - vars/ansible-input-api.yaml                                               # API Input template with defaults
-
+  # -------------------------------------+---------------------------------------8
+  #
+  # Build the list of tasks to be executed in order here.
+  #
+  # -------------------------------------+---------------------------------------8
   tasks:
-# -------------------------------------+---------------------------------------8
-#
-# Build the list of tasks to be executed in order here.
-#
-# -------------------------------------+---------------------------------------8
     - name:                            "DB Playbook - Post Install: Check for files in progress folder"
       ansible.builtin.find:
         path:                          "{{ _workspace_directory }}/.progress/db"

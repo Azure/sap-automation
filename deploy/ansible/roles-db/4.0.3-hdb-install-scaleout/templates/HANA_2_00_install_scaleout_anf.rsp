@@ -160,7 +160,7 @@ action=install
 auto_initialize_services=y
 
 # Additional Hosts
-addhosts={{ _rsp_additional_hosts | join "," }}
+addhosts={{ _rsp_additional_hosts }}
 
 # Additional Local Host Roles ( Valid values: extended_storage_worker | extended_storage_standby | ets_worker | ets_standby | streaming | xs_worker | xs_standby )
 add_local_roles=

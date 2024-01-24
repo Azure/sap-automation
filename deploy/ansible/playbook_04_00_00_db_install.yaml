@@ -109,8 +109,8 @@
     - name:                            "Database Installation Playbook: - Install HANA"
       become:                          true
       when: 
-      - node_tier == 'hana'
-      - db_scale_out | default(false) == false
+        - node_tier == 'hana'
+        - db_scale_out | default(false) == false
       block:
         - name:                        "Database Installation Playbook: - Setting the DB facts"
           ansible.builtin.set_fact:
