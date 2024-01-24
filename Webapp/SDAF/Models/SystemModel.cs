@@ -562,6 +562,13 @@ namespace AutomationForm.Models
 
     public bool? enable_purge_control_for_keyvaults { get; set; } = false;
 
+    /*---------------------------------------------------------------------------8
+    |                                                                            |
+    |                               Deployment                                   |
+    |                                                                            |
+    +------------------------------------4--------------------------------------*/
+    public bool? use_spn { get; set; } = true;
+
   }
 
   public class Tag

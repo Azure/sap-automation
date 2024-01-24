@@ -35,10 +35,10 @@ provider "azurerm"                     {
 
                                                   }
 
-                                         subscription_id            = var.use_deployer ? local.spn.subscription_id : null
-                                         client_id                  = var.use_deployer ? local.spn.client_id : null
-                                         client_secret              = var.use_deployer ? local.spn.client_secret : null
-                                         tenant_id                  = var.use_deployer ? local.spn.tenant_id : null
+                                         subscription_id            = local.use_spn || var.use_spn ? local.spn.subscription_id : null
+                                         client_id                  = local.use_spn ? local.spn.client_id : null
+                                         client_secret              = local.use_spn ? local.spn.client_secret : null
+                                         tenant_id                  = local.use_spn ? local.spn.tenant_id : null
 
                                          alias                      = "main"
                                          skip_provider_registration = true
@@ -55,9 +55,9 @@ provider "azurerm"                     {
 provider "azurerm"                     {
                                          features {}
                                          subscription_id            = try(coalesce(var.management_dns_subscription_id, local.spn.subscription_id), null)
-                                         client_id                  = var.use_deployer ? local.spn.client_id : null
-                                         client_secret              = var.use_deployer ? local.spn.client_secret : null
-                                         tenant_id                  = var.use_deployer ? local.spn.tenant_id : null
+                                         client_id                  = local.use_spn ? local.spn.client_id : null
+                                         client_secret              = local.use_spn ? local.spn.client_secret : null
+                                         tenant_id                  = local.use_spn ? local.spn.tenant_id : null
                                          alias                      = "dnsmanagement"
                                          skip_provider_registration = true
                                        }

@@ -109,7 +109,7 @@ resource "azurerm_role_assignment" "deployer_boot_diagnostics_contributor_msi" {
   count                                = var.assign_subscription_permissions ? 1 : 0
   scope                                = length(var.deployer.deployer_diagnostics_account_arm_id) > 0 ? var.deployer.deployer_diagnostics_account_arm_id : azurerm_storage_account.deployer[0].id
   role_definition_name                 = "Storage Account Contributor"
-  principal_id                         = azurerm_user_assigned_identity.deployer.principal_id
+  principal_id                         = length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].principal_id : data.azurerm_user_assigned_identity.deployer[0].principal_id
 }
 
 resource "azurerm_role_assignment" "resource_group_contributor" {
@@ -125,7 +125,7 @@ resource "azurerm_role_assignment" "resource_group_contributor_contributor_msi" 
   count                                = var.assign_subscription_permissions ? 1 : 0
   scope                                = local.resource_group_exists ? data.azurerm_resource_group.deployer[0].id : azurerm_resource_group.deployer[0].id
   role_definition_name                 = "Contributor"
-  principal_id                         = azurerm_user_assigned_identity.deployer.principal_id
+  principal_id                         = length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].principal_id : data.azurerm_user_assigned_identity.deployer[0].principal_id
 }
 
 resource "azurerm_role_assignment" "resource_group_acsservice" {
@@ -141,6 +141,6 @@ resource "azurerm_role_assignment" "resource_group_acsservice_msi" {
   count                                = var.assign_subscription_permissions ? 1 : 0
   scope                                = local.resource_group_exists ? data.azurerm_resource_group.deployer[0].id : azurerm_resource_group.deployer[0].id
   role_definition_name                 = "Azure Center for SAP solutions administrator"
-  principal_id                         = azurerm_user_assigned_identity.deployer.principal_id
+  principal_id                         = length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].principal_id : data.azurerm_user_assigned_identity.deployer[0].principal_id
 }
 

@@ -48,7 +48,8 @@
             "Value": ""
           }
         ],
-        "Overrules": ""
+        "Overrules": "",
+        "Display": 1
       }
     ]
   },
@@ -172,6 +173,15 @@
         "Required": false,
         "Description": "Defines a list of tags to be applied to all resources",
         "Type": "tag",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "use_spn",
+        "Required": false,
+        "Description": " If set, the deployment is performed using the Service Principal defined for the workload zone, otherwise the managed identity of the deployer is used",
+        "Type": "checkbox",
         "Options": [],
         "Overrules": "",
         "Display": 2
