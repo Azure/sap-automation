@@ -28,16 +28,16 @@ $ARM_TENANT_ID = $Env:ARM_TENANT_ID
 
 $versionLabel = "v3.10.1.0"
 
-az logout
+# az logout
 
-az account clear
+# az account clear
 
-if ($ARM_TENANT_ID.Length -eq 0) {
-  az login --output none --only-show-errors
-}
-else {
-  az login --output none --tenant $ARM_TENANT_ID --only-show-errors
-}
+# if ($ARM_TENANT_ID.Length -eq 0) {
+#   az login --output none --only-show-errors
+# }
+# else {
+#   az login --output none --tenant $ARM_TENANT_ID --only-show-errors
+# }
 
 Write-Host ""
 Write-Host ""
@@ -390,6 +390,7 @@ else {
   $gh_connection_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) + "/_settings/adminservices"
   Write-Host ""
   Write-Host "The browser will now open, please create a new Github connection, record the name of the connection."
+  Write-Host "URL: " $gh_connection_url
   Start-Process $gh_connection_url
   Read-Host "Please press enter when you have created the connection"
 
@@ -830,8 +831,9 @@ else {
 
   Write-Host ""
   Write-Host "The browser will now open, Please create a service connection with the name 'Control_Plane_Service_Connection'."
-
   $connections_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) + "/_settings/adminservices"
+  Write-Host "URL: " $connections_url
+
 
   Start-Process $connections_url
   Read-Host -Prompt "Once you have created and validated the connection, Press any key to continue"
@@ -958,6 +960,7 @@ if (!$AlreadySet -or $ResetPAT ) {
 
   Write-Host ""
   Write-Host "The browser will now open, please create a Personal Access Token. Ensure that Read & manage is selected for Agent Pools, Read & write is selected for Code, Read & execute is selected for Build, and Read, create, & manage is selected for Variable Groups"
+  Write-Host "URL: " pat_url
   Start-Process $pat_url
   $PAT = Read-Host -Prompt "Please enter the PAT "
   az pipelines variable-group variable update --group-id $Control_plane_groupID --name "PAT" --value $PAT --secret true --only-show-errors --output none
@@ -1044,7 +1047,7 @@ Write-Host ""
 Write-Host "The browser will now open, Select the'" $ADO_PROJECT "Build Service' user and ensure that it has 'Allow' in the Contribute section."
 
 $permissions_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) + "/_settings/repositories?_a=permissions"
-
+Write-Host "URL: " $permissions_url
 
 Start-Process $permissions_url
 Read-Host -Prompt "Once you have verified the permission, Press any key to continue"
@@ -1076,6 +1079,7 @@ else {
 $page_id = (az devops wiki page show --path 'Next steps' --wiki SDAF --query page.id )
 
 $wiki_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) + "/_wiki/wikis/SDAF/" + $page_id + "/Next-steps"
+Write-Host "URL: " $wiki_url
 Start-Process $wiki_url
 
 if (Test-Path .\start.md) {
