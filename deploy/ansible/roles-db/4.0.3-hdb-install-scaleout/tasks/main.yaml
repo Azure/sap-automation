@@ -286,15 +286,25 @@
         
     - name:                            "SAP HANA: Restart HANA"
       block:
-        - name:                            Start HANA Database
-          ansible.builtin.import_tasks:   ../../../roles-misc/0.4-helpers/tasks/04.02-stop_hana.yml
-
+        - name:                            Stop HANA Database
+          become_user:                         "{{ db_sid | lower }}adm"
+          become:                              true
+          ansible.builtin.command:             "sapcontrol -nr {{ db_instance_number }} -function StopSystem HDB"
+          changed_when:                        false
+          failed_when:                         false
+          register:                            hana_stopped
+        
         - name:                            Wait 2 minutes for SAP system to stop
           ansible.builtin.pause:
             seconds:                       120
 
         - name:                            Start HANA Database
-          ansible.builtin.import_tasks:   ../../../roles-misc/0.4-helpers/tasks/04.01-start_hana.yml
+          become_user:                         "{{ db_sid | lower }}adm"
+          become:                              true
+          ansible.builtin.command:             "sapcontrol -nr {{ db_instance_number }} -function StartSystem HDB"
+          changed_when:                        false
+          failed_when:                         false
+          register:                            hana_started
       
         - name:                            Wait 5 minutes for SAP system to start
           ansible.builtin.pause:
