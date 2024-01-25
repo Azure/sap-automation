@@ -68,6 +68,7 @@ resource "azurerm_storage_account_network_rules" "sapmnt" {
                                          [
                                            length(var.Agent_IP) > 0 ? var.Agent_IP : ""
                                          ]
+                                         )
 
 
 }
