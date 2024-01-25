@@ -108,8 +108,8 @@ stages:
                             export VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(variable_group)'].id | [0]")
                             echo "$(variable_group) id: ${VARIABLE_GROUP_ID}"
 
-                            echo ${{ parameters.force_reset }}
-                            if [ ${{ parameters.force_reset }} == "True" ]; then
+                            echo "${{ parameters.force_reset }}"
+                            if [ "${{ parameters.force_reset }}" = "True" ]; then
                               echo "##vso[task.logissue type=warning]Forcing a re-install"
                               echo "running on $(this_agent)"
                               sed -i 's/step=1/step=0/' $deployer_environment_file_name
@@ -232,7 +232,7 @@ stages:
                                 unzip -qq -o -P "${pass}" ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip -d ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)
                             fi
 
-                          if [ $(use_webapp) == "true" ]; then
+                          if [ "$USE_WEBAPP" = "true" ]; then
                               echo "Use WebApp is selected"
 
                               # if [ $TF_VAR_app_registration_app_id == '$(APP_REGISTRATION_APP_ID)' ]; then
@@ -249,7 +249,7 @@ stages:
                             export TF_LOG_PATH=$CONFIG_REPO_PATH/.sap_deployment_automation/terraform.log
                             set +eu
 
-                            if [ $USE_MSI == "true" ]; then
+                            if [ "$USE_MSI" = "true" ]; then
                               export ARM_CLIENT_SECRET=$servicePrincipalKey
 
                               $SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh                               \
@@ -303,7 +303,7 @@ stages:
                               git add -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip
                               added=1
                             fi
-                            if [ 1 == $added ]; then
+                            if [ 1 = $added ]; then
                                 git config --global user.email "$(Build.RequestedForEmail)"
                                 git config --global user.name "$(Build.RequestedFor)"
                                 git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"
@@ -313,7 +313,7 @@ stages:
                                 echo "##vso[task.uploadsummary]$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md"
                             fi
                         echo -e "$green--- Adding variables to the variable group:" $(variable_group) "---$reset"
-                            if [ 0 == $return_code ]; then
+                            if [ 0 = $return_code ]; then
                                 az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Deployer_State_FileName.value")
                                 if [ -z ${az_var} ]; then
                                     az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name Deployer_State_FileName --value ${file_deployer_tfstate_key} --output none --only-show-errors
@@ -499,28 +499,28 @@ stages:
                           if [ $USE_MSI != "true" ]; then
                             printenv | grep ARM
 
-                            if [  $ARM_SUBSCRIPTION_ID == '$(CP_ARM_SUBSCRIPTION_ID)' ]; then
+                            if [  "$ARM_SUBSCRIPTION_ID" = '$(CP_ARM_SUBSCRIPTION_ID)' ]; then
                                 echo "##vso[task.logissue type=error]Variable CP_ARM_SUBSCRIPTION_ID was not defined."
                                 exit 2
                             fi
 
-                            if [  $ARM_CLIENT_ID == '$(CP_ARM_CLIENT_ID)' ]; then
+                            if [  "$ARM_CLIENT_ID" = '$(CP_ARM_CLIENT_ID)' ]; then
                                 echo "##vso[task.logissue type=error]Variable CP_ARM_CLIENT_ID was not defined."
                                 exit 2
                             fi
 
-                            if [  $ARM_CLIENT_SECRET == '$(CP_ARM_CLIENT_SECRET)' ]; then
+                            if [  "$ARM_CLIENT_SECRET" = '$(CP_ARM_CLIENT_SECRET)' ]; then
                                 echo "##vso[task.logissue type=error]Variable CP_ARM_CLIENT_SECRET was not defined."
                                 exit 2
                             fi
 
-                            if [  $ARM_TENANT_ID == '$(CP_ARM_TENANT_ID)' ]; then
+                            if [  "$ARM_TENANT_ID" = '$(CP_ARM_TENANT_ID)' ]; then
                                 echo "##vso[task.logissue type=error]Variable CP_ARM_TENANT_ID was not defined."
                                 exit 2
                             fi
                           fi
 
-                          if [ $(use_webapp) == "true" ]; then
+                          if [ "$USE_WEBAPP" = "true" ]; then
                               echo "Use WebApp is selected"
 
                               # if [ $TF_VAR_app_registration_app_id == '$(APP_REGISTRATION_APP_ID)' ]; then
@@ -642,7 +642,7 @@ stages:
                           ip_added=0
 
                           if [ -f ${deployer_environment_file_name} ]; then
-                              if [ 0 == $bootstrapped ]; then
+                              if [ 0 = $bootstrapped ]; then
                                   export key_vault=$(cat ${deployer_environment_file_name} | grep key_vault | awk -F'=' '{print $2}' | xargs) ; echo "Key Vault: $key_vault"
                                   if [ -n "${key_vault}" ]; then
                                       echo 'Deployer Key Vault' ${key_vault}
@@ -692,7 +692,7 @@ stages:
 
                           sudo chmod +x $SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh
 
-                          if [ $USE_MSI == "true" ]; then
+                          if [ "$USE_MSI" = "true" ]; then
                             echo  "Using MSI"
                             $SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh                              \
                               --deployer_parameter_file ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/$(deployerconfig) \
@@ -809,7 +809,7 @@ stages:
                               added=1
                           fi
 
-                          if [ 1 == $added ]; then
+                          if [ 1 = $added ]; then
                               git config --global user.email "$(Build.RequestedForEmail)"
                               git config --global user.name "$(Build.RequestedFor)"
                               git commit -m "Added updates from control plane deployment $(Build.DefinitionName) [skip ci]"
@@ -822,7 +822,7 @@ stages:
                           fi
 
                       echo -e "$green--- Adding variables to the variable group:" $(variable_group) "---$reset"
-                          if [ 0 == $return_code ]; then
+                          if [ 0 = $return_code ]; then
                               az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Account_Name.value")
                               if [ -z ${az_var} ]; then
                                   az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name Terraform_Remote_Storage_Account_Name --value ${file_REMOTE_STATE_SA} --output none --only-show-errors
