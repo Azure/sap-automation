@@ -567,7 +567,7 @@ stages:
 
                           az extension add --name storage-blob-preview >/dev/null
                           echo -e "$green--- az login ---$reset"
-                          az login --service-principal --username $CP_ARM_CLIENT_ID --password=$CP_ARM_CLIENT_SECRET --tenant $CP_ARM_TENANT_ID --output none
+                          az login --service-principal --username $ARM_CLIENT_ID --password=$ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID --output none
                           return_code=$?
                           if [ 0 != $return_code ]; then
                               echo -e "$boldred--- Login failed ---$reset"
@@ -575,7 +575,7 @@ stages:
                               exit $return_code
                           fi
 
-                          az account set --subscription $CP_ARM_SUBSCRIPTION_ID
+                          az account set --subscription $ARM_SUBSCRIPTION_ID
 
                       else
                         if [ $USE_MSI != "true" ]; then
@@ -670,8 +670,8 @@ stages:
                             $SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh                              \
                               --deployer_parameter_file ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/$(deployerconfig) \
                               --library_parameter_file ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/$(libraryconfig)     \
-                              --subscription $CP_ARM_SUBSCRIPTION_ID --spn_id $CP_ARM_CLIENT_ID                          \
-                              --spn_secret $CP_ARM_CLIENT_SECRET --tenant_id $CP_ARM_TENANT_ID                           \
+                              --subscription $ARM_SUBSCRIPTION_ID --spn_id $ARM_CLIENT_ID                                \
+                              --spn_secret $ARM_CLIENT_SECRET --tenant_id $ARM_TENANT_ID                                 \
                               --auto-approve --ado                                                                       \
                               ${storage_account_parameter} ${keyvault_parameter}
                           fi
