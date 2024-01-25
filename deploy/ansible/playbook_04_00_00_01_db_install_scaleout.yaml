@@ -123,8 +123,13 @@
             - { key: "PermitRootLogin", value: "yes" }
             - { key: "PasswordAuthentication", value: "yes" }
             - { key: "ChallengeResponseAuthentication", value: "yes" }
-          notify:
-            - restart sshd
+          
+        - name:                            "Restart SSHD on {{ ansible_hostname }}"
+          become:                          true
+          service:
+            name:                          sshd
+            state:                         restarted
+
       when:
         - db_high_availability | default(false) == false
         - db_scale_out | default(false)  == true

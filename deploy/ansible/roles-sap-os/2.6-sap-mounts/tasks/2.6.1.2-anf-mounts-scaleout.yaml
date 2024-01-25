@@ -981,7 +981,7 @@
   when:
     - tier == 'sapos'
     - node_tier == 'hana'
-    - db_high_availability | default(false == false)
+    - db_high_availability | default(false) == false
     - db_scale_out == true
 
 ...

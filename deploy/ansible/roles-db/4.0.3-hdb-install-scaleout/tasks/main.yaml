@@ -90,7 +90,6 @@
                                         {% endif %}
                                         {% endfor %}"
                                       
-
     - name:                            "SAP HANA: Progress"
       ansible.builtin.debug:
         msg:                           "Start HANA Installation"
@@ -244,6 +243,19 @@
             option:                            internal_network
             value:                             "{{ (ansible_default_ipv4.network + '/' + ansible_default_ipv4.netmask) | ipaddr('network/prefix') }}"
 
+        - name:                                "Prepare global.ini for public hostname resolution."
+          become_user:                         root
+          become:                              true
+          community.general.ini_file:
+            path:                              "/hana/shared/{{ db_sid | upper }}/global/hdb/custom/config/global.ini"
+            section:                           "public_hostname_resolution"
+            state:                             present
+            mode:                              0644
+            option:                            "map_{{ hostvars[item].virtual_host }}"
+            value:                             "{{ hostvars[item].ansible_host }}"
+          with_items:
+            - "{{ groups[(sap_sid | upper)~'_DB' ] }}"
+
         - name:                                "Prepare global.ini for site hosts name resolution (Primary Site)"
           community.general.ini_file:
             path:                              "/hana/shared/{{ db_sid | upper }}/global/hdb/custom/config/global.ini"
@@ -254,43 +266,23 @@
             value:                             "{{ hostvars[item].virtual_host }}"
           with_items:
             - "{{ groups[(sap_sid | upper)~'_DB' ] }}"
-
-        - name:                                "Prepare global.ini for host name resolution"
-          community.general.ini_file:
-            path:                              "/hana/shared/{{ db_sid | upper }}/global/hdb/custom/config/global.ini"
-            section:                           "system_replication_hostname_resolution"
-            mode:                              0644
-            state:                             present
-            option:                            "{{ hostvars[item].ansible_host }}"
-            value:                             "{{ hostvars[item].virtual_host }}"
-          with_items:
-            - "{{ groups[(sap_sid | upper)~'_DB' ] }}"
         
         - name:                                "Prepare global.ini for NetApp storage optimizations"
           community.general.ini_file:
             path:                              "/hana/shared/{{ db_sid | upper }}/global/hdb/custom/config/global.ini"
-            section:                           "fileio"
+            section:                           "{{ item.section }}"
             mode:                              0644
             state:                             present
-            option:                            "{{ item.key }}"
+            option:                            "{{ item.option }}"
             value:                             "{{ item.value }}"
-            loop:
-              - { key: "async_read_submit", value: "on" }
-              - { key: "max_parallel_io_requests", value: "128" }
-              - { key: "async_write_submit_active", value: "all" }
-              - { key: "async_write_submit_blocks", value: "all" }
+          with_items:
+            - { section: "fileio", option: "async_read_submit", value: "on" }
+            - { section: "fileio", option: "max_parallel_io_requests", value: "128" }
+            - { section: "fileio", option: "async_write_submit_active", value: "all" }
+            - { section: "fileio", option: "async_write_submit_blocks", value: "all" }
+            - { section: "persistence", option: "datavolume_striping", value: "true" }
+            - { section: "persistence", option: "datavolume_striping_size_gb", value: "15000" }
 
-        - name:                                "Prepare global.ini for HANA data file storage optimizations"
-          community.general.ini_file:
-            path:                              "/hana/shared/{{ db_sid | upper }}/global/hdb/custom/config/global.ini"
-            section:                           "persistence"
-            mode:                              0644
-            state:                             present
-            option:                            "{{ item.key }}"
-            value:                             "{{ item.value }}"
-            loop:
-              - { key: "datavolume_striping", value: "true" }
-              - { key: "datavolume_striping_size_gb", value: "15000" }
         
     - name:                            "SAP HANA: Restart HANA"
       block:
