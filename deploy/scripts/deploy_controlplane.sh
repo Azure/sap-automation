@@ -211,26 +211,17 @@ if [ -n "${subscription}" ]; then
 
 fi
 
-if [ 3 == $step ]; then
-    spn_secret="none"
-fi
-
-if [ -n "$keyvault" ]; then
-  set_executing_user_environment_variables "none"
-else
-  if [ 0 = "${deploy_using_msi_only:-}" ]; then
-    echo "Using Service Principal for deployment"
-    set_executing_user_environment_variables "${spn_secret}"
-  else
-    echo "Using Managed Identity for deployment"
-    set_executing_user_environment_variables "none"
-  fi
-fi
-
 
 load_config_vars "${deployer_config_information}" "step"
 load_config_vars "${deployer_config_information}" "keyvault"
 
+if [ 0 = "${deploy_using_msi_only:-}" ]; then
+  echo "Using Service Principal for deployment"
+  set_executing_user_environment_variables "${spn_secret}"
+else
+  echo "Using Managed Identity for deployment"
+  set_executing_user_environment_variables "none"
+fi
 
 if [ $recover == 1 ]; then
     if [ -n "$REMOTE_STATE_SA" ]; then
