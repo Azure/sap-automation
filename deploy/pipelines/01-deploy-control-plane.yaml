@@ -235,15 +235,15 @@ stages:
                           if [ $(use_webapp) == "true" ]; then
                               echo "Use WebApp is selected"
 
-                              if [ $TF_VAR_app_registration_app_id == '$(APP_REGISTRATION_APP_ID)' ]; then
-                                  echo "##vso[task.logissue type=error]Variable APP_REGISTRATION_APP_ID was not defined."
-                                  exit 2
-                              fi
+                              # if [ $TF_VAR_app_registration_app_id == '$(APP_REGISTRATION_APP_ID)' ]; then
+                              #     echo "##vso[task.logissue type=error]Variable APP_REGISTRATION_APP_ID was not defined."
+                              #     exit 2
+                              # fi
 
-                              if [ -z $TF_VAR_webapp_client_secret == '$(WEB_APP_CLIENT_SECRET)' ]; then
-                                  echo "##vso[task.logissue type=error]Variable WEB_APP_CLIENT_SECRET was not defined."
-                                  exit 2
-                              fi
+                              # if [ -z $TF_VAR_webapp_client_secret == '$(WEB_APP_CLIENT_SECRET)' ]; then
+                              #     echo "##vso[task.logissue type=error]Variable WEB_APP_CLIENT_SECRET was not defined."
+                              #     exit 2
+                              # fi
                           fi
 
                             export TF_LOG_PATH=$CONFIG_REPO_PATH/.sap_deployment_automation/terraform.log
@@ -522,15 +522,15 @@ stages:
                           if [ $(use_webapp) == "true" ]; then
                               echo "Use WebApp is selected"
 
-                              if [ $TF_VAR_app_registration_app_id == '$(APP_REGISTRATION_APP_ID)' ]; then
-                                  echo "##vso[task.logissue type=error]Variable APP_REGISTRATION_APP_ID was not defined."
-                                  exit 2
-                              fi
+                              # if [ $TF_VAR_app_registration_app_id == '$(APP_REGISTRATION_APP_ID)' ]; then
+                              #     echo "##vso[task.logissue type=error]Variable APP_REGISTRATION_APP_ID was not defined."
+                              #     exit 2
+                              # fi
 
-                              if [ -z $TF_VAR_webapp_client_secret == '$(WEB_APP_CLIENT_SECRET)' ]; then
-                                  echo "##vso[task.logissue type=error]Variable WEB_APP_CLIENT_SECRET was not defined."
-                                  exit 2
-                              fi
+                              # if [ -z $TF_VAR_webapp_client_secret == '$(WEB_APP_CLIENT_SECRET)' ]; then
+                              #     echo "##vso[task.logissue type=error]Variable WEB_APP_CLIENT_SECRET was not defined."
+                              #     exit 2
+                              # fi
                           fi
                           bootstrapped=0
 
