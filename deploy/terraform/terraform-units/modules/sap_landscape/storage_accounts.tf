@@ -344,10 +344,6 @@ resource "azurerm_storage_account_network_rules" "transport" {
 
                                            ]
                                          )
-  ip_rules                             = compact(
-                                         [
-                                           length(var.Agent_IP) > 0 ? var.Agent_IP : ""
-                                         ]
 
  lifecycle {
              ignore_changes = [virtual_network_subnet_ids]
