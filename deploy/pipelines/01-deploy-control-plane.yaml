@@ -497,6 +497,7 @@ stages:
                           fi
 
                           if [ $USE_MSI != "true" ]; then
+                            printenv | grep ARM
 
                             if [  $ARM_SUBSCRIPTION_ID == '$(CP_ARM_SUBSCRIPTION_ID)' ]; then
                                 echo "##vso[task.logissue type=error]Variable CP_ARM_SUBSCRIPTION_ID was not defined."
@@ -613,10 +614,6 @@ stages:
                       else
                         if [ $USE_MSI != "true" ]; then
                           echo "Login using SPN"
-                          export ARM_CLIENT_ID=$CP_ARM_CLIENT_ID
-                          export ARM_CLIENT_SECRET=$CP_ARM_CLIENT_SECRET
-                          export ARM_TENANT_ID=$CP_ARM_TENANT_ID
-                          export ARM_SUBSCRIPTION_ID=$ARM_SUBSCRIPTION_ID
                           export ARM_USE_MSI=false
                           az login --service-principal --username $CP_ARM_CLIENT_ID --password=$CP_ARM_CLIENT_SECRET --tenant $CP_ARM_TENANT_ID --output none
                           return_code=$?
