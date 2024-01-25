@@ -165,7 +165,8 @@ resource "azurerm_storage_account_network_rules" "witness" {
   bypass                               = ["AzureServices", "Logging", "Metrics"]
 
   ip_rules                             = compact([
-                                           length(local.deployer_public_ip_address) > 0 ? local.deployer_public_ip_address : ""
+                                          length(local.deployer_public_ip_address) > 0 ? local.deployer_public_ip_address : "",
+                                          length(var.Agent_IP) > 0 ? var.Agent_IP : ""
                                          ])
   virtual_network_subnet_ids           = compact([
                                            local.database_subnet_defined ? (
@@ -321,7 +322,8 @@ resource "azurerm_storage_account_network_rules" "transport" {
   default_action                       = "Deny"
 
   ip_rules                             = compact([
-                                           length(local.deployer_public_ip_address) > 0 ? local.deployer_public_ip_address : ""
+                                          length(local.deployer_public_ip_address) > 0 ? local.deployer_public_ip_address : "",
+                                          length(var.Agent_IP) > 0 ? var.Agent_IP : ""
                                          ])
 
   bypass                               = ["AzureServices", "Logging", "Metrics"]
@@ -560,7 +562,8 @@ resource "azurerm_storage_account_network_rules" "install" {
   default_action                       = "Deny"
 
   ip_rules                             = compact([
-                                           length(local.deployer_public_ip_address) > 0 ? local.deployer_public_ip_address : ""
+                                          length(local.deployer_public_ip_address) > 0 ? local.deployer_public_ip_address : "",
+                                          length(var.Agent_IP) > 0 ? var.Agent_IP : ""
                                          ])
   bypass                               = ["AzureServices", "Logging", "Metrics"]
   virtual_network_subnet_ids           = compact(
@@ -582,10 +585,6 @@ resource "azurerm_storage_account_network_rules" "install" {
 
                                             ]
                                          )
-  ip_rules                             = compact(
-                                         [
-                                           length(var.Agent_IP) > 0 ? var.Agent_IP : ""
-                                         ]
   lifecycle {
              ignore_changes = [virtual_network_subnet_ids]
            }
