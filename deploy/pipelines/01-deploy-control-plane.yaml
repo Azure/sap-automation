@@ -247,7 +247,8 @@ stages:
                               export TF_VAR_app_registration_app_id=$(APP_REGISTRATION_APP_ID); echo 'App Registration App ID' ${TF_VAR_app_registration_app_id}
                               export TF_VAR_webapp_client_secret=$(WEB_APP_CLIENT_SECRET)
                               export TF_VAR_use_webapp=true
-
+                          else
+                              echo "Use WebApp is not selected"
                           fi
 
                             export TF_LOG_PATH=$CONFIG_REPO_PATH/.sap_deployment_automation/terraform.log
