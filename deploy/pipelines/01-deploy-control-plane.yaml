@@ -211,10 +211,10 @@ stages:
                         echo -e "$green--- az login ---$reset"
                             az account set --subscription $ARM_SUBSCRIPTION_ID
                             echo -e "$green--- Deploy the Control Plane ---$reset"
-                            if [ -n $(PAT) ]; then
+                            if [ -n "$(PAT)" ]; then
                                 echo 'Deployer Agent PAT is defined'
                             fi
-                            if [ -n $(POOL) ]; then
+                            if [ -n "$(POOL)" ]; then
                                 echo 'Deployer Agent Pool' $(POOL)
                                 POOL_NAME=$(az pipelines pool list --organization $(System.CollectionUri) --query "[?name=='$(POOL)'].name | [0]")
                                 if [ ${#POOL_NAME} -eq 0 ]; then
@@ -344,7 +344,7 @@ stages:
                                     az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name ControlPlaneLocation --value ${LOCATION} --output none --only-show-errors
                                 fi
 
-                                if [ -n $deployer_random_id ] ; then
+                                if [ -n "${deployer_random_id}" ] ; then
                                   az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "DEPLOYER_RANDOM_ID_SEED.value")
                                   if [ -z ${az_var} ]; then
                                       az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name DEPLOYER_RANDOM_ID_SEED --value ${deployer_random_id} --output none --only-show-errors
