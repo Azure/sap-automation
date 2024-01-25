@@ -212,6 +212,12 @@ variable "spn_keyvault_id"                      {
                                                   default = ""
                                                 }
 
+variable "deployment"                           {
+                                                  description = "The type of deployment"
+                                                  default     = "update"
+                                                }
+
+
 #########################################################################################
 #                                                                                       #
 #  Web App definitioms                                                                  #
