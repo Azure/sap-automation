@@ -391,6 +391,29 @@
             - azresult.rc != 0
             - azresult.stderr is defined
             - azresult.stderr.find("BlobAlreadyExists") == -1
+          when:
+            - sapbits_sas_token is defined
+
+        - name:                            "BOM: {{ bom_name }} Upload File {{ bom_media_entry.archive }}"
+
+          ansible.builtin.command: >-
+                                          az storage blob upload
+                                            --account-name {{ account }}
+                                            --container-name {{ container }}
+                                            --name {{ bom_media_entry.archive }}
+                                            --file {{ result.dest }}
+                                            --if-none-match "*"
+                                            --no-progress
+          delegate_to:                     localhost
+          register:                        azresult
+          ignore_errors:                   true
+          failed_when:
+            - azresult.rc != 0
+            - azresult.stderr is defined
+            - azresult.stderr.find("BlobAlreadyExists") == -1
+          when:
+            - sapbits_sas_token is undefined
+
 # Step: 05-04-01 - END
 # -------------------------------------+---------------------------------------8
 
