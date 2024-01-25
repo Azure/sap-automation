@@ -581,7 +581,7 @@ stages:
                         if [ $USE_MSI != "true" ]; then
                           echo "Login using SPN"
                           export ARM_USE_MSI=false
-                          az login --service-principal --username $CP_ARM_CLIENT_ID --password=$CP_ARM_CLIENT_SECRET --tenant $CP_ARM_TENANT_ID --output none
+                          az login --service-principal --username $ARM_CLIENT_ID --password=$ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID --output none
                           return_code=$?
                           if [ 0 != $return_code ]; then
                               echo -e "$boldred--- Login failed ---$reset"
