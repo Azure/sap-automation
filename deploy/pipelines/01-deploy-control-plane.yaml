@@ -235,20 +235,15 @@ stages:
                           if [ $(use_webapp) == "true" ]; then
                               echo "Use WebApp is selected"
 
-                              if [ -z ${APP_REGISTRATION_APP_ID} ]; then
+                              if [ $TF_VAR_app_registration_app_id == '$(APP_REGISTRATION_APP_ID)' ]; then
                                   echo "##vso[task.logissue type=error]Variable APP_REGISTRATION_APP_ID was not defined."
                                   exit 2
                               fi
 
-                              if [ -z ${WEB_APP_CLIENT_SECRET} ]; then
+                              if [ -z $TF_VAR_webapp_client_secret == '$(WEB_APP_CLIENT_SECRET)' ]; then
                                   echo "##vso[task.logissue type=error]Variable WEB_APP_CLIENT_SECRET was not defined."
                                   exit 2
                               fi
-                              export TF_VAR_app_registration_app_id=$(APP_REGISTRATION_APP_ID); echo 'App Registration App ID' ${TF_VAR_app_registration_app_id}
-                              export TF_VAR_webapp_client_secret=$(WEB_APP_CLIENT_SECRET)
-                              export TF_VAR_use_webapp=true
-                          else
-                              echo "Use WebApp is not selected"
                           fi
 
                             export TF_LOG_PATH=$CONFIG_REPO_PATH/.sap_deployment_automation/terraform.log
@@ -360,27 +355,31 @@ stages:
 
                   displayName: Prepare control plane
                   env:
-                      SYSTEM_ACCESSTOKEN:             $(System.AccessToken)
-                      ARM_SUBSCRIPTION_ID:            $(CP_ARM_SUBSCRIPTION_ID)
                       ARM_CLIENT_ID:                  $(CP_ARM_CLIENT_ID)
                       ARM_CLIENT_SECRET:              $(CP_ARM_CLIENT_SECRET)
+                      ARM_SUBSCRIPTION_ID:            $(CP_ARM_SUBSCRIPTION_ID)
                       ARM_TENANT_ID:                  $(CP_ARM_TENANT_ID)
-                      TF_VAR_agent_ado_url:           $(System.CollectionUri)
-                      TF_VAR_spn_id:                  $(CP_ARM_OBJECT_ID)
-                      TF_VAR_deployer_kv_user_arm_id: $(Deployer_Key_Vault)
-                      TF_VAR_tf_version:              $(tf_version)
                       AZURE_DEVOPS_EXT_PAT:           $(PAT)
+                      CONFIG_REPO_PATH:               ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
+                      DEPLOYER_TFSTATE_KEY:           "${{ parameters.deployer }}.terraform.tfstate"
                       IS_PIPELINE_DEPLOYMENT:         true
-                      WEB_APP_CLIENT_SECRET:          $(WEB_APP_CLIENT_SECRET)
-                      APP_REGISTRATION_APP_ID:        $(APP_REGISTRATION_APP_ID)
                       POOL:                           $(POOL)
                       SAP_AUTOMATION_REPO_PATH:       ${{ parameters.sap_automation_repo_path }}
-                      CONFIG_REPO_PATH:               ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
-                      TF_VAR_ansible_core_version:    $(ansible_core_version)
-                      TF_LOG:                         $(TF_LOG)
+                      SYSTEM_ACCESSTOKEN:             $(System.AccessToken)
+                      TF_APP_REGISTRATION_APP_ID:     $(APP_REGISTRATION_APP_ID)
                       TF_IN_AUTOMATION:               true
-                      DEPLOYER_TFSTATE_KEY:           "${{ parameters.deployer }}.terraform.tfstate"
+                      TF_LOG:                         $(TF_LOG)
+                      TF_VAR_agent_ado_url:           $(System.CollectionUri)
+                      TF_VAR_ansible_core_version:    $(ansible_core_version)
+                      TF_VAR_app_registration_app_id: $(APP_REGISTRATION_APP_ID);
+                      TF_VAR_deployer_kv_user_arm_id: $(Deployer_Key_Vault)
+                      TF_VAR_spn_id:                  $(CP_ARM_OBJECT_ID)
+                      TF_VAR_tf_version:              $(tf_version)
+                      TF_VAR_use_webapp:              ${{ parameters.use_webapp_param }}
+                      TF_VAR_webapp_client_secret:    $(WEB_APP_CLIENT_SECRET)
                       USE_MSI:                        $(Use_MSI)
+                      USE_WEBAPP:                     ${{ parameters.use_webapp_param }}
+                      WEB_APP_CLIENT_SECRET:          $(WEB_APP_CLIENT_SECRET)
 
     - stage: Deploy_controlplane
       dependsOn:
