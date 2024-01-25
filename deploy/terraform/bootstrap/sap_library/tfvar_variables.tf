@@ -212,6 +212,12 @@ variable "spn_keyvault_id"                      {
                                                   default = ""
                                                 }
 
+variable "shared_access_key_enabled"            {
+                                                  description = "Indicates whether the storage account permits requests to be authorized with the account access key via Shared Key."
+                                                  default     = true
+                                                  type        = bool
+                                                }
+
 
 #########################################################################################
 #                                                                                       #

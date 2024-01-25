@@ -30,11 +30,12 @@ provider "azurerm"                     {
                                                                    }
 
                                                   }
-                                         subscription_id = local.spn.subscription_id
-                                         client_id       = local.use_spn ? local.spn.client_id : null
-                                         client_secret   = local.use_spn ? local.spn.client_secret : null
-                                         tenant_id       = local.use_spn ? local.spn.tenant_id : null
-                                         partner_id      = "140c3bc9-c937-4139-874f-88288bab08bb"
+                                         subscription_id            = local.spn.subscription_id
+                                         client_id                  = local.use_spn ? local.spn.client_id : null
+                                         client_secret              = local.use_spn ? local.spn.client_secret : null
+                                         tenant_id                  = local.use_spn ? local.spn.tenant_id : null
+                                         partner_id                 = "140c3bc9-c937-4139-874f-88288bab08bb"
+                                         storage_use_azuread        = true
 
                                          alias = "main"
                                          skip_provider_registration = true
@@ -45,6 +46,7 @@ provider "azurerm"                     {
                                                   }
                                          skip_provider_registration = true
                                          alias                      = "deployer"
+                                         storage_use_azuread        = true
 
                                        }
 
@@ -57,12 +59,13 @@ provider "azurerm"                     {
                                          client_secret              = local.use_spn ? local.spn.client_secret : null
                                          tenant_id                  = local.use_spn ? local.spn.tenant_id : null
                                          skip_provider_registration = true
+                                         storage_use_azuread        = true
                                        }
 
 provider "azuread"                     {
-                                         client_id     = local.spn.client_id
-                                         client_secret = local.spn.client_secret
-                                         tenant_id     = local.spn.tenant_id
+                                         client_id                  = local.spn.client_id
+                                         client_secret              = local.spn.client_secret
+                                         tenant_id                  = local.spn.tenant_id
                                        }
 
 terraform                              {
