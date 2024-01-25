@@ -498,22 +498,22 @@ stages:
 
                           if [ $USE_MSI != "true" ]; then
 
-                            if [ -z ${CP_ARM_SUBSCRIPTION_ID} ]; then
+                            if [  $ARM_SUBSCRIPTION_ID == '$(CP_ARM_SUBSCRIPTION_ID)' ]; then
                                 echo "##vso[task.logissue type=error]Variable CP_ARM_SUBSCRIPTION_ID was not defined."
                                 exit 2
                             fi
 
-                            if [ -z ${CP_ARM_CLIENT_ID} ]; then
+                            if [  $ARM_CLIENT_ID == '$(CP_ARM_CLIENT_ID)' ]; then
                                 echo "##vso[task.logissue type=error]Variable CP_ARM_CLIENT_ID was not defined."
                                 exit 2
                             fi
 
-                            if [ -z ${CP_ARM_CLIENT_SECRET} ]; then
+                            if [  $ARM_CLIENT_SECRET == '$(CP_ARM_CLIENT_SECRET)' ]; then
                                 echo "##vso[task.logissue type=error]Variable CP_ARM_CLIENT_SECRET was not defined."
                                 exit 2
                             fi
 
-                            if [ -z ${CP_ARM_TENANT_ID} ]; then
+                            if [  $ARM_TENANT_ID == '$(CP_ARM_TENANT_ID)' ]; then
                                 echo "##vso[task.logissue type=error]Variable CP_ARM_TENANT_ID was not defined."
                                 exit 2
                             fi
