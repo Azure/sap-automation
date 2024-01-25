@@ -255,12 +255,6 @@ variable "deployer_private_ip_address"          {
                                                   default = [""]
                                                 }
 
-variable "shared_access_key_enabled"            {
-                                                  description = "Indicates whether the storage account permits requests to be authorized with the account access key via Shared Key."
-                                                  default     = true
-                                                  type        = bool
-                                                }
-
 ###############################################################################
 #                                                                             #
 #                            Deployer authentication                          #
@@ -408,6 +402,11 @@ variable "subnets_to_add_to_firewall_for_keyvaults_and_storage" {
                                                                   description = "List of subnets to add to storage account and keyvaults firewall"
                                                                   default     = []
                                                                 }
+
+variable "deployment"                           {
+                                                  description = "The type of deployment"
+                                                  default     = "update"
+                                                }
 
 #########################################################################################
 #                                                                                       #
