@@ -973,9 +973,9 @@
     path:                              "{{ item.path }}"
     state:                             directory
     recurse:                           true
-  loop:
-    - hana_log_scaleout_mountpoint 
-    - hana_data_scaleout_mountpoint
+  with_items:
+    - "{{ hana_log_scaleout_mountpoint }}"
+    - "{{ hana_data_scaleout_mountpoint }}"
     - { 'path': '/hana/shared' }
     - { 'path': '/usr/sap/{{ db_sid | upper }}' }
   when:
