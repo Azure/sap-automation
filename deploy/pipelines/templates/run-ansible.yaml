@@ -29,7 +29,7 @@ steps:
 
     if [ $USE_MSI == "true" ]; then
       echo "##[section]Running on a deployer..."
-      az login --identity --allow-no-subscriptions --output none
+      source /etc/profile.d/deploy_server.sh
       noAccess=$( az account show --query name | grep  "N/A(tenant level account)")
 
       if [ -z "$noAccess" ]; then
@@ -42,8 +42,6 @@ steps:
 
     fi
 
-    # az login --service-principal -u "${AZURE_CLIENT_ID}" -p="$AZURE_CLIENT_SECRET" --tenant "$AZURE_TENANT_ID" --output none
-    # az account set --subscription "$AZURE_SUBSCRIPTION_ID" --output none
     set -eu
 
     if [ ! -f $PARAMETERS_FOLDER/sshkey ]; then
