@@ -1088,17 +1088,9 @@ echo "useSAS = $useSAS"
 
 if [ -n "${subnet_id}" ]; then
   echo "Adding the app subnet"
-  if [ "$useSAS" = "true" ] ; then
-    az storage account network-rule add --resource-group "${REMOTE_STATE_RG}" --account-name "${REMOTE_STATE_SA}" --subscription "${STATE_SUBSCRIPTION}" --subnet $subnet_id --output none
-  else
-    az storage account network-rule add --resource-group "${REMOTE_STATE_RG}" --account-name "${REMOTE_STATE_SA}" --subscription "${STATE_SUBSCRIPTION}" --subnet $subnet_id --auth-mode login --output none
-  fi
+  az storage account network-rule add --resource-group "${REMOTE_STATE_RG}" --account-name "${REMOTE_STATE_SA}" --subscription "${STATE_SUBSCRIPTION}" --subnet $subnet_id --output none
   if [ -n "$SAPBITS" ] ; then
-    if [ "$useSAS" = "true" ] ; then
-      az storage account network-rule add --resource-group "${REMOTE_STATE_RG}" --account-name $SAPBITS --subscription "${STATE_SUBSCRIPTION}" --subnet $subnet_id --output none
-    else
-      az storage account network-rule add --resource-group "${REMOTE_STATE_RG}" --account-name $SAPBITS --subscription "${STATE_SUBSCRIPTION}" --auth-mode login --subnet $subnet_id --output none
-    fi
+    az storage account network-rule add --resource-group "${REMOTE_STATE_RG}" --account-name $SAPBITS --subscription "${STATE_SUBSCRIPTION}" --subnet $subnet_id --output none
   fi
 fi
 
@@ -1106,11 +1098,7 @@ subnet_id=$(terraform -chdir="${terraform_module_directory}"  output -no-color -
 
 if [ -n "${subnet_id}" ]; then
   echo "Adding the db subnet"
-  if [ "$useSAS" = "true" ] ; then
-    az storage account network-rule add --resource-group "${REMOTE_STATE_RG}" --account-name "${REMOTE_STATE_SA}" --subscription "${STATE_SUBSCRIPTION}" --subnet $subnet_id --output none
-  else
-    az storage account network-rule add --resource-group "${REMOTE_STATE_RG}" --account-name "${REMOTE_STATE_SA}" --subscription "${STATE_SUBSCRIPTION}"  --auth-mode login --subnet $subnet_id --output none
-  fi
+  az storage account network-rule add --resource-group "${REMOTE_STATE_RG}" --account-name "${REMOTE_STATE_SA}" --subscription "${STATE_SUBSCRIPTION}" --subnet $subnet_id --output none
 fi
 
 unset TF_DATA_DIR
