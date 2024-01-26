@@ -248,7 +248,7 @@ stages:
               echo -e "$green--- az login ---$reset"
                 # If the deployer_file exists we run on a deployer configured by the framework instead of a azdo hosted one
                 deployer_file=/etc/profile.d/deploy_server.sh
-                              if [ "$USE_MSI" = "true" ]; then
+                if [ "$USE_MSI" = "true" ]; then
                   echo  "Using MSI"
                   source /etc/profile.d/deploy_server.sh
                   az account set --subscription $ARM_SUBSCRIPTION_ID

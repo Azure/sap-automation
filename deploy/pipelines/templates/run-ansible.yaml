@@ -33,7 +33,7 @@ steps:
       noAccess=$( az account show --query name | grep  "N/A(tenant level account)")
 
       if [ -z "$noAccess" ]; then
-        az account set --subscription $AZURE_SUBSCRIPTION_ID --output none
+        az account set --subscription $ARM_SUBSCRIPTION_ID --output none
       fi
     else
       echo "##[section]Running on an Azure DevOps agent..."
