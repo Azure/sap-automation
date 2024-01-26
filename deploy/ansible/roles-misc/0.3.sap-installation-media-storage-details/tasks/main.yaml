@@ -75,11 +75,6 @@
     account_name:                      "{{ sapbits_location_base_path.rpartition('//')[2].split('.')[0] }}"
   when:                                sapbits_location_base_path is defined
 
-- name:                                "Parameter review..."
-  ansible.builtin.debug:
-    msg:                               # Best method for formatting output with Azure Devops Logs
-                                       - "account_name:                    {{ account_name }}"
-    verbosity:                         2
 
 - name:                                "0.4 Installation Media: - Check Binaries Storage Account"
   ansible.builtin.command: >-
@@ -95,8 +90,17 @@
     allowSharedKeyAccess:             "{{ az_allowSharedKeyAccess.stdout | bool }}"
   when: az_allowSharedKeyAccess is defined
 
+- name:                                "Parameter review..."
+  ansible.builtin.debug:
+    msg:                               # Best method for formatting output with Azure Devops Logs
+                                       - "account_name:                    {{ account_name }}"
+                                       - "allowSharedKeyAccess:            {{ allowSharedKeyAccess }}"
+    verbosity:                         2
+
 - name:                                "0.4 Installation Media: - Retrieve Access Key secret"
-  when: sapbits_access_key is not defined
+  when:
+   - sapbits_access_key is not defined
+   - allowSharedKeyAccess
   block:
     - name:                            "0.4 Installation Media: - Check if Access Key secret exists"
       ansible.builtin.command: >-
@@ -129,6 +133,7 @@
   when:
     - sapbits_access_key is not defined
     - sapbits_sas_token is not defined or (sapbits_sas_token | string | length == 0)
+   - allowSharedKeyAccess
   block:
     - name:                            "0.4 Installation Media: - Check if SAS token secret exists"
       ansible.builtin.command: >-
