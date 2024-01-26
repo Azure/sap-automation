@@ -133,7 +133,7 @@
   when:
     - sapbits_access_key is not defined
     - sapbits_sas_token is not defined or (sapbits_sas_token | string | length == 0)
-   - allowSharedKeyAccess
+    - allowSharedKeyAccess
   block:
     - name:                            "0.4 Installation Media: - Check if SAS token secret exists"
       ansible.builtin.command: >-
