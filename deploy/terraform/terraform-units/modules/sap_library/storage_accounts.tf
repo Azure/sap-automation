@@ -246,7 +246,6 @@ resource "azurerm_storage_account" "storage_sapbits" {
                                            !local.enable_firewall_for_keyvaults_and_storage) : (
                                            local.enable_firewall_for_keyvaults_and_storage)
                                          )
-  shared_access_key_enabled            = var.storage_account_sapbits.shared_access_key_enabled
 
   routing {
             publish_microsoft_endpoints = true
