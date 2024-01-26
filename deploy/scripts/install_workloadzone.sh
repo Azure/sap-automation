@@ -1084,7 +1084,7 @@ echo ""
 subnet_id=$(terraform -chdir="${terraform_module_directory}"  output -no-color -raw app_subnet_id | tr -d \")
 
 useSAS=$(az storage account show  --name  "${REMOTE_STATE_SA}"   --query allowSharedKeyAccess --subscription "${STATE_SUBSCRIPTION}" --out tsv)
-
+echo "useSAS = $useSAS"
 
 if [ -n "${subnet_id}" ]; then
   echo "Adding the app subnet"
