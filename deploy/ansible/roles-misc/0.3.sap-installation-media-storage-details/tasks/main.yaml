@@ -42,20 +42,6 @@
 
   when: deployer_kv_name is not defined
 
-- name:                                "0.4 Installation Media: - Check Binaries Storage Account"
-  ansible.builtin.command: >-
-                                       az storage account show        \
-                                         --name {{ account_name }}    \
-                                         --query allowSharedKeyAccess \
-                                         --out tsv
-  changed_when:                        false
-  register:                            az_allowSharedKeyAccess
-
-- name:                                "0.4 Installation Media: - Extract SAS token"
-  ansible.builtin.set_fact:
-    allowSharedKeyAccess:             "{{ az_allowSharedKeyAccess.stdout | bool }}"
-  when: az_allowSharedKeyAccess is defined
-
 - name:                                   "Parameter review..."
   ansible.builtin.debug:
     msg:                                  # Best method for formatting output with Azure Devops Logs
@@ -95,6 +81,19 @@
                                        - "account_name:                    {{ account_name }}"
     verbosity:                         2
 
+- name:                                "0.4 Installation Media: - Check Binaries Storage Account"
+  ansible.builtin.command: >-
+                                       az storage account show        \
+                                         --name {{ account_name }}    \
+                                         --query allowSharedKeyAccess \
+                                         --out tsv
+  changed_when:                        false
+  register:                            az_allowSharedKeyAccess
+
+- name:                                "0.4 Installation Media: - Extract SAS token"
+  ansible.builtin.set_fact:
+    allowSharedKeyAccess:             "{{ az_allowSharedKeyAccess.stdout | bool }}"
+  when: az_allowSharedKeyAccess is defined
 
 - name:                                "0.4 Installation Media: - Retrieve Access Key secret"
   when: sapbits_access_key is not defined
