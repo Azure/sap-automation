@@ -100,7 +100,6 @@
                                             --container-name {{ container }}
                                             --auth-mode login
                                             --name {{ sapbits_bom_files }}/archives/{{ bom_media_entry.archive }}
-                                            --file {{ result.dest }}
                                             --query name --output tsv
       delegate_to:                     localhost
       register:                        azresult
