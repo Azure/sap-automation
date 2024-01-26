@@ -4,5 +4,7 @@ Description:
   To use remote backend to deploy deployer(s).
 */
 terraform {
-  backend "azurerm" {}
+  backend "azurerm" {
+    use_azuread_auth     = true
+  }
 }
