@@ -400,6 +400,7 @@
                                           az storage blob upload
                                             --account-name {{ account }}
                                             --container-name {{ container }}
+                                            --auth-mode login
                                             --name {{ bom_media_entry.archive }}
                                             --file {{ result.dest }}
                                             --if-none-match "*"

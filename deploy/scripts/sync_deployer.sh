@@ -65,15 +65,24 @@ while :; do
     esac
 done
 
-files=$(az storage blob list --container-name tfvars --account-name "${REMOTE_STATE_SA}" --subscription "${STATE_SUBSCRIPTION}" --query "[].name" -o tsv --only-show-errors --output tsv)
+useSAS=$(az storage account show  --name  "${REMOTE_STATE_SA}"   --query allowSharedKeyAccess --out tsv)
+
+if [ $useSAS = "true" ] ; then
+  files=$(az storage blob list --container-name tfvars --account-name "${REMOTE_STATE_SA}" --subscription "${STATE_SUBSCRIPTION}" --query "[].name" -o tsv --only-show-errors --output tsv)
+else
+  files=$(az storage blob list --container-name tfvars --account-name "${REMOTE_STATE_SA}" --subscription "${STATE_SUBSCRIPTION}" --auth-mode login --query "[].name" -o tsv --only-show-errors --output tsv)
+fi
 for name in $files;
 do
     if [ -n "$name" ] ; then
         echo "Downloading file: " "$name"
         dirName=$(dirname "$name")
         mkdir -p "$dirName"
-
-        az storage blob download --container-name tfvars --account-name "${REMOTE_STATE_SA}" --subscription "${STATE_SUBSCRIPTION}"  --file "${name}" --name "${name}" --only-show-errors --output none --no-progress
+        if [ $useSAS = "true" ] ; then
+          az storage blob download --container-name tfvars --account-name "${REMOTE_STATE_SA}" --subscription "${STATE_SUBSCRIPTION}"  --file "${name}" --name "${name}" --only-show-errors --output none --no-progress
+        else
+          az storage blob download --container-name tfvars --account-name "${REMOTE_STATE_SA}" --subscription "${STATE_SUBSCRIPTION}"  --auth-mode login --file "${name}" --name "${name}" --only-show-errors --output none --no-progress
+        fi
     fi
 
 done
