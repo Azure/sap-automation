@@ -109,6 +109,15 @@
           tags:
             - is_run_with_infraCreate_only
 
+        - name:                        "SAP OS configuration playbook: - Set sapos storage account facts"
+          ansible.builtin.set_fact:
+            sapbits_sas_token:          "{{ hostvars.localhost.sapbits_sas_token }}"
+          when:
+            - not is_run_with_infraCreate_only
+            - hostvars.localhost.sapbits_sas_token is defined
+          tags:
+            - is_run_with_infraCreate_only
+
         - name:                        "SAP OS configuration playbook: - Get the IP information from instance meta data service"
           ansible.builtin.uri:
             url:                       http://169.254.169.254/metadata/instance/network/interface/0?api-version=2021-02-01
