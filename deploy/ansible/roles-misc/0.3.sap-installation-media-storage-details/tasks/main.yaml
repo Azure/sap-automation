@@ -200,7 +200,7 @@
 - name:                                 "0.0 Validations - Check required variables are present and not empty"
   when:
    - allowSharedKeyAccess is defined
-   - allowSharedKeyAccess == false
+   - allowSharedKeyAccess
   ansible.builtin.assert:
     that:
       - sapbits_sas_token is defined                    # Has the variable been defined
