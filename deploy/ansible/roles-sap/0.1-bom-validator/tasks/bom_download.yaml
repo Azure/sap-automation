@@ -90,7 +90,7 @@
 # Description:
 #
     - name:                             "{{ task_prefix }} - BOM: {{ bom_name }} Check is file {{ bom_media_entry.archive }} is already downloaded"
-          ansible.builtin.command: >-
+      ansible.builtin.command: >-
                                           az storage blob show
                                             --account-name {{ account }}
                                             --container-name {{ container }}
@@ -98,9 +98,9 @@
                                             --name {{ sapbits_bom_files }}/archives/{{ bom_media_entry.archive }}
                                             --file {{ result.dest }}
                                             --query name --output tsv
-          delegate_to:                     localhost
-          register:                        azresult
-          ignore_errors:                   true
+      delegate_to:                     localhost
+      register:                        azresult
+      ignore_errors:                   true
 
     - name:                             "{{ task_prefix }} - Informational"
       ansible.builtin.debug:
