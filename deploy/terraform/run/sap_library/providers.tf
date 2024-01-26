@@ -69,9 +69,10 @@ provider "azurerm"                     {
                                        }
 
 provider "azuread"                     {
-                                         client_id                  = local.spn.client_id
-                                         client_secret              = local.spn.client_secret
+                                         client_id                  = local.use_spn ? local.spn.client_id : null
+                                         client_secret              = local.use_spn ? local.spn.client_secret : null
                                          tenant_id                  = local.spn.tenant_id
+                                         use_msi                    = var.use_spn ? false : true
                                        }
 
 terraform                              {
