@@ -251,6 +251,7 @@ stages:
                               if [ "$USE_MSI" = "true" ]; then
                   echo  "Using MSI"
                   source /etc/profile.d/deploy_server.sh
+                  az account set --subscription $ARM_SUBSCRIPTION_ID
 
                 else
                   if [ ! -n $AZURE_CLIENT_ID ]; then
@@ -274,9 +275,8 @@ stages:
                     echo "##vso[task.logissue type=error]az login failed."
                     exit $return_code
                   fi
+                  az account set --subscription $AZURE_SUBSCRIPTION_ID
                 fi
-
-                az account set --subscription $AZURE_SUBSCRIPTION_ID
 
                 return_code=$?
                 if [ 0 != $return_code ]; then
