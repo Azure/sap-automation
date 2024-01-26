@@ -62,7 +62,6 @@
                                           - "kv_name:                         {{ kv_name }}"
                                           - "deployer_kv_name_secret:         {{ deployer_kv_name_secret }}"
                                           - "deployer_kv_name:                {{ deployer_kv_name }}"
-                                          - "account_name:                    {{ account_name }}"
     verbosity:                            2
 
 
@@ -89,6 +88,13 @@
   ansible.builtin.set_fact:
     account_name:                      "{{ sapbits_location_base_path.rpartition('//')[2].split('.')[0] }}"
   when:                                sapbits_location_base_path is defined
+
+- name:                                "Parameter review..."
+  ansible.builtin.debug:
+    msg:                               # Best method for formatting output with Azure Devops Logs
+                                       - "account_name:                    {{ account_name }}"
+    verbosity:                         2
+
 
 - name:                                "0.4 Installation Media: - Retrieve Access Key secret"
   when: sapbits_access_key is not defined
