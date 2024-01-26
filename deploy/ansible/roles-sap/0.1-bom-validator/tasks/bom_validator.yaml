@@ -148,6 +148,7 @@
     task_prefix:                        Generate SAS token block
   when:
     - sa_enabled
+    - allowSharedKeyAccess
 # Step: 04 - END
 # -------------------------------------+---------------------------------------8
 
