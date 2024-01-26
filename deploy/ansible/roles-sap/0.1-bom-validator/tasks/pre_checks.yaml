@@ -330,6 +330,19 @@
 # Step: 08 - END
 # -------------------------------------+---------------------------------------8
 
+- name:                                 "(pre_checks.yaml) - {{ task_prefix }} - Get account information"
+  ansible.builtin.command: >-
+                                        az account show
+  vars:
+    task_prefix:                        Storage Account validation
+  delegate_to:                          localhost
+  register:                             azresult
+  ignore_errors:                        true
+  changed_when:                         false
+
+- name:                                 "(pre_checks.yaml) - {{ task_prefix }} - Show account information"
+  ansible.builtin.debug:
+    var:                                azresult
 
 # -------------------------------------+---------------------------------------8
 # Step: 09
