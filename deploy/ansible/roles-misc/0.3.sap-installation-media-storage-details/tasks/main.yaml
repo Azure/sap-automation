@@ -61,7 +61,6 @@
     msg:                                  # Best method for formatting output with Azure Devops Logs
                                           - "kv_name:                         {{ kv_name }}"
                                           - "deployer_kv_name_secret:         {{ deployer_kv_name_secret }}"
-                                          - "deployer_kv_name_secret_result:  {{ deployer_kv_name_secret_result }}"
                                           - "deployer_kv_name:                {{ deployer_kv_name }}"
                                           - "account_name:                    {{ account_name }}"
     verbosity:                            2
