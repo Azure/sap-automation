@@ -403,11 +403,6 @@ variable "subnets_to_add_to_firewall_for_keyvaults_and_storage" {
                                                                   default     = []
                                                                 }
 
-variable "deployment"                           {
-                                                  description = "The type of deployment"
-                                                  default     = "update"
-                                                }
-
 #########################################################################################
 #                                                                                       #
 #  DNS settings                                                                         #
