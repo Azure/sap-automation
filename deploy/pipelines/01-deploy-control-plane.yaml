@@ -591,6 +591,7 @@ stages:
                         else
                           source /etc/profile.d/deploy_server.sh
                           export ARM_SUBSCRIPTION_ID=$ARM_SUBSCRIPTION_ID
+                          unset ARM_TENANT_ID
                         fi
                       fi
 
