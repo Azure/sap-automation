@@ -80,6 +80,57 @@
   when:
     - check_storage_account | bool
     - sa_enabled
+    - allowSharedKeyAccess
+
+- name:                                 "{{ task_prefix }} - BOM: {{ bom_name }} Check Storage Account for {{ bom_media_entry.archive }}"
+  block:
+
+# -------------------------------------+---------------------------------------8
+# Step: 03-01
+# Description:
+#
+    - name:                             "{{ task_prefix }} - BOM: {{ bom_name }} Check is file {{ bom_media_entry.archive }} is already downloaded"
+          ansible.builtin.command: >-
+                                          az storage blob show
+                                            --account-name {{ account }}
+                                            --container-name {{ container }}
+                                            --auth-mode login
+                                            --name {{ sapbits_bom_files }}/archives/{{ bom_media_entry.archive }}
+                                            --file {{ result.dest }}
+                                            --query name --output tsv
+          delegate_to:                     localhost
+          register:                        azresult
+          ignore_errors:                   true
+
+    - name:                             "{{ task_prefix }} - Informational"
+      ansible.builtin.debug:
+        var:                            azresult
+        verbosity:                      1
+# Step: 03-01 - END
+# -------------------------------------+---------------------------------------8
+
+# -------------------------------------+---------------------------------------8
+# Step: 03-02 - END
+# -------------------------------------+---------------------------------------8
+
+# -------------------------------------+---------------------------------------8
+# Step: 03-03
+# Description:
+#
+    - name:                            "{{ task_prefix }} - BOM: {{ bom_name }} Set Fact  {{ bom_media_entry.archive }}"
+      ansible.builtin.set_fact:
+        proceed:                       false
+      when:                            {{ bom_media_entry.archive == azresult.stdout }}
+# Step: 03-03 - END
+# -------------------------------------+---------------------------------------8
+
+  when:
+    - check_storage_account | bool
+    - sa_enabled
+    - not allowSharedKeyAccess
+
+
+
 # Step: 03 - END
 # -------------------------------------+---------------------------------------8
 
