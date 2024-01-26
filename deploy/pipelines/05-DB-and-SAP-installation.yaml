@@ -248,7 +248,34 @@ stages:
               echo -e "$green--- az login ---$reset"
                 # If the deployer_file exists we run on a deployer configured by the framework instead of a azdo hosted one
                 deployer_file=/etc/profile.d/deploy_server.sh
-                az login --service-principal -u $AZURE_CLIENT_ID -p=$AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID  --output none
+                              if [ "$USE_MSI" = "true" ]; then
+                  echo  "Using MSI"
+                  source /etc/profile.d/deploy_server.sh
+
+                else
+                  if [ ! -n $AZURE_CLIENT_ID ]; then
+                    echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined."
+                    exit 2
+                  fi
+
+                  if [ ! -n $AZURE_CLIENT_SECRET ]; then
+                    echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined."
+                    exit 2
+                  fi
+
+                  if [ ! -n $AZURE_TENANT_ID ]; then
+                    echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined."
+                    exit 2
+                  fi
+                  az login --service-principal --username $AZURE_CLIENT_ID --password=${AZURE_CLIENT_SECRET} --tenant $AZURE_TENANT_ID --output none
+                  return_code=$?
+                  if [ 0 != $return_code ]; then
+                    echo -e "$boldred--- Login failed ---$reset"
+                    echo "##vso[task.logissue type=error]az login failed."
+                    exit $return_code
+                  fi
+                fi
+
                 az account set --subscription $AZURE_SUBSCRIPTION_ID
 
                 return_code=$?
@@ -280,6 +307,7 @@ stages:
               SAP_SYSTEM_CONFIGURATION_NAME: ${{ parameters.sap_system_configuration_name }}
               EXTRA_PARAMETERS:              $(EXTRA_PARAMETERS)
               PIPELINE_EXTRA_PARAMETERS:     ${{ parameters.extra_params }}
+              USE_MSI:                       $(USE_MSI)
           - template:                        templates\run-ansible.yaml
             parameters:
               displayName:                   "Parameter validation"
@@ -296,6 +324,7 @@ stages:
               azureClientSecret:             $(ARM_CLIENT_SECRET)
               azureTenantId:                 $(ARM_TENANT_ID)
               azureSubscriptionId:           $(ARM_SUBSCRIPTION_ID)
+              USE_MSI:                       $(USE_MSI)
           - ${{ if eq(parameters.base_os_configuration, true) }}:
               - template:                    templates\run-ansible.yaml
                 parameters:
@@ -313,6 +342,7 @@ stages:
                   azureClientSecret:         $(ARM_CLIENT_SECRET)
                   azureTenantId:             $(ARM_TENANT_ID)
                   azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
+                  USE_MSI:                   $(USE_MSI)
           - ${{ if eq(parameters.sap_os_configuration, true) }}:
               - template:                    templates\run-ansible.yaml
                 parameters:
@@ -330,6 +360,7 @@ stages:
                   azureClientSecret:         $(ARM_CLIENT_SECRET)
                   azureTenantId:             $(ARM_TENANT_ID)
                   azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
+                  USE_MSI:                   $(USE_MSI)
           - ${{ if eq(parameters.bom_processing, true) }}:
               - template:                    templates\run-ansible.yaml
                 parameters:
@@ -347,6 +378,7 @@ stages:
                   azureClientSecret:         $(ARM_CLIENT_SECRET)
                   azureTenantId:             $(ARM_TENANT_ID)
                   azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
+                  USE_MSI:                   $(USE_MSI)
           - ${{ if eq(parameters.scs_installation, true) }}:
               - template:                    templates\run-ansible.yaml
                 parameters:
@@ -364,6 +396,7 @@ stages:
                   azureClientSecret:         $(ARM_CLIENT_SECRET)
                   azureTenantId:             $(ARM_TENANT_ID)
                   azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
+                  USE_MSI:                   $(USE_MSI)
           - ${{ if eq(parameters.database_install, true) }}:
               - template:                    templates\run-ansible.yaml
                 parameters:
@@ -381,6 +414,7 @@ stages:
                   azureClientSecret:         $(ARM_CLIENT_SECRET)
                   azureTenantId:             $(ARM_TENANT_ID)
                   azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
+                  USE_MSI:                   $(USE_MSI)
           - ${{ if eq(parameters.db_load, true) }}:
               - template:                    templates\run-ansible.yaml
                 parameters:
@@ -398,6 +432,7 @@ stages:
                   azureClientSecret:         $(ARM_CLIENT_SECRET)
                   azureTenantId:             $(ARM_TENANT_ID)
                   azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
+                  USE_MSI:                   $(USE_MSI)
           - ${{ if eq(parameters.high_availability_configuration, true) }}:
               - template:                    templates\run-ansible.yaml
                 parameters:
@@ -415,6 +450,7 @@ stages:
                   azureClientSecret:         $(ARM_CLIENT_SECRET)
                   azureTenantId:             $(ARM_TENANT_ID)
                   azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
+                  USE_MSI:                   $(USE_MSI)
           - ${{ if eq(parameters.pas_installation, true) }}:
               - template:                    templates\run-ansible.yaml
                 parameters:
@@ -432,6 +468,7 @@ stages:
                   azureClientSecret:         $(ARM_CLIENT_SECRET)
                   azureTenantId:             $(ARM_TENANT_ID)
                   azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
+                  USE_MSI:                   $(USE_MSI)
           - ${{ if eq(parameters.application_server_installation, true) }}:
               - template:                    templates\run-ansible.yaml
                 parameters:
@@ -449,6 +486,7 @@ stages:
                   azureClientSecret:         $(ARM_CLIENT_SECRET)
                   azureTenantId:             $(ARM_TENANT_ID)
                   azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
+                  USE_MSI:                   $(USE_MSI)
           - ${{ if eq(parameters.webdispatcher_installation, true) }}:
               - template:                    templates\run-ansible.yaml
                 parameters:
@@ -466,6 +504,7 @@ stages:
                   azureClientSecret:         $(ARM_CLIENT_SECRET)
                   azureTenantId:             $(ARM_TENANT_ID)
                   azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
+                  USE_MSI:                   $(USE_MSI)
           - ${{ if eq(parameters.acss_registration, true) }}:
               - template:                    templates\acss-registration.yaml
                 parameters:
@@ -485,6 +524,7 @@ stages:
                   azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
                   acssEnvironment:           ${{ parameters.acss_environment }}
                   acssSapProduct:            ${{ parameters.acss_sap_product }}
+                  USE_MSI:                   $(USE_MSI)
 
           - template:                          templates\collect-log-files.yaml
             parameters:
