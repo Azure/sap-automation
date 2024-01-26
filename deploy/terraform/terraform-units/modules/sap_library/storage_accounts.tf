@@ -34,6 +34,8 @@ resource "azurerm_storage_account" "storage_tfstate" {
 
   enable_https_traffic_only            = true
 
+  shared_access_key_enabled            = var.storage_account_sapbits.shared_access_key_enabled
+
   blob_properties {
                     delete_retention_policy {
                                               days = 7
