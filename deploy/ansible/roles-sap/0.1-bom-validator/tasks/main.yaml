@@ -333,7 +333,7 @@
       ansible.builtin.command: >-
                                           az storage blob upload-batch
                                             --account-name  {{ sapbits_location_base_path.rpartition('//')[2].split('.')[0] }}
-                                            --sas-token     {{ sapbits_sas_token }}
+                                            --auth-mode login
                                             --destination   {{ sapbits_location_base_path.rpartition('//')[2].split('/')[1] }}/{{ sapbits_bom_files }}/boms/{{ new_bom_name }}
                                             --source        {{ download_directory }}/bom/{{ new_bom_name }}
                                             --overwrite True
