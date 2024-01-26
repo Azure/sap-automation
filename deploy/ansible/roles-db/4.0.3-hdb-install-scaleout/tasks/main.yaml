@@ -315,6 +315,8 @@
     - db_high_availability | default(false) == false
     # Only allowed for the first node. No other node in the scale out - ANF setup is allowed to install hdblcm.
     - ansible_hostname == db_hosts[0]
+    - db_scale_out is defined
+    - db_scale_out == true
 
 # TODO: add block for Scale out with HSR support here, same as regular installation.
 - name:                                "HANA Install - Scale Out - HSR"
@@ -478,6 +480,8 @@
     - not hana_installed.stat.exists
     - db_high_availability is defined
     - db_high_availability == true
+    - db_scale_out is defined
+    - db_scale_out == true
 
 
 - name:                                "HANA Install status"
