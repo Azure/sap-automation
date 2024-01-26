@@ -373,7 +373,7 @@
 # Step: 05-04-01
 # Description:
 #
-        - name:                            "BOM: {{ bom_name }} Upload File {{ bom_media_entry.archive }}"
+        - name:                            "BOM: {{ bom_name }} Upload File {{ bom_media_entry.archive }} using SAS keys"
 
           ansible.builtin.command: >-
                                           az storage blob upload
