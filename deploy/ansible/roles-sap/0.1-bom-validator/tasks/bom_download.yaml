@@ -123,7 +123,7 @@
     - name:                            "{{ task_prefix }} - BOM: {{ bom_name }} Set Fact  {{ bom_media_entry.archive }}"
       ansible.builtin.set_fact:
         proceed:                       false
-      when:                            azresult.rc != 0
+      when:                            azresult.rc == 0
 # Step: 03-03 - END
 # -------------------------------------+---------------------------------------8
 
