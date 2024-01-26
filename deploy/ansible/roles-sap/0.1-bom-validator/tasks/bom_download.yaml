@@ -93,7 +93,7 @@
 # Step: 03-01
 # Description:
 #
-    - name:                             "{{ task_prefix }} - BOM: {{ bom_name }} Check is file {{ bom_media_entry.archive }} is already downloaded"
+    - name:                            "{{ task_prefix }} - BOM: {{ bom_name }} Check is file {{ bom_media_entry.archive }} is already downloaded"
       ansible.builtin.command: >-
                                           az storage blob show
                                             --account-name {{ account }}
@@ -105,10 +105,10 @@
       register:                        azresult
       ignore_errors:                   true
 
-    - name:                             "{{ task_prefix }} - Informational"
+    - name:                            "{{ task_prefix }} - Informational"
       ansible.builtin.debug:
-        var:                            azresult
-        verbosity:                      1
+        var:                           azresult
+        verbosity:                     2
 # Step: 03-01 - END
 # -------------------------------------+---------------------------------------8
 
@@ -123,7 +123,7 @@
     - name:                            "{{ task_prefix }} - BOM: {{ bom_name }} Set Fact  {{ bom_media_entry.archive }}"
       ansible.builtin.set_fact:
         proceed:                       false
-      when:                            bom_media_entry.archive == azresult.stdout
+      when:                            azresult.rc != 0
 # Step: 03-03 - END
 # -------------------------------------+---------------------------------------8
 
