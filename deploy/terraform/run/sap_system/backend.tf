@@ -4,5 +4,7 @@
 */
 
 terraform {
-  backend "azurerm" {}
+  backend "azurerm" {
+    use_azuread_auth     = true
+  }
 }
