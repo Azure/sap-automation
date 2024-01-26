@@ -16,7 +16,7 @@ data "terraform_remote_state" "deployer" {
                                            key                  = var.deployer_tfstate_key
                                            subscription_id      = local.saplib_subscription_id
                                            use_msi              = var.use_spn ? false : true
-                                           use_azuread_auth     = !var.shared_access_key_enabled
+                                           use_azuread_auth     = true
                                          }
 }
 
