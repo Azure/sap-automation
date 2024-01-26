@@ -97,7 +97,7 @@
       ansible.builtin.command: >-
                                           az storage blob show
                                             --account-name {{ account }}
-                                            --container-name {{ container }}
+                                            --container-name {{ sapbits_location_base_path.rpartition('//')[2].split('/')[1] }}
                                             --auth-mode login
                                             --name {{ sapbits_bom_files }}/archives/{{ bom_media_entry.archive }}
                                             --query name --output tsv
