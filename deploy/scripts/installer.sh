@@ -1362,7 +1362,7 @@ unset TF_DATA_DIR
 
 useSAS=$(az storage account show  --name  "${REMOTE_STATE_SA}"   --query allowSharedKeyAccess --subscription "${STATE_SUBSCRIPTION}" --out tsv)
 
-if [ $useSAS = "true" ] ; then
+if [ "$useSAS" = "true" ] ; then
   az storage blob upload --file "${parameterfile}" --container-name tfvars/"${state_path}"/"${key}" --name "${parameterfile_name}" --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}"  --no-progress --overwrite --only-show-errors --output none
 else
   az storage blob upload --file "${parameterfile}" --container-name tfvars/"${state_path}"/"${key}" --name "${parameterfile_name}" --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}"  --auth-mode login --no-progress --overwrite --only-show-errors --output none
@@ -1370,13 +1370,13 @@ fi
 
 if [ "${deployment_system}" == sap_system ] ; then
   echo "Uploading the yaml files from ${param_dirname} to the storage account"
-  if [ $useSAS = "true" ] ; then
+  if [ "$useSAS" = "true" ] ; then
     az storage blob upload --file sap-parameters.yaml --container-name tfvars/"${state_path}"/"${key}" --name sap-parameters.yaml --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}"  --no-progress --overwrite --only-show-errors --output none
   else
     az storage blob upload --file sap-parameters.yaml --container-name tfvars/"${state_path}"/"${key}" --name sap-parameters.yaml --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}"  --auth-mode login --no-progress --overwrite --only-show-errors --output none
   fi
   hosts_file=$(ls *_hosts.yaml)
-  if [ $useSAS = "true" ] ; then
+  if [ "$useSAS" = "true" ] ; then
     az storage blob upload --file "${hosts_file}" --container-name tfvars/"${state_path}"/"${key}" --name "${hosts_file}" --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}"  --no-progress --overwrite --only-show-errors --output none
   else
     az storage blob upload --file "${hosts_file}" --container-name tfvars/"${state_path}"/"${key}" --name "${hosts_file}" --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}"  --auth-mode login --no-progress --overwrite --only-show-errors --output none
@@ -1384,7 +1384,7 @@ if [ "${deployment_system}" == sap_system ] ; then
 fi
 
 if [ "${deployment_system}" == sap_landscape ] ; then
-  if [ $useSAS = "true" ] ; then
+  if [ "$useSAS" = "true" ] ; then
     az storage blob upload --file "${system_config_information}" --container-name tfvars/.sap_deployment_automation --name "${environment}${region_code}${network_logical_name}" --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}"  --no-progress --overwrite --only-show-errors --output none
   else
     az storage blob upload --file "${system_config_information}" --container-name tfvars/.sap_deployment_automation --name "${environment}${region_code}${network_logical_name}" --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}"  --auth-mode login --no-progress --overwrite --only-show-errors --output none
@@ -1392,7 +1392,7 @@ if [ "${deployment_system}" == sap_landscape ] ; then
 fi
 if [ "${deployment_system}" == sap_library ] ; then
   deployer_config_information="${automation_config_directory}"/"${environment}""${region_code}"
-  if [ $useSAS = "true" ] ; then
+  if [ "$useSAS" = "true" ] ; then
     az storage blob upload --file "${deployer_config_information}" --container-name tfvars/.sap_deployment_automation --name "${environment}${region_code}" --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}"  --no-progress --overwrite --only-show-errors --output none
   else
     az storage blob upload --file "${deployer_config_information}" --container-name tfvars/.sap_deployment_automation --name "${environment}${region_code}" --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --auth-mode login  --no-progress --overwrite --only-show-errors --output none
