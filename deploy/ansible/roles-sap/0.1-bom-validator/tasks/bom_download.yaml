@@ -35,6 +35,10 @@
 # Description:
 #
 - name:                                 "{{ task_prefix }} - BOM: {{ bom_name }} Check Storage Account for {{ bom_media_entry.archive }}"
+  when:
+    - check_storage_account | bool
+    - sa_enabled
+    - allowSharedKeyAccess
   block:
 
 # -------------------------------------+---------------------------------------8
@@ -77,12 +81,12 @@
 # Step: 03-03 - END
 # -------------------------------------+---------------------------------------8
 
+
+- name:                                 "{{ task_prefix }} - BOM: {{ bom_name }} Check Storage Account for {{ bom_media_entry.archive }}"
   when:
     - check_storage_account | bool
     - sa_enabled
-    - allowSharedKeyAccess
-
-- name:                                 "{{ task_prefix }} - BOM: {{ bom_name }} Check Storage Account for {{ bom_media_entry.archive }}"
+    - not allowSharedKeyAccess
   block:
 
 # -------------------------------------+---------------------------------------8
@@ -120,14 +124,10 @@
     - name:                            "{{ task_prefix }} - BOM: {{ bom_name }} Set Fact  {{ bom_media_entry.archive }}"
       ansible.builtin.set_fact:
         proceed:                       false
-      when:                            {{ bom_media_entry.archive == azresult.stdout }}
+      when:                            bom_media_entry.archive == azresult.stdout
 # Step: 03-03 - END
 # -------------------------------------+---------------------------------------8
 
-  when:
-    - check_storage_account | bool
-    - sa_enabled
-    - not allowSharedKeyAccess
 
 
 
