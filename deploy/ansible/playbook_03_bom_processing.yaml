@@ -66,7 +66,7 @@
         - name:                        Set facts
           ansible.builtin.set_fact:
             sapbits_sas_token:         "{{ hostvars.localhost.sapbits_sas_token }}"
-          when:                        sapbits_sas_token is defined
+          when:                        hostvars.localhost.sapbits_sas_token is defined
 
 
         - name:                        3.3-bom-processing role for Linux
