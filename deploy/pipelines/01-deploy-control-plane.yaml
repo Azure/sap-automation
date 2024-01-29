@@ -591,7 +591,7 @@ stages:
                           fi
                         else
                           source /etc/profile.d/deploy_server.sh
-                          export ARM_SUBSCRIPTION_ID=$ARM_SUBSCRIPTION_ID
+                          # export ARM_SUBSCRIPTION_ID=$ARM_SUBSCRIPTION_ID
                           unset ARM_TENANT_ID
                         fi
                       fi
@@ -665,14 +665,14 @@ stages:
                             $SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh                              \
                               --deployer_parameter_file ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/$(deployerconfig) \
                               --library_parameter_file ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/$(libraryconfig)     \
-                              --subscription $ARM_SUBSCRIPTION_ID                                                        \
+                              --subscription $STATE_SUBSCRIPTION                                                         \
                               --auto-approve --ado --msi                                                                 \
                               ${storage_account_parameter} ${keyvault_parameter}
                           else
                             $SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh                              \
                               --deployer_parameter_file ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/$(deployerconfig) \
                               --library_parameter_file ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/$(libraryconfig)     \
-                              --subscription $ARM_SUBSCRIPTION_ID --spn_id $ARM_CLIENT_ID                                \
+                              --subscription $STATE_SUBSCRIPTION  --spn_id $ARM_CLIENT_ID                                \
                               --spn_secret $ARM_CLIENT_SECRET --tenant_id $ARM_TENANT_ID                                 \
                               --auto-approve --ado                                                                       \
                               ${storage_account_parameter} ${keyvault_parameter}
