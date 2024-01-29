@@ -164,6 +164,7 @@ echo -e "#                   $cyan Starting the control plane deployment $resetf
 echo "#                                                                                       #"
 echo "#########################################################################################"
 
+az account list --query "[].{Name:name,Id:id}" --output table
 #setting the user environment variables
 if [ -n "${subscription}" ]; then
     if is_valid_guid "$subscription"; then
