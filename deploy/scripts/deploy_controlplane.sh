@@ -191,11 +191,6 @@ if [ -n "${subscription}" ]; then
     echo "#########################################################################################"
     echo ""
 
-    if [ -n "${subscription}" ];
-    then
-      az account set --subscription "${subscription}"
-    fi
-
     load_config_vars "${deployer_config_information}" "keyvault"
 
     kv_found=$(az keyvault list --subscription "${subscription}" --query [].name | grep  "${keyvault}")
