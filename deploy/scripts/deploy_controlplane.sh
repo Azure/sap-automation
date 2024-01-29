@@ -131,7 +131,6 @@ init "${automation_config_directory}" "${generic_config_information}" "${deploye
 
 if [ -n "${subscription}" ]; then
     ARM_SUBSCRIPTION_ID="${subscription}"
-    export ARM_SUBSCRIPTION_ID=$subscription
 fi
 # Check that the exports ARM_SUBSCRIPTION_ID and SAP_AUTOMATION_REPO_PATH are defined
 validate_exports
@@ -194,9 +193,11 @@ if [ -n "${subscription}" ]; then
 
     if [ -n "${subscription}" ];
     then
-      az account set --sub "${subscription}"
-      export ARM_SUBSCRIPTION_ID="${subscription}"
+      az account set --subscription "${subscription}"
     fi
+
+    load_config_vars "${deployer_config_information}" "keyvault"
+
     kv_found=$(az keyvault list --subscription "${subscription}" --query [].name | grep  "${keyvault}")
 
     if [ -z "${kv_found}" ] ; then
@@ -213,7 +214,6 @@ fi
 
 
 load_config_vars "${deployer_config_information}" "step"
-load_config_vars "${deployer_config_information}" "keyvault"
 
 if [ 0 = "${deploy_using_msi_only:-}" ]; then
   echo "Using Service Principal for deployment"
