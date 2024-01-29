@@ -425,10 +425,12 @@ stages:
                       echo -e "$green--- Variables ---$reset"
                           az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Deployer_Key_Vault.value" --output tsv)
                           if [ -n "${az_var}"  ]; then
-                              key_vault="${az_var}" ; echo 'Deployer Key Vault' ${key_vault}
+                              key_vault="${az_var}"
+                              echo -e "$cyan 'Deployer Key Vault' ${key_vault} $reset"
                           else
                               if [ -f ${deployer_environment_file_name} ] ; then
-                                  key_vault=$(cat ${deployer_environment_file_name}  | grep keyvault= | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer Key Vault' ${key_vault}
+                                  key_vault=$(cat ${deployer_environment_file_name}  | grep keyvault= | awk -F'=' '{print $2}' | xargs)
+                                  echo -e "$cyan 'Deployer Key Vault' ${key_vault} $reset"
                               fi
                           fi
 
@@ -686,13 +688,13 @@ stages:
                              echo 'Deployer State File' $file_deployer_tfstate_key
 
                              file_key_vault=$(cat ${deployer_environment_file_name} | grep keyvault= | awk -F'=' '{print $2}' | xargs)
-                             echo 'Deployer Key Vault' ${file_key_vault}
+                             echo '(File) Deployer Key Vault' ${file_key_vault}
 
                              file_REMOTE_STATE_SA=$(cat ${deployer_environment_file_name} | grep REMOTE_STATE_SA | awk -F'=' '{print $2}' | xargs)
-                             echo 'Terraform state file storage account' $file_REMOTE_STATE_SA
+                             echo '(File) Terraform state file storage account' $file_REMOTE_STATE_SA
 
                              file_REMOTE_STATE_RG=$(cat ${deployer_environment_file_name} | grep REMOTE_STATE_RG | awk -F'=' '{print $2}' | xargs)
-                             echo 'Terraform state file resource group' $file_REMOTE_STATE_RG
+                             echo '(File) Terraform state file resource group' $file_REMOTE_STATE_RG
                           fi
 
                       echo -e "$green--- Update repo ---$reset"
