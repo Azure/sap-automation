@@ -129,9 +129,6 @@ fi
 
 init "${automation_config_directory}" "${generic_config_information}" "${deployer_config_information}"
 
-if [ -n "${subscription}" ]; then
-    ARM_SUBSCRIPTION_ID="${subscription}"
-fi
 # Check that the exports ARM_SUBSCRIPTION_ID and SAP_AUTOMATION_REPO_PATH are defined
 validate_exports
 return_code=$?
@@ -191,7 +188,11 @@ if [ -n "${subscription}" ]; then
     echo "#########################################################################################"
     echo ""
 
-    load_config_vars "${deployer_config_information}" "keyvault"
+    if [ -z $keyvault ] ; then
+        load_config_vars "${deployer_config_information}" "keyvault"
+    fi
+
+
 
     kv_found=$(az keyvault list --subscription "${subscription}" --query [].name | grep  "${keyvault}")
 
