@@ -87,6 +87,7 @@ stages:
                             green="\e[1;32m"
                             reset="\e[0m"
                             boldred="\e[1;31m"
+                            cyan="\e[1;36m"
 
                             set -eu
 
@@ -561,7 +562,7 @@ stages:
 
                       else
                         if [ $USE_MSI != "true" ]; then
-                          echo "Login using SPN"
+                          echo -e "$cyan--- Using SPN ---$reset"
                           export ARM_USE_MSI=false
                           az login --service-principal --username $ARM_CLIENT_ID --password=$ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID --output none
 
@@ -573,10 +574,8 @@ stages:
                           fi
                           az account set --subscription $ARM_SUBSCRIPTION_ID
                         else
+                          echo -e "$cyan--- Using MSI ---$reset"
                           source /etc/profile.d/deploy_server.sh
-                          az logout
-                          az login --identity --output none
-                          az account set --subscription $ARM_SUBSCRIPTION_ID
                           # export ARM_SUBSCRIPTION_ID=$ARM_SUBSCRIPTION_ID
                           unset ARM_TENANT_ID
                           export ARM_USE_MSI=true
@@ -648,7 +647,7 @@ stages:
                           sudo chmod +x $SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh
 
                           if [ "$USE_MSI" = "true" ]; then
-                            echo  "Using MSI"
+                            echo -e "$cyan--- Using MSI ---$reset"
                             $SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh                              \
                               --deployer_parameter_file ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/$(deployerconfig) \
                               --library_parameter_file ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/$(libraryconfig)     \
