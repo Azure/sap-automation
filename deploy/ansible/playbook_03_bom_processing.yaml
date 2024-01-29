@@ -61,8 +61,13 @@
           ansible.builtin.set_fact:
             tier:                      preparation
             sapbits_location_base_path: "{{ hostvars.localhost.sapbits_location_base_path }}"
-            sapbits_sas_token:          "{{ hostvars.localhost.sapbits_sas_token }}"
             sa_enabled:                true
+
+        - name:                        Set facts
+          ansible.builtin.set_fact:
+            sapbits_sas_token:         "{{ hostvars.localhost.sapbits_sas_token }}"
+          when:                        hostvars.localhost.sapbits_sas_token is defined
+
 
         - name:                        3.3-bom-processing role for Linux
           become:                      true

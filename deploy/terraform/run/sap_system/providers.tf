@@ -60,6 +60,7 @@ provider "azuread"                     {
                                          client_id     = try(data.terraform_remote_state.landscape.outputs.use_spn, true) && var.use_spn ? local.spn.client_id : null
                                          client_secret = try(data.terraform_remote_state.landscape.outputs.use_spn, true) && var.use_spn ? local.spn.client_secret : null
                                          tenant_id     = local.spn.tenant_id
+                                         use_msi                    = try(data.terraform_remote_state.landscape.outputs.use_spn, true) && var.use_spn ? false : true
                                        }
 terraform                              {
                                          required_version = ">= 1.0"

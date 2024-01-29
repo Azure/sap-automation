@@ -35,6 +35,10 @@
 # Description:
 #
 - name:                                 "{{ task_prefix }} - BOM: {{ bom_name }} Check Storage Account for {{ bom_media_entry.archive }}"
+  when:
+    - check_storage_account | bool
+    - sa_enabled
+    - allowSharedKeyAccess
   block:
 
 # -------------------------------------+---------------------------------------8
@@ -77,9 +81,52 @@
 # Step: 03-03 - END
 # -------------------------------------+---------------------------------------8
 
+
+- name:                                 "{{ task_prefix }} - BOM: {{ bom_name }} Check Storage Account for {{ bom_media_entry.archive }}"
   when:
     - check_storage_account | bool
     - sa_enabled
+    - not allowSharedKeyAccess
+  block:
+
+# -------------------------------------+---------------------------------------8
+# Step: 03-01
+# Description:
+#
+    - name:                            "{{ task_prefix }} - BOM: {{ bom_name }} Check is file {{ bom_media_entry.archive }} is already downloaded"
+      ansible.builtin.command: >-
+                                          az storage blob show
+                                            --account-name {{ account }}
+                                            --container-name {{ sapbits_location_base_path.rpartition('//')[2].split('/')[1] }}
+                                            --auth-mode login
+                                            --name {{ sapbits_bom_files }}/archives/{{ bom_media_entry.archive }}
+                                            --query name --output tsv
+      delegate_to:                     localhost
+      register:                        azresult
+      ignore_errors:                   true
+
+    - name:                            "{{ task_prefix }} - Informational"
+      ansible.builtin.debug:
+        var:                           azresult
+        verbosity:                     2
+# Step: 03-01 - END
+# -------------------------------------+---------------------------------------8
+
+# -------------------------------------+---------------------------------------8
+# Step: 03-02 - END
+# -------------------------------------+---------------------------------------8
+
+# -------------------------------------+---------------------------------------8
+# Step: 03-03
+# Description:
+#
+    - name:                            "{{ task_prefix }} - BOM: {{ bom_name }} Set Fact  {{ bom_media_entry.archive }}"
+      ansible.builtin.set_fact:
+        proceed:                       false
+      when:                            azresult.rc == 0
+# Step: 03-03 - END
+# -------------------------------------+---------------------------------------8
+
 # Step: 03 - END
 # -------------------------------------+---------------------------------------8
 
@@ -373,7 +420,7 @@
 # Step: 05-04-01
 # Description:
 #
-        - name:                            "BOM: {{ bom_name }} Upload File {{ bom_media_entry.archive }}"
+        - name:                            "BOM: {{ bom_name }} Upload File {{ bom_media_entry.archive }} using SAS keys"
 
           ansible.builtin.command: >-
                                           az storage blob upload
@@ -400,6 +447,7 @@
                                           az storage blob upload
                                             --account-name {{ account }}
                                             --container-name {{ container }}
+                                            --auth-mode login
                                             --name {{ bom_media_entry.archive }}
                                             --file {{ result.dest }}
                                             --if-none-match "*"
