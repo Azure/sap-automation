@@ -397,6 +397,7 @@ stages:
                           green="\e[1;32m"
                           reset="\e[0m"
                           boldred="\e[1;31m"
+                          cyan="\e[1;36m"
 
                           ENVIRONMENT=$(echo $(deployerfolder) | awk -F'-' '{print $1}' | xargs) ; echo Environment ${ENVIRONMENT}
                           LOCATION=$(echo $(deployerfolder) | awk -F'-' '{print $2}' | xargs) ;    echo Location ${LOCATION}
