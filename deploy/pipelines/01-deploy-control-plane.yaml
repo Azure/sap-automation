@@ -125,14 +125,6 @@ stages:
                                 key_vault=$(cat ${deployer_environment_file_name} | grep keyvault= -m1 | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer Key Vault' ${key_vault}
                               fi
 
-                              # az login --service-principal --username $ARM_CLIENT_ID --password=$ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID --output none
-                              # return_code=$?
-                              # if [ 0 != $return_code ]; then
-                              #     echo -e "$boldred--- Login failed ---$reset"
-                              #     echo "##vso[task.logissue type=error]az login failed."
-                              #     exit $return_code
-                              # fi
-
                               key_vault_id=$(az resource list --name "${key_vault}"  --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
                               export TF_VAR_deployer_kv_user_arm_id=${key_vault_id}
                               if [ -n "${key_vault_id}" ]; then
@@ -208,9 +200,7 @@ stages:
                             dos2unix -q ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/$(libraryconfig)
                             echo -e "$green--- Configuring variables ---$reset"
                             deployer_environment_file_name=$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}$LOCATION
-                        echo -e "$green--- az login ---$reset"
-                            az account set --subscription $ARM_SUBSCRIPTION_ID
-                            echo -e "$green--- Deploy the Control Plane ---$reset"
+                        echo -e "$green--- Deploy the Control Plane ---$reset"
                             if [ -n "$(PAT)" ]; then
                                 echo 'Deployer Agent PAT is defined'
                             fi
@@ -234,16 +224,6 @@ stages:
 
                           if [ "$USE_WEBAPP" = "true" ]; then
                               echo "Use WebApp is selected"
-
-                              # if [ $TF_VAR_app_registration_app_id == '$(APP_REGISTRATION_APP_ID)' ]; then
-                              #     echo "##vso[task.logissue type=error]Variable APP_REGISTRATION_APP_ID was not defined."
-                              #     exit 2
-                              # fi
-
-                              # if [ -z $TF_VAR_webapp_client_secret == '$(WEB_APP_CLIENT_SECRET)' ]; then
-                              #     echo "##vso[task.logissue type=error]Variable WEB_APP_CLIENT_SECRET was not defined."
-                              #     exit 2
-                              # fi
                           fi
 
                             export TF_LOG_PATH=$CONFIG_REPO_PATH/.sap_deployment_automation/terraform.log
@@ -251,6 +231,7 @@ stages:
 
                             if [ "$USE_MSI" = "true" ]; then
                               export ARM_CLIENT_SECRET=$servicePrincipalKey
+                              export ARM_SUBSCRIPTION_ID=$servicePrincipalKey
 
                               $SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh                               \
                                 --deployer_parameter_file ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/$(deployerconfig) \
@@ -485,10 +466,9 @@ stages:
                           fi
 
                           keyvault_parameter=""
-                          if [ -n "${keyvault}" ]; then
-                              if [ "${keyvault}" != "$(Deployer_Key_Vault)" ]; then
-                                keyvault_parameter=" --vault ${keyvault} "
-                              fi
+                          az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Account_Name.value" | tr -d \")
+                          if [ -n "${az_var}"  ]; then
+                                keyvault_parameter=" --vault ${az_var} "
                           fi
 
                       echo -e "$green--- Validations ---$reset"
@@ -508,13 +488,14 @@ stages:
                                   echo "REMOTE_STATE_SA="${az_var}
                                   echo "REMOTE_STATE_SA="${az_var} | tee -a  $deployer_environment_file_name > /dev/null
                                   echo "STATE_SUBSCRIPTION="$ARM_SUBSCRIPTION_ID | tee -a  $deployer_environment_file_name > /dev/null
-                                  echo "step=3" | tee -a  $deployer_environment_file_name > /dev/null
                               fi
 
                               az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Resource_Group_Name.value")
                               if [[ ${#az_var} -ne 0 ]]; then
                                   echo "REMOTE_STATE_RG="${az_var}
                                   echo "REMOTE_STATE_RG="${az_var} | tee -a  $deployer_environment_file_name > /dev/null
+                                  echo "step=3" | tee -a  $deployer_environment_file_name > /dev/null
+
                               fi
 
                               az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Deployer_State_FileName.value")
@@ -583,12 +564,14 @@ stages:
                           echo "Login using SPN"
                           export ARM_USE_MSI=false
                           az login --service-principal --username $ARM_CLIENT_ID --password=$ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID --output none
+
                           return_code=$?
                           if [ 0 != $return_code ]; then
                               echo -e "$boldred--- Login failed ---$reset"
                               echo "##vso[task.logissue type=error]az login failed."
                               exit $return_code
                           fi
+                          az account set --subscription $ARM_SUBSCRIPTION_ID
                         else
                           source /etc/profile.d/deploy_server.sh
                           # export ARM_SUBSCRIPTION_ID=$ARM_SUBSCRIPTION_ID
