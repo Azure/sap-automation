@@ -403,6 +403,13 @@ variable "subnets_to_add_to_firewall_for_keyvaults_and_storage" {
                                                                   default     = []
                                                                 }
 
+variable "shared_access_key_enabled"            {
+                                                  description = "Indicates whether the storage account permits requests to be authorized with the account access key via Shared Key."
+                                                  default     = true
+                                                  type        = bool
+                                                }
+
+
 #########################################################################################
 #                                                                                       #
 #  DNS settings                                                                         #

@@ -101,11 +101,19 @@
         - name:                        "SAP OS configuration playbook: - Set sapos storage account facts"
           ansible.builtin.set_fact:
             sapbits_location_base_path: "{{ hostvars.localhost.sapbits_location_base_path }}"
-            sapbits_sas_token:          "{{ hostvars.localhost.sapbits_sas_token }}"
             sa_enabled:                 true
           when:
             - not is_run_with_infraCreate_only
             - hostvars.localhost.sapbits_location_base_path is defined
+          tags:
+            - is_run_with_infraCreate_only
+
+        - name:                        "SAP OS configuration playbook: - Set sapos storage account facts"
+          ansible.builtin.set_fact:
+            sapbits_sas_token:          "{{ hostvars.localhost.sapbits_sas_token }}"
+          when:
+            - not is_run_with_infraCreate_only
+            - hostvars.localhost.sapbits_sas_token is defined
           tags:
             - is_run_with_infraCreate_only
 

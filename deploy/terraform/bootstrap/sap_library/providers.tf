@@ -25,6 +25,7 @@ provider "azurerm"                     {
 
                                                   }
                                          skip_provider_registration = true
+                                         storage_use_azuread        = true
                                        }
 
 provider "azurerm"                     {
@@ -42,6 +43,7 @@ provider "azurerm"                     {
 
                                          alias                      = "main"
                                          skip_provider_registration = true
+                                         storage_use_azuread        = true
                                        }
 
 
@@ -50,6 +52,7 @@ provider "azurerm"                     {
                                                   }
                                          alias                      = "deployer"
                                          skip_provider_registration = true
+                                         storage_use_azuread        = true
                                        }
 
 provider "azurerm"                     {
@@ -60,6 +63,7 @@ provider "azurerm"                     {
                                          tenant_id                  = local.use_spn ? local.spn.tenant_id : null
                                          alias                      = "dnsmanagement"
                                          skip_provider_registration = true
+                                         storage_use_azuread        = true
                                        }
 
 provider "azuread"                     {

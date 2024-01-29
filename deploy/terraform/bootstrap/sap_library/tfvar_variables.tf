@@ -200,6 +200,13 @@ variable "short_named_endpoints_nics"           {
                                                    default     = false
                                                  }
 
+variable "shared_access_key_enabled"            {
+                                                  description = "Indicates whether the storage account permits requests to be authorized with the account access key via Shared Key."
+                                                  default     = true
+                                                  type        = bool
+                                                }
+
+
 
 #########################################################################################
 #                                                                                       #
@@ -210,6 +217,12 @@ variable "short_named_endpoints_nics"           {
 variable "spn_keyvault_id"                      {
                                                   description = "Azure resource identifier for the keyvault where the spn will be stored"
                                                   default = ""
+                                                }
+
+variable "shared_access_key_enabled"            {
+                                                  description = "Indicates whether the storage account permits requests to be authorized with the account access key via Shared Key."
+                                                  default     = true
+                                                  type        = bool
                                                 }
 
 

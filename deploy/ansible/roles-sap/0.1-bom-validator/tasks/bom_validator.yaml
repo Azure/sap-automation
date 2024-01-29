@@ -109,7 +109,7 @@
 # Step: 04-02
 # Description:
 #
-    - name:                             "{{ task_prefix }} - Caculate expiration date (+3 Days)"
+    - name:                             "{{ task_prefix }} - Calculate expiration date (+3 Days)"
       ansible.builtin.set_fact:
         expiry:                         "{{ '%Y-%m-%d' | strftime((ansible_date_time.epoch | int) + (86400 * 3)) }}"
 # Step: 04-02 - END
@@ -148,6 +148,7 @@
     task_prefix:                        Generate SAS token block
   when:
     - sa_enabled
+    - allowSharedKeyAccess
 # Step: 04 - END
 # -------------------------------------+---------------------------------------8
 

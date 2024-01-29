@@ -87,6 +87,7 @@ resource "azurerm_storage_account" "deployer" {
   enable_https_traffic_only            = local.enable_secure_transfer
   min_tls_version                      = "TLS1_2"
   allow_nested_items_to_be_public      = false
+  shared_access_key_enabled            = var.deployer.shared_access_key_enabled
 }
 
 data "azurerm_storage_account" "deployer" {
