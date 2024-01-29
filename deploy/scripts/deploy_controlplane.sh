@@ -206,18 +206,28 @@ if [ -n "${subscription}" ]; then
         load_config_vars "${deployer_config_information}" "keyvault"
     fi
 
+    if [ -n $keyvault ] ; then
 
 
-    kv_found=$(az keyvault list --subscription "${subscription}" --query [].name | grep  "${keyvault}")
+      kv_found=$(az keyvault list --subscription "${subscription}" --query [].name | grep  "${keyvault}")
 
-    if [ -z "${kv_found}" ] ; then
-        echo "#########################################################################################"
-        echo "#                                                                                       #"
-     echo -e "#                            $boldred  Detected a failed deployment $resetformatting                            #"
-        echo "#                                                                                       #"
-        echo "#########################################################################################"
-        step=0
+      if [ -z "${kv_found}" ] ; then
+          echo "#########################################################################################"
+          echo "#                                                                                       #"
+          echo -e "#                            $boldred  Detected a failed deployment $resetformatting                            #"
+          echo "#                                                                                       #"
+          echo -e "#                                  $cyan Trying to recover $resetformatting                                  #"
+          echo "#                                                                                       #"
+          echo "#########################################################################################"
+          step=0
+          save_config_var "step" "${deployer_config_information}"
+      fi
+    else
+      step=0
+      save_config_var "step" "${deployer_config_information}"
+
     fi
+
 
 
 fi
