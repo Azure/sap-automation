@@ -228,7 +228,7 @@ stages:
                             if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip ]; then
                                 deployer_random_id=$(cat ${deployer_environment_file_name} | grep deployer_random_id= | awk -F'=' '{print $2}' | xargs)
 
-                                pass=$(echo $deployer_random_id | sed 's/-//g')
+                                pass=$(echo $DEPLOYER_RANDOM_ID_SEED | sed 's/-//g')
                                 unzip -qq -o -P "${pass}" ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip -d ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)
                             fi
 
@@ -361,6 +361,7 @@ stages:
                       ARM_TENANT_ID:                  $(CP_ARM_TENANT_ID)
                       AZURE_DEVOPS_EXT_PAT:           $(PAT)
                       CONFIG_REPO_PATH:               ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
+                      DEPLOYER_RANDOM_ID_SEED:        $(DEPLOYER_RANDOM_ID_SEED)
                       DEPLOYER_TFSTATE_KEY:           "${{ parameters.deployer }}.terraform.tfstate"
                       IS_PIPELINE_DEPLOYMENT:         true
                       POOL:                           $(POOL)
