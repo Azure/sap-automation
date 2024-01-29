@@ -233,7 +233,6 @@ resource "azurerm_linux_virtual_machine" "dbserver" {
   lifecycle {
     ignore_changes = [
       // Ignore changes to computername
-      tags,
       computer_name
     ]
   }

@@ -27,22 +27,9 @@
                                        directory='{{ profile_directory }}' fstype='nfs' options='sec=sys,vers=4.1' \
                                        op start timeout="{{ cluster_sap_scs_timeouts.start }}" interval=0 \
                                        op stop timeout="{{ cluster_sap_scs_timeouts.stop }}"  interval=0 \
-                                       op monitor interval="20s" timeout="40s"
+                                       op monitor interval=200 timeout={{ clus_fs_mon_timeout | int }}
       register:                        ascs_fs_resource
       failed_when:                     ascs_fs_resource.rc > 1
-      when:                            NFS_version == "NFSv3"
-
-    - name:                            "5.6 SCSERS - SUSE - SCS - Configure File system resources"
-      ansible.builtin.command: >
-                                       crm configure primitive fs_{{ sap_sid | upper }}_{{ instance_type | upper }} Filesystem \
-                                       device='{{ ascs_filesystem_device }}' \
-                                       directory='{{ profile_directory }}' fstype='nfs' options='sec=sys,vers=4.1' \
-                                       op start timeout="{{ cluster_sap_scs_timeouts.start }}" interval=0 \
-                                       op stop timeout="{{ cluster_sap_scs_timeouts.stop }}"  interval=0 \
-                                       op monitor interval="20s" timeout="105s"
-      register:                        ascs_fs_resource
-      failed_when:                     ascs_fs_resource.rc > 1
-      when:                            NFS_version == "NFSv4.1"
 
     - name:                            "5.6 SCSERS - SUSE - SCS - Create ASCS VIP - This is LB frontend ASCS/SCS IP"
       ansible.builtin.command: >
@@ -185,22 +172,9 @@
                                        directory='/usr/sap/{{ sap_sid | upper }}/ERS{{ ers_instance_number }}' fstype='nfs' options='sec=sys,vers=4.1' \
                                        op start timeout="{{ cluster_sap_scs_timeouts.start }}" interval=0 \
                                        op stop timeout="{{ cluster_sap_scs_timeouts.stop }}"  interval=0 \
-                                       op monitor interval="20s" timeout="40s"
+                                       op monitor interval=200 timeout={{ clus_fs_mon_timeout | int }}
       register:                        ers_fs_resource
       failed_when:                     ers_fs_resource.rc > 1
-      when:                            NFS_version == "NFSv3"
-
-    - name:                            "5.6 SCSERS - SUSE - ERS - Configure File system resources"
-      ansible.builtin.command: >
-                                       crm configure primitive fs_{{ sap_sid | upper }}_ERS Filesystem \
-                                       device='{{ ers_filesystem_device }}' \
-                                       directory='/usr/sap/{{ sap_sid | upper }}/ERS{{ ers_instance_number }}' fstype='nfs' options='sec=sys,vers=4.1' \
-                                       op start timeout="{{ cluster_sap_scs_timeouts.start }}" interval=0 \
-                                       op stop timeout="{{ cluster_sap_scs_timeouts.stop }}"  interval=0 \
-                                       op monitor interval="20s" timeout="105s"
-      register:                        ers_fs_resource
-      failed_when:                     ers_fs_resource.rc > 1
-      when:                            NFS_version == "NFSv4.1"
 
     - name:                            "5.6 SCSERS - SUSE - ERS - Create ERS VIP - This is LB frontend ERS IP"
       ansible.builtin.command: >

@@ -5,8 +5,8 @@
   block:
     - name:                            " DB2 Primary DB - Set Fact for hadr local host and remote host "
       ansible.builtin.set_fact:
-        db_hadr_local_host:            "{{ primary_instance_name }}.{{ sap_fqdn }}"
-        db_hadr_remote_host:           "{{ secondary_instance_name }}.{{ sap_fqdn }}"
+        db_hadr_local_host:            "{{ hostvars[primary_instance_name]['virtual_host'] }}.{{ sap_fqdn }}"
+        db_hadr_remote_host:           "{{ hostvars[secondary_instance_name]['virtual_host'] }}.{{ sap_fqdn }}"
 
     - name:                            "DB2 Primary DB- Switch user to db2<db_sid>"
       ansible.builtin.shell:           whoami
@@ -54,6 +54,7 @@
             db2 update db cfg for {{ db_sid }} using HADR_REMOTE_HOST {{ db_hadr_remote_host }} immediate
             db2 update db cfg for {{ db_sid }} using HADR_REMOTE_SVC {{ db_sid | upper }}_HADR_2 immediate
             db2 update db cfg for {{ db_sid }} using HADR_REMOTE_INST db2{{ db_sid | lower }} immediate
+            db2 update db cfg for {{ db_sid }} using HADR_SSL_LABEL {{ db2_ssl_label }}
             db2 update db cfg for {{ db_sid }} using HADR_TIMEOUT 60 immediate
             db2 update db cfg for {{ db_sid }} using HADR_SYNCMODE NEARSYNC immediate
             db2 update db cfg for {{ db_sid }} using HADR_SPOOL_LIMIT 1000 immediate
@@ -80,6 +81,7 @@
             db2 update db cfg for {{ db_sid }} using HADR_REMOTE_HOST {{ db_hadr_remote_host }} immediate
             db2 update db cfg for {{ db_sid }} using HADR_REMOTE_SVC {{ db_sid | upper }}_HADR_2 immediate
             db2 update db cfg for {{ db_sid }} using HADR_REMOTE_INST db2{{ db_sid | lower }} immediate
+            db2 update db cfg for {{ db_sid }} using HADR_SSL_LABEL {{ db2_ssl_label }}
             db2 update db cfg for {{ db_sid }} using HADR_TIMEOUT 45 immediate
             db2 update db cfg for {{ db_sid }} using HADR_SYNCMODE NEARSYNC immediate
             db2 update db cfg for {{ db_sid }} using HADR_SPOOL_LIMIT 1000 immediate
@@ -106,8 +108,8 @@
   block:
     - name:                            " DB2 Secondary DB - Set Fact for hadr local host and remote host "
       ansible.builtin.set_fact:
-        db_hadr_local_host:            "{{ secondary_instance_name }}.{{ sap_fqdn }}"
-        db_hadr_remote_host:           "{{ primary_instance_name }}.{{ sap_fqdn }}"
+        db_hadr_local_host:            "{{ hostvars[secondary_instance_name]['virtual_host'] }}.{{ sap_fqdn }}"
+        db_hadr_remote_host:           "{{ hostvars[primary_instance_name]['virtual_host'] }}.{{ sap_fqdn }}"
 
     - name:                            "DB2 Secondary DB- Switch user to db2<db_sid>"
       ansible.builtin.shell:           whoami
@@ -127,7 +129,7 @@
       failed_when:                      false
       changed_when:                     false
 
-    - name:                           "DB2  Secondary: Print return information from the Secondary db2status"
+    - name:                            "DB2 Secondary: Print return information from the Secondary db2status"
       ansible.builtin.debug:
         msg:                           "Result: {{ secdb2status.stdout }}"
 
@@ -155,6 +157,7 @@
             db2 update db cfg for {{ db_sid }} using HADR_REMOTE_HOST {{ db_hadr_remote_host }} immediate
             db2 update db cfg for {{ db_sid }} using HADR_REMOTE_SVC {{ db_sid | upper }}_HADR_1 immediate
             db2 update db cfg for {{ db_sid }} using HADR_REMOTE_INST db2{{ db_sid | lower }} immediate
+            db2 update db cfg for {{ db_sid }} using HADR_SSL_LABEL {{ db2_ssl_label }}
             db2 update db cfg for {{ db_sid }} using HADR_TIMEOUT 60 immediate
             db2 update db cfg for {{ db_sid }} using HADR_SYNCMODE NEARSYNC immediate
             db2 update db cfg for {{ db_sid }} using HADR_SPOOL_LIMIT 1000 immediate
@@ -181,6 +184,7 @@
             db2 update db cfg for {{ db_sid }} using HADR_REMOTE_HOST {{ db_hadr_remote_host }} immediate
             db2 update db cfg for {{ db_sid }} using HADR_REMOTE_SVC {{ db_sid | upper }}_HADR_1 immediate
             db2 update db cfg for {{ db_sid }} using HADR_REMOTE_INST db2{{ db_sid | lower }} immediate
+            db2 update db cfg for {{ db_sid }} using HADR_SSL_LABEL {{ db2_ssl_label }}
             db2 update db cfg for {{ db_sid }} using HADR_TIMEOUT 45 immediate
             db2 update db cfg for {{ db_sid }} using HADR_SYNCMODE NEARSYNC immediate
             db2 update db cfg for {{ db_sid }} using HADR_SPOOL_LIMIT 1000 immediate

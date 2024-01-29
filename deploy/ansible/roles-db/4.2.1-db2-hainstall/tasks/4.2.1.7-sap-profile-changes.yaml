@@ -46,7 +46,7 @@
     - name:                            "4.2.1.7 - SAP db2cli.ini profile changes "
       ansible.builtin.lineinfile:
         path:                          /sapmnt/{{ sap_sid | upper }}/global/db6/db2cli.ini
-        line:                          Hostname = {{ custom_db_virtual_hostname | default(db_virtual_hostname, true) }}
+        line:                          Hostname={{ custom_db_virtual_hostname | default(db_virtual_hostname, true) }}
         insertafter:                   '#Hostname'
       tags:
         - virtdbhostpara
