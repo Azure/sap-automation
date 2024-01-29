@@ -164,6 +164,19 @@ echo -e "#                   $cyan Starting the control plane deployment $resetf
 echo "#                                                                                       #"
 echo "#########################################################################################"
 
+noAccess=$( az account show --query name | grep  "N/A(tenant level account)")
+
+if [ -n "$noAccess" ]; then
+  echo "#########################################################################################"
+  echo "#                                                                                       #"
+  echo -e "#        $boldred The provided credentials do not have access to the subscription!!! $resetformatting           #"
+  echo "#                                                                                       #"
+  echo "#########################################################################################"
+
+  az account show --output table
+
+  exit 65
+fi
 az account list --query "[].{Name:name,Id:id}" --output table
 #setting the user environment variables
 if [ -n "${subscription}" ]; then
