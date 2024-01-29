@@ -118,7 +118,7 @@ stages:
                               sed -i 's/step=3/step=0/' $deployer_environment_file_name
 
                               export FORCE_RESET=true
-                              az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Deployer_Key_Vault.value" | tr -d \")
+                              az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Deployer_Key_Vault.value"  --output tsv)
                               if [ -n "${az_var}" ]; then
                                 key_vault="${az_var}" ; echo 'Deployer Key Vault' ${key_vault}
                               else
@@ -232,7 +232,7 @@ stages:
 
                             if [ "$USE_MSI" = "true" ]; then
                               export ARM_CLIENT_SECRET=$servicePrincipalKey
-                              export ARM_SUBSCRIPTION_ID=$servicePrincipalKey
+                              export ARM_SUBSCRIPTION_ID=$ARM_SUBSCRIPTION_ID
 
                               $SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh                               \
                                 --deployer_parameter_file ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/$(deployerconfig) \
@@ -397,6 +397,7 @@ stages:
                           green="\e[1;32m"
                           reset="\e[0m"
                           boldred="\e[1;31m"
+                          cyan="\e[1;36m"
 
                           ENVIRONMENT=$(echo $(deployerfolder) | awk -F'-' '{print $1}' | xargs) ; echo Environment ${ENVIRONMENT}
                           LOCATION=$(echo $(deployerfolder) | awk -F'-' '{print $2}' | xargs) ;    echo Location ${LOCATION}
@@ -422,16 +423,18 @@ stages:
                               exit 2
                           fi
                       echo -e "$green--- Variables ---$reset"
-                          az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Deployer_Key_Vault.value" | tr -d \")
+                          az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Deployer_Key_Vault.value" --output tsv)
                           if [ -n "${az_var}"  ]; then
-                              key_vault="${az_var}" ; echo 'Deployer Key Vault' ${key_vault}
+                              key_vault="${az_var}"
+                              echo -e "$cyan 'Deployer Key Vault' ${key_vault} $reset"
                           else
                               if [ -f ${deployer_environment_file_name} ] ; then
-                                  key_vault=$(cat ${deployer_environment_file_name}  | grep keyvault= | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer Key Vault' ${key_vault}
+                                  key_vault=$(cat ${deployer_environment_file_name}  | grep keyvault= | awk -F'=' '{print $2}' | xargs)
+                                  echo -e "$cyan 'Deployer Key Vault' ${key_vault} $reset"
                               fi
                           fi
 
-                          az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Subscription.value" | tr -d \")
+                          az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Subscription.value"  --output tsv)
                           if [ -n "${az_var}"  ]; then
                               STATE_SUBSCRIPTION="${az_var}"  ; echo 'Terraform state file subscription' $STATE_SUBSCRIPTION
                           else
@@ -440,7 +443,7 @@ stages:
                               fi
                           fi
 
-                          az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "DEPLOYER_RANDOM_ID_SEED.value" | tr -d \")
+                          az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "DEPLOYER_RANDOM_ID_SEED.value"  --output tsv)
                           if [ -n "${az_var}"  ]; then
                               deployer_random_id="${az_var}"
                           else
@@ -449,7 +452,7 @@ stages:
                               fi
                           fi
 
-                          az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Account_Name.value" | tr -d \")
+                          az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Account_Name.value"  --output tsv)
                           if [ -n "${az_var}"  ]; then
                               REMOTE_STATE_SA="${az_var}"  ; echo 'Terraform state file storage account' $REMOTE_STATE_SA
                           else
@@ -467,9 +470,8 @@ stages:
                           fi
 
                           keyvault_parameter=""
-                          az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Account_Name.value" | tr -d \")
-                          if [ -n "${az_var}"  ]; then
-                                keyvault_parameter=" --vault ${az_var} "
+                          if [ -n "${key_vault}"  ]; then
+                                keyvault_parameter=" --vault ${key_vault} "
                           fi
 
                       echo -e "$green--- Validations ---$reset"
@@ -686,13 +688,13 @@ stages:
                              echo 'Deployer State File' $file_deployer_tfstate_key
 
                              file_key_vault=$(cat ${deployer_environment_file_name} | grep keyvault= | awk -F'=' '{print $2}' | xargs)
-                             echo 'Deployer Key Vault' ${file_key_vault}
+                             echo '(File) Deployer Key Vault' ${file_key_vault}
 
                              file_REMOTE_STATE_SA=$(cat ${deployer_environment_file_name} | grep REMOTE_STATE_SA | awk -F'=' '{print $2}' | xargs)
-                             echo 'Terraform state file storage account' $file_REMOTE_STATE_SA
+                             echo '(File) Terraform state file storage account' $file_REMOTE_STATE_SA
 
                              file_REMOTE_STATE_RG=$(cat ${deployer_environment_file_name} | grep REMOTE_STATE_RG | awk -F'=' '{print $2}' | xargs)
-                             echo 'Terraform state file resource group' $file_REMOTE_STATE_RG
+                             echo '(File) Terraform state file resource group' $file_REMOTE_STATE_RG
                           fi
 
                       echo -e "$green--- Update repo ---$reset"
@@ -841,7 +843,6 @@ stages:
                       DEPLOYER_RANDOM_ID_SEED:        $(DEPLOYER_RANDOM_ID_SEED)
                       DEPLOYER_TFSTATE_KEY:           "${{ parameters.deployer }}.terraform.tfstate"
                       IS_PIPELINE_DEPLOYMENT:         true
-                      keyvault:                       $(Deployer_Key_Vault)
                       LOGON_USING_SPN:                $(Logon_Using_SPN)
                       POOL:                           $(POOL)
                       SAP_AUTOMATION_REPO_PATH:       ${{ parameters.sap_automation_repo_path }}

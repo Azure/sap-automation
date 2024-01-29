@@ -129,9 +129,6 @@ fi
 
 init "${automation_config_directory}" "${generic_config_information}" "${deployer_config_information}"
 
-if [ -n "${subscription}" ]; then
-    ARM_SUBSCRIPTION_ID="${subscription}"
-fi
 # Check that the exports ARM_SUBSCRIPTION_ID and SAP_AUTOMATION_REPO_PATH are defined
 validate_exports
 return_code=$?
@@ -167,6 +164,20 @@ echo -e "#                   $cyan Starting the control plane deployment $resetf
 echo "#                                                                                       #"
 echo "#########################################################################################"
 
+noAccess=$( az account show --query name | grep  "N/A(tenant level account)")
+
+if [ -n "$noAccess" ]; then
+  echo "#########################################################################################"
+  echo "#                                                                                       #"
+  echo -e "#        $boldred The provided credentials do not have access to the subscription!!! $resetformatting           #"
+  echo "#                                                                                       #"
+  echo "#########################################################################################"
+
+  az account show --output table
+
+  exit 65
+fi
+az account list --query "[].{Name:name,Id:id}" --output table
 #setting the user environment variables
 if [ -n "${subscription}" ]; then
     if is_valid_guid "$subscription"; then
@@ -191,18 +202,32 @@ if [ -n "${subscription}" ]; then
     echo "#########################################################################################"
     echo ""
 
-    load_config_vars "${deployer_config_information}" "keyvault"
-
-    kv_found=$(az keyvault list --subscription "${subscription}" --query [].name | grep  "${keyvault}")
-
-    if [ -z "${kv_found}" ] ; then
-        echo "#########################################################################################"
-        echo "#                                                                                       #"
-     echo -e "#                            $boldred  Detected a failed deployment $resetformatting                            #"
-        echo "#                                                                                       #"
-        echo "#########################################################################################"
-        step=0
+    if [ -z $keyvault ] ; then
+        load_config_vars "${deployer_config_information}" "keyvault"
     fi
+
+    if [ -n $keyvault ] ; then
+
+
+      kv_found=$(az keyvault list --subscription "${subscription}" --query [].name | grep  "${keyvault}")
+
+      if [ -z "${kv_found}" ] ; then
+          echo "#########################################################################################"
+          echo "#                                                                                       #"
+          echo -e "#                            $boldred  Detected a failed deployment $resetformatting                            #"
+          echo "#                                                                                       #"
+          echo -e "#                                  $cyan Trying to recover $resetformatting                                  #"
+          echo "#                                                                                       #"
+          echo "#########################################################################################"
+          step=0
+          save_config_var "step" "${deployer_config_information}"
+      fi
+    else
+      step=0
+      save_config_var "step" "${deployer_config_information}"
+
+    fi
+
 
 
 fi
