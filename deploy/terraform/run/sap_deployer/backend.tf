@@ -5,6 +5,6 @@ Description:
 */
 terraform {
   backend "azurerm" {
-    use_azuread_auth     = true
+    use_azuread_auth     =  !var.shared_access_key_enabled
   }
 }
