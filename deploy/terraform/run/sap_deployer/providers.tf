@@ -27,7 +27,7 @@ provider "azurerm"                     {
                                                   }
                                          partner_id                 = "f94f50f2-2539-42f8-9c8e-c65b28c681f7"
                                          skip_provider_registration = true
-                                         storage_use_azuread        = true
+                                         storage_use_azuread        = !var.shared_access_key_enabled
                                          use_msi                    = var.use_spn ? false : true
                                        }
 
@@ -52,7 +52,7 @@ provider "azurerm"                     {
                                          tenant_id                  = var.use_spn ? local.spn.tenant_id: null
                                          use_msi                    = var.use_spn ? false : true
                                          alias                      = "main"
-                                         storage_use_azuread        = true
+                                         storage_use_azuread        = !var.shared_access_key_enabled
                                        }
 
 provider "azurerm"                     {
@@ -63,7 +63,7 @@ provider "azurerm"                     {
                                          client_secret              = var.use_spn ? local.spn.client_secret: null
                                          tenant_id                  = var.use_spn ? local.spn.tenant_id: null
                                          skip_provider_registration = true
-                                         storage_use_azuread        = true
+                                         storage_use_azuread        = !var.shared_access_key_enabled
                                          use_msi                    = var.use_spn ? false : true
                                        }
 
