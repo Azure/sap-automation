@@ -17,7 +17,6 @@ data "terraform_remote_state" "deployer"             {
                                                                          key                  = var.deployer_tfstate_key
                                                                          subscription_id      = local.saplib_subscription_id
                                                                          use_msi              = var.use_spn ? false : true
-                                                                         use_azuread_auth     = true
                                                                        }
 }
 
@@ -30,7 +29,6 @@ data "terraform_remote_state" "landscape"            {
                                                                          key                  = var.landscape_tfstate_key
                                                                          subscription_id      = local.saplib_subscription_id
                                                                          use_msi              = var.use_spn ? false : true
-                                                                         use_azuread_auth     = true
                                                                        }
                                                      }
 
