@@ -395,14 +395,12 @@
 # -------------------------------------+---------------------------------------8
 
           when:
-            - bom_media_entry.checksum | bool
+            - create_checksums is defined
 # Step: 05-03-03 - END
 # -------------------------------------+---------------------------------------8
 
       when:
-        # - bom_media_entry.checksum is not defined
-        # - create_checksums is defined
-        - (bom_media_entry.checksum is not defined and create_checksums is defined) or (bom_media_entry.checksum | bool)
+        - bom_media_entry.checksum is not defined
 # Step: 05-03 - END
 # -------------------------------------+---------------------------------------8
 
