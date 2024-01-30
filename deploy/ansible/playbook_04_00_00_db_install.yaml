@@ -92,7 +92,7 @@
         verbosity:                 4
       when:
         - hostvars.localhost.root_password is defined
-      
+
 
 # /*----------------------------------------------------------------------------8
 # |                                                                            |
@@ -119,7 +119,7 @@
             name:                          root
             update_password:               always
             password:                      "{{ hostvars.localhost.root_password | password_hash('sha512') }}"
-    
+
         - name:                            Enable {{ item.key }} in /etc/ssh/sshd_config
           become:                          true
           lineinfile:
@@ -131,7 +131,7 @@
             - { key: "PermitRootLogin", value: "yes" }
             - { key: "PasswordAuthentication", value: "yes" }
             - { key: "ChallengeResponseAuthentication", value: "yes" }
-          
+
         - name:                            "Restart SSHD on {{ ansible_hostname }}"
           become:                          true
           service:
@@ -167,7 +167,7 @@
 
     - name:                            "Database Installation Playbook: - Install HANA"
       become:                          true
-      when: 
+      when:
         - node_tier == 'hana'
       block:
         - name:                        "Database Installation Playbook: - Setting the DB facts"
@@ -200,7 +200,13 @@
                 name:                  roles-db/4.0.0-hdb-install
               when:
                 - db_scale_out | default(false) == false
-            
+
+            - name:                    "Database installation Playbook: - run HANA Scale-Out installation"
+              ansible.builtin.include_role:
+                name:                   roles-sap-os/2.6-sap-mounts/tasks/main.yaml
+              when:
+                - db_scale_out | default(false) == true
+
             - name:                    "Database Installation Playbook: - run HANA Scale-Out installation"
               ansible.builtin.include_role:
                 name:                  roles-db/4.0.3-hdb-install-scaleout

@@ -743,7 +743,7 @@
 # |                   Scale out + ANF                                          |
 # +------------------------------------4--------------------------------------*/
 
-# FOR ANF mount on SLES and RHEl, the below tasks replicate the steps in the link https://learn.microsoft.com/en-us/azure/sap/workloads/sap-hana-scale-out-standby-netapp-files-suse#mount-the-azure-netapp-files-volumes 
+# FOR ANF mount on SLES and RHEl, the below tasks replicate the steps in the link https://learn.microsoft.com/en-us/azure/sap/workloads/sap-hana-scale-out-standby-netapp-files-suse#mount-the-azure-netapp-files-volumes
 # Mount the HANA shared on to the temp path
 
 - name:                                "ANF Mount: Scale Out - Create SAP Directories (usrsap)"
@@ -852,8 +852,8 @@
       loop_control:
         index_var: my_index
       # Note the object structure and specific key:pair value. Do not modify those hard coded.
-      vars: 
-        dataupdate: 
+      vars:
+        dataupdate:
           - { type: 'data',
               temppath: 'hanadata',
               folder:  'hanadata',
@@ -863,7 +863,7 @@
               permissions:       '0775',
               set_chattr_on_dir: false,
               target_nodes:      ['hana'],
-              create_temp_folders: 'true' 
+              create_temp_folders: 'true'
             }
   when:
     - node_tier == 'hana'
@@ -906,8 +906,8 @@
       loop_control:
         index_var: my_index
       # Note the object structure and specific key:pair value. Do not modify those hard coded.
-      vars: 
-        logupdate: 
+      vars:
+        logupdate:
           - { type: 'log',
               temppath: 'hanalog',
               folder:  'hanalog',
@@ -917,7 +917,7 @@
               permissions:       '0775',
               set_chattr_on_dir: false,
               target_nodes:      ['hana'],
-              create_temp_folders: 'true' 
+              create_temp_folders: 'true'
             }
   when:
     - node_tier == 'hana'
