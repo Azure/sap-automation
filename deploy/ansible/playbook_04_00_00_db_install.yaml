@@ -89,7 +89,7 @@
     - name:                        "Database Installation Playbook: - Show root password"
       ansible.builtin.debug:
         msg:                       "{{ hostvars.localhost.root_password }}"
-        # verbosity:                 4
+        verbosity:                 4
       when:
         - hostvars.localhost.root_password is defined
       
