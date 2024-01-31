@@ -10,7 +10,7 @@ resource "azurerm_netapp_volume" "hanadata" {
                                            var.hana_ANF_volumes.use_existing_data_volume ? (
                                              0
                                              ) : (
-                                             var.database.high_availability ? 2 : 1
+                                             var.database_server_count > 1 ? 2 : 1
                                            )) : (
                                            0
                                          )
@@ -59,7 +59,7 @@ data "azurerm_netapp_volume" "hanadata" {
 
   count                                = var.hana_ANF_volumes.use_for_data ? (
                                           var.hana_ANF_volumes.use_existing_data_volume || local.use_avg ? (
-                                            var.database.high_availability ? 2 : 1
+                                            var.database_server_count > 1 ? 2 : 1
                                             ) : (
                                             0
                                           )) : (
@@ -89,7 +89,7 @@ resource "azurerm_netapp_volume" "hanalog" {
                                            var.hana_ANF_volumes.use_existing_log_volume ? (
                                              0
                                              ) : (
-                                             var.database.high_availability ? 2 : 1
+                                             var.database_server_count > 1 ? 2 : 1
                                            )) : (
                                            0
                                          )
@@ -135,7 +135,7 @@ data "azurerm_netapp_volume" "hanalog" {
 
   count                                = var.hana_ANF_volumes.use_for_log ? (
                                            var.hana_ANF_volumes.use_existing_log_volume || local.use_avg ? (
-                                             var.database.high_availability ? 2 : 1
+                                             var.database_server_count > 1 ? 2 : 1
                                              ) : (
                                              0
                                            )) : (
