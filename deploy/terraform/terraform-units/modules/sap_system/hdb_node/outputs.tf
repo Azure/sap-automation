@@ -230,7 +230,7 @@ output "hana_log_secondary"            {
                                                        ), "")
                                        }
 
-output "hana_shared_primary"           {
+output "hana_shared"                   {
                                          description = "HANA Shared primary volume"
                                          value       = try(var.hana_ANF_volumes.use_for_shared ? (
                                                          format("%s:/%s",
@@ -247,25 +247,6 @@ output "hana_shared_primary"           {
                                                          ""
                                                        ), "")
                                        }
-
-output "hana_shared_secondary" {
-                                         description = "HANA Shared secondary volume"
-                                         value       = try(var.hana_ANF_volumes.use_for_shared && var.database.high_availability ? (
-                                                         format("%s:/%s",
-                                                           var.hana_ANF_volumes.use_existing_shared_volume || local.use_avg ? (
-                                                             data.azurerm_netapp_volume.hanashared[1].mount_ip_addresses[0]) : (
-                                                             try(azurerm_netapp_volume.hanashared[1].mount_ip_addresses[0], "")
-                                                           ),
-                                                           var.hana_ANF_volumes.use_existing_shared_volume || local.use_avg ? (
-                                                             data.azurerm_netapp_volume.hanashared[1].volume_path) : (
-                                                             try(azurerm_netapp_volume.hanashared[1].volume_path, "")
-                                                           )
-                                                         )
-                                                         ) : (
-                                                         ""
-                                                       ), "")
-                                       }
-
 
 output "application_volume_group"      {
                                          description = "Application volume group"
