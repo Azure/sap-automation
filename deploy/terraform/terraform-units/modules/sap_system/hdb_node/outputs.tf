@@ -121,6 +121,24 @@ output "database_server_secondary_ips" {
                                        }
 
 
+output "hana_data"                     {
+                                         description = "HANA Data Primary volume"
+                                         value       = try(var.hana_ANF_volumes.use_for_data ? (
+                                                         format("%s:/%s",
+                                                           var.hana_ANF_volumes.use_existing_data_volume || local.use_avg ? (
+                                                             data.azurerm_netapp_volume.hanadata[*].mount_ip_addresses[0]) : (
+                                                             azurerm_netapp_volume.hanadata[*].mount_ip_addresses[0]
+                                                           ),
+                                                           var.hana_ANF_volumes.use_existing_data_volume || local.use_avg ? (
+                                                             data.azurerm_netapp_volume.hanadata[*].volume_path) : (
+                                                             azurerm_netapp_volume.hanadata[*].volume_path
+                                                           )
+                                                         )
+                                                         ) : (
+                                                         ""
+                                                       ), "")
+                                       }
+
 output "hana_data_primary"             {
                                          description = "HANA Data Primary volume"
                                          value       = try(var.hana_ANF_volumes.use_for_data ? (
