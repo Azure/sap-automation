@@ -382,4 +382,7 @@ locals {
                                            flatten(concat(local.database_primary_ips, local.database_secondary_ips))) : (
                                            local.database_primary_ips
                                          )
+
+
+  data_volume_count                    = (var.database_server_count - var.database.stand_by_node_count) * var.hana_ANF_volumes.data_volume_count
 }
