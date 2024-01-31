@@ -353,7 +353,7 @@ namespace AutomationForm.Models
     |                                                                            |
     +------------------------------------4--------------------------------------*/
 
-    public int scs_server_count { get; set; } = 1;
+    public int? scs_server_count { get; set; } = 1;
 
     public string scs_server_sku { get; set; }
 
