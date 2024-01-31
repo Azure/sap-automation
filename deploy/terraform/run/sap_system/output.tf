@@ -218,8 +218,3 @@ output "subscription_id_used"          {
                                          sensitive   = true
                                        }
 
-
-output "data"                         {
-                                         description = "Disks attached to the virtual machines"
-                                         value       = module.hdb_node.hana_data
-                                       }

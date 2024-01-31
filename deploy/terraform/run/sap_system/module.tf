@@ -398,8 +398,8 @@ module "output_files" {
   sap_transport                                 = try(data.terraform_remote_state.landscape.outputs.saptransport_path, "")
   install_path                                  = try(data.terraform_remote_state.landscape.outputs.install_path, "")
   shared_home                                   = var.shared_home
-  hana_data                                     = [module.hdb_node.hana_data_primary, module.hdb_node.hana_data_secondary]
-  hana_log                                      = [module.hdb_node.hana_log_primary, module.hdb_node.hana_log_secondary]
+  hana_data                                     = module.hdb_node.hana_data_ANF_volumes
+  hana_log                                      = module.hdb_node.hana_log_ANF_volumes
   hana_shared                                   = [module.hdb_node.hana_shared]
   usr_sap                                       = module.common_infrastructure.usrsap_path
 
