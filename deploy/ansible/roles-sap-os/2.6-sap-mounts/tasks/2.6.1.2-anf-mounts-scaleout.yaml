@@ -868,7 +868,7 @@
   when:
     - node_tier == 'hana'
     - hana_data_mountpoint is defined
-    - hana_data_mountpoint | length == db_hosts | length
+    # - hana_data_mountpoint | length == db_hosts | length
     # For Scale out without HSR/pacemaker. Relies on ANF + hot spare to provide HA.
     - db_scale_out is defined
     - db_scale_out == true
@@ -887,7 +887,7 @@
   when:
     - node_tier == 'hana'
     - hana_data_mountpoint is defined
-    - hana_data_mountpoint | length == db_hosts | length
+    # - hana_data_mountpoint | length == db_hosts | length
     # For Scale out without HSR/pacemaker. Relies on ANF + hot spare to provide HA.
     - db_scale_out is defined
     - db_scale_out == true
@@ -922,7 +922,7 @@
   when:
     - node_tier == 'hana'
     - hana_log_mountpoint is defined
-    - hana_log_mountpoint | length == db_hosts | length
+    # - hana_log_mountpoint | length == db_hosts | length
     # For Scale out without HSR/pacemaker. Relies on ANF + hot spare to provide HA.
     - db_scale_out is defined
     - db_scale_out == true
