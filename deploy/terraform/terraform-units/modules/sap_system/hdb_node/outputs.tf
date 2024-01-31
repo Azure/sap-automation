@@ -141,7 +141,7 @@ output "hana_data_primary"             {
 
 output "hana_data_secondary"           {
                                          description = "HANA Data Secondary volume"
-                                         value       = try(var.hana_ANF_volumes.use_for_data && var.database.high_availability ? (
+                                         value       = try(var.hana_ANF_volumes.use_for_data && var.database_server_count > 1 ? (
                                                          format("%s:/%s",
                                                            var.hana_ANF_volumes.use_existing_data_volume || local.use_avg ? (
                                                              data.azurerm_netapp_volume.hanadata[1].mount_ip_addresses[0]) : (
@@ -157,7 +157,7 @@ output "hana_data_secondary"           {
                                                        ), "")
                                        }
 
-# output "hana_data" {
+ # output "hana_data" {
 #   value = var.hana_ANF_volumes.use_for_data ? (
 #     var.database.high_availability ? (
 #       [format("%s:/%s",
@@ -214,7 +214,7 @@ output "hana_log_primary"              {
 
 output "hana_log_secondary"            {
                                          description = "HANA Log secondary volume"
-                                         value       = try(var.hana_ANF_volumes.use_for_log && var.database.high_availability ? (
+                                         value       = try(var.hana_ANF_volumes.use_for_log && var.database_server_count > 1 ? (
                                                          format("%s:/%s",
                                                            var.hana_ANF_volumes.use_existing_log_volume || local.use_avg ? (
                                                              data.azurerm_netapp_volume.hanalog[1].mount_ip_addresses[0]) : (
@@ -241,24 +241,6 @@ output "hana_shared_primary"           {
                                                            var.hana_ANF_volumes.use_existing_shared_volume || local.use_avg ? (
                                                              data.azurerm_netapp_volume.hanashared[0].volume_path) : (
                                                              try(azurerm_netapp_volume.hanashared[0].volume_path, "")
-                                                           )
-                                                         )
-                                                         ) : (
-                                                         ""
-                                                       ), "")
-                                       }
-
-output "hana_shared_secondary" {
-                                         description = "HANA Shared secondary volume"
-                                         value       = try(var.hana_ANF_volumes.use_for_shared && var.database.high_availability ? (
-                                                         format("%s:/%s",
-                                                           var.hana_ANF_volumes.use_existing_shared_volume || local.use_avg ? (
-                                                             data.azurerm_netapp_volume.hanashared[1].mount_ip_addresses[0]) : (
-                                                             try(azurerm_netapp_volume.hanashared[1].mount_ip_addresses[0], "")
-                                                           ),
-                                                           var.hana_ANF_volumes.use_existing_shared_volume || local.use_avg ? (
-                                                             data.azurerm_netapp_volume.hanashared[1].volume_path) : (
-                                                             try(azurerm_netapp_volume.hanashared[1].volume_path, "")
                                                            )
                                                          )
                                                          ) : (
