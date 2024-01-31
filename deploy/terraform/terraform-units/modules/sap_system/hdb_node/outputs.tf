@@ -123,8 +123,7 @@ output "database_server_secondary_ips" {
 
 output "hana_data_ANF_volumes"         {
                                          description = "HANA Data volumes"
-                                         value       = var.hana_ANF_volumes.use_for_log ?
-                                                         flatten([
+                                         value       = flatten([
                                                            for idx in range(local.data_volume_count) : [
                                                            format("%s:/%s",
                                                              var.hana_ANF_volumes.use_existing_data_volume || local.use_avg ? (
@@ -138,15 +137,12 @@ output "hana_data_ANF_volumes"         {
                                                            )
 
                                                            ]
-                                                           ]) : (
-                                                         []
-                                                         )
+                                                           ])
                                        }
 
 output "hana_log_ANF_volumes"          {
                                          description = "HANA Log volumes"
-                                         value       = var.hana_ANF_volumes.use_for_log ?
-                                                         flatten([
+                                         value       = flatten([
                                                            for idx in range(local.log_volume_count) : [
                                                            format("%s:/%s",
                                                              var.hana_ANF_volumes.use_existing_log_volume || local.use_avg ? (
@@ -160,9 +156,7 @@ output "hana_log_ANF_volumes"          {
                                                              )
 
                                                            ]
-                                                         ]) : (
-                                                         []
-                                                       )
+                                                         ])
                                        }
 
 output "hana_shared"                   {
