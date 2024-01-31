@@ -19,8 +19,7 @@ module "sap_namegenerator" {
   app_ostype                                    = upper(try(local.application_tier.app_os.os_type, "LINUX"))
   anchor_ostype                                 = upper(try(local.anchor_vms.os.os_type, "LINUX"))
   db_ostype                                     = upper(try(local.database.os.os_type, "LINUX"))
-
-  db_server_count                               = var.database_server_count
+  db_server_count                               = var.database_server_count + var.stand_by_node_count
   app_server_count                              = local.enable_app_tier_deployment ? try(local.application_tier.application_server_count, 0) : 0
   web_server_count                              = local.enable_app_tier_deployment ? try(local.application_tier.webdispatcher_count, 0) : 0
   scs_server_count                              = local.enable_app_tier_deployment ? local.application_tier.scs_high_availability ? (
