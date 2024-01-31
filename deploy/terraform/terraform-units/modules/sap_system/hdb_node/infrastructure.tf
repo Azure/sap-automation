@@ -103,6 +103,7 @@ resource "azurerm_lb_probe" "hdb" {
   protocol                             = "Tcp"
   interval_in_seconds                  = 5
   number_of_probes                     = 2
+  probe_threshold                      = 2
 }
 
 # TODO:
