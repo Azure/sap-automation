@@ -547,7 +547,7 @@
 
         - name:                        Setting the DB facts
           ansible.builtin.set_fact:
-            tier:                      db2                                    # Actions for Oracle DB Servers
+            tier:                      db2                                    # Actions for DB2 Servers
             main_password:             "{{ hostvars.localhost.sap_password }}"
             sapbits_location_base_path: "{{ hostvars.localhost.sapbits_location_base_path }}"
             sapbits_sas_token:         "{{ hostvars.localhost.sapbits_sas_token }}"
@@ -575,8 +575,8 @@
           vars:
             suffix:                    "_DB"
             tier:                      'db2'
-            prefix:                    "{{ bom.product_ids.dblha.replace('.', '/').replace('/ABAP', '').split(':')[1] }}"
-            path:                      "INSTALL/DISTRIBUTED/ABAP/DB"
+            prefix:                    "{{ bom.product_ids.dblha.replace('.', '/').replace('/' + {{ db2_instance_type }}, '').split(':')[1] }}"
+            path:                      "INSTALL/DISTRIBUTED/{{ db2_instance_type }}/DB"
             this_sid:                  "{{ sap_sid }}"
 
 

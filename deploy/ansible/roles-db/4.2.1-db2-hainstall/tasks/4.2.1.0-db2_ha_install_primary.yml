@@ -110,6 +110,10 @@
           - "{{ bom.product_ids.dblha }}"
         verbosity:                     2
 
+    - name:                            "SAP DB2 - register InstanceType"
+      ansible.builtin.set_fact:
+        db2_instance_type:             "{{ bom.InstanceType | default('ABAP') }}"
+
     - name:                            "Create temp directory for sid"
       ansible.builtin.file:
         path:                          "{{ tmp_directory }}/{{ sap_sid | upper }}"
