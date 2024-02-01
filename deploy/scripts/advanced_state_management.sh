@@ -331,6 +331,7 @@ if [ "${operation}" == "list" ] ; then
   echo "#                                                                                       #"
   echo "#########################################################################################"
   echo ""
+  cat resources.lst
   unset TF_DATA_DIR
 
   exit 0

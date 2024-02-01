@@ -64,7 +64,7 @@ export local_user=$USER
 #
 
 if [ -z "${TF_VERSION}" ]; then
-  TF_VERSION="1.6.2"
+  TF_VERSION="1.7.0"
 fi
 
 
@@ -313,7 +313,7 @@ case "$(get_distro_name)" in
   echo "we are inside ubuntu"
   rel=$(lsb_release -a | grep Release | cut -d':' -f2 | xargs)
   if [ "$rel" == "22.04" ]; then
-    ansible_version="${ansible_version:-2.15}"
+    ansible_version="2.15"
     ansible_major="${ansible_version%%.*}"
     ansible_minor=$(echo "${ansible_version}." | cut -d . -f 2)
   fi
@@ -780,10 +780,10 @@ else
       echo "export ARM_CLIENT_ID=${client_id}" | tee -a /tmp/deploy_server.sh
     fi
 
-    if [ -n "${tenant_id}" ]; then
-      export ARM_TENANT_ID=${tenant_id}
-      echo "export ARM_TENANT_ID=${tenant_id}" | tee -a /tmp/deploy_server.sh
-    fi
+    # if [ -n "${tenant_id}" ]; then
+    #   export ARM_TENANT_ID=${tenant_id}
+    #   echo "export ARM_TENANT_ID=${tenant_id}" | tee -a /tmp/deploy_server.sh
+    # fi
 fi
 
 

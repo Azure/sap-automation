@@ -93,32 +93,32 @@
 - name:                                 "Generate SAS token block"
   block:
 
-# -------------------------------------+---------------------------------------8
-# Step: 04-01
-# Description:
-#
+  # -----------------------------------+---------------------------------------8
+  # Step: 04-01
+  # Description:
+  #
     - name:                             "{{ task_prefix }} - Informational"
       ansible.builtin.debug:
         msg: |-
                                         Entering SAS token block...
         verbosity:                      1
-# Step: 04-01 - END
-# -------------------------------------+---------------------------------------8
+  # Step: 04-01 - END
+  # -----------------------------------+---------------------------------------8
 
-# -------------------------------------+---------------------------------------8
-# Step: 04-02
-# Description:
-#
-    - name:                             "{{ task_prefix }} - Caculate expiration date (+3 Days)"
+  # -----------------------------------+---------------------------------------8
+  # Step: 04-02
+  # Description:
+  #
+    - name:                             "{{ task_prefix }} - Calculate expiration date (+3 Days)"
       ansible.builtin.set_fact:
         expiry:                         "{{ '%Y-%m-%d' | strftime((ansible_date_time.epoch | int) + (86400 * 3)) }}"
-# Step: 04-02 - END
-# -------------------------------------+---------------------------------------8
+  # Step: 04-02 - END
+  # -----------------------------------+---------------------------------------8
 
-# -------------------------------------+---------------------------------------8
-# Step: 04-03
-# Description:
-#
+  # -----------------------------------+---------------------------------------8
+  # Step: 04-03
+  # Description:
+  #
     - name:                             "{{ task_prefix }} - Create SAP Binaries Storage Account SAS"
       ansible.builtin.command: >-
                                         az storage account generate-sas                                                     \
@@ -131,23 +131,24 @@
                                           --output tsv
       changed_when:                     false
       register:                         az_sapbits_sas_token
-# Step: 04-03 - END
-# -------------------------------------+---------------------------------------8
+  # Step: 04-03 - END
+  # -----------------------------------+---------------------------------------8
 
-# -------------------------------------+---------------------------------------8
-# Step: 04-04
-# Description:
-#
+  # -----------------------------------+---------------------------------------8
+  # Step: 04-04
+  # Description:
+  #
     - name:                             "{{ task_prefix }} - Extract SAP Binaries Storage Account SAS (temp)"
       ansible.builtin.set_fact:
         sapbits_sas_token:              "{{ az_sapbits_sas_token.stdout }}"
-# Step: 04-04 - END
-# -------------------------------------+---------------------------------------8
+  # Step: 04-04 - END
+  # -------------------------------------+---------------------------------------8
 
   vars:
     task_prefix:                        Generate SAS token block
   when:
     - sa_enabled
+    - allowSharedKeyAccess
 # Step: 04 - END
 # -------------------------------------+---------------------------------------8
 
@@ -173,27 +174,27 @@
 - name:                                 "Combine dependent BoMs block"
   block:
 
-# -------------------------------------+---------------------------------------8
-# Step: 06-01
-# Description:
-#
+  # -------------------------------------+---------------------------------------8
+  # Step: 06-01
+  # Description:
+  #
     - name:                             "{{ task_prefix }} - Combine dependent BoMs"
       ansible.builtin.set_fact:
         root_media_list:                "{{ root_media_list + bom.materials.media | flatten(levels=1) }}"
-# Step: 06-01 - END
-# -------------------------------------+---------------------------------------8
+  # Step: 06-01 - END
+  # -------------------------------------+---------------------------------------8
 
-# -------------------------------------+---------------------------------------8
-# Step: 06-02
-# Description:
-#
+  # -------------------------------------+---------------------------------------8
+  # Step: 06-02
+  # Description:
+  #
     - name:                             "{{ task_prefix }} - Informational"
       ansible.builtin.debug:
         msg: |-
                                         {{ root_media_list }}
         verbosity:                      1
-# Step: 06-02 - END
-# -------------------------------------+---------------------------------------8
+  # Step: 06-02 - END
+  # -------------------------------------+---------------------------------------8
 
   vars:
     task_prefix:                        Combine dependent BoMs block

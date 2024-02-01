@@ -280,6 +280,12 @@ output "controlplane_environment"                {
                                                    description = "Control plane environment"
                                                    value       = try(data.terraform_remote_state.deployer[0].outputs.environment, "")
                                                  }
+
+output "use_spn"                                 {
+                                                   description = "Perform deployments using a service principal"
+                                                   value       = var.use_spn
+                                                 }
+
 ###############################################################################
 #                                                                             #
 #                                 iSCSI                                       #

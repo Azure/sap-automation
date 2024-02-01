@@ -233,7 +233,6 @@ resource "azurerm_linux_virtual_machine" "dbserver" {
   lifecycle {
     ignore_changes = [
       // Ignore changes to computername
-      tags,
       computer_name
     ]
   }
@@ -591,7 +590,7 @@ resource "azurerm_role_assignment" "role_assignment_msi" {
   count                                = (
                                            var.use_msi_for_clusters &&
                                            length(var.fencing_role_name) > 0 &&
-                                           var.database_server_count > 1
+                                           var.database.high_availability
                                            ) ? (
                                            var.database_server_count
                                            ) : (
@@ -607,7 +606,7 @@ resource "azurerm_role_assignment" "role_assignment_msi_ha" {
   count                                = (
                                           var.use_msi_for_clusters &&
                                           length(var.fencing_role_name) > 0 &&
-                                          var.database_server_count > 1
+                                          var.database.high_availability
                                           ) ? (
                                           var.database_server_count
                                           ) : (

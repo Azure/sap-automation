@@ -38,7 +38,7 @@
 
 - name:                                "PAS Install: Set BOM facts db host"
   ansible.builtin.set_fact:
-    db_lb_virtual_host:                "{% if platform == 'HANA' %}{{ db_lb_virtual_host_HANA }}{% else %}{{ db_lb_virtual_host_AnyDB }}{% endif %}"
+    db_lb_virtual_host:                "{% if platform == 'HANA' %}{{ custom_db_virtual_hostname | default(db_lb_virtual_host_HANA, true) }}{% else %}{{ custom_db_virtual_hostname | default(db_lb_virtual_host_AnyDB, true) }}{% endif %}"
 
 - name:                                "PAS Install: -  Create directories"
   ansible.builtin.file:
@@ -89,6 +89,36 @@
   ansible.builtin.set_fact:
     pas_bom_instance_type:             "{% if bom.InstanceType is defined %}{{ bom.InstanceType }}{% else %}ABAP{% endif %}"
     public:                            true
+
+- name:                                "PAS Install: Check if the DB load balancer port is available and listening"
+  ansible.builtin.wait_for:
+    host:                              "{{ db_lb_virtual_host }}"
+    port:                              "3{{ db_instance_number }}13"
+    state:                             started
+    timeout:                           30
+    msg:                               'INSTALL:0026:PAS Install failed, database is unreachable.'
+  register:                            db_port_open
+  failed_when:                         false
+  when:
+    - database_high_availability
+    - platform == "HANA"
+
+- name:                                "PAS Install: DEBUG - DB Loadbalancer check"
+  ansible.builtin.debug:
+    msg:                               "{{ db_port_open.msg }}"
+    verbosity:                         2
+  when:
+    - database_high_availability
+    - platform == "HANA"
+    - db_port_open.msg is defined
+
+- name:                                "ErrorHandling"
+  ansible.builtin.fail:
+    msg:                               "INSTALL:0026:PAS Install failed, database is unreachable."
+  when:
+    - database_high_availability
+    - platform == "HANA"
+    - db_port_open.msg is defined
 
 - name:                                "PAS Install: Set schema_name variable for HANA"
   when: platform == "HANA"
@@ -246,6 +276,21 @@
           become_user:                     "{{ sid_to_be_deployed.sid | lower }}adm"
           ansible.builtin.shell: |
                                            {{ hdbuserstore_path }} -H {{ pas_virtual_hostname }} SET DEFAULT {{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) }}:3{{ db_instance_number }}13@{{ db_sid | upper }} {{ schema_name }} {{ main_password }}
+          environment:
+            SAPSYSTEMNAME:                 "{{ sid_to_be_deployed.sid | upper }}"
+            ssfs_connect:                  "1"
+          register:                        hdbuserstore
+          vars:
+            allow_world_readable_tmpfiles: true
+          when:
+            - database_high_availability
+            - platform == 'HANA'
+
+        - name:                            "PAS Install: Set DB Virtual Host name ({{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) }})"
+          become:                          true
+          become_user:                     "{{ sid_to_be_deployed.sid | lower }}adm"
+          ansible.builtin.shell: |
+                                           {{ hdbuserstore_path }} SET DEFAULT {{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) }}:3{{ db_instance_number }}13@{{ db_sid | upper }} {{ schema_name }} {{ main_password }}
           environment:
             SAPSYSTEMNAME:                 "{{ sid_to_be_deployed.sid | upper }}"
             ssfs_connect:                  "1"

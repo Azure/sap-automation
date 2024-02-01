@@ -268,6 +268,8 @@ namespace AutomationForm.Models
 
     public string NFS_provider { get; set; }
 
+    public bool? use_AFS_for_installation_media { get; set; } = true;
+
     public bool? create_transport_storage { get; set; } = true;
 
     public int? transport_volume_size { get; set; }
@@ -324,7 +326,7 @@ namespace AutomationForm.Models
     |                                                                            |
     +------------------------------------4--------------------------------------*/
 
-    public int iscsi_count { get; set; } = 0;
+    public int? iscsi_count { get; set; } = 0;
 
     public string iscsi_size { get; set; } = "Standard_D2s_v3";
 
@@ -339,7 +341,23 @@ namespace AutomationForm.Models
 
     public string[] iscsi_nic_ips { get; set; }
 
+    /*---------------------------------------------------------------------------8
+    |                                                                            |
+    |                               Identity                                     |
+    |                                                                            |
+    +------------------------------------4--------------------------------------*/
+
     [UserAssignedIdentityIdValidator(ErrorMessage = "Invalid User Assigned id")]
     public string user_assigned_identity_id { get; set; }
+
+
+    /*---------------------------------------------------------------------------8
+    |                                                                            |
+    |                               Deployment                                   |
+    |                                                                            |
+    +------------------------------------4--------------------------------------*/
+
+    public bool? use_spn{ get; set; } = true;
+
   }
 }

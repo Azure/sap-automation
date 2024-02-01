@@ -133,11 +133,11 @@ resource "azurerm_windows_web_app" "webapp" {
     # scm_use_main_ip_restriction = true
   }
 
-  key_vault_reference_identity_id = azurerm_user_assigned_identity.deployer.id
+  key_vault_reference_identity_id = length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].id : data.azurerm_user_assigned_identity.deployer[0].id
 
   identity {
     type         = "SystemAssigned, UserAssigned"
-    identity_ids = [azurerm_user_assigned_identity.deployer.id]
+    identity_ids = [length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].id : data.azurerm_user_assigned_identity.deployer[0].id ]
   }
   connection_string {
     name  = "sa_tfstate_conn_str"

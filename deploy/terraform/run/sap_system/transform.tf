@@ -177,10 +177,11 @@ locals {
                                                                             false) : (
                                                                             var.application_server_use_ppg
                                                                           ) : false
-                                        app_use_avset                   = var.application_server_count == 0 || var.use_scalesets_for_deployment || length(var.application_server_zones) > 0 || !local.enable_app_tier_deployment ? (
+                                        app_use_avset                   = var.application_server_count == 0 || var.use_scalesets_for_deployment || !local.enable_app_tier_deployment ? (
                                                                             false) : (
                                                                             var.application_server_use_avset
                                                                           )
+
                                         avset_arm_ids                   = var.application_server_vm_avset_arm_ids
                                         scs_server_count                = local.enable_app_tier_deployment ? (
                                                                             max(var.scs_server_count, try(var.application_tier.scs_server_count, 0))
@@ -200,7 +201,7 @@ locals {
                                                                             false) : (
                                                                             var.scs_server_use_ppg
                                                                           ) : false
-                                        scs_use_avset                   = var.scs_server_count == 0 || var.use_scalesets_for_deployment || length(var.scs_server_zones) > 0 || !local.enable_app_tier_deployment ? (
+                                        scs_use_avset                   = var.scs_server_count == 0 || var.use_scalesets_for_deployment || !local.enable_app_tier_deployment ? (
                                                                             false) : (
                                                                             var.scs_server_use_avset
                                                                           )
@@ -565,7 +566,7 @@ locals {
 
   infrastructure                       = merge(local.temp_infrastructure, (
                                            local.resource_group_defined ? { resource_group = local.resource_group } : null), (
-                                           local.app_ppg_defined        ? { ppg = local.app_ppg } : null), (
+                                           local.app_ppg_defined        ? { app_ppg = local.app_ppg } : null), (
                                            local.ppg_defined            ? { ppg = local.ppg } : null), (
                                            local.deploy_anchor_vm       ? { anchor_vms = local.anchor_vms } : null),
                                            { vnets = local.temp_vnet }

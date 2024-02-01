@@ -94,8 +94,8 @@ resource "azurerm_proximity_placement_group" "app_ppg" {
 data "azurerm_proximity_placement_group" "app_ppg" {
   provider                             = azurerm.main
   count                                = var.infrastructure.use_app_proximityplacementgroups ? (local.app_ppg_exists ? max(length(local.zones), 1) : 0) : 0
-  name                                 = split("/", var.infrastructure.app_ppg.arm_id[count.index])[8]
-  resource_group_name                  = split("/", var.infrastructure.app_ppg.arm_id[count.index])[4]
+  name                                 = split("/", var.infrastructure.app_ppg.arm_ids[count.index])[8]
+  resource_group_name                  = split("/", var.infrastructure.app_ppg.arm_ids[count.index])[4]
 }
 
 //ASG

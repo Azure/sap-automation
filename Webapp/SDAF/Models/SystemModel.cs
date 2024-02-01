@@ -197,7 +197,7 @@ namespace AutomationForm.Models
 
     public Tag[] configuration_settings { get; set; }
 
-
+    public bool? dns_a_records_for_secondary_names { get; set; } = true;
     /*---------------------------------------------------------------------------8
     |                                                                            |
     |                       Cluster information                                  |
@@ -353,7 +353,7 @@ namespace AutomationForm.Models
     |                                                                            |
     +------------------------------------4--------------------------------------*/
 
-    public int scs_server_count { get; set; } = 1;
+    public int? scs_server_count { get; set; } = 1;
 
     public string scs_server_sku { get; set; }
 
@@ -561,6 +561,13 @@ namespace AutomationForm.Models
     public string spn_keyvault_id { get; set; }
 
     public bool? enable_purge_control_for_keyvaults { get; set; } = false;
+
+    /*---------------------------------------------------------------------------8
+    |                                                                            |
+    |                               Deployment                                   |
+    |                                                                            |
+    +------------------------------------4--------------------------------------*/
+    public bool? use_spn { get; set; } = true;
 
   }
 

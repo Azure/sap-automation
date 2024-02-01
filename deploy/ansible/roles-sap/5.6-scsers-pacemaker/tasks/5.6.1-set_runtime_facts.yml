@@ -87,7 +87,7 @@
                                        {%- else -%}
                                        {%-   set _timeoutvalue = 40 -%}
                                        {%- endif -%}
-                                       {{- _timeoutvalue -}}
+                                       {{- custom_cluster_fs_mon_timeout | default(_timeoutvalue, true) -}}
   when:
     - scs_high_availability
 
@@ -104,7 +104,7 @@
                                        {%- else -%}
                                        {%-   set _timeoutvalue = 60 -%}
                                        {%- endif -%}
-                                       {{- _timeoutvalue -}}
+                                       {{- custom_cluster_sap_mon_timeout | default(_timeoutvalue, true) -}}
   when:
     - scs_high_availability
 

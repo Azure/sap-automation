@@ -401,7 +401,7 @@ module "output_files" {
   shared_home                                   = var.shared_home
   hana_data                                     = [module.hdb_node.hana_data_primary, module.hdb_node.hana_data_secondary]
   hana_log                                      = [module.hdb_node.hana_log_primary, module.hdb_node.hana_log_secondary]
-  hana_shared                                   = [module.hdb_node.hana_shared_primary, module.hdb_node.hana_shared_secondary]
+  hana_shared                                   = [module.hdb_node.hana_shared_primary]
   usr_sap                                       = module.common_infrastructure.usrsap_path
 
   #########################################################################################
@@ -412,7 +412,7 @@ module "output_files" {
   management_dns_subscription_id                = try(data.terraform_remote_state.landscape.outputs.management_dns_subscription_id, null)
   management_dns_resourcegroup_name             = try(data.terraform_remote_state.landscape.outputs.management_dns_resourcegroup_name, local.saplib_resource_group_name)
   dns_zone_names                                = var.dns_zone_names
-
+  dns_a_records_for_secondary_names             = var.dns_a_records_for_secondary_names
 
   #########################################################################################
   #  Server counts                                                                        #

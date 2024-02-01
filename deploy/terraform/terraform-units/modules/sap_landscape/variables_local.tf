@@ -561,12 +561,13 @@ locals {
   sub_iscsi_prefix                                = local.sub_iscsi_exists ? "" : try(var.infrastructure.vnets.sap.subnet_iscsi.prefix, "")
 
   // iSCSI NSG
-  var_sub_iscsi_nsg                               = try(var.infrastructure.vnets.sap.subnet_iscsi.nsg, {})
-  sub_iscsi_nsg_arm_id                            = try(var.infrastructure.vnets.sap.subnet_iscsi_nsg.arm_id, "")
+  var_sub_iscsi_nsg                               = try(var.infrastructure.vnets.sap.subnet_iscsi.nsg, {arm_id=""})
+  sub_iscsi_nsg_arm_id                            = try(var.infrastructure.vnets.sap.subnet_iscsi.nsg.arm_id, "")
   sub_iscsi_nsg_exists                            = length(local.sub_iscsi_nsg_arm_id) > 0
   sub_iscsi_nsg_name                              = local.sub_iscsi_nsg_exists ? (
                                                       try(split("/", local.sub_iscsi_nsg_arm_id)[8], "")) : (
-                                                      try(var.infrastructure.vnets.sap.subnet_iscsi_nsg.name,
+                                                      length(try(var.infrastructure.vnets.sap.subnet_iscsi.nsg.name, "")) > 0 ? (
+                                                        var.infrastructure.vnets.sap.subnet_iscsi.nsg.name ) : (
                                                         format("%s%s%s%s",
                                                           var.naming.resource_prefixes.iscsi_subnet_nsg,
                                                           length(local.prefix) > 0 ? (
@@ -576,9 +577,7 @@ locals {
                                                           var.naming.separator,
                                                         local.resource_suffixes.iscsi_subnet_nsg)
                                                       )
-
                                                     )
-
 
   input_iscsi_public_key_secret_name              = try(var.key_vault.kv_iscsi_sshkey_pub, "")
   input_iscsi_private_key_secret_name             = try(var.key_vault.kv_iscsi_sshkey_prvt, "")
@@ -654,6 +653,6 @@ locals {
   use_Azure_native_DNS                            = length(var.dns_label) > 0 && !var.use_custom_dns_a_registration && !local.SAP_virtualnetwork_exists
 
 
-  use_AFS_for_install                             = (var.NFS_provider == "ANF" && var.use_AFS_for_installation_media) || var.NFS_provider == "AFS"
+  use_AFS_for_shared                             = (var.NFS_provider == "ANF" && var.use_AFS_for_shared_storage) || var.NFS_provider == "AFS"
 
 }

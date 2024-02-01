@@ -165,7 +165,8 @@ resource "azurerm_storage_account_network_rules" "witness" {
   bypass                               = ["AzureServices", "Logging", "Metrics"]
 
   ip_rules                             = compact([
-                                           length(local.deployer_public_ip_address) > 0 ? local.deployer_public_ip_address : ""
+                                          length(local.deployer_public_ip_address) > 0 ? local.deployer_public_ip_address : "",
+                                          length(var.Agent_IP) > 0 ? var.Agent_IP : ""
                                          ])
   virtual_network_subnet_ids           = compact([
                                            local.database_subnet_defined ? (
@@ -282,13 +283,7 @@ resource "azurerm_private_endpoint" "witness_storage" {
 
 resource "azurerm_storage_account" "transport" {
   provider                             = azurerm.main
-  count                                = var.create_transport_storage && var.NFS_provider == "AFS" ? (
-                                           length(var.transport_storage_account_id) > 0 ? (
-                                             0) : (
-                                             1
-                                           )) : (
-                                           0
-                                         )
+  count                                = var.create_transport_storage && local.use_AFS_for_shared && length(var.transport_storage_account_id) == 0 ? 1 : 0
   depends_on                           = [
                                            azurerm_subnet.app
                                          ]
@@ -322,12 +317,13 @@ resource "azurerm_storage_account" "transport" {
 
 resource "azurerm_storage_account_network_rules" "transport" {
   provider                             = azurerm.main
-  count                                = var.create_transport_storage && var.NFS_provider == "AFS" && length(var.transport_storage_account_id) == 0 ? 1 : 0
+  count                                = var.create_transport_storage && local.use_AFS_for_shared && length(var.transport_storage_account_id) == 0 ? 1 : 0
   storage_account_id                   = azurerm_storage_account.transport[0].id
   default_action                       = "Deny"
 
   ip_rules                             = compact([
-                                           length(local.deployer_public_ip_address) > 0 ? local.deployer_public_ip_address : ""
+                                          length(local.deployer_public_ip_address) > 0 ? local.deployer_public_ip_address : "",
+                                          length(var.Agent_IP) > 0 ? var.Agent_IP : ""
                                          ])
 
   bypass                               = ["AzureServices", "Logging", "Metrics"]
@@ -350,6 +346,7 @@ resource "azurerm_storage_account_network_rules" "transport" {
 
                                            ]
                                          )
+
  lifecycle {
              ignore_changes = [virtual_network_subnet_ids]
            }
@@ -358,7 +355,7 @@ resource "azurerm_storage_account_network_rules" "transport" {
 
 resource "azurerm_private_dns_a_record" "transport" {
   provider                             = azurerm.dnsmanagement
-  count                                = var.use_private_endpoint && var.create_transport_storage && local.use_Azure_native_DNS && var.NFS_provider == "AFS" && length(var.transport_private_endpoint_id) == 0 ? 1 : 0
+  count                                = var.use_private_endpoint && var.create_transport_storage && local.use_Azure_native_DNS && local.use_AFS_for_shared && length(var.transport_private_endpoint_id) == 0 ? 1 : 0
   name                                 = replace(
                                            lower(
                                              format("%s", local.landscape_shared_transport_storage_account_name)
@@ -394,7 +391,7 @@ data "azurerm_private_dns_a_record" "transport" {
 
 resource "azurerm_storage_share" "transport" {
   provider                             = azurerm.main
-  count                                = var.create_transport_storage && var.NFS_provider == "AFS" ? (
+  count                                = var.create_transport_storage && local.use_AFS_for_shared ? (
                                            length(var.transport_storage_account_id) > 0 ? (
                                              var.install_always_create_fileshares ? 1 : 0) : (
                                              1
@@ -415,7 +412,7 @@ resource "azurerm_storage_share" "transport" {
 
 data "azurerm_storage_account" "transport" {
   provider                             = azurerm.main
-  count                                = var.create_transport_storage && var.NFS_provider == "AFS" ? (
+  count                                = var.create_transport_storage && local.use_AFS_for_shared ? (
                                           length(var.transport_storage_account_id) > 0 ? (
                                             1) : (
                                             0
@@ -432,7 +429,7 @@ resource "azurerm_private_endpoint" "transport" {
                                            azurerm_subnet.app,
                                            azurerm_private_dns_zone_virtual_network_link.vnet_sap_file
                                          ]
-  count                                = var.create_transport_storage && var.use_private_endpoint && var.NFS_provider == "AFS" ? (
+  count                                = var.create_transport_storage && var.use_private_endpoint && local.use_AFS_for_shared ? (
                                            length(var.transport_storage_account_id) > 0 ? (
                                              0) : (
                                              1
@@ -499,7 +496,7 @@ resource "azurerm_private_endpoint" "transport" {
 
 data "azurerm_private_endpoint_connection" "transport" {
   provider                             = azurerm.main
-  count                                = var.create_transport_storage && var.NFS_provider == "AFS" ? (
+  count                                = var.create_transport_storage && local.use_AFS_for_shared ? (
                                           length(var.transport_private_endpoint_id) > 0 ? (
                                             1) : (
                                             0
@@ -520,13 +517,7 @@ data "azurerm_private_endpoint_connection" "transport" {
 
 resource "azurerm_storage_account" "install" {
   provider                             = azurerm.main
-  count                                = local.use_AFS_for_install ? (
-                                           length(var.install_storage_account_id) > 0 ? (
-                                             0) : (
-                                             1
-                                           )) : (
-                                           0
-                                         )
+  count                                = local.use_AFS_for_shared && length(var.install_storage_account_id) == 0 ? 1 : 0
   depends_on                           = [
                                            azurerm_subnet.app,
                                            azurerm_subnet.db,
@@ -557,12 +548,11 @@ resource "azurerm_storage_account" "install" {
   public_network_access_enabled        = var.public_network_access_enabled
   tags                                 = var.tags
 
-
 }
 
 resource "azurerm_storage_account_network_rules" "install" {
   provider                             = azurerm.main
-  count                                = local.use_AFS_for_install && length(var.install_storage_account_id) == 0 ? 1 : 0
+  count                                = local.use_AFS_for_shared && length(var.install_storage_account_id) == 0 ? 1 : 0
   depends_on                           = [
                                            azurerm_subnet.app,
                                            azurerm_subnet.db
@@ -572,7 +562,8 @@ resource "azurerm_storage_account_network_rules" "install" {
   default_action                       = "Deny"
 
   ip_rules                             = compact([
-                                           length(local.deployer_public_ip_address) > 0 ? local.deployer_public_ip_address : ""
+                                          length(local.deployer_public_ip_address) > 0 ? local.deployer_public_ip_address : "",
+                                          length(var.Agent_IP) > 0 ? var.Agent_IP : ""
                                          ])
   bypass                               = ["AzureServices", "Logging", "Metrics"]
   virtual_network_subnet_ids           = compact(
@@ -594,7 +585,7 @@ resource "azurerm_storage_account_network_rules" "install" {
 
                                             ]
                                          )
- lifecycle {
+  lifecycle {
              ignore_changes = [virtual_network_subnet_ids]
            }
 
@@ -602,7 +593,7 @@ resource "azurerm_storage_account_network_rules" "install" {
 
 resource "azurerm_private_dns_a_record" "install" {
   provider                             = azurerm.dnsmanagement
-  count                                = var.use_private_endpoint && local.use_Azure_native_DNS && local.use_AFS_for_install && length(var.install_private_endpoint_id) == 0 ? 1 : 0
+  count                                = var.use_private_endpoint && local.use_Azure_native_DNS && local.use_AFS_for_shared && length(var.install_private_endpoint_id) == 0 ? 1 : 0
   name                                 = replace(
                                            lower(
                                              format("%s", local.landscape_shared_install_storage_account_name)
@@ -643,20 +634,14 @@ data "azurerm_private_dns_a_record" "install" {
 
 data "azurerm_storage_account" "install" {
   provider                             = azurerm.main
-  count                                = local.use_AFS_for_install ? (
-                                           length(var.install_storage_account_id) > 0 ? (
-                                             1) : (
-                                             0
-                                           )) : (
-                                           0
-                                         )
+  count                                = local.use_AFS_for_shared && length(var.install_storage_account_id) > 0 ? 1 : 0
   name                                 = split("/", var.install_storage_account_id)[8]
   resource_group_name                  = split("/", var.install_storage_account_id)[4]
 }
 
 data "azurerm_private_endpoint_connection" "install" {
   provider                             = azurerm.main
-  count                                = local.use_AFS_for_install ? (
+  count                                = local.use_AFS_for_shared ? (
                                            length(var.install_private_endpoint_id) > 0 ? (
                                              1) : (
                                              0
@@ -678,7 +663,7 @@ resource "azurerm_private_endpoint" "install" {
                                            azurerm_storage_share.install,
                                            azurerm_storage_share.install_smb
                                          ]
-  count                                = local.use_AFS_for_install && var.use_private_endpoint ? (
+  count                                = local.use_AFS_for_shared && var.use_private_endpoint ? (
                                            length(var.install_private_endpoint_id) > 0 ? (
                                              0) : (
                                              1
@@ -742,7 +727,7 @@ resource "azurerm_private_endpoint" "install" {
 
 resource "azurerm_storage_share" "install" {
   provider                             = azurerm.main
-  count                                = local.use_AFS_for_install ? (
+  count                                = local.use_AFS_for_shared ? (
                                            length(var.install_storage_account_id) > 0 ? (
                                              var.install_always_create_fileshares ? 1 : 0) : (
                                              1
@@ -751,7 +736,7 @@ resource "azurerm_storage_share" "install" {
                                          )
 
   name                                 = format("%s", local.resource_suffixes.install_volume)
-  storage_account_name                 = var.NFS_provider == "AFS" ? (
+  storage_account_name                 = local.use_AFS_for_shared ? (
                                            length(var.install_storage_account_id) > 0 ? (
                                              split("/", var.install_storage_account_id)[8]
                                              ) : (
@@ -766,7 +751,7 @@ resource "azurerm_storage_share" "install" {
 
 resource "azurerm_storage_share" "install_smb" {
   provider                             = azurerm.main
-  count                                = local.use_AFS_for_install ? (
+  count                                = local.use_AFS_for_shared ? (
                                            length(var.install_storage_account_id) > 0 ? (
                                              var.install_always_create_fileshares ? 1 : 0) : (
                                              1
@@ -775,7 +760,7 @@ resource "azurerm_storage_share" "install_smb" {
                                          )
 
   name                                 = format("%s", local.resource_suffixes.install_volume_smb)
-  storage_account_name                 = var.NFS_provider == "AFS" ? (
+  storage_account_name                 = local.use_AFS_for_shared ? (
                                            length(var.install_storage_account_id) > 0 ? (
                                              split("/", var.install_storage_account_id)[8]
                                              ) : (

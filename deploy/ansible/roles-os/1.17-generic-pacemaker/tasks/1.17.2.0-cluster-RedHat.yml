@@ -205,6 +205,9 @@
     - name:                            "1.17 Generic Pacemaker - Ensure the STONITH device is enabled"
       ansible.builtin.command:         pcs property set stonith-enabled=true
 
+    - name:                            "1.17 Generic Pacemaker - Clear any errors during enablement of STONITH device"
+      ansible.builtin.command:         pcs resource cleanup
+
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
 # | Fencing - END                                                              |
@@ -222,17 +225,18 @@
     is_rhel_84_or_newer:               "{{ ansible_distribution_version is version('8.4', '>=') }}"
   when:                                ansible_distribution_major_version in ["8", "9"]
 
-- name:                                "1.17 Generic Pacemaker - Ensure Azure scheduled events is configured"
-  when:
-                                      - inventory_hostname == primary_instance_name
-                                      - is_rhel_84_or_newer
-  block:
   # After configuring the Pacemaker resources for azure-events agent,
   # when you place the cluster in or out of maintenance mode, you may get warning messages like:
   #   WARNING: cib-bootstrap-options: unknown attribute 'hostName_ hostname'
   #   WARNING: cib-bootstrap-options: unknown attribute 'azure-events_globalPullState'
   #   WARNING: cib-bootstrap-options: unknown attribute 'hostName_ hostname'
   # These warning messages can be ignored.
+- name:                                "1.17 Generic Pacemaker - Ensure Azure scheduled events is configured"
+  when:
+                                      - cluster_use_scheduled_events_agent
+                                      - inventory_hostname == primary_instance_name
+                                      - is_rhel_84_or_newer
+  block:
     - name:                            "1.17 Generic Pacemaker - Ensure maintenance mode is set"
       ansible.builtin.command:         pcs property set maintenance-mode=true
 
@@ -283,7 +287,7 @@
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
-# | Azure scheduled events - BEGIN                                             |
+# | Azure scheduled events - END                                             |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 

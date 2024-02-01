@@ -66,6 +66,7 @@ variable "dns"                                  {
                                                   description = "The DNS label"
                                                   default     = ""
                                                 }
+variable "dns_a_records_for_secondary_names"    { description = "Boolean value indicating if dns a records should be created for the secondary DNS names"}
 variable "ers_instance_number"                  {
                                                   description = "Instance number for ERS"
                                                   default     = "02"

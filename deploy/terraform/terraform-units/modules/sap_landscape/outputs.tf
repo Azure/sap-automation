@@ -353,7 +353,9 @@ output "saptransport_path"                     {
                                                  description = "Path to the SAP transport volume"
                                                  value       = var.create_transport_storage && var.NFS_provider == "AFS" ? (
                                                               length(var.transport_private_endpoint_id) == 0 ? (
-                                                                format("%s:/%s/%s", try(azurerm_private_endpoint.transport[0].private_dns_zone_configs[0].record_sets[0].fqdn,
+                                                                var.use_private_endpoint ?
+                                                                (
+                                                                  format("%s:/%s/%s", try(azurerm_private_endpoint.transport[0].private_dns_zone_configs[0].record_sets[0].fqdn,
                                                                   try(azurerm_private_endpoint.transport[0].private_service_connection[0].private_ip_address, "")),
                                                                   length(var.transport_storage_account_id) > 0 ? split("/", var.transport_storage_account_id)[8] : replace(
                                                                     lower(
@@ -362,7 +364,18 @@ output "saptransport_path"                     {
                                                                     "/[^a-z0-9]/",
                                                                   ""),
                                                                   local.resource_suffixes.transport_volume
-                                                                )) : (
+                                                                )) :
+                                                                (
+                                                                  format("%s.file.core.windows.net:/%s/%s", local.landscape_shared_transport_storage_account_name,
+                                                                  length(var.transport_storage_account_id) > 0 ? split("/", var.transport_storage_account_id)[8] : replace(
+                                                                    lower(
+                                                                      format("%s", local.landscape_shared_transport_storage_account_name)
+                                                                    ),
+                                                                    "/[^a-z0-9]/",
+                                                                  ""),
+                                                                  local.resource_suffixes.transport_volume
+                                                                ))
+                                                                ) : (
                                                                 format("%s:/%s/%s", trimsuffix(data.azurerm_private_dns_a_record.transport[0].fqdn, "."),
                                                                   length(var.transport_storage_account_id) > 0 ? split("/", var.transport_storage_account_id)[8] : replace(
                                                                     lower(
@@ -392,8 +405,9 @@ output "saptransport_path"                     {
 
 output "install_path"                           {
                                                  description = "Path to the SAP installation volume"
-                                                 value       = try(local.use_AFS_for_install ? (
+                                                 value       = local.use_AFS_for_shared ? (
                                                                  length(var.install_private_endpoint_id) == 0 ? (
+                                                                   var.use_private_endpoint ?
                                                                    format("%s:/%s/%s", try(azurerm_private_endpoint.install[0].private_dns_zone_configs[0].record_sets[0].fqdn,
                                                                      try(azurerm_private_endpoint.install[0].private_service_connection[0].private_ip_address, "")),
                                                                      length(var.install_storage_account_id) > 0 ? split("/", var.install_storage_account_id)[8] : replace(
@@ -404,8 +418,19 @@ output "install_path"                           {
                                                                        ""
                                                                      ),
                                                                      local.resource_suffixes.install_volume
-                                                                   )
-                                                                   ) : (
+                                                                     ) : (
+                                                                     format("%s.file.core.windows.net:/%s/%s", local.landscape_shared_install_storage_account_name,
+                                                                       length(var.install_storage_account_id) > 0 ? split("/", var.install_storage_account_id)[8] : replace(
+                                                                         lower(
+                                                                           format("%s", local.landscape_shared_install_storage_account_name)
+                                                                         ),
+                                                                         "/[^a-z0-9]/",
+                                                                         ""
+                                                                       ),
+                                                                       local.resource_suffixes.install_volume
+                                                                     )
+
+                                                                   )) : (
                                                                    format("%s:/%s/%s",
                                                                      trimsuffix(data.azurerm_private_dns_a_record.install[0].fqdn, "."),
                                                                      length(var.install_storage_account_id) > 0 ? split("/", var.install_storage_account_id)[8] : replace(
@@ -416,7 +441,8 @@ output "install_path"                           {
                                                                        ""
                                                                      ),
                                                                    local.resource_suffixes.install_volume)
-                                                                 )) : (
+                                                                 )
+                                                                 ) : (
                                                                  var.NFS_provider == "ANF" ? (
                                                                    format("%s:/%s",
                                                                      var.ANF_settings.use_existing_install_volume ? (
@@ -429,9 +455,8 @@ output "install_path"                           {
                                                                      )
                                                                    )
                                                                    ) : (
-                                                                   ""
-                                                                 )
-                                                               ), "")
+                                                                 "")
+                                                               )
                                                 }
 
 ###############################################################################

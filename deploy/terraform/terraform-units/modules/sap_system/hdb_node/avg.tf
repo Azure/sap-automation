@@ -6,7 +6,7 @@
 
 resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA" {
   provider                             = azurerm.main
-  count                                = var.NFS_provider == "ANF" && local.use_avg  ? length(var.ppg) : 0
+  count                                = local.use_avg  ? length(var.ppg) : 0
   name                                 = format("%s%s%s%s%d",
                                            var.naming.resource_prefixes.hana_avg,
                                            local.prefix,
@@ -54,7 +54,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA" {
 
 data "azurerm_netapp_pool" "workload_netapp_pool" {
   provider                             = azurerm.main
-  count                                = var.NFS_provider == "ANF" && length(local.ANF_pool_settings.pool_name) > 0 ? 1 : 0
+  count                                = length(local.ANF_pool_settings.pool_name) > 0 ? 1 : 0
   resource_group_name                  = data.azurerm_netapp_account.workload_netapp_account[0].resource_group_name
   name                                 = try(local.ANF_pool_settings.pool_name, "")
   account_name                         = local.ANF_pool_settings.account_name
@@ -63,7 +63,7 @@ data "azurerm_netapp_pool" "workload_netapp_pool" {
 
 data "azurerm_netapp_account" "workload_netapp_account" {
   provider                             = azurerm.main
-  count                                = var.NFS_provider == "ANF" && length(local.ANF_pool_settings.account_id) > 0 ? 1 : 0
+  count                                = length(local.ANF_pool_settings.account_id) > 0 ? 1 : 0
   name                                 = try(split("/", local.ANF_pool_settings.account_id)[8], "")
   resource_group_name                  = try(split("/", local.ANF_pool_settings.account_id)[4], "")
 }
@@ -192,14 +192,10 @@ locals {
                  }
 
   volumes_primary   = [
-                        var.hana_ANF_volumes.use_for_data ? local.hana_data1 : null,
-                        var.hana_ANF_volumes.use_for_log ? local.hana_log1 : null,
-                        var.hana_ANF_volumes.use_for_shared ? local.hana_shared1 : null
+                        local.hana_data1, local.hana_log1, local.hana_shared1
                       ]
   volumes_secondary = [
-                        var.hana_ANF_volumes.use_for_data ? local.hana_data2 : null,
-                        var.hana_ANF_volumes.use_for_log ? local.hana_log2 : null,
-                        var.hana_ANF_volumes.use_for_shared ? local.hana_shared2 : null
+                        local.hana_data2, local.hana_log2, local.hana_shared2
                       ]
 
 }

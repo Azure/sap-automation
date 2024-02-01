@@ -255,11 +255,14 @@ variable "deployer_private_ip_address"          {
                                                   default = [""]
                                                 }
 
-variable "add_system_assigned_identity"         {
-                                                  description = "Boolean flag indicating if a system assigned identity should be added to the deployer"
-                                                  default     = false
+
+variable "shared_access_key_enabled"            {
+                                                  description = "Indicates whether the storage account permits requests to be authorized with the account access key via Shared Key."
+                                                  default     = true
                                                   type        = bool
                                                 }
+
+
 
 ###############################################################################
 #                                                                             #
@@ -373,7 +376,7 @@ variable "deployer_diagnostics_account_arm_id"        {
 
 variable "tf_version"                                 {
                                                         description = "Terraform version to install on deployer"
-                                                        default     = "1.6.2"
+                                                        default     = "1.7.0"
                                                       }
 
 variable "name_override_file"                         {
@@ -507,4 +510,27 @@ variable "enable_firewall_for_keyvaults_and_storage" {
 variable "Agent_IP"                                  {
                                                        description = "IP address of the agent"
                                                        default     = ""
+                                                     }
+
+
+###############################################################################
+#                                                                             #
+#                                  Identity                                   #
+#                                                                             #
+###############################################################################
+
+variable "user_assigned_identity_id"                {
+                                                       description = "User assigned Identity resource Id"
+                                                       default     = ""
+                                                     }
+
+variable "add_system_assigned_identity"              {
+                                                       description = "Boolean flag indicating if a system assigned identity should be added to the deployer"
+                                                       default     = false
+                                                       type        = bool
+                                                     }
+
+variable "use_spn"                                   {
+                                                       description = "Log in using a service principal when performing the deployment"
+                                                       default     = false
                                                      }

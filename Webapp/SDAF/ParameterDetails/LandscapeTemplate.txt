@@ -334,6 +334,9 @@ $$dns_server_list$$
 # NFS indicates that a custom solution is used for NFS
 $$NFS_provider$$
 
+# use_AFS_for_installation_media defines if shared media is on AFS even when using ANF for data
+$$use_AFS_for_installation_media$$
+
 #########################################################################################
 #                                                                                       #
 #  Azure NetApp files support                                                           #
@@ -455,20 +458,23 @@ $$iscsi_vm_zones$$
 # user_assigned_identity_id defines the user assigned identity to be assigned to the Virtual machines
 $$user_assigned_identity_id$$
 
-##########################################################################################
-#                                                                                        #
-#  Terraform deployment parameters (internal)                                            #
-#                                                                                        #
-##########################################################################################
+#########################################################################################
+#                                                                                       #
+#  Terraform deployment parameters                                                      #
+#                                                                                       #
+#########################################################################################
 
-# - tfstate_resource_id is the Azure resource identifier for the Storage account in the SAP Library
-#   that will contain the Terraform state files
-# - deployer_tfstate_key is the state file name for the deployer
 # These are required parameters, if using the deployment scripts they will be auto populated otherwise they need to be entered
 
+# tfstate_resource_id is the Azure resource identifier for the Storage account in the SAP Library
+# that will contain the Terraform state files
 $$tfstate_resource_id$$
 
+# deployer_tfstate_key is the state file name for the deployer
 $$deployer_tfstate_key$$
+
+# use_spn defines if the deployments are performed using Service Principals or the deployer's managed identiry, true=SPN, false=MSI
+$$use_spn$$
 
 
 #########################################################################################

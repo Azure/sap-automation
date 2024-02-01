@@ -37,11 +37,16 @@ variable "place_delete_lock_on_resources"        {
                                                    default     = false
                                                  }
 
-variable "short_named_endpoints_nics"           {
+variable "short_named_endpoints_nics"            {
                                                    description = "If defined, uses short names for private endpoints nics"
                                                    default     = false
                                                  }
 
+
+variable "use_spn"                               {
+                                                  description = "Log in using a service principal when performing the deployment"
+                                                  default     = true
+                                                 }
 
 #######################################4#######################################8
 #                                                                              #
@@ -206,6 +211,18 @@ variable "spn_keyvault_id"                      {
                                                   description = "Azure resource identifier for the keyvault where the spn will be stored"
                                                   default = ""
                                                 }
+
+variable "deployment"                           {
+                                                  description = "The type of deployment"
+                                                  default     = "update"
+                                                }
+
+variable "shared_access_key_enabled"            {
+                                                  description = "Indicates whether the storage account permits requests to be authorized with the account access key via Shared Key."
+                                                  default     = true
+                                                  type        = bool
+                                                }
+
 
 #########################################################################################
 #                                                                                       #

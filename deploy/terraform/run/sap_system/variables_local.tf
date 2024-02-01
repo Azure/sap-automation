@@ -42,7 +42,7 @@ locals {
                                        }
 
   cp_spn                             = {
-                                        subscription_id = try(data.azurerm_key_vault_secret.cp_subscription_id[0].value, null)
+                                        subscription_id = local.deployer_subscription_id
                                         client_id       = var.use_spn ? try(coalesce(data.azurerm_key_vault_secret.cp_client_id[0].value, data.azurerm_key_vault_secret.client_id[0].value), null) : null,
                                         client_secret   = var.use_spn ? try(coalesce(data.azurerm_key_vault_secret.cp_client_secret[0].value, data.azurerm_key_vault_secret.client_secret[0].value), null) : null,
                                         tenant_id       = var.use_spn ? try(coalesce(data.azurerm_key_vault_secret.cp_tenant_id[0].value, data.azurerm_key_vault_secret.tenant_id[0].value), null) : null
@@ -50,14 +50,14 @@ locals {
 
   service_principal                  = {
                                          subscription_id = local.spn.subscription_id,
-                                         tenant_id       = local.spn.tenant_id,
+                                         tenant_id       = var.use_spn ? local.spn.tenant_id : null,
                                          object_id       = var.use_spn ? data.azuread_service_principal.sp[0].id : null
                                        }
 
   account                            = {
                                         subscription_id = data.azurerm_key_vault_secret.subscription_id.value,
-                                        tenant_id       = data.azurerm_client_config.current.tenant_id,
-                                        object_id       = data.azurerm_client_config.current.object_id
+                                        tenant_id       = var.use_spn ? data.azurerm_client_config.current.tenant_id : null,
+                                        object_id       = var.use_spn ? data.azurerm_client_config.current.object_id : null
                                       }
 
   custom_names                       = length(var.name_override_file) > 0 ? (
