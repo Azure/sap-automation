@@ -39,7 +39,7 @@ skip_modify_sudoers=n
 use_pmem=n
 
 # Enable the installation or upgrade of the SAP Host Agent ( Default: y )
-install_hostagent=y
+install_hostagent=n
 
 # Database Isolation ( Default: low; Valid values: low | high )
 db_isolation=low
@@ -72,10 +72,10 @@ sapadm_password={{ password_copy }}
 storage_cfg=
 
 # Listen Interface ( Valid values: global | internal | local )
-listen_interface=
+listen_interface=global
 
 # Internal Network Address
-internal_network=
+internal_network= {{ _rsp_internal_network }}
 
 # SAP HANA System ID
 sid={{ _rsp_sid }}
@@ -111,7 +111,7 @@ custom_cfg=
 secure_store=ssfs
 
 # Restrict maximum memory allocation?
-restrict_max_mem=
+restrict_max_mem=n
 
 # Maximum Memory Allocation in MB
 max_mem=
