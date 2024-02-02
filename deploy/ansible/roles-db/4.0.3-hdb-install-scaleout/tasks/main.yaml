@@ -91,7 +91,7 @@
         dest:                          "{{ dir_params }}/{{ sap_inifile }}"
         mode:                          0644
         force:                         true
-  # Template parameter mapping
+      # Template parameter mapping
       vars:
         _rsp_component_root:           "../COMPONENTS"
         _rsp_components:               "{{ hana_components }}"
@@ -315,11 +315,17 @@
           become_user:                 "{{ db_sid | lower }}adm"
           become:                      true
           ansible.builtin.shell: |
-                                       . ${HOME}/.sapenv.sh
-                                       sapcontrol -nr {{ db_instance_number }} -function StopSystem HDB
+                                       sapcontrol -nr {{ db_instance_number }} -function StopSystem {{ db_sid | upper }}
           changed_when:                false
           failed_when:                 false
           register:                    hana_stopped
+          environment:
+            PATH:                      /usr/sap/HDB/{{ db_sid | upper }}{{ db_instance_number }}:/usr/sap/HDB/{{ db_sid | upper }}{{ db_instance_number }}/exe
+            DIR_LIBRARY:               /usr/sap/HDB/{{ db_sid | upper }}{{ db_instance_number }}/exe
+            LD_LIBRARY_PATH:           /usr/sap/HDB/{{ db_sid | upper }}{{ db_instance_number }}/exe
+            SAPSYSTEMNAME:             "{{ db_sid | upper }}"
+          vars:
+            allow_world_readable_tmpfiles: true
 
         #ToDo: Check if we can interrogate the HANA DB to see if it is stopped.
         - name:                        "Wait 5 minutes for SAP system to stop"
@@ -330,11 +336,17 @@
           become_user:                 "{{ db_sid | lower }}adm"
           become:                      true
           ansible.builtin.shell: |
-                                       . ${HOME}/.sapenv.sh
-                                       sapcontrol -nr {{ db_instance_number }} -function StartSystem HDB
+                                       sapcontrol -nr {{ db_instance_number }} -function StartSystem {{ db_sid | upper }}
           changed_when:                false
           failed_when:                 false
           register:                    hana_started
+          environment:
+            PATH:                      /usr/sap/HDB/{{ db_sid | upper }}{{ db_instance_number }}:/usr/sap/HDB/{{ db_sid | upper }}{{ db_instance_number }}/exe
+            DIR_LIBRARY:               /usr/sap/HDB/{{ db_sid | upper }}{{ db_instance_number }}/exe
+            LD_LIBRARY_PATH:           /usr/sap/HDB/{{ db_sid | upper }}{{ db_instance_number }}/exe
+            SAPSYSTEMNAME:             "{{ db_sid | upper }}"
+          vars:
+            allow_world_readable_tmpfiles: true
 
         - name:                        "Wait 5 minutes for SAP system to start"
           ansible.builtin.wait_for:
