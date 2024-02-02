@@ -301,11 +301,11 @@
             option:                    "{{ item.option }}"
             value:                     "{{ item.value }}"
           with_items:
-            - { section: "fileio", option: "async_read_submit", value: "on" }
-            - { section: "fileio", option: "max_parallel_io_requests", value: "128" }
-            - { section: "fileio", option: "async_write_submit_active", value: "on" }
-            - { section: "fileio", option: "async_write_submit_blocks", value: "all" }
-            - { section: "persistence", option: "datavolume_striping", value: "true" }
+            - { section: "fileio",      option: "async_read_submit",           value: "on"    }
+            - { section: "fileio",      option: "max_parallel_io_requests",    value: "128"   }
+            - { section: "fileio",      option: "async_write_submit_active",   value: "on"    }
+            - { section: "fileio",      option: "async_write_submit_blocks",   value: "all"   }
+            - { section: "persistence", option: "datavolume_striping",         value: "true"  }
             - { section: "persistence", option: "datavolume_striping_size_gb", value: "15000" }
 
 
@@ -346,7 +346,7 @@
     # Only allowed for the first node. No other node in the scale out - ANF setup is allowed to install hdblcm.
     - ansible_hostname == db_hosts[0]
     - db_scale_out is defined
-    - db_scale_out == true
+    - db_scale_out
 
 # TODO: add block for Scale out with HSR support here, same as regular installation.
 - name:                                "HANA Install - Scale Out - HSR"
