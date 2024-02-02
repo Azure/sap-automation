@@ -296,7 +296,7 @@
           with_items:
             - { section: "fileio", option: "async_read_submit", value: "on" }
             - { section: "fileio", option: "max_parallel_io_requests", value: "128" }
-            - { section: "fileio", option: "async_write_submit_active", value: "all" }
+            - { section: "fileio", option: "async_write_submit_active", value: "on" }
             - { section: "fileio", option: "async_write_submit_blocks", value: "all" }
             - { section: "persistence", option: "datavolume_striping", value: "true" }
             - { section: "persistence", option: "datavolume_striping_size_gb", value: "15000" }
