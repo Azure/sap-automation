@@ -320,9 +320,9 @@
           failed_when:                 false
           register:                    hana_stopped
           environment:
-            PATH:                      /usr/sap/HDB/{{ db_sid | upper }}{{ db_instance_number }}:/usr/sap/HDB/{{ db_sid | upper }}{{ db_instance_number }}/exe
-            DIR_LIBRARY:               /usr/sap/HDB/{{ db_sid | upper }}{{ db_instance_number }}/exe
-            LD_LIBRARY_PATH:           /usr/sap/HDB/{{ db_sid | upper }}{{ db_instance_number }}/exe
+            PATH:                      /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+            DIR_LIBRARY:               /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+            LD_LIBRARY_PATH:           /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
             SAPSYSTEMNAME:             "{{ db_sid | upper }}"
           vars:
             allow_world_readable_tmpfiles: true
@@ -341,9 +341,9 @@
           failed_when:                 false
           register:                    hana_started
           environment:
-            PATH:                      /usr/sap/HDB/{{ db_sid | upper }}{{ db_instance_number }}:/usr/sap/HDB/{{ db_sid | upper }}{{ db_instance_number }}/exe
-            DIR_LIBRARY:               /usr/sap/HDB/{{ db_sid | upper }}{{ db_instance_number }}/exe
-            LD_LIBRARY_PATH:           /usr/sap/HDB/{{ db_sid | upper }}{{ db_instance_number }}/exe
+            PATH:                      /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+            DIR_LIBRARY:               /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+            LD_LIBRARY_PATH:           /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
             SAPSYSTEMNAME:             "{{ db_sid | upper }}"
           vars:
             allow_world_readable_tmpfiles: true

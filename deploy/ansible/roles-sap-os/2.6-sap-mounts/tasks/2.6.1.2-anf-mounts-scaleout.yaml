@@ -751,7 +751,7 @@
     owner:                             "{{ db_sid | lower }}adm"
     group:                             sapsys
     mode:                              0755
-    path:                              "/usr/sap/{{ db_sid | upper}}"
+    path:                              "/usr/sap/{{ db_sid | upper }}"
     state:                             directory
   when:
     - tier == 'hana'
@@ -764,7 +764,7 @@
     owner:                             "{{ db_sid | lower }}adm"
     group:                             sapsys
     mode:                              0755
-    path:                              "/hana/data/{{ db_sid | upper}}"
+    path:                              "/hana/data/{{ db_sid | upper }}"
     state:                             directory
   when:
     - tier == 'hana'
@@ -778,7 +778,7 @@
     owner:                             "{{ db_sid | lower }}adm"
     group:                             sapsys
     mode:                              0755
-    path:                              "/hana/log/{{ db_sid | upper}}"
+    path:                              "/hana/log/{{ db_sid | upper }}"
     state:                             directory
   when:
     - tier == 'hana'
