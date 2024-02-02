@@ -67,8 +67,15 @@
 
 - name:                                "SAP HANA -  - Extract details"
   ansible.builtin.set_fact:
+    subnet_address:                    "{{ azure_metadata.json.network.interface[0].ipv4.subnet[0].address }}"
     subnet_prefix:                     "{{ azure_metadata.json.network.interface[0].ipv4.subnet[0].prefix }}"
 
+- name:                                "SAP HANA -  - Show the subnet details"
+  ansible.builtin.debug:
+    msg:
+      - "Subnet Address: {{ subnet_address }}"
+      - "Subnet Prefix: {{ subnet_prefix }}"
+      - "Subnet CIDR: {{ (subnet_address + '/' + subnet_prefix) }}"
 # Scale out ANF only runs on primary node or the first node in the SID_DB list. This is mandatory.
 - name:                                "HANA Install - Scale Out - ANF"
   block:
@@ -95,7 +102,7 @@
         _rsp_system_usage:             "custom"
         use_master_password:           "{{ hana_use_master_password }}"
         password_copy:                 "{%if hana_use_master_password == 'n' %}{{ main_password }}{% else %}{% endif %}"
-        _rsp_internal_network:         "{{ subnet_prefix }}"
+        _rsp_internal_network:         "{{ (subnet_address + '/' + subnet_prefix) }}"
         # This comes in from the main ansible playbook. It is the password for the root user. Must be randomized after the installation.
         _rsp_root_password:            "{{ root_password }}"
         # Note: Last node in the DB list is marked as standby, while everything else except first node is marked as worker node
