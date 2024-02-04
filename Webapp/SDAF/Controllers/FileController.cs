@@ -62,7 +62,7 @@ namespace AutomationForm.Controllers
     {
       string content = restHelper.GetTemplateFile(fileName).Result;
       ViewBag.Message = content;
-      ViewBag.TemplateName = fileName.Substring(fileName.LastIndexOf('/') + 1);
+      ViewBag.TemplateName = fileName[(fileName.LastIndexOf('/') + 1)..];
       ViewBag.SourceController = sourceController;
       return View("Create");
     }
@@ -143,7 +143,7 @@ namespace AutomationForm.Controllers
         AppFile file = await _appFileService.GetByIdAsync(id, GetPartitionKey(id));
         if (file == null) return NotFound();
 
-        id = id.Substring(0, id.IndexOf('.'));
+        id = id[..id.IndexOf('.')];
         byte[] bytes = file.Content;
         string bitString = Encoding.UTF8.GetString(bytes);
         string jsonString = Helper.TfvarToJson(bitString);
@@ -319,7 +319,7 @@ namespace AutomationForm.Controllers
         }
         else
         {
-          string newName = id.Substring(0, id.IndexOf("_custom"));
+          string newName = id[..id.IndexOf("_custom")];
           return RedirectToAction("Edit", sourceController, new { @id = newName , @partitionKey= GetPartitionKey(id) });
         }
       }
@@ -418,7 +418,7 @@ namespace AutomationForm.Controllers
 
     private string GetPartitionKey(string id)
     {
-      return id.Substring(0, id.IndexOf('-'));
+      return id[..id.IndexOf('-')];
     }
 
     public async Task<AppFile> GetImagesFile(string filename, int type, string partitionKey)
@@ -434,12 +434,12 @@ namespace AutomationForm.Controllers
 
         if (filename.EndsWith("_custom_sizes.json"))
         {
-          newName = filename.Substring(filename.IndexOf("_custom_sizes.json") + 1);
+          newName = filename[(filename.IndexOf("_custom_sizes.json") + 1)..];
           type = 1;
         }
         if (filename.EndsWith("_custom_naming.json"))
         {
-          newName = filename.Substring(filename.IndexOf("_custom_naming.json") + 1);
+          newName = filename[(filename.IndexOf("_custom_naming.json") + 1)..];
           type = 2;
         }
 

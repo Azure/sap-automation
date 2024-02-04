@@ -252,6 +252,18 @@
     }
   },
   {
+    "name": "OracleLinux 8.8",
+    "data": {
+      "os_type": "LINUX",
+      "source_image_id": "",
+      "publisher": "Oracle",
+      "offer": "Oracle-Linux",
+      "sku": "ol88-lvm-gen2",
+      "version": "latest",
+      "type": "marketplace"
+    }
+  },
+  {
     "name": "Windows Server 2016",
     "data": {
       "os_type": "WINDOWS",
