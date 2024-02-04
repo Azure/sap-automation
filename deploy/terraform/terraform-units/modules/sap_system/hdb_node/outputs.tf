@@ -135,7 +135,6 @@ output "hana_data_ANF_volumes"         {
                                                                azurerm_netapp_volume.hanadata[idx].volume_path
                                                              )
                                                            )
-
                                                            ]
                                                            ])
                                        }
