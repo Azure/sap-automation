@@ -650,7 +650,7 @@
     - ansible_hostname == db_hosts[0]
     # For HSR based scale out, needs DB high availability
     - db_high_availability is defined
-    - db_high_availability == true
+    - db_high_availability
 
 - name:                                "ANF Mount: HANA data (secondary)"
   ansible.builtin.include_tasks:       2.6.1.1-anf-mount.yaml
@@ -678,7 +678,7 @@
     - ansible_hostname == db_hosts[1]
     # For HSR based scale out, needs DB high availability
     - db_high_availability is defined
-    - db_high_availability == true
+    - db_high_availability
 
 - name:                                "ANF Mount: HANA log (secondary)"
   ansible.builtin.include_tasks:       2.6.1.1-anf-mount.yaml
