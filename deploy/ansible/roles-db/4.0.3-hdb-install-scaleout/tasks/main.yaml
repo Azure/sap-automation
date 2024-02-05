@@ -327,7 +327,7 @@
           vars:
             allow_world_readable_tmpfiles: true
 
-        #ToDo: Check if we can interrogate the HANA DB to see if it is stopped.
+        # ToDo: Check if we can interrogate the HANA DB to see if it is stopped.
         - name:                        "Wait 5 minutes for SAP system to stop"
           ansible.builtin.wait_for:
             timeout:                   300
@@ -354,7 +354,7 @@
 
   when:
     - not hana_installed.stat.exists
-    - db_high_availability | default(false) == false
+    - not (db_high_availability | default(false))
     # Only allowed for the first node. No other node in the scale out - ANF setup is allowed to install hdblcm.
     - ansible_hostname == db_hosts[0]
     - db_scale_out is defined
@@ -517,9 +517,9 @@
   when:
     - not hana_installed.stat.exists
     - db_high_availability is defined
-    - db_high_availability == true
+    - db_high_availability
     - db_scale_out is defined
-    - db_scale_out == true
+    - db_scale_out
 
 
 - name:                                "HANA Install status"

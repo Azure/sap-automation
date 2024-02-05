@@ -122,7 +122,7 @@
 
         - name:                            Enable {{ item.key }} in /etc/ssh/sshd_config
           become:                          true
-          lineinfile:
+          ansible.builtin.lineinfile:
             path:                          "/etc/ssh/sshd_config"
             regex:                         "^(# *)?{{ item.key }}"
             line:                          "{{ item.key }} {{ item.value }}"
@@ -134,13 +134,13 @@
 
         - name:                            "Restart SSHD on {{ ansible_hostname }}"
           become:                          true
-          service:
+          ansible.builtin.service:
             name:                          sshd
             state:                         restarted
 
       when:
         - not db_high_availability
-        - db_scale_out | default(false)  == true
+        - db_scale_out | default(false)
         - hostvars.localhost.root_password is defined
 
 

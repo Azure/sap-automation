@@ -596,7 +596,7 @@
     - ansible_hostname == db_hosts[0]
     # For HSR based scale out, needs DB high availability
     - db_high_availability is defined
-    - db_high_availability == true
+    - db_high_availability
 
 - name:                                "ANF Mount: HANA log"
   ansible.builtin.include_tasks:       2.6.1.1-anf-mount.yaml
@@ -623,7 +623,7 @@
     - ansible_hostname == db_hosts[0]
     # For HSR based scale out, needs DB high availability
     - db_high_availability is defined
-    - db_high_availability == true
+    - db_high_availability
 
 - name:                                "ANF Mount: HANA shared"
   ansible.builtin.include_tasks:       2.6.1.1-anf-mount.yaml
@@ -706,7 +706,7 @@
     - ansible_hostname == db_hosts[1]
     # For HSR based scale out, needs DB high availability
     - db_high_availability is defined
-    - db_high_availability == true
+    - db_high_availability
 
 - name:                                "ANF Mount: HANA shared (secondary)"
   ansible.builtin.include_tasks:       2.6.1.1-anf-mount.yaml
@@ -734,7 +734,7 @@
     - ansible_hostname == db_hosts[1]
     # For HSR based scale out, needs DB high availability
     - db_high_availability is defined
-    - db_high_availability == true
+    - db_high_availability
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
@@ -893,7 +893,6 @@
     - db_scale_out
 
 
-
 - name:                                "ANF Mount: HANA Log - Scale out - Create mount list"
   block:
     - name:                            "Initialize HANA Log mountpoints"
@@ -948,7 +947,6 @@
     - db_scale_out
 
 
-
 - name:                                "ANF Mount: Set Permissons on HANA (HSR) Directories ({{ item.path }})"
   ansible.builtin.file:
     owner:                             '{{ hdbadm_uid }}'
@@ -964,7 +962,7 @@
     - tier == 'sapos'
     - node_tier == 'hana'
     - db_high_availability is defined
-    - db_high_availability == true
+    - db_high_availability
 
 
 - name:                                "ANF Mount: Set Permissons on HANA Directories ({{ item.path }})"
@@ -982,7 +980,7 @@
   when:
     - tier == 'sapos'
     - node_tier == 'hana'
-    - db_high_availability | default(false) == false
+    - not (db_high_availability | default(false))
     - db_scale_out
 
 ...
