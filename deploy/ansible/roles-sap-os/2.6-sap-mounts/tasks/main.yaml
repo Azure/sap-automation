@@ -359,7 +359,7 @@
     - not use_simple_mount
     - NFS_provider == 'ANF'
     # only run when no scale out configuration is used.
-    - db_scale_out is not defined or db_scale_out == false
+    - db_scale_out is not defined or (not db_scale_out)
 
 
 # Import this task only if db_scale_out is defined. Implies that sap_mnt is defined, i.e. ANF is used

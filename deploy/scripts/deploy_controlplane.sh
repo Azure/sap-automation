@@ -206,7 +206,7 @@ if [ -n "${subscription}" ]; then
         load_config_vars "${deployer_config_information}" "keyvault"
     fi
 
-    if [ -n $keyvault ] ; then
+    if [ -n "${keyvault}" ] ; then
 
 
       kv_found=$(az keyvault list --subscription "${subscription}" --query [].name | grep  "${keyvault}")

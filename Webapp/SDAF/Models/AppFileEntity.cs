@@ -11,7 +11,7 @@ namespace AutomationForm.Models
     public AppFileEntity(string id, string uri)
     {
       RowKey = id;
-      PartitionKey = id.Substring(0, id.IndexOf('-'));
+      PartitionKey = id[..id.IndexOf('-')];
       BlobUri = uri;
     }
 

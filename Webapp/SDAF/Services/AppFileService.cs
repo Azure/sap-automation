@@ -84,5 +84,10 @@ namespace AutomationForm.Services
       await blobClient.DeleteAsync();
       await client.DeleteEntityAsync(partitionKey, rowKey);
     }
+
+    public Task CreateTFVarsAsync(AppFile file)
+    {
+      throw new NotImplementedException();
+    }
   }
 }

@@ -249,7 +249,6 @@ $$database_use_avset$$
 # Optional, Defines if the tags for the database virtual machines
 $$database_tags$$
 
-$$database_HANA_use_ANF_scaleout_scenario$$
 
 #########################################################################################
 #                                                                                       #
@@ -501,6 +500,9 @@ $$ANF_HANA_data_use_existing_volume$$
 # ANF_HANA_data_volume_name, if defined, provides the name of the HANA data volume(s).
 $$ANF_HANA_data_volume_name$$
 
+# Number of ANF Data Volumes
+$$ANF_hana_data_volume_count$$
+
 
 #########################################################################################
 #                                                                                       #
@@ -523,6 +525,8 @@ $$ANF_HANA_log_use_existing$$
 # ANF_HANA_log_volume_name, if defined, provides the name of the HANA log volume(s).
 $$ANF_HANA_log_volume_name$$
 
+# Number of ANF Data Volumes
+$$ANF_hana_log_volume_count$$
 
 #########################################################################################
 #                                                                                       #
@@ -833,3 +837,16 @@ $$configuration_settings$$
 
 # These tags will be applied to all resources
 $$tags$$
+
+
+#########################################################################################
+#                                                                                       #
+#  Scaleout variables                                                                   #
+#                                                                                       #
+#########################################################################################
+
+#If true, the database tier will be configured for scaleout scenario
+$$database_HANA_use_ANF_scaleout_scenario$$
+
+# Defined the standbynode count in a scaleout scenario
+$$stand_by_node_count$$

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+using AutomationForm.Models;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace AutomationForm.Services
@@ -13,5 +14,6 @@ namespace AutomationForm.Services
     public Task CreateAsync(T model);
     public Task UpdateAsync(T model);
     public Task DeleteAsync(string rowKey, string partitionKey);
+    public Task CreateTFVarsAsync(AppFile file);
   }
 }

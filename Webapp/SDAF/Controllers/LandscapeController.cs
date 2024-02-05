@@ -8,6 +8,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -21,7 +22,7 @@ namespace AutomationForm.Controllers
     private FormViewModel<LandscapeModel> landscapeView;
     private readonly IConfiguration _configuration;
     private RestHelper restHelper;
-    private ImageDropdown[] imagesOffered;
+    private readonly ImageDropdown[] imagesOffered;
     private List<SelectListItem> imageOptions;
     private Dictionary<string, Image> imageMapping;
     private readonly string sdafControlPlaneEnvironment;
@@ -142,7 +143,7 @@ namespace AutomationForm.Controllers
     [HttpGet]
     public async Task<ActionResult> GetByIdJson(string id)
     {
-      string environment = id.Substring(0, id.IndexOf('-'));
+      string environment = id[..id.IndexOf('-')];
       LandscapeEntity landscape = await _landscapeService.GetByIdAsync(id, environment);
       if (landscape == null || landscape.Landscape == null) return NotFound();
       return Json(landscape.Landscape);
@@ -188,6 +189,10 @@ namespace AutomationForm.Controllers
           landscape.Id = Helper.GenerateId(landscape);
           await _landscapeService.CreateAsync(new LandscapeEntity(landscape));
           TempData["success"] = "Successfully created workload zone " + landscape.Id;
+          string id = landscape.Id;
+          string path = $"/LANDSCAPE/{id}/{id}.tfvars";
+          string content = Helper.ConvertToTerraform(landscape);
+
           return RedirectToAction("Index");
         }
         catch (Exception e)
@@ -329,7 +334,24 @@ namespace AutomationForm.Controllers
           if (newId != landscape.Id)
           {
             landscape.Id = newId;
-            return SubmitNewAsync(landscape).Result;
+            await SubmitNewAsync(landscape);
+            string id = landscape.Id;
+            string path = $"/LANDSCAPE/{id}/{id}.tfvars";
+            string content = Helper.ConvertToTerraform(landscape);
+            byte[] bytes = Encoding.UTF8.GetBytes(content);
+
+            AppFile file = new()
+            {
+              Id = WebUtility.HtmlEncode(path),
+              Content = bytes,
+              UntrustedName = path,
+              Size = bytes.Length,
+              UploadDT = DateTime.UtcNow
+            };
+
+            await _landscapeService.CreateTFVarsAsync(file);
+
+            return RedirectToAction("Index");
           }
           else
           {
@@ -339,6 +361,23 @@ namespace AutomationForm.Controllers
             }
             await _landscapeService.UpdateAsync(new LandscapeEntity(landscape));
             TempData["success"] = "Successfully updated workload zone " + landscape.Id;
+
+            string id = landscape.Id;
+            string path = $"/LANDSCAPE/{id}/{id}.tfvars";
+            string content = Helper.ConvertToTerraform(landscape);
+            byte[] bytes = Encoding.UTF8.GetBytes(content);
+
+            AppFile file = new()
+            {
+              Id = WebUtility.HtmlEncode(path),
+              Content = bytes,
+              UntrustedName = path,
+              Size = bytes.Length,
+              UploadDT = DateTime.UtcNow
+            };
+
+            await _landscapeService.CreateTFVarsAsync(file);
+
             return RedirectToAction("Index");
           }
         }
@@ -371,6 +410,24 @@ namespace AutomationForm.Controllers
           landscape.Id = Helper.GenerateId(landscape);
           await _landscapeService.CreateAsync(new LandscapeEntity(landscape));
           TempData["success"] = "Successfully created workload zone " + landscape.Id;
+          string id = landscape.Id;
+          string path = $"/LANDSCAPE/{id}/{id}.tfvars";
+          string content = Helper.ConvertToTerraform(landscape);
+
+          byte[] bytes = Encoding.UTF8.GetBytes(content);
+
+          AppFile file = new()
+          {
+            Id = WebUtility.HtmlEncode(id),
+            Content = bytes,
+            UntrustedName = id,
+            Size = bytes.Length,
+            UploadDT = DateTime.UtcNow
+          };
+
+          await _landscapeService.CreateTFVarsAsync(file);
+
+
           return RedirectToAction("Index");
         }
         catch (Exception e)

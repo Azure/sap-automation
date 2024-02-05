@@ -95,6 +95,7 @@ locals {
                                                                              )
                                            user_assigned_identity_id       = var.user_assigned_identity_id
                                            zones                           = var.database_vm_zones
+                                           stand_by_node_count             = var.stand_by_node_count
                                          }
 
   db_os                             = {
@@ -635,5 +636,45 @@ locals {
                                              disk_encryption_set_id = local.disk_encryption_set_id
                                            }
                                          ) : null))
+
+  hana_ANF_volumes                     = {
+                                            use_for_data                       = var.ANF_HANA_data
+                                            data_volume_size                   = var.ANF_HANA_data_volume_size
+                                            use_existing_data_volume           = var.ANF_HANA_data_use_existing_volume
+                                            data_volume_name                   = var.ANF_HANA_data_volume_name
+                                            data_volume_throughput             = var.ANF_HANA_data_volume_throughput
+                                            data_volume_count                  = var.ANF_hana_data_volume_count
+
+                                            use_for_log                        = var.ANF_HANA_log
+                                            log_volume_size                    = var.ANF_HANA_log_volume_size
+                                            use_existing_log_volume            = var.ANF_HANA_log_use_existing
+                                            log_volume_name                    = var.ANF_HANA_log_volume_name
+                                            log_volume_throughput              = var.ANF_HANA_log_volume_throughput
+                                            log_volume_count                   = var.ANF_hana_log_volume_count
+
+                                            use_for_shared                     = var.ANF_HANA_shared
+                                            shared_volume_size                 = var.ANF_HANA_shared_volume_size
+                                            use_existing_shared_volume         = var.ANF_HANA_shared_use_existing
+                                            shared_volume_name                 = var.ANF_HANA_shared_volume_name
+                                            shared_volume_throughput           = var.ANF_HANA_shared_volume_throughput
+
+                                            use_for_usr_sap                    = var.ANF_usr_sap
+                                            usr_sap_volume_size                = var.ANF_usr_sap_volume_size
+                                            use_existing_usr_sap_volume        = var.ANF_usr_sap_use_existing
+                                            usr_sap_volume_name                = var.ANF_usr_sap_volume_name
+                                            usr_sap_volume_throughput          = var.ANF_usr_sap_throughput
+
+                                            sapmnt_volume_size                 = var.sapmnt_volume_size
+                                            use_for_sapmnt                     = var.ANF_sapmnt
+                                            use_existing_sapmnt_volume         = var.ANF_sapmnt_use_existing
+                                            sapmnt_volume_name                 = var.ANF_sapmnt_volume_name
+                                            sapmnt_volume_throughput           = var.ANF_sapmnt_volume_throughput
+                                            sapmnt_use_clone_in_secondary_zone = var.ANF_sapmnt_use_clone_in_secondary_zone
+
+                                            use_AVG_for_data                   = var.ANF_HANA_use_AVG
+                                            use_zones                          = var.ANF_HANA_use_Zones
+
+                                          }
+
 
 }

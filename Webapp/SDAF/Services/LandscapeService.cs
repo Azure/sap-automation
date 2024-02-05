@@ -1,6 +1,8 @@
-﻿using AutomationForm.Models;
+using AutomationForm.Models;
 using Azure;
 using Azure.Data.Tables;
+using Azure.Storage.Blobs;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -10,10 +12,14 @@ namespace AutomationForm.Services
   public class LandscapeService : ITableStorageService<LandscapeEntity>
   {
     private readonly TableClient client;
+    private readonly BlobContainerClient tfvarsBlobContainerClient;
+
 
     public LandscapeService(TableStorageService tableStorageService, IDatabaseSettings settings)
     {
       client = tableStorageService.GetTableClient(settings.LandscapeCollectionName).Result;
+      tfvarsBlobContainerClient = tableStorageService.GetBlobClient(settings.TfVarBlobCollectionName).Result;
+
     }
 
     public async Task<List<LandscapeEntity>> GetNAsync(int n)
@@ -56,5 +62,12 @@ namespace AutomationForm.Services
     {
       return client.DeleteEntityAsync(partitionKey, rowKey);
     }
+    public Task CreateTFVarsAsync(AppFile file)
+    {
+      BlobClient blobClient = tfvarsBlobContainerClient.GetBlobClient(file.Id);
+      return blobClient.UploadAsync(new BinaryData(file.Content), overwrite: blobClient.Exists());
+
+    }
+
   }
 }

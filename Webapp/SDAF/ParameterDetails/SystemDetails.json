@@ -646,15 +646,6 @@
         "Display": 3
       },
       {
-        "Name": "database_HANA_use_ANF_scaleout_scenario",
-        "Required": false,
-        "Description": "Not implemented yet.",
-        "Type": "checkbox",
-        "Options": [],
-        "Overrules": "",
-        "Display": 3
-      },
-      {
         "Name": "database_vm_authentication_type",
         "Required": false,
         "Description": "Defines the authentication for the Database Virtual Machines. Valid options are 'Key' or 'Password'.",
@@ -1818,6 +1809,24 @@
         "Options": [],
         "Overrules": "",
         "Display": 2
+      },
+      {
+        "Name": "database_HANA_use_ANF_scaleout_scenario",
+        "Required": false,
+        "Description": "If true, the database tier will be configured for scaleout scenario.",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "stand_by_node_count",
+        "Required": false,
+        "Description": "The number of standby nodes.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
       }
     ]
   },
@@ -1869,6 +1878,15 @@
         "Options": [],
         "Overrules": "",
         "Display": 3
+      },
+      {
+        "Name": "ANF_hana_data_volume_count",
+        "Required": false,
+        "Description": "Number of ANF Data Volumes",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
       }
     ]
   },
@@ -1916,6 +1934,15 @@
         "Name": "ANF_HANA_log_volume_name",
         "Required": false,
         "Description": "Azure NetApp volumes name(s) for existing HANA log volume(s)",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "ANF_hana_data_volume_count",
+        "Required": false,
+        "Description": "Number of ANF Data Volumes",
         "Type": "field",
         "Options": [],
         "Overrules": "",

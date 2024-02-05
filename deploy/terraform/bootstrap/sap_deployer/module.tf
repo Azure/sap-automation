@@ -16,8 +16,8 @@ module "sap_deployer" {
   additional_users_to_add_to_keyvault_policies = var.additional_users_to_add_to_keyvault_policies
   agent_ado_url                                = var.agent_ado_url
   Agent_IP                                     = var.Agent_IP
-  agent_pat                                    = var.use_webapp ? var.agent_pat : ""
-  agent_pool                                   = var.use_webapp ? var.agent_pool : ""
+  agent_pat                                    = var.agent_pat
+  agent_pool                                   = var.agent_pool
   ansible_core_version                         = var.ansible_core_version
   app_registration_app_id                      = var.use_webapp ? var.app_registration_app_id : ""
   app_service                                  = local.app_service
