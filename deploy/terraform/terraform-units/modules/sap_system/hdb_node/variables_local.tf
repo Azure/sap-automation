@@ -384,11 +384,11 @@ locals {
 
 
   data_volume_count                    = (var.hana_ANF_volumes.use_for_data || var.hana_ANF_volumes.use_existing_data_volume) ? (
-                                           var.database_server_count - var.database.stand_by_node_count) * var.hana_ANF_volumes.data_volume_count) : (
+                                           (var.database_server_count - var.database.stand_by_node_count) * var.hana_ANF_volumes.data_volume_count) : (
                                            0
                                          )
   log_volume_count                    = (var.hana_ANF_volumes.use_for_log || var.hana_ANF_volumes.use_existing_log_volume) ? (
-                                           var.database_server_count - var.database.stand_by_node_count) * var.hana_ANF_volumes.log_volume_count) : (
+                                           (var.database_server_count - var.database.stand_by_node_count) * var.hana_ANF_volumes.log_volume_count) : (
                                            0
                                          )
 
