@@ -69,7 +69,7 @@
   block:
     - name:                            "2.10.1 sap-notes: - Disable SELinux"
       ansible.posix.selinux:
-        state:                         permissive
+        state:                         disabled
       register:                        selinux_permissive
 
     - name:                            "2.10.1 sap-notes: Reboot app VMs after selinux is configured"
