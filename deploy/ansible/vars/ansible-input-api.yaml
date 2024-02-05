@@ -208,6 +208,7 @@ use_simple_mount:                       false
 
 # Cluster - Defaults
 # database_high_availability:            false
+db_scale_out:                          false
 database_cluster_type:                 "AFA"
 # scs_high_availability:                 false
 scs_cluster_type:                      "AFA"
