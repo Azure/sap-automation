@@ -198,6 +198,8 @@ namespace AutomationForm.Models
     public Tag[] configuration_settings { get; set; }
 
     public bool? dns_a_records_for_secondary_names { get; set; } = true;
+    public bool? use_private_endpoint { get; set; }
+
     /*---------------------------------------------------------------------------8
     |                                                                            |
     |                       Cluster information                                  |
@@ -283,8 +285,7 @@ namespace AutomationForm.Models
     [IpAddressValidator]
     public string[] database_vm_db_nic_ips { get; set; }
 
-    public string database_HANA_use_ANF_scaleout_scenario { get; set; }
-
+    
     [IpAddressValidator]
     public string[] database_vm_db_nic_secondary_ips { get; set; }
 
@@ -471,6 +472,14 @@ namespace AutomationForm.Models
     |                                                                            |
     +------------------------------------4--------------------------------------*/
 
+    public bool? ANF_HANA_use_AVG { get; set; } = false;
+
+    /*---------------------------------------------------------------------------8
+    |                                                                            |
+    |                                     Data                                   |
+    |                                                                            |
+    +------------------------------------4--------------------------------------*/
+
     public bool? ANF_HANA_data { get; set; }
 
     public int? ANF_HANA_data_volume_size { get; set; }
@@ -481,6 +490,13 @@ namespace AutomationForm.Models
 
     public int? ANF_HANA_data_volume_throughput { get; set; }
 
+    public int? ANF_hana_data_volume_count { get; set; } = 1;
+
+    /*---------------------------------------------------------------------------8
+    |                                                                            |
+    |                                     Log                                    |
+    |                                                                            |
+    +------------------------------------4--------------------------------------*/
     public bool? ANF_HANA_log { get; set; }
 
     public int? ANF_HANA_log_volume_size { get; set; }
@@ -491,6 +507,13 @@ namespace AutomationForm.Models
 
     public int? ANF_HANA_log_volume_throughput { get; set; }
 
+    public int? ANF_hana_log_volume_count { get; set; } = 1;
+
+    /*---------------------------------------------------------------------------8
+    |                                                                            |
+    |                                   Shared                                   |
+    |                                                                            |
+    +------------------------------------4--------------------------------------*/
     public bool? ANF_HANA_shared { get; set; }
 
     public int? ANF_HANA_shared_volume_size { get; set; }
@@ -501,6 +524,11 @@ namespace AutomationForm.Models
 
     public int? ANF_HANA_shared_volume_throughput { get; set; }
 
+    /*---------------------------------------------------------------------------8
+    |                                                                            |
+    |                                  /usr/sap                                  |
+    |                                                                            |
+    +------------------------------------4--------------------------------------*/
     public bool? ANF_usr_sap { get; set; }
 
     public int? ANF_usr_sap_volume_size { get; set; }
@@ -511,7 +539,11 @@ namespace AutomationForm.Models
 
     public int? ANF_usr_sap_throughput { get; set; }
 
-    public bool? use_private_endpoint { get; set; }
+    /*---------------------------------------------------------------------------8
+    |                                                                            |
+    |                                   sapmnt                                   |
+    |                                                                            |
+    +------------------------------------4--------------------------------------*/
 
     public bool? ANF_sapmnt { get; set; }
 
@@ -523,7 +555,6 @@ namespace AutomationForm.Models
 
     public bool? ANF_sapmnt_use_clone_in_secondary_zone { get; set; }
 
-    public bool? ANF_HANA_use_AVG { get; set; } = false;
 
     /*---------------------------------------------------------------------------8
     |                                                                            |
@@ -568,6 +599,16 @@ namespace AutomationForm.Models
     |                                                                            |
     +------------------------------------4--------------------------------------*/
     public bool? use_spn { get; set; } = true;
+
+    /*---------------------------------------------------------------------------8
+    |                                                                            |
+    |                               HANA Scale Out                               |
+    |                                                                            |
+    +------------------------------------4--------------------------------------*/
+
+    public bool? database_HANA_use_ANF_scaleout_scenario { get; set; } = false;
+
+    public int? stand_by_node_count { get; set; } = 0;
 
   }
 
