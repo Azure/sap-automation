@@ -340,9 +340,7 @@ locals {
 
   dns_label                            = try(var.landscape_tfstate.dns_label, "")
 
-  ANF_pool_settings                    = var.NFS_provider == "ANF" ? (
-                                           try(var.landscape_tfstate.ANF_pool_settings, {})
-                                           ) : (
+  ANF_pool_settings                    = try(var.landscape_tfstate.ANF_pool_settings,
                                            {
                                              use_ANF             = false
                                              account_name        = ""
