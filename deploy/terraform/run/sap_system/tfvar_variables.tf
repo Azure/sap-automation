@@ -1303,6 +1303,6 @@ variable "database_HANA_use_ANF_scaleout_scenario" {
                                                 }
 
 variable "stand_by_node_count"                  {
-                                                  description = "The number of stand by nodes"
+                                                  description = "The number of standby nodes"
                                                   default = 0
                                                 }
