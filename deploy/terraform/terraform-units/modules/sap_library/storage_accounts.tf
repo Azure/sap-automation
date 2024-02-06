@@ -447,7 +447,6 @@ resource "azurerm_storage_container" "storagecontainer_tfvars" {
   provider                             = azurerm.main
   count                                = var.storage_account_tfstate.tfvars_blob_container.is_existing ? 0 : 1
   depends_on                           = [
-                                           azurerm_storage_account_network_rules.storage_tfstate,
                                            azurerm_private_endpoint.storage_tfstate
                                          ]
   name                                 = var.storage_account_tfstate.tfvars_blob_container.name
