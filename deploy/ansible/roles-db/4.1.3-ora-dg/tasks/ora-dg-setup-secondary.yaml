@@ -154,8 +154,8 @@
     executable:                        /bin/csh
     creates:                           /etc/sap_deployment_automation/dgscripts/asm_oraarch_created.txt
   when:
-    - current_host == ora_secondary
     - node_tier == 'oracle-asm'
+    - current_host == ora_secondary
 
 - name:                                "Oracle Data Guard - Setup Secondary: Create asm_oraarch_created.txt"
   become:                              true
@@ -165,9 +165,9 @@
     state:                             touch
     mode:                              '0755'
   when:
+    - node_tier == 'oracle-asm'
     - current_host == ora_secondary
     - asm_oraarch_created_results.rc == 0
-    - node_tier == 'oracle-asm'
 
 - name:                                "Oracle Data Guard - Setup Secondary: Duplicate Secondary DB from Primary DB using RMAN"
   block:
