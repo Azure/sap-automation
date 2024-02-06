@@ -41,34 +41,23 @@ resource "azurerm_storage_account" "sapmnt" {
   public_network_access_enabled        = try(var.landscape_tfstate.public_network_access_enabled, true)
   tags                                 = var.tags
 
-}
-resource "azurerm_storage_account_network_rules" "sapmnt" {
-  provider                             = azurerm.main
-  count                                = var.NFS_provider == "AFS" ? (
-                                           length(var.azure_files_sapmnt_id) > 0 ? (
-                                             0) : (
-                                             1
-                                           )) : (
-                                           0
-                                         )
-  storage_account_id                   = azurerm_storage_account.sapmnt[0].id
-  default_action                       = "Deny"
-
-  bypass                               = ["AzureServices", "Logging", "Metrics"]
-  virtual_network_subnet_ids           = compact(
-                                           [
-                                             try(var.landscape_tfstate.admin_subnet_id, ""),
-                                             try(var.landscape_tfstate.app_subnet_id, ""),
-                                             try(var.landscape_tfstate.db_subnet_id, ""),
-                                             try(var.landscape_tfstate.web_subnet_id, ""),
-                                             try(var.landscape_tfstate.subnet_mgmt_id, "")
-                                           ]
-                                         )
-  ip_rules                             = compact(
-                                         [
-                                           length(var.Agent_IP) > 0 ? var.Agent_IP : ""
-                                         ]
-                                         )
+  network_rules {
+                  default_action = "Deny"
+                  virtual_network_subnet_ids = compact(
+                    [
+                      try(var.landscape_tfstate.admin_subnet_id, ""),
+                      try(var.landscape_tfstate.app_subnet_id, ""),
+                      try(var.landscape_tfstate.db_subnet_id, ""),
+                      try(var.landscape_tfstate.web_subnet_id, ""),
+                      try(var.landscape_tfstate.subnet_mgmt_id, "")
+                    ]
+                  )
+                  ip_rules = compact(
+                    [
+                      length(var.Agent_IP) > 0 ? var.Agent_IP : ""
+                    ]
+                  )
+                }
 
 
 }
