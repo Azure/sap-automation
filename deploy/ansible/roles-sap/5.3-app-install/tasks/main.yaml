@@ -33,7 +33,7 @@
     dir_params:                        "{{ tmp_directory }}/.{{ sid_to_be_deployed.sid | upper }}-params"
     db_lb_virtual_host_HANA:           "{% if database_high_availability %}{{ sid_to_be_deployed.sid | lower }}{{ db_sid | lower }}db{{ db_instance_number }}cl{% else %}{{ hostvars[db_server_temp | first]['virtual_host'] }}{% endif %}"
     db_lb_virtual_host_AnyDB:          "{% if database_high_availability %}{{ sid_to_be_deployed.sid | lower }}{{ db_sid | lower }}db{{ db_instance_number }}cl{% else %}{{ db_server_temp }}{% endif %}"
-    app_virtual_hostname:              "{{ default(virtual_host, true) }}"
+    app_virtual_hostname:              "{{ virtual_host }}"
 
 - name:                                "APP Install: Set BOM facts db host"
   ansible.builtin.set_fact:
