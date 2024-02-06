@@ -149,42 +149,29 @@ resource "azurerm_storage_account" "witness_storage" {
   public_network_access_enabled        = var.public_network_access_enabled
 
   tags                                 = var.tags
+  network_rules {
+                  default_action              = "Deny"
+                  virtual_network_subnet_ids  = compact([
+                                                  local.database_subnet_defined ? (
+                                                    local.database_subnet_existing ? var.infrastructure.vnets.sap.subnet_db.arm_id : azurerm_subnet.db[0].id) : (
+                                                    null
+                                                    ), local.application_subnet_defined ? (
+                                                    local.application_subnet_existing ? var.infrastructure.vnets.sap.subnet_app.arm_id : azurerm_subnet.app[0].id) : (
+                                                    null
+                                                  ),
+                                                  data.azurerm_resource_group.mgmt[0].location == (local.resource_group_exists ? (
+                                                    data.azurerm_resource_group.resource_group[0].location) : (
+                                                    azurerm_resource_group.resource_group[0].location
+                                                  )) ? local.deployer_subnet_management_id : null
+                                                  ]
+                                                )
+                  ip_rules                   = compact([
+                                                 length(local.deployer_public_ip_address) > 0 ? local.deployer_public_ip_address : "",
+                                                 length(var.Agent_IP) > 0 ? var.Agent_IP : ""
+                                                ])
+                }
 
-}
 
-resource "azurerm_storage_account_network_rules" "witness" {
-  provider                             = azurerm.main
-  count                                = var.enable_firewall_for_keyvaults_and_storage && length(var.witness_storage_account.arm_id) == 0 ? 1 : 0
-  depends_on                           = [
-                                           azurerm_storage_account.witness_storage,
-                                           azurerm_subnet.db,
-                                           azurerm_subnet.app
-                                         ]
-  storage_account_id                   = azurerm_storage_account.witness_storage[0].id
-  default_action                       = "Deny"
-  bypass                               = ["AzureServices", "Logging", "Metrics"]
-
-  ip_rules                             = compact([
-                                          length(local.deployer_public_ip_address) > 0 ? local.deployer_public_ip_address : "",
-                                          length(var.Agent_IP) > 0 ? var.Agent_IP : ""
-                                         ])
-  virtual_network_subnet_ids           = compact([
-                                           local.database_subnet_defined ? (
-                                             local.database_subnet_existing ? var.infrastructure.vnets.sap.subnet_db.arm_id : azurerm_subnet.db[0].id) : (
-                                             null
-                                             ), local.application_subnet_defined ? (
-                                             local.application_subnet_existing ? var.infrastructure.vnets.sap.subnet_app.arm_id : azurerm_subnet.app[0].id) : (
-                                             null
-                                           ),
-                                           data.azurerm_resource_group.mgmt[0].location == (local.resource_group_exists ? (
-                                             data.azurerm_resource_group.resource_group[0].location) : (
-                                             azurerm_resource_group.resource_group[0].location
-                                           )) ? local.deployer_subnet_management_id : null
-                                           ]
-                                         )
- lifecycle {
-             ignore_changes = [virtual_network_subnet_ids]
-           }
 }
 
 resource "azurerm_private_dns_a_record" "witness_storage" {
@@ -311,47 +298,37 @@ resource "azurerm_storage_account" "transport" {
 
   public_network_access_enabled        = var.public_network_access_enabled
 
+  network_rules {
+                  default_action              = "Deny"
+                  virtual_network_subnet_ids  = compact(
+                                                  [
+                                                    local.database_subnet_defined ? (
+                                                      local.database_subnet_existing ? var.infrastructure.vnets.sap.subnet_db.arm_id : azurerm_subnet.db[0].id) : (
+                                                      ""
+                                                      ), local.application_subnet_defined ? (
+                                                      local.application_subnet_existing ? var.infrastructure.vnets.sap.subnet_app.arm_id : azurerm_subnet.app[0].id) : (
+                                                      ""
+                                                      ), local.web_subnet_defined ? (
+                                                      local.web_subnet_existing ? var.infrastructure.vnets.sap.subnet_web.arm_id : azurerm_subnet.web[0].id) : (
+                                                      ""
+                                                    ),
+                                                    data.azurerm_resource_group.mgmt[0].location == (local.resource_group_exists ? (
+                                                      data.azurerm_resource_group.resource_group[0].location) : (
+                                                      azurerm_resource_group.resource_group[0].location
+                                                    )) ? local.deployer_subnet_management_id : null
+
+                                                  ]
+                                                )
+                  ip_rules                   = compact([
+                                                 length(local.deployer_public_ip_address) > 0 ? local.deployer_public_ip_address : "",
+                                                 length(var.Agent_IP) > 0 ? var.Agent_IP : ""
+                                                ])
+                }
+
   tags                                 = var.tags
 
 }
 
-resource "azurerm_storage_account_network_rules" "transport" {
-  provider                             = azurerm.main
-  count                                = var.create_transport_storage && local.use_AFS_for_shared && length(var.transport_storage_account_id) == 0 ? 1 : 0
-  storage_account_id                   = azurerm_storage_account.transport[0].id
-  default_action                       = "Deny"
-
-  ip_rules                             = compact([
-                                          length(local.deployer_public_ip_address) > 0 ? local.deployer_public_ip_address : "",
-                                          length(var.Agent_IP) > 0 ? var.Agent_IP : ""
-                                         ])
-
-  bypass                               = ["AzureServices", "Logging", "Metrics"]
-  virtual_network_subnet_ids           = compact(
-                                           [
-                                             local.database_subnet_defined ? (
-                                               local.database_subnet_existing ? var.infrastructure.vnets.sap.subnet_db.arm_id : azurerm_subnet.db[0].id) : (
-                                               ""
-                                               ), local.application_subnet_defined ? (
-                                               local.application_subnet_existing ? var.infrastructure.vnets.sap.subnet_app.arm_id : azurerm_subnet.app[0].id) : (
-                                               ""
-                                               ), local.web_subnet_defined ? (
-                                               local.web_subnet_existing ? var.infrastructure.vnets.sap.subnet_web.arm_id : azurerm_subnet.web[0].id) : (
-                                               ""
-                                             ),
-                                             data.azurerm_resource_group.mgmt[0].location == (local.resource_group_exists ? (
-                                               data.azurerm_resource_group.resource_group[0].location) : (
-                                               azurerm_resource_group.resource_group[0].location
-                                             )) ? local.deployer_subnet_management_id : null
-
-                                           ]
-                                         )
-
- lifecycle {
-             ignore_changes = [virtual_network_subnet_ids]
-           }
-
-}
 
 resource "azurerm_private_dns_a_record" "transport" {
   provider                             = azurerm.dnsmanagement
@@ -547,49 +524,36 @@ resource "azurerm_storage_account" "install" {
   min_tls_version                      = "TLS1_2"
   public_network_access_enabled        = var.public_network_access_enabled
   tags                                 = var.tags
+  network_rules {
+                  default_action              = "Deny"
+                  virtual_network_subnet_ids  = compact(
+                                                  [
+                                                    local.database_subnet_defined ? (
+                                                      local.database_subnet_existing ? var.infrastructure.vnets.sap.subnet_db.arm_id : azurerm_subnet.db[0].id) : (
+                                                      ""
+                                                      ), local.application_subnet_defined ? (
+                                                      local.application_subnet_existing ? var.infrastructure.vnets.sap.subnet_app.arm_id : azurerm_subnet.app[0].id) : (
+                                                      ""
+                                                      ), local.web_subnet_defined ? (
+                                                      local.web_subnet_existing ? var.infrastructure.vnets.sap.subnet_web.arm_id : azurerm_subnet.web[0].id) : (
+                                                      ""
+                                                    ),
+                                                    data.azurerm_resource_group.mgmt[0].location == (local.resource_group_exists ? (
+                                                      data.azurerm_resource_group.resource_group[0].location) : (
+                                                      azurerm_resource_group.resource_group[0].location
+                                                    )) ? local.deployer_subnet_management_id : null
+
+                                                  ]
+                                                )
+                  ip_rules                   = compact([
+                                                 length(local.deployer_public_ip_address) > 0 ? local.deployer_public_ip_address : "",
+                                                 length(var.Agent_IP) > 0 ? var.Agent_IP : ""
+                                                ])
+                }
+
 
 }
 
-resource "azurerm_storage_account_network_rules" "install" {
-  provider                             = azurerm.main
-  count                                = local.use_AFS_for_shared && length(var.install_storage_account_id) == 0 ? 1 : 0
-  depends_on                           = [
-                                           azurerm_subnet.app,
-                                           azurerm_subnet.db
-                                         ]
-
-  storage_account_id                   = azurerm_storage_account.install[0].id
-  default_action                       = "Deny"
-
-  ip_rules                             = compact([
-                                          length(local.deployer_public_ip_address) > 0 ? local.deployer_public_ip_address : "",
-                                          length(var.Agent_IP) > 0 ? var.Agent_IP : ""
-                                         ])
-  bypass                               = ["AzureServices", "Logging", "Metrics"]
-  virtual_network_subnet_ids           = compact(
-                                           [
-                                             local.database_subnet_defined ? (
-                                               local.database_subnet_existing ? var.infrastructure.vnets.sap.subnet_db.arm_id : azurerm_subnet.db[0].id) : (
-                                               ""
-                                               ), local.application_subnet_defined ? (
-                                               local.application_subnet_existing ? var.infrastructure.vnets.sap.subnet_app.arm_id : azurerm_subnet.app[0].id) : (
-                                               ""
-                                               ), local.web_subnet_defined ? (
-                                               local.web_subnet_existing ? var.infrastructure.vnets.sap.subnet_web.arm_id : azurerm_subnet.web[0].id) : (
-                                               ""
-                                             ),
-                                             data.azurerm_resource_group.mgmt[0].location == (local.resource_group_exists ? (
-                                               data.azurerm_resource_group.resource_group[0].location) : (
-                                               azurerm_resource_group.resource_group[0].location
-                                             )) ? local.deployer_subnet_management_id : null
-
-                                            ]
-                                         )
-  lifecycle {
-             ignore_changes = [virtual_network_subnet_ids]
-           }
-
-}
 
 resource "azurerm_private_dns_a_record" "install" {
   provider                             = azurerm.dnsmanagement
