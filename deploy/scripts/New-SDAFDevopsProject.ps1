@@ -28,6 +28,8 @@ $ARM_TENANT_ID = $Env:ARM_TENANT_ID
 
 $versionLabel = "v3.10.1.0"
 
+
+
 # az logout
 
 # az account clear
@@ -697,11 +699,11 @@ Add-Content -Path $fname -Value ("Web Application: " + $ApplicationName)
 #region App registration
 Write-Host "Creating the App registration in Azure Active Directory" -ForegroundColor Green
 
-$found_appRegistration = (az ad app list --all --filter "startswith(displayName,'$ApplicationName')" --query  "[?displayName=='$ApplicationName'].displayName | [0]" --only-show-errors)
+$found_appRegistration = (az ad app list --all --filter "startswith(displayName, '$ApplicationName')" --query  "[?displayName=='$ApplicationName'].displayName | [0]" --only-show-errors)
 
 if ($found_appRegistration.Length -ne 0) {
   Write-Host "Found an existing App Registration:" $ApplicationName
-  $ExistingData = (az ad app list --all --filter "startswith(displayName,'$ApplicationName')" --query  "[?displayName=='$ApplicationName']| [0]" --only-show-errors) | ConvertFrom-Json
+  $ExistingData = (az ad app list --all --filter "startswith(displayName, '$ApplicationName')" --query  "[?displayName=='$ApplicationName']| [0]" --only-show-errors) | ConvertFrom-Json
 
   $APP_REGISTRATION_ID = $ExistingData.appId
 
@@ -746,10 +748,10 @@ if ($authenticationMethod -eq "Service Principal") {
   $SPN_Created = $false
   $bSkip = $true
 
-  $found_appName = (az ad sp list --all --filter "startswith(displayName,'$spn_name')" --query "[?displayName=='$spn_name'].displayName | [0]" --only-show-errors)
+  $found_appName = (az ad sp list --all --filter "startswith(displayName, '$spn_name')" --query "[?displayName=='$spn_name'].displayName | [0]" --only-show-errors)
   if ($found_appName.Length -gt 0) {
     Write-Host "Found an existing Service Principal:" $spn_name
-    $ExistingData = (az ad sp list --all --filter "startswith(displayName,'$spn_name')" --query  "[?displayName=='$spn_name']| [0]" --only-show-errors) | ConvertFrom-Json
+    $ExistingData = (az ad sp list --all --filter "startswith(displayName, '$spn_name')" --query  "[?displayName=='$spn_name']| [0]" --only-show-errors) | ConvertFrom-Json
     Write-Host "Updating the variable group"
 
     $CP_ARM_CLIENT_ID = $ExistingData.appId
@@ -771,7 +773,7 @@ if ($authenticationMethod -eq "Service Principal") {
     $SPN_Created = $true
     $Control_plane_SPN_data = (az ad sp create-for-rbac --role "Contributor" --scopes $scopes --name $spn_name --only-show-errors) | ConvertFrom-Json
     $CP_ARM_CLIENT_SECRET = $Control_plane_SPN_data.password
-    $ExistingData = (az ad sp list --all --filter "startswith(displayName,'$spn_name')" --query  "[?displayName=='$spn_name'] | [0]" --only-show-errors) | ConvertFrom-Json
+    $ExistingData = (az ad sp list --all --filter "startswith(displayName, '$spn_name')" --query  "[?displayName=='$spn_name'] | [0]" --only-show-errors) | ConvertFrom-Json
     $CP_ARM_CLIENT_ID = $ExistingData.appId
     $CP_ARM_TENANT_ID = $ExistingData.appOwnerOrganizationId
     $CP_ARM_OBJECT_ID = $ExistingData.Id
@@ -864,11 +866,11 @@ if ($authenticationMethod -eq "Service Principal") {
   Add-Content -path $fname -value ("Workload zone Service Principal: " + $workload_zone_spn_name)
 
   $SPN_Created = $false
-  $found_appName = (az ad sp list --all --filter "startswith(displayName,'$workload_zone_spn_name')" --query  "[?displayName=='$workload_zone_spn_name'].displayName | [0]" --only-show-errors)
+  $found_appName = (az ad sp list --all --filter "startswith(displayName, '$workload_zone_spn_name')" --query  "[?displayName=='$workload_zone_spn_name'].displayName | [0]" --only-show-errors)
 
   if ($found_appName.Length -ne 0) {
     Write-Host "Found an existing Service Principal:" $workload_zone_spn_name -ForegroundColor Green
-    $ExistingData = (az ad sp list --all --filter "startswith(displayName,'$workload_zone_spn_name')" --query  "[?displayName=='$workload_zone_spn_name'] | [0]" --only-show-errors) | ConvertFrom-Json
+    $ExistingData = (az ad sp list --all --filter "startswith(displayName, '$workload_zone_spn_name')" --query  "[?displayName=='$workload_zone_spn_name'] | [0]" --only-show-errors) | ConvertFrom-Json
     $ARM_CLIENT_ID = $ExistingData.appId
     $ARM_TENANT_ID = $ExistingData.appOwnerOrganizationId
     $ARM_OBJECT_ID = $ExistingData.Id
@@ -886,7 +888,7 @@ if ($authenticationMethod -eq "Service Principal") {
     $SPN_Created = $true
     $Data = (az ad sp create-for-rbac --role="Contributor" --scopes=$workload_zone_scopes --name=$workload_zone_spn_name --only-show-errors) | ConvertFrom-Json
     $ARM_CLIENT_SECRET = $Data.password
-    $ExistingData = (az ad sp list --all --filter "startswith(displayName,'$workload_zone_spn_name')" --query  "[?displayName=='$workload_zone_spn_name'] | [0]" --only-show-errors) | ConvertFrom-Json
+    $ExistingData = (az ad sp list --all --filter "startswith(displayName, '$workload_zone_spn_name')" --query  "[?displayName=='$workload_zone_spn_name'] | [0]" --only-show-errors) | ConvertFrom-Json
     $ARM_CLIENT_ID = $ExistingData.appId
     $ARM_TENANT_ID = $ExistingData.appOwnerOrganizationId
     $ARM_OBJECT_ID = $ExistingData.Id
