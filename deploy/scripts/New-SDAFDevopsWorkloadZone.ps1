@@ -18,8 +18,12 @@ $ADO_Organization = $Env:SDAF_ADO_ORGANIZATION
 $ADO_Project = $Env:SDAF_ADO_PROJECT
 $Workload_zone_subscriptionID = $Env:SDAF_WorkloadZoneSubscriptionID
 $Workload_zoneSubscriptionName = $Env:SDAF_WorkloadZoneSubscriptionName
+$Workload_zone_code = $Env:SDAF_WORKLOAD_ZONE_CODE
 
-$Workload_zone_code = Read-Host "Please provide the workload zone code "
+if ($Workload_zone_code.Length -eq 0) {
+
+  $Workload_zone_code = Read-Host "Please provide the workload zone code "
+}
 
 if ($ADO_Organization.Length -eq 0) {
   Write-Host "Organization is not set"
@@ -84,7 +88,8 @@ Write-Host "Using authentication method: $authenticationMethod" -ForegroundColor
 
 
 Write-Host "The browser will now open, please copy the name of the Agent Pool"
-Start-Process "https://dev.azure.com/$ADO_Organization/$ADO_Project/_settings/agentpools"
+$pool_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) + "/_settings/agentqueues"
+Start-Process $pool_url
 
 $Pool_Name = Read-Host "Please provide the Agent pool name"
 
