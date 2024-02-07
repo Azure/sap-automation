@@ -102,6 +102,7 @@ stages:
                             git checkout -q $(Build.SourceBranchName)
                         echo -e "$green--- Configure devops CLI extension ---$reset"
                             az config set extension.use_dynamic_install=yes_without_prompt
+                            az --version
 
                             az extension add --name azure-devops --output none
 
@@ -414,6 +415,8 @@ stages:
                           echo "Agent:        " $(this_agent)
                           echo "Organization: " $(System.CollectionUri)
                           echo "Project:      " $(System.TeamProject)
+
+                          az --version
                       echo -e "$green--- Checkout $(Build.SourceBranchName) ---$reset"
                           cd $CONFIG_REPO_PATH
                           git checkout -q $(Build.SourceBranchName)
