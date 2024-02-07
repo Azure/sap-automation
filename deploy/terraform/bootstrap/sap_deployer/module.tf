@@ -43,6 +43,7 @@ module "sap_deployer" {
   place_delete_lock_on_resources               = var.place_delete_lock_on_resources
   public_network_access_enabled                = var.public_network_access_enabled || !var.use_private_endpoint
   sa_connection_string                         = var.sa_connection_string
+  soft_delete_retention_days                   = var.soft_delete_retention_days
   set_secret_expiry                            = var.set_secret_expiry
   spn_id                                       = var.spn_id
   ssh-timeout                                  = var.ssh-timeout

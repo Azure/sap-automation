@@ -111,6 +111,8 @@ variable "enable_rbac_authorization_for_keyvault"       { description = "Enables
 
 variable "keyvault_private_endpoint_id"                 { description = "Existing private endpoint for key vault" }
 
+variable "soft_delete_retention_days"                   { description = "The number of days that items should be retained in the soft delete period" }
+
 
 #########################################################################################
 #                                                                                       #

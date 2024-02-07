@@ -49,6 +49,7 @@ module "sap_landscape" {
   public_network_access_enabled                = var.public_network_access_enabled || !var.use_private_endpoint
   register_virtual_network_to_dns              = var.register_virtual_network_to_dns
   service_principal                            = var.use_spn ? local.service_principal : local.account
+  soft_delete_retention_days                   = var.soft_delete_retention_days
   storage_account_replication_type             = var.storage_account_replication_type
   tags                                         = var.tags
   terraform_template_version                   = local.version_label

@@ -332,6 +332,11 @@ variable "enable_purge_control_for_keyvaults"         {
                                                         default     = false
                                                       }
 
+variable "soft_delete_retention_days"                 {
+                                                        description = "The number of days that items should be retained in the soft delete period"
+                                                        default     = 7
+                                                      }
+
 variable "additional_users_to_add_to_keyvault_policies" {
                                                           description = "List of object IDs to add to key vault policies"
                                                           default     = [""]
