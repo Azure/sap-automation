@@ -70,6 +70,15 @@ stages:
                 else
                   source /etc/profile.d/deploy_server.sh
                 fi
+
+              echo -e "$green--- Configure devops CLI extension ---$reset"
+
+                az config set extension.use_dynamic_install=yes_without_prompt --output none
+
+                export AZURE_DEVOPS_EXT_PAT=$PAT
+
+                az extension add --name azure-devops --output none
+
                 export AZURE_DEVOPS_EXT_PAT=$PAT
 
                 HOME_CONFIG=${CONFIG_REPO_PATH}/$(Deployment_Configuration_Path)
