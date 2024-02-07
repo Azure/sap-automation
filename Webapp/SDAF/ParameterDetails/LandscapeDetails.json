@@ -825,7 +825,7 @@
         "Display": 1
       },
       {
-        "Name": "use_AFS_for_installation_media",
+        "Name": "use_AFS_for_shared_storage",
         "Required": false,
         "Description": "Defines if shared media is shared from Azure Files when using Azure NetApp Files for data.",
         "Type": "checkbox",
