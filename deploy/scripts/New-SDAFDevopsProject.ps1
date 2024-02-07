@@ -30,16 +30,34 @@ $versionLabel = "v3.10.1.0"
 
 
 
-# az logout
+az logout
 
-# az account clear
+az account clear
 
-# if ($ARM_TENANT_ID.Length -eq 0) {
-#   az login --output none --only-show-errors
-# }
-# else {
-#   az login --output none --tenant $ARM_TENANT_ID --only-show-errors
-# }
+if ($ARM_TENANT_ID.Length -eq 0) {
+  az login --output none --only-show-errors
+}
+else {
+  az login --output none --tenant $ARM_TENANT_ID --only-show-errors
+}
+
+# Check if access to the Azure DevOps organization is available and prompt for PAT if needed
+# Exact permissions required, to be validated, and included in the Read-Host text.
+$checkPAT = (az devops user list --organization $ADO_Organization --only-show-errors --top 1)
+if ($checkPAT.Length -eq 0) {
+  $env:AZURE_DEVOPS_EXT_PAT = Read-Host "Please enter your Personal Access Token (PAT) with full access to the Azure DevOps organization $ADO_Organization"
+  $verifyPAT = (az devops user list --organization $ADO_Organization --only-show-errors --top 1)
+  if ($verifyPAT.Length -eq 0) {
+    Read-Host -Prompt "Failed to authenticate to the Azure DevOps organization, press <any key> to exit"
+    exit
+  }
+  else {
+    Write-Host "Successfully authenticated to the Azure DevOps organization $ADO_Organization" -ForegroundColor Green
+  }
+}
+else {
+  Write-Host "Successfully authenticated to the Azure DevOps organization $ADO_Organization" -ForegroundColor Green
+}
 
 Write-Host ""
 Write-Host ""
@@ -142,16 +160,20 @@ if ($confirmation -ne 'y') {
   $Pool_Name = Read-Host "Enter the name of the agent pool"
 }
 
-$url = ( az devops project list --organization $ADO_Organization --query "value | [0].url")
-if ($url.Length -eq 0) {
-  Write-Error "Could not get the DevOps organization URL"
-  exit
-}
-
 $pipeline_permission_url = ""
 
-$idx = $url.IndexOf("_api")
-$pat_url = ($url.Substring(0, $idx) + "_usersSettings/tokens").Replace("""", "")
+# Commenting this, since ADO_Organization is already validated at the beggining in $checkPAT
+# $url = ( az devops project list --organization $ADO_Organization --query "value | [0].url")
+# if ($url.Length -eq 0) {
+#   Write-Error "Could not get the DevOps organization URL"
+#   exit
+# }
+#
+# $idx = $url.IndexOf("_api")
+# $pat_url = ($url.Substring(0, $idx) + "_usersSettings/tokens").Replace("""", "")
+
+# Get pat_url directly from the $ADO_Organization, avoiding double slashes.
+$pat_url = ($ADO_Organization.TrimEnd('/') + "/_usersSettings/tokens").Replace("""", "")
 
 $import_code = $false
 
