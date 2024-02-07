@@ -105,7 +105,9 @@ stages:
 
                             az extension add --name azure-devops --output none
 
-                            az devops login --organization $(System.CollectionUri) --output none
+                            echo "Agent:        " $(this_agent)
+                            echo "Organization: " $(System.CollectionUri)
+                            echo "Project:      " $(System.TeamProject)
 
                             az devops configure --defaults organization=$(System.CollectionUri) project='$(System.TeamProject)' --output none
                             export VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(variable_group)'].id | [0]")
@@ -409,7 +411,9 @@ stages:
                           file_REMOTE_STATE_SA=""
                           file_REMOTE_STATE_RG=$(deployerfolder)
 
-                          echo "Agent: " $(this_agent)
+                          echo "Agent:        " $(this_agent)
+                          echo "Organization: " $(System.CollectionUri)
+                          echo "Project:      " $(System.TeamProject)
                       echo -e "$green--- Checkout $(Build.SourceBranchName) ---$reset"
                           cd $CONFIG_REPO_PATH
                           git checkout -q $(Build.SourceBranchName)
