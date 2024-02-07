@@ -21,7 +21,7 @@ resource "azurerm_key_vault" "kv_user" {
                                          )
   tenant_id                            = length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].tenant_id : data.azurerm_user_assigned_identity.deployer[0].tenant_id
 
-  soft_delete_retention_days           = 7
+  soft_delete_retention_days           = var.soft_delete_retention_days
   purge_protection_enabled             = var.enable_purge_control_for_keyvaults
 
   sku_name                             = "standard"

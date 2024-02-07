@@ -19,7 +19,7 @@ resource "azurerm_key_vault" "kv_user" {
                                            azurerm_resource_group.resource_group[0].name
                                          )
   tenant_id                            = local.service_principal.tenant_id
-  soft_delete_retention_days           = 7
+  soft_delete_retention_days           = var.soft_delete_retention_days
   purge_protection_enabled             = var.enable_purge_control_for_keyvaults
   sku_name                             = "standard"
   enable_rbac_authorization            = var.enable_rbac_authorization_for_keyvault

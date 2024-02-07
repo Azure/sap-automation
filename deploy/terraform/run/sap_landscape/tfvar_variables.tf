@@ -310,6 +310,11 @@ variable "keyvault_private_endpoint_id"         {
                                                   default     = ""
                                                 }
 
+variable "soft_delete_retention_days"           {
+                                                  description = "The number of days that items should be retained in the soft delete period"
+                                                  default     = 7
+                                                }
+
 #########################################################################################
 #                                                                                       #
 #  Authentication variables                                                             #
