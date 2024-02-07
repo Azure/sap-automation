@@ -132,6 +132,7 @@ resource "azurerm_lb_probe" "scs" {
   protocol                             = "Tcp"
   interval_in_seconds                  = 5
   number_of_probes                     = var.application_tier.scs_high_availability && upper(var.application_tier.scs_os.os_type) == "WINDOWS" ? 4 : 2
+  probe_threshold                      = 2
 }
 
 resource "azurerm_lb_probe" "clst" {
@@ -148,6 +149,7 @@ resource "azurerm_lb_probe" "clst" {
   protocol                             = "Tcp"
   interval_in_seconds                  = 5
   number_of_probes                     = var.application_tier.scs_high_availability && upper(var.application_tier.scs_os.os_type) == "WINDOWS" ? 4 : 2
+  probe_threshold                      = 2
 }
 
 resource "azurerm_lb_probe" "fs" {
@@ -163,6 +165,7 @@ resource "azurerm_lb_probe" "fs" {
   protocol                             = "Tcp"
   interval_in_seconds                  = 5
   number_of_probes                     = var.application_tier.scs_high_availability && upper(var.application_tier.scs_os.os_type) == "WINDOWS" ? 4 : 2
+  probe_threshold                      = 2
 }
 
 # Create the SCS Load Balancer Rules
