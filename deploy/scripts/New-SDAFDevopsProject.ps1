@@ -854,7 +854,7 @@ else {
   Write-Host
 
   Write-Host ""
-  Write-Host "The browser will now open, Please create a service connection with the name 'Control_Plane_Service_Connection'."
+  Write-Host "The browser will now open, Please create an 'Azure Resource Manager' service connection with the name 'Control_Plane_Service_Connection'."
   $connections_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) + "/_settings/adminservices"
   Write-Host "URL: " $connections_url
 
