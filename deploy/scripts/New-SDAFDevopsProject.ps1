@@ -232,12 +232,11 @@ else {
   $repo_id = (az repos list --query "[?name=='$ADO_Project'].id | [0]" --out tsv)
   if ($repo_id.Length -eq 0) {
     Write-Host "Creating repository '$ADO_Project'" -ForegroundColor Green
-    $repo_id = (az repos create --name $ADO_Project --query id --output tsv)
   }
 
   az devops configure --defaults organization=$ADO_ORGANIZATION project=$ADO_PROJECT
 
-  $repo_size = (az repos list --query "[?id=='$repo_id'].size | [0]")
+  $repo_size = (az repos list --query "[?name=='$ADO_Project'].size | [0]")
 
   if ($repo_size -eq 0) {
     Write-Host "Importing the repository from GitHub" -ForegroundColor Green
