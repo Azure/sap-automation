@@ -200,6 +200,11 @@ variable "short_named_endpoints_nics"           {
                                                    default     = false
                                                  }
 
+variable "public_network_access_enabled"              {
+                                                        description = "Boolean value indicating if public access should be enabled for key vaults and storage"
+                                                        default     = true
+                                                        type        = bool
+                                                      }
 
 
 #########################################################################################
