@@ -66,6 +66,7 @@ locals {
                                               )
                                             }
                                            shared_access_key_enabled = var.shared_access_key_enabled
+                                           public_network_access_enabled = var.public_network_access_enabled
                                          }
 
   storage_account_tfstate              = {
@@ -116,6 +117,7 @@ locals {
                                            }
 
                                            shared_access_key_enabled = var.shared_access_key_enabled
+                                           public_network_access_enabled = var.public_network_access_enabled
                                          }
 
 }
