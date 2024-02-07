@@ -270,6 +270,8 @@ namespace AutomationForm.Models
 
     public bool? use_AFS_for_installation_media { get; set; } = true;
 
+    public bool? use_AFS_for_shared_storage { get; set; } = true;
+
     public bool? create_transport_storage { get; set; } = true;
 
     public int? transport_volume_size { get; set; }
@@ -308,7 +310,6 @@ namespace AutomationForm.Models
 
     public string utility_vm_os_disk_type { get; set; } = "Premium_LRS";
     
-
     public bool? utility_vm_useDHCP { get; set; } = true;
 
     public Image utility_vm_image { get; set; }

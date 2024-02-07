@@ -36,6 +36,21 @@ $$name_override_file$$
 
 #########################################################################################
 #                                                                                       #
+#  Resource group details                                                               #
+#                                                                                       #
+#########################################################################################
+
+# The two resource group name and arm_id can be used to control the naming and the creation of the resource group
+
+# The resourcegroup_name value is optional, it can be used to override the name of the resource group that will be provisioned
+$$resourcegroup_name$$
+
+# The resourcegroup_name arm_id is optional, it can be used to provide an existing resource group for the deployment
+$$resourcegroup_arm_id$$
+
+
+#########################################################################################
+#                                                                                       #
 #  Networking                                                                           #
 #                                                                                       #
 #########################################################################################
@@ -234,6 +249,9 @@ $$enable_purge_control_for_keyvaults$$
 # enable_rbac_authorization_for_keyvault Controls the access policy model for the workload zone keyvault.
 $$enable_rbac_authorization_for_keyvault$$
 
+# Defines a list of Object IDs to be added to the keyvault
+$$additional_users_to_add_to_keyvault_policies$$
+
 #########################################################################################
 #                                                                                       #
 #  Credentials                                                                          #
@@ -297,21 +315,6 @@ $$storage_account_replication_type$$
 
 #########################################################################################
 #                                                                                       #
-#  Resource group details                                                               #
-#                                                                                       #
-#########################################################################################
-
-# The two resource group name and arm_id can be used to control the naming and the creation of the resource group
-
-# The resourcegroup_name value is optional, it can be used to override the name of the resource group that will be provisioned
-$$resourcegroup_name$$
-
-# The resourcegroup_name arm_id is optional, it can be used to provide an existing resource group for the deployment
-$$resourcegroup_arm_id$$
-
-
-#########################################################################################
-#                                                                                       #
 #  Private DNS support                                                                  #                                                                                       #
 #                                                                                       #
 #########################################################################################
@@ -334,8 +337,8 @@ $$dns_server_list$$
 # NFS indicates that a custom solution is used for NFS
 $$NFS_provider$$
 
-# use_AFS_for_installation_media defines if shared media is on AFS even when using ANF for data
-$$use_AFS_for_installation_media$$
+# use_AFS_for_shared_storage defines if shared media is on AFS even when using ANF for data
+$$use_AFS_for_shared_storage$$
 
 #########################################################################################
 #                                                                                       #
