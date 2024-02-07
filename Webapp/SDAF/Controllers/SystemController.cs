@@ -8,6 +8,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -20,7 +21,7 @@ namespace AutomationForm.Controllers
     private readonly ITableStorageService<AppFile> _appFileService;
     private FormViewModel<SystemModel> systemView;
     private readonly IConfiguration _configuration;
-    private RestHelper restHelper;
+    private readonly RestHelper restHelper;
 
     private ImageDropdown[] imagesOffered;
     private List<SelectListItem> imageOptions;
@@ -87,7 +88,15 @@ namespace AutomationForm.Controllers
       if (id == null || partitionKey == null) throw new ArgumentNullException();
       var systemEntity = await _systemService.GetByIdAsync(id, partitionKey);
       if (systemEntity == null || systemEntity.System == null) throw new KeyNotFoundException();
-      SystemModel s = JsonConvert.DeserializeObject<SystemModel>(systemEntity.System);
+      SystemModel s = null;
+      try
+      {
+        s = JsonConvert.DeserializeObject<SystemModel>(systemEntity.System);
+      }
+      catch
+      {
+
+      }
       AppFile file = null;
       try
       {
@@ -419,7 +428,25 @@ namespace AutomationForm.Controllers
           if (system.Id == null) system.Id = newId;
           if (newId != system.Id)
           {
-            return SubmitNewAsync(system).Result;
+            await SubmitNewAsync(system);
+            string id = system.Id;
+            string path = $"/SYSTEM/{id}/{id}.tfvars";
+            string content = Helper.ConvertToTerraform(system);
+            byte[] bytes = Encoding.UTF8.GetBytes(content);
+
+            AppFile file = new()
+            {
+              Id = WebUtility.HtmlEncode(path),
+              Content = bytes,
+              UntrustedName = path,
+              Size = bytes.Length,
+              UploadDT = DateTime.UtcNow
+            };
+
+            await _systemService.CreateTFVarsAsync(file);
+            return RedirectToAction("Index");
+
+
           }
           else
           {
@@ -429,6 +456,21 @@ namespace AutomationForm.Controllers
             }
             await _systemService.UpdateAsync(new SystemEntity(system));
             TempData["success"] = "Successfully updated system " + system.Id;
+            string id = system.Id;
+            string path = $"/SYSTEM/{id}/{id}.tfvars";
+            string content = Helper.ConvertToTerraform(system);
+            byte[] bytes = Encoding.UTF8.GetBytes(content);
+
+            AppFile file = new()
+            {
+              Id = WebUtility.HtmlEncode(path),
+              Content = bytes,
+              UntrustedName = path,
+              Size = bytes.Length,
+              UploadDT = DateTime.UtcNow
+            };
+
+            await _systemService.CreateTFVarsAsync(file);
             return RedirectToAction("Index");
           }
         }

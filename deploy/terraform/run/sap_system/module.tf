@@ -19,8 +19,7 @@ module "sap_namegenerator" {
   app_ostype                                    = upper(try(local.application_tier.app_os.os_type, "LINUX"))
   anchor_ostype                                 = upper(try(local.anchor_vms.os.os_type, "LINUX"))
   db_ostype                                     = upper(try(local.database.os.os_type, "LINUX"))
-
-  db_server_count                               = var.database_server_count
+  db_server_count                               = var.database_server_count + var.stand_by_node_count
   app_server_count                              = local.enable_app_tier_deployment ? try(local.application_tier.application_server_count, 0) : 0
   web_server_count                              = local.enable_app_tier_deployment ? try(local.application_tier.webdispatcher_count, 0) : 0
   scs_server_count                              = local.enable_app_tier_deployment ? local.application_tier.scs_high_availability ? (
@@ -123,8 +122,8 @@ module "hdb_node" {
   database_dual_nics                            = try(module.common_infrastructure.admin_subnet, null) == null ? false : var.database_dual_nics
   database_server_count                         = upper(try(local.database.platform, "HANA")) == "HANA" ? (
                                                     local.database.high_availability ? (
-                                                      2 * var.database_server_count) : (
-                                                      var.database_server_count
+                                                      2 * (var.database_server_count + var.stand_by_node_count)) : (
+                                                      var.database_server_count + var.stand_by_node_count
                                                     )) : (
                                                     0
                                                   )
@@ -399,9 +398,9 @@ module "output_files" {
   sap_transport                                 = try(data.terraform_remote_state.landscape.outputs.saptransport_path, "")
   install_path                                  = try(data.terraform_remote_state.landscape.outputs.install_path, "")
   shared_home                                   = var.shared_home
-  hana_data                                     = [module.hdb_node.hana_data_primary, module.hdb_node.hana_data_secondary]
-  hana_log                                      = [module.hdb_node.hana_log_primary, module.hdb_node.hana_log_secondary]
-  hana_shared                                   = [module.hdb_node.hana_shared_primary]
+  hana_data                                     = module.hdb_node.hana_data_ANF_volumes
+  hana_log                                      = module.hdb_node.hana_log_ANF_volumes
+  hana_shared                                   = [module.hdb_node.hana_shared]
   usr_sap                                       = module.common_infrastructure.usrsap_path
 
   #########################################################################################
@@ -418,7 +417,7 @@ module "output_files" {
   #  Server counts                                                                        #
   #########################################################################################
   app_server_count                              = try(local.application_tier.application_server_count, 0)
-  db_server_count                               = var.database_server_count
+  db_server_count                               = var.database_server_count + var.stand_by_node_count
   scs_server_count                              = local.application_tier.scs_high_availability ? (
                                                   2 * local.application_tier.scs_server_count) : (
                                                   local.application_tier.scs_server_count
