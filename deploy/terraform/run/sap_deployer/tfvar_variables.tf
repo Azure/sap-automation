@@ -340,6 +340,11 @@ variable "set_secret_expiry"                          {
                                                         type        = bool
                                                       }
 
+variable "soft_delete_retention_days"                 {
+                                                        description = "The number of days that items should be retained in the soft delete period"
+                                                        default     = 7
+                                                      }
+
 #######################################4#######################################8
 #                                                                              #
 #  Miscallaneous settings                                                      #

@@ -44,6 +44,7 @@ module "sap_deployer" {
   public_network_access_enabled                 = var.public_network_access_enabled || !var.use_private_endpoint
   sa_connection_string                          = var.sa_connection_string
   set_secret_expiry                             = var.set_secret_expiry
+  soft_delete_retention_days                    = var.soft_delete_retention_days
   spn_id                                        = var.spn_id
   ssh-timeout                                   = var.ssh-timeout
   subnets_to_add                                = var.subnets_to_add_to_firewall_for_keyvaults_and_storage
