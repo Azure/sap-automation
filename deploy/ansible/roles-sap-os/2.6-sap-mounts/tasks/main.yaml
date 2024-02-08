@@ -358,18 +358,18 @@
     - sap_mnt is defined or sap_trans is defined or usr_sap_install_mountpoint is defined
     - not use_simple_mount
     - NFS_provider == 'ANF'
-    # only run when no scale out configuration is used.
-    - db_scale_out is not defined or (not db_scale_out)
+    
 
-
+# Update : Deprecated as the scale out anf mount code functionality is now integrated into 2.6.1 and 2.6.8
+# This will be removed in the next release, left here for tracing and documentation
 # Import this task only if db_scale_out is defined. Implies that sap_mnt is defined, i.e. ANF is used
-- name:                                "2.6 SAP Mounts: - Import ANF tasks for Scale-Out"
-  ansible.builtin.import_tasks:        2.6.1.2-anf-mounts-scaleout.yaml
-  when:
-    - NFS_provider == 'ANF'
-    - db_scale_out is defined
-    - db_scale_out
-    - sap_mnt is defined or sap_trans is defined or usr_sap_install_mountpoint is defined
+# - name:                                "2.6 SAP Mounts: - Import ANF tasks for Scale-Out"
+#   ansible.builtin.import_tasks:        2.6.1.2-anf-mounts-scaleout.yaml
+#   when:
+#     - NFS_provider == 'ANF'
+#     - db_scale_out is defined
+#     - db_scale_out
+#     - sap_mnt is defined or sap_trans is defined or usr_sap_install_mountpoint is defined
 
 - name:                                "2.6 SAP Mounts: - Import ANF tasks"
   ansible.builtin.import_tasks:        2.6.8-anf-mounts-simplemount.yaml
