@@ -726,6 +726,15 @@
         "Options": [],
         "Overrules": "",
         "Display": 2
+      },
+      {
+        "Name": "soft_delete_retention_days",
+        "Required": false,
+        "Description": "The number of days that items should be retained in the soft delete period",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
       }
     ]
   },
