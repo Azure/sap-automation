@@ -265,6 +265,13 @@ namespace AutomationForm.Models
 
     public bool? enable_rbac_authorization_for_keyvault { get; set; } = false;
 
+    public int? soft_delete_retention_days { get; set; } = 14;
+
+    /*---------------------------------------------------------------------------8
+    |                                                                            |
+    |                                  NFS information                           |
+    |                                                                            |
+    +------------------------------------4--------------------------------------*/
 
     public string NFS_provider { get; set; }
 
@@ -275,6 +282,12 @@ namespace AutomationForm.Models
     public bool? create_transport_storage { get; set; } = true;
 
     public int? transport_volume_size { get; set; }
+
+    /*---------------------------------------------------------------------------8
+    |                                                                            |
+    |                        Storage Account information                         |
+    |                                                                            |
+    +------------------------------------4--------------------------------------*/
 
     [StorageAccountIdValidator]
     public string diagnostics_storage_account_arm_id { get; set; }
