@@ -2,8 +2,11 @@
 
 # ###################  Setting DB2 HA parameters on Primary DB  #########################
 - name:                                "DB2 - Set up HA parameters on Primary DB"
+  when:                                ansible_hostname == primary_instance_name
+  become:                              true
+  become_user:                         db2{{ db_sid | lower }}
   block:
-    - name:                            " DB2 Primary DB - Set Fact for hadr local host and remote host "
+    - name:                            "DB2 Primary DB - Set Fact for hadr local host and remote host "
       ansible.builtin.set_fact:
         db_hadr_local_host:            "{{ hostvars[primary_instance_name]['virtual_host'] }}.{{ sap_fqdn }}"
         db_hadr_remote_host:           "{{ hostvars[secondary_instance_name]['virtual_host'] }}.{{ sap_fqdn }}"
@@ -30,7 +33,6 @@
       ansible.builtin.debug:
         msg:                           "Result: {{ pridb2status.stdout }}"
 
-
     - name:                            "DB2 Primary DB - Start the Primary DB"
       ansible.builtin.shell:           db2start
       register:                        db2startstatus
@@ -54,7 +56,6 @@
             db2 update db cfg for {{ db_sid }} using HADR_REMOTE_HOST {{ db_hadr_remote_host }} immediate
             db2 update db cfg for {{ db_sid }} using HADR_REMOTE_SVC {{ db_sid | upper }}_HADR_2 immediate
             db2 update db cfg for {{ db_sid }} using HADR_REMOTE_INST db2{{ db_sid | lower }} immediate
-            db2 update db cfg for {{ db_sid }} using HADR_SSL_LABEL {{ db2_ssl_label }}
             db2 update db cfg for {{ db_sid }} using HADR_TIMEOUT 60 immediate
             db2 update db cfg for {{ db_sid }} using HADR_SYNCMODE NEARSYNC immediate
             db2 update db cfg for {{ db_sid }} using HADR_SPOOL_LIMIT 1000 immediate
@@ -66,7 +67,7 @@
             executable:                /bin/csh
           environment:
             PATH:                      "{{ ansible_env.PATH }}:/db2/db2{{ db_sid | lower }}/sqllib/gskit/bin"
-      when:   ansible_os_family == 'Suse'
+      when: ansible_os_family == 'Suse'
 
     - name:                            "DB2 Primary DB - HA Config - RHEL"
       # RHEL - Settings - When you use an Azure Pacemaker fencing agent, set the following parameters:
@@ -81,7 +82,6 @@
             db2 update db cfg for {{ db_sid }} using HADR_REMOTE_HOST {{ db_hadr_remote_host }} immediate
             db2 update db cfg for {{ db_sid }} using HADR_REMOTE_SVC {{ db_sid | upper }}_HADR_2 immediate
             db2 update db cfg for {{ db_sid }} using HADR_REMOTE_INST db2{{ db_sid | lower }} immediate
-            db2 update db cfg for {{ db_sid }} using HADR_SSL_LABEL {{ db2_ssl_label }}
             db2 update db cfg for {{ db_sid }} using HADR_TIMEOUT 45 immediate
             db2 update db cfg for {{ db_sid }} using HADR_SYNCMODE NEARSYNC immediate
             db2 update db cfg for {{ db_sid }} using HADR_SPOOL_LIMIT 1000 immediate
@@ -93,18 +93,15 @@
             executable:                /bin/csh
           environment:
             PATH:                      "{{ ansible_env.PATH }}:/db2/db2{{ db_sid | lower }}/sqllib/gskit/bin"
-      when:   ansible_os_family == 'RedHat'
-
-  when:       ansible_hostname == primary_instance_name
-  become:                              true
-  become_user:                         db2{{ db_sid | lower }}
+      when: ansible_os_family == 'RedHat'
 
 # ################### End of Section for Primary DB   ######################
 
-# ##################  Section Start for Secondary DB               ###############################
 # ##################  Setup DB2 HA parameters on Secondary ###############################
-
 - name:                                "DB2 - Set up HA parameters on Secondary DB"
+  when:                                ansible_hostname == secondary_instance_name
+  become:                              true
+  become_user:                         db2{{ db_sid | lower }}
   block:
     - name:                            " DB2 Secondary DB - Set Fact for hadr local host and remote host "
       ansible.builtin.set_fact:
@@ -133,7 +130,6 @@
       ansible.builtin.debug:
         msg:                           "Result: {{ secdb2status.stdout }}"
 
-
     - name:                            "DB2 Secondary DB - Start the Primary DB"
       ansible.builtin.shell:           db2start
       args:
@@ -157,7 +153,6 @@
             db2 update db cfg for {{ db_sid }} using HADR_REMOTE_HOST {{ db_hadr_remote_host }} immediate
             db2 update db cfg for {{ db_sid }} using HADR_REMOTE_SVC {{ db_sid | upper }}_HADR_1 immediate
             db2 update db cfg for {{ db_sid }} using HADR_REMOTE_INST db2{{ db_sid | lower }} immediate
-            db2 update db cfg for {{ db_sid }} using HADR_SSL_LABEL {{ db2_ssl_label }}
             db2 update db cfg for {{ db_sid }} using HADR_TIMEOUT 60 immediate
             db2 update db cfg for {{ db_sid }} using HADR_SYNCMODE NEARSYNC immediate
             db2 update db cfg for {{ db_sid }} using HADR_SPOOL_LIMIT 1000 immediate
@@ -184,7 +179,6 @@
             db2 update db cfg for {{ db_sid }} using HADR_REMOTE_HOST {{ db_hadr_remote_host }} immediate
             db2 update db cfg for {{ db_sid }} using HADR_REMOTE_SVC {{ db_sid | upper }}_HADR_1 immediate
             db2 update db cfg for {{ db_sid }} using HADR_REMOTE_INST db2{{ db_sid | lower }} immediate
-            db2 update db cfg for {{ db_sid }} using HADR_SSL_LABEL {{ db2_ssl_label }}
             db2 update db cfg for {{ db_sid }} using HADR_TIMEOUT 45 immediate
             db2 update db cfg for {{ db_sid }} using HADR_SYNCMODE NEARSYNC immediate
             db2 update db cfg for {{ db_sid }} using HADR_SPOOL_LIMIT 1000 immediate
@@ -197,11 +191,21 @@
           register:                db2_update
           failed_when:             db2_update.rc not in [0,2]
       when:   ansible_os_family == 'RedHat'
-
-  when:       ansible_hostname == secondary_instance_name
-  become:                              true
-  become_user:                         db2{{ db_sid | lower }}
-
 # ################### End of Section for Secondary DB   ######################
 
+- name:                                "DB2 DB - HADR SSL Configuration"
+  when:
+    - db2_instance_type == 'ABAP'
+    - db2_ssl_label is defined
+  become:                              true
+  become_user:                         db2{{ db_sid | lower }}
+  block:
+    - name:                            "DB2 DB - Set HADR SSL Configuration"
+      ansible.builtin.shell:           db2 update db cfg for {{ db_sid }} using HADR_SSL_LABEL {{ db2_ssl_label }}
+      register:                        db2_update
+      failed_when:                     db2_update.rc not in [0,2]
+      args:
+        executable:                    /bin/csh
+      environment:
+        PATH:                          "{{ ansible_env.PATH }}:/db2/db2{{ db_sid | lower }}/sqllib/gskit/bin"
 ...
