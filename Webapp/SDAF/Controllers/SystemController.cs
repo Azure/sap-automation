@@ -113,6 +113,7 @@ namespace AutomationForm.Controllers
       {
         file = await _appFileService.GetByIdAsync(id + "_custom_sizes.json", partitionKey);
         s.custom_disk_sizes_filename = id + "_custom_sizes.json";
+        s.database_size = "Custom";
       }
       catch
       {
@@ -266,6 +267,7 @@ namespace AutomationForm.Controllers
           var stream = new MemoryStream(file.Content);
 
           system.custom_disk_sizes_filename = id + "_custom_sizes.json";
+          system.database_size = "Custom";
 
           string thisContent = System.Text.Encoding.UTF8.GetString(stream.ToArray());
           string pathForNaming = $"/SYSTEM/{id}/{id}_custom_sizes.json";
