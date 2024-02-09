@@ -45,7 +45,7 @@ resource "azurerm_storage_account" "storage_tfstate" {
           }
 
   network_rules {
-                  default_action = "Deny"
+                  default_action = local.enable_firewall_for_keyvaults_and_storage ? "Deny" : "Allow"
                   virtual_network_subnet_ids = local.virtual_additional_network_ids
                   ip_rules = local.deployer_public_ip_address_used ? (
                     [
@@ -239,7 +239,7 @@ resource "azurerm_storage_account" "storage_sapbits" {
             choice                      = "MicrosoftRouting"
           }
   network_rules {
-                  default_action = "Deny"
+                  default_action = local.enable_firewall_for_keyvaults_and_storage ? "Deny" : "Allow"
                   virtual_network_subnet_ids = local.virtual_additional_network_ids
                   ip_rules = local.deployer_public_ip_address_used ? (
                     [
