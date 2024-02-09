@@ -1,0 +1,55 @@
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                 Playbook for Post Configuration                            |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+---
+
+- hosts:                               localhost
+  name:                                "Post Configuration Actions Playbook: - Initialization"
+  gather_facts:                        true
+  vars_files:
+    - vars/ansible-input-api.yaml                               # API Input template with defaults
+
+  tasks:
+
+    - name:                            "Post Configuration Actions Playbook: - Create Progress folder"
+      ansible.builtin.file:
+        path:                          "{{ _workspace_directory }}/.progress"
+        state:                         directory
+        mode:                          0755
+
+    - name:                            "Post Configuration Actions Playbook: - Remove post-configuration-actions-done flag"
+      ansible.builtin.file:
+        path:                          "{{ _workspace_directory }}/.progress/post-configuration-actions-done"
+        state:                          absent
+
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |      Currently this playbook does nothing, it's here to ensure that        |
+# |      custom ansible hooks in the Config Repo can be run after              |
+# |      the full installation and configuration of VMs for a system           |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+
+- hosts:                               localhost
+  name:                                "Post Configuration Actions Playbook: - Done"
+  gather_facts:                        true
+  vars_files:
+    - vars/ansible-input-api.yaml                               # API Input template with defaults
+
+  tasks:
+
+    - name:                            "Post Configuration Actions Playbook: - Create post-configuration-actions-done flag"
+      ansible.builtin.file:
+        path:                          "{{ _workspace_directory }}/.progress/post-configuration-actions-done"
+        state:                         touch
+        mode:                          0755
+
+...
+# /*---------------------------------------------------------------------------8
+# |                                    END                                     |
+# +------------------------------------4--------------------------------------*/
