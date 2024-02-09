@@ -150,7 +150,7 @@ resource "azurerm_storage_account" "witness_storage" {
 
   tags                                 = var.tags
   network_rules {
-                  default_action              = "Deny"
+                  default_action              = var.enable_firewall_for_keyvaults_and_storage ? "Deny" : "Allow"
                   virtual_network_subnet_ids  = compact([
                                                   local.database_subnet_defined ? (
                                                     local.database_subnet_existing ? var.infrastructure.vnets.sap.subnet_db.arm_id : azurerm_subnet.db[0].id) : (
@@ -159,10 +159,7 @@ resource "azurerm_storage_account" "witness_storage" {
                                                     local.application_subnet_existing ? var.infrastructure.vnets.sap.subnet_app.arm_id : azurerm_subnet.app[0].id) : (
                                                     null
                                                   ),
-                                                  data.azurerm_resource_group.mgmt[0].location == (local.resource_group_exists ? (
-                                                    data.azurerm_resource_group.resource_group[0].location) : (
-                                                    azurerm_resource_group.resource_group[0].location
-                                                  )) ? local.deployer_subnet_management_id : null
+                                                  length(local.deployer_subnet_management_id) > 0 ? local.deployer_subnet_management_id : null
                                                   ]
                                                 )
                   ip_rules                   = compact([
@@ -299,24 +296,16 @@ resource "azurerm_storage_account" "transport" {
   public_network_access_enabled        = var.public_network_access_enabled
 
   network_rules {
-                  default_action              = "Deny"
-                  virtual_network_subnet_ids  = compact(
-                                                  [
-                                                    local.database_subnet_defined ? (
-                                                      local.database_subnet_existing ? var.infrastructure.vnets.sap.subnet_db.arm_id : azurerm_subnet.db[0].id) : (
-                                                      ""
-                                                      ), local.application_subnet_defined ? (
-                                                      local.application_subnet_existing ? var.infrastructure.vnets.sap.subnet_app.arm_id : azurerm_subnet.app[0].id) : (
-                                                      ""
-                                                      ), local.web_subnet_defined ? (
-                                                      local.web_subnet_existing ? var.infrastructure.vnets.sap.subnet_web.arm_id : azurerm_subnet.web[0].id) : (
-                                                      ""
-                                                    ),
-                                                    data.azurerm_resource_group.mgmt[0].location == (local.resource_group_exists ? (
-                                                      data.azurerm_resource_group.resource_group[0].location) : (
-                                                      azurerm_resource_group.resource_group[0].location
-                                                    )) ? local.deployer_subnet_management_id : null
-
+                  default_action              = var.enable_firewall_for_keyvaults_and_storage ? "Deny" : "Allow"
+                  virtual_network_subnet_ids  = compact([
+                                                  local.database_subnet_defined ? (
+                                                    local.database_subnet_existing ? var.infrastructure.vnets.sap.subnet_db.arm_id : azurerm_subnet.db[0].id) : (
+                                                    null
+                                                    ), local.application_subnet_defined ? (
+                                                    local.application_subnet_existing ? var.infrastructure.vnets.sap.subnet_app.arm_id : azurerm_subnet.app[0].id) : (
+                                                    null
+                                                  ),
+                                                  length(local.deployer_subnet_management_id) > 0 ? local.deployer_subnet_management_id : null
                                                   ]
                                                 )
                   ip_rules                   = compact([
@@ -525,24 +514,16 @@ resource "azurerm_storage_account" "install" {
   public_network_access_enabled        = var.public_network_access_enabled
   tags                                 = var.tags
   network_rules {
-                  default_action              = "Deny"
-                  virtual_network_subnet_ids  = compact(
-                                                  [
-                                                    local.database_subnet_defined ? (
-                                                      local.database_subnet_existing ? var.infrastructure.vnets.sap.subnet_db.arm_id : azurerm_subnet.db[0].id) : (
-                                                      ""
-                                                      ), local.application_subnet_defined ? (
-                                                      local.application_subnet_existing ? var.infrastructure.vnets.sap.subnet_app.arm_id : azurerm_subnet.app[0].id) : (
-                                                      ""
-                                                      ), local.web_subnet_defined ? (
-                                                      local.web_subnet_existing ? var.infrastructure.vnets.sap.subnet_web.arm_id : azurerm_subnet.web[0].id) : (
-                                                      ""
-                                                    ),
-                                                    data.azurerm_resource_group.mgmt[0].location == (local.resource_group_exists ? (
-                                                      data.azurerm_resource_group.resource_group[0].location) : (
-                                                      azurerm_resource_group.resource_group[0].location
-                                                    )) ? local.deployer_subnet_management_id : null
-
+                  default_action              = var.enable_firewall_for_keyvaults_and_storage ? "Deny" : "Allow"
+                  virtual_network_subnet_ids  = compact([
+                                                  local.database_subnet_defined ? (
+                                                    local.database_subnet_existing ? var.infrastructure.vnets.sap.subnet_db.arm_id : azurerm_subnet.db[0].id) : (
+                                                    null
+                                                    ), local.application_subnet_defined ? (
+                                                    local.application_subnet_existing ? var.infrastructure.vnets.sap.subnet_app.arm_id : azurerm_subnet.app[0].id) : (
+                                                    null
+                                                  ),
+                                                  length(local.deployer_subnet_management_id) > 0 ? local.deployer_subnet_management_id : null
                                                   ]
                                                 )
                   ip_rules                   = compact([
