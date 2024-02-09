@@ -101,6 +101,11 @@
           - "{{ sap_inifile }}"
           - "{{ bom.product_ids.dblsby }}"
         verbosity:                     2
+
+    - name:                            "SAP DB2 - register InstanceType"
+      ansible.builtin.set_fact:
+        db2_instance_type:             "{{ bom.InstanceType | default('ABAP') }}"
+
 # *====================================4=======================================8
 #   SAP DB2: Install
 #   2230669 - System Provisioning Using a Parameter Input File
