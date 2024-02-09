@@ -1,6 +1,6 @@
 {
   "db": {
-    "Default": {
+    "Custom": {
       "compute": {
         "vm_size": "Standard_E20s_v4",
         "accelerated_networking": true
