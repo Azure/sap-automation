@@ -214,6 +214,8 @@ namespace AutomationForm.Models
 
     public int? ANF_transport_volume_size { get; set; }
 
+    public string ANF_transport_volume_zone { get; set; }
+
     public bool? ANF_install_volume_use_existing { get; set; }
 
     public string ANF_install_volume_name { get; set; }
@@ -222,6 +224,9 @@ namespace AutomationForm.Models
 
     public int? ANF_install_volume_size { get; set; }
 
+    public string ANF_install_volume_zone { get; set; }
+
+    
     /*---------------------------------------------------------------------------8
     |                                                                            |
     |                              DNS information                               |

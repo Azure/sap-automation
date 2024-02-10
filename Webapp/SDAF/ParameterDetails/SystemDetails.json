@@ -1811,6 +1811,15 @@
         "Display": 2
       },
       {
+        "Name": "ANF_HANA_use_Zones",
+        "Required": false,
+        "Description": "defines if the ANF volume(s) will be deployed in availability zones",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
         "Name": "database_HANA_use_ANF_scaleout_scenario",
         "Required": false,
         "Description": "If true, the database tier will be configured for scaleout scenario.",

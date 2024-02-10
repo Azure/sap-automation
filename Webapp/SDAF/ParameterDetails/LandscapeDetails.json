@@ -961,6 +961,32 @@
         "Display": 3
       },
       {
+        "Name": "ANF_transport_volume_zone",
+        "Required": false,
+        "Description": "Azure NetApp transport volume availability zone.",
+        "Type": "field",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          },
+          {
+            "Text": "1",
+            "Value": "1"
+          },
+          {
+            "Text": "2",
+            "Value": "2"
+          },
+          {
+            "Text": "3",
+            "Value": "3"
+          }
+        ],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
         "Name": "ANF_install_volume_throughput",
         "Required": false,
         "Description": "The throughput in MB/s for the install volume.",
@@ -968,6 +994,32 @@
         "Options": [],
         "Overrules": "",
         "Display": 3
+      },
+      {
+        "Name": "ANF_install_volume_zone",
+        "Required": false,
+        "Description": "Azure NetApp install volume availability zone.",
+        "Type": "field",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          },
+          {
+            "Text": "1",
+            "Value": "1"
+          },
+          {
+            "Text": "2",
+            "Value": "2"
+          },
+          {
+            "Text": "3",
+            "Value": "3"
+          }
+        ],
+        "Overrules": "",
+        "Display": 2
       }
     ]
   },
