@@ -1,8 +1,8 @@
 {
   "db": {
-    "Default": {
+    "Custom": {
       "compute": {
-        "vm_size": "Standard_E20s_v4",
+        "vm_size": "Standard_E20ds_v4",
         "accelerated_networking": true
       },
       "storage": [
@@ -55,9 +55,9 @@
     }
   },
   "app": {
-    "Default": {
+    "Custom": {
       "compute": {
-        "vm_size": "Standard_D4s_v5",
+        "vm_size": "Standard_D4ds_v5",
         "accelerated_networking": true
       },
       "storage": [
@@ -81,7 +81,7 @@
     },
     "Optimized": {
       "compute": {
-        "vm_size": "Standard_D4s_v5",
+        "vm_size": "Standard_D4ds_v5",
         "accelerated_networking": true
       },
       "storage": [
@@ -105,9 +105,9 @@
     }
   },
   "scs": {
-    "Default": {
+    "Custom": {
       "compute": {
-        "vm_size": "Standard_D4s_v5",
+        "vm_size": "Standard_D4ds_v5",
         "accelerated_networking": true
       },
       "storage": [
@@ -131,9 +131,9 @@
     }
   },
   "scsha": {
-    "Default": {
+    "Custom": {
       "compute": {
-        "vm_size": "Standard_D4s_v5",
+        "vm_size": "Standard_D4ds_v5",
         "accelerated_networking": true
       },
       "storage": [
@@ -181,9 +181,9 @@
     }
   },
   "web": {
-    "Default": {
+    "Custom": {
       "compute": {
-        "vm_size": "Standard_D4s_v5",
+        "vm_size": "Standard_D4ds_v5",
         "accelerated_networking": true
       },
       "storage": [
