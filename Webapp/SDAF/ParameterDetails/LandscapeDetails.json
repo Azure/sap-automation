@@ -999,7 +999,7 @@
         "Name": "ANF_install_volume_zone",
         "Required": false,
         "Description": "Azure NetApp install volume availability zone.",
-        "Type": "field",
+        "Type": "list",
         "Options": [
           {
             "Text": "",
