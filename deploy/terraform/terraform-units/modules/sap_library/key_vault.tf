@@ -69,8 +69,8 @@ resource "azurerm_key_vault_secret" "tfstate" {
   depends_on                           = [azurerm_private_endpoint.kv_user]
   name                                 = "tfstate"
   value                                = var.use_private_endpoint ? (
-                                          format("%s.privatelink.blob.core.windows.net:/%s/%s", local.sa_sapbits_name,local.sa_sapbits_name,var.storage_account_sapbits.sapbits_blob_container.name)) : (
-                                          format("%s.blob.core.windows.net:/%s/%s", local.sa_sapbits_name,local.sa_sapbits_name,var.storage_account_sapbits.sapbits_blob_container.name)
+                                          format("https://%s.privatelink.blob.core.windows.net", local.sa_tfstate_exists ? (data.azurerm_storage_account.storage_tfstate[0].name) : (azurerm_storage_account.storage_tfstate[0].name))) : (
+                                          format("https://%s.blob.core.windows.net", local.sa_tfstate_exists ? (data.azurerm_storage_account.storage_tfstate[0].name) : (azurerm_storage_account.storage_tfstate[0].name))
                                           )
   key_vault_id                         = var.key_vault.kv_spn_id
   expiration_date                      = try(var.deployer_tfstate.set_secret_expiry, false) ? (
