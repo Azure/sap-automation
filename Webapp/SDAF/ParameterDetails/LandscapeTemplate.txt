@@ -376,17 +376,20 @@ $$ANF_use_existing_pool$$
 #                                                                                       #
 #########################################################################################
 
-#ANF_transport_volume_use_existing defines if an existing volume is used for transport
+# ANF_transport_volume_use_existing defines if an existing volume is used for transport
 $$ANF_transport_volume_use_existing$$
 
-#ANF_transport_volume_name is the name of the transport volume
+# ANF_transport_volume_name is the name of the transport volume
 $$ANF_transport_volume_name$$
 
-#ANF_transport_volume_throughput is the throughput for the transport volume
+# ANF_transport_volume_throughput is the throughput for the transport volume
 $$ANF_transport_volume_throughput$$
 
-#ANF_transport_volume_size is the size for the transport volume
+# ANF_transport_volume_size is the size for the transport volume
 $$ANF_transport_volume_size$$
+
+# ANF_transport_volume_zone is the zone for the transport volume
+$$ANF_transport_volume_zone$$
 
 #########################################################################################
 #                                                                                       #
@@ -405,6 +408,9 @@ $$ANF_install_volume_throughput$$
 
 #ANF_install_volume_size is the size for the install volume
 $$ANF_install_volume_size$$
+
+# ANF_install_volume_zone is the zone for the transport volume
+$$ANF_install_volume_zone$$
 
 
 ###########################################################################

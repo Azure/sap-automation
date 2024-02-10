@@ -474,6 +474,8 @@ namespace AutomationForm.Models
 
     public bool? ANF_HANA_use_AVG { get; set; } = false;
 
+    public bool? ANF_HANA_use_Zones { get; set; } = true;
+
     /*---------------------------------------------------------------------------8
     |                                                                            |
     |                                     Data                                   |

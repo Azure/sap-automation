@@ -538,6 +538,11 @@ variable "ANF_transport_volume_size"               {
                                                      default     = 128
                                                    }
 
+variable "ANF_transport_volume_zone"               {
+                                                     description = "Transport volume availability zone"
+                                                     default     = ""
+                                                   }
+
 variable "ANF_install_volume_use_existing"         {
                                                      description = "Use existing install volume"
                                                      default     = false
@@ -556,6 +561,12 @@ variable "ANF_install_volume_throughput"           {
 variable "ANF_install_volume_size"                 {
                                                      description = "If defined provides the size of the install volume"
                                                      default     = 1024
+                                                   }
+
+
+variable "ANF_install_volume_zone"                 {
+                                                     description = "Install volume availability zone"
+                                                     default     = ""
                                                    }
 
 variable "use_AFS_for_shared_storage"              {
