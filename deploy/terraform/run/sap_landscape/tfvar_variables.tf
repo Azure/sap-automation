@@ -540,7 +540,7 @@ variable "ANF_transport_volume_size"               {
 
 variable "ANF_transport_volume_zone"               {
                                                      description = "Transport volume availability zone"
-                                                     default     = ""
+                                                     default     = [""]
                                                    }
 
 variable "ANF_install_volume_use_existing"         {
@@ -566,7 +566,7 @@ variable "ANF_install_volume_size"                 {
 
 variable "ANF_install_volume_zone"                 {
                                                      description = "Install volume availability zone"
-                                                     default     = ""
+                                                     default     = [""]
                                                    }
 
 variable "use_AFS_for_shared_storage"              {
