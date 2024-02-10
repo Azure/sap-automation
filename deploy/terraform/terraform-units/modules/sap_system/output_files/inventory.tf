@@ -196,6 +196,7 @@ resource "local_file" "sap-parameters_yml" {
                                               ""
                                             )
               asd_disks                   = concat(var.scs_shared_disks, var.database_shared_disks)
+              scale_out                   = var.scale_out
               scs_cluster_loadbalancer_ip = try(format("%s/%s", var.scs_cluster_loadbalancer_ip, var.app_subnet_netmask), "")
               scs_cluster_type            = var.scs_cluster_type
               scs_high_availability       = var.scs_high_availability

@@ -136,7 +136,9 @@ variable "save_naming_information"              {
                                                   description = "If defined, will save the naming information for the resources"
                                                   default     = false
                                                 }
+variable "scale_out"                            { description = "If true, the SAP System will be scale out" }                                              }
 variable "scs_shared_disks"                     { description = "SCS Azure Shared Disk" }
+
 
 variable "scs_cluster_loadbalancer_ip"          { description = "This is a Cluster IP address for Windows load balancer for central services" }
 variable "scs_cluster_type"                     {

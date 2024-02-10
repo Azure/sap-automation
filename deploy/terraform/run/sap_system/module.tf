@@ -423,8 +423,13 @@ module "output_files" {
                                                   local.application_tier.scs_server_count
                                                   )
   web_server_count                              = try(local.application_tier.webdispatcher_count, 0)
+
+  #########################################################################################
+  #  Miscallaneous                                                                        #
+  #########################################################################################
   use_simple_mount                              = local.validated_use_simple_mount
   upgrade_packages                              = var.upgrade_packages
+  scale_out                                     = var.database_HANA_use_ANF_scaleout_scenario
 
   #########################################################################################
   #  iSCSI                                                                                #
