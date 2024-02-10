@@ -136,7 +136,7 @@ variable "save_naming_information"              {
                                                   description = "If defined, will save the naming information for the resources"
                                                   default     = false
                                                 }
-variable "scale_out"                            { description = "If true, the SAP System will be scale out" }                                              }
+variable "scale_out"                            { description = "If true, the SAP System will be scale out" }
 variable "scs_shared_disks"                     { description = "SCS Azure Shared Disk" }
 
 
