@@ -964,7 +964,7 @@
         "Name": "ANF_transport_volume_zone",
         "Required": false,
         "Description": "Azure NetApp transport volume availability zone.",
-        "Type": "field",
+        "Type": "list",
         "Options": [
           {
             "Text": "",
