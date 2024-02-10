@@ -458,6 +458,28 @@ locals {
                                                       try(var.infrastructure.vnets.sap.subnet_anf.prefix, "")) : (
                                                       ""
                                                     )
+  ANF_subnet_nsg_arm_id                           = local.ANF_subnet_defined ? (
+                                                       try(var.infrastructure.vnets.sap.subnet_anf.nsg.arm_id, "")) : (
+                                                       ""
+                                                     )
+  ANF_subnet_nsg_exists                           = length(local.ANF_subnet_nsg_arm_id) > 0
+
+  ANF_subnet_nsg_name                             = local.ANF_subnet_nsg_exists ? (
+                                                      try(split("/", local.ANF_subnet_nsg_arm_id)[8], "")) : (
+                                                      length(try(var.infrastructure.vnets.sap.subnet_anf.nsg.name, "")) > 0 ? (
+                                                        var.infrastructure.vnets.sap.subnet_anf.nsg.name) : (
+                                                        format("%s%s%s%s",
+                                                          var.naming.resource_prefixes.anf_subnet_nsg,
+                                                          length(local.prefix) > 0 ? (
+                                                            local.prefix) : (
+                                                            var.infrastructure.environment
+                                                          ),
+                                                          var.naming.separator,
+                                                          local.resource_suffixes.anf_subnet_nsg
+                                                        )
+                                                      )
+                                                    )
+
 
   # Store the Deployer KV in workload zone KV
   deployer_keyvault_user_name                     = try(var.deployer_tfstate.deployer_kv_user_name, "")
