@@ -1,7 +1,5 @@
 exclude_paths:
   - deploy/pipelines
-  - deploy/ansible/BOM-catalog
-  - deploy/ansible/filter_plugins
   - deploy/terraform
   - .github
 
@@ -12,6 +10,7 @@ warn_list:
 skip_list:
   - no-handler   # Ignored because there is no easier way to do
   - key-order[task] # Refactor needed
+  - key-order[play] # Refactor needed
   - name[casing] # Following are ignored because of readability:
   - no-changed-when
   - role-name
