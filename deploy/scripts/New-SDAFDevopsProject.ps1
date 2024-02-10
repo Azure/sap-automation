@@ -26,7 +26,7 @@ $Workload_zoneSubscriptionName = $Env:SDAF_WorkloadZoneSubscriptionName
 $ARM_TENANT_ID = $Env:ARM_TENANT_ID
 #endregion
 
-$versionLabel = "v3.10.1.0"
+$versionLabel = "v3.11.0.0"
 
 
 
