@@ -82,6 +82,43 @@ resource "azurerm_network_security_group" "app" {
                                          )
 }
 
+
+
+# Creates SAP anf subnet nsg
+resource "azurerm_network_security_group" "anf" {
+  provider                             = azurerm.main
+  count                                = var.NFS_provider == "ANF" ? (
+                                           local.ANF_subnet_nsg_exists ? (
+                                             0) : (
+                                             1
+                                           )) : (
+                                           0
+                                         )
+  name                                 = local.ANF_subnet_nsg_name
+  resource_group_name                  = local.SAP_virtualnetwork_exists ? (
+                                           data.azurerm_virtual_network.vnet_sap[0].resource_group_name
+                                           ) : (
+                                           azurerm_virtual_network.vnet_sap[0].resource_group_name
+                                         )
+  location                             = local.SAP_virtualnetwork_exists ? (
+                                           data.azurerm_virtual_network.vnet_sap[0].location) : (
+                                           azurerm_virtual_network.vnet_sap[0].location
+                                         )
+}
+
+# Associates anf nsg to anf subnet
+
+resource "azurerm_subnet_network_security_group_association" "anf" {
+  provider                             = azurerm.main
+  count                                = local.ANF_subnet_defined && !local.ANF_subnet_nsg_exists ? 1 : 0
+  depends_on                           = [
+                                           azurerm_subnet.anf
+                                         ]
+  subnet_id                            = local.ANF_subnet_existing ? var.infrastructure.vnets.sap.subnet_anf.arm_id : azurerm_subnet.anf[0].id
+  network_security_group_id            = azurerm_network_security_group.anf[0].id
+}
+
+
 # Associates app nsg to app subnet
 resource "azurerm_subnet_network_security_group_association" "app" {
   provider                             = azurerm.main
