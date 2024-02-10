@@ -315,6 +315,7 @@ namespace AutomationForm.Models
       {
         string[] hanadb_sizes = new string[] {
                     "Default",
+                    "Custom",
                     "S4Demo",
                     "E20ds_v4",
                     "E20ds_v5",
@@ -340,6 +341,7 @@ namespace AutomationForm.Models
                 };
         string[] anydb_sizes = new string[] {
                     "Default",
+                    "Custom",
                     "256",
                     "512",
                     "1024",
