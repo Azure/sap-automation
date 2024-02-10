@@ -41,7 +41,7 @@ module "sap_deployer" {
   management_dns_subscription_id               = var.management_dns_subscription_id
   options                                      = local.options
   place_delete_lock_on_resources               = var.place_delete_lock_on_resources
-  public_network_access_enabled                = var.public_network_access_enabled || !var.use_private_endpoint
+  public_network_access_enabled                = var.public_network_access_enabled
   sa_connection_string                         = var.sa_connection_string
   soft_delete_retention_days                   = var.soft_delete_retention_days
   set_secret_expiry                            = var.set_secret_expiry
