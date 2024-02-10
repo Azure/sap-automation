@@ -21,7 +21,7 @@ namespace AutomationForm.Services
 
     public async Task<TableClient> GetTableClient(string table)
     {
-      string accountName = _configuration.GetConnectionString(_settings.ConnectionStringKey);
+      string accountName = _configuration.GetConnectionString(_settings.ConnectionStringKey).Replace("blob", "table");
       TableServiceClient serviceClient = new(
         new Uri(accountName),
         new DefaultAzureCredential());
