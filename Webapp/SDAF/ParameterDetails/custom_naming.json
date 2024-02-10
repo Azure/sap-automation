@@ -1,33 +1,33 @@
 {
   "availabilityset_names": {
-    "app": ["z1_app-avset", "z2_app-avset"],
-    "db": ["z1_db-avset", "z2_db-avset"],
-    "scs": ["z1_scs-avset", "z2_scs-avset"],
-    "web": ["z1_web-avset", "z2_web-avset"]
+    "app": [ "z1_app-avset" ],
+    "db": [ "z1_db-avset" ],
+    "scs": [ "z1_scs-avset" ],
+    "web": [ "z1_web-avset" ]
   },
   "keyvault_names": {
     "DEPLOYER": {
-      "private_access": "DEVWEEUprvt86D",
-      "user_access": "DEVWEEUuser86D"
+      "private_access": "DEVWEEUprvt###",
+      "user_access": "DEVWEEUuser###"
     },
     "LIBRARY": {
-      "private_access": "DEVWEEUSAPLIBprvt86D",
-      "user_access": "DEVWEEUSAPLIBuser86D"
+      "private_access": "DEVWEEUSAPLIBprvt###",
+      "user_access": "DEVWEEUSAPLIBuser###"
     },
     "SDU": {
-      "private_access": "DEVWEEUSAP01X00p86D",
-      "user_access": "DEVWEEUSAP01X00u86D"
+      "private_access": "DEVWEEUSAP01SIDp###",
+      "user_access": "DEVWEEUSAP01SIDu###"
     },
     "WORKLOAD_ZONE": {
-      "private_access": "DEVWEEUSAP01prvt86D",
-      "user_access": "DEVWEEUSAP01user86D"
+      "private_access": "DEVWEEUSAP01prvt###",
+      "user_access": "DEVWEEUSAP01user###"
     }
   },
-  "ppg_names": ["-z1-ppg", "-z2-ppg"],
+  "ppg_names": [ "-z1-ppg" ],
   "prefix": {
     "DEPLOYER": "DEV-WEEU-",
     "LIBRARY": "DEV-WEEU",
-    "SDU": "DEV-WEEU-SAP01-X00",
+    "SDU": "DEV-WEEU-SAP01-SID",
     "WORKLOAD_ZONE": "DEV-WEEU-SAP01"
   },
   "resource_prefixes": {
@@ -45,7 +45,6 @@
     "app_subnet_nsg": "",
     "bastion_host": "",
     "bastion_pip": "",
-    "cluster_disk": "",
     "database_cluster_disk": "",
     "db_alb": "",
     "db_alb_bepool": "",
@@ -107,8 +106,8 @@
     "scs_avset": "",
     "scs_clst_feip": "",
     "scs_clst_hp": "",
-    "scs_cluster_disk": "",
     "scs_clst_rule": "",
+    "scs_cluster_disk": "",
     "scs_ers_feip": "",
     "scs_ers_hp": "",
     "scs_ers_rule": "",
@@ -138,6 +137,7 @@
     "transport_volume": "",
     "usrsap": "",
     "vm": "",
+    "vmss": "",
     "vnet": "",
     "vnet_rg": "",
     "web_alb": "",
@@ -168,9 +168,7 @@
     "app_subnet_nsg": "appSubnet-nsg",
     "bastion_host": "bastion-host",
     "bastion_pip": "bastion-pip",
-    "cluster_disk": "cluster-disks",
-    "database_cluster_disk": "",
-    "db-cluster-disk": null,
+    "database_cluster_disk": "db-cluster-disk",
     "db_alb": "db-alb",
     "db_alb_bepool": "dbAlb-bePool",
     "db_alb_feip": "dbAlb-feip",
@@ -233,7 +231,7 @@
     "scs_clst_feip": "scsClst-feip",
     "scs_clst_hp": "scsClst-hp",
     "scs_clst_rule": "scsClst-rule",
-    "scs_cluster_disk" : "scs-cluster-disk",
+    "scs_cluster_disk": "scs-cluster-disk",
     "scs_ers_feip": "scsErs-feip",
     "scs_ers_hp": "scsErs-hp",
     "scs_ers_rule": "scsErs-rule",
@@ -263,6 +261,7 @@
     "transport_volume": "transport",
     "usrsap": "usrsap",
     "vm": "",
+    "vmss": "-vmss",
     "vnet": "-vnet",
     "vnet_rg": "-INFRASTRUCTURE",
     "web_alb": "web-alb",
@@ -281,42 +280,76 @@
   },
   "separator": "_",
   "storageaccount_names": {
-    "DEPLOYER": "devweeudiag86d",
+    "DEPLOYER": "devweeudiag###",
     "LIBRARY": {
-      "library_storageaccount_name": "devweeusaplib86d",
-      "terraformstate_storageaccount_name": "devweeutfstate86d"
+      "library_storageaccount_name": "devweeusaplib###",
+      "terraformstate_storageaccount_name": "devweeutfstate###"
     },
-    "SDU": "devweeusap01diag86d",
+    "SDU": "devweeusap01diag###",
     "WORKLOAD_ZONE": {
-      "landscape_shared_install_storage_account_name": "devweeusap01install86d",
-      "landscape_shared_transport_storage_account_name": "devweeusap01transport86d",
-      "landscape_storageaccount_name": "devweeusap01diag86d",
-      "witness_storageaccount_name": "devweeusap01witness86d"
+      "landscape_shared_install_storage_account_name": "devweeusap01install###",
+      "landscape_shared_transport_storage_account_name": "devweeusap01transport###",
+      "landscape_storageaccount_name": "devweeusap01diag###",
+      "witness_storageaccount_name": "devweeusap01witness###"
     }
   },
   "virtualmachine_names": {
-    "ANCHOR_COMPUTERNAME": ["x00anchorz101l86d", "x00anchorz202l86d"],
-    "ANCHOR_SECONDARY_DNSNAME": ["x00anchorz101l86d", "x00anchorz202l86d"],
-    "ANCHOR_VMNAME": ["x00anchor_z1_01l86d", "x00anchor_z2_02l86d"],
-    "ANYDB_COMPUTERNAME": ["x00db01l086d", "x00db01l186d"],
-    "ANYDB_SECONDARY_DNSNAME": ["vx00dhdb01l086", "vx00dhdb01l186"],
-    "ANYDB_VMNAME": ["x00db01l086d", "x00db01l186d"],
-    "APP_COMPUTERNAME": ["x00app01l86d", "x00app02l86d"],
-    "APP_SECONDARY_DNSNAME": ["vx00app01l86", "vx00app02l86"],
-    "APP_VMNAME": ["x00app01l86d", "x00app02l86d"],
-    "DEPLOYER": ["devweeudeploy01"],
-    "HANA_COMPUTERNAME": ["x00dhdb01l086", "x00dhdb01l186"],
-    "HANA_SECONDARY_DNSNAME": ["vx00dhdb01l086", "vx00dhdb01l186"],
-    "HANA_VMNAME": ["x00dhdb01l086d", "x00dhdb01l186d"],
-    "ISCSI_COMPUTERNAME": ["devsap01weeuiscsi00"],
-    "OBSERVER_COMPUTERNAME": ["x00observer01l86d", "x00observer02l86d"],
-    "OBSERVER_VMNAME": ["x00observer01l86d", "x00observer02l86d"],
-    "SCS_COMPUTERNAME": ["x00scs01l86d", "x00scs02l86d"],
-    "SCS_SECONDARY_DNSNAME": ["vx00scs01l86", "vx00scs02l86"],
-    "SCS_VMNAME": ["x00scs01l86d", "x00scs02l86d"],
-    "WEB_COMPUTERNAME": ["x00web01l86d", "x00web02l86d"],
-    "WEB_SECONDARY_DNSNAME": ["vw01web01l86", "vw01web02l86"],
-    "WEB_VMNAME": ["w01web01l86d", "w01web02l86d"],
+    "ANCHOR_COMPUTERNAME": [ "sidanchorz100l###" ],
+    "ANCHOR_SECONDARY_DNSNAME": [ "sidanchorz100l###" ],
+    "ANCHOR_VMNAME": [ "sidanchor_z1_00l###" ],
+    "ANYDB_COMPUTERNAME": [
+      "siddb00l0###",
+      "siddb01l0###",
+      "siddb02l0###",
+      "siddb03l0###"
+    ],
+    "ANYDB_SECONDARY_DNSNAME": [
+      "vsidd00l014",
+      "vsidd01l014",
+      "vsidd02l014",
+      "vsidd03l014",
+      "vsiddhdb00l114",
+      "vsiddhdb01l114",
+      "vsiddhdb01l114",
+      "vsiddhdb03l114"
+    ],
+    "ANYDB_VMNAME": [
+      "siddb_z1_00l0###",
+      "siddb_z1_01l0###",
+      "siddb_z1_02l0###",
+      "siddb_z1_03l0###"
+    ],
+    "APP_COMPUTERNAME": [ "sidapp00l###" ],
+    "APP_SECONDARY_DNSNAME": [ "vsida00l14" ],
+    "APP_VMNAME": [ "sidapp_z1_00l###" ],
+    "DEPLOYER": [ "devweeudeploy00" ],
+    "HANA_COMPUTERNAME": [
+      "siddhdb00l014",
+      "siddhdb01l014",
+      "siddhdb02l014",
+      "siddhdb03l014"
+    ],
+    "HANA_SECONDARY_DNSNAME": [
+      "vsiddhdb00l014",
+      "vsiddhdb01l014",
+      "vsiddhdb02l014",
+      "vsiddhdb03l014"
+    ],
+    "HANA_VMNAME": [
+      "siddhdb_z1_00l0###",
+      "siddhdb_z1_01l0###",
+      "siddhdb_z1_02l0###",
+      "siddhdb_z1_03l0###"
+    ],
+    "ISCSI_COMPUTERNAME": [ "anfsap01noeuiscsi00" ],
+    "OBSERVER_COMPUTERNAME": [ "sidobserver00l###" ],
+    "OBSERVER_VMNAME": [ "sidobserver_z1_00l###" ],
+    "SCS_COMPUTERNAME": [ "sidscs00l###" ],
+    "SCS_SECONDARY_DNSNAME": [ "vsids00l14" ],
+    "SCS_VMNAME": [ "sidscs_z1_00l###" ],
+    "WEB_COMPUTERNAME": [ "sidweb00l###" ],
+    "WEB_SECONDARY_DNSNAME": [ "vw00l14" ],
+    "WEB_VMNAME": [ "web_z1_00l###" ],
     "WORKLOAD_VMNAME": []
   }
 }
