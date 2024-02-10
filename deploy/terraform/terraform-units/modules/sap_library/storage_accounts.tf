@@ -356,7 +356,7 @@ resource "azurerm_storage_container" "storagecontainer_sapbits" {
                                            azurerm_private_dns_a_record.storage_sapbits_pep_a_record_registry
                                          ]
   name                                 = var.storage_account_sapbits.sapbits_blob_container.name
-                                           storage_account_name = local.sa_sapbits_exists ? (
+  storage_account_name                 = local.sa_sapbits_exists ? (
                                              data.azurerm_storage_account.storage_sapbits[0].name) : (
                                              azurerm_storage_account.storage_sapbits[0].name
                                            )

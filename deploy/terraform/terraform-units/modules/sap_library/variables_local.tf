@@ -34,8 +34,13 @@ locals {
   sa_sapbits_exists                         = length(var.storage_account_sapbits.arm_id) > 0
   sa_sapbits_name                           = local.sa_sapbits_exists ? (
                                                 split("/", var.storage_account_sapbits.arm_id)[8]) : (
-                                                var.naming.storageaccount_names.LIBRARY.library_storageaccount_name
+                                                length(var.storage_account_sapbits.name) > 0 ? (
+                                                  var.storage_account_sapbits.name) : (
+                                                  var.naming.storageaccount_names.LIBRARY.library_storageaccount_name
+                                                )
                                               )
+
+
 
   // Storage account for tfstate
   sa_tfstate_exists                         = length(var.storage_account_tfstate.arm_id) > 0
