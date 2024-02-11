@@ -58,9 +58,9 @@ resource "azurerm_storage_account" "storage_tfstate" {
                   )
                 }
 
-  lifecycle {
-              ignore_changes = [tags]
-            }
+  # lifecycle {
+  #             ignore_changes = [tags]
+  #           }
 
   tags = {
       "enable_firewall_for_keyvaults_and_storage" = local.enable_firewall_for_keyvaults_and_storage
