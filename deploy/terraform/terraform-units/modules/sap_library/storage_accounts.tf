@@ -27,7 +27,7 @@ resource "azurerm_storage_account" "storage_tfstate" {
   min_tls_version                      = "TLS1_2"
   allow_nested_items_to_be_public      = false
 
-  public_network_access_enabled        = var.storage_account_sapbits.public_network_access_enabled
+  public_network_access_enabled        = true #var.storage_account_sapbits.public_network_access_enabled
 
   enable_https_traffic_only            = true
 
@@ -61,6 +61,12 @@ resource "azurerm_storage_account" "storage_tfstate" {
   lifecycle {
               ignore_changes = [tags]
             }
+
+            tags = {
+                "enable_firewall_for_keyvaults_and_storage" = local.enable_firewall_for_keyvaults_and_storage
+                "public_network_access_enabled" = var.storage_account_sapbits.public_network_access_enabled
+              }
+            )
 
 }
 
