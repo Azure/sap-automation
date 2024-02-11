@@ -187,6 +187,63 @@ resource "azurerm_private_endpoint" "storage_tfstate" {
             }
 }
 
+resource "azurerm_private_endpoint" "table_tfstate" {
+  provider                             = azurerm.main
+  count                                = var.use_private_endpoint && !local.sa_tfstate_exists ? 1 : 0
+  name                                 = format("%s%s-table%s",
+                                           var.naming.resource_prefixes.storage_private_link_tf,
+                                           local.prefix,
+                                           var.naming.resource_suffixes.storage_private_link_tf
+                                         )
+  resource_group_name                  = local.resource_group_exists ? (
+                                           data.azurerm_resource_group.library[0].name) : (
+                                           azurerm_resource_group.library[0].name
+                                         )
+  location                             = local.resource_group_exists ? (
+                                           data.azurerm_resource_group.library[0].location) : (
+                                           azurerm_resource_group.library[0].location
+                                         )
+
+  subnet_id                            = var.deployer_tfstate.subnet_mgmt_id
+
+  custom_network_interface_name        = var.short_named_endpoints_nics ? format("%s%s%s%s",
+                                           var.naming.resource_prefixes.storage_private_link_tf,
+                                           length(local.prefix) > 0 ? (
+                                             local.prefix) : (
+                                             var.infrastructure.environment
+                                           ),
+                                           var.naming.resource_suffixes.storage_private_link_tf,
+                                           var.naming.resource_suffixes.nic
+                                         ) : null
+
+  private_service_connection {
+                               name = format("%s%s%s", var.naming.resource_prefixes.storage_private_svc_tf,
+                                 local.prefix,
+                                 var.naming.resource_suffixes.storage_private_svc_tf
+                               )
+                               is_manual_connection = false
+                               private_connection_resource_id = local.sa_tfstate_exists ? (
+                                 var.storage_account_tfstate.arm_id) : (
+                                 azurerm_storage_account.storage_tfstate[0].id
+                               )
+                               subresource_names = [
+                                 "table"
+                               ]
+                             }
+
+  dynamic "private_dns_zone_group" {
+                                     for_each = range(var.use_private_endpoint && !var.use_custom_dns_a_registration ? 1 : 0)
+                                     content {
+                                               name                 = var.dns_zone_names.blob_dns_zone_name
+                                               private_dns_zone_ids = [local.use_local_private_dns ? azurerm_private_dns_zone.table[0].id : data.azurerm_private_dns_zone.table[0].id]
+                                             }
+                                   }
+
+  lifecycle {
+              ignore_changes = [tags]
+            }
+}
+
 // Creates the storage container inside the storage account for sapsystem
 resource "azurerm_storage_container" "storagecontainer_tfstate" {
   provider                             = azurerm.main
@@ -333,7 +390,7 @@ resource "azurerm_private_endpoint" "storage_sapbits" {
                                  azurerm_storage_account.storage_sapbits[0].id
                                )
                                subresource_names = [
-                                                     "Blob", "Table"
+                                                     "Blob"
                                                    ]
                              }
 
@@ -413,6 +470,14 @@ data "azurerm_private_dns_zone" "storage" {
   provider                             = azurerm.dnsmanagement
   count                                = !local.use_local_private_dns && var.use_private_endpoint ? 1 : 0
   name                                 = var.dns_zone_names.blob_dns_zone_name
+  resource_group_name                  = var.management_dns_resourcegroup_name
+
+}
+
+data "azurerm_private_dns_zone" "table" {
+  provider                             = azurerm.dnsmanagement
+  count                                = !local.use_local_private_dns && var.use_private_endpoint ? 1 : 0
+  name                                 = var.dns_zone_names.table_dns_zone_name
   resource_group_name                  = var.management_dns_resourcegroup_name
 
 }
