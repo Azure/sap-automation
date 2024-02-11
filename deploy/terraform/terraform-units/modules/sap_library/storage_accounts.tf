@@ -328,7 +328,7 @@ resource "azurerm_private_endpoint" "storage_sapbits" {
                                  azurerm_storage_account.storage_sapbits[0].id
                                )
                                subresource_names = [
-                                                     "Blob"
+                                                     "Blob", "Table"
                                                    ]
                              }
 
