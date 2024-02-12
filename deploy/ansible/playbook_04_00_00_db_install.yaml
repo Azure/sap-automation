@@ -659,7 +659,7 @@
           vars:
             suffix:                    "_DB"
             tier:                      'db2'
-            prefix:                    "{{ bom.product_ids.dblha.replace('.', '/').replace('/' + {{ db2_instance_type }}, '').split(':')[1] }}"
+            prefix:                    "{{ bom.product_ids.dblha.replace('.', '/').replace('/' + db2_instance_type, '').split(':')[1] }}"
             path:                      "INSTALL/DISTRIBUTED/{{ db2_instance_type }}/DB"
             this_sid:                  "{{ sap_sid }}"
 

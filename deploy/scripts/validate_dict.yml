@@ -1,7 +1,6 @@
 ---
-
-- name: "Determine list of dict keys"
-  set_fact:
+- name: Determine list of dict keys
+  ansible.builtin.set_fact:
     dict_keys: "{{
       dict |
       dict2items |
@@ -12,8 +11,8 @@
       }}"
     dict_name: "{{ ' (Check name: ' + dict.name + ')' if dict.name is defined }}"
 
-- name: "Check required keys"
-  assert:
+- name: Check required keys
+  ansible.builtin.assert:
     that: "required_key in dict_keys"
     fail_msg: "Expected to find key '{{ required_key }}' in '{{ reference }}'{{ dict_name }}"
   loop: "{{ required }}"
@@ -21,8 +20,8 @@
     loop_var: required_key
   ignore_errors: true
 
-- name: "Check optional keys"
-  assert:
+- name: Check optional keys
+  ansible.builtin.assert:
     that: "key in required + optional"
     fail_msg: "Unexpected key '{{ key }} in '{{ reference }}'{{ dict_name }}"
   loop: "{{ dict_keys | flatten }}"
