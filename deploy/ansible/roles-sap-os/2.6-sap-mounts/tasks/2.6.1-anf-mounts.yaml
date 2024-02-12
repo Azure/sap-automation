@@ -863,8 +863,6 @@
       - node_tier == 'hana'
       - hana_data_mountpoint is defined
 
-
-
   - name:                                "ANF Mount: HANA Log - Scale out - Create mount list"
     block:
       - name:                            "Initialize HANA Log mountpoints"
