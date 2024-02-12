@@ -17,7 +17,14 @@
         timeout:                       60
         mode:                          0644
 
-    - name:                            "1.20 Packages: - Unzip and enable node exporter"
+    - name:                            "1.20 Packages: - Unzip node exporter"
+      ansible.builtin.unarchive: 
+        src:                           "/tmp/node_exporter-1.3.1.linux-amd64.tar.gz"
+        dest:                          "/tmp/"
+        remote_src:                    yes
+        mode:                          0644
+    
+    - name:                            "1.20 Packages: - Enable node exporter"
       ansible.builtin.shell: |
                 tar -zxvf /tmp/node_exporter-1.3.1.linux-amd64.tar.gz -C /tmp;
                 nohup /tmp/node_exporter-1.3.1.linux-amd64/node_exporter --web.listen-address=':9100' &
@@ -36,7 +43,7 @@
   block:
     - name:                            "1.20 Packages: - Install pcp and pcp-pmda-hacluster package"
       ansible.builtin.yum:
-        name:                       
+        name:
           - "pcp"
           - "pcp-pmda-hacluster"
 
