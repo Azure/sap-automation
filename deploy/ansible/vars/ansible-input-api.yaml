@@ -135,7 +135,7 @@ app_instance_number:                   "00"
 sidadm_uid:                            2003
 hdbadm_uid:                            2200
 scs_lb_ip:                             ""                                      # SAP HA
-db_lb_ip:                              ""                                      # SAP HA
+database_loadbalancer_ip:              ""                                      # SAP HA
 reinstall:                             false                                   # Provide a way to override the idempotency flags for SAP tasks
 
 ora_release:                           19
