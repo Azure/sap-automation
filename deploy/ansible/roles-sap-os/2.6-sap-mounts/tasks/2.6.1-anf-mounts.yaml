@@ -782,10 +782,10 @@
         'permissions':       '0775',
         'set_chattr_on_dir': false,
         'target_nodes' :     ['hana'],
-        'create_temp_folders': true
+        'create_temp_folders': false
       }
     vars:
-      primary_host:                     "{{ first_server_temp | first }}"
+      primary_host:                     "{{ ansible_hostname }}"
     when:
       - node_tier == 'hana'
       - hana_shared_mountpoint is defined
@@ -808,7 +808,7 @@
         'create_temp_folders': true
       }
     vars:
-      primary_host:                     "{{ first_server_temp | first }}"
+      primary_host:                     "{{ ansible_hostname }}"
     when:
       - node_tier == 'hana'
       - hana_shared_mountpoint is defined
@@ -857,7 +857,7 @@
     with_items:
       - "{{ hana_data_scaleout_mountpoint | list }}"
     vars:
-      primary_host:                     "{{ first_server_temp | first }}"
+      primary_host:                     "{{ ansible_hostname }}"
     when:
       - node_tier == 'hana'
       - hana_data_mountpoint is defined
@@ -902,7 +902,7 @@
     with_items:
       - "{{ hana_log_scaleout_mountpoint | list }}"
     vars:
-      primary_host:                     "{{ first_server_temp | first }}"
+      primary_host:                     "{{ ansible_hostname }}"
     when:
       - node_tier == 'hana'
       - hana_log_mountpoint is defined
