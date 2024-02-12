@@ -785,8 +785,7 @@
         'create_temp_folders': true
       }
     vars:
-      # Run this on all the nodes, not just primary.
-      primary_host:                     "{{ ansible_hostname }}"
+      primary_host:                     "{{ first_server_temp | first }}"
     when:
       - node_tier == 'hana'
       - hana_shared_mountpoint is defined
@@ -809,7 +808,7 @@
         'create_temp_folders': true
       }
     vars:
-      primary_host:                     "{{ ansible_hostname }}"
+      primary_host:                     "{{ first_server_temp | first }}"
     when:
       - node_tier == 'hana'
       - hana_shared_mountpoint is defined
@@ -858,7 +857,7 @@
     with_items:
       - "{{ hana_data_scaleout_mountpoint | list }}"
     vars:
-      primary_host:                     "{{ ansible_hostname }}"
+      primary_host:                     "{{ first_server_temp | first }}"
     when:
       - node_tier == 'hana'
       - hana_data_mountpoint is defined
@@ -903,7 +902,7 @@
     with_items:
       - "{{ hana_log_scaleout_mountpoint | list }}"
     vars:
-      primary_host:                     "{{ ansible_hostname }}"
+      primary_host:                     "{{ first_server_temp | first }}"
     when:
       - node_tier == 'hana'
       - hana_log_mountpoint is defined
