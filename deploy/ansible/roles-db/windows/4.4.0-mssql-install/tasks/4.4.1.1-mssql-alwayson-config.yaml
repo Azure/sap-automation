@@ -114,7 +114,7 @@
 
     - name:                            "calculate LB IP with subnet prefix"
       ansible.builtin.set_fact:
-        database_loadbalancer_ipv4:                    "{{ database_loadbalancer_ip }}/{{ db_subnet_prefix }}"
+        database_loadbalancer_ipv4:    "{{ database_loadbalancer_ip }}/{{ db_subnet_prefix }}"
 
     - name:                            "calculate subnet mask"
       ansible.builtin.set_fact:
