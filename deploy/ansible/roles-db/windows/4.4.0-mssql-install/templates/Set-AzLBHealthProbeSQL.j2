@@ -101,6 +101,6 @@ function Set-DatabaseHealthProbe {
 }
 
 # Set database healthprobe for SQL Server always on cluster
-Set-DatabaseHealthProbe -SQLAGName "{{ mssql_ag_name }}" -SQLAGListenerName "{{ mssql_ag_listener_name }}" -ProbePort "{{ mssql_lb_probeport }}" -IPAddress "{{ db_lb_ip}}" -SubnetMask "{{ db_subnet_mask }}"
+Set-DatabaseHealthProbe -SQLAGName "{{ mssql_ag_name }}" -SQLAGListenerName "{{ mssql_ag_listener_name }}" -ProbePort "{{ mssql_lb_probeport }}" -IPAddress "{{ database_loadbalancer_ip }}" -SubnetMask "{{ db_subnet_mask }}"
 
 
