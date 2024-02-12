@@ -14,7 +14,7 @@
 
 - name:                                "ANF Mount: HANA {{ item.type }}"
   block:
-    - name:                            "ANF Mount: Create /{{ item.temppath }}"
+    - name:                            "ANF Mount: Create temporary directory /{{ item.temppath }}"
       ansible.builtin.file:
         path:                          "/{{ item.temppath }}"
         mode:                          "{{ item.permissions }}"
@@ -23,7 +23,7 @@
 
     - name:                            "ANF Mount: ({{ item.type }})"
       block:
-        - name:                        "ANF Mount: Filesystems on ANF ({{ item.temppath }})"
+        - name:                        "ANF Mount: Filesystems on ANF ({{ item.temppath }}) (temporary)"
           ansible.posix.mount:
             src:                       "{{ item.mount }}"
             path:                      "/{{ item.temppath }}"
@@ -40,13 +40,13 @@
             name:                      rpcbind
             state:                     restarted
 
-    - name:                            "ANF Mount: Create Directories ({{ item.temppath }})"
+    - name:                            "ANF Mount: Create Directories ({{ item.temppath }}) on temporary mount"
       ansible.builtin.file:
         path:                          "/{{ item.temppath }}/{{ item.folder }}"
         state:                         directory
         mode:                          0755
 
-    - name:                            "ANF Mount: Unmount file systems ({{ item.temppath }})"
+    - name:                            "ANF Mount: Unmount file systems ({{ item.temppath }}) from temporary mount"
       ansible.posix.mount:
         src:                           "{{ item.mount }}"
         path:                          "/{{ item.temppath }}"
