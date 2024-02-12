@@ -114,6 +114,25 @@ locals {
                                            length(try(var.infrastructure.vnets.sap.subnet_anf.nsg.arm_id, ""))
                                          ) > 0
 
+  subnet_ams_defined                   = (
+                                           length(var.ams_subnet_address_prefix) +
+                                           length(try(var.infrastructure.vnets.sap.subnet_ams.prefix, "")) +
+                                           length(var.ams_subnet_arm_id) +
+                                           length(try(var.infrastructure.vnets.sap.subnet_ams.arm_id, ""))
+                                         ) > 0
+
+  subnet_ams_arm_id_defined            = (
+                                           length(var.ams_subnet_arm_id) +
+                                           length(try(var.infrastructure.vnets.sap.subnet_ams.arm_id, ""))
+                                         ) > 0
+
+  subnet_ams_nsg_defined               = (
+                                           length(var.ams_subnet_nsg_name) +
+                                           length(try(var.infrastructure.vnets.sap.subnet_ams.nsg.name, "")) +
+                                           length(var.ams_subnet_nsg_arm_id) +
+                                           length(try(var.infrastructure.vnets.sap.subnet_ams.nsg.arm_id, ""))
+                                         ) > 0
+
   resource_group                       = {
                                             name   = try(var.infrastructure.resource_group.name, var.resourcegroup_name)
                                             arm_id = try(var.infrastructure.resource_group.arm_id, var.resourcegroup_arm_id)
@@ -122,6 +141,12 @@ locals {
                                            length(local.resource_group.name) +
                                            length(local.resource_group.arm_id)
                                          ) > 0
+
+  ams_instance                        = {
+                                            name                 = var.ams_instance_name
+                                            create_ams_instance  = var.create_ams_instance
+                                            ams_laws_arm_id      = var.ams_laws_arm_id
+                                        }
 
   temp_infrastructure                  = {
                                            environment = coalesce(var.environment, try(var.infrastructure.environment, ""))
@@ -363,6 +388,36 @@ locals {
                                           )
                                         )
 
+  subnet_ams                         = merge(
+                                          (
+                                            {
+                                              "name" = try(var.infrastructure.vnets.sap.subnet_ams.name, var.ams_subnet_name)
+                                            }
+                                            ), (
+                                            local.subnet_ams_arm_id_defined ? (
+                                              {
+                                                "arm_id" = try(var.infrastructure.vnets.sap.subnet_ams.arm_id, var.ams_subnet_arm_id)
+                                              }
+                                              ) : (
+                                              null
+                                            )), (
+                                            {
+                                              "prefix" = try(var.infrastructure.vnets.sap.subnet_ams.prefix, var.ams_subnet_address_prefix)
+                                            }
+                                            ), (
+                                            local.subnet_web_nsg_defined ? (
+                                              {
+                                                "nsg" = {
+                                                  "name"   = try(var.infrastructure.vnets.sap.subnet_ams.nsg.name, var.ams_subnet_nsg_name)
+                                                  "arm_id" = try(var.infrastructure.vnets.sap.subnet_ams.nsg.arm_id, var.ams_subnet_nsg_arm_id)
+                                                }
+                                              }
+                                              ) : (
+                                              null
+                                            )
+                                          )
+                                        )
+
   all_subnets                          = merge(local.sap, (
                                          local.subnet_admin_defined ? (
                                            {
@@ -395,6 +450,13 @@ locals {
                                          local.subnet_anf_defined ? (
                                            {
                                              "subnet_anf" = local.subnet_anf
+                                           }
+                                           ) : (
+                                           null
+                                         )), (
+                                         local.subnet_ams_defined ? (
+                                           {
+                                             "subnet_ams" = local.subnet_ams
                                            }
                                            ) : (
                                            null
@@ -446,6 +508,10 @@ locals {
                                             "vnets" = local.temp_vnet
                                           }
                                           ), (
+                                          {
+                                            "ams_instance" = local.ams_instance
+                                          }
+                                          ),(
                                           local.iscsi.iscsi_count > 0 ? (
                                             {
                                               "iscsi" = local.iscsi

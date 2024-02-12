@@ -50,6 +50,19 @@ locals {
                                                         )
                                                       )
                                                     )
+  // AMS instance
+  create_ams_instance                             = var.infrastructure.ams_instance.create_ams_instance
+  ams_instance_name                               = length(var.infrastructure.ams_instance.name) > 0 ? (
+                                                      var.infrastructure.ams_instance.name) : (
+                                                        format("%s%s%s%s",
+                                                          var.naming.resource_prefixes.vnet_rg,
+                                                          local.prefix,
+                                                          local.resource_suffixes.vnet_rg,
+                                                          local.resource_suffixes.ams_instance
+                                                        )
+                                                      )
+  ams_laws_arm_id                                 = length(var.infrastructure.ams_instance.ams_laws_arm_id) > 0 ? (
+                                                      var.infrastructure.ams_instance.ams_laws_arm_id) : ""
 
   // SAP vnet
   SAP_virtualnetwork_id                           = try(var.infrastructure.vnets.sap.arm_id, "")
@@ -480,6 +493,41 @@ locals {
                                                       )
                                                     )
 
+  ##############################################################################################
+  #
+  #  AMS subnet - Check if locally provided
+  #
+  ##############################################################################################
+
+
+  ams_subnet_defined                              = (
+                                                      length(try(var.infrastructure.vnets.sap.subnet_ams.arm_id, "")) +
+                                                      length(try(var.infrastructure.vnets.sap.subnet_ams.prefix, ""))
+                                                    ) > 0
+  ams_subnet_arm_id                               = local.ams_subnet_defined ? (
+                                                       try(var.infrastructure.vnets.sap.subnet_ams.arm_id, "")) : (
+                                                       ""
+                                                     )
+  ams_subnet_existing                             = length(local.ams_subnet_arm_id) > 0
+  ams_subnet_name                                 = local.ams_subnet_existing ? (
+                                                      try(split("/", local.ams_subnet_arm_id)[10], "")) : (
+                                                      length(try(var.infrastructure.vnets.sap.subnet_ams.name, "")) > 0 ? (
+                                                        var.infrastructure.vnets.sap.subnet_ams.name) : (
+                                                        format("%s%s%s%s",
+                                                          var.naming.resource_prefixes.ams_subnet,
+                                                          length(local.prefix) > 0 ? (
+                                                            local.prefix) : (
+                                                            var.infrastructure.environment
+                                                          ),
+                                                          var.naming.separator,
+                                                          local.resource_suffixes.ams_subnet
+                                                        )
+                                                      )
+                                                    )
+  ams_subnet_prefix                               = local.ams_subnet_defined ? (
+                                                      try(var.infrastructure.vnets.sap.subnet_ams.prefix, "")) : (
+                                                      ""
+                                                    )                                            
 
   # Store the Deployer KV in workload zone KV
   deployer_keyvault_user_name                     = try(var.deployer_tfstate.deployer_kv_user_name, "")

@@ -437,4 +437,11 @@ module "output_files" {
   iSCSI_server_ips                              = var.database_cluster_type == "ISCSI" || var.scs_cluster_type == "ISCSI" ? data.terraform_remote_state.landscape.outputs.iSCSI_server_ips : []
   iSCSI_server_names                            = var.database_cluster_type == "ISCSI" || var.scs_cluster_type == "ISCSI" ? data.terraform_remote_state.landscape.outputs.iSCSI_server_names : []
   iSCSI_servers                                 = var.database_cluster_type == "ISCSI" || var.scs_cluster_type == "ISCSI" ? data.terraform_remote_state.landscape.outputs.iSCSI_servers : []
+
+  #########################################################################################
+  #  AMS                                                                                  #
+  #########################################################################################
+  ams_resource_id                               = coalesce(var.ams_resource_id, data.terraform_remote_state.landscape.outputs.ams_resource_id)
+  enable_ha_monitoring                          = var.enable_ha_monitoring
+  enable_os_monitoring                          = var.enable_os_monitoring
 }

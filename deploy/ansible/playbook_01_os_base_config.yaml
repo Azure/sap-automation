@@ -169,7 +169,7 @@
             name:                      roles-os/1.20-prometheus
           when:
             - prometheus
-            - ansible_os_family | upper == "SUSE"
+            - ansible_os_family | upper == "SUSE" or ansible_os_family | upper == "REDHAT"
           tags:
             - 1.20-prometheus
       when:
