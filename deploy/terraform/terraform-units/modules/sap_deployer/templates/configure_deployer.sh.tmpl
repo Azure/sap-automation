@@ -693,8 +693,8 @@ else
         export DOTNET_ROOT="$${DOTNET_INSTALL_DIR}"
         ;;
       (rhel*)
-        echo "export DOTNET_ROOT=$(pwd)/.dotnet" | tee -a /tmp/deploy_server.sh
-        export DOTNET_ROOT=$(pwd)/.dotnet
+        echo "export DOTNET_ROOT=$${DOTNET_INSTALL_DIR}" | tee -a /tmp/deploy_server.sh
+        export DOTNET_ROOT="$${DOTNET_INSTALL_DIR}"
         ;;
     esac
 
