@@ -40,6 +40,14 @@
             name:                      rpcbind
             state:                     restarted
 
+        - name:                        "ANF Mount: Filesystems on ANF ({{ item.temppath }}) (temporary)"
+          ansible.posix.mount:
+            src:                       "{{ item.mount }}"
+            path:                      "/{{ item.temppath }}"
+            fstype:                    "nfs4"
+            opts:                      "{{ item.opts }}"
+            state:                      mounted
+
     - name:                            "ANF Mount: Create Directories ({{ item.temppath }}) on temporary mount"
       ansible.builtin.file:
         path:                          "/{{ item.temppath }}/{{ item.folder }}"
@@ -93,6 +101,7 @@
 - name:                                "ANF Mount: Create SAP Directories ({{ item.path }})"
   ansible.builtin.debug:
     var:                               is_created_now
+    verbosity:                         2
 
 - name:                                "ANF Mount: Change attribute only when we create SAP Directories ({{ item.temppath }})"
   become:                              true
