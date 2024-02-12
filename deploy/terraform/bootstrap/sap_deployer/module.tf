@@ -4,15 +4,15 @@ Description:
   Example to deploy deployer(s) using local backend.
 */
 module "sap_deployer" {
-  source                                       = "../../terraform-units/modules/sap_deployer"
-  providers                                    = {
-                                                   azurerm.dnsmanagement = azurerm.dnsmanagement
-                                                   azurerm.main          = azurerm.main
-                                                 }
-  naming                                       = length(var.name_override_file) > 0 ? (
-                                                   local.custom_names) : (
-                                                    module.sap_namegenerator.naming
-                                                 )
+  source = "../../terraform-units/modules/sap_deployer"
+  providers = {
+    azurerm.dnsmanagement = azurerm.dnsmanagement
+    azurerm.main          = azurerm.main
+  }
+  naming = length(var.name_override_file) > 0 ? (
+    local.custom_names) : (
+    module.sap_namegenerator.naming
+  )
   additional_users_to_add_to_keyvault_policies = var.additional_users_to_add_to_keyvault_policies
   agent_ado_url                                = var.agent_ado_url
   Agent_IP                                     = var.Agent_IP
@@ -56,15 +56,15 @@ module "sap_deployer" {
 }
 
 module "sap_namegenerator" {
-  source                                       = "../../terraform-units/modules/sap_namegenerator"
-  codename                                     = lower(local.infrastructure.codename)
-  deployer_environment                         = lower(local.infrastructure.environment)
-  deployer_vm_count                            = var.deployer_count
-  environment                                  = lower(local.infrastructure.environment)
-  location                                     = lower(local.infrastructure.region)
-  management_vnet_name                         = coalesce(
-                                                  var.management_network_logical_name,
-                                                  local.vnet_mgmt_name_part
-                                                )
-  random_id                                    = module.sap_deployer.random_id
+  source               = "../../terraform-units/modules/sap_namegenerator"
+  codename             = lower(local.infrastructure.codename)
+  deployer_environment = lower(local.infrastructure.environment)
+  deployer_vm_count    = var.deployer_count
+  environment          = lower(local.infrastructure.environment)
+  location             = lower(local.infrastructure.region)
+  management_vnet_name = coalesce(
+    var.management_network_logical_name,
+    local.vnet_mgmt_name_part
+  )
+  random_id = module.sap_deployer.random_id
 }

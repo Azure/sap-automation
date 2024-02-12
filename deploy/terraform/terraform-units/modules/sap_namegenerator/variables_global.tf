@@ -79,27 +79,27 @@ variable "anchor_ostype" {
 
 variable "app_server_count" {
   description = "Number of Application Servers"
-  type    = number
-  default = 1
+  type        = number
+  default     = 1
 }
 
 variable "scs_server_count" {
   description = "Number of SCS Servers"
-  type    = number
-  default = 1
+  type        = number
+  default     = 1
 }
 
 variable "web_server_count" {
   description = "Number of Web Dispatchers"
-  type    = number
-  default = 1
+  type        = number
+  default     = 1
 }
 
 
 variable "db_server_count" {
   description = "Number of Database Servers"
-  type    = number
-  default = 1
+  type        = number
+  default     = 1
 }
 
 variable "iscsi_server_count" {
@@ -123,8 +123,8 @@ variable "database_high_availability" {
 }
 
 variable "database_cluster_type" {
-  description   = "Cluster quorum type; AFA (Azure Fencing Agent), ASD (Azure Shared Disk), ISCSI"
-  default       = "AFA"
+  description = "Cluster quorum type; AFA (Azure Fencing Agent), ASD (Azure Shared Disk), ISCSI"
+  default     = "AFA"
 }
 
 variable "scs_high_availability" {
@@ -133,8 +133,8 @@ variable "scs_high_availability" {
 }
 
 variable "scs_cluster_type" {
-  description   = "Cluster quorum type; AFA (Azure Fencing Agent), ASD (Azure Shared Disk), ISCSI"
-  default       = "AFA"
+  description = "Cluster quorum type; AFA (Azure Fencing Agent), ASD (Azure Shared Disk), ISCSI"
+  default     = "AFA"
 }
 
 variable "use_zonal_markers" {

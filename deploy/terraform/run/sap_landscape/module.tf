@@ -4,13 +4,13 @@
 */
 
 module "sap_landscape" {
-  source                                       = "../../terraform-units/modules/sap_landscape"
-  providers                                    = {
-                                                   azurerm.main          = azurerm.workload
-                                                   azurerm.deployer      = azurerm
-                                                   azurerm.dnsmanagement = azurerm.dnsmanagement
-                                                   azurerm.peering       = azurerm.peering
-                                                 }
+  source = "../../terraform-units/modules/sap_landscape"
+  providers = {
+    azurerm.main          = azurerm.workload
+    azurerm.deployer      = azurerm
+    azurerm.dnsmanagement = azurerm.dnsmanagement
+    azurerm.peering       = azurerm.peering
+  }
 
   additional_users_to_add_to_keyvault_policies = var.additional_users_to_add_to_keyvault_policies
   Agent_IP                                     = var.Agent_IP
@@ -34,45 +34,45 @@ module "sap_landscape" {
   key_vault                                    = local.key_vault
   keyvault_private_endpoint_id                 = var.keyvault_private_endpoint_id
   management_dns_subscription_id               = try(var.management_dns_subscription_id, local.saplib_subscription_id)
-  management_dns_resourcegroup_name            = lower(length(var.management_dns_resourcegroup_name) > 0 ? (
-                                                   var.management_dns_resourcegroup_name) : (
-                                                   local.saplib_resource_group_name
-                                                 ))
-  naming                                       = length(var.name_override_file) > 0 ? (
-                                                   local.custom_names) : (
-                                                   module.sap_namegenerator.naming
-                                                 )
-  NFS_provider                                 = var.NFS_provider
-  options                                      = local.options
-  peer_with_control_plane_vnet                 = var.peer_with_control_plane_vnet
-  place_delete_lock_on_resources               = var.place_delete_lock_on_resources
-  public_network_access_enabled                = var.public_network_access_enabled || !var.use_private_endpoint
-  register_virtual_network_to_dns              = var.register_virtual_network_to_dns
-  service_principal                            = var.use_spn ? local.service_principal : local.account
-  storage_account_replication_type             = var.storage_account_replication_type
-  tags                                         = var.tags
-  terraform_template_version                   = local.version_label
-  transport_private_endpoint_id                = var.transport_private_endpoint_id
-  transport_storage_account_id                 = var.transport_storage_account_id
-  transport_volume_size                        = var.transport_volume_size
-  use_AFS_for_installation_media               = var.use_AFS_for_installation_media
-  use_custom_dns_a_registration                = var.use_custom_dns_a_registration
-  use_deployer                                 = length(var.deployer_tfstate_key) > 0
-  use_private_endpoint                         = var.use_private_endpoint
-  use_service_endpoint                         = var.use_service_endpoint
-  vm_settings                                  = local.vm_settings
-  witness_storage_account                      = local.witness_storage_account
+  management_dns_resourcegroup_name = lower(length(var.management_dns_resourcegroup_name) > 0 ? (
+    var.management_dns_resourcegroup_name) : (
+    local.saplib_resource_group_name
+  ))
+  naming = length(var.name_override_file) > 0 ? (
+    local.custom_names) : (
+    module.sap_namegenerator.naming
+  )
+  NFS_provider                     = var.NFS_provider
+  options                          = local.options
+  peer_with_control_plane_vnet     = var.peer_with_control_plane_vnet
+  place_delete_lock_on_resources   = var.place_delete_lock_on_resources
+  public_network_access_enabled    = var.public_network_access_enabled || !var.use_private_endpoint
+  register_virtual_network_to_dns  = var.register_virtual_network_to_dns
+  service_principal                = var.use_spn ? local.service_principal : local.account
+  storage_account_replication_type = var.storage_account_replication_type
+  tags                             = var.tags
+  terraform_template_version       = local.version_label
+  transport_private_endpoint_id    = var.transport_private_endpoint_id
+  transport_storage_account_id     = var.transport_storage_account_id
+  transport_volume_size            = var.transport_volume_size
+  use_AFS_for_installation_media   = var.use_AFS_for_installation_media
+  use_custom_dns_a_registration    = var.use_custom_dns_a_registration
+  use_deployer                     = length(var.deployer_tfstate_key) > 0
+  use_private_endpoint             = var.use_private_endpoint
+  use_service_endpoint             = var.use_service_endpoint
+  vm_settings                      = local.vm_settings
+  witness_storage_account          = local.witness_storage_account
 
 }
 
 module "sap_namegenerator" {
-  source                                       = "../../terraform-units/modules/sap_namegenerator"
-  codename                                     = lower(try(local.infrastructure.codename, ""))
-  environment                                  = local.infrastructure.environment
-  iscsi_server_count                           = try(local.infrastructure.iscsi.iscsi_count, 0)
-  location                                     = local.infrastructure.region
-  random_id                                    = module.sap_landscape.random_id
-  sap_vnet_name                                = local.infrastructure.vnets.sap.logical_name
-  utility_vm_count                             = var.utility_vm_count
+  source             = "../../terraform-units/modules/sap_namegenerator"
+  codename           = lower(try(local.infrastructure.codename, ""))
+  environment        = local.infrastructure.environment
+  iscsi_server_count = try(local.infrastructure.iscsi.iscsi_count, 0)
+  location           = local.infrastructure.region
+  random_id          = module.sap_landscape.random_id
+  sap_vnet_name      = local.infrastructure.vnets.sap.logical_name
+  utility_vm_count   = var.utility_vm_count
 }
 

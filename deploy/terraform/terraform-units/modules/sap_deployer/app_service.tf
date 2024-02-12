@@ -5,63 +5,63 @@
 #######################################4#######################################8
 
 resource "azurerm_subnet" "webapp" {
-  depends_on                                    = [
-                                                    azurerm_subnet.subnet_mgmt
-                                                  ]
+  depends_on = [
+    azurerm_subnet.subnet_mgmt
+  ]
 
-  count                                         = var.use_webapp ? local.webapp_subnet_exists ? 0 : 1 : 0
-  name                                          = local.webapp_subnet_name
-  resource_group_name                           = local.vnet_mgmt_exists ? (
-                                                    data.azurerm_virtual_network.vnet_mgmt[0].resource_group_name) : (
-                                                    azurerm_virtual_network.vnet_mgmt[0].resource_group_name
-                                                  )
-  virtual_network_name                          = local.vnet_mgmt_exists ? (
-                                                    data.azurerm_virtual_network.vnet_mgmt[0].name) : (
-                                                    azurerm_virtual_network.vnet_mgmt[0].name
-                                                  )
+  count = var.use_webapp ? local.webapp_subnet_exists ? 0 : 1 : 0
+  name  = local.webapp_subnet_name
+  resource_group_name = local.vnet_mgmt_exists ? (
+    data.azurerm_virtual_network.vnet_mgmt[0].resource_group_name) : (
+    azurerm_virtual_network.vnet_mgmt[0].resource_group_name
+  )
+  virtual_network_name = local.vnet_mgmt_exists ? (
+    data.azurerm_virtual_network.vnet_mgmt[0].name) : (
+    azurerm_virtual_network.vnet_mgmt[0].name
+  )
 
-  address_prefixes                              = [local.webapp_subnet_prefix]
+  address_prefixes = [local.webapp_subnet_prefix]
 
-  private_endpoint_network_policies_enabled     = var.use_private_endpoint
+  private_endpoint_network_policies_enabled = var.use_private_endpoint
 
-  service_endpoints                             = var.use_service_endpoint ? (
-                                                    var.use_webapp ? (
-                                                      ["Microsoft.Storage", "Microsoft.KeyVault", "Microsoft.Web"]) : (
-                                                      ["Microsoft.Storage", "Microsoft.KeyVault"]
-                                                    )) : (
-                                                    null
-                                                  )
+  service_endpoints = var.use_service_endpoint ? (
+    var.use_webapp ? (
+      ["Microsoft.Storage", "Microsoft.KeyVault", "Microsoft.Web"]) : (
+      ["Microsoft.Storage", "Microsoft.KeyVault"]
+    )) : (
+    null
+  )
 
   dynamic "delegation" {
-                        for_each = range(var.use_webapp ? 1 : 0)
-                        content {
-                          name = "delegation"
-                          service_delegation {
-                            actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
-                            name    = "Microsoft.Web/serverFarms"
-                          }
-                        }
-                      }
+    for_each = range(var.use_webapp ? 1 : 0)
+    content {
+      name = "delegation"
+      service_delegation {
+        actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+        name    = "Microsoft.Web/serverFarms"
+      }
+    }
+  }
 
 }
 
 data "azurerm_subnet" "webapp" {
-  count                                         = var.use_webapp ? local.webapp_subnet_exists ? 1 : 0 : 0
-  name                                          = split("/", local.webapp_subnet_arm_id)[10]
-  resource_group_name                           = split("/", local.webapp_subnet_arm_id)[4]
-  virtual_network_name                          = split("/", local.webapp_subnet_arm_id)[8]
+  count                = var.use_webapp ? local.webapp_subnet_exists ? 1 : 0 : 0
+  name                 = split("/", local.webapp_subnet_arm_id)[10]
+  resource_group_name  = split("/", local.webapp_subnet_arm_id)[4]
+  virtual_network_name = split("/", local.webapp_subnet_arm_id)[8]
 }
 
 
 
 # Create the Windows App Service Plan
 resource "azurerm_service_plan" "appserviceplan" {
-  count                                         = var.use_webapp ? 1 : 0
-  name                                          = lower(format("%s%s%s%s", var.naming.resource_prefixes.app_service_plan, var.naming.prefix.LIBRARY, var.naming.resource_suffixes.app_service_plan, substr(random_id.deployer.hex, 0, 3)))
-  resource_group_name                           = local.resourcegroup_name
-  location                                      = local.rg_appservice_location
-  os_type                                       = "Windows"
-  sku_name                                      = var.deployer.app_service_SKU
+  count               = var.use_webapp ? 1 : 0
+  name                = lower(format("%s%s%s%s", var.naming.resource_prefixes.app_service_plan, var.naming.prefix.LIBRARY, var.naming.resource_suffixes.app_service_plan, substr(random_id.deployer.hex, 0, 3)))
+  resource_group_name = local.resourcegroup_name
+  location            = local.rg_appservice_location
+  os_type             = "Windows"
+  sku_name            = var.deployer.app_service_SKU
 }
 
 

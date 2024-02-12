@@ -3,47 +3,47 @@
 #                              Variable definitioms                            #
 #                                                                              #
 #######################################4#######################################8
-variable "infrastructure"                {
-                                           description = "Details of the Azure infrastructure to deploy the SAP library into"
-                                           default     = {}
-                                         }
+variable "infrastructure" {
+  description = "Details of the Azure infrastructure to deploy the SAP library into"
+  default     = {}
+}
 
-variable "storage_account_sapbits"       {
-                                           description = "Details of the Storage account for storing sap bits"
-                                           default     = {}
-                                         }
-variable "storage_account_tfstate"       {
-                                           description = "Details of the Storage account for storing tfstate"
-                                           default     = {}
-                                         }
+variable "storage_account_sapbits" {
+  description = "Details of the Storage account for storing sap bits"
+  default     = {}
+}
+variable "storage_account_tfstate" {
+  description = "Details of the Storage account for storing tfstate"
+  default     = {}
+}
 
-variable "deployer"                      {
-                                           description = "Details of deployer"
-                                           default     = {}
-                                         }
+variable "deployer" {
+  description = "Details of deployer"
+  default     = {}
+}
 
-variable "key_vault"                     {
-                                           description = "Import existing Azure Key Vaults"
-                                           default     = {}
-                                         }
+variable "key_vault" {
+  description = "Import existing Azure Key Vaults"
+  default     = {}
+}
 
-variable "deployer_tfstate_key"          {
-                                           description = "The key of deployer's remote tfstate file"
-                                           default     = ""
-                                         }
+variable "deployer_tfstate_key" {
+  description = "The key of deployer's remote tfstate file"
+  default     = ""
+}
 
 variable "deployer_statefile_foldername" {
-                                           description = "Folder name of folder containing the terraform state file"
-                                           default     = ""
-                                         }
+  description = "Folder name of folder containing the terraform state file"
+  default     = ""
+}
 
-variable "dns_label"                     {
-                                           description = "DNS label"
-                                           default     = ""
-                                         }
+variable "dns_label" {
+  description = "DNS label"
+  default     = ""
+}
 
 
-variable "terraform_template_version"      {
-                                             description = "The version of Terraform templates that were identified in the state file"
-                                             default     = ""
-                                           }
+variable "terraform_template_version" {
+  description = "The version of Terraform templates that were identified in the state file"
+  default     = ""
+}
