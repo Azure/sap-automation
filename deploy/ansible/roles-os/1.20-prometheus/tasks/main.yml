@@ -28,7 +28,6 @@
       community.general.zypper:
         name:                          "prometheus-ha_cluster_exporter"
         state:                         present
-    
     - name:                            "1.20 Packages: - Enable HA cluster exporter."
       ansible.builtin.shell:           "nohup ha_cluster_exporter &"
   when:                                ansible_os_family | upper == "SUSE"
@@ -40,7 +39,7 @@
         name:                         
           - "pcp"
           - "pcp-pmda-hacluster"
-    
+
     - name:                            "1.20 Packages: - Install and enable the HA Cluster PMDA."
       ansible.builtin.shell:           "./Install"
       args:
