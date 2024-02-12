@@ -121,7 +121,8 @@
   rescue:
     - name:                            "ANF Mount: Sleep for 10 seconds and continue with play"
       ansible.builtin.wait_for:
-        timeout:
+        timeout:                       10
+
     - name:                            "ANF Mount: ({{ item.path }} on {% if item.create_temp_folders %}{{ item.mount }}/{{ item.folder }}{% else %}{{ item.mount }}{% endif %})"
       ansible.posix.mount:
         src:                           "{% if item.create_temp_folders %}{{ item.mount }}/{{ item.folder }}{% else %}{{ item.mount }}{% endif %}"
