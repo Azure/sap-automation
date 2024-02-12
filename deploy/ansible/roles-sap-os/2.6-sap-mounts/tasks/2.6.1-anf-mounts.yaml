@@ -558,6 +558,11 @@
     - tier == 'sapos'
     - node_tier == 'hana'
 
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                ANF Mount: Run tasks for non-scale out setups               |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
 # Standard block tasks for non scale out setups
 - name:                                "ANF Mount: Run tasks for non-scale out setups"
   block:
@@ -735,10 +740,15 @@
   when:
     - not db_scale_out
 
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                  ANF Mount: Run tasks for scale out setups                 |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
 # Run this block set when db_Scale_out is true but db_high_availability is false
 - name:                                "ANF Mount: Run tasks for scale out setups"
   block:
-  - name:                                "ANF Mount: Scale Out - Create SAP Directories (usrsap)"
+  - name:                              "ANF Mount: Scale Out - Create SAP Directories (usrsap)"
     ansible.builtin.file:
       owner:                             "{{ db_sid | lower }}adm"
       group:                             sapsys
@@ -748,28 +758,28 @@
     when:
       - tier == 'hana'
 
-  - name:                                "ANF Mount: Scale Out - Create SAP Directories (hana data)"
+  - name:                              "ANF Mount: Scale Out - Create SAP Directories (hana data)"
     ansible.builtin.file:
-      owner:                             "{{ db_sid | lower }}adm"
-      group:                             sapsys
-      mode:                              0755
-      path:                              "/hana/data/{{ db_sid | upper }}"
-      state:                             directory
+      owner:                           "{{ db_sid | lower }}adm"
+      group:                           sapsys
+      mode:                            0755
+      path:                            "/hana/data/{{ db_sid | upper }}"
+      state:                           directory
     when:
       - tier == 'hana'
 
-  - name:                                "ANF Mount: Scale Out - Create SAP Directories (hana log)"
+  - name:                              "ANF Mount: Scale Out - Create SAP Directories (hana log)"
     ansible.builtin.file:
-      owner:                             "{{ db_sid | lower }}adm"
-      group:                             sapsys
-      mode:                              0755
-      path:                              "/hana/log/{{ db_sid | upper }}"
-      state:                             directory
+      owner:                           "{{ db_sid | lower }}adm"
+      group:                           sapsys
+      mode:                            0755
+      path:                            "/hana/log/{{ db_sid | upper }}"
+      state:                           directory
     when:
       - tier == 'hana'
 
-  - name:                                "ANF Mount: HANA shared - Scale out"
-    ansible.builtin.include_tasks:       2.6.1.1-anf-mount.yaml
+  - name:                              "ANF Mount: HANA shared - Scale out"
+    ansible.builtin.include_tasks:     2.6.1.1-anf-mount.yaml
     loop:
       - {
         'type':              'shared',
@@ -782,7 +792,7 @@
         'permissions':       '0775',
         'set_chattr_on_dir': false,
         'target_nodes' :     ['hana'],
-        'create_temp_folders': false
+        'create_temp_folders': true
       }
     vars:
       primary_host:                     "{{ ansible_hostname }}"
