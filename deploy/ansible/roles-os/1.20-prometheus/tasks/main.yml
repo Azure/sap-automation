@@ -36,7 +36,7 @@
   block:
     - name:                            "1.20 Packages: - Install pcp and pcp-pmda-hacluster package"
       ansible.builtin.yum:
-        name:                         
+        name:                       
           - "pcp"
           - "pcp-pmda-hacluster"
 
