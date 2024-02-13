@@ -9,6 +9,7 @@ ${sid}_DB:
       virtual_host        : ${virt_dbnodes[idx]}
       become_user         : ${db_become_user}
       os_type             : ${db_os_type}
+      vm_name             : ${db_vmnodes[idx]}
       ${winrm_cert_valid}
       ${winrm_timeout_sec}
       ${winrm_read_timeout}
@@ -30,6 +31,7 @@ ${sid}_SCS:
       virtual_host        : ${virt_scs_servers[idx]}
       become_user         : ${scs_become_user}
       os_type             : ${scs_os_type}
+      vm_name             : ${scs_vmnodes[idx]}
       ${winrm_cert_valid}
       ${winrm_timeout_sec}
       ${winrm_read_timeout}
@@ -51,6 +53,7 @@ ${sid}_ERS:
       virtual_host        : ${virt_ers_servers[idx]}
       become_user         : ${scs_become_user}
       os_type             : ${scs_os_type}
+      vm_name             : ${ers_vmnodes[idx]}
       ${winrm_cert_valid}
       ${winrm_timeout_sec}
       ${winrm_read_timeout}
@@ -73,6 +76,7 @@ ${sid}_PAS:
       virtual_host        : ${virt_pas_servers[idx]}
       become_user         : ${app_become_user}
       os_type             : ${app_os_type}
+      vm_name             : ${pas_vmnodes[idx]}
       ${winrm_cert_valid}
       ${winrm_timeout_sec}
       ${winrm_read_timeout}
@@ -94,6 +98,7 @@ ${sid}_APP:
       virtual_host        : ${virt_app_servers[idx]}
       become_user         : ${app_become_user}
       os_type             : ${app_os_type}
+      vm_name             : ${app_vmnodes[idx]}
       ${winrm_cert_valid}
       ${winrm_timeout_sec}
       ${winrm_read_timeout}
@@ -115,6 +120,7 @@ ${sid}_WEB:
       virtual_host        : ${virt_web_servers[idx]}
       become_user         : ${web_become_user}
       os_type             : ${web_os_type}
+      vm_name             : ${web_vmnodes[idx]}
       ${winrm_cert_valid}
       ${winrm_timeout_sec}
       ${winrm_read_timeout}
