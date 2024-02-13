@@ -159,7 +159,7 @@ locals {
                                           flatten([
                                             for port in local.lb_ports[split(".", local.hdb_version)[0]] : {
                                               sid  = var.sap_sid
-                                              port = tonumber(port) + (tonumber(try(var.database.instance.instance_number, 0)) * 100)
+                                              port = tonumber(port) + (tonumber(try(var.database.instance.number, 0)) * 100)
                                             }
                                           ])) : (
                                           null
