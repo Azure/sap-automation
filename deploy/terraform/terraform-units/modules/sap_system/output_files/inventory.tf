@@ -78,7 +78,7 @@ resource "local_file" "ansible_inventory_new_yml" {
                                             slice(var.naming.virtualmachine_names.SCS_COMPUTERNAME, 1, length(var.scs_server_ips))) : (
                                             []
                                           ),
-                    scs_vmnodes         = length(var.scs_server_ips) > 0 ? (
+                    ers_vmnodes         = length(var.scs_server_ips) > 0 ? (
                                             slice(var.scs_vm_names, 1, length(var.scs_vm_names))) : (
                                             []
                                           ),
