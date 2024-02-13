@@ -73,6 +73,16 @@ output "hanadb_vm_ids"                 {
                                          value       = local.enable_deployment ? azurerm_linux_virtual_machine.vm_dbnode[*].id : []
                                        }
 
+output "database_server_vm_names"      {
+                                         description = "HANA Virtual machine names"
+                                         value       = local.enable_deployment ? (
+                                                      azurerm_linux_virtual_machine.vm_dbnode[*].name
+                                                      ) : (
+                                                      [""]
+                                                     )
+                                       }
+
+
 
 output "database_disks"                {
                                          description = "Disks used by the database tier"

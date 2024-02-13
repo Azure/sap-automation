@@ -8,6 +8,7 @@ resource "local_file" "ansible_inventory_new_yml" {
   content       = templatefile(format("%s%s", path.module, "/ansible_inventory.tmpl"), {
                     ips_dbnodes         = var.database_server_ips
                     dbnodes             = var.platform == "HANA" ? var.naming.virtualmachine_names.HANA_COMPUTERNAME : var.naming.virtualmachine_names.ANYDB_COMPUTERNAME
+                    db_vmnodes          = var.database_server_vm_names
                     virt_dbnodes        = var.use_secondary_ips ? (
                                             var.platform == "HANA" ? var.naming.virtualmachine_names.HANA_SECONDARY_DNSNAME : var.naming.virtualmachine_names.ANYDB_SECONDARY_DNSNAME
                                             ) : (
@@ -34,6 +35,10 @@ resource "local_file" "ansible_inventory_new_yml" {
                                             slice(var.naming.virtualmachine_names.APP_COMPUTERNAME, 0, 1)) : (
                                             []
                                           ),
+                    pas_vmnodes         = length(var.application_server_ips) > 0 ? (
+                                            slice(var.app_vm_names, 0, 1)) : (
+                                            []
+                                          ),
 
                     virt_pas_servers    = var.use_secondary_ips ? (
                                             length(var.application_server_ips) > 0 ? slice(var.naming.virtualmachine_names.APP_SECONDARY_DNSNAME, 0, 1) : []) : (
@@ -42,6 +47,11 @@ resource "local_file" "ansible_inventory_new_yml" {
 
                     app_servers         = length(var.application_server_ips) > 1 ? (
                                             slice(var.naming.virtualmachine_names.APP_COMPUTERNAME, 1, length(var.application_server_ips))) : (
+                                            []
+                                          ),
+
+                    app_vmnodes         = length(var.application_server_ips) > 0 ? (
+                                            slice(var.app_vm_names, 1, length(var.app_vm_names))) : (
                                             []
                                           ),
 
@@ -54,6 +64,10 @@ resource "local_file" "ansible_inventory_new_yml" {
                                             slice(var.naming.virtualmachine_names.SCS_COMPUTERNAME, 0, 1)) : (
                                             []
                                           ),
+                    scs_vmnodes         = length(var.scs_server_ips) > 0 ? (
+                                            slice(var.scs_vm_names, 0, 1)) : (
+                                            []
+                                          ),
 
                     virt_scs_servers    = var.use_secondary_ips ? (
                                             length(var.scs_server_ips) > 0 ? slice(var.naming.virtualmachine_names.SCS_SECONDARY_DNSNAME, 0, 1) : []) : (
@@ -62,6 +76,10 @@ resource "local_file" "ansible_inventory_new_yml" {
 
                     ers_servers         = length(var.scs_server_ips) > 1 ? (
                                             slice(var.naming.virtualmachine_names.SCS_COMPUTERNAME, 1, length(var.scs_server_ips))) : (
+                                            []
+                                          ),
+                    scs_vmnodes         = length(var.scs_server_ips) > 0 ? (
+                                            slice(var.scs_vm_names, 1, length(var.scs_vm_names))) : (
                                             []
                                           ),
 
@@ -74,6 +92,12 @@ resource "local_file" "ansible_inventory_new_yml" {
                                             slice(var.naming.virtualmachine_names.WEB_COMPUTERNAME, 0, length(var.webdispatcher_server_ips))) : (
                                             []
                                           ),
+
+                    web_vmnodes         = length(var.webdispatcher_server_ips) > 0 ? (
+                                            slice(var.webdispatcher_server_vm_names, 0, length(var.webdispatcher_server_ips))) : (
+                                            []
+                                          ),
+
                     virt_web_servers    = var.use_secondary_ips ? (
                                             length(var.webdispatcher_server_ips) > 0 ? slice(var.naming.virtualmachine_names.WEB_SECONDARY_DNSNAME, 0, length(var.webdispatcher_server_ips)) : []) : (
                                             length(var.webdispatcher_server_ips) > 0 ? slice(var.naming.virtualmachine_names.WEB_COMPUTERNAME, 0, length(var.webdispatcher_server_ips)) : []

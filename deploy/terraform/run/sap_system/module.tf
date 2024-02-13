@@ -342,6 +342,10 @@ module "output_files" {
   database_server_ips                           = upper(try(local.database.platform, "HANA")) == "HANA" ? (module.hdb_node.database_server_ips
                                                   ) : (module.anydb_node.database_server_ips
                                                   )
+  database_server_vm_names                      = upper(try(local.database.platform, "HANA")) == "HANA" ? (
+                                                    module.hdb_node.database_server_vm_names) : (
+                                                    module.anydb_node.database_server_vm_names
+                                                  )
   database_server_secondary_ips                 = upper(try(local.database.platform, "HANA")) == "HANA" ? (module.hdb_node.database_server_secondary_ips
                                                   ) : (module.anydb_node.database_server_secondary_ips
                                                   )
@@ -372,6 +376,7 @@ module "output_files" {
   app_tier_os_types                             = module.app_tier.app_tier_os_types
   application_server_ips                        = module.app_tier.application_server_ips
   application_server_secondary_ips              = module.app_tier.application_server_secondary_ips
+  app_vm_names                                  = module.app_tier.app_vm_names
   ers_instance_number                           = var.ers_instance_number
   ers_server_loadbalancer_ip                    = module.app_tier.ers_server_loadbalancer_ip
   pas_instance_number                           = var.pas_instance_number
@@ -384,11 +389,13 @@ module "output_files" {
   scs_server_loadbalancer_ip                    = module.app_tier.scs_server_loadbalancer_ip
   scs_server_ips                                = module.app_tier.scs_server_ips
   scs_server_secondary_ips                      = module.app_tier.scs_server_secondary_ips
+  scs_vm_names                                  = module.app_tier.scs_vm_names
   use_local_credentials                         = module.common_infrastructure.use_local_credentials
   use_msi_for_clusters                          = var.use_msi_for_clusters
   use_secondary_ips                             = var.use_secondary_ips
   webdispatcher_server_ips                      = module.app_tier.webdispatcher_server_ips
   webdispatcher_server_secondary_ips            = module.app_tier.webdispatcher_server_secondary_ips
+  webdispatcher_server_vm_names                 = module.app_tier.webdispatcher_server_vm_names
 
   #########################################################################################
   #  Mounting information                                                                 #

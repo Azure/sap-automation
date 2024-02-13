@@ -49,7 +49,7 @@ output "database_server_secondary_ips" {
                                          value       = local.enable_deployment && var.use_secondary_ips ? try(azurerm_network_interface.anydb_db[*].private_ip_addresses[1], []) : []
                                        }
 
-output "database_server_vm_ips"        {
+output "database_server_vm_ids"        {
                                          description = "AnyDB Virtual machine resource IDs"
                                          value       = local.enable_deployment ? (
                                                       coalesce(azurerm_linux_virtual_machine.dbserver[*].id,
@@ -59,6 +59,18 @@ output "database_server_vm_ips"        {
                                                       [""]
                                                      )
                                        }
+
+output "database_server_vm_names"      {
+                                         description = "AnyDB Virtual machine names"
+                                         value       = local.enable_deployment ? (
+                                                      coalesce(azurerm_linux_virtual_machine.dbserver[*].name,
+                                                        azurerm_windows_virtual_machine.dbserver[*].name
+                                                      )
+                                                      ) : (
+                                                      [""]
+                                                     )
+                                       }
+
 
 output "database_disks"                {
                                          description = "AnyDB Virtual machine disks"
