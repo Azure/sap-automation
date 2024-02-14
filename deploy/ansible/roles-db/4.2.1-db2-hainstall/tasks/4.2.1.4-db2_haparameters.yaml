@@ -197,7 +197,8 @@
   when:
     - db2_instance_type == 'ABAP'
     - db2_ssl_label is defined
-    - db_encrypted
+    - hostvars[primary_instance_name]['db_encrypted'] is defined
+    - hostvars[primary_instance_name]['db_encrypted']
   become:                              true
   become_user:                         db2{{ db_sid | lower }}
   block:
