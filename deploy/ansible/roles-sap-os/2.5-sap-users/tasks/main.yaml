@@ -54,7 +54,7 @@
     - { group: 'dgdba',     gid: '{{ dgdba_gid }}'     }
     - { group: 'kmdba',     gid: '{{ kmdba_gid }}'     }
     - { group: 'racdba',    gid: '{{ racdba_gid }}'    }
-    - { group: 'oinstall',  gid: '{{ oinstall_gid }}'    }
+    - { group: 'oinstall',  gid: '{{ oinstall_gid }}'  }
   when:
     - node_tier == "oracle-asm"
 
@@ -68,6 +68,7 @@
     - { group: 'kmdba',     gid: '{{ kmdba_gid }}'     }
     - { group: 'racdba',    gid: '{{ racdba_gid }}'    }
     - { group: 'backupdba', gid: '{{ backupdba_gid }}' }
+    - { group: 'oinstall',  gid: '{{ oinstall_gid }}'  }
   when:
     - node_tier == "observer"
 
@@ -112,7 +113,7 @@
   ansible.builtin.user:
     name:                              "oracle"
     group:                             "oinstall"
-    groups:                            asmoper,asmadmin,asmdba,oper,backupdba,dgdba,kmdba,racdba
+    groups:                            asmoper,asmadmin,asmdba,asmoper,backupdba,dgdba,kmdba,racdba
     append:                            true
     shell:                             /bin/csh
     # create_home:                       true
