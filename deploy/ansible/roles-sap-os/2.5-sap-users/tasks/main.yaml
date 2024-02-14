@@ -51,6 +51,8 @@
     - { group: 'asmadmin',  gid: '{{ asmadmin_gid }}'  }
     - { group: 'asmdba',    gid: '{{ asmdba_gid }}'    }
     - { group: 'backupdba', gid: '{{ backupdba_gid }}' }
+    - { group: 'dba',       gid: '{{ dba_gid }}'       }
+    - { group: 'oper',      gid: '{{ oper_gid }}'      }
     - { group: 'dgdba',     gid: '{{ dgdba_gid }}'     }
     - { group: 'kmdba',     gid: '{{ kmdba_gid }}'     }
     - { group: 'racdba',    gid: '{{ racdba_gid }}'    }
