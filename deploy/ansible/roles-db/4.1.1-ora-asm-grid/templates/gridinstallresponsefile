@@ -108,7 +108,7 @@ oracle.install.asm.OSOPER=oinstall
 # The OSASM_GROUP is the OS group which is to be granted SYSASM privileges. This
 # must be different than the previous two.
 #-------------------------------------------------------------------------------
-oracle.install.asm.OSASM=dba
+oracle.install.asm.OSASM=asmdba
 
 ################################################################################
 #                                                                              #
