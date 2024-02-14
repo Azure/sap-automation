@@ -318,7 +318,7 @@
     - node_tier == "observer"
 
 - name:                                "2.6 SAP Mounts: - Import Oracle shared home tasks"
-  ansible.builtin.import_tasks:        ""2.6.3-oracle-multi-sid.yaml"
+  ansible.builtin.import_tasks:        "2.6.3-oracle-multi-sid.yaml"
   when:
     - node_tier == "oracle-multi-sid"
     - node_tier != "oracle-asm"
