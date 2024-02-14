@@ -301,7 +301,7 @@
 
 # Import this task only if the tier is ora for oracle-asm.
 - name:                                "2.6 SAP Mounts: - Import Oracle ASM pre-requisite tasks"
-  ansible.builtin.import_tasks:        "oracle-asm-prereq.yaml"
+  ansible.builtin.import_tasks:        "2.6.3-oracle-asm-prereq.yaml"
   when:
     - node_tier == "oracle-asm"
 
@@ -313,12 +313,12 @@
     # - tier == "ora"
 
 - name:                                "2.6 SAP Mounts: - Import Oracle observer tasks"
-  ansible.builtin.import_tasks:        "oracle-observer.yaml"
+  ansible.builtin.import_tasks:        "2.6.3-oracle-observer.yaml"
   when:
     - node_tier == "observer"
 
 - name:                                "2.6 SAP Mounts: - Import Oracle shared home tasks"
-  ansible.builtin.import_tasks:        "oracle-multi-sid.yaml"
+  ansible.builtin.import_tasks:        ""2.6.3-oracle-multi-sid.yaml"
   when:
     - node_tier == "oracle-multi-sid"
     - node_tier != "oracle-asm"
