@@ -112,7 +112,7 @@
   ansible.builtin.user:
     name:                              "oracle"
     group:                             "oinstall"
-    groups:                            asmoper,asmadmin,asmdba,dba,oper,backupdba,dgdba,kmdba,racdba
+    groups:                            asmoper,asmadmin,asmdba,oper,backupdba,dgdba,kmdba,racdba
     append:                            true
     shell:                             /bin/csh
     # create_home:                       true
