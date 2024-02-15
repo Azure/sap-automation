@@ -40,6 +40,8 @@
     - { group: 'sapsys',    gid: '{{ sapsys_gid }}'  }
     - { group: 'sapinst',   gid: '{{ sapinst_gid }}' }
 
+
+
 # Create Groups for Oracle ASM.
 - name:                                "2.5.1 SAP Users: - Create SAP Groups for Oracle ASM"
   ansible.builtin.group:
@@ -73,6 +75,16 @@
     - { group: 'oinstall',  gid: '{{ oinstall_gid }}'  }
   when:
     - node_tier == "observer"
+
+- name:                                "2.5.1 SAP Users: - Create SAP User for Oracle ASM"
+  ansible.builtin.user:
+    name:                              oracle
+    uid:                               "{{ oracle_uid }}"
+    group:                             oinstall
+    groups:                            dba,racdba,oper,backupdba,dgdba,kmdba
+  when:
+    - node_tier == "oracle-asm"
+
 
 # *=====================================4=======================================8
 #
