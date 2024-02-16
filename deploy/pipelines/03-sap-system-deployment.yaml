@@ -70,6 +70,15 @@ stages:
                 else
                   source /etc/profile.d/deploy_server.sh
                 fi
+
+              echo -e "$green--- Configure devops CLI extension ---$reset"
+
+                az config set extension.use_dynamic_install=yes_without_prompt --output none
+
+                export AZURE_DEVOPS_EXT_PAT=$PAT
+
+                az extension add --name azure-devops --output none
+
                 export AZURE_DEVOPS_EXT_PAT=$PAT
 
                 HOME_CONFIG=${CONFIG_REPO_PATH}/$(Deployment_Configuration_Path)
@@ -235,29 +244,10 @@ stages:
                   exit 2
                 fi
 
-              # Check if running on deployer
-                if [ -f /etc/profile.d/deploy_server.sh ]; then
-                  az logout --output none
-                  if [ $LOGON_USING_SPN == "true" ]; then
-                    echo "Using SPN"
+                az logout --output none
+                if [ $LOGON_USING_SPN == "true" ]; then
+                  echo "Using SPN"
 
-                    export ARM_CLIENT_ID=$WL_ARM_CLIENT_ID
-                    export ARM_CLIENT_SECRET=$WL_ARM_CLIENT_SECRET
-                    export ARM_TENANT_ID=$WL_ARM_TENANT_ID
-                    export ARM_SUBSCRIPTION_ID=$WL_ARM_SUBSCRIPTION_ID
-                    export ARM_USE_MSI=false
-                    az login --service-principal --username $WL_ARM_CLIENT_ID --password=$WL_ARM_CLIENT_SECRET --tenant $WL_ARM_TENANT_ID --output none
-                    return_code=$?
-                    if [ 0 != $return_code ]; then
-                      echo -e "$boldred--- Login failed ---$reset"
-                      echo "##vso[task.logissue type=error]az login failed."
-                      exit $return_code
-                    fi
-                  else
-                    export ARM_USE_MSI=true
-                    az login --identity --allow-no-subscriptions --output none
-                  fi
-                else
                   export ARM_CLIENT_ID=$WL_ARM_CLIENT_ID
                   export ARM_CLIENT_SECRET=$WL_ARM_CLIENT_SECRET
                   export ARM_TENANT_ID=$WL_ARM_TENANT_ID
@@ -270,7 +260,11 @@ stages:
                     echo "##vso[task.logissue type=error]az login failed."
                     exit $return_code
                   fi
-
+                else
+                  export ARM_USE_MSI=true
+                  export ARM_SUBSCRIPTION_ID=$WL_ARM_SUBSCRIPTION_ID
+                  unset ARM_TENANT_ID
+                  az login --identity --allow-no-subscriptions --output none
                 fi
 
               echo -e "$green--- Define variables ---$reset"

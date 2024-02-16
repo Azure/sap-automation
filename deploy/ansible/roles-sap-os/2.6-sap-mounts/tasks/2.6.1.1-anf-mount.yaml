@@ -14,7 +14,7 @@
 
 - name:                                "ANF Mount: HANA {{ item.type }}"
   block:
-    - name:                            "ANF Mount: Create /{{ item.temppath }}"
+    - name:                            "ANF Mount: Create temporary directory /{{ item.temppath }}"
       ansible.builtin.file:
         path:                          "/{{ item.temppath }}"
         mode:                          "{{ item.permissions }}"
@@ -23,7 +23,7 @@
 
     - name:                            "ANF Mount: ({{ item.type }})"
       block:
-        - name:                        "ANF Mount: Filesystems on ANF ({{ item.temppath }})"
+        - name:                        "ANF Mount: Filesystems on ANF ({{ item.temppath }}) (temporary)"
           ansible.posix.mount:
             src:                       "{{ item.mount }}"
             path:                      "/{{ item.temppath }}"
@@ -40,13 +40,21 @@
             name:                      rpcbind
             state:                     restarted
 
-    - name:                            "ANF Mount: Create Directories ({{ item.temppath }})"
+        - name:                        "ANF Mount: Filesystems on ANF ({{ item.temppath }}) (temporary)"
+          ansible.posix.mount:
+            src:                       "{{ item.mount }}"
+            path:                      "/{{ item.temppath }}"
+            fstype:                    "nfs4"
+            opts:                      "{{ item.opts }}"
+            state:                      mounted
+
+    - name:                            "ANF Mount: Create Directories ({{ item.temppath }}) on temporary mount"
       ansible.builtin.file:
         path:                          "/{{ item.temppath }}/{{ item.folder }}"
         state:                         directory
         mode:                          0755
 
-    - name:                            "ANF Mount: Unmount file systems ({{ item.temppath }})"
+    - name:                            "ANF Mount: Unmount file systems ({{ item.temppath }}) from temporary mount"
       ansible.posix.mount:
         src:                           "{{ item.mount }}"
         path:                          "/{{ item.temppath }}"
@@ -93,6 +101,7 @@
 - name:                                "ANF Mount: Create SAP Directories ({{ item.path }})"
   ansible.builtin.debug:
     var:                               is_created_now
+    verbosity:                         2
 
 - name:                                "ANF Mount: Change attribute only when we create SAP Directories ({{ item.temppath }})"
   become:                              true
@@ -107,15 +116,31 @@
     - is_created_now.changed
     - item.set_chattr_on_dir
 
-- name:                                "ANF Mount: ({{ item.path }} on {% if item.create_temp_folders %}{{ item.mount }}/{{ item.folder }}{% else %}{{ item.mount }}{% endif %})"
-  ansible.posix.mount:
-    src:                               "{% if item.create_temp_folders %}{{ item.mount }}/{{ item.folder }}{% else %}{{ item.mount }}{% endif %}"
-    path:                              "{{ item.path }}"
-    fstype:                            "nfs4"
-    opts:                              "{{ item.opts }}"
-    state:                             mounted
-  when:
-    - node_tier in item.target_nodes or item.target_nodes == ['all']
+- name:                                "ANF Mount: ({{ item.path }} "
+  block:
+    - name:                            "ANF Mount: ({{ item.path }} on {% if item.create_temp_folders %}{{ item.mount }}/{{ item.folder }}{% else %}{{ item.mount }}{% endif %})"
+      ansible.posix.mount:
+        src:                           "{% if item.create_temp_folders %}{{ item.mount }}/{{ item.folder }}{% else %}{{ item.mount }}{% endif %}"
+        path:                          "{{ item.path }}"
+        fstype:                        "nfs4"
+        opts:                          "{{ item.opts }}"
+        state:                         mounted
+      when:
+        - node_tier in item.target_nodes or item.target_nodes == ['all']
+  rescue:
+    - name:                            "ANF Mount: Sleep for 10 seconds and continue with play"
+      ansible.builtin.wait_for:
+        timeout:                       10
+
+    - name:                            "ANF Mount: ({{ item.path }} on {% if item.create_temp_folders %}{{ item.mount }}/{{ item.folder }}{% else %}{{ item.mount }}{% endif %})"
+      ansible.posix.mount:
+        src:                           "{% if item.create_temp_folders %}{{ item.mount }}/{{ item.folder }}{% else %}{{ item.mount }}{% endif %}"
+        path:                          "{{ item.path }}"
+        fstype:                        "nfs4"
+        opts:                          "{{ item.opts }}"
+        state:                         mounted
+      when:
+        - node_tier in item.target_nodes or item.target_nodes == ['all']
 
 - name:                            "Backward Compatibility - Check required Database HA variables"
   ansible.builtin.set_fact:

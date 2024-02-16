@@ -517,10 +517,6 @@ variable "database_vm_storage_nic_ips"          {
                                                   default     = [""]
                                                 }
 
-variable "database_HANA_use_ANF_scaleout_scenario" {
-                                                  description = "Not implemented yet"
-                                                  default = false
-                                                }
 
 variable "database_use_premium_v2_storage"      {
                                                   description = "If true, the database tier will use premium storage v2"
@@ -1000,6 +996,12 @@ variable "dns_zone_names"                       {
                                                             }
                                                 }
 
+variable "dns_a_records_for_secondary_names"    {
+                                                  description = "Boolean value indicating if dns a records should be created for the secondary DNS names"
+                                                  default     = true
+                                                  type        = bool
+                                                }
+
 #########################################################################################
 #                                                                                       #
 #  NFS and Shared Filed settings                                                        #
@@ -1044,6 +1046,18 @@ variable "Use_AFS_for_Installation"             {
 #                                                                                       #
 #########################################################################################
 
+variable "ANF_HANA_use_AVG"                     {
+                                                  description = "Use Application Volume Group for data volume"
+                                                  default     = false
+                                                }
+
+variable "ANF_HANA_use_Zones"                   {
+                                                  description = "Use zonal ANF deployments"
+                                                  default     = false
+                                                }
+
+
+# Data volume
 
 variable "ANF_HANA_data"                        {
                                                   description = "If defined, will create ANF volumes for HANA data"
@@ -1070,15 +1084,12 @@ variable "ANF_HANA_data_volume_throughput"      {
                                                   default     = 128
                                                 }
 
-variable "ANF_HANA_use_AVG"                     {
-                                                  description = "Use Application Volume Group for data volume"
-                                                  default     = false
+variable "ANF_hana_data_volume_count"          {
+                                                  description = "If defined provides the number of data volumes"
+                                                  default     = 1
                                                 }
 
-variable "ANF_HANA_use_Zones"                   {
-                                                  description = "Use zonal ANF deployments"
-                                                  default     = false
-                                                }
+# Log volume
 
 variable "ANF_HANA_log"                         {
                                                   description = "If defined, will create ANF volumes for HANA log"
@@ -1105,6 +1116,13 @@ variable "ANF_HANA_log_volume_throughput"       {
                                                   default     = 128
                                                 }
 
+variable "ANF_hana_log_volume_count"            {
+                                                  description = "If defined provides the number of data volumes"
+                                                  default     = 1
+                                                }
+
+# Shared volume
+
 variable "ANF_HANA_shared"                      {
                                                   description = "If defined, will create ANF volumes for HANA shared"
                                                   default     = false
@@ -1130,6 +1148,7 @@ variable "ANF_HANA_shared_volume_throughput"    {
                                                   default     = 128
                                                 }
 
+# /usr/sap
 
 variable "ANF_usr_sap"                          {
                                                   description = "If defined, will create ANF volumes for /usr/sap"
@@ -1155,6 +1174,10 @@ variable "ANF_usr_sap_throughput"               {
                                                   description = "If defined provides the throughput of the /usr/sap volume"
                                                   default     = 128
                                                 }
+
+
+# /sapmnt
+
 
 variable "ANF_sapmnt_use_existing"              {
                                                   description = "Use existing sapmnt volume"
@@ -1265,4 +1288,21 @@ variable "upgrade_packages"                     {
 variable "tags"                                 {
                                                   description = "If provided, tags for all resources"
                                                   default     = {}
+                                                }
+
+
+#########################################################################################
+#                                                                                       #
+#  Scaleout variables                                                                   #
+#                                                                                       #
+#########################################################################################
+
+variable "database_HANA_use_ANF_scaleout_scenario" {
+                                                  description = "If true, the database tier will be configured for scaleout scenario"
+                                                  default = false
+                                                }
+
+variable "stand_by_node_count"                  {
+                                                  description = "The number of standby nodes"
+                                                  default = 0
                                                 }

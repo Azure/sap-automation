@@ -94,13 +94,18 @@ stages:
                 fi
 
               echo -e "$green--- az login ---$reset"
+                if [ "$USE_MSI" = "true" ]; then
+                  echo  "Using MSI"
+                  source /etc/profile.d/deploy_server.sh
 
-                az login --service-principal --username $ARM_CLIENT_ID --password=${ARM_CLIENT_SECRET} --tenant $ARM_TENANT_ID --output none
-                return_code=$?
-                if [ 0 != $return_code ]; then
-                  echo -e "$boldred--- Login failed ---$reset"
-                  echo "##vso[task.logissue type=error]az login failed."
-                  exit $return_code
+                else
+                  az login --service-principal --username $ARM_CLIENT_ID --password=${ARM_CLIENT_SECRET} --tenant $ARM_TENANT_ID --output none
+                  return_code=$?
+                  if [ 0 != $return_code ]; then
+                    echo -e "$boldred--- Login failed ---$reset"
+                    echo "##vso[task.logissue type=error]az login failed."
+                    exit $return_code
+                  fi
                 fi
 
                 az account set --subscription $ARM_SUBSCRIPTION_ID --output none
@@ -159,6 +164,7 @@ stages:
               SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
               SAMPLE_REPO_PATH:         ${{ parameters.sample_repo_path }}
               CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
+              USE_MSI:                  $(Use_MSI)
             failOnStderr:               false
 
   - stage:                             Software_download
@@ -195,27 +201,32 @@ stages:
                   exit 2
                 fi
 
-                if [ ! -n $ARM_CLIENT_ID ]; then
-                  echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined."
-                  exit 2
-                fi
+                if [ "$USE_MSI" = "true" ]; then
+                  echo  "Using MSI"
+                  source /etc/profile.d/deploy_server.sh
 
-                if [ ! -n $ARM_CLIENT_SECRET ]; then
-                  echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined."
-                  exit 2
-                fi
+                else
+                  if [ ! -n $ARM_CLIENT_ID ]; then
+                    echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined."
+                    exit 2
+                  fi
 
-                if [ ! -n $ARM_TENANT_ID ]; then
-                  echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined."
-                  exit 2
-                fi
+                  if [ ! -n $ARM_CLIENT_SECRET ]; then
+                    echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined."
+                    exit 2
+                  fi
 
-                az login --service-principal --username $ARM_CLIENT_ID --password=$ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID --output none
-                return_code=$?
-                if [ 0 != $return_code ]; then
-                  echo -e "$boldred--- Login failed ---$reset"
-                  echo "##vso[task.logissue type=error]az login failed."
-                  exit $return_code
+                  if [ ! -n $ARM_TENANT_ID ]; then
+                    echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined."
+                    exit 2
+                  fi
+                  az login --service-principal --username $ARM_CLIENT_ID --password=${ARM_CLIENT_SECRET} --tenant $ARM_TENANT_ID --output none
+                  return_code=$?
+                  if [ 0 != $return_code ]; then
+                    echo -e "$boldred--- Login failed ---$reset"
+                    echo "##vso[task.logissue type=error]az login failed."
+                    exit $return_code
+                  fi
                 fi
 
                 command="ansible-playbook '-e "download_directory=$(Agent.TempDirectory)" -e "BOM_directory=${sample_path}" -e "bom_base_name=$(BOM_NAME)" -e "deployer_kv_name=$(KV_NAME)" -e "check_storage_account=$(check_storage_account)" ' $ExtraParams ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_bom_downloader.yaml"
@@ -237,6 +248,7 @@ stages:
               SAMPLE_REPO_PATH:              ${{ parameters.sample_repo_path }}
               CONFIG_REPO_PATH:              ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
               ANSIBLE_COLLECTIONS_PATHS:     ~/.ansible/collections:/opt/ansible/collections
+              USE_MSI:                       $(Use_MSI)
               ExtraParams:                   ${{ parameters.ExtraParams }}
             failOnStderr:                    false
 

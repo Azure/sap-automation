@@ -12,6 +12,7 @@ variable "app_server_count"                     {
                                                 }
 variable "app_subnet_netmask"                   { description = "netmask for the SAP application subnet" }
 variable "app_tier_os_types"                    { description = "Defines the app tier os types" }
+variable "app_vm_names"                         { description = "List of VM names for the Application Servers" }
 variable "application_server_ips"               { description = "List of IP addresses for the Application Servers" }
 variable "application_server_secondary_ips"     { description = "List of secondary IP addresses for the Application Servers" }
 variable "authentication_type"                  {
@@ -50,6 +51,7 @@ variable "db_server_count"                      {
 variable "database_server_ips"                  { description = "List of IP addresses for the database servers" }
 variable "database_server_secondary_ips"        { description = "List of secondary IP addresses for the database servers" }
 variable "database_shared_disks"                { description = "Database Azure Shared Disk" }
+variable "database_server_vm_names"             { description = "List of VM names for the database servers" }
 variable "db_sid"                               { description = "Database SID" }
 variable "database_subnet_netmask"              { description = "netmask for the database subnet" }
 variable "disks"                                { description = "List of disks" }
@@ -66,6 +68,7 @@ variable "dns"                                  {
                                                   description = "The DNS label"
                                                   default     = ""
                                                 }
+variable "dns_a_records_for_secondary_names"    { description = "Boolean value indicating if dns a records should be created for the secondary DNS names"}
 variable "ers_instance_number"                  {
                                                   description = "Instance number for ERS"
                                                   default     = "02"
@@ -135,7 +138,9 @@ variable "save_naming_information"              {
                                                   description = "If defined, will save the naming information for the resources"
                                                   default     = false
                                                 }
+variable "scale_out"                            { description = "If true, the SAP System will be scale out" }
 variable "scs_shared_disks"                     { description = "SCS Azure Shared Disk" }
+
 
 variable "scs_cluster_loadbalancer_ip"          { description = "This is a Cluster IP address for Windows load balancer for central services" }
 variable "scs_cluster_type"                     {
@@ -160,6 +165,7 @@ variable "scs_server_count"                     {
                                                 }
 variable "scs_server_ips"                       { description = "List of IP addresses for the SCS Servers" }
 variable "scs_server_secondary_ips"             { description = "List of secondary IP addresses for the SCS Servers" }
+variable "scs_vm_names"                         { description = "List of VM names for the SCS Servers" }
 variable "shared_home"                          { description = "If defined provides shared-home support" }
 variable "sid_keyvault_user_id"                 { description = "Defines the names for the resources" }
 variable "tfstate_resource_id"                  { description = "Resource ID for tf state file" }
@@ -191,3 +197,4 @@ variable "web_sid"                              {
                                                 }
 variable "webdispatcher_server_ips"             { description = "List of IP addresses for the Web dispatchers" }
 variable "webdispatcher_server_secondary_ips"   { description = "List of secondary IP addresses for the Web dispatchers" }
+variable "webdispatcher_server_vm_names"        { description = "List of VM names for the Web dispatchers" }

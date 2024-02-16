@@ -13,7 +13,7 @@
 # -------------------------------------+---------------------------------------8
 
 
-# -------------------------------------+---------------------------------------8
+# -------------------------------------+-----------------------------------------8
 # Step: 02
 # Description:  Informational
 #
@@ -35,12 +35,16 @@
 # Description:
 #
 - name:                                 "{{ task_prefix }} - BOM: {{ bom_name }} Check Storage Account for {{ bom_media_entry.archive }}"
+  when:
+    - check_storage_account | bool
+    - sa_enabled
+    - allowSharedKeyAccess
   block:
 
-# -------------------------------------+---------------------------------------8
-# Step: 03-01
-# Description:
-#
+  # -----------------------------------+-----------------------------------------8
+  # Step: 03-01
+  # Description:
+  #
     - name:                             "{{ task_prefix }} - BOM: {{ bom_name }} Check is file {{ bom_media_entry.archive }} is already downloaded"
       ansible.builtin.uri:
         url:                            "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/archives/{{ bom_media_entry.archive }}{% if sapbits_sas_token is not undefined %}?{{ sapbits_sas_token }}{% endif %}"
@@ -52,24 +56,24 @@
       ansible.builtin.debug:
         var:                            blob_exists
         verbosity:                      1
-# Step: 03-01 - END
-# -------------------------------------+---------------------------------------8
+      # Step: 03-01 - END
+      # -------------------------------+---------------------------------------------8
 
-# -------------------------------------+---------------------------------------8
-# Step: 03-02
-# Description:  Validate the url status. Fail if authentication fails
-#
+      # -------------------------------+---------------------------------------------8
+      # Step: 03-02
+      # Description:  Validate the url status. Fail if authentication fails
+      #
     - name:                            "{{ task_prefix }} - BOM: {{ bom_name }} Authentication error {{ bom_media_entry.archive }}"
       ansible.builtin.fail:
         msg:                           "Authentication error, please check the SAS token"
       when:                            blob_exists.status == 403
-# Step: 03-02 - END
-# -------------------------------------+---------------------------------------8
+      # Step: 03-02 - END
+      # -------------------------------+---------------------------------------------8
 
-# -------------------------------------+---------------------------------------8
-# Step: 03-03
-# Description:
-#
+      # -------------------------------+---------------------------------------------8
+      # Step: 03-03
+      # Description:
+      #
     - name:                            "{{ task_prefix }} - BOM: {{ bom_name }} Set Fact  {{ bom_media_entry.archive }}"
       ansible.builtin.set_fact:
         proceed:                       false
@@ -77,13 +81,56 @@
 # Step: 03-03 - END
 # -------------------------------------+---------------------------------------8
 
+
+- name:                                 "{{ task_prefix }} - BOM: {{ bom_name }} Check Storage Account for {{ bom_media_entry.archive }}"
   when:
     - check_storage_account | bool
     - sa_enabled
-# Step: 03 - END
-# -------------------------------------+---------------------------------------8
+    - not allowSharedKeyAccess
+  block:
 
-# -------------------------------------+---------------------------------------8
+  # -----------------------------------+-----------------------------------------8
+  # Step: 03-01
+  # Description:
+  #
+    - name:                            "{{ task_prefix }} - BOM: {{ bom_name }} Check is file {{ bom_media_entry.archive }} is already downloaded"
+      ansible.builtin.command: >-
+                                          az storage blob show
+                                            --account-name {{ account }}
+                                            --container-name {{ sapbits_location_base_path.rpartition('//')[2].split('/')[1] }}
+                                            --auth-mode login
+                                            --name {{ sapbits_bom_files }}/archives/{{ bom_media_entry.archive }}
+                                            --query name --output tsv
+      delegate_to:                     localhost
+      register:                        azresult
+      ignore_errors:                   true
+
+    - name:                            "{{ task_prefix }} - Informational"
+      ansible.builtin.debug:
+        var:                           azresult
+        verbosity:                     2
+      # Step: 03-01 - END
+      # -------------------------------+---------------------------------------------8
+
+      # -------------------------------+---------------------------------------------8
+      # Step: 03-02 - END
+      # -------------------------------+---------------------------------------------8
+
+      # -------------------------------+---------------------------------------------8
+      # Step: 03-03
+      # Description:
+      #
+    - name:                            "{{ task_prefix }} - BOM: {{ bom_name }} Set Fact  {{ bom_media_entry.archive }}"
+      ansible.builtin.set_fact:
+        proceed:                       false
+      when:                            azresult.rc == 0
+      # Step: 03-03 - END
+      # -------------------------------+---------------------------------------------8
+
+# Step: 03 - END
+# -------------------------------------+---------------------------------------------8
+
+# -------------------------------------+---------------------------------------------8
 # Step: 04
 # Description:  Informational check of the proceed parameter.
 #
@@ -103,24 +150,24 @@
                                         proceed:  {{ proceed }}
   failed_when:                          false
 # Step: 04 - END
-# -------------------------------------+---------------------------------------8
+# -----------------------------------+-----------------------------------------8
 
-# -------------------------------------+---------------------------------------8
+# -----------------------------------+-----------------------------------------8
 # Step: 05
 # Description:
 #
 - name:                                "BOM: Download File {{ bom_media_entry.archive }}"
   block:
-# -------------------------------------+---------------------------------------8
-# Step: 05-01
-# Description:
-#
+  # -----------------------------------+-----------------------------------------8
+  # Step: 05-01
+  # Description:
+  #
     - name:                            "BOM: {{ bom_name }} Download File"
       block:
-# -------------------------------------+---------------------------------------8
-# Step: 05-01-01
-# Description:
-#
+      # -------------------------------+---------------------------------------------8
+      # Step: 05-01-01
+      # Description:
+      #
         - name:                        "BOM: {{ bom_name }} Download File {{ bom_media_entry.archive }}"
           ansible.builtin.get_url:
             url:                       "{{ bom_media_entry.url | string | trim }}"
@@ -139,31 +186,31 @@
           delay:                       1
           no_log:                      false
       rescue:
-# -------------------------------------+---------------------------------------8
-# Step: 05-01-01-on-failure-01
-# Description:
-#
+      # -------------------------------+---------------------------------------------8
+      # Step: 05-01-01-on-failure-01
+      # Description:
+      #
         - name:                        "BOM: Ensure URL is correct"
           ansible.builtin.set_fact:
             file_url:                  "{{ bom_media_entry.url | lower | urlsplit('scheme') }}://{{ bom_media_entry.url | lower | urlsplit('hostname') }}/{{ bom_media_entry.url | lower | urlsplit('path') | replace('\"', '') }}"
-# Step: 05-01-01-on-failure-01 - END
-# -------------------------------------+---------------------------------------8
+          # Step: 05-01-01-on-failure-01 - END
+          # ---------------------------+-------------------------------------------------8
 
-# -------------------------------------+---------------------------------------8
-# Step: 05-01-01-on-failure-02
-# Description:
-#
+          # -----------------------------------+-----------------------------------------8
+          # Step: 05-01-01-on-failure-02
+          # Description:
+          #
         - name:                        "BOM: Ensure URL is correct"
           ansible.builtin.debug:
             msg:
               - "file_url: '{{ file_url }}"
-# Step: 05-01-01-on-failure-02 - END
-# -------------------------------------+---------------------------------------8
+          # Step: 05-01-01-on-failure-02 - END
+          # ---------------------------+-------------------------------------------------8
 
-# -------------------------------------+---------------------------------------8
-# Step: 05-01-01-on-failure-03
-# Description:
-#
+          # ---------------------------+-------------------------------------------------8
+          # Step: 05-01-01-on-failure-03
+          # Description:
+          #
         - name:                        "BOM: {{ bom_name }} Download File {{ bom_media_entry.archive }}"
           ansible.builtin.get_url:
             url:                       "{{ file_url | trim }}"
@@ -181,57 +228,36 @@
           no_log:                      false
           # failed_when:                 false
 
-# INCOMMING attempt attempt error handling - Collision with dynamic BOM - Unresolved
-        # - name:                        "BOM: {{ bom_name }} Download File {{ item.archive }}"
-        #   ansible.builtin.debug:
-        #     var:                       result
-        #     verbosity:                 2
+          # Step: 05-01-01-on-failure-03 - END
+          # ---------------------------+-------------------------------------------------8
 
-        # - name:                        "ErrorHandling"
-        #   ansible.builtin.fail:
-        #     msg:                       "DOWNLOAD:0001:Download failed, please check the URL ({{ item.url }})"
-        #   when:                        result.status_code == 400
+          # Step: 05-01-01 - END
+          # ---------------------------+-------------------------------------------------8
 
-        # - name:                        "ErrorHandling"
-        #   ansible.builtin.fail:
-        #     msg:                       "DOWNLOAD:0002:Download failed, please check the S-user credentials"
-        #   when:                        result.status_code == 401
+  # Step: 05-01 - END
+  # -----------------------------------+-----------------------------------------8
 
-        # - name:                        "ErrorHandling"
-        #   ansible.builtin.fail:
-        #     msg:                       "DOWNLOAD:0003:Download from SAP failed, URL ({{ item.url }})"
-        #   when:                        result.status_code != 200
-
-# Step: 05-01-01-on-failure-03 - END
-# -------------------------------------+---------------------------------------8
-
-# Step: 05-01-01 - END
-# -------------------------------------+---------------------------------------8
-
-# Step: 05-01 - END
-# -------------------------------------+---------------------------------------8
-
-# -------------------------------------+---------------------------------------8
-# Step: 05-02
-# Description:
-#
+  # -----------------------------------+-----------------------------------------8
+  # Step: 05-02
+  # Description:
+  #
     - name:                            "BOM: {{ bom_name }} Download File {{ bom_media_entry.archive }}"
       ansible.builtin.debug:
         var:                           result
         verbosity:                     1
-# Step: 05-02 - END
-# -------------------------------------+---------------------------------------8
+  # Step: 05-02 - END
+  # -----------------------------------+-----------------------------------------8
 
-# -------------------------------------+---------------------------------------8
-# Step: 05-03
-# Description:  Checksum block
-#
+  # -----------------------------------+-----------------------------------------8
+  # Step: 05-03
+  # Description:  Checksum block
+  #
     - name:                            "BOM: Create checksums"
       block:
-# -------------------------------------+---------------------------------------8
-# Step: 05-03-01
-# Description:
-#
+      # -------------------------------+---------------------------------------------8
+      # Step: 05-03-01
+      # Description:
+      #
         - name:                        "BOM: Verify Files"
           ansible.builtin.stat:
             path:                      "{{ result.dest }}"
@@ -247,20 +273,20 @@
           ansible.builtin.debug:
             var:                       create_checksums
             verbosity:                 1
-# Step: 05-03-01 - END
-# -------------------------------------+---------------------------------------8
+      # Step: 05-03-01 - END
+      # -------------------------------+---------------------------------------------8
 
 
-# -------------------------------------+---------------------------------------8
-# Step: 05-03-02
-# Description:
-#
+      # -------------------------------+---------------------------------------------8
+      # Step: 05-03-02
+      # Description:
+      #
         - name:                         "block"
           block:
-# -------------------------------------+---------------------------------------8
-# Step: 05-03-02-01
-# Description:
-#
+          # ---------------------------+-------------------------------------------------8
+          # Step: 05-03-02-01
+          # Description:
+          #
 
             # # MKD - Interesting change to task, but ultimately leaves room for error.
             # #       It can identify an incorrectly indentented line and insert a line
@@ -289,13 +315,13 @@
                 - fs_check is defined
                 - create_checksums is defined
                 - bom_file is defined
-# Step: 05-03-02-01 - END
-# -------------------------------------+---------------------------------------8
+          # Step: 05-03-02-01 - END
+          # ---------------------------+-------------------------------------------------8
 
-# -------------------------------------+---------------------------------------8
-# Step: 05-03-02-02
-# Description:
-#
+          # ---------------------------+-------------------------------------------------8
+          # Step: 05-03-02-02
+          # Description:
+          #
             - name:                        "BOM: Remove marker"
               ansible.builtin.lineinfile:
                 path:                      "{{ bom_file }}"
@@ -307,73 +333,70 @@
                 path:                      "{{ bom_file }}"
                 regexp:                    '# END ANSIBLE MANAGED BLOCK {{ bom_media_entry.archive }}'
                 state:                     absent
-# Step: 05-03-02-02 - END
-# -------------------------------------+---------------------------------------8
+          # Step: 05-03-02-02 - END
+          # ---------------------------+-------------------------------------------------8
 
           when:
             - bom_media_entry.checksum is defined
             - bom_media_entry.checksum | bool is not true
-# Step: 05-03-02 - END
-# -------------------------------------+---------------------------------------8
+      # Step: 05-03-02 - END
+      # -------------------------------+---------------------------------------------8
 
-# -------------------------------------+---------------------------------------8
-# Step: 05-03-03
-# Description:  Update in memory BOM
-#
+      # -------------------------------+---------------------------------------------8
+      # Step: 05-03-03
+      # Description:  Update in memory BOM
+      #
         - name:                         "block"
           block:
 
-# -------------------------------------+---------------------------------------8
-# Step: 05-03-03-01
-# Description:
-#
+          # ---------------------------+-------------------------------------------------8
+          # Step: 05-03-03-01
+          # Description:
+          #
             - name:                                 "Update BOM"
               ansible.builtin.set_fact:
                 bom:                                "{{ bom_update }}"
               vars:
                 bom_update:                         "{#- -#}{% set _ = bom.materials.media[bom_media_index].update({'checksum': fs_check.stat.checksum}) -%} {{ bom }}"
-        # Step: 05-03-03-01 - END
+          # Step: 05-03-03-01 - END
+          # ---------------------------+-------------------------------------------------8
 
-# -------------------------------------+---------------------------------------8
-
-# -------------------------------------+---------------------------------------8
-# Step: 05-03-03-02
-# Description:
-#
+          # ---------------------------+-------------------------------------------------8
+          # Step: 05-03-03-02
+          # Description:
+          #
             - name:                        "BOM: Show"
               ansible.builtin.debug:
                 var:                       bom.materials.media[bom_media_index]
                 verbosity:                 1
-# Step: 05-03-03-02 - END
-# -------------------------------------+---------------------------------------8
+          # Step: 05-03-03-02 - END
+          # ---------------------------+-------------------------------------------------8
 
           when:
-            - bom_media_entry.checksum | bool
-# Step: 05-03-03 - END
-# -------------------------------------+---------------------------------------8
+            - create_checksums is defined
+      # Step: 05-03-03 - END
+      # -------------------------------+---------------------------------------------8
 
       when:
-        # - bom_media_entry.checksum is not defined
-        # - create_checksums is defined
-        - (bom_media_entry.checksum is not defined and create_checksums is defined) or (bom_media_entry.checksum | bool)
-# Step: 05-03 - END
-# -------------------------------------+---------------------------------------8
+        - bom_media_entry.checksum is not defined
+  # Step: 05-03 - END
+  # -----------------------------------+-----------------------------------------8
 
 
-# -------------------------------------+---------------------------------------8
-# Step: 05-04
-# Description:
-#
+  # -----------------------------------+-----------------------------------------8
+  # Step: 05-04
+  # Description:
+  #
     - name:                           "Upload file"
       block:
 
-        #   03) Upload files to Azure
-        # TODO - put this in a block
-# -------------------------------------+---------------------------------------8
-# Step: 05-04-01
-# Description:
-#
-        - name:                            "BOM: {{ bom_name }} Upload File {{ bom_media_entry.archive }}"
+      #   03) Upload files to Azure
+      # TODO - put this in a block
+      # -------------------------------+---------------------------------------------8
+      # Step: 05-04-01
+      # Description:
+      #
+        - name:                            "BOM: {{ bom_name }} Upload File {{ bom_media_entry.archive }} using SAS keys"
 
           ansible.builtin.command: >-
                                           az storage blob upload
@@ -391,25 +414,49 @@
             - azresult.rc != 0
             - azresult.stderr is defined
             - azresult.stderr.find("BlobAlreadyExists") == -1
-# Step: 05-04-01 - END
-# -------------------------------------+---------------------------------------8
+          when:
+            - sapbits_sas_token is defined
 
-# -------------------------------------+---------------------------------------8
-# Step: 05-04-02
-# Description:
-#
+        - name:                            "BOM: {{ bom_name }} Upload File {{ bom_media_entry.archive }}"
+
+          ansible.builtin.command: >-
+                                          az storage blob upload
+                                            --account-name {{ account }}
+                                            --container-name {{ container }}
+                                            --auth-mode login
+                                            --name {{ bom_media_entry.archive }}
+                                            --file {{ result.dest }}
+                                            --if-none-match "*"
+                                            --no-progress
+          delegate_to:                     localhost
+          register:                        azresult
+          ignore_errors:                   true
+          failed_when:
+            - azresult.rc != 0
+            - azresult.stderr is defined
+            - azresult.stderr.find("BlobAlreadyExists") == -1
+          when:
+            - sapbits_sas_token is undefined
+
+      # Step: 05-04-01 - END
+      # -------------------------------+---------------------------------------------8
+
+      # -------------------------------+---------------------------------------------8
+      # Step: 05-04-02
+      # Description:
+      #
         - name:                            "BOM: {{ bom_name }} Remove File {{ bom_media_entry.archive }}"
           # become:                          true
           ansible.builtin.file:
             dest:                          "{{ download_directory }}/files/{{ bom_media_entry.archive }}"
             state:                         absent
-# Step: 05-04-02 - END
-# -------------------------------------+---------------------------------------8
+      # Step: 05-04-02 - END
+      # -------------------------------+---------------------------------------------8
 
       when:
         - sa_enabled
-# Step: 05-04 - END
-# -------------------------------------+---------------------------------------8
+  # Step: 05-04 - END
+  # -----------------------------------+-----------------------------------------8
 
   when: proceed
 # Step: 05 - END

@@ -73,6 +73,16 @@ output "hanadb_vm_ids"                 {
                                          value       = local.enable_deployment ? azurerm_linux_virtual_machine.vm_dbnode[*].id : []
                                        }
 
+output "database_server_vm_names"      {
+                                         description = "HANA Virtual machine names"
+                                         value       = local.enable_deployment ? (
+                                                      azurerm_linux_virtual_machine.vm_dbnode[*].name
+                                                      ) : (
+                                                      [""]
+                                                     )
+                                       }
+
+
 
 output "database_disks"                {
                                          description = "Disks used by the database tier"
@@ -121,116 +131,44 @@ output "database_server_secondary_ips" {
                                        }
 
 
-output "hana_data_primary"             {
-                                         description = "HANA Data Primary volume"
-                                         value       = try(var.hana_ANF_volumes.use_for_data ? (
-                                                         format("%s:/%s",
-                                                           var.hana_ANF_volumes.use_existing_data_volume || local.use_avg ? (
-                                                             data.azurerm_netapp_volume.hanadata[0].mount_ip_addresses[0]) : (
-                                                             azurerm_netapp_volume.hanadata[0].mount_ip_addresses[0]
-                                                           ),
-                                                           var.hana_ANF_volumes.use_existing_data_volume || local.use_avg ? (
-                                                             data.azurerm_netapp_volume.hanadata[0].volume_path) : (
-                                                             azurerm_netapp_volume.hanadata[0].volume_path
+output "hana_data_ANF_volumes"         {
+                                         description = "HANA Data volumes"
+                                         value       = local.data_volume_count > 0 ? flatten([
+                                                           for idx in range(local.data_volume_count) : [
+                                                           format("%s:/%s",
+                                                             var.hana_ANF_volumes.use_existing_data_volume || local.use_avg ? (
+                                                               data.azurerm_netapp_volume.hanadata[idx].mount_ip_addresses[0]) : (
+                                                               azurerm_netapp_volume.hanadata[idx].mount_ip_addresses[0]
+                                                             ),
+                                                             var.hana_ANF_volumes.use_existing_data_volume || local.use_avg ? (
+                                                               data.azurerm_netapp_volume.hanadata[idx].volume_path) : (
+                                                               azurerm_netapp_volume.hanadata[idx].volume_path
+                                                             )
                                                            )
-                                                         )
-                                                         ) : (
-                                                         ""
-                                                       ), "")
+                                                           ]
+                                                           ]) : []
                                        }
 
-output "hana_data_secondary"           {
-                                         description = "HANA Data Secondary volume"
-                                         value       = try(var.hana_ANF_volumes.use_for_data && var.database.high_availability ? (
-                                                         format("%s:/%s",
-                                                           var.hana_ANF_volumes.use_existing_data_volume || local.use_avg ? (
-                                                             data.azurerm_netapp_volume.hanadata[1].mount_ip_addresses[0]) : (
-                                                             azurerm_netapp_volume.hanadata[1].mount_ip_addresses[0]
-                                                           ),
-                                                           var.hana_ANF_volumes.use_existing_data_volume || local.use_avg ? (
-                                                             data.azurerm_netapp_volume.hanadata[1].volume_path) : (
-                                                             azurerm_netapp_volume.hanadata[1].volume_path
-                                                           )
-                                                         )
-                                                         ) : (
-                                                         ""
-                                                       ), "")
+output "hana_log_ANF_volumes"          {
+                                         description = "HANA Log volumes"
+                                         value       = local.log_volume_count > 0 ? flatten([
+                                                           for idx in range(local.log_volume_count) : [
+                                                           format("%s:/%s",
+                                                             var.hana_ANF_volumes.use_existing_log_volume || local.use_avg ? (
+                                                               data.azurerm_netapp_volume.hanalog[idx].mount_ip_addresses[0]) : (
+                                                               azurerm_netapp_volume.hanalog[idx].mount_ip_addresses[0]
+                                                             ),
+                                                             var.hana_ANF_volumes.use_existing_log_volume || local.use_avg ? (
+                                                               data.azurerm_netapp_volume.hanalog[idx].volume_path) : (
+                                                               azurerm_netapp_volume.hanalog[idx].volume_path
+                                                             )
+                                                             )
+
+                                                           ]
+                                                         ]) : []
                                        }
 
-# output "hana_data" {
-#   value = var.hana_ANF_volumes.use_for_data ? (
-#     var.database.high_availability ? (
-#       [format("%s:/%s",
-#         var.hana_ANF_volumes.use_existing_data_volume ? (
-#           data.azurerm_netapp_volume.hanadata[0].mount_ip_addresses[0]) : (
-#           azurerm_netapp_volume.hanadata[0].mount_ip_addresses[0]
-#         ),
-#         var.hana_ANF_volumes.use_existing_data_volume ? (
-#           data.azurerm_netapp_volume.hanadata[0].volume_path) : (
-#           azurerm_netapp_volume.hanadata[0].volume_path
-#         )
-#         ), format("%s:/%s",
-#         var.hana_ANF_volumes.use_existing_data_volume ? (
-#           data.azurerm_netapp_volume.hanadata[1].mount_ip_addresses[1]) : (
-#           azurerm_netapp_volume.hanadata[1].mount_ip_addresses[1]
-#         ),
-#         var.hana_ANF_volumes.use_existing_data_volume ? (
-#           data.azurerm_netapp_volume.hanadata[1].volume_path) : (
-#           azurerm_netapp_volume.hanadata[1].volume_path
-#         )
-#       )]
-#       ) : (
-#       [format("%s:/%s",
-#         var.hana_ANF_volumes.use_existing_data_volume ? (
-#           data.azurerm_netapp_volume.hanadata[0].mount_ip_addresses[0]) : (
-#           azurerm_netapp_volume.hanadata[0].mount_ip_addresses[0]
-#         ),
-#         var.hana_ANF_volumes.use_existing_data_volume ? (
-#           data.azurerm_netapp_volume.hanadata[0].volume_path) : (
-#           azurerm_netapp_volume.hanadata[0].volume_path
-#         )
-#       )]
-#     )
-#     ) : (
-#   [""])
-# }
-output "hana_log_primary"              {
-                                         description = "HANA Log primary volume"
-                                         value       = try(var.hana_ANF_volumes.use_for_log ? (
-                                                         format("%s:/%s",
-                                                           var.hana_ANF_volumes.use_existing_log_volume || local.use_avg ? (
-                                                             data.azurerm_netapp_volume.hanalog[0].mount_ip_addresses[0]) : (
-                                                             azurerm_netapp_volume.hanalog[0].mount_ip_addresses[0]
-                                                           ),
-                                                           var.hana_ANF_volumes.use_existing_log_volume || local.use_avg ? (
-                                                             data.azurerm_netapp_volume.hanalog[0].volume_path) : (
-                                                             azurerm_netapp_volume.hanalog[0].volume_path
-                                                           )
-                                                         )
-                                                         ) : (
-                                                         ""
-                                                       ), "")
-                                       }
-
-output "hana_log_secondary"            {
-                                         description = "HANA Log secondary volume"
-                                         value       = try(var.hana_ANF_volumes.use_for_log && var.database.high_availability ? (
-                                                         format("%s:/%s",
-                                                           var.hana_ANF_volumes.use_existing_log_volume || local.use_avg ? (
-                                                             data.azurerm_netapp_volume.hanalog[1].mount_ip_addresses[0]) : (
-                                                             azurerm_netapp_volume.hanalog[1].mount_ip_addresses[0]
-                                                           ),
-                                                           var.hana_ANF_volumes.use_existing_log_volume || local.use_avg ? (
-                                                             data.azurerm_netapp_volume.hanalog[1].volume_path) : (
-                                                             azurerm_netapp_volume.hanalog[1].volume_path
-                                                           )
-                                                         )
-                                                         ) : (
-                                                         ""
-                                                       ), "")
-                                       }
-
-output "hana_shared_primary"           {
+output "hana_shared"                   {
                                          description = "HANA Shared primary volume"
                                          value       = try(var.hana_ANF_volumes.use_for_shared ? (
                                                          format("%s:/%s",
@@ -247,25 +185,6 @@ output "hana_shared_primary"           {
                                                          ""
                                                        ), "")
                                        }
-
-output "hana_shared_secondary" {
-                                         description = "HANA Shared secondary volume"
-                                         value       = try(var.hana_ANF_volumes.use_for_shared && var.database.high_availability ? (
-                                                         format("%s:/%s",
-                                                           var.hana_ANF_volumes.use_existing_shared_volume || local.use_avg ? (
-                                                             data.azurerm_netapp_volume.hanashared[1].mount_ip_addresses[0]) : (
-                                                             try(azurerm_netapp_volume.hanashared[1].mount_ip_addresses[0], "")
-                                                           ),
-                                                           var.hana_ANF_volumes.use_existing_shared_volume || local.use_avg ? (
-                                                             data.azurerm_netapp_volume.hanashared[1].volume_path) : (
-                                                             try(azurerm_netapp_volume.hanashared[1].volume_path, "")
-                                                           )
-                                                         )
-                                                         ) : (
-                                                         ""
-                                                       ), "")
-                                       }
-
 
 output "application_volume_group"      {
                                          description = "Application volume group"

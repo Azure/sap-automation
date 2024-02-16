@@ -30,6 +30,8 @@ variable "additional_users_to_add_to_keyvault_policies" { description = "List of
 variable "enable_purge_control_for_keyvaults" { description = "Disables the purge protection for Azure keyvaults." }
 variable "key_vault"                   { description = "The user brings existing Azure Key Vaults" }
 variable "set_secret_expiry"           { description = "Set expiry date for secrets" }
+variable "soft_delete_retention_days"  { description = "The number of days that items should be retained in the soft delete period" }
+
 
 #########################################################################################
 #                                                                                       #

@@ -35,7 +35,7 @@
   },
   {
     "Section": "Environment",
-    "Link": "https://learn.microsoft.com/en-us/azure/sap/automation/automation-configure-workload-zone#resource-group-parameters",
+    "Link": "https://learn.microsoft.com/en-us/azure/sap/automation/automation-configure-workload-zone#environment-parameters",
     "Parameters": [
       {
         "Name": "environment",
@@ -112,6 +112,21 @@
         "Overrules": "",
         "Display": 2
       },
+      {
+        "Name": "use_spn",
+        "Required": false,
+        "Description": " If set, the deployment is performed using the Service Principal defined for the workload zone, otherwise the managed identity of the deployer is used",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      }
+    ]
+  },
+  {
+    "Section": "Resource Group",
+    "Link": "https://learn.microsoft.com/en-us/azure/sap/automation/configure-workload-zone#resource-group-parameters",
+    "Parameters": [
       {
         "Name": "resourcegroup_name",
         "Required": false,
@@ -711,6 +726,15 @@
         "Options": [],
         "Overrules": "",
         "Display": 2
+      },
+      {
+        "Name": "soft_delete_retention_days",
+        "Required": false,
+        "Description": "The number of days that items should be retained in the soft delete period",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
       }
     ]
   },
@@ -808,6 +832,15 @@
         ],
         "Overrules": "",
         "Display": 1
+      },
+      {
+        "Name": "use_AFS_for_shared_storage",
+        "Required": false,
+        "Description": "Defines if shared media is shared from Azure Files when using Azure NetApp Files for data.",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
       },
       {
         "Name": "create_transport_storage",
@@ -928,6 +961,32 @@
         "Display": 3
       },
       {
+        "Name": "ANF_transport_volume_zone",
+        "Required": false,
+        "Description": "Azure NetApp transport volume availability zone.",
+        "Type": "list",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          },
+          {
+            "Text": "1",
+            "Value": "1"
+          },
+          {
+            "Text": "2",
+            "Value": "2"
+          },
+          {
+            "Text": "3",
+            "Value": "3"
+          }
+        ],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
         "Name": "ANF_install_volume_throughput",
         "Required": false,
         "Description": "The throughput in MB/s for the install volume.",
@@ -935,6 +994,32 @@
         "Options": [],
         "Overrules": "",
         "Display": 3
+      },
+      {
+        "Name": "ANF_install_volume_zone",
+        "Required": false,
+        "Description": "Azure NetApp install volume availability zone.",
+        "Type": "list",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          },
+          {
+            "Text": "1",
+            "Value": "1"
+          },
+          {
+            "Text": "2",
+            "Value": "2"
+          },
+          {
+            "Text": "3",
+            "Value": "3"
+          }
+        ],
+        "Overrules": "",
+        "Display": 2
       }
     ]
   },

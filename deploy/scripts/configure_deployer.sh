@@ -64,7 +64,7 @@ export local_user=$USER
 #
 
 if [ -z "${TF_VERSION}" ]; then
-  TF_VERSION="1.6.2"
+  TF_VERSION="1.7.0"
 fi
 
 
@@ -780,10 +780,10 @@ else
       echo "export ARM_CLIENT_ID=${client_id}" | tee -a /tmp/deploy_server.sh
     fi
 
-    if [ -n "${tenant_id}" ]; then
-      export ARM_TENANT_ID=${tenant_id}
-      echo "export ARM_TENANT_ID=${tenant_id}" | tee -a /tmp/deploy_server.sh
-    fi
+    # if [ -n "${tenant_id}" ]; then
+    #   export ARM_TENANT_ID=${tenant_id}
+    #   echo "export ARM_TENANT_ID=${tenant_id}" | tee -a /tmp/deploy_server.sh
+    # fi
 fi
 
 

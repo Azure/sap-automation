@@ -311,7 +311,7 @@ else
 
     case "$(get_distro_name)" in
     (ubuntu)
-      echo "we are inside ubuntu"
+      echo "we are inside ubuntu  block"
       rel=$(lsb_release -a | grep Release | cut -d':' -f2 | xargs)
       if [ "$rel" == "22.04" ]; then
         ansible_version="$${ansible_version:-2.15}"
@@ -320,7 +320,7 @@ else
       fi
       ;;
     (sles)
-      echo "we are inside sles"
+      echo "we are inside SLES block"
       ansible_version="2.11"
       ansible_major="$${ansible_version%%.*}"
       ansible_minor=$(echo "$${ansible_version}." | cut -d . -f 2)
@@ -334,7 +334,7 @@ else
       sudo python3 -m pip install virtualenv;
       ;;
     (rhel)
-      echo "we are inside RHEL"
+      echo "we are inside RHEL block"
       ansible_version="2.11"
       ansible_major="$${ansible_version%%.*}"
       ansible_minor=$(echo "$${ansible_version}." | cut -d . -f 2)
@@ -391,6 +391,7 @@ else
         )
         ;;
     (rhel)
+       echo "we are inside RHEL block"
        cli_pkgs+=(
             azure-cli
         )
@@ -410,17 +411,18 @@ else
         ;;
     esac
 
+    # Install required packages as determined above
+    set +o errexit
+    pkg_mgr_install "$${required_pkgs[@]}"
+
+    set -o errexit
+
     # Upgrade packages
     pkg_mgr_upgrade
 
     # Ensure our package metadata cache is up to date
     pkg_mgr_refresh
 
-    # Install required packages as determined above
-    set +o errexit
-    pkg_mgr_install "$${required_pkgs[@]}"
-
-    set -o errexit
 
 
     # Prepare Azure SAP Automated Deployment folder structure
@@ -693,6 +695,8 @@ else
         export DOTNET_ROOT="$${DOTNET_INSTALL_DIR}"
         ;;
       (rhel*)
+        echo "export DOTNET_ROOT=$${DOTNET_INSTALL_DIR}" | tee -a /tmp/deploy_server.sh
+        export DOTNET_ROOT="$${DOTNET_INSTALL_DIR}"
         ;;
     esac
 
@@ -705,7 +709,7 @@ else
 
     (echo export ARM_CLIENT_ID="$${client_id}" | sudo tee -a /etc/profile.d/deploy_server.sh) > /dev/null 2>&1
     (echo export ARM_SUBSCRIPTION_ID="$${subscription_id}" | sudo tee -a /etc/profile.d/deploy_server.sh) > /dev/null 2>&1
-    (echo export ARM_TENANT_ID="$${tenant_id}" | sudo tee -a /etc/profile.d/deploy_server.sh) > /dev/null 2>&1
+#    (echo export ARM_TENANT_ID="$${tenant_id}" | sudo tee -a /etc/profile.d/deploy_server.sh) > /dev/null 2>&1
 
     # if [[ -n $${TOKEN} ]]; then
     #     echo export AZURE_DEVOPS_EXT_PAT=$${TOKEN} | sudo tee -a /etc/profile.d/deploy_server.sh

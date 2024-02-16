@@ -47,7 +47,7 @@
 - name:                                "2.10.1 sap-notes: - Disable SELinux and Reboot"
   when:
     - node_tier in ['scs', 'ers', 'pas', 'app', 'web']
-    - distribution_id in ['redhat7', 'redhat8', 'redhat9', 'oraclelinux8']
+    - distribution_id in ['redhat7', 'redhat8', 'redhat9']
   block:
     - name:                            "2.10.1 sap-notes: - Disable SELinux"
       ansible.posix.selinux:
@@ -61,6 +61,24 @@
       ignore_unreachable:              true
       when:
         - selinux_disabled.changed
+
+- name:                                "2.10.1 sap-notes: - Disable SELinux and Reboot"
+  when:
+    - node_tier in ['scs', 'ers', 'pas', 'app', 'web']
+    - distribution_id in ['oraclelinux8']
+  block:
+    - name:                            "2.10.1 sap-notes: - Disable SELinux"
+      ansible.posix.selinux:
+        state:                         disabled
+      register:                        selinux_permissive
+
+    - name:                            "2.10.1 sap-notes: Reboot app VMs after selinux is configured"
+      ansible.builtin.reboot:
+        reboot_timeout:                300
+        post_reboot_delay:             60
+      ignore_unreachable:              true
+      when:
+        - selinux_permissive.changed
 
 - name:                                "2.10.1 sap-notes: Check VM Agent Status"
   when:

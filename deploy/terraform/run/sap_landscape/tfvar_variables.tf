@@ -29,7 +29,7 @@ variable "name_override_file"                   {
                                                 }
 
 variable "place_delete_lock_on_resources"       {
-                                                  description = "f defined, a delete lock will be placed on the key resources"
+                                                  description = "If defined, a delete lock will be placed on the key resources"
                                                   default     = false
                                                 }
 
@@ -310,6 +310,11 @@ variable "keyvault_private_endpoint_id"         {
                                                   default     = ""
                                                 }
 
+variable "soft_delete_retention_days"           {
+                                                  description = "The number of days that items should be retained in the soft delete period"
+                                                  default     = 7
+                                                }
+
 #########################################################################################
 #                                                                                       #
 #  Authentication variables                                                             #
@@ -519,18 +524,23 @@ variable "ANF_transport_volume_use_existing"       {
                                                    }
 
 variable "ANF_transport_volume_name"               {
-                                                     description = "f defined provides the Transport volume name"
+                                                     description = "If defined provides the Transport volume name"
                                                      default     = false
                                                    }
 
 variable "ANF_transport_volume_throughput"         {
-                                                     description = "f defined provides the throughput of the transport volume"
+                                                     description = "If defined provides the throughput of the transport volume"
                                                      default     = 128
                                                    }
 
 variable "ANF_transport_volume_size"               {
-                                                     description = "f defined provides the size of the transport volume"
+                                                     description = "If defined provides the size of the transport volume"
                                                      default     = 128
+                                                   }
+
+variable "ANF_transport_volume_zone"               {
+                                                     description = "Transport volume availability zone"
+                                                     default     = [""]
                                                    }
 
 variable "ANF_install_volume_use_existing"         {
@@ -539,25 +549,30 @@ variable "ANF_install_volume_use_existing"         {
                                                    }
 
 variable "ANF_install_volume_name"                 {
-                                                     description = "nstall volume name"
+                                                     description = "Install volume name"
                                                      default     = ""
                                                    }
 
 variable "ANF_install_volume_throughput"           {
-                                                     description = "f defined provides the throughput of the install volume"
+                                                     description = "If defined provides the throughput of the install volume"
                                                      default     = 128
                                                    }
 
 variable "ANF_install_volume_size"                 {
-                                                     description = "f defined provides the size of the install volume"
+                                                     description = "If defined provides the size of the install volume"
                                                      default     = 1024
                                                    }
 
-variable "use_AFS_for_installation_media"          {
-                                                     description = "f true, will use AFS for installation media."
-                                                     default = false
+
+variable "ANF_install_volume_zone"                 {
+                                                     description = "Install volume availability zone"
+                                                     default     = [""]
                                                    }
 
+variable "use_AFS_for_shared_storage"              {
+                                                     description = "If true, will use AFS for all shared storage."
+                                                     default = false
+                                                   }
 
 #########################################################################################
 #                                                                                       #

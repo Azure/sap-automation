@@ -184,7 +184,8 @@ locals {
 
                                            deployer_diagnostics_account_arm_id = var.deployer_diagnostics_account_arm_id
                                            app_service_SKU                     = var.app_service_SKU_name
-
+                                           user_assigned_identity_id           = var.user_assigned_identity_id
+                                           shared_access_key_enabled           = var.shared_access_key_enabled
                                          }
 
   authentication                       = {

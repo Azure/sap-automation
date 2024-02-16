@@ -19,8 +19,7 @@ module "sap_namegenerator" {
   app_ostype                                    = upper(try(local.application_tier.app_os.os_type, "LINUX"))
   anchor_ostype                                 = upper(try(local.anchor_vms.os.os_type, "LINUX"))
   db_ostype                                     = upper(try(local.database.os.os_type, "LINUX"))
-
-  db_server_count                               = var.database_server_count
+  db_server_count                               = var.database_server_count + var.stand_by_node_count
   app_server_count                              = local.enable_app_tier_deployment ? try(local.application_tier.application_server_count, 0) : 0
   web_server_count                              = local.enable_app_tier_deployment ? try(local.application_tier.webdispatcher_count, 0) : 0
   scs_server_count                              = local.enable_app_tier_deployment ? local.application_tier.scs_high_availability ? (
@@ -123,8 +122,8 @@ module "hdb_node" {
   database_dual_nics                            = try(module.common_infrastructure.admin_subnet, null) == null ? false : var.database_dual_nics
   database_server_count                         = upper(try(local.database.platform, "HANA")) == "HANA" ? (
                                                     local.database.high_availability ? (
-                                                      2 * var.database_server_count) : (
-                                                      var.database_server_count
+                                                      2 * (var.database_server_count + var.stand_by_node_count)) : (
+                                                      var.database_server_count + var.stand_by_node_count
                                                     )) : (
                                                     0
                                                   )
@@ -343,6 +342,10 @@ module "output_files" {
   database_server_ips                           = upper(try(local.database.platform, "HANA")) == "HANA" ? (module.hdb_node.database_server_ips
                                                   ) : (module.anydb_node.database_server_ips
                                                   )
+  database_server_vm_names                      = upper(try(local.database.platform, "HANA")) == "HANA" ? (
+                                                    module.hdb_node.database_server_vm_names) : (
+                                                    module.anydb_node.database_server_vm_names
+                                                  )
   database_server_secondary_ips                 = upper(try(local.database.platform, "HANA")) == "HANA" ? (module.hdb_node.database_server_secondary_ips
                                                   ) : (module.anydb_node.database_server_secondary_ips
                                                   )
@@ -373,6 +376,7 @@ module "output_files" {
   app_tier_os_types                             = module.app_tier.app_tier_os_types
   application_server_ips                        = module.app_tier.application_server_ips
   application_server_secondary_ips              = module.app_tier.application_server_secondary_ips
+  app_vm_names                                  = module.app_tier.app_vm_names
   ers_instance_number                           = var.ers_instance_number
   ers_server_loadbalancer_ip                    = module.app_tier.ers_server_loadbalancer_ip
   pas_instance_number                           = var.pas_instance_number
@@ -385,11 +389,13 @@ module "output_files" {
   scs_server_loadbalancer_ip                    = module.app_tier.scs_server_loadbalancer_ip
   scs_server_ips                                = module.app_tier.scs_server_ips
   scs_server_secondary_ips                      = module.app_tier.scs_server_secondary_ips
+  scs_vm_names                                  = module.app_tier.scs_vm_names
   use_local_credentials                         = module.common_infrastructure.use_local_credentials
   use_msi_for_clusters                          = var.use_msi_for_clusters
   use_secondary_ips                             = var.use_secondary_ips
   webdispatcher_server_ips                      = module.app_tier.webdispatcher_server_ips
   webdispatcher_server_secondary_ips            = module.app_tier.webdispatcher_server_secondary_ips
+  webdispatcher_server_vm_names                 = module.app_tier.webdispatcher_server_vm_names
 
   #########################################################################################
   #  Mounting information                                                                 #
@@ -399,9 +405,9 @@ module "output_files" {
   sap_transport                                 = try(data.terraform_remote_state.landscape.outputs.saptransport_path, "")
   install_path                                  = try(data.terraform_remote_state.landscape.outputs.install_path, "")
   shared_home                                   = var.shared_home
-  hana_data                                     = [module.hdb_node.hana_data_primary, module.hdb_node.hana_data_secondary]
-  hana_log                                      = [module.hdb_node.hana_log_primary, module.hdb_node.hana_log_secondary]
-  hana_shared                                   = [module.hdb_node.hana_shared_primary, module.hdb_node.hana_shared_secondary]
+  hana_data                                     = module.hdb_node.hana_data_ANF_volumes
+  hana_log                                      = module.hdb_node.hana_log_ANF_volumes
+  hana_shared                                   = [module.hdb_node.hana_shared]
   usr_sap                                       = module.common_infrastructure.usrsap_path
 
   #########################################################################################
@@ -412,20 +418,25 @@ module "output_files" {
   management_dns_subscription_id                = try(data.terraform_remote_state.landscape.outputs.management_dns_subscription_id, null)
   management_dns_resourcegroup_name             = try(data.terraform_remote_state.landscape.outputs.management_dns_resourcegroup_name, local.saplib_resource_group_name)
   dns_zone_names                                = var.dns_zone_names
-
+  dns_a_records_for_secondary_names             = var.dns_a_records_for_secondary_names
 
   #########################################################################################
   #  Server counts                                                                        #
   #########################################################################################
   app_server_count                              = try(local.application_tier.application_server_count, 0)
-  db_server_count                               = var.database_server_count
+  db_server_count                               = var.database_server_count + var.stand_by_node_count
   scs_server_count                              = local.application_tier.scs_high_availability ? (
                                                   2 * local.application_tier.scs_server_count) : (
                                                   local.application_tier.scs_server_count
                                                   )
   web_server_count                              = try(local.application_tier.webdispatcher_count, 0)
+
+  #########################################################################################
+  #  Miscallaneous                                                                        #
+  #########################################################################################
   use_simple_mount                              = local.validated_use_simple_mount
   upgrade_packages                              = var.upgrade_packages
+  scale_out                                     = var.database_HANA_use_ANF_scaleout_scenario
 
   #########################################################################################
   #  iSCSI                                                                                #

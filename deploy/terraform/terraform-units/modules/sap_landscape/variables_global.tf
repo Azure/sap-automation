@@ -1,3 +1,10 @@
+#######################################4#######################################8
+#                                                                              #
+# This file contains the input variables for the SAP landscape module          #
+#                                                                              #
+#######################################4#######################################8
+
+
 
 #######################################4#######################################8
 #                                                                              #
@@ -110,6 +117,8 @@ variable "enable_purge_control_for_keyvaults"           { description = "Disable
 variable "enable_rbac_authorization_for_keyvault"       { description = "Enables RBAC authorization for Azure keyvault" }
 
 variable "keyvault_private_endpoint_id"                 { description = "Existing private endpoint for key vault" }
+
+variable "soft_delete_retention_days"                   { description = "The number of days that items should be retained in the soft delete period" }
 
 
 #########################################################################################
@@ -281,7 +290,7 @@ variable "enable_firewall_for_keyvaults_and_storage"     { description = "Boolea
 
 variable "public_network_access_enabled"                 { description = "Defines if the public access should be enabled for keyvaults and storage accounts" }
 
-variable "use_AFS_for_installation_media"                {
+variable "use_AFS_for_shared_storage"                    {
                                                            description = "If true, will use AFS for installation media."
                                                            default = false
                                                          }

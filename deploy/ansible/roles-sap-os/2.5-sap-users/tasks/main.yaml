@@ -40,6 +40,8 @@
     - { group: 'sapsys',    gid: '{{ sapsys_gid }}'  }
     - { group: 'sapinst',   gid: '{{ sapinst_gid }}' }
 
+
+
 # Create Groups for Oracle ASM.
 - name:                                "2.5.1 SAP Users: - Create SAP Groups for Oracle ASM"
   ansible.builtin.group:
@@ -51,12 +53,14 @@
     - { group: 'asmadmin',  gid: '{{ asmadmin_gid }}'  }
     - { group: 'asmdba',    gid: '{{ asmdba_gid }}'    }
     - { group: 'backupdba', gid: '{{ backupdba_gid }}' }
+    - { group: 'dba',       gid: '{{ dba_gid }}'       }
+    - { group: 'oper',      gid: '{{ oper_gid }}'      }
     - { group: 'dgdba',     gid: '{{ dgdba_gid }}'     }
     - { group: 'kmdba',     gid: '{{ kmdba_gid }}'     }
     - { group: 'racdba',    gid: '{{ racdba_gid }}'    }
+    - { group: 'oinstall',  gid: '{{ oinstall_gid }}'  }
   when:
     - node_tier == "oracle-asm"
-
 
 - name:                                "2.5.1 SAP Users: - Create SAP Groups for Oracle ASM on observer"
   ansible.builtin.group:
@@ -68,8 +72,19 @@
     - { group: 'kmdba',     gid: '{{ kmdba_gid }}'     }
     - { group: 'racdba',    gid: '{{ racdba_gid }}'    }
     - { group: 'backupdba', gid: '{{ backupdba_gid }}' }
+    - { group: 'oinstall',  gid: '{{ oinstall_gid }}'  }
   when:
     - node_tier == "observer"
+
+- name:                                "2.5.1 SAP Users: - Create SAP User for Oracle ASM"
+  ansible.builtin.user:
+    name:                              oracle
+    uid:                               "{{ oracle_uid }}"
+    group:                             oinstall
+    groups:                            dba,racdba,oper,backupdba,dgdba,kmdba
+  when:
+    - node_tier == "oracle-asm"
+
 
 # *=====================================4=======================================8
 #
@@ -112,7 +127,7 @@
   ansible.builtin.user:
     name:                              "oracle"
     group:                             "oinstall"
-    groups:                            asmoper,asmadmin,asmdba,dba,oper,backupdba,dgdba,kmdba,racdba
+    groups:                            asmoper,asmadmin,asmdba,asmoper,backupdba,dgdba,kmdba,racdba
     append:                            true
     shell:                             /bin/csh
     # create_home:                       true

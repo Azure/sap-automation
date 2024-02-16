@@ -19,15 +19,20 @@
 
 - name:                                "DB2 Primary System Setup"
   block:
-
     - name:                            "DB2 Primary System Install"
       ansible.builtin.import_tasks:    4.2.1.0-db2_ha_install_primary.yml
 
     - name:                            "DB2 - Take offline backup of Primary DB"
       ansible.builtin.import_tasks:    4.2.1.1-db2_primary_backup.yml
 
-    - name:                            "DB2 - Keystore Setup, Part 1"
+    - name:                            "DB2 - Keystore Setup on Primary node"
       ansible.builtin.import_tasks:    4.2.1.8-db2_copy_keystore_files.yml
+
+    # SSL communication via SWPM is only available if you're using AS ABAP
+    # Setting up SSL voor AS JAVA requires manual actions with the J2EE Config tool
+    - name:                            "DB2 - Generate SSL on Primary node"
+      when:                            db2_instance_type == 'ABAP'
+      ansible.builtin.import_tasks:    4.2.1.9-db2_generate_distribute_ssl.yml
   always:
     - name:                            "DB2 Primary System Install: result"
       ansible.builtin.debug:
@@ -50,8 +55,14 @@
     - name:                            "DB2 Secondary System Install"
       ansible.builtin.import_tasks:    4.2.1.2-db2_ha_install_secondary.yml
 
-    - name:                            "DB2 - Keystore Setup, Part 2"
+    - name:                            "DB2 - Keystore Setup on Secondary node"
       ansible.builtin.import_tasks:    4.2.1.8-db2_copy_keystore_files.yml
+
+    # SSL communication via SWPM is only available if you're using AS ABAP
+    # Setting up SSL voor AS JAVA requires manual actions with the J2EE Config tool
+    - name:                            "DB2 - Distribute SSL certificate to Secondary node"
+      when:                            db2_instance_type == 'ABAP'
+      ansible.builtin.import_tasks:    4.2.1.9-db2_generate_distribute_ssl.yml
 
     - name:                            "DB2 - Restore Secondary with backup of Primary DB"
       ansible.builtin.import_tasks:    4.2.1.3-db2_restore_secondary.yml
@@ -81,7 +92,6 @@
 
 - name:                                "DB2 - HA Configuration Post Install Profile update"
   ansible.builtin.import_tasks:        4.2.1.7-sap-profile-changes.yaml
-
 
 # /*---------------------------------------------------------------------------8
 # |                                   END                                      |

@@ -65,7 +65,10 @@ locals {
                                                 )
                                               )
                                             }
+                                           shared_access_key_enabled = var.shared_access_key_enabled
+                                           public_network_access_enabled = var.public_network_access_enabled
                                          }
+
   storage_account_tfstate              = {
                                            arm_id = try(
                                              coalesce(
@@ -112,6 +115,9 @@ locals {
                                                try(var.storage_account_tfstate.ansible_blob_container.name, "ansible")
                                              )
                                            }
+
+                                           shared_access_key_enabled = var.shared_access_key_enabled
+                                           public_network_access_enabled = var.public_network_access_enabled
                                          }
 
 }

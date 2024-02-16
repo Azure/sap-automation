@@ -132,6 +132,17 @@
     path:                              /etc/sap_deployment_automation/dgscripts/dbscopied.txt
     state:                             touch
     mode:                              '0755'
+
+- name:                                "Oracle Data Guard - Post Processing: Restart lsnrctl on Secondary"
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.shell:               lsnrctl reload
+  register:                            lsnrctl_start_secondary_results
+  failed_when:                         lsnrctl_start_secondary_results.rc > 0
+  args:
+    chdir:                             /etc/sap_deployment_automation/dgscripts
+    executable:                        /bin/csh
+
 ...
 # /*---------------------------------------------------------------------------8
 # |                                   END                                      |

@@ -82,6 +82,7 @@ resource "azurerm_network_security_group" "app" {
                                          )
 }
 
+
 # Associates app nsg to app subnet
 resource "azurerm_subnet_network_security_group_association" "app" {
   provider                             = azurerm.main

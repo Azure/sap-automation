@@ -44,7 +44,11 @@
 
 
 - hosts:                               "{{ sap_sid | upper }}_SCS :
-                                        {{ sap_sid | upper }}_DB"
+                                        {{ sap_sid | upper }}_DB  :
+                                        {{ sap_sid | upper }}_PAS :
+                                        {{ sap_sid | upper }}_APP :
+                                        {{ sap_sid | upper }}_WEB"
+
   name:                                Post Installation
   remote_user:                         "{{ orchestration_ansible_user }}"
   become:                              true

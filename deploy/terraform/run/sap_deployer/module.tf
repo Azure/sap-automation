@@ -19,7 +19,7 @@ module "sap_deployer" {
   agent_pat                                     = var.agent_pat
   agent_pool                                    = var.agent_pool
   ansible_core_version                          = var.ansible_core_version
-  app_registration_app_id                       = var.app_registration_app_id
+  app_registration_app_id                       = var.use_webapp ? var.app_registration_app_id : ""
   app_service                                   = local.app_service
   arm_client_id                                 = var.arm_client_id
   assign_subscription_permissions               = var.deployer_assign_subscription_permissions
@@ -41,9 +41,10 @@ module "sap_deployer" {
   management_dns_subscription_id                = var.management_dns_subscription_id
   options                                       = local.options
   place_delete_lock_on_resources                = var.place_delete_lock_on_resources
-  public_network_access_enabled                 = var.public_network_access_enabled || !var.use_private_endpoint
+  public_network_access_enabled                 = var.public_network_access_enabled
   sa_connection_string                          = var.sa_connection_string
   set_secret_expiry                             = var.set_secret_expiry
+  soft_delete_retention_days                    = var.soft_delete_retention_days
   spn_id                                        = var.spn_id
   ssh-timeout                                   = var.ssh-timeout
   subnets_to_add                                = var.subnets_to_add_to_firewall_for_keyvaults_and_storage

@@ -114,18 +114,18 @@
 
     - name:                            "calculate LB IP with subnet prefix"
       ansible.builtin.set_fact:
-        db_lb_ipv4:                    "{{ db_lb_ip }}/{{ db_subnet_prefix }}"
+        database_loadbalancer_ipv4:    "{{ database_loadbalancer_ip }}/{{ db_subnet_prefix }}"
 
     - name:                            "calculate subnet mask"
       ansible.builtin.set_fact:
-        db_subnet_mask:                "{{ db_lb_ipv4 | ansible.utils.ipaddr('host/prefix') | ansible.utils.ipaddr('netmask') }}"
+        db_subnet_mask:                "{{ database_loadbalancer_ipv4 | ansible.utils.ipaddr('host/prefix') | ansible.utils.ipaddr('netmask') }}"
 
     - name:                            "print subnet mask"
       ansible.builtin.debug:
         msg:
           - "Subnet prefix: {{ db_subnet_prefix }}"
-          - "LB IP: {{ db_lb_ip }}"
-          - "LB IP with subnet prefix: {{ db_lb_ipv4 }}"
+          - "LB IP: {{ database_loadbalancer_ip }}"
+          - "LB IP with subnet prefix: {{ database_loadbalancer_ipv4 }}"
           - "Subnet mask: {{ db_subnet_mask }}"
 
     # restart SQL Server service
@@ -144,7 +144,7 @@
         InstanceName:                  "{{ mssql_instance_name }}"
         AvailabilityGroup:             "{{ mssql_ag_name }}"
         Port:                          1433
-        IpAddress:                     "{{ db_lb_ip }}/{{ db_subnet_mask }}"
+        IpAddress:                     "{{ database_loadbalancer_ip }}/{{ db_subnet_mask }}"
         PsDscRunAsCredential_username: "{{ domain_service_account }}@{{ domain_name }}"
         PsDscRunAsCredential_password: "{{ domain_service_password }}"
       register:                        sql_ag_listener_creation

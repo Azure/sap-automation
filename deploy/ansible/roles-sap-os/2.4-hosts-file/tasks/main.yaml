@@ -88,7 +88,7 @@
     create:                            true
     state:                             present
     block: |
-      {{ '%-19s' | format(db_lb_ip) }} {{ '%-50s' | format(db_virtual_hostname + '.' + sap_fqdn) }} {{ '%-21s' | format(db_virtual_hostname) }}
+      {{ '%-19s' | format(database_loadbalancer_ip) }} {{ '%-50s' | format(db_virtual_hostname + '.' + sap_fqdn) }} {{ '%-21s' | format(db_virtual_hostname) }}
     marker:                            "# {mark} DB Entries {{ db_virtual_hostname }}"
   when:
     - database_high_availability
@@ -101,7 +101,7 @@
     create:                            true
     state:                             present
     block: |
-      {{ '%-19s' | format(db_lb_ip) }} {{ '%-50s' | format(db_virtual_hostname + '.' + sap_fqdn) }} {{ '%-21s' | format(db_virtual_hostname) }}
+      {{ '%-19s' | format(database_loadbalancer_ip) }} {{ '%-50s' | format(db_virtual_hostname + '.' + sap_fqdn) }} {{ '%-21s' | format(db_virtual_hostname) }}
     marker:                            "# {mark} DB Entries {{ db_virtual_hostname }}"
   when:
     - database_high_availability

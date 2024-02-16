@@ -57,7 +57,7 @@
       ansible.builtin.command: >-
                                        crm configure primitive rsc_ip_db2{{ db_sid | lower }}_{{ db_sid | upper }} IPaddr2
                                        op monitor interval="10s" timeout="20s"
-                                       params ip="{{ db_lb_ip }}"
+                                       params ip="{{ database_loadbalancer_ip }}"
       register:                        sap_db2_rsc_ip
       failed_when:                     sap_db2_rsc_ip.rc > 1
 

@@ -19,7 +19,7 @@ resource "azurerm_key_vault" "kv_user" {
                                            azurerm_resource_group.resource_group[0].name
                                          )
   tenant_id                            = local.service_principal.tenant_id
-  soft_delete_retention_days           = 7
+  soft_delete_retention_days           = var.soft_delete_retention_days
   purge_protection_enabled             = var.enable_purge_control_for_keyvaults
   sku_name                             = "standard"
   enable_rbac_authorization            = var.enable_rbac_authorization_for_keyvault
@@ -96,7 +96,10 @@ resource "azurerm_role_assignment" "role_assignment_spn" {
 
 resource "azurerm_key_vault_access_policy" "kv_user" {
   provider                             = azurerm.main
-  count                                = (local.enable_landscape_kv && !local.user_keyvault_exist) && !var.enable_rbac_authorization_for_keyvault ? 1 : 0
+  count                                = (var.key_vault.exists || var.enable_rbac_authorization_for_keyvault) ? (
+                                           0) : (
+                                           (length(var.deployer_tfstate) > 0 ? var.deployer_tfstate.deployer_uai.principal_id == local.service_principal.object_id : false) ? 0 : 1
+                                         )
   key_vault_id                         = local.user_keyvault_exist ? local.user_key_vault_id : azurerm_key_vault.kv_user[0].id
   tenant_id                            = local.service_principal.tenant_id
   object_id                            = local.service_principal.object_id != "" ? local.service_principal.object_id : "00000000-0000-0000-0000-000000000000"
@@ -139,7 +142,9 @@ resource "azurerm_key_vault_secret" "sid_ppk" {
   count                                = !local.sid_key_exist ? 1 : 0
   depends_on                           = [
                                            azurerm_key_vault_access_policy.kv_user,
-                                           azurerm_role_assignment.role_assignment_spn
+                                           azurerm_role_assignment.role_assignment_spn,
+                                           azurerm_role_assignment.role_assignment_msi,
+                                           azurerm_key_vault_access_policy.kv_user_msi
                                          ]
   content_type                          = ""
   name                                  = local.sid_ppk_name
@@ -159,7 +164,9 @@ resource "azurerm_key_vault_secret" "sid_pk" {
   count                                = !local.sid_key_exist ? 1 : 0
   depends_on                           = [
                                            azurerm_key_vault_access_policy.kv_user,
-                                           azurerm_role_assignment.role_assignment_spn
+                                           azurerm_role_assignment.role_assignment_spn,
+                                           azurerm_role_assignment.role_assignment_msi,
+                                           azurerm_key_vault_access_policy.kv_user_msi
                                          ]
   content_type                         = ""
   name                                 = local.sid_pk_name
@@ -185,6 +192,8 @@ resource "azurerm_key_vault_secret" "sid_username" {
   depends_on                           = [
                                           azurerm_key_vault_access_policy.kv_user,
                                           azurerm_role_assignment.role_assignment_spn,
+                                           azurerm_role_assignment.role_assignment_msi,
+                                           azurerm_key_vault_access_policy.kv_user_msi
                                         ]
   content_type                         = ""
   name                                 = local.sid_username_secret_name
@@ -207,7 +216,9 @@ resource "azurerm_key_vault_secret" "sid_password" {
   count                                = (!local.sid_credentials_secret_exist) ? 1 : 0
   depends_on                           = [
                                            azurerm_key_vault_access_policy.kv_user,
-                                           azurerm_role_assignment.role_assignment_spn
+                                           azurerm_role_assignment.role_assignment_spn,
+                                           azurerm_role_assignment.role_assignment_msi,
+                                           azurerm_key_vault_access_policy.kv_user_msi
                                          ]
   name                                 = local.sid_password_secret_name
   content_type                         = ""
@@ -232,7 +243,9 @@ resource "azurerm_key_vault_secret" "witness_access_key" {
   count                                = 1
   depends_on                           = [
                                            azurerm_key_vault_access_policy.kv_user,
-                                           azurerm_role_assignment.role_assignment_spn
+                                           azurerm_role_assignment.role_assignment_spn,
+                                           azurerm_role_assignment.role_assignment_msi,
+                                           azurerm_key_vault_access_policy.kv_user_msi
                                          ]
   content_type                         = ""
   name                                 = replace(
@@ -263,7 +276,9 @@ resource "azurerm_key_vault_secret" "witness_name" {
   count                                = 1
   depends_on                           = [
                                            azurerm_key_vault_access_policy.kv_user,
-                                           azurerm_role_assignment.role_assignment_spn
+                                           azurerm_role_assignment.role_assignment_spn,
+                                           azurerm_role_assignment.role_assignment_msi,
+                                           azurerm_key_vault_access_policy.kv_user_msi
                                          ]
   content_type                         = ""
   name                                 = replace(
@@ -309,9 +324,13 @@ resource "azurerm_key_vault_access_policy" "kv_user_msi" {
   object_id                            = var.deployer_tfstate.deployer_uai.principal_id
 
   secret_permissions                   = [
-                                           "Get",
-                                           "List",
-                                           "Set"
+                                          "Get",
+                                          "List",
+                                          "Set",
+                                          "Delete",
+                                          "Recover",
+                                          "Restore",
+                                          "Purge"
                                          ]
 }
 
@@ -319,7 +338,10 @@ resource "azurerm_key_vault_access_policy" "kv_user_msi" {
 resource "azurerm_key_vault_secret" "deployer_keyvault_user_name" {
   provider                             = azurerm.main
   depends_on                           = [
-                                           azurerm_key_vault_access_policy.kv_user
+                                           azurerm_key_vault_access_policy.kv_user,
+                                           azurerm_role_assignment.role_assignment_spn,
+                                           azurerm_role_assignment.role_assignment_msi,
+                                           azurerm_key_vault_access_policy.kv_user_msi
                                          ]
   content_type                         = ""
   name                                 = "deployer-kv-name"

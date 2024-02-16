@@ -9,6 +9,7 @@ parameters:
   deployer_environment: ""
   library: ""
   use_deployer: ""
+  connection_name: ""
 
 variables:
   - group:                             "SDAF-General"
@@ -40,3 +41,6 @@ variables:
 
   - name:                              this_agent
     value:                             $[lower(variables['run_on'])]
+
+  - name:                              connection_name
+    value:                             ${{ parameters.connection_name }}
