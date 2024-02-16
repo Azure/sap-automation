@@ -78,8 +78,7 @@
       failed_when:                     db2_restore_result.rc > 2
       when:
         - db2_started.rc == 0
-        - hostvars[primary_instance_name]['db_encrypted'] is defined
-        - not hostvars[primary_instance_name]['db_encrypted']
+        - not hostvars[primary_instance_name]['db_encrypted'] | default(false)
       # ######### ########### End of Restore without Encryption ####################################
 
       # ##################### Start of Restore with Encryption ##################################
@@ -93,35 +92,9 @@
       failed_when:                     db2_restore_result.rc > 2
       when:
         - db2_started.rc == 0
-        - hostvars[primary_instance_name]['db_encrypted'] is defined
-        - hostvars[primary_instance_name]['db_encrypted']
+        - hostvars[primary_instance_name]['db_encrypted'] | default(false)
       # ######### ########### End of Restore with Encryption ####################################
   when:
     - ansible_hostname == secondary_instance_name
   become:                              true
   become_user:                         db2{{ db_sid | lower }}
-
-# #################Start of Restore with Encryption############################
-# Restore with Encryption - commented now till we decide on the DB2 encrpytion Strategy
-# - name: Import Master Key
-#   shell: >-
-#     gsk8capicmd_64 -cert -import -db {{ db2standby_deployment_source_keystorefile }}.p12 -target \
-#     /db2/db2{{ db2deploy_sid | lower }}/keystore/sapdb2{{ db2deploy_sid | lower }}_db_encr.p12gsk8capicmd_64 -cert -import \
-#     -db {{ db2standby_deployment_source_keystorefile }}.p12 -target /db2/db2{{ db2deploy_sid | lower }}/keystore/sapdb2 \
-#     {{ db2deploy_sid | lower }}_db_encr.p12
-#   become: true
-#   become_user: db2id2
-#   when:
-#     -  db2standby_deployment_encryption == 'true'
-
-# - name: Restore with encryption
-#   shell: >-
-#     db2 restore database {{ db2deploy_sid }} from {{ db2standby_deployment_backupdir }} \
-#     encrypt cipher {{ db2standby_deployment_ciphertype }} key length {{ db2standby_deployment_cipherkeylength }} master key label \
-#     sap_db2{{ db2deploy_sid | lower }}_{{ db2standby_deployment_standbyhostname }}_dbencr_000
-#   become: true
-#   become_user: db2id2
-#   when:
-#    -  db2standby_deployment_encryption == 'true'
-
-# ######### END of Restore with Encryption ################################

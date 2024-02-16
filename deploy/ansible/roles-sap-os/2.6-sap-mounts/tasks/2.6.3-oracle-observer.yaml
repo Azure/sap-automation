@@ -107,4 +107,3 @@
     - tier == 'sapos'
     - usr_sap_install_mountpoint is defined
     - node_tier == 'observer'
-

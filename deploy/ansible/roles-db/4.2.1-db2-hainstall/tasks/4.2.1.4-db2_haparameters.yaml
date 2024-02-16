@@ -194,11 +194,7 @@
 # ################### End of Section for Secondary DB   ######################
 
 - name:                                "DB2 DB - HADR SSL Configuration"
-  when:
-    - db2_instance_type == 'ABAP'
-    - db2_ssl_label is defined
-    - hostvars[primary_instance_name]['db_encrypted'] is defined
-    - hostvars[primary_instance_name]['db_encrypted']
+  when:                                db2_ssl_label is defined
   become:                              true
   become_user:                         db2{{ db_sid | lower }}
   block:
