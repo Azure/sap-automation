@@ -40,8 +40,6 @@
     - { group: 'sapsys',    gid: '{{ sapsys_gid }}'  }
     - { group: 'sapinst',   gid: '{{ sapinst_gid }}' }
 
-
-
 # Create Groups for Oracle ASM.
 - name:                                "2.5.1 SAP Users: - Create SAP Groups for Oracle ASM"
   ansible.builtin.group:
