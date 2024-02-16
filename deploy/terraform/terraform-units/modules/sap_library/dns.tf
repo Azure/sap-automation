@@ -31,7 +31,7 @@ resource "azurerm_private_dns_zone" "blob" {
 
 resource "azurerm_private_dns_zone" "table" {
   provider                             = azurerm.main
-  count                                = local.use_local_private_dns && var.use_private_endpoint ? 1 : 0
+  count                                = local.use_local_private_dns && var.use_private_endpoint && length(try(var.deployer_tfstate.webapp_id),"")> 0 ? 1 : 0
   depends_on                           = [
                                            azurerm_resource_group.library
                                          ]
