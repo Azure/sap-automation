@@ -93,6 +93,18 @@ output "scs_vm_ids"                    {
                                                        )
                                        }
 
+output "scs_vm_names"                  {
+                                         description = "SCS virtual machine names"
+                                         value       = local.enable_deployment ? (
+                                                         concat(
+                                                           azurerm_windows_virtual_machine.scs[*].name,
+                                                           azurerm_linux_virtual_machine.scs[*].name
+                                                         )
+                                                         ) : (
+                                                         []
+                                                       )
+                                       }
+
 ###############################################################################
 #                                                                             #
 #                            Application Servers                              #
@@ -125,6 +137,19 @@ output "app_vm_ids"                    {
                                                        )
                                        }
 
+output "app_vm_names"                  {
+                                         description = "Application virtual machine names"
+                                         value       = local.enable_deployment ? (
+                                                         concat(
+                                                           azurerm_windows_virtual_machine.app[*].name,
+                                                           azurerm_linux_virtual_machine.app[*].name
+                                                         )
+                                                         ) : (
+                                                         []
+                                                       )
+                                       }
+
+
 ###############################################################################
 #                                                                             #
 #                            Web Dispatchers                                  #
@@ -156,6 +181,18 @@ output "webdispatcher_server_vm_ids"   {
                                                          concat(
                                                            azurerm_windows_virtual_machine.web[*].id,
                                                            azurerm_linux_virtual_machine.web[*].id
+                                                         )
+                                                         ) : (
+                                                         []
+                                                       )
+                                       }
+
+output "webdispatcher_server_vm_names" {
+                                         description = "Web dispatcher virtual machine resource names"
+                                         value       = local.enable_deployment ? (
+                                                         concat(
+                                                           azurerm_windows_virtual_machine.web[*].name,
+                                                           azurerm_linux_virtual_machine.web[*].name
                                                          )
                                                          ) : (
                                                          []

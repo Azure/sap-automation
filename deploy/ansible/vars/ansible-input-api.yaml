@@ -99,8 +99,6 @@ db2sidadm_uid:                         3004
 db2sapsid_uid:                         3005 # Uid of the database connect user
 db2hadr_port1:                         51012
 db2hadr_port2:                         51013
-# Name of the database connect user for ABAP. Default value is 'sap<sapsid>'.
-db2_abap_connect_user:                 ""
 
 tmp_directory:                         "/var/tmp"
 url_internet:                          "https://azure.status.microsoft/en-us/status"                 # URL to use for internet access checks"
