@@ -120,12 +120,12 @@ variable "firewall_deployment"                  {
 
 variable "firewall_rule_subnets"                {
                                                   description = "List of subnets that are part of the firewall rule"
-                                                  default     = null
+                                                  default     = []
                                                 }
 
 variable "firewall_allowed_ipaddresses"         {
                                                   description = "List of allowed IP addresses to be part of the firewall rule"
-                                                  default     = null
+                                                  default     = []
                                                 }
 
 #######################################4#######################################8
