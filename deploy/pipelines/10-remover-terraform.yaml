@@ -301,8 +301,28 @@ stages:
                 fi
               else
                 echo -e "$green --- Running on deployer ---$reset"
-                source /etc/profile.d/deploy_server.sh
-                export ARM_USE_MSI=true
+
+                if [ $LOGON_USING_SPN == "true" ]; then
+                  echo "Using SPN"
+
+                  export ARM_CLIENT_ID=$WL_ARM_CLIENT_ID
+                  export ARM_CLIENT_SECRET=$WL_ARM_CLIENT_SECRET
+                  export ARM_TENANT_ID=$WL_ARM_TENANT_ID
+                  export ARM_SUBSCRIPTION_ID=$WL_ARM_SUBSCRIPTION_ID
+                  export ARM_USE_MSI=false
+                  az login --service-principal --username $WL_ARM_CLIENT_ID --password=$WL_ARM_CLIENT_SECRET --tenant $WL_ARM_TENANT_ID --output none
+                  return_code=$?
+                  if [ 0 != $return_code ]; then
+                    echo -e "$boldred--- Login failed ---$reset"
+                    echo "##vso[task.logissue type=error]az login failed."
+                    exit $return_code
+                  fi
+                else
+                  export ARM_USE_MSI=true
+                  export ARM_SUBSCRIPTION_ID=$WL_ARM_SUBSCRIPTION_ID
+                  unset ARM_TENANT_ID
+                  az login --identity --allow-no-subscriptions --output none
+                fi
               fi
 
               echo -e "$green--- Set variables ---$reset"
@@ -649,6 +669,28 @@ stages:
                 fi
               else
                 echo -e "$green --- Running on deployer ---$reset"
+
+                if [ $LOGON_USING_SPN == "true" ]; then
+                  echo "Using SPN"
+
+                  export ARM_CLIENT_ID=$WL_ARM_CLIENT_ID
+                  export ARM_CLIENT_SECRET=$WL_ARM_CLIENT_SECRET
+                  export ARM_TENANT_ID=$WL_ARM_TENANT_ID
+                  export ARM_SUBSCRIPTION_ID=$WL_ARM_SUBSCRIPTION_ID
+                  export ARM_USE_MSI=false
+                  az login --service-principal --username $WL_ARM_CLIENT_ID --password=$WL_ARM_CLIENT_SECRET --tenant $WL_ARM_TENANT_ID --output none
+                  return_code=$?
+                  if [ 0 != $return_code ]; then
+                    echo -e "$boldred--- Login failed ---$reset"
+                    echo "##vso[task.logissue type=error]az login failed."
+                    exit $return_code
+                  fi
+                else
+                  export ARM_USE_MSI=true
+                  export ARM_SUBSCRIPTION_ID=$WL_ARM_SUBSCRIPTION_ID
+                  unset ARM_TENANT_ID
+                  az login --identity --allow-no-subscriptions --output none
+                fi
               fi
 
               echo -e "$green--- Run the remover script that destroys the SAP workload zone (landscape) ---$reset"
