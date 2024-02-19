@@ -556,11 +556,12 @@ ok_to_proceed=false
 new_deployment=false
 
 #Plugins
-if [ ! -d "$HOME/.terraform.d/plugin-cache" ]
+if [ ! -d /opt/terraform/.terraform.d/plugin-cache ]
 then
-    mkdir -p "$HOME/.terraform.d/plugin-cache"
+    mkdir /opt/terraform/.terraform.d/plugin-cache
 fi
-export TF_PLUGIN_CACHE_DIR="$HOME/.terraform.d/plugin-cache"
+export TF_PLUGIN_CACHE_DIR=/opt/terraform/.terraform.d/plugin-cache
+
 root_dirname=$(pwd)
 
 echo "     subscription_id=${STATE_SUBSCRIPTION}"

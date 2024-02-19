@@ -225,10 +225,12 @@ echo "Deployment region code: $region_code"
 key=$(echo "${parameterfile_name}" | cut -d. -f1)
 
 #Plugins
-if [ ! -d "$HOME/.terraform.d/plugin-cache" ]; then
-    mkdir -p "$HOME/.terraform.d/plugin-cache"
+if [ ! -d /opt/terraform/.terraform.d/plugin-cache ]
+then
+    mkdir /opt/terraform/.terraform.d/plugin-cache
 fi
-export TF_PLUGIN_CACHE_DIR="$HOME/.terraform.d/plugin-cache"
+export TF_PLUGIN_CACHE_DIR=/opt/terraform/.terraform.d/plugin-cache
+
 
 init "${automation_config_directory}" "${generic_config_information}" "${system_config_information}"
 var_file="${parameterfile_dirname}"/"${parameterfile}"

@@ -196,11 +196,13 @@ automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation/
 system_config_information="${automation_config_directory}""${environment}""${region_code}"
 
 #Plugins
-if [ ! -d "$HOME/.terraform.d/plugin-cache" ]
+#Plugins
+if [ ! -d /opt/terraform/.terraform.d/plugin-cache ]
 then
-    mkdir "$HOME/.terraform.d/plugin-cache"
+    mkdir /opt/terraform/.terraform.d/plugin-cache
 fi
-export TF_PLUGIN_CACHE_DIR="$HOME/.terraform.d/plugin-cache"
+export TF_PLUGIN_CACHE_DIR=/opt/terraform/.terraform.d/plugin-cache
+
 
 set_executing_user_environment_variables "none"
 

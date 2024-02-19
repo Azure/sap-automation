@@ -156,12 +156,13 @@ if [ 1 == $called_from_ado ] ; then
     echo "Agent IP: $this_ip"
 fi
 
+
 #Plugins
-if [ ! -d "$HOME/.terraform.d/plugin-cache" ]
+if [ ! -d /opt/terraform/.terraform.d/plugin-cache ]
 then
-    mkdir "$HOME/.terraform.d/plugin-cache"
+    mkdir /opt/terraform/.terraform.d/plugin-cache
 fi
-export TF_PLUGIN_CACHE_DIR="$HOME/.terraform.d/plugin-cache"
+export TF_PLUGIN_CACHE_DIR=/opt/terraform/.terraform.d/plugin-cache
 
 
 parallelism=10
