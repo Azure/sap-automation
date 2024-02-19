@@ -300,7 +300,7 @@ stages:
           - task:                      AzureCLI@2
             continueOnError:           false
             inputs:
-              azureSubscription:       ${{ parameters.workload_zone_connection }}
+              azureSubscription:       ${{ parameters.connection_name }}
               scriptType:              bash
               scriptLocation:          inlineScript
               addSpnToEnvironment:     true
@@ -328,9 +328,6 @@ stages:
                   export ARM_USE_MSI=false
                   if [ $USE_MSI != "true" ]; then
                     echo "use Service Principal"
-                    export ARM_CLIENT_ID=$CP_ARM_CLIENT_ID
-                    export ARM_TENANT_ID=$CP_ARM_TENANT_ID
-                    export ARM_CLIENT_SECRET=$CP_ARM_CLIENT_SECRET
                     if [ -z $ARM_SUBSCRIPTION_ID ]; then
                       echo "##vso[task.logissue type=error]Variable CP_ARM_SUBSCRIPTION_ID was not defined."
                       exit 2
