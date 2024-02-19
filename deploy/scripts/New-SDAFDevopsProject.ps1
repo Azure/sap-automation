@@ -16,14 +16,14 @@ function Show-Menu($data) {
 #region Initialize
 # Initialize variables from Environment variables
 
-$ADO_Organization              = $Env:SDAF_ADO_ORGANIZATION
-$ADO_Project                   = $Env:SDAF_ADO_PROJECT
-$ARM_TENANT_ID                 = $Env:ARM_TENANT_ID
-$Control_plane_code            = $Env:SDAF_CONTROL_PLANE_CODE
-$Control_plane_subscriptionID  = $Env:SDAF_ControlPlaneSubscriptionID
-$ControlPlaneSubscriptionName  = $Env:SDAF_ControlPlaneSubscriptionName
-$Workload_zone_code            = $Env:SDAF_WORKLOAD_ZONE_CODE
-$Workload_zone_subscriptionID  = $Env:SDAF_WorkloadZoneSubscriptionID
+$ADO_Organization = $Env:SDAF_ADO_ORGANIZATION
+$ADO_Project = $Env:SDAF_ADO_PROJECT
+$ARM_TENANT_ID = $Env:ARM_TENANT_ID
+$Control_plane_code = $Env:SDAF_CONTROL_PLANE_CODE
+$Control_plane_subscriptionID = $Env:SDAF_ControlPlaneSubscriptionID
+$ControlPlaneSubscriptionName = $Env:SDAF_ControlPlaneSubscriptionName
+$Workload_zone_code = $Env:SDAF_WORKLOAD_ZONE_CODE
+$Workload_zone_subscriptionID = $Env:SDAF_WorkloadZoneSubscriptionID
 $Workload_zoneSubscriptionName = $Env:SDAF_WorkloadZoneSubscriptionName
 
 if ($IsWindows) { $pathSeparator = "\" } else { $pathSeparator = "/" }
@@ -162,7 +162,13 @@ else {
 $ControlPlanePrefix = "SDAF-" + $Control_plane_code
 $WorkloadZonePrefix = "SDAF-" + $Workload_zone_code
 
-$Pool_Name = $ControlPlanePrefix + "-POOL"
+if ($Env:SDAF_POOL_NAME.Length -eq 0) {
+  $Pool_Name = $ControlPlanePrefix + "-POOL"
+}
+else {
+  $Pool_Name = $Env:SDAF_POOL_NAME
+}
+
 
 $ApplicationName = $ControlPlanePrefix + "-configuration-app"
 
