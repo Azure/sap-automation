@@ -158,7 +158,9 @@ fi
 
 
 #Plugins
-mkdir -p /opt/terraform/.terraform.d/plugin-cache
+sudo mkdir -p /opt/terraform/.terraform.d/plugin-cache
+sudo chown -R $USER:$USER /opt/terraform
+
 export TF_PLUGIN_CACHE_DIR=/opt/terraform/.terraform.d/plugin-cache
 
 
