@@ -300,7 +300,7 @@ stages:
           - task:                      AzureCLI@2
             continueOnError:           false
             inputs:
-              azureSubscription:       ${{ parameters.connection_name }}
+              azureSubscription:       Control_Plane_Service_Connection
               scriptType:              bash
               scriptLocation:          inlineScript
               addSpnToEnvironment:     true
