@@ -556,10 +556,8 @@ ok_to_proceed=false
 new_deployment=false
 
 #Plugins
-if [ ! -d /opt/terraform/.terraform.d/plugin-cache ]
-then
-    mkdir /opt/terraform/.terraform.d/plugin-cache
-fi
+mkdir -p /opt/terraform/.terraform.d/plugin-cache
+
 export TF_PLUGIN_CACHE_DIR=/opt/terraform/.terraform.d/plugin-cache
 
 root_dirname=$(pwd)
