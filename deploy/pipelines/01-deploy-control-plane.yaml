@@ -428,7 +428,7 @@ stages:
                           az extension add --name azure-devops --output none
 
                           az devops configure --defaults organization=$(System.CollectionUri) project='$(System.TeamProject)'
-                          az pipelines variable-group list
+
                           export VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(variable_group)'].id | [0]")
                           echo VARIABLE_GROUP_ID ${VARIABLE_GROUP_ID}
                           if [ -z ${VARIABLE_GROUP_ID} ]; then
