@@ -31,8 +31,6 @@ if ($IsWindows) { $pathSeparator = "\" } else { $pathSeparator = "/" }
 
 $versionLabel = "v3.11.0.0"
 
-
-
 az logout
 
 az account clear
@@ -46,9 +44,15 @@ else {
 
 # Check if access to the Azure DevOps organization is available and prompt for PAT if needed
 # Exact permissions required, to be validated, and included in the Read-Host text.
+
+if ($Env:AZURE_DEVOPS_EXT_PAT.Length -gt 0) {
+  az devops login --organization $ADO_Organization
+}
+
 $checkPAT = (az devops user list --organization $ADO_Organization --only-show-errors --top 1)
 if ($checkPAT.Length -eq 0) {
   $env:AZURE_DEVOPS_EXT_PAT = Read-Host "Please enter your Personal Access Token (PAT) with full access to the Azure DevOps organization $ADO_Organization"
+  az devops login --organization $ADO_Organization
   $verifyPAT = (az devops user list --organization $ADO_Organization --only-show-errors --top 1)
   if ($verifyPAT.Length -eq 0) {
     Read-Host -Prompt "Failed to authenticate to the Azure DevOps organization, press <any key> to exit"
