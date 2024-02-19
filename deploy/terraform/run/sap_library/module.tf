@@ -26,7 +26,7 @@ module "sap_library" {
   storage_account_tfstate           = local.storage_account_tfstate
   use_custom_dns_a_registration     = var.use_custom_dns_a_registration
   use_private_endpoint              = var.use_private_endpoint
-  use_webapp                        = var.use_webapp
+  use_webapp                        = var.use_webapp || length(try(data.terraform_remote_state.deployer[0].outputs.webapp_id,"")) > 0
   Agent_IP                          = var.Agent_IP
 }
 
