@@ -51,7 +51,7 @@ if ($Env:AZURE_DEVOPS_EXT_PAT.Length -gt 0) {
     az devops login --organization $ADO_Organization
   }
   catch {
-    <#Do this if a terminating exception happens#>
+    $_
   }
 
 }
@@ -63,7 +63,7 @@ if ($checkPAT.Length -eq 0) {
     az devops login --organization $ADO_Organization
   }
   catch {
-    <#Do this if a terminating exception happens#>
+    $_
   }
   $verifyPAT = (az devops user list --organization $ADO_Organization --only-show-errors --top 1)
   if ($verifyPAT.Length -eq 0) {
