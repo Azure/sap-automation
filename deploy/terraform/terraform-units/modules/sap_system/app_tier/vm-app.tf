@@ -132,7 +132,7 @@ resource "azurerm_linux_virtual_machine" "app" {
   availability_set_id                  = var.application_tier.app_use_avset ? (
                                            length(var.application_tier.avset_arm_ids) > 0 ? (
                                              var.application_tier.avset_arm_ids[count.index % max(length(var.application_tier.avset_arm_ids), 1)]) : (
-                                             azurerm_availability_set.app[count.index % max(length(var.application_tier.avset_arm_ids), 1)].id
+                                             azurerm_availability_set.app[count.index % max(local.app_zone_count, 1)].id
                                            )) : (
                                            null
                                          )
