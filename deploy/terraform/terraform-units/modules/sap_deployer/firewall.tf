@@ -163,7 +163,7 @@ resource "azurerm_firewall_network_rule_collection" "firewall-azure" {
                                                  protocols             = ["Any"]
                                                }
   dynamic "rule"                               {
-                                                 for_each = range(length(var.firewall_rule_subnets) > 0 ? 1 : 0)
+                                                 for_each = range(length(try(var.firewall_rule_subnets, [])) > 0 ? 1 : 0)
                                                  content {
                                                              name                  = "CustomSubnets"
                                                              source_addresses      = var.firewall_rule_subnets
@@ -174,7 +174,7 @@ resource "azurerm_firewall_network_rule_collection" "firewall-azure" {
                                                }
 
   dynamic "rule"                               {
-                                                 for_each = range(length(var.firewall_allowed_ipaddresses) > 0 ? 1 : 0)
+                                                 for_each = range(length(try(var.firewall_allowed_ipaddresses, [])) > 0 ? 1 : 0)
                                                  content {
                                                              name                  = "CustomIpAddresses"
                                                              source_addresses      = var.firewall_allowed_ipaddresses
