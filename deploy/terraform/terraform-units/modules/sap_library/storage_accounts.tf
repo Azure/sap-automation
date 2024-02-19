@@ -190,6 +190,7 @@ resource "azurerm_private_endpoint" "storage_tfstate" {
 resource "azurerm_private_endpoint" "table_tfstate" {
   provider                             = azurerm.main
   count                                = var.use_private_endpoint && !local.sa_tfstate_exists && var.use_webapp ? 1 : 0
+  depends_on                           = [ azurerm_private_dns_zone.table ]
   name                                 = format("%s%s-table%s",
                                            var.naming.resource_prefixes.storage_private_link_tf,
                                            local.prefix,
