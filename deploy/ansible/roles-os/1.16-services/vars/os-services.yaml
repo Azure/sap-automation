@@ -26,7 +26,6 @@ services:
   redhat7:
     - { tier: 'os',          service: 'firewalld',    node_tier: 'all',     state: 'stopped'   }
     - { tier: 'os',          service: 'firewalld',    node_tier: 'all',     state: 'disabled'  }
-    - { tier: 'os',          service: 'firewalld',    node_tier: 'all',     state: 'started'   }
     - { tier: 'sapos',       service: 'rpcbind',      node_tier: 'scs',     state: 'started'   }
     - { tier: 'os',          service: 'fstrim.timer', node_tier: 'all',     state: 'stopped'   }
     - { tier: 'os',          service: 'fstrim.timer', node_tier: 'all',     state: 'disabled'  }
@@ -41,7 +40,6 @@ services:
     - { tier: 'os',          service: 'auditd',       node_tier: 'all',     state: 'started'   }
     - { tier: 'os',          service: 'firewalld',    node_tier: 'all',     state: 'stopped'   }
     - { tier: 'os',          service: 'firewalld',    node_tier: 'all',     state: 'disabled'  }
-    - { tier: 'os',          service: 'firewalld',    node_tier: 'all',     state: 'started'  }
     - { tier: 'os',          service: 'fstrim.timer', node_tier: 'all',     state: 'stopped'   }
     - { tier: 'os',          service: 'fstrim.timer', node_tier: 'all',     state: 'disabled'  }
     - { tier: 'sapos',       service: 'tuned',        node_tier: 'all',     state: 'started'   }
@@ -60,7 +58,6 @@ services:
     - { tier: 'os',          service: 'auditd',       node_tier: 'all',     state: 'started'   }
     - { tier: 'os',          service: 'firewalld',    node_tier: 'all',     state: 'stopped'   }
     - { tier: 'os',          service: 'firewalld',    node_tier: 'all',     state: 'disabled'  }
-    - { tier: 'os',          service: 'firewalld',    node_tier: 'all',     state: 'started'  }
     - { tier: 'os',          service: 'fstrim.timer', node_tier: 'all',     state: 'stopped'   }
     - { tier: 'os',          service: 'fstrim.timer', node_tier: 'all',     state: 'disabled'  }
     - { tier: 'sapos',       service: 'tuned',        node_tier: 'all',     state: 'started'   }
@@ -94,6 +91,5 @@ services:
     - { tier: 'os',          service: 'fstrim.timer', node_tier: 'all',     state: 'disabled'  }
     - { tier: 'os',          service: 'firewalld',    node_tier: 'all',     state: 'stopped'   }
     - { tier: 'os',          service: 'firewalld',    node_tier: 'all',     state: 'disabled'  }
-    - { tier: 'os',          service: 'firewalld',    node_tier: 'all',     state: 'started'  }
     - { tier: 'os',          service: 'waagent',      node_tier: 'all',     state: 'restarted' }  # Ensure the service is restarted and swap space is available in case the handler is not called in 1.1/swap.
     - { tier: 'sapos',       service: 'rpcbind',      node_tier: 'scs',     state: 'restarted' }
