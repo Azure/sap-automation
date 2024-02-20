@@ -526,3 +526,18 @@ $$utility_vm_nic_ips$$
 
 # These tags will be applied to all resources
 $$tags$$
+
+############################################################################################
+#                                                                                          #
+#                                  AMS Configuration                                       #
+#                                                                                          #
+############################################################################################
+
+# If true, an AMS instance will be created
+$$create_ams_instance$$
+
+# ams_instance_name If provided, the name of the AMS instance
+$$ams_instance_name$$
+
+# ams_laws_arm_id if provided, Azure resource id for the Log analytics workspace in AMS
+$$ams_laws_arm_id$$

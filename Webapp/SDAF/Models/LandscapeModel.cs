@@ -378,5 +378,19 @@ namespace AutomationForm.Models
 
     public bool? use_spn{ get; set; } = true;
 
+
+    /*---------------------------------------------------------------------------8
+    |                                                                            |
+    |                              AMS information                               |
+    |                                                                            |
+    +------------------------------------4--------------------------------------*/
+
+    public bool? create_ams_instance { get; set; } = false;
+
+    public string ams_instance_name { get; set; }
+
+    [AMSIdValidator(ErrorMessage = "Invalid User Assigned id")]
+    public string ams_laws_arm_id { get; set; }
+
   }
 }
