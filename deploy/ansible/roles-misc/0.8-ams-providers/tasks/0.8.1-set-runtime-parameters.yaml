@@ -1,0 +1,14 @@
+---
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |      Set Runtime Parameters - e.g Sub ID , Resource group name             |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+- name:                                "0.8.1 ams provider creation: - Set Python version {{ distribution_id }}"
+  ansible.builtin.set_fact:
+    python_version:                    "python3"
+- name:                                "0.8.1 ams provider creation: - Set Python version {{ distribution_id }}"
+  ansible.builtin.set_fact:
+    python_version:                    "python2"
+  when: (ansible_distribution | lower ~ ansible_distribution_major_version) in ['sles_sap12']
+...

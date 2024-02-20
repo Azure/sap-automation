@@ -1,0 +1,174 @@
+---
+
+- name:                                "0.8.1 ams provider creation: - Set Python version {{ distribution_id }}"
+  ansible.builtin.set_fact:
+    python_version:                    "python3"
+    db_hosts:                          "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
+    scs_hosts:                         "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') }}"
+    ers_hosts:                         "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_ERS') }}"
+    ha_cluster_port_number:            "{{ 9664 if ansible_os_family | upper == 'SUSE' else 44322 }}"
+
+- name:                           "0.8.1 ams provider creation: - Install [AMS] cli extension"
+  delegate_to:                         localhost
+  ansible.builtin.shell: >-
+                                  az extension add --name workloads --yes || exit 1
+  tags:
+    - skip_ansible_lint
+
+- name:                            "0.8.1 ams provider creation: - Get Access Token"
+  delegate_to:                         localhost
+  ansible.builtin.shell: >-
+                                    az account get-access-token --resource https://management.azure.com \
+                                    --query accessToken -o tsv
+  register:                        ams_access_token
+  tags:
+    - skip_ansible_lint
+
+- name:                            "0.8.1 ams provider creation: - Generate a guid for the AMS provider instance"
+  delegate_to:                         localhost
+  ansible.builtin.command:         uuidgen
+  register:                        ams_provider_guid
+  tags:
+    - skip_ansible_lint
+
+- name:                                "0.8.1 ams provider creation: - Create PrometheusOS (OS) provider in AMS"
+  delegate_to:                         localhost
+  when:
+                                      - ansible_os_family | upper == 'SUSE' or ansible_os_family | upper == 'REDHAT'
+                                      - enable_os_monitoring
+  block:
+    - name:                            "0.8.1 ams provider creation: - Create Prometheus OS AMS provider instance"
+      ansible.builtin.uri:
+        url:                           "https://management.azure.com{{ ams_resource_id }}/providerInstances/{{ ansible_hostname | upper }}-OS?api-version=2023-04-01"
+        method:                        PUT
+        body_format:                   json
+        body: |
+          {
+            "properties": {
+              "providerSettings": {
+                "providerType": "PrometheusOS",
+                "prometheusUrl": "http://{{ hostvars[ansible_hostname]['ansible_default_ipv4']['address'] }}:9100/metrics",
+                "sslPreference": "Disabled",
+                "sapSid": "{{ sap_sid | upper }}"
+              }
+            }
+          }
+        headers:
+          Authorization:               "Bearer {{ ams_access_token.stdout }}"
+          x-ms-rpaas-new-resource:     "true"
+          x-ms-client-request-id:      "SDAF-{{ ams_provider_guid.stdout }}"
+      register:                        create_ams_provider_response
+      failed_when:                     create_ams_provider_response.json.properties.provisioningState != 'Accepted'
+
+    - name:                            "0.8.1 ams provider creation: - Check the created OS provider instance in AMS"
+      ansible.builtin.uri:
+        url:                           "https://management.azure.com{{ ams_resource_id }}/providerInstances/{{ ansible_hostname | upper }}-OS?api-version=2023-04-01"
+        method:                        GET
+        headers:
+          Authorization:               "Bearer {{ ams_access_token.stdout }}"
+          x-ms-rpaas-new-resource:     "true"
+          x-ms-client-request-id:      "SDAF-{{ ams_provider_guid.stdout }}"
+      register:                        get_ams_response
+      until:                           get_ams_response.json.properties.provisioningState == 'Succeeded'
+      retries:                         10
+      delay:                           60
+      no_log:                          true
+
+- name:                                "0.8.2 ams provider creation: - Create PrometheusHACluster HA provider in AMS"
+  delegate_to:                         localhost
+  when:
+                                       - ansible_os_family | upper == 'SUSE' or ansible_os_family | upper == 'REDHAT'
+                                       - enable_ha_monitoring
+  block:
+    - name:                            "0.8.2 ams provider creation: - DB Cluster: Create PrometheusHACluster"
+      block:
+        - name:                        "0.8.2 ams provider creation: - Create PrometheusHACluster AMS provider instance"
+          ansible.builtin.uri:
+            url:                       "https://management.azure.com{{ ams_resource_id }}/providerInstances/{{ ansible_hostname | upper }}-HA-DB?api-version=2023-04-01"
+            method:                    PUT
+            body_format:               json
+            body: |
+              {
+                "properties": {
+                  "providerSettings": {
+                    "providerType": "PrometheusHaCluster",
+                    "prometheusUrl": "http://{{ hostvars[ansible_hostname]['ansible_default_ipv4']['address'] }}:{{ ha_cluster_port_number }}/metrics",
+                    "hostname": "{{ ansible_hostname }}",
+                    "sid": "{{ sap_sid | upper }}",
+                    "clusterName": "{{ sap_sid | upper }}-DB",
+                    "sslPreference": "Disabled"
+                  }
+                }
+              }
+            headers:
+              Authorization:               "Bearer {{ ams_access_token.stdout }}"
+              x-ms-rpaas-new-resource:     "true"
+              x-ms-client-request-id:      "SDAF-{{ ams_provider_guid.stdout }}"
+          register:                        create_ams_provider_response
+          failed_when:                     create_ams_provider_response.json.properties.provisioningState != 'Accepted'
+          no_log:                          true
+
+        - name:                            "0.8.2 ams provider creation: - Check the created HA provider instance in AMS"
+          ansible.builtin.uri:
+            url:                           "https://management.azure.com{{ ams_resource_id }}/providerInstances/{{ ansible_hostname | upper }}-HA-DB?api-version=2023-04-01"
+            method:                        GET
+            headers:
+              Authorization:               "Bearer {{ ams_access_token.stdout }}"
+              x-ms-rpaas-new-resource:     "true"
+              x-ms-client-request-id:      "SDAF-{{ ams_provider_guid.stdout }}"
+          register:                        get_ams_response
+          until:                           get_ams_response.json.properties.provisioningState == 'Succeeded'
+          retries:                         10
+          delay:                           60
+          no_log:                          true
+      when:
+        - ansible_hostname in db_hosts
+        - database_high_availability
+
+    - name:                                "0.8.2 ams provider creation: - SCS Cluster: Create PrometheusHACluster"
+      block:
+        - name:                            "0.8.2 ams provider creation: - Create PrometheusHACluster AMS provider instance"
+          ansible.builtin.uri:
+            url:                           "https://management.azure.com{{ ams_resource_id }}/providerInstances/{{ ansible_hostname | upper }}-HA-SCS?api-version=2023-04-01"
+            method:                        PUT
+            body_format:                   json
+            body: |
+              {
+                "properties": {
+                  "providerSettings": {
+                    "providerType": "PrometheusHaCluster",
+                    "prometheusUrl": "http://{{ hostvars[ansible_hostname]['ansible_default_ipv4']['address'] }}:{{ ha_cluster_port_number }}/metrics",
+                    "hostname": "{{ ansible_hostname }}",
+                    "sid": "{{ sap_sid | upper }}",
+                    "clusterName": "{{ sap_sid | upper }}-SCS",
+                    "sslPreference": "Disabled"
+                  }
+                }
+              }
+            headers:
+              Authorization:               "Bearer {{ ams_access_token.stdout }}"
+              x-ms-rpaas-new-resource:     "true"
+              x-ms-client-request-id:      "SDAF-{{ ams_provider_guid.stdout }}"
+          register:                        create_ams_provider_response
+          failed_when:                     create_ams_provider_response.json.properties.provisioningState != 'Accepted'
+          no_log:                          true
+
+        - name:                            "0.8.2 ams provider creation: - Check the created HA provider instance in AMS"
+          ansible.builtin.uri:
+            url:                           "https://management.azure.com{{ ams_resource_id }}/providerInstances/{{ ansible_hostname | upper }}-HA-SCS?api-version=2023-04-01"
+            method:                        GET
+            headers:
+              Authorization:               "Bearer {{ ams_access_token.stdout }}"
+              x-ms-rpaas-new-resource:     "true"
+              x-ms-client-request-id:      "SDAF-{{ ams_provider_guid.stdout }}"
+          register:                        get_ams_response
+          until:                           get_ams_response.json.properties.provisioningState == 'Succeeded'
+          retries:                         10
+          delay:                           60
+          no_log:                          true
+      when:
+        - ansible_hostname in scs_hosts or ansible_hostname in ers_hosts
+        - scs_high_availability
+
+# More provider creation tasks to be added below this line.
+...
