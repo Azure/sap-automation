@@ -153,7 +153,7 @@
 
 # Restart the Listener on Secondary node when the node_tier is Oracle-ASM.
 
-- name:                                "Oracle Data Guard - Setup Secondary: Stop lsnrctl on Secondary"
+- name:                                "ASM Oracle Data Guard - Setup Secondary: Stop lsnrctl on Secondary"
   become:                              true
   become_user:                         "oracle"
   ansible.builtin.shell:               lsnrctl stop
@@ -164,10 +164,11 @@
     chdir:                             /etc/sap_deployment_automation/dgscripts
     executable:                        /bin/csh
   when:                                
-    - current_host == ora_secondary
     - node_tier == 'oracle-asm'
+    - current_host == ora_secondary
+    
 
-- name:                                "Oracle Data Guard - Setup Secondary: Create lsnrctl_stopped_sec.txt"
+- name:                                "ASM Oracle Data Guard - Setup Secondary: Create lsnrctl_stopped_sec.txt"
   become:                              true
   become_user:                         "oracle"
   ansible.builtin.file:
@@ -175,9 +176,10 @@
     state:                             touch
     mode:                              '0755'
   when:
+    - node_tier == "oracle-asm"
     - current_host == ora_secondary
     - lsnrctl_stop_secondary_results_asm.rc == 0
-    - node_tier == "oracle-asm"
+    
 
 - name:                                "Oracle Data Guard - Setup Secondary: Start lsnrctl on Secondary"
   become:                              true
