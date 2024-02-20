@@ -1371,5 +1371,38 @@
         "Display": 3
       }
     ]
+  },
+  {
+    "Section": "Azure Monitor Settings",
+    "Link": "https://learn.microsoft.com/en-us/azure/sap/automation/configure-workload-zone#utility-vm-parameters",
+    "Parameters": [
+      {
+        "Name": "create_ams_instance",
+        "Required": false,
+        "Description": "Defines if an AMS Instance should be created.",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "ams_instance_name",
+        "Required": false,
+        "Description": "Defines the name of the AMS instance",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "ams_laws_arm_id",
+        "Required": false,
+        "Description": "Defines the Azure resource id for the Log analytics workspace in AMS",
+        "Type": "lookup",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      }
+    ]
   }
 ]
