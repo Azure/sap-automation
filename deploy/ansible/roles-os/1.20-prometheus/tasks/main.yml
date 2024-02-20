@@ -8,6 +8,18 @@
 # |                                    BEGIN                                    |
 # +------------------------------------4---------------------------------------*/
 
+- name:                                "1.20 Packages: - Start and enable services required for monitoring"
+  block:
+    - name:                            "1.20 Packages: - Start services required for monitoring"
+      ansible.builtin.service:
+        name:                          {{ item }}
+        state:                         started
+        enabled:                       true
+      with_items:
+                                        - pmcd
+                                        - pmproxy
+  when:                                ansible_os_family | upper == "REDHAT"
+
 - name:                                "1.20 Packages: - Download node exporter package to enable monitoring"
   block:
     - name:                            "1.20 Packages: - Download node exporter package to enable monitoring"

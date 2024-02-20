@@ -34,10 +34,6 @@ services:
     - { tier: 'sapos',       service: 'tuned',        node_tier: 'all',     state: 'enabled'   }
     - { tier: 'ha',          service: 'pcsd',         node_tier: 'all',     state: 'started'   }
     - { tier: 'ha',          service: 'pcsd',         node_tier: 'all',     state: 'enabled'   }
-    - { tier: 'os',          service: 'pmcd',         node_tier: 'all',     state: 'started'   }
-    - { tier: 'os',          service: 'pmcd',         node_tier: 'all',     state: 'enabled'   }
-    - { tier: 'os',          service: 'pmproxy',      node_tier: 'all',     state: 'started'   }
-    - { tier: 'os',          service: 'pmproxy',      node_tier: 'all',     state: 'enabled'   }
     - { tier: 'ha',          service: 'pcsd',         node_tier: 'db2',     state: 'started'   }
     - { tier: 'ha',          service: 'pcsd',         node_tier: 'db2',     state: 'enabled'   }
 
@@ -58,10 +54,6 @@ services:
     - { tier: 'ha',          service: 'pcsd',         node_tier: 'ers',     state: 'enabled'   }
     - { tier: 'ha',          service: 'pcsd',         node_tier: 'db2',     state: 'started'   }
     - { tier: 'ha',          service: 'pcsd',         node_tier: 'db2',     state: 'enabled'   }
-    - { tier: 'os',          service: 'pmcd',         node_tier: 'all',     state: 'started'   }
-    - { tier: 'os',          service: 'pmcd',         node_tier: 'all',     state: 'enabled'   }
-    - { tier: 'os',          service: 'pmproxy',      node_tier: 'all',     state: 'started'   }
-    - { tier: 'os',          service: 'pmproxy',      node_tier: 'all',     state: 'enabled'   }
     - { tier: 'os',          service: 'oddjobd',      node_tier: 'all',     state: 'disabled'  }
 
   redhat9:
@@ -80,10 +72,6 @@ services:
     - { tier: 'ha',          service: 'pcsd',         node_tier: 'ers',     state: 'started'   }
     - { tier: 'ha',          service: 'pcsd',         node_tier: 'ers',     state: 'enabled'   }
     - { tier: 'ha',          service: 'pcsd',         node_tier: 'db2',     state: 'started'   }
-    - { tier: 'os',          service: 'pmcd',         node_tier: 'all',     state: 'started'   }
-    - { tier: 'os',          service: 'pmcd',         node_tier: 'all',     state: 'enabled'   }
-    - { tier: 'os',          service: 'pmproxy',      node_tier: 'all',     state: 'started'   }
-    - { tier: 'os',          service: 'pmproxy',      node_tier: 'all',     state: 'enabled'   }
     - { tier: 'ha',          service: 'pcsd',         node_tier: 'db2',     state: 'enabled'   }
 
   sles_sap12:
