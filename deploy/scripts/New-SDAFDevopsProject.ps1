@@ -1,3 +1,6 @@
+# Write-Host "<Experimental>..............." -ForegroundColor Cyan
+
+
 function Show-Menu($data) {
   Write-Host "================ $Title ================"
   $i = 1
@@ -13,17 +16,17 @@ function Show-Menu($data) {
 #region Initialize
 # Initialize variables from Environment variables
 
-$ADO_Organization = $Env:SDAF_ADO_ORGANIZATION
-$ADO_Project = $Env:SDAF_ADO_PROJECT
-$Control_plane_code = $Env:SDAF_CONTROL_PLANE_CODE
-$Workload_zone_code = $Env:SDAF_WORKLOAD_ZONE_CODE
-
-$Control_plane_subscriptionID = $Env:SDAF_ControlPlaneSubscriptionID
-$Workload_zone_subscriptionID = $Env:SDAF_WorkloadZoneSubscriptionID
-$ControlPlaneSubscriptionName = $Env:SDAF_ControlPlaneSubscriptionName
+$ADO_Organization              = $Env:SDAF_ADO_ORGANIZATION
+$ADO_Project                   = $Env:SDAF_ADO_PROJECT
+$ARM_TENANT_ID                 = $Env:ARM_TENANT_ID
+$Control_plane_code            = $Env:SDAF_CONTROL_PLANE_CODE
+$Control_plane_subscriptionID  = $Env:SDAF_ControlPlaneSubscriptionID
+$ControlPlaneSubscriptionName  = $Env:SDAF_ControlPlaneSubscriptionName
+$Workload_zone_code            = $Env:SDAF_WORKLOAD_ZONE_CODE
+$Workload_zone_subscriptionID  = $Env:SDAF_WorkloadZoneSubscriptionID
 $Workload_zoneSubscriptionName = $Env:SDAF_WorkloadZoneSubscriptionName
 
-$ARM_TENANT_ID = $Env:ARM_TENANT_ID
+if ($IsWindows) { $pathSeparator = "\" } else { $pathSeparator = "/" }
 #endregion
 
 $versionLabel = "v3.11.0.0"
@@ -62,10 +65,7 @@ else {
 Write-Host ""
 Write-Host ""
 
-if (Test-Path .\start.md) {
-  Write-Host "Removing start.md"
-  Remove-Item .\start.md
-}
+if (Test-Path ".${pathSeparator}start.md") { Write-Host "Removing start.md" ; Remove-Item ".${pathSeparator}start.md" }
 
 if ($Env:SDAF_AuthenticationMethod.Length -eq 0) {
   $Title = "Select the authentication method to use"
@@ -745,9 +745,9 @@ else {
   Write-Host "Creating an App Registration for" $ApplicationName -ForegroundColor Green
   Add-Content -Path manifest.json -Value '[{"resourceAppId":"00000003-0000-0000-c000-000000000000","resourceAccess":[{"id":"e1fe6dd8-ba31-4d61-89e7-88639da4683d","type":"Scope"}]}]'
 
-  $APP_REGISTRATION_ID = (az ad app create --display-name $ApplicationName --enable-id-token-issuance true --sign-in-audience AzureADMyOrg --required-resource-access .\manifest.json --query "appId").Replace('"', "")
+  $APP_REGISTRATION_ID = (az ad app create --display-name $ApplicationName --enable-id-token-issuance true --sign-in-audience AzureADMyOrg --required-resource-access ".${pathSeparator}manifest.json" --query "appId").Replace('"', "")
 
-  Remove-Item manifest.json
+  if (Test-Path ".${pathSeparator}manifest.json") { Write-Host "Removing manifest.json" ; Remove-Item ".${pathSeparator}manifest.json" }
 
   $WEB_APP_CLIENT_SECRET = (az ad app credential reset --id $APP_REGISTRATION_ID --append --query "password" --out tsv --only-show-errors)
 }
@@ -1006,16 +1006,14 @@ if (!$AlreadySet -or $ResetPAT ) {
     Write-Host "Creating agent pool" $Pool_Name -ForegroundColor Green
 
     Set-Content -Path pool.json -Value (ConvertTo-Json @{name = $Pool_Name; autoProvision = $true })
-    az devops invoke --area distributedtask --resource pools --http-method POST --api-version "7.1-preview" --in-file .\pool.json --query-parameters authorizePipelines=true --query id --output none --only-show-errors
+    az devops invoke --area distributedtask --resource pools --http-method POST --api-version "7.1-preview" --in-file ".${pathSeparator}pool.json" --query-parameters authorizePipelines=true --query id --output none --only-show-errors
     $POOL_ID = (az pipelines pool list --query "[?name=='$Pool_Name'].id | [0]" --output tsv)
     Write-Host "Agent pool" $Pool_Name "created"
     $queue_id = (az pipelines queue list --query "[?name=='$Pool_Name'].id | [0]" --output tsv)
 
   }
 
-  if (Test-Path .\pool.json) {
-    Remove-Item .\pool.json
-  }
+  if (Test-Path ".${pathSeparator}pool.json") { Write-Host "Removing pool.json" ; Remove-Item ".${pathSeparator}pool.json" }
 
   # Create header with PAT
   $base64AuthInfo = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes((":{0}" -f $PAT)))
@@ -1096,12 +1094,12 @@ if ($WIKI_NAME_FOUND.Length -gt 0) {
   Write-Host "Wiki SDAF already exists"
   $eTag = (az devops wiki page show --path 'Next steps' --wiki SDAF --query eTag )
   if ($eTag -ne $null) {
-    $page_id = (az devops wiki page update --path 'Next steps' --wiki SDAF --file-path .\start.md --only-show-errors --version $eTag --query page.id)
+    $page_id = (az devops wiki page update --path 'Next steps' --wiki SDAF --file-path ".${pathSeparator}start.md" --only-show-errors --version $eTag --query page.id)
   }
 }
 else {
   az devops wiki create --name SDAF --output none --only-show-errors
-  az devops wiki page create --path 'Next steps' --wiki SDAF --file-path .\start.md --output none --only-show-errors
+  az devops wiki page create --path 'Next steps' --wiki SDAF --file-path ".${pathSeparator}start.md" --output none --only-show-errors
 }
 
 $page_id = (az devops wiki page show --path 'Next steps' --wiki SDAF --query page.id )
@@ -1110,7 +1108,4 @@ $wiki_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) + "/
 Write-Host "URL: " $wiki_url
 Start-Process $wiki_url
 
-if (Test-Path .\start.md) {
-  Write-Host "Removing start.md"
-  Remove-Item .\start.md
-}
+if (Test-Path ".${pathSeparator}start.md") { Write-Host "Removing start.md" ; Remove-Item ".${pathSeparator}start.md" }

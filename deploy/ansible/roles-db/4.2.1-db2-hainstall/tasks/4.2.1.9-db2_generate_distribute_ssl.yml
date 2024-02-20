@@ -56,18 +56,6 @@
         regexp:                        '^SSLServerCertificate='
         line:                          SSLServerCertificate=/usr/sap/{{ db_sid | upper }}/SYS/global/SSL_client/{{ db2_ssl_label }}.arm
 
-- name:                                "DB2: Copy keystore files from Controller to Secondary node"
-  when:                                ansible_hostname == secondary_instance_name
-  ansible.builtin.copy:
-    src:                               /tmp/keystore_files/{{ item }}
-    dest:                              /db2/db2{{ db_sid | lower }}/keystore/
-    mode:                              0600
-    owner:                             db2{{ db_sid | lower }}
-    group:                             db{{ db_sid | lower }}adm
-  loop:
-    - "{{ db2_ssl_keydb_file }}"
-    - "{{ db2_ssl_stash_file }}"
-
 - name:                                "DB2 DB - Set SSL parameters"
   become:                              true
   become_user:                         db2{{ db_sid | lower }}
@@ -80,3 +68,15 @@
     executable:                        /bin/csh
   environment:
     PATH:                              "{{ ansible_env.PATH }}:/db2/db2{{ db_sid | lower }}/sqllib/gskit/bin"
+
+- name:                                "DB2: Copy keystore files from Controller to Secondary node"
+  when:                                ansible_hostname == secondary_instance_name
+  ansible.builtin.copy:
+    src:                               /tmp/keystore_files/{{ item }}
+    dest:                              /db2/db2{{ db_sid | lower }}/keystore/
+    mode:                              0600
+    owner:                             db2{{ db_sid | lower }}
+    group:                             db{{ db_sid | lower }}adm
+  loop:
+    - "{{ db2_ssl_keydb_file }}"
+    - "{{ db2_ssl_stash_file }}"
