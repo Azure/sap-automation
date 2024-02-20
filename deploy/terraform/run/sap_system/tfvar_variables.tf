@@ -1271,6 +1271,27 @@ variable "subscription"                         {
 
 #########################################################################################
 #                                                                                       #
+#  Azure Monitor for SAP variables                                                      #
+#                                                                                       #
+#########################################################################################
+
+variable "ams_resource_id"                      {
+                                                  description = "[optional] If defined, will use the specified Azure Monitor for SAP instance, else will use the AMS instance in the workload zone."
+                                                  default     = ""
+                                                }
+
+variable "enable_ha_monitoring"                 {
+                                                  description = "If defined, will enable prometheus high availability cluster monitoring"
+                                                  default     = false
+                                                }
+
+variable "enable_os_monitoring"                 {
+                                                  description = "If defined, will enable prometheus os monitoring"
+                                                  default     = false
+                                                }
+
+#########################################################################################
+#                                                                                       #
 #  Configuration values                                                                 #
 #                                                                                       #
 #########################################################################################

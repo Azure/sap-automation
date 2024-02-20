@@ -177,4 +177,14 @@ iscsi_servers:
 %{~ endfor }
 %{~ endif }
 
+#############################################################################
+#                                                                           #
+#                                AMS                                        #
+#                                                                           #
+#############################################################################
+# ams_resource_id is the AMS resource ID
+ams_resource_id:                      ${ams_resource_id}
+enable_os_monitoring:                 ${enable_os_monitoring}
+enable_ha_monitoring:                 ${enable_ha_monitoring}
+
 ...

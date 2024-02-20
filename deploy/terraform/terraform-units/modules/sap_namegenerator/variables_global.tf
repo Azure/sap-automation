@@ -371,6 +371,7 @@ variable "resource_prefixes" {
     "witness"                        = ""
     "witness_accesskey"              = ""
     "witness_name"                   = ""
+    "ams_subnet"                     = ""
   }
 }
 
@@ -503,6 +504,8 @@ variable "resource_suffixes" {
     "witness"                        = "-witness"
     "witness_accesskey"              = "-witness-accesskey"
     "witness_name"                   = "-witness-name"
+    "ams_subnet"                     = "ams-subnet"
+    "ams_instance"                   = "-AMS"
   }
 }
 
