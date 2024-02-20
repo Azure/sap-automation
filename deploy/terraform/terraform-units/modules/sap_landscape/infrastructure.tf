@@ -64,7 +64,8 @@ resource "azurerm_virtual_network_peering" "peering_management_sap" {
                                            azurerm_subnet.app,
                                            azurerm_subnet.db,
                                            azurerm_subnet.web,
-                                           azurerm_subnet.admin
+                                           azurerm_subnet.admin,
+                                           azurerm_subnet.ams
 
                                          ]
 
@@ -104,7 +105,8 @@ resource "azurerm_virtual_network_peering" "peering_sap_management" {
                                            azurerm_subnet.app,
                                            azurerm_subnet.db,
                                            azurerm_subnet.web,
-                                           azurerm_subnet.admin
+                                           azurerm_subnet.admin,
+                                           azurerm_subnet.ams
 
                                          ]
 

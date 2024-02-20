@@ -66,6 +66,11 @@ output "db_nsg_id"                               {
                                                    value       = module.sap_landscape.db_nsg_id
                                                  }
 
+output "ams_subnet_id"                           {
+                                                   description = "Azure resource identifier for the AMS subnet"
+                                                   value       = length(var.ams_subnet_arm_id) > 0 ? var.ams_subnet_arm_id : module.sap_landscape.ams_subnet_id
+                                                 }
+
 output "route_table_id"                          {
                                                    description = "Azure resource identifier for the route table"
                                                    value       = module.sap_landscape.route_table_id
@@ -311,4 +316,14 @@ output "iSCSI_servers"                          {
                                                     module.sap_landscape.iSCSI_servers) : (
                                                     []
                                                   )
+                                                }
+
+###############################################################################
+#                                                                             #
+#                                 AMS Resource                                #
+#                                                                             #
+###############################################################################
+output ams_resource_id                          {
+                                                  description = "AMS resource ID"
+                                                  value = module.sap_landscape.ams_resource_id
                                                 }

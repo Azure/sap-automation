@@ -1,0 +1,9 @@
+---
+# TODO: Maybe move these to a group_vars/all/distro file so that they
+# can be shared by all playbooks/tasks automatically, and extend with
+# standardised versions of all similar patterns used in the playbooks.
+distro_name:                           "{{ ansible_os_family | upper }}-{{ ansible_distribution_major_version }}"
+distribution_id:                       "{{ ansible_os_family | lower ~ ansible_distribution_major_version }}"
+distribution_full_id:                  "{{ ansible_os_family | lower ~ ansible_distribution_version }}"
+ams_cli_extension_url:                "https://files.pythonhosted.org/packages/ce/f3/91b1a5fdff7a7f0cc8bdfc9a7177f1c1dbab909f857a5ba4cc837650635e/azure_mgmt_workloads-1.0.0-py3-none-any.whl"
+...
