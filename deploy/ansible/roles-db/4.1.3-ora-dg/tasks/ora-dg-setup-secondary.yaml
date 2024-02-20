@@ -147,7 +147,7 @@
   when:
     - node_tier == "oracle"
     - current_host == ora_secondary
-    - lsnrctl_start_secondary_results.rc == 0
+    - lsnrctl_start_secondary_results_ora.rc == 0
     
 
 
