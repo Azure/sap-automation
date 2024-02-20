@@ -240,6 +240,9 @@ resource "local_file" "sap-parameters_yml" {
                                             )
               web_instance_number         = var.web_instance_number
               web_sid                     = var.web_sid
+              ams_resource_id             = var.ams_resource_id
+              enable_os_monitoring        = var.enable_os_monitoring
+              enable_ha_monitoring        = var.enable_ha_monitoring
 
     }
   )

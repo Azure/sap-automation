@@ -114,6 +114,16 @@ output "anf_subnet_id"                          {
                                                                 )
                                                 }
 
+output "ams_subnet_id"                          {
+                                                  description = "Azure resource identifier for the ams subnet"
+                                                  value       = local.ams_subnet_defined ? (
+                                                                  local.ams_subnet_existing ? (
+                                                                    var.infrastructure.vnets.sap.subnet_ams.arm_id) : (
+                                                                    try(azurerm_subnet.ams[0].id, ""))) : (
+                                                                  ""
+                                                                  )
+                                                }
+
 output "admin_nsg_id"                           {
                                                   description = "Azure resource identifier for the admin subnet network security group"
                                                   value       = local.admin_subnet_defined ? (
@@ -509,4 +519,15 @@ output "iSCSI_servers"                          {
                                                           ])) : (
                                                             []
                                                           )
+                                                }
+
+###############################################################################
+#                                                                             #
+#                            AMS resource properties                          #
+#                                                                             #
+###############################################################################
+
+output "ams_resource_id"                        {
+                                                  description = "Azure resource identifier for the AMS resource"
+                                                  value       = azapi_resource.ams_instance[0].id
                                                 }

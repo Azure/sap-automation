@@ -199,3 +199,8 @@ variable "web_sid"                              {
 variable "webdispatcher_server_ips"             { description = "List of IP addresses for the Web dispatchers" }
 variable "webdispatcher_server_secondary_ips"   { description = "List of secondary IP addresses for the Web dispatchers" }
 variable "webdispatcher_server_vm_names"        { description = "List of VM names for the Web dispatchers" }
+
+variable "ams_resource_id"                      { description = "Resource ID for AMS" }
+variable "enable_os_monitoring"                 { description = "Enable OS monitoring" }
+variable "enable_ha_monitoring"                 { description = "Enable HA monitoring" }
+

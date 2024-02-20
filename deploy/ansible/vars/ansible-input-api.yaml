@@ -232,3 +232,9 @@ sap_swap:
   - { tier: "observer",           swap_size_mb: "2048"  }
   - { tier: 'sqlserver',          swap_size_mb: '20480' }
 # --------------------- End - SAP SWAP settings variables --------------------8
+
+# ------------------- Begin - Azure Monitor for SAP (AMS) variables ------------8
+ams_resource_id:                        ""
+enable_os_monitoring:                   false
+enable_ha_monitoring:                   false
+# ------------------- End - Azure Monitor for SAP (AMS) variables --------------8
