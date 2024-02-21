@@ -19,7 +19,7 @@
 # domain_ou_path needs to be defined in the ansible-input-api.yaml file
 # in the format as an example: 'OU=Windows,OU=Servers,DC=ansible,DC=local'
 - name:                                "WIN: Joining the domain {{ domain }}"
-  ansible.windows.win_domain_membership:
+  microsoft.ad.membership:
     dns_domain_name:                   "{{ domain_name }}"
     domain_admin_user:                 "{{ domain_service_account }}@{{ domain_name }}"
     domain_admin_password:             "{{ domain_service_password }}"
@@ -33,7 +33,7 @@
     - domain_ou_path | trim | length > 1
 
 - name:                                "WIN: Joining the domain {{ domain }}"
-  ansible.windows.win_domain_membership:
+  microsoft.ad.membership:
     dns_domain_name:                   "{{ domain_name }}"
     domain_admin_user:                 "{{ domain_service_account }}@{{ domain_name }}"
     domain_admin_password:             "{{ domain_service_password }}"
