@@ -63,9 +63,9 @@ output "database_server_vm_ids"        {
 output "database_server_vm_names"      {
                                          description = "AnyDB Virtual machine names"
                                          value       = local.enable_deployment ? (
-                                                      coalesce(azurerm_linux_virtual_machine.dbserver[*].name,
+                                                      compact(concat(azurerm_linux_virtual_machine.dbserver[*].name,
                                                         azurerm_windows_virtual_machine.dbserver[*].name
-                                                      )
+                                                      ))
                                                       ) : (
                                                       [""]
                                                      )
