@@ -115,8 +115,8 @@
   become:                              true
   become_user:                         "oracle"
   ansible.builtin.shell:               lsnrctl start
-  register:                            lsnrctl_start_secondary_results_ora
-  failed_when:                         lsnrctl_start_secondary_results_ora.rc > 0
+  register:                            lsnrctl_start_secondary_results
+  failed_when:                         lsnrctl_start_secondary_results.rc > 0
   args:
     creates:                           /etc/sap_deployment_automation/dgscripts/lsnrctl_started_sec.txt
     chdir:                             /etc/sap_deployment_automation/dgscripts
@@ -147,7 +147,7 @@
   when:
     - node_tier == "oracle"
     - current_host == ora_secondary
-    - lsnrctl_start_secondary_results_ora.rc == 0
+    - lsnrctl_start_secondary_results.rc == 0
     
 
 
@@ -157,8 +157,8 @@
   become:                              true
   become_user:                         "oracle"
   ansible.builtin.shell:               lsnrctl stop
-  register:                            lsnrctl_stop_secondary_results_asm
-  failed_when:                         lsnrctl_stop_secondary_results_asm.rc > 0
+  register:                            lsnrctl_stop_secondary_results
+  failed_when:                         lsnrctl_stop_secondary_results.rc > 0
   args:
     creates:                           /etc/sap_deployment_automation/dgscripts/lsnrctl_stopped_sec.txt
     chdir:                             /etc/sap_deployment_automation/dgscripts
@@ -178,7 +178,7 @@
   when:
     - node_tier == "oracle-asm"
     - current_host == ora_secondary
-    - lsnrctl_stop_secondary_results_asm.rc == 0
+    - lsnrctl_stop_secondary_results.rc == 0
     
 
 - name:                                "Oracle Data Guard - Setup Secondary: Start lsnrctl on Secondary"
