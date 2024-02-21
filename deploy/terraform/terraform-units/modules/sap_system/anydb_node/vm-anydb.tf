@@ -135,8 +135,8 @@ resource "azurerm_linux_virtual_machine" "dbserver" {
   //If more than one servers are deployed into a single zone put them in an availability set and not a zone
   availability_set_id                  = var.database.use_avset ? (
                                            local.availabilitysets_exist ? (
-                                             data.azurerm_availability_set.anydb[count.index % max(local.db_zone_count, 1)].id) : (
-                                             azurerm_availability_set.anydb[count.index % max(local.db_zone_count, 1)].id
+                                             data.azurerm_availability_set.anydb[count.index % max(length(data.azurerm_availability_set.anydb), 1)].id) : (
+                                             azurerm_availability_set.anydb[count.index % max(length(azurerm_availability_set.anydb), 1)].id
                                            )
                                          ) : null
 
@@ -272,8 +272,8 @@ resource "azurerm_windows_virtual_machine" "dbserver" {
   //If more than one servers are deployed into a single zone put them in an availability set and not a zone
   availability_set_id                  = var.database.use_avset ? (
                                            local.availabilitysets_exist ? (
-                                             data.azurerm_availability_set.anydb[count.index % max(local.db_zone_count, 1)].id) : (
-                                             azurerm_availability_set.anydb[count.index % max(local.db_zone_count, 1)].id
+                                             data.azurerm_availability_set.anydb[count.index % max(length(data.azurerm_availability_set.anydb), 1)].id) : (
+                                             azurerm_availability_set.anydb[count.index % max(length(azurerm_availability_set.anydb), 1)].id
                                            )
                                          ) : null
 
