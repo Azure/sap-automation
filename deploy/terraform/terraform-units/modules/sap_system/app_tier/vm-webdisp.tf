@@ -318,7 +318,7 @@ resource "azurerm_windows_virtual_machine" "web" {
                               name      = storage_type.name,
                               id        = disk_count,
                               disk_type = storage_type.disk_type,
-                              size_gb   = storage_type.size_gb,
+                              size_gb   = storage_type.size_gb < 128 ? 128 : storage_type.size_gb,
                               caching   = storage_type.caching
                             }
                           ]
