@@ -192,8 +192,9 @@
     chdir:                             /etc/sap_deployment_automation/dgscripts
     executable:                        /bin/csh
   when:                                
-    - current_host == ora_secondary
     - node_tier == "oracle-asm"
+    - current_host == ora_secondary
+    
 
 - name:                                "Oracle Data Guard - Setup Secondary: restart lsnrctl on Secondary (Debug)"
   ansible.builtin.debug:
@@ -215,9 +216,10 @@
     state:                             touch
     mode:                              '0755'
   when:
+    - node_tier == "oracle-asm"
     - current_host == ora_secondary
     - lsnrctl_asm_start_secondary_results.rc == 0
-    - node_tier == "oracle-asm"
+    
 
 - name:                            "ASM Listener Starting: Sleep for 40 seconds and continue with play"
   ansible.builtin.wait_for:
