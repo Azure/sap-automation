@@ -448,7 +448,7 @@ module "output_files" {
   #########################################################################################
   #  AMS                                                                                  #
   #########################################################################################
-  ams_resource_id                               = coalesce(var.ams_resource_id, try(data.terraform_remote_state.landscape.outputs.ams_resource_id, ""))
+  ams_resource_id                               = try(coalesce(var.ams_resource_id, try(data.terraform_remote_state.landscape.outputs.ams_resource_id, "")),"")
   enable_ha_monitoring                          = var.enable_ha_monitoring
   enable_os_monitoring                          = var.enable_os_monitoring
 }
