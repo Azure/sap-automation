@@ -9,6 +9,8 @@
 # +------------------------------------4---------------------------------------*/
 
 - name:                                "1.20 Packages: - Start and enable services required for monitoring"
+  when:
+    - enable_os_monitoring or enable_ha_monitoring
   block:
     - name:                            "1.20 Packages: - Start and enable services required for monitoring"
       ansible.builtin.service:
@@ -21,6 +23,8 @@
   when:                                ansible_os_family | upper == "REDHAT"
 
 - name:                                "1.20 Packages: - Download node exporter package to enable monitoring"
+  when:
+    - enable_os_monitoring or enable_ha_monitoring
   block:
     - name:                            "1.20 Packages: - Download node exporter package to enable monitoring"
       ansible.builtin.get_url:
@@ -40,6 +44,9 @@
                 nohup /tmp/node_exporter-1.3.1.linux-amd64/node_exporter --web.listen-address=':9100' &
 
 - name:                                "1.20.0 Packages: - Download HA cluster exporter package to enable monitoring"
+  when:
+    - enable_os_monitoring or enable_ha_monitoring
+    - ansible_os_family | upper == "SUSE"
   block:
     - name:                            "1.20 Packages: - Install ha cluster exporter package"
       community.general.zypper:
@@ -47,9 +54,11 @@
         state:                         present
     - name:                            "1.20 Packages: - Enable HA cluster exporter."
       ansible.builtin.shell:           "nohup ha_cluster_exporter &"
-  when:                                ansible_os_family | upper == "SUSE"
 
 - name:                                "1.20.0 Packages: - Install pcp and pcp-pmda-hacluster package"
+  when:
+    - enable_os_monitoring or enable_ha_monitoring
+    - ansible_os_family | upper == "REDHAT"
   block:
     - name:                            "1.20 Packages: - Install pcp and pcp-pmda-hacluster package"
       ansible.builtin.yum:
@@ -61,7 +70,6 @@
       ansible.builtin.shell:           "./Install"
       args:
         chdir:                         "/var/lib/pcp/pmdas/hacluster/"
-  when:                                ansible_os_family | upper == "REDHAT"
 
 # /*----------------------------------------------------------------------------8
 # |                                    END                                      |
