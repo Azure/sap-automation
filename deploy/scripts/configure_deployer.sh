@@ -679,6 +679,7 @@ sudo -H "${ansible_venv_bin}/ansible-galaxy" collection install ansible.windows 
 sudo -H "${ansible_venv_bin}/ansible-galaxy" collection install ansible.posix --force --collections-path "${ansible_collections}"
 sudo -H "${ansible_venv_bin}/ansible-galaxy" collection install ansible.utils --force --collections-path "${ansible_collections}"
 sudo -H "${ansible_venv_bin}/ansible-galaxy" collection install community.windows --force --collections-path "${ansible_collections}"
+sudo -H "${ansible_venv_bin}/ansible-galaxy" collection install microsoft.ad --force --collections-path "${ansible_collections}"
 
 if [[ "${ansible_version}" == "2.11" ]]; then
   # ansible galaxy upstream has changed. Some collections are only available for install via old-galaxy.ansible.com

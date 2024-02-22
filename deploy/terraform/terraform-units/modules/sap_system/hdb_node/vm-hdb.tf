@@ -191,8 +191,8 @@ resource "azurerm_linux_virtual_machine" "vm_dbnode" {
   //If more than one servers are deployed into a single zone put them in an availability set and not a zone
   availability_set_id                  = local.use_avset && !local.enable_ultradisk ? (
                                            local.availabilitysets_exist ? (
-                                             data.azurerm_availability_set.hdb[count.index % max(local.db_zone_count, 1)].id) : (
-                                             azurerm_availability_set.hdb[count.index % max(local.db_zone_count, 1)].id
+                                             data.azurerm_availability_set.hdb[count.index % max(length(data.azurerm_availability_set.hdb), 1)].id) : (
+                                             azurerm_availability_set.hdb[count.index % max(length(azurerm_availability_set.hdb), 1)].id
                                            )
                                          ) : null
 

@@ -175,7 +175,7 @@ resource "local_file" "ansible_inventory_new_yml" {
 # }
 
 resource "local_file" "sap-parameters_yml" {
-  content = templatefile(format("%s/sap-parameters.yml.tmpl", path.module), {
+  content = templatefile(format("%s/sap-parameters.tmpl", path.module), {
               app_instance_number         = var.app_instance_number
               bom                         = length(var.bom_name) > 0 ? var.bom_name : ""
               database_cluster_type       = var.database_cluster_type
