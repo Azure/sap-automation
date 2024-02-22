@@ -262,7 +262,7 @@
 
     - name:                            "APP Install: Get hdbuserstore path"
       ansible.builtin.find:
-        paths:                         "/usr/sap/{{ sap_sid | upper }}"
+        paths:                         "/usr/sap/{{ sid_to_be_deployed.sid | upper }}/SYS/exe/uc/linuxx86_64/hdbclient/,/usr/sap/{{ sid_to_be_deployed.sid }}/hdbclient"
         file_type:                     file
         patterns:                      'hdbuserstore'
         recurse:                       true
@@ -329,7 +329,7 @@
 
     - name:                            "APP Install: Get hdbuserstore path"
       ansible.builtin.find:
-        paths:                         "/usr/sap/{{ sap_sid | upper }}"
+        paths:                         "/usr/sap/{{ sid_to_be_deployed.sid | upper }}/SYS/exe/uc/linuxx86_64/hdbclient/,/usr/sap/{{ sid_to_be_deployed.sid }}/hdbclient"
         file_type:                     file
         patterns:                      'hdbuserstore'
         recurse:                       true
