@@ -28,7 +28,7 @@
     description:                       Share Installation Files Accross Servers
     path:                              "{{ target_media_location_windows }}"
     list:                              true
-    full:                              '{{ orchestration_ansible_user }},SAP_{{ sap_sid | upper }}_LocalAdmin,SAP_{{ sap_sid | upper }}_GlobalAdmin@{{ domain }},{{ domain_service_account }}@{{ domain_name }},{{ sql_svc_account }}'
+    full:                              '{{ orchestration_ansible_user }},SAP_{{ sap_sid | upper }}_LocalAdmin,SAP_{{ sap_sid | upper }}_GlobalAdmin@{{ domain_name }},{{ domain_service_account }}@{{ domain_name }},{{ sql_svc_account }}'
     state:                             present
   register:                            win_share_info
   when:
