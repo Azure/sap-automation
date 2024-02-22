@@ -507,8 +507,8 @@
     owner:                             oracle
     group:                             oinstall
   when:                                
-    - secondary_shutdown_results.rc == 0
     - node_tier == "oracle-asm"
+    - secondary_shutdown_results.rc == 0
     - current_host == ora_secondary
 
 # Create new PFILE with SPFILE Details.
@@ -541,8 +541,9 @@
     chdir:                             /etc/sap_deployment_automation/dgscripts
     executable:                        /bin/csh
   when: 
-    - current_host == ora_secondary
     - node_tier == "oracle-asm"
+    - current_host == ora_secondary
+    
 
 - name:                                "Oracle Data Guard - Setup Secondary: Create asm_secondary_startup_spfile.txt"
   become:                              true
@@ -554,8 +555,8 @@
     owner:                             oracle
     group:                             oinstall
   when:                                
-    - asm_secondary_startup_spfile_results.rc == 0
     - node_tier == "oracle-asm"
+    - asm_secondary_startup_spfile_results.rc == 0
     - current_host == ora_secondary
 
 - name:                            "Update the Local_Listener Value in secondary"
@@ -582,8 +583,8 @@
     owner:                          oracle
     group:                          oinstall
   when:                             
-    - local_listener_on_secondary_results.rc  == 0
     - node_tier == "oracle-asm"
+    - local_listener_on_secondary_results.rc  == 0
     - current_host == ora_secondary
 
 
