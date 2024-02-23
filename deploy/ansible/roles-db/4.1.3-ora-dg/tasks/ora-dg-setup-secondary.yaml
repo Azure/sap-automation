@@ -96,8 +96,6 @@
     block: |
                 *.db_unique_name ='{{ db_sid | upper }}_STDBY'
                 *.log_file_name_convert='{{ db_sid | upper }}','{{ db_sid | upper }}'
-                *.db_create_online_log_dest_1='+DATA'
-                *.db_create_online_log_dest_2='+DATA'
                 *.local_listener='(Address=(Protocol=TCP)(Host=({{ ora_secondary }})(Port=1521))'
   when:
     - node_tier == "oracle"
