@@ -179,6 +179,8 @@
         creates:                       /etc/sap_deployment_automation/dgscripts/oracle_clusterware_registered.txt
         chdir:                         /etc/sap_deployment_automation/dgscripts
         executable:                    /bin/csh
+      when:
+       - node_tier == "oracle-asm"
 
     - name:                            "Create oracle_clusterware_registered on secondary"
       become:                          true
@@ -189,7 +191,9 @@
         mode:                          '0755'
         owner: oracle
         group: oinstall
-      when:                            oracle_clusterware_register.rc  == 0
+      when:
+        - node_tier == "oracle-asm"                        
+        - oracle_clusterware_register.rc  == 0
 
     - name:                            "Create post processing completed on secondary"
       become:                          true
@@ -211,6 +215,7 @@
         groups:                            asmoper,asmdba,dba,oper,oinstall
         append:                            true
         shell:                             /bin/csh
+      when:                                node_tier == "oracle-asm"
     
     
     
