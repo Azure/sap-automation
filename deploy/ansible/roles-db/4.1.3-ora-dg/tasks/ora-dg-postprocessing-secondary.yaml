@@ -151,7 +151,7 @@
         executable:                        /bin/csh
       when: 
         - current_host == ora_secondary
-        # - node_tier == 'oracle-asm'
+        - node_tier == "oracle-asm"
     
     - name:                                "Oracle Data Guard - Setup Secondary: Create asm_secondary_shutdown.txt"
       become:                              true
@@ -163,8 +163,8 @@
         owner:                             oracle
         group:                             oinstall
       when:                                
+        - node_tier == "oracle-asm"
         - secondary_shutdown_cfg_results.rc == 0
-        # - node_tier == 'oracle-asm'
         - current_host == ora_secondary
     
     - name:                            "Oracle CLusterware Restart Configuration"
@@ -215,7 +215,7 @@
         groups:                            asmoper,asmdba,dba,oper,oinstall
         append:                            true
         shell:                             /bin/csh
-      when:                                node_tier == "oracle-asm"
+      # when:                                node_tier == "oracle-asm"
     
     
     
