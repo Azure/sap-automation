@@ -572,7 +572,7 @@
     group:                             oinstall
   when:                                
     - node_tier == "oracle"
-    - asm_secondary_startup_spfile_results.rc == 0
+    - ora_secondary_startup_spfile_results.rc == 0
     - current_host == ora_secondary
 
 
