@@ -190,6 +190,22 @@
   when:
     - node_tier == 'oracle-asm'
 
+# orasecondarystartup.sql
+- name:                                "Oracle Data Guard  - Preparation: create orasecondarystartup.sql"
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.blockinfile:
+    create:                            true
+    path:                              /etc/sap_deployment_automation/dgscripts/orasecondarystartup.sql
+    marker_begin:                      "-- BEGIN"
+    marker_end:                        "-- END"
+    block: |
+              STARTUP MOUNT;
+              exit
+    mode:                              '0755'
+  when:
+    - node_tier == 'oracle'
+
 
 - name:                                "Oracle Data Guard - Preparation: create secondarystartup.sql"
   become:                              true

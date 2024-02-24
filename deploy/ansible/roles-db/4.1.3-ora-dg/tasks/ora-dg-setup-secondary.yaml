@@ -426,8 +426,157 @@
     - node_tier == "oracle-asm"
     - current_host == ora_secondary
     - asm_oraarch_created_results.rc == 0
+#--------------------------------------------------------------------------------------------------------------- 
+
+# Create the SPFILE from PFILE on Standby and Start the Standby Database using PFILE for non-ASM.
+- name:                                "Oracle Data Guard - Setup Secondary: Create spfile on non-ASM"
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.shell: |
+      set -o pipefail
+      sqlplus / as sysdba @createspfile.sql | tee /etc/sap_deployment_automation/dgscripts/create_spfile.log
+  register:                            create_spfile_results
+  failed_when:                         create_spfile_results.rc > 0
+  args:
+    creates:                           /etc/sap_deployment_automation/dgscripts/spfile_created.txt
+    chdir:                             /etc/sap_deployment_automation/dgscripts
+    executable:                        /bin/csh
+  when: 
+    - node_tier == "oracle"
+    - current_host == ora_secondary
     
 
+- name:                                "Oracle Data Guard - Setup Secondary: Create spfile_created.txt"
+  become:                              true
+  become_user:                         "root"
+  ansible.builtin.file:
+    path:                              /etc/sap_deployment_automation/dgscripts/spfile_created.txt
+    state:                             touch
+    mode:                              '0755'
+    owner:                             oracle
+    group:                             oinstall
+  when:                                
+    - node_tier == "oracle"
+    - create_spfile_results.rc == 0
+    - current_host == ora_secondary
+
+# Backup the PFILE and Create new PFILE refering to SPFILE.
+- name:                                "Oracle Data Guard - Setup Secondary: Backup and remove pfile"
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.shell: |
+      set -o pipefail
+      mv init{{ db_sid | upper}}.ora init{{ db_sid | upper}}.ora_backup_after_restore
+  register:                            backup_pfile_results
+  failed_when:                         backup_pfile_results.rc > 0
+  args:
+    creates:                           /etc/sap_deployment_automation/dgscripts/pfile_backup_created.txt
+    chdir:                             /oracle/{{ db_sid |upper }}/{{ ora_release}}/dbs
+    executable:                        /bin/csh
+  when: 
+    - node_tier == "oracle"
+    - current_host == ora_secondary
+    
+
+- name:                                "Oracle Data Guard - Setup Secondary: Create pfile_backup_created.txt"
+  become:                              true
+  become_user:                         "root"
+  ansible.builtin.file:
+    path:                              /etc/sap_deployment_automation/dgscripts/pfile_backup_created.txt
+    state:                             touch
+    mode:                              '0755'
+    owner:                             oracle
+    group:                             oinstall
+  when:                                
+    - node_tier == "oracle"
+    - backup_pfile_results.rc == 0
+    - current_host == ora_secondary
+
+
+# Stop the Secondary Database.
+- name:                                "Oracle Data Guard - Setup Secondary: Stop secondary DB for  spfile"
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.shell: |
+      set -o pipefail
+      sqlplus / as sysdba @shutdownsecondary.sql | tee /etc/sap_deployment_automation/dgscripts/ora_secondary_shutdown.log
+  register:                            secondary_shutdown_results
+  failed_when:                         secondary_shutdown_results.rc > 0
+  args:
+    creates:                           /etc/sap_deployment_automation/dgscripts/ora_secondary_shutdown.txt
+    chdir:                             /etc/sap_deployment_automation/dgscripts
+    executable:                        /bin/csh
+  when: 
+    - node_tier == "oracle"
+    - current_host == ora_secondary
+    
+
+- name:                                "Oracle Data Guard - Setup Secondary: Create ora_secondary_shutdown.txt"
+  become:                              true
+  become_user:                         "root"
+  ansible.builtin.file:
+    path:                              /etc/sap_deployment_automation/dgscripts/ora_secondary_shutdown.txt
+    state:                             touch
+    mode:                              '0755'
+    owner:                             oracle
+    group:                             oinstall
+  when:                                
+    - node_tier == "oracle"
+    - secondary_shutdown_results.rc == 0
+    - current_host == ora_secondary
+
+# # Create new PFILE with SPFILE Details for NON-ASM.
+- name:                                "Oracle Data Guard - Preparation: create createspfile"
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.blockinfile:
+    create:                            true
+    path:                              /oracle/{{ db_sid |upper }}/{{ ora_release}}/dbs/init{{ db_sid | upper }}.ora
+    marker_begin:                      "-- BEGIN"
+    marker_end:                        "-- END"
+    block: |
+              spfile='/oracle/{{ db_sid |upper }}/{{ ora_release}}/dbs/spfile{{ db_sid | upper }}.ora'
+    mode:                              '0755'
+  when:
+    - node_tier == "oracle"
+    - current_host == ora_secondary
+
+
+
+#  Start the Secondary Database with the new SPFILE;
+- name:                                "Oracle Data Guard - Setup Secondary: Start secondary DB with spfile"
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.shell: |
+      set -o pipefail
+      sqlplus / as sysdba @orasecondarystartup.sql | tee /etc/sap_deployment_automation/dgscripts/ora_secondary_startup_spfile.log
+  register:                            ora_secondary_startup_spfile_results
+  failed_when:                         ora_secondary_startup_spfile_results.rc > 0
+  args:
+    creates:                           /etc/sap_deployment_automation/dgscripts/ora_secondary_startup_spfile.txt
+    chdir:                             /etc/sap_deployment_automation/dgscripts
+    executable:                        /bin/csh
+  when: 
+    - node_tier == "oracle"
+    - current_host == ora_secondary
+    
+
+- name:                                "Oracle Data Guard - Setup Secondary: Create ora_secondary_startup_spfile.txt"
+  become:                              true
+  become_user:                         "root"
+  ansible.builtin.file:
+    path:                              /etc/sap_deployment_automation/dgscripts/ora_secondary_startup_spfile.txt
+    state:                             touch
+    mode:                              '0755'
+    owner:                             oracle
+    group:                             oinstall
+  when:                                
+    - node_tier == "oracle"
+    - asm_secondary_startup_spfile_results.rc == 0
+    - current_host == ora_secondary
+
+
+#---------------------------------------------------------------------------------------------------------------
 # Create the SPFILE from PFILE on Standby and Start the Standby Database using PFILE.
 - name:                                "Oracle Data Guard - Setup Secondary: Create spfile on ASM"
   become:                              true
@@ -525,7 +674,7 @@
     - secondary_shutdown_results.rc == 0
     - current_host == ora_secondary
 
-# Create new PFILE with SPFILE Details.
+# Create new PFILE with SPFILE Details for ASM.
 - name:                                "Oracle Data Guard for ASM - Preparation: create createspfile"
   become:                              true
   become_user:                         "oracle"
@@ -540,6 +689,8 @@
   when:
     - node_tier == "oracle-asm"
     - current_host == ora_secondary
+
+
 
 #  Start the Secondary Database with the new SPFILE;
 - name:                                "Oracle Data Guard - Setup Secondary: Start secondary DB with spfile"
