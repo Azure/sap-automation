@@ -133,6 +133,8 @@
       - SecurityUpdates
       - CriticalUpdates
       - UpdateRollups
+    reject_list:
+      - KB5034439
   register:                            win_updates
   notify:                              "WIN-SQL: Restart SQL Server VM"
 
