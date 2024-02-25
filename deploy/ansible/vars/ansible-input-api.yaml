@@ -175,6 +175,11 @@ domain_user_password:                   "{{ winadm_password }}"
 sid_service_password:                   "{{ svc_password }}"
 win_sap_admin:                          "SAP_{{ sap_sid | upper }}_GlobalAdmin"
 
+# Windows patch releated parameters
+
+win_updates_reject_list:                ["KB5034439"]
+win_updates_accept_list:                []
+
 # SQL Server specific parameters
 use_sql_for_SAP:                        true
 data_disks:                             F:\{{ sap_sid | upper }}DATA1\{{ sap_sid | upper }}4DATA1.mdf,G:\{{ sap_sid | upper }}DATA2\{{ sap_sid | upper }}4DATA2.mdf,H:\{{ sap_sid | upper }}DATA3\{{ sap_sid | upper }}4DATA3.mdf,I:\{{ sap_sid | upper }}DATA4\{{ sap_sid | upper }}4DATA4.mdf
