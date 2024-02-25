@@ -10,7 +10,8 @@
 
 - name:                                "1.20 Packages: - Start and enable services required for monitoring"
   when:
-    - enable_os_monitoring or enable_ha_monitoring
+    - enable_ha_monitoring
+    - ansible_os_family | upper == "REDHAT"
   block:
     - name:                            "1.20 Packages: - Start and enable services required for monitoring"
       ansible.builtin.service:
