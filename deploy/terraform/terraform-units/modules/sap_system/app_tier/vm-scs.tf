@@ -239,6 +239,11 @@ resource "azurerm_linux_virtual_machine" "scs" {
                          identity_ids = length(var.application_tier.user_assigned_identity_id) > 0 ? [var.application_tier.user_assigned_identity_id] : null
                        }
                      }
+  lifecycle {
+    ignore_changes = [
+      source_image_id
+    ]
+  }
 
 
 }
@@ -418,6 +423,11 @@ resource "azurerm_windows_virtual_machine" "scs" {
                                    identity_ids = [var.application_tier.user_assigned_identity_id]
                                  }
                        }
+  lifecycle {
+    ignore_changes = [
+      source_image_id
+    ]
+  }
 
 }
 
@@ -449,6 +459,13 @@ resource "azurerm_managed_disk" "scs" {
                                            null
                                          )
 
+  lifecycle {
+    ignore_changes = [
+      create_option,
+      hyper_v_generation,
+      source_resource_id
+    ]
+  }
 
 }
 
@@ -572,6 +589,13 @@ resource "azurerm_managed_disk" "cluster" {
                                             )) : (
                                             null
                                           )
+  lifecycle {
+    ignore_changes = [
+      create_option,
+      hyper_v_generation,
+      source_resource_id
+    ]
+  }
 }
 
 resource "azurerm_virtual_machine_data_disk_attachment" "cluster" {
