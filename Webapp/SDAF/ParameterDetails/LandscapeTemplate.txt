@@ -210,6 +210,54 @@ $$anf_subnet_nsg_name$$
 # anf_subnet_nsg_arm_id is an optional parameter that if provided specifies Azure resource identifier for the existing network security group to use
 $$anf_subnet_nsg_arm_id$$
 
+
+###########################################################################
+#                                                                         #
+#                                    ISCSI Networking                     #
+#                                                                         #
+###########################################################################
+
+/* iscsi subnet information */
+# If defined these parameters control the subnet name and the subnet prefix
+# iscsi_subnet_name is an optional parameter and should only be used if the default naming is not acceptable
+$$iscsi_subnet_name$$
+
+# iscsi_subnet_arm_id is an optional parameter that if provided specifies Azure resource identifier for the existing subnet
+$$iscsi_subnet_arm_id$$
+
+# iscsi_subnet_address_prefix is a mandatory parameter if the subnets are not defined in the workload or if existing subnets are not used
+$$iscsi_subnet_address_prefix$$
+
+# iscsi_subnet_nsg_arm_id is an optional parameter that if provided specifies Azure resource identifier for the existing nsg
+$$iscsi_subnet_nsg_arm_id$$
+
+# iscsi_subnet_nsg_name is an optional parameter and should only be used if the default naming is not acceptable for the network security group name
+$$iscsi_subnet_nsg_name$$
+
+###########################################################################
+#                                                                         #
+#                               AMS Networking                            #
+#                                                                         #
+###########################################################################
+
+/* ams subnet information */
+# If defined these parameters control the subnet name and the subnet prefix
+# ams_subnet_name is an optional parameter and should only be used if the default naming is not acceptable
+$$ams_subnet_name$$
+
+# ams_subnet_arm_id is an optional parameter that if provided specifies Azure resource identifier for the existing subnet
+$$ams_subnet_arm_id$$
+
+# ams_subnet_address_prefix is a mandatory parameter if the subnets are not defined in the workload or if existing subnets are not used
+$$ams_subnet_address_prefix$$
+
+# ams_subnet_nsg_arm_id is an optional parameter that if provided specifies Azure resource identifier for the existing nsg
+$$ams_subnet_nsg_arm_id$$
+
+# ams_subnet_nsg_name is an optional parameter and should only be used if the default naming is not acceptable for the network security group name
+$$ams_subnet_nsg_name$$
+
+
 #########################################################################################
 #                                                                                       #
 #  DNS Settings                                                                         #
@@ -411,31 +459,6 @@ $$ANF_install_volume_size$$
 
 # ANF_install_volume_zone is the zone for the transport volume
 $$ANF_install_volume_zone$$
-
-
-###########################################################################
-#                                                                         #
-#                                    ISCSI Networking                     #
-#                                                                         #
-###########################################################################
-
-/* iscsi subnet information */
-# If defined these parameters control the subnet name and the subnet prefix
-# iscsi_subnet_name is an optional parameter and should only be used if the default naming is not acceptable
-$$iscsi_subnet_name$$
-
-# iscsi_subnet_arm_id is an optional parameter that if provided specifies Azure resource identifier for the existing subnet
-$$iscsi_subnet_arm_id$$
-
-# iscsi_subnet_address_prefix is a mandatory parameter if the subnets are not defined in the workload or if existing subnets are not used
-$$iscsi_subnet_address_prefix$$
-
-# iscsi_subnet_nsg_arm_id is an optional parameter that if provided specifies Azure resource identifier for the existing nsg
-$$iscsi_subnet_nsg_arm_id$$
-
-# iscsi_subnet_nsg_name is an optional parameter and should only be used if the default naming is not acceptable for the network security group name
-$$iscsi_subnet_nsg_name$$
-
 
 ###########################################################################
 #                                                                         #
