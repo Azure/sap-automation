@@ -157,11 +157,27 @@ namespace AutomationForm.Models
 
     public bool? peer_with_control_plane_vnet { get; set; } = true;
 
-/*---------------------------------------------------------------------------8
-|                                                                            |
-|                       Miscallaneous information                            |
-|                                                                            |
-+------------------------------------4--------------------------------------*/
+    [SubnetArmIdValidator(ErrorMessage = "Invalid AMS subnet arm id")]
+    public string ams_subnet_arm_id { get; set; }
+
+    //[Required]
+    [AddressPrefixValidator(ErrorMessage = "AMS subnet address space must be a valid RFC 1918 address")]
+    public string ams_subnet_address_prefix { get; set; }
+
+    public string ams_subnet_name { get; set; }
+
+    [NsgArmIdValidator(ErrorMessage = "Invalid AMS subnet nsg arm id")]
+    public string ams_subnet_nsg_arm_id { get; set; }
+
+    public string ams_subnet_nsg_name { get; set; }
+
+
+
+    /*---------------------------------------------------------------------------8
+    |                                                                            |
+    |                       Miscallaneous information                            |
+    |                                                                            |
+    +------------------------------------4--------------------------------------*/
 
     public string automation_username { get; set; } = "azureadm";
 
