@@ -291,6 +291,11 @@ resource "azurerm_linux_virtual_machine" "vm_dbnode" {
                          identity_ids = length(var.database.user_assigned_identity_id) > 0 ? [var.database.user_assigned_identity_id] : null
                        }
                      }
+  lifecycle {
+    ignore_changes = [
+      source_image_id
+    ]
+  }
 
 
 }
@@ -359,6 +364,13 @@ resource "azurerm_managed_disk" "data_disk" {
                                            null
                                          )
   tags                                 = var.tags
+  lifecycle {
+    ignore_changes = [
+      create_option,
+      hyper_v_generation,
+      source_resource_id
+    ]
+  }
 
 }
 
@@ -432,6 +444,13 @@ resource "azurerm_managed_disk" "cluster" {
                                            azurerm_linux_virtual_machine.vm_dbnode[local.data_disk_list[count.index].vm_index].zone) : (
                                            null
                                          )
+  lifecycle {
+    ignore_changes = [
+      create_option,
+      hyper_v_generation,
+      source_resource_id
+    ]
+  }
 
 }
 

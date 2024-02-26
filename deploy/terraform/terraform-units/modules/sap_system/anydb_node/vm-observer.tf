@@ -179,4 +179,9 @@ resource "azurerm_windows_virtual_machine" "observer" {
   boot_diagnostics {
                      storage_account_uri = var.storage_bootdiag_endpoint
                    }
+  lifecycle {
+    ignore_changes = [
+      source_image_id
+    ]
+  }
 }

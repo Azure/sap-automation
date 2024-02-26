@@ -235,6 +235,12 @@ resource "azurerm_linux_virtual_machine" "app" {
                                    identity_ids = [var.application_tier.user_assigned_identity_id]
                                  }
                        }
+  lifecycle {
+    ignore_changes = [
+      source_image_id
+    ]
+  }
+
 }
 
 # Create the Windows Application VM(s)
@@ -355,6 +361,12 @@ resource "azurerm_windows_virtual_machine" "app" {
                                    identity_ids = [var.application_tier.user_assigned_identity_id]
                                  }
                        }
+  lifecycle {
+    ignore_changes = [
+      // Ignore changes to computername
+      source_image_id
+    ]
+  }
 
 }
 
@@ -383,6 +395,15 @@ resource "azurerm_managed_disk" "app" {
                                            )
                                          )
   tags                                 = var.tags
+
+  lifecycle {
+    ignore_changes = [
+      create_option,
+      hyper_v_generation,
+      source_resource_id
+    ]
+  }
+
 }
 
 resource "azurerm_virtual_machine_data_disk_attachment" "app" {

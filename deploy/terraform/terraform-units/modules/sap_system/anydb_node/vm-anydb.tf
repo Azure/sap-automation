@@ -233,7 +233,8 @@ resource "azurerm_linux_virtual_machine" "dbserver" {
   lifecycle {
     ignore_changes = [
       // Ignore changes to computername
-      computer_name
+      computer_name,
+      source_image_id
     ]
   }
 
@@ -359,7 +360,8 @@ resource "azurerm_windows_virtual_machine" "dbserver" {
   lifecycle {
     ignore_changes = [
       // Ignore changes to computername
-      computer_name
+      computer_name,
+      source_image_id
     ]
   }
 }
@@ -406,6 +408,14 @@ resource "azurerm_managed_disk" "disks" {
                                          )
 
   tags                                 = var.tags
+
+  lifecycle {
+    ignore_changes = [
+      create_option,
+      hyper_v_generation,
+      source_resource_id
+    ]
+  }
 
 }
 
