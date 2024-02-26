@@ -237,7 +237,7 @@ namespace AutomationForm.Models
     {
       public override bool IsValid(object value)
       {
-        string pattern = @"^\/subscriptions\/\w{8}-\w{4}-\w{4}-\w{4}-\w{12}\/resourceGroups\/[a-zA-Z0-9-_]+\/providers\/Microsoft.Monitor\/Accounts\/[a-zA-Z0-9-_]+$";
+        string pattern = @"^\/subscriptions\/\w{8}-\w{4}-\w{4}-\w{4}-\w{12}\/resourceGroups\/[a-zA-Z0-9-_]+\/providers\/Microsoft.Workloads\/monitors\/[a-zA-Z0-9-_]+$";
         return RegexValidation(value, pattern);
       }
     }

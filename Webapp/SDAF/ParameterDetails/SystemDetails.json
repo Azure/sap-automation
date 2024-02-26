@@ -2223,6 +2223,39 @@
     ]
   },
   {
+    "Section": "Azure Monitor support",
+    "Link": "https://learn.microsoft.com/en-us/azure/sap/automation/automation-configure-system",
+    "Parameters": [
+      {
+        "Name": "ams_resource_id",
+        "Required": false,
+        "Description": "Defines the Azure resource id for the Log analytics workspace in AMS",
+        "Type": "lookup",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "enable_ha_monitoring",
+        "Required": false,
+        "Description": "Enables prometheus high availability cluster monitoring.",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "enable_os_monitoring",
+        "Required": false,
+        "Description": "Enable prometheus operating system level monitoring.",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      }
+    ]
+  },
+  {
     "Section": "Other Parameters",
     "Link": "https://learn.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#other-parameters",
     "Parameters": [
