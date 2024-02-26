@@ -612,6 +612,22 @@ namespace AutomationForm.Models
 
     public int? stand_by_node_count { get; set; } = 0;
 
+
+    /*---------------------------------------------------------------------------8
+    |                                                                            |
+    |                               AMS Parameters                               |
+    |                                                                            |
+    +------------------------------------4--------------------------------------*/
+
+    public bool? enable_ha_monitoring { get; set; } = false;
+
+    public bool? enable_os_monitoring { get; set; } = false;
+
+    [AMSIdValidator(ErrorMessage = "Invalid AMS Resource id")]
+    public string ams_resource_id { get; set; }
+
+
+
   }
 
   public class Tag

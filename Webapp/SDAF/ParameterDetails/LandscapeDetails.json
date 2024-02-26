@@ -616,7 +616,7 @@
           }
         ],
         "Overrules": "ams_subnet_address_prefix",
-        "Display": 3
+        "Display": 2
       },
       {
         "Name": "ams_subnet_address_prefix",
@@ -625,7 +625,7 @@
         "Type": "field",
         "Options": [],
         "Overrules": "",
-        "Display": 3
+        "Display": 2
       },
       {
         "Name": "ams_subnet_name",
@@ -634,7 +634,7 @@
         "Type": "field",
         "Options": [],
         "Overrules": "",
-        "Display": 3
+        "Display": 2
       },
       {
         "Name": "ams_subnet_nsg_arm_id",
@@ -648,7 +648,7 @@
           }
         ],
         "Overrules": "ams_subnet_nsg_name",
-        "Display": 3
+        "Display": 2
       },
       {
         "Name": "ams_subnet_nsg_name",
@@ -657,7 +657,7 @@
         "Type": "field",
         "Options": [],
         "Overrules": "",
-        "Display": 3
+        "Display": 2
       }
     ]
   },
