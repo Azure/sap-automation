@@ -7,9 +7,10 @@ data "azurerm_subnet" "ams" {
   resource_group_name                  = local.resourcegroup_name
 }
 
+# Created AMS instance if log analytics workspace is NOT defined
 resource "azapi_resource" "ams_instance" {
   type                                  = "Microsoft.Workloads/monitors@2023-04-01"
-  count                                 = local.create_ams_instance && local.ams_subnet_defined ? 1 : 0
+  count                                 = local.create_ams_instance && local.ams_subnet_defined && length(local.ams_laws_arm_id) == 0 ? 1 : 0
   name                                  = local.ams_instance_name
   location                              = local.region
   parent_id                             = azurerm_resource_group.resource_group[0].id
@@ -21,6 +22,30 @@ resource "azapi_resource" "ams_instance" {
                                             properties = {
                                                             appLocation: local.region,
                                                             routingPreference: "RouteAll",
+                                                            managedResourceGroupConfiguration: {
+                                                              name: "managedrg-ams"
+                                                            },
+                                                           monitorSubnet: length(local.ams_subnet_arm_id) > 0 ? local.ams_subnet_arm_id : azurerm_subnet.ams[0].id,
+                                                          }
+                                          })
+}
+
+# Created AMS instance if log analytics workspace is defined
+resource "azapi_resource" "ams_instance" {
+  type                                  = "Microsoft.Workloads/monitors@2023-04-01"
+  count                                 = local.create_ams_instance && local.ams_subnet_defined && length(local.ams_laws_arm_id) > 0 ? 1 : 0
+  name                                  = local.ams_instance_name
+  location                              = local.region
+  parent_id                             = azurerm_resource_group.resource_group[0].id
+  depends_on                            = [
+                                            azurerm_virtual_network.vnet_sap,
+                                            azurerm_subnet.ams
+                                          ]
+  body                                  = jsonencode({
+                                            properties = {
+                                                            appLocation: local.region,
+                                                            routingPreference: "RouteAll",
+                                                            logAnalyticsWorkspaceArmId: local.ams_laws_arm_id,
                                                             managedResourceGroupConfiguration: {
                                                               name: "managedrg-ams"
                                                             },
