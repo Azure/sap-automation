@@ -8,6 +8,22 @@
 # |                                    BEGIN                                    |
 # +------------------------------------4---------------------------------------*/
 
+- name:                                "1.20.0 Packages: - Install pcp and pcp-pmda-hacluster package"
+  when:
+    - enable_os_monitoring or enable_ha_monitoring
+    - ansible_os_family | upper == "REDHAT"
+  block:
+    - name:                            "1.20 Packages: - Install pcp and pcp-pmda-hacluster package"
+      ansible.builtin.yum:
+        name:
+          - "pcp"
+          - "pcp-pmda-hacluster"
+
+    - name:                            "1.20 Packages: - Install and enable the HA Cluster PMDA."
+      ansible.builtin.shell:           "./Install"
+      args:
+        chdir:                         "/var/lib/pcp/pmdas/hacluster/"
+
 - name:                                "1.20 Packages: - Start and enable services required for monitoring"
   when:
     - enable_ha_monitoring
@@ -54,22 +70,6 @@
         state:                         present
     - name:                            "1.20 Packages: - Enable HA cluster exporter."
       ansible.builtin.shell:           "nohup ha_cluster_exporter &"
-
-- name:                                "1.20.0 Packages: - Install pcp and pcp-pmda-hacluster package"
-  when:
-    - enable_os_monitoring or enable_ha_monitoring
-    - ansible_os_family | upper == "REDHAT"
-  block:
-    - name:                            "1.20 Packages: - Install pcp and pcp-pmda-hacluster package"
-      ansible.builtin.yum:
-        name:
-          - "pcp"
-          - "pcp-pmda-hacluster"
-
-    - name:                            "1.20 Packages: - Install and enable the HA Cluster PMDA."
-      ansible.builtin.shell:           "./Install"
-      args:
-        chdir:                         "/var/lib/pcp/pmdas/hacluster/"
 
 # /*----------------------------------------------------------------------------8
 # |                                    END                                      |
