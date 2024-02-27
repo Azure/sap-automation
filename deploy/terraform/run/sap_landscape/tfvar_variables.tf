@@ -721,8 +721,8 @@ variable "utility_vm_image"                        {
                                                                      "os_type"         = "WINDOWS"
                                                                      "source_image_id" = ""
                                                                      "publisher"       = "MicrosoftWindowsServer"
-                                                                     "offer"           = "windowsserver"
-                                                                     "sku"             = "2019-datacenter"
+                                                                     "offer"           = "WindowsServer"
+                                                                     "sku"             = "2022-Datacenter"
                                                                      "version"         = "latest"
                                                                    }
                                                    }
