@@ -82,6 +82,13 @@ parameters:
     type:                              boolean
     default:                           false
 
+  - name:                             ams_provider
+    displayName:                      Configure AMS Provider
+    type:                             boolean
+    default:                          false
+
+
+
 # 20220929 MKD - ACSS Registration <BEGIN>
   - name:                             acss_registration
     displayName:                      Register System in ACSS
@@ -103,12 +110,6 @@ parameters:
       - ECC
       - Other
   # 20220929 MKD - ACSS Registration <END>
-
-  - name:                             ams_provider
-    displayName:                      Configure AMS Provider
-    type:                             boolean
-    default:                          false
-
 
   - name:                              sap_automation_repo_path
     displayName:                       The local path on the agent where the sap_automation repo can be found
