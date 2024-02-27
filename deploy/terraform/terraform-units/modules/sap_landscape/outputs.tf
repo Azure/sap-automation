@@ -529,5 +529,6 @@ output "iSCSI_servers"                          {
 
 output "ams_resource_id"                        {
                                                   description = "Azure resource identifier for the AMS resource"
-                                                  value       = local.create_ams_instance ? azapi_resource.ams_instance[0].id : ""
+                                                  value       = local.create_ams_instance ? (
+                                                    length(azapi_resource.ams_instance[0].id) == 0 ? azapi_resource.ams_instance_with_laws[0].id : azapi_resource.ams_instance[0].id) : ""
                                                 }
