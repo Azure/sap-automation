@@ -21,7 +21,6 @@ resource "azapi_resource" "ams_instance" {
                                             properties = {
                                                             appLocation: local.region,
                                                             routingPreference: "RouteAll",
-                                                            logAnalyticsWorkspaceArmId: local.ams_laws_arm_id,
                                                             managedResourceGroupConfiguration: {
                                                               name: "managedrg-ams"
                                                             },
