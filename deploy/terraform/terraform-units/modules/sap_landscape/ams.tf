@@ -7,6 +7,7 @@ data "azurerm_subnet" "ams" {
   resource_group_name                  = local.resourcegroup_name
 }
 
+# Created AMS instance if log analytics workspace is NOT defined
 resource "azapi_resource" "ams_instance" {
   type                                  = "Microsoft.Workloads/monitors@2023-04-01"
   count                                 = local.create_ams_instance && local.ams_subnet_defined ? 1 : 0
@@ -21,7 +22,7 @@ resource "azapi_resource" "ams_instance" {
                                             properties = {
                                                             appLocation: local.region,
                                                             routingPreference: "RouteAll",
-                                                            logAnalyticsWorkspaceArmId: local.ams_laws_arm_id,
+                                                            logAnalyticsWorkspaceArmId: length(local.ams_laws_arm_id) > 0 ? local.ams_laws_arm_id : null,
                                                             managedResourceGroupConfiguration: {
                                                               name: "managedrg-ams"
                                                             },
