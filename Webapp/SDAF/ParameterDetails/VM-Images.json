@@ -310,5 +310,17 @@
       "version": "latest",
       "type": "marketplace"
     }
+  },
+  {
+    "name": "Windows Server 2022 (Secure)",
+    "data": {
+      "os_type": "WINDOWS",
+      "source_image_id": "",
+      "publisher": "MicrosoftWindowsServer",
+      "offer": "windowsserver",
+      "sku": "2022-datacenter-g2",
+      "version": "latest",
+      "type": "marketplace"
+    }
   }
 ]
