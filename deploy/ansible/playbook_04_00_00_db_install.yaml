@@ -139,8 +139,8 @@
             state:                         restarted
 
       when:
-        - not db_high_availability
-        - db_scale_out | default(false)
+        # - not db_high_availability
+        - db_scale_out
         - hostvars.localhost.root_password is defined
 
 
@@ -184,9 +184,9 @@
           ansible.builtin.set_fact:
             root_password:             "{{ hostvars.localhost.root_password }}"
           when:
-            - db_scale_out is defined
+            # - db_scale_out is defined
             - db_scale_out
-            - not db_high_availability
+            # - not db_high_availability
 
         - name:                        "Database Installation Playbook: - Show SAP password"
           ansible.builtin.debug:
@@ -254,7 +254,7 @@
       when:
         # - db_high_availability
         - database_high_availability
-        - node_tier == 'hana'
+        - node_tier == 'hana's
       block:
         - name:                         "Database Installation Playbook: - Setting the facts"
           ansible.builtin.set_fact:
@@ -318,8 +318,25 @@
           when:
             - node_tier != 'oracle'
             - node_tier != 'oracle-asm'
+            - not db_scale_out
           tags:
             - 1.17-generic-pacemaker
+
+  # Scale out based pacemaker task.
+        - name:                        "Database Installation Playbook: - Install Scale Out Pacemaker"
+          ansible.builtin.include_role:
+            name:                      roles-os/1.18-scaleout-pacemaker                         # Configures the Pacemaker cluster with Azure fence agent
+            apply:
+              tags:
+                - 1.18-scaleout-pacemaker
+              become:                  true
+              become_user:             root
+          when:
+            - node_tier != 'oracle'
+            - node_tier != 'oracle-asm'
+            - db_scale_out
+          tags:
+            - 1.18-scaleout-pacemaker
 
         - name:                        "Database Installation Playbook: - Create pacemaker-install-done flag"
           delegate_to:                 localhost
@@ -328,6 +345,8 @@
             path:                      "{{ _workspace_directory }}/.progress/pacemaker-install-done"
             state:                     touch
             mode:                      0755
+
+
 
 
 # /*----------------------------------------------------------------------------8

@@ -37,6 +37,8 @@ always_upload_jinja_templates:         true
 hana_use_master_password:              y
 hana_password_copy:                    ""
 hana_backup_path:                      /hana/backup
+hana_data_basepath:                    "{% if db_scale_out %}/hana/data/{{ db_sid | upper }}{% else %}/hana/data{% endif %}"
+hana_log_basepath:                     "{% if db_scale_out %}/hana/log/{{ db_sid | upper }}{% else %}/hana/log{% endif %}"
 sap_sid:                               ""                                      # REQUIRED - SAP Install
 download_basket_dir:                   "{{ target_media_location }}/download_basket"
 db_sid:                                "XDB"                                   # Default
@@ -213,6 +215,7 @@ use_simple_mount:                       false
 # database_high_availability:            false
 db_scale_out:                          false
 database_cluster_type:                 "AFA"
+
 # scs_high_availability:                 false
 scs_cluster_type:                      "AFA"
 # Configure pacemaker for Azure scheduled events

@@ -5,8 +5,14 @@
 - name: "5.5 HANADB Pacemaker - import - pre_checks"
   ansible.builtin.import_tasks: 5.5.2-pre_checks.yml
 
+# Add a conditional fork here for HSR and HSR-SO systems
 - name: "5.5 HANADB Pacemaker - import - SAP HanaSR"
   ansible.builtin.import_tasks: 5.5.3-SAPHanaSR.yml
+  when: not db_scale_out
+
+- name: "5.5 HANADB Pacemaker - import - SAP HanaSRMultiTarget"
+  ansible.builtin.import_tasks: 5.5.3.1-SAPHanaSRMultiTarget.yml
+  when: db_scale_out and db_high_availability
 
 - name: "5.5 HANADB Pacemaker - import - provision"
   ansible.builtin.import_tasks: 5.5.4-provision.yml

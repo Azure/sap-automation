@@ -114,7 +114,7 @@
 - name:                                "2.6 SAP Mounts: - Mount local file systems (hana data)"
   ansible.posix.mount:
     src:                               '/dev/vg_hana_data/lv_hana_data'
-    path:                              '/hana/data'
+    path:                              "{{ hana_data_basepath }}"
     fstype:                            'xfs'
     opts:                              defaults
     state:                             mounted
@@ -125,7 +125,7 @@
 - name:                                "2.6 SAP Mounts: - Mount local file systems (hana log)"
   ansible.posix.mount:
     src:                               '/dev/vg_hana_log/lv_hana_log'
-    path:                              '/hana/log'
+    path:                              "{{ hana_log_basepath }}"
     fstype:                            'xfs'
     opts:                              defaults
     state:                             mounted
