@@ -392,10 +392,7 @@
     - sap_trans is defined
 
 ...
-# Scale out - Shared nothing configuration only
-
-
-
+# Scale out - shared nothing configuration code to support AFS based /hana/shared mount
 - name:                                 "AFS Mount: Scale out hana_shared primary site"
   ansible.builtin.include_tasks:        2.6.0.1-afs-mount.yaml
   loop:
