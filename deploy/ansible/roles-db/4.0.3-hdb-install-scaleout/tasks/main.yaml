@@ -619,7 +619,7 @@
           ansible.builtin.wait_for:
             timeout:                   300
     when:
-    - ansible_hostname == query('inventory_hostnames', '{{ sap_sid | upper }}_DB')[0]
+    - ansible_hostname == ansible_play_hosts_all[0]
     - not hana_installed.stat.exists
 
 # /*---------------------------------------------------------------------------8
@@ -881,7 +881,7 @@
           ansible.builtin.wait_for:
             timeout:                   300
     when:
-    - ansible_hostname == query('inventory_hostnames', '{{ sap_sid | upper }}_DB')[1]
+    - ansible_hostname == ansible_play_hosts_all[1]
     - not hana_installed.stat.exists
 
   when:
