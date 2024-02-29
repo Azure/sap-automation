@@ -83,7 +83,6 @@
       when:
         - db_scale_out is defined
         - db_scale_out
-        - not db_high_availability
       register:                         root_password_generated
 
     - name:                        "Database Installation Playbook: - Show root password"
