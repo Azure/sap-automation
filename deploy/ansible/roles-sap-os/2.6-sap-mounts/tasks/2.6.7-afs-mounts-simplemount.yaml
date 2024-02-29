@@ -330,7 +330,7 @@
       'type':              'shared',
       'temppath':          'shared',
       'mount':             "{% if ansible_hostname in query('inventory_hostnames', '{{ sap_sid | upper }}_DB')[0::2] %}{{ hana_shared_mountpoint[0] }}{% else %}{{ hana_shared_mountpoint[1] }}{% endif %}",
-      'opts':              'nfs nfsvers=4.1,sec=sys',
+      'opts':              'vers=4,minorversion=1,sec=syss',
       'path':              '/hana/shared',
       'permissions':       '0775',
       'set_chattr_on_dir': false,
@@ -345,27 +345,5 @@
     - hana_shared_mountpoint is defined
     - hana_shared_mountpoint | length == 2
 
-# - name:                                 "AFS Mount: Scale out hana_shared secondary site"
-#   ansible.builtin.include_tasks:        2.6.0.1-afs-mount.yaml
-#   loop:
-#     - {
-#       'type':              'shared',
-#       'temppath':          'shared',
-#       'mount':             '{{ hana_shared_mountpoint[0] }}',
-#       'opts':              'nfs nfsvers=4.1,sec=sys',
-#       'path':              '/hana/shared',
-#       'permissions':       '0775',
-#       'set_chattr_on_dir': false,
-#       'target_nodes':      ['hana'],
-#       'create_temp_folders': false
-#     }
-#   vars:
-#     primary_host:                      "{{ ansible_hostname }}"
-#   when:
-#     - db_scale_out
-#     - db_high_availability
-#     - ansible_hostname in "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB')[1::2] }}"
-#     - hana_shared_mountpoint is defined
-#     - hana_shared_mountpoint | length == 2
 
 ...
