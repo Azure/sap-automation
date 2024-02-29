@@ -399,7 +399,7 @@
       'type':              'shared',
       'temppath':          'shared',
       'mount':             "{% if ansible_hostname in query('inventory_hostnames', '{{ sap_sid | upper }}_DB')[0::2] %}{{ hana_shared_mountpoint[0] }}{% else %}{{ hana_shared_mountpoint[1] }}{% endif %}",
-      'opts':              'nfs nfsvers=4.1,sec=sys',
+      'opts':              'vers=4,minorversion=1,sec=sys',
       'path':              '/hana/shared',
       'permissions':       '0775',
       'set_chattr_on_dir': false,
