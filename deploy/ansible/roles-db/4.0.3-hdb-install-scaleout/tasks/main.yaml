@@ -525,7 +525,7 @@
               state:                     absent
 
           - name:                        "SAP HANA: remove custom config response file"
-            ansible.builtin.file:   
+            ansible.builtin.file:
               path:                      "{{ dir_params }}/{{ sap_custom_config }}"
               state:                     absent
 
@@ -540,7 +540,7 @@
           group:                         sapsys
           owner:                         "{{ db_sid | lower }}adm"
           mode:                          0755
-      
+
       - name:                            "SAP HANA: Configure global.ini"
         block:
           - name:                        "Prepare global.ini for domain name resolution."
@@ -562,7 +562,7 @@
               section:                   persistence
               state:                     present
               mode:                      0644
-              option:                    basepath_shared 
+              option:                    basepath_shared
               value:                     no
 
           - name:                        "Prepare global.ini for site hosts name resolution (Primary Site)"
@@ -619,7 +619,7 @@
           ansible.builtin.wait_for:
             timeout:                   300
     when:
-    - ansible_hostname == primary_instance_name
+    - ansible_hostname == query('inventory_hostnames', '{{ sap_sid | upper }}_DB')[0]
     - not hana_installed.stat.exists
 
 # /*---------------------------------------------------------------------------8
@@ -787,7 +787,7 @@
               state:                     absent
 
           - name:                        "SAP HANA: remove custom config response file"
-            ansible.builtin.file:   
+            ansible.builtin.file:
               path:                      "{{ dir_params }}/{{ sap_custom_config }}"
               state:                     absent
 
@@ -802,7 +802,7 @@
           group:                         sapsys
           owner:                         "{{ db_sid | lower }}adm"
           mode:                          0755
-      
+
       - name:                            "SAP HANA: Configure global.ini"
         block:
           - name:                        "Prepare global.ini for domain name resolution."
@@ -824,7 +824,7 @@
               section:                   persistence
               state:                     present
               mode:                      0644
-              option:                    basepath_shared 
+              option:                    basepath_shared
               value:                     no
 
           - name:                        "Prepare global.ini for site hosts name resolution (Secondary Site)"
@@ -881,7 +881,7 @@
           ansible.builtin.wait_for:
             timeout:                   300
     when:
-    - ansible_hostname == secondary_instance_name
+    - ansible_hostname == query('inventory_hostnames', '{{ sap_sid | upper }}_DB')[1]
     - not hana_installed.stat.exists
 
   when:
