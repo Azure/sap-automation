@@ -231,7 +231,7 @@ locals {
                                                for idx, disk_count in range(storage_type.count) : {
                                                  suffix = format("-%s%02d",
                                                    storage_type.name,
-                                                   disk_count + var.options.resource_offset
+                                                   storage_type.name_offset + disk_count + var.options.resource_offset
                                                  )
                                                  storage_account_type      = storage_type.disk_type,
                                                  disk_size_gb              = storage_type.size_gb,
