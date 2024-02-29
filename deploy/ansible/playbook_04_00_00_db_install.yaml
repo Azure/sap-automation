@@ -253,7 +253,8 @@
       when:
         # - db_high_availability
         - database_high_availability
-        - node_tier == 'hana's
+        - node_tier == 'hana
+
       block:
         - name:                         "Database Installation Playbook: - Setting the facts"
           ansible.builtin.set_fact:
