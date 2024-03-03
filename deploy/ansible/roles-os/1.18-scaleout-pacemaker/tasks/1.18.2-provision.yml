@@ -34,8 +34,8 @@
         key:                           "{{ hostvars[item].cluster_public_ssh_key }}"
         state:                         present
       when:                            ansible_hostname != item
-      loop:
-        - db_hosts + mm_hosts
+      with_items:
+        - "{{ db_hosts + mm_hosts }}"
 
     - name:                            1.18 Generic Pacemaker - Ensure trust relationship is working from {{ ansible_hostname }} to {{ item }}
       ansible.builtin.command:         ssh -oStrictHostKeyChecking=no {{ item }} "hostname -s"
@@ -43,8 +43,8 @@
       changed_when:                    false
       failed_when:                     primary_to_secondary_ssh_result.stdout_lines[0] != item
       when:                            ansible_hostname != item
-      loop:
-        - db_hosts + mm_hosts
+      with_items:
+        - "{{ db_hosts + mm_hosts }}"
 
 
 # Clustering commands are based on the Host OS
