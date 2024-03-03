@@ -122,7 +122,7 @@
 
 - name:                                           "1.18 Generic Pacemaker - Set unique variable fact"
   ansible.builtin.set_fact:
-    "host_var":                                   "{{ host_var }}"
+    "host_var":                                   "{{ ansible_hostname | replace('-','_') }}"
 
 - name:                                           "1.18 Generic Pacemaker - Extract primary VM Name"
   ansible.builtin.set_fact:
