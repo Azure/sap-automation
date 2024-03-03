@@ -248,6 +248,16 @@
           tags:
             - 4.0.0-hdb-install
 
+
+# +----------------------------Split the pacemaker tasks from HANA setup -------*/
+- hosts:                               "{% if db_scale_out %}{{ sap_sid | upper }}_DB:{{ sap_sid | upper }}_OBSERVER_DB{% else %}{{ sap_sid | upper }}_DB{% endif %}"
+  name:                                DB Installation - HANA
+  remote_user:                         "{{ orchestration_ansible_user }}"
+  gather_facts:                        true                                    # Important to collect hostvars information
+  any_errors_fatal:                    true
+  vars_files:
+    - vars/ansible-input-api.yaml                                              # API Input template with defaults
+  tasks:
     - name:                            "Database Installation Playbook: - Install Pacemaker (base)"
       become:                          true
       when:
@@ -322,22 +332,23 @@
             - 1.17-generic-pacemaker
 
   # Scale out based pacemaker task.
-        - name:                        "Database Installation Playbook: - Install Scale Out Pacemaker"
-          ansible.builtin.include_role:
-            name:                      roles-os/1.18-scaleout-pacemaker                         # Configures the Pacemaker cluster with Azure fence agent
-            apply:
-              tags:
-                - 1.18-scaleout-pacemaker
-              become:                  true
-              become_user:             root
-          when:
-            - node_tier != 'oracle'
-            - node_tier != 'oracle-asm'
-            - db_scale_out
+    - name:                        "Database Installation Playbook: - Install Scale Out Pacemaker"
+      ansible.builtin.include_role:
+        name:                      roles-os/1.18-scaleout-pacemaker                         # Configures the Pacemaker cluster with Azure fence agent
+        apply:
           tags:
             - 1.18-scaleout-pacemaker
+          become:                  true
+          become_user:             root
+      when:
+        - node_tier != 'oracle'
+        - node_tier != 'oracle-asm'
+        - db_scale_out
+      tags:
+        - 1.18-scaleout-pacemaker
 
-        - name:                        "Database Installation Playbook: - Create pacemaker-install-done flag"
+
+    - name:                        "Database Installation Playbook: - Create pacemaker-install-done flag"
           delegate_to:                 localhost
           become:                      false
           ansible.builtin.file:

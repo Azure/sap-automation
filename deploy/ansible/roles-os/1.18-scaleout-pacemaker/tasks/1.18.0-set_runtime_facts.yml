@@ -124,7 +124,7 @@
   ansible.builtin.set_fact:
     "host_var":                                   "{{ ansible_hostname | replace('-','_') }}"
 
-- name:                                           "1.18 Generic Pacemaker - Extract primary VM Name"
+- name:                                           "1.18 Generic Pacemaker - Extract VM Name"
   ansible.builtin.set_fact:
     "{{ host_var }}_vm_name":                     "{{ azure_metadata.json.compute.name }}"
 
