@@ -122,7 +122,7 @@
 
 - name:                                           "1.18 Generic Pacemaker - Set unique variable fact"
   ansible.builtin.set_fact:
-    "host_var":                                   "{{ ansible_hostname | replace('-','_') }}"
+    "host_var":                                   "{{ {{ host_var }} }}"
 
 - name:                                           "1.18 Generic Pacemaker - Extract primary VM Name"
   ansible.builtin.set_fact:
@@ -134,7 +134,7 @@
     "is_primIP_defined_on_{{ host_var }}":        "{{ hostvars[ansible_hostname].primary_ip is defined }}"
   retries:                                        30
   delay:                                          60
-  until:                                          is_primIP_defined_on_ansible_hostname | replace('-','_')
+  until:                                          is_primIP_defined_on_{{ host_var }}
 
 
 - name:                                           "1.18 Generic Pacemaker - Extract NIC IPs"
@@ -188,7 +188,7 @@
         is_ssh_defined_on_{{ ansible-hostname }}: "{{ hostvars[ansible_hostname].cluster_public_ssh_key is defined }}"
       retries:                                    30
       delay:                                      60
-      until:                                      is_ssh_defined_on_ansible_hostname | replace('-','_')
+      until:                                      is_ssh_defined_on_{{ host_var }}
 
 
 # /*---------------------------------------------------------------------------8
