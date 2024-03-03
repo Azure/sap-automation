@@ -36,6 +36,8 @@
 
 # set a check that the customer can select if it can be done or not. [make it an option]
 - name:                                "1.4-Packages: Ensure Installing the latest windows patches"
+  when:
+    - not nuget_installed.stat.exists
   ansible.windows.win_updates:
     category_names:
       - SecurityUpdates
@@ -43,14 +45,8 @@
       - UpdateRollups
     reject_list:                       "{{ win_updates_reject_list }}"
     accept_list:                       "{{ win_updates_accept_list }}"
+    reboot:                            true
   register:                            win_updates
-
-- name:                                "1.4-Packages: Reboot if required"
-  ansible.windows.win_reboot:
-    reboot_timeout:                    600
-    post_reboot_delay:                 120
-    test_command:                      'exit (Get-Service -Name Netlogon).Status -ne "Running"'
-  when:                                win_updates.reboot_required
 
 - name:                                "1.4-Packages: Install Nuget on {{ ansible_hostname }}"
   ansible.windows.win_shell: |
