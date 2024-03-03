@@ -185,7 +185,7 @@
   block:
     - name:                                       "Wait for cluster_public_ssh_key check on nodes to finish"
       ansible.builtin.set_fact:
-        is_ssh_defined_on_{{ ansible-hostname }}: "{{ hostvars[ansible_hostname].cluster_public_ssh_key is defined }}"
+        "is_ssh_defined_on_{{ host_var }}":       "{{ hostvars[ansible_hostname].cluster_public_ssh_key is defined }}"
       retries:                                    30
       delay:                                      60
       until:                                      is_ssh_defined_on_{{ host_var }}
