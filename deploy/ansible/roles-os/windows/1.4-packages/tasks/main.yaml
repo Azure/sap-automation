@@ -58,7 +58,9 @@
     - not nuget_installed.stat.exists
 
 - name:                                "1.4-Packages: Nuget || Flag File"
-  when:                                nuget_installed.rc == 0
+  when:
+    - nuget_installed is defined
+    - nuget_installed.rc == 0
   ansible.windows.win_file:
     path:                              '{{ sap_deployment_automation }}\{{ sap_sid | upper }}\nuget.txt'
     state:                             touch
@@ -70,12 +72,15 @@
 
 - name:                                "1.4-Packages: Install PowerShellGet on {{ ansible_hostname }}"
   ansible.windows.win_shell:           Install-Module PowerShellGet -AllowClobber -Force
+  register:                            powershell_installed
   when:
     - not powershell_is_installed.stat.exists
     - tier == 'os'
 
 - name:                                "1.4-Packages: PowerShellGet || Flag File"
-  when:                                powershell_is_installed.rc == 0
+  when:
+    - powershell_installed is defined
+    - powershell_installed.rc == 0
   ansible.windows.win_file:
     path:                              '{{ sap_deployment_automation }}\{{ sap_sid | upper }}\PowerShellGet.txt'
     state:                             touch
