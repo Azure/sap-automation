@@ -59,6 +59,7 @@
 
 - name:                                "1.4-Packages: Nuget || Flag File"
   when:
+    - not nuget_is_installed.stat.exists
     - nuget_installed is defined
     - nuget_installed.rc == 0
   ansible.windows.win_file:
