@@ -80,6 +80,7 @@
 
 - name:                                "1.4-Packages: PowerShellGet || Flag File"
   when:
+    - not powershell_is_installed.stat.exists
     - powershell_installed is defined
     - powershell_installed.rc == 0
   ansible.windows.win_file:
