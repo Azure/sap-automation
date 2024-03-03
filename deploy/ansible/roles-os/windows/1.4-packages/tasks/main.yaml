@@ -27,7 +27,7 @@
 - name:                                 "1.4-Packages: Check if Nuget is already installed"
   ansible.windows.win_stat:
     path:                               '{{ sap_deployment_automation }}\{{ sap_sid | upper }}\nuget.txt'
-  register:                             nuget_installed
+  register:                             nuget_is_installed
 
 - name:                                "1.4-Packages: Windows Update"
   ansible.builtin.debug:
@@ -37,7 +37,7 @@
 # set a check that the customer can select if it can be done or not. [make it an option]
 - name:                                "1.4-Packages: Ensure Installing the latest windows patches"
   when:
-    - not nuget_installed.stat.exists
+    - not nuget_is_installed.stat.exists
   ansible.windows.win_updates:
     category_names:
       - SecurityUpdates
@@ -55,7 +55,7 @@
                                        Install-PackageProvider -Name NuGet -Force
   register:                            nuget_installed
   when:
-    - not nuget_installed.stat.exists
+    - not nuget_is_installed.stat.exists
 
 - name:                                "1.4-Packages: Nuget || Flag File"
   when:
