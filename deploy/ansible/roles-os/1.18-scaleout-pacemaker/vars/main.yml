@@ -23,7 +23,7 @@ cluster_totem:
   max_messages:                         20
 
 cluster_quorum:
-  expected_votes:                       {{ (db_hosts_count / 2 | int) + 1 }}
+  expected_votes:                       "{{ (db_hosts_count / 2 | int) + 1 }}"
   two_node:                             0
 
 # /*---------------------------------------------------------------------------8
