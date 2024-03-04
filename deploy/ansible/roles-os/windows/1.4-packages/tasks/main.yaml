@@ -2,7 +2,7 @@
 # |                                                                            |
 # |                         OS Base Disk Configuration                         |
 # |                                                                            |
-# +------------------------------------4--------------------------------------*/
+# +------------------------------------4--------------------------------------*/powershell_is_installed
 ---
 # -------------------------------------+---------------------------------------8
 #
@@ -50,13 +50,13 @@
 
 - name:                                "1.4-Packages: Register-PSRepository"
   ansible.windows.win_shell: |
-                                       [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
-                                       Register-PSRepository -Default -InstallationPolicy Trusted
+                                       [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+                                       Register-PSRepository -Default
   register:                            repository_registered
 
 - name:                                "1.4-Packages: Install Nuget"
   ansible.windows.win_shell: |
-                                       [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
+                                       [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
                                        Install-PackageProvider -Name NuGet -Force
   register:                            nuget_installed
 
@@ -76,7 +76,7 @@
 
 - name:                                "1.4-Packages: Install PowerShellGet on {{ ansible_hostname }}"
   ansible.windows.win_shell: |
-                                       [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
+                                       [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
                                        Install-Module PowerShellGet -AllowClobber -Force
   register:                            powershell_installed
   when:
