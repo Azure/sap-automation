@@ -332,7 +332,7 @@
           tags:
             - 1.17-generic-pacemaker
 
-  # Scale out based pacemaker task.
+        # Scale out specific pacemaker task call.
         - name:                        "Database Installation Playbook: - Install Scale Out Pacemaker"
           ansible.builtin.include_role:
             name:                      roles-os/1.18-scaleout-pacemaker                         # Configures the Pacemaker cluster with Azure fence agent
