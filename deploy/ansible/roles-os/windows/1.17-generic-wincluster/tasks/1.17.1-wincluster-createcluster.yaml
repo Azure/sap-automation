@@ -41,7 +41,7 @@
 - name:                                "WinCluster-Create: Create windows cluster on the first node"
   become:                              true
   become_method:                       ansible.builtin.runas
-  become_user:                         '{{ sap_sid }}adm@{{ domain }}'
+  become_user:                         '{{ sap_sid }}adm@{{ domain_name }}'
   ansible.windows.win_dsc:
     resource_name:                     Cluster
     StaticIPAddress:                   "{{ cluster_ip_address }}"
@@ -60,7 +60,7 @@
 - name:                                "WinCluster-Create: Tasks for secondary nodes"
   become:                              true
   become_method:                       ansible.builtin.runas
-  become_user:                         '{{ sap_sid }}adm@{{ domain }}'
+  become_user:                         '{{ sap_sid }}adm@{{ domain_name }}'
   block:
     - name:                            "WinCluster-Create: Wait for cluster to be created"
       ansible.windows.win_dsc:
@@ -101,7 +101,7 @@
 - name:                                "WinCluster-Create: Create quorum resource"
   become:                              true
   become_method:                       ansible.builtin.runas
-  become_user:                         '{{ sap_sid }}adm@{{ domain }}'
+  become_user:                         '{{ sap_sid }}adm@{{ domain_name }}'
   ansible.windows.win_dsc:
     resource_name:                     ClusterQuorum
     Type:                              "NodeAndCloudMajority"
@@ -116,7 +116,7 @@
 - name:                                "WinCluster-Create: Add shared disk resource to cluster (only execute on scs node)"
   become:                              true
   become_method:                       ansible.builtin.runas
-  become_user:                         '{{ sap_sid }}adm@{{ domain }}'
+  become_user:                         '{{ sap_sid }}adm@{{ domain_name }}'
   when:
     - scs_high_availability
     - "'scs' in supported_tiers"
