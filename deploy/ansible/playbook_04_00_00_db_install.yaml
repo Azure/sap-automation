@@ -258,6 +258,7 @@
   vars_files:
     - vars/ansible-input-api.yaml                                              # API Input template with defaults
   tasks:
+    # Enables tradational pacemaker configuration. Implies that db_scale_out is false and only runs on {{ sap_sid | upper }}_DB
     - name:                            "Database Installation Playbook: - Install Pacemaker (base)"
       become:                          true
       when:
