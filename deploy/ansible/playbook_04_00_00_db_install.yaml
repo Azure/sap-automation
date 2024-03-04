@@ -248,98 +248,80 @@
           tags:
             - 4.0.0-hdb-install
 
-
-# +----------------------------Split the pacemaker tasks from HANA setup -------*/
-- hosts:                               "{% if db_scale_out %}{{ sap_sid | upper }}_DB:{{ sap_sid | upper }}_OBSERVER_DB{% else %}{{ sap_sid | upper }}_DB{% endif %}"
-  name:                                DB Installation - HANA
-  remote_user:                         "{{ orchestration_ansible_user }}"
-  gather_facts:                        true                                    # Important to collect hostvars information
-  any_errors_fatal:                    true
-  vars_files:
-    - vars/ansible-input-api.yaml                                              # API Input template with defaults
-  tasks:
-    # Enables tradational pacemaker configuration. Implies that db_scale_out is false and only runs on {{ sap_sid | upper }}_DB
-    - name:                            "Backward Compatibility - Check required Database HA variables"
-      ansible.builtin.set_fact:
-        database_high_availability:    "{{ db_high_availability | default(false) }}"
-      when:
-        - db_high_availability is defined
-        - database_high_availability is not defined
-
-    - name:                            "Database Installation Playbook: - Install Pacemaker (base)"
-      become:                          true
-      when:
-        # - db_high_availability
-        - database_high_availability
-        - node_tier == 'hana'
-      block:
-        - name:                         "Database Installation Playbook: - Setting the facts"
-          ansible.builtin.set_fact:
-            tier:                       ha
-            main_password:              "{{ hostvars.localhost.sap_password }}"
-            password_ha_db_cluster:     "{{ hostvars.localhost.db_cluster_password }}"
-            primary_instance_name:      "{{ ansible_play_hosts_all[0] }}"         # Setting up Primary Instance Name
-            secondary_instance_name:    "{{ ansible_play_hosts_all[1] }}"         # Setting up Secondary Instance Name
-            # fencing_spn_client_id:     "{% if not use_msi_for_clusters %}{{ hostvars.localhost.sap_fencing_spn_client_id }}{% endif %}"
-            # fencing_spn_client_pwd:    "{% if not use_msi_for_clusters %}{{ hostvars.localhost.sap_fencing_spn_pwd }}{%- endif %}"
-            # fencing_spn_tenant_id:     "{% if not use_msi_for_clusters %}{{ hostvars.localhost.sap_fencing_spn_tenant_id }}{%- endif %}"
-
-        - name:                         "Database Installation Playbook: - Setting the facts for fencing"
-          ansible.builtin.set_fact:
-            fencing_spn_client_id:      "{{ hostvars.localhost.sap_fencing_spn_client_id }}"
-            fencing_spn_client_pwd:     "{{ hostvars.localhost.sap_fencing_spn_pwd }}"
-            fencing_spn_tenant_id:      "{{ hostvars.localhost.sap_fencing_spn_tenant_id }}"
+        - name:                            "Database Installation Playbook: - Install Pacemaker (base)"
+          become:                          true
           when:
-                                        - database_cluster_type == "AFA"
-                                        - not use_msi_for_clusters
+            # - db_high_availability
+            - database_high_availability
+            - node_tier == 'hana'
+          block:
+            - name:                         "Database Installation Playbook: - Setting the facts"
+              ansible.builtin.set_fact:
+                tier:                       ha
+                main_password:              "{{ hostvars.localhost.sap_password }}"
+                password_ha_db_cluster:     "{{ hostvars.localhost.db_cluster_password }}"
+                primary_instance_name:      "{{ ansible_play_hosts_all[0] }}"         # Setting up Primary Instance Name
+                secondary_instance_name:    "{{ ansible_play_hosts_all[1] }}"         # Setting up Secondary Instance Name
+                # fencing_spn_client_id:     "{% if not use_msi_for_clusters %}{{ hostvars.localhost.sap_fencing_spn_client_id }}{% endif %}"
+                # fencing_spn_client_pwd:    "{% if not use_msi_for_clusters %}{{ hostvars.localhost.sap_fencing_spn_pwd }}{%- endif %}"
+                # fencing_spn_tenant_id:     "{% if not use_msi_for_clusters %}{{ hostvars.localhost.sap_fencing_spn_tenant_id }}{%- endif %}"
 
-        - name:                        "Database Installation Playbook: - Ensure the correct repositories are set"
-          ansible.builtin.include_role:
-            name:                      roles-os/1.3-repository
-          tags:
-            - 1.3-repository
+            - name:                         "Database Installation Playbook: - Setting the facts for fencing"
+              ansible.builtin.set_fact:
+                fencing_spn_client_id:      "{{ hostvars.localhost.sap_fencing_spn_client_id }}"
+                fencing_spn_client_pwd:     "{{ hostvars.localhost.sap_fencing_spn_pwd }}"
+                fencing_spn_tenant_id:      "{{ hostvars.localhost.sap_fencing_spn_tenant_id }}"
+              when:
+                                            - database_cluster_type == "AFA"
+                                            - not use_msi_for_clusters
 
-        - name:                        "Database Installation Playbook: - Ensure the correct packages are installed"
-          ansible.builtin.include_role:
-            name:                      roles-os/1.4-packages
-          tags:
-            - 1.4-packages
+            - name:                        "Database Installation Playbook: - Ensure the correct repositories are set"
+              ansible.builtin.include_role:
+                name:                      roles-os/1.3-repository
+              tags:
+                - 1.3-repository
 
-        # Setup the kernel parameters required for pacemaker cluster VMs
-        - name:                        "Database Installation Playbook: - Ensure the correct kernel parameters are set"
-          ansible.builtin.include_role:
-            name:                      roles-os/1.9-kernelparameters
-          tags:
-            - 1.9-kernelparameters
+            - name:                        "Database Installation Playbook: - Ensure the correct packages are installed"
+              ansible.builtin.include_role:
+                name:                      roles-os/1.4-packages
+              tags:
+                - 1.4-packages
 
-        - name:                        "Database Installation Playbook: - Ensure the needed services are enabled/disabled"
-          ansible.builtin.include_role:
-            name:                      roles-os/1.16-services
-          tags:
-            - 1.16-services
+            # Setup the kernel parameters required for pacemaker cluster VMs
+            - name:                        "Database Installation Playbook: - Ensure the correct kernel parameters are set"
+              ansible.builtin.include_role:
+                name:                      roles-os/1.9-kernelparameters
+              tags:
+                - 1.9-kernelparameters
 
-        - name:                        "Database Installation Playbook: - Ensure the accounts are present"
-          ansible.builtin.include_role:
-            name:                      roles-os/1.11-accounts
-          tags:
-            - 1.11-accounts
+            - name:                        "Database Installation Playbook: - Ensure the needed services are enabled/disabled"
+              ansible.builtin.include_role:
+                name:                      roles-os/1.16-services
+              tags:
+                - 1.16-services
 
-        - name:                        "Database Installation Playbook: - Install Pacemaker"
-          ansible.builtin.include_role:
-            name:                      roles-os/1.17-generic-pacemaker                         # Configures the Pacemaker cluster with Azure fence agent
-            apply:
+            - name:                        "Database Installation Playbook: - Ensure the accounts are present"
+              ansible.builtin.include_role:
+                name:                      roles-os/1.11-accounts
+              tags:
+                - 1.11-accounts
+
+            - name:                        "Database Installation Playbook: - Install Pacemaker"
+              ansible.builtin.include_role:
+                name:                      roles-os/1.17-generic-pacemaker                         # Configures the Pacemaker cluster with Azure fence agent
+                apply:
+                  tags:
+                    - 1.17-generic-pacemaker
+                  become:                  true
+                  become_user:             root
+              when:
+                - node_tier != 'oracle'
+                - node_tier != 'oracle-asm'
+                - not db_scale_out
               tags:
                 - 1.17-generic-pacemaker
-              become:                  true
-              become_user:             root
-          when:
-            - node_tier != 'oracle'
-            - node_tier != 'oracle-asm'
-            - not db_scale_out
-          tags:
-            - 1.17-generic-pacemaker
 
-        # Scale out specific pacemaker task call.
+  # Scale out based pacemaker task.
         - name:                        "Database Installation Playbook: - Install Scale Out Pacemaker"
           ansible.builtin.include_role:
             name:                      roles-os/1.18-scaleout-pacemaker                         # Configures the Pacemaker cluster with Azure fence agent
@@ -355,14 +337,13 @@
           tags:
             - 1.18-scaleout-pacemaker
 
-
         - name:                        "Database Installation Playbook: - Create pacemaker-install-done flag"
-          delegate_to:                 localhost
-          become:                      false
-          ansible.builtin.file:
-            path:                      "{{ _workspace_directory }}/.progress/pacemaker-install-done"
-            state:                     touch
-            mode:                      0755
+              delegate_to:                 localhost
+              become:                      false
+              ansible.builtin.file:
+                path:                      "{{ _workspace_directory }}/.progress/pacemaker-install-done"
+                state:                     touch
+                mode:                      0755
 
 
 

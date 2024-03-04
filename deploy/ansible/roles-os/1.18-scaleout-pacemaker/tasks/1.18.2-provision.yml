@@ -35,7 +35,7 @@
         state:                         present
       when:                            ansible_hostname != item
       with_items:
-        - "{{ db_hosts + mm_hosts }}"
+        - "{{ db_hosts }}"
 
     - name:                            1.18 Generic Pacemaker - Ensure trust relationship is working from {{ ansible_hostname }} to {{ item }}
       ansible.builtin.command:         ssh -oStrictHostKeyChecking=no {{ item }} "hostname -s"
@@ -44,7 +44,7 @@
       failed_when:                     primary_to_secondary_ssh_result.stdout_lines[0] != item
       when:                            ansible_hostname != item
       with_items:
-        - "{{ db_hosts + mm_hosts }}"
+        - "{{ db_hosts }}"
 
 
 # Clustering commands are based on the Host OS
