@@ -98,6 +98,7 @@
                 *.db_create_online_log_dest_1='/oracle/{{ db_sid | upper }}/origlogA'
                 *.db_create_online_log_dest_2='/oracle/{{ db_sid | upper }}/origlogB'
                 *.log_file_name_convert='{{ db_sid | upper }}','{{ db_sid | upper }}'
+                *.log_archive_dest_1='LOCATION=/oracle/{{ db_sid | upper }}/oraarch'
                 *.local_listener='(Address=(Protocol=TCP)(Host=({{ ora_secondary }})(Port=1521))'
   when:
     - node_tier == "oracle"
