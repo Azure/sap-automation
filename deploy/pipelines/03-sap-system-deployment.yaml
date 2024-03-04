@@ -93,21 +93,23 @@ stages:
                   echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined."
                   exit 2
                 fi
+                if [ $USE_MSI != "true" ]; then
+                  if [ -z $WL_ARM_CLIENT_ID ]; then
+                    echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined."
+                    exit 2
+                  fi
 
-                if [ -z $WL_ARM_CLIENT_ID ]; then
-                  echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined."
-                  exit 2
+                  if [ -z $WL_ARM_CLIENT_SECRET ]; then
+                    echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined."
+                    exit 2
+                  fi
+
+                  if [ -z $WL_ARM_TENANT_ID ]; then
+                    echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined."
+                    exit 2
+                  fi
                 fi
 
-                if [ -z $WL_ARM_CLIENT_SECRET ]; then
-                  echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined."
-                  exit 2
-                fi
-
-                if [ -z $WL_ARM_TENANT_ID ]; then
-                  echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined."
-                  exit 2
-                fi
               echo -e "$green--- Checkout $(Build.SourceBranchName) ---$reset"
                 cd $CONFIG_REPO_PATH
                 git checkout -q $(Build.SourceBranchName)
