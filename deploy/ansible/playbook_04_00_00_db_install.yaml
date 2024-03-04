@@ -259,6 +259,13 @@
     - vars/ansible-input-api.yaml                                              # API Input template with defaults
   tasks:
     # Enables tradational pacemaker configuration. Implies that db_scale_out is false and only runs on {{ sap_sid | upper }}_DB
+    - name:                            "Backward Compatibility - Check required Database HA variables"
+      ansible.builtin.set_fact:
+        database_high_availability:    "{{ db_high_availability | default(false) }}"
+      when:
+        - db_high_availability is defined
+        - database_high_availability is not defined
+
     - name:                            "Database Installation Playbook: - Install Pacemaker (base)"
       become:                          true
       when:
