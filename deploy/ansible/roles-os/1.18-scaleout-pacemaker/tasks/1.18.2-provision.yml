@@ -37,7 +37,7 @@
       with_items:
         - "{{ db_hosts }}"
 
-    - name:                            1.18 Generic Pacemaker - Ensure trust relationship is working from {{ ansible_hostname }} to {{ item }}
+    - name:                            1.18 Generic Pacemaker - Ensure trust relationship is working from current to remaining hosts
       ansible.builtin.command:         ssh -oStrictHostKeyChecking=no {{ item }} "hostname -s"
       register:                        primary_to_secondary_ssh_result
       changed_when:                    false
