@@ -307,3 +307,15 @@ output "scs_asd"                       {
                                                          )
                                                        )
                                        }
+output "scs_kdump_disks"               {
+                                         description = "List of Azure shared disks"
+                                         value       = distinct(
+                                                         flatten(
+                                                           [for vm in var.naming.virtualmachine_names.SCS_COMPUTERNAME :
+                                                             [for idx, disk in azurerm_virtual_machine_data_disk_attachment.kdump :
+                                                               format("{ host: '%s', lun: %d, type: 'kdump' }", vm, disk.lun)
+                                                             ]
+                                                           ]
+                                                         )
+                                                       )
+                                       }

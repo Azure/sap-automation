@@ -61,7 +61,7 @@ resource "azurerm_lb_probe" "anydb" {
   protocol                             = "Tcp"
   interval_in_seconds                  = 5
   number_of_probes                     = 2
-
+  probe_threshold                      = 2
 }
 
 #######################################4#######################################8

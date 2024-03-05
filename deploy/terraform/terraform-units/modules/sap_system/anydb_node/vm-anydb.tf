@@ -626,3 +626,66 @@ resource "azurerm_role_assignment" "role_assignment_msi_ha" {
   role_definition_name                 = var.fencing_role_name
   principal_id                         = azurerm_linux_virtual_machine.dbserver[(count.index +1) % var.database_server_count].identity[0].principal_id
 }
+
+
+#########################################################################################
+#                                                                                       #
+#  Azure Data Disk for Kdump                                                            #
+#                                                                                       #
+#######################################+#################################################
+resource "azurerm_managed_disk" "kdump" {
+  provider                             = azurerm.main
+  count                                = (
+                                           local.enable_deployment &&
+                                           var.database.high_availability &&
+                                           (
+                                               upper(var.database.os.os_type) == "LINUX" &&
+                                               ( var.database.fence_kdump_disk_size > 0 )
+                                           )
+                                         ) ? var.database_server_count : 0
+  lifecycle {
+    ignore_changes                     = [tags]
+    }
+
+  name                                 = format("%s%s%s%s%s",
+                                           try( var.naming.resource_prefixes.fence_kdump_disk, ""),
+                                           local.prefix,
+                                           var.naming.separator,
+                                           var.naming.virtualmachine_names.ANYDB_VMNAME[count.index],
+                                           try( var.naming.resource_suffixes.fence_kdump_disk, "fence_kdump_disk" )
+                                         )
+  location                             = var.resource_group[0].location
+  resource_group_name                  = var.resource_group[0].name
+  create_option                        = "Empty"
+  storage_account_type                 = "Premium_LRS"
+  disk_size_gb                         = try(var.database.fence_kdump_disk_size,128)
+  disk_encryption_set_id               = try(var.options.disk_encryption_set_id, null)
+  tags                                 = var.tags
+
+  zone                                 = local.zonal_deployment && !var.database.use_avset ? (
+                                             azurerm_linux_virtual_machine.dbserver[count.index].zone
+                                         ) : (
+                                           null
+                                         )
+
+}
+
+resource "azurerm_virtual_machine_data_disk_attachment" "kdump" {
+  provider                             = azurerm.main
+  count                                = (
+                                           local.enable_deployment &&
+                                           var.database.high_availability &&
+                                           (
+                                               upper(var.database.os.os_type) == "LINUX" &&
+                                               ( var.database.fence_kdump_disk_size > 0 )
+                                           )
+                                         ) ? var.database_server_count : 0
+
+  managed_disk_id                      = azurerm_managed_disk.kdump[count.index].id
+  virtual_machine_id                   = (upper(var.database.os.os_type) == "LINUX"                                # If Linux
+                                         ) ? (
+                                           azurerm_linux_virtual_machine.dbserver[count.index].id
+                                         ) : null
+  caching                              = "None"
+  lun                                  = var.database.fence_kdump_lun_number
+}
