@@ -206,6 +206,7 @@ resource "local_file" "sap-parameters_yml" {
                                               ""
                                             )
               is_use_simple_mount         = var.use_simple_mount
+              is_use_fence_kdump          = var.is_use_fence_kdump
               iscsi_server_list           = concat(local.iscsi_scs_servers, local.iscsi_db_servers)
               kv_name                     = local.kv_name,
               NFS_provider                = var.NFS_provider

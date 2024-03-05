@@ -204,3 +204,16 @@ output "database_shared_disks"         {
                                                          )
                                                        )
                                        }
+
+output "database_kdump_disks"          {
+                                         description = "List of Azure disks for kdump"
+                                         value       = distinct(
+                                                         flatten(
+                                                           [for vm in var.naming.virtualmachine_names.HANA_COMPUTERNAME :
+                                                             [for idx, disk in azurerm_virtual_machine_data_disk_attachment.kdump :
+                                                               format("{ host: '%s', lun: %d, type: 'kdump' }", vm, disk.lun)
+                                                             ]
+                                                           ]
+                                                         )
+                                                       )
+                                       }

@@ -341,10 +341,34 @@ variable "fencing_role_name"                    {
                                                 }
 
 variable "use_simple_mount"                     {
-                                                  description = "If specified use Simple mount"
-                                                  default     = true
+                                                  description = "Determine if simple mount needs to be added for SCS and DB clusters"
+                                                  default     = false
                                                 }
 
+variable "use_fence_kdump"                      {
+                                                  description = "Configure fencing device based on the fence agent fence_kdump for both SCS and DB clusters"
+                                                  default     = false
+                                                }
+
+variable "use_fence_kdump_size_gb_db"           {
+                                                  description = "Default size of the kdump disk which will be attached to the VMs which are part DB cluster"
+                                                  default     = 128
+                                                }
+
+variable "use_fence_kdump_size_gb_scs"          {
+                                                  description = "Default size of the kdump disk which will be attached to the VMs which are part of SCS cluster"
+                                                  default     = 64
+                                                }
+
+variable "use_fence_kdump_lun_db"               {
+                                                  description = "Default lun number of the kdump disk which will be attached to the VMs which are part of DB cluster"
+                                                  default     = 8
+                                                }
+
+variable "use_fence_kdump_lun_scs"              {
+                                                  description = "Default lun number of the kdump disk which will be attached to the VMs which are part of SCS cluster"
+                                                  default     = 4
+                                                }
 
 #########################################################################################
 #                                                                                       #
