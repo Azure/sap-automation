@@ -564,9 +564,6 @@ resource "azurerm_managed_disk" "cluster" {
                                               )
                                             )
                                           ) ? 1 : 0
-  lifecycle {
-    ignore_changes                      = [tags]
-  }
 
   name                                  = format("%s%s%s%s",
                                             var.naming.resource_prefixes.scs_cluster_disk,
@@ -644,9 +641,6 @@ resource "azurerm_managed_disk" "kdump" {
                                                ( var.application_tier.fence_kdump_disk_size > 0 )
                                            )
                                          ) ? local.scs_server_count : 0
-  lifecycle {
-    ignore_changes                     = [tags]
-    }
 
   name                                 = format("%s%s%s%s%s",
                                            try( var.naming.resource_prefixes.fence_kdump_disk, ""),
@@ -670,6 +664,14 @@ resource "azurerm_managed_disk" "kdump" {
                                            ) : (
                                            null
                                          )
+  lifecycle {
+  ignore_changes = [
+    create_option,
+    hyper_v_generation,
+    source_resource_id,
+    tags
+    ]
+  }
 
 }
 
