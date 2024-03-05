@@ -591,21 +591,28 @@ locals {
                                            length(local.web_nic_ips) > 0                          ? { web_nic_ips = local.web_nic_ips } : null), (
                                            length(var.webdispatcher_server_nic_secondary_ips) > 0 ? { web_nic_secondary_ips = var.webdispatcher_server_nic_secondary_ips } : null), (
                                            length(local.web_admin_nic_ips) > 0                    ? { web_admin_nic_ips = local.web_admin_nic_ips } : null), (
-                                           length(local.webdispatcher_loadbalancer_ips) > 0                           ? { webdispatcher_loadbalancer_ips = local.webdispatcher_loadbalancer_ips } : null), (
+                                           length(local.webdispatcher_loadbalancer_ips) > 0       ? { webdispatcher_loadbalancer_ips = local.webdispatcher_loadbalancer_ips } : null), (
                                            length(local.app_tags) > 0                             ? { app_tags = local.app_tags } : { app_tags = local.app_tags }), (
                                            length(local.scs_tags) > 0                             ? { scs_tags = local.scs_tags } : { scs_tags = local.scs_tags }), (
-                                           length(local.web_tags) > 0                             ? { web_tags = local.web_tags } : { web_tags = local.web_tags }
+                                           length(local.web_tags) > 0                             ? { web_tags = local.web_tags } : { web_tags = local.web_tags }), (
+                                           var.use_fence_kdump && var.scs_high_availability       ? { fence_kdump_disk_size = var.use_fence_kdump_size_gb_scs } : { fence_kdump_disk_size = 0 } ), (
+                                           var.use_fence_kdump && var.scs_high_availability       ? { fence_kdump_lun_number = var.use_fence_kdump_lun_scs } : { fence_kdump_lun_number = -1 }
                                            )
                                          )
 
   database                             = merge(
                                             local.databases_temp,
-                                           (local.db_os_specified                ? { os             = local.db_os }                           : null),
-                                           (local.db_authentication_defined      ? { authentication = local.db_authentication }               : null),
-                                           (local.db_avset_arm_ids_defined       ? { avset_arm_ids  = local.avset_arm_ids }                   : null),
-                                           (length(local.frontend_ips)      > 0  ? { loadbalancer   = { frontend_ips = local.frontend_ips } } : { loadbalancer = { frontend_ips = [] } }),
-                                           (length(local.db_tags)           > 0  ? { tags           = local.db_tags }                         : null),
-                                           (local.db_sid_specified               ? { instance       = local.instance }                        : null)
+                                           (local.db_os_specified                                 ? { os             = local.db_os }                           : null),
+                                           (local.db_authentication_defined                       ? { authentication = local.db_authentication }               : null),
+                                           (local.db_avset_arm_ids_defined                        ? { avset_arm_ids  = local.avset_arm_ids }                   : null),
+                                           (length(local.frontend_ips)      > 0                   ? { loadbalancer   = { frontend_ips = local.frontend_ips } } : { loadbalancer = { frontend_ips = [] } }),
+                                           (length(local.db_tags)           > 0                   ? { tags           = local.db_tags }                         : null),
+                                           (local.db_sid_specified                                ? { instance       = local.instance }                        : null), (
+                                           ( var.use_fence_kdump &&
+                                             var.database_high_availability )                     ? { fence_kdump_disk_size = var.use_fence_kdump_size_gb_db } : { fence_kdump_disk_size = 0 } ), (
+                                           ( var.use_fence_kdump &&
+                                             var.database_high_availability )                     ? { fence_kdump_lun_number = var.use_fence_kdump_lun_db } : { fence_kdump_lun_number = -1 }
+                                           )
                                          )
 
 

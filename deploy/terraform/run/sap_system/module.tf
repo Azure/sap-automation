@@ -314,6 +314,7 @@ module "output_files" {
                                                     module.hdb_node.database_shared_disks) : (
                                                     module.anydb_node.database_shared_disks
                                                   )
+  is_use_fence_kdump                            = var.use_fence_kdump
   infrastructure                                = local.infrastructure
   landscape_tfstate                             = data.terraform_remote_state.landscape.outputs
   naming                                        = length(var.name_override_file) > 0 ? (
@@ -352,7 +353,10 @@ module "output_files" {
   database_subnet_netmask                       = module.common_infrastructure.db_subnet_netmask
   disks                                         = distinct(compact(concat(module.hdb_node.database_disks,
                                                     module.anydb_node.database_disks,
-                                                    module.app_tier.apptier_disks
+                                                    module.app_tier.apptier_disks,
+                                                    module.hdb_node.database_kdump_disks,
+                                                    module.anydb_node.database_kdump_disks,
+                                                    module.app_tier.scs_kdump_disks
                                                   )))
   loadbalancers                                 = module.hdb_node.loadbalancers
 
