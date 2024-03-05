@@ -363,7 +363,7 @@
 
     - name:                            "0.0 Validations - Deployer disk space requirements"
       ansible.builtin.set_fact:
-        deployer_free_temp_disk_space: 50
+        deployer_free_temp_disk_space: 40
       when:
         - deployer_free_temp_disk_space is not defined
 
