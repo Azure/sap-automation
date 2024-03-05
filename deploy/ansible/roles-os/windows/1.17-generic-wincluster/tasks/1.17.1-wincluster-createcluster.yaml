@@ -48,6 +48,9 @@
     Name:                              "{{ cluster_name }}"
     PsDscRunAsCredential_username:     "{{ domain_service_account }}@{{ domain_name }}"
     PsDscRunAsCredential_password:     "{{ domain_service_password }}"
+  vars:
+    ansible_winrm_transport:              credssp
+    ansible_winrm_server_cert_validation: ignore
   when:
     - ansible_hostname == primary_node
 
@@ -97,6 +100,9 @@
         PsDscRunAsCredential_password: "{{ domain_service_password }}"
   when:
     - ansible_hostname == secondary_node
+  vars:
+    ansible_winrm_transport:              credssp
+    ansible_winrm_server_cert_validation: ignore
 
 - name:                                "WinCluster-Create: Create quorum resource"
   become:                              true
