@@ -198,7 +198,7 @@ output "database_shared_disks"         {
                                                          flatten(
                                                            [for vm in var.naming.virtualmachine_names.HANA_COMPUTERNAME :
                                                              [for idx, disk in azurerm_virtual_machine_data_disk_attachment.cluster :
-                                                               format("{ host: '%s', lun: %d, type: 'ASD' }", vm, disk.lun)
+                                                               format("{ host: '%s', LUN: %d, type: 'ASD' }", vm, disk.lun)
                                                              ]
                                                            ]
                                                          )
@@ -211,7 +211,7 @@ output "database_kdump_disks"          {
                                                          flatten(
                                                            [for vm in var.naming.virtualmachine_names.HANA_COMPUTERNAME :
                                                              [for idx, disk in azurerm_virtual_machine_data_disk_attachment.kdump :
-                                                               format("{ host: '%s', lun: %d, type: 'kdump' }", vm, disk.lun)
+                                                               format("{ host: '%s', LUN: %d, type: 'kdump' }", vm, disk.lun)
                                                              ]
                                                            ]
                                                          )
