@@ -109,12 +109,24 @@
 
 - name:                                "2.4 Hosts: Process pas_hostname variable and update host file when it is defined"
   when:
-    - custom_scs_virtual_hostname | default(false, true)
+    - ( custom_pas_virtual_hostname | length > 1 )| default(false, true)
   block:
-    - name:                            "2.4 Hosts: - Set virtual_host fact from the fetched PAS server list"
+
+    - name:                                "2.4 Hosts: - Set virtual_host fact from the fetched PAS server list"
       ansible.builtin.set_fact:
-        pas_virtualhost_from_inventory: "{{ hostvars[query('inventory_hostnames', '{{ sap_sid | upper }}_PAS') | first]['virtual_host'] }}"
-      when: query('inventory_hostnames', sap_sid | upper ~ '_PAS') | length > 0
+        pas_virtualhost_from_inventory:  >-
+                                             {%- set _virthost = "" -%}
+                                             {%- if ( query('inventory_hostnames', sap_sid | upper ~ '_PAS') | length > 0 ) -%}
+                                             {%-    set _virthost = hostvars[query('inventory_hostnames', sap_sid | upper ~ '_PAS') | first]['virtual_host'] -%}
+                                             {%- else -%}
+                                             {%-   for hostvars[query('inventory_hostnames', 'all')] -%}
+                                             {%-     if 'pas' in hostvars[item][supported_tiers] -%}
+                                             {%-       set _virthost = hostvars[item]['virtual_host'] -%}
+                                             {%-       break -%}
+                                             {%-     endif -%}
+                                             {%-   endfor -%}
+                                             {%- endif -%}
+                                             {{- _virthost -}}
 
     - name:                            "2.4 Hosts: - Set fact for the PAS if pas_hostname is defined"
       ansible.builtin.set_fact:

@@ -28,6 +28,10 @@
     - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') }}"
     - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
 
+- name:                                "AFS Mount: Set the NFSmount options"
+  ansible.builtin.set_fact:
+    afs_mnt_options:                   'noresvport,vers=4,minorversion=1,sec=sys'
+
 - name:                                "AFS Mount: Create list of all_sap_mounts to support"
   ansible.builtin.debug:
     msg:
@@ -68,7 +72,7 @@
                 src:                   "{{ sap_mnt }}"
                 path:                  "/saptmp"
                 fstype:                "nfs4"
-                opts:                  "vers=4.1,sec=sys"
+                opts:                  "{{ afs_mnt_options }}"
                 state:                 mounted
 
           rescue:
@@ -85,7 +89,7 @@
                 src:                   "{{ sap_mnt }}"
                 path:                  "/saptmp"
                 fstype:                "nfs4"
-                opts:                  "vers=4.1,sec=sys"
+                opts:                  "{{ afs_mnt_options }}"
                 state:                 mounted
 
         - name:                        "AFS Mount: Create SAP Directories (AFS)"
@@ -137,7 +141,7 @@
             src:                       "{{ sap_mnt }}"
             path:                      "/saptmp"
             fstype:                    "nfs4"
-            opts:                      "vers=4.1,sec=sys"
+            opts:                      "{{ afs_mnt_options }}"
             state:                     absent
       when:
         - sap_mnt is defined
@@ -154,7 +158,7 @@
       'temppath':           'sapinstall',
       'folder':             '{{ bom_base_name }}',
       'mount':              '{{ usr_sap_install_mountpoint }}',
-      'opts':               'rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp',
+      'opts':               'rw,hard,rsize=1048576,wsize=1048576,noresvport,actimeo=60,vers=4,minorversion=1,sec=sys',
       'path':               '/usr/sap/install',
       'permissions':        '0777',
       'set_chattr_on_dir':  false,
@@ -250,7 +254,7 @@
         src:                           "{{ item.src }}"
         path:                          "{{ item.path }}"
         fstype:                        "{{ item.type }}"
-        opts:                          'vers=4,minorversion=1,sec=sys'
+        opts:                          "{{ afs_mnt_options }}"
         state:                         mounted
       loop:
         - { type: 'nfs4',  src: '{{ sap_mnt }}/sapmnt{{ sap_sid | upper }}',    path: '/sapmnt/{{ sap_sid | upper }}'      }
@@ -260,7 +264,7 @@
         src:                           "{{ item.src }}"
         path:                          "{{ item.path }}"
         fstype:                        "{{ item.type }}"
-        opts:                          'vers=4,minorversion=1,sec=sys'
+        opts:                          "{{ afs_mnt_options }}"
         state:                         unmounted
       loop:
         - { type: 'nfs4',  src: '{{ sap_mnt }}/sapmnt{{ sap_sid | upper }}',    path: '/sapmnt/{{ sap_sid | upper }}'      }
@@ -277,7 +281,7 @@
         src:                           "{{ item.src }}"
         path:                          "{{ item.path }}"
         fstype:                        "{{ item.type }}"
-        opts:                          'vers=4,minorversion=1,sec=sys'
+        opts:                          "{{ afs_mnt_options }}"
         state:                         mounted
       loop:
         - { type: 'nfs4',  src: '{{ sap_mnt }}/sapmnt{{ sap_sid | upper }}',    path: '/sapmnt/{{ sap_sid | upper }}'      }
@@ -294,7 +298,7 @@
     src:                               "{{ sap_mnt }}/sapmnt{{ item.sid }}"
     path:                              "/sapmnt/{{ item.sid }}"
     fstype:                            'nfs4'
-    opts:                              'vers=4,minorversion=1,sec=sys'
+    opts:                              "{{ afs_mnt_options }}"
     state:                             mounted
   loop:                                "{{ MULTI_SIDS }}"
   when:
@@ -309,7 +313,7 @@
         src:                           "{{ sap_mnt }}/sapmnt{{ sap_sid | upper }}"
         path:                          "/sapmnt/{{ sap_sid | upper }}"
         fstype:                        nfs4
-        opts:                          'vers=4,minorversion=1,sec=sys'
+        opts:                          "{{ afs_mnt_options }}"
         state:                         mounted
   rescue:
     - name:                            "AFS Mount: Pause for 15 seconds"
@@ -320,7 +324,7 @@
         src:                           "{{ sap_mnt }}/sapmnt{{ sap_sid | upper }}"
         path:                          "/sapmnt/{{ sap_sid | upper }}"
         fstype:                        nfs4
-        opts:                          'vers=4,minorversion=1,sec=sys'
+        opts:                          "{{ afs_mnt_options }}"
         state:                         mounted
 
   when:
@@ -358,7 +362,7 @@
         src:                           "{{ item.src }}"
         path:                          "{{ item.path }}"
         fstype:                        "{{ item.type }}"
-        opts:                          'rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp'
+        opts:                          "{{ afs_mnt_options }}"
         state:                         mounted
 
       loop:
@@ -378,7 +382,7 @@
       'type':              'trans',
       'temppath':          'saptrans',
       'mount':             '{{ sap_trans }}',
-      'opts':              'rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp',
+      'opts':              '{{ afs_mnt_options }}',
       'path':              '/usr/sap/trans',
       'permissions':       '0775',
       'set_chattr_on_dir': false,

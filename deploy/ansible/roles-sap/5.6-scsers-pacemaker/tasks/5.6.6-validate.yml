@@ -161,7 +161,7 @@
 
         - name:                        "5.6 SCS/ERS Validation: Wait 60 secs for the StartService {{ sap_sid | upper }} to finish"
           ansible.builtin.wait_for:
-            timeout:                   0
+            timeout:                   60
 
         # {{ sapcontrol_path }} -nr {{ scs_instance_number }} -function GetProcessList | grep MessageServer | awk '{split($0,result,", "); print result[1],result[3] }'
         - name:                        "5.6 SCS/ERS Validation: Determine if SCS is running on {{ ansible_hostname }}"

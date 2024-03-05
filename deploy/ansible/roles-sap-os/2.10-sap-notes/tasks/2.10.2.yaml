@@ -35,9 +35,10 @@
     - soft
     - hard
 
-- name:                                "2.10.2 sap-notes: - Disable SELinux"
+- name:                                "2.10.2 sap-notes: - Set SELinux to permissive "
   ansible.posix.selinux:
-    state:                             disabled
+    state:                             permissive
+    policy:                            targeted
   notify:                              "2.10-sap-notes: Reboot after the selinux is configured"
   tags: ansible_skip_lint
 

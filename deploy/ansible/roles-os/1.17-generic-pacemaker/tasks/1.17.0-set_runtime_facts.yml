@@ -104,9 +104,10 @@
     #                                               - "database_cluster_type:           {{ database_cluster_type }}"
     #     verbosity:                                2
 
+    # scs_high_availability = true is already assumed
   when:
                                                     (database_cluster_type == "ISCSI") or
-                                                    (scs_cluster_type      == "ISCSI")        # scs_high_availability = true is already assumed
+                                                    (scs_cluster_type      == "ISCSI")
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
