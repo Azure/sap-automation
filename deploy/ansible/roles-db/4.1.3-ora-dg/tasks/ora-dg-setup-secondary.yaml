@@ -106,37 +106,11 @@
     block: |
                 *.db_unique_name ='{{ db_sid | upper }}_STDBY'
                 *.log_file_name_convert='{{ db_sid | upper }}','{{ db_sid | upper }}'
-                *.local_listener='(Address=(Protocol=TCP)(Host=({{ ora_secondary }})(Port=1521))'
-              
+                *.local_listener='(Address=(Protocol=TCP)(Host=({{ ora_secondary }})(Port=1521))'            
+
   when:
     - node_tier == "oracle"
     
-
-# Restart the Listener on Secondary node when the node_tier is Oracle.
-
-# - name:                                "Oracle Data Guard - Setup Secondary: stop lsnrctl on Secondary"
-#   become:                              true
-#   become_user:                         "oracle"
-#   ansible.builtin.shell:               lsnrctl stop
-#   register:                            lsnrctl_stop_secondary_results
-#   failed_when:                         lsnrctl_stop_secondary_results.rc > 0
-#   args:
-#     creates:                           /etc/sap_deployment_automation/dgscripts/lsnrctl_stopped_sec.txt
-#     chdir:                             /etc/sap_deployment_automation/dgscripts
-#     executable:                        /bin/csh
-#   when:                                current_host == ora_secondary
-
-# - name:                                "Oracle Data Guard - Setup Secondary: Create lsnrctl_stopped_sec.txt"
-#   become:                              true
-#   become_user:                         "oracle"
-#   ansible.builtin.file:
-#     path:                              /etc/sap_deployment_automation/dgscripts/lsnrctl_stopped_sec.txt
-#     state:                             touch
-#     mode:                              '0755'
-#   when:
-#     - current_host == ora_secondary
-#     - lsnrctl_stop_secondary_results.rc == 0
-
 - name:                                "Oracle Data Guard - Setup Secondary: start lsnrctl on Secondary"
   become:                              true
   become_user:                         "oracle"
@@ -396,6 +370,40 @@
     owner:                             oracle
     group:                             oinstall
   when:                                rman_results.rc == 0
+
+# Work around for Oracle Bug Duplicate for Standby fails with RMAN-05535 even when LOG_FILE_NAME_CONVERT is set (Doc ID 2756315.1)
+# Collecting the required regolog file and renaming and creating in the correct directories as Primary.
+# Renaming the Brokenredo files to the correct names and creating the required directories.
+# RUn the redolog clear to physical creation of files.
+
+- name:                            "Oracle Secondary Redo log rename template"
+  become:                          true
+  become_user:                     "oracle"
+  ansible.builtin.template:
+   backup:                        true
+   src:                           standbyredolog.j2
+   dest:                          "/etc/sap_deployment_automation/dgscripts/standbyredolog.sql"
+   mode:                          '0644'
+   force:                         true
+  when:                            node_tier == "oracle"
+
+
+- name:                                "Oracle Data Guard - Setup Secondary: Rename the redolog files afer RMAN Restore"
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.shell: |
+      set -o pipefail
+      sqlplus / as sysdba @standbyredolog.sql | tee /etc/sap_deployment_automation/dgscripts/standbyredolog.log
+  register:                            redo_rename_results
+  failed_when:                         redo_rename_results.rc > 0
+  args:
+    creates:                           /etc/sap_deployment_automation/dgscripts/redo_rename.txt
+    chdir:                             /etc/sap_deployment_automation/dgscripts
+    executable:                        /bin/csh
+  when: 
+    - node_tier == "oracle"
+    - current_host == ora_secondary
+
 
 - name:                                "Oracle Data Guard - Setup Secondary: Create restore_completed.txt"
   become:                              true
