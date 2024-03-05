@@ -1,0 +1,44 @@
+{
+  "SUSE": {
+    "DistroIds": [
+      "SUSE:sles-sap-15-sp5:gen2:latest",
+      "SUSE:sles-sap-15-sp4:gen2:latest",
+      "SUSE:sles-sap-15-sp3:gen2:latest",
+      "SUSE:sles-sap-15-sp2:gen2:latest",
+      "SUSE:sles-sap-12-sp5:gen2:latest"
+    ]
+  },
+  "REDHAT": {
+    "DistroIds": [
+      "RedHat:RHEL-SAP-HA:92sapha-gen2:latest",
+      "RedHat:RHEL-SAP-HA:90sapha-gen2:latest",
+      "RedHat:RHEL-SAP-HA:88sapha-gen2:latest",
+      "RedHat:RHEL-SAP-HA:86sapha-gen2:latest",
+      "RedHat:RHEL-SAP-HA:84sapha-gen2:latest",
+      "RedHat:RHEL-SAP-APPS:92sapapps-gen2:latest",
+      "RedHat:RHEL-SAP-APPS:90sapapps-gen2:latest",
+      "RedHat:RHEL-SAP-APPS:88sapapps-gen2:latest",
+      "RedHat:RHEL-SAP-APPS:86sapapps-gen2:latest",
+      "RedHat:RHEL-SAP-APPS:84sapapps-gen2:latest"
+    ]
+  },
+  "WINDOWS": {
+    "DistroIds": [
+      "MicrosoftWindowsServer:WindowsServer:2022-datacenter-g2",
+      "MicrosoftWindowsServer:WindowsServer:2022-datacenter",
+      "MicrosoftWindowsServer:WindowsServer:2019-datacenter-g2",
+      "MicrosoftWindowsServer:WindowsServer:2019-datacenter",
+      "MicrosoftWindowsServer:WindowsServer:2016-datacenter"
+    ]
+  },
+  "ORACLE": {
+    "DistroIds": [
+      "Oracle:Oracle-Linux:ol92-lvm-gen2:latest",
+      "Oracle:Oracle-Linux:ol90-lvm-gen2:latest",
+      "Oracle:Oracle-Linux:ol89-lvm-gen2:latest",
+      "Oracle:Oracle-Linux:ol88-lvm-gen2:latest",
+      "Oracle:Oracle-Linux:ol86-lvm-gen2:latest",
+      "Oracle:Oracle-Linux:ol84-lvm-gen2:latest"
+    ]
+  }
+}
