@@ -232,6 +232,16 @@
                                                             {%- endfor                          -%}
                                                             "'}
 
+    - name:                                  "set fact sbd_device as list of entries in sbdMap"
+      ansible.builtin.set_fact:
+        sbd_device:                          "{{ sbdMap | map(attribute='diskById') | join(';') | list }}"
+      when:                                  sbdDumpCommand_results.rc == 1
+
+    - name:                                  "Show sbd_device..."
+      ansible.builtin.debug:
+        var:                                 sbd_device
+        verbosity:                           2
+      when:                                  sbdDumpCommand_results.rc == 1
 
     # /*------------------------------------
     # |
@@ -277,6 +287,16 @@
                                               (scs_cluster_type      == "ASD")   or
                                               (scs_cluster_type      == "ISCSI")       # scs_high_availability = true is already assumed
 
+# you need to restart cluster after enabling sbd
+# - name:                                    "systemctl restart pacemaker"
+#   ansible.builtin.systemd:
+#     name:                                  pacemaker
+#     state:                                 restarted
+#   when:
+#                                             - (database_cluster_type == "ASD")   or
+#                                               (database_cluster_type == "ISCSI") or
+#                                               (scs_cluster_type      == "ASD")   or
+#                                               (scs_cluster_type      == "ISCSI")       # scs_high_availability = true is already assumed
 ...
 # /*---------------------------------------------------------------------------8
 # |                                   END                                      |
