@@ -301,19 +301,19 @@ output "scs_asd"                       {
                                                          flatten(
                                                            [for vm in var.naming.virtualmachine_names.SCS_COMPUTERNAME :
                                                              [for idx, disk in azurerm_virtual_machine_data_disk_attachment.cluster :
-                                                               format("{ host: '%s', lun: %d, type: 'ASD' }", vm, disk.lun)
+                                                               format("{ host: '%s', LUN: %d, type: 'ASD' }", vm, disk.lun)
                                                              ]
                                                            ]
                                                          )
                                                        )
                                        }
 output "scs_kdump_disks"               {
-                                         description = "List of Azure shared disks"
+                                         description = "List of kdump disks"
                                          value       = distinct(
                                                          flatten(
                                                            [for vm in var.naming.virtualmachine_names.SCS_COMPUTERNAME :
                                                              [for idx, disk in azurerm_virtual_machine_data_disk_attachment.kdump :
-                                                               format("{ host: '%s', lun: %d, type: 'kdump' }", vm, disk.lun)
+                                                               format("{ host: '%s', LUN: %d, type: 'kdump' }", vm, disk.lun)
                                                              ]
                                                            ]
                                                          )

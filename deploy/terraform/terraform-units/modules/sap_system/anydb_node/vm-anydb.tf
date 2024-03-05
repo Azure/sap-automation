@@ -535,9 +535,6 @@ resource "azurerm_managed_disk" "cluster" {
                                              )
                                            )
                                          ) ? 1 : 0
-  lifecycle {
-    ignore_changes                     = [tags]
-    }
 
   name                                 = format("%s%s%s%s",
                                            var.naming.resource_prefixes.database_cluster_disk,
@@ -561,7 +558,14 @@ resource "azurerm_managed_disk" "cluster" {
                                          )) : (
                                            null
                                          )
-
+  lifecycle {
+    ignore_changes = [
+      create_option,
+      hyper_v_generation,
+      source_resource_id,
+      tags
+    ]
+  }
 }
 
 resource "azurerm_virtual_machine_data_disk_attachment" "cluster" {
@@ -643,9 +647,6 @@ resource "azurerm_managed_disk" "kdump" {
                                                ( var.database.fence_kdump_disk_size > 0 )
                                            )
                                          ) ? var.database_server_count : 0
-  lifecycle {
-    ignore_changes                     = [tags]
-    }
 
   name                                 = format("%s%s%s%s%s",
                                            try( var.naming.resource_prefixes.fence_kdump_disk, ""),
@@ -667,7 +668,14 @@ resource "azurerm_managed_disk" "kdump" {
                                          ) : (
                                            null
                                          )
-
+  lifecycle {
+    ignore_changes = [
+      create_option,
+      hyper_v_generation,
+      source_resource_id,
+      tags
+    ]
+  }
 }
 
 resource "azurerm_virtual_machine_data_disk_attachment" "kdump" {

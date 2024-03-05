@@ -496,9 +496,6 @@ resource "azurerm_managed_disk" "kdump" {
                                                ( var.database.fence_kdump_disk_size > 0 )
                                            )
                                          ) ? var.database_server_count : 0
-  lifecycle {
-    ignore_changes                     = [tags]
-    }
 
   name                                 = format("%s%s%s%s%s",
                                            try( var.naming.resource_prefixes.fence_kdump_disk, ""),
@@ -518,6 +515,14 @@ resource "azurerm_managed_disk" "kdump" {
                                           azurerm_linux_virtual_machine.vm_dbnode[count.index].zone) : (
                                           null
                                         )
+  lifecycle {
+    ignore_changes = [
+      create_option,
+      hyper_v_generation,
+      source_resource_id,
+      tags
+    ]
+  }
 
 }
 
