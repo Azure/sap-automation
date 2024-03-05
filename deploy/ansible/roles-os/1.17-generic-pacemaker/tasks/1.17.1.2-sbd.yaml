@@ -45,7 +45,7 @@
   ansible.builtin.debug:
     msg:                                      # Best method for formatting output with Azure Devops Logs
                                               - "item.host:                      {{ item.host }}"
-                                              - "item.lun:                       {{ item.lun }}"
+                                              - "item.lun:                       {{ item.LUN }}"
     verbosity:                                2
   loop:                                       "{{ sbdDevices }}"
   when:
@@ -83,7 +83,7 @@
       vars:
         sbdMap_update:
                                               - { host:       "{{ item.host }}" ,
-                                                  lun:        "{{ item.lun }}"  ,
+                                                  lun:        "{{ item.LUN }}"  ,
                                                   blockDev:   ''                ,
                                                   diskByLun:  ''                ,
                                                   diskById:   ''                  }
