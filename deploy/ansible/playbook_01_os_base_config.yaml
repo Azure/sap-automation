@@ -239,11 +239,9 @@
 
             - name:                    "OS configuration playbook: - Check if required DNS entries are made"
               ansible.builtin.set_fact:
-                dns_in_AD:              "{{ dns_check_results.stdout }}"
+                dns_in_AD:              "{{ dns_check_results.stdout_lines[0] }}"
               when:
                 - dns_check_results is defined
-              register:                dns_check_results
-              failed_when:             dns_check_results.rc > 0
 
             - name:                    "OS configuration playbook: - Check if required DNS entries match"
               ansible.builtin.assert:
