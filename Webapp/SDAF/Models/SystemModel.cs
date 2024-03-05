@@ -626,7 +626,21 @@ namespace AutomationForm.Models
     [AMSIdValidator(ErrorMessage = "Invalid AMS Resource id")]
     public string ams_resource_id { get; set; }
 
+    /*---------------------------------------------------------------------------8
+    |                                                                            |
+    |                              KDump Parameters                              |
+    |                                                                            |
+    +------------------------------------4--------------------------------------*/
 
+    public bool? use_fence_kdump { get; set; } = false;
+
+    public int? use_fence_kdump_size_gb_db { get; set; } = 128;
+
+    public int? use_fence_kdump_lun_db { get; set; } = 8;
+
+    public int? use_fence_kdump_size_gb_scs { get; set; } = 64;
+
+    public int? use_fence_kdump_lun_scs { get; set; } = 4;
 
   }
 

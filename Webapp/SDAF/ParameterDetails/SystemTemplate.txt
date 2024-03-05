@@ -130,6 +130,20 @@ $$fencing_role_name$$
 # use_simple_mount specifies if Simple mounts are used (Applicable for SLES 15 SP# or newer)
 $$use_simple_mount$$
 
+# Configure fencing device based on the fence agent fence_kdump for both SCS and DB clusters
+$$use_fence_kdump$$
+
+# Default size of the kdump disk which will be attached to the VMs which are part DB cluster
+$$use_fence_kdump_size_gb_db$$
+
+# Default LUN number of the kdump disk which will be attached to the VMs which are part of DB cluster
+$$use_fence_kdump_lun_db$$
+
+# Default size of the kdump disk which will be attached to the VMs which are part of SCS cluster
+$$use_fence_kdump_size_gb_scs$$
+
+# Default LUN number of the kdump disk which will be attached to the VMs which are part of SCS cluster
+$$use_fence_kdump_lun_scs$$
 
 #########################################################################################
 #                                                                                       #
