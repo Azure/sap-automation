@@ -442,7 +442,7 @@
       become:                          true
       when:
         # - db_high_availability
-        - database_high_availability
+        - db_high_availability
         - node_tier == 'hana'
         - db_scale_out
       block:
