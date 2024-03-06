@@ -90,7 +90,7 @@
   when:
     - use_fence_kdump
     - ansible_os_family | upper == 'REDHAT'
-    - supported_tiers in ['scs','hana','db2','ers']
+    - node_tier in ['scs','hana','db2','ers']
 
 - name:                                "2.6 SAP Mounts: - Mount local file systems (shared)"
   ansible.posix.mount:
