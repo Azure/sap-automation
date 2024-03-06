@@ -404,6 +404,18 @@
     - node_tier == "oracle"
     - current_host == ora_secondary
 
+- name:                                "Oracle Data Guard - Setup Secondary: Create redo_rename.txt"
+  become:                              true
+  become_user:                         "root"
+  ansible.builtin.file:
+    path:                              /etc/sap_deployment_automation/dgscripts/redo_rename.txt
+    state:                             touch
+    mode:                              '0755'
+    owner:                             oracle
+    group:                             oinstall
+  when:                                
+   - node_tier == "oracle"
+   - redo_rename_results.rc == 0
 
 - name:                                "Oracle Data Guard - Setup Secondary: Create restore_completed.txt"
   become:                              true

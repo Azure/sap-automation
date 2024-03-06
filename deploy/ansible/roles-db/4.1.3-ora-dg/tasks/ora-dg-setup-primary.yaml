@@ -198,19 +198,25 @@
     creates:                           /etc/sap_deployment_automation/dgscripts/dbparametersfordg.txt
     chdir:                             /etc/sap_deployment_automation/dgscripts
     executable:                        /bin/csh
-  when:  current_host == ora_primary
+  when:  
+    - current_host == ora_primary
+    - node_tier == "oracle-asm"
 
 - name:                                "Oracle Data Guard - Setup Primary: Enable Flashback on Oracle Primary DB (debug)"
   ansible.builtin.debug:
     var:                               dbparametersfordg_results.stdout_lines
     verbosity:                         2
+  when:                                
+   - node_tier == "oracle-asm"
 
 - name:                                "Oracle Data Guard - Setup Primary: Enable Flashback on Oracle Primary DB (save output)"
   ansible.builtin.copy:
     dest:                              /etc/sap_deployment_automation/dgscripts/dbparametersfordg.log
     content:                           "{{ turn_on_flashback_results.stdout }}"
     mode:                              '0777'
-  when:                                dbparametersfordg_results.stdout is defined
+  when:                                
+   - node_tier == "oracle-asm"
+   - dbparametersfordg_results.stdout is defined
 
 - name:                                "Oracle Data Guard - Setup Primary: Create dbparametersfordg.txt"
   become:                              true
@@ -221,6 +227,7 @@
     mode:                              '0755'
   when:
     - current_host == ora_primary
+    - node_tier == "oracle-asm"
     - dbparametersfordg_results.rc == 0
 
 
