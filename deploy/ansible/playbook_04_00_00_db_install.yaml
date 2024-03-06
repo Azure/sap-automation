@@ -504,8 +504,7 @@
               become:                  true
               become_user:             root
           when:
-            - node_tier != 'oracle'
-            - node_tier != 'oracle-asm'
+            - node_tier in ['hana','observer']
             - db_scale_out
 
           tags:

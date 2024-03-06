@@ -56,22 +56,6 @@
       ansible.builtin.command:         "pcs cluster setup {{ db_sid | upper }}_cluster {{ ansible_play_hosts_all | join (' ') }} totem token={{ cluster_totem.token }}"
       when:                            ansible_distribution_major_version in  ["8", "9"] and node_tier == 'hana'
 
-    - name:                            "1.18 Generic Pacemaker - Ensure the cluster is created with a token large enough to allow memory preserving maintenance"
-      ansible.builtin.command:         "pcs cluster setup --name {{ sap_sid | upper }}_cluster {{ ansible_play_hosts_all | join (' ') }} --token {{ cluster_totem.token }}"
-      when:                            ansible_distribution_major_version == "7" and node_tier == 'scs'
-
-    - name:                            "1.18 Generic Pacemaker - Ensure the cluster is created with a token large enough to allow memory preserving maintenance"
-      ansible.builtin.command:         "pcs cluster setup {{ sap_sid | upper }}_cluster {{ ansible_play_hosts_all | join (' ') }} totem token={{ cluster_totem.token }}"
-      when:                            ansible_distribution_major_version in  ["8", "9"] and node_tier == 'scs'
-
-    - name:                            "1.18 Generic Pacemaker - Ensure the cluster is created with a token large enough to allow memory preserving maintenance"
-      ansible.builtin.command:         "pcs cluster setup --name {{ db_sid | upper }}_cluster {{ ansible_play_hosts_all | join (' ') }} --token {{ cluster_totem.token }}"
-      when:                            ansible_distribution_major_version == "7" and node_tier == 'db2'
-
-    - name:                            "1.18 Generic Pacemaker - Ensure the cluster is created with a token large enough to allow memory preserving maintenance"
-      ansible.builtin.command:         "pcs cluster setup {{ db_sid | upper }}_cluster {{ ansible_play_hosts_all | join (' ') }} totem token={{ cluster_totem.token }}"
-      when:                            ansible_distribution_major_version in  ["8", "9"] and node_tier == 'db2'
-
     - name:                            "1.18 Generic Pacemaker - Ensure the cluster is starting on all nodes"
       ansible.builtin.command:         pcs cluster start --all
       changed_when:                    false
