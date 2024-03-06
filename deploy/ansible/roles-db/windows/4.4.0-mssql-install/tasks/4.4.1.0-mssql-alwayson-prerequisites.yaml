@@ -140,7 +140,7 @@
     PsDscRunAsCredential_password:     "{{ domain_service_password }}"
   loop:
     - "{{ win_cluster_svc_account }}"
-    - '{{ domain | upper  }}\{{ sql_svc_account_name }}'
+    - '{{ domain | upper  }}\{{ win_sql_svc_account }}'
     - '{{ domain | upper  }}\{{ win_sqlagent_svc_account }}'
     - '{{ domain | upper  }}\{{ domain_service_account }}'
   register:                           sql_login
@@ -153,7 +153,7 @@
     InstanceName:                      "{{ mssql_instance_name }}"
     ServerRoleName:                    "sysadmin"
     MembersToInclude:
-    - '{{ domain | upper  }}\{{ sql_svc_account_name }}'
+    - '{{ domain | upper  }}\{{ win_sql_svc_account }}'
     - '{{ domain | upper  }}\{{ win_sqlagent_svc_account }}'
     - '{{ domain | upper  }}\{{ domain_service_account }}'
     PsDscRunAsCredential_username:     '{{ sap_sid }}adm@{{ domain_name }}'
@@ -178,7 +178,7 @@
     Name:                              "{{ item }}"
   loop:
     - "{{ win_cluster_svc_account }}"
-    - '{{ domain | upper  }}\{{ sql_svc_account_name }}'
+    - '{{ domain | upper  }}\{{ win_sql_svc_account }}'
     - '{{ domain | upper  }}\{{ win_sqlagent_svc_account }}'
     - '{{ domain | upper  }}\{{ domain_service_account }}'
   register:                           sql_server_permission
