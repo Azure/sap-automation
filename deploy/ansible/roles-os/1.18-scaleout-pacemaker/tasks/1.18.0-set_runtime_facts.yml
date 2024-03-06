@@ -126,7 +126,7 @@
 
 - name:                                           "1.18 Generic Pacemaker - Extract VM Name"
   ansible.builtin.set_fact:
-    "{{ host_var }}_vm_name":                     "{{ azure_metadata.json.compute.name }}"
+    "vm_name":                                    "{{ azure_metadata.json.compute.name }}"
 
 - name:                                           "Wait for primary_ip check on current node to finish"
   ansible.builtin.set_fact:
