@@ -38,14 +38,6 @@
       # ansible.builtin.command:       "ha-cluster-init -y --name 'hdb_{{ db_sid | upper }}' --interface eth0 --no-overwrite-sshkey"
       ansible.builtin.command:         "crm cluster init -y --name 'hdb_{{ db_sid | upper }}' --interface eth0 --no-overwrite-sshkey"
       when:                            node_tier == 'hana'
-
-    - name:                            "1.18 Generic Pacemaker - Ensure cluster (scs_{{ sap_sid | upper }}) is configured"
-      ansible.builtin.command:         "crm cluster init -y --name 'scs_{{ sap_sid | upper }}' --interface eth0 --no-overwrite-sshkey"
-      when:                            node_tier == 'scs'
-
-    - name:                            "1.18 Generic Pacemaker - Ensure cluster (db2_{{ db_sid | upper }}) is configured"
-      ansible.builtin.command:         "crm cluster init -y --name 'db2_{{ db_sid | upper }}' --interface eth0 --no-overwrite-sshkey"
-      when:                            node_tier == 'db2'
   when:                                ansible_hostname == ansible_play_hosts_all[0]
 
 - name:                                "1.18 Generic Pacemaker - Ensure additional nodes joins the Cluster"
