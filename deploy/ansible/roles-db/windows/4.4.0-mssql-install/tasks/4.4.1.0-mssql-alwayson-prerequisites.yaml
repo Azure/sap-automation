@@ -155,7 +155,7 @@
     MembersToInclude:
       - "{{ domain_sqlsvc_account }}"
       - "{{ domain_sqlagent_account }}"
-      - '{{ domain | upper }}\{{ domain_service_account }}'
+      - '{{ domain_service_account }}@{{ domain_name }}'
     PsDscRunAsCredential_username:     '{{ sap_sid }}adm@{{ domain_name }}'
     PsDscRunAsCredential_password:     '{{ domain_user_password }}'
   register:                           sql_role_addition
@@ -180,7 +180,7 @@
     - "{{ win_cluster_svc_account }}"
     - "{{ domain_sqlsvc_account }}"
     - "{{ domain_sqlagent_account }}"
-    - '{{ domain | upper }}\{{ domain_service_account }}'
+    - '{{ domain_service_account }}@{{ domain_name }}'
   register:                           sql_server_permission
 
 - name:                                "Create SQL Server Availability Group Endpoint"
