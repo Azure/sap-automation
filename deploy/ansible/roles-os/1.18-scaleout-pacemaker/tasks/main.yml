@@ -30,8 +30,6 @@
   block:
     - name:                                 "1.18 Generic Pacemaker - Provision Pacemaker"
       ansible.builtin.import_tasks:         1.18.2-provision.yml
-  when:
-    - ansible_hostname not in mm_hosts
   tags:
                                             - 1.18.2-provision
 
