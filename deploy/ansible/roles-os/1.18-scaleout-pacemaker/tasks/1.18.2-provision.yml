@@ -28,23 +28,23 @@
       tags:
         - cloudnetmanage
 
-    # - name:                            "1.18 Generic Pacemaker - Ensure the current Node trusts public key of particiating nodes"
-    #   ansible.posix.authorized_key:
-    #     user:                          root
-    #     key:                           "{{ hostvars[item].cluster_public_ssh_key }}"
-    #     state:                         present
-    #   when:                            ansible_hostname != item
-    #   with_items:
-    #     - "{{ db_hosts }}"
+    - name:                            "1.18 Generic Pacemaker - Ensure the current Node trusts public key of particiating nodes"
+      ansible.posix.authorized_key:
+        user:                          root
+        key:                           "{{ hostvars[item].cluster_public_ssh_key }}"
+        state:                         present
+      when:                            ansible_hostname != item
+      with_items:
+        - "{{ ansible_play_hosts_all }}"
 
-    # - name:                            1.18 Generic Pacemaker - Ensure trust relationship is working from current to remaining hosts
-    #   ansible.builtin.command:         ssh -oStrictHostKeyChecking=no {{ item }} "hostname -s"
-    #   register:                        primary_to_secondary_ssh_result
-    #   changed_when:                    false
-    #   failed_when:                     primary_to_secondary_ssh_result.stdout_lines[0] != item
-    #   when:                            ansible_hostname != item
-    #   with_items:
-    #     - "{{ db_hosts }}"
+    - name:                            1.18 Generic Pacemaker - Ensure trust relationship is working from current to remaining hosts
+      ansible.builtin.command:         ssh -oStrictHostKeyChecking=no {{ item }} "hostname -s"
+      register:                        primary_to_secondary_ssh_result
+      changed_when:                    false
+      failed_when:                     primary_to_secondary_ssh_result.stdout_lines[0] != item
+      when:                            ansible_hostname != item
+      with_items:
+        - "{{ ansible_play_hosts_all }}"
 
 
 # Clustering commands are based on the Host OS
