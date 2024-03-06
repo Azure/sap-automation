@@ -767,7 +767,6 @@
    chdir:                             /etc/sap_deployment_automation/dgscripts
    executable:                        /bin/csh
   when: 
-    - node_tier == "oracle-asm"
     - current_host == ora_secondary    
     
 - name:                            "Create local_listener_on_secondary on secondary"

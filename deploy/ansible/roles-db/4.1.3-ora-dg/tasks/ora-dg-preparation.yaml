@@ -509,6 +509,22 @@
     mode: '0755'
   when: current_host == ora_secondary
 
+
+#  Update the Local_Listener value for Primary Node.
+- name:                                "Oracle Local Listener Update - Preparation: create listenerupdate.sql"
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.blockinfile:
+    create: true
+    path: /etc/sap_deployment_automation/dgscripts/listenerupdate.sql
+    marker_begin: "-- BEGIN"
+    marker_end:   "-- END"
+    block: |
+         ALTER SYSTEM SET LOCAL_LISTENER='(ADDRESS=(PROTOCOl=TCP)(HOST={{ ora_primary }})(PORT=1521))' SCOPE=BOTH;
+         exit
+    mode: '0755'
+  when: current_host == ora_primary
+
 # Enable Flashback for Secondary Node.
 
 - name:                                "Oracle Local Listener Update - Preparation: create listenerupdate.sql"

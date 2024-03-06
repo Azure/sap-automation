@@ -184,6 +184,18 @@
     - current_host == ora_primary
     - turn_on_flashback_results.rc == 0
 
+- name:                            "Update the Local_Listener Value in primary"
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.shell:               sqlplus / as sysdba @listenerupdate.sql
+  register:                            local_listener_on_secondary_results
+  failed_when:                         local_listener_on_secondary_results.rc > 0
+  args:
+   creates:                           /etc/sap_deployment_automation/dgscripts/local_listener_on_secondary.txt
+   chdir:                             /etc/sap_deployment_automation/dgscripts
+   executable:                        /bin/csh
+  when: 
+    - current_host == ora_primary
 
 # Setup DG parameters for Primary Database.
 
