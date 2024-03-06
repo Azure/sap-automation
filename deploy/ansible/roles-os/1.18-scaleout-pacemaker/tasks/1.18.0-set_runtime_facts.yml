@@ -156,39 +156,41 @@
 # | Configure SSH Keys for inter-node communication as root for SUSE           |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
-- name:                                           "1.18 Generic Pacemaker - Configure SSH Keys for inter-node communication as root for SUSE"
-  block:
-    - name:                                       "1.18 Generic Pacemaker - Ensure there are SSH keys for the root user to communicate between nodes"
-      ansible.builtin.shell:                      ssh-keygen -b 4096 -t rsa -f /root/.ssh/id_rsa -q -N ""
-      args:
-        creates:                                  /root/.ssh/id_rsa
+# Update: Since we are using root credentials, SSh keys are no longer needed.
 
-    - name:                                       "1.18 Generic Pacemaker - Ensure there is a public key for the root user SSH key"
-      ansible.builtin.shell:                      ssh-keygen -f /root/.ssh/id_rsa -y > /root/.ssh/id_rsa.pub
-      args:
-        creates:                                  /root/.ssh/id_rsa.pub
+# - name:                                           "1.18 Generic Pacemaker - Configure SSH Keys for inter-node communication as root for SUSE"
+#   block:
+#     - name:                                       "1.18 Generic Pacemaker - Ensure there are SSH keys for the root user to communicate between nodes"
+#       ansible.builtin.shell:                      ssh-keygen -b 4096 -t rsa -f /root/.ssh/id_rsa -q -N ""
+#       args:
+#         creates:                                  /root/.ssh/id_rsa
 
-    - name:                                       "1.18 Generic Pacemaker - Ensure the Public SSH keys are available for exchanging SSH key trust between nodes"
-      ansible.builtin.command:                    cat /root/.ssh/id_rsa.pub
-      register:                                   cluster_public_ssh_key
-      changed_when:                               false
+#     - name:                                       "1.18 Generic Pacemaker - Ensure there is a public key for the root user SSH key"
+#       ansible.builtin.shell:                      ssh-keygen -f /root/.ssh/id_rsa -y > /root/.ssh/id_rsa.pub
+#       args:
+#         creates:                                  /root/.ssh/id_rsa.pub
 
-    - name:                                       "1.18 Generic Pacemaker - Set SSH fact"
-      ansible.builtin.set_fact:
-        cluster_public_ssh_key:                   "{{ cluster_public_ssh_key.stdout }}"
-  when:
-                                                  - ansible_os_family | upper == "SUSE"
+#     - name:                                       "1.18 Generic Pacemaker - Ensure the Public SSH keys are available for exchanging SSH key trust between nodes"
+#       ansible.builtin.command:                    cat /root/.ssh/id_rsa.pub
+#       register:                                   cluster_public_ssh_key
+#       changed_when:                               false
 
-- name:                                           "1.18 Generic Pacemaker - Wait for ssh key facts to be present"
-  when:
-                                                  - ansible_os_family | upper == "SUSE"
-  block:
-    - name:                                       "Wait for cluster_public_ssh_key check on nodes to finish"
-      ansible.builtin.set_fact:
-        "is_ssh_defined_on_{{ host_var }}":       "{{ hostvars[ansible_hostname].cluster_public_ssh_key is defined }}"
-      retries:                                    30
-      delay:                                      60
-      until:                                      is_ssh_defined_on_{{ host_var }}
+#     - name:                                       "1.18 Generic Pacemaker - Set SSH fact"
+#       ansible.builtin.set_fact:
+#         cluster_public_ssh_key:                   "{{ cluster_public_ssh_key.stdout }}"
+#   when:
+#                                                   - ansible_os_family | upper == "SUSE"
+
+# - name:                                           "1.18 Generic Pacemaker - Wait for ssh key facts to be present"
+#   when:
+#                                                   - ansible_os_family | upper == "SUSE"
+#   block:
+#     - name:                                       "Wait for cluster_public_ssh_key check on nodes to finish"
+#       ansible.builtin.set_fact:
+#         "is_ssh_defined_on_{{ host_var }}":       "{{ hostvars[ansible_hostname].cluster_public_ssh_key is defined }}"
+#       retries:                                    30
+#       delay:                                      60
+#       until:                                      is_ssh_defined_on_{{ host_var }}
 
 
 # /*---------------------------------------------------------------------------8
