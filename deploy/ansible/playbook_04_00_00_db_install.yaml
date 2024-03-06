@@ -125,6 +125,7 @@
       become:                          true
       when:
         - node_tier == 'hana'
+        - not db_scale_out
       block:
         - name:                        "Database Installation Playbook: - Setting the DB facts"
           ansible.builtin.set_fact:
@@ -142,7 +143,6 @@
           when:
             - db_scale_out is defined
             - db_scale_out
-            - not db_high_availability
 
         - name:                        "Database Installation Playbook: - Show SAP password"
           ansible.builtin.debug:
@@ -327,9 +327,7 @@
           ansible.builtin.service:
             name:                          sshd
             state:                         restarted
-
       when:
-        # - not db_high_availability
         - db_scale_out
         - hostvars.localhost.root_password is defined
 
