@@ -305,11 +305,6 @@
       changed_when:                    false
       failed_when:                     false
 
-    # - name:                           "1.17 Generic Pacemaker - Add hosts and kdump files to the initramfs image file"
-    #   ansible.builtin.shell:          dracut -f -v --add hosts --add fence-kdump --install "cat" /boot/initramfs-$(uname -r)kdump.img $(uname -r) --force
-    #   when:                           initramfs_image_file.rc != 0
-    #   failed_when:                    false
-
     # Ensure that the initramfs image file contains the fence_kdump and hosts files
     - name:                            "1.17 Generic Pacemaker - Check that the initramfs image file contains the fence_kdump and hosts files"
       ansible.builtin.shell:           set -o pipefail && lsinitrd /boot/initramfs-$(uname -r)kdump.img | egrep "fence|hosts"
