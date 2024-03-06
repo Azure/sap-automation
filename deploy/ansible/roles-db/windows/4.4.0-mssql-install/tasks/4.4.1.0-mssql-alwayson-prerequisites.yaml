@@ -142,7 +142,7 @@
     - "{{ win_cluster_svc_account }}"
     - "{{ domain_sqlsvc_account }}"
     - "{{ domain_sqlagent_account }}"
-    - '{{ domain | upper }}\{{ domain_service_account }}'
+    - '{{ domain_service_account }}@{{ domain_name }}'
   register:                           sql_login
 
 - name:                                "Add required users to server role in SQL Server"
