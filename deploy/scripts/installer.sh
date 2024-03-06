@@ -596,10 +596,9 @@ allParams=$(printf " -var-file=%s %s %s %s %s %s %s" "${var_file}" "${extra_vars
 
 terraform -chdir="$terraform_module_directory" plan -no-color -detailed-exitcode $allParams | tee -a plan_output.log
 return_value=$?
-echo "Plan returned $return_value"
+echo "Terraform Plan return code: " $return_value
 
-if [ 0 != $return_value ]
-then
+if [ 1 == $return_value ]: then
     echo ""
     echo "#########################################################################################"
     echo "#                                                                                       #"
@@ -615,7 +614,7 @@ then
 fi
 
 state_path="SYSTEM"
-if [ 0 == $return_value ] ; then
+if [ 1 != $return_value ] ; then
 
     if [ "${deployment_system}" == sap_deployer ]
     then
