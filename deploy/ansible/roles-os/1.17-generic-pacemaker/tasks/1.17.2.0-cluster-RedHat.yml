@@ -270,8 +270,8 @@
     - name:                            "1.17 Generic Pacemaker - Perform the fence_kdump_nodes configuration in /etc/kdump.conf"
       ansible.builtin.replace:
         path:                          /etc/kdump.conf
-        regexp:                        '^#fence_kdump_nodes'
-        replace:                       'fence_kdump_nodes "{{ secondary_instance_name }}"'
+        regexp:                        '^#fence_kdump_nodes(.*)$'
+        replace:                       "fence_kdump_nodes {{ secondary_instance_name }}"
         backup:                        true
       register:                        kdump_conf_file
       failed_when:                     kdump_conf_file.rc != 0
@@ -283,8 +283,8 @@
     - name:                            "1.17 Generic Pacemaker - Perform the fence_kdump_nodes configuration in /etc/kdump.conf"
       ansible.builtin.replace:
         path:                          /etc/kdump.conf
-        regexp:                        '^#fence_kdump_nodes'
-        replace:                       'fence_kdump_nodes "{{ primary_instance_name }}"'
+        regexp:                        '^#fence_kdump_nodes(.*)$'
+        replace:                       "fence_kdump_nodes {{ primary_instance_name }}"
         backup:                        true
       register:                        kdump_conf_file
       failed_when:                     kdump_conf_file.rc != 0
