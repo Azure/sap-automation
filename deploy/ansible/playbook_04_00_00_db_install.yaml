@@ -211,6 +211,7 @@
         # - db_high_availability
         - database_high_availability
         - node_tier == 'hana'
+        - not db_scale_out
       block:
         - name:                         "Database Installation Playbook: - Setting the facts"
           ansible.builtin.set_fact:
