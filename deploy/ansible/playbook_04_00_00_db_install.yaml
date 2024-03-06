@@ -437,7 +437,7 @@
       when:
         # - db_high_availability
         - db_high_availability
-        - node_tier == 'hana'
+        - node_tier in ['hana','observer']
         - db_scale_out
       block:
         - name:                        "Database Installation Playbook: - Setting the facts"
