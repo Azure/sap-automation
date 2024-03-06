@@ -265,30 +265,6 @@
   when:
                                       - kdump_enabled == "enabled"
   block:
-# Ensure that the initramfs image file contains the fence_kdump and hosts files
-    - name:                            "1.17 Generic Pacemaker - Check that the initramfs image file contains the fence_kdump and hosts files"
-      ansible.builtin.command:         lsinitrd /boot/initramfs-$(uname -r)kdump.img | egrep "fence|hosts"
-      register:                        initramfs_image_file
-      changed_when:                    false
-      failed_when:                     false
-
-    - name:                           "1.17 Generic Pacemaker - Add hosts and kdump files to the initramfs image file"
-      ansible.builtin.command:        dracut -f -v --add hosts --install "cat" /boot/initramfs-$(uname -r)kdump.img $(uname -r) --force
-      when:                           initramfs_image_file.rc != 0
-      failed_when:                    false
-
-    # Ensure that the initramfs image file contains the fence_kdump and hosts files
-    - name:                            "1.17 Generic Pacemaker - Check that the initramfs image file contains the fence_kdump and hosts files"
-      ansible.builtin.command:         lsinitrd /boot/initramfs-$(uname -r)kdump.img | egrep "fence|hosts"
-      register:                        initramfs_image_check
-      changed_when:                    false
-      failed_when:                     initramfs_image_check.rc != 0
-
-    # print debug on the validation of initramfs
-    - name:                            "1.17 Generic Pacemaker - debug initramfs output"
-      ansible.builtin.debug:
-        msg:                           "initramfs check: {{ initramfs_image_check.stdout }}"
-      when:                            initramfs_image_check.rc == 0
 
     # Perform the fence_kdump_nodes configuration in /etc/kdump.conf
     - name:                            "1.17 Generic Pacemaker - Perform the fence_kdump_nodes configuration in /etc/kdump.conf"
@@ -322,6 +298,30 @@
         name:                          kdump
         state:                         restarted
 
+    # Ensure that the initramfs image file contains the fence_kdump and hosts files
+    - name:                            "1.17 Generic Pacemaker - Check that the initramfs image file contains the fence_kdump and hosts files"
+      ansible.builtin.shell:           set -o pipefail && lsinitrd /boot/initramfs-$(uname -r)kdump.img | egrep "fence|hosts"
+      register:                        initramfs_image_file
+      changed_when:                    false
+      failed_when:                     false
+
+    # - name:                           "1.17 Generic Pacemaker - Add hosts and kdump files to the initramfs image file"
+    #   ansible.builtin.shell:          dracut -f -v --add hosts --add fence-kdump --install "cat" /boot/initramfs-$(uname -r)kdump.img $(uname -r) --force
+    #   when:                           initramfs_image_file.rc != 0
+    #   failed_when:                    false
+
+    # Ensure that the initramfs image file contains the fence_kdump and hosts files
+    - name:                            "1.17 Generic Pacemaker - Check that the initramfs image file contains the fence_kdump and hosts files"
+      ansible.builtin.shell:           set -o pipefail && lsinitrd /boot/initramfs-$(uname -r)kdump.img | egrep "fence|hosts"
+      register:                        initramfs_image_check
+      changed_when:                    false
+      failed_when:                     initramfs_image_check.rc != 0
+
+    # print debug on the validation of initramfs
+    - name:                            "1.17 Generic Pacemaker - debug initramfs output"
+      ansible.builtin.debug:
+        msg:                           "initramfs check: {{ initramfs_image_check.stdout }}"
+      when:                            initramfs_image_check.rc == 0
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
 # | kdump stonith - END                                                        |
