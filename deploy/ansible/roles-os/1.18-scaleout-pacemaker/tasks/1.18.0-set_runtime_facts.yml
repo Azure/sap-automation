@@ -128,8 +128,7 @@
   ansible.builtin.set_fact:
     "{{ host_var }}_vm_name":                     "{{ azure_metadata.json.compute.name }}"
 
-- name:                                           "Wait for primary_ip check on first node to finish"
-  when:                                           ansible_hostname == secondary_instance_name
+- name:                                           "Wait for primary_ip check on current node to finish"
   ansible.builtin.set_fact:
     "is_primIP_defined_on_{{ host_var }}":        "{{ hostvars[ansible_hostname].primary_ip is defined }}"
   retries:                                        30
@@ -178,7 +177,7 @@
       ansible.builtin.set_fact:
         cluster_public_ssh_key:                   "{{ cluster_public_ssh_key.stdout }}"
   when:
-                                                  - ansible_os_family | upper == "SUSE"
+    - ansible_os_family | upper == "SUSE"
 
 - name:                                           "1.18 Generic Pacemaker - Wait for ssh key facts to be present"
   when:
