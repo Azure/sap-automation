@@ -273,51 +273,9 @@
 # |                          Scale Out configuration Only                       |
 # +------------------------------------4--------------------------------------*/
 
-# This configures root account on HANA nodes for scale out configuration ( shared and shared nothing with HSR )
-# We add majority maker nodes to the host loop if we are configuring scale out with HSR configuration.
-# - hosts:                               "{% if db_high_availability %}{{ sap_sid | upper }}_DB:{{ sap_sid | upper }}_OBSERVER_DB{% else %}{{ sap_sid | upper }}_DB{% endif %}"
-# - hosts:                               "{{ sap_sid | upper }}_DB"
-#   name:                                DB Installation - login configuration
-#   remote_user:                         "{{ orchestration_ansible_user }}"
-#   gather_facts:                        true
-#   any_errors_fatal:                    true
-#   vars_files:
-#     - vars/ansible-input-api.yaml
-#   tasks:
-#     - name:                           "SAP HANA: Configure root credential for Scale-Out"
-#       block:
-#         - name:                            Reset root password
-#           become:                          true
-#           ansible.builtin.user:
-#             name:                          root
-#             update_password:               always
-#             password:                      "{{ hostvars.localhost.root_password | password_hash('sha512') }}"
-
-#         - name:                            Enable {{ item.key }} in /etc/ssh/sshd_config
-#           become:                          true
-#           ansible.builtin.lineinfile:
-#             path:                          "/etc/ssh/sshd_config"
-#             regex:                         "^(# *)?{{ item.key }}"
-#             line:                          "{{ item.key }} {{ item.value }}"
-#             state:                         present
-#           loop:
-#             - { key: "PermitRootLogin", value: "yes" }
-#             - { key: "PasswordAuthentication", value: "yes" }
-#             - { key: "ChallengeResponseAuthentication", value: "yes" }
-
-#         - name:                            "Restart SSHD on {{ ansible_hostname }}"
-#           become:                          true
-#           ansible.builtin.service:
-#             name:                          sshd
-#             state:                         restarted
-#       when:
-#         - db_scale_out
-#         - hostvars.localhost.root_password is defined
-
-
 # This configures HANA Scale out ( netapp and HSR shared nothing )
 - hosts:                               "{{ sap_sid | upper }}_DB"
-  name:                                DB Installation - HANA
+  name:                                DB Installation - HANA Scale Out
   remote_user:                         "{{ orchestration_ansible_user }}"
   gather_facts:                        true                                    # Important to collect hostvars information
   any_errors_fatal:                    true
@@ -325,19 +283,13 @@
     - vars/ansible-input-api.yaml                                              # API Input template with defaults
 
   tasks:
-  # -------------------------------------+---------------------------------------8
-  #
-  # Build the list of tasks to be executed in order here.
-  #
-  # -------------------------------------+---------------------------------------8
-
     - name:                            "Backward Compatibility - Check required Database HA variables"
       ansible.builtin.set_fact:
         database_high_availability:    "{{ db_high_availability | default(false) }}"
       when:
         - db_high_availability is defined
         - database_high_availability is not defined
-    # This configures root account on HANA nodes for scale out configuration ( shared and shared nothing with HSR )
+    # This configures root account on HANA nodes for scale out configuration ( shared and shared nothing with HSR ) to use password based login.
     - name:                            "SAP HANA: Configure root credential for Scale-Out"
       block:
         - name:                            Reset root password
@@ -367,7 +319,6 @@
       when:
         - db_scale_out
         - hostvars.localhost.root_password is defined
-
     - name:                            "Database Installation Playbook: - Install HANA Scale Out"
       become:                          true
       when:
@@ -439,7 +390,7 @@
 
           tags:
             - 4.0.0-hdb-install
-
+    # This disables root account on HANA nodes for scale out configuration ( shared and shared nothing with HSR ) to use password based login.
     - name:                           "SAP HANA: disable root credential for Scale-Out"
       block:
         - name:                            Reset root password to random local value
