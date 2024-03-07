@@ -41,15 +41,14 @@ logging {
     }
 }
 
-nodelist {
-    node {
-        ring0_addr: {{ hostvars[primary_instance_name]['primary_ip'] | string }}
-        nodeid:     1
-    }
-    node {
-        ring0_addr: {{ hostvars[secondary_instance_name]['primary_ip'] | string }}
-        nodeid:     2
-    }
+nodelist{
+{% for host in ansible_play_hosts_all %}
+		node {
+			ring0_addr: {{ hostvars[host]['primary_ip'] }}
+			name: {{ host }}
+			nodeid: {{ loop.index + 1 }}
+		}
+{% endfor %}
 }
 
 quorum {
