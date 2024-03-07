@@ -48,6 +48,6 @@
 
 
 # Clustering commands are based on the Host OS
-- name:                                "1.18.2 Generic Pacemaker - Cluster based on {{ ansible_os_family }} on VM {{ ansible_hostname }}"
+- name:                                "1.18.2 Generic Pacemaker - Cluster based on {{ ansible_os_family }}"
   ansible.builtin.include_tasks:       "1.18.2.0-cluster-{{ ansible_os_family }}.yml"
   # when:                                cluster_existence_check != 0
