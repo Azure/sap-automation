@@ -415,7 +415,7 @@
 
       - name:                            "SAP HANA: installation"
         block:
-          - name:                        "SAP HANA: Execute hdblcm on {{ virtual_host }}"
+          - name:                        "SAP HANA: Execute hdblcm on {{ primary_instance_name }}"
             ansible.builtin.shell: |
                                         umask {{ custom_umask | default('022') }} ;
                                         chmod 755 /usr/sap;
@@ -619,7 +619,7 @@
           ansible.builtin.wait_for:
             timeout:                   300
     when:
-    - ansible_hostname == ansible_play_hosts_all[0]
+    - ansible_hostname == primary_instance_name
     - not hana_installed.stat.exists
 
 # /*---------------------------------------------------------------------------8
@@ -677,7 +677,7 @@
 
       - name:                            "SAP HANA: installation"
         block:
-          - name:                        "SAP HANA: Execute hdblcm on {{ virtual_host }}"
+          - name:                        "SAP HANA: Execute hdblcm on {{ secondary_instance_name }}"
             ansible.builtin.shell: |
                                         umask {{ custom_umask | default('022') }} ;
                                         chmod 755 /usr/sap;
@@ -881,7 +881,7 @@
           ansible.builtin.wait_for:
             timeout:                   300
     when:
-    - ansible_hostname == ansible_play_hosts_all[1]
+    - ansible_hostname == secondary_instance_name
     - not hana_installed.stat.exists
 
   when:
