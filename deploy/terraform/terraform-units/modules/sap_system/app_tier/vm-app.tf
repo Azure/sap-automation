@@ -264,9 +264,9 @@ resource "azurerm_windows_virtual_machine" "app" {
 
 
   proximity_placement_group_id         = var.application_tier.app_use_ppg ? (
-                                          local.app_zonal_deployment ? var.ppg[count.index % max(local.app_zone_count, 1)] : var.ppg[0]) : (
-                                          null
-                                        )
+                                           var.ppg[count.index % max(length(var.ppg), 1)]) : (
+                                           null
+                                         )
 
   //If more than one servers are deployed into a single zone put them in an availability set and not a zone
   availability_set_id                  = var.application_tier.app_use_avset ? (
@@ -276,6 +276,7 @@ resource "azurerm_windows_virtual_machine" "app" {
                                            )) : (
                                            null
                                          )
+
 
   virtual_machine_scale_set_id         = length(var.scale_set_id) > 0 ? var.scale_set_id : null
   //If length of zones > 1 distribute servers evenly across zones
