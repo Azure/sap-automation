@@ -50,19 +50,6 @@
   when:
     - ansible_hostname == mssql_primary_node
   block:
-    - name:                            "Set SQL Server Always On Endpoint Permission"
-      ansible.windows.win_dsc:
-        resource_name:                 SqlEndpointPermission
-        Ensure:                        Present
-        ServerName:                    "{{ ansible_hostname }}"
-        InstanceName:                  "{{ mssql_instance_name }}"
-        Name:                          "SDAF-HADR"
-        Principal:                     "{{ domain_sqlsvc_account }}"
-        Permission:                    "CONNECT"
-        PsDscRunAsCredential_username: "{{ domain_service_account }}@{{ domain_name }}"
-        PsDscRunAsCredential_password: "{{ domain_service_password }}"
-      register:                        sql_always_on_endpoint_permission
-
     - name:                            "Enable SQL Server Always On Service"
       ansible.windows.win_dsc:
         resource_name:                 SqlAlwaysOnService
@@ -76,6 +63,20 @@
       until:                           sql_always_on_service is succeeded
       retries:                         6
       delay:                           20
+
+    - name:                            "Set SQL Server Always On Endpoint Permission"
+      ansible.windows.win_dsc:
+        resource_name:                 SqlEndpointPermission
+        Ensure:                        Present
+        ServerName:                    "{{ ansible_hostname }}"
+        InstanceName:                  "{{ mssql_instance_name }}"
+        Name:                          "SDAF-HADR"
+        Principal:                     "{{ domain_sqlsvc_account }}"
+        Permission:                    "CONNECT"
+        PsDscRunAsCredential_username: "{{ domain_service_account }}@{{ domain_name }}"
+        PsDscRunAsCredential_password: "{{ domain_service_password }}"
+      register:                        sql_always_on_endpoint_permission
+
 
     # restart SQL Server service
     - name:                            "Restart SQL Server service on {{ ansible_hostname }}"
