@@ -128,7 +128,7 @@ resource "azurerm_linux_virtual_machine" "scs" {
 
   //If no ppg defined do not put the scs servers in a proximity placement group
   proximity_placement_group_id         = var.application_tier.scs_use_ppg ? (
-                                           local.scs_zonal_deployment ? var.ppg[count.index % max(local.scs_zone_count, 1)] : var.ppg[0]) : (
+                                           local.scs_zonal_deployment ? var.ppg[count.index % max(length(var.ppg), 1)] : var.ppg[0]) : (
                                            null
                                          )
 
@@ -313,7 +313,7 @@ resource "azurerm_windows_virtual_machine" "scs" {
 
   //If no ppg defined do not put the scs servers in a proximity placement group
   proximity_placement_group_id         = var.application_tier.scs_use_ppg ? (
-                                           local.scs_zonal_deployment ? var.ppg[count.index % max(local.scs_zone_count, 1)] : var.ppg[0]) : (
+                                           local.scs_zonal_deployment ? var.ppg[count.index % max(length(var.ppg), 1)] : var.ppg[0]) : (
                                            null
                                          )
 
