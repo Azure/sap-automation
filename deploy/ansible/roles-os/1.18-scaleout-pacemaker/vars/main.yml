@@ -12,8 +12,6 @@
 
 db_hosts:                   "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
 mm_hosts:                   "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_OBSERVER_DB') }}"
-db_hosts_count:             "{{ db_hosts | length }}"
-mm_hosts_count:             "{% if {{ mm_hosts | length }} == 0 %}0{% else %}{{ mm_hosts | length }}{% endif %}"
 
 cluster_totem:
   token:                               30000
@@ -23,7 +21,7 @@ cluster_totem:
   max_messages:                         20
 
 cluster_quorum:
-  expected_votes:                       "{{ (db_hosts_count // 2) + 1 }}"
+  expected_votes:                       "{{ (( ansible_play_hosts_all | length ) / 2 ) | int + 1 }}"
   two_node:                             0
 
 # /*---------------------------------------------------------------------------8
