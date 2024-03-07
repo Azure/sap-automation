@@ -19,7 +19,7 @@
         msg:                                      # Best method for formatting output with Azure Devops Logs
                                                   - "BEGIN: Fencing specific..."
 
-    - name:                                       "1.18 Generic Pacemaker - Check the fencing agent configuration variables are set"
+    - name:                                       "1.18.1 Generic Pacemaker - Check the fencing agent configuration variables are set"
       ansible.builtin.assert:
         that:
                                                   - "fencing_spn_subscription_id  is defined"
@@ -88,7 +88,7 @@
 - name:                                           "SUSE specific"
   block:
 
-    - name:                                       "1.18 Generic Pacemaker - Check the required Clustering scripts are available"
+    - name:                                       "1.18.1 Generic Pacemaker - Check the required Clustering scripts are available"
       ansible.builtin.stat:
         path:                                     "/usr/sbin/crm"
       register:                                   cluster_scripts_status_results
@@ -102,24 +102,24 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-- name:                                           "1.18 Generic Pacemaker - Check the required cluster password is set"
+- name:                                           "1.18.1 Generic Pacemaker - Check the required cluster password is set"
   ansible.builtin.assert:
     that:
                                                   - "password_ha_db_cluster is defined"
                                                   - "password_ha_db_cluster | trim | length > 0"
     fail_msg:                                     "A highly available SCS deployment requires that an cluster password is set"
 
-- name:                                           "1.18 Generic Pacemaker - Check if a cluster has already been prepared"
+- name:                                           "1.18.1 Generic Pacemaker - Check if a cluster has already been prepared"
   ansible.builtin.command:                        "{{ cluster_status_cmd[ansible_os_family] }}"
   register:                                       cluster_existence_check_result
   changed_when:                                   false
   failed_when:                                    false
 
-- name:                                           "1.18 Generic Pacemaker - Save settings"
+- name:                                           "1.18.1 Generic Pacemaker - Save settings"
   ansible.builtin.set_fact:
     cluster_existence_check:                      "{{ cluster_existence_check_result.rc | int }}"
 
-- name:                                           "1.18 Generic Pacemaker - Show if a cluster has already been prepared"
+- name:                                           "1.18.1 Generic Pacemaker - Show if a cluster has already been prepared"
   ansible.builtin.debug:
     msg:
                                                   - "CLUSTER VALIDATION : {{ cluster_existence_check }}"
