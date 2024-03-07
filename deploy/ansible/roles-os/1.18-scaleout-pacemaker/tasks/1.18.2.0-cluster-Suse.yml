@@ -42,7 +42,7 @@
 
 - name:                                "1.18.2.0 Generic Pacemaker - Ensure additional nodes joins the Cluster"
   block:
-    - name:                            "1.18.2.0 Generic Pacemaker - Ensure Secondary node joins the Cluster"
+    - name:                            "1.18.2.0 Generic Pacemaker - Ensure Secondary nodes joins the Cluster"
       # ha-cluster-join is not supported in SLES 15 SP4 anymore, crm syntax required
       ansible.builtin.command:         "sudo crm cluster join -y -c {{ ansible_play_hosts_all[0] }} --interface eth0"
   when:
