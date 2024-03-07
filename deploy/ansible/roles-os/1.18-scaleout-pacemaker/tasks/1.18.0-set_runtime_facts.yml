@@ -16,7 +16,7 @@
                                                   - "scs_cluster_type:                {{ scs_cluster_type }}"
                                                   - "database_cluster_type:           {{ database_cluster_type }}"
 
-- name:                                           "1.18 Generic Pacemaker - Retrieve Subscription ID and Resource Group Name"
+- name:                                           "1.18.0 Generic Pacemaker - Retrieve Subscription ID and Resource Group Name"
   ansible.builtin.uri:
     url:                                          http://169.254.169.254/metadata/instance?api-version=2021-02-01
     use_proxy:                                    false
@@ -24,7 +24,7 @@
       Metadata:                                   true
   register:                                       azure_metadata
 
-- name:                                           "1.18 Generic Pacemaker - Show IMDS results"
+- name:                                           "1.18.0 Generic Pacemaker - Show IMDS results"
   ansible.builtin.debug:
     var:                                          azure_metadata.json
     verbosity:                                    2
@@ -50,7 +50,7 @@
     #                                               - "database_cluster_type :          {{ database_cluster_type }}"
     #     verbosity:                                2
 
-    - name:                                       "1.18 Generic Pacemaker - Extract details"
+    - name:                                       "1.18.0 Generic Pacemaker - Extract details"
       ansible.builtin.set_fact:
         fencing_spn_subscription_id:              "{{ azure_metadata.json.compute.subscriptionId }}"
         resource_group_name:                      "{{ azure_metadata.json.compute.resourceGroupName }}"
@@ -115,16 +115,16 @@
 # +------------------------------------4--------------------------------------*/
 
 
-- name:                                           "1.18 Generic Pacemaker - Extract details"
+- name:                                           "1.18.0 Generic Pacemaker - Extract details"
   ansible.builtin.set_fact:
     primary_ip:                                   "{{ azure_metadata.json.network.interface[0].ipv4.ipAddress[0].privateIpAddress }}"
     subnet_prefix:                                "{{ azure_metadata.json.network.interface[0].ipv4.subnet[0].prefix }}"
 
-- name:                                           "1.18 Generic Pacemaker - Set unique variable fact"
+- name:                                           "1.18.0 Generic Pacemaker - Set unique variable fact"
   ansible.builtin.set_fact:
     "host_var":                                   "{{ ansible_hostname | replace('-','_') }}"
 
-- name:                                           "1.18 Generic Pacemaker - Extract VM Name"
+- name:                                           "1.18.0 Generic Pacemaker - Extract VM Name"
   ansible.builtin.set_fact:
     "vm_name":                                    "{{ azure_metadata.json.compute.name }}"
 
@@ -136,11 +136,11 @@
   until:                                          is_primIP_defined_on_{{ host_var }}
 
 
-- name:                                           "1.18 Generic Pacemaker - Extract NIC IPs"
+- name:                                           "1.18.0 Generic Pacemaker - Extract NIC IPs"
   ansible.builtin.set_fact:
     "{{ host_var }}_instance_ip":                 "{{ hostvars[ansible_hostname]['primary_ip'] | string }}"
 
-- name:                                           "1.18 Generic Pacemaker - Show Details"
+- name:                                           "1.18.0 Generic Pacemaker - Show Details"
   ansible.builtin.debug:
     msg:
                                                   - "FENCING :"
@@ -156,30 +156,30 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-- name:                                           "1.18 Generic Pacemaker - Configure SSH Keys for inter-node communication as root for SUSE"
+- name:                                           "1.18.0 Generic Pacemaker - Configure SSH Keys for inter-node communication as root for SUSE"
   block:
-    - name:                                       "1.18 Generic Pacemaker - Ensure there are SSH keys for the root user to communicate between nodes"
+    - name:                                       "1.18.0 Generic Pacemaker - Ensure there are SSH keys for the root user to communicate between nodes"
       ansible.builtin.shell:                      ssh-keygen -b 4096 -t rsa -f /root/.ssh/id_rsa -q -N ""
       args:
         creates:                                  /root/.ssh/id_rsa
 
-    - name:                                       "1.18 Generic Pacemaker - Ensure there is a public key for the root user SSH key"
+    - name:                                       "1.18.0 Generic Pacemaker - Ensure there is a public key for the root user SSH key"
       ansible.builtin.shell:                      ssh-keygen -f /root/.ssh/id_rsa -y > /root/.ssh/id_rsa.pub
       args:
         creates:                                  /root/.ssh/id_rsa.pub
 
-    - name:                                       "1.18 Generic Pacemaker - Ensure the Public SSH keys are available for exchanging SSH key trust between nodes"
+    - name:                                       "1.18.0 Generic Pacemaker - Ensure the Public SSH keys are available for exchanging SSH key trust between nodes"
       ansible.builtin.command:                    cat /root/.ssh/id_rsa.pub
       register:                                   cluster_public_ssh_key
       changed_when:                               false
 
-    - name:                                       "1.18 Generic Pacemaker - Set SSH fact"
+    - name:                                       "1.18.0 Generic Pacemaker - Set SSH fact"
       ansible.builtin.set_fact:
         cluster_public_ssh_key:                   "{{ cluster_public_ssh_key.stdout }}"
   when:
     - ansible_os_family | upper == "SUSE"
 
-- name:                                           "1.18 Generic Pacemaker - Wait for ssh key facts to be present"
+- name:                                           "1.18.0 Generic Pacemaker - Wait for ssh key facts to be present"
   when:
                                                   - ansible_os_family | upper == "SUSE"
   block:
@@ -206,15 +206,15 @@
 # We need to add support for comparing minor releases.
 # The current version filter is not able to do that.
 
-- name:                                           "1.18 Generic Pacemaker - Get packages information"
+- name:                                           "1.18.0 Generic Pacemaker - Get packages information"
   ansible.builtin.package_facts:
 
-- name:                                           "1.18 Generic Pacemaker - Set packages information ({{ ansible_os_family | upper }})"
+- name:                                           "1.18.0 Generic Pacemaker - Set packages information ({{ ansible_os_family | upper }})"
   ansible.builtin.set_fact:
     pacemaker_version:                             "{{ ansible_facts.packages['pacemaker'] | map(attribute='version') | first | default('') }}"
     resource_agents_version:                       "{{ ansible_facts.packages['resource-agents'] | map(attribute='version') | first | default('') }}"
 
-- name:                                           "1.18 Generic Pacemaker - Show packages information ({{ ansible_os_family | upper }})"
+- name:                                           "1.18.0 Generic Pacemaker - Show packages information ({{ ansible_os_family | upper }})"
   when:                                           ansible_os_family | upper == "REDHAT"
   ansible.builtin.debug:
     msg:
@@ -222,7 +222,7 @@
       - "resource-agents:                         {{ ansible_facts.packages['resource-agents'] }}"
       - "fence-agents-azure-arm:                  {{ ansible_facts.packages['fence-agents-azure-arm'] }}"
 
-- name:                                           "1.18 Generic Pacemaker - Show packages information ({{ ansible_os_family | upper }})"
+- name:                                           "1.18.0 Generic Pacemaker - Show packages information ({{ ansible_os_family | upper }})"
   when:                                           ansible_os_family | upper == "SUSE"
   ansible.builtin.debug:
     msg:
