@@ -346,6 +346,22 @@ then
     echo "#########################################################################################"
     echo ""
     az account set --sub "${STATE_SUBSCRIPTION}"
+
+    return_code=$?
+    if [ 0 != $return_code ]; then
+
+      echo "#########################################################################################"
+      echo "#                                                                                       #"
+      echo -e "#         $boldred  The deployment account (MSI or SPN) does not have access to $resetformatting                #"
+      echo -e "#                      $boldred ${STATE_SUBSCRIPTION} $resetformatting                           #"
+      echo "#                                                                                       #"
+      echo "#########################################################################################"
+
+      echo "##vso[task.logissue type=error]The deployment account (MSI or SPN) does not have access to ${STATE_SUBSCRIPTION}"
+      exit $return_code
+   fi
+
+    account_set=1
 fi
 
 load_config_vars "${system_config_information}" "STATE_SUBSCRIPTION"
