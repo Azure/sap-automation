@@ -37,7 +37,7 @@
     - domain is defined
 
 
-- name:                                "WIN: Joining the domain {{ domain }}"
+- name:                                "WIN: Information {{ domain }}"
   ansible.builtin.debug:
     msg:
       - "Domain:                       {{ domain_name }}"
@@ -85,10 +85,10 @@
 
 - name:                                "Add SPNs for SQL Server"
   ansible.windows.win_shell: |
-    'setspn -A MSSQLSvc/{{ mssql_primary_node }}.{{ domain_name }} {{ domain_sqlsvc_account }}'
-    'setspn -A MSSQLSvc/{{ mssql_primary_node }}.{{ domain_name }}:1433 {{ domain_sqlsvc_account }}'
-    'setspn -A MSSQLSvc/{{ mssql_secondary_node }}.{{ domain_name }} {{ domain_sqlsvc_account }}'
-    'setspn -A MSSQLSvc/{{ mssql_secondary_node }}.{{ domain_name }}:1433 {{ domain_sqlsvc_account }}'
+    'setspn -A MSSQLSvc/{{ mssql_primary_node }}.{{ domain_name }} {{ domain | upper  }}\{{ win_sql_svc_account }}'
+    'setspn -A MSSQLSvc/{{ mssql_primary_node }}.{{ domain_name }}:1433 {{ domain | upper  }}\{{ win_sql_svc_account }}'
+    'setspn -A MSSQLSvc/{{ mssql_secondary_node }}.{{ domain_name }} {{ domain | upper  }}\{{ win_sql_svc_account }}'
+    'setspn -A MSSQLSvc/{{ mssql_secondary_node }}.{{ domain_name }}:1433 {{ domain | upper  }}\{{ win_sql_svc_account }}'
 
 - name:                                "Convert SQL Server service from running with local account to domain account"
   ansible.windows.win_service:
