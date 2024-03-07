@@ -292,7 +292,19 @@
                                        - kdump_enabled == "enabled"
                                        - inventory_hostname == secondary_instance_name
 
-    # restart kdump service
+    # set the kdump path to /usr/crash in /etc/kdump.conf
+    - name:                            "1.17 Generic Pacemaker - Set the kdump path to /usr/crash in /etc/kdump.conf"
+      ansible.builtin.replace:
+        path:                          /etc/kdump.conf
+        regexp:                        '^path(.*)$'
+        replace:                       "path /usr/crash"
+        backup:                        true
+      register:                        kdump_conf_file_path
+      failed_when:                     kdump_conf_file_path.rc != 0
+      when:
+                                       - kdump_enabled == "enabled"
+
+    # restart kdump service as we made changes to the configuration
     - name:                            "1.17 Generic Pacemaker - Restart kdump service"
       ansible.builtin.service:
         name:                          kdump
