@@ -229,29 +229,29 @@
                                                     (scs_cluster_type      == "ISCSI")
   block:
 
-    - name:                                    "systemctl enable sbd"
+    - name:                                      "systemctl enable sbd"
       ansible.builtin.systemd:
-        name:                                  sbd
-        enabled:                               true
-        daemon_reload:                         true
+        name:                                    sbd
+        enabled:                                 true
+        daemon_reload:                           true
 
     # restart cluster on primary node to ensure sbd is enabled
-    - name:                                    "1.17 Generic Pacemaker - stop cluster on both nodes to ensure sbd is enabled."
-      ansible.builtin.command:                 crm cluster stop
+    - name:                                      "1.17 Generic Pacemaker - stop cluster on both nodes to ensure sbd is enabled."
+      ansible.builtin.command:                   crm cluster stop
 
-    - name:                                    "1.17 Generic Pacemaker - Check if cluster is stopped"
+    - name:                                      "1.17 Generic Pacemaker - Check if cluster is stopped"
       ansible.builtin.wait_for:
-        path:                                  /var/lib/pacemaker/cib/cib.xml
-        state:                                 absent
-        timeout:                               60
+        path:                                    /var/lib/pacemaker/cib/cib.xml
+        state:                                   absent
+        timeout:                                 60
 
-    - name:                                    "1.17 Generic Pacemaker - start cluster on both nodes to ensure sbd is enabled."
-      ansible.builtin.command:                 crm cluster start
+    - name:                                      "1.17 Generic Pacemaker - start cluster on both nodes to ensure sbd is enabled."
+      ansible.builtin.command:                   crm cluster start
 
   always:
     - name:                                      "1.17 Generic Pacemaker - SBD service configuration"
       ansible.builtin.debug:
-        msg:                                      "SBD service configuration ends"
+        msg:                                     "SBD service configuration ends"
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |

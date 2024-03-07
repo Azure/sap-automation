@@ -83,7 +83,7 @@
 - name:                                "2.6 SAP Mounts: - Mount local kdump file path to save vmcore"
   ansible.posix.mount:
     src:                               "/dev/vg_{{ node_tier | lower }}_kdump/lv_{{ node_tier | lower }}_kdump"
-    path:                              '/var/crash'
+    path:                              '/usr/crash'
     fstype:                            'xfs'
     opts:                              defaults
     state:                             mounted
