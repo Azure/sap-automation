@@ -174,10 +174,10 @@ locals {
                                                                             0
                                                                           )
                                         app_sku                         = var.application_server_sku
-                                        app_use_ppg                     = var.application_server_count > 0 ? var.use_scalesets_for_deployment ? (
+                                        app_use_ppg                     = var.application_server_count == 0 || var.use_scalesets_for_deployment || !local.enable_app_tier_deployment ? (
                                                                             false) : (
                                                                             var.application_server_use_ppg
-                                                                          ) : false
+                                                                          )
                                         app_use_avset                   = var.application_server_count == 0 || var.use_scalesets_for_deployment || !local.enable_app_tier_deployment ? (
                                                                             false) : (
                                                                             var.application_server_use_avset
