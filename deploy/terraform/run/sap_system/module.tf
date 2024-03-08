@@ -94,7 +94,6 @@ module "common_infrastructure" {
   use_private_endpoint                          = var.use_private_endpoint
   use_random_id_for_storageaccounts             = var.use_random_id_for_storageaccounts
   use_scalesets_for_deployment                  = var.use_scalesets_for_deployment
-  use_service_endpoint                          = var.use_service_endpoint
 }
 
 #-------------------------------------------------------------------------------
