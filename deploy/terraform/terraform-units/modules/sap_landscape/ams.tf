@@ -3,8 +3,8 @@ data "azurerm_subnet" "ams" {
   provider                             = azurerm.main
   count                                = length(local.ams_subnet_arm_id) > 0 ? 1 : 0
   name                                 = local.ams_subnet_name
-  virtual_network_name                 = local.SAP_virtualnetwork_name
-  resource_group_name                  = local.resourcegroup_name
+  virtual_network_name                 = split("/", local.ams_subnet_arm_id)[8]    # Get the Network from actual arm_id
+  resource_group_name                  = split("/", local.ams_subnet_arm_id)[4]    # Get RG name from actual arm_id
 }
 
 # Created AMS instance if log analytics workspace is NOT defined
