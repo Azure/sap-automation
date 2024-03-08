@@ -237,7 +237,8 @@ resource "azurerm_linux_virtual_machine" "app" {
                        }
   lifecycle {
     ignore_changes = [
-      source_image_id
+      source_image_id,
+      zone
     ]
   }
 
@@ -365,7 +366,8 @@ resource "azurerm_windows_virtual_machine" "app" {
   lifecycle {
     ignore_changes = [
       // Ignore changes to computername
-      source_image_id
+      source_image_id,
+      zone
     ]
   }
 

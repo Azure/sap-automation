@@ -178,10 +178,11 @@ locals {
                                                                             false) : (
                                                                             var.application_server_use_ppg
                                                                           ) : false
-                                        app_use_avset                   = var.application_server_count == 0 || var.use_scalesets_for_deployment || length(var.application_server_zones) > 0 || !local.enable_app_tier_deployment ? (
+                                        app_use_avset                   = var.application_server_count == 0 || var.use_scalesets_for_deployment || !local.enable_app_tier_deployment ? (
                                                                             false) : (
                                                                             var.application_server_use_avset
                                                                           )
+
                                         avset_arm_ids                   = var.application_server_vm_avset_arm_ids
                                         scs_server_count                = local.enable_app_tier_deployment ? (
                                                                             max(var.scs_server_count, try(var.application_tier.scs_server_count, 0))
