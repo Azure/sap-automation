@@ -142,30 +142,63 @@
       become_user:                         "oracle"
       ansible.builtin.shell: |
           set -o pipefail
-          sqlplus / as sysdba @shutdownsecondary.sql | tee /etc/sap_deployment_automation/dgscripts/asm_secondary_shutdown_cfg.log
+          sqlplus / as sysdba @shutdownsecondary.sql | tee /etc/sap_deployment_automation/dgscripts/secondary_shutdown.log
       register:                            secondary_shutdown_cfg_results
       failed_when:                         secondary_shutdown_cfg_results.rc > 0
       args:
-        creates:                           /etc/sap_deployment_automation/dgscripts/asm_secondary_shutdown_cfg.txt
+        creates:                           /etc/sap_deployment_automation/dgscripts/secondary_shutdown_cfg.txt
         chdir:                             /etc/sap_deployment_automation/dgscripts
         executable:                        /bin/csh
       when: 
         - current_host == ora_secondary
-        - node_tier == "oracle-asm"
+      
     
-    - name:                                "Oracle Data Guard - Setup Secondary: Create asm_secondary_shutdown.txt"
+    - name:                                "Oracle Data Guard - Setup Secondary: Create secondary_shutdown.txt"
       become:                              true
       become_user:                         "root"
       ansible.builtin.file:
-        path:                              /etc/sap_deployment_automation/dgscripts/asm_secondary_shutdown_cfg.txt
+        path:                              /etc/sap_deployment_automation/dgscripts/secondary_shutdown_cfg.txt
         state:                             touch
         mode:                              '0755'
         owner:                             oracle
         group:                             oinstall
       when:                                
-        - node_tier == "oracle-asm"
         - secondary_shutdown_cfg_results.rc == 0
         - current_host == ora_secondary
+
+
+    # Start the Secondary Database for non-ASM.
+    - name:                                "Oracle Data Guard - Setup Secondary: Start secondary DB after HA Service configuration on non-ASM."
+      become:                              true
+      become_user:                         "oracle"
+      ansible.builtin.shell: |
+          set -o pipefail
+          sqlplus / as sysdba @orasecondarystartup.sql | tee /etc/sap_deployment_automation/dgscripts/secondary_startup.log
+      register:                            secondary_startup_cfg_results
+      failed_when:                         secondary_startup_cfg_results.rc > 0
+      args:
+        creates:                           /etc/sap_deployment_automation/dgscripts/secondary_startup_cfg.txt
+        chdir:                             /etc/sap_deployment_automation/dgscripts
+        executable:                        /bin/csh
+      when: 
+        - node_tier == "oracle"
+        - current_host == ora_secondary
+
+
+    - name:                                "Oracle Data Guard - Setup Secondary: Create secondary_startup_cfg.txt"
+      become:                              true
+      become_user:                         "root"
+      ansible.builtin.file:
+        path:                              /etc/sap_deployment_automation/dgscripts/secondary_startup_cfg.txt
+        state:                             touch
+        mode:                              '0755'
+        owner:                             oracle
+        group:                             oinstall
+      when:                                
+        - node_tier == "oracle"
+        - secondary_startup_cfg_results.rc == 0
+        - current_host == ora_secondary
+
     
     - name:                            "Oracle CLusterware Restart Configuration"
       become:                          true
