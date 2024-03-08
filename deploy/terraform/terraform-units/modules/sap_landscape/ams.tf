@@ -2,7 +2,7 @@
 data "azurerm_subnet" "ams" {
   provider                             = azurerm.main
   count                                = length(local.ams_subnet_arm_id) > 0 ? 1 : 0
-  name                                 = local.ams_subnet_name
+  name                                 = split("/", local.ams_subnet_arm_id)[10]   # Get the Subnet from actual arm_id
   virtual_network_name                 = split("/", local.ams_subnet_arm_id)[8]    # Get the Network from actual arm_id
   resource_group_name                  = split("/", local.ams_subnet_arm_id)[4]    # Get RG name from actual arm_id
 }
