@@ -60,12 +60,8 @@ variable "key_vault"                   {
                                        }
 
 variable "dns_label"                   {
-                                          validation {
-                                          condition = (
-                                            length(trimspace(var.dns_label)) != 0
-                                          )
-                                          error_message = "The dns_label must be specified."
-                                        }
+                                          description = "DNS label for the deployment"
+                                          default     = ""
 
                                        }
 
