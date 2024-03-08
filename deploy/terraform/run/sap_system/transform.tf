@@ -650,14 +650,14 @@ locals {
                                             use_existing_data_volume           = var.ANF_HANA_data_use_existing_volume
                                             data_volume_name                   = var.ANF_HANA_data_volume_name
                                             data_volume_throughput             = var.ANF_HANA_data_volume_throughput
-                                            data_volume_count                  = var.ANF_hana_data_volume_count
+                                            data_volume_count                  = var.ANF_HANA_data_volume_count
 
                                             use_for_log                        = var.ANF_HANA_log
                                             log_volume_size                    = var.ANF_HANA_log_volume_size
                                             use_existing_log_volume            = var.ANF_HANA_log_use_existing
                                             log_volume_name                    = var.ANF_HANA_log_volume_name
                                             log_volume_throughput              = var.ANF_HANA_log_volume_throughput
-                                            log_volume_count                   = var.ANF_hana_log_volume_count
+                                            log_volume_count                   = var.ANF_HANA_log_volume_count
 
                                             use_for_shared                     = var.ANF_HANA_shared
                                             shared_volume_size                 = var.ANF_HANA_shared_volume_size

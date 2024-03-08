@@ -1108,7 +1108,7 @@ variable "ANF_HANA_data_volume_throughput"      {
                                                   default     = 128
                                                 }
 
-variable "ANF_hana_data_volume_count"          {
+variable "ANF_HANA_data_volume_count"          {
                                                   description = "If defined provides the number of data volumes"
                                                   default     = 1
                                                 }
@@ -1140,7 +1140,7 @@ variable "ANF_HANA_log_volume_throughput"       {
                                                   default     = 128
                                                 }
 
-variable "ANF_hana_log_volume_count"            {
+variable "ANF_HANA_log_volume_count"            {
                                                   description = "If defined provides the number of data volumes"
                                                   default     = 1
                                                 }
