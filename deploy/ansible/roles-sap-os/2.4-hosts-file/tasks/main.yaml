@@ -108,8 +108,6 @@
     - platform == 'DB2'
 
 - name:                                "2.4 Hosts: Process pas_hostname variable and update host file when it is defined"
-  when:
-    - ( custom_pas_virtual_hostname | length > 1 )| default(false, true)
   block:
 
     - name:                                "2.4 Hosts: - Set virtual_host fact from the fetched PAS server list"
@@ -134,8 +132,8 @@
     - name:                            "2.4 Hosts: - Display the variables being used"
       ansible.builtin.debug:
         msg:
-          - "pas_hostname:             {{ custom_pas_virtual_hostname }} "
           - "pas_virtual_hostname:     {{ pas_virtual_hostname }} "
+          - "custom_pas_hostname:      {{ custom_pas_virtual_hostname }} "
           - "virtualhost_in_inventory: {{ pas_virtualhost_from_inventory }}"
 
     - name:                            "2.4 Hosts: - Get the line from /etc/hosts with virtual_host"
