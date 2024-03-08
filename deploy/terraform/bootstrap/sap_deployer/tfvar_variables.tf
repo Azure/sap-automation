@@ -411,6 +411,7 @@ variable "subnets_to_add_to_firewall_for_keyvaults_and_storage" {
                                                                   default     = []
                                                                 }
 
+
 #########################################################################################
 #                                                                                       #
 #  DNS settings                                                                         #
@@ -519,6 +520,11 @@ variable "Agent_IP"                                  {
                                                        default     = ""
                                                      }
 
+variable "add_Agent_IP"                              {
+                                                        description = "Boolean value indicating if the Agent IP should be added to the storage and key vault firewalls"
+                                                        default     = true
+                                                        type        = bool
+                                                      }
 
 ###############################################################################
 #                                                                             #
