@@ -247,7 +247,6 @@ stages:
                   exit 2
                 fi
               echo -e "$green--- Login ---$reset"
-                echo "USE_MSI: $USE_MSI"
 
                 if [ -z $USE_MSI ]; then
                   USE_MSI="false"
