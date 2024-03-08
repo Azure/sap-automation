@@ -168,7 +168,7 @@ locals {
   password                             = local.enable_password ? (
                                            local.pwd_exist ? (
                                              data.azurerm_key_vault_secret.pwd[0].value) : (
-                                             try(var.authentication.password, random_password.deployer[0].result)
+                                             coalesce(var.authentication.password, random_password.deployer[0].result)
                                            )) : (
                                            ""
                                          )
