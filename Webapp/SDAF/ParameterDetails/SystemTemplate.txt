@@ -525,7 +525,7 @@ $$ANF_HANA_data_use_existing_volume$$
 $$ANF_HANA_data_volume_name$$
 
 # Number of ANF Data Volumes
-$$ANF_hana_data_volume_count$$
+$$ANF_HANA_data_volume_count$$
 
 
 #########################################################################################
@@ -550,7 +550,7 @@ $$ANF_HANA_log_use_existing$$
 $$ANF_HANA_log_volume_name$$
 
 # Number of ANF Data Volumes
-$$ANF_hana_log_volume_count$$
+$$ANF_HANA_log_volume_count$$
 
 #########################################################################################
 #                                                                                       #

@@ -448,6 +448,11 @@ variable "Agent_IP"                             {
                                                   type        = string
                                                   default     = ""
                                                 }
+variable "add_Agent_IP"                         {
+                                                  description = "Boolean value indicating if the Agent IP should be added to the storage and key vault firewalls"
+                                                  default     = true
+                                                  type        = bool
+                                                }
 
 variable "storage_account_replication_type"     {
                                                   description = "Storage account replication type"

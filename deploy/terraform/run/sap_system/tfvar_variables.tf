@@ -955,6 +955,11 @@ variable "Agent_IP"                             {
                                                   type        = string
                                                   default     = ""
                                                 }
+variable "add_Agent_IP"                         {
+                                                  description = "Boolean value indicating if the Agent IP should be added to the storage and key vault firewalls"
+                                                  default     = true
+                                                  type        = bool
+                                                }
 
 variable "shared_home"                          {
                                                   description = "If defined provides shared-home support"
@@ -1108,7 +1113,7 @@ variable "ANF_HANA_data_volume_throughput"      {
                                                   default     = 128
                                                 }
 
-variable "ANF_hana_data_volume_count"          {
+variable "ANF_HANA_data_volume_count"          {
                                                   description = "If defined provides the number of data volumes"
                                                   default     = 1
                                                 }
@@ -1140,7 +1145,7 @@ variable "ANF_HANA_log_volume_throughput"       {
                                                   default     = 128
                                                 }
 
-variable "ANF_hana_log_volume_count"            {
+variable "ANF_HANA_log_volume_count"            {
                                                   description = "If defined provides the number of data volumes"
                                                   default     = 1
                                                 }
