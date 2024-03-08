@@ -558,10 +558,6 @@ esac
 
 az config set extension.use_dynamic_install=yes_without_prompt
 
-devops_extension_installed=$(az extension list --query "[?name=='azure-devops'].name | [0]")
-if [ -z "$devops_extension_installed" ]; then
-  az extension add --name azure-devops --output none
-fi
 
 # Fail if any command exits with a non-zero exit status
 set -o errexit
@@ -751,6 +747,12 @@ AGENT_DIR="/home/${USER}/agent"
 if [ -f "$AGENT_DIR/.agent" ]; then
     echo "Azure DevOps Agent is configured."
     echo export "PATH=${ansible_bin}:${tf_bin}:${PATH}" | tee -a /tmp/deploy_server.sh
+
+    devops_extension_installed=$(az extension list --query "[?name=='azure-devops'].name | [0]")
+    if [ -z "$devops_extension_installed" ]; then
+      az extension add --name azure-devops --output none
+    fi
+
 else
     echo "Azure DevOps Agent is not configured."
 
