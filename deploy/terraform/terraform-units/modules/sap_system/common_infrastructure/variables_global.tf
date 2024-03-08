@@ -211,12 +211,6 @@ variable "use_private_endpoint"                  {
                                                     type        = bool
                                                  }
 
-variable "use_service_endpoint"                  {
-                                                    description = "Boolean value indicating if service endpoints should be used for the deployment"
-                                                    default     = false
-                                                    type        = bool
-                                                 }
-
 #########################################################################################
 #                                                                                       #
 #  DNS settings                                                                         #

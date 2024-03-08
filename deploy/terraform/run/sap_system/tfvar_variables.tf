@@ -111,12 +111,6 @@ variable "app_proximityplacementgroup_arm_ids"  {
                                                 }
 
 
-variable "use_service_endpoint"                 {
-                                                  description = "Boolean value indicating if service endpoints should be used for the deployment"
-                                                  default     = false
-                                                  type        = bool
-                                                }
-
 variable "use_private_endpoint"                 {
                                                   description = "Boolean value indicating if private endpoint should be used for the deployment"
                                                   default     = false
@@ -1008,11 +1002,6 @@ variable "management_dns_resourcegroup_name"    {
                                                   type        = string
                                                 }
 
-variable "create_storage_dns_a_records"         {
-                                                  description = "Boolean value indicating if dns a records should be created for the storage accounts"
-                                                  default     = false
-                                                  type        = bool
-                                                }
 
 variable "dns_zone_names"                       {
                                                   description = "Private DNS zone names"
@@ -1062,11 +1051,6 @@ variable "sapmnt_private_endpoint_id"           {
                                                   description = "Azure Resource Identifier for an private endpoint connection"
                                                   type        = string
                                                   default     = ""
-                                                }
-
-variable "Use_AFS_for_Installation"             {
-                                                  description = "If true, will use AFS for installation media."
-                                                  default     = false
                                                 }
 
 #########################################################################################
