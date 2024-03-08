@@ -242,10 +242,15 @@ variable "use_webapp"                            {
 
 
 variable "Agent_IP"                              {
-                                                   description = "If provided, contains the IP address of the agent"
-                                                   type        = string
+                                                   description = "IP address of the agent"
                                                    default     = ""
                                                  }
+
+variable "add_Agent_IP"                          {
+                                                    description = "Boolean value indicating if the Agent IP should be added to the storage and key vault firewalls"
+                                                    default     = true
+                                                    type        = bool
+                                                  }
 
 
 variable "tfstate_resource_id"                       {
