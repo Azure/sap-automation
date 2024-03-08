@@ -231,11 +231,6 @@ variable "register_virtual_network_to_dns"               {
                                                          }
 
 
-variable "create_vaults_and_storage_dns_a_records"       {
-                                                           description = "Boolean value indicating if dns a records should be created for the vaults and storage accounts"
-                                                           type        = bool
-                                                         }
-
 variable "use_custom_dns_a_registration"                 {
                                                            description = "Boolean value indicating if a custom dns a records should be created for private endpoints"
                                                            default     = false
