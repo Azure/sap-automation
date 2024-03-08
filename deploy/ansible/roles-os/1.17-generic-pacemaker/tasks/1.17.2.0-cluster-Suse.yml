@@ -33,6 +33,16 @@
     #    - name:                            "1.17 Generic Pacemaker - Ensure csync2 is configured"
     #      ansible.builtin.command:         crm cluster init -y csync2 --interface eth0
 
+    - name:                            "1.17 Generic Pacemaker - Stop SBD service"
+      ansible.builtin.systemd:
+        name:                          sbd
+        state:                         stopped
+      when:
+                                       - (database_cluster_type == "ASD")   or
+                                         (database_cluster_type == "ISCSI") or
+                                         (scs_cluster_type      == "ASD")   or
+                                         (scs_cluster_type      == "ISCSI")
+
     - name:                            "1.17 Generic Pacemaker - Ensure corosync is configured"
       ansible.builtin.command:         "crm cluster init -y -u corosync --interface eth0"
 
@@ -58,7 +68,7 @@
                                        - scs_cluster_type == "AFA"
 
     - name:                            "1.17 Generic Pacemaker - Ensure cluster (scs_{{ sap_sid | upper }}) is configured - SBD"
-      ansible.builtin.command:         "crm cluster init -y --name 'scs_{{ db_sid | upper }}' --interface eth0 --no-overwrite-sshkey --sbd-device={{ sbd_device }}"
+      ansible.builtin.command:         "crm cluster init -y --name 'scs_{{ sap_sid | upper }}' --interface eth0 --no-overwrite-sshkey --sbd-device={{ sbd_device }}"
       when:
                                        - node_tier == 'scs'
                                        - not scs_cluster_type == "AFA"
@@ -239,10 +249,8 @@
     - name:                                      "1.17 Generic Pacemaker - stop cluster on both nodes to ensure sbd is enabled."
       ansible.builtin.command:                   crm cluster stop
 
-    - name:                                      "1.17 Generic Pacemaker - Check if cluster is stopped"
+    - name:                                      "1.17 Generic Pacemaker - wait for 60 seconds"
       ansible.builtin.wait_for:
-        path:                                    /var/lib/pacemaker/cib/cib.xml
-        state:                                   absent
         timeout:                                 60
 
     - name:                                      "1.17 Generic Pacemaker - start cluster on both nodes to ensure sbd is enabled."
