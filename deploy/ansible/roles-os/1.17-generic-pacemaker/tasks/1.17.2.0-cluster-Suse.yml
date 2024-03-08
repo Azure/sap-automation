@@ -203,7 +203,7 @@
                                                   - inventory_hostname  == primary_instance_name
   block:
     - name:                                      "1.17 Generic Pacemaker - Check if Stonith SBD is configured in cluster"
-      ansible.builtin.shell:                     crm resource show stonith-sbd
+      ansible.builtin.shell:                     crm resource status stonith-sbd
       register:                                  stonith_sbd_configured
       failed_when:                               false
       changed_when:                              false
