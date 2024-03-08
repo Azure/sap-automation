@@ -276,6 +276,10 @@
 # - name:                                   "systemctl enable sbd"
 #   ansible.builtin.shell: |
 #                                           systemctl enable sbd
+- name:                                    "Ensure systemctl daemon is reloaded"
+  ansible.builtin.systemd:
+    daemon_reload:                         true
+
 - name:                                    "systemctl enable sbd"
   ansible.builtin.systemd:
     name:                                  sbd
