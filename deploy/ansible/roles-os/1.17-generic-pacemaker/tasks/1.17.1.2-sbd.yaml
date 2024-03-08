@@ -234,14 +234,14 @@
 
     - name:                                  "set fact sbd_device as list of entries in sbdMap"
       ansible.builtin.set_fact:
-        sbd_device:                          "{{ sbdMap | map(attribute='diskById') | join(';') | list }}"
-      when:                                  sbdDumpCommand_results.rc == 1
+        sbd_device:                          "{{ sbdMap | map(attribute='diskById') | join(';') }}"
+
 
     - name:                                  "Show sbd_device..."
       ansible.builtin.debug:
         var:                                 sbd_device
         verbosity:                           2
-      when:                                  sbdDumpCommand_results.rc == 1
+
 
     # /*------------------------------------
     # |
