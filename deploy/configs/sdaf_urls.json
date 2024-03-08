@@ -10,6 +10,7 @@
       "https://checkpoint-api.hashicorp.com",
       "https://bootstrap.pypa.io",
       "https://pypi.org",
+      "https://files.pythonhosted.org",
       "https://pythonhosted.org",
       "https://galaxy.ansible.com"
     ],
