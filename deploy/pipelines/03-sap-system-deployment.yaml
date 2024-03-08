@@ -249,6 +249,16 @@ stages:
               echo -e "$green--- Login ---$reset"
                 echo "USE_MSI: $USE_MSI"
 
+                if [ -z $USE_MSI ]; then
+                  USE_MSI="false"
+                  az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query USE_MSI.value --output table)
+                  if [ -n "${az_var}" ]; then
+                    az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name USE_MSI --value false --output none --only-show-errors
+                  else
+                    az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name USE_MSI --value false --output none --only-show-errors
+                  fi
+                fi
+
                 if [ $USE_MSI != "true" ]; then
                   echo "Using SPN"
 
@@ -409,17 +419,18 @@ stages:
 
             displayName:               Deploy_SAP_infrastructure
             env:
-              WL_ARM_SUBSCRIPTION_ID:   $(ARM_SUBSCRIPTION_ID)
+              CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}
+              LOGON_USING_SPN:          $(Logon_Using_SPN)
+              PAT:                      $(WZ_PAT)
+              SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
+              SYSTEM_ACCESSTOKEN:       $(System.AccessToken)
+              TEST_ONLY:                ${{ parameters.test }}
+              TF_IN_AUTOMATION:         true
+              TF_LOG:                   $(TF_LOG)
+              USE_MSI:                  $(Use_MSI)
               WL_ARM_CLIENT_ID:         $(ARM_CLIENT_ID)
               WL_ARM_CLIENT_SECRET:     $(ARM_CLIENT_SECRET)
+              WL_ARM_SUBSCRIPTION_ID:   $(ARM_SUBSCRIPTION_ID)
               WL_ARM_TENANT_ID:         $(ARM_TENANT_ID)
-              SYSTEM_ACCESSTOKEN:       $(System.AccessToken)
-              SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
-              CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}
-              PAT:                      $(WZ_PAT)
-              TEST_ONLY:                ${{ parameters.test }}
-              TF_LOG:                   $(TF_LOG)
-              TF_IN_AUTOMATION:         true
-              LOGON_USING_SPN:          $(Logon_Using_SPN)
 
             failOnStderr:               false
