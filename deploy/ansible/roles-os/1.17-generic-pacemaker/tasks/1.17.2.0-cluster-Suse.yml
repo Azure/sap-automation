@@ -194,7 +194,7 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 # scs_high_availability = true is already assumed
-- name:                                           "1.17 Generic Pacemaker - Ensure the STONITH Azure fence agent is created when SBD is used"
+- name:                                           "1.17 Generic Pacemaker - Ensure that STONITH using SBD is created"
   when:
                                                   - (database_cluster_type == "ASD")   or
                                                     (database_cluster_type == "ISCSI") or
@@ -214,7 +214,7 @@
 
     - name:                                      "1.17 Generic Pacemaker - Ensure Stonith SBD is configured in cluster"
       when:                                      stonith_sbd_configured.rc != 0
-      ansible.builtin.command: >-
+      ansible.builtin.shell: >-
                                                  crm configure primitive stonith-sbd stonith:external/sbd \
                                                    params pcmk_delay_max="15" \
                                                    op monitor interval="600" timeout="15"
