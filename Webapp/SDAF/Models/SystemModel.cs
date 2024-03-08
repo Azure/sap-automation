@@ -221,7 +221,7 @@ namespace AutomationForm.Models
     |                                                                            |
     +------------------------------------4--------------------------------------*/
 
-    
+
     public string[] proximityplacementgroup_names { get; set; }
 
     [PpgIdValidator]
@@ -285,7 +285,7 @@ namespace AutomationForm.Models
     [IpAddressValidator]
     public string[] database_vm_db_nic_ips { get; set; }
 
-    
+
     [IpAddressValidator]
     public string[] database_vm_db_nic_secondary_ips { get; set; }
 
@@ -492,7 +492,7 @@ namespace AutomationForm.Models
 
     public int? ANF_HANA_data_volume_throughput { get; set; }
 
-    public int? ANF_hana_data_volume_count { get; set; } = 1;
+    public int? ANF_HANA_data_volume_count { get; set; } = 1;
 
     /*---------------------------------------------------------------------------8
     |                                                                            |
@@ -509,7 +509,7 @@ namespace AutomationForm.Models
 
     public int? ANF_HANA_log_volume_throughput { get; set; }
 
-    public int? ANF_hana_log_volume_count { get; set; } = 1;
+    public int? ANF_HANA_log_volume_count { get; set; } = 1;
 
     /*---------------------------------------------------------------------------8
     |                                                                            |

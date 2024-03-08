@@ -1935,7 +1935,7 @@
         "Display": 3
       },
       {
-        "Name": "ANF_hana_data_volume_count",
+        "Name": "ANF_HANA_data_volume_count",
         "Required": false,
         "Description": "Number of ANF Data Volumes",
         "Type": "field",
@@ -1995,7 +1995,7 @@
         "Display": 3
       },
       {
-        "Name": "ANF_hana_data_volume_count",
+        "Name": "ANF_HANA_data_volume_count",
         "Required": false,
         "Description": "Number of ANF Data Volumes",
         "Type": "field",

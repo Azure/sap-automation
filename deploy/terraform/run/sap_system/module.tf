@@ -54,7 +54,7 @@ module "common_infrastructure" {
                                                     azurerm.main           = azurerm.system
                                                     azurerm.dnsmanagement  = azurerm.dnsmanagement
                                                   }
-  Agent_IP                                      = var.Agent_IP
+  Agent_IP                                      = var.add_Agent_IP ? var.Agent_IP : ""
   application_tier                              = local.application_tier
   application_tier_ppg_names                    = module.sap_namegenerator.naming_new.app_ppg_names
   authentication                                = local.authentication
