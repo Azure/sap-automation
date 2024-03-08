@@ -93,6 +93,7 @@ stages:
                   echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined."
                   exit 2
                 fi
+                echo "Before "USE_MSI" check"
                 if [ $USE_MSI != "true" ]; then
                   if [ -z $WL_ARM_CLIENT_ID ]; then
                     echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined."
