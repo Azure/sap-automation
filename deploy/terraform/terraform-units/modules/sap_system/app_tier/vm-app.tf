@@ -123,10 +123,12 @@ resource "azurerm_linux_virtual_machine" "app" {
   location                             = var.resource_group[0].location
   resource_group_name                  = var.resource_group[0].name
 
-  proximity_placement_group_id         = var.application_tier.app_use_ppg ? (
-                                           var.ppg[count.index % max(length(var.ppg), 1)]) : (
-                                           null
-                                         )
+  proximity_placement_group_id         = var.application_tier.app_use_avset ? (
+                                           null) : (
+                                           var.application_tier.app_use_ppg ? (
+                                             var.ppg[count.index % max(length(var.ppg), 1)]) : (
+                                             null)
+                                            )
 
   //If more than one servers are deployed into a single zone put them in an availability set and not a zone
   availability_set_id                  = var.application_tier.app_use_avset ? (
@@ -264,10 +266,13 @@ resource "azurerm_windows_virtual_machine" "app" {
   source_image_id                      = var.application_tier.app_os.type == "custom" ? var.application_tier.app_os.source_image_id : null
 
 
-  proximity_placement_group_id         = var.application_tier.app_use_ppg ? (
-                                           var.ppg[count.index % max(length(var.ppg), 1)]) : (
-                                           null
-                                         )
+  proximity_placement_group_id         = var.application_tier.app_use_avset ? (
+                                           null) : (
+                                           var.application_tier.app_use_ppg ? (
+                                             var.ppg[count.index % max(length(var.ppg), 1)]) : (
+                                             null)
+                                            )
+
 
   //If more than one servers are deployed into a single zone put them in an availability set and not a zone
   availability_set_id                  = var.application_tier.app_use_avset ? (
