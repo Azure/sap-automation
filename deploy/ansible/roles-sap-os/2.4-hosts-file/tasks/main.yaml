@@ -119,10 +119,9 @@
                                              {%- if ( query('inventory_hostnames', sap_sid | upper ~ '_PAS') | length > 0 ) -%}
                                              {%-    set _virthost = hostvars[query('inventory_hostnames', sap_sid | upper ~ '_PAS') | first]['virtual_host'] -%}
                                              {%- else -%}
-                                             {%-   for hostvars[query('inventory_hostnames', 'all')] -%}
+                                             {%-   for item in hostvars[query('inventory_hostnames', 'all')] -%}
                                              {%-     if 'pas' in hostvars[item][supported_tiers] -%}
                                              {%-       set _virthost = hostvars[item]['virtual_host'] -%}
-                                             {%-       break -%}
                                              {%-     endif -%}
                                              {%-   endfor -%}
                                              {%- endif -%}
