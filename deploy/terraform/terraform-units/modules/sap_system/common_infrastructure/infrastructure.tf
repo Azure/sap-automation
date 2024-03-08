@@ -168,6 +168,11 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "scale_set" {
 
   zones                                = local.zones
   tags                                 = var.tags
+
+  proximity_placement_group_id         = length(local.zones) <= 1 ? (
+                                            local.ppg_exists ? local.ppg_arm_ids[0] : azurerm_proximity_placement_group.ppg[0].id) :(
+                                            null
+                                          )
 }
 
 data "azurerm_orchestrated_virtual_machine_scale_set" "scale_set" {
