@@ -413,13 +413,11 @@ if ($selection.ToUpper() -eq "Y") {
         $OutputString = "$url is accessible"
         Write-Host $OutputString -ForegroundColor Green
         Add-Content -Path $LogFileName $OutputString
-        Add-Content -Path $LogFileName ""
       }
       else {
         $OutputString = "$url is not accessible"
         Write-Host $OutputString -ForegroundColor Red
         Add-Content -Path $LogFileName $OutputString
-        Add-Content -Path $LogFileName ""
       }
     }
 
@@ -434,26 +432,22 @@ if ($selection.ToUpper() -eq "Y") {
         $OutputString = "$IP is accessible"
         Write-Host $OutputString -ForegroundColor Green
         Add-Content -Path $LogFileName $OutputString
-        Add-Content -Path $LogFileName ""
       }
       elseif ($result.Contains("Connected")) {
         $OutputString = "$IP is accessible"
         Write-Host $OutputString -ForegroundColor Green
         Add-Content -Path $LogFileName $OutputString
-        Add-Content -Path $LogFileName ""
       }
       else {
         $OutputString = "$IP is not accessible"
         Write-Host $OutputString -ForegroundColor Red
         Add-Content -Path $LogFileName $OutputString
-        Add-Content -Path $LogFileName ""
       }
     }
 
 
     Write-Host "Checking 'runtime' URLs" -ForegroundColor Yellow
     Add-Content -Path $LogFileName "Checking 'runtime' URLs"
-    Add-Content -Path $LogFileName ""
 
     foreach ($url in $UrlsToCheck.sap.urls) {
       Write-Host "Checking if $url is accessible from the Virtual Machine"
@@ -462,13 +456,11 @@ if ($selection.ToUpper() -eq "Y") {
         $OutputString = "$url is accessible"
         Write-Host $OutputString -ForegroundColor Green
         Add-Content -Path $LogFileName $OutputString
-        Add-Content -Path $LogFileName ""
       }
       else {
         $OutputString = "$url is not accessible"
         Write-Host $OutputString -ForegroundColor Red
         Add-Content -Path $LogFileName $OutputString
-        Add-Content -Path $LogFileName ""
       }
     }
 
@@ -482,19 +474,16 @@ if ($selection.ToUpper() -eq "Y") {
         $OutputString = "$IP is accessible"
         Write-Host $OutputString -ForegroundColor Green
         Add-Content -Path $LogFileName $OutputString
-        Add-Content -Path $LogFileName ""
       }
       elseif ($result.Contains("Connected")) {
         $OutputString = "$IP is accessible"
         Write-Host $OutputString -ForegroundColor Green
         Add-Content -Path $LogFileName $OutputString
-        Add-Content -Path $LogFileName ""
       }
       else {
         $OutputString = "$IP is not accessible"
         Write-Host $OutputString -ForegroundColor Red
         Add-Content -Path $LogFileName $OutputString
-        Add-Content -Path $LogFileName ""
       }
     }
 
