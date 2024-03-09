@@ -228,7 +228,6 @@ if ($selection.ToUpper() -eq "Y") {
 
 }
 
-
 $selection = Read-Host "Create file share Y/N"
 if ($selection.ToUpper() -eq "Y") {
   $OutputString = "Creating File share: " + $shareName
@@ -237,7 +236,17 @@ if ($selection.ToUpper() -eq "Y") {
   az storage share-rm create  --resource-group $resourceGroupName --storage-account $storageAccountName --name $shareName --enabled-protocols NFS --access-tier "Premium"  --quota 128  --output none
 }
 
+$kvName = "sdaftestKV$rnd"
 
+$selection = Read-Host "Create key vault Y/N"
+if ($selection.ToUpper() -eq "Y") {
+  $OutputString = "Creating Key vault: " + $kvName
+  Write-Host $OutputString -foregroundcolor Yellow
+  Add-Content -Path $LogFileName $OutputString
+  az vault create --name $kvName --resource-group $resourceGroupName --location $Location --query "provisioningState" --enable-purge-protection false --retention-days 7
+
+  az vault secret set --vault-name $kvName --name "sdaftestsecret" --value "sdaftestsecretvalue" --query "id"
+}
 $vmssName = "SDAF-VmssFlex"
 
 $OutputString = "Creating flexible scale set: " + $vmssName
