@@ -623,7 +623,7 @@ terraform -chdir="$terraform_module_directory" plan -no-color -detailed-exitcode
 return_value=$?
 echo "Terraform Plan return code: " $return_value
 
-if [ 1 == $return_value ]: then
+if [ 1 == $return_value ] ; then
     echo ""
     echo "#########################################################################################"
     echo "#                                                                                       #"
