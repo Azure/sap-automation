@@ -112,7 +112,7 @@
 
     - name:                            "2.4 Hosts: Set virtual_host fact from the fetched PAS server list"
       ansible.builtin.set_fact:
-        pas_virtualhost_from_inventory:  "{{ pas_virtualhost_from_inventory | default([]) + [item] }}"
+        pas_server_temp:               "{{ pas_server_temp | default([]) + [item] }}"
       with_items:
                                        - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_PAS') }}"
                                        - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') }}"
@@ -122,7 +122,8 @@
 
     - name:                            "2.4 Hosts: - Set fact for the PAS if pas_hostname is defined"
       ansible.builtin.set_fact:
-        pas_virtual_hostname:          "{{ custom_pas_virtual_hostname | default(pas_virtualhost_from_inventory, true) }}"
+        pas_virtualhost_from_inventory: "{{ pas_server_temp | first }}"
+        pas_virtual_hostname:           "{{ custom_pas_virtual_hostname | default(pas_server_temp[0], true) }}"
 
     - name:                            "2.4 Hosts: - Display the variables being used"
       ansible.builtin.debug:
