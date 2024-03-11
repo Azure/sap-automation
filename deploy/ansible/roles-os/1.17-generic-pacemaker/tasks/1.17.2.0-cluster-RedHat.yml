@@ -222,7 +222,7 @@
 
 - name:                                "1.17 Generic Pacemaker - Install fence-agents-kdump package"
   when:
-                                       - kdump_enabled == "enabled"
+                                       - kdump_enabled | default("disabled") == "enabled"
   ansible.builtin.yum:
     name:                              fence-agents-kdump
     state:                             present
@@ -232,7 +232,7 @@
 - name:                                 "1.17 Generic Pacemaker - configure the special fencing device fence_kdump"
   when:
                                       - inventory_hostname == primary_instance_name
-                                      - kdump_enabled == "enabled"
+                                      - kdump_enabled | default("disabled") == "enabled"
   block:
 
     # we can assume that the stonith:fence_azure_rm is already configured
@@ -263,7 +263,7 @@
 
 - name:                               "1.17 Generic Pacemaker - Ensure that the kdump service is enabled"
   when:
-                                      - kdump_enabled == "enabled"
+                                      - kdump_enabled | default("disabled") == "enabled"
   block:
 
     # Perform the fence_kdump_nodes configuration in /etc/kdump.conf
@@ -276,7 +276,7 @@
       register:                        kdump_conf_file
       failed_when:                     kdump_conf_file.rc != 0
       when:
-                                       - kdump_enabled == "enabled"
+                                       - kdump_enabled | default("disabled") == "enabled"
                                        - inventory_hostname == primary_instance_name
 
     # Perform the fence_kdump_nodes configuration in /etc/kdump.conf
@@ -289,7 +289,7 @@
       register:                        kdump_conf_file
       failed_when:                     kdump_conf_file.rc != 0
       when:
-                                       - kdump_enabled == "enabled"
+                                       - kdump_enabled | default("disabled") == "enabled"
                                        - inventory_hostname == secondary_instance_name
 
     # set the kdump path to /usr/crash in /etc/kdump.conf
@@ -302,7 +302,7 @@
       register:                        kdump_conf_file_path
       failed_when:                     kdump_conf_file_path.rc != 0
       when:
-                                       - kdump_enabled == "enabled"
+                                       - kdump_enabled | default("disabled") == "enabled"
 
     # restart kdump service as we made changes to the configuration
     - name:                            "1.17 Generic Pacemaker - Restart kdump service"
