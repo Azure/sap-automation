@@ -112,22 +112,13 @@
 
     - name:                            "2.4 Hosts: Set virtual_host fact from the fetched PAS server list"
       ansible.builtin.set_fact:
-        pas_virtualhost_from_inventory: >-
-                                       {%- set _virthost = "" -%}
-                                       {%- if ( groups[sap_sid ~ '_PAS'] | length > 0 ) -%}
-                                       {%-    set _virthost = hostvars[groups[sap_sid ~ '_PAS'][0]]['virtual_host'] -%}
-                                       {%- else -%}
-                                       {%-   for group_name, group in groups.items() -%}
-                                       {%-     for host in group -%}
-                                       {%-       if hostvars[host].supported_tiers is defined and 'pas' in hostvars[host].supported_tiers -%}
-                                       {%-         set _virthost = hostvars[host]['virtual_host'] -%}
-                                       {%-       endif -%}
-                                       {%-     endfor -%}
-                                       {%-   endfor -%}
-                                       {%- endif -%}
-                                       {{- _virthost -}}
-
-
+        pas_virtualhost_from_inventory:  "{{ pas_virtualhost_from_inventory | default([]) + [item] }}"
+      with_items:
+                                       - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_PAS') }}"
+                                       - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') }}"
+                                       - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
+      when:
+                                       - "'pas' in hostvars[item]['supported_tiers']"
 
     - name:                            "2.4 Hosts: - Set fact for the PAS if pas_hostname is defined"
       ansible.builtin.set_fact:
