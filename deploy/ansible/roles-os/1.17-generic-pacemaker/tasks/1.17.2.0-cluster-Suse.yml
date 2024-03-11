@@ -100,6 +100,7 @@
   ansible.builtin.user:
     name:                              hacluster
     password:                          "{{ password_ha_db_cluster | password_hash('sha512', 65534 | random(seed=None) | string) }}"
+
 - name:                                "1.17 Generic Pacemaker - Ensure cluster configuration contains correct details"
   ansible.builtin.template:
     src:                               corosync.conf.j2
@@ -193,6 +194,21 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 # scs_high_availability = true is already assumed
+- name:                                           "1.17 Generic Pacemaker - Restart cluster services on all nodes before SBD roles are assigned"
+  when:
+                                                  - (database_cluster_type == "ASD")   or
+                                                    (database_cluster_type == "ISCSI") or
+                                                    (scs_cluster_type      == "ASD")   or
+                                                    (scs_cluster_type      == "ISCSI")
+  block:
+
+    - name:                                      "1.17 Generic Pacemaker - Restart all cluster services on all members"
+      ansible.builtin.shell:                     crm cluster restart --all
+
+    - name:                                      "1.17 Generic Pacemaker - wait for 60 seconds"
+      ansible.builtin.wait_for:
+        timeout:                                 120
+
 - name:                                           "1.17 Generic Pacemaker - Ensure that STONITH using SBD is created"
   when:
                                                   - (database_cluster_type == "ASD")   or
@@ -201,6 +217,7 @@
                                                     (scs_cluster_type      == "ISCSI")
                                                   - inventory_hostname  == primary_instance_name
   block:
+
     - name:                                      "1.17 Generic Pacemaker - Check if Stonith SBD is configured in cluster"
       ansible.builtin.shell:                     crm resource status stonith-sbd
       register:                                  stonith_sbd_configured
