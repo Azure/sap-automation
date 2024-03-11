@@ -12,9 +12,10 @@
       "https://pypi.org",
       "https://files.pythonhosted.org",
       "https://pythonhosted.org",
-      "https://galaxy.ansible.com"
+      "https://galaxy.ansible.com",
+      "https://ansible-galaxy-ng.s3.dualstack.us-east-1.amazonaws.com"
     ],
-    "IPs": []
+    "IPs": ["vstsagenttools.blob.core.windows.net"]
   },
   "windows": {
     "urls": [
@@ -44,7 +45,6 @@
       "52.142.4.99",
       "20.248.180.252",
       "20.24.186.80",
-      "13.72.186.193",
       "13.72.14.155",
       "52.244.249.194",
       "52.187.53.250",

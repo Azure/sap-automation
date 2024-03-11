@@ -12,9 +12,14 @@ function Show-Menu($data) {
 
 
 $rnd = $(Get-Random -Minimum 1 -Maximum 1000).ToString()
-$LogFileDir = Read-Host "Please enter the directory to save the log file"
 
-if(Test-Path $LogFileDir) {
+$LogFileDir = $Env:LogFileDir
+if ($null -eq $LogFileDir -or $LogFileDir -eq "") {
+  $LogFileDir = Read-Host "Please enter the directory to save the log file"
+}
+
+
+if (Test-Path $LogFileDir) {
   $LogFileName = "SDAF-" + $(Get-Date -Format "yyyyMMdd-HHmm") + ".md"
   $LogFileName = Join-Path $LogFileDir -ChildPath $LogFileName
 }
@@ -160,6 +165,8 @@ if ($authenticationMethod -ne "User Account") {
 
   }
 }
+
+$vmName="SDAF-VM"
 
 $vnetName = "SDAF-VNet"
 $anfSubnetName = "SDAF-anf"
@@ -331,7 +338,7 @@ if ($selection.ToUpper() -eq "Y") {
 
   if ($null -eq $zone -or $zone -eq "") {
     Write-Host "Creating a Virtual Machine" -foregroundcolor Yellow
-    $vmStatus = $(az vm create --resource-group $resourceGroupName --name "SDAF-VM" --image $distro --admin-username "azureadm" --admin-password $ARM_CLIENT_SECRET --size $vmSKU --vnet-name $vnetName --subnet $subnetName  --vmss $vmssid --no-wait --query "provisioningState")
+    $vmStatus = $(az vm create --resource-group $resourceGroupName --name $vmName --image $distro --admin-username "azureadm" --admin-password $ARM_CLIENT_SECRET --size $vmSKU --vnet-name $vnetName --subnet $subnetName  --vmss $vmssid --no-wait --query "provisioningState")
   }
   else {
     $diskName = "SDAFdisk"
@@ -340,7 +347,7 @@ if ($selection.ToUpper() -eq "Y") {
     Write-Host "Creating a Premium SSD v2 disk" -foregroundcolor Yellow
     az disk create -n $diskName -g $resourceGroupName --size-gb 100 --disk-iops-read-write 5000 --disk-mbps-read-write 150 --location $Location --zone $zone --sku PremiumV2_LRS --logical-sector-size $logicalSectorSize --query "provisioningState"
     Write-Host "Creating a Virtual Machine" -foregroundcolor Yellow
-    $vmStatus = $(az vm create --resource-group $resourceGroupName --name "SDAF-VM" --image $distro --admin-username "azureadm" --admin-password $VM_password --size $vmSKU --vnet-name $vnetName --subnet $subnetName  --vmss $vmssid  --zone $zone --attach-data-disks $diskName  --query "provisioningState")
+    $vmStatus = $(az vm create --resource-group $resourceGroupName --name $vmName --image $distro --admin-username "azureadm" --admin-password $VM_password --size $vmSKU --vnet-name $vnetName --subnet $subnetName  --vmss $vmssid  --zone $zone --attach-data-disks $diskName  --query "provisioningState")
 
   }
 
@@ -360,12 +367,16 @@ if ($selection.ToUpper() -eq "Y") {
 
     foreach ($url in $UrlsToCheck.deployer.urls) {
       Write-Host "Checking if $url is accessible from the Virtual Machine"
-      $result = $(az vm run-command invoke --resource-group $resourceGroupName  --name "SDAF-VM"  --command-id RunShellScript  --scripts "wget -O /tmp/foo.zip $url" --query value[0].message)
+      $result = $(az vm run-command invoke --resource-group $resourceGroupName  --name $vmName  --command-id RunShellScript  --scripts "wget -O /tmp/foo.zip $url" --query value[0].message)
       if ($result.Contains("200 OK")) {
         $OutputString = "$url is accessible"
         Write-Host $OutputString -ForegroundColor Green
         Add-Content -Path $LogFileName $OutputString
-
+      }
+      elseif ($result.Contains("403 Forbidden")) {
+        $OutputString = "$url is accessible"
+        Write-Host $OutputString -ForegroundColor Green
+        Add-Content -Path $LogFileName $OutputString
       }
       else {
         $OutputString = "$url is not accessible"
@@ -380,7 +391,7 @@ if ($selection.ToUpper() -eq "Y") {
 
     foreach ($IP in $UrlsToCheck.deployer.IPs) {
       Write-Host "Checking if $IP is accessible from the Virtual Machine"
-      $result = $(az vm run-command invoke --resource-group $resourceGroupName  --name "SDAF-VM"  --command-id RunShellScript  --scripts "nc -zv $IP 443" --query value[0].message)
+      $result = $(az vm run-command invoke --resource-group $resourceGroupName  --name $vmName  --command-id RunShellScript  --scripts "nc -zv $IP 443" --query value[0].message)
       if ($result.Contains("succeeded!")) {
         $OutputString = "$IP is accessible"
         Write-Host $OutputString -ForegroundColor Green
@@ -408,8 +419,13 @@ if ($selection.ToUpper() -eq "Y") {
 
     foreach ($url in $UrlsToCheck.windows.urls) {
       Write-Host "Checking if $url is accessible from the Virtual Machine"
-      $result = $(az vm run-command invoke --resource-group $resourceGroupName  --name "SDAF-VM"  --command-id RunShellScript  --scripts "wget -O /tmp/foo.zip $url" --query value[0].message)
+      $result = $(az vm run-command invoke --resource-group $resourceGroupName  --name $vmName  --command-id RunShellScript  --scripts "wget -O /tmp/foo.zip $url" --query value[0].message)
       if ($result.Contains("200 OK")) {
+        $OutputString = "$url is accessible"
+        Write-Host $OutputString -ForegroundColor Green
+        Add-Content -Path $LogFileName $OutputString
+      }
+      elseif ($result.Contains("403 Forbidden")) {
         $OutputString = "$url is accessible"
         Write-Host $OutputString -ForegroundColor Green
         Add-Content -Path $LogFileName $OutputString
@@ -427,7 +443,7 @@ if ($selection.ToUpper() -eq "Y") {
 
     foreach ($IP in $UrlsToCheck.windows.IPs) {
       Write-Host "Checking if $IP is accessible from the Virtual Machine"
-      $result = $(az vm run-command invoke --resource-group $resourceGroupName  --name "SDAF-VM"  --command-id RunShellScript  --scripts "nc -zv $IP 443" --query value[0].message)
+      $result = $(az vm run-command invoke --resource-group $resourceGroupName  --name $vmName  --command-id RunShellScript  --scripts "nc -zv $IP 443" --query value[0].message)
       if ($result.Contains("succeeded!")) {
         $OutputString = "$IP is accessible"
         Write-Host $OutputString -ForegroundColor Green
@@ -451,8 +467,13 @@ if ($selection.ToUpper() -eq "Y") {
 
     foreach ($url in $UrlsToCheck.sap.urls) {
       Write-Host "Checking if $url is accessible from the Virtual Machine"
-      $result = $(az vm run-command invoke --resource-group $resourceGroupName  --name "SDAF-VM"  --command-id RunShellScript  --scripts "wget -O /tmp/foo.zip $url" --query value[0].message)
+      $result = $(az vm run-command invoke --resource-group $resourceGroupName  --name $vmName  --command-id RunShellScript  --scripts "wget -O /tmp/foo.zip $url" --query value[0].message)
       if ($result.Contains("200 OK")) {
+        $OutputString = "$url is accessible"
+        Write-Host $OutputString -ForegroundColor Green
+        Add-Content -Path $LogFileName $OutputString
+      }
+      elseif ($result.Contains("403 Forbidden")) {
         $OutputString = "$url is accessible"
         Write-Host $OutputString -ForegroundColor Green
         Add-Content -Path $LogFileName $OutputString
@@ -469,7 +490,7 @@ if ($selection.ToUpper() -eq "Y") {
 
     foreach ($IP in $UrlsToCheck.sap.IPs) {
       Write-Host "Checking if $IP is accessible from the Virtual Machine"
-      $result = $(az vm run-command invoke --resource-group $resourceGroupName  --name "SDAF-VM"  --command-id RunShellScript  --scripts "nc -zv $IP 443" --query value[0].message)
+      $result = $(az vm run-command invoke --resource-group $resourceGroupName  --name $vmName  --command-id RunShellScript  --scripts "nc -zv $IP 443" --query value[0].message)
       if ($result.Contains("succeeded!")) {
         $OutputString = "$IP is accessible"
         Write-Host $OutputString -ForegroundColor Green
