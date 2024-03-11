@@ -80,6 +80,18 @@
     - node_tier != 'observer'
     - ((node_tier == 'app' and usr_sap_mountpoint is undefined) or node_tier != 'app')
 
+- name:                                "2.6 SAP Mounts: - Mount local kdump file path to save vmcore"
+  ansible.posix.mount:
+    src:                               "/dev/vg_{{ node_tier | lower }}_kdump/lv_{{ node_tier | lower }}_kdump"
+    path:                              '/usr/crash'
+    fstype:                            'xfs'
+    opts:                              defaults
+    state:                             mounted
+  when:
+    - use_fence_kdump
+    - ansible_os_family | upper == 'REDHAT'
+    - node_tier in ['scs','hana','db2','ers']
+
 - name:                                "2.6 SAP Mounts: - Mount local file systems (shared)"
   ansible.posix.mount:
     src:                               "{{ sharedpath }}"

@@ -32,7 +32,8 @@ cmd_dir="$(dirname "$(readlink -e "${BASH_SOURCE[0]}")")"
 #           playbook_05_02_sap_pas_install.yaml                                           \
 #           playbook_05_03_sap_app_install.yaml                                           \
 #           playbook_05_04_sap_web_install.yaml                                           \
-#           playbook_06_00_acss_registration.yaml
+#           playbook_06_00_acss_registration.yaml                                         \
+#           playbook_06_01_ams_monitoring.yaml
 
 # The SAP System parameters file which should exist in the current directory
 sap_params_file=sap-parameters.yaml
@@ -110,6 +111,7 @@ options=(
         "Application Server installations"
         "Web Dispatcher installations"
         "ACSS Registration"
+        "AMS Provider Creation"
         "HCMT"
 
         # Special menu entries
@@ -139,6 +141,7 @@ all_playbooks=(
         ${cmd_dir}/playbook_05_03_sap_app_install.yaml
         ${cmd_dir}/playbook_05_04_sap_web_install.yaml
         ${cmd_dir}/playbook_06_00_acss_registration.yaml
+        ${cmd_dir}/playbook_06_01_ams_monitoring.yaml
         ${cmd_dir}/playbook_04_00_02_db_hcmt.yaml
         ${cmd_dir}/playbook_bom_downloader.yaml
         ${cmd_dir}/playbook_07_00_00_post_installation.yaml

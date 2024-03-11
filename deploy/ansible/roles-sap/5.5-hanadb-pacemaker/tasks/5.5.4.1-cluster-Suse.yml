@@ -15,7 +15,6 @@
                                          (database_cluster_type == "ISCSI")
       ansible.builtin.command: >
                                        crm configure property \$id="cib-bootstrap-options"
-                                         no-quorum-policy="ignore"
                                          stonith-enabled="true"
                                          stonith-action="reboot"
                                          stonith-timeout="144s"
@@ -24,7 +23,6 @@
       when:                            database_cluster_type not in ["ISCSI", "ASD"]
       ansible.builtin.command: >
                                        crm configure property \$id="cib-bootstrap-options"
-                                         no-quorum-policy="ignore"
                                          stonith-enabled="true"
                                          stonith-action="reboot"
                                          stonith-timeout="900s"

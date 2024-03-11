@@ -128,13 +128,13 @@ resource "azurerm_linux_virtual_machine" "scs" {
 
   //If no ppg defined do not put the scs servers in a proximity placement group
   proximity_placement_group_id         = var.application_tier.scs_use_ppg ? (
-                                           local.scs_zonal_deployment ? var.ppg[count.index % max(local.scs_zone_count, 1)] : var.ppg[0]) : (
+                                           local.scs_zonal_deployment ? var.ppg[count.index % max(length(var.ppg), 1)] : var.ppg[0]) : (
                                            null
                                          )
 
   //If more than one servers are deployed into a single zone put them in an availability set and not a zone
   availability_set_id                  = local.use_scs_avset ? (
-                                           azurerm_availability_set.scs[count.index % max(local.scs_zone_count, 1)].id) : (
+                                           azurerm_availability_set.scs[count.index % max(length(azurerm_availability_set.scs), 1)].id) : (
                                            null
                                          )
 
@@ -239,6 +239,11 @@ resource "azurerm_linux_virtual_machine" "scs" {
                          identity_ids = length(var.application_tier.user_assigned_identity_id) > 0 ? [var.application_tier.user_assigned_identity_id] : null
                        }
                      }
+  lifecycle {
+    ignore_changes = [
+      source_image_id
+    ]
+  }
 
 
 }
@@ -308,13 +313,13 @@ resource "azurerm_windows_virtual_machine" "scs" {
 
   //If no ppg defined do not put the scs servers in a proximity placement group
   proximity_placement_group_id         = var.application_tier.scs_use_ppg ? (
-                                           local.scs_zonal_deployment ? var.ppg[count.index % max(local.scs_zone_count, 1)] : var.ppg[0]) : (
+                                           local.scs_zonal_deployment ? var.ppg[count.index % max(length(var.ppg), 1)] : var.ppg[0]) : (
                                            null
                                          )
 
   //If more than one servers are deployed into a single zone put them in an availability set and not a zone
   availability_set_id                  = local.use_scs_avset ? (
-                                           azurerm_availability_set.scs[count.index % max(local.scs_zone_count, 1)].id) : (
+                                           azurerm_availability_set.scs[count.index % max(length(azurerm_availability_set.scs), 1)].id) : (
                                            null
                                          )
 
@@ -418,6 +423,11 @@ resource "azurerm_windows_virtual_machine" "scs" {
                                    identity_ids = [var.application_tier.user_assigned_identity_id]
                                  }
                        }
+  lifecycle {
+    ignore_changes = [
+      source_image_id
+    ]
+  }
 
 }
 
@@ -449,6 +459,13 @@ resource "azurerm_managed_disk" "scs" {
                                            null
                                          )
 
+  lifecycle {
+    ignore_changes = [
+      create_option,
+      hyper_v_generation,
+      source_resource_id
+    ]
+  }
 
 }
 
@@ -547,9 +564,6 @@ resource "azurerm_managed_disk" "cluster" {
                                               )
                                             )
                                           ) ? 1 : 0
-  lifecycle {
-    ignore_changes                      = [tags]
-  }
 
   name                                  = format("%s%s%s%s",
                                             var.naming.resource_prefixes.scs_cluster_disk,
@@ -572,6 +586,14 @@ resource "azurerm_managed_disk" "cluster" {
                                             )) : (
                                             null
                                           )
+  lifecycle {
+    ignore_changes = [
+      create_option,
+      hyper_v_generation,
+      source_resource_id,
+      tags
+    ]
+  }
 }
 
 resource "azurerm_virtual_machine_data_disk_attachment" "cluster" {
@@ -602,4 +624,73 @@ resource "azurerm_virtual_machine_data_disk_attachment" "cluster" {
                                           )
   caching                               = "None"
   lun                                   = var.scs_cluster_disk_lun
+}
+
+#########################################################################################
+#                                                                                       #
+#  Azure Data Disk for Kdump                                                            #
+#                                                                                       #
+#######################################+#################################################
+resource "azurerm_managed_disk" "kdump" {
+  provider                             = azurerm.main
+  count                                = (
+                                           local.enable_deployment &&
+                                           var.application_tier.scs_high_availability &&
+                                           (
+                                               upper(var.application_tier.scs_os.os_type) == "LINUX" &&
+                                               ( var.application_tier.fence_kdump_disk_size > 0 )
+                                           )
+                                         ) ? local.scs_server_count : 0
+
+  name                                 = format("%s%s%s%s%s",
+                                           try( var.naming.resource_prefixes.fence_kdump_disk, ""),
+                                           local.prefix,
+                                           var.naming.separator,
+                                           var.naming.virtualmachine_names.SCS_VMNAME[count.index],
+                                           try( var.naming.resource_suffixes.fence_kdump_disk, "fence_kdump_disk" )
+                                         )
+  location                             = var.resource_group[0].location
+  resource_group_name                  = var.resource_group[0].name
+  create_option                        = "Empty"
+  storage_account_type                 = "Premium_LRS"
+  disk_size_gb                         = try(var.application_tier.fence_kdump_disk_size,64)
+  disk_encryption_set_id               = try(var.options.disk_encryption_set_id, null)
+  tags                                 = var.tags
+
+  zone                                 = local.scs_zonal_deployment ? (
+                                           upper(var.application_tier.scs_os.os_type) == "LINUX" ? (
+                                             azurerm_linux_virtual_machine.scs[count.index].zone) :
+                                             null
+                                           ) : (
+                                           null
+                                         )
+  lifecycle {
+  ignore_changes = [
+    create_option,
+    hyper_v_generation,
+    source_resource_id,
+    tags
+    ]
+  }
+
+}
+
+resource "azurerm_virtual_machine_data_disk_attachment" "kdump" {
+  provider                             = azurerm.main
+  count                                = (
+                                           local.enable_deployment &&
+                                           var.application_tier.scs_high_availability &&
+                                           (
+                                               upper(var.application_tier.scs_os.os_type) == "LINUX" &&
+                                               ( var.application_tier.fence_kdump_disk_size > 0 )
+                                           )
+                                         ) ? local.scs_server_count : 0
+
+  managed_disk_id                      = azurerm_managed_disk.kdump[count.index].id
+  virtual_machine_id                   = (upper(var.application_tier.scs_os.os_type) == "LINUX"                                # If Linux
+                                         ) ? (
+                                           azurerm_linux_virtual_machine.scs[count.index].id
+                                         ) : null
+  caching                              = "None"
+  lun                                  = var.application_tier.fence_kdump_lun_number
 }

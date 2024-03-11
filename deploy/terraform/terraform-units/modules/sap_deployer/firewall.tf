@@ -147,6 +147,7 @@ resource "azurerm_firewall_network_rule_collection" "firewall-azure" {
                                                )
   priority                                   = random_integer.priority.result
   action                                     = "Allow"
+
   rule                                         {
                                                  name                  = "Azure-Cloud"
                                                  source_addresses      = ["*"]
@@ -161,4 +162,26 @@ resource "azurerm_firewall_network_rule_collection" "firewall-azure" {
                                                  destination_addresses = ["*"]
                                                  protocols             = ["Any"]
                                                }
+  dynamic "rule"                               {
+                                                 for_each = range(length(try(var.firewall_rule_subnets, [])) > 0 ? 1 : 0)
+                                                 content {
+                                                             name                  = "CustomSubnets"
+                                                             source_addresses      = var.firewall_rule_subnets
+                                                             destination_ports     = ["*"]
+                                                             destination_addresses = ["*"]
+                                                             protocols             = ["Any"]
+                                                         }
+                                               }
+
+  dynamic "rule"                               {
+                                                 for_each = range(length(try(var.firewall_allowed_ipaddresses, [])) > 0 ? 1 : 0)
+                                                 content {
+                                                             name                  = "CustomIpAddresses"
+                                                             source_addresses      = var.firewall_allowed_ipaddresses
+                                                             destination_ports     = ["*"]
+                                                             destination_addresses = ["*"]
+                                                             protocols             = ["Any"]
+                                                         }
+                                               }
+
 }

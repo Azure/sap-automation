@@ -25,6 +25,9 @@
         backup:                        true
         regexp:                        '^CLOUD_NETCONFIG_MANAGE='
         line:                          CLOUD_NETCONFIG_MANAGE='no'
+      when:
+                                       - ansible_facts.packages['cloud-netconfig-azure']
+                                       - (ansible_facts.packages['cloud-netconfig-azure'][0].version | float) < 1.3
       tags:
         - cloudnetmanage
 

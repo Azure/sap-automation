@@ -106,6 +106,11 @@ resource "azurerm_linux_virtual_machine" "anchor" {
     ultra_ssd_enabled = local.enable_anchor_ultra[count.index]
   }
 
+  lifecycle {
+    ignore_changes = [
+      source_image_id
+    ]
+  }
 
 }
 
@@ -164,6 +169,12 @@ resource "azurerm_windows_virtual_machine" "anchor" {
 
   additional_capabilities {
     ultra_ssd_enabled = local.enable_anchor_ultra[count.index]
+  }
+
+  lifecycle {
+    ignore_changes = [
+      source_image_id
+    ]
   }
 
   patch_mode                           = "Manual"

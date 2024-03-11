@@ -175,7 +175,7 @@ resource "local_file" "ansible_inventory_new_yml" {
 # }
 
 resource "local_file" "sap-parameters_yml" {
-  content = templatefile(format("%s/sap-parameters.yml.tmpl", path.module), {
+  content = templatefile(format("%s/sap-parameters.tmpl", path.module), {
               app_instance_number         = var.app_instance_number
               bom                         = length(var.bom_name) > 0 ? var.bom_name : ""
               database_cluster_type       = var.database_cluster_type
@@ -206,6 +206,7 @@ resource "local_file" "sap-parameters_yml" {
                                               ""
                                             )
               is_use_simple_mount         = var.use_simple_mount
+              is_use_fence_kdump          = var.is_use_fence_kdump
               iscsi_server_list           = concat(local.iscsi_scs_servers, local.iscsi_db_servers)
               kv_name                     = local.kv_name,
               NFS_provider                = var.NFS_provider
@@ -240,6 +241,9 @@ resource "local_file" "sap-parameters_yml" {
                                             )
               web_instance_number         = var.web_instance_number
               web_sid                     = var.web_sid
+              ams_resource_id             = var.ams_resource_id
+              enable_os_monitoring        = var.enable_os_monitoring
+              enable_ha_monitoring        = var.enable_ha_monitoring
 
     }
   )

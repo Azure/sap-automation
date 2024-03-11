@@ -15,7 +15,7 @@ module "sap_deployer" {
                                                    )
   additional_users_to_add_to_keyvault_policies  = var.additional_users_to_add_to_keyvault_policies
   agent_ado_url                                 = var.agent_ado_url
-  Agent_IP                                      = var.Agent_IP
+  Agent_IP                                      = var.add_Agent_IP ? var.Agent_IP : ""
   agent_pat                                     = var.agent_pat
   agent_pool                                    = var.agent_pool
   ansible_core_version                          = var.ansible_core_version
@@ -35,6 +35,8 @@ module "sap_deployer" {
   enable_firewall_for_keyvaults_and_storage     = var.enable_firewall_for_keyvaults_and_storage
   enable_purge_control_for_keyvaults            = var.enable_purge_control_for_keyvaults
   firewall_deployment                           = local.firewall_deployment
+  firewall_rule_subnets                         = local.firewall_rule_subnets
+  firewall_allowed_ipaddresses                  = local.firewall_allowed_ipaddresses
   infrastructure                                = local.infrastructure
   key_vault                                     = local.key_vault
   management_dns_resourcegroup_name             = var.management_dns_resourcegroup_name

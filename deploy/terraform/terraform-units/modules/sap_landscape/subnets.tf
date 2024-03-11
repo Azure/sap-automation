@@ -96,6 +96,22 @@ resource "azurerm_subnet" "anf" {
              }
 }
 
+// Creates AMS subnet of SAP VNET
+resource "azurerm_subnet" "ams" {
+  provider                             = azurerm.main
+  count                                = local.create_ams_instance && local.ams_subnet_defined && !local.ams_subnet_existing ? 1 : 0
+  name                                 = local.ams_subnet_name
+  resource_group_name                  = local.SAP_virtualnetwork_exists ? data.azurerm_virtual_network.vnet_sap[0].resource_group_name : azurerm_virtual_network.vnet_sap[0].resource_group_name
+  virtual_network_name                 = local.SAP_virtualnetwork_exists ? data.azurerm_virtual_network.vnet_sap[0].name : azurerm_virtual_network.vnet_sap[0].name
+  address_prefixes                     = [local.ams_subnet_prefix]
+
+  delegation {
+               name = "delegation"
+               service_delegation {
+                                    name = "Microsoft.Web/serverFarms"
+                                  }
+             }
+}
 
 
 #Associate the subnets to the route table
@@ -141,6 +157,17 @@ resource "azurerm_subnet_route_table_association" "web" {
                                            azurerm_subnet.web
                                          ]
   subnet_id                            = local.web_subnet_existing ? var.infrastructure.vnets.sap.subnet_web.arm_id : azurerm_subnet.web[0].id
+  route_table_id                       = azurerm_route_table.rt[0].id
+}
+
+resource "azurerm_subnet_route_table_association" "ams" {
+  provider                             = azurerm.main
+  count                                = local.create_ams_instance && local.ams_subnet_defined && !local.SAP_virtualnetwork_exists && !local.ams_subnet_existing ? 1 : 0
+  depends_on                           = [
+                                           azurerm_route_table.rt,
+                                           azurerm_subnet.ams
+                                         ]
+  subnet_id                            = local.ams_subnet_existing ? var.infrastructure.vnets.sap.subnet_ams.arm_id : azurerm_subnet.ams[0].id
   route_table_id                       = azurerm_route_table.rt[0].id
 }
 

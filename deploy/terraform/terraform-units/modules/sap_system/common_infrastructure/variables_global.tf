@@ -211,12 +211,6 @@ variable "use_private_endpoint"                  {
                                                     type        = bool
                                                  }
 
-variable "use_service_endpoint"                  {
-                                                    description = "Boolean value indicating if service endpoints should be used for the deployment"
-                                                    default     = false
-                                                    type        = bool
-                                                 }
-
 #########################################################################################
 #                                                                                       #
 #  DNS settings                                                                         #
@@ -246,9 +240,10 @@ variable "dns_zone_names"                        {
                                                   type        = map(string)
 
                                                   default = {
-                                                              "file_dns_zone_name"  = "privatelink.file.core.windows.net"
-                                                              "blob_dns_zone_name"  = "privatelink.blob.core.windows.net"
-                                                              "vault_dns_zone_name" = "privatelink.vaultcore.azure.net"
+                                                              "file_dns_zone_name"   = "privatelink.file.core.windows.net"
+                                                              "blob_dns_zone_name"   = "privatelink.blob.core.windows.net"
+                                                              "table_dns_zone_name"  = "privatelink.table.core.windows.net"
+                                                              "vault_dns_zone_name"  = "privatelink.vaultcore.azure.net"
                                                             }
                                                 }
 

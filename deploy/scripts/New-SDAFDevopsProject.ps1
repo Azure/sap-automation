@@ -16,22 +16,20 @@ function Show-Menu($data) {
 #region Initialize
 # Initialize variables from Environment variables
 
-$ADO_Organization              = $Env:SDAF_ADO_ORGANIZATION
-$ADO_Project                   = $Env:SDAF_ADO_PROJECT
-$ARM_TENANT_ID                 = $Env:ARM_TENANT_ID
-$Control_plane_code            = $Env:SDAF_CONTROL_PLANE_CODE
-$Control_plane_subscriptionID  = $Env:SDAF_ControlPlaneSubscriptionID
-$ControlPlaneSubscriptionName  = $Env:SDAF_ControlPlaneSubscriptionName
-$Workload_zone_code            = $Env:SDAF_WORKLOAD_ZONE_CODE
-$Workload_zone_subscriptionID  = $Env:SDAF_WorkloadZoneSubscriptionID
+$ADO_Organization = $Env:SDAF_ADO_ORGANIZATION
+$ADO_Project = $Env:SDAF_ADO_PROJECT
+$ARM_TENANT_ID = $Env:ARM_TENANT_ID
+$Control_plane_code = $Env:SDAF_CONTROL_PLANE_CODE
+$Control_plane_subscriptionID = $Env:SDAF_ControlPlaneSubscriptionID
+$ControlPlaneSubscriptionName = $Env:SDAF_ControlPlaneSubscriptionName
+$Workload_zone_code = $Env:SDAF_WORKLOAD_ZONE_CODE
+$Workload_zone_subscriptionID = $Env:SDAF_WorkloadZoneSubscriptionID
 $Workload_zoneSubscriptionName = $Env:SDAF_WorkloadZoneSubscriptionName
 
 if ($IsWindows) { $pathSeparator = "\" } else { $pathSeparator = "/" }
 #endregion
 
 $versionLabel = "v3.11.0.0"
-
-
 
 az logout
 
@@ -46,9 +44,27 @@ else {
 
 # Check if access to the Azure DevOps organization is available and prompt for PAT if needed
 # Exact permissions required, to be validated, and included in the Read-Host text.
+
+if ($Env:AZURE_DEVOPS_EXT_PAT.Length -gt 0) {
+  Write-Host "Using the provided Personal Access Token (PAT) to authenticate to the Azure DevOps organization $ADO_Organization" -ForegroundColor Yellow
+  try {
+    az devops login --organization $ADO_Organization
+  }
+  catch {
+    $_
+  }
+
+}
+
 $checkPAT = (az devops user list --organization $ADO_Organization --only-show-errors --top 1)
 if ($checkPAT.Length -eq 0) {
   $env:AZURE_DEVOPS_EXT_PAT = Read-Host "Please enter your Personal Access Token (PAT) with full access to the Azure DevOps organization $ADO_Organization"
+  try {
+    az devops login --organization $ADO_Organization
+  }
+  catch {
+    $_
+  }
   $verifyPAT = (az devops user list --organization $ADO_Organization --only-show-errors --top 1)
   if ($verifyPAT.Length -eq 0) {
     Read-Host -Prompt "Failed to authenticate to the Azure DevOps organization, press <any key> to exit"
@@ -146,7 +162,13 @@ else {
 $ControlPlanePrefix = "SDAF-" + $Control_plane_code
 $WorkloadZonePrefix = "SDAF-" + $Workload_zone_code
 
-$Pool_Name = $ControlPlanePrefix + "-POOL"
+if ($Env:SDAF_POOL_NAME.Length -eq 0) {
+  $Pool_Name = $ControlPlanePrefix + "-POOL"
+}
+else {
+  $Pool_Name = $Env:SDAF_POOL_NAME
+}
+
 
 $ApplicationName = $ControlPlanePrefix + "-configuration-app"
 
@@ -561,7 +583,7 @@ Write-Host "Creating the variable group SDAF-General" -ForegroundColor Green
 
 $general_group_id = (az pipelines variable-group list --query "[?name=='SDAF-General'].id | [0]" --only-show-errors)
 if ($general_group_id.Length -eq 0) {
-  az pipelines variable-group create --name SDAF-General --variables ANSIBLE_HOST_KEY_CHECKING=false Deployment_Configuration_Path=WORKSPACES Branch=main tf_version="1.7.0" ansible_core_version="2.15" S-Username=$SUserName S-Password=$SPassword --output yaml --authorize true --output none
+  az pipelines variable-group create --name SDAF-General --variables ANSIBLE_HOST_KEY_CHECKING=false Deployment_Configuration_Path=WORKSPACES Branch=main tf_version="1.7.4" ansible_core_version="2.15" S-Username=$SUserName S-Password=$SPassword --output yaml --authorize true --output none
   $general_group_id = (az pipelines variable-group list --query "[?name=='SDAF-General'].id | [0]" --only-show-errors)
   az pipelines variable-group variable update --group-id $general_group_id --name "S-Password" --value $SPassword --secret true --output none --only-show-errors
 }

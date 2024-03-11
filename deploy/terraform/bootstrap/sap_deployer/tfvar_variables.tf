@@ -120,12 +120,12 @@ variable "firewall_deployment"                  {
 
 variable "firewall_rule_subnets"                {
                                                   description = "List of subnets that are part of the firewall rule"
-                                                  default     = null
+                                                  default     = []
                                                 }
 
 variable "firewall_allowed_ipaddresses"         {
                                                   description = "List of allowed IP addresses to be part of the firewall rule"
-                                                  default     = null
+                                                  default     = []
                                                 }
 
 #######################################4#######################################8
@@ -411,6 +411,7 @@ variable "subnets_to_add_to_firewall_for_keyvaults_and_storage" {
                                                                   default     = []
                                                                 }
 
+
 #########################################################################################
 #                                                                                       #
 #  DNS settings                                                                         #
@@ -440,9 +441,11 @@ variable "dns_zone_names"                             {
                                                         type        = map(string)
 
                                                         default = {
-                                                          "file_dns_zone_name"  = "privatelink.file.core.windows.net"
-                                                          "blob_dns_zone_name"  = "privatelink.blob.core.windows.net"
-                                                          "vault_dns_zone_name" = "privatelink.vaultcore.azure.net"
+                                                          "file_dns_zone_name"   = "privatelink.file.core.windows.net"
+                                                          "blob_dns_zone_name"   = "privatelink.blob.core.windows.net"
+                                                          "table_dns_zone_name"  = "privatelink.table.core.windows.net"
+                                                          "vault_dns_zone_name"  = "privatelink.vaultcore.azure.net"
+
                                                         }
                                                       }
 
@@ -517,6 +520,11 @@ variable "Agent_IP"                                  {
                                                        default     = ""
                                                      }
 
+variable "add_Agent_IP"                              {
+                                                        description = "Boolean value indicating if the Agent IP should be added to the storage and key vault firewalls"
+                                                        default     = true
+                                                        type        = bool
+                                                      }
 
 ###############################################################################
 #                                                                             #

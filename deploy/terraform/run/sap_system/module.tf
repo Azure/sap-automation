@@ -54,7 +54,7 @@ module "common_infrastructure" {
                                                     azurerm.main           = azurerm.system
                                                     azurerm.dnsmanagement  = azurerm.dnsmanagement
                                                   }
-  Agent_IP                                      = var.Agent_IP
+  Agent_IP                                      = var.add_Agent_IP ? var.Agent_IP : ""
   application_tier                              = local.application_tier
   application_tier_ppg_names                    = module.sap_namegenerator.naming_new.app_ppg_names
   authentication                                = local.authentication
@@ -94,7 +94,6 @@ module "common_infrastructure" {
   use_private_endpoint                          = var.use_private_endpoint
   use_random_id_for_storageaccounts             = var.use_random_id_for_storageaccounts
   use_scalesets_for_deployment                  = var.use_scalesets_for_deployment
-  use_service_endpoint                          = var.use_service_endpoint
 }
 
 #-------------------------------------------------------------------------------
@@ -314,6 +313,7 @@ module "output_files" {
                                                     module.hdb_node.database_shared_disks) : (
                                                     module.anydb_node.database_shared_disks
                                                   )
+  is_use_fence_kdump                            = var.use_fence_kdump
   infrastructure                                = local.infrastructure
   landscape_tfstate                             = data.terraform_remote_state.landscape.outputs
   naming                                        = length(var.name_override_file) > 0 ? (
@@ -352,7 +352,10 @@ module "output_files" {
   database_subnet_netmask                       = module.common_infrastructure.db_subnet_netmask
   disks                                         = distinct(compact(concat(module.hdb_node.database_disks,
                                                     module.anydb_node.database_disks,
-                                                    module.app_tier.apptier_disks
+                                                    module.app_tier.apptier_disks,
+                                                    module.hdb_node.database_kdump_disks,
+                                                    module.anydb_node.database_kdump_disks,
+                                                    module.app_tier.scs_kdump_disks
                                                   )))
   loadbalancers                                 = module.hdb_node.loadbalancers
 
@@ -444,4 +447,11 @@ module "output_files" {
   iSCSI_server_ips                              = var.database_cluster_type == "ISCSI" || var.scs_cluster_type == "ISCSI" ? data.terraform_remote_state.landscape.outputs.iSCSI_server_ips : []
   iSCSI_server_names                            = var.database_cluster_type == "ISCSI" || var.scs_cluster_type == "ISCSI" ? data.terraform_remote_state.landscape.outputs.iSCSI_server_names : []
   iSCSI_servers                                 = var.database_cluster_type == "ISCSI" || var.scs_cluster_type == "ISCSI" ? data.terraform_remote_state.landscape.outputs.iSCSI_servers : []
+
+  #########################################################################################
+  #  AMS                                                                                  #
+  #########################################################################################
+  ams_resource_id                               = try(coalesce(var.ams_resource_id, try(data.terraform_remote_state.landscape.outputs.ams_resource_id, "")),"")
+  enable_ha_monitoring                          = var.enable_ha_monitoring
+  enable_os_monitoring                          = var.enable_os_monitoring
 }

@@ -63,9 +63,9 @@ output "database_server_vm_ids"        {
 output "database_server_vm_names"      {
                                          description = "AnyDB Virtual machine names"
                                          value       = local.enable_deployment ? (
-                                                      coalesce(azurerm_linux_virtual_machine.dbserver[*].name,
+                                                      compact(concat(azurerm_linux_virtual_machine.dbserver[*].name,
                                                         azurerm_windows_virtual_machine.dbserver[*].name
-                                                      )
+                                                      ))
                                                       ) : (
                                                       [""]
                                                      )
@@ -157,9 +157,21 @@ output "database_shared_disks"         {
                                          description = "List of Azure shared disks"
                                          value       = distinct(
                                                          flatten(
-                                                           [for vm in var.naming.virtualmachine_names.HANA_COMPUTERNAME :
+                                                           [for vm in var.naming.virtualmachine_names.ANYDB_VMNAME :
                                                              [for idx, disk in azurerm_virtual_machine_data_disk_attachment.cluster :
-                                                               format("{ host: '%s', lun: %d, type: 'ASD' }", vm, disk.lun)
+                                                               format("{ host: '%s', LUN: %d, type: 'ASD' }", vm, disk.lun)
+                                                             ]
+                                                           ]
+                                                         )
+                                                       )
+                                       }
+output "database_kdump_disks"          {
+                                         description = "List of Azure kdump disks"
+                                         value       = distinct(
+                                                         flatten(
+                                                           [for vm in var.naming.virtualmachine_names.ANYDB_VMNAME :
+                                                             [for idx, disk in azurerm_virtual_machine_data_disk_attachment.kdump :
+                                                               format("{ host: '%s', LUN: %d, type: 'kdump' }", vm, disk.lun)
                                                              ]
                                                            ]
                                                          )

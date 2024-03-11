@@ -82,6 +82,13 @@ parameters:
     type:                              boolean
     default:                           false
 
+  - name:                             ams_provider
+    displayName:                      Configure AMS Provider
+    type:                             boolean
+    default:                          false
+
+
+
 # 20220929 MKD - ACSS Registration <BEGIN>
   - name:                             acss_registration
     displayName:                      Register System in ACSS
@@ -548,7 +555,23 @@ stages:
                   acssEnvironment:           ${{ parameters.acss_environment }}
                   acssSapProduct:            ${{ parameters.acss_sap_product }}
                   USE_MSI:                   $(USE_MSI)
-
+          - ${{ if eq(parameters.ams_provider, true) }}:
+              - template:                    templates\run-ansible.yaml
+                parameters:
+                  displayName:               "AMS Provider Creation"
+                  ansibleFilePath:           ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_06_01_ams_monitoring.yaml
+                  secretName:                "$(Preparation.SSH_KEY_NAME)"
+                  passwordSecretName:        "$(Preparation.PASSWORD_KEY_NAME)"
+                  userNameSecretName:        "$(Preparation.USERNAME_KEY_NAME)"
+                  vaultName:                 $(Preparation.VAULT_NAME)
+                  parametersFolder:          $(Preparation.FOLDER)
+                  sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
+                  sidHosts:                  $(Preparation.HOSTS)
+                  extraParams:               ${{ parameters.extra_params }}
+                  azureClientId:             $(ARM_CLIENT_ID)
+                  azureClientSecret:         $(ARM_CLIENT_SECRET)
+                  azureTenantId:             $(ARM_TENANT_ID)
+                  azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
           - template:                          templates\collect-log-files.yaml
             parameters:
               logPath:                         ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/logs

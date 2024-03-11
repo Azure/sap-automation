@@ -656,6 +656,7 @@ else
     sudo -H "$${ansible_venv_bin}/ansible-galaxy" collection install ansible.posix --force --collections-path "$${ansible_collections}"
     sudo -H "$${ansible_venv_bin}/ansible-galaxy" collection install ansible.utils --force --collections-path "$${ansible_collections}"
     sudo -H "$${ansible_venv_bin}/ansible-galaxy" collection install community.windows --force --collections-path "$${ansible_collections}"
+    sudo -H "$${ansible_venv_bin}/ansible-galaxy" collection install microsoft.ad --force --collections-path "$${ansible_collections}"
 
     if [[ "$${ansible_version}" == "2.11" ]]; then
       # ansible galaxy upstream has changed. Some collections are only available for install via old-galaxy.ansible.com
@@ -720,7 +721,7 @@ else
     echo export "PATH=$${ansible_bin}:$${tf_bin}:$${PATH}":"$${DOTNET_ROOT}":"$${AZADHOME}/Azure_SAP_Automated_Deployment/sap-automation/deploy/scripts" | sudo tee -a /etc/profile.d/deploy_server.sh
 
     # Ensure that the user's account is logged in to Azure with specified creds
-    echo 'az login --identity --allow-no-subscriptions --output none' | sudo tee -a /etc/profile.d/deploy_server.sh
+    (echo 'az login --identity --allow-no-subscriptions --output none --username "$${client_id}" ' | sudo tee -a /etc/profile.d/deploy_server.sh) > /dev/null 2>&1
     echo 'echo $${USER} account ready for use with Azure SAP Automated Deployment' | sudo tee -a /etc/profile.d/deploy_server.sh
 
     sudo runuser -l "$${local_user}" -c '/usr/bin/az login --identity --allow-no-subscriptions --output none'

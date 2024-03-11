@@ -12,6 +12,9 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 - name:                                           "Cluster Type: Fencing"
+  when:
+                                                  - (database_cluster_type == "AFA") or
+                                                    (scs_cluster_type      == "AFA")        # scs_high_availability = true is already assumed
   block:
 
     - name:                                       "BEGIN: Fencing specific..."
@@ -39,9 +42,7 @@
         msg:                                      # Best method for formatting output with Azure Devops Logs
                                                   - "END  : Fencing specific..."
 
-  when:
-                                                  - (database_cluster_type == "AFA") or
-                                                    (scs_cluster_type      == "AFA")        # scs_high_availability = true is already assumed
+
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
 # | Fencing Specific - END                                                     |
@@ -123,6 +124,68 @@
   ansible.builtin.debug:
     msg:
                                                   - "CLUSTER VALIDATION : {{ cluster_existence_check }}"
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# | Fencing Specific - Kdump RHEL only                                         |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+- name:                                           "1.17 Generic Pacemaker - RHEL - Configure optional fence_kdump stonith device"
+  when:
+                                                  - ansible_os_family | upper == "REDHAT"
+                                                  - use_fence_kdump
+  block:
+    - name:                                       "1.17 Generic Pacemaker - kdump service is enabled"
+      ansible.builtin.service:
+        name:                                     "kdump"
+        enabled:                                  true
+        state:                                    started
+
+    # Todo: Use ansible.builtin.service_facts to get the status of the kdump service
+    - name:                                       "1.17 Generic Pacemaker  - RHEL - Check if kdump is enabled"
+      ansible.builtin.command:                    "systemctl is-enabled kdump"
+      register:                                   kdump_enabled_check_result
+      changed_when:                               false
+      failed_when:                                false
+      tags:
+                                                  - skip_ansible_lint
+
+    - name:                                       "1.17 Generic Pacemaker  - RHEL -  Save kdump facts"
+      ansible.builtin.set_fact:
+        kdump_enabled_check:                      "{{ kdump_enabled_check_result.rc | int }}"
+        kdump_enabled:                            "{{ kdump_enabled_check_result.stdout | trim }}"
+      when:
+                                                  - kdump_enabled_check_result.rc == 0
+
+    # kdump_enabled_check_result.stdout == "enabled"
+    - name:                                       "1.17 Generic Pacemaker - RHEL - show if kdump is enabled"
+      ansible.builtin.debug:
+        msg:
+                                                  - "Kdump is enabled: {{ kdump_enabled | default('false') }}"
+        verbosity:                                2
+
+    # Install the fence_kdump fence agent. This is required for fencing to work with kdump.
+    - name:                                       "1.17 Generic Pacemaker - RHEL - Install fence-agents-kdump"
+      ansible.builtin.package:
+        name:                                     "fence-agents-kdump"
+        state:                                    present
+      when:
+                                                  - kdump_enabled_check == 0
+                                                  - kdump_enabled == "enabled"
+
+    # Allow the required ports for fence_kdump through the firewall.
+    - name:                                       "1.17 Generic Pacemaker - RHEL - Allow ports for fence_kdump through the firewall"
+      ansible.posix.firewalld:
+        port:                                     "7410/udp"
+        permanent:                                true
+        state:                                    enabled
+        offline:                                  true
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# | Fencing Specific - Kdump RHEL only - END                                   |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
 
 ...
 # /*---------------------------------------------------------------------------8

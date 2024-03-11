@@ -9,6 +9,7 @@ module "sap_library" {
                                        azurerm.deployer      = azurerm.deployer
                                        azurerm.dnsmanagement = azurerm.dnsmanagement
                                      }
+  Agent_IP                          = var.add_Agent_IP ? var.Agent_IP : ""
   bootstrap                         = true
   deployer                          = local.deployer
   deployer_tfstate                  = try(data.terraform_remote_state.deployer[0].outputs, [])
@@ -16,8 +17,8 @@ module "sap_library" {
   dns_zone_names                    = var.dns_zone_names
   infrastructure                    = local.infrastructure
   key_vault                         = local.key_vault
-  management_dns_subscription_id    = var.management_dns_subscription_id
   management_dns_resourcegroup_name = var.management_dns_resourcegroup_name
+  management_dns_subscription_id    = var.management_dns_subscription_id
   naming                            = length(var.name_override_file) > 0 ? local.custom_names : module.sap_namegenerator.naming
   place_delete_lock_on_resources    = var.place_delete_lock_on_resources
   service_principal                 = var.use_deployer ? local.service_principal : local.account
@@ -26,8 +27,7 @@ module "sap_library" {
   storage_account_tfstate           = local.storage_account_tfstate
   use_custom_dns_a_registration     = var.use_custom_dns_a_registration
   use_private_endpoint              = var.use_private_endpoint
-  use_webapp                        = var.use_webapp
-  Agent_IP                          = var.Agent_IP
+  use_webapp                        = var.use_webapp || length(try(data.terraform_remote_state.deployer[0].outputs.webapp_id,"")) > 0
 }
 
 module "sap_namegenerator" {

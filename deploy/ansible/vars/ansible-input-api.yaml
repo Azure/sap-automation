@@ -101,7 +101,6 @@ db2hadr_port1:                         51012
 db2hadr_port2:                         51013
 # Name of the database connect user for ABAP. Default value is 'sap<sapsid>'.
 db2_abap_connect_user:                 ""
-db2_instance_type:                     "ABAP"
 
 tmp_directory:                         "/var/tmp"
 url_internet:                          "https://azure.status.microsoft/en-us/status"                 # URL to use for internet access checks"
@@ -178,6 +177,11 @@ domain_user_password:                   "{{ winadm_password }}"
 sid_service_password:                   "{{ svc_password }}"
 win_sap_admin:                          "SAP_{{ sap_sid | upper }}_GlobalAdmin"
 
+# Windows patch releated parameters
+
+win_updates_reject_list:                ["KB5034439"]
+win_updates_accept_list:                []
+
 # SQL Server specific parameters
 use_sql_for_SAP:                        true
 data_disks:                             F:\{{ sap_sid | upper }}DATA1\{{ sap_sid | upper }}4DATA1.mdf,G:\{{ sap_sid | upper }}DATA2\{{ sap_sid | upper }}4DATA2.mdf,H:\{{ sap_sid | upper }}DATA3\{{ sap_sid | upper }}4DATA3.mdf,I:\{{ sap_sid | upper }}DATA4\{{ sap_sid | upper }}4DATA4.mdf
@@ -219,6 +223,8 @@ cluster_use_scheduled_events_agent:    true
 custom_cluster_fs_mon_timeout:         ""
 custom_cluster_sap_mon_timeout:        ""
 
+use_fence_kdump:                       false
+
 # ------------------- Begin - SAP SWAP settings variables --------------------8
 sap_swap:
   - { tier: "scs",                swap_size_mb: "4096"  }
@@ -235,3 +241,9 @@ sap_swap:
   - { tier: "observer",           swap_size_mb: "2048"  }
   - { tier: 'sqlserver',          swap_size_mb: '20480' }
 # --------------------- End - SAP SWAP settings variables --------------------8
+
+# ------------------- Begin - Azure Monitor for SAP (AMS) variables ------------8
+ams_resource_id:                        ""
+enable_os_monitoring:                   false
+enable_ha_monitoring:                   false
+# ------------------- End - Azure Monitor for SAP (AMS) variables --------------8

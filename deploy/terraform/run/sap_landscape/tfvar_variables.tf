@@ -272,6 +272,36 @@ variable "anf_subnet_nsg_arm_id"                {
                                                 }
 
 
+#######################################4#######################################8
+#                                                                              #
+#                      AMS Subnet variables                                    #
+#                                                                              #
+#######################################4#######################################8
+
+variable "ams_subnet_name"                       {
+                                                  description = "If provided, the name of the ams subnet"
+                                                  default     = ""
+                                                }
+
+variable "ams_subnet_arm_id"                     {
+                                                  description = "If provided, Azure resource id for the ams subnet"
+                                                  default     = ""
+                                                }
+
+variable "ams_subnet_address_prefix"             {
+                                                  description = "The address prefix for the ams subnet"
+                                                  default     = ""
+                                                }
+
+variable "ams_subnet_nsg_name"                  {
+                                                  description = "If provided, the name of the AMS subnet NSG"
+                                                  default     = ""
+                                                }
+
+variable "ams_subnet_nsg_arm_id"                {
+                                                  description = "If provided, Azure resource id for the AMS subnet NSG"
+                                                  default     = ""
+                                                }
 
 #########################################################################################
 #                                                                                       #
@@ -418,6 +448,11 @@ variable "Agent_IP"                             {
                                                   type        = string
                                                   default     = ""
                                                 }
+variable "add_Agent_IP"                         {
+                                                  description = "Boolean value indicating if the Agent IP should be added to the storage and key vault firewalls"
+                                                  default     = true
+                                                  type        = bool
+                                                }
 
 variable "storage_account_replication_type"     {
                                                   description = "Storage account replication type"
@@ -449,11 +484,6 @@ variable "management_dns_resourcegroup_name"       {
                                                      type        = string
                                                    }
 
-variable "create_vaults_and_storage_dns_a_records" {
-                                                     description = "Boolean value indicating if dns a records should be created for the vaults and storage accounts"
-                                                     default     = false
-                                                     type        = bool
-                                                   }
 
 variable "dns_server_list"                         {
                                                      description = "DNS server list"
@@ -471,9 +501,10 @@ variable "dns_zone_names"                          {
                                                      type        = map(string)
 
                                                      default = {
-                                                                 "file_dns_zone_name"  = "privatelink.file.core.windows.net"
-                                                                 "blob_dns_zone_name"  = "privatelink.blob.core.windows.net"
-                                                                 "vault_dns_zone_name" = "privatelink.vaultcore.azure.net"
+                                                                "file_dns_zone_name"   = "privatelink.file.core.windows.net"
+                                                                "blob_dns_zone_name"   = "privatelink.blob.core.windows.net"
+                                                                "table_dns_zone_name"  = "privatelink.table.core.windows.net"
+                                                                "vault_dns_zone_name"  = "privatelink.vaultcore.azure.net"
                                                                }
                                                    }
 
@@ -690,8 +721,8 @@ variable "utility_vm_image"                        {
                                                                      "os_type"         = "WINDOWS"
                                                                      "source_image_id" = ""
                                                                      "publisher"       = "MicrosoftWindowsServer"
-                                                                     "offer"           = "windowsserver"
-                                                                     "sku"             = "2019-datacenter"
+                                                                     "offer"           = "WindowsServer"
+                                                                     "sku"             = "2022-Datacenter"
                                                                      "version"         = "latest"
                                                                    }
                                                    }
@@ -728,3 +759,23 @@ variable "export_transport_path"                   {
                                                       description = "If provided, export mount path for the transport media"
                                                       default     = true
                                                    }
+
+#######################################4#######################################8
+#                                                                              #
+#                      AMS Instance variables                                  #
+#                                                                              #
+#######################################4#######################################8
+
+variable "create_ams_instance"                    {
+                                                    description = "If true, an AMS instance will be created"
+                                                    default     = false
+                                                  }
+
+variable "ams_instance_name"                      {
+                                                    description = "If provided, the name of the AMS instance"
+                                                    default     = ""
+                                                  }
+variable "ams_laws_arm_id"                        {
+                                                    description = "If provided, Azure resource id for the Log analytics workspace in AMS"
+                                                    default     = ""
+                                                  }

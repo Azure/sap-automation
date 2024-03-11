@@ -221,7 +221,7 @@ namespace AutomationForm.Models
     |                                                                            |
     +------------------------------------4--------------------------------------*/
 
-    
+
     public string[] proximityplacementgroup_names { get; set; }
 
     [PpgIdValidator]
@@ -285,7 +285,7 @@ namespace AutomationForm.Models
     [IpAddressValidator]
     public string[] database_vm_db_nic_ips { get; set; }
 
-    
+
     [IpAddressValidator]
     public string[] database_vm_db_nic_secondary_ips { get; set; }
 
@@ -492,7 +492,7 @@ namespace AutomationForm.Models
 
     public int? ANF_HANA_data_volume_throughput { get; set; }
 
-    public int? ANF_hana_data_volume_count { get; set; } = 1;
+    public int? ANF_HANA_data_volume_count { get; set; } = 1;
 
     /*---------------------------------------------------------------------------8
     |                                                                            |
@@ -509,7 +509,7 @@ namespace AutomationForm.Models
 
     public int? ANF_HANA_log_volume_throughput { get; set; }
 
-    public int? ANF_hana_log_volume_count { get; set; } = 1;
+    public int? ANF_HANA_log_volume_count { get; set; } = 1;
 
     /*---------------------------------------------------------------------------8
     |                                                                            |
@@ -611,6 +611,36 @@ namespace AutomationForm.Models
     public bool? database_HANA_use_ANF_scaleout_scenario { get; set; } = false;
 
     public int? stand_by_node_count { get; set; } = 0;
+
+
+    /*---------------------------------------------------------------------------8
+    |                                                                            |
+    |                               AMS Parameters                               |
+    |                                                                            |
+    +------------------------------------4--------------------------------------*/
+
+    public bool? enable_ha_monitoring { get; set; } = false;
+
+    public bool? enable_os_monitoring { get; set; } = false;
+
+    [AMSIdValidator(ErrorMessage = "Invalid AMS Resource id")]
+    public string ams_resource_id { get; set; }
+
+    /*---------------------------------------------------------------------------8
+    |                                                                            |
+    |                              KDump Parameters                              |
+    |                                                                            |
+    +------------------------------------4--------------------------------------*/
+
+    public bool? use_fence_kdump { get; set; } = false;
+
+    public int? use_fence_kdump_size_gb_db { get; set; } = 128;
+
+    public int? use_fence_kdump_lun_db { get; set; } = 8;
+
+    public int? use_fence_kdump_size_gb_scs { get; set; } = 64;
+
+    public int? use_fence_kdump_lun_scs { get; set; } = 4;
 
   }
 

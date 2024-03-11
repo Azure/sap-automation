@@ -16,6 +16,7 @@ provider "azurerm"                     {
                                          features {}
                                          subscription_id = length(local.deployer_subscription_id) > 0 ? local.deployer_subscription_id : null
                                          use_msi             = var.use_spn ? false : true
+                                         skip_provider_registration = true
                                        }
 
 provider "azurerm"                     {
@@ -85,6 +86,15 @@ provider "azuread"                     {
                                          tenant_id                  = local.spn.tenant_id
                                          use_msi                    = var.use_spn ? false : true
                                        }
+
+provider "azapi"                       {
+                                          alias           = "api"
+                                          subscription_id = local.spn.subscription_id
+                                          client_id       = local.spn.client_id
+                                          client_secret   = local.spn.client_secret
+                                          tenant_id       = local.spn.tenant_id
+                                      }
+
 terraform                              {
                                          required_version = ">= 1.0"
                                          required_providers {
@@ -107,6 +117,9 @@ terraform                              {
                                                               azurerm =  {
                                                                            source  = "hashicorp/azurerm"
                                                                            version = ">=3.3"
+                                                                         }
+                                                              azapi =    {
+                                                                           source  = "Azure/azapi"
                                                                          }
                                                             }
                                        }

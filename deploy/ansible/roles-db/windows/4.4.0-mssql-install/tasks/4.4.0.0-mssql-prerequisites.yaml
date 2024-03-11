@@ -133,6 +133,8 @@
       - SecurityUpdates
       - CriticalUpdates
       - UpdateRollups
+    reject_list:                       "{{ win_updates_reject_list }}"
+    accept_list:                       "{{ win_updates_accept_list }}"
   register:                            win_updates
   notify:                              "WIN-SQL: Restart SQL Server VM"
 

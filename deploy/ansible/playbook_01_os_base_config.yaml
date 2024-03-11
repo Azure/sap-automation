@@ -169,13 +169,15 @@
             name:                      roles-os/1.20-prometheus
           when:
             - prometheus
-            - ansible_os_family | upper == "SUSE"
+            - ansible_os_family | upper == "SUSE" or ansible_os_family | upper == "REDHAT"
           tags:
             - 1.20-prometheus
       when:
         - ansible_os_family != "Windows"
 
     - name:                            OS Configuration - Windows based systems
+      when:
+        - ansible_os_family == "Windows"
       block:
         - name:                        "OS configuration playbook: - Set os fact"
           ansible.builtin.set_fact:
@@ -227,25 +229,33 @@
             - 1.11-domain-join
 
         - name:                        "OS configuration playbook: - Checks"
+          when:
+            - scs_high_availability
           block:
             - name:                    "OS configuration playbook: - Check if required DNS entries are made"
-              ansible.windows.win_shell:     "[System.Net.DNS]::Resolve('{{ sap_sid | lower }}scs{{ scs_instance_number }}cl1')"
+              ansible.windows.win_shell:     "[System.Net.DNS]::Resolve('{{ sap_sid | lower }}scs{{ scs_instance_number }}cl1').AddressList.IPAddressToString"
               register:                dns_check_results
-              when:
-                - scs_high_availability
               failed_when:             dns_check_results.rc > 0
+
+            - name:                    "OS configuration playbook: - Check if required DNS entries are made"
+              ansible.builtin.set_fact:
+                dns_in_AD:              "{{ dns_check_results.stdout_lines[0] }}"
+              when:
+                - dns_check_results is defined
+
+            - name:                    "OS configuration playbook: - Check if required DNS entries match"
+              ansible.builtin.assert:
+                that:                   "dns_in_AD == scs_lb_ip"
+                fail_msg:               "The DNS entry for the SCS cluster is not correct in Active Directory"
+              when:
+                - dns_in_AD is defined
 
             - name:                    "OS configuration playbook: - Check if required DNS entries are made - show results"
               ansible.builtin.debug:
                 msg:                   "DNS query results: {{ dns_check_results.stdout }}"
                 verbosity:             2
-              when:                    dns_check_results is defined
-          when:
-            - ansible_os_family == "Windows"
-
-
-      when:
-        - ansible_os_family == "Windows"
+              when:
+                - dns_check_results is defined
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |

@@ -353,7 +353,7 @@
         - database_high_availability
         - platform == 'HANA'
       ansible.builtin.find:
-        paths:                         "/usr/sap/{{ sid_to_be_deployed.sid | upper }}/SYS/exe/uc/linuxx86_64/hdbclient/"
+        paths:                         "/usr/sap/{{ sid_to_be_deployed.sid | upper }}/SYS/exe/uc/linuxx86_64/hdbclient/,/usr/sap/{{ sid_to_be_deployed.sid }}/hdbclient"
         file_type:                     file
         patterns:                      'hdbuserstore'
         recurse:                       true
@@ -464,7 +464,7 @@
         - database_high_availability
         - platform == 'HANA'
       ansible.builtin.find:
-        paths:                         "/usr/sap/{{ sid_to_be_deployed.sid | upper }}/SYS/exe/uc/linuxx86_64/hdbclient/"
+        paths:                         "/usr/sap/{{ sid_to_be_deployed.sid | upper }}/SYS/exe/uc/linuxx86_64/hdbclient/,/usr/sap/{{ sid_to_be_deployed.sid }}/hdbclient"
         file_type:                     file
         patterns:                      'hdbuserstore'
         recurse:                       true

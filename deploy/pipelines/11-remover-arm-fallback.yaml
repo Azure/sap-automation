@@ -300,7 +300,7 @@ stages:
           - task:                      AzureCLI@2
             continueOnError:           false
             inputs:
-              azureSubscription:       ${{ parameters.workload_zone_connection }}
+              azureSubscription:       Control_Plane_Service_Connection
               scriptType:              bash
               scriptLocation:          inlineScript
               addSpnToEnvironment:     true
@@ -325,43 +325,18 @@ stages:
                   else
                     subscription=$variable_value
                   fi
+                  export ARM_CLIENT_ID=$servicePrincipalId
+                  export ARM_TENANT_ID=$tenantId
+                  export ARM_CLIENT_SECRET=$servicePrincipalKey
                   export ARM_USE_MSI=false
-                  if [ $USE_MSI != "true" ]; then
-                    echo "use Service Principal"
-                    export ARM_CLIENT_ID=$CP_ARM_CLIENT_ID
-                    export ARM_TENANT_ID=$CP_ARM_TENANT_ID
-                    export ARM_CLIENT_SECRET=$CP_ARM_CLIENT_SECRET
-                    if [ -z $ARM_SUBSCRIPTION_ID ]; then
-                      echo "##vso[task.logissue type=error]Variable CP_ARM_SUBSCRIPTION_ID was not defined."
-                      exit 2
-                    fi
-                    if [ -z $ARM_CLIENT_ID ]; then
-                      echo "##vso[task.logissue type=error]Variable CP_ARM_CLIENT_ID was not defined."
-                      exit 2
-                    fi
-                    if [ -z $ARM_CLIENT_SECRET ]; then
-                      echo "##vso[task.logissue type=error]Variable CP_ARM_CLIENT_SECRET was not defined."
-                      exit 2
-                    fi
-                    if [ -z $ARM_TENANT_ID ]; then
-                      echo "##vso[task.logissue type=error]Variable CP_ARM_TENANT_ID was not defined."
-                      exit 2
-                    fi
-                    echo -e "$green--- az login ---$reset"
-                      az login --service-principal --username $ARM_CLIENT_ID --password=$ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID --output none
-                    return_code=$?
-                    if [ 0 != $return_code ]; then
-                      echo -e "$boldred--- Login failed ---$reset"
-                      echo "##vso[task.logissue type=error]az login failed."
-                      exit $return_code
-                    fi
-                  else
-                    echo "use MSI"
-                    export ARM_CLIENT_ID=$servicePrincipalId
-                    export ARM_TENANT_ID=$tenantId
-                    export ARM_CLIENT_SECRET=$servicePrincipalKey
+                  echo -e "$green--- az login ---$reset"
+                    az login --service-principal --username $ARM_CLIENT_ID --password=$ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID --output none
+                  return_code=$?
+                  if [ 0 != $return_code ]; then
+                    echo -e "$boldred--- Login failed ---$reset"
+                    echo "##vso[task.logissue type=error]az login failed."
+                    exit $return_code
                   fi
-
                   echo "Subscription: $subscription"
 
                   az account set --subscription $subscription

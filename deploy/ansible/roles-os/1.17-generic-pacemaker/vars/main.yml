@@ -68,6 +68,9 @@ sbdMap: []
 # SLES 15 SP4 and newer: resource-agents-4.10.0+git40.0f4de473-150400.3.19.1
 # todo: Figure out a way to get the release information from the package manager
 package_versions:
+  redhat8.2:
+    - {name: "pacemaker",               version: "2.0.5",   compare_operator: ">=", version_type: "loose"}
+    - {name: "resource-agents",         version: "4.1.1",   compare_operator: ">=", version_type: "loose"}
   redhat8.4:
     - {name: "pacemaker",               version: "2.0.5",   compare_operator: ">=", version_type: "loose"}
     - {name: "resource-agents",         version: "4.1.1",   compare_operator: ">=", version_type: "loose"}

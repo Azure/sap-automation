@@ -238,10 +238,15 @@ variable "use_webapp"                            {
 
 
 variable "Agent_IP"                              {
-                                                   description = "If provided, contains the IP address of the agent"
-                                                   type        = string
+                                                   description = "IP address of the agent"
                                                    default     = ""
                                                  }
+
+variable "add_Agent_IP"                          {
+                                                    description = "Boolean value indicating if the Agent IP should be added to the storage and key vault firewalls"
+                                                    default     = true
+                                                    type        = bool
+                                                  }
 
 
 #########################################################################################
@@ -273,9 +278,10 @@ variable "dns_zone_names"                        {
                                                    description = "Private DNS zone names"
                                                    type        = map(string)
                                                    default = {
-                                                     "file_dns_zone_name"  = "privatelink.file.core.windows.net"
-                                                     "blob_dns_zone_name"  = "privatelink.blob.core.windows.net"
-                                                     "vault_dns_zone_name" = "privatelink.vaultcore.azure.net"
+                                                      "file_dns_zone_name"   = "privatelink.file.core.windows.net"
+                                                      "blob_dns_zone_name"   = "privatelink.blob.core.windows.net"
+                                                      "table_dns_zone_name"  = "privatelink.table.core.windows.net"
+                                                      "vault_dns_zone_name"  = "privatelink.vaultcore.azure.net"
                                                    }
                                                  }
 

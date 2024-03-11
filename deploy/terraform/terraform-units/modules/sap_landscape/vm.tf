@@ -87,7 +87,11 @@ resource "azurerm_windows_virtual_machine" "utility_vm" {
                            version    = var.vm_settings.image.version
                          }
 
-
+  lifecycle {
+    ignore_changes = [
+      source_image_id
+    ]
+  }
 }
 
 # Create the Linux Application VM(s)

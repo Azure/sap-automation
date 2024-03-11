@@ -129,7 +129,7 @@ resource "azurerm_linux_virtual_machine" "web" {
 
   //If more than one servers are deployed into a single zone put them in an availability set and not a zone
   availability_set_id                  = local.use_web_avset ? (
-                                           azurerm_availability_set.web[count.index % max(local.web_zone_count, 1)].id
+                                           azurerm_availability_set.web[count.index % max(length(azurerm_availability_set.web), 1)].id
                                            ) : (
                                            null
                                          )
@@ -240,6 +240,11 @@ resource "azurerm_linux_virtual_machine" "web" {
                                    identity_ids = [var.application_tier.user_assigned_identity_id]
                                  }
                        }
+  lifecycle {
+    ignore_changes = [
+      source_image_id
+    ]
+  }
 
 
 }
@@ -269,7 +274,7 @@ resource "azurerm_windows_virtual_machine" "web" {
 
   //If more than one servers are deployed into a single zone put them in an availability set and not a zone
   availability_set_id                  = local.use_web_avset ? (
-                                           azurerm_availability_set.web[count.index % max(local.web_zone_count, 1)].id
+                                           azurerm_availability_set.web[count.index % max(length(azurerm_availability_set.web), 1)].id
                                            ) : (
                                            null
                                          )
@@ -318,7 +323,7 @@ resource "azurerm_windows_virtual_machine" "web" {
                               name      = storage_type.name,
                               id        = disk_count,
                               disk_type = storage_type.disk_type,
-                              size_gb   = storage_type.size_gb,
+                              size_gb   = storage_type.size_gb < 128 ? 128 : storage_type.size_gb,
                               caching   = storage_type.caching
                             }
                           ]
@@ -369,6 +374,11 @@ resource "azurerm_windows_virtual_machine" "web" {
                                    identity_ids = [var.application_tier.user_assigned_identity_id]
                                  }
                        }
+  lifecycle {
+    ignore_changes = [
+      source_image_id
+    ]
+  }
 
 }
 
@@ -398,6 +408,13 @@ resource "azurerm_managed_disk" "web" {
                                            )) : (
                                            null
                                          )
+  lifecycle {
+    ignore_changes = [
+      create_option,
+      hyper_v_generation,
+      source_resource_id
+    ]
+  }
 }
 
 resource "azurerm_virtual_machine_data_disk_attachment" "web" {
@@ -547,6 +564,7 @@ resource "azurerm_lb_probe" "web" {
   protocol                             = "Tcp"
   interval_in_seconds                  = 5
   number_of_probes                     = 2
+  probe_threshold                      = 2
 }
 
 # Create the Web dispatcher Load Balancer Rules

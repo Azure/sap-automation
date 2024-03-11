@@ -32,8 +32,8 @@
 
 - name:                                'WIN: Calculating the domain\service account names'
   ansible.builtin.set_fact:
-    domain_sqlsvc_account:            '{% if win_sql_svc_account != "NT SERVICE\MSSQLSERVER" %}{{ domain | upper }}\{{ win_sql_svc_account }}{% else %}{{ win_sql_svc_account }}{% endif %}'
-    domain_sqlagent_account:          '{% if win_sql_svc_account != "NT SERVICE\SQLSERVERAGENT" %}{{ domain | upper }}\{{ win_sqlagent_svc_account }}{% else %}{{ win_sqlagent_svc_account }}{% endif %}'
+    domain_sqlsvc_account:            '{% if win_sql_svc_account != "NT SERVICE\MSSQLSERVER" %}{{ win_sql_svc_account }}@{{ domain_name }}{% else %}{{ win_sql_svc_account }}{% endif %}'
+    domain_sqlagent_account:          '{% if win_sql_svc_account != "NT SERVICE\SQLSERVERAGENT" %}{{ win_sqlagent_svc_account }}@{{ domain_name }}{% else %}{{ win_sqlagent_svc_account }}{% endif %}'
   when:
     - domain is defined
 
@@ -50,19 +50,6 @@
   when:
     - ansible_hostname == mssql_primary_node
   block:
-    - name:                            "Set SQL Server Always On Endpoint Permission"
-      ansible.windows.win_dsc:
-        resource_name:                 SqlEndpointPermission
-        Ensure:                        Present
-        ServerName:                    "{{ ansible_hostname }}"
-        InstanceName:                  "{{ mssql_instance_name }}"
-        Name:                          "SDAF-HADR"
-        Principal:                     "{{ domain_sqlsvc_account }}"
-        Permission:                    "CONNECT"
-        PsDscRunAsCredential_username: "{{ domain_service_account }}@{{ domain_name }}"
-        PsDscRunAsCredential_password: "{{ domain_service_password }}"
-      register:                        sql_always_on_endpoint_permission
-
     - name:                            "Enable SQL Server Always On Service"
       ansible.windows.win_dsc:
         resource_name:                 SqlAlwaysOnService
@@ -76,6 +63,20 @@
       until:                           sql_always_on_service is succeeded
       retries:                         6
       delay:                           20
+
+    - name:                            "Set SQL Server Always On Endpoint Permission"
+      ansible.windows.win_dsc:
+        resource_name:                 SqlEndpointPermission
+        Ensure:                        Present
+        ServerName:                    "{{ ansible_hostname }}"
+        InstanceName:                  "{{ mssql_instance_name }}"
+        Name:                          "SDAF-HADR"
+        Principal:                     '{{ domain | upper }}\{{ win_sql_svc_account }}'
+        Permission:                    "CONNECT"
+        PsDscRunAsCredential_username: "{{ domain_service_account }}@{{ domain_name }}"
+        PsDscRunAsCredential_password: "{{ domain_service_password }}"
+      register:                        sql_always_on_endpoint_permission
+
 
     # restart SQL Server service
     - name:                            "Restart SQL Server service on {{ ansible_hostname }}"
@@ -217,7 +218,7 @@
         ServerName:                    "{{ ansible_hostname }}"
         InstanceName:                  "{{ mssql_instance_name }}"
         Name:                          "SDAF-HADR"
-        Principal:                     "{{ domain_sqlsvc_account }}"
+        Principal:                     '{{ domain | upper }}\{{ win_sql_svc_account }}'
         Permission:                    "CONNECT"
         PsDscRunAsCredential_username: "{{ domain_service_account }}@{{ domain_name }}"
         PsDscRunAsCredential_password: "{{ domain_service_password }}"
