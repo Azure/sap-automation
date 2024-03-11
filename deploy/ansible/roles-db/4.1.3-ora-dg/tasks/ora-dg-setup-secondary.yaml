@@ -43,30 +43,75 @@
 # Add additional parameters for Oracle ASM to match the file locations of Primary in secondary.
 # This has to be done to prevent rman shooting file systems all over the disk groups.
 
-- name:                                "Oracle Data Guard - Setup Secondary: stop lsnrctl on Secondary"
-  become:                              true
-  become_user:                         "oracle"
-  ansible.builtin.shell:               lsnrctl stop
-  register:                            lsnrctl_stop_secondary_results
-  failed_when:                         lsnrctl_stop_secondary_results.rc > 0
-  args:
-    creates:                           /etc/sap_deployment_automation/dgscripts/lsnrctl_stopped_sec.txt
-    chdir:                             /etc/sap_deployment_automation/dgscripts
-    executable:                        /bin/csh
-  when:                                current_host == ora_secondary
-
-- name:                                "Oracle Data Guard - Setup Secondary: Create lsnrctl_stopped_sec.txt"
-  become:                              true
-  become_user:                         "oracle"
-  ansible.builtin.file:
-    path:                              /etc/sap_deployment_automation/dgscripts/lsnrctl_stopped_sec.txt
-    state:                             touch
-    mode:                              '0755'
+- name:                               "Update the initSID.ora for changing the control file location"
+  ansible.builtin.replace:
+    path:                             /oracle/{{ db_sid | upper }}/{{ ora_release }}/dbs/init{{ db_sid | upper }}.ora
+    regexp:                          '/{{ db_sid | upper }}/c'
+    replace:                         '/{{ db_sid | upper }}_STDBY/c'
+    backup:                           true
   when:
-    - current_host == ora_secondary
-    - lsnrctl_stop_secondary_results.rc == 0
+    - node_tier == "oracle-asm"
 
-- name:                                "Oracle Data Guard - Setup Secondary: restart lsnrctl on Secondary"
+- name:                            "File update wait for 15 sec to avoid multiple locks"
+  ansible.builtin.wait_for:
+    timeout:                       15
+
+- name:                               "Update the initSID.ora for adopting oraarch location"
+  ansible.builtin.replace:
+    path:                             /oracle/{{ db_sid | upper }}/{{ ora_release }}/dbs/init{{ db_sid | upper }}.ora
+    regexp:                          '{{ db_sid | upper }}/oraarch'
+    replace:                         '{{ db_sid | upper }}_STDBY/oraarch'
+  when:
+    - node_tier == "oracle-asm"
+#  You can also use "sed" to replace the string. sed -i 's|/DBSID/c|/DBSID_STDBY/c|g'
+
+- name:                            "File update wait for 15 sec to avoid multiple locks"
+  ansible.builtin.wait_for:
+    timeout:                       15
+
+
+- name:                                "Replace the local listener entires in initSID.ora"
+  ansible.builtin.blockinfile:
+    path:                              /oracle/{{ db_sid | upper }}/{{ ora_release }}/dbs/init{{ db_sid | upper }}.ora
+    marker_begin:                      "-- BEGIN"
+    marker_end:                        "-- END"
+    insertafter:                       ".db_name='{{ db_sid | upper }}'"
+    block: |
+                *.db_create_file_dest='+DATA'
+                *.db_unique_name ='{{ db_sid | upper }}_STDBY'
+                *.log_file_name_convert='{{ db_sid | upper }}','{{ db_sid | upper }}'
+                *.db_create_online_log_dest_1='+DATA'
+                *.db_create_online_log_dest_2='+DATA'
+                *.local_listener='(Address=(Protocol=TCP)(Host=({{ ora_secondary }})(Port=1521))'
+  when:
+    - node_tier == "oracle-asm"
+
+# Replace the archive log destination in the initSID.ora file.
+# - name:                               "Update the initSID.ora for changing the control file location"
+#   ansible.builtin.replace:
+#     path:                             /oracle/{{ db_sid | upper }}/{{ ora_release }}/dbs/init{{ db_sid | upper }}.ora
+#     regexp:                          "'log_archive_dest_1='LOCATION='"
+#     replace:                         "log_archive_dest_1='LOCATION=/oracle/{{ db_sid | upper }}/oraarch'"
+#     backup:                           true
+#   when:
+#     - node_tier == "oracle"
+
+
+- name:                                "Replace the local listener entires in initSID.ora"
+  ansible.builtin.blockinfile:
+    path:                              /oracle/{{ db_sid | upper }}/{{ ora_release }}/dbs/init{{ db_sid | upper }}.ora
+    marker_begin:                      "-- BEGIN"
+    marker_end:                        "-- END"
+    insertafter:                       ".db_name='{{ db_sid | upper }}'"
+    block: |
+                *.db_unique_name ='{{ db_sid | upper }}_STDBY'
+                *.log_file_name_convert='{{ db_sid | upper }}','{{ db_sid | upper }}'
+                *.local_listener='(Address=(Protocol=TCP)(Host=({{ ora_secondary }})(Port=1521))'            
+
+  when:
+    - node_tier == "oracle"
+    
+- name:                                "Oracle Data Guard - Setup Secondary: start lsnrctl on Secondary"
   become:                              true
   become_user:                         "oracle"
   ansible.builtin.shell:               lsnrctl start
@@ -76,7 +121,9 @@
     creates:                           /etc/sap_deployment_automation/dgscripts/lsnrctl_started_sec.txt
     chdir:                             /etc/sap_deployment_automation/dgscripts
     executable:                        /bin/csh
-  when:                                current_host == ora_secondary
+  when:                                
+    - current_host == ora_secondary
+    - node_tier == "oracle"
 
 - name:                                "Oracle Data Guard - Setup Secondary: started lsnrctl on Secondary (Debug)"
   ansible.builtin.debug:
@@ -88,10 +135,7 @@
     dest:                              /etc/sap_deployment_automation/lsnrctl_start_primary.log
     content:                           "{{ lsnrctl_start_secondary_results.stdout }}"
     mode:                              '0777'
-  when:
-    - platform == 'ORACLE-ASM'
-    - current_host == ora_secondary
-    - lsnrctl_start_secondary_results.stdout is defined
+  when:                                lsnrctl_start_secondary_results.stdout is defined
 
 - name:                                "Oracle Data Guard - Setup Secondary: Create lsnrctl_started_sec.txt"
   become:                              true
@@ -101,6 +145,7 @@
     state:                             touch
     mode:                              '0755'
   when:
+    - node_tier == "oracle"
     - current_host == ora_secondary
     - lsnrctl_start_secondary_results.rc == 0
     
