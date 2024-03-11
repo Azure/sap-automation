@@ -123,7 +123,7 @@
     - name:                            "2.4 Hosts: - Set fact for the PAS if pas_hostname is defined"
       ansible.builtin.set_fact:
         pas_virtualhost_from_inventory: "{{ pas_server_temp | first }}"
-        pas_virtual_hostname:           "{{ custom_pas_virtual_hostname | default(pas_server_temp[0], true) }}"
+        pas_virtual_hostname:           "{{ custom_pas_virtual_hostname | default( pas_server_temp | first , true) }}"
 
     - name:                            "2.4 Hosts: - Display the variables being used"
       ansible.builtin.debug:
