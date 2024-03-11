@@ -59,8 +59,6 @@ else {
     $ARM_CLIENT_SECRET = Read-Host "Please enter the Service Principals App ID Password" -AsSecureString
   }
 
-  $VM_password = $ARM_CLIENT_SECRET
-
   if ($null -eq $ARM_TENANT_ID -or $ARM_TENANT_ID -eq "") {
     $ARM_TENANT_ID = Read-Host "Please enter the Tenant ID"
   }
