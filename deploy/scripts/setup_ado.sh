@@ -1,6 +1,11 @@
 #!/bin/bash
 # https://github.com/Microsoft/azure-pipelines-agent/releases
 
+devops_extension_installed=$(az extension list --query "[?name=='azure-devops'].name | [0]")
+if [ -z "$devops_extension_installed" ]; then
+  az extension add --name azure-devops --output none
+fi
+
 # ensure the agent will not be installed as root
 if [ "$EUID" -eq 0 ]
 then echo "Please run as normal user and not as root"
