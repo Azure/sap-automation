@@ -52,7 +52,9 @@
     creates:                           /etc/sap_deployment_automation/dgscripts/lsnrctl_stopped_sec.txt
     chdir:                             /etc/sap_deployment_automation/dgscripts
     executable:                        /bin/csh
-  when:                                current_host == ora_secondary
+  when:
+    - platform == 'ORACLE-ASM'
+    - current_host == ora_secondary
 
 - name:                                "Oracle Data Guard - Setup Secondary: Create lsnrctl_stopped_sec.txt"
   become:                              true
@@ -62,6 +64,7 @@
     state:                             touch
     mode:                              '0755'
   when:
+    - platform == 'ORACLE-ASM'
     - current_host == ora_secondary
     - lsnrctl_stop_secondary_results.rc == 0
 
@@ -75,7 +78,9 @@
     creates:                           /etc/sap_deployment_automation/dgscripts/lsnrctl_started_sec.txt
     chdir:                             /etc/sap_deployment_automation/dgscripts
     executable:                        /bin/csh
-  when:                                current_host == ora_secondary
+  when:
+    - platform == 'ORACLE-ASM'
+    - current_host == ora_secondary
 
 - name:                                "Oracle Data Guard - Setup Secondary: restart lsnrctl on Secondary (Debug)"
   ansible.builtin.debug:
@@ -87,7 +92,10 @@
     dest:                              /etc/sap_deployment_automation/lsnrctl_start_primary.log
     content:                           "{{ lsnrctl_start_secondary_results.stdout }}"
     mode:                              '0777'
-  when:                                lsnrctl_start_secondary_results.stdout is defined
+  when:
+    - platform == 'ORACLE-ASM'
+    - current_host == ora_secondary
+    - lsnrctl_start_secondary_results.stdout is defined
 
 - name:                                "Oracle Data Guard - Setup Secondary: Create lsnrctl_started_sec.txt"
   become:                              true
@@ -97,6 +105,7 @@
     state:                             touch
     mode:                              '0755'
   when:
+    - platform == 'ORACLE-ASM'
     - current_host == ora_secondary
     - lsnrctl_start_secondary_results.rc == 0
 
@@ -154,8 +163,8 @@
     executable:                        /bin/csh
     creates:                           /etc/sap_deployment_automation/dgscripts/asm_oraarch_created.txt
   when:
-    - current_host == ora_secondary
     - node_tier == 'oracle-asm'
+    - current_host == ora_secondary
 
 - name:                                "Oracle Data Guard - Setup Secondary: Create asm_oraarch_created.txt"
   become:                              true
@@ -165,9 +174,9 @@
     state:                             touch
     mode:                              '0755'
   when:
+    - node_tier == 'oracle-asm'
     - current_host == ora_secondary
     - asm_oraarch_created_results.rc == 0
-    - node_tier == 'oracle-asm'
 
 - name:                                "Oracle Data Guard - Setup Secondary: Duplicate Secondary DB from Primary DB using RMAN"
   block:

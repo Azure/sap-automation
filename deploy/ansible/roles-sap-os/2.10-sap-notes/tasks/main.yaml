@@ -47,7 +47,7 @@
 - name:                                "2.10.1 sap-notes: - Disable SELinux and Reboot"
   when:
     - node_tier in ['scs', 'ers', 'pas', 'app', 'web']
-    - distribution_id in ['redhat7', 'redhat8', 'redhat9', 'oraclelinux8']
+    - distribution_id in ['redhat7', 'redhat8', 'redhat9']
   block:
     - name:                            "2.10.1 sap-notes: - Disable SELinux"
       ansible.posix.selinux:
@@ -66,7 +66,7 @@
   when:
     - selinux_disabled.changed
     - node_tier in ['scs', 'ers', 'pas', 'app', 'web']
-    - distribution_id in ['redhat7', 'redhat8', 'redhat9', 'oraclelinux8']
+    - distribution_id in ['redhat7', 'redhat8', 'redhat9']
   block:
     - name:                            "2.10.1 sap-notes: Clear the failed state of hosts"
       ansible.builtin.meta:            clear_host_errors
@@ -83,19 +83,19 @@
         timeout:                       300
       register:                        wait_for_connection_results
 
-- name:                                2.10.1 - SAP Note 2777782
+- name:                                "2.10.1 - SAP Note 2777782 tasks on RHEL OS"
   ansible.builtin.include_tasks:       2.10.1.yaml
   when:
     - node_tier == 'hana'
     - distribution_id in ['redhat8', 'redhat9']
 
-- name:                                2.10.2 - SAP Note 2777782
+- name:                                "2.10.2 - SAP Note 2777782 tasks on OEL OS"
   ansible.builtin.include_tasks:       2.10.2.yaml
   when:
     - node_tier in ['oracle', 'oracle-asm']
     - distribution_id == 'oraclelinux8'
 
-- name:                                2.10.1275776 - SAP Note 1275776
+- name:                                "2.10.1275776 - SAP Note 1275776 tasks on RHEL"
   ansible.builtin.include_tasks:       2.10.1275776.yaml
   when:
     - node_tier == 'sybase'
@@ -104,7 +104,7 @@
 - name:                                "2.10 - Force all notified handlers to run now"
   ansible.builtin.meta:                flush_handlers
 
-- name:                                2.10.3119751 - SAP Note 3119751
+- name:                                "2.10.3119751 - SAP Note 3119751 tasks on RHEL"
   ansible.builtin.include_tasks:       2.10.3119751.yaml
   when:
     - platform == 'HANA'

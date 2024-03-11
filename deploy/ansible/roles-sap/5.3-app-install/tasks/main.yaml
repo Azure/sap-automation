@@ -33,10 +33,11 @@
     dir_params:                        "{{ tmp_directory }}/.{{ sid_to_be_deployed.sid | upper }}-params"
     db_lb_virtual_host_HANA:           "{% if database_high_availability %}{{ sid_to_be_deployed.sid | lower }}{{ db_sid | lower }}db{{ db_instance_number }}cl{% else %}{{ hostvars[db_server_temp | first]['virtual_host'] }}{% endif %}"
     db_lb_virtual_host_AnyDB:          "{% if database_high_availability %}{{ sid_to_be_deployed.sid | lower }}{{ db_sid | lower }}db{{ db_instance_number }}cl{% else %}{{ db_server_temp }}{% endif %}"
+    app_virtual_hostname:              "{{ virtual_host }}"
 
 - name:                                "APP Install: Set BOM facts db host"
   ansible.builtin.set_fact:
-    db_lb_virtual_host:                "{% if platform == 'HANA' %}{{ db_lb_virtual_host_HANA }}{% else %}{{ db_lb_virtual_host_AnyDB }}{% endif %}"
+    db_lb_virtual_host:                "{% if platform == 'HANA' %}{{ custom_db_virtual_hostname | default(db_lb_virtual_host_HANA, true) }}{% else %}{{ custom_db_virtual_hostname | default(db_lb_virtual_host_AnyDB, true) }}{% endif %}"
 
 - name:                                "APP Install: -  Create directories"
   ansible.builtin.file:
@@ -129,7 +130,7 @@
     - name:                            "APP Install: Set the SCS Server name"
       ansible.builtin.set_fact:
         scs_server:                    "{% if scs_high_availability %}{{ sid_to_be_deployed.sid | lower }}scs{{ scs_instance_number }}cl1{% else %}{{ hostvars[scs_server_temp | first]['virtual_host'] }}{% endif %}"
-        db_virtual_hostname:               "{{ hostvars[db_server_temp | first]['virtual_host'] }}"
+        db_virtual_hostname:           "{{ hostvars[db_server_temp | first]['virtual_host'] }}"
         file_path:                     "{% if scs_high_availability %}INSTALL/HA/ABAP/APPX{% else %}INSTALL/DISTRIBUTED/ABAP/APPS{% endif %}"
 
     - name:                            "APP Install: check media exists"
@@ -165,7 +166,7 @@
         sap_scs_hostname:              "{{ custom_scs_virtual_hostname | default(scs_server, true) }}"
         sap_db_hostname:               "{{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) }}"
         sap_ciVirtualHostname:         "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_APP') | first }}"
-        sap_appVirtualHostname:        "{{ virtual_host }}"
+        sap_appVirtualHostname:        "{{ app_virtual_hostname }}"
         param_directory:               "{{ dir_params }}"
         sap_sid:                       "{{ sid_to_be_deployed.sid }}"
         sidadm_uid:                    "{{ sid_to_be_deployed.sidadm_uid }}"
@@ -184,7 +185,7 @@
           - "INIFILE:    {{ sap_inifile }}"
           - "PRODUCT ID: {{ bom.product_ids.app }}"
           - "DBHOST:     {{ custom_db_virtual_hostname | default(db_virtual_hostname, true) }}"
-          - "HOST:       {{ virtual_host }}"
+          - "HOST:       {{ app_virtual_hostname }}"
           - "SID:        {{ sid_to_be_deployed.sid | upper }}"
 
     - name:                            "APP Install: HANA HSR - Update Profile"
@@ -215,7 +216,7 @@
                                        ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }} \
                                                  SAPINST_EXECUTE_PRODUCT_ID={{ app_bom_id }}                     \
                                                  SAPINST_SKIP_DIALOGS=true                                       \
-                                                 SAPINST_USE_HOSTNAME={{ virtual_host }}                         \
+                                                 SAPINST_USE_HOSTNAME={{ app_virtual_hostname }}                 \
                                                  SAPINST_START_GUISERVER=false
       args:
         chdir:                         "{{ target_media_location }}/SWPM"
@@ -261,7 +262,7 @@
 
     - name:                            "APP Install: Get hdbuserstore path"
       ansible.builtin.find:
-        paths:                         "/usr/sap/{{ sap_sid | upper }}"
+        paths:                         "/usr/sap/{{ sid_to_be_deployed.sid | upper }}/SYS/exe/uc/linuxx86_64/hdbclient/,/usr/sap/{{ sid_to_be_deployed.sid }}/hdbclient"
         file_type:                     file
         patterns:                      'hdbuserstore'
         recurse:                       true
@@ -286,7 +287,7 @@
     - name:                            "APP Install: Set DB Virtual Host name"
       become:                          true
       become_user:                     "{{ sid_to_be_deployed.sid | lower }}adm"
-      ansible.builtin.shell:           "{{ hdbuserstore_path }} -H {{ virtual_host }} SET DEFAULT {{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) }}:3{{ db_instance_number }}13@{{ db_sid | upper }} {{ schema_name }} {{ main_password }}"
+      ansible.builtin.shell:           "{{ hdbuserstore_path }} -H {{ app_virtual_hostname }} SET DEFAULT {{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) }}:3{{ db_instance_number }}13@{{ db_sid | upper }} {{ schema_name }} {{ main_password }}"
       environment:
         SAPSYSTEMNAME:                 "{{ sid_to_be_deployed.sid | upper }}"
         ssfs_connect:                  "1"
@@ -296,8 +297,24 @@
       when:
         - database_high_availability
         - platform == 'HANA'
-        - pas_installed_according_to_sapinst is defined
-        - pas_installed_according_to_sapinst | length > 0
+        - app_installed_according_to_sapinst is defined
+        - app_installed_according_to_sapinst | length > 0
+
+    - name:                            "APP Install: Set DB Virtual Host name"
+      become:                          true
+      become_user:                     "{{ sid_to_be_deployed.sid | lower }}adm"
+      ansible.builtin.shell:           "{{ hdbuserstore_path }}  SET DEFAULT {{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) }}:3{{ db_instance_number }}13@{{ db_sid | upper }} {{ schema_name }} {{ main_password }}"
+      environment:
+        SAPSYSTEMNAME:                 "{{ sid_to_be_deployed.sid | upper }}"
+        ssfs_connect:                  "1"
+      register:                        hdbuserstore
+      vars:
+        allow_world_readable_tmpfiles: true
+      when:
+        - database_high_availability
+        - platform == 'HANA'
+        - app_installed_according_to_sapinst is defined
+        - app_installed_according_to_sapinst | length > 0
 
 - name:                                "APP Install: - status"
   block:
@@ -312,7 +329,7 @@
 
     - name:                            "APP Install: Get hdbuserstore path"
       ansible.builtin.find:
-        paths:                         "/usr/sap/{{ sap_sid | upper }}"
+        paths:                         "/usr/sap/{{ sid_to_be_deployed.sid | upper }}/SYS/exe/uc/linuxx86_64/hdbclient/,/usr/sap/{{ sid_to_be_deployed.sid }}/hdbclient"
         file_type:                     file
         patterns:                      'hdbuserstore'
         recurse:                       true
@@ -337,7 +354,21 @@
         - platform == 'HANA'
 
     - name:                            "APP Install: Set DB Virtual Host name ({{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) }})"
-      ansible.builtin.shell:           "{{ hdbuserstore_path }} -H {{ virtual_host }} SET DEFAULT {{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) }}:3{{ db_instance_number }}13@{{ db_sid | upper }} {{ schema_name }} {{ main_password }}"
+      ansible.builtin.shell:           "{{ hdbuserstore_path }} -H {{ app_virtual_hostname }} SET DEFAULT {{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) }}:3{{ db_instance_number }}13@{{ db_sid | upper }} {{ schema_name }} {{ main_password }}"
+      environment:
+        SAPSYSTEMNAME:                 "{{ sid_to_be_deployed.sid | upper }}"
+        ssfs_connect:                  "1"
+      register:                        hdbuserstore
+      become:                          true
+      become_user:                     "{{ sid_to_be_deployed.sid | lower }}adm"
+      vars:
+        allow_world_readable_tmpfiles: true
+      when:
+        - database_high_availability
+        - platform == 'HANA'
+
+    - name:                            "APP Install: Set DB Virtual Host name ({{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) }})"
+      ansible.builtin.shell:           "{{ hdbuserstore_path }} SET DEFAULT {{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) }}:3{{ db_instance_number }}13@{{ db_sid | upper }} {{ schema_name }} {{ main_password }}"
       environment:
         SAPSYSTEMNAME:                 "{{ sid_to_be_deployed.sid | upper }}"
         ssfs_connect:                  "1"

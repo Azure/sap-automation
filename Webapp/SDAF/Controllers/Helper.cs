@@ -263,7 +263,7 @@ namespace AutomationForm.Controllers
       // a display name.
       MemberInfo property =
           typeof(FileUploadModel).GetProperty(
-              formFile.Name.Substring(formFile.Name.IndexOf(".", StringComparison.Ordinal) + 1));
+              formFile.Name[(formFile.Name.IndexOf(".", StringComparison.Ordinal) + 1)..]);
 
       if (property != null)
       {
@@ -384,7 +384,7 @@ namespace AutomationForm.Controllers
           int equalIndex = currLine.IndexOf("=");
           if (equalIndex >= 0)
           {
-            string key = currLine.Substring(0, equalIndex).Trim();
+            string key = currLine[..equalIndex].Trim();
             if (!key.StartsWith("\""))
             {
               key = "\"" + key + "\"";
@@ -398,12 +398,12 @@ namespace AutomationForm.Controllers
               while (!currLine.StartsWith("}"))
               {
                 equalIndex = currLine.IndexOf("=");
-                var tagKey = currLine.Substring(0, equalIndex).Trim();
+                var tagKey = currLine[..equalIndex].Trim();
                 if (!tagKey.StartsWith("\""))
                 {
                   tagKey = "\"" + tagKey + "\"";
                 }
-                var tagValue = currLine.Substring(equalIndex + 1, currLine.Length - (equalIndex + 1)).Trim();
+                var tagValue = currLine[(equalIndex + 1)..].Trim();
                 value += "{";
                 value += "\"Key\":" + tagKey + "," + "\"Value\":" + tagValue.Trim(',');
                 value += "},";
@@ -419,12 +419,12 @@ namespace AutomationForm.Controllers
               while (!currLine.StartsWith("}"))
               {
                 equalIndex = currLine.IndexOf("=");
-                var tagKey = currLine.Substring(0, equalIndex).Trim();
+                var tagKey = currLine[..equalIndex].Trim();
                 if (!tagKey.StartsWith("\""))
                 {
                   tagKey = "\"" + tagKey + "\"";
                 }
-                var tagValue = currLine.Substring(equalIndex + 1, currLine.Length - (equalIndex + 1)).Trim();
+                var tagValue = currLine[(equalIndex + 1)..].Trim();
                 value += "{";
                 value += "\"Key\":" + tagKey + "," + "\"Value\":" + tagValue.Trim(',');
                 value += "},";
@@ -435,7 +435,7 @@ namespace AutomationForm.Controllers
             }
             else
             {
-              value = currLine.Substring(equalIndex + 1, currLine.Length - (equalIndex + 1)).Trim();
+              value = currLine[(equalIndex + 1)..].Trim();
               if (!value.EndsWith(",") && !value.EndsWith("{"))
               {
                 value += ",";

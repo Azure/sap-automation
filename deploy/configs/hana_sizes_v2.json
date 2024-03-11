@@ -8,7 +8,6 @@
         {
           "name":                 "os",
           "fullname":             "",
-          "fullname":             "",
           "count":                1,
           "disk_type":            "Premium_LRS",
           "size_gb":              128,
@@ -101,7 +100,7 @@
           "size_gb":              512,
           "caching":              "None",
           "write_accelerator":    false,
-          "lun_start":         9
+          "lun_start":            9
         },
         {
           "name":                 "shared",
@@ -111,7 +110,7 @@
           "size_gb":              512,
           "caching":              "None",
           "write_accelerator":    false,
-          "lun_start":         13
+          "lun_start":            13
         },
         {
           "name":                 "sap",
@@ -172,17 +171,17 @@
           "size_gb":              128,
           "caching":              "None",
           "write_accelerator":    false,
-          "lun_start":         10
+          "lun_start":            10
         },
         {
           "name":                 "log",
           "fullname":             "",
-          "count":             3,
+          "count":                3,
           "disk_type":            "PremiumV2_LRS",
           "size_gb":              64,
           "caching":              "None",
           "write_accelerator":    false,
-          "lun_start": 20
+          "lun_start":            20
         },
         {
           "name":                 "shared",
@@ -202,7 +201,7 @@
           "size_gb":              512,
           "caching":              "None",
           "write_accelerator":    false,
-          "lun_start": 2
+          "lun_start":            2
         }
       ]
     },

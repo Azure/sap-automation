@@ -1,0 +1,82 @@
+---
+- name:                                "DB2: variables for SSL certificate"
+  ansible.builtin.set_fact:
+    db2_ssl_cn:                        "{{ custom_db_virtual_hostname | default(db_virtual_hostname, true) }}.{{ sap_fqdn }}"
+    db2_ssl_keydb_file:                sapdb2{{ db_sid | lower }}_ssl_comm.kdb
+    db2_ssl_stash_file:                sapdb2{{ db_sid | lower }}_ssl_comm.sth
+    db2_ssl_label:                     sap_db2_{{ custom_db_virtual_hostname | default(db_virtual_hostname, true) }}_ssl_comm_000
+
+- name:                                "DB2 Primary DB: Generate SSL"
+  when:                                ansible_hostname == primary_instance_name
+  become:                              true
+  become_user:                         db2{{ db_sid | lower }}
+  block:
+    - name:                            "DB2 Primary DB - Create SSL Certificate"
+      ansible.builtin.shell:           gsk8capicmd_64 -cert -create -db {{ db2_ssl_keydb_file }} -pw {{ main_password }} -label {{ db2_ssl_label }} -dn 'CN={{ db2_ssl_cn }}' -expire 3650 -size 4096
+      args:
+        executable:                    /bin/csh
+        chdir:                         /db2/db2{{ db_sid | lower }}/keystore
+      environment:
+        PATH:                          "{{ ansible_env.PATH }}:/db2/db2{{ db_sid | lower }}/sqllib/gskit/bin"
+        LD_LIBRARY_PATH:               /db2/db2{{ db_sid | lower }}/sqllib/lib64:/db2/db2{{ db_sid | lower }}/sqllib/lib64/gskit:/db2/db2{{ db_sid | lower }}/sqllib/lib
+
+    - name:                            "DB2 Primary DB - Extract SSL Certificate"
+      ansible.builtin.shell:           gsk8capicmd_64 -cert -extract -db {{ db2_ssl_keydb_file }} -pw {{ main_password }} -label {{ db2_ssl_label }} -target {{ db2_ssl_label }}.arm -format ascii -fips
+      args:
+        executable:                    /bin/csh
+        chdir:                         /db2/db2{{ db_sid | lower }}/keystore
+      environment:
+        PATH:                          "{{ ansible_env.PATH }}:/db2/db2{{ db_sid | lower }}/sqllib/gskit/bin"
+        LD_LIBRARY_PATH:               /db2/db2{{ db_sid | lower }}/sqllib/lib64:/db2/db2{{ db_sid | lower }}/sqllib/lib64/gskit:/db2/db2{{ db_sid | lower }}/sqllib/lib
+
+- name:                                "DB2 Primary DB - Copy SSL Certificate and Keystore files"
+  when:                                ansible_hostname == primary_instance_name
+  block:
+    - name:                            "DB2 Primary DB - Copy SSL certificate to SSL_client directory"
+      ansible.builtin.copy:
+        src:                           /db2/db2{{ db_sid | lower }}/keystore/{{ db2_ssl_label }}.arm
+        dest:                          /usr/sap/{{ db_sid | upper }}/SYS/global/SSL_client/
+        remote_src:                    true
+        owner:                         "{{ db_sid | lower }}adm"
+        group:                         sapsys
+        mode:                          0640
+
+    - name:                            "DB2 Primary DB: Fetch keystore files to Controller"
+      ansible.builtin.fetch:
+        src:                           "/db2/db2{{ db_sid | lower }}/keystore/{{ item }}"
+        dest:                          /tmp/keystore_files/
+        flat:                          true
+      loop:
+        - "{{ db2_ssl_keydb_file }}"
+        - "{{ db2_ssl_stash_file }}"
+
+    - name:                            "DB2 Primary DB: Update SSL certificate in db2cli.ini"
+      ansible.builtin.lineinfile:
+        path:                          /sapmnt/{{ sap_sid | upper }}/global/db6/db2cli.ini
+        regexp:                        '^SSLServerCertificate='
+        line:                          SSLServerCertificate=/usr/sap/{{ db_sid | upper }}/SYS/global/SSL_client/{{ db2_ssl_label }}.arm
+
+- name:                                "DB2 DB - Set SSL parameters"
+  become:                              true
+  become_user:                         db2{{ db_sid | lower }}
+  ansible.builtin.shell: |
+    db2 update dbm cfg using SSL_SVR_LABEL {{ db2_ssl_label }}
+    db2 update dbm cfg using SSL_VERSIONS TLSV13
+  register:                            db2_update
+  failed_when:                         db2_update.rc not in [0,2]
+  args:
+    executable:                        /bin/csh
+  environment:
+    PATH:                              "{{ ansible_env.PATH }}:/db2/db2{{ db_sid | lower }}/sqllib/gskit/bin"
+
+- name:                                "DB2: Copy keystore files from Controller to Secondary node"
+  when:                                ansible_hostname == secondary_instance_name
+  ansible.builtin.copy:
+    src:                               /tmp/keystore_files/{{ item }}
+    dest:                              /db2/db2{{ db_sid | lower }}/keystore/
+    mode:                              0600
+    owner:                             db2{{ db_sid | lower }}
+    group:                             db{{ db_sid | lower }}adm
+  loop:
+    - "{{ db2_ssl_keydb_file }}"
+    - "{{ db2_ssl_stash_file }}"

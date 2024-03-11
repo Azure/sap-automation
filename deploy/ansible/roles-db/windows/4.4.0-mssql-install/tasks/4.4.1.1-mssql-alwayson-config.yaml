@@ -32,8 +32,8 @@
 
 - name:                                'WIN: Calculating the domain\service account names'
   ansible.builtin.set_fact:
-    domain_sqlsvc_account:            '{% if win_sql_svc_account != "NT SERVICE\MSSQLSERVER" %}{{ domain | upper }}\{{ win_sql_svc_account }}{% else %}{{ win_sql_svc_account }}{% endif %}'
-    domain_sqlagent_account:          '{% if win_sql_svc_account != "NT SERVICE\SQLSERVERAGENT" %}{{ domain | upper }}\{{ win_sqlagent_svc_account }}{% else %}{{ win_sqlagent_svc_account }}{% endif %}'
+    domain_sqlsvc_account:            '{% if win_sql_svc_account != "NT SERVICE\MSSQLSERVER" %}{{ win_sql_svc_account }}@{{ domain_name }}{% else %}{{ win_sql_svc_account }}{% endif %}'
+    domain_sqlagent_account:          '{% if win_sql_svc_account != "NT SERVICE\SQLSERVERAGENT" %}{{ win_sqlagent_svc_account }}@{{ domain_name }}{% else %}{{ win_sqlagent_svc_account }}{% endif %}'
   when:
     - domain is defined
 
@@ -50,19 +50,6 @@
   when:
     - ansible_hostname == mssql_primary_node
   block:
-    - name:                            "Set SQL Server Always On Endpoint Permission"
-      ansible.windows.win_dsc:
-        resource_name:                 SqlEndpointPermission
-        Ensure:                        Present
-        ServerName:                    "{{ ansible_hostname }}"
-        InstanceName:                  "{{ mssql_instance_name }}"
-        Name:                          "SDAF-HADR"
-        Principal:                     "{{ domain_sqlsvc_account }}"
-        Permission:                    "CONNECT"
-        PsDscRunAsCredential_username: "{{ domain_service_account }}@{{ domain_name }}"
-        PsDscRunAsCredential_password: "{{ domain_service_password }}"
-      register:                        sql_always_on_endpoint_permission
-
     - name:                            "Enable SQL Server Always On Service"
       ansible.windows.win_dsc:
         resource_name:                 SqlAlwaysOnService
@@ -76,6 +63,20 @@
       until:                           sql_always_on_service is succeeded
       retries:                         6
       delay:                           20
+
+    - name:                            "Set SQL Server Always On Endpoint Permission"
+      ansible.windows.win_dsc:
+        resource_name:                 SqlEndpointPermission
+        Ensure:                        Present
+        ServerName:                    "{{ ansible_hostname }}"
+        InstanceName:                  "{{ mssql_instance_name }}"
+        Name:                          "SDAF-HADR"
+        Principal:                     '{{ domain | upper }}\{{ win_sql_svc_account }}'
+        Permission:                    "CONNECT"
+        PsDscRunAsCredential_username: "{{ domain_service_account }}@{{ domain_name }}"
+        PsDscRunAsCredential_password: "{{ domain_service_password }}"
+      register:                        sql_always_on_endpoint_permission
+
 
     # restart SQL Server service
     - name:                            "Restart SQL Server service on {{ ansible_hostname }}"
@@ -114,18 +115,18 @@
 
     - name:                            "calculate LB IP with subnet prefix"
       ansible.builtin.set_fact:
-        db_lb_ipv4:                    "{{ db_lb_ip }}/{{ db_subnet_prefix }}"
+        database_loadbalancer_ipv4:    "{{ database_loadbalancer_ip }}/{{ db_subnet_prefix }}"
 
     - name:                            "calculate subnet mask"
       ansible.builtin.set_fact:
-        db_subnet_mask:                "{{ db_lb_ipv4 | ansible.utils.ipaddr('host/prefix') | ansible.utils.ipaddr('netmask') }}"
+        db_subnet_mask:                "{{ database_loadbalancer_ipv4 | ansible.utils.ipaddr('host/prefix') | ansible.utils.ipaddr('netmask') }}"
 
     - name:                            "print subnet mask"
       ansible.builtin.debug:
         msg:
           - "Subnet prefix: {{ db_subnet_prefix }}"
-          - "LB IP: {{ db_lb_ip }}"
-          - "LB IP with subnet prefix: {{ db_lb_ipv4 }}"
+          - "LB IP: {{ database_loadbalancer_ip }}"
+          - "LB IP with subnet prefix: {{ database_loadbalancer_ipv4 }}"
           - "Subnet mask: {{ db_subnet_mask }}"
 
     # restart SQL Server service
@@ -144,7 +145,7 @@
         InstanceName:                  "{{ mssql_instance_name }}"
         AvailabilityGroup:             "{{ mssql_ag_name }}"
         Port:                          1433
-        IpAddress:                     "{{ db_lb_ip }}/{{ db_subnet_mask }}"
+        IpAddress:                     "{{ database_loadbalancer_ip }}/{{ db_subnet_mask }}"
         PsDscRunAsCredential_username: "{{ domain_service_account }}@{{ domain_name }}"
         PsDscRunAsCredential_password: "{{ domain_service_password }}"
       register:                        sql_ag_listener_creation
@@ -217,7 +218,7 @@
         ServerName:                    "{{ ansible_hostname }}"
         InstanceName:                  "{{ mssql_instance_name }}"
         Name:                          "SDAF-HADR"
-        Principal:                     "{{ domain_sqlsvc_account }}"
+        Principal:                     '{{ domain | upper }}\{{ win_sql_svc_account }}'
         Permission:                    "CONNECT"
         PsDscRunAsCredential_username: "{{ domain_service_account }}@{{ domain_name }}"
         PsDscRunAsCredential_password: "{{ domain_service_password }}"

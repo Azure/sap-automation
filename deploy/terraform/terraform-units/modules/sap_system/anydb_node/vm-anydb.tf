@@ -135,8 +135,8 @@ resource "azurerm_linux_virtual_machine" "dbserver" {
   //If more than one servers are deployed into a single zone put them in an availability set and not a zone
   availability_set_id                  = var.database.use_avset ? (
                                            local.availabilitysets_exist ? (
-                                             data.azurerm_availability_set.anydb[count.index % max(local.db_zone_count, 1)].id) : (
-                                             azurerm_availability_set.anydb[count.index % max(local.db_zone_count, 1)].id
+                                             data.azurerm_availability_set.anydb[count.index % max(length(data.azurerm_availability_set.anydb), 1)].id) : (
+                                             azurerm_availability_set.anydb[count.index % max(length(azurerm_availability_set.anydb), 1)].id
                                            )
                                          ) : null
 
@@ -233,8 +233,8 @@ resource "azurerm_linux_virtual_machine" "dbserver" {
   lifecycle {
     ignore_changes = [
       // Ignore changes to computername
-      tags,
-      computer_name
+      computer_name,
+      source_image_id
     ]
   }
 
@@ -273,8 +273,8 @@ resource "azurerm_windows_virtual_machine" "dbserver" {
   //If more than one servers are deployed into a single zone put them in an availability set and not a zone
   availability_set_id                  = var.database.use_avset ? (
                                            local.availabilitysets_exist ? (
-                                             data.azurerm_availability_set.anydb[count.index % max(local.db_zone_count, 1)].id) : (
-                                             azurerm_availability_set.anydb[count.index % max(local.db_zone_count, 1)].id
+                                             data.azurerm_availability_set.anydb[count.index % max(length(data.azurerm_availability_set.anydb), 1)].id) : (
+                                             azurerm_availability_set.anydb[count.index % max(length(azurerm_availability_set.anydb), 1)].id
                                            )
                                          ) : null
 
@@ -360,7 +360,8 @@ resource "azurerm_windows_virtual_machine" "dbserver" {
   lifecycle {
     ignore_changes = [
       // Ignore changes to computername
-      computer_name
+      computer_name,
+      source_image_id
     ]
   }
 }
@@ -407,6 +408,14 @@ resource "azurerm_managed_disk" "disks" {
                                          )
 
   tags                                 = var.tags
+
+  lifecycle {
+    ignore_changes = [
+      create_option,
+      hyper_v_generation,
+      source_resource_id
+    ]
+  }
 
 }
 
@@ -526,9 +535,6 @@ resource "azurerm_managed_disk" "cluster" {
                                              )
                                            )
                                          ) ? 1 : 0
-  lifecycle {
-    ignore_changes                     = [tags]
-    }
 
   name                                 = format("%s%s%s%s",
                                            var.naming.resource_prefixes.database_cluster_disk,
@@ -552,7 +558,14 @@ resource "azurerm_managed_disk" "cluster" {
                                          )) : (
                                            null
                                          )
-
+  lifecycle {
+    ignore_changes = [
+      create_option,
+      hyper_v_generation,
+      source_resource_id,
+      tags
+    ]
+  }
 }
 
 resource "azurerm_virtual_machine_data_disk_attachment" "cluster" {
@@ -576,7 +589,7 @@ resource "azurerm_virtual_machine_data_disk_attachment" "cluster" {
                                          ) : (
                                            (upper(var.database.os.os_type) == "WINDOWS"                            # If Windows
                                            ) ? (
-                                             null
+                                             azurerm_windows_virtual_machine.dbserver[count.index].id
                                            ) : (
                                              null                                                                  # If Other
                                            )
@@ -591,7 +604,7 @@ resource "azurerm_role_assignment" "role_assignment_msi" {
   count                                = (
                                            var.use_msi_for_clusters &&
                                            length(var.fencing_role_name) > 0 &&
-                                           var.database_server_count > 1
+                                           var.database.high_availability && upper(var.database.os.os_type) == "LINUX"
                                            ) ? (
                                            var.database_server_count
                                            ) : (
@@ -607,7 +620,7 @@ resource "azurerm_role_assignment" "role_assignment_msi_ha" {
   count                                = (
                                           var.use_msi_for_clusters &&
                                           length(var.fencing_role_name) > 0 &&
-                                          var.database_server_count > 1
+                                          var.database.high_availability && upper(var.database.os.os_type) == "LINUX"
                                           ) ? (
                                           var.database_server_count
                                           ) : (
@@ -616,4 +629,71 @@ resource "azurerm_role_assignment" "role_assignment_msi_ha" {
   scope                                = azurerm_linux_virtual_machine.dbserver[count.index].id
   role_definition_name                 = var.fencing_role_name
   principal_id                         = azurerm_linux_virtual_machine.dbserver[(count.index +1) % var.database_server_count].identity[0].principal_id
+}
+
+
+#########################################################################################
+#                                                                                       #
+#  Azure Data Disk for Kdump                                                            #
+#                                                                                       #
+#######################################+#################################################
+resource "azurerm_managed_disk" "kdump" {
+  provider                             = azurerm.main
+  count                                = (
+                                           local.enable_deployment &&
+                                           var.database.high_availability &&
+                                           (
+                                               upper(var.database.os.os_type) == "LINUX" &&
+                                               ( var.database.fence_kdump_disk_size > 0 )
+                                           )
+                                         ) ? var.database_server_count : 0
+
+  name                                 = format("%s%s%s%s%s",
+                                           try( var.naming.resource_prefixes.fence_kdump_disk, ""),
+                                           local.prefix,
+                                           var.naming.separator,
+                                           var.naming.virtualmachine_names.ANYDB_VMNAME[count.index],
+                                           try( var.naming.resource_suffixes.fence_kdump_disk, "fence_kdump_disk" )
+                                         )
+  location                             = var.resource_group[0].location
+  resource_group_name                  = var.resource_group[0].name
+  create_option                        = "Empty"
+  storage_account_type                 = "Premium_LRS"
+  disk_size_gb                         = try(var.database.fence_kdump_disk_size,128)
+  disk_encryption_set_id               = try(var.options.disk_encryption_set_id, null)
+  tags                                 = var.tags
+
+  zone                                 = local.zonal_deployment && !var.database.use_avset ? (
+                                             azurerm_linux_virtual_machine.dbserver[count.index].zone
+                                         ) : (
+                                           null
+                                         )
+  lifecycle {
+    ignore_changes = [
+      create_option,
+      hyper_v_generation,
+      source_resource_id,
+      tags
+    ]
+  }
+}
+
+resource "azurerm_virtual_machine_data_disk_attachment" "kdump" {
+  provider                             = azurerm.main
+  count                                = (
+                                           local.enable_deployment &&
+                                           var.database.high_availability &&
+                                           (
+                                               upper(var.database.os.os_type) == "LINUX" &&
+                                               ( var.database.fence_kdump_disk_size > 0 )
+                                           )
+                                         ) ? var.database_server_count : 0
+
+  managed_disk_id                      = azurerm_managed_disk.kdump[count.index].id
+  virtual_machine_id                   = (upper(var.database.os.os_type) == "LINUX"                                # If Linux
+                                         ) ? (
+                                           azurerm_linux_virtual_machine.dbserver[count.index].id
+                                         ) : null
+  caching                              = "None"
+  lun                                  = var.database.fence_kdump_lun_number
 }

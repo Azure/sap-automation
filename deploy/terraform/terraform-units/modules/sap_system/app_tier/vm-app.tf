@@ -123,17 +123,18 @@ resource "azurerm_linux_virtual_machine" "app" {
   location                             = var.resource_group[0].location
   resource_group_name                  = var.resource_group[0].name
 
-  proximity_placement_group_id         = var.application_tier.app_use_ppg ? (
-
-                                           var.ppg[count.index % max(length(var.ppg), 1)]) : (
-                                           null
-                                         )
+  proximity_placement_group_id         = length(var.scale_set_id) > 0 ? (
+                                           null) : (
+                                           var.application_tier.app_use_ppg ? (
+                                             var.ppg[count.index % max(length(var.ppg), 1)]) : (
+                                             null)
+                                            )
 
   //If more than one servers are deployed into a single zone put them in an availability set and not a zone
-  availability_set_id                  = local.use_app_avset ? (
+  availability_set_id                  = var.application_tier.app_use_avset ? (
                                            length(var.application_tier.avset_arm_ids) > 0 ? (
-                                             var.application_tier.avset_arm_ids[count.index % max(length(var.ppg), 1)]) : (
-                                             azurerm_availability_set.app[count.index % max(length(var.ppg), 1)].id
+                                             var.application_tier.avset_arm_ids[count.index % max(length(var.application_tier.avset_arm_ids), 1)]) : (
+                                             azurerm_availability_set.app[count.index % max(length(azurerm_availability_set.app), 1)].id
                                            )) : (
                                            null
                                          )
@@ -236,6 +237,13 @@ resource "azurerm_linux_virtual_machine" "app" {
                                    identity_ids = [var.application_tier.user_assigned_identity_id]
                                  }
                        }
+  lifecycle {
+    ignore_changes = [
+      source_image_id,
+      zone
+    ]
+  }
+
 }
 
 # Create the Windows Application VM(s)
@@ -258,19 +266,23 @@ resource "azurerm_windows_virtual_machine" "app" {
   source_image_id                      = var.application_tier.app_os.type == "custom" ? var.application_tier.app_os.source_image_id : null
 
 
-  proximity_placement_group_id         = var.application_tier.app_use_ppg ? (
-                                          local.app_zonal_deployment ? var.ppg[count.index % max(local.app_zone_count, 1)] : var.ppg[0]) : (
-                                          null
-                                        )
+  proximity_placement_group_id         = length(var.scale_set_id) > 0 ? (
+                                           null) : (
+                                           var.application_tier.app_use_ppg ? (
+                                             var.ppg[count.index % max(length(var.ppg), 1)]) : (
+                                             null)
+                                            )
+
 
   //If more than one servers are deployed into a single zone put them in an availability set and not a zone
-  availability_set_id                  = local.use_app_avset ? (
+  availability_set_id                  = var.application_tier.app_use_avset ? (
                                            length(var.application_tier.avset_arm_ids) > 0 ? (
-                                             var.application_tier.avset_arm_ids[count.index % max(local.app_zone_count, 1)]) : (
-                                             azurerm_availability_set.app[count.index % max(local.app_zone_count, 1)].id
+                                             var.application_tier.avset_arm_ids[count.index % max(length(var.application_tier.avset_arm_ids), 1)]) : (
+                                             azurerm_availability_set.app[count.index % max(length(azurerm_availability_set.app), 1)].id
                                            )) : (
                                            null
                                          )
+
 
   virtual_machine_scale_set_id         = length(var.scale_set_id) > 0 ? var.scale_set_id : null
   //If length of zones > 1 distribute servers evenly across zones
@@ -356,6 +368,13 @@ resource "azurerm_windows_virtual_machine" "app" {
                                    identity_ids = [var.application_tier.user_assigned_identity_id]
                                  }
                        }
+  lifecycle {
+    ignore_changes = [
+      // Ignore changes to computername
+      source_image_id,
+      zone
+    ]
+  }
 
 }
 
@@ -384,6 +403,15 @@ resource "azurerm_managed_disk" "app" {
                                            )
                                          )
   tags                                 = var.tags
+
+  lifecycle {
+    ignore_changes = [
+      create_option,
+      hyper_v_generation,
+      source_resource_id
+    ]
+  }
+
 }
 
 resource "azurerm_virtual_machine_data_disk_attachment" "app" {

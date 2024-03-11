@@ -37,6 +37,10 @@ variable "place_delete_lock_on_resources"        {
                                                    default     = false
                                                  }
 
+variable "use_spn"                               {
+                                                  description = "Log in using a service principal when performing the deployment"
+                                                  default     = true
+                                                 }
 
 #######################################4#######################################8
 #                                                                              #
@@ -196,6 +200,12 @@ variable "short_named_endpoints_nics"           {
                                                    default     = false
                                                  }
 
+variable "public_network_access_enabled"              {
+                                                        description = "Boolean value indicating if public access should be enabled for key vaults and storage"
+                                                        default     = true
+                                                        type        = bool
+                                                      }
+
 
 #########################################################################################
 #                                                                                       #
@@ -206,6 +216,12 @@ variable "short_named_endpoints_nics"           {
 variable "spn_keyvault_id"                      {
                                                   description = "Azure resource identifier for the keyvault where the spn will be stored"
                                                   default = ""
+                                                }
+
+variable "shared_access_key_enabled"            {
+                                                  description = "Indicates whether the storage account permits requests to be authorized with the account access key via Shared Key."
+                                                  default     = true
+                                                  type        = bool
                                                 }
 
 
@@ -222,10 +238,15 @@ variable "use_webapp"                            {
 
 
 variable "Agent_IP"                              {
-                                                   description = "If provided, contains the IP address of the agent"
-                                                   type        = string
+                                                   description = "IP address of the agent"
                                                    default     = ""
                                                  }
+
+variable "add_Agent_IP"                          {
+                                                    description = "Boolean value indicating if the Agent IP should be added to the storage and key vault firewalls"
+                                                    default     = true
+                                                    type        = bool
+                                                  }
 
 
 #########################################################################################
@@ -257,9 +278,10 @@ variable "dns_zone_names"                        {
                                                    description = "Private DNS zone names"
                                                    type        = map(string)
                                                    default = {
-                                                     "file_dns_zone_name"  = "privatelink.file.core.windows.net"
-                                                     "blob_dns_zone_name"  = "privatelink.blob.core.windows.net"
-                                                     "vault_dns_zone_name" = "privatelink.vaultcore.azure.net"
+                                                      "file_dns_zone_name"   = "privatelink.file.core.windows.net"
+                                                      "blob_dns_zone_name"   = "privatelink.blob.core.windows.net"
+                                                      "table_dns_zone_name"  = "privatelink.table.core.windows.net"
+                                                      "vault_dns_zone_name"  = "privatelink.vaultcore.azure.net"
                                                    }
                                                  }
 

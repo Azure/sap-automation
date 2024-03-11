@@ -159,7 +159,7 @@ locals {
                                           flatten([
                                             for port in local.lb_ports[split(".", local.hdb_version)[0]] : {
                                               sid  = var.sap_sid
-                                              port = tonumber(port) + (tonumber(try(var.database.instance.instance_number, 0)) * 100)
+                                              port = tonumber(port) + (tonumber(try(var.database.instance.number, 0)) * 100)
                                             }
                                           ])) : (
                                           null
@@ -231,7 +231,7 @@ locals {
                                                for idx, disk_count in range(storage_type.count) : {
                                                  suffix = format("-%s%02d",
                                                    storage_type.name,
-                                                   disk_count + var.options.resource_offset
+                                                   storage_type.name_offset + disk_count + var.options.resource_offset
                                                  )
                                                  storage_account_type      = storage_type.disk_type,
                                                  disk_size_gb              = storage_type.size_gb,
@@ -340,9 +340,7 @@ locals {
 
   dns_label                            = try(var.landscape_tfstate.dns_label, "")
 
-  ANF_pool_settings                    = var.NFS_provider == "ANF" ? (
-                                           try(var.landscape_tfstate.ANF_pool_settings, {})
-                                           ) : (
+  ANF_pool_settings                    = try(var.landscape_tfstate.ANF_pool_settings,
                                            {
                                              use_ANF             = false
                                              account_name        = ""
@@ -382,4 +380,16 @@ locals {
                                            flatten(concat(local.database_primary_ips, local.database_secondary_ips))) : (
                                            local.database_primary_ips
                                          )
+
+
+
+  data_volume_count                    = (var.hana_ANF_volumes.use_for_data || var.hana_ANF_volumes.use_existing_data_volume) ? (
+                                           (var.database_server_count - var.database.stand_by_node_count) * var.hana_ANF_volumes.data_volume_count) : (
+                                           0
+                                         )
+  log_volume_count                    = (var.hana_ANF_volumes.use_for_log || var.hana_ANF_volumes.use_existing_log_volume) ? (
+                                           (var.database_server_count - var.database.stand_by_node_count) * var.hana_ANF_volumes.log_volume_count) : (
+                                           0
+                                         )
+
 }

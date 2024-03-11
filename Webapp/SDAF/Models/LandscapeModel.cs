@@ -157,11 +157,27 @@ namespace AutomationForm.Models
 
     public bool? peer_with_control_plane_vnet { get; set; } = true;
 
-/*---------------------------------------------------------------------------8
-|                                                                            |
-|                       Miscallaneous information                            |
-|                                                                            |
-+------------------------------------4--------------------------------------*/
+    [SubnetArmIdValidator(ErrorMessage = "Invalid AMS subnet arm id")]
+    public string ams_subnet_arm_id { get; set; }
+
+    //[Required]
+    [AddressPrefixValidator(ErrorMessage = "AMS subnet address space must be a valid RFC 1918 address")]
+    public string ams_subnet_address_prefix { get; set; }
+
+    public string ams_subnet_name { get; set; }
+
+    [NsgArmIdValidator(ErrorMessage = "Invalid AMS subnet nsg arm id")]
+    public string ams_subnet_nsg_arm_id { get; set; }
+
+    public string ams_subnet_nsg_name { get; set; }
+
+
+
+    /*---------------------------------------------------------------------------8
+    |                                                                            |
+    |                       Miscallaneous information                            |
+    |                                                                            |
+    +------------------------------------4--------------------------------------*/
 
     public string automation_username { get; set; } = "azureadm";
 
@@ -214,6 +230,8 @@ namespace AutomationForm.Models
 
     public int? ANF_transport_volume_size { get; set; }
 
+    public string[] ANF_transport_volume_zone { get; set; }
+
     public bool? ANF_install_volume_use_existing { get; set; }
 
     public string ANF_install_volume_name { get; set; }
@@ -222,6 +240,9 @@ namespace AutomationForm.Models
 
     public int? ANF_install_volume_size { get; set; }
 
+    public string[] ANF_install_volume_zone { get; set; }
+
+    
     /*---------------------------------------------------------------------------8
     |                                                                            |
     |                              DNS information                               |
@@ -265,12 +286,29 @@ namespace AutomationForm.Models
 
     public bool? enable_rbac_authorization_for_keyvault { get; set; } = false;
 
+    public int? soft_delete_retention_days { get; set; } = 14;
+
+    /*---------------------------------------------------------------------------8
+    |                                                                            |
+    |                                  NFS information                           |
+    |                                                                            |
+    +------------------------------------4--------------------------------------*/
 
     public string NFS_provider { get; set; }
+
+    public bool? use_AFS_for_installation_media { get; set; } = true;
+
+    public bool? use_AFS_for_shared_storage { get; set; } = true;
 
     public bool? create_transport_storage { get; set; } = true;
 
     public int? transport_volume_size { get; set; }
+
+    /*---------------------------------------------------------------------------8
+    |                                                                            |
+    |                        Storage Account information                         |
+    |                                                                            |
+    +------------------------------------4--------------------------------------*/
 
     [StorageAccountIdValidator]
     public string diagnostics_storage_account_arm_id { get; set; }
@@ -306,7 +344,6 @@ namespace AutomationForm.Models
 
     public string utility_vm_os_disk_type { get; set; } = "Premium_LRS";
     
-
     public bool? utility_vm_useDHCP { get; set; } = true;
 
     public Image utility_vm_image { get; set; }
@@ -324,7 +361,7 @@ namespace AutomationForm.Models
     |                                                                            |
     +------------------------------------4--------------------------------------*/
 
-    public int iscsi_count { get; set; } = 0;
+    public int? iscsi_count { get; set; } = 0;
 
     public string iscsi_size { get; set; } = "Standard_D2s_v3";
 
@@ -339,7 +376,37 @@ namespace AutomationForm.Models
 
     public string[] iscsi_nic_ips { get; set; }
 
+    /*---------------------------------------------------------------------------8
+    |                                                                            |
+    |                               Identity                                     |
+    |                                                                            |
+    +------------------------------------4--------------------------------------*/
+
     [UserAssignedIdentityIdValidator(ErrorMessage = "Invalid User Assigned id")]
     public string user_assigned_identity_id { get; set; }
+
+
+    /*---------------------------------------------------------------------------8
+    |                                                                            |
+    |                               Deployment                                   |
+    |                                                                            |
+    +------------------------------------4--------------------------------------*/
+
+    public bool? use_spn{ get; set; } = true;
+
+
+    /*---------------------------------------------------------------------------8
+    |                                                                            |
+    |                              AMS information                               |
+    |                                                                            |
+    +------------------------------------4--------------------------------------*/
+
+    public bool? create_ams_instance { get; set; } = false;
+
+    public string ams_instance_name { get; set; }
+
+    [AMSIdValidator(ErrorMessage = "Invalid User Assigned id")]
+    public string ams_laws_arm_id { get; set; }
+
   }
 }

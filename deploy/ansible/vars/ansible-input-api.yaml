@@ -4,7 +4,7 @@
 become_user_name:                       root
 
 # ------------------- Begin - SDAF Ansible Version ---------------------------8
-SDAF_Version:                   "3.10.1.0"
+SDAF_Version:                   "3.11.0.0"
 # ------------------- End - SDAF Ansible Version ---------------------------8
 
 # ------------------- Begin - OS Config Settings variables -------------------8
@@ -135,7 +135,7 @@ app_instance_number:                   "00"
 sidadm_uid:                            2003
 hdbadm_uid:                            2200
 scs_lb_ip:                             ""                                      # SAP HA
-db_lb_ip:                              ""                                      # SAP HA
+database_loadbalancer_ip:              ""                                      # SAP HA
 reinstall:                             false                                   # Provide a way to override the idempotency flags for SAP tasks
 
 ora_release:                           19
@@ -177,6 +177,11 @@ domain_user_password:                   "{{ winadm_password }}"
 sid_service_password:                   "{{ svc_password }}"
 win_sap_admin:                          "SAP_{{ sap_sid | upper }}_GlobalAdmin"
 
+# Windows patch releated parameters
+
+win_updates_reject_list:                ["KB5034439"]
+win_updates_accept_list:                []
+
 # SQL Server specific parameters
 use_sql_for_SAP:                        true
 data_disks:                             F:\{{ sap_sid | upper }}DATA1\{{ sap_sid | upper }}4DATA1.mdf,G:\{{ sap_sid | upper }}DATA2\{{ sap_sid | upper }}4DATA2.mdf,H:\{{ sap_sid | upper }}DATA3\{{ sap_sid | upper }}4DATA3.mdf,I:\{{ sap_sid | upper }}DATA4\{{ sap_sid | upper }}4DATA4.mdf
@@ -208,9 +213,17 @@ use_simple_mount:                       false
 
 # Cluster - Defaults
 # database_high_availability:            false
+db_scale_out:                          false
 database_cluster_type:                 "AFA"
 # scs_high_availability:                 false
 scs_cluster_type:                      "AFA"
+# Configure pacemaker for Azure scheduled events
+cluster_use_scheduled_events_agent:    true
+# Custom pacemaker NFS filesystem and SAP monitor timeouts
+custom_cluster_fs_mon_timeout:         ""
+custom_cluster_sap_mon_timeout:        ""
+
+use_fence_kdump:                       false
 
 # ------------------- Begin - SAP SWAP settings variables --------------------8
 sap_swap:
@@ -227,4 +240,10 @@ sap_swap:
   - { tier: "oracle-multi-sid",   swap_size_mb: "20480" }
   - { tier: "observer",           swap_size_mb: "2048"  }
   - { tier: 'sqlserver',          swap_size_mb: '20480' }
-  # --------------------- End - SAP SWAP settings variables --------------------8
+# --------------------- End - SAP SWAP settings variables --------------------8
+
+# ------------------- Begin - Azure Monitor for SAP (AMS) variables ------------8
+ams_resource_id:                        ""
+enable_os_monitoring:                   false
+enable_ha_monitoring:                   false
+# ------------------- End - Azure Monitor for SAP (AMS) variables --------------8

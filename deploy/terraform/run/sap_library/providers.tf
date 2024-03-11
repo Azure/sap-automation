@@ -21,6 +21,9 @@ provider "azurerm"                     {
                                          features {
                                                   }
                                          skip_provider_registration = true
+                                         use_msi                    = var.use_spn ? false : true
+                                         storage_use_azuread        = !var.shared_access_key_enabled
+
                                        }
 
 provider "azurerm"                     {
@@ -30,11 +33,13 @@ provider "azurerm"                     {
                                                                    }
 
                                                   }
-                                         subscription_id = local.spn.subscription_id
-                                         client_id       = var.use_deployer ? local.spn.client_id : null
-                                         client_secret   = var.use_deployer ? local.spn.client_secret : null
-                                         tenant_id       = var.use_deployer ? local.spn.tenant_id : null
-                                         partner_id      = "140c3bc9-c937-4139-874f-88288bab08bb"
+                                         subscription_id            = local.spn.subscription_id
+                                         client_id                  = local.use_spn ? local.spn.client_id : null
+                                         client_secret              = local.use_spn ? local.spn.client_secret : null
+                                         tenant_id                  = local.use_spn ? local.spn.tenant_id : null
+                                         partner_id                 = "140c3bc9-c937-4139-874f-88288bab08bb"
+                                         storage_use_azuread        = !var.shared_access_key_enabled
+                                         use_msi                    = var.use_spn ? false : true
 
                                          alias = "main"
                                          skip_provider_registration = true
@@ -45,6 +50,8 @@ provider "azurerm"                     {
                                                   }
                                          skip_provider_registration = true
                                          alias                      = "deployer"
+                                         storage_use_azuread        = !var.shared_access_key_enabled
+                                         use_msi                    = var.use_spn ? false : true
 
                                        }
 
@@ -53,16 +60,19 @@ provider "azurerm"                     {
                                                   }
                                          alias                      = "dnsmanagement"
                                          subscription_id            = try(coalesce(var.management_dns_subscription_id, local.spn.subscription_id), null)
-                                         client_id                  = var.use_deployer ? local.spn.client_id : null
-                                         client_secret              = var.use_deployer ? local.spn.client_secret : null
-                                         tenant_id                  = var.use_deployer ? local.spn.tenant_id : null
+                                         client_id                  = local.use_spn ? local.spn.client_id : null
+                                         client_secret              = local.use_spn ? local.spn.client_secret : null
+                                         tenant_id                  = local.use_spn ? local.spn.tenant_id : null
                                          skip_provider_registration = true
+                                         storage_use_azuread        = !var.shared_access_key_enabled
+                                         use_msi                    = var.use_spn ? false : true
                                        }
 
 provider "azuread"                     {
-                                         client_id     = local.spn.client_id
-                                         client_secret = local.spn.client_secret
-                                         tenant_id     = local.spn.tenant_id
+                                         client_id                  = local.use_spn ? local.spn.client_id : null
+                                         client_secret              = local.use_spn ? local.spn.client_secret : null
+                                         tenant_id                  = local.spn.tenant_id
+                                         use_msi                    = var.use_spn ? false : true
                                        }
 
 terraform                              {

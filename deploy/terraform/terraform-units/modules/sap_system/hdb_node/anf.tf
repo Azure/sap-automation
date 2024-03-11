@@ -6,14 +6,14 @@
 
 resource "azurerm_netapp_volume" "hanadata" {
   provider                             = azurerm.main
-  count                                = var.hana_ANF_volumes.use_for_data && !local.use_avg ? (
+  count                                = length(local.ANF_pool_settings.pool_name) > 0 ? var.hana_ANF_volumes.use_for_data && !local.use_avg ? (
                                            var.hana_ANF_volumes.use_existing_data_volume ? (
                                              0
                                              ) : (
-                                             var.database.high_availability ? 2 : 1
+                                             (var.database_server_count - var.database.stand_by_node_count) * var.hana_ANF_volumes.data_volume_count
                                            )) : (
                                            0
-                                         )
+                                         ) : 0
   name                                 = format("%s%s%s%s%d",
                                            var.naming.resource_prefixes.hanadata,
                                            local.prefix,
@@ -57,14 +57,14 @@ data "azurerm_netapp_volume" "hanadata" {
 
   depends_on                           = [azurerm_netapp_volume_group_sap_hana.avg_HANA]
 
-  count                                = var.hana_ANF_volumes.use_for_data ? (
+  count                                = length(local.ANF_pool_settings.pool_name) > 0 ? var.hana_ANF_volumes.use_for_data ? (
                                           var.hana_ANF_volumes.use_existing_data_volume || local.use_avg ? (
-                                            var.database.high_availability ? 2 : 1
+                                            (var.database_server_count - var.database.stand_by_node_count) * var.hana_ANF_volumes.data_volume_count
                                             ) : (
                                             0
                                           )) : (
                                           0
-                                        )
+                                        ) : 0
   name                                 = local.use_avg ? (
                                            format("%s%s%s%s%d",
                                              var.naming.resource_prefixes.hanadata,
@@ -85,14 +85,14 @@ resource "azurerm_netapp_volume" "hanalog" {
   provider                             = azurerm.main
   depends_on                           = [azurerm_netapp_volume_group_sap_hana.avg_HANA]
 
-  count                                = var.hana_ANF_volumes.use_for_log && !local.use_avg ? (
+  count                                = length(local.ANF_pool_settings.pool_name) > 0 ? var.hana_ANF_volumes.use_for_log && !local.use_avg ? (
                                            var.hana_ANF_volumes.use_existing_log_volume ? (
                                              0
                                              ) : (
-                                             var.database.high_availability ? 2 : 1
+                                             (var.database_server_count - var.database.stand_by_node_count) * var.hana_ANF_volumes.log_volume_count
                                            )) : (
                                            0
-                                         )
+                                         ) : 0
   name                                 = format("%s%s%s%s%d",
                                            var.naming.resource_prefixes.hanalog,
                                            local.prefix,
@@ -133,14 +133,14 @@ data "azurerm_netapp_volume" "hanalog" {
   provider                             = azurerm.main
   depends_on                           = [azurerm_netapp_volume_group_sap_hana.avg_HANA]
 
-  count                                = var.hana_ANF_volumes.use_for_log ? (
+  count                                = length(local.ANF_pool_settings.pool_name) > 0 ? var.hana_ANF_volumes.use_for_log ? (
                                            var.hana_ANF_volumes.use_existing_log_volume || local.use_avg ? (
-                                             var.database.high_availability ? 2 : 1
+                                             (var.database_server_count - var.database.stand_by_node_count) * var.hana_ANF_volumes.log_volume_count
                                              ) : (
                                              0
                                            )) : (
                                            0
-                                         )
+                                         ) : 0
   name                                 = local.use_avg ? (
                                            format("%s%s%s%s%d",
                                              var.naming.resource_prefixes.hanalog,
@@ -160,14 +160,14 @@ resource "azurerm_netapp_volume" "hanashared" {
   provider                             = azurerm.main
   depends_on                           = [azurerm_netapp_volume_group_sap_hana.avg_HANA]
 
-  count                                = var.hana_ANF_volumes.use_for_shared && !local.use_avg ? (
+  count                                = length(local.ANF_pool_settings.pool_name) > 0 ? var.hana_ANF_volumes.use_for_shared && !local.use_avg ? (
                                            var.hana_ANF_volumes.use_existing_shared_volume ? (
                                              0
                                              ) : (
-                                             var.database.high_availability ? 2 : 1
+                                             1
                                            )) : (
                                            0
-                                         )
+                                         ) : 0
   name                                 = format("%s%s%s%s%d",
                                            var.naming.resource_prefixes.hanashared,
                                            local.prefix,
@@ -210,14 +210,14 @@ data "azurerm_netapp_volume" "hanashared" {
   provider                             = azurerm.main
   depends_on                           = [azurerm_netapp_volume_group_sap_hana.avg_HANA]
 
-  count                                = var.hana_ANF_volumes.use_for_shared ? (
+  count                                = length(local.ANF_pool_settings.pool_name) > 0 ? var.hana_ANF_volumes.use_for_shared ? (
                                            var.hana_ANF_volumes.use_existing_shared_volume || local.use_avg ? (
-                                             var.database.high_availability ? 2 : 1
+                                             1
                                              ) : (
                                              0
                                            )) : (
                                            0
-                                         )
+                                         ) : 0
   name                                 = local.use_avg ? (
                                         format("%s%s%s%s%d",
                                           var.naming.resource_prefixes.hanashared,

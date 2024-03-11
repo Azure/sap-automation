@@ -2,7 +2,7 @@
 # |                                                                            |
 # |                         OS Base Disk Configuration                         |
 # |                                                                            |
-# +------------------------------------4--------------------------------------*/
+# +------------------------------------4--------------------------------------*/powershell_is_installed
 ---
 # -------------------------------------+---------------------------------------8
 #
@@ -19,47 +19,83 @@
 # ----------------------------------------
 # BEGIN
 
-- name:                                 "Run Flag Directory is Existing"
+- name:                                 "1.4-Packages: Run Flag Directory is Existing"
   ansible.windows.win_file:
     path:                               '{{ sap_deployment_automation }}\{{ sap_sid | upper }}'
     state:                              directory
 
-- name:                                 "Check if Nuget is already installed"
+- name:                                 "1.4-Packages: Check if Nuget is already installed"
   ansible.windows.win_stat:
     path:                               '{{ sap_deployment_automation }}\{{ sap_sid | upper }}\nuget.txt'
-  register:                             nuget_installed
+  register:                             nuget_is_installed
 
-- name:                                "Install Nuget on {{ ansible_hostname }}"
-  ansible.windows.win_shell: |
-                                       [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
-                                       Install-PackageProvider -Name NuGet -Force
+- name:                                "1.4-Packages: Windows Update"
+  ansible.builtin.debug:
+    msg:                               "Starting Windows Update. Please wait"
+
+
+# set a check that the customer can select if it can be done or not. [make it an option]
+- name:                                "1.4-Packages: Ensure Installing the latest windows patches"
   when:
-    - not nuget_installed.stat.exists
+    - not nuget_is_installed.stat.exists
+  ansible.windows.win_updates:
+    category_names:
+      - SecurityUpdates
+      - CriticalUpdates
+      - UpdateRollups
+    reject_list:                       "{{ win_updates_reject_list }}"
+    accept_list:                       "{{ win_updates_accept_list }}"
+    reboot:                            true
+  register:                            win_updates
 
-- name:                                "Nuget || Flag File"
+- name:                                "1.4-Packages: Install Nuget"
+  ansible.windows.win_shell: |
+                                       [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+                                       Install-PackageProvider -Name NuGet -Force
+  register:                            nuget_installed
+
+- name:                                "1.4-Packages: Register-PSRepository"
+  ansible.windows.win_shell: |
+                                       [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+                                       Register-PSRepository -Default -ErrorAction SilentlyContinue
+  register:                            repository_registered
+
+
+- name:                                "1.4-Packages: Nuget || Flag File"
+  when:
+    - not nuget_is_installed.stat.exists
+    - nuget_installed is defined
+    - nuget_installed.rc == 0
   ansible.windows.win_file:
     path:                              '{{ sap_deployment_automation }}\{{ sap_sid | upper }}\nuget.txt'
     state:                             touch
 
-- name:                                 "Check if PowerShellGet is already installed"
+- name:                                "1.4-Packages: Check if PowerShellGet is already installed"
   ansible.windows.win_stat:
-    path:                               '{{ sap_deployment_automation }}\{{ sap_sid | upper }}\PowerShellGet.txt'
-  register:                             powershell_get_installed
+    path:                              '{{ sap_deployment_automation }}\{{ sap_sid | upper }}\PowerShellGet.txt'
+  register:                            powershell_is_installed
 
-- name:                                "Install PowerShellGet on {{ ansible_hostname }}"
-  ansible.windows.win_shell:           Install-Module PowerShellGet -AllowClobber -Force
+- name:                                "1.4-Packages: Install PowerShellGet on {{ ansible_hostname }}"
+  ansible.windows.win_shell: |
+                                       [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+                                       Install-Module PowerShellGet -AllowClobber -Force
+  register:                            powershell_installed
   when:
-    - not powershell_get_installed.stat.exists
+    - not powershell_is_installed.stat.exists
     - tier == 'os'
 
-- name:                                "PowerShellGet || Flag File"
+- name:                                "1.4-Packages: PowerShellGet || Flag File"
+  when:
+    - not powershell_is_installed.stat.exists
+    - powershell_installed is defined
+    - powershell_installed.rc == 0
   ansible.windows.win_file:
     path:                              '{{ sap_deployment_automation }}\{{ sap_sid | upper }}\PowerShellGet.txt'
     state:                             touch
 
 
 # Install the DSC modules
-- name:                                "Ensure DSC modules are installed"
+- name:                                "1.4-Packages: Ensure DSC modules are installed"
   community.windows.win_psmodule:
     name:                              "{{ item }}"
     state:                             present
@@ -75,21 +111,21 @@
   when:
     - tier == 'os'
 
-- name:                                "Disable UAC for admin accounts"
+- name:                                "1.4-Packages: Disable UAC for admin accounts"
   ansible.windows.win_dsc:
     resource_name:                     UserAccountControl
     IsSingleInstance:                  "Yes"
     NotificationLevel:                 "NeverNotify"
   notify:                              reboot
 
-- name:                                "Component Install"
+- name:                                "1.4-Packages: Component Install"
   when:
     - node_tier in ['scs','ers','app','pas']
     - tier == 'app_tier'
   block:
 
 #   2x) Install vcredist package then reboot.
-    - name:                            "Install Visual C++ 2013 Redistributable package"
+    - name:                            "1.4-Packages: Install Visual C++ 2013 Redistributable package"
       ansible.windows.win_package:
         path:                          '{{ download_directory_windows }}\SWPM\NTPATCH\VCREDIST2013\vcredist_x64.exe'
         product_id:                    '{CF2BEA3C-26EA-32F8-AA9B-331F7E34BA97}'
@@ -102,7 +138,7 @@
         ansible_become_password:       "{{ domain_user_password }}"
       register:                        vcredist2013_output
 
-    - name:                            "Install Visual C++ 2017 Redistributable package"
+    - name:                            "1.4-Packages: Install Visual C++ 2017 Redistributable package"
       ansible.windows.win_package:
         path:                          '{{ download_directory_windows }}\SWPM\NTPATCH\VCREDIST2017\VC_redist.x64.exe'
         product_id:                    '{CF2BEA3C-26EA-32F8-AA9B-331F7E34BA97}'
@@ -115,26 +151,26 @@
         ansible_become_password:       "{{ domain_user_password }}"
       register:                        vcredist2017_output
 
-    - name:                            "Reboot after package installation"
+    - name:                            "1.4-Packages: Reboot after package installation"
       ansible.windows.win_reboot:
         reboot_timeout:                600
         post_reboot_delay:             120
       when: vcredist2013_output.reboot_required or vcredist2017_output.reboot_required
 
-    - name:                                'Create temporary extract directory {{ item.archive }}'
+    - name:                            '1.4-Packages: Create temporary extract directory {{ item.archive }}'
       ansible.windows.win_tempfile:
-        state:                             directory
-        suffix:                            extract
-      register:                            tempdir
+        state:                         directory
+        suffix:                        extract
+      register:                        tempdir
 
     #   3x) download SQL server ODBC 17 on windows.
-    - name:                            "Download SQL Server ODBC Driver 17"
+    - name:                            "1.4-Packages: Download SQL Server ODBC Driver 17"
       ansible.windows.win_get_url:
         url:                           https://download.microsoft.com/download/6/f/f/6ffefc73-39ab-4cc0-bb7c-4093d64c2669/en-US/17.10.1.1/x64/msodbcsql.msi
         dest:                          "{{ tempdir.path }}"
         validate_certs:                true
 
-    - name:                            "Install SQL Server ODBC Driver 17"
+    - name:                            "1.4-Packages: Install SQL Server ODBC Driver 17"
       ansible.windows.win_shell: |
                                        MsiExec.exe /i {{ tempdir.path }}\msodbcsql.msi IACCEPTMSODBCSQLLICENSETERMS=YES /qn
       vars:
@@ -143,5 +179,5 @@
         ansible_become_user:           '{{ sap_sid }}adm@{{ domain_name }}'
         ansible_become_password:       "{{ domain_user_password }}"
 
-- name:                                 "Force all notified handlers to run now"
+- name:                                 "1.4-Packages: Force all notified handlers to run now"
   ansible.builtin.meta:                 flush_handlers

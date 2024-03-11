@@ -10,13 +10,13 @@ module "sap_landscape" {
                                                    azurerm.deployer      = azurerm
                                                    azurerm.dnsmanagement = azurerm.dnsmanagement
                                                    azurerm.peering       = azurerm.peering
+                                                   azapi.api             = azapi.api
                                                  }
 
   additional_users_to_add_to_keyvault_policies = var.additional_users_to_add_to_keyvault_policies
-  Agent_IP                                     = var.Agent_IP
+  Agent_IP                                     = var.add_Agent_IP ? var.Agent_IP : ""
   ANF_settings                                 = local.ANF_settings
   authentication                               = local.authentication
-  create_vaults_and_storage_dns_a_records      = var.create_vaults_and_storage_dns_a_records
   create_transport_storage                     = var.create_transport_storage
   deployer_tfstate                             = try(data.terraform_remote_state.deployer[0].outputs, [])
   diagnostics_storage_account                  = local.diagnostics_storage_account
@@ -46,16 +46,17 @@ module "sap_landscape" {
   options                                      = local.options
   peer_with_control_plane_vnet                 = var.peer_with_control_plane_vnet
   place_delete_lock_on_resources               = var.place_delete_lock_on_resources
-  public_network_access_enabled                = var.public_network_access_enabled || !var.use_private_endpoint
+  public_network_access_enabled                = var.public_network_access_enabled
   register_virtual_network_to_dns              = var.register_virtual_network_to_dns
   service_principal                            = var.use_spn ? local.service_principal : local.account
+  soft_delete_retention_days                   = var.soft_delete_retention_days
   storage_account_replication_type             = var.storage_account_replication_type
   tags                                         = var.tags
   terraform_template_version                   = local.version_label
   transport_private_endpoint_id                = var.transport_private_endpoint_id
   transport_storage_account_id                 = var.transport_storage_account_id
   transport_volume_size                        = var.transport_volume_size
-  use_AFS_for_installation_media               = var.use_AFS_for_installation_media
+  use_AFS_for_shared_storage                   = var.use_AFS_for_shared_storage
   use_custom_dns_a_registration                = var.use_custom_dns_a_registration
   use_deployer                                 = length(var.deployer_tfstate_key) > 0
   use_private_endpoint                         = var.use_private_endpoint

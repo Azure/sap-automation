@@ -87,7 +87,7 @@
                                        {%- else -%}
                                        {%-   set _timeoutvalue = 40 -%}
                                        {%- endif -%}
-                                       {{- _timeoutvalue -}}
+                                       {{- custom_cluster_fs_mon_timeout | default(_timeoutvalue, true) -}}
   when:
     - scs_high_availability
 
@@ -104,7 +104,32 @@
                                        {%- else -%}
                                        {%-   set _timeoutvalue = 60 -%}
                                        {%- endif -%}
-                                       {{- _timeoutvalue -}}
+                                       {{- custom_cluster_sap_mon_timeout | default(_timeoutvalue, true) -}}
+  when:
+    - scs_high_availability
+
+- name:                                "5.6 SCSERS - HA install calculate NFS mount options"
+  ansible.builtin.set_fact:
+    clus_nfs_options:  >-
+                                       {%- set _nfsopts = 'noresvport,vers=4.1,sec=sys' -%}
+                                       {%- if (NFS_provider == "ANF") -%}
+                                       {%-    if NFS_version == "NFSv3" -%}
+                                       {%-      set _nfsopts = '' -%}
+                                       {%-    elif NFS_version == "NFSv4.1" -%}
+                                       {%-      set _nfsopts = 'sec=sys,nfsvers=4.1' -%}
+                                       {%-    endif -%}
+                                       {%- elif (NFS_provider == "AFS") -%}
+                                       {%-    if NFS_version == "NFSv4.1" -%}
+                                       {%-      set _nfsopts = 'noresvport,sec=sys,vers=4.1' -%}
+                                       {%-    endif -%}
+                                       {%- endif -%}
+                                       {{- _nfsopts -}}
+  when:
+    - scs_high_availability
+
+- name:                                "5.6 SCSERS - HA install show NFS mount options"
+  ansible.builtin.debug:
+    msg:                               "NFS mount options: {{ clus_nfs_options }}"
   when:
     - scs_high_availability
 

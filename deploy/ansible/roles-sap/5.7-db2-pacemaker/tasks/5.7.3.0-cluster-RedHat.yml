@@ -60,7 +60,7 @@
       when:                            ansible_distribution_major_version in ["8", "9"]
 
     - name:                            "Ensure the Virtual IP resource for the Load Balancer Front End IP is created"
-      ansible.builtin.command:         pcs resource create vip_db2{{ db_sid | lower }}_{{ db_sid | upper }} IPaddr2 ip='{{ db_lb_ip }}'
+      ansible.builtin.command:         pcs resource create vip_db2{{ db_sid | lower }}_{{ db_sid | upper }} IPaddr2 ip='{{ database_loadbalancer_ip }}'
       register:                        vip
       failed_when:                     vip.rc > 1
 

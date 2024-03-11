@@ -13,7 +13,8 @@ resource "time_offset" "secret_expiry_date" {
 
 resource "azurerm_key_vault_secret" "saplibrary_access_key" {
   provider                             = azurerm.deployer
-  count                                = length(var.key_vault.kv_spn_id) > 0 ? 1 : 0
+
+  count                                = length(var.key_vault.kv_spn_id) > 0  ? 1 : 0
   depends_on                           = [azurerm_private_endpoint.kv_user]
   name                                 = "sapbits-access-key"
   value                                = local.sa_sapbits_exists ? (
@@ -61,6 +62,25 @@ resource "azurerm_key_vault_secret" "sa_connection_string" {
                                            null
                                          )
 }
+
+resource "azurerm_key_vault_secret" "tfstate" {
+  provider                             = azurerm.deployer
+  count                                = length(var.key_vault.kv_spn_id) > 0 ? 1 : 0
+  depends_on                           = [azurerm_private_endpoint.kv_user]
+  name                                 = "tfstate"
+  value                                = var.use_private_endpoint ? (
+                                          format("https://%s.blob.core.windows.net", local.sa_tfstate_exists ? (data.azurerm_storage_account.storage_tfstate[0].name) : (azurerm_storage_account.storage_tfstate[0].name))) : (
+                                          format("https://%s.blob.core.windows.net", local.sa_tfstate_exists ? (data.azurerm_storage_account.storage_tfstate[0].name) : (azurerm_storage_account.storage_tfstate[0].name))
+                                          )
+  key_vault_id                         = var.key_vault.kv_spn_id
+  expiration_date                      = try(var.deployer_tfstate.set_secret_expiry, false) ? (
+                                           time_offset.secret_expiry_date.rfc3339) : (
+                                           null
+                                         )
+}
+
+
+
 resource "azurerm_private_dns_a_record" "kv_user" {
   provider                             = azurerm.deployer
   count                                = var.use_private_endpoint && var.use_custom_dns_a_registration ? 1 : 0

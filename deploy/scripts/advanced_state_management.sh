@@ -196,11 +196,10 @@ automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation/
 system_config_information="${automation_config_directory}""${environment}""${region_code}"
 
 #Plugins
-if [ ! -d "$HOME/.terraform.d/plugin-cache" ]
-then
-    mkdir "$HOME/.terraform.d/plugin-cache"
-fi
-export TF_PLUGIN_CACHE_DIR="$HOME/.terraform.d/plugin-cache"
+sudo mkdir -p /opt/terraform/.terraform.d/plugin-cache
+sudo chown -R $USER:$USER /opt/terraform
+export TF_PLUGIN_CACHE_DIR=/opt/terraform/.terraform.d/plugin-cache
+
 
 set_executing_user_environment_variables "none"
 
@@ -331,6 +330,7 @@ if [ "${operation}" == "list" ] ; then
   echo "#                                                                                       #"
   echo "#########################################################################################"
   echo ""
+  cat resources.lst
   unset TF_DATA_DIR
 
   exit 0

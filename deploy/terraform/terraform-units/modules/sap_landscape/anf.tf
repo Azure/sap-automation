@@ -100,7 +100,7 @@ data "azurerm_netapp_pool" "workload_netapp_pool" {
 
 resource "azurerm_netapp_volume" "transport" {
   provider                             = azurerm.main
-  count                                = var.create_transport_storage && var.NFS_provider == "ANF" ? (
+  count                                = var.create_transport_storage && var.NFS_provider == "ANF" && !var.use_AFS_for_shared_storage ? (
                                            var.ANF_settings.use_existing_transport_volume ? (
                                              0) : (
                                              1
@@ -133,6 +133,11 @@ resource "azurerm_netapp_volume" "transport" {
                                            data.azurerm_netapp_pool.workload_netapp_pool[0].name
                                            ) : (
                                            azurerm_netapp_pool.workload_netapp_pool[0].name
+                                         )
+  zone                                 = length(var.ANF_settings.transport_volume_zone) > 0 ? (
+                                           var.ANF_settings.transport_volume_zone
+                                         ) : (
+                                           null
                                          )
 
   throughput_in_mibps                  = var.ANF_settings.use_existing_pool ? (
@@ -209,7 +214,7 @@ data "azurerm_netapp_volume" "transport" {
 
 resource "azurerm_netapp_volume" "install" {
   provider                             = azurerm.main
-  count                                = var.NFS_provider == "ANF" && !var.use_AFS_for_installation_media ? (
+  count                                = var.NFS_provider == "ANF" && !var.use_AFS_for_shared_storage ? (
                                            var.ANF_settings.use_existing_install_volume ? (
                                              0) : (
                                              1
@@ -242,6 +247,13 @@ resource "azurerm_netapp_volume" "install" {
                                            ) : (
                                            azurerm_netapp_pool.workload_netapp_pool[0].name
                                          )
+
+  zone                                 = length(var.ANF_settings.install_volume_zone) > 0 ? (
+                                           var.ANF_settings.install_volume_zone
+                                         ) : (
+                                           null
+                                         )
+
 
   throughput_in_mibps                  = var.ANF_settings.use_existing_pool ? (
                                            var.ANF_settings.install_volume_throughput

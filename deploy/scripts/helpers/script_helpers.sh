@@ -391,11 +391,10 @@ function validate_dependencies {
         return 2 #No such file or directory
     fi
     # Set Terraform Plug in cache
-    if [ ! -d "$HOME/.terraform.d/plugin-cache" ]
-    then
-        mkdir -p "$HOME/.terraform.d/plugin-cache"
-    fi
-    export TF_PLUGIN_CACHE_DIR="$HOME/.terraform.d/plugin-cache"
+    sudo mkdir -p /opt/terraform/.terraform.d/plugin-cache
+    sudo chown -R $USER:$USER /opt/terraform
+    export TF_PLUGIN_CACHE_DIR=/opt/terraform/.terraform.d/plugin-cache
+
 
     az --version >stdout.az 2>&1
     az=$(grep "azure-cli" stdout.az)

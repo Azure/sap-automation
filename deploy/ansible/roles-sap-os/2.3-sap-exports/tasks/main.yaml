@@ -264,7 +264,6 @@
   when:
     - custom_exports is defined
 
-
 - name:                                "2.3 Exports: - Local NFS"
   block:
     - name:                            "2.3 Exports: - Set the NFS Service name {{ distribution_id }}"
@@ -272,11 +271,10 @@
         nfs_service:                   'nfsserver'
       when:                            "'SUSE' == ansible_os_family | upper"
 
-
     - name:                            "2.3 Exports: - Set the NFS Service name {{ distribution_id }}"
       ansible.builtin.set_fact:
         nfs_service:                   "nfs-server"
-      when:                            "'redhat8' == distribution_id"
+      when:                            "'redhat8' == distribution_id or 'redhat9' == distribution_id"
 
     - name:                            "2.3 Exports: - Set the NFS Service name oracle {{ distribution_id }}"
       ansible.builtin.set_fact:

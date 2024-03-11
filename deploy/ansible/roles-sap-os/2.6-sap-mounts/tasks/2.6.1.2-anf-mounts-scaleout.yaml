@@ -1,0 +1,990 @@
+# This task is now deprecated as the functionality is merged into 2.6.1 and 2.6.8
+# This file will be removed in the later releases. Its left here for tracing and debugging
+
+
+# # /*---------------------------------------------------------------------------8
+# # |                                                                            |
+# # |                Perform the ANF system mounts for Scale out systems only    |
+# # |                                                                            |
+# # +------------------------------------4--------------------------------------*/
+# ---
+
+# - name:                                "ANF Mount: Set the NFS Service name"
+#   ansible.builtin.set_fact:
+#     nfs_service:                       "{% if distribution_id in ['redhat8', 'redhat9'] %}nfs-server{% else %}{% if distribution_id == 'redhat7' %}nfs{% else %}{% if distribution_id == 'oraclelinux8' %}rpcbind{% else %}nfsserver{% endif %}{% endif %}{% endif %}"
+
+# - name:                                "ANF Mount: Set the NFSmount options"
+#   ansible.builtin.set_fact:
+#     mnt_options:                       'rw,nfsvers=4.1,hard,timeo=600,rsize=262144,wsize=262144,noatime,lock,_netdev,sec=sys'
+#   when: distribution_full_id not in ['redhat8.4', 'redhat8.6', 'redhat8.8', 'redhat9.0', 'redhat9.2', 'sles_sap15.2', 'sles_sap15.3', 'sles_sap15.4', 'sles_sap15.5']
+
+# - name:                                "ANF Mount: Set the NFSmount options"
+#   ansible.builtin.set_fact:
+#     mnt_options:                       'rw,nfsvers=4.1,hard,timeo=600,rsize=262144,wsize=262144,noatime,lock,_netdev,sec=sys,nconnect=8'
+#   when: distribution_full_id in ['redhat8.4', 'redhat8.6', 'redhat8.8', 'redhat9.0', 'redhat9.2', 'sles_sap15.2', 'sles_sap15.3', 'sles_sap15.4', 'sles_sap15.5']
+
+# - name:                                "ANF Mount: Define this SID"
+#   ansible.builtin.set_fact:
+#     this_sid:
+#       {
+#         'sid': '{{ sap_sid | upper }}',
+#         'dbsid_uid': '{{ hdbadm_uid }}',
+#         'sidadm_uid': '{{ sidadm_uid }}',
+#         'ascs_inst_no': '{{ scs_instance_number }}',
+#         'pas_inst_no': '{{ pas_instance_number }}',
+#         'app_inst_no': '{{ app_instance_number }}'
+#       }
+
+# - name:                                "ANF Mount: Create list of all_sap_mounts to support "
+#   ansible.builtin.set_fact:
+#     all_sap_mounts:                    "{% if MULTI_SIDS is defined %}{{ MULTI_SIDS }}{% else %}{{ all_sap_mounts | default([]) + [this_sid] }}{% endif %}"
+#     db_hosts:                          "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
+
+# - name:                                "ANF Mount: Ensure the NFS service is stopped"
+#   ansible.builtin.systemd:
+#     name:                              "{{ nfs_service }}"
+#     state:                             stopped
+#   when:
+#     - "'scs' in supported_tiers"
+#     - sap_mnt is not defined
+#     - sap_trans is not defined
+
+# # /*---------------------------------------------------------------------------8
+# # |                                                                            |
+# # |                            Mount the ANF Volumes                           |
+# # | Make sure to set the NFS domain in /etc/idmapd.conf on the VM to match the |
+# # | default domain configuration on Azure NetApp Files: defaultv4iddomain.com. |
+# # | and the mapping is set to nobody                                           |
+# # | We use tier in tasks as well, to treat any special scenarios that may arise|
+# # +------------------------------------4--------------------------------------*/
+# # For additional information refer to the below URLs
+# # https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/sap-hana-high-availability-netapp-files-suse#mount-the-azure-netapp-files-volume
+# # https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/sap-hana-high-availability-netapp-files-red-hat#mount-the-azure-netapp-files-volume
+# - name:                                "ANF Mount: NFS Domain Setting (ANF)"
+#   block:
+#     - name:                            "ANF Mount: Domain is configured as
+#                                         the default Azure NetApp Files domain"
+#       ansible.builtin.lineinfile:
+#         path:                          /etc/idmapd.conf
+#         regexp:                        '^[ #]*Domain = '
+#         line:                          'Domain = defaultv4iddomain.com'
+#         insertafter:                   '[General]'
+#       when:
+#         - tier == 'sapos'
+#       register:                        id_mapping_changed
+
+#     - name:                            "ANF Mount: Make sure that user
+#                                         mapping is set to 'nobody'"
+#       ansible.builtin.lineinfile:
+#         path:                          /etc/idmapd.conf
+#         regexp:                        '^[ #]*Nobody-User = '
+#         line:                          'Nobody-User = nobody'
+#         insertafter:                   '^[ #]*Nobody-User = '
+#       when:
+#         - tier == 'sapos'
+#       register:                        id_mapping_changed
+
+#     - name:                            "ANF Mount: Make sure that group
+#                                         mapping is set to 'nobody'"
+#       ansible.builtin.lineinfile:
+#         path:                          /etc/idmapd.conf
+#         regexp:                        '^[ #]*Nobody-Group = '
+#         line:                          'Nobody-Group = nobody'
+#         insertafter:                   '^[ #]*Nobody-Group = '
+#       when:
+#         - tier == 'sapos'
+#       register:                        id_mapping_changed
+#   when:
+#     - tier == 'sapos'
+
+# - name:                                "ANF Mount: Set nfs4_disable_idmapping to Y"
+#   ansible.builtin.lineinfile:
+#     path:                              /etc/modprobe.d/nfs.conf
+#     line:                              'options nfs nfs4_disable_idmapping=Y'
+#     create:                            true
+#     mode:                              0644
+#   when:
+#     - tier == 'sapos'
+
+# - name:                                "ANF Mount: Ensure the services are restarted"
+#   block:
+#     - name:                            "AF Mount: Ensure the rpcbind service is restarted"
+#       ansible.builtin.systemd:
+#         name:                          rpcbind
+#         state:                         restarted
+#     - name:                            "ANF Mount: Ensure the NFS ID Map service is restarted"
+#       ansible.builtin.systemd:
+#         name:                          "nfs-idmapd"
+#         daemon-reload:                 true
+#         state:                         restarted
+#     - name:                            "ANF Mount: Pause for 5 seconds"
+#       ansible.builtin.pause:
+#         seconds:                       5
+#     - name:                            "ANF Mount: Ensure the NFS service is restarted"
+#       ansible.builtin.systemd:
+#         name:                          "{{ nfs_service }}"
+#         state:                         restarted
+#   when:
+#     - id_mapping_changed is changed
+
+# # /*---------------------------------------------------------------------------8
+# # |                                                                            |
+# # |         Prepare for the /usr/sap mounts                                    |
+# # |         Create temporary directory structure                               |
+# # |         Mount the share, create the directory structure on share           |
+# # |         Unmount and clean up temporary directory structure                 |
+# # |                                                                            |
+# # +------------------------------------4--------------------------------------*/
+
+# - name:                                "ANF Mount: install:Get the Server name list"
+#   ansible.builtin.set_fact:
+#     first_app_server_temp:             "{{ first_app_server_temp | default([]) + [item] }}"
+#   with_items:
+#     - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_PAS') }}"
+#     - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
+
+# - name:                                "ANF Mount: usr/sap"
+#   ansible.builtin.include_tasks:       2.6.1.1-anf-mount.yaml
+#   loop:
+#     - {
+#       'type':              'usrsap',
+#       'temppath':          'tmpusersap',
+#       'mount':             '{{ usr_sap_mountpoint }}',
+#       'opts':              'rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp',
+#       'path':              '/usr/sap',
+#       'set_chattr_on_dir': false,
+#       'target_nodes':      ['app','pas'],
+#       'create_temp_folders': false
+#     }
+#   vars:
+#     primary_host:                     "{{ first_app_server_temp | first }}"
+#   when:
+#     - tier == 'sapos'
+#     - usr_sap_mountpoint is defined
+
+# # /*---------------------------------------------------------------------------8
+# # |                                                                            |
+# # |         Prepare for the sap_mnt mounts                                     |
+# # |         Create temporary directory structure                               |
+# # |         Mount the share, create the directory structure on share           |
+# # |         Unmount and clean up temporary directory structure                 |
+# # |                                                                            |
+# # +------------------------------------4--------------------------------------*/
+# - name:                                "ANF Mount: (sapmnt)"
+#   block:
+#     - name:                            "ANF Mount: Create /saptmp"
+#       ansible.builtin.file:
+#         path:                          "/saptmp"
+#         state:                         directory
+#         mode:                          0755
+#         group:                         sapsys
+
+#     - name:                            "ANF Mount: (sapmnt)"
+#       block:
+#         - name:                        "ANF Mount: Filesystems on ANF (sapmnt)"
+#           ansible.posix.mount:
+#             src:                       "{{ sap_mnt }}"
+#             path:                      "/saptmp"
+#             fstype:                    "nfs4"
+#             opts:                      "rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp"
+#             state:                     mounted
+#       rescue:
+#         - name:                        "ANF Mount: Clear the cache of the nfsidmap daemon (ANF)"
+#           ansible.builtin.shell: |
+#                                        nfsidmap -c
+#         - name:                        "ANF Mount: Ensure the rpcbind service is restarted"
+#           ansible.builtin.systemd:
+#             name:                      rpcbind
+#             daemon-reload:             true
+#             state:                     restarted
+
+#     - name:                            "ANF Mount: Create SAP Directories (spmnt & usrsap)"
+#       ansible.builtin.file:
+#         path:                          "{{ item.path }}"
+#         state:                         directory
+#         mode:                          0755
+#       loop:
+#         - { path: '/saptmp/sapmnt{{ sap_sid | upper }}'                              }
+#         - { path: '/saptmp/usrsap{{ sap_sid | upper }}'                              }
+#         - { path: '/saptmp/usrsap{{ sap_sid | upper }}ascs{{ scs_instance_number }}' }
+#         - { path: '/saptmp/usrsap{{ sap_sid | upper }}ers{{ ers_instance_number }}'  }
+#         - { path: '/saptmp/usrsap{{ sap_sid | upper }}sys'                           }
+
+#     - name:                            "ANF Mount: Create SAP Directories (ANF)"
+#       ansible.builtin.file:
+#         path:                          "/saptmp/sapmnt{{ item.sid | upper }}"
+#         state:                         directory
+#         mode:                          0755
+#       loop:                            "{{ MULTI_SIDS }}"
+#       when:                            MULTI_SIDS is defined
+
+#     - name:                            "ANF Mount: Unmount file systems (sap_mnt)"
+#       ansible.posix.mount:
+#         src:                           "{{ sap_mnt }}"
+#         path:                          "/saptmp"
+#         state:                         unmounted
+
+#     - name:                            "ANF Mount: Delete locally created SAP Directories"
+#       ansible.builtin.file:
+#         path:                          "{{ item.path }}"
+#         state:                         absent
+#       loop:
+#         - { path: '/saptmp/sapmnt{{ sap_sid | upper }}'                              }
+#         - { path: '/saptmp/usrsap{{ sap_sid | upper }}'                              }
+#         - { path: '/saptmp/usrsap{{ sap_sid | upper }}ascs{{ scs_instance_number }}' }
+#         - { path: '/saptmp/usrsap{{ sap_sid | upper }}ers{{ ers_instance_number }}'  }
+#         - { path: '/saptmp/usrsap{{ sap_sid | upper }}sys'                           }
+
+#     - name:                            "ANF Mount: Remove SAP Directories (ANF)"
+#       ansible.builtin.file:
+#         path:                          "/saptmp/sapmnt{{ item.sid | upper }}"
+#         state:                         absent
+#       loop:                            "{{ MULTI_SIDS }}"
+#       when:                            MULTI_SIDS is defined
+
+#     - name:                            "ANF Mount: Cleanup fstab and directory (sap_mnt)"
+#       ansible.posix.mount:
+#         src:                           "{{ sap_mnt }}"
+#         path:                          "/saptmp"
+#         fstype:                        "nfs4"
+#         opts:                          "rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp"
+#         state:                         absent
+
+#   when:
+#     - tier == 'sapos'
+#     - "'scs' in supported_tiers"
+#     - sap_mnt is defined
+
+# # /*---------------------------------------------------------------------------8
+# # |                                                                            |
+# # |                Perform the sap_mnt mounts                                  |
+# # |                Create directories and make them immutable                  |
+# # |                                                                            |
+# # +------------------------------------4--------------------------------------*/
+
+# - name:                                "ANF Mount: Create SAP Directories (sapmnt)"
+#   ansible.builtin.file:
+#     owner:                             "{{ item.sidadm_uid }}"
+#     group:                             sapsys
+#     mode:                              0755
+#     path:                              "/sapmnt/{{ item.sid }}"
+#     state:                             directory
+#   register: is_created_now
+#   loop:                                "{{ all_sap_mounts }}"
+#   when:
+#     - tier == 'sapos'
+#     - node_tier in ['app','scs','ers', 'pas'] or 'scs' in supported_tiers
+#     - sap_mnt is defined
+
+# - name:                                "ANF Mount: Change attribute only when we create SAP Directories (sap_mnt)"
+#   ansible.builtin.file:
+#     path:                              "{{ item.item.path }}"
+#     state:                             directory
+#     mode:                              0755
+#     attr:                              i+
+#   loop: "{{ is_created_now.results }}"
+#   when:
+#     - tier == 'sapos'
+#     - item.item is changed
+#   register: set_immutable_attribute
+
+# - name:                                "ANF Mount: Create SAP Directories (scs & ers)"
+#   ansible.builtin.file:
+#     path:                              "{{ item.path }}"
+#     state:                             directory
+#     owner:                             '{{ sidadm_uid }}'
+#     group:                             sapsys
+#     mode:                              0755
+#   loop:
+#     - { path: '/usr/sap/{{ sap_sid | upper }}' }
+#     - { path: '/usr/sap/{{ sap_sid | upper }}/SYS' }
+#     - { path: '/usr/sap/{{ sap_sid | upper }}/{{ instance_type | upper }}{{ scs_instance_number }}' }
+#     - { path: '/usr/sap/{{ sap_sid | upper }}/ERS{{ ers_instance_number }}' }
+#   when:
+#     - tier == 'sapos'
+#     - node_tier in ['scs','ers'] or 'scs' in supported_tiers
+#     - sap_mnt is defined
+#     - MULTI_SIDS is undefined
+#   register: is_created_now3
+
+# - name:                                "ANF Mount: Change attribute only when we create SAP Directories (scs & ers)"
+#   ansible.builtin.file:
+#     path:                              "{{ item.item.path }}"
+#     state:                             directory
+#     mode:                              0755
+#     attr:                              i+
+#   loop: "{{ is_created_now3.results }}"
+#   when:
+#     - tier == 'sapos'
+#     - item.item is changed
+#   register: set_immutable_attribute
+
+# - name:                                "ANF Mount: Debug"
+#   ansible.builtin.debug:
+#     msg:                               'isHA:{{ scs_high_availability }} | node_tier:{{ node_tier }} | tier:{{ tier }} | sapmnt:{{ sap_mnt }}'
+
+# - name:                                "ANF Mount: sapmnt/{{ sap_sid | upper }} - Distributed Non-HA"
+#   ansible.posix.mount:
+#     src:                               "{{ item.src }}"
+#     path:                              "{{ item.path }}"
+#     fstype:                            "{{ item.type }}"
+#     opts:                              'rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp'
+#     state:                             mounted
+#   loop:
+#     - { type: 'nfs4',  src: '{{ sap_mnt }}/sapmnt{{ sap_sid | upper }}',    path: '/sapmnt/{{ sap_sid | upper }}'      }
+#   when:
+#     - tier == 'sapos'
+#     - sap_mnt is defined
+#     - not scs_high_availability
+#     - ansible_play_hosts_all | length > 1
+#     - node_tier != 'hana'
+
+# - name:                                "ANF Mount: sapmnt/{{ sap_sid | upper }} - Single instance"
+#   ansible.posix.mount:
+#     src:                               "{{ item.src }}"
+#     path:                              "{{ item.path }}"
+#     fstype:                            "{{ item.type }}"
+#     opts:                              'rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp'
+#     state:                             mounted
+#   loop:
+#     - { type: 'nfs4',  src: '{{ sap_mnt }}/sapmnt{{ sap_sid | upper }}',    path: '/sapmnt/{{ sap_sid | upper }}'      }
+#   when:
+#     - tier == 'sapos'
+#     - sap_mnt is defined
+#     - not scs_high_availability
+#     - ansible_play_hosts_all | length == 1
+
+
+# - name:                                "ANF Mount: sapmnt/{{ sap_sid | upper }} - Standalone MULTI_SIDS"
+#   become:                              true
+#   become_user:                         root
+#   ansible.posix.mount:
+#     src:                               "{{ sap_mnt }}/sapmnt{{ item.sid }}"
+#     path:                              "/sapmnt/{{ item.sid }}"
+#     fstype:                            'nfs4'
+#     opts:                              'rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp'
+#     state:                             mounted
+#   loop:                                "{{ MULTI_SIDS }}"
+#   when:
+#     - not scs_high_availability
+#     - sap_mnt is defined
+#     - MULTI_SIDS is defined
+
+# - name:                                "ANF Mount: sapmnt/{{ sap_sid | upper }} - High Availability"
+#   ansible.posix.mount:
+#     src:                               "{{ item.src }}"
+#     path:                              "{{ item.path }}"
+#     fstype:                            "{{ item.type }}"
+#     opts:                              'rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp'
+#     state:                             mounted
+#   loop:
+#     - { type: 'nfs4',  src: '{{ sap_mnt }}/sapmnt{{ sap_sid | upper }}',    path: '/sapmnt/{{ sap_sid | upper }}'      }
+#   when:
+#     - scs_high_availability
+#     - tier in ['sapos']
+#     - node_tier != 'hana'
+#     - sap_mnt is defined
+
+# - name:                                "ANF Mount: usr/sap/{{ sap_sid | upper }}/SYS"
+#   ansible.posix.mount:
+#     src:                               "{{ item.src }}"
+#     path:                              "{{ item.path }}"
+#     fstype:                            "{{ item.type }}"
+#     opts:                              'rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp'
+#     state:                             mounted
+#   loop:
+#     - { type: 'nfs4',  src: '{{ sap_mnt }}/usrsap{{ sap_sid | upper }}sys', path: '/usr/sap/{{ sap_sid | upper }}/SYS' }
+#   when:
+#     - scs_high_availability
+#     - tier in ['sapos']
+#     - node_tier in ['scs','ers']
+#     - sap_mnt is defined
+
+
+# # /*---------------------------------------------------------------------------8
+# # |                                                                            |
+# # |         Prepare for the sap_trans, install mounts                                     |
+# # |         Create temporary directory structure                               |
+# # |         Mount the share, create the directory structure on share           |
+# # |         Unmount and clean up temporary directory structure                 |
+# # |                                                                            |
+# # +------------------------------------4--------------------------------------*/
+
+# - name:                                "ANF Mount: install:Get the Server name list"
+#   ansible.builtin.set_fact:
+#     first_server_temp:                 "{{ first_server_temp | default([]) + [item] }}"
+#   with_items:
+#     - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') }}"
+#     - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
+
+# - name:                                "ANF Mount: sap_trans"
+#   ansible.builtin.include_tasks:       2.6.1.1-anf-mount.yaml
+#   loop:
+#     - {
+#       'type':              'trans',
+#       'temppath':          'saptrans',
+#       'mount':             '{{ sap_trans }}',
+#       'opts':              'rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp',
+#       'path':              '/usr/sap/trans',
+#       'permissions':       '0775',
+#       'set_chattr_on_dir': false,
+#       'target_nodes':      ['app','pas', 'ers', 'scs'],
+#       'create_temp_folders': false
+#     }
+#   vars:
+#     primary_host:                     "{{ first_server_temp | first }}"
+#   when:
+#     - tier == 'sapos'
+#     - sap_trans is defined
+
+# - name:                                "ANF Mount: install"
+#   ansible.builtin.include_tasks:       2.6.1.1-anf-mount.yaml
+#   loop:
+#     - {
+#       'type':              'install',
+#       'temppath':          'sapinstall',
+#       'folder':            '{{ bom_base_name }}',
+#       'mount':             '{{ usr_sap_install_mountpoint }}',
+#       'opts':              'rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp',
+#       'path':              '/usr/sap/install',
+#       'permissions':       '0775',
+#       'set_chattr_on_dir': false,
+#       'target_nodes':      ['all'],
+#       'create_temp_folders': true
+#     }
+#   vars:
+#     primary_host:                     "{{ first_server_temp | first }}"
+#   when:
+#     - tier == 'sapos'
+#     - usr_sap_install_mountpoint is defined
+
+# # /*---------------------------------------------------------------------------8
+# # |                                                                            |
+# # |                   Prepare the OS for running SAP HANA on                   |
+# # |                   Azure NetApp Files with NFS                              |
+# # |                   Except Scale out + ANF                                   |
+# # +------------------------------------4--------------------------------------*/
+# - name:                                "ANF Mount: Prepare the OS for running
+#                                         SAP HANA on Azure NetApp with NFS"
+#   block:
+#     - name:                             "ANF Mount: Create configuration file for the NetApp configuration settings"
+#       ansible.builtin.blockinfile:
+#         path:                            /etc/sysctl.d/91-NetApp-HANA.conf
+#         backup:                          true
+#         create:                          true
+#         mode:                            0644
+#         marker:                          "# {mark} HANA NetApp configuration high availability"
+#         block: |
+#           net.core.rmem_max = 16777216
+#           net.core.wmem_max = 16777216
+#           net.core.rmem_default = 16777216
+#           net.core.wmem_default = 16777216
+#           net.core.optmem_max = 16777216
+#           net.ipv4.tcp_rmem = 4096 131072 16777216
+#           net.ipv4.tcp_wmem = 4096 16384 16777216
+#           net.core.netdev_max_backlog = 300000
+#           net.ipv4.tcp_slow_start_after_idle=0
+#           net.ipv4.tcp_no_metrics_save = 1
+#           net.ipv4.tcp_moderate_rcvbuf = 1
+#           net.ipv4.tcp_window_scaling = 1
+#           net.ipv4.tcp_timestamps = 0
+#           net.ipv4.tcp_sack = 1
+#       when:
+#         - node_tier == 'hana'
+
+#     - name:                            "Backward Compatibility - Check required Database HA variables"
+#       ansible.builtin.set_fact:
+#         database_high_availability:    "{{ db_high_availability | default(false) }}"
+#       when:
+#         - db_high_availability is defined
+#         - database_high_availability is not defined
+
+#     - name:                             "ANF Mount: Create configuration file for the NetApp configuration settings"
+#       ansible.builtin.blockinfile:
+#         path:                            /etc/sysctl.d/91-NetApp-HANA.conf
+#         backup:                          true
+#         create:                          true
+#         mode:                            0644
+#         marker:                          "# {mark} HANA NetApp configuration standalone"
+#         block: |
+#           net.core.rmem_max = 16777216
+#           net.core.wmem_max = 16777216
+#           net.core.rmem_default = 16777216
+#           net.core.wmem_default = 16777216
+#           net.core.optmem_max = 16777216
+#           net.ipv4.tcp_rmem = 4096 131072 16777216
+#           net.ipv4.tcp_wmem = 4096 16384 16777216
+#           net.core.netdev_max_backlog = 300000
+#           net.ipv4.tcp_slow_start_after_idle=0
+#           net.ipv4.tcp_no_metrics_save = 1
+#           net.ipv4.tcp_moderate_rcvbuf = 1
+#           net.ipv4.tcp_window_scaling = 1
+#           net.ipv4.tcp_timestamps = 1
+#           net.ipv4.tcp_sack = 1
+#       when:
+#         - node_tier == 'hana'
+#         - not database_high_availability
+
+#     - name:                             "ANF Mount: Create configuration file
+#                                           with additional optimization settings"
+#       ansible.builtin.blockinfile:
+#         path:                            /etc/sysctl.d/ms-az.conf
+#         backup:                          true
+#         create:                          true
+#         mode:                            0644
+#         marker:                          "# {mark} HANA NetApp optimizations"
+#         block: |
+#           net.ipv6.conf.all.disable_ipv6 = 1
+#           net.ipv4.tcp_max_syn_backlog = 16348
+#           net.ipv4.conf.all.rp_filter = 0
+#           sunrpc.tcp_slot_table_entries = 128
+#           vm.swappiness=10
+#       when:
+#         - node_tier == 'hana'
+
+#     # /*-----------------------------------------------------------------------8
+#     # | Configure the maximum number of (TCP) RPC requests that can be in      |
+#     # | flight at a time (to the NFS server) to be 128                         |
+#     # |--------------------------------4--------------------------------------*/
+#     - name:                             "ANF Mount: configure the maximum number
+#                                           of RPC requests for the NFS session"
+#       ansible.builtin.blockinfile:
+#         path:                            /etc/modprobe.d/sunrpc.conf
+#         backup:                          true
+#         create:                          true
+#         mode:                            0644
+#         marker:                          "# {mark} NFS RPC Connections"
+#         block:                           "options sunrpc tcp_max_slot_table_entries=128"
+#       when:
+#         - node_tier == 'hana'
+
+#   when:
+#     - tier == 'sapos'
+#     - node_tier == 'hana'
+
+# - name:                                "ANF Mount: Create /hana folder"
+#   ansible.builtin.file:
+#     path:                          /hana
+#     mode:                          0755
+#     state:                         directory
+#     group:                         sapsys
+#   when:
+#     - tier == 'sapos'
+#     - node_tier == 'hana'
+
+# # Note: This block ( and one for second DB note) must run only for HSR - pacemaker HANA scale out
+# # Currently we only support two node cluster + observer.
+# # TODO: Add support for >2(even count) node cluster + observer
+# - name:                                "ANF Mount: HANA data"
+#   ansible.builtin.include_tasks:       2.6.1.1-anf-mount.yaml
+#   loop:
+#     - {
+#       'type':              'data',
+#       'temppath':          'hanadata',
+#       'folder':            'hanadata',
+#       'mount':             '{{ hana_data_mountpoint[0] }}',
+#       'opts':              '{{ mnt_options }}',
+#       'path':              '/hana/data',
+#       'permissions':       '0755',
+#       'set_chattr_on_dir': false,
+#       'target_nodes' :     ['hana'],
+#       'create_temp_folders': true
+#     }
+#   vars:
+#     primary_host:                     "{{ db_hosts[0] }}"
+#   when:
+#     - tier == 'sapos'
+#     - node_tier == 'hana'
+#     - hana_data_mountpoint is defined
+#     - hana_data_mountpoint | length > 0
+#     - ansible_hostname == db_hosts[0]
+#     # For HSR based scale out, needs DB high availability
+#     - db_high_availability is defined
+#     - db_high_availability
+
+# - name:                                "ANF Mount: HANA log"
+#   ansible.builtin.include_tasks:       2.6.1.1-anf-mount.yaml
+#   loop:
+#     - {
+#       'type':                'log',
+#       'temppath':            'hanalog',
+#       'folder':              'hanalog',
+#       'mount' :              '{{ hana_log_mountpoint[0] }}',
+#       'opts':                '{{ mnt_options }}',
+#       'path' :               '/hana/log',
+#       'permissions':         '0755',
+#       'set_chattr_on_dir':   false,
+#       'target_nodes':        ['hana'],
+#       'create_temp_folders': true
+#     }
+#   vars:
+#     primary_host:                     "{{ db_hosts[0] }}"
+#   when:
+#     - tier == 'sapos'
+#     - node_tier == 'hana'
+#     - hana_log_mountpoint is defined
+#     - hana_log_mountpoint | length > 0
+#     - ansible_hostname == db_hosts[0]
+#     # For HSR based scale out, needs DB high availability
+#     - db_high_availability is defined
+#     - db_high_availability
+
+# - name:                                "ANF Mount: HANA shared"
+#   ansible.builtin.include_tasks:       2.6.1.1-anf-mount.yaml
+#   loop:
+#     - {
+#       'type':              'shared',
+#       'temppath':          'hanashared',
+#       'folder':            'hanashared',
+#       'mount':             '{{ hana_shared_mountpoint[0] }}',
+#       'opts':              '{{ mnt_options }}',
+#       'path':              '/hana/shared',
+#       'permissions':       '0775',
+#       'set_chattr_on_dir': false,
+#       'target_nodes' :     ['hana'],
+#       'create_temp_folders': true
+#     }
+#   vars:
+#     primary_host:                     "{{ db_hosts[0] }}"
+#   when:
+#     - tier == 'sapos'
+#     - node_tier == 'hana'
+#     - hana_shared_mountpoint is defined
+#     - hana_shared_mountpoint | length > 0
+#     - ansible_hostname == db_hosts[0]
+#     # For HSR based scale out, needs DB high availability
+#     - db_high_availability is defined
+#     - db_high_availability
+
+# - name:                                "ANF Mount: HANA data (secondary)"
+#   ansible.builtin.include_tasks:       2.6.1.1-anf-mount.yaml
+#   loop:
+#     - {
+#       'type':              'data',
+#       'temppath':          'hanadata',
+#       'folder':            'hanadata',
+#       'mount':             '{{ hana_data_mountpoint[1] }}',
+#       'opts':              '{{ mnt_options }}',
+#       'path':              '/hana/data',
+#       'permissions':       '0755',
+#       'set_chattr_on_dir': false,
+#       'target_nodes' :     ['hana'],
+#       'create_temp_folders': true
+#     }
+#   vars:
+#     primary_host:                     "{{ db_hosts[1] }}"
+#   when:
+#     - tier == 'sapos'
+#     - node_tier == 'hana'
+#     - hana_data_mountpoint is defined
+#     - hana_data_mountpoint | length > 1
+#     - db_hosts | length == 2
+#     - ansible_hostname == db_hosts[1]
+#     # For HSR based scale out, needs DB high availability
+#     - db_high_availability is defined
+#     - db_high_availability
+
+# - name:                                "ANF Mount: HANA log (secondary)"
+#   ansible.builtin.include_tasks:       2.6.1.1-anf-mount.yaml
+#   loop:
+#     - {
+#       'type':                'log',
+#       'temppath':            'hanalog',
+#       'folder':              'hanalog',
+#       'mount' :              '{{ hana_log_mountpoint[1] }}',
+#       'opts':                '{{ mnt_options }}',
+#       'path' :               '/hana/log',
+#       'permissions':         '0755',
+#       'set_chattr_on_dir':   false,
+#       'target_nodes':        ['hana'],
+#       'create_temp_folders': true
+#     }
+#   vars:
+#     primary_host:                     "{{ db_hosts[1] }}"
+#   when:
+#     - tier == 'sapos'
+#     - node_tier == 'hana'
+#     - hana_log_mountpoint is defined
+#     - hana_log_mountpoint | length > 1
+#     - db_hosts | length ==2
+#     - ansible_hostname == db_hosts[1]
+#     # For HSR based scale out, needs DB high availability
+#     - db_high_availability is defined
+#     - db_high_availability
+
+# - name:                                "ANF Mount: HANA shared (secondary)"
+#   ansible.builtin.include_tasks:       2.6.1.1-anf-mount.yaml
+#   loop:
+#     - {
+#       'type':              'shared',
+#       'temppath':          'hanashared',
+#       'folder':            'hanashared',
+#       'mount':             '{{ hana_shared_mountpoint[1] }}',
+#       'opts':              '{{ mnt_options }}',
+#       'path':              '/hana/shared',
+#       'permissions':       '0775',
+#       'set_chattr_on_dir': false,
+#       'target_nodes' :     ['hana'],
+#       'create_temp_folders': true
+#     }
+#   vars:
+#     primary_host:                     "{{ db_hosts[1] }}"
+#   when:
+#     - tier == 'sapos'
+#     - node_tier == 'hana'
+#     - hana_shared_mountpoint is defined
+#     - hana_shared_mountpoint | length > 1
+#     - db_hosts | length == 2
+#     - ansible_hostname == db_hosts[1]
+#     # For HSR based scale out, needs DB high availability
+#     - db_high_availability is defined
+#     - db_high_availability
+
+# # /*---------------------------------------------------------------------------8
+# # |                                                                            |
+# # |                   Prepare the OS for running SAP HANA on                   |
+# # |                   Azure NetApp Files with NFS                              |
+# # |                   Scale out + ANF                                          |
+# # +------------------------------------4--------------------------------------*/
+
+# # FOR ANF mount on SLES and RHEl, the below tasks replicate the steps in the link https://learn.microsoft.com/en-us/azure/sap/workloads/sap-hana-scale-out-standby-netapp-files-suse#mount-the-azure-netapp-files-volumes
+# # Mount the HANA shared on to the temp path
+
+# - name:                                "ANF Mount: Scale Out - Create SAP Directories (usrsap)"
+#   ansible.builtin.file:
+#     owner:                             "{{ db_sid | lower }}adm"
+#     group:                             sapsys
+#     mode:                              0755
+#     path:                              "/usr/sap/{{ db_sid | upper }}"
+#     state:                             directory
+#   when:
+#     - tier == 'hana'
+#     # For Scale out without HSR/pacemaker. Relies on ANF + hot spare to provide HA.
+#     - db_scale_out is defined
+#     - db_scale_out
+
+# - name:                                "ANF Mount: Scale Out - Create SAP Directories (hana data)"
+#   ansible.builtin.file:
+#     owner:                             "{{ db_sid | lower }}adm"
+#     group:                             sapsys
+#     mode:                              0755
+#     path:                              "/hana/data/{{ db_sid | upper }}"
+#     state:                             directory
+#   when:
+#     - tier == 'hana'
+#     # For Scale out without HSR/pacemaker. Relies on ANF + hot spare to provide HA.
+#     - db_scale_out is defined
+#     - db_scale_out
+
+
+# - name:                                "ANF Mount: Scale Out - Create SAP Directories (hana log)"
+#   ansible.builtin.file:
+#     owner:                             "{{ db_sid | lower }}adm"
+#     group:                             sapsys
+#     mode:                              0755
+#     path:                              "/hana/log/{{ db_sid | upper }}"
+#     state:                             directory
+#   when:
+#     - tier == 'hana'
+#     # For Scale out without HSR/pacemaker. Relies on ANF + hot spare to provide HA.
+#     - db_scale_out is defined
+#     - db_scale_out
+
+# - name:                                "ANF Mount: HANA shared - Scale out"
+#   ansible.builtin.include_tasks:       2.6.1.1-anf-mount.yaml
+#   loop:
+#     - {
+#       'type':              'shared',
+#       'temppath':          'shared',
+#       # change folder to match the mount folder within the share
+#       'folder':            'shared',
+#       'mount':             '{{ hana_shared_mountpoint[0] }}',
+#       'opts':              '{{ mnt_options }}',
+#       'path':              '/hana/shared',
+#       'permissions':       '0775',
+#       'set_chattr_on_dir': false,
+#       'target_nodes' :     ['hana'],
+#       'create_temp_folders': true
+#     }
+#   vars:
+#     # Run this on all the nodes, not just primary.
+#     primary_host:                     "{{ ansible_hostname }}"
+#   when:
+#     - node_tier == 'hana'
+#     - hana_shared_mountpoint is defined
+#     - hana_shared_mountpoint | length > 0
+#     # For Scale out without HSR/pacemaker. Relies on ANF + hot spare to provide HA.
+#     - db_scale_out is defined
+#     - db_scale_out
+
+# # This runs for unique share per node
+# - name:                                "ANF Mount: usrsap - Scale out"
+#   ansible.builtin.include_tasks:       2.6.1.1-anf-mount.yaml
+#   loop:
+#     - {
+#       'type':              'usrsap',
+#       'temppath':          'usrsap',
+#       'folder':            "usr-sap-hanadb{{ lookup('ansible.utils.index_of', db_hosts, 'eq', ansible_hostname)  }}",
+#       'mount':             '{{ hana_shared_mountpoint[0] }}',
+#       'opts':              '{{ mnt_options }}',
+#       'path':              '/usr/sap/{{ db_sid | upper }}',
+#       'permissions':       '0775',
+#       'set_chattr_on_dir': false,
+#       'target_nodes' :     ['hana'],
+#       'create_temp_folders': true
+#     }
+#   vars:
+#     primary_host:                     "{{ ansible_hostname }}"
+#   when:
+#     - node_tier == 'hana'
+#     - hana_shared_mountpoint is defined
+#     - hana_shared_mountpoint | length == 1
+#     # For Scale out without HSR/pacemaker. Relies on ANF + hot spare to provide HA.
+#     - db_scale_out is defined
+#     - db_scale_out
+
+# - name:                                "ANF Mount: HANA Data - Scale out - Create mount list"
+#   block:
+#     - name:                            "Initialize HANA Data mountpoints"
+#       ansible.builtin.set_fact:
+#         hana_data_scaleout_mountpoint:   []
+#     - name:                             "Build HANA Data mountpoints"
+#       ansible.builtin.set_fact:
+#     # hana_data_mountpoint:              "{{ hana_data_mountpoint | default([]) + [item] }}"
+#         hana_data_scaleout_mountpoint:     "{{ hana_data_scaleout_mountpoint + dataupdate }}"
+#       loop:                                "{{ hana_data_mountpoint }}"
+#       loop_control:
+#         index_var: my_index
+#       # Note the object structure and specific key:pair value. Do not modify those hard coded.
+#       vars:
+#         dataupdate:
+#           - { type: 'data',
+#               temppath: 'hanadata',
+#               folder:  'hanadata',
+#               mount:             "{{ item }}",
+#               opts:              "{{ mnt_options }}",
+#               path:              "{{ '/hana/data/' + (db_sid | upper ) + '/mnt0000' + ( my_index + 1 )| string }}",
+#               permissions:       '0775',
+#               set_chattr_on_dir: false,
+#               target_nodes:      ['hana'],
+#               create_temp_folders: 'true'
+#             }
+#   when:
+#     - node_tier == 'hana'
+#     - hana_data_mountpoint is defined
+#     # - hana_data_mountpoint | length == db_hosts | length
+#     # For Scale out without HSR/pacemaker. Relies on ANF + hot spare to provide HA.
+#     - db_scale_out is defined
+#     - db_scale_out
+
+# - name:                                "DEBUG:ANF Mount: HANA Data - Scale out - Create mount list"
+#   ansible.builtin.debug:
+#     var:                               hana_data_scaleout_mountpoint
+
+# - name:                                "ANF Mount: HANA Data - Scale out"
+#   ansible.builtin.include_tasks:       2.6.1.1-anf-mount.yaml
+#   # Do not change this to loop:. It Breaks. i don't know why but this modification only seems to work with with_items: despite multiple formatting attempts.
+#   with_items:
+#     - "{{ hana_data_scaleout_mountpoint | list }}"
+#   vars:
+#     primary_host:                     "{{ ansible_hostname }}"
+#   when:
+#     - node_tier == 'hana'
+#     - hana_data_mountpoint is defined
+#     # - hana_data_mountpoint | length == db_hosts | length
+#     # For Scale out without HSR/pacemaker. Relies on ANF + hot spare to provide HA.
+#     - db_scale_out is defined
+#     - db_scale_out
+
+
+# - name:                                "ANF Mount: HANA Log - Scale out - Create mount list"
+#   block:
+#     - name:                            "Initialize HANA Log mountpoints"
+#       ansible.builtin.set_fact:
+#         hana_log_scaleout_mountpoint:   []
+
+#     - name:                             "Build HANA log mountpoints"
+#       ansible.builtin.set_fact:
+#         hana_log_scaleout_mountpoint:     "{{ hana_log_scaleout_mountpoint + logupdate }}"
+#       loop:                               "{{ hana_log_mountpoint }}"
+#       loop_control:
+#         index_var: my_index
+#       # Note the object structure and specific key:pair value. Do not modify those hard coded.
+#       vars:
+#         logupdate:
+#           - { type: 'log',
+#               temppath: 'hanalog',
+#               folder:  'hanalog',
+#               mount:             "{{ item }}",
+#               opts:              "{{ mnt_options }}",
+#               path:              "{{ '/hana/log/' + (db_sid | upper ) + '/mnt0000' + ( my_index + 1 )| string }}",
+#               permissions:       '0775',
+#               set_chattr_on_dir: false,
+#               target_nodes:      ['hana'],
+#               create_temp_folders: 'true'
+#             }
+#   when:
+#     - node_tier == 'hana'
+#     - hana_log_mountpoint is defined
+#     # - hana_log_mountpoint | length == db_hosts | length
+#     # For Scale out without HSR/pacemaker. Relies on ANF + hot spare to provide HA.
+#     - db_scale_out is defined
+#     - db_scale_out
+
+# - name:                                "DEBUG:ANF Mount: HANA Log - Scale out - Create mount list"
+#   ansible.builtin.debug:
+#     var:                               hana_log_scaleout_mountpoint
+
+# - name:                                "ANF Mount: HANA Log - Scale out"
+#   ansible.builtin.include_tasks:       2.6.1.1-anf-mount.yaml
+#   # Do not change this to loop:. It Breaks. i don't know why but this modification only seems to work with with_items: despite multiple formatting attempts.
+#   with_items:
+#     - "{{ hana_log_scaleout_mountpoint | list }}"
+#   vars:
+#     primary_host:                     "{{ ansible_hostname }}"
+#   when:
+#     - node_tier == 'hana'
+#     - hana_log_mountpoint is defined
+#     # - hana_log_mountpoint | length == db_hosts | length
+#     # For Scale out without HSR/pacemaker. Relies on ANF + hot spare to provide HA.
+#     - db_scale_out is defined
+#     - db_scale_out
+
+
+# - name:                                "ANF Mount: Set Permissons on HANA (HSR) Directories ({{ item.path }})"
+#   ansible.builtin.file:
+#     owner:                             '{{ hdbadm_uid }}'
+#     group:                             sapsys
+#     path:                              "{{ item.path }}"
+#     state:                             directory
+#     recurse:                           true
+#   loop:
+#     - { 'path': '/hana/data' }
+#     - { 'path': '/hana/log' }
+#     - { 'path': '/hana/shared' }
+#   when:
+#     - tier == 'sapos'
+#     - node_tier == 'hana'
+#     - db_high_availability is defined
+#     - db_high_availability
+
+
+# - name:                                "ANF Mount: Set Permissons on HANA Directories ({{ item.path }})"
+#   ansible.builtin.file:
+#     owner:                             '{{ hdbadm_uid }}'
+#     group:                             sapsys
+#     path:                              "{{ item.path }}"
+#     state:                             directory
+#     recurse:                           true
+#   with_items:
+#     - "{{ hana_log_scaleout_mountpoint }}"
+#     - "{{ hana_data_scaleout_mountpoint }}"
+#     - { 'path': '/hana/shared' }
+#     - { 'path': '/usr/sap/{{ db_sid | upper }}' }
+#   when:
+#     - tier == 'sapos'
+#     - node_tier == 'hana'
+#     - not (db_high_availability | default(false))
+#     - db_scale_out
+
+# ...

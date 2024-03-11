@@ -15,6 +15,8 @@
 provider "azurerm"                     {
                                          features {}
                                          subscription_id = length(local.deployer_subscription_id) > 0 ? local.deployer_subscription_id : null
+                                         use_msi             = var.use_spn ? false : true
+                                         skip_provider_registration = true
                                        }
 
 provider "azurerm"                     {
@@ -29,13 +31,11 @@ provider "azurerm"                     {
                                                                  purge_soft_deleted_certificates_on_destroy = !var.enable_purge_control_for_keyvaults
                                                               }
                                                   }
-                                         subscription_id = data.azurerm_key_vault_secret.subscription_id.value
-                                         client_id       = var.use_spn ? local.spn.client_id : null
-                                         client_secret   = var.use_spn ? local.spn.client_secret : null
-                                         tenant_id       = var.use_spn ? local.spn.tenant_id : null
-                                         use_msi         = var.use_spn ? false : true
-
-                                         storage_use_azuread = true
+                                         subscription_id     = data.azurerm_key_vault_secret.subscription_id.value
+                                         client_id           = var.use_spn ? local.spn.client_id : null
+                                         client_secret       = var.use_spn ? local.spn.client_secret : null
+                                         tenant_id           = var.use_spn ? local.spn.tenant_id : null
+                                         use_msi             = var.use_spn ? false : true
 
                                          partner_id = "25c87b5f-716a-4067-bcd8-116956916dd6"
                                          alias      = "workload"
@@ -50,7 +50,6 @@ provider "azurerm"                     {
                                          client_secret              = var.use_spn ? local.cp_spn.client_secret : null
                                          tenant_id                  = var.use_spn ? local.cp_spn.tenant_id : null
                                          use_msi                    = var.use_spn ? false : true
-                                         storage_use_azuread        = true
                                          skip_provider_registration = true
                                        }
 
@@ -67,26 +66,35 @@ provider "azurerm"                     {
                                          client_secret              = var.use_spn ? local.cp_spn.client_secret : null
                                          tenant_id                  = var.use_spn ? local.cp_spn.tenant_id : null
                                          use_msi                    = var.use_spn ? false : true
-                                         storage_use_azuread        = true
                                          skip_provider_registration = true
                                        }
 
 provider "azurerm"                     {
                                          features {}
-                                         subscription_id = length(local.deployer_subscription_id) > 0 ? local.deployer_subscription_id : null
-                                         use_msi         = false
-                                         client_id       = var.use_spn ? local.cp_spn.client_id : null
-                                         client_secret   = var.use_spn ? local.cp_spn.client_secret : null
-                                         tenant_id       = var.use_spn ? local.cp_spn.tenant_id : null
-                                         alias           = "peering"
+                                         subscription_id            = length(local.deployer_subscription_id) > 0 ? local.deployer_subscription_id : null
+                                         use_msi                    = var.use_spn ? false : true
+                                         client_id                  = var.use_spn ? local.cp_spn.client_id : null
+                                         client_secret              = var.use_spn ? local.cp_spn.client_secret : null
+                                         tenant_id                  = var.use_spn ? local.cp_spn.tenant_id : null
+                                         alias                      = "peering"
                                          skip_provider_registration = true
                                        }
 
 provider "azuread"                     {
-                                         client_id     = var.use_spn ? local.spn.client_id : null
-                                         client_secret = var.use_spn ? local.spn.client_secret : null
-                                         tenant_id     = local.spn.tenant_id
+                                         client_id                  = var.use_spn ? local.spn.client_id : null
+                                         client_secret              = var.use_spn ? local.spn.client_secret : null
+                                         tenant_id                  = local.spn.tenant_id
+                                         use_msi                    = var.use_spn ? false : true
                                        }
+
+provider "azapi"                       {
+                                          alias           = "api"
+                                          subscription_id = local.spn.subscription_id
+                                          client_id       = local.spn.client_id
+                                          client_secret   = local.spn.client_secret
+                                          tenant_id       = local.spn.tenant_id
+                                      }
+
 terraform                              {
                                          required_version = ">= 1.0"
                                          required_providers {
@@ -109,6 +117,9 @@ terraform                              {
                                                               azurerm =  {
                                                                            source  = "hashicorp/azurerm"
                                                                            version = ">=3.3"
+                                                                         }
+                                                              azapi =    {
+                                                                           source  = "Azure/azapi"
                                                                          }
                                                             }
                                        }

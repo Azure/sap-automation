@@ -130,6 +130,20 @@ $$fencing_role_name$$
 # use_simple_mount specifies if Simple mounts are used (Applicable for SLES 15 SP# or newer)
 $$use_simple_mount$$
 
+# Configure fencing device based on the fence agent fence_kdump for both SCS and DB clusters
+$$use_fence_kdump$$
+
+# Default size of the kdump disk which will be attached to the VMs which are part DB cluster
+$$use_fence_kdump_size_gb_db$$
+
+# Default LUN number of the kdump disk which will be attached to the VMs which are part of DB cluster
+$$use_fence_kdump_lun_db$$
+
+# Default size of the kdump disk which will be attached to the VMs which are part of SCS cluster
+$$use_fence_kdump_size_gb_scs$$
+
+# Default LUN number of the kdump disk which will be attached to the VMs which are part of SCS cluster
+$$use_fence_kdump_lun_scs$$
 
 #########################################################################################
 #                                                                                       #
@@ -249,7 +263,6 @@ $$database_use_avset$$
 # Optional, Defines if the tags for the database virtual machines
 $$database_tags$$
 
-$$database_HANA_use_ANF_scaleout_scenario$$
 
 #########################################################################################
 #                                                                                       #
@@ -451,6 +464,9 @@ $$deploy_application_security_groups$$
 # deploy_v1_monitoring_extension Defines if the Microsoft.AzureCAT.AzureEnhancedMonitoring extension will be deployed
 $$deploy_v1_monitoring_extension$$
 
+# dns_a_records_for_secondary_names defines if DNS records should be created for the virtual host names
+$$dns_a_records_for_secondary_names$$
+
 #########################################################################################
 #                                                                                       #
 #  NFS support                                                                          #
@@ -474,8 +490,18 @@ $$sapmnt_private_endpoint_id$$
 # use_random_id_for_storageaccounts defines if the sapmnt storage account name will have a random suffix
 $$use_random_id_for_storageaccounts$$
 
+#########################################################################################
+#                                                                                       #
+#  ANF                                                                                  #
+#                                                                                       #
+#########################################################################################
+
 # ANF_HANA_use_AVG defines if the ANF volume will be created in an Application Volume Group
 $$ANF_HANA_use_AVG$$
+
+# ANF_HANA_use_Zones defines if the ANF volume will be created in an Availability zones
+$$ANF_HANA_use_Zones$$
+
 
 #########################################################################################
 #                                                                                       #
@@ -497,6 +523,9 @@ $$ANF_HANA_data_use_existing_volume$$
 
 # ANF_HANA_data_volume_name, if defined, provides the name of the HANA data volume(s).
 $$ANF_HANA_data_volume_name$$
+
+# Number of ANF Data Volumes
+$$ANF_HANA_data_volume_count$$
 
 
 #########################################################################################
@@ -520,6 +549,8 @@ $$ANF_HANA_log_use_existing$$
 # ANF_HANA_log_volume_name, if defined, provides the name of the HANA log volume(s).
 $$ANF_HANA_log_volume_name$$
 
+# Number of ANF Data Volumes
+$$ANF_HANA_log_volume_count$$
 
 #########################################################################################
 #                                                                                       #
@@ -616,25 +647,29 @@ $$vm_disk_encryption_set_id$$
 # nsg_asg_with_vnet if set controls where the Application Security Groups are created
 $$nsg_asg_with_vnet$$
 
+#########################################################################################
 # RESOURCE GROUP
 # The two resource group name and arm_id can be used to control the naming and the creation of the resource group
 # The resourcegroup_name value is optional, it can be used to override the name of the resource group that will be provisioned
 # The resourcegroup_name arm_id is optional, it can be used to provide an existing resource group for the deployment
+#########################################################################################
 
 $$resourcegroup_name$$
 
 $$resourcegroup_arm_id$$
 
-# PPG
-# The proximity placement group names and arm_ids are optional can be used to
-# control the naming and the creation of the proximity placement groups
-# The proximityplacementgroup_names list value is optional,
-# it can be used to override the name of the proximity placement groups that will be provisioned
-# The proximityplacementgroup_arm_ids list value is optional,
-# it can be used to provide an existing proximity placement groups for the deployment
+#########################################################################################
+#                                                                                       #
+#  PPG                                                                                  #
+#    The proximity placement group names and arm_ids are optional can be used to
+#    control the naming and the creation of the proximity placement groups
+#                                                                                       #
+#########################################################################################
 
+# If provided, names of the proximity placement groups
 $$proximityplacementgroup_names$$
 
+# If provided, azure resource ids for the proximity placement groups
 $$proximityplacementgroup_arm_ids$$
 
 # Boolean value indicating if an proximity placement group should be used for the app tier VMs
@@ -786,22 +821,24 @@ $$anchor_vm_authentication_username$$
 
 #########################################################################################
 #                                                                                       #
-#  Terraform deploy parameters                                                          #
+#  Terraform deployment parameters                                                      #
 #                                                                                       #
 #########################################################################################
 
-# - tfstate_resource_id is the Azure resource identifier for the Storage account in the SAP Library
-#   that will contain the Terraform state files
-# - deployer_tfstate_key is the state file name for the deployer
-# - landscape_tfstate_key is the state file name for the workload deployment
 # These are required parameters, if using the deployment scripts they will be auto populated otherwise they need to be entered
 
+# tfstate_resource_id is the Azure resource identifier for the Storage account in the SAP Library
+# that will contain the Terraform state files
 $$tfstate_resource_id$$
 
+# deployer_tfstate_key is the state file name for the deployer
 $$deployer_tfstate_key$$
 
+# landscape_tfstate_key is the state file name for the workload deployment
 $$landscape_tfstate_key$$
 
+# use_spn defines if the deployments are performed using Service Principals or the deployer's managed identiry, true=SPN, false=MSI
+$$use_spn$$
 
 #########################################################################################
 #                                                                                       #
@@ -824,3 +861,35 @@ $$configuration_settings$$
 
 # These tags will be applied to all resources
 $$tags$$
+
+
+#########################################################################################
+#                                                                                       #
+#  Scaleout variables                                                                   #
+#                                                                                       #
+#########################################################################################
+
+#If true, the database tier will be configured for scaleout scenario
+$$database_HANA_use_ANF_scaleout_scenario$$
+
+# Defined the standbynode count in a scaleout scenario
+$$stand_by_node_count$$
+
+
+#########################################################################################
+#                                                                                       #
+#  AMS variables                                                                        #
+#                                                                                       #
+#########################################################################################
+
+# If defined, will enable prometheus high availability cluster monitoring
+$$enable_ha_monitoring$$
+
+# If defined, will enable prometheus operating system level monitoring
+$$enable_os_monitoring$$
+
+# If defined, will use the specified Azure Monitor for SAP instance, else will use the AMS instance in the workload zone.
+$$ams_resource_id$$
+
+
+

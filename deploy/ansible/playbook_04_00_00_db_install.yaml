@@ -77,11 +77,71 @@
       tags:
         - kv-sap-installation-media-storage-details
 
+    - name:                            "Database Installation Playbook: - Generate root password"
+      ansible.builtin.set_fact:
+        root_password:                 "{{ lookup('ansible.builtin.password', '/dev/null', seed=inventory_hostname) }}"
+      when:
+        - db_scale_out is defined
+        - db_scale_out
+        - not db_high_availability
+      register:                         root_password_generated
+
+    - name:                        "Database Installation Playbook: - Show root password"
+      ansible.builtin.debug:
+        msg:                       "{{ hostvars.localhost.root_password }}"
+        verbosity:                 4
+      when:
+        - hostvars.localhost.root_password is defined
+
+
 # /*----------------------------------------------------------------------------8
 # |                                                                            |
 # |                      Playbook for HANA DB Install                           |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
+
+# +------------------------Scale out HANA configuration only -----------------*/
+
+# This configures root account on HANA nodes for scale out + anf configuration only
+- hosts:                               "{{ sap_sid | upper }}_DB"
+  name:                                DB Installation - login configuration
+  remote_user:                         "{{ orchestration_ansible_user }}"
+  gather_facts:                        true
+  any_errors_fatal:                    true
+  vars_files:
+    - vars/ansible-input-api.yaml
+  tasks:
+    - name:                           "SAP HANA: Configure root credential for Scale-Out"
+      block:
+        - name:                            Reset root password
+          become:                          true
+          ansible.builtin.user:
+            name:                          root
+            update_password:               always
+            password:                      "{{ hostvars.localhost.root_password | password_hash('sha512') }}"
+
+        - name:                            Enable {{ item.key }} in /etc/ssh/sshd_config
+          become:                          true
+          ansible.builtin.lineinfile:
+            path:                          "/etc/ssh/sshd_config"
+            regex:                         "^(# *)?{{ item.key }}"
+            line:                          "{{ item.key }} {{ item.value }}"
+            state:                         present
+          loop:
+            - { key: "PermitRootLogin", value: "yes" }
+            - { key: "PasswordAuthentication", value: "yes" }
+            - { key: "ChallengeResponseAuthentication", value: "yes" }
+
+        - name:                            "Restart SSHD on {{ ansible_hostname }}"
+          become:                          true
+          ansible.builtin.service:
+            name:                          sshd
+            state:                         restarted
+
+      when:
+        - not db_high_availability
+        - db_scale_out | default(false)
+        - hostvars.localhost.root_password is defined
 
 
 - hosts:                               "{{ sap_sid | upper }}_DB"
@@ -107,7 +167,8 @@
 
     - name:                            "Database Installation Playbook: - Install HANA"
       become:                          true
-      when: node_tier == 'hana'
+      when:
+        - node_tier == 'hana'
       block:
         - name:                        "Database Installation Playbook: - Setting the DB facts"
           ansible.builtin.set_fact:
@@ -115,8 +176,17 @@
             main_password:             "{{ hostvars.localhost.sap_password }}"
             sapbits_location_base_path: "{{ hostvars.localhost.sapbits_location_base_path }}"
             sapbits_sas_token:         "{{ hostvars.localhost.sapbits_sas_token }}"
+            # Only applicable for scale out with HSR
           tags:
             - always
+
+        - name:                        "Database Installation Playbook: - Setting the DB Scale Out facts"
+          ansible.builtin.set_fact:
+            root_password:             "{{ hostvars.localhost.root_password }}"
+          when:
+            - db_scale_out is defined
+            - db_scale_out
+            - not db_high_availability
 
         - name:                        "Database Installation Playbook: - Show SAP password"
           ansible.builtin.debug:
@@ -128,6 +198,20 @@
             - name:                    "Database Installation Playbook: - run HANA installation"
               ansible.builtin.include_role:
                 name:                  roles-db/4.0.0-hdb-install
+              when:
+                - not db_scale_out
+
+            # - name:                    "Database installation Playbook: - run HANA Scale-Out mounts"
+            #   ansible.builtin.include_role:
+            #     name:                   roles-sap-os/2.6-sap-mounts
+            #   when:
+            #     - db_scale_out | default(false) == true
+
+            - name:                    "Database Installation Playbook: - run HANA Scale-Out installation"
+              ansible.builtin.include_role:
+                name:                  roles-db/4.0.3-hdb-install-scaleout
+              when:
+                - db_scale_out
 
             - name:                    "Database Installation Playbook: - Create db-install-done flag"
               delegate_to:             localhost
@@ -547,7 +631,7 @@
 
         - name:                        Setting the DB facts
           ansible.builtin.set_fact:
-            tier:                      db2                                    # Actions for Oracle DB Servers
+            tier:                      db2                                    # Actions for DB2 Servers
             main_password:             "{{ hostvars.localhost.sap_password }}"
             sapbits_location_base_path: "{{ hostvars.localhost.sapbits_location_base_path }}"
             sapbits_sas_token:         "{{ hostvars.localhost.sapbits_sas_token }}"
@@ -575,8 +659,8 @@
           vars:
             suffix:                    "_DB"
             tier:                      'db2'
-            prefix:                    "{{ bom.product_ids.dblha.replace('.', '/').replace('/ABAP', '').split(':')[1] }}"
-            path:                      "INSTALL/DISTRIBUTED/ABAP/DB"
+            prefix:                    "{{ bom.product_ids.dblha.replace('.', '/').replace('/' + db2_instance_type, '').split(':')[1] }}"
+            path:                      "INSTALL/DISTRIBUTED/{{ db2_instance_type }}/DB"
             this_sid:                  "{{ sap_sid }}"
 
 

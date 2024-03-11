@@ -9,14 +9,14 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.x'
 
       - name: Install Ansible and Ansible-Lint
         run: |
           python -m pip install --upgrade pip
-          pip install ansible-core ansible-lint==6.20.3 jmespath netaddr
+          pip install ansible-core ansible-lint==24.2.0 jmespath netaddr
 
       - name: Install Ansible Collections
         run: |

@@ -254,7 +254,7 @@
         fail_msg: "{{ item_to_check.error }}"
       loop:
         - {
-          parameter:                   "db_lb_ip",
+          parameter:                   "database_loadbalancer_ip",
           error:                       "A highly available SCS deployment requires that scs_lb_ip is provided",
         }
         - {
@@ -278,7 +278,7 @@
       when:
         # - db_high_availability
         - (database_high_availability and database_cluster_type == "AFA")
-        - platform == "HANA"
+        - platform in ["HANA", "DB2"]
 
     - name:                            "0.0 Validations - sharedHome variables"
       ansible.builtin.debug:
@@ -594,6 +594,8 @@
         path:                          '/etc/sap_deployment_automation/{{ sap_sid | upper }}'
         state:                         directory
         mode:                          '0755'
+      when:
+        - ansible_os_family != "Windows"
 
     - name:                            "0.0 Validations - Show Hosts"
       ansible.builtin.shell:           set -o pipefail && cat /etc/hosts | grep -v -e "^#" | grep -v -e '^[[:space:]]*$'

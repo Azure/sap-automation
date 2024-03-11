@@ -60,12 +60,8 @@ variable "key_vault"                   {
                                        }
 
 variable "dns_label"                   {
-                                          validation {
-                                          condition = (
-                                            length(trimspace(var.dns_label)) != 0
-                                          )
-                                          error_message = "The dns_label must be specified."
-                                        }
+                                          description = "DNS label for the deployment"
+                                          default     = ""
 
                                        }
 
@@ -73,9 +69,10 @@ variable "dns_zone_names"              {
                                          description = "Private DNS zone names"
                                          type        = map(string)
                                          default = {
-                                                     "file_dns_zone_name"  = "privatelink.file.core.windows.net"
-                                                     "blob_dns_zone_name"  = "privatelink.blob.core.windows.net"
-                                                     "vault_dns_zone_name" = "privatelink.vaultcore.azure.net"
+                                                      "file_dns_zone_name"   = "privatelink.file.core.windows.net"
+                                                      "blob_dns_zone_name"   = "privatelink.blob.core.windows.net"
+                                                      "table_dns_zone_name"  = "privatelink.table.core.windows.net"
+                                                      "vault_dns_zone_name"  = "privatelink.vaultcore.azure.net"
                                                    }
                                        }
 

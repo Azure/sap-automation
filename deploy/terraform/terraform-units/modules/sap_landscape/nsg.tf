@@ -82,6 +82,7 @@ resource "azurerm_network_security_group" "app" {
                                          )
 }
 
+
 # Associates app nsg to app subnet
 resource "azurerm_subnet_network_security_group_association" "app" {
   provider                             = azurerm.main
@@ -141,7 +142,7 @@ resource "azurerm_network_security_rule" "nsr_controlplane_app" {
   access                               = "Allow"
   protocol                             = "Tcp"
   source_port_range                    = "*"
-  destination_port_ranges              = [22, 443, 3389, 5985, 5986]
+  destination_port_ranges              = [22, 443, 3389, 5985, 5986, 5404, 5405, 7630]
   source_address_prefixes              = compact(concat(var.deployer_tfstate.subnet_mgmt_address_prefixes, var.deployer_tfstate.subnet_bastion_address_prefixes))
   destination_address_prefixes         = azurerm_subnet.app[0].address_prefixes
 }

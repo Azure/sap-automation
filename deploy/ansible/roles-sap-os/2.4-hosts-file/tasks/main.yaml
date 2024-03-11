@@ -88,7 +88,7 @@
     create:                            true
     state:                             present
     block: |
-      {{ '%-19s' | format(db_lb_ip) }} {{ '%-50s' | format(db_virtual_hostname + '.' + sap_fqdn) }} {{ '%-21s' | format(db_virtual_hostname) }}
+      {{ '%-19s' | format(database_loadbalancer_ip) }} {{ '%-50s' | format(db_virtual_hostname + '.' + sap_fqdn) }} {{ '%-21s' | format(db_virtual_hostname) }}
     marker:                            "# {mark} DB Entries {{ db_virtual_hostname }}"
   when:
     - database_high_availability
@@ -101,31 +101,40 @@
     create:                            true
     state:                             present
     block: |
-      {{ '%-19s' | format(db_lb_ip) }} {{ '%-50s' | format(db_virtual_hostname + '.' + sap_fqdn) }} {{ '%-21s' | format(db_virtual_hostname) }}
+      {{ '%-19s' | format(database_loadbalancer_ip) }} {{ '%-50s' | format(db_virtual_hostname + '.' + sap_fqdn) }} {{ '%-21s' | format(db_virtual_hostname) }}
     marker:                            "# {mark} DB Entries {{ db_virtual_hostname }}"
   when:
     - database_high_availability
     - platform == 'DB2'
 
 - name:                                "2.4 Hosts: Process pas_hostname variable and update host file when it is defined"
-  when:
-    - custom_scs_virtual_hostname | default(false, true)
   block:
-    - name:                            "2.4 Hosts: - Set virtual_host fact from the fetched PAS server list"
+
+    - name:                            "2.4 Hosts: Set virtual_host fact from the fetched PAS server list"
       ansible.builtin.set_fact:
-        pas_virtualhost_from_inventory: "{{ hostvars[query('inventory_hostnames', '{{ sap_sid | upper }}_PAS') | first]['virtual_host'] }}"
-      when: query('inventory_hostnames', sap_sid | upper ~ '_PAS') | length > 0
+        pas_server_temp:               "{{ pas_server_temp | default([]) + [item] }}"
+      with_items:
+                                       - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_PAS') }}"
+                                       - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') }}"
+                                       - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
+      when:
+                                       - "'pas' in hostvars[item]['supported_tiers']"
 
     - name:                            "2.4 Hosts: - Set fact for the PAS if pas_hostname is defined"
       ansible.builtin.set_fact:
-        pas_virtual_hostname:          "{{ custom_pas_virtual_hostname | default(pas_virtualhost_from_inventory, true) }}"
+        pas_virtualhost_from_inventory: "{{ pas_server_temp | first }}"
+        pas_virtual_hostname:           "{{ custom_pas_virtual_hostname | default( pas_server_temp | first , true) }}"
+      when:
+        - pas_server_temp | length > 0
 
     - name:                            "2.4 Hosts: - Display the variables being used"
       ansible.builtin.debug:
         msg:
-          - "pas_hostname:             {{ custom_pas_virtual_hostname }} "
           - "pas_virtual_hostname:     {{ pas_virtual_hostname }} "
+          - "custom_pas_hostname:      {{ custom_pas_virtual_hostname }} "
           - "virtualhost_in_inventory: {{ pas_virtualhost_from_inventory }}"
+      when:
+        - pas_server_temp | length > 0
 
     - name:                            "2.4 Hosts: - Get the line from /etc/hosts with virtual_host"
       ansible.builtin.slurp:
@@ -135,6 +144,8 @@
     - name:                            "2.4 Hosts: - Extract the line with virtual_host"
       ansible.builtin.set_fact:
         virtual_host_line:             "{{ (hosts_content['content'] | b64decode).split('\n') | select('search', pas_virtualhost_from_inventory) | first }}"
+      when:
+        - pas_virtualhost_from_inventory is defined
 
     - name:                            "2.4 Hosts: - Duplicate the line with virtual_host and replace with pas_virtual_hostname in /etc/hosts"
       when:

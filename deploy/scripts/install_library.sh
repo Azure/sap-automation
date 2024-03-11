@@ -165,11 +165,10 @@ generic_config_information="${automation_config_directory}"config
 library_config_information="${automation_config_directory}""${environment}""${region_code}"
 
 #Plugins
-if [ ! -d "$HOME/.terraform.d/plugin-cache" ]
-then
-    mkdir "$HOME/.terraform.d/plugin-cache"
-fi
-export TF_PLUGIN_CACHE_DIR="$HOME/.terraform.d/plugin-cache"
+sudo mkdir -p /opt/terraform/.terraform.d/plugin-cache
+sudo chown -R $USER:$USER /opt/terraform
+export TF_PLUGIN_CACHE_DIR=/opt/terraform/.terraform.d/plugin-cache
+
 
 param_dirname=$(pwd)
 

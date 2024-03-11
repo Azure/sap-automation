@@ -8,6 +8,7 @@ resource "local_file" "ansible_inventory_new_yml" {
   content       = templatefile(format("%s%s", path.module, "/ansible_inventory.tmpl"), {
                     ips_dbnodes         = var.database_server_ips
                     dbnodes             = var.platform == "HANA" ? var.naming.virtualmachine_names.HANA_COMPUTERNAME : var.naming.virtualmachine_names.ANYDB_COMPUTERNAME
+                    db_vmnodes          = var.database_server_vm_names
                     virt_dbnodes        = var.use_secondary_ips ? (
                                             var.platform == "HANA" ? var.naming.virtualmachine_names.HANA_SECONDARY_DNSNAME : var.naming.virtualmachine_names.ANYDB_SECONDARY_DNSNAME
                                             ) : (
@@ -34,6 +35,10 @@ resource "local_file" "ansible_inventory_new_yml" {
                                             slice(var.naming.virtualmachine_names.APP_COMPUTERNAME, 0, 1)) : (
                                             []
                                           ),
+                    pas_vmnodes         = length(var.application_server_ips) > 0 ? (
+                                            slice(var.app_vm_names, 0, 1)) : (
+                                            []
+                                          ),
 
                     virt_pas_servers    = var.use_secondary_ips ? (
                                             length(var.application_server_ips) > 0 ? slice(var.naming.virtualmachine_names.APP_SECONDARY_DNSNAME, 0, 1) : []) : (
@@ -42,6 +47,11 @@ resource "local_file" "ansible_inventory_new_yml" {
 
                     app_servers         = length(var.application_server_ips) > 1 ? (
                                             slice(var.naming.virtualmachine_names.APP_COMPUTERNAME, 1, length(var.application_server_ips))) : (
+                                            []
+                                          ),
+
+                    app_vmnodes         = length(var.application_server_ips) > 0 ? (
+                                            slice(var.app_vm_names, 1, length(var.app_vm_names))) : (
                                             []
                                           ),
 
@@ -54,6 +64,10 @@ resource "local_file" "ansible_inventory_new_yml" {
                                             slice(var.naming.virtualmachine_names.SCS_COMPUTERNAME, 0, 1)) : (
                                             []
                                           ),
+                    scs_vmnodes         = length(var.scs_server_ips) > 0 ? (
+                                            slice(var.scs_vm_names, 0, 1)) : (
+                                            []
+                                          ),
 
                     virt_scs_servers    = var.use_secondary_ips ? (
                                             length(var.scs_server_ips) > 0 ? slice(var.naming.virtualmachine_names.SCS_SECONDARY_DNSNAME, 0, 1) : []) : (
@@ -62,6 +76,10 @@ resource "local_file" "ansible_inventory_new_yml" {
 
                     ers_servers         = length(var.scs_server_ips) > 1 ? (
                                             slice(var.naming.virtualmachine_names.SCS_COMPUTERNAME, 1, length(var.scs_server_ips))) : (
+                                            []
+                                          ),
+                    ers_vmnodes         = length(var.scs_server_ips) > 0 ? (
+                                            slice(var.scs_vm_names, 1, length(var.scs_vm_names))) : (
                                             []
                                           ),
 
@@ -74,6 +92,12 @@ resource "local_file" "ansible_inventory_new_yml" {
                                             slice(var.naming.virtualmachine_names.WEB_COMPUTERNAME, 0, length(var.webdispatcher_server_ips))) : (
                                             []
                                           ),
+
+                    web_vmnodes         = length(var.webdispatcher_server_ips) > 0 ? (
+                                            slice(var.webdispatcher_server_vm_names, 0, length(var.webdispatcher_server_ips))) : (
+                                            []
+                                          ),
+
                     virt_web_servers    = var.use_secondary_ips ? (
                                             length(var.webdispatcher_server_ips) > 0 ? slice(var.naming.virtualmachine_names.WEB_SECONDARY_DNSNAME, 0, length(var.webdispatcher_server_ips)) : []) : (
                                             length(var.webdispatcher_server_ips) > 0 ? slice(var.naming.virtualmachine_names.WEB_COMPUTERNAME, 0, length(var.webdispatcher_server_ips)) : []
@@ -151,13 +175,13 @@ resource "local_file" "ansible_inventory_new_yml" {
 # }
 
 resource "local_file" "sap-parameters_yml" {
-  content = templatefile(format("%s/sap-parameters.yml.tmpl", path.module), {
+  content = templatefile(format("%s/sap-parameters.tmpl", path.module), {
               app_instance_number         = var.app_instance_number
               bom                         = length(var.bom_name) > 0 ? var.bom_name : ""
               database_cluster_type       = var.database_cluster_type
               database_high_availability  = var.database_high_availability
               database_cluster_ip         = try(format("%s/%s", var.database_cluster_ip, var.database_subnet_netmask), "")
-              db_instance_number          = try(var.database.instance.instance_number, "00")
+              db_instance_number          = try(var.database.instance.number, "00")
               database_loadbalancer_ip    = var.database_loadbalancer_ip
               db_sid                      = var.db_sid
               disks                       = var.disks
@@ -182,6 +206,7 @@ resource "local_file" "sap-parameters_yml" {
                                               ""
                                             )
               is_use_simple_mount         = var.use_simple_mount
+              is_use_fence_kdump          = var.is_use_fence_kdump
               iscsi_server_list           = concat(local.iscsi_scs_servers, local.iscsi_db_servers)
               kv_name                     = local.kv_name,
               NFS_provider                = var.NFS_provider
@@ -196,6 +221,7 @@ resource "local_file" "sap-parameters_yml" {
                                               ""
                                             )
               asd_disks                   = concat(var.scs_shared_disks, var.database_shared_disks)
+              scale_out                   = var.scale_out
               scs_cluster_loadbalancer_ip = try(format("%s/%s", var.scs_cluster_loadbalancer_ip, var.app_subnet_netmask), "")
               scs_cluster_type            = var.scs_cluster_type
               scs_high_availability       = var.scs_high_availability
@@ -215,6 +241,9 @@ resource "local_file" "sap-parameters_yml" {
                                             )
               web_instance_number         = var.web_instance_number
               web_sid                     = var.web_sid
+              ams_resource_id             = var.ams_resource_id
+              enable_os_monitoring        = var.enable_os_monitoring
+              enable_ha_monitoring        = var.enable_ha_monitoring
 
     }
   )

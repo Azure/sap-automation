@@ -330,6 +330,19 @@
 # Step: 08 - END
 # -------------------------------------+---------------------------------------8
 
+- name:                                 "(pre_checks.yaml) - {{ task_prefix }} - Get account information"
+  ansible.builtin.command: >-
+                                        az account show
+  vars:
+    task_prefix:                        Storage Account validation
+  delegate_to:                          localhost
+  register:                             azresult
+  ignore_errors:                        true
+  changed_when:                         false
+
+- name:                                 "(pre_checks.yaml) - {{ task_prefix }} - Show account information"
+  ansible.builtin.debug:
+    var:                                azresult
 
 # -------------------------------------+---------------------------------------8
 # Step: 09
@@ -356,12 +369,12 @@
   when:
     - "sapbits_location_base_path is defined"                                 # Has the variable been defined
     - "sapbits_location_base_path | trim | length != 0"                       #  and given a value
-
+    - not allowSharedKeyAccess or (sapbits_sas_token is defined and (sapbits_sas_token | trim | length != 0))
     # - "sapbits_access_key         is defined"                                 # Has the variable been defined
     # - "sapbits_access_key         | trim | length != 0"                       #  and given a value
 
-    - "sapbits_sas_token          is defined"                                 # Has the variable been defined
-    - "sapbits_sas_token          | trim | length != 0"                       #  and given a value
+    # - "sapbits_sas_token          is defined"                                 # Has the variable been defined
+    # - "sapbits_sas_token          | trim | length != 0"                       #  and given a value
 # Step: 10 - END
 # -------------------------------------+---------------------------------------8
 
@@ -370,7 +383,7 @@
 # Step: 11
 # Description:
 #
-- name:                                 "(pre_checks.yaml) - {{ task_prefix }} - Check storage account container"
+- name:                                 "(pre_checks.yaml) - {{ task_prefix }} - Check storage account container when using SAS Token"
   ansible.builtin.command: >-
                                         az storage blob upload
                                           --account-name {{ sapbits_location_base_path.rpartition('//')[2].split('.')[0] }}
@@ -393,6 +406,33 @@
   no_log:                               true                                    # censor output of secret
   when:
     - sa_enabled
+    - allowSharedKeyAccess
+
+- name:                                 "(pre_checks.yaml) - {{ task_prefix }} - Check storage account container"
+  ansible.builtin.command: >-
+                                        az storage blob upload
+                                          --account-name {{ sapbits_location_base_path.rpartition('//')[2].split('.')[0] }}
+                                          --auth-mode login
+                                          --container-name {{ sapbits_location_base_path.rpartition('//')[2].split('/')[1] }}/{{ sapbits_bom_files }}/archives
+                                          --name readme.md
+                                          --file {{ readme_file.dest }}
+                                          --if-none-match "*"
+                                          --no-progress
+  vars:
+    task_prefix:                        Storage Account validation
+  delegate_to:                          localhost
+  register:                             azresult
+  ignore_errors:                        true
+  changed_when:                         false
+  failed_when:
+    - azresult.rc != 0
+    - azresult.stderr is defined
+    - azresult.stderr.find("BlobAlreadyExists") == -1
+  no_log:                               true                                    # censor output of secret
+  when:
+    - sa_enabled
+    - not allowSharedKeyAccess
+
 # Step: 11 - END
 # -------------------------------------+---------------------------------------8
 
@@ -409,7 +449,18 @@
     that:
       - "sapbits_location_base_path is defined"                                 # Has the variable been defined
       - "sapbits_location_base_path | trim | length != 0"                       #  and given a value
+    success_msg: |-
+                                        Storage Account access ENABLED
+                                        sa_enabled:       {{ sa_enabled }}
+    fail_msg: |-
+                                        Storage Account access DISABLED
+                                        sa_enabled:       {{ sa_enabled }}
+  failed_when:                         false
 
+- name:                                "(pre_checks.yaml) - Informational check of Storage Account parameters"
+  when:                                 allowSharedKeyAccess
+  ansible.builtin.assert:
+    that:
       - "sapbits_access_key         is defined"                                 # Has the variable been defined
       - "sapbits_access_key         | trim | length != 0"                       #  and given a value
 
@@ -422,6 +473,7 @@
                                         Storage Account access DISABLED
                                         sa_enabled:       {{ sa_enabled }}
   failed_when:                         false
+
 # Step: 12 - END
 # -------------------------------------+---------------------------------------8
 

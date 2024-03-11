@@ -48,7 +48,8 @@
             "Value": ""
           }
         ],
-        "Overrules": ""
+        "Overrules": "",
+        "Display": 1
       }
     ]
   },
@@ -175,6 +176,15 @@
         "Options": [],
         "Overrules": "",
         "Display": 2
+      },
+      {
+        "Name": "use_spn",
+        "Required": false,
+        "Description": " If set, the deployment is performed using the Service Principal defined for the workload zone, otherwise the managed identity of the deployer is used",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
       }
     ]
   },
@@ -285,6 +295,15 @@
         "Options": [],
         "Overrules": "",
         "Display": 3
+      },
+      {
+        "Name": "dns_a_records_for_secondary_names",
+        "Required": false,
+        "Description": "Defines if DNS records should be created for the virtual host names.",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
       },
       {
         "Name": "use_private_endpoint",
@@ -623,15 +642,6 @@
             "Value": ""
           }
         ],
-        "Overrules": "",
-        "Display": 3
-      },
-      {
-        "Name": "database_HANA_use_ANF_scaleout_scenario",
-        "Required": false,
-        "Description": "Not implemented yet.",
-        "Type": "checkbox",
-        "Options": [],
         "Overrules": "",
         "Display": 3
       },
@@ -1379,7 +1389,53 @@
         "Options": [],
         "Overrules": "",
         "Display": 3
+      },
+      {
+        "Name": "use_fence_kdump",
+        "Required": false,
+        "Description": "Configure fencing device based on the fence agent fence_kdump for both SCS and DB clusters",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "use_fence_kdump_size_gb_db",
+        "Required": false,
+        "Description": "Default size of the kdump disk which will be attached to the VMs which are part DB cluster.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "use_fence_kdump_lun_db",
+        "Required": false,
+        "Description": "Default LUN number of the kdump disk which will be attached to the VMs which are part of DB cluster.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "use_fence_kdump_size_gb_scs",
+        "Required": false,
+        "Description": "Default size of the kdump disk which will be attached to the VMs which are part of SCS cluster.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "use_fence_kdump_lun_scs",
+        "Required": false,
+        "Description": "Default LUN number of the kdump disk which will be attached to the VMs which are part of SCS cluster.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
       }
+
     ]
   },
   {
@@ -1799,6 +1855,33 @@
         "Options": [],
         "Overrules": "",
         "Display": 2
+      },
+      {
+        "Name": "ANF_HANA_use_Zones",
+        "Required": false,
+        "Description": "defines if the ANF volume(s) will be deployed in availability zones",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "database_HANA_use_ANF_scaleout_scenario",
+        "Required": false,
+        "Description": "If true, the database tier will be configured for scaleout scenario.",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "stand_by_node_count",
+        "Required": false,
+        "Description": "The number of standby nodes.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
       }
     ]
   },
@@ -1850,6 +1933,15 @@
         "Options": [],
         "Overrules": "",
         "Display": 3
+      },
+      {
+        "Name": "ANF_HANA_data_volume_count",
+        "Required": false,
+        "Description": "Number of ANF Data Volumes",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
       }
     ]
   },
@@ -1897,6 +1989,15 @@
         "Name": "ANF_HANA_log_volume_name",
         "Required": false,
         "Description": "Azure NetApp volumes name(s) for existing HANA log volume(s)",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "ANF_HANA_data_volume_count",
+        "Required": false,
+        "Description": "Number of ANF Data Volumes",
         "Type": "field",
         "Options": [],
         "Overrules": "",
@@ -2164,6 +2265,39 @@
         "Options": [],
         "Overrules": "",
         "Display": 3
+      }
+    ]
+  },
+  {
+    "Section": "Azure Monitor support",
+    "Link": "https://learn.microsoft.com/en-us/azure/sap/automation/automation-configure-system",
+    "Parameters": [
+      {
+        "Name": "ams_resource_id",
+        "Required": false,
+        "Description": "Defines the Azure resource id for the Log analytics workspace in AMS",
+        "Type": "lookup",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "enable_ha_monitoring",
+        "Required": false,
+        "Description": "Enables prometheus high availability cluster monitoring.",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "enable_os_monitoring",
+        "Required": false,
+        "Description": "Enable prometheus operating system level monitoring.",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
       }
     ]
   },

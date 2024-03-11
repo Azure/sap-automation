@@ -1,7 +1,10 @@
 using AutomationForm.Models;
 using Azure.Data.Tables;
+using Azure.Identity;
 using Azure.Storage.Blobs;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
+using System;
 using System.Threading.Tasks;
 
 namespace AutomationForm.Services
@@ -18,7 +21,11 @@ namespace AutomationForm.Services
 
     public async Task<TableClient> GetTableClient(string table)
     {
-      var serviceClient = new TableServiceClient(_configuration.GetConnectionString(_settings.ConnectionStringKey));
+      string accountName = _configuration.GetConnectionString(_settings.ConnectionStringKey).Replace("blob", "table");
+      TableServiceClient serviceClient = new(
+        new Uri(accountName),
+        new DefaultAzureCredential());
+
       var tableClient = serviceClient.GetTableClient(table);
       await tableClient.CreateIfNotExistsAsync();
       return tableClient;
@@ -26,7 +33,11 @@ namespace AutomationForm.Services
 
     public async Task<BlobContainerClient> GetBlobClient(string container)
     {
-      var serviceClient = new BlobServiceClient(_configuration.GetConnectionString(_settings.ConnectionStringKey));
+      string accountName = _configuration.GetConnectionString(_settings.ConnectionStringKey);
+      BlobServiceClient serviceClient = new(
+        new Uri(accountName),
+        new DefaultAzureCredential());
+
       var blobClient = serviceClient.GetBlobContainerClient(container);
       await blobClient.CreateIfNotExistsAsync();
       return blobClient;

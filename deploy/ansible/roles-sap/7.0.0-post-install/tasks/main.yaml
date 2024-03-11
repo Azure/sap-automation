@@ -70,11 +70,10 @@
       become_user:                     root
       become:                          true
       ansible.builtin.find:
-        paths:                         ["/var/log", "/var/log/pacemaker", "/var/log/cluster", "/usr/sap/{{ sap_sid | upper }}"]
+        paths:                         ["/var/log", "/var/log/pacemaker", "/var/log/cluster", "/usr/sap/{{ this_sid | upper }}"]
         patterns:                      "pacemaker.log,corosync.log,trans.log"
         file_type:                     file
       register:                        other_log_files
-
   rescue:
     - name:                            "Post Installation: Error while acquiring other SAP logs"
       ansible.builtin.debug:
@@ -190,6 +189,57 @@
     - tier != 'hana'
     - tier != 'oracle'
     - sapinst_list_of_files is defined
+
+- name:                                "Post Installation (optional): check if sapinst_instdir exists"
+  become_user:                         root
+  become:                              true
+  ansible.builtin.stat:
+    path:                              "{{ tmp_directory }}/{{ this_sid }}/sapinst_instdir"
+  register:                            sapinst_instdir_exists
+  when:
+    - tier not in ['hana', 'oracle']
+    - all_sapinst_instdir_logs | default(false)
+
+- name:                                "Post Installation (optional): Find all log files in {{ tmp_directory }}/{{ this_sid }}/sapinst_instdir/"
+  become_user:                         root
+  become:                              true
+  ansible.builtin.find:
+    paths:                             "{{ tmp_directory }}/{{ this_sid }}/sapinst_instdir/"
+    file_type:                         file
+    patterns:                          '*.log'
+    recurse:                           true
+  register:                            sapinst_instdir_logs
+  when:
+    - tier not in ['hana', 'oracle']
+    - (sapinst_instdir_exists.stat.exists | default(false))
+    - all_sapinst_instdir_logs | default(false)
+
+- name:                                "Post Installation (optional): Compress all log files from {{ tmp_directory }}/{{ this_sid }}/sapinst_instdir/"
+  become_user:                         root
+  become:                              true
+  community.general.archive:
+    path:                              "{{ sapinst_instdir_logs.files | map(attribute='path') | list }}"
+    dest:                              "{{ tmp_directory }}/{{ this_sid }}/{{ this_sid }}{{ suffix }}_{{ inventory_hostname }}_all_logs.zip"
+    format:                            zip
+    mode:                              0755
+  when:
+    - tier not in ['hana', 'oracle']
+    - sapinst_instdir_logs.files is defined
+    - sapinst_instdir_logs.files | length > 0
+    - all_sapinst_instdir_logs | default(false)
+
+- name:                                "Post Installation (optional): Copy the zipped sapinst_instdir installation logs"
+  become_user:                         root
+  become:                              true
+  ansible.builtin.fetch:
+    src:                               "{{ tmp_directory }}/{{ this_sid }}/{{ this_sid }}{{ suffix }}_{{ inventory_hostname }}_all_logs.zip"
+    dest:                              "{{ _workspace_directory }}/logs/{{ this_sid }}{{ suffix }}_{{ inventory_hostname }}_all_logs.zip"
+    flat:                              true
+  when:
+    - tier not in ['hana', 'oracle']
+    - sapinst_instdir_logs.files is defined
+    - sapinst_instdir_logs.files | length > 0
+    - all_sapinst_instdir_logs | default(false)
 
 - name:                                "Post Installation: HANA"
   when:

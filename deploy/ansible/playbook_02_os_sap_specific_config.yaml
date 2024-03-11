@@ -101,11 +101,19 @@
         - name:                        "SAP OS configuration playbook: - Set sapos storage account facts"
           ansible.builtin.set_fact:
             sapbits_location_base_path: "{{ hostvars.localhost.sapbits_location_base_path }}"
-            sapbits_sas_token:          "{{ hostvars.localhost.sapbits_sas_token }}"
             sa_enabled:                 true
           when:
             - not is_run_with_infraCreate_only
             - hostvars.localhost.sapbits_location_base_path is defined
+          tags:
+            - is_run_with_infraCreate_only
+
+        - name:                        "SAP OS configuration playbook: - Set sapos storage account facts"
+          ansible.builtin.set_fact:
+            sapbits_sas_token:          "{{ hostvars.localhost.sapbits_sas_token }}"
+          when:
+            - not is_run_with_infraCreate_only
+            - hostvars.localhost.sapbits_sas_token is defined
           tags:
             - is_run_with_infraCreate_only
 
@@ -165,6 +173,17 @@
           tags:
             - 1.4-packages
 
+        - name:                        "SAP OS configuration playbook: - Ensure the High Availability packages are registered"
+          when:
+            - scs_high_availability or database_high_availability
+            - node_tier in ['scs', 'ers', 'hana', 'db2']
+          ansible.builtin.include_role:
+            name:                      roles-os/1.4-packages
+          tags:
+            - 1.4-packages
+          vars:
+            tier:                     ha
+
         - name:                        "SAP OS configuration playbook: - Configure volume groups, logical volumes and file systems"
           ansible.builtin.include_role:
             name:                      roles-os/1.5-disk-setup
@@ -180,14 +199,14 @@
           tags:
             - 1.5.1.1-disk-setup-asm-sap
 
-        - name:                        Include 1.5.2-disk-setup-ora-multi-sid role
+        - name:                        "SAP OS configuration playbook: - Configure the disks for Oracle Multi SID"
           ansible.builtin.include_role:
             name:                      roles-os/1.5.2-disk-setup-ora-multi-sid
           when:                        node_tier == "oracle-multi-sid"
           tags:
             - 1.5.2-disk-setup-ora-multi-sid
 
-        - name:                        Include 1.9-kernelparameters role
+        - name:                        "SAP OS configuration playbook: - Configure the kernel parameters"
           ansible.builtin.include_role:
             name:                      roles-os/1.9-kernelparameters
           tags:
@@ -199,11 +218,22 @@
           tags:
             - 2.5-sap-users
 
-        - name:                        Include 1.16-services role
+        - name:                        "SAP OS configuration playbook: - Ensure the services are configured"
           ansible.builtin.include_role:
             name:                      roles-os/1.16-services
           tags:
             - 1.16-services
+
+        - name:                        "SAP OS configuration playbook: - Ensure the High Availability services are configured"
+          when:
+            - scs_high_availability or database_high_availability
+            - node_tier in ['scs', 'ers', 'hana', 'db2']
+          ansible.builtin.include_role:
+            name:                      roles-os/1.16-services
+          tags:
+            - 1.16-services
+          vars:
+            tier:                     ha
 
         - name:                        "SAP OS configuration playbook: - directory permissions"
           ansible.builtin.include_role:
@@ -223,7 +253,7 @@
           tags:
             - 2.3-sap-exports
 
-        - name:                        Include 2.6-sap-mounts role
+        - name:                        "SAP OS configuration playbook: - Mount the file systems"
           ansible.builtin.include_role:
             name:                      roles-sap-os/2.6-sap-mounts
           tags:
@@ -260,9 +290,9 @@
 
         - name:                                'SAP OS configuration playbook: - Calculating the domain service account names'
           ansible.builtin.set_fact:
-            domain_sqlsvc_account:            '{{ domain | upper }}\{{ sql_svc_account_name }}'
+            domain_sqlsvc_account:            '{{ sql_svc_account_name }}@{{ domain_name }}'
           when:
-            - domain is defined
+            - domain_name is defined
             - domain_sqlsvc_account is not defined
 
         - name:                        "SAP OS configuration playbook: - Add local groups and Permissions"

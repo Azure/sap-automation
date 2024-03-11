@@ -1,0 +1,88 @@
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                 Playbook for Azure Monitor for SAP Provider Settings       |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+# -------------------------------------+---------------------------------------8
+# Role: 6.1 AMS Provider Configuration
+#
+# -------------------------------------+---------------------------------------8
+
+---
+
+- name:                               "AMS Provider Creation Playbook: - Initialization"
+  hosts:                              localhost
+  gather_facts:                       true
+  vars_files:                         vars/ansible-input-api.yaml           # API Input template with defaults
+  tasks:
+    - name:                               "AMS Provider Creation Playbook: - Initialization"
+      block:
+        - name:                           "AMS Provider Creation Playbook: - Create Progress folder"
+          ansible.builtin.file:
+            path:                         "{{ _workspace_directory }}/.progress"
+            state:                        directory
+            mode:                         0755
+
+        - name:                           "AMS Provider Creation Playbook: - Remove ams-provider-creation-done flag"
+          ansible.builtin.file:
+            path:                         "{{ _workspace_directory }}/.progress/ams-provider-creatio-done"
+            state:                        absent
+
+        - name:                           "AMS Provider Creation Playbook: - Read/Create passwords"
+          ansible.builtin.include_role:
+            name:                         roles-misc/0.1-passwords
+            public:                       true
+          tags:
+                                          - 0.1-passwords
+      when:
+                                          - ams_resource_id is defined
+                                          - ams_resource_id != ""
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                 Playbook for Creating OS Provider in AMS                   |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+- name:                                AMS Provider Instance Creation
+  hosts:                               "{{ sap_sid | upper }}_DB  :
+                                        {{ sap_sid | upper }}_SCS :
+                                        {{ sap_sid | upper }}_ERS :
+                                        {{ sap_sid | upper }}_PAS :
+                                        {{ sap_sid | upper }}_APP :
+                                        {{ sap_sid | upper }}_WEB"
+  become:                              true
+  gather_facts:                        true                                    # Important to collect hostvars information
+  vars_files:                          vars/ansible-input-api.yaml             # API Input template with defaults
+  tasks:
+    - name:                            AMS Provider Instance Creation
+      block:
+        - name:                        "Run the AMS provider prerequisites"
+          when:                        ansible_os_family != "Windows"
+          ansible.builtin.include_role:
+            name:                      "roles-os/1.20-prometheus"
+          tags:
+                                      - 6.1-ams-provider-prerequisites
+
+        - name:                        "Run the AMS provider creation"
+          ansible.builtin.include_role:
+            name:                      "roles-misc/0.8-ams-providers"
+          tags:
+                                      - 6.2-ams-provider-creation
+
+        - name:                       "AMS Provider Creation Playbook: - ams-provider-creation-done flag"
+          delegate_to:                localhost
+          become:                     false
+          ansible.builtin.file:
+            path:                     "{{ _workspace_directory }}/.progress/ams-provider-creatio-done"
+            state:                    touch
+            mode:                     0755
+      when:
+                                      - ams_resource_id is defined
+                                      - ams_resource_id != ""
+...
+
+# /*---------------------------------------------------------------------------8
+# |                                    END                                     |
+# +------------------------------------4--------------------------------------*/

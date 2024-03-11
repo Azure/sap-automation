@@ -86,35 +86,24 @@
     - usr_sap_install_mountpoint is not defined
 
 
-- name:                                "AFS Mount: Mount Install"
-  block:
-
-    - name:                            "AFS Mount: Mount Install folder when using AFS ({{ usr_sap_install_mountpoint }}/{{ bom_base_name }})"
-      ansible.posix.mount:
-        src:                           "{{ usr_sap_install_mountpoint }}/{{ bom_base_name }}"
-        path:                          "{{ target_media_location }}"
-        fstype:                        'nfs4'
-        opts:                          "vers=4,minorversion=1,sec=sys"
-        state:                         mounted
-      when:
-        - node_tier == 'observer'
-        - use_AFS
-  rescue:
-    - name:                            "AFS Mount: Re-Mount Install folder when using AFS"
-      ansible.builtin.debug:
-        msg:                           "Trying to remount Install Folder"
-
-    - name:                            "AFS Mount: Pause for 5 seconds"
-      ansible.builtin.pause:
-        seconds:                       15
-
-    - name:                            Mount Install folder when using AFS
-      ansible.posix.mount:
-        src:                           "{{ usr_sap_install_mountpoint }}/{{ bom_base_name }}"
-        path:                          "{{ target_media_location }}"
-        fstype:                        'nfs4'
-        opts:                          "vers=4,minorversion=1,sec=sys"
-        state:                         mounted
-      when:
-        - node_tier == 'observer'
-        - use_AFS
+- name:                                "AFS Mount: install"
+  ansible.builtin.include_tasks:       2.6.0.1-afs-mount.yaml
+  loop:
+    - {
+      'type':               'install',
+      'temppath':           'sapinstall',
+      'folder':             '{{ bom_base_name }}',
+      'mount':              '{{ usr_sap_install_mountpoint }}',
+      'opts':               'rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp',
+      'path':               '/usr/sap/install',
+      'permissions':        '0777',
+      'set_chattr_on_dir':  false,
+      'target_nodes':       ['all'],
+      'create_temp_folders': true
+    }
+  vars:
+    primary_host:                     "{{ nfs_server }}"
+  when:
+    - tier == 'sapos'
+    - usr_sap_install_mountpoint is defined
+    - node_tier == 'observer'

@@ -100,7 +100,7 @@
         mode:                          0755
       when:
         - dbload_performed_according_to_sapinst is defined
-        - dbload_performed_according_to_sapinst | length > 0
+        - dbload_performed_according_to_sapinst.matched == 1
   when:
     - dbload_performed.stat.exists
 
@@ -139,7 +139,7 @@
     - name:                            "DBLoad: -  Set the server facts"
       ansible.builtin.set_fact:
         scs_server:                    "{% if scs_high_availability %}{{ sid_to_be_deployed.sid | lower }}scs{{ scs_instance_number }}cl1{% else %}{{ hostvars[scs_server_temp | first]['virtual_host'] }}{% endif %}"
-        db_virtual_hostname:               "{{ hostvars[db_server_temp | first]['virtual_host'] }}"
+        db_virtual_hostname:           "{{ hostvars[db_server_temp | first]['virtual_host'] }}"
 
     - name:                            "DBLoad: check media exists"
       ansible.builtin.stat:
@@ -353,7 +353,7 @@
         - database_high_availability
         - platform == 'HANA'
       ansible.builtin.find:
-        paths:                         "/usr/sap/{{ sid_to_be_deployed.sid | upper }}/SYS/exe/uc/linuxx86_64/hdbclient/"
+        paths:                         "/usr/sap/{{ sid_to_be_deployed.sid | upper }}/SYS/exe/uc/linuxx86_64/hdbclient/,/usr/sap/{{ sid_to_be_deployed.sid }}/hdbclient"
         file_type:                     file
         patterns:                      'hdbuserstore'
         recurse:                       true
@@ -388,6 +388,23 @@
         - hdbuserstore_path is defined
       ansible.builtin.shell: |
                                        {{ hdbuserstore_path }} -H {{ pas_virtual_hostname }} SET DEFAULT {{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) }}:3{{ db_instance_number }}13@{{ db_sid | upper }} {{ schema_name }} {{ main_password }}
+      environment:
+        SAPSYSTEMNAME:                 "{{ sid_to_be_deployed.sid | upper }}"
+        TMPDIR:                        "{{ hdbuserstore_path }}"
+        ssfs_connect:                  "1"
+      register:                        hdbuserstore
+      vars:
+        allow_world_readable_tmpfiles: true
+
+    - name:                            "DBLoad: Set DB Virtual Host name ({{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) }})"
+      become:                          true
+      become_user:                     "{{ sid_to_be_deployed.sid | lower }}adm"
+      when:
+        - database_high_availability
+        - platform == 'HANA'
+        - hdbuserstore_path is defined
+      ansible.builtin.shell: |
+                                       {{ hdbuserstore_path }} SET DEFAULT {{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) }}:3{{ db_instance_number }}13@{{ db_sid | upper }} {{ schema_name }} {{ main_password }}
       environment:
         SAPSYSTEMNAME:                 "{{ sid_to_be_deployed.sid | upper }}"
         TMPDIR:                        "{{ hdbuserstore_path }}"
@@ -447,7 +464,7 @@
         - database_high_availability
         - platform == 'HANA'
       ansible.builtin.find:
-        paths:                         "/usr/sap/{{ sid_to_be_deployed.sid | upper }}/SYS/exe/uc/linuxx86_64/hdbclient/"
+        paths:                         "/usr/sap/{{ sid_to_be_deployed.sid | upper }}/SYS/exe/uc/linuxx86_64/hdbclient/,/usr/sap/{{ sid_to_be_deployed.sid }}/hdbclient"
         file_type:                     file
         patterns:                      'hdbuserstore'
         recurse:                       true

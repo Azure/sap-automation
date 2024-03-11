@@ -70,6 +70,15 @@ stages:
                 else
                   source /etc/profile.d/deploy_server.sh
                 fi
+
+              echo -e "$green--- Configure devops CLI extension ---$reset"
+
+                az config set extension.use_dynamic_install=yes_without_prompt --output none
+
+                export AZURE_DEVOPS_EXT_PAT=$PAT
+
+                az extension add --name azure-devops --output none
+
                 export AZURE_DEVOPS_EXT_PAT=$PAT
 
                 HOME_CONFIG=${CONFIG_REPO_PATH}/$(Deployment_Configuration_Path)
@@ -84,21 +93,24 @@ stages:
                   echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined."
                   exit 2
                 fi
+                echo "Before "USE_MSI" check"
+                if [ $USE_MSI != "true" ]; then
+                  if [ -z $WL_ARM_CLIENT_ID ]; then
+                    echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined."
+                    exit 2
+                  fi
 
-                if [ -z $WL_ARM_CLIENT_ID ]; then
-                  echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined."
-                  exit 2
+                  if [ -z $WL_ARM_CLIENT_SECRET ]; then
+                    echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined."
+                    exit 2
+                  fi
+
+                  if [ -z $WL_ARM_TENANT_ID ]; then
+                    echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined."
+                    exit 2
+                  fi
                 fi
 
-                if [ -z $WL_ARM_CLIENT_SECRET ]; then
-                  echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined."
-                  exit 2
-                fi
-
-                if [ -z $WL_ARM_TENANT_ID ]; then
-                  echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined."
-                  exit 2
-                fi
               echo -e "$green--- Checkout $(Build.SourceBranchName) ---$reset"
                 cd $CONFIG_REPO_PATH
                 git checkout -q $(Build.SourceBranchName)
@@ -234,30 +246,21 @@ stages:
                   echo "##vso[task.logissue type=error]Variable group $(variable_group) could not be found."
                   exit 2
                 fi
+              echo -e "$green--- Login ---$reset"
 
-              # Check if running on deployer
-                if [ -f /etc/profile.d/deploy_server.sh ]; then
-                  az logout --output none
-                  if [ $LOGON_USING_SPN == "true" ]; then
-                    echo "Using SPN"
-
-                    export ARM_CLIENT_ID=$WL_ARM_CLIENT_ID
-                    export ARM_CLIENT_SECRET=$WL_ARM_CLIENT_SECRET
-                    export ARM_TENANT_ID=$WL_ARM_TENANT_ID
-                    export ARM_SUBSCRIPTION_ID=$WL_ARM_SUBSCRIPTION_ID
-                    export ARM_USE_MSI=false
-                    az login --service-principal --username $WL_ARM_CLIENT_ID --password=$WL_ARM_CLIENT_SECRET --tenant $WL_ARM_TENANT_ID --output none
-                    return_code=$?
-                    if [ 0 != $return_code ]; then
-                      echo -e "$boldred--- Login failed ---$reset"
-                      echo "##vso[task.logissue type=error]az login failed."
-                      exit $return_code
-                    fi
+                if [ -z $USE_MSI ]; then
+                  USE_MSI="false"
+                  az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query USE_MSI.value --output table)
+                  if [ -n "${az_var}" ]; then
+                    az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name USE_MSI --value false --output none --only-show-errors
                   else
-                    export ARM_USE_MSI=true
-                    az login --identity --allow-no-subscriptions --output none
+                    az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name USE_MSI --value false --output none --only-show-errors
                   fi
-                else
+                fi
+
+                if [ $USE_MSI != "true" ]; then
+                  echo "Using SPN"
+
                   export ARM_CLIENT_ID=$WL_ARM_CLIENT_ID
                   export ARM_CLIENT_SECRET=$WL_ARM_CLIENT_SECRET
                   export ARM_TENANT_ID=$WL_ARM_TENANT_ID
@@ -270,7 +273,11 @@ stages:
                     echo "##vso[task.logissue type=error]az login failed."
                     exit $return_code
                   fi
-
+                else
+                  export ARM_USE_MSI=true
+                  export ARM_SUBSCRIPTION_ID=$WL_ARM_SUBSCRIPTION_ID
+                  unset ARM_TENANT_ID
+                  az login --identity --allow-no-subscriptions --output none
                 fi
 
               echo -e "$green--- Define variables ---$reset"
@@ -411,17 +418,18 @@ stages:
 
             displayName:               Deploy_SAP_infrastructure
             env:
-              WL_ARM_SUBSCRIPTION_ID:   $(ARM_SUBSCRIPTION_ID)
+              CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}
+              LOGON_USING_SPN:          $(Logon_Using_SPN)
+              PAT:                      $(WZ_PAT)
+              SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
+              SYSTEM_ACCESSTOKEN:       $(System.AccessToken)
+              TEST_ONLY:                ${{ parameters.test }}
+              TF_IN_AUTOMATION:         true
+              TF_LOG:                   $(TF_LOG)
+              USE_MSI:                  $(Use_MSI)
               WL_ARM_CLIENT_ID:         $(ARM_CLIENT_ID)
               WL_ARM_CLIENT_SECRET:     $(ARM_CLIENT_SECRET)
+              WL_ARM_SUBSCRIPTION_ID:   $(ARM_SUBSCRIPTION_ID)
               WL_ARM_TENANT_ID:         $(ARM_TENANT_ID)
-              SYSTEM_ACCESSTOKEN:       $(System.AccessToken)
-              SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
-              CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}
-              PAT:                      $(WZ_PAT)
-              TEST_ONLY:                ${{ parameters.test }}
-              TF_LOG:                   $(TF_LOG)
-              TF_IN_AUTOMATION:         true
-              LOGON_USING_SPN:          $(Logon_Using_SPN)
 
             failOnStderr:               false

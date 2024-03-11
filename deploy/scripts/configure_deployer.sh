@@ -64,7 +64,7 @@ export local_user=$USER
 #
 
 if [ -z "${TF_VERSION}" ]; then
-  TF_VERSION="1.6.2"
+  TF_VERSION="1.7.0"
 fi
 
 
@@ -674,6 +674,7 @@ sudo -H "${ansible_venv_bin}/ansible-galaxy" collection install ansible.windows 
 sudo -H "${ansible_venv_bin}/ansible-galaxy" collection install ansible.posix --force --collections-path "${ansible_collections}"
 sudo -H "${ansible_venv_bin}/ansible-galaxy" collection install ansible.utils --force --collections-path "${ansible_collections}"
 sudo -H "${ansible_venv_bin}/ansible-galaxy" collection install community.windows --force --collections-path "${ansible_collections}"
+sudo -H "${ansible_venv_bin}/ansible-galaxy" collection install microsoft.ad --force --collections-path "${ansible_collections}"
 
 if [[ "${ansible_version}" == "2.11" ]]; then
   # ansible galaxy upstream has changed. Some collections are only available for install via old-galaxy.ansible.com
@@ -751,6 +752,12 @@ if [ -f "$AGENT_DIR/.agent" ]; then
 
     echo "Azure DevOps Agent is configured."
     echo export "PATH=${ansible_bin}:${tf_bin}:${PATH}" | tee -a /tmp/deploy_server.sh
+
+    devops_extension_installed=$(az extension list --query "[?name=='azure-devops'].name | [0]")
+    if [ -z "$devops_extension_installed" ]; then
+      az extension add --name azure-devops --output none
+    fi
+
 else
     echo "Azure DevOps Agent is not configured."
 
@@ -781,10 +788,10 @@ else
       echo "export ARM_CLIENT_ID=${client_id}" | tee -a /tmp/deploy_server.sh
     fi
 
-    if [ -n "${tenant_id}" ]; then
-      export ARM_TENANT_ID=${tenant_id}
-      echo "export ARM_TENANT_ID=${tenant_id}" | tee -a /tmp/deploy_server.sh
-    fi
+    # if [ -n "${tenant_id}" ]; then
+    #   export ARM_TENANT_ID=${tenant_id}
+    #   echo "export ARM_TENANT_ID=${tenant_id}" | tee -a /tmp/deploy_server.sh
+    # fi
 fi
 
 

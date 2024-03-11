@@ -10,7 +10,6 @@ variable "bastion_deployment"          { description = "Value indicating if Azur
 variable "bastion_sku"                 { description = "The SKU of the Bastion Host. Accepted values are Basic or Standard" }
 variable "bootstrap"                   { description = "Defines the phase of deployment" }
 variable "configure"                   { description = "Value indicating if deployer should be configured" }
-variable "firewall_deployment"         { description = "Boolean flag indicating if an Azure Firewall should be deployed" }
 variable "infrastructure"              { description = "Dictionary of information about the common infrastructure" }
 variable "naming"                      { description = "Defines the names for the resources" }
 variable "options"                     { description = "Dictionary of miscallaneous parameters" }
@@ -22,6 +21,17 @@ variable "use_service_endpoint"        { description = "Boolean value indicating
 
 #########################################################################################
 #                                                                                       #
+#  Firewall                                                                             #
+#                                                                                       #
+#########################################################################################
+
+
+variable "firewall_deployment"         { description = "Boolean flag indicating if an Azure Firewall should be deployed" }
+variable "firewall_rule_subnets"       { description = "List of subnets that are part of the firewall rule" }
+variable "firewall_allowed_ipaddresses" { description = "List of allowed IP addresses to be part of the firewall rule" }
+
+#########################################################################################
+#                                                                                       #
 #  KeyVault                                                                             #
 #                                                                                       #
 #########################################################################################
@@ -30,6 +40,8 @@ variable "additional_users_to_add_to_keyvault_policies" { description = "List of
 variable "enable_purge_control_for_keyvaults" { description = "Disables the purge protection for Azure keyvaults." }
 variable "key_vault"                   { description = "The user brings existing Azure Key Vaults" }
 variable "set_secret_expiry"           { description = "Set expiry date for secrets" }
+variable "soft_delete_retention_days"  { description = "The number of days that items should be retained in the soft delete period" }
+
 
 #########################################################################################
 #                                                                                       #
@@ -87,9 +99,10 @@ variable "dns_zone_names"                             {
                                                         type        = map(string)
 
                                                         default = {
-                                                          "file_dns_zone_name"  = "privatelink.file.core.windows.net"
-                                                          "blob_dns_zone_name"  = "privatelink.blob.core.windows.net"
-                                                          "vault_dns_zone_name" = "privatelink.vaultcore.azure.net"
+                                                          "file_dns_zone_name"   = "privatelink.file.core.windows.net"
+                                                          "blob_dns_zone_name"   = "privatelink.blob.core.windows.net"
+                                                          "table_dns_zone_name"  = "privatelink.table.core.windows.net"
+                                                          "vault_dns_zone_name"  = "privatelink.vaultcore.azure.net"
                                                         }
                                                       }
 

@@ -34,7 +34,7 @@ disk_type_to_name_map:
   offline_log_dir: '{{ node_tier | lower }}_offline_logdir'
   saptmp:          '{{ node_tier | lower }}_saptmp'
   # ------------------- End - disktypes required for DB2 ---------------------8
-
+  kdump:           '{{ node_tier | lower }}_kdump'
   # ------------------- Begin - disktypes required for ASE -------------------8
   sapdata_1:      '{{ node_tier | lower }}_sapdata_1'
   saplog_1:       '{{ node_tier | lower }}_saplog_1'
@@ -75,7 +75,6 @@ disk_type_to_name_map:
 #       mkfs command when formatting the file system.
 #
 logical_volumes:
-  # --------------------- Begin - disks required for usrsap -------------------8
   # ---------------------- Begin - disks required for WD  ---------------------8
   - tier:       'sapos'
     node_tier:  'web'
@@ -85,6 +84,18 @@ logical_volumes:
     fstype:     'xfs'
   # ----------------------- End - disks required for WD  ----------------------8
 
+  # ---------------------- Begin - disks required for kdump--------------------8
+  - tier:       'sapos'
+    node_tier:  'all'
+    supported_tiers: ['scs','hana','db2','ers']
+    vg:         'vg_{{ node_tier | lower }}_kdump'
+    lv:         'lv_{{ node_tier | lower }}_kdump'
+    size:       '100%FREE'
+    fstype:     'xfs'
+
+  # ----------------------- End - disks required for kdump --------------------8
+
+  # --------------------- Begin - disks required for usrsap -------------------8
   - tier:       'sapos'
     node_tier:  'all'
     vg:         'vg_sap'

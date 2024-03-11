@@ -252,6 +252,30 @@
     }
   },
   {
+    "name": "OracleLinux 8.8",
+    "data": {
+      "os_type": "LINUX",
+      "source_image_id": "",
+      "publisher": "Oracle",
+      "offer": "Oracle-Linux",
+      "sku": "ol88-lvm-gen2",
+      "version": "latest",
+      "type": "marketplace"
+    }
+  },
+  {
+    "name": "OracleLinux 8.9",
+    "data": {
+      "os_type": "LINUX",
+      "source_image_id": "",
+      "publisher": "Oracle",
+      "offer": "Oracle-Linux",
+      "sku": "ol89-lvm-gen2",
+      "version": "latest",
+      "type": "marketplace"
+    }
+  },
+  {
     "name": "Windows Server 2016",
     "data": {
       "os_type": "WINDOWS",
@@ -276,6 +300,18 @@
     }
   },
   {
+    "name": "Windows Server 2019-GS",
+    "data": {
+      "os_type": "WINDOWS",
+      "source_image_id": "",
+      "publisher": "MicrosoftWindowsServer",
+      "offer": "windowsserver",
+      "sku": "2019-datacenter-g2",
+      "version": "latest",
+      "type": "marketplace"
+    }
+  },
+  {
     "name": "Windows Server 2022",
     "data": {
       "os_type": "WINDOWS",
@@ -283,6 +319,30 @@
       "publisher": "MicrosoftWindowsServer",
       "offer": "windowsserver",
       "sku": "2022-datacenter",
+      "version": "latest",
+      "type": "marketplace"
+    }
+  },
+  {
+    "name": "Windows Server 2022-GS",
+    "data": {
+      "os_type": "WINDOWS",
+      "source_image_id": "",
+      "publisher": "MicrosoftWindowsServer",
+      "offer": "windowsserver",
+      "sku": "2022-datacenter-g2",
+      "version": "latest",
+      "type": "marketplace"
+    }
+  },
+  {
+    "name": "Windows Server 2022-GS",
+    "data": {
+      "os_type": "WINDOWS",
+      "source_image_id": "",
+      "publisher": "MicrosoftWindowsServer",
+      "offer": "windowsserver",
+      "sku": "2022-datacenter-g2",
       "version": "latest",
       "type": "marketplace"
     }

@@ -216,6 +216,127 @@
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
+# | kdump stonith - BEGIN                                                      |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+- name:                                "1.17 Generic Pacemaker - Install fence-agents-kdump package"
+  when:
+                                       - kdump_enabled | default("disabled") == "enabled"
+  ansible.builtin.yum:
+    name:                              fence-agents-kdump
+    state:                             present
+  register:                            fence_agents_kdump_package
+  changed_when:                        fence_agents_kdump_package.changed
+
+- name:                                 "1.17 Generic Pacemaker - configure the special fencing device fence_kdump"
+  when:
+                                      - inventory_hostname == primary_instance_name
+                                      - kdump_enabled | default("disabled") == "enabled"
+  block:
+
+    # we can assume that the stonith:fence_azure_rm is already configured
+    # if we need to check we can use either pcs stonith show or pcs stonith status
+    # create fence_kdump fencing device in the cluster
+    - name:                            "1.17 Generic Pacemaker - Create a fence_kdump fencing device in the cluster"
+      ansible.builtin.command: >
+                                       pcs stonith create rsc_st_kdump fence_kdump
+                                       pcmk_reboot_action="off"
+                                       pcmk_host_list="{{ primary_instance_name }} {{ secondary_instance_name }}"
+                                       timeout=30
+
+    - name:                            "1.17 Generic Pacemaker - Update Monitor interval"
+      ansible.builtin.command:         pcs resource update rsc_st_kdump op monitor interval=3600
+
+    # for each node in the play, set the fence_kdump fencing device as the first fencing device to be used
+    - name:                            "1.17 Generic Pacemaker - Set the fence_kdump fencing device as the first for {{ primary_instance_name }}"
+      ansible.builtin.command:         pcs stonith level add 1 {{ primary_instance_name }} rsc_st_kdump
+
+    - name:                            "1.17 Generic Pacemaker - Set the fence_kdump fencing device as the first for {{ secondary_instance_name }}"
+      ansible.builtin.command:         pcs stonith level add 1 {{ secondary_instance_name }} rsc_st_kdump
+
+    - name:                            "1.17 Generic Pacemaker - Set the fence_azure_rm fencing device as the second for {{ primary_instance_name }}"
+      ansible.builtin.command:         pcs stonith level add 2 {{ primary_instance_name }} rsc_st_azure
+
+    - name:                            "1.17 Generic Pacemaker - Set the fence_azure_arm fencing device as the second for {{ secondary_instance_name }}"
+      ansible.builtin.command:         pcs stonith level add 2 {{ secondary_instance_name }} rsc_st_azure
+
+- name:                               "1.17 Generic Pacemaker - Ensure that the kdump service is enabled"
+  when:
+                                      - kdump_enabled | default("disabled") == "enabled"
+  block:
+
+    # Perform the fence_kdump_nodes configuration in /etc/kdump.conf
+    - name:                            "1.17 Generic Pacemaker - Perform the fence_kdump_nodes configuration in /etc/kdump.conf"
+      ansible.builtin.replace:
+        path:                          /etc/kdump.conf
+        regexp:                        '^#fence_kdump_nodes(.*)$'
+        replace:                       "fence_kdump_nodes {{ secondary_instance_name }}"
+        backup:                        true
+      register:                        kdump_conf_file
+      failed_when:                     kdump_conf_file.rc != 0
+      when:
+                                       - kdump_enabled | default("disabled") == "enabled"
+                                       - inventory_hostname == primary_instance_name
+
+    # Perform the fence_kdump_nodes configuration in /etc/kdump.conf
+    - name:                            "1.17 Generic Pacemaker - Perform the fence_kdump_nodes configuration in /etc/kdump.conf"
+      ansible.builtin.replace:
+        path:                          /etc/kdump.conf
+        regexp:                        '^#fence_kdump_nodes(.*)$'
+        replace:                       "fence_kdump_nodes {{ primary_instance_name }}"
+        backup:                        true
+      register:                        kdump_conf_file
+      failed_when:                     kdump_conf_file.rc != 0
+      when:
+                                       - kdump_enabled | default("disabled") == "enabled"
+                                       - inventory_hostname == secondary_instance_name
+
+    # set the kdump path to /usr/crash in /etc/kdump.conf
+    - name:                            "1.17 Generic Pacemaker - Set the kdump path to /usr/crash in /etc/kdump.conf"
+      ansible.builtin.replace:
+        path:                          /etc/kdump.conf
+        regexp:                        '^path(.*)$'
+        replace:                       "path /usr/crash"
+        backup:                        true
+      register:                        kdump_conf_file_path
+      failed_when:                     kdump_conf_file_path.rc != 0
+      when:
+                                       - kdump_enabled | default("disabled") == "enabled"
+
+    # restart kdump service as we made changes to the configuration
+    - name:                            "1.17 Generic Pacemaker - Restart kdump service"
+      ansible.builtin.service:
+        name:                          kdump
+        state:                         restarted
+
+    # Ensure that the initramfs image file contains the fence_kdump and hosts files
+    - name:                            "1.17 Generic Pacemaker - Check that the initramfs image file contains the fence_kdump and hosts files"
+      ansible.builtin.shell:           set -o pipefail && lsinitrd /boot/initramfs-$(uname -r)kdump.img | egrep "fence|hosts"
+      register:                        initramfs_image_file
+      changed_when:                    false
+      failed_when:                     false
+
+    # Ensure that the initramfs image file contains the fence_kdump and hosts files
+    - name:                            "1.17 Generic Pacemaker - Check that the initramfs image file contains the fence_kdump and hosts files"
+      ansible.builtin.shell:           set -o pipefail && lsinitrd /boot/initramfs-$(uname -r)kdump.img | egrep "fence|hosts"
+      register:                        initramfs_image_check
+      changed_when:                    false
+      failed_when:                     initramfs_image_check.rc != 0
+
+    # print debug on the validation of initramfs
+    - name:                            "1.17 Generic Pacemaker - debug initramfs output"
+      ansible.builtin.debug:
+        msg:                           "initramfs check: {{ initramfs_image_check.stdout }}"
+      when:                            initramfs_image_check.rc == 0
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# | kdump stonith - END                                                        |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
 # | Azure scheduled events - BEGIN                                             |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
@@ -286,8 +407,7 @@
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
-# | Azure scheduled events - BEGIN                                             |
+# | Azure scheduled events - END                                               |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
-
 # End of Generic Pacemaker setup

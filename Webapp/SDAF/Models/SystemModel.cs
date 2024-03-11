@@ -197,6 +197,8 @@ namespace AutomationForm.Models
 
     public Tag[] configuration_settings { get; set; }
 
+    public bool? dns_a_records_for_secondary_names { get; set; } = true;
+    public bool? use_private_endpoint { get; set; }
 
     /*---------------------------------------------------------------------------8
     |                                                                            |
@@ -219,7 +221,7 @@ namespace AutomationForm.Models
     |                                                                            |
     +------------------------------------4--------------------------------------*/
 
-    
+
     public string[] proximityplacementgroup_names { get; set; }
 
     [PpgIdValidator]
@@ -283,7 +285,6 @@ namespace AutomationForm.Models
     [IpAddressValidator]
     public string[] database_vm_db_nic_ips { get; set; }
 
-    public string database_HANA_use_ANF_scaleout_scenario { get; set; }
 
     [IpAddressValidator]
     public string[] database_vm_db_nic_secondary_ips { get; set; }
@@ -353,7 +354,7 @@ namespace AutomationForm.Models
     |                                                                            |
     +------------------------------------4--------------------------------------*/
 
-    public int scs_server_count { get; set; } = 1;
+    public int? scs_server_count { get; set; } = 1;
 
     public string scs_server_sku { get; set; }
 
@@ -471,6 +472,16 @@ namespace AutomationForm.Models
     |                                                                            |
     +------------------------------------4--------------------------------------*/
 
+    public bool? ANF_HANA_use_AVG { get; set; } = false;
+
+    public bool? ANF_HANA_use_Zones { get; set; } = true;
+
+    /*---------------------------------------------------------------------------8
+    |                                                                            |
+    |                                     Data                                   |
+    |                                                                            |
+    +------------------------------------4--------------------------------------*/
+
     public bool? ANF_HANA_data { get; set; }
 
     public int? ANF_HANA_data_volume_size { get; set; }
@@ -481,6 +492,13 @@ namespace AutomationForm.Models
 
     public int? ANF_HANA_data_volume_throughput { get; set; }
 
+    public int? ANF_HANA_data_volume_count { get; set; } = 1;
+
+    /*---------------------------------------------------------------------------8
+    |                                                                            |
+    |                                     Log                                    |
+    |                                                                            |
+    +------------------------------------4--------------------------------------*/
     public bool? ANF_HANA_log { get; set; }
 
     public int? ANF_HANA_log_volume_size { get; set; }
@@ -491,6 +509,13 @@ namespace AutomationForm.Models
 
     public int? ANF_HANA_log_volume_throughput { get; set; }
 
+    public int? ANF_HANA_log_volume_count { get; set; } = 1;
+
+    /*---------------------------------------------------------------------------8
+    |                                                                            |
+    |                                   Shared                                   |
+    |                                                                            |
+    +------------------------------------4--------------------------------------*/
     public bool? ANF_HANA_shared { get; set; }
 
     public int? ANF_HANA_shared_volume_size { get; set; }
@@ -501,6 +526,11 @@ namespace AutomationForm.Models
 
     public int? ANF_HANA_shared_volume_throughput { get; set; }
 
+    /*---------------------------------------------------------------------------8
+    |                                                                            |
+    |                                  /usr/sap                                  |
+    |                                                                            |
+    +------------------------------------4--------------------------------------*/
     public bool? ANF_usr_sap { get; set; }
 
     public int? ANF_usr_sap_volume_size { get; set; }
@@ -511,7 +541,11 @@ namespace AutomationForm.Models
 
     public int? ANF_usr_sap_throughput { get; set; }
 
-    public bool? use_private_endpoint { get; set; }
+    /*---------------------------------------------------------------------------8
+    |                                                                            |
+    |                                   sapmnt                                   |
+    |                                                                            |
+    +------------------------------------4--------------------------------------*/
 
     public bool? ANF_sapmnt { get; set; }
 
@@ -523,7 +557,6 @@ namespace AutomationForm.Models
 
     public bool? ANF_sapmnt_use_clone_in_secondary_zone { get; set; }
 
-    public bool? ANF_HANA_use_AVG { get; set; } = false;
 
     /*---------------------------------------------------------------------------8
     |                                                                            |
@@ -561,6 +594,53 @@ namespace AutomationForm.Models
     public string spn_keyvault_id { get; set; }
 
     public bool? enable_purge_control_for_keyvaults { get; set; } = false;
+
+    /*---------------------------------------------------------------------------8
+    |                                                                            |
+    |                               Deployment                                   |
+    |                                                                            |
+    +------------------------------------4--------------------------------------*/
+    public bool? use_spn { get; set; } = true;
+
+    /*---------------------------------------------------------------------------8
+    |                                                                            |
+    |                               HANA Scale Out                               |
+    |                                                                            |
+    +------------------------------------4--------------------------------------*/
+
+    public bool? database_HANA_use_ANF_scaleout_scenario { get; set; } = false;
+
+    public int? stand_by_node_count { get; set; } = 0;
+
+
+    /*---------------------------------------------------------------------------8
+    |                                                                            |
+    |                               AMS Parameters                               |
+    |                                                                            |
+    +------------------------------------4--------------------------------------*/
+
+    public bool? enable_ha_monitoring { get; set; } = false;
+
+    public bool? enable_os_monitoring { get; set; } = false;
+
+    [AMSIdValidator(ErrorMessage = "Invalid AMS Resource id")]
+    public string ams_resource_id { get; set; }
+
+    /*---------------------------------------------------------------------------8
+    |                                                                            |
+    |                              KDump Parameters                              |
+    |                                                                            |
+    +------------------------------------4--------------------------------------*/
+
+    public bool? use_fence_kdump { get; set; } = false;
+
+    public int? use_fence_kdump_size_gb_db { get; set; } = 128;
+
+    public int? use_fence_kdump_lun_db { get; set; } = 8;
+
+    public int? use_fence_kdump_size_gb_scs { get; set; } = 64;
+
+    public int? use_fence_kdump_lun_scs { get; set; } = 4;
 
   }
 

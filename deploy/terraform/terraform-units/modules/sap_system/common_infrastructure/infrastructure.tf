@@ -94,8 +94,8 @@ resource "azurerm_proximity_placement_group" "app_ppg" {
 data "azurerm_proximity_placement_group" "app_ppg" {
   provider                             = azurerm.main
   count                                = var.infrastructure.use_app_proximityplacementgroups ? (local.app_ppg_exists ? max(length(local.zones), 1) : 0) : 0
-  name                                 = split("/", var.infrastructure.app_ppg.arm_id[count.index])[8]
-  resource_group_name                  = split("/", var.infrastructure.app_ppg.arm_id[count.index])[4]
+  name                                 = split("/", var.infrastructure.app_ppg.arm_ids[count.index])[8]
+  resource_group_name                  = split("/", var.infrastructure.app_ppg.arm_ids[count.index])[4]
 }
 
 //ASG
@@ -168,6 +168,11 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "scale_set" {
 
   zones                                = local.zones
   tags                                 = var.tags
+
+  # proximity_placement_group_id         = length(local.zones) <= 1 ? (
+  #                                           local.ppg_exists ? local.ppg_arm_ids[0] : azurerm_proximity_placement_group.ppg[0].id) :(
+  #                                           null
+  #                                         )
 }
 
 data "azurerm_orchestrated_virtual_machine_scale_set" "scale_set" {

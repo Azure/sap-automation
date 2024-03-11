@@ -1,0 +1,60 @@
+{
+  "deployer": {
+    "urls": [
+      "https://github.com/Azure/sap-automation",
+      "https://github.com/Azure/sap-automation-samples",
+      "https://github.com/Azure/sap-automation-bootstrap",
+      "https://packages.microsoft.com/keys/microsoft.asc",
+      "https://releases.hashicorp.com/",
+      "https://registry.terraform.io",
+      "https://checkpoint-api.hashicorp.com",
+      "https://bootstrap.pypa.io",
+      "https://pypi.org",
+      "https://files.pythonhosted.org",
+      "https://pythonhosted.org",
+      "https://galaxy.ansible.com",
+      "https://ansible-galaxy-ng.s3.dualstack.us-east-1.amazonaws.com"
+    ],
+    "IPs": ["vstsagenttools.blob.core.windows.net"]
+  },
+  "windows": {
+    "urls": [
+      "https://visualstudio.microsoft.com/downloads/",
+      "https://www.powershellgallery.com/"
+    ],
+    "IPs": [
+      "onegetcdn.azureedge.net",
+      "az818661.vo.msecnd.net",
+      "devopsgallerystorage.blob.core.windows.net"
+    ]
+  },
+  "sap": {
+    "urls": [
+      "https://softwaredownloads.sap.com/file/0020000000098642022",
+      "https://yum.oracle.com",
+      "https://public-yum.oracle.com"
+    ],
+    "IPs": [
+      "13.91.47.76",
+      "40.85.190.91",
+      "52.187.75.218",
+      "52.174.163.213",
+      "52.237.203.198",
+      "52.136.197.163",
+      "20.225.226.182",
+      "52.142.4.99",
+      "20.248.180.252",
+      "20.24.186.80",
+      "13.72.14.155",
+      "52.244.249.194",
+      "52.187.53.250",
+      "104.45.31.195",
+      "52.149.120.86",
+      "51.145.209.119",
+      "52.157.241.14",
+      "52.230.96.47",
+      "52.237.80.2",
+      "52.139.216.51"
+    ]
+  }
+}

@@ -166,7 +166,7 @@ output "enable_firewall_for_keyvaults_and_storage" {
 
 output "public_network_access_enabled"           {
                                                    description = "Defines if the public access should be enabled for keyvaults and storage"
-                                                   value       = var.public_network_access_enabled || !var.use_private_endpoint
+                                                   value       = var.public_network_access_enabled
                                                  }
 
 

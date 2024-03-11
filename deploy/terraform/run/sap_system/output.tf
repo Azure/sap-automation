@@ -150,9 +150,9 @@ output "hanadb_vm_ids" {
                                          value = module.hdb_node.hanadb_vm_ids
 }
 
-output "database_server_vm_ips"        {
+output "database_server_vm_ids"        {
                                          description = "VM IDs for the AnyDB Servers"
-                                         value = module.anydb_node.database_server_vm_ips
+                                         value = module.anydb_node.database_server_vm_ids
                                        }
 
 output "db_vm_ips"                     {
@@ -217,3 +217,4 @@ output "subscription_id_used"          {
                                          value       = local.spn.subscription_id
                                          sensitive   = true
                                        }
+

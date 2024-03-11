@@ -15,7 +15,6 @@
                                          (database_cluster_type == "ISCSI")
       ansible.builtin.command: >
                                        crm configure property \$id="cib-bootstrap-options"
-                                         no-quorum-policy="ignore"
                                          stonith-enabled="true"
                                          stonith-action="reboot"
                                          stonith-timeout="144s"
@@ -24,7 +23,6 @@
       when:                            database_cluster_type not in ["ISCSI", "ASD"]
       ansible.builtin.command: >
                                        crm configure property \$id="cib-bootstrap-options"
-                                         no-quorum-policy="ignore"
                                          stonith-enabled="true"
                                          stonith-action="reboot"
                                          stonith-timeout="900s"
@@ -92,7 +90,7 @@
                                        meta target-role="Started"
                                        operations \$id="rsc_ip_{{ db_sid | upper }}_HDB{{ db_instance_number }}-operations"
                                        op monitor interval="10s" timeout="20s"
-                                       params ip="{{ db_lb_ip }}"
+                                       params ip="{{ database_loadbalancer_ip }}"
       register:                        sap_hana_rsc_ip
       failed_when:                     sap_hana_rsc_ip.rc > 1
     # socat is recommended in place of netcat on Azure: https://www.suse.com/support/kb/doc/?id=000019536

@@ -15,8 +15,6 @@
 # TODO: Considerations
 
 ---
-
-# Set BOM facts for SAP DB2 Install - Refer to sap-automation/deploy/ansible/BOM-catalog/ERP6_EHP8_LNX_DB2UDB_11_5_v0001ms
 - name:                                "SAP DB2 Install: Preparation"
   block:
     - name:                            "SAP DB2 Install: Set BOM facts"
@@ -110,6 +108,10 @@
           - "{{ bom.product_ids.dblha }}"
         verbosity:                     2
 
+    - name:                            "SAP DB2 - register InstanceType"
+      ansible.builtin.set_fact:
+        db2_instance_type:             "{{ bom.InstanceType | default('ABAP') }}"
+
     - name:                            "Create temp directory for sid"
       ansible.builtin.file:
         path:                          "{{ tmp_directory }}/{{ sap_sid | upper }}"
@@ -142,8 +144,6 @@
         msg:                           "SAP DB2 Installation succeeded."
 
   # TBC - Add another check to remove the contents of /sapmnt/<SID> if installation fails
-
-
     - name:                            "DB2 Install: flag"
       ansible.builtin.file:
         path:                          "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_db2.txt"
@@ -168,6 +168,28 @@
         state:                         touch
         mode:                          0755
       when:                            db2_lock_escalation.rc == 0
+
+    - name:                            "DB2: Stat if the encryption keystore exists"
+      ansible.builtin.stat:
+        path:                          /db2/db2{{ db_sid | lower }}/keystore/sapdb2{{ db_sid | lower }}_db_encr.p12
+      register:                        db2_encryption_keystore_file_stat
+
+    - name:                            "DB2: Stat if the SSL keystore exists"
+      ansible.builtin.stat:
+        path:                          /db2/db2{{ db_sid | lower }}/keystore/sapdb2{{ db_sid | lower }}_ssl_comm.kdb
+      register:                        db2_ssl_keystore_file_stat
+
+    - name:                            "DB2: create db_encrypted and ssl_communication variables"
+      ansible.builtin.set_fact:
+        db_encrypted:                  "{{ db2_encryption_keystore_file_stat.stat.exists }}"
+        ssl_communication:             "{{ db2_ssl_keystore_file_stat.stat.exists }}"
+
+    - name:                            "DB2: Debug encrypted database and SSL communication"
+      ansible.builtin.debug:
+        msg:
+          - "Database encrypted: {{ db_encrypted }}"
+          - "SSL communication: {{ ssl_communication }}"
+
     - name:                            "DB2 Install: check if ARM Deployment done"
       ansible.builtin.stat:
         path:                          "/etc/sap_deployment_automation/{{ db_sid | upper }}/sap_deployment_db_arm.txt"

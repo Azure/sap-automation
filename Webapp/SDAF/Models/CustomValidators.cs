@@ -233,6 +233,15 @@ namespace AutomationForm.Models
         return RegexValidation(value, pattern);
       }
     }
+    public class AMSIdValidator : ValidationAttribute
+    {
+      public override bool IsValid(object value)
+      {
+        string pattern = @"^\/subscriptions\/\w{8}-\w{4}-\w{4}-\w{4}-\w{12}\/resourceGroups\/[a-zA-Z0-9-_]+\/providers\/Microsoft.Workloads\/monitors\/[a-zA-Z0-9-_]+$";
+        return RegexValidation(value, pattern);
+      }
+    }
+
 
     public class ScaleSetIdValidator : ValidationAttribute
     {
@@ -315,6 +324,7 @@ namespace AutomationForm.Models
       {
         string[] hanadb_sizes = new string[] {
                     "Default",
+                    "Custom",
                     "S4Demo",
                     "E20ds_v4",
                     "E20ds_v5",
@@ -340,6 +350,7 @@ namespace AutomationForm.Models
                 };
         string[] anydb_sizes = new string[] {
                     "Default",
+                    "Custom",
                     "256",
                     "512",
                     "1024",

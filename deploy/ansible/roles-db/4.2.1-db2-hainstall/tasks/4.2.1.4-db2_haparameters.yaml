@@ -2,11 +2,14 @@
 
 # ###################  Setting DB2 HA parameters on Primary DB  #########################
 - name:                                "DB2 - Set up HA parameters on Primary DB"
+  when:                                ansible_hostname == primary_instance_name
+  become:                              true
+  become_user:                         db2{{ db_sid | lower }}
   block:
-    - name:                            " DB2 Primary DB - Set Fact for hadr local host and remote host "
+    - name:                            "DB2 Primary DB - Set Fact for hadr local host and remote host "
       ansible.builtin.set_fact:
-        db_hadr_local_host:            "{{ primary_instance_name }}.{{ sap_fqdn }}"
-        db_hadr_remote_host:           "{{ secondary_instance_name }}.{{ sap_fqdn }}"
+        db_hadr_local_host:            "{{ hostvars[primary_instance_name]['virtual_host'] }}.{{ sap_fqdn }}"
+        db_hadr_remote_host:           "{{ hostvars[secondary_instance_name]['virtual_host'] }}.{{ sap_fqdn }}"
 
     - name:                            "DB2 Primary DB- Switch user to db2<db_sid>"
       ansible.builtin.shell:           whoami
@@ -29,7 +32,6 @@
     - name:                            "DB2 Primary: Print return information from the primary db2status"
       ansible.builtin.debug:
         msg:                           "Result: {{ pridb2status.stdout }}"
-
 
     - name:                            "DB2 Primary DB - Start the Primary DB"
       ansible.builtin.shell:           db2start
@@ -65,7 +67,7 @@
             executable:                /bin/csh
           environment:
             PATH:                      "{{ ansible_env.PATH }}:/db2/db2{{ db_sid | lower }}/sqllib/gskit/bin"
-      when:   ansible_os_family == 'Suse'
+      when: ansible_os_family == 'Suse'
 
     - name:                            "DB2 Primary DB - HA Config - RHEL"
       # RHEL - Settings - When you use an Azure Pacemaker fencing agent, set the following parameters:
@@ -91,23 +93,20 @@
             executable:                /bin/csh
           environment:
             PATH:                      "{{ ansible_env.PATH }}:/db2/db2{{ db_sid | lower }}/sqllib/gskit/bin"
-      when:   ansible_os_family == 'RedHat'
-
-  when:       ansible_hostname == primary_instance_name
-  become:                              true
-  become_user:                         db2{{ db_sid | lower }}
+      when: ansible_os_family == 'RedHat'
 
 # ################### End of Section for Primary DB   ######################
 
-# ##################  Section Start for Secondary DB               ###############################
 # ##################  Setup DB2 HA parameters on Secondary ###############################
-
 - name:                                "DB2 - Set up HA parameters on Secondary DB"
+  when:                                ansible_hostname == secondary_instance_name
+  become:                              true
+  become_user:                         db2{{ db_sid | lower }}
   block:
     - name:                            " DB2 Secondary DB - Set Fact for hadr local host and remote host "
       ansible.builtin.set_fact:
-        db_hadr_local_host:            "{{ secondary_instance_name }}.{{ sap_fqdn }}"
-        db_hadr_remote_host:           "{{ primary_instance_name }}.{{ sap_fqdn }}"
+        db_hadr_local_host:            "{{ hostvars[secondary_instance_name]['virtual_host'] }}.{{ sap_fqdn }}"
+        db_hadr_remote_host:           "{{ hostvars[primary_instance_name]['virtual_host'] }}.{{ sap_fqdn }}"
 
     - name:                            "DB2 Secondary DB- Switch user to db2<db_sid>"
       ansible.builtin.shell:           whoami
@@ -127,10 +126,9 @@
       failed_when:                      false
       changed_when:                     false
 
-    - name:                           "DB2  Secondary: Print return information from the Secondary db2status"
+    - name:                            "DB2 Secondary: Print return information from the Secondary db2status"
       ansible.builtin.debug:
         msg:                           "Result: {{ secdb2status.stdout }}"
-
 
     - name:                            "DB2 Secondary DB - Start the Primary DB"
       ansible.builtin.shell:           db2start
@@ -193,11 +191,19 @@
           register:                db2_update
           failed_when:             db2_update.rc not in [0,2]
       when:   ansible_os_family == 'RedHat'
-
-  when:       ansible_hostname == secondary_instance_name
-  become:                              true
-  become_user:                         db2{{ db_sid | lower }}
-
 # ################### End of Section for Secondary DB   ######################
 
+- name:                                "DB2 DB - HADR SSL Configuration"
+  when:                                db2_ssl_label is defined
+  become:                              true
+  become_user:                         db2{{ db_sid | lower }}
+  block:
+    - name:                            "DB2 DB - Set HADR SSL Configuration"
+      ansible.builtin.shell:           db2 update db cfg for {{ db_sid }} using HADR_SSL_LABEL {{ db2_ssl_label }}
+      register:                        db2_update
+      failed_when:                     db2_update.rc not in [0,2]
+      args:
+        executable:                    /bin/csh
+      environment:
+        PATH:                          "{{ ansible_env.PATH }}:/db2/db2{{ db_sid | lower }}/sqllib/gskit/bin"
 ...

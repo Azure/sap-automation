@@ -32,7 +32,8 @@ cmd_dir="$(dirname "$(readlink -e "${BASH_SOURCE[0]}")")"
 #           playbook_05_02_sap_pas_install.yaml                                           \
 #           playbook_05_03_sap_app_install.yaml                                           \
 #           playbook_05_04_sap_web_install.yaml                                           \
-#           playbook_06_00_acss_registration.yaml
+#           playbook_06_00_acss_registration.yaml                                         \
+#           playbook_06_01_ams_monitoring.yaml
 
 # The SAP System parameters file which should exist in the current directory
 sap_params_file=sap-parameters.yaml
@@ -46,12 +47,12 @@ fi
 # the inventory file name to use.
 sap_sid="$(awk '$1 == "sap_sid:" {print $2}' ${sap_params_file})"
 
-kv_name="$(awk '$1 == "kv_name:" {print $2}' ${sap_params_file})"
+workload_vault_name="$(awk '$1 == "kv_name:" {print $2}' ${sap_params_file})"
 
 prefix="$(awk '$1 == "secret_prefix:" {print $2}' ${sap_params_file})"
 password_secret_name=$prefix-sid-password
 
-password_secret=$(az keyvault secret show --vault-name ${kv_name} --name ${password_secret_name} | jq -r .value)
+password_secret=$(az keyvault secret show --vault-name ${workload_vault_name} --name ${password_secret_name} --query value --output table)
 export ANSIBLE_PASSWORD=$password_secret
 #
 # Ansible configuration settings.
@@ -107,11 +108,11 @@ options=(
         "Database Load"
         "Database High Availability Setup"
         "Primary Application Server installation"
-        "Oracle High Availability Setup"
         "Application Server installations"
         "Web Dispatcher installations"
-        "HCMT"
         "ACSS Registration"
+        "AMS Provider Creation"
+        "HCMT"
 
         # Special menu entries
         "BOM Download"
@@ -133,15 +134,15 @@ all_playbooks=(
         ${cmd_dir}/playbook_05_01_sap_dbload.yaml
         ${cmd_dir}/playbook_04_00_01_db_ha.yaml
         ${cmd_dir}/playbook_05_02_sap_pas_install.yaml
-        ${cmd_dir}/playbook_04_02_00_oracle_ha_setup.yaml
 
 
 
         # Post SAP Install Steps
         ${cmd_dir}/playbook_05_03_sap_app_install.yaml
         ${cmd_dir}/playbook_05_04_sap_web_install.yaml
-        ${cmd_dir}/playbook_04_00_02_db_hcmt.yaml
         ${cmd_dir}/playbook_06_00_acss_registration.yaml
+        ${cmd_dir}/playbook_06_01_ams_monitoring.yaml
+        ${cmd_dir}/playbook_04_00_02_db_hcmt.yaml
         ${cmd_dir}/playbook_bom_downloader.yaml
         ${cmd_dir}/playbook_07_00_00_post_installation.yaml
 )

@@ -120,12 +120,12 @@ variable "firewall_deployment"                  {
 
 variable "firewall_rule_subnets"                {
                                                   description = "List of subnets that are part of the firewall rule"
-                                                  default     = null
+                                                  default     = []
                                                 }
 
 variable "firewall_allowed_ipaddresses"         {
                                                   description = "List of allowed IP addresses to be part of the firewall rule"
-                                                  default     = null
+                                                  default     = []
                                                 }
 
 #######################################4#######################################8
@@ -255,11 +255,14 @@ variable "deployer_private_ip_address"          {
                                                   default = [""]
                                                 }
 
-variable "add_system_assigned_identity"         {
-                                                  description = "Boolean flag indicating if a system assigned identity should be added to the deployer"
-                                                  default     = false
+
+variable "shared_access_key_enabled"            {
+                                                  description = "Indicates whether the storage account permits requests to be authorized with the account access key via Shared Key."
+                                                  default     = true
                                                   type        = bool
                                                 }
+
+
 
 ###############################################################################
 #                                                                             #
@@ -329,6 +332,11 @@ variable "enable_purge_control_for_keyvaults"         {
                                                         default     = false
                                                       }
 
+variable "soft_delete_retention_days"                 {
+                                                        description = "The number of days that items should be retained in the soft delete period"
+                                                        default     = 7
+                                                      }
+
 variable "additional_users_to_add_to_keyvault_policies" {
                                                           description = "List of object IDs to add to key vault policies"
                                                           default     = [""]
@@ -373,7 +381,7 @@ variable "deployer_diagnostics_account_arm_id"        {
 
 variable "tf_version"                                 {
                                                         description = "Terraform version to install on deployer"
-                                                        default     = "1.6.2"
+                                                        default     = "1.7.0"
                                                       }
 
 variable "name_override_file"                         {
@@ -402,6 +410,7 @@ variable "subnets_to_add_to_firewall_for_keyvaults_and_storage" {
                                                                   description = "List of subnets to add to storage account and keyvaults firewall"
                                                                   default     = []
                                                                 }
+
 
 #########################################################################################
 #                                                                                       #
@@ -432,9 +441,11 @@ variable "dns_zone_names"                             {
                                                         type        = map(string)
 
                                                         default = {
-                                                          "file_dns_zone_name"  = "privatelink.file.core.windows.net"
-                                                          "blob_dns_zone_name"  = "privatelink.blob.core.windows.net"
-                                                          "vault_dns_zone_name" = "privatelink.vaultcore.azure.net"
+                                                          "file_dns_zone_name"   = "privatelink.file.core.windows.net"
+                                                          "blob_dns_zone_name"   = "privatelink.blob.core.windows.net"
+                                                          "table_dns_zone_name"  = "privatelink.table.core.windows.net"
+                                                          "vault_dns_zone_name"  = "privatelink.vaultcore.azure.net"
+
                                                         }
                                                       }
 
@@ -507,4 +518,32 @@ variable "enable_firewall_for_keyvaults_and_storage" {
 variable "Agent_IP"                                  {
                                                        description = "IP address of the agent"
                                                        default     = ""
+                                                     }
+
+variable "add_Agent_IP"                              {
+                                                        description = "Boolean value indicating if the Agent IP should be added to the storage and key vault firewalls"
+                                                        default     = true
+                                                        type        = bool
+                                                      }
+
+###############################################################################
+#                                                                             #
+#                                  Identity                                   #
+#                                                                             #
+###############################################################################
+
+variable "user_assigned_identity_id"                {
+                                                       description = "User assigned Identity resource Id"
+                                                       default     = ""
+                                                     }
+
+variable "add_system_assigned_identity"              {
+                                                       description = "Boolean flag indicating if a system assigned identity should be added to the deployer"
+                                                       default     = false
+                                                       type        = bool
+                                                     }
+
+variable "use_spn"                                   {
+                                                       description = "Log in using a service principal when performing the deployment"
+                                                       default     = false
                                                      }

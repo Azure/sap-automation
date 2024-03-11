@@ -41,58 +41,26 @@ resource "azurerm_storage_account" "sapmnt" {
   public_network_access_enabled        = try(var.landscape_tfstate.public_network_access_enabled, true)
   tags                                 = var.tags
 
-}
-resource "azurerm_storage_account_network_rules" "sapmnt" {
-  provider                             = azurerm.main
-  count                                = var.NFS_provider == "AFS" ? (
-                                           length(var.azure_files_sapmnt_id) > 0 ? (
-                                             0) : (
-                                             1
-                                           )) : (
-                                           0
-                                         )
-  storage_account_id                   = azurerm_storage_account.sapmnt[0].id
-  default_action                       = "Deny"
+  network_rules {
+                  default_action = "Deny"
+                  virtual_network_subnet_ids = compact(
+                    [
+                      try(var.landscape_tfstate.admin_subnet_id, ""),
+                      try(var.landscape_tfstate.app_subnet_id, ""),
+                      try(var.landscape_tfstate.db_subnet_id, ""),
+                      try(var.landscape_tfstate.web_subnet_id, ""),
+                      try(var.landscape_tfstate.subnet_mgmt_id, "")
+                    ]
+                  )
+                  ip_rules = compact(
+                    [
+                      length(var.Agent_IP) > 0 ? var.Agent_IP : ""
+                    ]
+                  )
+                }
 
-  bypass                               = ["AzureServices", "Logging", "Metrics"]
-  virtual_network_subnet_ids           = compact(
-                                           [
-                                             try(var.landscape_tfstate.admin_subnet_id, ""),
-                                             try(var.landscape_tfstate.app_subnet_id, ""),
-                                             try(var.landscape_tfstate.db_subnet_id, ""),
-                                             try(var.landscape_tfstate.web_subnet_id, ""),
-                                             try(var.landscape_tfstate.subnet_mgmt_id, "")
-                                           ]
-                                         )
 
 }
-
-# resource "azurerm_private_dns_a_record" "sapmnt" {
-#   provider = azurerm.dnsmanagement
-#   depends_on = [
-#     azurerm_private_endpoint.sapmnt
-#   ]
-#   count = var.create_storage_dns_a_records ? 1 : 0
-#   name = replace(
-#     lower(
-#       format("%s%s",
-#         local.prefix,
-#         local.resource_suffixes.sapmnt
-#       )
-#     ),
-#     "/[^a-z0-9]/",
-#     ""
-#   )
-#   zone_name           = var.dns_zone_names.file_dns_zone_name
-#   resource_group_name = var.management_dns_resourcegroup_name
-#   ttl                 = 3600
-#   records             = [data.azurerm_network_interface.sapmnt[count.index].ip_configuration[0].private_ip_address]
-
-
-#   lifecycle {
-#     ignore_changes = [tags]
-#   }
-# }
 
 data "azurerm_storage_account" "sapmnt" {
   provider                             = azurerm.main
