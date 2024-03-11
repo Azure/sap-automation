@@ -175,7 +175,7 @@
 
     # Allow the required ports for fence_kdump through the firewall.
     - name:                                       "1.17 Generic Pacemaker - RHEL - Allow ports for fence_kdump through the firewall"
-      ansible.builtin.firewalld:
+      ansible.posix.firewalld:
         port:                                     "7410/udp"
         permanent:                                true
         state:                                    enabled
