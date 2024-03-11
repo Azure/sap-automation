@@ -110,20 +110,20 @@
 - name:                                "2.4 Hosts: Process pas_hostname variable and update host file when it is defined"
   block:
 
-    - name:                                "2.4 Hosts: - Set virtual_host fact from the fetched PAS server list"
+    - name: "2.4 Hosts: Set virtual_host fact from the fetched PAS server list"
       ansible.builtin.set_fact:
-        pas_virtualhost_from_inventory:  >-
-                                             {%- set _virthost = "" -%}
-                                             {%- if ( query('inventory_hostnames', sap_sid | upper ~ '_PAS') | length > 0 ) -%}
-                                             {%-    set _virthost = hostvars[query('inventory_hostnames', sap_sid | upper ~ '_PAS') | first]['virtual_host'] -%}
-                                             {%- else -%}
-                                             {%-   for item in hostvars[query('inventory_hostnames', 'all')] -%}
-                                             {%-     if 'pas' in hostvars[item][supported_tiers] -%}
-                                             {%-       set _virthost = hostvars[item]['virtual_host'] -%}
-                                             {%-     endif -%}
-                                             {%-   endfor -%}
-                                             {%- endif -%}
-                                             {{- _virthost -}}
+        pas_virtualhost_from_inventory: >-
+                                       {%- set _virthost = "" -%}
+                                       {%- if ( groups[sap_sid | upper ~ '_PAS'] | length > 0 ) -%}
+                                       {%-    set _virthost = hostvars[groups[sap_sid | upper ~ '_PAS'][0]]['virtual_host'] -%}
+                                       {%- else -%}
+                                       {%-   for item in groups['all'] -%}
+                                       {%-     if hostvars[item].supported_tiers is defined and 'pas' in hostvars[item].supported_tiers -%}
+                                       {%-       set _virthost = hostvars[item]['virtual_host'] -%}
+                                       {%-     endif -%}
+                                       {%-   endfor -%}
+                                       {%- endif -%}
+                                       {{- _virthost -}}
 
     - name:                            "2.4 Hosts: - Set fact for the PAS if pas_hostname is defined"
       ansible.builtin.set_fact:
