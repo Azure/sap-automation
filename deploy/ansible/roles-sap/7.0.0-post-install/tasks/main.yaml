@@ -211,7 +211,7 @@
   register:                            sapinst_instdir_logs
   when:
     - tier not in ['hana', 'oracle']
-    - sapinst_instdir_exists.stat.exists
+    - (sapinst_instdir_exists.stat.exists | default(false))
     - all_sapinst_instdir_logs | default(false)
 
 - name:                                "Post Installation (optional): Compress all log files from {{ tmp_directory }}/{{ this_sid }}/sapinst_instdir/"
