@@ -1,3 +1,3 @@
-so1adm ALL=(ALL) NOPASSWD: /usr/sbin/crm_attribute -n hana_{{ db_sid }}_site_srHook_*
-so1adm ALL=(ALL) NOPASSWD: /usr/sbin/crm_attribute -n hana_{{ db_sid }}_gsh *
-so1adm ALL=(ALL) NOPASSWD: /usr/sbin/SAPHanaSR-hookHelper --sid={{ db_sid }} *
+so1adm ALL=(ALL) NOPASSWD: /usr/sbin/crm_attribute -n hana_{{ db_sid | lower }}_site_srHook_*
+so1adm ALL=(ALL) NOPASSWD: /usr/sbin/crm_attribute -n hana_{{ db_sid | lower }}_gsh *
+so1adm ALL=(ALL) NOPASSWD: /usr/sbin/SAPHanaSR-hookHelper --sid={{ db_sid | lower }} *
