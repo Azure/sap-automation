@@ -231,7 +231,7 @@
         group:                             root
         # validate:                          /usr/sbin/visudo -cf %s
       when:
-        - ansible_os_family == "SUSE"
+        - ansible_os_family == "Suse"
 
     # Ref: https://learn.microsoft.com/en-us/azure/sap/workloads/sap-hana-high-availability-scale-out-hsr-rhel?tabs=lb-portal#create-sap-hana-cluster-resources
     - name:                            Create sudoers file for /etc/sudoers.d/20-saphana for RHEL
@@ -243,7 +243,7 @@
         group:                             root
         # validate:                          /usr/sbin/visudo -cf %s
       when:
-        - ansible_os_family == "RHEL"
+        - ansible_os_family == "RedHat"
 
 
 
