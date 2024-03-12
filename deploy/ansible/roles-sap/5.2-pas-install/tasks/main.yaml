@@ -31,7 +31,7 @@
 - name:                                "PAS Install: Set BOM facts"
   ansible.builtin.set_fact:
     sap_inifile:                       "{{ bom_base_name }}-pas-{{ sid_to_be_deployed.sid | lower }}-{{ ansible_hostname }}.params"
-    sap_inifile_template:              "{{ bom_base_name }}{{ bom_suffix }}-pas-inifile-param.j2"
+    sap_inifile_template:              "pas-inifile-param.j2"
     dir_params:                        "{{ tmp_directory }}/.{{ sid_to_be_deployed.sid | lower }}-params"
     db_lb_virtual_host_HANA:           "{% if database_high_availability %}{{ sid_to_be_deployed.sid | lower }}{{ db_sid | lower }}db{{ db_instance_number }}cl.{{ sap_fqdn }}{% else %}{{ hostvars[db_server_temp | first]['virtual_host'] }}{% endif %}"
     db_lb_virtual_host_AnyDB:          "{% if database_high_availability %}{{ sid_to_be_deployed.sid | lower }}{{ db_sid | lower }}db{{ db_instance_number }}cl.{{ sap_fqdn }}{% else %}{{ db_server_temp }}{% endif %}"
