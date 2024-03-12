@@ -8,24 +8,13 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-- name:                                HANA 2.0 only - Implement the Python system replication hook SAPHanaSR-ScaleOut MultiTarget 
+- name:                                HANA 2.0 only - Implement the Python system replication hook SAPHanaSR-ScaleOut MultiTarget
   when:
     - hdb_version[0:2] == "2."
+    - node_tier == 'hana'
+    - db_scale_out
   block:
-
-    - name:                            Ensure a list of package version is available for checking the SAPHanaSR-ScaleOut package version
-      ansible.builtin.package_facts:
-
-    # - name:                            Verify that package SAPHanaSR-ScaleOut is at least version 0.153
-    #   ansible.builtin.package:
-    #     name:                          SAPHanaSR-ScaleOut>=0.153
-    #     state:                         present
-    #   when:
-    #     - ansible_os_family | upper == "SUSE"
-    #     - ansible_facts.packages['SAPHanaSR-ScaleOut'] is defined
-    #     - (ansible_facts.packages['SAPHanaSR-ScaleOut'][0].version | float) < 0.153
-
-# SAPHanaSR-ScaleOut conflicts with SAPHanaSR and dependencies
+    # SAPHanaSR-ScaleOut conflicts with SAPHanaSR and dependencies
     - name:                            "Ensure SAPHanaSR package is absent"
       ansible.builtin.package:
         name:                          SAPHanaSR
@@ -50,8 +39,7 @@
         - ansible_os_family | upper == "SUSE"
         - ansible_facts.packages['yast2-sap-ha'] is defined
 
-# Ensure SAPHANA SR Scaleout package is installed
-
+    # Ensure SAPHANA SR Scaleout package is installed
     - name:                            "Ensure SAPHanaSR-ScaleOut package is installed"
       ansible.builtin.package:
         name:                          SAPHanaSR-ScaleOut
@@ -68,7 +56,7 @@
         - ansible_os_family | upper == "SUSE"
         - ansible_facts.packages['SAPHanaSR-ScaleOut-doc'] is not defined
 
-# for RHEL, ensure resource-agents-sap-hana-scaleout  is installed
+    # for RHEL, ensure resource-agents-sap-hana-scaleout is installed
     - name:                            "Ensure resource-agents-sap-hana-scaleout  is installed (REDHAT)"
       ansible.builtin.package:
         name:                          resource-agents-sap-hana-scaleout
@@ -133,7 +121,7 @@
     - name:                            Stop HANA System on both nodes
       become_user:                     "{{ db_sid | lower }}adm"
       become:                          true
-      ansible.builtin.command:         "{{ sapcontrol_command }} -function StopSystem"
+      ansible.builtin.command:         "{{ sapcontrol_command }} -function StopSystem {{ db_sid | upper }}"
       failed_when:                     false
       changed_when:                    false
       register:                        hana_system_stopped
@@ -142,7 +130,7 @@
       ansible.builtin.pause:
         seconds:                       120
 
-# This is not needed any more as we are going to use the default path of the hook script installed by the package. 
+# This is not needed any more as we are going to use the default path of the hook script installed by the package.
     # - name:                            copy SAPHanaSR-ScaleOut.py (SUSE)
     #   ansible.builtin.copy:
     #     src:                           /usr/share/SAPHanaSR-ScaleOut/SAPHanaSR-ScaleOut.py
@@ -175,31 +163,6 @@
         owner:                         "{{ db_sid | lower }}adm"
         group:                         sapsys
 
-# Add names of existing HANA nodes to global.ini for name resolution
-# <TODO>
-# Add code to accomodate more HANA nodes for proper scale out setup
-    - name:                                "Prepare global.ini for domain name resolution."
-      become_user:                         root
-      become:                              true
-      community.general.ini_file:
-        path:                              "/hana/shared/{{ db_sid | upper }}/global/hdb/custom/config/global.ini"
-        section:                           communication
-        state:                             present
-        mode:                              0644
-        option:                            listeninterface
-        value:                             .internal
-
-    - name:                                "Prepare global.ini for internal network netmask."
-      become_user:                         root
-      become:                              true
-      community.general.ini_file:
-        path:                              "/hana/shared/{{ db_sid | upper }}/global/hdb/custom/config/global.ini"
-        section:                           communication
-        state:                             present
-        mode:                              0644
-        option:                            internal_network
-        value:                             "{{ (ansible_default_ipv4.network + '/' + ansible_default_ipv4.netmask) | ipaddr('network/prefix') }}"
-
     - name:                                "Prepare global.ini for host name resolution"
       community.general.ini_file:
         path:                              "/hana/shared/{{ db_sid | upper }}/global/hdb/custom/config/global.ini"
@@ -208,58 +171,11 @@
         state:                             present
         option:                            "{{ hostvars[item].ansible_host }}"
         value:                             "{{ hostvars[item].virtual_host }}"
-        
       with_items:
         - "{{ groups[(sap_sid | upper)~'_DB' ] }}"
-
-    - name:                                "Prepare global.ini for site hosts name resolution (Primary Site)"
-      community.general.ini_file:
-        path:                              "/hana/shared/{{ db_sid | upper }}/global/hdb/custom/config/global.ini"
-        section:                            "internal_hostname_resolution"
-        mode:                              0644
-        state:                             present
-        option:                            "{{ hostvars[item].ansible_host }}"
-        value:                             "{{ hostvars[item].virtual_host }}"
-      with_items:
-        - "{{ groups[(sap_sid | upper)~'_DB' ] }}"
-      when:
-        - "{{ lookup( 'ansible.utils.index_of', groups[(sap_sid | upper)~'_DB' ], 'eq', item ) is odd }}"
-        - inventory_hostname == primary_instance_name
-
-    - name:                                "Prepare global.ini for site hosts name resolution (Secondary Site)"
-      community.general.ini_file:
-        path:                              "/hana/shared/{{ db_sid | upper }}/global/hdb/custom/config/global.ini"
-        section:                            "internal_hostname_resolution"
-        mode:                              0644
-        state:                             present
-        option:                            "{{ hostvars[item].ansible_host }}"
-        value:                             "{{ hostvars[item].virtual_host }}"
-      with_items:
-        - "{{ groups[(sap_sid | upper)~'_DB' ] }}"
-      when:
-        - "{{ lookup( 'ansible.utils.index_of', groups[(sap_sid | upper)~'_DB' ], 'eq', item ) is even }}"
-        - inventory_hostname == secondary_instance_name
-
-
-# Adjust global.ini for installation in non-shared environment as described in SAP Note : 2080991. Ensure hana is stopped previously
-    - name:                                "Prepare global.ini for installation in non-shared environment"
-      become_user:                         root
-      become:                              true
-      community.general.ini_file:
-        path:                              "/hana/shared/{{ db_sid | upper }}/global/hdb/custom/config/global.ini"
-        section:                           "persistence"
-        state:                             present
-        mode:                              0644
-        option:                            basepath_shared
-        value:                             0
-
-
-# Placeholder to run hdblcm to add additional nodes on primary and secondary HANA servers from <DB_SID>_DB variables
-
-
 
 # susTkOver is not available on REDHAT
-    - name:                            Adjust global.ini on each cluster node ( without susChkSrv/susTkOver )
+    - name:                            Adjust global.ini on each cluster node ( RHEL without susChkSrv/susTkOver )
       ansible.builtin.blockinfile:
         path:                          /hana/shared/{{ db_sid | upper }}/global/hdb/custom/config/global.ini
         block: |
@@ -303,12 +219,12 @@
         owner:                             root
         group:                             root
         validate:                          /usr/sbin/visudo -cf %s
-      
+
 
     - name:                            Start HANA System on both nodes
       become_user:                     "{{ db_sid | lower }}adm"
       become:                          true
-      ansible.builtin.command:         "{{ sapcontrol_command }} -function StartSystem"
+      ansible.builtin.command:         "{{ sapcontrol_command }} -function StartSystem {{ db_sid | upper }}"
       failed_when:                     false
       changed_when:                    false
       register:                        hana_system_started
@@ -330,7 +246,7 @@
 # REDHAT only
 # This needs to be run on all the nodes that HANA is running.
     - name:                            Verify that the hook script is working as expected (REDHAT)"
-      when:                            
+      when:
       # - inventory_hostname == primary_instance_name
       - ansible_os_family | upper == "REDHAT"
       block:
@@ -372,7 +288,7 @@
 # SUSE only
 # Check on all nodes, status of SAPHanaSrMultiTarget Hook
     - name:                            Verify that the hook script is working as expected (SUSE)"
-      when:                            
+      when:
       # - inventory_hostname == primary_instance_name
       - ansible_os_family | upper == "SUSE"
       block:
@@ -411,7 +327,7 @@
 # SUSE only
 # Check on all nodes, status of susTkOver Hook
     - name:                            Verify that the susTkOver hook script is working as expected (SUSE)"
-      when:                            
+      when:
       # - inventory_hostname == primary_instance_name
       - ansible_os_family | upper == "SUSE"
       - is_susTkOver_ready is defined
