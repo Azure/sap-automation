@@ -13,7 +13,11 @@
     - hdb_version[0:2] == "2."
     - node_tier == 'hana'
     - db_scale_out
+    - db_high_availability
   block:
+    - name:                            Generate list of deployed packages on current host
+      ansible.builtin.package_facts:
+
     # SAPHanaSR-ScaleOut conflicts with SAPHanaSR and dependencies
     - name:                            "Ensure SAPHanaSR package is absent"
       ansible.builtin.package:
