@@ -163,22 +163,14 @@
         msg:                           "INSTALL:0006:Unable to find sapinst, please check that the installation media is mounted"
       when: not sapinst_found.stat.exists
 
-    - name:                            "PAS Install: Include roles-sap/3.3.1-bom-utility role"
-      ansible.builtin.include_role:
-        name:                          roles-sap/3.3.1-bom-utility
-        tasks_from:                    bom-template
+    - name:                            "PAS Install: Template processing - Create ini file {{ sap_inifile }} from {{ sap_inifile_template }}"
+      ansible.builtin.template:
+        src:                           "{{ sap_inifile_template }}"
+        dest:                          "{{ dir_params }}/{{ sap_inifile }}"
+        mode:                          0644
+        force:                         true
       vars:
-        task_prefix:                   "PAS Install: "
-        always_upload_jinja_templates: false
-        bom_name:                      "{{ bom_base_name }}{{ bom_suffix }}"
-        sap_cd_package_hdbclient:      "{{ target_media_location }}/CD_HDBCLIENT/SAP_HANA_CLIENT"
-        sap_cd_package_cd1:            "{{ target_media_location }}/CD_EXPORT"
-        sap_cd_package_cd2:
-        sap_cd_package_cd3:
-        sap_cd_package_cd4:
-        sap_cd_package_cd5:
         sap_ciInstanceNumber:          "{{ instance_number }}"
-        app_instance_number:
         sap_ciDialogWPNumber:          12
         sap_ciBtcWPNumber:             8
         sap_installSAPHostAgent:       "false"
@@ -186,14 +178,12 @@
         sap_scs_hostname:              "{{ custom_scs_virtual_hostname | default(scs_server, true) }}"
         sap_db_hostname:               "{{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) }}"
         sap_ciVirtualHostname:         "{{ pas_virtual_hostname | default(virtual_host, true) }}"
-        sap_appVirtualHostname:
         param_directory:               "{{ dir_params }}"
         sap_sid:                       "{{ sid_to_be_deployed.sid }}"
         scs_instance_number:           "{{ sid_to_be_deployed.ascs_inst_no }}"
         sidadm_uid:                    "{{ sid_to_be_deployed.sidadm_uid }}"
         virt_do_not_resolve_hostname:  "{{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) }}"
-        # support older app inifile templates where hdb_instance_number was used
-        hdb_instance_number:           "{{ db_instance_number }}"
+        hana_schema:                   "{% if platform == 'HANA' %}{{ schema_name }}{% endif %}"
 
     - name:                            "PAS Install: register variables"
       ansible.builtin.set_fact:
