@@ -836,7 +836,7 @@
               option:                    "{{ hostvars[item].ansible_host }}"
               value:                     "{{ hostvars[item].virtual_host }}"
             with_items:
-              - "{{ ansible_play_hosts_all[0::2] }}"
+              - "{{ ansible_play_hosts_all[1::2] }}"
 
       - name:                            "SAP HANA: Restart HANA"
         block:
