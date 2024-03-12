@@ -64,10 +64,10 @@
     name:                              corosync
     state:                             restarted
 
-- name:                                "1.18.2.0 Generic Pacemaker - Pause"
-  ansible.builtin.pause:
-    seconds: 15
-
+- name:                                "1.17 Generic Pacemaker - Pause"
+  ansible.builtin.wait_for:
+    timeout:                           30
+  when:                                ansible_hostname == primary_instance_name
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
