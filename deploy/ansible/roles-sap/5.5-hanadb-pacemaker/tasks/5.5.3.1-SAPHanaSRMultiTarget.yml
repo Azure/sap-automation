@@ -220,7 +220,8 @@
         - ansible_os_family | upper == "SUSE"
         - ansible_hostname == primary_instance_name or ansible_hostname == secondary_instance_name
 
-
+    # Ref: https://documentation.suse.com/sbp/sap-15/html/SLES4SAP-hana-scaleOut-PerfOpt-15/index.html#id-integrating-sap-hana-with-the-cluster
+    # Note: Azure documentation is outdated w.r.t to SAP HANA hook.
     - name:                            Create sudoers file for /etc/sudoers.d/20-saphana for SLES
       ansible.builtin.template:
         src:                               "20-saphana-suse.j2"
@@ -232,6 +233,7 @@
       when:
         - ansible_os_family == "SUSE"
 
+    # Ref: https://learn.microsoft.com/en-us/azure/sap/workloads/sap-hana-high-availability-scale-out-hsr-rhel?tabs=lb-portal#create-sap-hana-cluster-resources
     - name:                            Create sudoers file for /etc/sudoers.d/20-saphana for RHEL
       ansible.builtin.template:
         src:                               "20-saphana-rhel.j2"
