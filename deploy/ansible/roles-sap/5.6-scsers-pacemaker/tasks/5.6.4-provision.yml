@@ -39,8 +39,8 @@
 
 - name:                                "5.6 SCSERS: SCS HA Install: check if installed"
   ansible.builtin.set_fact:
-    scs_is_installed:                  "{{ hostvars[primary_instance_name].scs_installed.stat.exists }}"
-    ers_is_installed:                  "{{ hostvars[secondary_instance_name].ers_installed.stat.exists }}"
+    scs_is_installed:                  "{{ hostvars[primary_instance_name].scs_installed.stat.exists | default(false) }}"
+    ers_is_installed:                  "{{ hostvars[secondary_instance_name].ers_installed.stat.exists | default(false) }}"
 
 - name:                                "5.6 SCSERS: Cluster based on OS in VM"
   ansible.builtin.include_tasks:
