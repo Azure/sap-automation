@@ -221,14 +221,28 @@
         - ansible_hostname == primary_instance_name or ansible_hostname == secondary_instance_name
 
 
-    - name:                            Create sudoers file for /etc/sudoers.d/20-saphana
+    - name:                            Create sudoers file for /etc/sudoers.d/20-saphana for SLES
       ansible.builtin.template:
-        src:                               "20-saphana.j2"
+        src:                               "20-saphana-suse.j2"
         dest:                              "/etc/sudoers.d/20-saphana"
         mode:                              "0440"
         owner:                             root
         group:                             root
         validate:                          /usr/sbin/visudo -cf %s
+      when:
+        - ansible_os_family == "SUSE"
+
+    - name:                            Create sudoers file for /etc/sudoers.d/20-saphana for RHEL
+      ansible.builtin.template:
+        src:                               "20-saphana-rhel.j2"
+        dest:                              "/etc/sudoers.d/20-saphana"
+        mode:                              "0440"
+        owner:                             root
+        group:                             root
+        validate:                          /usr/sbin/visudo -cf %s
+      when:
+        - ansible_os_family == "RHEL"
+
 
 
     - name:                            Start HANA System on both nodes
