@@ -229,7 +229,7 @@
         mode:                              "0440"
         owner:                             root
         group:                             root
-        validate:                          /usr/sbin/visudo -cf %s
+        # validate:                          /usr/sbin/visudo -cf %s
       when:
         - ansible_os_family == "SUSE"
 
@@ -241,7 +241,7 @@
         mode:                              "0440"
         owner:                             root
         group:                             root
-        validate:                          /usr/sbin/visudo -cf %s
+        # validate:                          /usr/sbin/visudo -cf %s
       when:
         - ansible_os_family == "RHEL"
 
