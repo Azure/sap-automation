@@ -174,10 +174,10 @@ locals {
                                                                             0
                                                                           )
                                         app_sku                         = var.application_server_sku
-                                        app_use_ppg                     = var.application_server_count > 0 ? var.use_scalesets_for_deployment ? (
+                                        app_use_ppg                     = var.application_server_count == 0 || var.use_scalesets_for_deployment || !local.enable_app_tier_deployment ? (
                                                                             false) : (
                                                                             var.application_server_use_ppg
-                                                                          ) : false
+                                                                          )
                                         app_use_avset                   = var.application_server_count == 0 || var.use_scalesets_for_deployment || !local.enable_app_tier_deployment ? (
                                                                             false) : (
                                                                             var.application_server_use_avset
@@ -591,21 +591,28 @@ locals {
                                            length(local.web_nic_ips) > 0                          ? { web_nic_ips = local.web_nic_ips } : null), (
                                            length(var.webdispatcher_server_nic_secondary_ips) > 0 ? { web_nic_secondary_ips = var.webdispatcher_server_nic_secondary_ips } : null), (
                                            length(local.web_admin_nic_ips) > 0                    ? { web_admin_nic_ips = local.web_admin_nic_ips } : null), (
-                                           length(local.webdispatcher_loadbalancer_ips) > 0                           ? { webdispatcher_loadbalancer_ips = local.webdispatcher_loadbalancer_ips } : null), (
+                                           length(local.webdispatcher_loadbalancer_ips) > 0       ? { webdispatcher_loadbalancer_ips = local.webdispatcher_loadbalancer_ips } : null), (
                                            length(local.app_tags) > 0                             ? { app_tags = local.app_tags } : { app_tags = local.app_tags }), (
                                            length(local.scs_tags) > 0                             ? { scs_tags = local.scs_tags } : { scs_tags = local.scs_tags }), (
-                                           length(local.web_tags) > 0                             ? { web_tags = local.web_tags } : { web_tags = local.web_tags }
+                                           length(local.web_tags) > 0                             ? { web_tags = local.web_tags } : { web_tags = local.web_tags }), (
+                                           var.use_fence_kdump && var.scs_high_availability       ? { fence_kdump_disk_size = var.use_fence_kdump_size_gb_scs } : { fence_kdump_disk_size = 0 } ), (
+                                           var.use_fence_kdump && var.scs_high_availability       ? { fence_kdump_lun_number = var.use_fence_kdump_lun_scs } : { fence_kdump_lun_number = -1 }
                                            )
                                          )
 
   database                             = merge(
                                             local.databases_temp,
-                                           (local.db_os_specified                ? { os             = local.db_os }                           : null),
-                                           (local.db_authentication_defined      ? { authentication = local.db_authentication }               : null),
-                                           (local.db_avset_arm_ids_defined       ? { avset_arm_ids  = local.avset_arm_ids }                   : null),
-                                           (length(local.frontend_ips)      > 0  ? { loadbalancer   = { frontend_ips = local.frontend_ips } } : { loadbalancer = { frontend_ips = [] } }),
-                                           (length(local.db_tags)           > 0  ? { tags           = local.db_tags }                         : null),
-                                           (local.db_sid_specified               ? { instance       = local.instance }                        : null)
+                                           (local.db_os_specified                                 ? { os             = local.db_os }                           : null),
+                                           (local.db_authentication_defined                       ? { authentication = local.db_authentication }               : null),
+                                           (local.db_avset_arm_ids_defined                        ? { avset_arm_ids  = local.avset_arm_ids }                   : null),
+                                           (length(local.frontend_ips)      > 0                   ? { loadbalancer   = { frontend_ips = local.frontend_ips } } : { loadbalancer = { frontend_ips = [] } }),
+                                           (length(local.db_tags)           > 0                   ? { tags           = local.db_tags }                         : null),
+                                           (local.db_sid_specified                                ? { instance       = local.instance }                        : null), (
+                                           ( var.use_fence_kdump &&
+                                             var.database_high_availability )                     ? { fence_kdump_disk_size = var.use_fence_kdump_size_gb_db } : { fence_kdump_disk_size = 0 } ), (
+                                           ( var.use_fence_kdump &&
+                                             var.database_high_availability )                     ? { fence_kdump_lun_number = var.use_fence_kdump_lun_db } : { fence_kdump_lun_number = -1 }
+                                           )
                                          )
 
 
@@ -643,14 +650,14 @@ locals {
                                             use_existing_data_volume           = var.ANF_HANA_data_use_existing_volume
                                             data_volume_name                   = var.ANF_HANA_data_volume_name
                                             data_volume_throughput             = var.ANF_HANA_data_volume_throughput
-                                            data_volume_count                  = var.ANF_hana_data_volume_count
+                                            data_volume_count                  = var.ANF_HANA_data_volume_count
 
                                             use_for_log                        = var.ANF_HANA_log
                                             log_volume_size                    = var.ANF_HANA_log_volume_size
                                             use_existing_log_volume            = var.ANF_HANA_log_use_existing
                                             log_volume_name                    = var.ANF_HANA_log_volume_name
                                             log_volume_throughput              = var.ANF_HANA_log_volume_throughput
-                                            log_volume_count                   = var.ANF_hana_log_volume_count
+                                            log_volume_count                   = var.ANF_HANA_log_volume_count
 
                                             use_for_shared                     = var.ANF_HANA_shared
                                             shared_volume_size                 = var.ANF_HANA_shared_volume_size

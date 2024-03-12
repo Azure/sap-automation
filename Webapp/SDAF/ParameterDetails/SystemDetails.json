@@ -1389,7 +1389,53 @@
         "Options": [],
         "Overrules": "",
         "Display": 3
+      },
+      {
+        "Name": "use_fence_kdump",
+        "Required": false,
+        "Description": "Configure fencing device based on the fence agent fence_kdump for both SCS and DB clusters",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "use_fence_kdump_size_gb_db",
+        "Required": false,
+        "Description": "Default size of the kdump disk which will be attached to the VMs which are part DB cluster.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "use_fence_kdump_lun_db",
+        "Required": false,
+        "Description": "Default LUN number of the kdump disk which will be attached to the VMs which are part of DB cluster.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "use_fence_kdump_size_gb_scs",
+        "Required": false,
+        "Description": "Default size of the kdump disk which will be attached to the VMs which are part of SCS cluster.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "use_fence_kdump_lun_scs",
+        "Required": false,
+        "Description": "Default LUN number of the kdump disk which will be attached to the VMs which are part of SCS cluster.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
       }
+
     ]
   },
   {
@@ -1889,7 +1935,7 @@
         "Display": 3
       },
       {
-        "Name": "ANF_hana_data_volume_count",
+        "Name": "ANF_HANA_data_volume_count",
         "Required": false,
         "Description": "Number of ANF Data Volumes",
         "Type": "field",
@@ -1949,7 +1995,7 @@
         "Display": 3
       },
       {
-        "Name": "ANF_hana_data_volume_count",
+        "Name": "ANF_HANA_data_volume_count",
         "Required": false,
         "Description": "Number of ANF Data Volumes",
         "Type": "field",

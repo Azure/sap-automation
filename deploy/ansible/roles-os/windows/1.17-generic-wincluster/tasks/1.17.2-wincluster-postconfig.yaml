@@ -46,7 +46,7 @@
 - name:                                "WinCluster-PostConfig: Update Cluster Properties"
   become:                              true
   become_method:                       ansible.builtin.runas
-  become_user:                         '{{ sap_sid }}adm@{{ domain }}'
+  become_user:                         '{{ sap_sid }}adm@{{ domain_name }}'
   ansible.windows.win_dsc:
     resource_name:                     ClusterProperty
     Name:                              "{{ cluster_name }}"
@@ -60,7 +60,7 @@
 - name:                                "WinCluster-PostConfig: Update RouteHistoryLength"
   become:                              true
   become_method:                       ansible.builtin.runas
-  become_user:                         '{{ sap_sid }}adm@{{ domain }}'
+  become_user:                         '{{ sap_sid }}adm@{{ domain_name }}'
   ansible.windows.win_shell: |
                                        (Get-Cluster).RouteHistoryLength = 30
   when:
@@ -69,7 +69,7 @@
 - name:                                "WinCluster-PostConfig: Copy probe port setup script"
   become:                              true
   become_method:                       ansible.builtin.runas
-  become_user:                         '{{ sap_sid }}adm@{{ domain }}'
+  become_user:                         '{{ sap_sid }}adm@{{ domain_name }}'
   ansible.windows.win_template:
     src:                               "Set-AzLBHealthProbePortForASCS.j2"
     dest:                              "{{ sap_deployment_automation }}\\Set-AzLBHealthProbePortForASCS.ps1"
@@ -80,7 +80,7 @@
 - name:                                "WinCluster-PostConfig: Execute probe port setup script"
   become:                              true
   become_method:                       ansible.builtin.runas
-  become_user:                         '{{ sap_sid }}adm@{{ domain }}'
+  become_user:                         '{{ sap_sid }}adm@{{ domain_name }}'
   ansible.windows.win_shell:           "{{ sap_deployment_automation }}\\Set-AzLBHealthProbePortForASCS.ps1"
   when:
     - ansible_hostname == primary_node
@@ -90,7 +90,7 @@
 - name:                                "WinCluster-PostConfig: ENSA1 - Set param to keep connections between SAP WP and the enq server from closing"
   become:                              true
   become_method:                       ansible.builtin.runas
-  become_user:                         '{{ sap_sid }}adm@{{ domain }}'
+  become_user:                         '{{ sap_sid }}adm@{{ domain_name }}'
   community.windows.win_lineinfile:
     backup:                            true
     path:                              "{{ shared_disk_drive_letter }}:\\usr\\sap\\{{ sap_sid | upper }}\\SYS\\profile\\{{ sap_sid | upper }}_ASCS{{ scs_instance_number }}_{{ scs_cluster_hostname }}"

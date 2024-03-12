@@ -448,6 +448,11 @@ variable "Agent_IP"                             {
                                                   type        = string
                                                   default     = ""
                                                 }
+variable "add_Agent_IP"                         {
+                                                  description = "Boolean value indicating if the Agent IP should be added to the storage and key vault firewalls"
+                                                  default     = true
+                                                  type        = bool
+                                                }
 
 variable "storage_account_replication_type"     {
                                                   description = "Storage account replication type"
@@ -479,11 +484,6 @@ variable "management_dns_resourcegroup_name"       {
                                                      type        = string
                                                    }
 
-variable "create_vaults_and_storage_dns_a_records" {
-                                                     description = "Boolean value indicating if dns a records should be created for the vaults and storage accounts"
-                                                     default     = false
-                                                     type        = bool
-                                                   }
 
 variable "dns_server_list"                         {
                                                      description = "DNS server list"

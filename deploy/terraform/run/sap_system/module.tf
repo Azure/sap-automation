@@ -54,7 +54,7 @@ module "common_infrastructure" {
                                                     azurerm.main           = azurerm.system
                                                     azurerm.dnsmanagement  = azurerm.dnsmanagement
                                                   }
-  Agent_IP                                      = var.Agent_IP
+  Agent_IP                                      = var.add_Agent_IP ? var.Agent_IP : ""
   application_tier                              = local.application_tier
   application_tier_ppg_names                    = module.sap_namegenerator.naming_new.app_ppg_names
   authentication                                = local.authentication
@@ -94,7 +94,6 @@ module "common_infrastructure" {
   use_private_endpoint                          = var.use_private_endpoint
   use_random_id_for_storageaccounts             = var.use_random_id_for_storageaccounts
   use_scalesets_for_deployment                  = var.use_scalesets_for_deployment
-  use_service_endpoint                          = var.use_service_endpoint
 }
 
 #-------------------------------------------------------------------------------
@@ -314,6 +313,7 @@ module "output_files" {
                                                     module.hdb_node.database_shared_disks) : (
                                                     module.anydb_node.database_shared_disks
                                                   )
+  is_use_fence_kdump                            = var.use_fence_kdump
   infrastructure                                = local.infrastructure
   landscape_tfstate                             = data.terraform_remote_state.landscape.outputs
   naming                                        = length(var.name_override_file) > 0 ? (
@@ -352,7 +352,10 @@ module "output_files" {
   database_subnet_netmask                       = module.common_infrastructure.db_subnet_netmask
   disks                                         = distinct(compact(concat(module.hdb_node.database_disks,
                                                     module.anydb_node.database_disks,
-                                                    module.app_tier.apptier_disks
+                                                    module.app_tier.apptier_disks,
+                                                    module.hdb_node.database_kdump_disks,
+                                                    module.anydb_node.database_kdump_disks,
+                                                    module.app_tier.scs_kdump_disks
                                                   )))
   loadbalancers                                 = module.hdb_node.loadbalancers
 

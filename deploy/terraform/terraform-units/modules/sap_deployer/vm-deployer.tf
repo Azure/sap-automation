@@ -127,7 +127,7 @@ resource "azurerm_linux_virtual_machine" "deployer" {
   network_interface_ids                = [azurerm_network_interface.deployer[count.index].id]
   size                                 = var.deployer.size
   admin_username                       = local.username
-  admin_password                       = lookup(var.deployer.authentication, "password", null)
+  admin_password                       = var.deployer.authentication.type != "password" ? null: local.password
   disable_password_authentication      = var.deployer.authentication.type != "password" ? true : false
 
   source_image_id                      = var.deployer.os.source_image_id != "" ? var.deployer.os.source_image_id : null

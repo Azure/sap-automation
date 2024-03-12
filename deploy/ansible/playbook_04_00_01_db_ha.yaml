@@ -610,7 +610,7 @@
                 primary_node:           "{{ ansible_play_hosts_all[0] }}"         # Setting up Primary Instance Name
                 secondary_node:         "{{ ansible_play_hosts_all[1] }}"         # Setting up Secondary Instance Name
                 domain_user_password:   "{{ hostvars.localhost.winadm_password }}"
-                sap_cluster_ip_address: "{{ db_clst_lb_ip }}"
+                sap_cluster_ip_address: "{{ database_cluster_ip }}"
                 sql_svc_account:        "{% if hostvars.localhost.sqlsvc_account is defined %}{{ hostvars.localhost.sqlsvc_account }}{% else %}{{ win_sql_svc_account }}{% endif %}"
                 sql_svc_password:       "{% if hostvars.localhost.sqlsvc_account_password is defined %}{{ hostvars.localhost.sqlsvc_account_password }}{% else %}{{ sql_svc_password | default('') }}{% endif %}"
                 sql_agent_account:      "{% if hostvars.localhost.sqlagent_account is defined %}{{ hostvars.localhost.sqlagent_account }}{% else %}{{ win_sqlagent_svc_account }}{% endif %}"
@@ -621,7 +621,7 @@
                 name:                         roles-os/windows/1.17-generic-wincluster
               register:                       cluster_output
               vars:
-                sap_cluster_ip_address:       "{{ db_clst_lb_ip }}"
+                sap_cluster_ip_address:       "{{ database_cluster_ip }}"
                 primary_node:                 "{{ ansible_play_hosts_all[0] }}"         # Setting up Primary Instance Name
                 secondary_node:               "{{ ansible_play_hosts_all[1] }}"         # Setting up Secondary Instance Name
                 domain_user_password:         "{{ hostvars.localhost.winadm_password }}"
@@ -641,7 +641,7 @@
               register:                       alwayson_output
               vars:
                 config_tier:                  "sqlserverha"
-                sap_cluster_ip_address:       "{{ db_clst_lb_ip }}"
+                sap_cluster_ip_address:       "{{ database_cluster_ip }}"
                 primary_node:                 "{{ ansible_play_hosts_all[0] }}"         # Setting up Primary Instance Name
                 secondary_node:               "{{ ansible_play_hosts_all[1] }}"         # Setting up Secondary Instance Name
                 mssql_primary_node:           "{{ ansible_play_hosts_all[0] }}"         # Setting up Primary Instance Name

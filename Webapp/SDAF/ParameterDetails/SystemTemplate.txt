@@ -130,6 +130,20 @@ $$fencing_role_name$$
 # use_simple_mount specifies if Simple mounts are used (Applicable for SLES 15 SP# or newer)
 $$use_simple_mount$$
 
+# Configure fencing device based on the fence agent fence_kdump for both SCS and DB clusters
+$$use_fence_kdump$$
+
+# Default size of the kdump disk which will be attached to the VMs which are part DB cluster
+$$use_fence_kdump_size_gb_db$$
+
+# Default LUN number of the kdump disk which will be attached to the VMs which are part of DB cluster
+$$use_fence_kdump_lun_db$$
+
+# Default size of the kdump disk which will be attached to the VMs which are part of SCS cluster
+$$use_fence_kdump_size_gb_scs$$
+
+# Default LUN number of the kdump disk which will be attached to the VMs which are part of SCS cluster
+$$use_fence_kdump_lun_scs$$
 
 #########################################################################################
 #                                                                                       #
@@ -511,7 +525,7 @@ $$ANF_HANA_data_use_existing_volume$$
 $$ANF_HANA_data_volume_name$$
 
 # Number of ANF Data Volumes
-$$ANF_hana_data_volume_count$$
+$$ANF_HANA_data_volume_count$$
 
 
 #########################################################################################
@@ -536,7 +550,7 @@ $$ANF_HANA_log_use_existing$$
 $$ANF_HANA_log_volume_name$$
 
 # Number of ANF Data Volumes
-$$ANF_hana_log_volume_count$$
+$$ANF_HANA_log_volume_count$$
 
 #########################################################################################
 #                                                                                       #

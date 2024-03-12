@@ -45,7 +45,7 @@
   ansible.builtin.debug:
     msg:                                      # Best method for formatting output with Azure Devops Logs
                                               - "item.host:                      {{ item.host }}"
-                                              - "item.lun:                       {{ item.lun }}"
+                                              - "item.lun:                       {{ item.LUN }}"
     verbosity:                                2
   loop:                                       "{{ sbdDevices }}"
   when:
@@ -83,7 +83,7 @@
       vars:
         sbdMap_update:
                                               - { host:       "{{ item.host }}" ,
-                                                  lun:        "{{ item.lun }}"  ,
+                                                  lun:        "{{ item.LUN }}"  ,
                                                   blockDev:   ''                ,
                                                   diskByLun:  ''                ,
                                                   diskById:   ''                  }
@@ -232,6 +232,16 @@
                                                             {%- endfor                          -%}
                                                             "'}
 
+    - name:                                  "set fact sbd_device as list of entries in sbdMap"
+      ansible.builtin.set_fact:
+        sbd_device:                          "{{ sbdMap | map(attribute='diskById') | join(';') }}"
+
+
+    - name:                                  "Show sbd_device..."
+      ansible.builtin.debug:
+        var:                                 sbd_device
+        verbosity:                           2
+
 
     # /*------------------------------------
     # |
@@ -266,6 +276,10 @@
 # - name:                                   "systemctl enable sbd"
 #   ansible.builtin.shell: |
 #                                           systemctl enable sbd
+- name:                                    "Ensure systemctl daemon is reloaded"
+  ansible.builtin.systemd:
+    daemon_reload:                         true
+
 - name:                                    "systemctl enable sbd"
   ansible.builtin.systemd:
     name:                                  sbd
@@ -277,6 +291,16 @@
                                               (scs_cluster_type      == "ASD")   or
                                               (scs_cluster_type      == "ISCSI")       # scs_high_availability = true is already assumed
 
+# you need to restart cluster after enabling sbd
+# - name:                                    "systemctl restart pacemaker"
+#   ansible.builtin.systemd:
+#     name:                                  pacemaker
+#     state:                                 restarted
+#   when:
+#                                             - (database_cluster_type == "ASD")   or
+#                                               (database_cluster_type == "ISCSI") or
+#                                               (scs_cluster_type      == "ASD")   or
+#                                               (scs_cluster_type      == "ISCSI")       # scs_high_availability = true is already assumed
 ...
 # /*---------------------------------------------------------------------------8
 # |                                   END                                      |
