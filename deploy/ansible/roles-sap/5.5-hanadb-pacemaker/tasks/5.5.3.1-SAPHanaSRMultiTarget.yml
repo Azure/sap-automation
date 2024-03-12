@@ -185,15 +185,16 @@
       ansible.builtin.blockinfile:
         path:                          /hana/shared/{{ db_sid | upper }}/global/hdb/custom/config/global.ini
         block: |
-                                       [ha_dr_provider_saphanasrmultitarget]
-                                       provider = SAPHanaSrMultiTarget
-                                       path = /usr/share/SAPHanaSR-ScaleOut
+                                       [ha_dr_provider_SAPHanaSR]
+                                       provider = SAPHanaSR
+                                       path = /hana/shared/myHooks
                                        execution_order = 1
 
                                        [trace]
-                                       ha_dr_saphanasrmultitarget = info
+                                       ha_dr_saphanasr = info
       when:
         - not configure_susTkOver
+        - ansible_os_family | upper == "RHEL"
         - ansible_hostname == primary_instance_name or ansible_hostname == secondary_instance_name
 
     - name:                            Adjust global.ini on each cluster node ( with susChkSrv/susTkOver )
@@ -202,17 +203,18 @@
         block: |
                                        [ha_dr_provider_saphanasrmultitarget]
                                        provider = SAPHanaSrMultiTarget
-                                       path = /usr/share/SAPHanaSR-ScaleOut
+                                       path = /usr/share/SAPHanaSR-ScaleOut/
                                        execution_order = 1
 
                                        [ha_dr_provider_sustkover]
                                        provider = susTkOver
-                                       path = /usr/share/SAPHanaSR-ScaleOut
-                                       execution_order = 3
-                                       action_on_lost = kill
+                                       path = /usr/share/SAPHanaSR-ScaleOut/
+                                       execution_order = 2
+                                       sustkover_timeout = 30
 
                                        [trace]
                                        ha_dr_saphanasrmultitarget = info
+                                       ha_dr_sustkover = info
       when:
         - configure_susTkOver
         - ansible_os_family | upper == "SUSE"
@@ -305,6 +307,7 @@
           become:                      true
           ansible.builtin.shell: |
                                        set -o pipefail
+                                       cdtrace
                                        grep SAPHanaSr.*init nameserver_*.trc | tail -3
           args:
             chdir:                     /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/{{ inventory_hostname }}/trace
