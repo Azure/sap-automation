@@ -59,15 +59,14 @@
     dest:                              /etc/corosync/corosync.conf
     mode:                              0600
 
-- name:                                "1.18.2.0 Generic Pacemaker - Ensure the corosync service is restarted on node."
+- name:                                "1.18.2.0 Generic Pacemaker - Ensure the pacemaker service is restarted on node."
   ansible.builtin.systemd:
-    name:                              corosync
+    name:                              pacemaker
     state:                             restarted
 
 - name:                                "1.17 Generic Pacemaker - Pause"
   ansible.builtin.wait_for:
     timeout:                           30
-  when:                                ansible_hostname == primary_instance_name
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
