@@ -15,6 +15,11 @@
       ansible.builtin.set_fact:
         mount_options:                 "{% if NFS_provider == 'AFS' %}'bind,defaults,rw,hard,proto=tcp,noatime,nfsvers=4.1,lock'{% else %} "
 
+    - name:                            "5.5.4.2 HANA Scale-Out Pacemaker configuration - Set majority maker host name"
+      ansible.builtin.set_fact:
+        majority_maker:                "{{ (query('inventory_hostnames', '{{ sap_sid | upper }}_OBSERVER_DB'))[0] }}"
+
+
     - name:                            "5.5.4.2 HANA Scale-Out Pacemaker configuration - Ensure CIB Bootstrap Options are set"
       when:
                                        - (database_cluster_type == "ASD")   or
@@ -55,7 +60,7 @@
                                       meta clone-node-max=1 interleave=true
 
                                       crm configure location loc_cln_fs_{{ db_sid | upper }}_HDB{{ db_instance_number }}_fscheck_not_on_mm \
-                                      cln_fs_{{ db_sid | upper }}_HDB{{ db_instance_number }}_fscheck -inf: {{ (query('inventory_hostnames', '{{ sap_sid | upper }}_OBSERVER_DB'))[0] }}
+                                      cln_fs_{{ db_sid | upper }}_HDB{{ db_instance_number }}_fscheck -inf: {{ majority_maker }}
       register:                       sap_file_cluster
       failed_when:                    sap_file_cluster.rc > 1
       when:
@@ -159,14 +164,14 @@
     # Ensure the first entry of observer_db host group is excluded from running cluster resources
     - name:                            "5.5.4.2 HANA Scale-Out Pacemaker configuration - Ensure master slave configuration does not runs on majority maker node"
       ansible.builtin.shell: >
-                                       sudo crm configure location loc_SAPHanaCon_not_on_majority_maker msl_SAPHana_HN1_HDB03 -inf: {{ sap_sid | upper }}_OBSERVER_DB'))[0] }}
+                                       sudo crm configure location loc_SAPHanaCon_not_on_majority_maker msl_SAPHana_HN1_HDB03 -inf: {{ majority_maker }}
       register:                        sap_hana_msl_loc_mm
       failed_when:                     sap_hana_msl_loc_mm.rc > 1
 
 
     - name:                            "5.5.4.2 HANA Scale-Out Pacemaker configuration - Ensure clone set does not runs on majority maker"
       ansible.builtin.shell: >
-                                       sudo crm configure location loc_SAPHanaTop_not_on_majority_maker cln_SAPHanaTopology_HN1_HDB03 -inf: {{{ sap_sid | upper }}_OBSERVER_DB'))[0] }}
+                                       sudo crm configure location loc_SAPHanaTop_not_on_majority_maker cln_SAPHanaTopology_HN1_HDB03 -inf: {{ majority_maker }}
       register:                        sap_hana_cln_mm
       failed_when:                     sap_hana_cln_mm.rc > 1
 
