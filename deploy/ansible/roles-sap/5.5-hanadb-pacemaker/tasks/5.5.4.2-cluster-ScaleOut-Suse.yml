@@ -43,15 +43,15 @@
 
     - name:                           "5.5.4.2 HANA Scale-Out Pacemaker configuration - Ensure file system cluster resources are created for for cluster site"
       ansible.builtin.shell: >
-                                      crm configure primitive fs_{{ db_sid | upper }}_HDB{{db_instance_number}}_fscheck Filesystem \
-                                      params device="/hana/shared/{{ db_sid | upper }}/check" \
-                                      directory="/hana/check" fstype=nfs4 \
-                                      options="{{ nfs_mount_options }}" \
-                                      op monitor interval=120 timeout=120 on-fail=fence \
-                                      op_params OCF_CHECK_LEVEL=20 \
+                                      crm configure primitive fs_{{ db_sid | upper }}_HDB{{db_instance_number}}_fscheck Filesystem
+                                      params device="/hana/shared/{{ db_sid | upper }}/check"
+                                      directory="/hana/check" fstype=nfs4
+                                      options="{{ nfs_mount_options }}"
+                                      op monitor interval=120 timeout=120 on-fail=fence
+                                      op_params OCF_CHECK_LEVEL=20
                                       op start interval=0 timeout=120 op stop interval=0 timeout=120
 
-                                      crm configure clone cln_fs_{{ db_sid | upper }}_HDB{{ db_instance_number }}_fscheck fs_{{ db_sid | upper }}_HDB{{ db_instance_number }}_fscheck \
+                                      crm configure clone cln_fs_{{ db_sid | upper }}_HDB{{ db_instance_number }}_fscheck fs_{{ db_sid | upper }}_HDB{{ db_instance_number }}_fscheck
                                       meta clone-node-max=1 interleave=true
 
                                       crm configure location loc_cln_fs_{{ db_sid | upper }}_HDB{{ db_instance_number }}_fscheck_not_on_mm \
