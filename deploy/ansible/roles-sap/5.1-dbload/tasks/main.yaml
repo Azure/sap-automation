@@ -178,37 +178,22 @@
           - "HANA Backup path:         {{ hana_backup_path }}"
           - "Backup path:              {{ backup_path }}"
 
-    - name:                            "DBLoad: - Include roles-sap/3.3.1-bom-utility role"
-      ansible.builtin.include_role:
-        name:                          roles-sap/3.3.1-bom-utility
-        tasks_from:                    bom-template
+    - name:                            "DBLoad: - Template processing - Create ini file {{ sap_inifile }} from {{ sap_inifile_template }}"
+      ansible.builtin.template:
+        src:                           "{{ sap_inifile_template }}"
+        dest:                          "{{ dir_params }}/{{ sap_inifile }}"
+        mode:                          0644
+        force:                         true
       vars:
-        task_prefix:                   "DBLoad: "
-        always_upload_jinja_templates: false
-        bom_name:                      "{{ bom_base_name }}{{ bom_suffix }}"
-        sap_cd_package_hdbclient:      "{{ target_media_location }}/CD_HDBCLIENT/SAP_HANA_CLIENT"
-        sap_cd_package_cd1:            "{{ target_media_location }}/CD_EXPORT"
-        sap_cd_package_cd2:
-        sap_cd_package_cd3:
-        sap_cd_package_cd4:
-        sap_cd_package_cd5:
-        sap_ciInstanceNumber:
-        app_instance_number:
-        sap_ciDialogWPNumber:
-        sap_ciBtcWPNumber:
-        sap_installSAPHostAgent:
         sap_profile_dir:               "/sapmnt/{{ sid_to_be_deployed.sid | upper }}/profile"
         sap_scs_hostname:              "{{ custom_scs_virtual_hostname | default(scs_server, true) }}"
         sap_db_hostname:               "{{ custom_db_virtual_hostname | default(db_virtual_hostname, true) }}"
-        sap_ciVirtualHostname:
-        sap_appVirtualHostname:
         param_directory:               "{{ dir_params }}"
         sap_sid:                       "{{ sid_to_be_deployed.sid }}"
         sidadm_uid:                    "{{ sid_to_be_deployed.sidadm_uid }}"
-        # support older dbload inifile templates where hdb_instance_number was used
-        hdb_instance_number:           "{{ db_instance_number }}"
         hana_backup_path:              "{{ backup_path }}"
         sa_enabled:                    true
+        hana_schema:                   "{{ schema_name }}"
 
     - name:                            "DBLoad: install variables"
       ansible.builtin.debug:
