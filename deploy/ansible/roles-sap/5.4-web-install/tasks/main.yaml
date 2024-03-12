@@ -15,7 +15,7 @@
 - name:                                "SAP Web Dispatcher Install: Set BOM facts"
   ansible.builtin.set_fact:
     sap_inifile:                       "{{ bom_base_name }}-web-{{ sid_to_be_deployed.web_sid | lower }}-{{ ansible_hostname }}.params"
-    sap_inifile_template:              "{{ bom_base_name }}{{ bom_suffix }}-web-inifile-param.j2"
+    sap_inifile_template:              "web-inifile-param.j2"
     dir_params:                        "{{ tmp_directory }}/.{{ sid_to_be_deployed.web_sid | lower }}-params"
 
 - name:                                "SAP Web Dispatcher Install: Create directories"
