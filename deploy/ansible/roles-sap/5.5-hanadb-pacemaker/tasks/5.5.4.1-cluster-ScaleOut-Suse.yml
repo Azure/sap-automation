@@ -156,7 +156,7 @@
       register:                        sap_hana_ord_ip
       failed_when:                     sap_hana_ord_ip.rc > 1
 
-    # Ensure the first entry of {{ _observer_db }} host group is excluded from running cluster resources
+    # Ensure the first entry of observer_db host group is excluded from running cluster resources
     - name:                            "5.5.4.2 HANA Scale-Out Pacemaker configuration - Ensure master slave configuration does not runs on majority maker node"
       ansible.builtin.shell: >
                                        sudo crm configure location loc_SAPHanaCon_not_on_majority_maker msl_SAPHana_HN1_HDB03 -inf: {{ sap_sid | upper }}_OBSERVER_DB'))[0] }}

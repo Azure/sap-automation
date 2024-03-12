@@ -21,7 +21,7 @@
   when:
    - not db_scale_out
 
-- name:                                Scale=Out Cluster based on OS in VM
+- name:                                Scale-Out Cluster based on OS in VM
   ansible.builtin.include_tasks:       "5.5.4.1-cluster-ScaleOut-{{ ansible_os_family }}.yml"
   when:
    - db_scale_out
