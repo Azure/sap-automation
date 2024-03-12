@@ -323,7 +323,6 @@
           become:                      true
           ansible.builtin.shell: |
                                        set -o pipefail
-                                       cdtrace
                                        grep SAPHanaSr.*init nameserver_*.trc | tail -3
           args:
             chdir:                     /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/{{ inventory_hostname }}/trace
