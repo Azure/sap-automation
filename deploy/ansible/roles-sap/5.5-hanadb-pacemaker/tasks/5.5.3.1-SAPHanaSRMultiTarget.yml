@@ -122,13 +122,15 @@
         path:                          /hana/shared/myHooks
       register:                        my_hooks_stat
 
-    - name:                            Stop HANA System on both nodes
+    - name:                            Stop HANA System on both sites
       become_user:                     "{{ db_sid | lower }}adm"
       become:                          true
       ansible.builtin.command:         "{{ sapcontrol_command }} -function StopSystem {{ db_sid | upper }}"
       failed_when:                     false
       changed_when:                    false
       register:                        hana_system_stopped
+      when:
+        - ansible_hostname == primary_instance_name or ansible_hostname == secondary_instance_name
 
     - name:                            Wait 2 minutes for SAP system to stop
       ansible.builtin.pause:
@@ -192,6 +194,7 @@
                                        ha_dr_saphanasrmultitarget = info
       when:
         - not configure_susTkOver
+        - ansible_hostname == primary_instance_name or ansible_hostname == secondary_instance_name
 
     - name:                            Adjust global.ini on each cluster node ( with susChkSrv/susTkOver )
       ansible.builtin.blockinfile:
@@ -213,6 +216,7 @@
       when:
         - configure_susTkOver
         - ansible_os_family | upper == "SUSE"
+        - ansible_hostname == primary_instance_name or ansible_hostname == secondary_instance_name
 
 
     - name:                            Create sudoers file for /etc/sudoers.d/20-saphana
