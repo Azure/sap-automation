@@ -53,8 +53,9 @@
          ALTER SYSTEM SET sga_max_size={{ ora_sga }}M SCOPE=spfile;
          ALTER SYSTEM SET pga_aggregate_target={{ ora_pga }}M SCOPE=spfile;
          ALTER SYSTEM SET use_large_pages=only SCOPE=spfile;
+         alter system set LOCAL_LISTENER="(ADDRESS=(PROTOCOL=TCP)(HOST={{ ansible_hostname }})(PORT=1521))" scope=both;
          SHUTDOWN IMMEDIATE;
-         exit
+         exit;
     mode: '0755'
 
 - name:                                "ORACLE Post Processing: Oracle Startup: create startup.sql"
@@ -69,6 +70,7 @@
          STARTUP;
          exit
     mode: '0755'
+
 
 - name:                                "ORACLE Post Processing: Oracle SGA Change Execution"
   become:                              true

@@ -197,6 +197,7 @@
   when: 
     - current_host == ora_primary
 
+
 # Setup DG parameters for Primary Database.
 
 

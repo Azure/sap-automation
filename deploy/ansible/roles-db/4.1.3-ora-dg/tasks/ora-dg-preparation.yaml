@@ -504,7 +504,7 @@
     marker_begin: "-- BEGIN"
     marker_end:   "-- END"
     block: |
-         ALTER SYSTEM SET LOCAL_LISTENER='(ADDRESS=(PROTOCOL=TCP)(HOST={{ ora_secondary }})(PORT=1521))' SCOPE=both;
+         alter system set LOCAL_LISTENER="(ADDRESS=(PROTOCOL=TCP)(HOST={{ ora_secondary }})(PORT=1521))" SCOPE=both;
          exit
     mode: '0755'
   when: current_host == ora_secondary
@@ -520,7 +520,7 @@
     marker_begin: "-- BEGIN"
     marker_end:   "-- END"
     block: |
-         ALTER SYSTEM SET LOCAL_LISTENER='(ADDRESS=(PROTOCOL=TCP)(HOST={{ ora_primary }})(PORT=1521))' SCOPE=both;
+         alter system set LOCAL_LISTENER="(ADDRESS=(PROTOCOL=TCP)(HOST={{ ora_primary }})(PORT=1521))" SCOPE=both;
          exit
     mode: '0755'
   when: current_host == ora_primary
