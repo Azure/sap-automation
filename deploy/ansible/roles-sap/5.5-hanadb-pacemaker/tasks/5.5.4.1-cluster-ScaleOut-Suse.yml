@@ -11,15 +11,6 @@
     - name:                            "5.5.4.2 HANA Scale-Out Pacemaker configuration - Ensure maintenance mode is enabled"
       ansible.builtin.command:         crm configure property maintenance-mode=true
 
-    - name:                            "5.5.4.2 HANA Scale-Out Pacemaker configuration - Set NFS mount options"
-      ansible.builtin.set_fact:
-        mount_options:                 "{% if NFS_provider == 'AFS' %}'bind,defaults,rw,hard,proto=tcp,noatime,nfsvers=4.1,lock'{% else %} "
-
-    - name:                            "5.5.4.2 HANA Scale-Out Pacemaker configuration - Set majority maker host name"
-      ansible.builtin.set_fact:
-        majority_maker:                "{{ (query('inventory_hostnames', '{{ sap_sid | upper }}_OBSERVER_DB'))[0] }}"
-
-
     - name:                            "5.5.4.2 HANA Scale-Out Pacemaker configuration - Ensure CIB Bootstrap Options are set"
       when:
                                        - (database_cluster_type == "ASD")   or

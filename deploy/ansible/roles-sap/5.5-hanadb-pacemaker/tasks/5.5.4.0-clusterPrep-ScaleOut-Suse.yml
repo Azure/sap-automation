@@ -19,6 +19,9 @@
     - db_high_availability is defined
     - database_high_availability is not defined
 
+- name:                            "Scale-Out Cluster Compatibility - Fetch majority maker node name"
+  ansible.builtin.set_fact:
+    majority_maker:                "{{ (query('inventory_hostnames', '{{ sap_sid | upper }}_OBSERVER_DB'))[0] }}"
 
 - name:                                "Configure the ANF specific resources when relevant"
   when:
