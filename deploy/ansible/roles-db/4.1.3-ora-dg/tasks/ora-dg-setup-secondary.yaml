@@ -72,8 +72,8 @@
 - name:                               "Update the initSID.ora for adopting local_listener location"
   ansible.builtin.replace:
     path:                             /oracle/{{ db_sid | upper }}/{{ ora_release }}/dbs/init{{ db_sid | upper }}.ora
-    regexp:                          '*.local_listener='
-    replace:                         "*.local_listener='(Address=(Protocol=TCP)(Host=({{ ora_secondary }})(Port=1521))'"
+    regexp:                          'local_listener='
+    replace:                         'local_listener="(Address=(Protocol=TCP)(Host=({{ ora_secondary }})(Port=1521))"'
 
 
 - name:                           "debug file update"
