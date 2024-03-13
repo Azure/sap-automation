@@ -6,12 +6,12 @@
 # Ref: https://learn.microsoft.com/en-us/azure/sap/workloads/sap-hana-high-availability-scale-out-hsr-suse?tabs=lb-portal
 # This code contains references to terms that Microsoft no longer uses. When these terms are removed from the software, we'll remove them from this article.
 
-- name:                                "5.5.4.2 HANA Scale-Out Pacemaker configuration - Ensure the Cluster STONITH is configured"
+- name:                                "5.5.4.1 HANA Scale-Out Pacemaker configuration - Ensure the Cluster STONITH is configured"
   block:
-    - name:                            "5.5.4.2 HANA Scale-Out Pacemaker configuration - Ensure maintenance mode is enabled"
+    - name:                            "5.5.4.1 HANA Scale-Out Pacemaker configuration - Ensure maintenance mode is enabled"
       ansible.builtin.command:         crm configure property maintenance-mode=true
 
-    - name:                            "5.5.4.2 HANA Scale-Out Pacemaker configuration - Ensure CIB Bootstrap Options are set"
+    - name:                            "5.5.4.1 HANA Scale-Out Pacemaker configuration - Ensure CIB Bootstrap Options are set"
       when:
                                        - (database_cluster_type == "ASD")   or
                                          (database_cluster_type == "ISCSI")
@@ -22,7 +22,7 @@
                                          stonith-action="reboot"
                                          stonith-timeout="144s"
 
-    - name:                            "5.5.4.2 HANA Scale-Out Pacemaker configuration - Ensure CIB Bootstrap Options are set"
+    - name:                            "5.5.4.1 HANA Scale-Out Pacemaker configuration - Ensure CIB Bootstrap Options are set"
       when:                            database_cluster_type not in ["ISCSI", "ASD"]
       ansible.builtin.command: >
                                        crm configure property \$id="cib-bootstrap-options"
@@ -31,13 +31,13 @@
                                          stonith-action="reboot"
                                          stonith-timeout="900s"
 
-    - name:                            "5.5.4.2 HANA Scale-Out Pacemaker configuration - Ensure the Resource Defaults are configured"
+    - name:                            "5.5.4.1 HANA Scale-Out Pacemaker configuration - Ensure the Resource Defaults are configured"
       ansible.builtin.shell: >
                                        crm configure rsc_defaults \$id="rsc-options"
                                        resource-stickiness="1000"
                                        migration-threshold="5000"
 
-    - name:                           "5.5.4.2 HANA Scale-Out Pacemaker configuration - Ensure file system cluster resources are created for for cluster site"
+    - name:                           "5.5.4.1 HANA Scale-Out Pacemaker configuration - Ensure file system cluster resources are created for for cluster site"
       ansible.builtin.shell: >
                                       crm configure primitive fs_{{ db_sid | upper }}_HDB{{db_instance_number}}_fscheck Filesystem
                                       params device="/hana/shared/{{ db_sid | upper }}/check"
@@ -59,7 +59,7 @@
 
     # Operation Default recommendation from section 5.3.1 in https://www.suse.com/media/white-paper/suse_linux_enterprise_server_for_sap_applications_12_sp1.pdf#page=26
     # Ref: https://learn.microsoft.com/en-us/azure/sap/workloads/sap-hana-high-availability-scale-out-hsr-suse?tabs=lb-portal#create-sap-hana-cluster-resources
-    - name:                             "5.5.4.2 HANA Scale-Out Pacemaker configuration - Ensure SAP HANA Topology resource is configured on cluster site"
+    - name:                             "5.5.4.1 HANA Scale-Out Pacemaker configuration - Ensure SAP HANA Topology resource is configured on cluster site"
       ansible.builtin.shell: >
                                         crm configure primitive rsc_SAPHanaTopology_{{ db_sid | upper }}_HDB{{ db_instance_number }} \
                                         ocf:suse:SAPHanaTopology \
@@ -70,7 +70,7 @@
       register:                         sap_hana_topology
       failed_when:                      sap_hana_topology.rc > 1
 
-    - name:                             "5.5.4.2 HANA Scale-Out Pacemaker configuration - Ensure SAP HANA Topology clone set resource is configured on cluster site"
+    - name:                             "5.5.4.1 HANA Scale-Out Pacemaker configuration - Ensure SAP HANA Topology clone set resource is configured on cluster site"
       ansible.builtin.shell: >
                                         crm configure clone cln_SAPHanaTopology_{{ db_sid | upper }}_HDB{{ db_instance_number }} \
                                         rsc_SAPHanaTopology_{{ db_sid | upper }}_HDB{{ db_instance_number }} \
@@ -81,20 +81,20 @@
     # We recommend as a best practice that you only set AUTOMATED_REGISTER to no, while performing thorough fail-over tests,
     # to prevent failed primary instance to automatically register as secondary.
     # Once the fail-over tests have completed successfully, set AUTOMATED_REGISTER to yes, so that after takeover system replication can resume automatically.
-    - name:                             "5.5.4.2 HANA Scale-Out Pacemaker configuration - Ensure SAP HANA Controller is configured"
+    - name:                             "5.5.4.1 HANA Scale-Out Pacemaker configuration - Ensure SAP HANA Controller is configured"
       ansible.builtin.shell: >
-                                        crm configure primitive rsc_SAPHana_HN1_HDB03 ocf:suse:SAPHanaController \
+                                        crm configure primitive rsc_SAPHana_{{ db_sid | upper }}_HDB{{ db_instance_number }} ocf:suse:SAPHanaController \
                                         op start interval="0" timeout="3600" \
                                         op stop interval="0" timeout="3600" \
                                         op promote interval="0" timeout="3600" \
                                         op monitor interval="60" role="Master" timeout="700" \
                                         op monitor interval="61" role="Slave" timeout="700" \
-                                        params SID="HN1" InstanceNumber="03" PREFER_SITE_TAKEOVER="true" \
+                                        params SID="{{ db_sid | upper }}" InstanceNumber="{{ db_instance_number }}" PREFER_SITE_TAKEOVER="true" \
                                         DUPLICATE_PRIMARY_TIMEOUT="7200" AUTOMATED_REGISTER="false"
       register:                         sap_hana_controller
       failed_when:                      sap_hana_controller.rc > 1
 
-    - name:                            "5.5.4.2 HANA Scale-Out Pacemaker configuration - Ensure SAP HANA master-slave resource is configured"
+    - name:                            "5.5.4.1 HANA Scale-Out Pacemaker configuration - Ensure SAP HANA master-slave resource is configured"
       ansible.builtin.shell: >
                                        crm configure ms msl_SAPHana_{{ db_sid | upper }}_HDB{{ db_instance_number }} \
                                        rsc_SAPHana_{{ db_sid | upper }}_HDB{{ db_instance_number }} \
@@ -103,7 +103,7 @@
       register:                        sap_hana_msl
       failed_when:                     sap_hana_msl.rc > 1
 
-    - name:                            "5.5.4.2 HANA Scale-Out Pacemaker configuration - Ensure SAP HANA Virtual IP resource is configured"
+    - name:                            "5.5.4.1 HANA Scale-Out Pacemaker configuration - Ensure SAP HANA Virtual IP resource is configured"
       ansible.builtin.shell: >
                                        crm configure primitive rsc_ip_{{ db_sid | upper }}_HDB{{ db_instance_number }} ocf:heartbeat:IPaddr2
                                        meta target-role="Started"
@@ -120,13 +120,13 @@
     #    crm configure primitive rsc_nc_{{ db_sid | upper }}_HDB{{ instance_number }} anything
     #    params binfile="/usr/bin/socat" cmdline_options="-U TCP-LISTEN:625{{ instance_number }},backlog=10,fork,reuseaddr /dev/null"
     #    op monitor timeout=20s interval=10 depth=0
-    - name:                            "5.5.4.2 HANA Scale-Out Pacemaker configuration - Ensure SAP HANA azure-lb resource agent is configured"
+    - name:                            "5.5.4.1 HANA Scale-Out Pacemaker configuration - Ensure SAP HANA azure-lb resource agent is configured"
       ansible.builtin.shell:         >
                                        crm configure primitive rsc_nc_{{ db_sid | upper }}_HDB{{ db_instance_number }} azure-lb port=625{{ db_instance_number }} meta resource-stickiness=0
       register:                        sap_hana_nc_ip
       failed_when:                     sap_hana_nc_ip.rc > 1
 
-    - name:                            "5.5.4.2 HANA Scale-Out Pacemaker configuration - Ensure Group IP Address resource is configured"
+    - name:                            "5.5.4.1 HANA Scale-Out Pacemaker configuration - Ensure Group IP Address resource is configured"
       ansible.builtin.shell: >
                                        crm configure group g_ip_{{ db_sid | upper }}_HDB{{ db_instance_number }}
                                        rsc_ip_{{ db_sid | upper }}_HDB{{ db_instance_number }}
@@ -134,7 +134,7 @@
       register:                        sap_hana_g_ip
       failed_when:                     sap_hana_g_ip.rc > 1
 
-    - name:                            "5.5.4.2 HANA Scale-Out Pacemaker configuration - Ensure Co-Location constraint is configured"
+    - name:                            "5.5.4.1 HANA Scale-Out Pacemaker configuration - Ensure Co-Location constraint is configured"
       ansible.builtin.shell: >
                                        crm configure colocation col_saphana_ip_{{ db_sid | upper }}_HDB{{ db_instance_number }}
                                        4000:
@@ -143,7 +143,7 @@
       register:                        sap_hana_g_col_ip
       failed_when:                     sap_hana_g_col_ip.rc > 1
 
-    - name:                            "5.5.4.2 HANA Scale-Out Pacemaker configuration - Ensure Resource order is configured"
+    - name:                            "5.5.4.1 HANA Scale-Out Pacemaker configuration - Ensure Resource order is configured"
       ansible.builtin.shell: >
                                        crm configure order ord_SAPHana_{{ db_sid | upper }}_HDB{{ db_instance_number }}
                                        Optional:
@@ -153,24 +153,24 @@
       failed_when:                     sap_hana_ord_ip.rc > 1
 
     # Ensure the first entry of observer_db host group is excluded from running cluster resources
-    - name:                            "5.5.4.2 HANA Scale-Out Pacemaker configuration - Ensure master slave configuration does not runs on majority maker node"
+    - name:                            "5.5.4.1 HANA Scale-Out Pacemaker configuration - Ensure master slave configuration does not runs on majority maker node"
       ansible.builtin.shell: >
-                                       sudo crm configure location loc_SAPHanaCon_not_on_majority_maker msl_SAPHana_HN1_HDB03 -inf: {{ majority_maker }}
+                                       sudo crm configure location loc_SAPHanaCon_not_on_majority_maker msl_SAPHana_{{ db_sid | upper }}_HDB{{ db_instance_number }} -inf: {{ majority_maker }}
       register:                        sap_hana_msl_loc_mm
       failed_when:                     sap_hana_msl_loc_mm.rc > 1
 
 
-    - name:                            "5.5.4.2 HANA Scale-Out Pacemaker configuration - Ensure clone set does not runs on majority maker"
+    - name:                            "5.5.4.1 HANA Scale-Out Pacemaker configuration - Ensure clone set does not runs on majority maker"
       ansible.builtin.shell: >
-                                       sudo crm configure location loc_SAPHanaTop_not_on_majority_maker cln_SAPHanaTopology_HN1_HDB03 -inf: {{ majority_maker }}
+                                       sudo crm configure location loc_SAPHanaTop_not_on_majority_maker cln_SAPHanaTopology_{{ db_sid | upper }}_HDB{{ db_instance_number }} -inf: {{ majority_maker }}
       register:                        sap_hana_cln_mm
       failed_when:                     sap_hana_cln_mm.rc > 1
 
 
-    - name:                            "5.5.4.2 HANA Scale-Out Pacemaker configuration - Ensure any required cluster resources are cleaned up"
+    - name:                            "5.5.4.1 HANA Scale-Out Pacemaker configuration - Ensure any required cluster resources are cleaned up"
       ansible.builtin.command:         "crm resource cleanup rsc_SAPHana_{{ db_sid | upper }}_HDB{{ db_instance_number }}"
 
-    - name:                            "5.5.4.2 HANA Scale-Out Pacemaker configuration - Ensure maintenance mode is disabled"
+    - name:                            "5.5.4.1 HANA Scale-Out Pacemaker configuration - Ensure maintenance mode is disabled"
       ansible.builtin.command:         crm configure property maintenance-mode=false
   when:
     - inventory_hostname == primary_instance_name
@@ -182,7 +182,7 @@
     - db_high_availability is defined
     - database_high_availability is not defined
 
-- name:                                "5.5.4.2 HANA Scale-Out Pacemaker configuration - Configure the ANF specific resources when relevant"
+- name:                                "5.5.4.1 HANA Scale-Out Pacemaker configuration - Configure the ANF specific resources when relevant"
   when:
     - database_high_availability
     - NFS_provider == "ANF"
@@ -190,7 +190,7 @@
     - hana_shared_mountpoint | length > 1
     - inventory_hostname == primary_instance_name
   block:
-    - name:                            "5.5.4.2 HANA Scale-Out Pacemaker configuration - Stop HANA System on both sites"
+    - name:                            "5.5.4.1 HANA Scale-Out Pacemaker configuration - Stop HANA System on both sites"
       become_user:                     "{{ db_sid | lower }}adm"
       become:                          true
       ansible.builtin.command:         "{{ sapcontrol_command }} -function StopSystem"
@@ -198,14 +198,14 @@
       changed_when:                    false
       register:                        hana_system_stopped
 
-    - name:                            "5.5.4.2 HANA Scale-Out Pacemaker configuration - Wait 2 minutes for SAP system to stop"
+    - name:                            "5.5.4.1 HANA Scale-Out Pacemaker configuration - Wait 2 minutes for SAP system to stop"
       ansible.builtin.pause:
         seconds:                       120
 
-    - name:                            "5.5.4.2 HANA Scale-Out Pacemaker configuration - Ensure maintenance mode is enabled"
+    - name:                            "5.5.4.1 HANA Scale-Out Pacemaker configuration - Ensure maintenance mode is enabled"
       ansible.builtin.command:         crm configure property maintenance-mode=true
 
-    - name:                            "5.5.4.2 HANA Scale-Out Pacemaker configuration - Configure the cluster to add the directory structure for monitoring"
+    - name:                            "5.5.4.1 HANA Scale-Out Pacemaker configuration - Configure the cluster to add the directory structure for monitoring"
       ansible.builtin.command: >
                                        crm configure primitive rsc_fs_check_{{ db_sid | upper }}_HDB{{ db_instance_number }} Filesystem params \
                                        device="/hana/shared/{{ db_sid | upper }}/check/" \
@@ -218,14 +218,14 @@
       register:                        sap_hana_fs_check
       failed_when:                     sap_hana_fs_check.rc != 0
 
-    - name:                            "5.5.4.2 HANA Scale-Out Pacemaker configuration - Clone and check the newly configured volume in the cluster"
+    - name:                            "5.5.4.1 HANA Scale-Out Pacemaker configuration - Clone and check the newly configured volume in the cluster"
       ansible.builtin.command: >
                                        crm configure clone cln_fs_check_{{ db_sid | upper }}_HDB{{ db_instance_number }} rsc_fs_check_{{ db_sid | upper }}_HDB{{ db_instance_number }} \
                                         meta clone-node-max=1 interleave=true
       register:                        sap_hana_cln_fs_check
       failed_when:                     sap_hana_cln_fs_check.rc != 0
 
-    - name:                            "5.5.4.2 HANA Scale-Out Pacemaker configuration - Start HANA System on both nodes"
+    - name:                            "5.5.4.1 HANA Scale-Out Pacemaker configuration - Start HANA System on both nodes"
       become_user:                     "{{ db_sid | lower }}adm"
       become:                          true
       ansible.builtin.command:         "{{ sapcontrol_command }} -function StartSystem"
@@ -233,12 +233,12 @@
       changed_when:                    false
       register:                        hana_system_started
 
-    - name:                            "5.5.4.2 HANA Scale-Out Pacemaker configuration - Wait 5 minutes for SAP system to start"
+    - name:                            "5.5.4.1 HANA Scale-Out Pacemaker configuration - Wait 5 minutes for SAP system to start"
       ansible.builtin.pause:
         seconds:                       300
 
-    - name:                            "5.5.4.2 HANA Scale-Out Pacemaker configuration - Ensure maintenance mode is disabled"
+    - name:                            "5.5.4.1 HANA Scale-Out Pacemaker configuration - Ensure maintenance mode is disabled"
       ansible.builtin.command:         crm configure property maintenance-mode=false
 
-    - name:                            "5.5.4.2 HANA Scale-Out Pacemaker configuration - Remove false positives"
+    - name:                            "5.5.4.1 HANA Scale-Out Pacemaker configuration - Remove false positives"
       ansible.builtin.shell:           crm_resource -C
