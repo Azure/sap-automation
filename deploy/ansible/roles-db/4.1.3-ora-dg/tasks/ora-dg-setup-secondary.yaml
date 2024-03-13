@@ -74,7 +74,11 @@
     path:                             /oracle/{{ db_sid | upper }}/{{ ora_release }}/dbs/init{{ db_sid | upper }}.ora
     regexp:                          '*.local_listener='
     replace:                         "*.local_listener='(Address=(Protocol=TCP)(Host=({{ ora_secondary }})(Port=1521))'"
-  
+
+
+- name:                           "debug file update"
+  fail:                            
+    msg:                          "fail here for checking if the file is updated"
 
 - name:                            "File update wait for 15 sec to avoid multiple locks"
   ansible.builtin.wait_for:
