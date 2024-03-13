@@ -69,11 +69,17 @@
   ansible.builtin.wait_for:
     timeout:                       15
 
-- name:                               "Update the initSID.ora for adopting local_listener location"
-  ansible.builtin.replace:
-    path:                             /oracle/{{ db_sid | upper }}/{{ ora_release }}/dbs/init{{ db_sid | upper }}.ora
-    regexp:                          'local_listener='
-    replace:                         'local_listener="(Address=(Protocol=TCP)(Host=({{ ora_secondary }})(Port=1521))"'
+- name:                               "Update the initSID.ora to delete the old local_listener value"
+  become:                             true
+  become_user:                       "root"
+  ansible.builtin.shell:      |
+                               sed -i '/local_listener=/d' /oracle/{{ db_sid | upper }}/{{ ora_release }}/dbs/init{{ db_sid | upper }}.ora
+  register:                         local_listener_results
+  failed_when:                      local_listener_results.rc > 1
+    
+    # path:                             /oracle/{{ db_sid | upper }}/{{ ora_release }}/dbs/init{{ db_sid | upper }}.ora
+    # regexp:                          'local_listener='
+    # replace:                         'local_listener="(Address=(Protocol=TCP)(Host=({{ ora_secondary }})(Port=1521))"'
 
 
 - name:                           "debug file update"
