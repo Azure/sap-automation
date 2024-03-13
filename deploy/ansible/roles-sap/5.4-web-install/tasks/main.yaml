@@ -94,7 +94,6 @@
         sap_scs_hostname:              "{{ custom_scs_virtual_hostname | default(scs_server, true) }}"
         sap_webVirtualHostname:        "{{ virtual_host }}"
         sap_installSAPHostAgent:       "false"
-        hdb_instance_number:           "{{ db_instance_number }}"
         web_sid:                       "{{ sid_to_be_deployed.web_sid | upper }}"
         sap_sid:                       "{{ sid_to_be_deployed.sid | upper }}"
 

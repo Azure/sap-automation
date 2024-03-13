@@ -122,7 +122,6 @@
         force:                         true
     # Template parameter mapping
       vars:
-        hdb_instance_number:           "{{ db_instance_number }}"
         sap_scs_hostname:              "{{ scs_virtual_hostname }}"
         sap_sid:                       "{{ sid_to_be_deployed.sid }}"
         scs_instance_number:           "{{ sid_to_be_deployed.ascs_inst_no }}"
