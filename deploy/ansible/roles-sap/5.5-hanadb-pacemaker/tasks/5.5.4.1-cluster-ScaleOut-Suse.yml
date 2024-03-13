@@ -210,7 +210,7 @@
                                        crm configure primitive rsc_fs_check_{{ db_sid | upper }}_HDB{{ db_instance_number }} Filesystem params \
                                        device="/hana/shared/{{ db_sid | upper }}/check/" \
                                        directory="/hana/shared/check/" fstype=nfs4  \
-                                       options="bind,defaults,rw,hard,rsize=262144,wsize=262144,proto=tcp,noatime,_netdev,nfsvers=4.1,lock,sec=sys" \
+                                       options={{ nfs_mount_options }} \
                                        op monitor interval=120 timeout=120 on-fail=fence \
                                        op_params OCF_CHECK_LEVEL=20 \
                                        op start interval=0 timeout=120 \
