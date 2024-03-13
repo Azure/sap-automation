@@ -50,6 +50,10 @@
                                           - "deployer_kv_name:                {{ deployer_kv_name }}"
     verbosity:                            2
 
+- name:                                "0.4 Installation Media: - Get Control Plane Subscription"
+  ansible.builtin.set_fact:
+    control_plane_subscription_id:     "{{ lookup('ansible.builtin.env', 'control_plane_subscription') | default('') }}"
+
 
 - name:                                "0.4 Installation Media: - Extract SAP Binaries Storage Account secrets"
   block:
@@ -78,12 +82,24 @@
 
 - name:                                "0.4 Installation Media: - Check Binaries Storage Account"
   ansible.builtin.command: >-
-                                       az storage account show        \
-                                         --name {{ account_name }}    \
-                                         --query allowSharedKeyAccess \
+                                       az storage account show                              \
+                                         --name {{ account_name }}                          \
+                                         --query allowSharedKeyAccess                       \
+                                         --subscription {{ control_plane_subscription_id }} \
                                          --out tsv
   changed_when:                        false
   register:                            az_allowSharedKeyAccess
+  when:                                control_plane_subscription_id | length > 0
+
+- name:                                "0.4 Installation Media: - Check Binaries Storage Account"
+  ansible.builtin.command: >-
+                                       az storage account show                              \
+                                         --name {{ account_name }}                          \
+                                         --query allowSharedKeyAccess                       \
+                                         --out tsv
+  changed_when:                        false
+  register:                            az_allowSharedKeyAccess
+  when:                                az_allowSharedKeyAccess is not defined
 
 - name:                                "0.4 Installation Media: - Extract SAS token"
   ansible.builtin.set_fact:
