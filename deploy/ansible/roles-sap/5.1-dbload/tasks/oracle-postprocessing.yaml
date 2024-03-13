@@ -93,6 +93,9 @@
     mode:                              '0755'
   when:                                updatesga_results.rc == 0
 
+# Wait for creation of HugePages
+
+
 - name:                                "ORACLE Post Processing: Start Oracle after SGA Change"
   become:                              true
   become_user:                         "oracle"

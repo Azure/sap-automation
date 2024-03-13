@@ -69,6 +69,17 @@
   ansible.builtin.wait_for:
     timeout:                       15
 
+- name:                               "Update the initSID.ora for adopting local_listener location"
+  ansible.builtin.replace:
+    path:                             /oracle/{{ db_sid | upper }}/{{ ora_release }}/dbs/init{{ db_sid | upper }}.ora
+    regexp:                          '*.local_listener='
+    replace:                         "*.local_listener='(Address=(Protocol=TCP)(Host=({{ ora_secondary }})(Port=1521))'"
+  
+
+- name:                            "File update wait for 15 sec to avoid multiple locks"
+  ansible.builtin.wait_for:
+    timeout:                       15
+
 
 - name:                                "Replace the local listener entires in initSID.ora"
   ansible.builtin.blockinfile:
@@ -82,7 +93,7 @@
                 *.log_file_name_convert='{{ db_sid | upper }}','{{ db_sid | upper }}'
                 *.db_create_online_log_dest_1='+DATA'
                 *.db_create_online_log_dest_2='+DATA'
-                *.local_listener='(Address=(Protocol=TCP)(Host=({{ ora_secondary }})(Port=1521))'
+                
   when:
     - node_tier == "oracle-asm"
 
