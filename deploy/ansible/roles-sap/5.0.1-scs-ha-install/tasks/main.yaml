@@ -84,7 +84,6 @@
       vars:
         sap_scs_hostname:              "{{ scs_virtual_hostname }}"
         param_directory:               "{{ dir_params }}"
-        hdb_instance_number:           "{{ db_instance_number }}"
         set_ascsInstallGateway:        "{{ ascsInstallGateway | default(true) | bool | lower }}"
         set_ascsInstallWebDispatcher:  "{{ ascsInstallWebDispatcher | default(false) | bool | lower }}"
 
