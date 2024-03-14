@@ -150,6 +150,8 @@
         mode:                          0644
         force:                         true
       vars:
+        sap_cd_package_hdbclient:      "{{ target_media_location }}/CD_HDBCLIENT/SAP_HANA_CLIENT"
+        sap_cd_package_cd1:            "{{ target_media_location }}/CD_EXPORT"
         sap_ciInstanceNumber:          "{{ sid_to_be_deployed.ascs_inst_no }}"
         app_instance_number:           "{{ sid_to_be_deployed.app_inst_no }}"
         sap_ciDialogWPNumber:          12
@@ -262,6 +264,7 @@
       when:
         - database_high_availability
         - platform == 'HANA'
+
     - name:                            "APP Install: Set hdbuserstore path"
       ansible.builtin.set_fact:
         hdbuserstore_path:             "{{ hdbuserstore_file.files[0].path }}"
@@ -269,6 +272,7 @@
         - database_high_availability
         - platform == 'HANA'
         - hdbuserstore_file | length > 0
+
     - name:                            "APP Install: show hdbuserstore path"
       ansible.builtin.debug:
         var:                           hdbuserstore_path
