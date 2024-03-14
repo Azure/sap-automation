@@ -226,8 +226,22 @@
 
     - name:                                      "1.17 Generic Pacemaker - Stonith SBD is already configured in cluster"
       when:                                      stonith_sbd_configured.rc == 0
-      ansible.builtin.debug:
-        msg:                                     "Stonith Status: {{ stonith_sbd_configured.stdout }}"
+      block:
+        - name:                                  "1.17 Generic Pacemaker - Debug show Stonith SBD"
+          ansible.builtin.debug:
+            msg:                                 "Stonith SBD is already configured in cluster"
+
+        - name:                                  "1.17 Generic Pacemaker - Stop Stonith SBD"
+          ansible.builtin.shell:                 crm resource stop stonith-sbd
+
+        - name:                                  "1.17 Generic Pacemaker - Delete Stonith SBD"
+          ansible.builtin.shell:                 crm configure delete stonith-sbd
+
+        - name:                                  "1.17 Generic Pacemaker - Recreate Stonith SBD in cluster"
+          ansible.builtin.shell: >-
+                                                 crm configure primitive stonith-sbd stonith:external/sbd \
+                                                   params pcmk_delay_max="15" \
+                                                   op monitor interval="600" timeout="15"
 
     - name:                                      "1.17 Generic Pacemaker - Ensure Stonith SBD is configured in cluster"
       when:                                      stonith_sbd_configured.rc != 0
