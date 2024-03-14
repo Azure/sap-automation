@@ -58,7 +58,6 @@
   ansible.builtin.set_fact:
     subscription_parameter:            "{%if control_plane_subscription_id | length > 0 %}--subscription {{ control_plane_subscription_id }}{% else %}{% endif %}"
 
-
 - name:                                "0.4 Installation Media: - Extract SAP Binaries Storage Account secrets"
   block:
     - name:                            "0.4 Installation Media: - Extract SAP Binaries Storage Account information"
