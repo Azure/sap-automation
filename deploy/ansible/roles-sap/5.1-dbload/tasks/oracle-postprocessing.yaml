@@ -40,6 +40,11 @@
     - supported_tiers != "pas"
     - supported_tiers == "scs"
 
+# Block to check if a reboot has been performed already after updating SGA & PGS
+- name:                                "DBLoad: - check if DBLoad is performed for {{ sid_to_be_deployed.sid | upper }}"
+  ansible.builtin.stat:
+    path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/ora_sga_updated.txt"
+  register:                            sga_update_status
 
 - name:                                "ORACLE Post Processing: Oracle SGA & PGA: create updatesga.sql"
   become:                              true
@@ -57,7 +62,7 @@
          SHUTDOWN IMMEDIATE;
          exit;
     mode: '0755'
-
+     
 - name:                                "ORACLE Post Processing: Oracle Startup: create startup.sql"
   become:                              true
   become_user:                         "oracle"
@@ -94,7 +99,22 @@
   when:                                updatesga_results.rc == 0
 
 # Wait for creation of HugePages
+# Rebbot the VM to avoid the error "ORA-27102: out of memory"
 
+- name:                    "DB VM reboot"
+  block:
+
+   - name:                                "Oracle post-processing: Reboot after the Enabling HugePages"
+     ansible.builtin.reboot:
+      reboot_timeout:                    300
+    
+  # Wait for Connection after reboot
+   - name:                                "Wait for Connection after reboot"
+     ansible.builtin.wait_for_connection:
+       delay:                             10
+       timeout:                           300
+  when:
+    - not sga_update_status.stat.exists
 
 - name:                                "ORACLE Post Processing: Start Oracle after SGA Change"
   become:                              true
@@ -108,6 +128,16 @@
     creates:                           /etc/sap_deployment_automation/{{ db_sid | upper }}/db_startup_completed.txt
     chdir:                             /etc/sap_deployment_automation/{{ db_sid | upper }}
     executable:                        /bin/csh
+
+# Create a block for starting the oracle listener on primary node
+- name:                                "ORACLE Post Processing: Oracle Listener Start"
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.shell: |
+                                       set -o pipefail
+                                       lsnrctl start
+  register:                            listener_started_results
+  failed_when:                         listener_started_results.rc != 0
 
 - name:                                "ORACLE Post Processing: Create db_startup_completed.txt"
   ansible.builtin.file:
