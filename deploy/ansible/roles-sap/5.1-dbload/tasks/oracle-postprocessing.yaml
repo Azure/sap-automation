@@ -130,14 +130,26 @@
     executable:                        /bin/csh
 
 # Create a block for starting the oracle listener on primary node
-- name:                                "ORACLE Post Processing: Oracle Listener Start"
+- name:                                "Oracle Post-Processing - start lsnrctl on Primary"
   become:                              true
   become_user:                         "oracle"
-  ansible.builtin.shell: |
-                                       set -o pipefail
-                                       lsnrctl start
-  register:                            listener_started_results
-  failed_when:                         listener_started_results.rc != 0
+  ansible.builtin.shell:               lsnrctl start
+  register:                            lsnrctl_start_primary_results
+  failed_when:                         lsnrctl_start_primary_results.rc > 0
+  args:
+    creates:                           /etc/sap_deployment_automation/dgscripts/lsnrctl_started_pri.txt
+    chdir:                             /etc/sap_deployment_automation/dgscripts
+    executable:                        /bin/csh
+
+- name:                                "Oracle Post-Processing: Create lsnrctl_started_pri.txt"
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.file:
+    path:                              /etc/sap_deployment_automation/dgscripts/lsnrctl_started_pri.txt
+    state:                             touch
+    mode:                              '0755'
+  when:
+    - lsnrctl_start_primary_results.rc == 0
 
 - name:                                "ORACLE Post Processing: Create db_startup_completed.txt"
   ansible.builtin.file:
