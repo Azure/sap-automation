@@ -287,6 +287,10 @@
     - name:                                      "1.17 Generic Pacemaker - start cluster on both nodes to ensure sbd is enabled."
       ansible.builtin.command:                   crm cluster start
 
+    - name:                                      "1.17 Generic Pacemaker - wait for 60 seconds"
+      ansible.builtin.wait_for:
+        timeout:                                 60
+
   always:
     - name:                                      "1.17 Generic Pacemaker - SBD service configuration"
       ansible.builtin.debug:
