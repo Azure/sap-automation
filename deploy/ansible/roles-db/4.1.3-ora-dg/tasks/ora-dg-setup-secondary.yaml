@@ -123,7 +123,7 @@
     block: |
                 *.db_unique_name ='{{ db_sid | upper }}_STDBY'
                 *.log_file_name_convert='{{ db_sid | upper }}','{{ db_sid | upper }}'
-                *.local_listener='(Address=(Protocol=TCP)(Host=({{ ora_secondary }})(Port=1521))'            
+                *.local_listener='(Address=(Protocol=TCP)(Host={{ ora_secondary }})(Port=1521))'            
 
   when:
     - node_tier == "oracle"
@@ -541,6 +541,18 @@
     - backup_pfile_results.rc == 0
     - current_host == ora_secondary
 
+- name:                            "Update the Local_Listener Value in secondary"
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.shell:               sqlplus / as sysdba @listenerupdate.sql
+  register:                            local_listener_on_secondary_results
+  failed_when:                         local_listener_on_secondary_results.rc > 0
+  args:
+   creates:                           /etc/sap_deployment_automation/dgscripts/local_listener_on_secondary.txt
+   chdir:                             /etc/sap_deployment_automation/dgscripts
+   executable:                        /bin/csh
+  when: 
+    - current_host == ora_secondary 
 
 # Stop the Secondary Database.
 - name:                                "Oracle Data Guard - Setup Secondary: Stop secondary DB for  spfile"
@@ -773,18 +785,7 @@
     - asm_secondary_startup_spfile_results.rc == 0
     - current_host == ora_secondary
 
-- name:                            "Update the Local_Listener Value in secondary"
-  become:                              true
-  become_user:                         "oracle"
-  ansible.builtin.shell:               sqlplus / as sysdba @listenerupdate.sql
-  register:                            local_listener_on_secondary_results
-  failed_when:                         local_listener_on_secondary_results.rc > 0
-  args:
-   creates:                           /etc/sap_deployment_automation/dgscripts/local_listener_on_secondary.txt
-   chdir:                             /etc/sap_deployment_automation/dgscripts
-   executable:                        /bin/csh
-  when: 
-    - current_host == ora_secondary    
+   
     
 - name:                            "Create local_listener_on_secondary on secondary"
   become:                          true
