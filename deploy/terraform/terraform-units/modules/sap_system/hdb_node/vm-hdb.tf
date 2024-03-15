@@ -436,7 +436,7 @@ resource "azurerm_managed_disk" "cluster" {
   max_shares                           = var.database_server_count
   tags                                 = var.tags
 
-  zone                                 = var.database.database_cluster_disk_type == "Premium_ZRS" && !local.use_avset ? (
+  zone                                 = var.database.database_cluster_disk_type == "Premium_LRS" && !local.use_avset ? (
                                            azurerm_linux_virtual_machine.vm_dbnode[local.data_disk_list[count.index].vm_index].zone) : (
                                            null
                                          )
