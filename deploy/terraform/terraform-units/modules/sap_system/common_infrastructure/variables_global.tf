@@ -17,7 +17,7 @@ variable "application_tier"                      {
                                                                   )
                                                                 )
 
-                                                              error_message = "Cluster type 'ASD' with disk type" + var.application_tier.scs_cluster_disk_type + "does not support deployments across " + string(length(try(var.application_tier.scs_zones, []))) + " zones."
+                                                              error_message = format("Cluster type 'ASD' with disk type %s does not support deployments across %d zones.",  var.application_tier.scs_cluster_disk_type, length(try(var.application_tier.scs_zones, [])))
                                                   }
                                                  }
 
