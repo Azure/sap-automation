@@ -1373,7 +1373,7 @@
         "Display": 3
       },
       {
-        "Name": "scs_cluster_disk_size ",
+        "Name": "scs_cluster_disk_size",
         "Required": false,
         "Description": "The size of the shared disk for the SAP Central Services cluster",
         "Type": "field",
@@ -1409,7 +1409,7 @@
         "Display": 3
       },
       {
-        "Name": "database_cluster_disk_size ",
+        "Name": "database_cluster_disk_size",
         "Required": false,
         "Description": "The size of the shared disk for the Database cluster",
         "Type": "field",
