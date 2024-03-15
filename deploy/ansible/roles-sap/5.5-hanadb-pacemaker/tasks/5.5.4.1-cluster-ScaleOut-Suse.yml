@@ -98,8 +98,7 @@
       ansible.builtin.shell: >
                                        crm configure ms msl_SAPHana_{{ db_sid | upper }}_HDB{{ db_instance_number }} \
                                        rsc_SAPHana_{{ db_sid | upper }}_HDB{{ db_instance_number }} \
-                                       meta notify="true" clone-max="2" clone-node-max="1"
-                                       target-role="Started" interleave="true"
+                                       meta clone-node-max="1" master-max="1" interleave="true"
       register:                        sap_hana_msl
       failed_when:                     sap_hana_msl.rc > 1
 
@@ -155,7 +154,7 @@
     # Ensure the first entry of observer_db host group is excluded from running cluster resources
     - name:                            "5.5.4.1 HANA Scale-Out Pacemaker configuration - Ensure master slave configuration does not runs on majority maker node"
       ansible.builtin.shell: >
-                                       sudo crm configure location loc_SAPHanaCon_not_on_majority_maker msl_SAPHana_{{ db_sid | upper }}_HDB{{ db_instance_number }} -inf: {{ majority_maker }}
+                                       crm configure location loc_SAPHanaCon_not_on_majority_maker msl_SAPHana_{{ db_sid | upper }}_HDB{{ db_instance_number }} -inf: {{ majority_maker }}
       register:                        sap_hana_msl_loc_mm
       failed_when:                     sap_hana_msl_loc_mm.rc > 1
 
@@ -165,6 +164,19 @@
                                        sudo crm configure location loc_SAPHanaTop_not_on_majority_maker cln_SAPHanaTopology_{{ db_sid | upper }}_HDB{{ db_instance_number }} -inf: {{ majority_maker }}
       register:                        sap_hana_cln_mm
       failed_when:                     sap_hana_cln_mm.rc > 1
+
+
+    - name:                           "5.5.4.1 HANA Scale-Out Pacemaker configuration - Configure cluster stickiness parameter"
+      ansible.builtin.shell: >
+                                       crm configure rsc_defaults resource-stickiness=1000
+      register:                        sap_hana_stickiness
+      failed_when:                     sap_hana_stickiness.rc > 1
+
+    - name:                           "5.5.4.1 HANA Scale-Out Pacemaker configuration - Configure cluster default migration threshold"
+      ansible.builtin.shell: >
+                                       crm configure rsc_defaults migration-threshold=50
+      register:                        sap_hana_migration
+      failed_when:                     sap_hana_migration.rc > 1
 
 
     - name:                            "5.5.4.1 HANA Scale-Out Pacemaker configuration - Ensure any required cluster resources are cleaned up"
