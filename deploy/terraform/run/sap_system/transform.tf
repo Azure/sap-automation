@@ -206,6 +206,10 @@ locals {
                                                                             false) : (
                                                                             var.scs_server_use_avset
                                                                           )
+                                        scs_cluster_disk_lun            = var.scs_cluster_disk_lun
+                                        scs_cluster_disk_size           = var.scs_cluster_disk_size
+                                        scs_cluster_disk_type           = var.scs_cluster_disk_type
+
                                         webdispatcher_count             = local.enable_app_tier_deployment ? (
                                                                             max(var.webdispatcher_server_count, try(var.application_tier.webdispatcher_count, 0))
                                                                             ) : (

@@ -11,7 +11,7 @@ variable "application_tier"                      {
                                                                   var.application_tier.scs_high_availability ? (
                                                                     var.application_tier.scs_cluster_type != "ASD" ? (
                                                                       true) : (
-                                                                      length(try(var.application_tier.scs_zones, [])) <= 1
+                                                                      length(try(var.application_tier.scs_zones, [])) <= (var.application_tier.scs_cluster_disk_type == "Premium_ZRS" ? 2 : 1)
                                                                     )) : (
                                                                     true
                                                                   )

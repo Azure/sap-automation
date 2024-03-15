@@ -709,6 +709,11 @@ variable "scs_cluster_disk_size"                {
                                                   default     = 128
                                                 }
 
+variable "scs_cluster_disk_type"                {
+                                                  description = "The storage_account_type of the shared disk for the SAP Central Services cluster"
+                                                  default     = "Premium_ZRS"
+                                                }
+
 #########################################################################################
 #                                                                                       #
 #  Application Server variables                                                         #

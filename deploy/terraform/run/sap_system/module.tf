@@ -206,8 +206,6 @@ module "app_tier" {
   route_table_id                                = module.common_infrastructure.route_table_id
   sap_sid                                       = local.sap_sid
   scale_set_id                                  = try(module.common_infrastructure.scale_set_id, null)
-  scs_cluster_disk_lun                          = var.scs_cluster_disk_lun
-  scs_cluster_disk_size                         = var.scs_cluster_disk_size
   sdu_public_key                                = module.common_infrastructure.sdu_public_key
   sid_keyvault_user_id                          = module.common_infrastructure.sid_keyvault_user_id
   sid_password                                  = module.common_infrastructure.sid_password
