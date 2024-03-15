@@ -1020,6 +1020,12 @@ variable "dns_a_records_for_secondary_names"    {
                                                   type        = bool
                                                 }
 
+variable "register_endpoints_with_dns"          {
+                                                  description = "Boolean value indicating if endpoints should be registered to the dns zone"
+                                                  default     = true
+                                                  type        = bool
+                                                }
+
 #########################################################################################
 #                                                                                       #
 #  NFS and Shared Filed settings                                                        #
