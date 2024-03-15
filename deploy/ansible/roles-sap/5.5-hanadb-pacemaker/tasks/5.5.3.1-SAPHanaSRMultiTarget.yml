@@ -471,6 +471,12 @@
         - ansible_facts.packages['SAPHanaSR-ScaleOut'] is not defined
 
     - name:                            "Ensure SAPHanaSR-ScaleOut-doc package is installed"
+      ansible.builtin.package:
+        name:                          SAPHanaSR-ScaleOut-doc
+        state:                         present
+      when:
+        - ansible_os_family | upper == "SUSE"
+        - ansible_facts.packages['SAPHanaSR-ScaleOut-doc'] is not defined
 
     # - name:                            "Ensure the cluster is started on all nodes"
     #   ansible.builtin.command:         pcs cluster start --all
