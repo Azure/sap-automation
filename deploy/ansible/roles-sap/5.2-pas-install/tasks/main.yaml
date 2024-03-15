@@ -467,7 +467,7 @@
       when:
         - database_high_availability
         - platform == 'HANA'
-        - hdbuserstore_file | length > 0
+        - hdbuserstore_file.matched > 0
 
     - name:                            "PAS Install: show hdbuserstore path"
       ansible.builtin.debug:
