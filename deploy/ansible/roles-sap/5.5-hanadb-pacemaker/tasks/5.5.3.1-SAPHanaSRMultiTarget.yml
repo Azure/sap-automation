@@ -476,5 +476,11 @@
     #   ansible.builtin.command:         pcs cluster start --all
     #   changed_when:                    false
     #   when:                            inventory_hostname == primary_instance_name
-
+    - name:                            "Ensure resource-agents-sap-hana-scaleout  is installed (REDHAT)"
+      ansible.builtin.package:
+        name:                          resource-agents-sap-hana-scaleout
+        state:                         present
+      when:
+        - ansible_os_family | upper == "REDHAT"
+        - ansible_facts.packages['resource-agents-sap-hana-scaleout'] is not defined
 # End of configuration for SAPHanaSR-ScaleOut python hook
