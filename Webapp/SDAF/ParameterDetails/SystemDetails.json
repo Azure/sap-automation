@@ -1364,6 +1364,78 @@
         "Display": 2
       },
       {
+        "Name": "scs_cluster_disk_lun",
+        "Required": false,
+        "Description": "The LUN of the shared disk for the SAP Central Services cluster",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "scs_cluster_disk_size ",
+        "Required": false,
+        "Description": "The size of the shared disk for the SAP Central Services cluster",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "scs_cluster_disk_type",
+        "Required": false,
+        "Description": "The storage_account_type of the shared disk for the SAP Central Services cluster",
+        "Type": "lookup",
+        "Options": [
+          {
+            "Text": "Premium LRS",
+            "Value": "Premium_LRS"
+          },
+          {
+            "Text": "Premium ZRS",
+            "Value": "Premium_ZRS"
+          }
+        ],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "database_cluster_disk_lun",
+        "Required": false,
+        "Description": "The LUN of the shared disk for the Database cluster",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "database_cluster_disk_size ",
+        "Required": false,
+        "Description": "The size of the shared disk for the Database cluster",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "database_cluster_disk_type",
+        "Required": false,
+        "Description": "The storage_account_type of the shared disk for the Database cluster",
+        "Type": "lookup",
+        "Options": [
+          {
+            "Text": "Premium LRS",
+            "Value": "Premium_LRS"
+          },
+          {
+            "Text": "Premium ZRS",
+            "Value": "Premium_ZRS"
+          }
+        ],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
         "Name": "use_msi_for_clusters",
         "Required": false,
         "Description": "If provided, defines that the fencing agent uses a managed identity",
