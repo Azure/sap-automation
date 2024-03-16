@@ -84,8 +84,6 @@
     mode:                              '0755'
   when:                                node_tier == "oracle-asm"
 
-
-
 - name:                                "Oracle Data Guard for oracle asm - Preparation: create fralogs.sql"
   become:                              true
   become_user:                         "oracle"
@@ -233,8 +231,6 @@
          STARTUP MOUNT;
          exit
     mode:                              '0755'
-
-
 
 - name:                                "Oracle Data Guard - Preparation: create dgstatus.sql"
   become:                              true
@@ -462,7 +458,7 @@
     dest:                             "/etc/sap_deployment_automation/dgscripts/rman-restore.rman"
     mode:                             '0644'
     force:                            true
-  when:  
+  when:
     - current_host == ora_secondary
     - node_tier == 'oracle'
 
@@ -475,7 +471,7 @@
     dest:                             "/etc/sap_deployment_automation/dgscripts/rman-restore.rman"
     mode:                             '0644'
     force:                            true
-  when:  
+  when:
     - current_host == ora_secondary
     - node_tier == 'oracle-asm'
 
@@ -542,8 +538,6 @@
          exit
     mode: '0755'
   when: current_host == ora_secondary
-
-
 
 # Create Directories for RESTORE on Secondary
 
@@ -677,7 +671,7 @@
     dest:                             "/etc/sap_deployment_automation/dgscripts/asmfilesystems-secondary.sh"
     mode:                             '0755'
     force:                            true
-  when:  
+  when:
     - current_host == ora_secondary
     - node_tier == "oracle-asm"
 
