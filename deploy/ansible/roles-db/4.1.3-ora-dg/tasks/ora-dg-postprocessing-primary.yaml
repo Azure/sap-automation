@@ -154,7 +154,7 @@
         state:                         touch
         mode:                          '0755'
       when:                            enable_dgconfig_results.rc == 0
-    
+
     # Enable the DB trigger for SAP HA
     - name:                            "Oracle Data Guard - Post Processing: Enable DB Trigger"
       become:                          true

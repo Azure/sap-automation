@@ -473,7 +473,7 @@
     - node_tier == "oracle-asm"
     - current_host == ora_secondary
     - asm_oraarch_created_results.rc == 0
-#---------------------------------------------------------------------------------------------------------------
+# ---------------------------------------------------------------------------------------------------------------
 
 # Create the SPFILE from PFILE on Standby and Start the Standby Database using PFILE for non-ASM.
 - name:                                "Oracle Data Guard - Setup Secondary: Create spfile on non-ASM"
@@ -633,7 +633,7 @@
     - current_host == ora_secondary
 
 
-#---------------------------------------------------------------------------------------------------------------
+# ---------------------------------------------------------------------------------------------------------------
 # Create the SPFILE from PFILE on Standby and Start the Standby Database using PFILE.
 - name:                                "Oracle Data Guard - Setup Secondary: Create spfile on ASM"
   become:                              true
