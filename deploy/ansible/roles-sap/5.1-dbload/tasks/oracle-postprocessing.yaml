@@ -1,8 +1,8 @@
 - name:                                "ORACLE Post Processing: Set Variables"
   ansible.builtin.set_fact:
     PAS:                               'pas'
-    pga_temp_l4tb_std:                 "{{ ((ansible_memory_mb.real.total*0.60)*0.2) |round |int }}"
-    pga_temp_l4tb_dis:                 "{{ ((ansible_memory_mb.real.total*0.80)*0.2) |round |int }}"
+    pga_temp_l4tb_std:                 "{{ ((ansible_memory_mb.real.total * 0.60 ) * 0.2) | round | int }}"
+    pga_temp_l4tb_dis:                 "{{ ((ansible_memory_mb.real.total * 0.80 ) * 0.2) | round | int }}"
     # pga_temp_g4tb:                       "{{ ((ansible_memory_mb.real.total*0.85)*0.2) |round |int }}"
 
 # PGA & SGA for RAM < 4TB
@@ -34,7 +34,7 @@
 - name:                                "Set the SGA and PGA Sizes for RAM > 4TB"
   ansible.builtin.set_fact:
     ora_sga:                           "{{ (ansible_memory_mb.real.total * 0.65) | round | int }}"
-    ora_pga:                           "{{ ((ansible_memory_mb.real.total*0.65)*0.2) |round |int }}"
+    ora_pga:                           "{{ ((ansible_memory_mb.real.total*0.65)*0.2) | round | int }}"
   when:
     - ansible_memory_mb.real.total > 4194304
     - supported_tiers != "pas"
@@ -62,7 +62,7 @@
          SHUTDOWN IMMEDIATE;
          exit;
     mode: '0755'
-     
+
 - name:                                "ORACLE Post Processing: Oracle Startup: create startup.sql"
   become:                              true
   become_user:                         "oracle"
@@ -107,7 +107,7 @@
    - name:                                "Oracle post-processing: Reboot after the Enabling HugePages"
      ansible.builtin.reboot:
       reboot_timeout:                    300
-    
+
   # Wait for Connection after reboot
    - name:                                "Wait for Connection after reboot"
      ansible.builtin.wait_for_connection:
