@@ -889,11 +889,14 @@
 
 # /*----------------------------End of setup----------------------------------8
 
-# /*----------------------------Supplimentary tasks for a majority maker node------------#
+# /*----------------------------Supplimentary tasks for all HANA + majority maker nodes------------#
+# note: we are going to install the hooks in this stage as 4.0.3 runs on all HANA nodes and Observer nodes.
+# 5.5 runs only on HANA nodes, so majority maker will be bypassed, resulting in cluster creation failure since it can't find the resource agent/python hook
+
 
 - name:                                Majority Maker only - Implement the Python system replication hook SAPHanaSR-ScaleOut MultiTarget (SUSE)
   when:
-    - node_tier == 'observer'
+    - node_tier in ['observer','hana']
     - platform == 'HANA'
     - ansible_hostname == "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_OBSERVER_DB') }}"
     - db_scale_out
@@ -943,9 +946,9 @@
         - ansible_facts.packages['SAPHanaSR-ScaleOut-doc'] is not defined
 
 
-- name:                                Majority Maker only - Implement the Python system replication hook SAPHanaSR-ScaleOut MultiTarget (REDHAT)
+- name:                                Majority Maker only - Implement the Scale out Resource Agent hook (REDHAT)
   when:
-    - node_tier == 'observer'
+    - node_tier in ['observer','hana']
     - ansible_hostname == "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_OBSERVER_DB') }}"
     - db_scale_out
     - db_high_availability
@@ -960,7 +963,6 @@
         state:                         present
       when:
         - ansible_facts.packages['resource-agents-sap-hana-scaleout'] is not defined
-
 
 
 - name:                                 "HANA Install status"
