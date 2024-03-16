@@ -30,8 +30,6 @@
     mode:                             '0644'
     force:                            true
 
-
-
 - name: "Execute Block only if secondary DB restore is completed"
   block:
 
@@ -46,7 +44,7 @@
         creates:                       /etc/sap_deployment_automation/dgscripts/secondary_log_apply_off.txt
         chdir:                         /etc/sap_deployment_automation/dgscripts
         executable:                    /bin/csh
-      
+
 
     - name:                            "Oracle Data Guard - Post Processing: Set Log apply off on Standby (Debug)"
       ansible.builtin.debug:
@@ -69,7 +67,7 @@
         mode:                          '0755'
       when:                            secondary_log_apply_off_results.rc == 0
 
-# Enable Flashback on Secondary      
+# Enable Flashback on Secondary
     - name:                                "Oracle Data Guard - Enable Flashback on Oracle Secondary DB"
       become:                              true
       become_user:                         "oracle"
@@ -91,7 +89,7 @@
         content:                           "{{ turn_on_flashback_secondary_results.stdout }}"
         mode:                              '0755'
       when:                               turn_on_flashback_secondary_results.stdout is defined
-  
+
     - name:                                "Oracle Data Guard - Setup Primary: Create turn_on_flashback_secondary.txt"
       become:                              true
       become_user:                         "oracle"
@@ -101,7 +99,7 @@
         mode:                              '0755'
       when:
         - turn_on_flashback_secondary_results.rc == 0
-        
+
 # Enable the log apply on secondary DB after enabling Flashback
     - name:                            "Oracle Data Guard - Post Processing: Set Log apply on on Standby"
       become:                          true
@@ -113,7 +111,7 @@
         creates:                       /etc/sap_deployment_automation/dgscripts/secondary_log_apply_on.txt
         chdir:                         /etc/sap_deployment_automation/dgscripts
         executable:                    /bin/csh
-      
+
 
     - name:                            "Oracle Data Guard - Post Processing: Set Log apply off on Standby (Debug)"
       ansible.builtin.debug:
@@ -149,10 +147,10 @@
         creates:                           /etc/sap_deployment_automation/dgscripts/secondary_shutdown_cfg.txt
         chdir:                             /etc/sap_deployment_automation/dgscripts
         executable:                        /bin/csh
-      when: 
+      when:
         - current_host == ora_secondary
-      
-    
+
+
     - name:                                "Oracle Data Guard - Setup Secondary: Create secondary_shutdown.txt"
       become:                              true
       become_user:                         "root"
@@ -162,7 +160,7 @@
         mode:                              '0755'
         owner:                             oracle
         group:                             oinstall
-      when:                                
+      when:
         - secondary_shutdown_cfg_results.rc == 0
         - current_host == ora_secondary
 
@@ -180,7 +178,7 @@
         creates:                           /etc/sap_deployment_automation/dgscripts/secondary_startup_cfg.txt
         chdir:                             /etc/sap_deployment_automation/dgscripts
         executable:                        /bin/csh
-      when: 
+      when:
         - node_tier == "oracle"
         - current_host == ora_secondary
 
@@ -194,12 +192,12 @@
         mode:                              '0755'
         owner:                             oracle
         group:                             oinstall
-      when:                                
+      when:
         - node_tier == "oracle"
         - secondary_startup_cfg_results.rc == 0
         - current_host == ora_secondary
 
-    
+
     - name:                            "Oracle CLusterware Restart Configuration"
       become:                          true
       become_user:                     "oracle"
@@ -225,7 +223,7 @@
         owner: oracle
         group: oinstall
       when:
-        - node_tier == "oracle-asm"                        
+        - node_tier == "oracle-asm"
         - oracle_clusterware_register.rc  == 0
 
     - name:                            "Create post processing completed on secondary"
@@ -237,7 +235,7 @@
         mode:                          '0755'
         owner: oracle
         group: oinstall
-  
+
 
   # Create User for SIDADM on Secondary Node.
     - name:                                "2.5.1 SAP Users: -  Create Oracle ASM Users Assignment"
@@ -249,9 +247,7 @@
         append:                            true
         shell:                             /bin/csh
       # when:                                node_tier == "oracle-asm"
-    
-    
-    
+
    # Update the tnsnames.ora for SAP application servers
 
     - name:                                "Oracle Data Guard - Update tnsnames.ora for SAP application servers"
@@ -264,7 +260,7 @@
         owner:                             '{{sap_sid |lower }}adm'
         group:                             sapsys
         mode:                              "{{ '0777' | int - (custom_umask | default('022') | int) }}"
-   
+
   when:
     - primary_post_processing_completed.stat.exists
 
