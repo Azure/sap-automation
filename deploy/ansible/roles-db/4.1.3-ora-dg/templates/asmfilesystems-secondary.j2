@@ -1,0 +1,10 @@
+/oracle/GRID/{{ ora_version }}/bin/asmcmd --privilege sysdba mkdir  +DATA/{{ db_sid | upper }}
+/oracle/GRID/{{ ora_version }}/bin/asmcmd --privilege sysdba mkdir  +ARCH/{{ db_sid | upper }}
+/oracle/GRID/{{ ora_version }}/bin/asmcmd --privilege sysdba mkdir  +ARCH/{{ db_sid | upper }}/oraarch
+/oracle/GRID/{{ ora_version }}/bin/asmcmd --privilege sysdba mkdir  +ARCH/{{ db_sid | upper }}/ARCHIVELOG
+/oracle/GRID/{{ ora_version }}/bin/asmcmd --privilege sysdba mkdir  +ARCH/{{ db_sid | upper }}/CONTROLFILE
+/oracle/GRID/{{ ora_version }}/bin/asmcmd --privilege sysdba mkdir  +ARCH/{{ db_sid | upper }}/ONLINELOG
+/oracle/GRID/{{ ora_version }}/bin/asmcmd --privilege sysdba mkdir  +RECO/{{ db_sid | upper }}
+/oracle/GRID/{{ ora_version }}/bin/asmcmd --privilege sysdba mkdir  +RECO/{{ db_sid | upper }}/AUTOBACKUP
+/oracle/GRID/{{ ora_version }}/bin/asmcmd --privilege sysdba mkdir  +RECO/{{ db_sid | upper }}/CONTROLFILE
+/oracle/GRID/{{ ora_version }}/bin/asmcmd --privilege sysdba mkdir  +RECO/{{ db_sid | upper }}/FLASHBACK

@@ -43,19 +43,27 @@
     - node_tier == "oracle" or node_tier == "oracle-asm"
     - node_tier != "observer"
 
-- name:                                "Oracle Data Guard: Post processing"
-  ansible.builtin.include_tasks:       "ora-dg-postprocessing.yaml"
+- name:                                "Oracle Data Guard: Post processing on Primary"
+  ansible.builtin.include_tasks:       "ora-dg-postprocessing-primary.yaml"
   when:
     - node_tier == "oracle" or node_tier == "oracle-asm"
     - node_tier != "observer"
     - action       == 2
+
+# Enable Flashback Loggining on the Secondary for FSFO
+- name:                                "Oracle Data Guard: Post processing on Secondary"
+  ansible.builtin.include_tasks:       "ora-dg-postprocessing-secondary.yaml"
+  when:
+    - node_tier == "oracle" or node_tier == "oracle-asm"
+    - node_tier != "observer"
+    - action       == 3
 
 # FSFO is enabled from the Observer.
 - name:                                "Oracle Data Guard: Setup Observer"
   ansible.builtin.include_tasks:       "ora-dg-observer-setup.yaml"
   when:
     - node_tier == "observer"
-    - action    == 3
+    - action    == 4
 ...
 # /*---------------------------------------------------------------------------8
 # |                                   END                                      |

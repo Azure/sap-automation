@@ -304,6 +304,42 @@
             suffix:                   "_DC_ACTION_2"
             tier:                     'oracle'
 
+- hosts:                               "{{ sap_sid | upper }}_DB[1]"
+  name:                                DB Dataguard setup on secondary - Oracle
+  remote_user:                         "root"
+  gather_facts:                        true
+  vars_files:
+    - vars/ansible-input-api.yaml                               # API Input template with defaults
+
+  tasks:
+
+    - name:                            "Oracle Data Guard Setup on Secondary"
+      when:
+        - db_high_availability
+        - platform in ['ORACLE', 'ORACLE-ASM']
+      become:                          true
+      block:
+        - name:                        Setting the DB facts
+          ansible.builtin.set_fact:
+            tier:                      ora                                    # Actions for Oracle DB Servers
+            action:                    3
+            main_password:             "{{ hostvars.localhost.sap_password }}"
+          tags:
+            - always
+
+        - name:                        Oracle Data guard
+          ansible.builtin.include_role:
+            name:                      roles-db/4.1.3-ora-dg
+          tags:
+            - 4.1.3-ora-dg
+
+        - name:                       "Observer Playbook: - Run post installation routines"
+          ansible.builtin.include_role:
+            name:                     roles-sap/7.0.0-post-install
+          vars:
+            suffix:                   "_DC_ACTION_2"
+            tier:                     'oracle'
+
 # /*----------------------------------------------------------------------------8
 # |                                                                            |
 # |                         PLAY FOR Observer Node setup                       |
@@ -335,7 +371,7 @@
         - name:                            "Observer Playbook: Setting the DB facts"
           ansible.builtin.set_fact:
             node_tier:                     observer
-            action:                        3
+            action:                        4
             main_password:                 "{{ hostvars.localhost.sap_password }}"
           tags:
             - always
