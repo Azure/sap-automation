@@ -68,7 +68,6 @@
   register:                            oracle_installed
 
 
-
 # /*---------------------------------------------------------------------------8
 # | Start of Oracle software installation using SAP RUNINSTALLER wrapper.      |
 # | Before running Installer set DB_SID and CV_ASSUME_DISTID according to      |
@@ -238,16 +237,16 @@
                                        cp -rp /oracle/GRID/{{ ora_version }} /oracle/GRID/{{ ora_version }}.bck
       register:                        gridbackup
       args:
-        creates:                       /etc/sap_deployment_automation/{{ sap_sid | upper }}/gridbackedup.txt                          
+        creates:                       /etc/sap_deployment_automation/{{ sap_sid | upper }}/gridbackedup.txt
         executable:                    /bin/csh
 
-    
+
     - name:                            "Oracle ASM: Create flag gridbackedup.txt "
       ansible.builtin.file:
-        path:                          /etc/sap_deployment_automation/{{ sap_sid | upper }}/gridbackedup.txt 
+        path:                          /etc/sap_deployment_automation/{{ sap_sid | upper }}/gridbackedup.txt
         state:                         touch
         mode:                          '0755'
-      when:                            gridbackup.rc == 0    
+      when:                            gridbackup.rc == 0
 
     - name:                            "Oracle ASM: Check if 'OPatch.bck' exists"
       ansible.builtin.stat:
@@ -398,7 +397,7 @@
     # - name:                             "Preventing orachk Issue"
     #   become:                          true
     #   become_user:                     "root"
-    #   ansible.builtin.shell: |           
+    #   ansible.builtin.shell: |
     #                                    set -o errexit
     #                                    set -o pipefail
     #                                    chown -R oracle:oinstall $OHGRID/suptools/orachk
@@ -424,7 +423,7 @@
     #   when:                            orachkdeletion.rc == 0
 
     # # STEP 4.2.2 SBP Patching for Oracle GRID.
-    
+
     # # Copy the GSBP patch to local folder to avoid failures.
 
     # # - name:                            "Copy the GRID SBP Patches to local folders"
@@ -448,7 +447,7 @@
 
 
     # - name:                           "debug 2311 Patching"
-    #   fail:                            
+    #   fail:
     #     msg:                          "fail here for manual GRID SBP installation"
 
     # - name:                            "File update wait for 15 sec to avoid multiple locks"
@@ -483,7 +482,7 @@
     #      args:
     #        chdir:                         /etc/sap_deployment_automation/{{ db_sid | upper }}
     #        executable:                    /bin/csh
-       
+
     #    - name:                             "Remove the Link Files created in the previous run"
     #      become:                          true
     #      become_user:                     "oracle"
@@ -493,7 +492,7 @@
     #      args:
     #        chdir:                         "{{ target_media_location }}/SBP"
     #        executable:                    /bin/csh
-      
+
     #    - name:                            "Oracle ASM: Prepare for GRID SBP Patching"
     #      become:                          true
     #      become_user:                     "root"
@@ -522,7 +521,7 @@
     #        creates:                        "/etc/sap_deployment_automation/{{ sap_sid | upper }}/gridsbp_installed.txt"
     #        chdir:                          "{{ target_media_location }}/SBP/GSBP"
     #        executable:                     /bin/csh
-       
+
 
     # - name:                            "Oracle ASM: Pre Processing reset permissions GRID"
     #   ansible.builtin.file:
