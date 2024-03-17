@@ -155,6 +155,39 @@
         mode:                          '0755'
       when:                            enable_dgconfig_results.rc == 0
 
+    # Enable the DB trigger for SAP HA
+    - name:                            "Oracle Data Guard - Post Processing: Enable DB Trigger"
+      become:                          true
+      become_user:                     "oracle"
+      ansible.builtin.shell:           sqlplus / as sysdba @dbtrigger.sql
+      register:                        enable_dbtrigger_results
+      failed_when:                     enable_dbtrigger_results.rc > 0
+      args:
+        creates:                       /etc/sap_deployment_automation/dgscripts/enable_dbtrigger.txt
+        chdir:                         /etc/sap_deployment_automation/dgscripts
+        executable:                    /bin/csh
+      # when:                                current_host == ora_primary
+    - name:                            "Oracle Data Guard - Post Processing: Create dbtrigger on Primary (debug)"
+      ansible.builtin.debug:
+        var:                           enable_dbtrigger_results.stdout_lines
+        verbosity:                     2
+
+    - name:                            "Oracle Data Guard - Post Processing: Create dbtrigger configuration on Primary (save output)"
+      ansible.builtin.copy:
+        dest:                          /etc/sap_deployment_automation/dgscripts/enable_dbtrigger.log
+        content:                       "{{ enable_dbtrigger_results.stdout }}"
+        mode:                          '0777'
+      when:                            enable_dbtrigger_results.stdout is defined
+
+    - name:                            "Oracle Data Guard - Post Processing: Create enable_dbtrigger.txt"
+      become:                          true
+      become_user:                     "oracle"
+      ansible.builtin.file:
+        path:                          /etc/sap_deployment_automation/dgscripts/enable_dbtrigger.txt
+        state:                         touch
+        mode:                          '0755'
+      when:                            enable_dbtrigger_results.rc == 0
+
     - name:                            "Create post processing completed"
       become:                          true
       become_user:                     root

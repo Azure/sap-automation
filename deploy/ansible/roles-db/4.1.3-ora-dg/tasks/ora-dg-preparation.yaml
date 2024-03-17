@@ -84,7 +84,6 @@
     mode:                              '0755'
   when:                                node_tier == "oracle-asm"
 
-
 - name:                                "Oracle Data Guard for oracle asm - Preparation: create fralogs.sql"
   become:                              true
   become_user:                         "oracle"
@@ -155,6 +154,56 @@
          CREATE SPFILE FROM PFILE;
          exit
     mode:                              '0755'
+  when:
+    - node_tier == 'oracle'
+
+
+- name:                                "Oracle Data Guard for ASM - Preparation: create createspfile.sql"
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.blockinfile:
+    create:                            true
+    path:                              /etc/sap_deployment_automation/dgscripts/createspfilesecondary.sql
+    marker_begin:                      "-- BEGIN"
+    marker_end:                        "-- END"
+    block: |
+         CREATE spfile='+DATA/{{ db_sid | upper }}_STDBY/PARAMETERFILE/spfile{{ db_sid | upper }}.ora' from pfile='/oracle/{{ db_sid | upper }}/{{ ora_release }}/dbs/init{{ db_sid | upper }}.ora';
+         exit
+    mode:                              '0755'
+  when:
+    - node_tier == 'oracle-asm'
+
+- name:                                "Oracle Data Guard for ASM - Preparation: create asmsecondarystartup.sql"
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.blockinfile:
+    create:                            true
+    path:                              /etc/sap_deployment_automation/dgscripts/asmsecondarystartup.sql
+    marker_begin:                      "-- BEGIN"
+    marker_end:                        "-- END"
+    block: |
+              STARTUP MOUNT;
+              exit
+    mode:                              '0755'
+  when:
+    - node_tier == 'oracle-asm'
+
+# orasecondarystartup.sql
+- name:                                "Oracle Data Guard  - Preparation: create orasecondarystartup.sql"
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.blockinfile:
+    create:                            true
+    path:                              /etc/sap_deployment_automation/dgscripts/orasecondarystartup.sql
+    marker_begin:                      "-- BEGIN"
+    marker_end:                        "-- END"
+    block: |
+              STARTUP MOUNT;
+              exit
+    mode:                              '0755'
+  when:
+    - node_tier == 'oracle'
+
 
 - name:                                "Oracle Data Guard - Preparation: create secondarystartup.sql"
   become:                              true
@@ -166,6 +215,20 @@
     marker_end:                        "-- END"
     block: |
          STARTUP NOMOUNT PFILE=$ORACLE_HOME/dbs/init{{ db_sid | upper }}.ora;
+         exit
+    mode:                              '0755'
+
+
+- name:                                "Oracle Data Guard - Preparation: create asmsecondarystartup.sql"
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.blockinfile:
+    create:                            true
+    path:                              /etc/sap_deployment_automation/dgscripts/asmsecondarystartup.sql
+    marker_begin:                      "-- BEGIN"
+    marker_end:                        "-- END"
+    block: |
+         STARTUP MOUNT;
          exit
     mode:                              '0755'
 
@@ -326,6 +389,55 @@
   when:  current_host != ora_primary
 
 
+# Create the sql script for updating the data guard specific parameters for Primary node.
+
+- name:                               "Oracle Data Guard - Preparation: Create the SQL for  Dataguard parameters on  Primary"
+  become:                             true
+  become_user:                        oracle
+  ansible.builtin.template:
+    backup:                           true
+    src:                              dbparametersfordg.j2
+    dest:                             "/etc/sap_deployment_automation/dgscripts/dbparametersfordg.sql"
+    mode:                             '0644'
+    force:                            true
+  vars:
+    hostname:  "{{ ora_primary }}"
+    sap_dbp_hostname: "{{ ora_primary }}"
+    sap_dbs_hostname: "{{ ora_secondary }}"
+  when:  current_host == ora_primary
+
+
+# Create the tnsnames.ora for SAP.
+
+- name:                               "Oracle Data Guard - Create TNSNAMES.ORA for SAP Application servers"
+  become:                             true
+  become_user:                        oracle
+  ansible.builtin.template:
+    backup:                           true
+    src:                              tnsnamesforsap.j2
+    dest:                             "/etc/sap_deployment_automation/dgscripts/tnsnames.ora"
+    mode:                             '0644'
+    force:                            true
+  vars:
+    hostname:  "{{ ora_primary }}"
+    sap_dbp_hostname: "{{ ora_primary }}"
+    sap_dbs_hostname: "{{ ora_secondary }}"
+
+
+# Create DB trigger sql for SAP HA Setup
+
+- name:                               "Oracle Data Guard - Preparation: Create the SQL for  DBTrigger on  Primary"
+  become:                             true
+  become_user:                        oracle
+  ansible.builtin.template:
+    backup:                           true
+    src:                              dbtrigger.j2
+    dest:                             "/etc/sap_deployment_automation/dgscripts/dbtrigger.sql"
+    mode:                             '0644'
+    force:                            true
+  when:  current_host == ora_primary
+
+
 - name:                               "Oracle Data Guard - Preparation: create dgconfig.sh"
   become:                             true
   become_user:                        oracle
@@ -346,7 +458,23 @@
     dest:                             "/etc/sap_deployment_automation/dgscripts/rman-restore.rman"
     mode:                             '0644'
     force:                            true
-  when:  current_host == ora_secondary
+  when:
+    - current_host == ora_secondary
+    - node_tier == 'oracle'
+
+- name:                               "Oracle Data Guard - Preparation: create rman-restore.rman for oracle-asm"
+  become:                             true
+  become_user:                        oracle
+  ansible.builtin.template:
+    backup:                           true
+    src:                              rman-restore-asm.j2
+    dest:                             "/etc/sap_deployment_automation/dgscripts/rman-restore.rman"
+    mode:                             '0644'
+    force:                            true
+  when:
+    - current_host == ora_secondary
+    - node_tier == 'oracle-asm'
+
 
 - name:                                "Oracle Data Guard - Preparation: create secondarystartup.sql"
   become:                              true
@@ -358,6 +486,55 @@
     marker_end:   "-- END"
     block: |
          STARTUP NOMOUNT PFILE=$ORACLE_HOME/dbs/init{{ db_sid | upper }}.ora;
+         exit
+    mode: '0755'
+  when: current_host == ora_secondary
+
+#  Update the Local_Listener value for Secondary Node.
+- name:                                "Oracle Local Listener Update - Preparation: create listenerupdate.sql"
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.blockinfile:
+    create: true
+    path: /etc/sap_deployment_automation/dgscripts/listenerupdate.sql
+    marker_begin: "-- BEGIN"
+    marker_end:   "-- END"
+    block: |
+         alter system set LOCAL_LISTENER="(ADDRESS=(PROTOCOL=TCP)(HOST={{ ora_secondary }})(PORT=1521))" SCOPE=both;
+         exit
+    mode: '0755'
+  when: current_host == ora_secondary
+
+
+#  Update the Local_Listener value for Primary Node.
+- name:                                "Oracle Local Listener Update - Preparation: create listenerupdate.sql"
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.blockinfile:
+    create: true
+    path: /etc/sap_deployment_automation/dgscripts/listenerupdate.sql
+    marker_begin: "-- BEGIN"
+    marker_end:   "-- END"
+    block: |
+         alter system set LOCAL_LISTENER="(ADDRESS=(PROTOCOL=TCP)(HOST={{ ora_primary }})(PORT=1521))" SCOPE=both;
+         exit
+    mode: '0755'
+  when: current_host == ora_primary
+
+# Enable Flashback for Secondary Node.
+
+- name:                                "Oracle Local Listener Update - Preparation: create listenerupdate.sql"
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.blockinfile:
+    create: true
+    path: /etc/sap_deployment_automation/dgscripts/secondary_flashback_secondary.sql
+    marker_begin: "-- BEGIN"
+    marker_end:   "-- END"
+    block: |
+         ALTER DATABASE RECOVER MANAGED STANDBY DATABASE CANCEL;
+         ALTER DATABASE FLASHBACK ON;
+         ALTER DATABASE RECOVER MANAGED STANDBY DATABASE DISCONNECT FROM SESSION  THROUGH LAST SWITCHOVER;
          exit
     mode: '0755'
   when: current_host == ora_secondary
@@ -484,6 +661,19 @@
         SHUTDOWN ABORT;
         exit
     mode:                              '0755'
+
+- name:                               "Oracle Data Guard - Preparation: Create ASM Directories for Secondary System"
+  become:                             true
+  become_user:                        oracle
+  ansible.builtin.template:
+    backup:                           true
+    src:                              asmfilesystems-secondary.j2
+    dest:                             "/etc/sap_deployment_automation/dgscripts/asmfilesystems-secondary.sh"
+    mode:                             '0755'
+    force:                            true
+  when:
+    - current_host == ora_secondary
+    - node_tier == "oracle-asm"
 
 ...
 # /*---------------------------------------------------------------------------8
