@@ -25,28 +25,28 @@
   ansible.builtin.set_fact:
     majority_maker:                "{{ (query('inventory_hostnames', '{{ sap_sid | upper }}_OBSERVER_DB'))[0] }}"
 
-
-- name:                            "Configure the ANF file system resources"
+  # Ref : https://learn.microsoft.com/en-us/azure/sap/workloads/sap-hana-high-availability-scale-out-hsr-rhel?tabs=lb-portal#create-file-system-resources
+- name:                            "Configure the HANA Shared file system resources"
   when:
     - database_high_availability
     - hana_shared_mountpoint is defined
     - hana_shared_mountpoint | length > 1
     - playform | upper = 'HANA'
   block:
-    - name:                            "Get the cluster maintenance mode status"
-      ansible.builtin.shell:           pcs property show maintenance-mode
-      register:                        get_status_maintenance_mode
-      changed_when:                    false
-      ignore_errors:                   true
+    # - name:                            "Get the cluster maintenance mode status"
+    #   ansible.builtin.shell:           pcs property show maintenance-mode
+    #   register:                        get_status_maintenance_mode
+    #   changed_when:                    false
+    #   ignore_errors:                   true
 
-    - name:                            "Set the cluster maintenance mode if not already in maintenance mode"
-      ansible.builtin.shell:           pcs property set maintenance-mode=true
-      when: >-
-        get_status_maintenance_mode.stdout is not search('maintenance-mode') or
-        get_status_maintenance_mode.stdout is search('maintenance-mode: false')
-        ansible_hostname == primary_instance_name
+    # - name:                            "Disable the cluster maintenance mode if not already in maintenance mode"
+    #   ansible.builtin.shell:           pcs property set maintenance-mode=true
+    #   when: >-
+    #     get_status_maintenance_mode.stdout is not search('maintenance-mode') or
+    #     get_status_maintenance_mode.stdout is search('maintenance-mode: false')
+    #     ansible_hostname == primary_instance_name
 
-    - name:                            Stop HANA System on both sites
+    - name:                            Stop HANA Services on both sites
       become_user:                     "{{ db_sid | lower }}adm"
       become:                          true
       ansible.builtin.command:         "{{ sapcontrol_command }} -function StopSystem"
@@ -72,18 +72,31 @@
           - "{{ hana_shared_mountpoint[0] }}/hanashared"
           - "{{ hana_shared_mountpoint[1] }}/hanashared"
 
-    # All tasks this point forwards runs on primary node/first node in the DB list
+    - name:                           "Un-mount /hana/shared on all participating HANA nodes"
+      block:
+        - name:                        Stop processes using /hana/shared and /usr/sap/{{ db_sid | upper }} path
+          become: true
+          ansible.builtin.shell: >
+                                       pgrep -f "/hana/shared" | xargs kill -9;
+                                       pgrep -f "/usr/sap/{{ db_sid | upper }}" | xargs kill -9
+        - name:                        Unmount /hana/shared
+          ansible.builtin.mount:
+            path:                      /hana/shared
+            state:                     unmounted
+
+
+    # These tasks will run on primary node/first node in the DB list
     - name:                            "Configure HANA Shared mounts on {{ primary_instance_name }}"
       when:                            ansible_hostname == primary_instance_name
       block:
-        - name:                        "Configure filesystem resource in Pacemaker"
+        - name:                        "Configure filesystem resource in Pacemaker for primary site"
           ansible.builtin.shell: >
                                        pcs resource create fs_hana_shared_{{ item.site_code | lower }} --disabled ocf:heartbeat:Filesystem \
                                        device="{{ item.fs_mount }}" directory="{{ item.fs_dir }}" fstype="nfs" \
                                        options="{{ nfs_mount_options }}" \
                                        op monitor interval=20s on-fail=fence timeout=120s OCF_CHECK_LEVEL=20 \
                                        op start internal=0 timeout=120 op stop interval=0 timeout=120
-          register:                    nfs_mounts_node
+          register:                    nfs_mounts_site1
           failed_when:                 false
           ignore_errors:               true
           loop:
@@ -94,7 +107,7 @@
 
         - name:                        "Check if HANA Shared mounts did not error on {{ primary_instance_name }}"
           ansible.builtin.set_fact:
-            chk_nfs_mounts_node1:      "{{ nfs_mounts_node1.results | selectattr('rc', 'ne', 0) | rejectattr('stderr', 'search', 'already exists') | default([]) | list }}"
+            chk_nfs_mounts_node1:      "{{ nfs_mounts_node.results | selectattr('rc', 'ne', 0) | rejectattr('stderr', 'search', 'already exists') | default([]) | list }}"
 
         - name:                        "Fail when HANA Shared mounts errored on {{ primary_instance_name }}"
           ansible.builtin.fail:
@@ -150,104 +163,65 @@
               loop_var:                  item
             when:                        is_nfs_secondary_configured and is_nfs_primary_configured
 
+          - name:                        "Enable NFS resource constraint"
+            ansible.builtin.shell: >
+                                         pcs resource enable fs_hana_shared_{{ item.site_code | lower }}
+            register:                    nfs_location_constraints_activation
+            failed_when:                 false
+            ignore_errors:               true
+            loop:
+              - { site_code: "S1" }
+              - { site_code: "S2" }
+            loop_control:
+              loop_var:                  item
+            when:                        is_nfs_secondary_configured and is_nfs_primary_configured
+
+          - name:                        Configure the nfs attribute resources
+            ansible.builtin.shell: >
+                                         pcs resource create hana_nfs_{{ item.site_code | lower }}_active ocf:pacemaker:attribute active_value=true inactive_value=false name=hana_nfs_{{ item.site_code | lower }}_active
+            loop:
+              - { site_code: "S1" }
+              - { site_code: "S2" }
+            loop_control:
+              loop_var:                  item
+
+          - name:                        Clone the nfs attribute resources
+            ansible.builtin.shell: >
+                                        pcs resource clone hana_nfs_{{ item.site_code | lower }}_active meta clone-node-max=1 interleave=true
+            loop:
+              - { site_code: "S1" }
+              - { site_code: "S2" }
+            loop_control:
+              loop_var:                  item
+
+          - name:                        Configure the constraints for NFS attribute resources
+            ansible.builtin.shell: >
+                                        pcs constraint order fs_hana_shared_{{ item.site_code | lower }}-clone then hana_nfs_{{ item.site_code | lower }}_active-clone
+            loop:
+              - { site_code: "S1" }
+              - { site_code: "S2" }
+            loop_control:
+              loop_var:                  item
 
 
+          - name:                        "pause for 2 minutes"
+            ansible.builtin.pause:
+              seconds:                   120
+
+          - name:                        "Enable filesystem resource in Pacemaker"
+            ansible.builtin.shell: >
+                                         pcs resource enable fs_hana_shared_{{ item.site_code | lower }}
+            register:                    nfs_mounts_enable_node1
+            failed_when:                 false
+            ignore_errors:               true
+            loop:
+              - { site_code: 'S1' }
+              - { site_code: 'S2' }
+            loop_control:
+              loop_var:                  item
 
 
-        - name:                        "Check if location constraints did not error on {{ primary_instance_name }}"
-          ansible.builtin.set_fact:
-            chk_nfs_location_constraints: "{{ nfs_location_constraints.results | selectattr('rc', 'ne', 0) | rejectattr('stderr', 'search', 'already exists') | list }}"
-
-        - name:                        "Fail when location constraints errored on {{ primary_instance_name }}"
-          ansible.builtin.fail:
-            msg:                        "Failed to create location constraints on {{ primary_instance_name }}"
-          when:                         chk_nfs_location_constraints | length > 0
-
-        - name:                        "Configure attribute resources"
-          ansible.builtin.shell: >
-                                       pcs resource create {{ item.attribute_name }} ocf:pacemaker:attribute
-                                       active_value=true inactive_value=false name={{ item.attribute_name }}
-          register:                    nfs_attribute_resources
-          failed_when:                 false
-          ignore_errors:               true
-          loop:
-            - { attribute_name: 'attr_hana_{{ db_sid | upper }}_NFS_1_active' }
-            - { attribute_name: 'attr_hana_{{ db_sid | upper }}_NFS_2_active' }
-          loop_control:
-            loop_var:                  item
-          when:                        is_nfs_secondary_configured
-
-        - name:                        "Check if attribute resources did not error on {{ primary_instance_name }}"
-          ansible.builtin.set_fact:
-            chk_nfs_attribute_resources: "{{ nfs_attribute_resources.results | selectattr('rc', 'ne', 0) | rejectattr('stderr', 'search', 'already exists') | list }}"
-
-        - name:                        "Fail when attribute resources errored on {{ primary_instance_name }}"
-          ansible.builtin.fail:
-            msg:                       "Failed to create attribute resources on {{ primary_instance_name }}"
-          when:                        chk_nfs_attribute_resources | length > 0
-
-        - name:                        "Configure constraints for attribute resources"
-          ansible.builtin.shell: >
-                                       pcs constraint location {{ item.attribute_name }} avoids {{ item.node }}
-          register:                    nfs_attribute_constraints
-          failed_when:                 false
-          ignore_errors:               true
-          loop:
-            - { attribute_name: 'attr_hana_{{ db_sid | upper }}_NFS_1_active', node: '{{ secondary_instance_name }}'}
-            - { attribute_name: 'attr_hana_{{ db_sid | upper }}_NFS_2_active', node: '{{ primary_instance_name }}'  }
-          loop_control:
-            loop_var:                  item
-          when:                        is_nfs_secondary_configured
-
-        - name:                        "Check if attribute constraints did not error on {{ primary_instance_name }}"
-          ansible.builtin.set_fact:
-            chk_nfs_attribute_constraints: "{{ nfs_attribute_constraints.results | selectattr('rc', 'ne', 0) | rejectattr('stderr', 'search', 'already exists') | list }}"
-
-        - name:                        "Fail when attribute constraints errored on {{ primary_instance_name }}"
-          ansible.builtin.fail:
-            msg:                       "Failed to create attribute constraints on {{ primary_instance_name }}"
-          when:                        chk_nfs_attribute_constraints | length > 0
-
-        - name:                        "Configure ordering constraints for NFS mounts to start before attribute resources"
-          ansible.builtin.shell: >
-                                       pcs constraint order {{ item.group_name }} then {{ item.attribute_name }}
-          register:                    nfs_ordering_constraints
-          failed_when:                 false
-          ignore_errors:               true
-          loop:
-            - { group_name: 'g_hana_{{ db_sid | upper }}_NFS_1', attribute_name: 'attr_hana_{{ db_sid | upper }}_NFS_1_active' }
-            - { group_name: 'g_hana_{{ db_sid | upper }}_NFS_2', attribute_name: 'attr_hana_{{ db_sid | upper }}_NFS_2_active' }
-          loop_control:
-            loop_var:                  item
-          when:                        is_nfs_secondary_configured
-
-        - name:                        "Check if ordering constraints did not error on {{ primary_instance_name }}"
-          ansible.builtin.set_fact:
-            chk_nfs_ordering_constraints: "{{ nfs_ordering_constraints.results | selectattr('rc', 'ne', 0) | rejectattr('stderr', 'search', 'already exists') | list }}"
-
-        - name:                        "Fail when ordering constraints errored on {{ primary_instance_name }}"
-          ansible.builtin.fail:
-            msg:                       "Failed to create ordering constraints on {{ primary_instance_name }}"
-          when:                        chk_nfs_ordering_constraints | length > 0
-
-        # - name:                        "Get the cluster maintenance mode status"
-        #   ansible.builtin.shell:       pcs property show maintenance-mode
-        #   register:                    get_status_maintenance_mode
-        #   changed_when:                false
-        #   ignore_errors:               true
-
-        # - name:                        "Get the cluster out of maintenance mode if already in maintenance mode"
-        #   ansible.builtin.shell:       pcs property set maintenance-mode=false
-        #   when: >-
-        #     get_status_maintenance_mode.stdout is search('maintenance-mode') or
-        #     get_status_maintenance_mode.stdout is search('maintenance-mode: true')
-
-        - name:                        "pause for 2 minutes"
-          ansible.builtin.pause:
-            seconds:                   120
-
-
-    # validation tasks to be run on all HANA hosts
+# validation tasks to be run on all HANA hosts
     - name:                            "Validate /hana/shared is mounted on all HANA hosts"
       block:
         - name:                        "Check if NFS share is mounted on primary site nodes"
@@ -259,77 +233,19 @@
             target:                    hana_shared_mountpoint[0]
           when:                        ansible_hostname in ansible_play_hosts_all[0::2]
 
+        - name:                        "Check if NFS share is mounted on seconadary site nodes"
+          ansible.builtin.shell: >
+                                       nfsstat -m | grep "{{ target }}"
+          register:                    nfs_mount_check_{{ ansible_hostname }}
+          failed_when:                 nfs_mount_check.rc != 0
+          vars:
+            target:                    hana_shared_mountpoint[1]
+          when:                        ansible_hostname in ansible_play_hosts_all[1::2]
+
         - name:                        "Fail when NFS share is not mounted on primary site nodes"
           ansible.builtin.fail:
             msg:                       "NFS share is not mounted on {{ ansible_hostname }}"
           when:                        nfs_mount_check_{{ ansible_hostname }}.rc != 0
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    - name:                            "Enable ANF hana mounts on {{ primary_instance_name }}"
-      when:                            ansible_hostname == primary_instance_name
-      block:
-        - name:                        "Enable filesystem resource in Pacemaker"
-          ansible.builtin.shell: >
-                                       pcs resource enable {{ item.fs_name }}
-          register:                    nfs_mounts_enable_node1
-          failed_when:                 false
-          ignore_errors:               true
-          loop:
-            - { fs_name: 'hana_data1'  }
-            - { fs_name: 'hana_log1'   }
-            - { fs_name: 'hana_shared1'}
-          loop_control:
-            loop_var:                  item
-
-        - name:                        "Check if ANF hana mounts did not error on {{ primary_instance_name }}"
-          ansible.builtin.set_fact:
-            chk_nfs_mounts_enable_node1:  "{{ nfs_mounts_enable_node1.results | selectattr('rc', 'ne', 0) | rejectattr('stderr', 'search', 'already exists') | list }}"
-
-        - name:                        "Fail when ANF hana mounts errored on {{ primary_instance_name }}"
-          ansible.builtin.fail:
-            msg:                       "Failed to create ANF hana mounts on {{ primary_instance_name }}"
-          when:                        chk_nfs_mounts_enable_node1 | length > 0
-
-    - name:                            "Enable ANF hana mounts on {{ secondary_instance_name }}"
-      when:                            ansible_hostname == secondary_instance_name
-      block:
-        - name:                        "Enable filesystem resource in Pacemaker"
-          ansible.builtin.shell: >
-                                       pcs resource enable {{ item.fs_name }}
-          register:                    nfs_mounts_enable_node2
-          failed_when:                 false
-          ignore_errors:               true
-          loop:
-            - { fs_name: 'hana_data2'  }
-            - { fs_name: 'hana_log2'   }
-            - { fs_name: 'hana_shared2'}
-          loop_control:
-            loop_var:                  item
-
-        - name:                        "Check if ANF hana mounts did not error on {{ secondary_instance_name }}"
-          ansible.builtin.set_fact:
-            chk_nfs_mounts_enable_node2:  "{{ nfs_mounts_enable_node2.results | selectattr('rc', 'ne', 0) | rejectattr('stderr', 'search', 'already exists') | list }}"
-
-        - name:                        "Fail when ANF hana mounts errored on {{ secondary_instance_name }}"
-          ansible.builtin.fail:
-            msg:                       "Failed to create ANF hana mounts on {{ secondary_instance_name }}"
-          when:                        chk_nfs_mounts_enable_node2 | length > 0
 
     - name:                            Start HANA System on both nodes
       become_user:                     "{{ db_sid | lower }}adm"
