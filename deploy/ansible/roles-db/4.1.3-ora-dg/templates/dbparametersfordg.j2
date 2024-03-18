@@ -1,0 +1,6 @@
+ALTER SYSTEM SET log_archive_dest_state_1='ENABLE' SCOPE=BOTH;
+ALTER SYSTEM SET log_archive_max_processes=2  SCOPE=BOTH;
+ALTER SYSTEM SET log_archive_min_succeed_dest=1 SCOPE=BOTH;
+ALTER SYSTEM SET log_archive_trace=0 SCOPE=BOTH;
+ALTER SYSTEM SET db_create_online_log_dest_2='+ARCH' SCOPE=BOTH;
+exit;
