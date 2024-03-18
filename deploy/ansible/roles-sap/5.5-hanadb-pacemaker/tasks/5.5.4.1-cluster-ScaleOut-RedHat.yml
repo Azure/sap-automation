@@ -12,7 +12,7 @@
 
 # +------------------------------------4--------------------------------------*/
 
-- name:                                "5.5.4.1 HANA Scale-Out Cluster configuration - Optimise the Pacemaker cluster for SAP HANA"
+- name:                                "5.5.4.1 HANA Scale-Out Cluster configuration - Optimise the Pacemaker cluster for SAP HANA Scale Out"
   block:
     - name:                            "5.5.4.1 HANA Scale-Out Cluster configuration - Get the cluster maintenance mode status"
       ansible.builtin.shell:           pcs property show maintenance-mode

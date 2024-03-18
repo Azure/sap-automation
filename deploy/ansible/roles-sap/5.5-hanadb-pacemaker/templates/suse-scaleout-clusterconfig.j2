@@ -1,4 +1,3 @@
-property maintenance-mode=true
 primitive rsc_SAPHanaTopology_{[ db_sid | upper }}_HDB{{ db_instance_number }} ocf:suse:SAPHanaTopology \
   op monitor interval="10" timeout="600" \
   op start interval="0" timeout="600" \
@@ -41,4 +40,4 @@ order ord_SAPHana_{[ db_sid | upper }}_HDB{{ db_instance_number }} Optional: cln
 
 location loc_SAPHanaCon_not_on_majority_maker msl_SAPHana_{[ db_sid | upper }}_HDB{{ db_instance_number }} -inf: {{ majority_maker }}
 location loc_SAPHanaTop_not_on_majority_maker cln_SAPHanaTopology_{[ db_sid | upper }}_HDB{{ db_instance_number }} -inf: {{ majority_maker }}
-# Cleanup any failed resources - the following command is example
+

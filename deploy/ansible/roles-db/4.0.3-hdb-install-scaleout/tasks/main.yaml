@@ -898,7 +898,6 @@
   when:
     - node_tier in ['observer','hana']
     - platform == 'HANA'
-    - ansible_hostname == "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_OBSERVER_DB') }}"
     - db_scale_out
     - db_high_availability
     - ansible_os_family | upper == "SUSE"
@@ -949,7 +948,6 @@
 - name:                                Majority Maker only - Implement the Scale out Resource Agent hook (REDHAT)
   when:
     - node_tier in ['observer','hana']
-    - ansible_hostname == "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_OBSERVER_DB') }}"
     - db_scale_out
     - db_high_availability
     - ansible_os_family | upper == "REDHAT"
