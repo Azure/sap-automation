@@ -89,12 +89,12 @@
   block:
     - name:                            "1.9 Kernel parameters - Calculate the Huge Pages when RAM < 4TB"
       ansible.builtin.set_fact:
-        huge_pages:                    "{{ ((ansible_memory_mb.real.total * 0.95 * 1024 * 1024) / (2 * 1024 * 1024)) | round | int }}"
+        huge_pages:                    "{{ ((ansible_memory_mb.real.total * 0.68 * 1024 * 1024) / (2 * 1024 * 1024)) | round | int }}"
       when:                            ansible_memory_mb.real.total < 4194304
 
     - name:                            "1.9 Kernel parameters - Calculate the Huge Pages when RAM > 4TB "
       ansible.builtin.set_fact:
-        huge_pages:                    "{{ ((ansible_memory_mb.real.total * 0.95 * 1024 * 1024) / (2 * 1024 * 1024)) | round | int }}"
+        huge_pages:                    "{{ ((ansible_memory_mb.real.total * 0.75 * 1024 * 1024) / (2 * 1024 * 1024)) | round | int }}"
       when:                            ansible_memory_mb.real.total > 4194304
 
     # print only when -vv, otherwise you will have terminal nausea
@@ -119,8 +119,8 @@
         insertafter:                   '#@student        -       maxlogins       4'
         state:                         present
         block: |
-                oracle soft memlock unlimited
-                oracle hard memlock unlimited
+                oracle     soft memlock unlimited
+                oracle     hard memlock unlimited
                 @sapsys    hard    nproc    unlimited
                 @sapsys    soft    nproc    unlimited
                 @dba       hard    nproc    unlimited
