@@ -51,7 +51,7 @@ locals {
   use_ANF                              = try(var.database.use_ANF, false)
   //Scalout subnet is needed if ANF is used and there are more than one hana node
   dbnode_per_site                      = length(try(var.database.dbnodes, [{}]))
-  enable_storage_subnet                = local.use_ANF && local.dbnode_per_site > 1
+  enable_storage_subnet                = var.database.use_ANF && var.database.scale_out && length(var.storage_subnet.id)>0
 
   // Availability Set
   availabilityset_arm_ids              = try(var.database.avset_arm_ids, [])

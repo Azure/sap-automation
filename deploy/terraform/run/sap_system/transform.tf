@@ -94,8 +94,9 @@ locals {
                                                                                var.database_use_ppg
                                                                              )
                                            user_assigned_identity_id       = var.user_assigned_identity_id
-                                           zones                           = var.database_vm_zones
+                                           scale_out                       = var.database_HANA_use_ANF_scaleout_scenario
                                            stand_by_node_count             = var.stand_by_node_count
+                                           zones                           = var.database_vm_zones
                                          }
 
   db_os                             = {
