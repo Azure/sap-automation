@@ -171,6 +171,21 @@ namespace AutomationForm.Models
 
     public string ams_subnet_nsg_name { get; set; }
 
+    [SubnetArmIdValidator(ErrorMessage = "Invalid Storage subnet arm id")]
+    public string storage_subnet_arm_id { get; set; }
+
+    //[Required]
+    [AddressPrefixValidator(ErrorMessage = "Storage subnet address space must be a valid RFC 1918 address")]
+    public string storage_subnet_address_prefix { get; set; }
+
+    public string storage_subnet_name { get; set; }
+
+    [NsgArmIdValidator(ErrorMessage = "Invalid storage subnet nsg arm id")]
+    public string storage_subnet_nsg_arm_id { get; set; }
+
+    public string storage_subnet_nsg_name { get; set; }
+
+
 
 
     /*---------------------------------------------------------------------------8

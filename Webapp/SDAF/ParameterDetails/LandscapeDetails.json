@@ -723,6 +723,67 @@
     ]
   },
   {
+    "Section": "Storage subnet",
+    "Link": "https://learn.microsoft.com/en-us/azure/sap/automation/automation-configure-workload-zone",
+    "Parameters": [
+      {
+        "Name": "storage_subnet_arm_id",
+        "Required": false,
+        "Description": "Specifies Azure resource identifier for the existing subnet for the storage subnet",
+        "Type": "lookup",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "storage_subnet_address_prefix",
+        "Display": 2
+      },
+      {
+        "Name": "storage_subnet_address_prefix",
+        "Required": false,
+        "Description": "Defines the subnet address range for the storage subnet.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "storage_subnet_name",
+        "Required": false,
+        "Description": "Should only be used if the default naming is not acceptable.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "storage_subnet_nsg_arm_id",
+        "Required": false,
+        "Description": "Specifies Azure resource identifier for the existing network security group to use.",
+        "Type": "lookup",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "storage_subnet_nsg_name",
+        "Display": 2
+      },
+      {
+        "Name": "storage_subnet_nsg_name",
+        "Required": false,
+        "Description": "Should only be used if the default naming is not acceptable for the network security group name",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      }
+    ]
+  },
+  {
     "Section": "Azure keyvault support",
     "Link": "https://learn.microsoft.com/en-us/azure/sap/automation/automation-configure-workload-zone#key-vault-parameters",
     "Parameters": [
