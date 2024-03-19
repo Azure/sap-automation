@@ -411,6 +411,12 @@ variable "database_cluster_disk_size"           {
                                                   default     = 128
                                                 }
 
+variable "database_cluster_disk_type"           {
+                                                  description = "The storage_account_type of the shared disk for the Database cluster"
+                                                  default     = "Premium_ZRS"
+                                                }
+
+
 variable "database_platform"                    {
                                                   description = "Database platform, supported values are HANA, DB2, ORACLE, ORACLE-ASM, ASE, SQLSERVER or NONE (in this case no database tier is deployed)"
                                                   default     = ""
@@ -738,6 +744,11 @@ variable "scs_cluster_disk_lun"                 {
 variable "scs_cluster_disk_size"                {
                                                   description = "The size of the shared disk for the SAP Central Services cluster"
                                                   default     = 128
+                                                }
+
+variable "scs_cluster_disk_type"                {
+                                                  description = "The storage_account_type of the shared disk for the SAP Central Services cluster"
+                                                  default     = "Premium_ZRS"
                                                 }
 
 #########################################################################################
