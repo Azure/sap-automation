@@ -77,7 +77,7 @@ resource "azurerm_subnet_route_table_association" "db" {
 #  Scaleout Subnet variables                                                            #
 #                                                                                       #
 #########################################################################################
-!local.sub_storage_exists && local.enable_admin_subnet ? 1 : 0
+
 resource "azurerm_subnet" "storage" {
   provider                             = azurerm.main
   count                                = !local.sub_storage_exists && local.enable_storage_subnet ? 1 : 0
