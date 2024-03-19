@@ -198,17 +198,17 @@ resource "azurerm_linux_virtual_machine" "vm_dbnode" {
 
   network_interface_ids                = local.enable_storage_subnet ? (
                                            var.options.legacy_nic_order ? (
-                                             [
-                                               azurerm_network_interface.nics_dbnodes_admin[count.index].id,
+                                             compact([
+                                               var.database_dual_nics ? azurerm_network_interface.nics_dbnodes_admin[count.index].id : null,
                                                azurerm_network_interface.nics_dbnodes_db[count.index].id,
                                                azurerm_network_interface.nics_dbnodes_storage[count.index].id
-                                             ]
+                                             ])
                                              ) : (
-                                             [
+                                             compact([
                                                azurerm_network_interface.nics_dbnodes_db[count.index].id,
-                                               azurerm_network_interface.nics_dbnodes_admin[count.index].id,
+                                               var.database_dual_nics ? azurerm_network_interface.nics_dbnodes_admin[count.index].id : null,
                                                azurerm_network_interface.nics_dbnodes_storage[count.index].id
-                                             ]
+                                             ])
                                            )
                                            ) : (
                                            var.database_dual_nics ? (
