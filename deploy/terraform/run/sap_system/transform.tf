@@ -381,6 +381,25 @@ locals {
                                            length(try(var.infrastructure.vnets.sap.subnet_web.nsg.arm_id, ""))
                                          ) > 0
 
+  subnet_storage_defined                 = (
+                                           length(var.storage_subnet_address_prefix) +
+                                           length(try(var.infrastructure.vnets.sap.subnet_storage.prefix, "")) +
+                                           length(var.storage_subnet_arm_id) +
+                                           length(try(var.infrastructure.vnets.sap.subnet_storage.arm_id, ""))
+                                         ) > 0
+
+  subnet_storage_arm_id_defined          = (
+                                           length(var.storage_subnet_arm_id) +
+                                           length(try(var.infrastructure.vnets.sap.subnet_storage.arm_id, ""))
+                                         ) > 0
+
+  subnet_storage_nsg_defined             = (
+                                           length(var.storage_subnet_nsg_name) +
+                                           length(try(var.infrastructure.vnets.sap.subnet_storage.nsg.name, "")) +
+                                           length(var.storage_subnet_nsg_arm_id) +
+                                           length(try(var.infrastructure.vnets.sap.subnet_storage.nsg.arm_id, ""))
+                                         ) > 0
+
   app_nic_ips                          = distinct(concat(var.application_server_app_nic_ips, try(var.application_tier.app_nic_ips, [])))
   app_nic_secondary_ips                = distinct(var.application_server_app_nic_ips)
   app_admin_nic_ips                    = distinct(concat(var.application_server_admin_nic_ips, try(var.application_tier.app_admin_nic_ips, [])))
