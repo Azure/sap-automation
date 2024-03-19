@@ -82,6 +82,10 @@ locals {
                                            deploy_v1_monitoring_extension  = var.deploy_v1_monitoring_extension
                                            dual_nics                       = var.database_dual_nics || try(var.databases[0].dual_nics, false)
                                            high_availability               = var.database_high_availability || try(var.databases[0].high_availability, false)
+                                           database_cluster_disk_lun       = var.database_cluster_disk_lun
+                                           database_cluster_disk_size      = var.database_cluster_disk_size
+                                           database_cluster_disk_type      = var.database_cluster_disk_type
+
                                            platform                        = var.database_platform
                                            use_ANF                         = var.database_HANA_use_ANF_scaleout_scenario || try(var.databases[0].use_ANF, false)
                                            use_avset                       = var.database_server_count == 0 || var.use_scalesets_for_deployment || length(var.database_vm_zones) > 0 || var.database_platform == "NONE" ? (
@@ -207,6 +211,10 @@ locals {
                                                                             false) : (
                                                                             var.scs_server_use_avset
                                                                           )
+                                        scs_cluster_disk_lun            = var.scs_cluster_disk_lun
+                                        scs_cluster_disk_size           = var.scs_cluster_disk_size
+                                        scs_cluster_disk_type           = var.scs_cluster_disk_type
+
                                         webdispatcher_count             = local.enable_app_tier_deployment ? (
                                                                             max(var.webdispatcher_server_count, try(var.application_tier.webdispatcher_count, 0))
                                                                             ) : (
