@@ -114,7 +114,7 @@ locals {
   //ANF support
   use_ANF                              = try(var.database.use_ANF, false)
   //Scalout subnet is needed if ANF is used and there are more than one hana node
-  enable_storage_subnet                = local.use_ANF && local.dbnode_per_site > 1
+  enable_storage_subnet                = local.use_ANF && var.database.scale_out
 
   //Anchor VM
   deploy_anchor                        = try(var.infrastructure.anchor_vms.deploy, false)
