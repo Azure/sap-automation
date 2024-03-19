@@ -216,7 +216,7 @@ resource "azurerm_network_security_rule" "nsr_controlplane_storage" {
   priority                             = 100
   direction                            = "Inbound"
   access                               = "Allow"
-  protocol                             = "Tcp,Udp"
+  protocol                             = "All"
   source_port_range                    = "*"
   destination_port_ranges              = [22, 443, 3389, 5985, 5986, 111, 635, 2049, 4045, 4046, 4049]
   source_address_prefixes              = compact(concat(var.deployer_tfstate.subnet_mgmt_address_prefixes, var.deployer_tfstate.subnet_bastion_address_prefixes))
