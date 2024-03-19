@@ -10,8 +10,6 @@ variable "custom_disk_sizes_filename"                   {
                                                           type        = string
                                                         }
 variable "database"                                     {}
-variable "database_cluster_disk_size"                   { description = "The size of the shared disk for the Database cluster" }
-variable "database_cluster_disk_lun"                    { description = "The LUN of the shared disk for the Database cluster" }
 
 variable "database_dual_nics"                           {
                                                           description = "Defines if the HANA DB uses dual network interfaces"
