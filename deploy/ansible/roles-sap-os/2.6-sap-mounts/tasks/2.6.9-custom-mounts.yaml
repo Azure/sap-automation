@@ -66,7 +66,7 @@
   block:
     - name:                            "Custom Mount: ({{ custom_mount.path }} on {% if custom_mount.create_temp_folders %}{{ custom_mount.mount }}/{{ custom_mount.folder }}{% else %}{{ custom_mount.mount }}{% endif %})"
       ansible.posix.mount:
-        src:                           "{% if custom_mount.create_temp_folders %}{{ custom_mount.mount }}/{{ custom_mount.folder }}{% else %}{{ custom_mount.mount }}{% endif %})"
+        src:                           "{% if custom_mount.create_temp_folders %}{{ custom_mount.mount }}/{{ custom_mount.folder }}{% else %}{{ custom_mount.mount }}{% endif %}"
         path:                          "{{ custom_mount.path }}"
         fstype:                        "nfs4"
         opts:                          "{{ custom_mount.opts }}"
