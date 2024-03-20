@@ -375,7 +375,7 @@ locals {
                                          ) > 0
   sub_storage_arm_id                   = local.sub_storage_defined ? (
                                            try(var.infrastructure.vnets.sap.subnet_storage.arm_id, "")) : (
-                                           var.landscape_tfstate.storage_subnet_id
+                                           try(var.landscape_tfstate.storage_subnet_id, "")
                                          )
 
   sub_storage_exists                   = length(local.sub_storage_arm_id) > 0
