@@ -100,7 +100,7 @@
     path:                              /etc/sap_deployment_automation/oracle_installed.txt
     state:                             touch
     mode:                              '0755'
-  when:                                orainstall_results.rc < 3
+  when:                                orainstall_results.rc >= 3
 
   # Create SQLNET.ORA .
 
@@ -210,9 +210,9 @@
 
 # ENABLE FSFO
 
-- name:                                "Oracle Data Guard - Observer:  Check if DB post-processing is completed"
+- name:                                "Oracle Data Guard - Observer:  Check if DB post-processing is completed secondary"
   ansible.builtin.stat:
-    path:                              /usr/sap/install/downloads/{{ db_sid | upper }}/post_processing_completed.txt
+    path:                              /usr/sap/install/downloads/{{ db_sid | upper }}/post_processing_secondary_completed.txt
   register:                            dg_enabled
 
 - name:                                "ENABLE FSFO"

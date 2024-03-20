@@ -68,7 +68,6 @@
             sapbits_sas_token:         "{{ hostvars.localhost.sapbits_sas_token }}"
           when:                        hostvars.localhost.sapbits_sas_token is defined
 
-
         - name:                        3.3-bom-processing role for Linux
           become:                      true
           when:                        ansible_os_family != "Windows"

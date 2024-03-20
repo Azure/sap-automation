@@ -147,7 +147,7 @@
     mode:                              '0755'
   when:
     - current_host == ora_primary
-    - standby_redo_log_results.rc < 2
+    - standby_redo_log_results.rc == 0
 
 - name:                                "Oracle Data Guard - Setup Primary: Enable Flashback on Oracle Primary DB"
   become:                              true
@@ -184,51 +184,64 @@
     - current_host == ora_primary
     - turn_on_flashback_results.rc == 0
 
-# STEP3 DGMGRL Config on Primary
-
-# Restart the LSNRCTL START
-# - name:                               "RESTART LSNRCTL ON PRIMARY"
+# - name:                            "Update the Local_Listener Value in primary"
 #   become:                              true
 #   become_user:                         "oracle"
-#   ansible.builtin.shell:               lsnrctl reload
-#   register:                            lsnrctl_start_primary_results
-#   failed_when:                         lsnrctl_start_primary_results.rc > 0
+#   ansible.builtin.shell:               sqlplus / as sysdba @listenerupdate.sql
+#   register:                            local_listener_on_secondary_results
+#   failed_when:                         local_listener_on_secondary_results.rc > 0
 #   args:
-#     creates:                           /etc/sap_deployment_automation/dgscripts/lsnrctl_started_primary.txt
-#     chdir:                             /etc/sap_deployment_automation/dgscripts
-#     executable:                        /bin/csh
-#   when:                                current_host == ora_primary
-
-# - name:                                Create lsnrctl_started_sec.txt
-#   become:                              true
-#   become_user:                         "oracle"
-#   ansible.builtin.file:
-#     path:                              /etc/sap_deployment_automation/dgscripts/lsnrctl_started_primary.txt
-#     state:                             touch
-#     mode:                              0755
-#   when:                                current_host == ora_primary
+#    creates:                           /etc/sap_deployment_automation/dgscripts/local_listener_on_secondary.txt
+#    chdir:                             /etc/sap_deployment_automation/dgscripts
+#    executable:                        /bin/csh
+#   when:
+#     - current_host == ora_primary
 
 
-# - name:                                " DGMGRL CONFIG ON PRIMARY "
-#   become:                              true
-#   become_user:                         "oracle"
-#   ansible.builtin.shell:               dgmgrl / as sysdba @dgconfig.dgmgrl  | tee /etc/sap_deployment_automation/dgscripts/dgcreate.log
-#   register:                            dgconfig_results
-#   failed_when:                         dgconfig_results.rc > 0
-#   args:
-#     creates:                           /etc/sap_deployment_automation/dgscripts/dgconfig.txt
-#     chdir:                             /etc/sap_deployment_automation/dgscripts
-#     executable:                        /bin/csh
-#   when:                                current_host == ora_primary
+# Setup DG parameters for Primary Database.
 
-# - name:                                Create dgconfig.txt
-#   become:                              true
-#   become_user:                         "oracle"
-#   ansible.builtin.file:
-#     path:                              /etc/sap_deployment_automation/dgscripts/dgconfig.txt
-#     state:                             touch
-#     mode:                              0755
-#   when:                                current_host == ora_primary
+
+- name:                                "Oracle Data Guard - Setup Primary: Setup DG parameters on Primary DB"
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.shell:               sqlplus / as sysdba @dbparametersfordg.sql
+  register:                            dbparametersfordg_results
+  failed_when:                         dbparametersfordg_results.rc > 0
+  args:
+    creates:                           /etc/sap_deployment_automation/dgscripts/dbparametersfordg.txt
+    chdir:                             /etc/sap_deployment_automation/dgscripts
+    executable:                        /bin/csh
+  when:
+    - current_host == ora_primary
+    - node_tier == "oracle-asm"
+
+- name:                                "Oracle Data Guard - Setup Primary: Enable Flashback on Oracle Primary DB (debug)"
+  ansible.builtin.debug:
+    var:                               dbparametersfordg_results.stdout_lines
+    verbosity:                         2
+  when:
+   - node_tier == "oracle-asm"
+
+- name:                                "Oracle Data Guard - Setup Primary: Enable Flashback on Oracle Primary DB (save output)"
+  ansible.builtin.copy:
+    dest:                              /etc/sap_deployment_automation/dgscripts/dbparametersfordg.log
+    content:                           "{{ turn_on_flashback_results.stdout }}"
+    mode:                              '0777'
+  when:
+   - node_tier == "oracle-asm"
+   - dbparametersfordg_results.stdout is defined
+
+- name:                                "Oracle Data Guard - Setup Primary: Create dbparametersfordg.txt"
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.file:
+    path:                              /etc/sap_deployment_automation/dgscripts/dbparametersfordg.txt
+    state:                             touch
+    mode:                              '0755'
+  when:
+    - current_host == ora_primary
+    - node_tier == "oracle-asm"
+    - dbparametersfordg_results.rc == 0
 
 ...
 # /*---------------------------------------------------------------------------8
