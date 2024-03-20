@@ -9,36 +9,36 @@
 - name:                                "0.4 Installation Media: - Retrieve Deployer Keyvault details"
   block:
 
-    - name:                                   Check required variables are present and not empty
+    - name:                            Check required variables are present and not empty
       ansible.builtin.assert:
         that:
           - "kv_name is defined"                    # Has the variable been defined
           - "kv_name | type_debug != 'NoneType'"    # and given a value
           - "kv_name | string | length != 0 "       # Detect null values
-        fail_msg:                             "Please define the kv_name parameter"
+        fail_msg:                      "Please define the kv_name parameter"
 
-    - name:                                   "Parameters to be used..."
+    - name:                            "Parameters to be used..."
       ansible.builtin.debug:
         msg:                                  # Best method for formatting output with Azure Devops Logs
-                                              - "kv_name:                         {{ kv_name }}"
-                                              - "deployer_kv_name_secret:    {{ deployer_kv_name_secret }}"
-        verbosity:                            2
+                                       - "kv_name:                         {{ kv_name }}"
+                                       - "deployer_kv_name_secret:    {{ deployer_kv_name_secret }}"
+        verbosity:                     2
 
-    - name:                                   "0.4 Installation Media: - Get Deployer key vault name workload zone key vault"
+    - name:                            "0.4 Installation Media: - Get Deployer key vault name workload zone key vault"
       ansible.builtin.command: >-
-                                              az keyvault secret show
-                                                --vault-name {{ kv_name }}
-                                                --name {{ deployer_kv_name_secret }}
-                                                --query value
-                                                --output tsv
-      changed_when:                           false
-      register:                               deployer_kv_name_secret_result
-      when:                                   bom_processing is not defined
+                                       az keyvault secret show
+                                         --vault-name {{ kv_name }}
+                                         --name {{ deployer_kv_name_secret }}
+                                         --query value
+                                         --output tsv
+      changed_when:                    false
+      register:                        deployer_kv_name_secret_result
+      when:                            bom_processing is not defined
 
-    - name:                                   "0.4 Installation Media: - Save Deployer key vault name"
+    - name:                            "0.4 Installation Media: - Save Deployer key vault name"
       ansible.builtin.set_fact:
-        deployer_kv_name:                     "{{ deployer_kv_name_secret_result.stdout }}"
-        cacheable:                            true
+        deployer_kv_name:              "{{ deployer_kv_name_secret_result.stdout }}"
+        cacheable:                     true
 
   when: deployer_kv_name is not defined
 
@@ -50,6 +50,13 @@
                                           - "deployer_kv_name:                {{ deployer_kv_name }}"
     verbosity:                            2
 
+- name:                                "0.4 Installation Media: - Get Control Plane Subscription"
+  ansible.builtin.set_fact:
+    control_plane_subscription_id:     "{{ lookup('ansible.builtin.env', 'control_plane_subscription') | default('') }}"
+
+- name:                                "0.4 Installation Media: - Extract SAP Binaries Storage Account SAS (temp)"
+  ansible.builtin.set_fact:
+    subscription_parameter:            "{%if control_plane_subscription_id | length > 0 %}--subscription {{ control_plane_subscription_id }}{% else %}{% endif %}"
 
 - name:                                "0.4 Installation Media: - Extract SAP Binaries Storage Account secrets"
   block:
@@ -75,37 +82,41 @@
     account_name:                      "{{ sapbits_location_base_path.rpartition('//')[2].split('.')[0] }}"
   when:                                sapbits_location_base_path is defined
 
+- name:                                "0.4 Installation Media: - Extract Shared Key Access token flag"
+  ansible.builtin.set_fact:
+    allowSharedKeyAccess:             true
 
-- name:                                "0.4 Installation Media: - Check Binaries Storage Account"
+- name:                                "0.4 Installation Media: - Check Binaries Storage Account for Shared Key Access with Control Plane Subscription"
   ansible.builtin.command: >-
-                                       az storage account show        \
-                                         --name {{ account_name }}    \
-                                         --query allowSharedKeyAccess \
+                                       az storage account show          \
+                                         --name {{ account_name }}      \
+                                         --query allowSharedKeyAccess   \
+                                         {{ subscription_parameter }}   \
                                          --out tsv
   changed_when:                        false
   register:                            az_allowSharedKeyAccess
 
-- name:                                "0.4 Installation Media: - Extract SAS token"
+- name:                                "0.4 Installation Media: - Extract Shared Key Access token flag"
   ansible.builtin.set_fact:
     allowSharedKeyAccess:             "{{ az_allowSharedKeyAccess.stdout | bool }}"
-  when: az_allowSharedKeyAccess is defined
+  when: az_allowSharedKeyAccess.stdout is defined and az_allowSharedKeyAccess.stdout | length > 0
 
 - name:                                "Parameter review..."
   ansible.builtin.debug:
     msg:                               # Best method for formatting output with Azure Devops Logs
                                        - "account_name:                    {{ account_name }}"
-                                       - "allowSharedKeyAccess:            {{ allowSharedKeyAccess }}"
+                                       - "allowSharedKeyAccess:            {{ allowSharedKeyAccess | default(true) }}"
     verbosity:                         2
 
 - name:                                "0.4 Installation Media: - Retrieve Access Key secret"
   when:
    - sapbits_access_key is not defined
-   - allowSharedKeyAccess
+   - allowSharedKeyAccess | default(true)
   block:
     - name:                            "0.4 Installation Media: - Check if Access Key secret exists"
       ansible.builtin.command: >-
         az keyvault secret list
-          --vault-name {{ deployer_kv_name }} --query "[].{Name:name} | [? contains(Name,'sapbits-access-key')] | [0]"
+          --vault-name {{ deployer_kv_name }} --query "[?name=='sapbits-access-key'].name | [0]" --output tsv
       changed_when:                    false
       register:                        keyvault_secrets
 
@@ -133,12 +144,13 @@
   when:
     - sapbits_access_key is not defined
     - sapbits_sas_token is not defined or (sapbits_sas_token | string | length == 0)
-    - allowSharedKeyAccess
   block:
     - name:                            "0.4 Installation Media: - Check if SAS token secret exists"
       ansible.builtin.command: >-
         az keyvault secret list
-          --vault-name {{ deployer_kv_name }} --query "[].{Name:name} | [? contains(Name,'sapbits-sas-token')] | [0]"
+            --vault-name {{ deployer_kv_name }}
+            --query "[?name =='sapbits-sas-token'].name | [0]"
+            --output tsv
       changed_when:                    false
       register:                        keyvault_secrets
 
@@ -158,7 +170,6 @@
       ansible.builtin.set_fact:
         sapbits_sas_token:             "{{ keyvault_secret_show_sas_token.stdout }}"
         cacheable:                     true
-
       no_log:                          true
       when: keyvault_secret_show_sas_token is defined
 
@@ -167,7 +178,6 @@
   when:
     - sapbits_sas_token is not defined or (sapbits_sas_token | string | length == 0)
     - sapbits_access_key is defined
-    - allowSharedKeyAccess is defined
     - allowSharedKeyAccess
   block:
 
@@ -179,7 +189,7 @@
       ansible.builtin.command:          "date +'%Y-%m-%d' -d '+3 days'"
       register:                         expiry
 
-    - name:                            "0.4 Installation Media: - Create SAP Binaries Storage Account SAS"
+    - name:                            "0.4 Installation Media: - Create SAP Binaries Storage Account SAS in Control Plane subscription"
       ansible.builtin.command: >-
                                        az storage account generate-sas \
                                          --account-name {{ account_name }} \
@@ -188,18 +198,22 @@
                                          --services b \
                                          --resource-types sco \
                                          --account-key {{ sapbits_access_key }} \
+                                         {{ subscription_parameter }}   \
                                          --out tsv
       changed_when:                    false
       register:                        az_sapbits_sas_token
 
-    - name:                             "0.4 Installation Media: - Extract SAP Binaries Storage Account SAS (temp)"
+    - name:                            "0.4 Installation Media: - Debug storage account details (sas)"
+      ansible.builtin.debug:
+        var:                           az_sapbits_sas_token
+        verbosity:                     4
+
+    - name:                            "0.4 Installation Media: - Extract SAP Binaries Storage Account SAS (temp)"
       ansible.builtin.set_fact:
-        sapbits_sas_token:              "{{ az_sapbits_sas_token.stdout }}"
+        sapbits_sas_token:             "{{ az_sapbits_sas_token.stdout }}"
 
-
-- name:                                 "0.0 Validations - Check required variables are present and not empty"
+- name:                                "0.0 Validations - Check required variables are present and not empty"
   when:
-   - allowSharedKeyAccess is defined
    - allowSharedKeyAccess
   ansible.builtin.assert:
     that:
@@ -219,7 +233,7 @@
   ansible.builtin.debug:
     msg:
       - "SAS     :     {{ sapbits_sas_token }}"
-    verbosity:                         2
+    verbosity:                         4
 
 ...
 # /*---------------------------------------------------------------------------8

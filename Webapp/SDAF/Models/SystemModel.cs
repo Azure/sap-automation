@@ -213,7 +213,21 @@ namespace AutomationForm.Models
     public bool? use_simple_mount { get; set; } = false;
 
     public string database_cluster_type { get; set; } = "AFA";
+
     public string scs_cluster_type { get; set; } = "AFA";
+
+
+    public int? scs_cluster_disk_lun { get; set; } = 5;
+
+    public int? scs_cluster_disk_size { get; set; } = 128;
+
+    public string scs_cluster_disk_type { get; set; } = "Premium_ZRS";
+
+    public int? database_cluster_disk_lun { get; set; } = 8;
+
+    public int? database_cluster_disk_size { get; set; } = 128;
+
+    public string database_cluster_disk_type { get; set; } = "Premium_ZRS";
 
     /*---------------------------------------------------------------------------8
     |                                                                            |

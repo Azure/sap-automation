@@ -233,14 +233,21 @@ stages:
                 if [ -z ${az_var} ]; then
                   export workload_key_vault=$(cat "${environment_file_name}"  | grep workloadkeyvault      | awk -F'=' '{print $2}' | xargs) ; echo 'Workload Key Vault' ${workload_key_vault}
                 else
-                  export workload_key_vault=${az_var} ; echo 'Workload Key Vault' ${workload_key_vault} ; echo 'Workload Key Vault' ${workload_key_vault}
+                  export workload_key_vault=${az_var} ; echo 'Workload Key Vault' ${workload_key_vault} ;
                 fi
 
                 az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "${NETWORK}"Workload_Secret_Prefix.value  --output tsv)
                 if [ -z ${az_var} ]; then
                   export workload_prefix=$(cat "${environment_file_name}"  | grep workload_zone_prefix      | awk -F'=' '{print $2}' | xargs) ; echo 'Workload Prefix' ${workload_prefix}
                 else
-                  export workload_prefix=${az_var} ; echo 'Workload Prefix' ${workload_prefix}; echo 'Workload Prefix' ${workload_prefix}
+                  export workload_prefix=${az_var} ; echo 'Workload Prefix' ${workload_prefix};
+                fi
+
+                az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query Terraform_Remote_Storage_Subscription.value  --output tsv)
+                if [ -z ${az_var} ]; then
+                  export control_plane_subscription=$(cat "${environment_file_name}"  | grep STATE_SUBSCRIPTION      | awk -F'=' '{print $2}' | xargs) ; echo 'Control Plane Subscription' ${control_plane_subscription}
+                else
+                  export control_plane_subscription=${az_var} ; echo 'Control Plane Subscription' ${control_plane_subscription}
                 fi
 
                 if [[ $EXTRA_PARAMETERS = "'$(EXTRA_PARAMETERS)'" ]]; then
@@ -255,6 +262,7 @@ stages:
                 echo "##vso[task.setvariable variable=PASSWORD_KEY_NAME;isOutput=true]${workload_prefix}-sid-password"
                 echo "##vso[task.setvariable variable=USERNAME_KEY_NAME;isOutput=true]${workload_prefix}-sid-username"
                 echo "##vso[task.setvariable variable=NEW_PARAMETERS;isOutput=true]${new_parameters}"
+                echo "##vso[task.setvariable variable=CP_SUBSCRIPTION;isOutput=true]${control_plane_subscription}"
 
 
               echo -e "$green--- az login ---$reset"
@@ -263,7 +271,7 @@ stages:
                 if [ "$USE_MSI" = "true" ]; then
                   echo  "Using MSI"
                   source /etc/profile.d/deploy_server.sh
-                  az account set --subscription $ARM_SUBSCRIPTION_ID
+                  az account set --subscription $control_plane_subscription
 
                 else
                   if [ ! -n $AZURE_CLIENT_ID ]; then
@@ -287,7 +295,7 @@ stages:
                     echo "##vso[task.logissue type=error]az login failed."
                     exit $return_code
                   fi
-                  az account set --subscription $AZURE_SUBSCRIPTION_ID
+                  az account set --subscription $control_plane_subscription
                 fi
 
                 return_code=$?
@@ -297,7 +305,7 @@ stages:
                   exit $return_code
                 fi
 
-                az keyvault secret show --name ${workload_prefix}-sid-sshkey --vault-name $workload_key_vault --query value -o tsv > artifacts/${SAP_SYSTEM_CONFIGURATION_NAME}_sshkey
+                az keyvault secret show --name ${workload_prefix}-sid-sshkey --vault-name $workload_key_vault --subscription $AZURE_SUBSCRIPTION_ID --query value -o tsv > artifacts/${SAP_SYSTEM_CONFIGURATION_NAME}_sshkey
                 cp sap-parameters.yaml artifacts/.
                 cp ${SID}_hosts.yaml artifacts/.
 
@@ -312,7 +320,7 @@ stages:
               AZURE_CLIENT_ID:               $(ARM_CLIENT_ID)
               AZURE_CLIENT_SECRET:           $(ARM_CLIENT_SECRET)
               AZURE_TENANT_ID:               $(ARM_TENANT_ID)
-              AZURE_SUBSCRIPTION_ID:         $(ARM_SUBSCRIPTION_ID)
+              AZURE_SUBSCRIPTION_ID:         $(Terraform_Remote_Storage_Subscription)
               ANSIBLE_COLLECTIONS_PATHS:     /opt/ansible/collections
               CONFIG_REPO_PATH:              ${{ parameters.config_repo_path }}
               BOM_BASE_NAME:                 ${{ parameters.bom_base_name }}
