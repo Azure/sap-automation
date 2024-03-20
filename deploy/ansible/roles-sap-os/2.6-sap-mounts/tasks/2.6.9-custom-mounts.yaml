@@ -28,7 +28,7 @@
   when:
     - node_tier in custom_mount.target_nodes or custom_mount.target_nodes == "all"
     - is_created_now.changed
-    - custom_mount.set_chattr_on_dir
+    - custom_mount.set_chattr_on_dir | default(false)
 
 - name:                                "Custom Mount"
   when:
