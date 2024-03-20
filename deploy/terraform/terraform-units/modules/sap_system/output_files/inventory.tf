@@ -176,7 +176,7 @@ resource "local_file" "ansible_inventory_new_yml" {
 
 resource "local_file" "sap-parameters_yml" {
   content = templatefile(format("%s/sap-parameters.tmpl", path.module), {
-              anf_subnet_prefix           = var.anf_subnet_prefix,
+              subnet_prefix_anf           = var.subnet_prefix_anf,
               app_instance_number         = var.app_instance_number
               bom                         = length(var.bom_name) > 0 ? var.bom_name : ""
               database_cluster_type       = var.database_cluster_type
@@ -234,7 +234,7 @@ resource "local_file" "sap-parameters_yml" {
               secret_prefix               = local.secret_prefix,
               settings                    = local.settings
               sid                         = var.sap_sid,
-              storage_subnet_prefix       = var.storage_subnet_prefix,
+              subnet_prefix_storage       = var.subnet_prefix_storage,
               upgrade_packages            = var.upgrade_packages ? "true" : "false"
               use_msi_for_clusters        = var.use_msi_for_clusters
               usr_sap                     = length(var.usr_sap) > 1 ? (

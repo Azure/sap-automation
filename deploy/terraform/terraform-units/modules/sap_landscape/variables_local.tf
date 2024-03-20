@@ -466,7 +466,7 @@ locals {
                                                         )
                                                       )
                                                     )
-  storage_subnet_prefix                           = local.storage_subnet_defined ? (
+  subnet_prefix_storage                           = local.storage_subnet_defined ? (
                                                        try(var.infrastructure.vnets.sap.subnet_storage.prefix, "")) : (
                                                        ""
                                                      )

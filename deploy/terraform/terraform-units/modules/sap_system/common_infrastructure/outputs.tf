@@ -132,7 +132,7 @@ output "storage_subnet"                          {
                                                                  )
                                                  }
 
-output "storage_subnet_prefix"                   {
+output "subnet_prefix_storage"                   {
                                                    description = "Storage subnet prefix"
                                                    value       = local.enable_db_deployment && local.enable_storage_subnet ? (
                                                                    local.sub_storage_exists ? (
