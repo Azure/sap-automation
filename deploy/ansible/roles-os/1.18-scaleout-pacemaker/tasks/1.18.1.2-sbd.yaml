@@ -11,7 +11,6 @@
 # Softdog config file
 # Load Module
 
-# scs_high_availability = true is already assumed
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
@@ -21,24 +20,20 @@
 - name:                                       "Parameters to be used..."
   ansible.builtin.debug:
     msg:                                      # Best method for formatting output with Azure Devops Logs
-                                              - "scs_cluster_type:                {{ scs_cluster_type }}"
                                               - "database_cluster_type:           {{ database_cluster_type }}"
                                               - "sbdDevices:                      {{ sbdDevices }}"
     verbosity:                                2
   when:
-                                              - (database_cluster_type == "ASD")   or
-                                                (scs_cluster_type      == "ASD")
+                                              - (database_cluster_type == "ASD")
 
 - name:                                       "Parameters to be used..."
   ansible.builtin.debug:
     msg:                                      # Best method for formatting output with Azure Devops Logs
-                                              - "scs_cluster_type:                {{ scs_cluster_type }}"
                                               - "database_cluster_type:           {{ database_cluster_type }}"
                                               - "iscsi_servers:                   {{ iscsi_servers }}"
     verbosity:                                2
   when:
-                                              - (database_cluster_type == "ISCSI")   or
-                                                (scs_cluster_type      == "ISCSI")
+                                              - (database_cluster_type == "ISCSI")
 
 
 - name:                                       "Parameters testing..."
@@ -49,8 +44,7 @@
     verbosity:                                2
   loop:                                       "{{ sbdDevices }}"
   when:
-                                              - (database_cluster_type == "ASD")   or
-                                                (scs_cluster_type      == "ASD")
+                                              - (database_cluster_type == "ASD")
 
 
 # - name:                                       "Parameters testing..."
@@ -89,8 +83,7 @@
                                                   diskById:   ''                  }
       loop:                                   "{{ sbdDevices }}"
       when:
-                                              - (database_cluster_type == "ASD")   or
-                                                (scs_cluster_type      == "ASD")
+                                              - (database_cluster_type == "ASD")
                                               - item.host == ansible_hostname
 
     - name:                                   "ISCSI - Build SBD Dictionary"
@@ -105,8 +98,7 @@
                                                   diskById:   ''                  }
       loop:                                   "{{ iscsi_device_map }}"
       when:
-                                              - (database_cluster_type == "ISCSI")   or
-                                                (scs_cluster_type      == "ISCSI")
+                                              - (database_cluster_type == "ISCSI")
 
     - name:                                   "SBD Dictionary..."
       ansible.builtin.debug:
@@ -114,9 +106,7 @@
         verbosity:                            2
       when:
                                               - (database_cluster_type == "ASD")   or
-                                                (database_cluster_type == "ISCSI") or
-                                                (scs_cluster_type      == "ASD")   or
-                                                (scs_cluster_type      == "ISCSI")
+                                                (database_cluster_type == "ISCSI")
 
     - name:                                   "SBD Dictionary..."
       ansible.builtin.debug:
@@ -126,8 +116,7 @@
         verbosity:                            2
       loop:                                   "{{ sbdMap }}"
       when:
-                                              - (database_cluster_type == "ISCSI")   or
-                                                (scs_cluster_type      == "ISCSI")
+                                              - (database_cluster_type == "ISCSI")
 
     # +------------------------------------
     # -------------------------------------+---------------------------------------8
@@ -273,10 +262,7 @@
     daemon_reload:                         true
   when:
                                             - (database_cluster_type == "ASD")   or
-                                              (database_cluster_type == "ISCSI") or
-                                              (scs_cluster_type      == "ASD")   or
-                                              (scs_cluster_type      == "ISCSI")       # scs_high_availability = true is already assumed
-
+                                              (database_cluster_type == "ISCSI")
 ...
 # /*---------------------------------------------------------------------------8
 # |                                   END                                      |

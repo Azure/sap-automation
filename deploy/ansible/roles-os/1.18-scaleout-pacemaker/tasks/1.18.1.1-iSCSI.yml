@@ -48,27 +48,13 @@
 
 - name:                                "1.18.1 iSCSI packages - Set the acl names"
   ansible.builtin.set_fact:
-    acl_name_scs_1:                    "iqn.2006-04.{{ sap_sid | lower }}-x{{ iscsi_node_type }}-0.local:{{ sap_sid | lower }}-x{{ iscsi_node_type }}-0"
-    acl_name_scs_2:                    "iqn.2006-04.{{ sap_sid | lower }}-x{{ iscsi_node_type }}-1.local:{{ sap_sid | lower }}-x{{ iscsi_node_type }}-1"
     acl_name_db_1:                     "iqn.2006-04.{{ sap_sid | lower }}-x{{ iscsi_node_type }}-0.local:{{ sap_sid | lower }}-x{{ iscsi_node_type }}-0"
     acl_name_db_2:                     "iqn.2006-04.{{ sap_sid | lower }}-x{{ iscsi_node_type }}-1.local:{{ sap_sid | lower }}-x{{ iscsi_node_type }}-1"
 
 - name:                                "1.18.1 iSCSI packages - print acl names"
   ansible.builtin.debug:
-    msg:                               "acl_name_scs_1: {{ acl_name_scs_1 }}, acl_name_scs_2: {{ acl_name_scs_2 }}, acl_name_db_1: {{ acl_name_db_1 }}, acl_name_db_2: {{ acl_name_db_2 }}"
+    msg:                               "acl_name_db_1: {{ acl_name_db_1 }}, acl_name_db_2: {{ acl_name_db_2 }}"
     verbosity:                         2
-
-- name:                                "1.18.1 iSCSI configuration - replace InitiatorName - SCS"
-  when:
-    - iscsi_node_type == 'scs'
-  block:
-    - name:                            "1.18.1 iSCSI configuration - replace InitiatorName - {{ ansible_hostname }}"
-      ansible.builtin.replace:
-        path:                          /etc/iscsi/initiatorname.iscsi
-        regexp:                        '^InitiatorName=.*$'
-        replace:                       'InitiatorName={{ acl_name_scs_1 }}'
-        backup:                        true
-
 
 - name:                                "1.18.1 iSCSI configuration - replace InitiatorName - DB"
   when:

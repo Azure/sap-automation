@@ -13,7 +13,6 @@
 - name:                                           "Cluster Type: SBD - parameters to be used..."
   ansible.builtin.debug:
     msg:                                          # Best method for formatting output with Azure Devops Logs
-                                                  - "scs_cluster_type:                {{ scs_cluster_type }}"
                                                   - "database_cluster_type:           {{ database_cluster_type }}"
 
 - name:                                           "1.18.0 Generic Pacemaker - Retrieve Subscription ID and Resource Group Name"
@@ -43,21 +42,13 @@
         msg:                                      # Best method for formatting output with Azure Devops Logs
                                                   - "Cluster Type: Fencing specific..."
 
-    # - name:                                       "Cluster Type: Fencing - parameters to be used..."
-    #   ansible.builtin.debug:
-    #     msg:                                      # Best method for formatting output with Azure Devops Logs
-    #                                               - "scs_cluster_type      :          {{ scs_cluster_type }}"
-    #                                               - "database_cluster_type :          {{ database_cluster_type }}"
-    #     verbosity:                                2
-
     - name:                                       "1.18.0 Generic Pacemaker - Extract details"
       ansible.builtin.set_fact:
         fencing_spn_subscription_id:              "{{ azure_metadata.json.compute.subscriptionId }}"
         resource_group_name:                      "{{ azure_metadata.json.compute.resourceGroupName }}"
 
   when:
-                                                  - (database_cluster_type == "AFA") or
-                                                    (scs_cluster_type      == "AFA")        # scs_high_availability = true is already assumed
+                                                  - (database_cluster_type == "AFA")
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
 # | Fencing Specific - END                                                     |
@@ -78,16 +69,8 @@
         msg:                                      # Best method for formatting output with Azure Devops Logs
                                                   - "Cluster Type: SBD specific..."
 
-    # - name:                                       "Cluster Type: SBD - parameters to be used..."
-    #   ansible.builtin.debug:
-    #     msg:                                      # Best method for formatting output with Azure Devops Logs
-    #                                               - "scs_cluster_type:                {{ scs_cluster_type }}"
-    #                                               - "database_cluster_type:           {{ database_cluster_type }}"
-    #     verbosity:                                2
-
   when:
-                                                  - (database_cluster_type == "ASD")   or
-                                                    (scs_cluster_type      == "ASD")
+                                                  - (database_cluster_type == "ASD")
 
 - name:                                           "Cluster Type: SBD"
   block:
@@ -96,17 +79,8 @@
       ansible.builtin.debug:
         msg:                                      # Best method for formatting output with Azure Devops Logs
                                                   - "Cluster Type: ISCI specific..."
-
-    # - name:                                       "Cluster Type: SBD - parameters to be used..."
-    #   ansible.builtin.debug:
-    #     msg:                                      # Best method for formatting output with Azure Devops Logs
-    #                                               - "scs_cluster_type:                {{ scs_cluster_type }}"
-    #                                               - "database_cluster_type:           {{ database_cluster_type }}"
-    #     verbosity:                                2
-
   when:
-                                                    (database_cluster_type == "ISCSI") or
-                                                    (scs_cluster_type      == "ISCSI")        # scs_high_availability = true is already assumed
+                                                    (database_cluster_type == "ISCSI")
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |

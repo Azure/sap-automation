@@ -4,7 +4,6 @@
   ansible.builtin.debug:
     msg:                                      # Best method for formatting output with Azure Devops Logs
                                               # - "_step:                           {{ _step }}"
-                                              - "scs_cluster_type:                {{ scs_cluster_type }}"
                                               - "database_cluster_type:           {{ database_cluster_type }}"
                                               - "sbdMap:                          {{ sbdMap }}"
                                               - "sdbMap_entry:                    {{ sdbMap_entry }}"
@@ -13,13 +12,13 @@
                                               - "sdbMap_entry.lun:                {{ sdbMap_entry.lun }}"
     verbosity:                                2
   when:
-                                              - scs_cluster_type == 'ASD' or database_cluster_type == 'ASD'
+                                              - database_cluster_type == 'ASD'
 
 - name:                                       "Update Device Info: Get block device"
   ansible.builtin.command:                    "readlink -f /dev/disk/azure/scsi1/lun{{ sbdMap[sdbMap_index].lun }}"
   register:                                   blockDevice_results
   when:
-                                              - scs_cluster_type == 'ASD' or database_cluster_type == 'ASD'
+                                              - database_cluster_type == 'ASD'
 
 
 - name:                                       "Update Device Info: Show block device results..."
@@ -27,7 +26,7 @@
     var:                                      blockDevice_results.stdout
     verbosity:                                2
   when:
-                                              - scs_cluster_type == 'ASD' or database_cluster_type == 'ASD'
+                                              - database_cluster_type == 'ASD'
 
 
 - name:                                       "Update Device Info: Find scsi by id..."
@@ -66,7 +65,7 @@
                                               "
   loop:                                       "{{ statById.results }}"
   when:
-                                              - scs_cluster_type == 'ASD' or database_cluster_type == 'ASD'
+                                              - database_cluster_type == 'ASD'
                                               - item.stat.lnk_source == blockDevice_results.stdout
 
 - name:                                       "Update Device Info: Update SBD Dictionary - ISCSI"
@@ -80,7 +79,7 @@
                                               "
   loop:                                       "{{ statById.results }}"
   when:
-                                              - scs_cluster_type == 'ISCI' or database_cluster_type == 'ISCSI'
+                                              - database_cluster_type == 'ISCSI'
                                               - ansible_hostname == sbdMap[sdbMap_index].host
                                               - item.stat.lnk_source == sbdMap[sdbMap_index].blockDev
 

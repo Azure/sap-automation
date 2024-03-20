@@ -40,8 +40,7 @@
                                                   - "END  : Fencing specific..."
 
   when:
-                                                  - (database_cluster_type == "AFA") or
-                                                    (scs_cluster_type      == "AFA")        # scs_high_availability = true is already assumed
+                                                  - (database_cluster_type == "AFA")
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
 # | Fencing Specific - END                                                     |
@@ -70,9 +69,7 @@
 
   when:
                                                   - (database_cluster_type == "ASD")   or
-                                                    (database_cluster_type == "ISCSI") or
-                                                    (scs_cluster_type      == "ASD")   or
-                                                    (scs_cluster_type      == "ISCSI")        # scs_high_availability = true is already assumed
+                                                    (database_cluster_type == "ISCSI")
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
 # | SBD Specific - END                                                         |
