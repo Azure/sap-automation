@@ -122,13 +122,24 @@ output "db_subnet_netmask"                       {
                                                                  )
                                                  }
 output "storage_subnet"                          {
-                                                   description = "Database subnet netmask"
+                                                   description = "Storage subnet"
                                                    value       = local.enable_db_deployment && local.enable_storage_subnet ? (
                                                                    local.sub_storage_exists ? (
                                                                      data.azurerm_subnet.storage[0]) : (
                                                                      azurerm_subnet.storage[0]
                                                                    )) : (
                                                                    null
+                                                                 )
+                                                 }
+
+output "storage_subnet_prefix"                   {
+                                                   description = "Storage subnet prefix"
+                                                   value       = local.enable_db_deployment && local.enable_storage_subnet ? (
+                                                                   local.sub_storage_exists ? (
+                                                                     data.azurerm_subnet.storage[0].address_prefixes[0]) : (
+                                                                     azurerm_subnet.storage[0].address_prefixes[0]
+                                                                   )) : (
+                                                                   ""
                                                                  )
                                                  }
 

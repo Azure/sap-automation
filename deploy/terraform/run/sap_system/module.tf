@@ -353,6 +353,9 @@ module "output_files" {
                                                   )))
   loadbalancers                                 = module.hdb_node.loadbalancers
 
+  storage_subnet_netmask                        = module.common_infrastructure.storage_subnet_prefix
+  anf_subnet_prefix                             = module.hdb_node.ANF_subnet_prefix
+
   #########################################################################################
   #  SAP Application information                                                          #
   #########################################################################################

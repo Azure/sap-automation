@@ -79,6 +79,11 @@ platform:                       ${platform}
 # Scale out defines if the database is to be deployed in a scale out configuration
 db_scale_out:                   ${scale_out}
 
+%{~ if scale_out == "true" }
+anf_subnet_prefix:              ${anf_subnet_prefix}
+storage_subnet_prefix:          ${storage_subnet_prefix}
+%{~ endif }
+
 # db_high_availability is a boolean flag indicating if the
 # SAP database servers are deployed using high availability
 db_high_availability:           ${database_high_availability}
