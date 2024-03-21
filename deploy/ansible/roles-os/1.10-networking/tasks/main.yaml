@@ -6,19 +6,19 @@
 
 - name:                                "1.10 Networking - Get the IP information from instance meta data service"
   ansible.builtin.uri:
-    url:                               http://169.254.169.254/metadata/instance/network/interface/0?api-version=2021-02-01
+    url:                               http://169.254.169.254/metadata/instance/network?api-version=2021-02-01
     use_proxy:                         false
     headers:
       Metadata:                        true
   register: azure_metadata
 
-- name:                                "1.10 Networking - Filter out the values for IPAddresses in json format"
-  ansible.builtin.set_fact:
-    private_ips_info:                  "{{ azure_metadata.json.ipv4.ipAddress }}"
+# - name:                                "1.10 Networking - Filter out the values for IPAddresses in json format"
+#   ansible.builtin.set_fact:
+#     private_ips_info:                  "{{ azure_metadata.json.ipv4.ipAddress }}"
 
 - name:                                "1.10 Networking - Convert ips to list"
   ansible.builtin.set_fact:
-    ipadd:                             "{{ private_ips_info | map(attribute='privateIpAddress') | list }}"
+    ipadd:                             "{{ azure_network_metadata.json | json_query('interface[*].ipv4.ipAddress[*].privateIpAddress') | flatten(levels=1) | default([]) | list }}"
 
 - name:                                "1.10 Networking - Get the secondary IP"
   ansible.builtin.set_fact:
