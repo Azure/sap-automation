@@ -39,9 +39,12 @@
     msg:                               "iSCSI node type: {{ iscsi_node_type }}, initiator name: {{ iscsi_initiator_name }}"
     verbosity:                         2
 
+- name:                              "1.18.1 iSCSI packages - Get hostname index"
+  ansible.builtin.set_fact:
+        hostname_index:                    "{{ ansible_play_hosts_all.index(ansible_hostname) }}"
+
 - name:                                "1.18.1 iSCSI packages - Set the acl names"
   ansible.builtin.set_fact:
-    hostname_index:                    "{{ ansible_play_hosts_all.index(ansible_hostname) }}"
     acl_name_db_{{ hostname_index }}:  "iqn.2006-04.{{ sap_sid | lower }}-x{{ iscsi_node_type }}-0.local:{{ sap_sid | lower }}-x{{ iscsi_node_type }}-{{ hostname_index }}"
 
 - name:                                "1.18.1 iSCSI packages - print acl names"
