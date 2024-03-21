@@ -77,7 +77,7 @@
       vars:
         sbdMap_update:
                                               - { host:       "{{ item.host }}" ,
-                                                  lun:        "{{ item.lun }}"  ,
+                                                  lun:        "{{ item.LUN }}"  ,
                                                   blockDev:   ''                ,
                                                   diskByLun:  ''                ,
                                                   diskById:   ''                  }
