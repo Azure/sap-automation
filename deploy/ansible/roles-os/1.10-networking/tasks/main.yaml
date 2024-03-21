@@ -33,7 +33,7 @@
 
 - name:                                "1.10 Networking - Print ip info"
   ansible.builtin.debug:
-    msg:                               "{{ azure_metadata.json }}"
+    msg:                               "{{ azure_network_metadata.json }}"
     verbosity:                         2
 
 - name:                                "1.10 Networking - Print ipaddress"
