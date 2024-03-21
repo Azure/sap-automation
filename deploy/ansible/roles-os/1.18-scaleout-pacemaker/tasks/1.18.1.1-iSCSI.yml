@@ -2,8 +2,8 @@
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
-# https://learn.microsoft.com/en-us/azure/sap/workloads/high-availability-guide-suse-pacemaker#set-up-the-iscsi-target-server-sbd-device
-
+# Ref: https://learn.microsoft.com/en-us/azure/sap/workloads/high-availability-guide-suse-pacemaker#set-up-the-iscsi-target-server-sbd-device
+# Note: This needs to be done on majority maker as well if the cluster type is Scale out - shared nothing.
 
 - name:                                "1.18.1 iSCSI packages"
   community.general.zypper:
@@ -22,17 +22,10 @@
     - iscsi
     - sbd
 
+  # Forcing this to 'db' as the parent task 1.18 is only applicable for HANA scale out clusters
 - name:                                "1.18.1 iSCSI packages - Get node type on which we will operate"
   ansible.builtin.set_fact:
-    iscsi_node_type: >-
-                                       {%- set _clusterType = 'scs' -%}
-                                       {%- if ('hana' in supported_tiers) -%}
-                                       {%-   set _clusterType = 'db' -%}
-                                       {%- endif -%}
-                                       {%- if ('db2' in supported_tiers) -%}
-                                       {%-   set _clusterType = 'db' -%}
-                                       {%- endif -%}
-                                       {{- _clusterType -}}
+    iscsi_node_type:                   'db'
 
 - name:                                "1.18.1 iSCSI packages - Get initiator name"
   ansible.builtin.set_fact:
@@ -48,12 +41,11 @@
 
 - name:                                "1.18.1 iSCSI packages - Set the acl names"
   ansible.builtin.set_fact:
-    acl_name_db_1:                     "iqn.2006-04.{{ sap_sid | lower }}-x{{ iscsi_node_type }}-0.local:{{ sap_sid | lower }}-x{{ iscsi_node_type }}-0"
-    acl_name_db_2:                     "iqn.2006-04.{{ sap_sid | lower }}-x{{ iscsi_node_type }}-1.local:{{ sap_sid | lower }}-x{{ iscsi_node_type }}-1"
+    acl_name_db_{{ ansible_hostname }}:               "iqn.2006-04.{{ sap_sid | lower }}-x{{ iscsi_node_type }}-0.local:{{ sap_sid | lower }}-x{{ iscsi_node_type }}-{{ ansible_hostname }}"
 
 - name:                                "1.18.1 iSCSI packages - print acl names"
   ansible.builtin.debug:
-    msg:                               "acl_name_db_1: {{ acl_name_db_1 }}, acl_name_db_2: {{ acl_name_db_2 }}"
+    msg:                               " acl_name_db_{{ ansible_hostname }}: vars['acl_name_db_'+ansible_hostname] }}"
     verbosity:                         2
 
 - name:                                "1.18.1 iSCSI configuration - replace InitiatorName - DB"
@@ -64,7 +56,7 @@
       ansible.builtin.replace:
         path:                          /etc/iscsi/initiatorname.iscsi
         regexp:                        '^InitiatorName=.*$'
-        replace:                       'InitiatorName={{ acl_name_db_1 }}'
+        replace:                       "InitiatorName={{ vars['acl_name_db_'+ansible_hostname] }}"
         backup:                        true
 
 - name:                                "1.18.1 iSCSI configuration - restart iSCSI services"
@@ -78,7 +70,7 @@
 - name:                                "1.18.1 iSCSI configuration block - iterate through the available iSCSI servers"
   when:
     - iscsi_node_type is defined
-    - iscsi_node_type in ['scs', 'db']
+    - iscsi_node_type in ['db']
     - iscsi_initiator_name is defined
   block:
     # - name:                            "1.18.1 iSCSI configuration - discovery, login and update node.startup"
@@ -118,7 +110,7 @@
 - name:                                "1.18.1 iSCSI packages - print iSCSI configuration result"
   when:
     - iscsi_node_type is defined
-    - iscsi_node_type in ['scs', 'db']
+    - iscsi_node_type in ['db']
     - iscsi_initiator_name is defined
   ansible.builtin.debug:
     msg:                               "{{ iscsi_configuration_result }}"
