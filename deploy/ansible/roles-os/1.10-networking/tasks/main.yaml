@@ -38,7 +38,7 @@
 
 - name:                                "1.10 Networking - Print ipaddress"
   ansible.builtin.debug:
-    msg:                               "{{ private_ips_info }}"
+    msg:                               "{{ ipadd }}"
     verbosity:                         2
 
 - name:                                "1.10 Networking - Print Secondary ip"
