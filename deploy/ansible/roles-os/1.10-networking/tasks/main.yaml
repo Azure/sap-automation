@@ -10,7 +10,7 @@
     use_proxy:                         false
     headers:
       Metadata:                        true
-  register: azure_metadata
+  register: azure_network_metadata
 
 # - name:                                "1.10 Networking - Filter out the values for IPAddresses in json format"
 #   ansible.builtin.set_fact:
