@@ -41,11 +41,12 @@
 
 - name:                                "1.18.1 iSCSI packages - Set the acl names"
   ansible.builtin.set_fact:
-    acl_name_db_{{ ansible_hostname }}:               "iqn.2006-04.{{ sap_sid | lower }}-x{{ iscsi_node_type }}-0.local:{{ sap_sid | lower }}-x{{ iscsi_node_type }}-{{ ansible_hostname }}"
+    hostname_index:                    "{{ ansible_play_hosts_all.index(ansible_hostname) }}"
+    acl_name_db_{{ hostname_index }}:  "iqn.2006-04.{{ sap_sid | lower }}-x{{ iscsi_node_type }}-0.local:{{ sap_sid | lower }}-x{{ iscsi_node_type }}-{{ hostname_index }}"
 
 - name:                                "1.18.1 iSCSI packages - print acl names"
   ansible.builtin.debug:
-    msg:                               " acl_name_db_{{ ansible_hostname }}: vars['acl_name_db_'+ansible_hostname] }}"
+    msg:                               " acl_name_db_{{ hostname_index }}: vars['acl_name_db_'+hostname_index] }}"
     verbosity:                         2
 
 - name:                                "1.18.1 iSCSI configuration - replace InitiatorName - DB"
@@ -56,7 +57,7 @@
       ansible.builtin.replace:
         path:                          /etc/iscsi/initiatorname.iscsi
         regexp:                        '^InitiatorName=.*$'
-        replace:                       "InitiatorName={{ vars['acl_name_db_'+ansible_hostname] }}"
+        replace:                       "InitiatorName={{ vars['acl_name_db_'+hostname_index] }}"
         backup:                        true
 
 - name:                                "1.18.1 iSCSI configuration - restart iSCSI services"
