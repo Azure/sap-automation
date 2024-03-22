@@ -82,9 +82,6 @@ db_instance_number:            "${db_instance_number}"
 
 platform:                       ${platform}
 
-# Scale out defines if the database is to be deployed in a scale out configuration
-db_scale_out:                   ${scale_out}
-
 %{~ if scale_out }
 
 #############################################################################
@@ -92,6 +89,10 @@ db_scale_out:                   ${scale_out}
 #                        Scale Out information                              #
 #                                                                           #
 #############################################################################
+
+# Scale out defines if the database is to be deployed in a scale out configuration
+db_scale_out:                   ${scale_out}
+
 
 subnet_prefix_anf:              ${subnet_prefix_anf}
 subnet_prefix_storage:          ${subnet_prefix_storage}
