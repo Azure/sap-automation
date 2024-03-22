@@ -179,9 +179,9 @@
     - name:                            "1.10 Networking - Print the network configuration details for storage route"
       ansible.builtin.debug:
         msg:
-                                       - "IpAddress:       {{ item.ipAddress }}"
-                                       - "Subnet:          {{ item.subnet }}"
-                                       - "InterfaceName:   {{ item.interfaceName }}"
+                                       - "IpAddress:       {{ azif.ipAddress }}"
+                                       - "Subnet:          {{ azif.subnet }}"
+                                       - "InterfaceName:   {{ azif.interfaceName }}"
                                        - "ANF Subnet:      {{ subnet_prefix_anf }}"
                                        - "Gateway:         {{ subnet_prefix_storage | ansible.utils.ipmath(1) }}"
         verbosity:                     2
@@ -212,9 +212,9 @@
     - name:                            "1.10 Networking - Print the network configuration details for client route"
       ansible.builtin.debug:
         msg:
-                                       - "IpAddress:       {{ item.ipAddress }}"
-                                       - "Subnet:          {{ item.subnet }}"
-                                       - "InterfaceName:   {{ item.interfaceName }}"
+                                       - "IpAddress:       {{ azif.ipAddress }}"
+                                       - "Subnet:          {{ azif.subnet }}"
+                                       - "InterfaceName:   {{ azif.interfaceName }}"
                                        - "App Subnet:      {{ subnet_prefix_app }}"
                                        - "Gateway:         {{ subnet_prefix_client | ansible.utils.ipmath(1) }}"
         verbosity:                     2
