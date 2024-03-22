@@ -99,7 +99,7 @@
 
 - name:                                "1.10 Networking - Get IMDS data for all interfaces"
   ansible.builtin.uri:
-    url:                               http://169.254.169.254/metadata/instance/network/interfaces?api-version=2021-02-01
+    url:                               http://169.254.169.254/metadata/instance/network/interface?api-version=2021-02-01&format=json
     use_proxy:                         false
     headers:
       Metadata:                        true
