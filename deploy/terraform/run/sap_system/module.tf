@@ -356,6 +356,8 @@ module "output_files" {
   subnet_prefix_storage                         = module.common_infrastructure.subnet_prefix_storage
   subnet_prefix_anf                             = module.hdb_node.ANF_subnet_prefix
   subnet_prefix_client                          = module.common_infrastructure.subnet_prefix_client
+  subnet_prefix_app                             = module.app_tier.subnet_prefix_app
+
 
   #########################################################################################
   #  SAP Application information                                                          #
