@@ -170,6 +170,88 @@
     - definition_made.changed
     - distribution_id == 'redhat7'
 
+- name:                                "1.10 Networking - Add routes and restart VM for HANA scaleout"
+  when:
+    - db_scale_out
+    - definition_made.changed
+  block:
+    # display the list of azure network interfaces and the expected ethX interface names
+    - name:                            "1.10 Networking - Print the network configuration details for storage route"
+      ansible.builtin.debug:
+        msg:
+                                       - "IpAddress:       {{ item.ipAddress }}"
+                                       - "Subnet:          {{ item.subnet }}"
+                                       - "InterfaceName:   {{ item.interfaceName }}"
+                                       - "ANF Subnet:      {{ subnet_prefix_anf }}"
+                                       - "Gateway:         {{ subnet_prefix_storage | ansible.utils.ipmath(1) }}"
+        verbosity:                     2
+      loop:                            "{{ az_network_interfaces | list }}"
+      loop_control:
+        loop_var:                      azif
+      when:
+        - az_network_interfaces is defined
+        - subnet_prefix_storage is defined
+        - az_network_interfaces | length >= 1
+        - not azif.interfaceName in ['eth0', 'eth0:0']
+        - subnet_prefix_storage | ansible.utils.network_in_usable( azif.ipAddress )
+
+    - name:                            "1.10 Networking - Add route to the ANF subnet via storage gateway"
+      become:                          true
+      become_user:                     root
+      ansible.builtin.shell:           nmcli connection modify "System {{ azif.interfaceName }}" +ipv4.routes "{{ subnet_prefix_anf }} {{ azif.subnet | ansible.utils.ipmath(1) }}"
+      loop:                            "{{ az_network_interfaces | list }}"
+      loop_control:
+        loop_var:                      azif
+      when:
+        - az_network_interfaces is defined
+        - subnet_prefix_storage is defined
+        - az_network_interfaces | length >= 1
+        - not azif.interfaceName in ['eth0', 'eth0:0']
+        - subnet_prefix_storage | ansible.utils.network_in_usable( azif.ipAddress )
+
+    - name:                            "1.10 Networking - Print the network configuration details for client route"
+      ansible.builtin.debug:
+        msg:
+                                       - "IpAddress:       {{ item.ipAddress }}"
+                                       - "Subnet:          {{ item.subnet }}"
+                                       - "InterfaceName:   {{ item.interfaceName }}"
+                                       - "App Subnet:      {{ subnet_prefix_app }}"
+                                       - "Gateway:         {{ subnet_prefix_client | ansible.utils.ipmath(1) }}"
+        verbosity:                     2
+      loop:                            "{{ az_network_interfaces | list }}"
+      loop_control:
+        loop_var:                      azif
+      when:
+        - az_network_interfaces is defined
+        - subnet_prefix_client is defined
+        - az_network_interfaces | length >= 1
+        - not azif.interfaceName in ['eth0', 'eth0:0']
+        - subnet_prefix_client | ansible.utils.network_in_usable( azif.ipAddress )
+
+    - name:                            "1.10 Networking - Add route to the application subnet via client gateway"
+      ansible.builtin.command:         nmcli connection modify "System {{ azif.interfaceName }}" +ipv4.routes "{{ subnet_prefix_app }} {{ azif.subnet | ansible.utils.ipmath(1) }}"
+      loop:                            "{{ az_network_interfaces | list }}"
+      loop_control:
+        loop_var:                      azif
+      when:
+        - az_network_interfaces is defined
+        - subnet_prefix_client is defined
+        - az_network_interfaces | length >= 1
+        - not azif.interfaceName in ['eth0', 'eth0:0']
+        - subnet_prefix_client | ansible.utils.network_in_usable( azif.ipAddress )
+
+# reboot VM after the new interface definitions are changed.
+- name:                                "1.10 Networking - Reboot VM and wait for 5 minutes"
+  ansible.builtin.reboot:
+    reboot_timeout:                    300
+  when:
+    - definition_made.changed
+
+- name:                                "1.10 Networking - Wait for connection to be established after reboot"
+  ansible.builtin.wait_for_connection:
+    delay:                             10
+    timeout:                           300
+
 ...
 # /*----------------------------------------------------------------------------8
 # |                                    END                                      |
