@@ -324,7 +324,7 @@ output "scs_kdump_disks"               {
 
 output "subnet_prefix_app"             {
                                           description = "Storage subnet prefix"
-                                          value       = enable_deployment ? (
+                                          value       = local.enable_deployment ? (
                                                           local.application_subnet_exists ? (
                                                             data.azurerm_subnet.subnet_sap_app[0].address_prefixes[0]) : (
                                                             azurerm_subnet.subnet_sap_app[0].address_prefixes[0]
