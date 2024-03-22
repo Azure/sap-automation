@@ -1,0 +1,18 @@
+{%- set _interfaces = [] -%}
+{%- for interface in azure_network_metadata.json -%}
+{%-   set _interface_name = "eth" + loop.index0|string -%}
+{%-   set _primary_ip = interface.ipv4.ipAddress[0].privateIpAddress -%}
+{%-   set _subnet_address = interface.ipv4.subnet[0].address -%}
+{%-   set _subnet_prefix = interface.ipv4.subnet[0].prefix -%}
+{%-   set _interface_info = {"ipAddress": _primary_ip, "interfaceName": _interface_name, "subnet": _subnet_address+"/"+_subnet_prefix} -%}
+{%-   if interface.ipv4.ipAddress | length > 1 -%}
+{%-     for secondary_ip in interface.ipv4.ipAddress[1:] -%}
+{%-       set _interface_name_secondary = _interface_name+":"+loop.index0|string -%}
+{%-       set _secondary_ip_address = secondary_ip.privateIpAddress -%}
+{%-       set _interface_info_secondary = {"ipAddress": _secondary_ip_address, "interfaceName": _interface_name_secondary, "subnet": _subnet_address+"/"+_subnet_prefix} -%}
+{%-       set _ = _interfaces.append(_interface_info_secondary) -%}
+{%-     endfor -%}
+{%-   endif -%}
+{%-   set _ = _interfaces.append(_interface_info) -%}
+{%- endfor -%}
+{{ _interfaces }}

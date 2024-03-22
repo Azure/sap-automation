@@ -71,26 +71,30 @@ ansible_facts.
 #}
 
 {# This template generates host entries based on the provided data #}
-{% for host in ansible_play_hosts|sort %}
+{%- for host in ansible_play_hosts|sort -%}
 {# Set variables for the current host #}
-{% set virtual_host_name = hostvars[host]['virtual_host'] %}
+{%-   set virtual_host_name = hostvars[host]['virtual_host'] -%}
 {# Determine the IPs for the current host from ipaddr variable. Do not sort it, the order is already correct. #}
-{% set host_ips = hostvars[host]['ipadd'] %}
-
+{%-   set host_ips = hostvars[host]['ipadd'] -%}
 {# Check if there are IPs available for the current host #}
-{% if host_ips %}
+{%-   if host_ips -%}
 {# Print the primary host entry #}
 {{ '%-19s' | format(host_ips[0]) }}{{ '%-80s ' | format(host + '.' + sap_fqdn) }}{{ '%-21s' | format(host) }}
-
 {# If there's only one IP, also use it for the virtual_host #}
-{% if host_ips|length == 1 %}
+{%-     if host_ips|length == 1 -%}
 {{ '%-19s' | format(host_ips[0]) }}{{ '%-80s ' | format(virtual_host_name + '.' + sap_fqdn) }}{{ '%-21s' | format(virtual_host_name) }}
-{% else %}
+{%-     else -%}
 {# Loop through remaining IPs for the virtual host #}
-{% for ip in host_ips[1:] %}
+{%-       for ip in host_ips[1:] -%}
+{%-         if ((db_scale_out) and (subnet_prefix_storage | ansible.utils.network_in_usable(ip))) -%}
+{{ '%-19s' | format(ip) }}{{ '%-80s ' | format(virtual_host_name + '-storage.' + sap_fqdn) }}{{ '%-21s' | format(virtual_host_name+ '-storage') }}
+{%-         elif ((db_scale_out) and (subnet_prefix_client | ansible.utils.network_in_usable(ip))) -%}
+{{ '%-19s' | format(ip) }}{{ '%-80s ' | format(virtual_host_name + '-client.' + sap_fqdn) }}{{ '%-21s' | format(virtual_host_name+ '-client') }}
+{%-         else -%}
 {{ '%-19s' | format(ip) }}{{ '%-80s ' | format(virtual_host_name + '.' + sap_fqdn) }}{{ '%-21s' | format(virtual_host_name) }}
-{% endfor %}
-{% endif %}
-{% endif %}
-{% endfor %}
+{%-         endif -%}
+{%-       endfor -%}
+{%-     endif -%}
+{%-   endif -%}
+{%- endfor -%}
 

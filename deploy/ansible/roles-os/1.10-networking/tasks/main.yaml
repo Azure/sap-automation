@@ -4,21 +4,22 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
+# Process the first secondary IP configuration available on the primary NIC
 - name:                                "1.10 Networking - Get the IP information from instance meta data service"
   ansible.builtin.uri:
-    url:                               http://169.254.169.254/metadata/instance/network?api-version=2021-02-01
+    url:                               http://169.254.169.254/metadata/instance/network/interface/0?api-version=2021-02-01
     use_proxy:                         false
     headers:
       Metadata:                        true
-  register: azure_network_metadata
+  register: azure_metadata
 
-# - name:                                "1.10 Networking - Filter out the values for IPAddresses in json format"
-#   ansible.builtin.set_fact:
-#     private_ips_info:                  "{{ azure_metadata.json.ipv4.ipAddress }}"
+- name:                                "1.10 Networking - Filter out the values for IPAddresses in json format"
+  ansible.builtin.set_fact:
+    private_ips_info:                  "{{ azure_metadata.json.ipv4.ipAddress }}"
 
 - name:                                "1.10 Networking - Convert ips to list"
   ansible.builtin.set_fact:
-    ipadd:                             "{{ azure_network_metadata.json | json_query('interface[*].ipv4.ipAddress[*].privateIpAddress') | flatten(levels=1) | default([]) | list }}"
+    ipadd:                             "{{ private_ips_info | map(attribute='privateIpAddress') | list }}"
 
 - name:                                "1.10 Networking - Get the secondary IP"
   ansible.builtin.set_fact:
@@ -33,12 +34,12 @@
 
 - name:                                "1.10 Networking - Print ip info"
   ansible.builtin.debug:
-    msg:                               "{{ azure_network_metadata.json }}"
+    msg:                               "{{ azure_metadata.json }}"
     verbosity:                         2
 
 - name:                                "1.10 Networking - Print ipaddress"
   ansible.builtin.debug:
-    msg:                               "{{ ipadd }}"
+    msg:                               "{{ private_ips_info }}"
     verbosity:                         2
 
 - name:                                "1.10 Networking - Print Secondary ip"
@@ -93,6 +94,55 @@
 #   ansible.builtin.service:
 #     name:                              NetworkManager
 #     state:                             restarted
+
+# Get interface data and process network information for all interfaces except the first one
+
+- name:                                "1.10 Networking - Get IMDS data for all interfaces"
+  ansible.builtin.uri:
+    url:                               http://169.254.169.254/metadata/instance/network/interfaces?api-version=2021-02-01
+    use_proxy:                         false
+    headers:
+      Metadata:                        true
+  register: azure_network_metadata
+
+# build a list of all the network interfaces
+- name:                                "1.10 Networking - Get the network interfaces"
+  ansible.builtin.set_fact:
+    az_network_interfaces:             "{{ lookup('template', 'azure_interfaces.j2', wantlist=True) | default([]) | flatten(levels=1) }}"
+
+# display the list of azure network interfaces and the expected ethX interface names
+- name:                                "1.10 Networking - Print the network interfaces"
+  ansible.builtin.debug:
+    msg:
+                                       - "ipAddress:     {{ item.ipAddress }} "
+                                       - "Subnet:        {{ item.subnet }}"
+                                       - "interfaceName: {{ item.interfaceName }}"
+    verbosity:                         2
+  loop:                                "{{ az_network_interfaces | list }}"
+
+# for each of the additional ip addresses, add the configuration to the network interface
+# and create a route to the subnet
+- name:                                "1.10 Networking - Create the file with secondary ip"
+  ansible.builtin.blockinfile:
+    create:                            true
+    path:                              /etc/sysconfig/network-scripts/ifcfg-{{ azif.interfaceName }}
+    marker_begin:                      "-- BEGIN"
+    marker_end:                        "-- END"
+    block: |
+      DEVICE={{ azif.interfaceName }}
+      BOOTPROTO=static
+      ONBOOT=yes
+      IPADDR={{ azif.ipAddress }}
+      NETMASK={{ azif.subnet | ipaddr('netmask') }}
+    mode:                              644
+  loop:                                "{{ az_network_interfaces | list }}"
+  loop_control:
+    loop_var:                          azif
+  register:                            definition_made
+  when:
+    - az_network_interfaces is defined
+    - az_network_interfaces | length >= 1
+    - not azif.interfaceName in ['eth0', 'eth0:0']
 
 # Restart Network service (ifup eth0)
 - name:                                "1.10 Networking - Restart Network service"
