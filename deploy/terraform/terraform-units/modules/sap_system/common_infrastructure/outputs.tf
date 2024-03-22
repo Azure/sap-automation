@@ -103,6 +103,18 @@ output "admin_subnet" {
                                                                  )
                                                  }
 
+output "subnet_prefix_client"                    {
+                                                   description = "Storage subnet prefix"
+                                                   value       = local.enable_db_deployment && local.enable_admin_subnet ? (
+                                                                   local.admin_subnet_exists ? (
+                                                                     data.azurerm_subnet.admin[0].address_prefixes[0]) : (
+                                                                     azurerm_subnet.admin[0].address_prefixes[0]
+                                                                   )) : (
+                                                                   ""
+                                                                 )
+                                                 }
+
+
 output "db_subnet"                               {
                                                    description = "Admin subnet object"
                                                    value       = local.database_subnet_exists ? (

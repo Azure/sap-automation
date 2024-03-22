@@ -25,6 +25,7 @@ variable "bom_name"                             {
                                                   description = "Name of Bill of Materials file"
                                                   default     = ""
                                                 }
+variable "subnet_prefix_client"                 { description = "address prefix for the client subnet" }
 variable "configuration_settings"               { description = "This is a dictionary that will contain values persisted to the sap-parameters.file" }
 variable "database_admin_ips"                   { description = "List of Admin NICs for the DB VMs" }
 variable "database_cluster_type"                {
