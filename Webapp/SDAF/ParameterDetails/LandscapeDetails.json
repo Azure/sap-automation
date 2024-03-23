@@ -86,6 +86,15 @@
         "Display": 1
       },
       {
+        "Name": "Description",
+        "Required": false,
+        "Description": "Workload zone description.",
+        "Type": "textbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 1
+      },
+      {
         "Name": "save_naming_information",
         "Required": false,
         "Description": "If defined, will create a naming information json file for the resources, see <a href='https://learn.microsoft.com/en-us/azure/sap/automation/automation-naming-module#provide-name-overrides-using-a-json-file' target='_blank' rel='noopener noreferrer'>custom naming</a>.",

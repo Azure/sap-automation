@@ -38,6 +38,8 @@ namespace AutomationForm.Models
     [LocationValidator(ErrorMessage = "Location is not a valid Azure region")]
     public string location { get; set; }
 
+    public string Description { get; set; }
+
     public string name_override_file { get; set; }
 
     public bool? save_naming_information { get; set; }

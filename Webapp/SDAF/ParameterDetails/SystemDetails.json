@@ -106,6 +106,15 @@
         "Display": 1
       },
       {
+        "Name": "Description",
+        "Required": false,
+        "Description": "System description.",
+        "Type": "textbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 1
+      },
+      {
         "Name": "network_logical_name",
         "Required": true,
         "Description": "Used in the naming convention and should map to the workload virtual network logical name.",

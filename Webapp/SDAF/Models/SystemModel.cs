@@ -42,6 +42,9 @@ namespace AutomationForm.Models
     [LocationValidator(ErrorMessage = "Location is not a valid Azure region")]
     public string location { get; set; }
 
+    public string Description { get; set; }
+
+
     [RequiredIfNotDefault]
     [DisplayName("Network name")]
     [RegularExpression(@"^\w{0,7}$", ErrorMessage = "Logical network name cannot exceed seven characters")]
