@@ -35,6 +35,12 @@
     state:                            enabled
     permanent:                        true
 
+- name:                                "1.18.2.0 Generic Pacemaker - Ensure the basic cluster services are enabled and running"
+  ansible.builtin.systemd:
+    name:                             pcsd.service
+    state:                            started
+    enabled:                          true
+
 # Basic Pacemaker cluster configuration:
 # https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-rhel-pacemaker
 - name:                                "1.18.2.0 Generic Pacemaker - Create the cluster on the primary node: {{ primary_instance_name }}"
