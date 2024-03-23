@@ -38,6 +38,7 @@
 # Basic Pacemaker cluster configuration:
 # https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-rhel-pacemaker
 - name:                                "1.18.2.0 Generic Pacemaker - Create the cluster on the primary node: {{ primary_instance_name }}"
+  when:                                ansible_hostname == primary_instance_name
   block:
     - name:                            "1.18.2.0 Generic Pacemaker - Ensure the cluster can authenticate nodes as hacluster"
       ansible.builtin.command:         "pcs cluster auth {{ ansible_play_hosts_all | join (' ') }} -u hacluster -p {{ password_ha_db_cluster }}"
@@ -90,8 +91,6 @@
       ansible.builtin.command:         pcs quorum expected-votes "{{ cluster_quorum.expected_votes }}"
       register:                        quorum
       changed_when:                    quorum.rc == 0
-
-  when:                                ansible_hostname == primary_instance_name
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
