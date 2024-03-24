@@ -109,6 +109,8 @@ ansible_facts.
 {%       endif %}
 {%     endif %}
 {%   endfor %}
+{# Keep only unique values in the virtual_host_names #}
+{% set virtual_host_names = virtual_host_names | unique %}
 
 {# Determine the IPs for the current host from ipaddr variable. Do not sort it, the order is already correct. #}
 {%   set host_ips = hostvars[host]['ipadd'] %}
@@ -119,7 +121,7 @@ ansible_facts.
 
 {# If there's only one IP, replicate the entry with different virtual_host_names #}
 {%     if host_ips|length == 1 %}
-{%       for vh_name in virtual_host_names %}
+{%       for vh_name in virtual_host_names if virtual_host_names | length > 1 %}
 
 {{ '%-19s' | format(host_ips[0]) }}{{ '%-80s ' | format(vh_name + '.' + sap_fqdn) }}{{ '%-21s' | format(vh_name) }}
 
@@ -128,13 +130,13 @@ ansible_facts.
 {# Loop through remaining IPs for the virtual host #}
 {%       for ip in host_ips[1:] %}
 {%         if ((db_scale_out) and ((subnet_prefix_storage is defined) and (subnet_prefix_storage | ansible.utils.network_in_usable(ip)))) %}
-{{ '%-19s' | format(ip) }}{{ '%-80s ' | format(vh_name + '-storage.' + sap_fqdn) }}{{ '%-21s' | format(vh_name + '-storage') }}
+{{ '%-19s' | format(ip) }}{{ '%-80s ' | format(host + '-storage.' + sap_fqdn) }}{{ '%-21s' | format(host + '-storage') }}
 
 {%         elif ((db_scale_out) and ((subnet_prefix_client is defined) and (subnet_prefix_client | ansible.utils.network_in_usable(ip)))) %}
-{{ '%-19s' | format(ip) }}{{ '%-80s ' | format(vh_name + '-client.' + sap_fqdn) }}{{ '%-21s' | format(vh_name + '-client') }}
+{{ '%-19s' | format(ip) }}{{ '%-80s ' | format(host + '-client.' + sap_fqdn) }}{{ '%-21s' | format(host + '-client') }}
 
 {%         else %}
-{%           for vh_name in virtual_host_names %}
+{%           for vh_name in virtual_host_names if virtual_host_names | length > 1 %}
 {{ '%-19s' | format(ip) }}{{ '%-80s ' | format(vh_name + '.' + sap_fqdn) }}{{ '%-21s' | format(vh_name) }}
 
 {%           endfor %}
