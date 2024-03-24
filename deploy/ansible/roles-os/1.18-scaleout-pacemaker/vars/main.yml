@@ -21,7 +21,8 @@ cluster_totem:
   max_messages:                         20
 
 cluster_quorum:
-  expected_votes:                       "{{ (( ansible_play_hosts_all | length ) / 2 ) | int + 1 }}"
+  # expected_votes:                       "{{ (( ansible_play_hosts_all | length ) / 2 ) | int + 1 }}"
+  expected_votes:                       "{{ ansible_play_hosts_all | length }}"
   two_node:                             0
 
 # /*---------------------------------------------------------------------------8
