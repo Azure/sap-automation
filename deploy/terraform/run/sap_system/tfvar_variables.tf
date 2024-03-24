@@ -12,7 +12,13 @@ variable "environment"                           {
                                                  }
 
 variable "codename"                              {
-                                                   description = "This is the code name name for the deployment"
+                                                   description = "This is the code name for the deployment"
+                                                   type        = string
+                                                   default     = ""
+                                                 }
+
+variable "Description"                           {
+                                                   description = "This is the description for the deployment"
                                                    type        = string
                                                    default     = ""
                                                  }
