@@ -23,6 +23,8 @@ resource "azurerm_network_interface" "nics_dbnodes_admin" {
                                            var.database_server_count) : (
                                            0
                                          )
+  depends_on                           = [ azurerm_network_interface.nics_dbnodes_db ]
+
   name                                 = format("%s%s%s%s%s",
                                            var.naming.resource_prefixes.admin_nic,
                                            local.prefix,
@@ -109,11 +111,16 @@ resource "azurerm_network_interface_application_security_group_association" "db"
   application_security_group_id        = var.db_asg_id
 }
 
+#########################################################################################
+#                                                                                       #
+#  Storage Network Interface                                                              #
+#                                                                                       #
+#########################################################################################
 
-// Creates the NIC for Hana storage
 resource "azurerm_network_interface" "nics_dbnodes_storage" {
   provider                             = azurerm.main
   count                                = local.enable_deployment && local.enable_storage_subnet ? var.database_server_count : 0
+  depends_on                           = [ azurerm_network_interface.nics_dbnodes_db, azurerm_network_interface.nics_dbnodes_admin ]
   name                                 = format("%s%s%s%s%s",
                                            var.naming.resource_prefixes.storage_nic,
                                            local.prefix,
