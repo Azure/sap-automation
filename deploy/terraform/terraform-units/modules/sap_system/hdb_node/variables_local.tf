@@ -391,5 +391,9 @@ locals {
                                            (var.database_server_count - var.database.stand_by_node_count) * var.hana_ANF_volumes.log_volume_count) : (
                                            0
                                          )
+  extension_settings                   =  length(var.database.user_assigned_identity_id) > 0 ? [{
+                                           "key" = "msi_res_id"
+                                           "value" = var.database.user_assigned_identity_id
+                                         }] : []
 
 }
