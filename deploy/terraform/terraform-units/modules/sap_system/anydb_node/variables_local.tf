@@ -480,5 +480,6 @@ locals {
                                            "value" = var.database.user_assigned_identity_id
                                          }] : []
 
+  deploy_monitoring_extension          = local.enable_deployment && var.infrastructure.deploy_monitoring_extension && length(var.database.user_assigned_identity_id) > 0
 
 }

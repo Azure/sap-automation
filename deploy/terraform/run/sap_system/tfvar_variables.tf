@@ -1378,11 +1378,6 @@ variable "deploy_monitoring_extension"          {
                                                 }
 
 
-variable "deploy_security_extension"            {
-                                                  description = "If defined, will add the Microsoft.Azure.Security.Monitoring.AzureSecurityLinuxAgent extension to the virtual machines"
-                                                  default     = true
-                                                }
-
 
 #########################################################################################
 #                                                                                       #

@@ -634,6 +634,16 @@ resource "azurerm_virtual_machine_extension" "monitoring_extension_web_lnx" {
   type                                 = "AzureMonitorLinuxAgent"
   type_handler_version                 = "1.0"
   auto_upgrade_minor_version           = "true"
+  settings                             = jsonencode(
+                                           {
+                                              "authentication"  =  {
+                                                   "managedIdentity" = {
+                                                        "identifier-name" : "mi_res_id",
+                                                        "identifier-value": var.application_tier.user_assigned_identity_id
+                                                      }
+                                                }
+                                            }
+                                            )
 }
 
 
@@ -648,4 +658,14 @@ resource "azurerm_virtual_machine_extension" "monitoring_extension_web_win" {
   type                                 = "AzureMonitorWindowsAgent"
   type_handler_version                 = "1.0"
   auto_upgrade_minor_version           = "true"
+  settings                             = jsonencode(
+                                           {
+                                              "authentication"  =  {
+                                                   "managedIdentity" = {
+                                                        "identifier-name" : "mi_res_id",
+                                                        "identifier-value": var.application_tier.user_assigned_identity_id
+                                                      }
+                                                }
+                                            }
+                                            )
 }
