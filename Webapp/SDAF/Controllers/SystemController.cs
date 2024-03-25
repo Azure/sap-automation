@@ -3,6 +3,7 @@ using AutomationForm.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json;
 using System;
@@ -430,6 +431,17 @@ namespace AutomationForm.Controllers
           if (system.Id == null) system.Id = newId;
           if (newId != system.Id)
           {
+            if (String.IsNullOrEmpty(system.Description))
+            {
+              if ((bool)system.database_high_availability || (bool)system.scs_high_availability)
+              {
+                system.Description = system.database_platform + " high availability system on " + system.scs_server_image.publisher + " " + system.scs_server_image.offer + " " + system.scs_server_image.sku;
+              }
+              else
+              {
+                system.Description = system.database_platform + " distributed system on " + system.scs_server_image.publisher + " " + system.scs_server_image.offer + " " + system.scs_server_image.sku;
+              }
+            }
             await SubmitNewAsync(system);
             string id = system.Id;
             string path = $"/SYSTEM/{id}/{id}.tfvars";
@@ -446,7 +458,7 @@ namespace AutomationForm.Controllers
             };
 
             await _systemService.CreateTFVarsAsync(file);
-            return RedirectToAction("Index");
+            return RedirectToAction("Edit", "System", new { @id = system.Id, @partitionKey = system.environment });  //RedirectToAction("Index");
 
 
           }
@@ -455,6 +467,17 @@ namespace AutomationForm.Controllers
             if (system.IsDefault)
             {
               await UnsetDefault(system.Id);
+            }
+            if (String.IsNullOrEmpty(system.Description))
+            {
+              if ((bool)system.database_high_availability || (bool)system.scs_high_availability)
+              {
+                system.Description = system.database_platform + " high availability system on " + system.scs_server_image.publisher + " " + system.scs_server_image.offer + " " + system.scs_server_image.sku;
+              }
+              else
+              {
+                system.Description = system.database_platform + " distributed system on " + system.scs_server_image.publisher + " " + system.scs_server_image.offer + " " + system.scs_server_image.sku;
+              }
             }
             await _systemService.UpdateAsync(new SystemEntity(system));
             TempData["success"] = "Successfully updated system " + system.Id;
@@ -473,7 +496,7 @@ namespace AutomationForm.Controllers
             };
 
             await _systemService.CreateTFVarsAsync(file);
-            return RedirectToAction("Index");
+            return RedirectToAction("Edit", "System", new { @id = system.Id, @partitionKey = system.environment });  //RedirectToAction("Index");
           }
         }
         catch (Exception e)
