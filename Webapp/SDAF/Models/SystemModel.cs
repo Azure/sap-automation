@@ -42,6 +42,9 @@ namespace AutomationForm.Models
     [LocationValidator(ErrorMessage = "Location is not a valid Azure region")]
     public string location { get; set; }
 
+    public string Description { get; set; }
+
+
     [RequiredIfNotDefault]
     [DisplayName("Network name")]
     [RegularExpression(@"^\w{0,7}$", ErrorMessage = "Logical network name cannot exceed seven characters")]
@@ -623,6 +626,8 @@ namespace AutomationForm.Models
     +------------------------------------4--------------------------------------*/
 
     public bool? database_HANA_use_ANF_scaleout_scenario { get; set; } = false;
+
+    public bool? database_HANA_no_standby_role { get; set; } = false;
 
     public int? stand_by_node_count { get; set; } = 0;
 

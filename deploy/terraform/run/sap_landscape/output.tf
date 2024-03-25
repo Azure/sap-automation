@@ -95,6 +95,15 @@ output "web_nsg_id"                              {
                                                    description = "Azure resource identifier for the web subnet network security group"
                                                    value       = module.sap_landscape.web_nsg_id
                                                  }
+output "storage_subnet_id"                       {
+                                                   description = "Azure resource identifier for the storage subnet"
+                                                   value       = length(var.storage_subnet_arm_id) > 0 ? var.storage_subnet_arm_id : module.sap_landscape.storage_subnet_id
+                                                 }
+
+output "storage_nsg_id"                          {
+                                                   description = "Azure resource identifier for the storage subnet network security group"
+                                                   value       = module.sap_landscape.storage_nsg_id
+                                                 }
 
 ###############################################################################
 #                                                                             #

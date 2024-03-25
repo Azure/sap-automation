@@ -615,4 +615,10 @@ locals {
                                            ) : (
                                            [""]
                                          )
+
+  extension_settings                   =  length(var.application_tier.user_assigned_identity_id) > 0 ? [{
+                                           "key" = "msi_res_id"
+                                           "value" = var.application_tier.user_assigned_identity_id
+                                         }] : []
+
 }
