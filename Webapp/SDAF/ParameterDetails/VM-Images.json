@@ -54,7 +54,7 @@
       "source_image_id": "",
       "publisher": "RedHat",
       "offer": "RHEL-SAP-APPS",
-      "sku": "8_4",
+      "sku": "84sapapps-gen2",
       "version": "latest",
       "type": "marketplace"
     }
@@ -78,7 +78,7 @@
       "source_image_id": "",
       "publisher": "RedHat",
       "offer": "RHEL-SAP-APPS",
-      "sku": "8_6",
+      "sku": "86sapapps-gen2",
       "version": "latest",
       "type": "marketplace"
     }
@@ -102,7 +102,7 @@
       "source_image_id": "",
       "publisher": "RedHat",
       "offer": "RHEL-SAP-APPS",
-      "sku": "8_8",
+      "sku": "88sapapps-gen2",
       "version": "latest",
       "type": "marketplace"
     }
@@ -126,7 +126,7 @@
       "source_image_id": "",
       "publisher": "RedHat",
       "offer": "RHEL-SAP-APPS",
-      "sku": "9_0",
+      "sku": "90sapapps-gen2",
       "version": "latest",
       "type": "marketplace"
     }
@@ -150,7 +150,7 @@
       "source_image_id": "",
       "publisher": "RedHat",
       "offer": "RHEL-SAP-APPS",
-      "sku": "9_2",
+      "sku": "92sapapps-gen2",
       "version": "latest",
       "type": "marketplace"
     }
