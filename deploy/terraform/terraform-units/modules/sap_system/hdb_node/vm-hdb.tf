@@ -113,7 +113,7 @@ resource "azurerm_network_interface_application_security_group_association" "db"
 
 #########################################################################################
 #                                                                                       #
-#  Storage Network Interface                                                              #
+#  Storage Network Interface                                                            #
 #                                                                                       #
 #########################################################################################
 

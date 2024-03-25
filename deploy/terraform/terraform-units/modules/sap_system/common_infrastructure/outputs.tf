@@ -115,6 +115,19 @@ output "subnet_prefix_client"                    {
                                                  }
 
 
+output "subnet_prefix_db"                        {
+                                                   description = "DB subnet prefix"
+                                                   value       = local.enable_db_deployment ? (
+                                                                   local.database_subnet_exists ? (
+                                                                      data.azurerm_subnet.db[0].address_prefixes[0]) : (
+                                                                      azurerm_subnet.db[0].address_prefixes[0]
+                                                                    )) : (
+                                                                   ""
+                                                                 )
+                                                 }
+
+
+
 output "db_subnet"                               {
                                                    description = "Admin subnet object"
                                                    value       = local.database_subnet_exists ? (

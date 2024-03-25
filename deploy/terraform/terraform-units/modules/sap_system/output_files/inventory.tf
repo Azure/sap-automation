@@ -178,7 +178,6 @@ resource "local_file" "sap-parameters_yml" {
   content = templatefile(format("%s/sap-parameters.tmpl", path.module), {
               app_instance_number         = var.app_instance_number
               bom                         = length(var.bom_name) > 0 ? var.bom_name : ""
-              subnet_prefix_client        = var.subnet_prefix_client
               database_cluster_type       = var.database_cluster_type
               database_high_availability  = var.database_high_availability
               database_cluster_ip         = try(format("%s/%s", var.database_cluster_ip, var.database_subnet_netmask), "")
@@ -234,9 +233,11 @@ resource "local_file" "sap-parameters_yml" {
               secret_prefix               = local.secret_prefix,
               settings                    = local.settings
               sid                         = var.sap_sid,
-              subnet_prefix_storage       = var.subnet_prefix_storage,
               subnet_prefix_anf           = var.subnet_prefix_anf,
               subnet_prefix_app           = var.subnet_prefix_app,
+              subnet_prefix_client        = var.subnet_prefix_client
+              subnet_prefix_db            = var.subnet_prefix_db
+              subnet_prefix_storage       = var.subnet_prefix_storage,
               upgrade_packages            = var.upgrade_packages ? "true" : "false"
               use_msi_for_clusters        = var.use_msi_for_clusters
               usr_sap                     = length(var.usr_sap) > 1 ? (

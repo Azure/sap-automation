@@ -26,6 +26,7 @@ variable "bom_name"                             {
                                                   default     = ""
                                                 }
 variable "subnet_prefix_app"                    { description = "address prefix for the app subnet" }
+variable "subnet_prefix_db"                     { description = "address prefix for the db subnet" }
 variable "subnet_prefix_client"                 { description = "address prefix for the client subnet" }
 variable "configuration_settings"               { description = "This is a dictionary that will contain values persisted to the sap-parameters.file" }
 variable "database_admin_ips"                   { description = "List of Admin NICs for the DB VMs" }
