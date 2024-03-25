@@ -119,19 +119,19 @@
 
         - name:                        "SAP OS configuration playbook: - Get the IP information from instance meta data service"
           ansible.builtin.uri:
-            url:                       http://169.254.169.254/metadata/instance/network/interface/0?api-version=2021-02-01
+            url:                       http://169.254.169.254/metadata/instance/network?api-version=2021-02-01
             use_proxy:                 false
             headers:
               Metadata:                true
           register: azure_network_metadata
 
-        - name:                        "SAP OS configuration playbook: - Filter out the values for IPAddresses in json format"
-          ansible.builtin.set_fact:
-            private_ips_info:          "{{ azure_network_metadata.json.ipv4.ipAddress }}"
+        # - name:                        "SAP OS configuration playbook: - Filter out the values for IPAddresses in json format"
+        #   ansible.builtin.set_fact:
+        #     private_ips_info:          "{{ azure_network_metadata.json.ipv4.ipAddress }}"
 
         - name:                        "SAP OS configuration playbook: - Convert ips to list"
           ansible.builtin.set_fact:
-            ipadd:                     "{{ private_ips_info | map(attribute='privateIpAddress') | list }}"
+            ipadd:                     "{{ azure_network_metadata.json | json_query('interface[*].ipv4.ipAddress[*].privateIpAddress') | flatten(levels=1) | default([]) | list }}"
 
         # add assertion to validate if ipadd is not empty and has at least one ip address
         - name:                        "SAP OS configuration playbook: - Assert if IP Address is not empty"

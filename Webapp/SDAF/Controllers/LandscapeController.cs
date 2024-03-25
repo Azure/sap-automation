@@ -351,7 +351,7 @@ namespace AutomationForm.Controllers
 
             await _landscapeService.CreateTFVarsAsync(file);
 
-            return RedirectToAction("Index");
+            return RedirectToAction("Edit", "Landscape", new { @id = landscape.Id, @partitionKey = landscape.environment });  //RedirectToAction("Index"); 
           }
           else
           {
@@ -378,7 +378,7 @@ namespace AutomationForm.Controllers
 
             await _landscapeService.CreateTFVarsAsync(file);
 
-            return RedirectToAction("Index");
+            return RedirectToAction("Edit", "Landscape", new { @id = landscape.Id, @partitionKey = landscape.environment });  //RedirectToAction("Index"); 
           }
         }
         catch (Exception e)
