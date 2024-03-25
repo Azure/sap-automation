@@ -17,6 +17,36 @@
   when:
     - node_tier in custom_mount.target_nodes or custom_mount.target_nodes == ['all']
 
+- name:                                "Custom Mount: Create Directory on NSF ({{ custom_mount.path }})"
+  when:
+    - custom_mount.create_temp_folders
+    - ansible_hostname == ansible_play_hosts[0]
+  block:
+    - name:                            "Custom Mount: {{ custom_mount.mount }}/{{ custom_mount.folder }}"
+      ansible.posix.mount:
+        src:                           "{{ custom_mount.mount }}"
+        path:                          "{{ custom_mount.path }}"
+        fstype:                        "nfs4"
+        opts:                          "{{ custom_mount.opts }}"
+        state:                         mounted
+
+    - name:                            "Custom Mount: Create Directory ({{ custom_mount.folder }})"
+      ansible.builtin.file:
+        owner:                         '{{ sidadm_uid }}'
+        group:                         sapsys
+        mode:                          0755
+        path:                          "{{ custom_mount.path }}/{{ custom_mount.folder }}"
+        state:                         directory
+
+    - name:                            "Custom Mount: Unmount "
+      ansible.posix.mount:
+        src:                           "{{ custom_mount.mount }}"
+        path:                          "{{ custom_mount.path }}"
+        fstype:                        "nfs4"
+        opts:                          "{{ custom_mount.opts }}"
+        state:                         unmounted
+
+
 - name:                                "Custom Mount: Change attribute only when we create SAP Directories ({{ custom_mount.temppath }})"
   become:                              true
   become_user:                         "root"
@@ -28,7 +58,7 @@
   when:
     - node_tier in custom_mount.target_nodes or custom_mount.target_nodes == "all"
     - is_created_now.changed
-    - custom_mount.set_chattr_on_dir
+    - custom_mount.set_chattr_on_dir | default(false)
 
 - name:                                "Custom Mount"
   when:
@@ -36,7 +66,7 @@
   block:
     - name:                            "Custom Mount: ({{ custom_mount.path }} on {% if custom_mount.create_temp_folders %}{{ custom_mount.mount }}/{{ custom_mount.folder }}{% else %}{{ custom_mount.mount }}{% endif %})"
       ansible.posix.mount:
-        src:                           "{{ custom_mount.mount }}"
+        src:                           "{% if custom_mount.create_temp_folders %}{{ custom_mount.mount }}/{{ custom_mount.folder }}{% else %}{{ custom_mount.mount }}{% endif %}"
         path:                          "{{ custom_mount.path }}"
         fstype:                        "nfs4"
         opts:                          "{{ custom_mount.opts }}"

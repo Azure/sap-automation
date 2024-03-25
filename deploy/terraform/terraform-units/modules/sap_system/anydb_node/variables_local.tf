@@ -475,5 +475,10 @@ locals {
 
   frontend_ips                         = slice(local.standard_ips, 0, local.windows_high_availability ? 2 : 1)
 
+  extension_settings                   =  length(var.database.user_assigned_identity_id) > 0 ? [{
+                                           "key" = "msi_res_id"
+                                           "value" = var.database.user_assigned_identity_id
+                                         }] : []
+
 
 }

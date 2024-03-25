@@ -233,3 +233,13 @@ data "azurerm_netapp_volume" "hanashared" {
 
 }
 
+
+
+data "azurerm_subnet" "ANF" {
+  provider                             = azurerm.main
+  count                                = length(local.ANF_pool_settings.subnet_id) > 0 ? 1 : 0
+  name                                 = split("/", local.ANF_pool_settings.subnet_id)[10]
+  resource_group_name                  = split("/", local.ANF_pool_settings.subnet_id)[4]
+  virtual_network_name                 = split("/", local.ANF_pool_settings.subnet_id)[8]
+}
+

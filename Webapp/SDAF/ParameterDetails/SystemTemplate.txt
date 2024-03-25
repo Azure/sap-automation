@@ -39,6 +39,10 @@ $$environment$$
 # The location value is a mandatory field, it is used to control where the resources are deployed
 $$location$$
 
+# Description of the SAP system.
+$$Description$$
+
+
 #If you want to customize the disk sizes for VMs use the following parameter to specify the custom sizing file.
 $$custom_disk_sizes_filename$$
 
@@ -889,6 +893,9 @@ $$tags$$
 
 #If true, the database tier will be configured for scaleout scenario
 $$database_HANA_use_ANF_scaleout_scenario$$
+
+#If true, the database scale out tier will not have a standby role
+$$database_HANA_no_standby_role$$
 
 # Defined the standbynode count in a scaleout scenario
 $$stand_by_node_count$$

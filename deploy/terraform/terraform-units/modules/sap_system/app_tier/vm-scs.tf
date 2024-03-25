@@ -495,7 +495,8 @@ resource "azurerm_virtual_machine_extension" "scs_lnx_aem_extension" {
   type_handler_version                 = "1.0"
   settings                             = jsonencode(
                                            {
-                                             "system": "SAP"
+                                             "system": "SAP",
+                                             "cfg": local.extension_settings
                                            }
                                          )
   tags                                 = var.tags
@@ -515,7 +516,8 @@ resource "azurerm_virtual_machine_extension" "scs_win_aem_extension" {
   type_handler_version                 = "1.0"
   settings                             = jsonencode(
                                            {
-                                             "system": "SAP"
+                                             "system": "SAP",
+                                             "cfg": local.extension_settings
                                            }
                                          )
   tags                                 = var.tags
