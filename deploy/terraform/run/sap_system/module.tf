@@ -434,6 +434,7 @@ module "output_files" {
   use_simple_mount                              = local.validated_use_simple_mount
   upgrade_packages                              = var.upgrade_packages
   scale_out                                     = var.database_HANA_use_ANF_scaleout_scenario
+  scale_out_no_standby_role                     = var.database_HANA_no_standby_role
 
   #########################################################################################
   #  iSCSI                                                                                #

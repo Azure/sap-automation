@@ -215,6 +215,7 @@ use_simple_mount:                       false
 # database_high_availability:            false
 db_scale_out:                          false
 database_cluster_type:                 "AFA"
+db_no_standby:                         false                                    # when set to true, will deploy the scale out - ANF cluster without a standby node.
 # scs_high_availability:                 false
 scs_cluster_type:                      "AFA"
 # Configure pacemaker for Azure scheduled events
