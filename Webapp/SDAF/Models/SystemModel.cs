@@ -627,6 +627,8 @@ namespace AutomationForm.Models
 
     public bool? database_HANA_use_ANF_scaleout_scenario { get; set; } = false;
 
+    public bool? database_HANA_no_standby_role { get; set; } = false;
+
     public int? stand_by_node_count { get; set; } = 0;
 
 

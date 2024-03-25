@@ -1956,6 +1956,15 @@
         "Display": 3
       },
       {
+        "Name": "database_HANA_no_standby_role",
+        "Required": false,
+        "Description": "If true, the database scale out tier will not have a standby role.",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
         "Name": "stand_by_node_count",
         "Required": false,
         "Description": "The number of standby nodes.",
