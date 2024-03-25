@@ -493,3 +493,32 @@ resource "azurerm_virtual_machine_extension" "configure_ansible_app" {
                                          )
   tags                                 = var.tags
 }
+
+
+resource "azurerm_virtual_machine_extension" "monitoring_extension_app_lnx" {
+  provider                             = azurerm.main
+  count                                = local.deploy_monitoring_extension  && upper(var.application_tier.app_os.os_type) == "LINUX" ? (
+                                           local.application_server_count) : (
+                                           0                                           )
+  virtual_machine_id                   = azurerm_windows_virtual_machine.app[count.index].id
+  name                                 = "AzureMonitorLinuxAgent"
+  publisher                            = "Microsoft.Azure.Monitor"
+  type                                 = "AzureMonitorLinuxAgent"
+  type_handler_version                 = "1.0"
+  auto_upgrade_minor_version           = "true"
+}
+
+
+resource "azurerm_virtual_machine_extension" "monitoring_extension_app_win" {
+  provider                             = azurerm.main
+  count                                = local.deploy_monitoring_extension  && upper(var.application_tier.app_os.os_type) == "WINDOWS" ? (
+                                           local.application_server_count) : (
+                                           0                                           )
+  virtual_machine_id                   = azurerm_windows_virtual_machine.app[count.index].id
+  name                                 = "AzureMonitorWindowsAgent"
+  publisher                            = "Microsoft.Azure.Monitor"
+  type                                 = "AzureMonitorWindowsAgent"
+  type_handler_version                 = "1.0"
+  auto_upgrade_minor_version           = "true"
+}
+
