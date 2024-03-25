@@ -121,28 +121,30 @@
   loop:                                "{{ az_network_interfaces | list }}"
 
 # for each of the additional ip addresses, add the configuration to the network interface
-# and create a route to the subnet
-- name:                                "1.10 Networking - Create the file with secondary ip"
-  ansible.builtin.blockinfile:
-    create:                            true
-    path:                              /etc/sysconfig/network-scripts/ifcfg-{{ azif.interfaceName }}
-    marker_begin:                      "-- BEGIN"
-    marker_end:                        "-- END"
-    block: |
-      DEVICE={{ azif.interfaceName }}
-      BOOTPROTO=static
-      ONBOOT=yes
-      IPADDR={{ azif.ipAddress }}
-      NETMASK={{ azif.subnet | ipaddr('netmask') }}
-    mode:                              644
-  loop:                                "{{ az_network_interfaces | list }}"
-  loop_control:
-    loop_var:                          azif
-  register:                            definition_made
-  when:
-    - az_network_interfaces is defined
-    - az_network_interfaces | length >= 1
-    - not azif.interfaceName in ['eth0', 'eth0:0']
+# and create a route to the subnet - this is for the storage and application subnets
+# As the IMDS does not return the IPs in the correct order always, we might run into issues
+# this is an old way of doing things, we should be using the nmcli commands anyways.
+# - name:                                "1.10 Networking - Create the file with secondary ip"
+#   ansible.builtin.blockinfile:
+#     create:                            true
+#     path:                              /etc/sysconfig/network-scripts/ifcfg-{{ azif.interfaceName }}
+#     marker_begin:                      "-- BEGIN"
+#     marker_end:                        "-- END"
+#     block: |
+#       DEVICE={{ azif.interfaceName }}
+#       BOOTPROTO=static
+#       ONBOOT=yes
+#       IPADDR={{ azif.ipAddress }}
+#       NETMASK={{ azif.subnet | ipaddr('netmask') }}
+#     mode:                              644
+#   loop:                                "{{ az_network_interfaces | list }}"
+#   loop_control:
+#     loop_var:                          azif
+#   register:                            definition_made
+#   when:
+#     - az_network_interfaces is defined
+#     - az_network_interfaces | length >= 1
+#     - not azif.interfaceName in ['eth0', 'eth0:0']
 
 # Restart Network service (ifup eth0)
 - name:                                "1.10 Networking - Restart Network service"
@@ -195,10 +197,12 @@
         - not azif.interfaceName in ['eth0', 'eth0:0']
         - subnet_prefix_storage | ansible.utils.network_in_usable( azif.ipAddress )
 
+    # since the storage nic is the 3rd added to the VM we will assume that the device is eth2
+    # and the connection is 'Wired connection 2'
     - name:                            "1.10 Networking - Add route to the ANF subnet via storage gateway"
       become:                          true
       become_user:                     root
-      ansible.builtin.shell:           nmcli connection modify "System {{ azif.interfaceName }}" +ipv4.routes "{{ subnet_prefix_anf }} {{ azif.subnet | ansible.utils.ipmath(1) }}"
+      ansible.builtin.shell:           nmcli connection modify "Wired connection 2" +ipv4.routes "{{ subnet_prefix_anf }} {{ azif.subnet | ansible.utils.ipmath(1) }}"
       loop:                            "{{ az_network_interfaces | list }}"
       loop_control:
         loop_var:                      azif
@@ -229,7 +233,7 @@
         - subnet_prefix_client | ansible.utils.network_in_usable( azif.ipAddress )
 
     - name:                            "1.10 Networking - Add route to the application subnet via client gateway"
-      ansible.builtin.command:         nmcli connection modify "System {{ azif.interfaceName }}" +ipv4.routes "{{ subnet_prefix_app }} {{ azif.subnet | ansible.utils.ipmath(1) }}"
+      ansible.builtin.command:         nmcli connection modify "Wired connection 1" +ipv4.routes "{{ subnet_prefix_app }} {{ azif.subnet | ansible.utils.ipmath(1) }}"
       loop:                            "{{ az_network_interfaces | list }}"
       loop_control:
         loop_var:                      azif
