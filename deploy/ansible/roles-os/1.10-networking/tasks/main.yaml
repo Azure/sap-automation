@@ -209,7 +209,7 @@
       when:
         - az_network_interfaces is defined
         - subnet_prefix_storage is defined
-        - az_network_interfaces | length >= 1
+        - az_network_interfaces | length >= 2
         - not azif.interfaceName in ['eth0', 'eth0:0']
         - subnet_prefix_storage | ansible.utils.network_in_usable( azif.ipAddress )
 
@@ -228,7 +228,7 @@
       when:
         - az_network_interfaces is defined
         - subnet_prefix_client is defined
-        - az_network_interfaces | length >= 1
+        - az_network_interfaces | length >= 2
         - not azif.interfaceName in ['eth0', 'eth0:0']
         - subnet_prefix_client | ansible.utils.network_in_usable( azif.ipAddress )
 
