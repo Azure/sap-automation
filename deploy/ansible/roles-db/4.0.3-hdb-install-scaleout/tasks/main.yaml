@@ -7,7 +7,13 @@
 # |                  deploy hdblcm password file                               |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
-
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |    This code contains references to terms that Microsoft no longer uses.   |
+# |    When these terms are removed from the SAP software and documentation,   |
+# |    we’ll remove them from this codebase.                                   |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
 ---
 
 # +------------------------------------4--------------------------------------*/
