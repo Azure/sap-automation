@@ -12,8 +12,6 @@ variable "database_server_count"                        {
                                                           description = "The number of database servers"
                                                           default     = 1
                                                         }
-variable "database_cluster_disk_size"                   { description = "The size of the shared disk for the Database cluster" }
-variable "database_cluster_disk_lun"                    { description = "The LUN of the shared disk for the Database cluster" }
 variable "database_vm_admin_nic_ips"                    { description = "If provided, the database tier will be configured with the specified IPs (admin subnet)" }
 variable "database_vm_db_nic_ips"                       { description = "If provided, the database tier will be configured with the specified IPs" }
 variable "database_vm_db_nic_secondary_ips"             { description = "If provided, the database tier will be configured with the specified IPs as secondary IPs" }
