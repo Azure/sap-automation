@@ -109,9 +109,9 @@
         # This is the way !!!
         _rsp_additional_hosts:         "{% for item in db_hosts[1:] %}
                                         {% if loop.index == db_hosts | length -1 %}
-                                        {{ item }}:role=standby:group=default:workergroup=default
+                                        {{ item }}-client:role=standby:group=default:workergroup=default
                                         {% else %}
-                                        {{ item }}:role=worker:group=default:workergroup=default,
+                                        {{ item }}-client:role=worker:group=default:workergroup=default,
                                         {% endif %}
                                         {% endfor %}"
 
