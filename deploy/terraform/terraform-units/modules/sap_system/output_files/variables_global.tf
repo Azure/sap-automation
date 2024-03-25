@@ -145,6 +145,7 @@ variable "save_naming_information"              {
                                                   default     = false
                                                 }
 variable "scale_out"                            { description = "If true, the SAP System will be scale out" }
+variable "scale_out_no_standby_role"            { description = "If true, the SAP Scale out system will not have a standby-node. Only applicable for shared storage based deployment" }
 variable "scs_shared_disks"                     { description = "SCS Azure Shared Disk" }
 
 

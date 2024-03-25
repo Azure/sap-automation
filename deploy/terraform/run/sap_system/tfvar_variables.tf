@@ -1384,6 +1384,11 @@ variable "database_HANA_use_ANF_scaleout_scenario" {
                                                   default = false
                                                 }
 
+variable "database_HANA_no_standby_role"        {
+                                                  description = "If true, the database scale out tier will not have a standby role"
+                                                  default = false
+                                                }
+
 variable "stand_by_node_count"                  {
                                                   description = "The number of standby nodes"
                                                   default = 0

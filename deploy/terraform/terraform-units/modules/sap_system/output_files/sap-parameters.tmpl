@@ -92,7 +92,7 @@ platform:                       ${platform}
 
 # Scale out defines if the database is to be deployed in a scale out configuration
 db_scale_out:                   ${scale_out}
-
+db_no_standby:                  ${scale_out_no_standby_role}
 
 %{~ endif }
 subnet_prefix_anf:              ${subnet_prefix_anf}
