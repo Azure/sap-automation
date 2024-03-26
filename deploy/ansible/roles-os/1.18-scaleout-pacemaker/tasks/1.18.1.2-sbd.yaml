@@ -1,0 +1,269 @@
+---
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+# https://learn.microsoft.com/en-us/azure/sap/workloads/high-availability-guide-suse-pacemaker#overview
+
+# 1) Create and attach and Azure Shared Disk
+# 2) Set up an Azure shared disk SBD device
+# create SBD device
+# Edit SBD Config file
+# Softdog config file
+# Load Module
+
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# | Show important parameters                                                  |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+- name:                                       "Parameters to be used..."
+  ansible.builtin.debug:
+    msg:                                      # Best method for formatting output with Azure Devops Logs
+                                              - "database_cluster_type:           {{ database_cluster_type }}"
+                                              - "sbdDevices:                      {{ sbdDevices }}"
+    verbosity:                                2
+  when:
+                                              - (database_cluster_type == "ASD")
+
+- name:                                       "Parameters to be used..."
+  ansible.builtin.debug:
+    msg:                                      # Best method for formatting output with Azure Devops Logs
+                                              - "database_cluster_type:           {{ database_cluster_type }}"
+                                              - "iscsi_servers:                   {{ iscsi_servers }}"
+    verbosity:                                2
+  when:
+                                              - (database_cluster_type == "ISCSI")
+
+
+- name:                                       "Parameters testing..."
+  ansible.builtin.debug:
+    msg:                                      # Best method for formatting output with Azure Devops Logs
+                                              - "item.host:                      {{ item.host }}"
+                                              - "item.lun:                       {{ item.lun }}"
+    verbosity:                                2
+  loop:                                       "{{ sbdDevices }}"
+  when:
+                                              - (database_cluster_type == "ASD")
+
+
+# - name:                                       "Parameters testing..."
+#   ansible.builtin.debug:
+#     var:                                      hostvars[ansible_hostname]
+#     verbosity:                                2
+
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# | ASD                                                                        |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+- name:                                       'SBD - ASD - discover and create SBD device(s)'
+  block:
+    # +------------------------------------
+    # Build List of Lists
+    #   sbdMap: [
+    #     {
+    #       host:
+    #       lun:
+    #       blockDev:
+    #       diskByLun:
+    #       diskById:
+    #     }
+    #   ]
+    - name:                                   "ASD - Build SBD Dictionary"
+      ansible.builtin.set_fact:
+        sbdMap:                               "{{ sbdMap + sbdMap_update }}"
+      vars:
+        sbdMap_update:
+                                              - { host:       "{{ item.host }}" ,
+                                                  lun:        "{{ item.LUN }}"  ,
+                                                  blockDev:   ''                ,
+                                                  diskByLun:  ''                ,
+                                                  diskById:   ''                  }
+      loop:                                   "{{ sbdDevices }}"
+      when:
+                                              - (database_cluster_type == "ASD")
+                                              - item.host == ansible_hostname
+
+    - name:                                   "ISCSI - Build SBD Dictionary"
+      ansible.builtin.set_fact:
+        sbdMap:                               "{{ sbdMap + sbdMap_update }}"
+      vars:
+        sbdMap_update:
+                                              - { host:       "{{ item[0] }}"   ,
+                                                  lun:        ''                ,
+                                                  blockDev:   '{{ item[1] }}'   ,
+                                                  diskByLun:  ''                ,
+                                                  diskById:   ''                  }
+      loop:                                   "{{ iscsi_device_map }}"
+      when:
+                                              - (database_cluster_type == "ISCSI")
+
+    - name:                                   "SBD Dictionary..."
+      ansible.builtin.debug:
+        var:                                  sbdMap
+        verbosity:                            2
+      when:
+                                              - (database_cluster_type == "ASD")   or
+                                                (database_cluster_type == "ISCSI")
+
+    - name:                                   "SBD Dictionary..."
+      ansible.builtin.debug:
+        msg:                                  # Best method for formatting output with Azure Devops Logs
+                                              - "item.host:                      {{ item.host }}"
+                                              - "item.blockDev:                  {{ item.blockDev }}"
+        verbosity:                            2
+      loop:                                   "{{ sbdMap }}"
+      when:
+                                              - (database_cluster_type == "ISCSI")
+
+    # +------------------------------------
+    # -------------------------------------+---------------------------------------8
+    # Step: 03
+    # Description:  Dynamic Processing - Iterate over BOM dictionary to find Dynamic
+    #               entries.
+    #
+    - name:                                 "Update Block Device"
+      ansible.builtin.include_tasks:        "1.18.1.3-sbd-deviceUpdate.yaml"
+      loop:                                 "{{ sbdMap }}"
+      loop_control:
+        loop_var:                           sdbMap_entry
+        index_var:                          sdbMap_index
+      # vars:
+      #   _step:                              "deviceUpdate"
+    # Step: 03 - END
+    # -------------------------------------+---------------------------------------8
+
+    - name:                                       "Update Device Info: Show SBD Dictionary..."
+      ansible.builtin.debug:
+        var:                                      sbdMap
+        verbosity:                                2
+
+
+    # /*------------------------------------
+    # |
+    # | create sbd devices
+    # |
+    # +------------------------------------4
+    - name:                                       "dump SBD Device(s)..."
+      ansible.builtin.command:                    "sbd
+                                                  {%- for entry in sbdMap             +%}
+                                                  -d {{ entry.diskById                }}
+                                                  {%- endfor                          +%}
+                                                  dump
+                                                  "
+      ignore_errors:                              true
+      register:                                   sbdDumpCommand_results
+      run_once:                                   true                                            # run on only one host in play
+
+    - name:                                       "Show dump SBD device(s) results..."
+      ansible.builtin.debug:
+        var:                                      sbdDumpCommand_results
+        verbosity:                                2
+      run_once:                                   true                                            # run on only one host in play
+
+    - name:                                       "create SBD Device(s)..."
+      block:
+
+        - name:                                   "create SBD Device(s)..."
+          ansible.builtin.command:                "sbd
+                                                  {%- for entry in sbdMap             +%}
+                                                  -d {{ entry.diskById                }}
+                                                  {%- endfor                          +%}
+                                                  -1 60 -4 120 create
+                                                  "
+          register:                               sbdCreateCommand_results
+
+
+        - name:                                   "Show block device results..."
+          ansible.builtin.debug:
+            var:                                  sbdCreateCommand_results
+            verbosity:                            2
+
+      run_once:                                   true                                            # run on only one host in play
+      when:                                       sbdDumpCommand_results.rc == 1
+
+
+    # /*------------------------------------
+    # |
+    # | sbd config file
+    # |
+    # +------------------------------------4
+    # Type: string
+    # Default: ""
+    #
+    # SBD_DEVICE specifies the devices to use for exchanging sbd messages
+    # and to monitor. If specifying more than one path, use ";" as
+    # separator.
+    # SBD_DEVICE="/dev/sdb1;/dev/sdc1;/dev/sdc2"
+    #
+    # SBD_DEVICE=""
+    - name:                                   "SBD config file"
+      ansible.builtin.lineinfile:
+        path:                                 /etc/sysconfig/sbd
+        regexp:                               "{{ item.regexp }}"
+        line:                                 "{{ item.line }}"
+        owner:                                root
+        group:                                root
+        mode:                                 '0644'
+        backup:                               true
+      loop:
+        - { regexp: "^SBD_PACEMAKER=.*",  line: 'SBD_PACEMAKER=yes'     }
+        - { regexp: "^SBD_STARTMODE=.*",  line: 'SBD_STARTMODE=always'  }
+        # Format line as so:
+        #   SBD_DEVICE="/dev/disk/by-id/scsi-3600224804208a67da8073b2a9728af19"
+        #   SBD_DEVICE="/dev/disk/by-id/scsi-360022480ef971a6c5759f2dc3adf4c96;/dev/disk/by-id/scsi-360022480ea4064ac4952ea8452d66317"
+        - { regexp: "^SBD_DEVICE=.*",     line: 'SBD_DEVICE="
+                                                            {%- for entry in sbdMap              %}
+                                                            {%-   if loop.index > 1 %};{% endif -%}
+                                                            {{    entry.diskById                 }}
+                                                            {%- endfor                          -%}
+                                                            "'}
+
+
+    # /*------------------------------------
+    # |
+    # | softdog config file
+    # |
+    # +------------------------------------4
+    - name:                                   "softdog - Create config file"
+      ansible.builtin.template:
+        src:                                  softdog.conf
+        dest:                                 /etc/modules-load.d/softdog.conf
+        owner:                                root
+        group:                                root
+        mode:                                 '0644'
+
+
+    # /*------------------------------------
+    # |
+    # | Load softdog kernel module
+    # |
+    # +------------------------------------4
+    - name:                                   "softdog - load module"
+      community.general.modprobe:
+        name:                                 softdog
+        state:                                present
+
+
+# /*------------------------------------
+# |
+# | systemctl enable sbd
+# |
+# +------------------------------------4
+# - name:                                   "systemctl enable sbd"
+#   ansible.builtin.shell: |
+#                                           systemctl enable sbd
+- name:                                    "systemctl enable sbd"
+  ansible.builtin.systemd:
+    name:                                  sbd
+    enabled:                               true
+    daemon_reload:                         true
+  when:
+                                            - (database_cluster_type == "ASD")   or
+                                              (database_cluster_type == "ISCSI")
+...
+# /*---------------------------------------------------------------------------8
+# |                                   END                                      |
+# +------------------------------------4--------------------------------------*/

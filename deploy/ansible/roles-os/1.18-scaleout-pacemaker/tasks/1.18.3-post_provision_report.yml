@@ -1,0 +1,103 @@
+---
+
+- name:                                "1.18.3 Generic Pacemaker - Pause to give cluster time to stabilize"
+  ansible.builtin.pause:
+    seconds:                           "{{ cluster_status_report_wait_in_s }}"
+
+- name:                                "1.18.3 Generic Pacemaker - Check the post-provisioning cluster status"
+  ansible.builtin.command:             "{{ cluster_status_cmd[ansible_os_family] }}"
+  register:                            cluster_status_report
+  changed_when:                        false
+  failed_when:                         false
+
+# /*----------------------------Supplimentary tasks for all HANA + majority maker nodes------------#
+# note: we are going to install the hooks in this stage as 1.18 runs on all HANA nodes and Observer nodes.
+# 5.5 runs only on HANA nodes, so majority maker will be bypassed, resulting in cluster creation failure since it can't find the resource agent/python hook
+
+
+- name:                                Majority Maker only - Implement the Python system replication hook SAPHanaSR-ScaleOut MultiTarget (SUSE)
+  when:
+    - node_tier in ['observer','hana']
+    - platform == 'HANA'
+    - db_scale_out
+    - db_high_availability
+    - ansible_os_family | upper == "SUSE"
+  block:
+    - name:                            Generate list of deployed packages on current host
+      ansible.builtin.package_facts:
+
+    # SAPHanaSR-ScaleOut conflicts with SAPHanaSR and dependencies
+    - name:                            "Ensure SAPHanaSR package is absent"
+      ansible.builtin.package:
+        name:                          SAPHanaSR
+        state:                         absent
+      when:
+        - ansible_facts.packages['SAPHanaSR'] is defined
+
+    - name:                            "Ensure SAPHanaSR-doc package is absent"
+      ansible.builtin.package:
+        name:                          SAPHanaSR-doc
+        state:                         absent
+      when:
+        - ansible_facts.packages['SAPHanaSR-doc'] is defined
+
+    - name:                            "Ensure yast2-sap-ha package is absent"
+      ansible.builtin.package:
+        name:                          yast2-sap-ha
+        state:                         absent
+      when:
+        - ansible_facts.packages['yast2-sap-ha'] is defined
+
+    # Ensure SAPHANA SR Scaleout package is installed
+    - name:                            "Ensure SAPHanaSR-ScaleOut package is installed"
+      ansible.builtin.package:
+        name:                          SAPHanaSR-ScaleOut
+        state:                         present
+      when:
+        - ansible_os_family | upper == "SUSE"
+        - ansible_facts.packages['SAPHanaSR-ScaleOut'] is not defined
+
+    - name:                            "Ensure SAPHanaSR-ScaleOut-doc package is installed"
+      ansible.builtin.package:
+        name:                          SAPHanaSR-ScaleOut-doc
+        state:                         present
+      when:
+        - ansible_os_family | upper == "SUSE"
+        - ansible_facts.packages['SAPHanaSR-ScaleOut-doc'] is not defined
+
+
+- name:                                Majority Maker only - Implement the Scale out Resource Agent hook (REDHAT)
+  when:
+    - node_tier in ['observer','hana']
+    - db_scale_out
+    - db_high_availability
+    - ansible_os_family | upper == "REDHAT"
+  block:
+    - name:                            Generate list of deployed packages on current host
+      ansible.builtin.package_facts:
+
+    - name:                            "Ensure resource-agents-sap-hana-scaleout  is installed (REDHAT)"
+      ansible.builtin.package:
+        name:                          resource-agents-sap-hana-scaleout
+        state:                         present
+      when:
+        - ansible_facts.packages['resource-agents-sap-hana-scaleout'] is not defined
+
+- name:                                "1.18.3 Generic Pacemaker - Output cluster status"
+  ansible.builtin.debug:
+    msg:                               "{{ cluster_status_report.stdout }}"
+    verbosity:                         2
+
+# - name:                                Check the SBD devices status
+#   ansible.builtin.shell:              >
+#                                        set -o pipefail
+#                                        crm_mon -1 | grep sbd
+#   register:                            sbd_status_report
+#   changed_when:                        false
+#   failed_when:                         false
+#   when:                                ansible_os_family | upper == "SUSE"
+
+# - name:                                Output SBD status
+#   ansible.builtin.debug:
+#     msg:                               "{{ sbd_status_report.stdout }}"
+#   when:                                ansible_os_family | upper == "SUSE"

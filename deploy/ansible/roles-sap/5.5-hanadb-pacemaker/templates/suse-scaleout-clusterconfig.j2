@@ -1,0 +1,43 @@
+primitive rsc_SAPHanaTopology_{[ db_sid | upper }}_HDB{{ db_instance_number }} ocf:suse:SAPHanaTopology \
+  op monitor interval="10" timeout="600" \
+  op start interval="0" timeout="600" \
+  op stop interval="0" timeout="300" \
+  params SID="{[ db_sid | upper }}" InstanceNumber="03"
+
+clone cln_SAPHanaTopology_{[ db_sid | upper }}_HDB{{ db_instance_number }} rsc_SAPHanaTopology_{[ db_sid | upper }}_HDB{{ db_instance_number }} \
+ meta clone-node-max="1" target-role="Started" interleave="true"
+
+primitive rsc_SAPHana_{[ db_sid | upper }}_HDB{{ db_instance_number }} ocf:suse:SAPHanaController \
+  op start interval="0" timeout="3600" \
+  op stop interval="0" timeout="3600" \a
+  op promote interval="0" timeout="3600" \
+  op monitor interval="60" role="Master" timeout="700" \
+  op monitor interval="61" role="Slave" timeout="700" \
+  params SID="{[ db_sid | upper }}" InstanceNumber="{{ db_instance_number }}" PREFER_SITE_TAKEOVER="true" \
+  DUPLICATE_PRIMARY_TIMEOUT="7200" AUTOMATED_REGISTER="false"
+
+ms msl_SAPHana_{[ db_sid | upper }}_HDB{{ db_instance_number }} rsc_SAPHana_{[ db_sid | upper }}_HDB{{ db_instance_number }} \
+  meta clone-node-max="1" master-max="1" interleave="true"
+
+primitive rsc_ip_{[ db_sid | upper }}_HDB{{ db_instance_number }} ocf:heartbeat:IPaddr2 \
+  op monitor interval="10s" timeout="20s" \
+  params ip="10.0.2.14"
+
+primitive rsc_nc_{[ db_sid | upper }}_HDB{{ db_instance_number }} azure-lb port=62500 \
+  op monitor timeout=20s interval=10 \
+  meta resource-stickiness=0
+
+group g_ip_{[ db_sid | upper }}_HDB{{ db_instance_number }} rsc_ip_{[ db_sid | upper }}_HDB{{ db_instance_number }} rsc_nc_{[ db_sid | upper }}_HDB{{ db_instance_number }}
+
+
+colocation col_saphana_ip_{[ db_sid | upper }}_HDB{{ db_instance_number }} 4000: g_ip_{[ db_sid | upper }}_HDB{{ db_instance_number }}:Started \
+  msl_SAPHana_{[ db_sid | upper }}_HDB{{ db_instance_number }}:Master
+
+
+order ord_SAPHana_{[ db_sid | upper }}_HDB{{ db_instance_number }} Optional: cln_SAPHanaTopology_{[ db_sid | upper }}_HDB{{ db_instance_number }} \
+  msl_SAPHana_{[ db_sid | upper }}_HDB{{ db_instance_number }}
+
+
+location loc_SAPHanaCon_not_on_majority_maker msl_SAPHana_{[ db_sid | upper }}_HDB{{ db_instance_number }} -inf: {{ majority_maker }}
+location loc_SAPHanaTop_not_on_majority_maker cln_SAPHanaTopology_{[ db_sid | upper }}_HDB{{ db_instance_number }} -inf: {{ majority_maker }}
+

@@ -1,0 +1,53 @@
+---
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# | This file runs common pre-provisioning tasks before the                    |
+# | OS specific clustering is performed                                        |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+- name:                                "1.18.2 Generic Pacemaker - Ensure systemctl daemon is reloaded"
+  ansible.builtin.systemd:
+    daemon_reload:                     true
+
+# SSH access between nodes is only required on SUSE for crm_clustering
+- name:                                "1.18.2 Generic Pacemaker - SUSE specific network and SSH configuration"
+  when:                                ansible_os_family | upper == "SUSE"
+  block:
+    # Change the configuration file for the network interface to prevent the cloud
+    # network plugin from removing the virtual IP address (Pacemaker must control
+    # the VIP assignment)
+    # Refer to: https://www.suse.com/support/kb/doc/?id=7023633 for more information
+    - name:                            "1.18.2 Generic Pacemaker - Ensure that network interface is not managed by cloud network plugin"
+      become:                          true
+      ansible.builtin.lineinfile:
+        path:                          /etc/sysconfig/network/ifcfg-eth0
+        backup:                        true
+        regexp:                        '^CLOUD_NETCONFIG_MANAGE='
+        line:                          CLOUD_NETCONFIG_MANAGE='no'
+      tags:
+        - cloudnetmanage
+
+    - name:                            "1.18.2 Generic Pacemaker - Ensure the current Node trusts public key of particiating nodes"
+      ansible.posix.authorized_key:
+        user:                          root
+        key:                           "{{ hostvars[item].cluster_public_ssh_key }}"
+        state:                         present
+      when:                            ansible_hostname != item
+      with_items:
+        - "{{ ansible_play_hosts_all }}"
+
+    - name:                            1.18.2 Generic Pacemaker - Ensure trust relationship is working from current to remaining hosts
+      ansible.builtin.command:         ssh -oStrictHostKeyChecking=no {{ item }} "hostname -s"
+      register:                        primary_to_secondary_ssh_result
+      changed_when:                    false
+      failed_when:                     primary_to_secondary_ssh_result.stdout_lines[0] != item
+      when:                            ansible_hostname != item
+      with_items:
+        - "{{ ansible_play_hosts_all }}"
+
+
+# Clustering commands are based on the Host OS
+- name:                                "1.18.2 Generic Pacemaker - Cluster based on {{ ansible_os_family }}"
+  ansible.builtin.include_tasks:       "1.18.2.0-cluster-{{ ansible_os_family }}.yml"
+  # when:                                cluster_existence_check != 0
