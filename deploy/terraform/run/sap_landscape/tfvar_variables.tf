@@ -414,7 +414,7 @@ variable "user_assigned_identity_id"            {
 
 variable "deploy_monitoring_extension"          {
                                                   description = "If defined, will add the Microsoft.Azure.Monitor.AzureMonitorLinuxAgent extension to the virtual machines"
-                                                  default     = true
+                                                  default     = false
                                                 }
 
 

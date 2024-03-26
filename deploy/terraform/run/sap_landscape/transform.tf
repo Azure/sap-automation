@@ -173,6 +173,7 @@ locals {
                                            codename                     = try(var.infrastructure.codename, var.codename)
                                            tags                         = try(merge(var.resourcegroup_tags, try(var.infrastructure.tags, {})), {})
                                            deploy_monitoring_extension  = var.deploy_monitoring_extension
+                                           user_assigned_identity_id    = var.user_assigned_identity_id
                                          }
 
   authentication                       = {

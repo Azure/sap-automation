@@ -789,7 +789,7 @@ locals {
   use_AFS_for_shared                             = (var.NFS_provider == "ANF" && var.use_AFS_for_shared_storage) || var.NFS_provider == "AFS"
 
 
-  deploy_monitoring_extension                    = var.infrastructure.deploy_monitoring_extension && length(var.infrastructure.iscsi.user_assigned_identity_id) > 0
+  deploy_monitoring_extension                    = var.infrastructure.deploy_monitoring_extension && length(try(var.infrastructure.user_assigned_identity_id,"")) > 0
 
 }
 
