@@ -76,12 +76,25 @@
     - name:                            Generate list of deployed packages on current host
       ansible.builtin.package_facts:
 
+    # Remove for RHEL 8/9 the existing package "resource-agents-sap-hana" as it conflicts with resource-agents-sap-hana-scaleout during installation.
+
+    - name:                            "Ensure resource-agents-sap-hana  is un-installed (REDHAT 8/9)"
+      ansible.builtin.package:
+        name:                          resource-agents-sap-hana
+        state:                         absent
+      when:
+        - ansible_facts.packages['resource-agents-sap-hana'] is defined
+        - ansible_distribution_major_version in ["8", "9"]
+
     - name:                            "Ensure resource-agents-sap-hana-scaleout  is installed (REDHAT)"
       ansible.builtin.package:
         name:                          resource-agents-sap-hana-scaleout
         state:                         present
       when:
         - ansible_facts.packages['resource-agents-sap-hana-scaleout'] is not defined
+        - ansible_distribution_major_version in ["8", "9"]
+
+    # TODO: block for RHEL 7
 
 - name:                                "1.18.3 Generic Pacemaker - Output cluster status"
   ansible.builtin.debug:
