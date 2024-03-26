@@ -274,5 +274,6 @@ resource "azurerm_network_security_rule" "nsr_controlplane_admin" {
                                            var.deployer_tfstate.subnet_mgmt_address_prefixes,
                                            var.deployer_tfstate.subnet_bastion_address_prefixes)
                                          )
-  destination_address_prefixes         = local.admin_subnet_existing ? data.azurerm_subnet.admin[0]address_prefixes : azurerm_subnet.admin[0].address_prefixes
+
+  destination_address_prefixes         = local.admin_subnet_existing ? data.azurerm_subnet.admin[0].address_prefixes : azurerm_subnet.admin[0].address_prefixes
 }
