@@ -168,10 +168,11 @@ locals {
                                         }
 
   temp_infrastructure                  = {
-                                           environment = coalesce(var.environment, try(var.infrastructure.environment, ""))
-                                           region      = lower(coalesce(var.location, try(var.infrastructure.region, "")))
-                                           codename    = try(var.infrastructure.codename, var.codename)
-                                           tags        = try(merge(var.resourcegroup_tags, try(var.infrastructure.tags, {})), {})
+                                           environment                  = coalesce(var.environment, try(var.infrastructure.environment, ""))
+                                           region                       = lower(coalesce(var.location, try(var.infrastructure.region, "")))
+                                           codename                     = try(var.infrastructure.codename, var.codename)
+                                           tags                         = try(merge(var.resourcegroup_tags, try(var.infrastructure.tags, {})), {})
+                                           deploy_monitoring_extension  = var.deploy_monitoring_extension
                                          }
 
   authentication                       = {
