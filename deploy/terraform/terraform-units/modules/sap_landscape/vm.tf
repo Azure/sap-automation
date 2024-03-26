@@ -171,7 +171,7 @@ resource "azurerm_linux_virtual_machine" "utility_vm" {
 }
 
 
-resource "azurerm_virtual_machine_extension" "monitoring_extension_scs_lnx" {
+resource "azurerm_virtual_machine_extension" "monitoring_extension_utility_lnx" {
   provider                             = azurerm.main
   count                                = upper(var.vm_settings.image.os_type) == "LINUX" ? var.vm_settings.count : 0
   virtual_machine_id                   = azurerm_linux_virtual_machine.utility_vm[count.index].id
@@ -185,7 +185,7 @@ resource "azurerm_virtual_machine_extension" "monitoring_extension_scs_lnx" {
                                               "authentication"  =  {
                                                    "managedIdentity" = {
                                                         "identifier-name" : "mi_res_id",
-                                                        "identifier-value": var.application_tier.user_assigned_identity_id
+                                                        "identifier-value": var.infrastructure.user_assigned_identity_id
                                                       }
                                                 }
                                             }
@@ -193,7 +193,7 @@ resource "azurerm_virtual_machine_extension" "monitoring_extension_scs_lnx" {
 }
 
 
-resource "azurerm_virtual_machine_extension" "monitoring_extension_scs_win" {
+resource "azurerm_virtual_machine_extension" "monitoring_extension_utility_win" {
   provider                             = azurerm.main
   count                                = upper(var.vm_settings.image.os_type) == "WINDOWS" ? var.vm_settings.count : 0
 
@@ -208,7 +208,7 @@ resource "azurerm_virtual_machine_extension" "monitoring_extension_scs_win" {
                                               "authentication"  =  {
                                                    "managedIdentity" = {
                                                         "identifier-name" : "mi_res_id",
-                                                        "identifier-value": var.application_tier.user_assigned_identity_id
+                                                        "identifier-value": var.infrastructure.user_assigned_identity_id
                                                       }
                                                 }
                                             }
