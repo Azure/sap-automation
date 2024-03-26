@@ -173,7 +173,7 @@ resource "azurerm_linux_virtual_machine" "utility_vm" {
 
 resource "azurerm_virtual_machine_extension" "monitoring_extension_utility_lnx" {
   provider                             = azurerm.main
-  count                                = upper(var.vm_settings.image.os_type) == "LINUX" ? var.vm_settings.count : 0
+  count                                = local.deploy_monitoring_extension && upper(var.vm_settings.image.os_type) == "LINUX" ? var.vm_settings.count : 0
   virtual_machine_id                   = azurerm_linux_virtual_machine.utility_vm[count.index].id
   name                                 = "AzureMonitorLinuxAgent"
   publisher                            = "Microsoft.Azure.Monitor"
@@ -195,7 +195,7 @@ resource "azurerm_virtual_machine_extension" "monitoring_extension_utility_lnx" 
 
 resource "azurerm_virtual_machine_extension" "monitoring_extension_utility_win" {
   provider                             = azurerm.main
-  count                                = upper(var.vm_settings.image.os_type) == "WINDOWS" ? var.vm_settings.count : 0
+  count                                = local.deploy_monitoring_extension && upper(var.vm_settings.image.os_type) == "WINDOWS" ? var.vm_settings.count : 0
 
   virtual_machine_id                   = azurerm_windows_virtual_machine.utility_vm[count.index].id
   name                                 = "AzureMonitorWindowsAgent"
