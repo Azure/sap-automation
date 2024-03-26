@@ -123,7 +123,7 @@ resource "azurerm_linux_virtual_machine" "app" {
   location                             = var.resource_group[0].location
   resource_group_name                  = var.resource_group[0].name
 
-  proximity_placement_group_id         = length(var.scale_set_id) > 0 ? (
+  proximity_placement_group_id         = var.application_tier.app_use_avset || length(var.scale_set_id) > 0 ? (
                                            null) : (
                                            var.application_tier.app_use_ppg ? (
                                              var.ppg[count.index % max(length(var.ppg), 1)]) : (
@@ -240,6 +240,7 @@ resource "azurerm_linux_virtual_machine" "app" {
   lifecycle {
     ignore_changes = [
       source_image_id,
+      proximity_placement_group_id,
       zone
     ]
   }
@@ -266,7 +267,7 @@ resource "azurerm_windows_virtual_machine" "app" {
   source_image_id                      = var.application_tier.app_os.type == "custom" ? var.application_tier.app_os.source_image_id : null
 
 
-  proximity_placement_group_id         = length(var.scale_set_id) > 0 ? (
+  proximity_placement_group_id         = var.application_tier.app_use_avset || length(var.scale_set_id) > 0 ? (
                                            null) : (
                                            var.application_tier.app_use_ppg ? (
                                              var.ppg[count.index % max(length(var.ppg), 1)]) : (
@@ -442,7 +443,8 @@ resource "azurerm_virtual_machine_extension" "app_lnx_aem_extension" {
   type_handler_version                 = "1.0"
   settings                             = jsonencode(
                                            {
-                                             "system": "SAP"
+                                             "system": "SAP",
+                                             "cfg": local.extension_settings
                                            }
                                          )
   tags                                 = var.tags
@@ -462,7 +464,8 @@ resource "azurerm_virtual_machine_extension" "app_win_aem_extension" {
   type_handler_version                 = "1.0"
   settings                             = jsonencode(
                                            {
-                                             "system": "SAP"
+                                             "system": "SAP",
+                                             "cfg": local.extension_settings
                                            }
                                          )
   tags                                 = var.tags

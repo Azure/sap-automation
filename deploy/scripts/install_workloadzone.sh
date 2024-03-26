@@ -942,6 +942,8 @@ then
         return_value=0
         errors_occurred=$(jq 'select(."@level" == "error") | length' apply_output.json)
 
+        cat apply_output.json
+
         if [[ -n $errors_occurred ]]
         then
           echo ""

@@ -546,7 +546,7 @@ resource "azurerm_role_assignment" "kv_user_additional_users" {
                                                                        azurerm_key_vault.kv_user[0].id
                                                                      )
   role_definition_name                 = "Key Vault Secrets Officer"
-  principal_id                         = local.service_principal.object_id
+  principal_id                         = var.additional_users_to_add_to_keyvault_policies[count.index]
 }
 
 resource "azurerm_management_lock" "keyvault" {

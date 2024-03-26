@@ -26,9 +26,14 @@
                             </div>
 
                             <div class="right-input">
+                                
                                 @if (@p.Type == "field")
                                 {
                                     @Html.TextBox(p.Name, (string) ("" + value), new { @class = "ms-TextField-field", @onchange = $"overrulesHandler({p.Name}, {p.Overrules})" })
+                                }
+                                else if (@p.Type == "textbox")
+                                {
+                                    @Html.TextArea(p.Name, (string)("" + value), new { @class = "ms-TextField-field", @style = "width: 100%; height: auto", @onchange = $"overrulesHandler({p.Name}, {p.Overrules})" })
                                 }
                                 else if (@p.Type == "lookup")
                                 {
@@ -121,7 +126,7 @@
                                 }
                                 else
                                 {
-                                    <p>Invalid parameter</p>
+                                    <p>Invalid parameter type @Html.Raw(p.Type)</p>
                                 }
 
                                 @Html.ValidationMessage(p.Name)
