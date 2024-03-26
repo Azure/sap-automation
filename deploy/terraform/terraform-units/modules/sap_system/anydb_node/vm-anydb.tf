@@ -702,7 +702,7 @@ resource "azurerm_virtual_machine_data_disk_attachment" "kdump" {
 
 resource "azurerm_virtual_machine_extension" "monitoring_extension_db_lnx" {
   provider                             = azurerm.main
-  count                                = local.deploy_monitoring_extension  && upper(var.database.app_os.os_type) == "LINUX" ? (
+  count                                = local.deploy_monitoring_extension  && upper(var.database.os.os_type) == "LINUX" ? (
                                            var.database_server_count) : (
                                            0                                           )
   virtual_machine_id                   = azurerm_linux_virtual_machine.dbserver[count.index].id
@@ -727,7 +727,7 @@ resource "azurerm_virtual_machine_extension" "monitoring_extension_db_lnx" {
 
 resource "azurerm_virtual_machine_extension" "monitoring_extension_db_win" {
   provider                             = azurerm.main
-  count                                = local.deploy_monitoring_extension  && upper(var.database.app_os.os_type) == "WINDOWS" ? (
+  count                                = local.deploy_monitoring_extension  && upper(var.database.os.os_type) == "WINDOWS" ? (
                                            var.database_server_count) : (
                                            0                                           )
   virtual_machine_id                   = azurerm_windows_virtual_machine.dbserver[count.index].id
