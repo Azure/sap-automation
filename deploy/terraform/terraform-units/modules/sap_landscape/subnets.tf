@@ -123,6 +123,16 @@ resource "azurerm_subnet" "storage" {
                                          )
 }
 
+data "azurerm_subnet" "storage" {
+  provider                             = azurerm.main
+  count                                = local.storage_subnet_existing ? 1 : 0
+  name                                 = split("/", local.storage_subnet_arm_id)[10]
+  resource_group_name                  = split("/", local.storage_subnet_arm_id)[4]
+  virtual_network_name                 = split("/", local.storage_subnet_arm_id)[8]
+}
+
+
+
 // Creates anf subnet of SAP VNET
 resource "azurerm_subnet" "anf" {
   provider                             = azurerm.main

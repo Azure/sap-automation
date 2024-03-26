@@ -202,6 +202,7 @@ resource "azurerm_network_security_rule" "nsr_controlplane_web" {
 // Add SSH network security rule
 resource "azurerm_network_security_rule" "nsr_controlplane_storage" {
   provider                             = azurerm.main
+
   count                                = local.storage_subnet_defined ? local.storage_subnet_nsg_exists ? 0 : 1 : 0
   depends_on                           = [
                                            azurerm_network_security_group.storage
