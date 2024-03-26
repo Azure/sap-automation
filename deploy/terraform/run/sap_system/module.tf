@@ -94,6 +94,7 @@ module "common_infrastructure" {
   use_private_endpoint                          = var.use_private_endpoint
   use_random_id_for_storageaccounts             = var.use_random_id_for_storageaccounts
   use_scalesets_for_deployment                  = var.use_scalesets_for_deployment
+  register_endpoints_with_dns                   = var.register_endpoints_with_dns
 }
 
 #-------------------------------------------------------------------------------
@@ -161,6 +162,7 @@ module "hdb_node" {
   use_msi_for_clusters                          = var.use_msi_for_clusters
   use_scalesets_for_deployment                  = var.use_scalesets_for_deployment
   use_secondary_ips                             = var.use_secondary_ips
+  register_endpoints_with_dns                   = var.register_endpoints_with_dns
 }
 
 #########################################################################################
