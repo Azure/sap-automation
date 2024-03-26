@@ -42,6 +42,9 @@ namespace AutomationForm.Models
     [LocationValidator(ErrorMessage = "Location is not a valid Azure region")]
     public string location { get; set; }
 
+    public string Description { get; set; }
+
+
     [RequiredIfNotDefault]
     [DisplayName("Network name")]
     [RegularExpression(@"^\w{0,7}$", ErrorMessage = "Logical network name cannot exceed seven characters")]
@@ -213,7 +216,21 @@ namespace AutomationForm.Models
     public bool? use_simple_mount { get; set; } = false;
 
     public string database_cluster_type { get; set; } = "AFA";
+
     public string scs_cluster_type { get; set; } = "AFA";
+
+
+    public int? scs_cluster_disk_lun { get; set; } = 5;
+
+    public int? scs_cluster_disk_size { get; set; } = 128;
+
+    public string scs_cluster_disk_type { get; set; } = "Premium_ZRS";
+
+    public int? database_cluster_disk_lun { get; set; } = 8;
+
+    public int? database_cluster_disk_size { get; set; } = 128;
+
+    public string database_cluster_disk_type { get; set; } = "Premium_ZRS";
 
     /*---------------------------------------------------------------------------8
     |                                                                            |
@@ -609,6 +626,8 @@ namespace AutomationForm.Models
     +------------------------------------4--------------------------------------*/
 
     public bool? database_HANA_use_ANF_scaleout_scenario { get; set; } = false;
+
+    public bool? database_HANA_no_standby_role { get; set; } = false;
 
     public int? stand_by_node_count { get; set; } = 0;
 

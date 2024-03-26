@@ -116,8 +116,6 @@ module "hdb_node" {
   cloudinit_growpart_config                     = null # This needs more consideration module.common_infrastructure.cloudinit_growpart_config
   custom_disk_sizes_filename                    = try(coalesce(var.custom_disk_sizes_filename, var.db_disk_sizes_filename), "")
   database                                      = local.database
-  database_cluster_disk_lun                     = var.database_cluster_disk_lun
-  database_cluster_disk_size                    = var.database_cluster_disk_size
   database_dual_nics                            = try(module.common_infrastructure.admin_subnet, null) == null ? false : var.database_dual_nics
   database_server_count                         = upper(try(local.database.platform, "HANA")) == "HANA" ? (
                                                     local.database.high_availability ? (
@@ -206,8 +204,6 @@ module "app_tier" {
   route_table_id                                = module.common_infrastructure.route_table_id
   sap_sid                                       = local.sap_sid
   scale_set_id                                  = try(module.common_infrastructure.scale_set_id, null)
-  scs_cluster_disk_lun                          = var.scs_cluster_disk_lun
-  scs_cluster_disk_size                         = var.scs_cluster_disk_size
   sdu_public_key                                = module.common_infrastructure.sdu_public_key
   sid_keyvault_user_id                          = module.common_infrastructure.sid_keyvault_user_id
   sid_password                                  = module.common_infrastructure.sid_password
@@ -251,8 +247,6 @@ module "anydb_node" {
                                                   0) : (
                                                     local.database.high_availability ? 2 * var.database_server_count : var.database_server_count
                                                   )
-  database_cluster_disk_lun                     = var.database_cluster_disk_lun
-  database_cluster_disk_size                    = var.database_cluster_disk_size
   db_asg_id                                     = module.common_infrastructure.db_asg_id
   db_subnet                                     = module.common_infrastructure.db_subnet
   deploy_application_security_groups            = var.deploy_application_security_groups
@@ -359,6 +353,13 @@ module "output_files" {
                                                   )))
   loadbalancers                                 = module.hdb_node.loadbalancers
 
+  subnet_prefix_anf                             = module.hdb_node.ANF_subnet_prefix
+  subnet_prefix_app                             = module.app_tier.subnet_prefix_app
+  subnet_prefix_client                          = module.common_infrastructure.subnet_prefix_client
+  subnet_prefix_db                              = module.common_infrastructure.subnet_prefix_db
+  subnet_prefix_storage                         = module.common_infrastructure.subnet_prefix_storage
+
+
   #########################################################################################
   #  SAP Application information                                                          #
   #########################################################################################
@@ -440,6 +441,7 @@ module "output_files" {
   use_simple_mount                              = local.validated_use_simple_mount
   upgrade_packages                              = var.upgrade_packages
   scale_out                                     = var.database_HANA_use_ANF_scaleout_scenario
+  scale_out_no_standby_role                     = var.database_HANA_no_standby_role
 
   #########################################################################################
   #  iSCSI                                                                                #

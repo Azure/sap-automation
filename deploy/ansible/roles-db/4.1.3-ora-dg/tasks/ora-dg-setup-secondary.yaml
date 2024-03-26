@@ -1,9 +1,8 @@
 ---
 
 # /*---------------------------------------------------------------------------8
-# |Execute the SQL scripts  for  data guard initial configuration.             |
 # |                                                                            |
-# |                                                                            |
+# |       Execute the SQL scripts for Oracle Data Guard configuration.         |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
@@ -43,51 +42,46 @@
 # Add additional parameters for Oracle ASM to match the file locations of Primary in secondary.
 # This has to be done to prevent rman shooting file systems all over the disk groups.
 
-- name:                               "Update the initSID.ora for changing the control file location"
+- name:                                "Oracle Data Guard - Update the initSID.ora for changing the control file location"
   ansible.builtin.replace:
-    path:                             /oracle/{{ db_sid | upper }}/{{ ora_release }}/dbs/init{{ db_sid | upper }}.ora
-    regexp:                          '/{{ db_sid | upper }}/c'
-    replace:                         '/{{ db_sid | upper }}_STDBY/c'
-    backup:                           true
+    path:                              /oracle/{{ db_sid | upper }}/{{ ora_release }}/dbs/init{{ db_sid | upper }}.ora
+    regexp:                            '/{{ db_sid | upper }}/c'
+    replace:                           '/{{ db_sid | upper }}_STDBY/c'
+    backup:                            true
   when:
     - node_tier == "oracle-asm"
 
-- name:                            "File update wait for 15 sec to avoid multiple locks"
+- name:                                "Oracle Data Guard - File update wait for 15 sec to avoid multiple locks"
   ansible.builtin.wait_for:
-    timeout:                       15
+    timeout:                           15
 
-- name:                               "Update the initSID.ora for adopting oraarch location"
+- name:                                "Oracle Data Guard - Update the initSID.ora for adopting oraarch location"
   ansible.builtin.replace:
-    path:                             /oracle/{{ db_sid | upper }}/{{ ora_release }}/dbs/init{{ db_sid | upper }}.ora
-    regexp:                          '{{ db_sid | upper }}/oraarch'
-    replace:                         '{{ db_sid | upper }}_STDBY/oraarch'
+    path:                              /oracle/{{ db_sid | upper }}/{{ ora_release }}/dbs/init{{ db_sid | upper }}.ora
+    regexp:                            '{{ db_sid | upper }}/oraarch'
+    replace:                           '{{ db_sid | upper }}_STDBY/oraarch'
   when:
     - node_tier == "oracle-asm"
 #  You can also use "sed" to replace the string. sed -i 's|/DBSID/c|/DBSID_STDBY/c|g'
 
-- name:                            "File update wait for 15 sec to avoid multiple locks"
+- name:                                "Oracle Data Guard - File update wait for 15 sec to avoid multiple locks"
   ansible.builtin.wait_for:
-    timeout:                       15
+    timeout:                           15
 
-- name:                               "Update the initSID.ora to delete the old local_listener value"
-  become:                             true
-  become_user:                       "root"
-  ansible.builtin.shell:      |
-                               sed -i '/local_listener=/d' /oracle/{{ db_sid | upper }}/{{ ora_release }}/dbs/init{{ db_sid | upper }}.ora
-  register:                         local_listener_results
-  failed_when:                      local_listener_results.rc > 1
+- name:                                "Oracle Data Guard - Update the initSID.ora to delete the old local_listener value"
+  become:                              true
+  become_user:                         "root"
+  ansible.builtin.lineinfile:
+    path:                              /oracle/{{ db_sid | upper }}/{{ ora_release }}/dbs/init{{ db_sid | upper }}.ora
+    regexp:                            '^local_listener='
+    state:                             absent
 
-
-# - name:                           "debug file update"
-#   fail:
-#     msg:                          "fail here for checking if the file is updated"
-
-- name:                            "File update wait for 15 sec to avoid multiple locks"
+- name:                                "Oracle Data Guard - File update wait for 15 sec to avoid multiple locks"
   ansible.builtin.wait_for:
-    timeout:                       15
+    timeout:                           15
 
 
-- name:                                "Replace the local listener entires in initSID.ora"
+- name:                                "Oracle Data Guard - Replace the local listener entires in initSID.ora"
   ansible.builtin.blockinfile:
     path:                              /oracle/{{ db_sid | upper }}/{{ ora_release }}/dbs/init{{ db_sid | upper }}.ora
     marker_begin:                      "-- BEGIN"
@@ -103,18 +97,7 @@
   when:
     - node_tier == "oracle-asm"
 
-# Replace the archive log destination in the initSID.ora file.
-# - name:                               "Update the initSID.ora for changing the control file location"
-#   ansible.builtin.replace:
-#     path:                             /oracle/{{ db_sid | upper }}/{{ ora_release }}/dbs/init{{ db_sid | upper }}.ora
-#     regexp:                          "'log_archive_dest_1='LOCATION='"
-#     replace:                         "log_archive_dest_1='LOCATION=/oracle/{{ db_sid | upper }}/oraarch'"
-#     backup:                           true
-#   when:
-#     - node_tier == "oracle"
-
-
-- name:                                "Replace the local listener entires in initSID.ora"
+- name:                                "Oracle Data Guard - Replace the local listener entires in initSID.ora"
   ansible.builtin.blockinfile:
     path:                              /oracle/{{ db_sid | upper }}/{{ ora_release }}/dbs/init{{ db_sid | upper }}.ora
     marker_begin:                      "-- BEGIN"
@@ -168,7 +151,7 @@
 
 # Restart the Listener on Secondary node when the node_tier is Oracle-ASM.
 
-- name:                                "ASM Oracle Data Guard - Setup Secondary: Stop lsnrctl on Secondary"
+- name:                                "Oracle Data Guard - ASM - Setup Secondary: Stop lsnrctl on Secondary"
   become:                              true
   become_user:                         "oracle"
   ansible.builtin.shell:               lsnrctl stop
@@ -182,8 +165,7 @@
     - node_tier == "oracle-asm"
     - current_host == ora_secondary
 
-
-- name:                                "ASM Oracle Data Guard - Setup Secondary: Create lsnrctl_stopped_sec.txt"
+- name:                                "Oracle Data Guard - ASM - Setup Secondary: Create lsnrctl_stopped_sec.txt"
   become:                              true
   become_user:                         "oracle"
   ansible.builtin.file:
@@ -196,7 +178,7 @@
     - lsnrctl_stop_secondary_results.rc == 0
 
 
-- name:                                "Oracle Data Guard - Setup Secondary: Start lsnrctl on Secondary"
+- name:                                "Oracle Data Guard - ASM - Setup Secondary: Start lsnrctl on Secondary"
   become:                              true
   become_user:                         "oracle"
   ansible.builtin.shell:               lsnrctl start
@@ -236,9 +218,9 @@
     - lsnrctl_asm_start_secondary_results.rc == 0
 
 
-- name:                            "ASM Listener Starting: Sleep for 40 seconds and continue with play"
+- name:                                "Oracle Data Guard - ASM Listener Starting: Sleep for 40 seconds and continue with play"
   ansible.builtin.wait_for:
-    timeout:                       40
+    timeout:                           40
 
 - name:                                "Oracle Data Guard - Setup Secondary: Startup secondary DB using pfile"
   become:                              true
@@ -316,7 +298,10 @@
     - name:                            "Oracle Data Guard - Setup Secondary: Remove files"
       become:                          true
       become_user:                     "oracle"
-      ansible.builtin.command:         rm -rf {{ item.directory_to_empty }}/*
+      ansible.builtin.file:
+        path:                          "{{ item.directory_to_empty }}"
+        state:                         absent
+        recurse:                       true
       loop:
         - { directory_to_empty: '/oracle/{{ db_sid | upper }}/sapdata1' }
         - { directory_to_empty: '/oracle/{{ db_sid | upper }}/sapdata2' }
@@ -391,16 +376,16 @@
 # Renaming the Brokenredo files to the correct names and creating the required directories.
 # RUn the redolog clear to physical creation of files.
 
-- name:                            "Oracle Secondary Redo log rename template"
-  become:                          true
-  become_user:                     "oracle"
+- name:                                "Oracle Data Guard - Oracle Secondary Redo log rename using template"
+  become:                              true
+  become_user:                         "oracle"
   ansible.builtin.template:
-   backup:                        true
-   src:                           standbyredolog.j2
-   dest:                          "/etc/sap_deployment_automation/dgscripts/standbyredolog.sql"
-   mode:                          '0644'
-   force:                         true
-  when:                            node_tier == "oracle"
+   backup:                             true
+   src:                                standbyredolog.j2
+   dest:                               "/etc/sap_deployment_automation/dgscripts/standbyredolog.sql"
+   mode:                               '0644'
+   force:                              true
+  when:                                node_tier == "oracle"
 
 
 - name:                                "Oracle Data Guard - Setup Secondary: Rename the redolog files afer RMAN Restore"
@@ -445,7 +430,7 @@
 
 # Create the oraarch and spfile parameter folder on ASM for recovery
 
-- name:                                "Create oraarch and parameter folders for oracle-asm"
+- name:                                "Oracle Data Guard - ASM - Create oraarch and parameter folders"
   become:                              true
   become_user:                         "oracle"
   ansible.builtin.shell: |
@@ -462,7 +447,7 @@
     - current_host == ora_secondary
 
 
-- name:                                "Oracle Data Guard - Setup Secondary: Create asm_oraarch_created.txt"
+- name:                                "Oracle Data Guard - ASM - Setup Secondary: Create asm_oraarch_created.txt"
   become:                              true
   become_user:                         "oracle"
   ansible.builtin.file:
@@ -539,7 +524,7 @@
     - backup_pfile_results.rc == 0
     - current_host == ora_secondary
 
-- name:                            "Update the Local_Listener Value in secondary"
+- name:                                "Oracle Data Guard - Update the Local_Listener Value on secondary"
   become:                              true
   become_user:                         "oracle"
   ansible.builtin.shell:               sqlplus / as sysdba @listenerupdate.sql
@@ -765,7 +750,7 @@
     - current_host == ora_secondary
 
 
-- name:                                "Oracle Data Guard - Setup Secondary: Create asm_secondary_startup_spfile.txt"
+- name:                                "Oracle Data Guard - ASM - Setup Secondary: Create asm_secondary_startup_spfile.txt"
   become:                              true
   become_user:                         "root"
   ansible.builtin.file:
@@ -779,15 +764,15 @@
     - asm_secondary_startup_spfile_results.rc == 0
     - current_host == ora_secondary
 
-- name:                            "Create local_listener_on_secondary on secondary"
-  become:                          true
-  become_user:                     root
+- name:                                "Oracle Data Guard - ASM - Create local_listener_on_secondary on secondary"
+  become:                              true
+  become_user:                         root
   ansible.builtin.file:
-    path:                           /etc/sap_deployment_automation/dgscripts/local_listener_on_secondary.txt
-    state:                          touch
-    mode:                           '0755'
-    owner:                          oracle
-    group:                          oinstall
+    path:                              /etc/sap_deployment_automation/dgscripts/local_listener_on_secondary.txt
+    state:                             touch
+    mode:                              '0755'
+    owner:                             oracle
+    group:                             oinstall
   when:
     - node_tier == "oracle-asm"
     - local_listener_on_secondary_results.rc  == 0

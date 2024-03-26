@@ -103,6 +103,15 @@ output "web_subnet_id"                          {
                                                                  )
                                                 }
 
+output "storage_subnet_id"                      {
+                                                  description = "Azure resource identifier for the storage subnet"
+                                                  value       = local.storage_subnet_defined ? (
+                                                                  local.storage_subnet_existing ? (
+                                                                    var.infrastructure.vnets.sap.subnet_storage.arm_id) : (
+                                                                    try(azurerm_subnet.storage[0].id, ""))) : (
+                                                                  ""
+                                                                 )
+                                                }
 
 output "anf_subnet_id"                          {
                                                   description = "Azure resource identifier for the anf subnet"
@@ -160,6 +169,16 @@ output "web_nsg_id"                             {
                                                                   local.web_subnet_nsg_exists ? (
                                                                     var.infrastructure.vnets.sap.subnet_web.nsg.arm_id) : (
                                                                     try(azurerm_network_security_group.web[0].id, ""))) : (
+                                                                  ""
+                                                                )
+                                                }
+
+output "storage_nsg_id"                         {
+                                                  description = "Azure resource identifier for the storage subnet network security group"
+                                                  value       = local.storage_subnet_defined ? (
+                                                                  local.storage_subnet_nsg_exists ? (
+                                                                    var.infrastructure.vnets.sap.subnet_storage.nsg.arm_id) : (
+                                                                    try(azurerm_network_security_group.storage[0].id, ""))) : (
                                                                   ""
                                                                 )
                                                 }

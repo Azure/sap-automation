@@ -454,7 +454,8 @@ resource "azurerm_virtual_machine_extension" "anydb_lnx_aem_extension" {
   type_handler_version                 = "1.0"
   settings                             = jsonencode(
                                            {
-                                             "system": "SAP"
+                                             "system": "SAP",
+                                             "cfg": local.extension_settings
                                            }
                                          )
   tags                                 = var.tags
@@ -478,7 +479,8 @@ resource "azurerm_virtual_machine_extension" "anydb_win_aem_extension" {
   type_handler_version                 = "1.0"
   settings                             = jsonencode(
                                            {
-                                             "system": "SAP"
+                                             "system": "SAP",
+                                             "cfg": local.extension_settings
                                            }
                                          )
   tags                                 = var.tags
@@ -545,13 +547,13 @@ resource "azurerm_managed_disk" "cluster" {
   location                             = var.resource_group[0].location
   resource_group_name                  = var.resource_group[0].name
   create_option                        = "Empty"
-  storage_account_type                 = "Premium_LRS"
-  disk_size_gb                         = var.database_cluster_disk_size
+  storage_account_type                 = var.database.database_cluster_disk_type
+  disk_size_gb                         = var.database.database_cluster_disk_size
   disk_encryption_set_id               = try(var.options.disk_encryption_set_id, null)
   max_shares                           = var.database_server_count
   tags                                 = var.tags
 
-  zone                                 = local.zonal_deployment && !var.database.use_avset ? (
+  zone                                 = var.database.database_cluster_disk_type == "Premium_LRS" && local.zonal_deployment && !var.database.use_avset ? (
                                            upper(local.anydb_ostype) == "LINUX" ? (
                                              azurerm_linux_virtual_machine.dbserver[local.anydb_disks[count.index].vm_index].zone) : (
                                              azurerm_windows_virtual_machine.dbserver[local.anydb_disks[count.index].vm_index].zone
@@ -595,7 +597,7 @@ resource "azurerm_virtual_machine_data_disk_attachment" "cluster" {
                                            )
                                          )
   caching                              = "None"
-  lun                                  = var.database_cluster_disk_lun
+  lun                                  = var.database.database_cluster_disk_lun
 }
 
 
