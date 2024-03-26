@@ -80,10 +80,8 @@ resource "azurerm_subnet_route_table_association" "db" {
 
 resource "azurerm_subnet" "storage" {
   provider                             = azurerm.main
-  count                                = local.enable_db_deployment && local.enable_storage_subnet ? (
-                                           local.sub_storage_exists ? 0 : 1) : (
-                                           0
-                                         )
+  count                                = !local.sub_storage_exists && local.enable_storage_subnet ? 1 : 0
+
   name                                 = local.sub_storage_name
   resource_group_name                  = data.azurerm_virtual_network.vnet_sap.resource_group_name
   virtual_network_name                 = data.azurerm_virtual_network.vnet_sap.name
@@ -93,10 +91,8 @@ resource "azurerm_subnet" "storage" {
 // Imports data of existing db subnet
 data "azurerm_subnet" "storage" {
   provider                             = azurerm.main
-  count                                = local.enable_db_deployment && local.enable_storage_subnet ? (
-                                           local.sub_storage_exists ? 1 : 0) : (
-                                           0
-                                         )
+  count                                = local.sub_storage_exists && local.enable_storage_subnet ? 1 : 0
+
   name                                 = split("/", local.sub_storage_arm_id)[10]
   resource_group_name                  = split("/", local.sub_storage_arm_id)[4]
   virtual_network_name                 = split("/", local.sub_storage_arm_id)[8]

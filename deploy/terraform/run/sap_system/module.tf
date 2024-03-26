@@ -353,6 +353,13 @@ module "output_files" {
                                                   )))
   loadbalancers                                 = module.hdb_node.loadbalancers
 
+  subnet_prefix_anf                             = module.hdb_node.ANF_subnet_prefix
+  subnet_prefix_app                             = module.app_tier.subnet_prefix_app
+  subnet_prefix_client                          = module.common_infrastructure.subnet_prefix_client
+  subnet_prefix_db                              = module.common_infrastructure.subnet_prefix_db
+  subnet_prefix_storage                         = module.common_infrastructure.subnet_prefix_storage
+
+
   #########################################################################################
   #  SAP Application information                                                          #
   #########################################################################################
@@ -434,6 +441,7 @@ module "output_files" {
   use_simple_mount                              = local.validated_use_simple_mount
   upgrade_packages                              = var.upgrade_packages
   scale_out                                     = var.database_HANA_use_ANF_scaleout_scenario
+  scale_out_no_standby_role                     = var.database_HANA_no_standby_role
 
   #########################################################################################
   #  iSCSI                                                                                #
