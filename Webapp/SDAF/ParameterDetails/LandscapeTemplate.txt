@@ -36,6 +36,8 @@ $$Description$$
 #If you want to provide a custom naming json use the following parameter.
 $$name_override_file$$
 
+# If defined, will add the Microsoft.Azure.Monitor.AzureMonitorLinuxAgent extension to the virtual machines
+$$deploy_monitoring_extension$$
 
 #########################################################################################
 #                                                                                       #

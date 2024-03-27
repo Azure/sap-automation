@@ -322,7 +322,7 @@ output "scs_kdump_disks"               {
 
 
 
-output "subnet_prefix_app"             {
+output "subnet_cidr_app"             {
                                           description = "Storage subnet prefix"
                                           value       = local.enable_deployment ? (
                                                           local.application_subnet_exists ? (

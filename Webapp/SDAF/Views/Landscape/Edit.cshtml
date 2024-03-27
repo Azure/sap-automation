@@ -112,6 +112,12 @@
                     Deploy
                 </fluent-anchor>
             </td>
+            <td>
+                &nbsp
+                <fluent-anchor appearance="accent" style="margin-top: 15px" href="@Url.Action("Download", "Landscape", new { id = @Model.SapObject.Id, partitionKey = @Model.SapObject.environment })">
+                    Download
+                </fluent-anchor>
+            </td>
         </tr>
 
     </form>
