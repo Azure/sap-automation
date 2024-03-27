@@ -324,6 +324,15 @@
         "Display": 2
       },
       {
+        "Name": "register_endpoints_with_dns",
+        "Required": false,
+        "Description": "Defines if the Private Endpoints are registered with DNS",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
         "Name": "use_private_endpoint",
         "Required": false,
         "Description": "Use private endpoint for the storage accounts and the key vaults in the deployment.",
