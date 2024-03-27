@@ -108,7 +108,7 @@
         _rsp_system_usage:             "custom"
         use_master_password:           "{{ hana_use_master_password }}"
         password_copy:                 "{%if hana_use_master_password == 'n' %}{{ main_password }}{% else %}{% endif %}"
-        _rsp_internal_network:         "{{ subnet_prefix_db }}"
+        _rsp_internal_network:         "{{ subnet_cidr_db | default((subnet_address + '/' + subnet_prefix), true) }}"
         # This comes in from the main ansible playbook. It is the password for the root user. Must be randomized after the installation.
         _rsp_root_password:            "{{ root_password }}"
         # Note: Last node in the DB list is marked as standby, while everything else except first node is marked as worker node
