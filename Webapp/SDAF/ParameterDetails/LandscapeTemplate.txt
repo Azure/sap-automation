@@ -39,6 +39,10 @@ $$name_override_file$$
 # If defined, will add the Microsoft.Azure.Monitor.AzureMonitorLinuxAgent extension to the virtual machines
 $$deploy_monitoring_extension$$
 
+# If defined, will add the Microsoft.Azure.Security.Monitoring extension to the virtual machines
+$$deploy_defender_extension$$
+
+
 #########################################################################################
 #                                                                                       #
 #  Resource group details                                                               #

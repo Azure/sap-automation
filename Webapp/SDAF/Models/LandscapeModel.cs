@@ -51,7 +51,9 @@ namespace AutomationForm.Models
     public Tag[] tags { get; set; }
 
 
-    public bool? deploy_monitoring_extension { get; set; } = false;
+    public bool? deploy_monitoring_extension { get; set; } = true;
+
+    public bool? deploy_defender_extension { get; set; } = false;
 
     /*---------------------------------------------------------------------------8
     |                                                                            |
