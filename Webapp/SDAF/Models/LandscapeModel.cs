@@ -273,12 +273,16 @@ namespace AutomationForm.Models
     public string management_dns_subscription_id { get; set; }
 
     public bool? use_custom_dns_a_registration { get; set; } = false;
+
     public string dns_label { get; set; }
 
     public string dns_resource_group_name { get; set; }
 
     [IpAddressValidator]
     public string[] dns_server_list { get; set; }
+
+    public bool? register_endpoints_with_dns { get; set; } = true;
+
 
     /*---------------------------------------------------------------------------8
     |                                                                            |

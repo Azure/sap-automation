@@ -492,6 +492,9 @@ $$deploy_monitoring_extension$$
 # dns_a_records_for_secondary_names defines if DNS records should be created for the virtual host names
 $$dns_a_records_for_secondary_names$$
 
+# register_endpoints_with_dns defines if the endpoints should be registered with the DNS
+$$register_endpoints_with_dns$$
+
 #########################################################################################
 #                                                                                       #
 #  NFS support                                                                          #

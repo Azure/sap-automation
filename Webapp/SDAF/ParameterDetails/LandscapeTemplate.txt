@@ -306,6 +306,10 @@ $$use_custom_dns_a_registration$$
 # This also controls the creation of DNS entries for the load balancers
 $$register_virtual_network_to_dns$$
 
+# register_endpoints_with_dns defines if the endpoints should be registered with the DNS
+$$register_endpoints_with_dns$$
+
+
 #########################################################################################
 #                                                                                       #
 #  Azure Keyvault support                                                               #
