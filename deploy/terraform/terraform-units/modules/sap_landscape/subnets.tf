@@ -112,7 +112,7 @@ resource "azurerm_subnet" "storage" {
   name                                 = local.storage_subnet_name
   resource_group_name                  = local.SAP_virtualnetwork_exists ? data.azurerm_virtual_network.vnet_sap[0].resource_group_name : azurerm_virtual_network.vnet_sap[0].resource_group_name
   virtual_network_name                 = local.SAP_virtualnetwork_exists ? data.azurerm_virtual_network.vnet_sap[0].name : azurerm_virtual_network.vnet_sap[0].name
-  address_prefixes                     = [local.subnet_prefix_storage]
+  address_prefixes                     = [local.subnet_cidr_storage]
 
   private_endpoint_network_policies_enabled     = var.use_private_endpoint
 

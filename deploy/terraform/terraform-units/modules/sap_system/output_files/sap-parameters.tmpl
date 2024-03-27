@@ -95,11 +95,11 @@ db_scale_out:                   ${scale_out}
 db_no_standby:                  ${scale_out_no_standby_role}
 
 %{~ endif }
-subnet_prefix_anf:              ${subnet_prefix_anf}
-subnet_prefix_app:              ${subnet_prefix_app}
-subnet_prefix_db:               ${subnet_prefix_db}
-subnet_prefix_client:           ${subnet_prefix_client}
-subnet_prefix_storage:          ${subnet_prefix_storage}
+subnet_cidr_anf:              ${subnet_cidr_anf}
+subnet_cidr_app:              ${subnet_cidr_app}
+subnet_cidr_db:               ${subnet_cidr_db}
+subnet_cidr_client:           ${subnet_cidr_client}
+subnet_cidr_storage:          ${subnet_cidr_storage}
 
 # db_high_availability is a boolean flag indicating if the
 # SAP database servers are deployed using high availability

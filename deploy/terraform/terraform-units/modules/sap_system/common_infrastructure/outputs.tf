@@ -103,7 +103,7 @@ output "admin_subnet" {
                                                                  )
                                                  }
 
-output "subnet_prefix_client"                    {
+output "subnet_cidr_client"                    {
                                                    description = "Storage subnet prefix"
                                                    value       = local.enable_db_deployment && local.enable_admin_subnet ? (
                                                                    local.admin_subnet_exists ? (
@@ -115,7 +115,7 @@ output "subnet_prefix_client"                    {
                                                  }
 
 
-output "subnet_prefix_db"                        {
+output "subnet_cidr_db"                        {
                                                    description = "DB subnet prefix"
                                                    value       = local.enable_db_deployment ? (
                                                                    local.database_subnet_exists ? (
@@ -157,7 +157,7 @@ output "storage_subnet"                          {
                                                                  )
                                                  }
 
-output "subnet_prefix_storage"                   {
+output "subnet_cidr_storage"                   {
                                                    description = "Storage subnet prefix"
                                                    value       = local.enable_db_deployment && local.enable_storage_subnet ? (
                                                                    local.sub_storage_exists ? (
