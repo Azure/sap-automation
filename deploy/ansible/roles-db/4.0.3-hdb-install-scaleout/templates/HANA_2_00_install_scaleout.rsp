@@ -39,7 +39,7 @@ skip_modify_sudoers=n
 use_pmem=n
 
 # Enable the installation or upgrade of the SAP Host Agent ( Default: y )
-install_hostagent=n
+install_hostagent=y
 
 # Database Isolation ( Default: low; Valid values: low | high )
 db_isolation=low

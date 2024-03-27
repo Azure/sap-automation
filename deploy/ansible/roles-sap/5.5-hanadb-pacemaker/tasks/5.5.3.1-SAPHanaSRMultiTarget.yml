@@ -69,6 +69,8 @@
         - ansible_os_family | upper == "REDHAT"
         - ansible_facts.packages['resource-agents-sap-hana-scaleout'] is not defined
 
+    # <TODO> add package verification for RHEL based on link https://access.redhat.com/articles/3397471
+
     - name:                            "Verify SAPHanaSR-ScaleOut package version is greater than 0.180"
       ansible.builtin.assert:
         that:
@@ -272,10 +274,9 @@
         seconds:                       "{{ hsr_status_report_wait_in_s }}"
 
 # REDHAT only
-# This needs to be run on all the nodes that HANA is running.
+# This needs to be run on all the nodes where HANA is deployed.
     - name:                            Verify that the hook script is working as expected (REDHAT)"
       when:
-      # - inventory_hostname == primary_instance_name
       - ansible_os_family | upper == "REDHAT"
       block:
         - name:                        "Verify the hook Installation (REDHAT)"
@@ -291,7 +292,6 @@
           until:                       saphanasr.stdout is search("SOK")
           retries:                     10
           delay:                       30
-          # when:                        inventory_hostname == primary_instance_name
       rescue:
         - name:                        "[Rescue] - Pause to give HANA replication time to stabilize"
           ansible.builtin.pause:
@@ -310,7 +310,6 @@
           until:                       saphanasr.stdout is search("SOK")
           retries:                     10
           delay:                       30
-          # when:                        inventory_hostname == primary_instance_name
 
 
 # SUSE only
@@ -425,68 +424,5 @@
         var:                               SAPHanaSR_ScaleOut
         verbosity:                         2
 
-# - name:                                Majority Maker only - Implement the Python system replication hook SAPHanaSR-ScaleOut MultiTarget
-#   when:
-#     - node_tier == 'observer'
-#     - ansible_hostname == {{ }}
-#     - db_scale_out
-#     - db_high_availability
-#     - ansible_os_family | upper = "SUSE"
-#   block:
-#     - name:                            Generate list of deployed packages on current host
-#       ansible.builtin.package_facts:
-
-#     # SAPHanaSR-ScaleOut conflicts with SAPHanaSR and dependencies
-#     - name:                            "Ensure SAPHanaSR package is absent"
-#       ansible.builtin.package:
-#         name:                          SAPHanaSR
-#         state:                         absent
-#       when:
-#         - ansible_os_family | upper == "SUSE"
-#         - ansible_facts.packages['SAPHanaSR'] is defined
-
-#     - name:                            "Ensure SAPHanaSR-doc package is absent"
-#       ansible.builtin.package:
-#         name:                          SAPHanaSR-doc
-#         state:                         absent
-#       when:
-#         - ansible_os_family | upper == "SUSE"
-#         - ansible_facts.packages['SAPHanaSR-doc'] is defined
-
-#     - name:                            "Ensure yast2-sap-ha package is absent"
-#       ansible.builtin.package:
-#         name:                          yast2-sap-ha
-#         state:                         absent
-#       when:
-#         - ansible_os_family | upper == "SUSE"
-#         - ansible_facts.packages['yast2-sap-ha'] is defined
-
-#     # Ensure SAPHANA SR Scaleout package is installed
-#     - name:                            "Ensure SAPHanaSR-ScaleOut package is installed"
-#       ansible.builtin.package:
-#         name:                          SAPHanaSR-ScaleOut
-#         state:                         present
-#       when:
-#         - ansible_os_family | upper == "SUSE"
-#         - ansible_facts.packages['SAPHanaSR-ScaleOut'] is not defined
-
-#     - name:                            "Ensure SAPHanaSR-ScaleOut-doc package is installed"
-#       ansible.builtin.package:
-#         name:                          SAPHanaSR-ScaleOut-doc
-#         state:                         present
-#       when:
-#         - ansible_os_family | upper == "SUSE"
-#         - ansible_facts.packages['SAPHanaSR-ScaleOut-doc'] is not defined
-
-#     # - name:                            "Ensure the cluster is started on all nodes"
-#     #   ansible.builtin.command:         pcs cluster start --all
-#     #   changed_when:                    false
-#     #   when:                            inventory_hostname == primary_instance_name
-#     - name:                            "Ensure resource-agents-sap-hana-scaleout  is installed (REDHAT)"
-#       ansible.builtin.package:
-#         name:                          resource-agents-sap-hana-scaleout
-#         state:                         present
-#       when:
-#         - ansible_os_family | upper == "REDHAT"
-#         - ansible_facts.packages['resource-agents-sap-hana-scaleout'] is not defined
-# End of configuration for SAPHanaSR-ScaleOut python hook
+# Note: We do not configure Hook on Majority maker, only installation is needed. Unfortunately since this task runs on HANA VM's only, Majority maker is skipped.
+# Hook packages are deployed on Majority maker in task 1.18-scaleout-pacemaker

@@ -90,7 +90,7 @@
                                        login="{{ fencing_spn_client_id }}"
                                        passwd="{{ fencing_spn_client_pwd }}"
                                        pcmk_monitor_retries=4
-                                       pcmk_action_limit=3
+                                       pcmk_action_limit=-1
                                        power_timeout=240
                                        pcmk_reboot_timeout=900
                                        pcmk_host_map="{% for item in ansible_play_hosts_all %}{{ item }}:{{ hostvars[item]['vm_name'] }}{{ ';' if not loop.last }}{% endfor %}"
@@ -104,7 +104,7 @@
                                        resourceGroup="{{ resource_group_name }}"
                                        msi=true
                                        pcmk_monitor_retries=4
-                                       pcmk_action_limit=3
+                                       pcmk_action_limit=-1
                                        power_timeout=240
                                        pcmk_reboot_timeout=900
                                        pcmk_host_map="{% for item in ansible_play_hosts_all %}{{ item }}:{{ hostvars[item]['vm_name'] }}{{ ';' if not loop.last }}{% endfor %}"
