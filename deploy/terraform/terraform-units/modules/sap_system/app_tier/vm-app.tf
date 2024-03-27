@@ -544,7 +544,7 @@ resource "azurerm_virtual_machine_extension" "monitoring_extension_app_win" {
 
 }
 
-resource "azurerm_virtual_machine_extension" "monitoring_defender_scs_lnx" {
+resource "azurerm_virtual_machine_extension" "monitoring_defender_app_lnx" {
   provider                             = azurerm.main
   count                                = var.infrastructure.deploy_defender_extension  && upper(var.application_tier.app_os.os_type) == "LINUX" ? (
                                            local.application_server_count) : (
@@ -565,7 +565,7 @@ resource "azurerm_virtual_machine_extension" "monitoring_defender_scs_lnx" {
                                           )
 }
 
-resource "azurerm_virtual_machine_extension" "monitoring_defender_scs_win" {
+resource "azurerm_virtual_machine_extension" "monitoring_defender_app_win" {
   provider                             = azurerm.main
   count                                = var.infrastructure.deploy_defender_extension  && upper(var.application_tier.app_os.os_type) == "WINDOWS" ? (
                                            local.application_server_count) : (
