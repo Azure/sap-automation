@@ -929,6 +929,15 @@
         "Display": 3
       },
       {
+        "Name": "register_endpoints_with_dns",
+        "Required": false,
+        "Description": "Defines if the Private Endpoints are registered with DNS",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
         "Name": "management_dns_subscription_id",
         "Required": false,
         "Description": "Subscription for the DNS zone, if different from the management subscription",

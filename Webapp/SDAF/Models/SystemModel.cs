@@ -159,8 +159,6 @@ namespace AutomationForm.Models
 
     public string web_subnet_nsg_name { get; set; }
 
-    public bool? use_service_endpoint { get; set; }
-
     public bool? nsg_asg_with_vnet { get; set; } = false;
 
     /*---------------------------------------------------------------------------8
@@ -204,6 +202,11 @@ namespace AutomationForm.Models
 
     public bool? dns_a_records_for_secondary_names { get; set; } = true;
     public bool? use_private_endpoint { get; set; }
+
+    public bool? use_service_endpoint { get; set; }
+
+    public bool? register_endpoints_with_dns { get; set; } = true;
+
 
     /*---------------------------------------------------------------------------8
     |                                                                            |
