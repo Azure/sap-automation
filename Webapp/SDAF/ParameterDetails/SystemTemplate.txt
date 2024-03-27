@@ -486,6 +486,9 @@ $$deploy_application_security_groups$$
 # deploy_v1_monitoring_extension Defines if the Microsoft.AzureCAT.AzureEnhancedMonitoring extension will be deployed
 $$deploy_v1_monitoring_extension$$
 
+# If defined, will add the Microsoft.Azure.Monitor.AzureMonitorLinuxAgent extension to the virtual machines
+$$deploy_monitoring_extension$$
+
 # dns_a_records_for_secondary_names defines if DNS records should be created for the virtual host names
 $$dns_a_records_for_secondary_names$$
 

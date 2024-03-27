@@ -74,6 +74,8 @@ namespace AutomationForm.Models
 
     public bool? deploy_v1_monitoring_extension { get; set; } = true;
 
+    public bool? deploy_monitoring_extension { get; set; } = false;
+
     public bool? use_scalesets_for_deployment { get; set; } = false;
 
     public bool? database_use_premium_v2_storage { get; set; } = false;

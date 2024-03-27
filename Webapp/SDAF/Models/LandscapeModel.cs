@@ -47,7 +47,11 @@ namespace AutomationForm.Models
     public bool? place_delete_lock_on_resources { get; set; } = false;
 
     public string controlPlaneLocation { get; set; }
+
     public Tag[] tags { get; set; }
+
+
+    public bool? deploy_monitoring_extension { get; set; } = false;
 
     /*---------------------------------------------------------------------------8
     |                                                                            |
@@ -186,8 +190,6 @@ namespace AutomationForm.Models
     public string storage_subnet_nsg_arm_id { get; set; }
 
     public string storage_subnet_nsg_name { get; set; }
-
-
 
 
     /*---------------------------------------------------------------------------8
