@@ -706,7 +706,7 @@ resource "azurerm_virtual_machine_extension" "monitoring_extension_db_lnx" {
                                            var.database_server_count) : (
                                            0                                           )
   virtual_machine_id                   = azurerm_linux_virtual_machine.dbserver[count.index].id
-  name                                 = "Microsoft.Azure.Monitor.AzureMonitorLinuxAgent
+  name                                 = "Microsoft.Azure.Monitor.AzureMonitorLinuxAgent"
   publisher                            = "Microsoft.Azure.Monitor"
   type                                 = "AzureMonitorLinuxAgent"
   type_handler_version                 = "1.0"
@@ -731,7 +731,7 @@ resource "azurerm_virtual_machine_extension" "monitoring_extension_db_win" {
                                            var.database_server_count) : (
                                            0                                           )
   virtual_machine_id                   = azurerm_windows_virtual_machine.dbserver[count.index].id
-  name                                 = "AzureMonitorWindowsAgent"
+  name                                 = "Microsoft.Azure.Monitor.AzureMonitorWindowsAgent"
   publisher                            = "Microsoft.Azure.Monitor"
   type                                 = "AzureMonitorWindowsAgent"
   type_handler_version                 = "1.0"
