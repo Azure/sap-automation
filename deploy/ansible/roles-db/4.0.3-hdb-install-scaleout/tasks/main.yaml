@@ -890,7 +890,6 @@
     when:
     - ansible_hostname == secondary_instance_name
     - not hana_installed.stat.exists
-
   when:
   - db_high_availability
 
