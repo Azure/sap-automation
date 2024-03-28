@@ -139,7 +139,7 @@
         # calculated for specific deployment scenarios.
         - name:                        "SAP OS configuration playbook: - Set the subnet_client_cidr fact"
           ansible.builtin.set_fact:
-            subnet_client_cidr:        "{{ subnet_cidr_client | default(azure_network_metadata.json.network.interface[0].ipv4.subnet[0].address + '/' + azure_network_metadata.json.network.interface[0].ipv4.subnet[0].prefix) }}"
+            subnet_client_cidr:        "{{ subnet_cidr_client | default(azure_network_metadata.json.interface[0].ipv4.subnet[0].address + '/' + azure_network_metadata.json.interface[0].ipv4.subnet[0].prefix) }}"
           when:
             - platform == 'HANA'
             - node_tier == 'hana' or ['hana'] in supported_tiers
