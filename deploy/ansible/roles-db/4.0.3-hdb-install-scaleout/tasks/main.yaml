@@ -658,6 +658,8 @@
           _rsp_number:                   "{{ db_instance_number }}"
           _rsp_system_usage:             "custom"
           use_master_password:           "{{ hana_use_master_password }}"
+          _rsp_hana_data_basepath:       "{{ hana_data_basepath }}"
+          _rsp_hana_log_basepath:        "{{ hana_log_basepath }}"
           password_copy:                 "{%if hana_use_master_password == 'n' %}{{ main_password }}{% else %}{% endif %}"
           _rsp_internal_network:         "{{ (subnet_address + '/' + subnet_prefix) }}"
           _rsp_root_password:            "{{ root_password }}"
