@@ -106,7 +106,7 @@
       ansible.builtin.set_fact:
         db_so_virtual_hostname:        "{{ custom_db_virtual_hostname | default(sap_sid | lower ~ db_sid | lower ~ 'db' ~ db_instance_number ~ 'so', true) }}"
 
-    - name:                            "2.4 Hosts: - Setup Virtual host name resolution - DB - Scale Out - Standby"
+    - name:                            "2.4 Hosts: - Calculate host name - DB - Scale Out - Standby"
       ansible.builtin.set_fact:
         db_so_virtualhost_ip:          "{{ hostvars[item].ansible_all_ipv4_addresses | ansible.utils.ipaddr(hostvars[item]['subnet_client_cidr']) | default(hostvars[item].ansible_host) }}"
       with_items:
@@ -120,7 +120,7 @@
         state:                         present
         block: |
           {{ '%-19s' | format(db_so_virtualhost_ip) }} {{ '%-80s' | format(db_so_virtual_hostname + '.' + sap_fqdn) }} {{ '%-21s' | format(db_so_virtual_hostname) }}
-        marker:                        "# {mark} DB Entries {{ db_virtual_hostname }}"
+        marker:                        "# {mark} DB Entries {{ db_virtual_hostname | default(ansible_host) }}"
 
 - name:                                "2.4 Hosts: - Setup Virtual host name resolution - DB"
   ansible.builtin.blockinfile:
