@@ -495,7 +495,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vault" {
 
 data "azurerm_private_dns_zone" "vault" {
   provider                             = azurerm.dnsmanagement
-  count                                = var.use_private_endpoint ? 1 : 0
+  count                                = var.use_private_endpoint && var.register_endpoints_with_dns ? 1 : 0
   name                                 = var.dns_zone_names.vault_dns_zone_name
   resource_group_name                  = var.management_dns_resourcegroup_name
 }
