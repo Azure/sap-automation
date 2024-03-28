@@ -629,7 +629,7 @@ resource "azurerm_virtual_machine_extension" "monitoring_extension_web_lnx" {
                                            local.webdispatcher_count) : (
                                            0                                           )
   virtual_machine_id                   = azurerm_linux_virtual_machine.web[count.index].id
-  name                                 = "AzureMonitorLinuxAgent"
+  name                                 = "Microsoft.Azure.Monitor.AzureMonitorLinuxAgent
   publisher                            = "Microsoft.Azure.Monitor"
   type                                 = "AzureMonitorLinuxAgent"
   type_handler_version                 = "1.0"
