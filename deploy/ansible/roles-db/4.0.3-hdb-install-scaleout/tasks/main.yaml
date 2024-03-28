@@ -17,17 +17,17 @@
 ---
 
 # +------------------------------------4--------------------------------------*/
-- name:                                "SAP HANA: Set BOM facts"
+- name:                                "4.0.3 - SAP HANA SCALE OUT: Set BOM facts"
   ansible.builtin.set_fact:
     sap_inifile:                       "hdbserver_{{ virtual_host }}_{{ sap_sid }}_install.rsp"
     dir_params:                        "{{ tmp_directory }}/.params"
 
-- name:                                "SAP HANA: Create list of all db hosts"
+- name:                                "4.0.3 - SAP HANA SCALE OUT: Create list of all db hosts"
   ansible.builtin.set_fact:
     db_hosts:                          "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
 
 #   0x) Create hidden directory for parameter files
-- name:                                "SAP HANA: Create directories"
+- name:                                "4.0.3 - SAP HANA SCALE OUT: Create directories"
   ansible.builtin.file:
     path:                              "{{ item.path }}"
     state:                             directory
@@ -37,18 +37,18 @@
     - { mode: '0755', path: '{{ tmp_directory }}/{{ db_sid | upper }}' }
     - { mode: '0755', path: '/etc/sap_deployment_automation/{{ db_sid | upper }}' }
 
-- name:                                "SAP HANA: Install reset"
+- name:                                "4.0.3 - SAP HANA SCALE OUT: Install reset"
   ansible.builtin.file:
     path:                              "/etc/sap_deployment_automation/{{ db_sid | upper }}/sap_deployment_hdb.txt"
     state:                             absent
   when: reinstall
 
-- name:                                "SAP HANA: check if installed"
+- name:                                "4.0.3 - SAP HANA SCALE OUT: check if installed"
   ansible.builtin.stat:
     path:                              "/etc/sap_deployment_automation/{{ db_sid | upper }}/sap_deployment_hdb.txt"
   register:                            hana_installed
 
-- name:                                "SAP HANA: check media exists"
+- name:                                "4.0.3 - SAP HANA SCALE OUT: check media exists"
   ansible.builtin.stat:
     path:                              "{{ target_media_location }}/CD_HDBSERVER/SAP_HANA_DATABASE/hdblcm"
   register:                            hdblcm_found
@@ -58,7 +58,7 @@
     msg:                               "INSTALL:0001:Unable to find hdblcm, please check that the installation media is mounted"
   when: not hdblcm_found.stat.exists
 
-- name:                                "SAP HANA - Retrieve Subscription ID and Resource Group Name"
+- name:                                "4.0.3 - SAP HANA SCALE OUT: Retrieve Subscription ID and Resource Group Name"
   ansible.builtin.uri:
     url:                               http://169.254.169.254/metadata/instance?api-version=2021-02-01
     use_proxy:                         false
@@ -66,32 +66,39 @@
       Metadata:                        true
   register:                            azure_metadata
 
-- name:                                "SAP HANA - Show IMDS results"
+- name:                                "4.0.3 - SAP HANA SCALE OUT: Show IMDS results"
   ansible.builtin.debug:
     var:                               azure_metadata.json
     verbosity:                         2
 
-- name:                                "SAP HANA -  - Extract details"
+- name:                                "4.0.3 - SAP HANA SCALE OUT: Extract network details from IMDS"
   ansible.builtin.set_fact:
     subnet_address:                    "{{ azure_metadata.json.network.interface[0].ipv4.subnet[0].address }}"
     subnet_prefix:                     "{{ azure_metadata.json.network.interface[0].ipv4.subnet[0].prefix }}"
+    subnet_db_cidr:                    "{{ subnet_cidr_db | default(azure_metadata.json.network.interface[0].ipv4.subnet[0].address + '/' + azure_metadata.json.network.interface[0].ipv4.subnet[0].prefix) }}"
+    subnet_client_cidr:                "{{ subnet_cidr_client | default(azure_metadata.json.network.interface[0].ipv4.subnet[0].address + '/' + azure_metadata.json.network.interface[0].ipv4.subnet[0].prefix) }}"
+    subnet_storage_cidr:               "{{ subnet_cidr_storage | default(azure_metadata.json.network.interface[0].ipv4.subnet[0].address + '/' + azure_metadata.json.network.interface[0].ipv4.subnet[0].prefix) }}"
 
-- name:                                "SAP HANA -  - Show the subnet details"
+- name:                                "4.0.3 - SAP HANA SCALE OUT: Show the subnet details"
   ansible.builtin.debug:
     msg:
-      - "Subnet Address: {{ subnet_address }}"
-      - "Subnet Prefix: {{ subnet_prefix }}"
-      - "Subnet CIDR: {{ (subnet_address + '/' + subnet_prefix) }}"
+                                       - "Subnet Address:      {{ subnet_address }}"
+                                       - "Subnet Prefix:       {{ subnet_prefix }}"
+                                       - "Subnet CIDR:         {{ (subnet_address + '/' + subnet_prefix) }}"
+                                       - "DB Subnet CIDR:      {{ subnet_db_cidr }}"
+                                       - "Client Subnet CIDR:  {{ subnet_client_cidr }}"
+                                       - "Storage Subnet CIDR: {{ subnet_storage_cidr }}"
+
 # Scale out ANF only runs on primary node or the first node in the SID_DB list. This is mandatory.
-- name:                                "HANA Install - Scale Out - ANF"
+- name:                                "4.0.3 - SAP HANA SCALE OUT: HANA Install - Scale Out - ANF"
   block:
 
-    - name:                            "SAP HANA: remove install response file if exists"
+    - name:                            "4.0.3 - SAP HANA SCALE OUT: remove install response file if exists"
       ansible.builtin.file:
         path:                          "{{ dir_params }}/{{ sap_inifile }}"
         state:                         absent
 
-    - name:                            "SAP HANA Template processing: Create ini file {{ sap_inifile }} from {{ HANA_2_00_install.rsp }}"
+    - name:                            "4.0.3 - SAP HANA SCALE OUT: SAP HANA Template processing: Create ini file {{ sap_inifile }} from {{ HANA_2_00_install.rsp }}"
       ansible.builtin.template:
         src:                           "HANA_2_00_install_scaleout_anf.rsp"
         dest:                          "{{ dir_params }}/{{ sap_inifile }}"
@@ -125,13 +132,13 @@
                                         {% endif %}
                                         {% endfor %}"
 
-    - name:                            "SAP HANA: Progress"
+    - name:                            "4.0.3 - SAP HANA SCALE OUT: Progress"
       ansible.builtin.debug:
         msg:                           "Start HANA Installation"
 
-    - name:                            "SAP HANA: installation"
+    - name:                            "4.0.3 - SAP HANA SCALE OUT: installation"
       block:
-        - name:                        "SAP HANA: Execute hdblcm on {{ virtual_host }}"
+        - name:                        "4.0.3 - SAP HANA SCALE OUT: Execute hdblcm on {{ virtual_host }}"
           ansible.builtin.shell: |
                                        umask {{ custom_umask | default('022') }} ;
                                        chmod 755 /usr/sap;
@@ -149,15 +156,15 @@
             msg:                       "INSTALL:0022:Execute hdblcm failed."
           when:                        hana_installation.rc > 1
 
-        - name:                        "SAP HANA: Progress"
+        - name:                        "4.0.3 - SAP HANA SCALE OUT: Progress"
           ansible.builtin.debug:
             msg:                       "Restarting the HANA Installation"
           when:                        hana_installation.rc == 1
 
 
-        - name:                        "SAP HANA: Re-execute hdblcm on {{ virtual_host }} and rescue"
+        - name:                        "4.0.3 - SAP HANA SCALE OUT: Re-execute hdblcm on {{ virtual_host }} and rescue"
           block:
-            - name:                    "SAP HANA: Re-execute hdblcm on {{ virtual_host }}"
+            - name:                    "4.0.3 - SAP HANA SCALE OUT: Re-execute hdblcm on {{ virtual_host }}"
               ansible.builtin.shell: |
                                        umask {{ custom_umask | default('022') }} ;
                                        chmod 755 /usr/sap;
@@ -175,7 +182,7 @@
               ansible.builtin.fail:
                 msg:                   "INSTALL:0022:Execute hdblcm failed."
 
-    - name:                            "SAP HANA: Installation results"
+    - name:                            "4.0.3 - SAP HANA SCALE OUT: Installation results"
       ansible.builtin.debug:
         msg:
           - "HANA Installation failed"
@@ -191,20 +198,20 @@
         - hana_installation.rc is defined
         - hana_installation.rc > 0
 
-    - name:                            "SAP HANA: Successful installation"
+    - name:                            "4.0.3 - SAP HANA SCALE OUT: Successful installation"
       block:
 
-        - name:                        "SAP HANA: Installation results"
+        - name:                        "4.0.3 - SAP HANA SCALE OUT: Installation results"
           ansible.builtin.debug:
             msg:                       "HANA Installation succeeded"
 
-        - name:                        "SAP HANA: HANA Install: flag"
+        - name:                        "4.0.3 - SAP HANA SCALE OUT: HANA Install: flag"
           ansible.builtin.file:
             path:                      "/etc/sap_deployment_automation/{{ db_sid | upper }}/sap_deployment_hdb.txt"
             state:                     touch
             mode:                      0755
 
-        - name:                        "Retrieve Subscription ID and Resource Group Name"
+        - name:                        "4.0.3 - SAP HANA SCALE OUT: Retrieve Subscription ID and Resource Group Name"
           ansible.builtin.uri:
             url:                       http://169.254.169.254/metadata/instance?api-version=2021-02-01
             use_proxy:                 false
@@ -212,31 +219,31 @@
               Metadata:                true
           register:                    azure_metadata
 
-        - name:                        "Extract details"
+        - name:                        "4.0.3 - SAP HANA SCALE OUT: Extract Azure subscription details"
           ansible.builtin.set_fact:
             subscription_id:           "{{ azure_metadata.json.compute.subscriptionId }}"
             resource_group_name:       "{{ azure_metadata.json.compute.resourceGroupName }}"
 
-        - name:                        "Show the subscription and resource group"
+        - name:                        "4.0.3 - SAP HANA SCALE OUT: Show the subscription and resource group"
           ansible.builtin.debug:
             msg:
               - "Subscription ID: {{ subscription_id }}"
               - "Resource Group Name: {{ resource_group_name }}"
 
-        - name:                        "Include deploy/ansible/roles-misc/0.6-ARM-Deployment"
+        - name:                        "4.0.3 - SAP HANA SCALE OUT: Include deploy/ansible/roles-misc/0.6-ARM-Deployment"
           ansible.builtin.include_role:
             name:                      roles-misc/0.6-ARM-Deployment
           vars:
             subscriptionId:            "{{ subscription_id }}"
             resourceGroupName:         "{{ resource_group_name }}"
 
-        - name:                        "SAP HANA: ARM Deployment flag"
+        - name:                        "4.0.3 - SAP HANA SCALE OUT: ARM Deployment flag"
           ansible.builtin.file:
             path:                      "/etc/sap_deployment_automation/{{ db_sid | upper }}/sap_deployment_hdb_arm.txt"
             state:                     touch
             mode:                      0755
 
-        # - name:                        "SAP HANA: remove install response file"
+        # - name:                        "4.0.3 - SAP HANA SCALE OUT: remove install response file"
         #   ansible.builtin.file:
         #     path:                      "{{ dir_params }}/{{ sap_inifile }}"
         #     state:                     absent
@@ -246,7 +253,7 @@
         - hana_installation.rc is defined
         - hana_installation.rc < 1
 
-    - name:                            "SAP HANA: Create backup folder"
+    - name:                            "4.0.3 - SAP HANA SCALE OUT: Create backup folder"
       ansible.builtin.file:
         path:                          "{{ hana_backup_path }}"
         state:                         directory
@@ -254,9 +261,9 @@
         owner:                         "{{ db_sid | lower }}adm"
         mode:                          0755
 
-    - name:                            "SAP HANA: Configure global.ini"
+    - name:                            "4.0.3 - SAP HANA SCALE OUT: Configure global.ini"
       block:
-        - name:                        "Prepare global.ini for domain name resolution."
+        - name:                        "4.0.3 - SAP HANA SCALE OUT: Prepare global.ini for domain name resolution."
           become_user:                 root
           become:                      true
           community.general.ini_file:
@@ -278,7 +285,7 @@
         #     option:                    internal_network
         #     value:                     "{{ (ansible_default_ipv4.network + '/' + ansible_default_ipv4.netmask) | ipaddr('network/prefix') }}"
 
-        - name:                        "Prepare global.ini for public hostname resolution."
+        - name:                        "4.0.3 - SAP HANA SCALE OUT: Prepare global.ini for public hostname resolution."
           become_user:                 root
           become:                      true
           community.general.ini_file:
@@ -287,11 +294,12 @@
             state:                     present
             mode:                      0644
             option:                    "map_{{ hostvars[item].virtual_host }}"
-            value:                     "{{ hostvars[item].ansible_host }}"
+            value:                     "{{ (hostvars[item].ansible_all_ipv4_addresses | ansible.utils.ipaddr(subnet_client_cidr)) | default(hostvars[item].ansible_host) }}"
           with_items:
             - "{{ groups[(sap_sid | upper)~'_DB' ] }}"
 
-        - name:                        "Prepare global.ini for site hosts name resolution (Primary Site)"
+
+        - name:                        "4.0.3 - SAP HANA SCALE OUT: Prepare global.ini for site hosts name resolution (Primary Site)"
           community.general.ini_file:
             path:                      "/hana/shared/{{ db_sid | upper }}/global/hdb/custom/config/global.ini"
             section:                   "internal_hostname_resolution"
@@ -302,7 +310,7 @@
           with_items:
             - "{{ groups[(sap_sid | upper)~'_DB' ] }}"
 
-        - name:                        "Prepare global.ini for NetApp storage optimizations"
+        - name:                        "4.0.3 - SAP HANA SCALE OUT: Prepare global.ini for NetApp storage optimizations"
           community.general.ini_file:
             path:                      "/hana/shared/{{ db_sid | upper }}/global/hdb/custom/config/global.ini"
             section:                   "{{ item.section }}"
@@ -319,9 +327,9 @@
             - { section: "persistence", option: "datavolume_striping_size_gb", value: "15000" }
 
 
-    - name:                            "SAP HANA: Restart HANA"
+    - name:                            "4.0.3 - SAP HANA SCALE OUT: Restart HANA"
       block:
-        - name:                        "Stop HANA Database"
+        - name:                        "4.0.3 - SAP HANA SCALE OUT: Stop HANA Database"
           become_user:                 "{{ db_sid | lower }}adm"
           become:                      true
           ansible.builtin.shell: |
@@ -338,11 +346,11 @@
             allow_world_readable_tmpfiles: true
 
         # ToDo: Check if we can interrogate the HANA DB to see if it is stopped.
-        - name:                        "Wait 5 minutes for SAP system to stop"
+        - name:                        "4.0.3 - SAP HANA SCALE OUT: Wait 5 minutes for SAP system to stop"
           ansible.builtin.wait_for:
             timeout:                   300
 
-        - name:                        "Start HANA Database"
+        - name:                        "4.0.3 - SAP HANA SCALE OUT: Start HANA Database"
           become_user:                 "{{ db_sid | lower }}adm"
           become:                      true
           ansible.builtin.shell: |
@@ -358,7 +366,7 @@
           vars:
             allow_world_readable_tmpfiles: true
 
-        - name:                        "Wait 5 minutes for SAP system to start"
+        - name:                        "4.0.3 - SAP HANA SCALE OUT: Wait 5 minutes for SAP system to start"
           ansible.builtin.wait_for:
             timeout:                   300
 
@@ -371,15 +379,15 @@
     - db_scale_out
 
 # TODO: add block for Scale out with HSR support here, same as regular installation.
-- name:                                "HANA Install - Scale Out - HSR"
+- name:                                "4.0.3 - SAP HANA SCALE OUT: HANA Install - Scale Out - HSR"
   block:
 
-    - name:                            "SAP HANA: remove install response file if exists"
+    - name:                            "4.0.3 - SAP HANA SCALE OUT: remove install response file if exists"
       ansible.builtin.file:
         path:                          "{{ dir_params }}/{{ sap_inifile }}"
         state:                         absent
 
-    - name:                            "SAP HANA Template processing: Create ini file {{ sap_inifile }} from {{ HANA_2_00_install.rsp }}"
+    - name:                            "4.0.3 - SAP HANA SCALE OUT: SAP HANA Template processing: Create ini file {{ sap_inifile }} from {{ HANA_2_00_install.rsp }}"
       ansible.builtin.template:
         src:                           "HANA_2_00_install.rsp"
         dest:                          "{{ dir_params }}/{{ sap_inifile }}"
@@ -397,13 +405,13 @@
         use_master_password:           "{{ hana_use_master_password }}"
         password_copy:                 "{%if hana_use_master_password == 'n' %}{{ main_password }}{% else %}{% endif %}"
 
-    - name:                            "SAP HANA: Progress"
+    - name:                            "4.0.3 - SAP HANA SCALE OUT: Progress"
       ansible.builtin.debug:
         msg:                           "Start HANA Installation"
 
-    - name:                            "SAP HANA: installation"
+    - name:                            "4.0.3 - SAP HANA SCALE OUT: installation"
       block:
-        - name:                        "SAP HANA: Execute hdblcm on {{ virtual_host }}"
+        - name:                        "4.0.3 - SAP HANA SCALE OUT: Execute hdblcm on {{ virtual_host }}"
           ansible.builtin.shell: |
                                        umask {{ custom_umask | default('022') }} ;
                                        chmod 755 /usr/sap;
@@ -421,15 +429,15 @@
             msg:                       "INSTALL:0022:Execute hdblcm failed."
           when:                        hana_installation.rc > 1
 
-        - name:                        "SAP HANA: Progress"
+        - name:                        "4.0.3 - SAP HANA SCALE OUT: Progress"
           ansible.builtin.debug:
             msg:                       "Restarting the HANA Installation"
           when:                        hana_installation.rc == 1
 
 
-        - name:                        "SAP HANA: Re-execute hdblcm on {{ virtual_host }} and rescue"
+        - name:                        "4.0.3 - SAP HANA SCALE OUT: Re-execute hdblcm on {{ virtual_host }} and rescue"
           block:
-            - name:                    "SAP HANA: Re-execute hdblcm on {{ virtual_host }}"
+            - name:                    "4.0.3 - SAP HANA SCALE OUT: Re-execute hdblcm on {{ virtual_host }}"
               ansible.builtin.shell: |
                                        umask {{ custom_umask | default('022') }} ;
                                        chmod 755 /usr/sap;
@@ -447,7 +455,7 @@
               ansible.builtin.fail:
                 msg:                   "INSTALL:0022:Execute hdblcm failed."
 
-    - name:                            "SAP HANA: Installation results"
+    - name:                            "4.0.3 - SAP HANA SCALE OUT: Installation results"
       ansible.builtin.debug:
         msg:
           - "HANA Installation failed"
@@ -463,20 +471,20 @@
         - hana_installation.rc is defined
         - hana_installation.rc > 0
 
-    - name:                            "SAP HANA: Successful installation"
+    - name:                            "4.0.3 - SAP HANA SCALE OUT: Successful installation"
       block:
 
-        - name:                        "SAP HANA: Installation results"
+        - name:                        "4.0.3 - SAP HANA SCALE OUT: Installation results"
           ansible.builtin.debug:
             msg:                       "HANA Installation succeeded"
 
-        - name:                        "SAP HANA: HANA Install: flag"
+        - name:                        "4.0.3 - SAP HANA SCALE OUT: HANA Install: flag"
           ansible.builtin.file:
             path:                      "/etc/sap_deployment_automation/{{ db_sid | upper }}/sap_deployment_hdb.txt"
             state:                     touch
             mode:                      0755
 
-        - name:                        "Retrieve Subscription ID and Resource Group Name"
+        - name:                        "4.0.3 - SAP HANA SCALE OUT: Retrieve Subscription ID and Resource Group Name"
           ansible.builtin.uri:
             url:                       http://169.254.169.254/metadata/instance?api-version=2021-02-01
             use_proxy:                 false
@@ -484,31 +492,31 @@
               Metadata:                true
           register:                    azure_metadata
 
-        - name:                        "Extract details"
+        - name:                        "4.0.3 - SAP HANA SCALE OUT: Extract Azure subscription details"
           ansible.builtin.set_fact:
             subscription_id:           "{{ azure_metadata.json.compute.subscriptionId }}"
             resource_group_name:       "{{ azure_metadata.json.compute.resourceGroupName }}"
 
-        - name:                        "Show the subscription and resource group"
+        - name:                        "4.0.3 - SAP HANA SCALE OUT: Show the subscription and resource group"
           ansible.builtin.debug:
             msg:
               - "Subscription ID: {{ subscription_id }}"
               - "Resource Group Name: {{ resource_group_name }}"
 
-        - name:                        "Include deploy/ansible/roles-misc/0.6-ARM-Deployment"
+        - name:                        "4.0.3 - SAP HANA SCALE OUT: Include deploy/ansible/roles-misc/0.6-ARM-Deployment"
           ansible.builtin.include_role:
             name:                      roles-misc/0.6-ARM-Deployment
           vars:
             subscriptionId:            "{{ subscription_id }}"
             resourceGroupName:         "{{ resource_group_name }}"
 
-        - name:                        "SAP HANA: ARM Deployment flag"
+        - name:                        "4.0.3 - SAP HANA SCALE OUT: ARM Deployment flag"
           ansible.builtin.file:
             path:                      "/etc/sap_deployment_automation/{{ db_sid | upper }}/sap_deployment_hdb_arm.txt"
             state:                     touch
             mode:                      0755
 
-        - name:                        "SAP HANA: remove install response file"
+        - name:                        "4.0.3 - SAP HANA SCALE OUT: remove install response file"
           ansible.builtin.file:
             path:                      "{{ dir_params }}/{{ sap_inifile }}"
             state:                     absent
@@ -517,7 +525,7 @@
         - hana_installation.rc is defined
         - hana_installation.rc < 1
 
-    - name:                            "SAP HANA: Create backup folder"
+    - name:                            "4.0.3 - SAP HANA SCALE OUT: Create backup folder"
       ansible.builtin.file:
         path:                          "{{ hana_backup_path }}"
         state:                         directory
@@ -535,22 +543,22 @@
 - name:                                "HANA Install status"
   block:
 
-    - name:                            "HANA Install status"
+    - name:                            "4.0.3 - SAP HANA SCALE OUT: Install status"
       ansible.builtin.debug:
         msg:                           "HANA is already installed"
 
-    - name:                            "HANA: - return value"
+    - name:                            "4.0.3 - SAP HANA SCALE OUT: - return value"
       ansible.builtin.set_fact:
         hana_already_installed:        true
 
-    - name:                            "SAP HANA: check if ARM Deployment done"
+    - name:                            "4.0.3 - SAP HANA SCALE OUT: check if ARM Deployment done"
       ansible.builtin.stat:
         path:                          "/etc/sap_deployment_automation/{{ db_sid | upper }}/sap_deployment_hdb_arm.txt"
       register:                        hana_arm_deployment_done
 
-    - name:                            "SAP HANA: Successful installation"
+    - name:                            "4.0.3 - SAP HANA SCALE OUT: Successful installation"
       block:
-        - name:                        "Retrieve Subscription ID and Resource Group Name"
+        - name:                        "4.0.3 - SAP HANA SCALE OUT: Retrieve Subscription ID and Resource Group Name"
           ansible.builtin.uri:
             url:                       http://169.254.169.254/metadata/instance?api-version=2021-02-01
             use_proxy:                 false
@@ -558,25 +566,25 @@
               Metadata:                true
           register:                    azure_metadata
 
-        - name:                        "Extract details"
+        - name:                        "4.0.3 - SAP HANA SCALE OUT: Extract Azure subscription details"
           ansible.builtin.set_fact:
             subscription_id_tmp:       "{{ azure_metadata.json.compute.subscriptionId }}"
             resource_group_name_tmp:   "{{ azure_metadata.json.compute.resourceGroupName }}"
 
-        - name:                        "Show the subscription and resource group"
+        - name:                        "4.0.3 - SAP HANA SCALE OUT: Show the subscription and resource group"
           ansible.builtin.debug:
             msg:
               - "Subscription ID: {{ subscription_id_tmp }}"
               - "Resource Group Name: {{ resource_group_name_tmp }}"
 
-        - name:                        "Include deploy/ansible/roles-misc/0.6-ARM-Deployment"
+        - name:                        "4.0.3 - SAP HANA SCALE OUT: Include deploy/ansible/roles-misc/0.6-ARM-Deployment"
           ansible.builtin.include_role:
             name:                      roles-misc/0.6-ARM-Deployment
           vars:
             subscription_id:           "{{ subscription_id_tmp }}"
             resource_group_name:       "{{ resource_group_name_tmp }}"
 
-        - name:                        "SAP HANA: ARM Deployment flag"
+        - name:                        "4.0.3 - SAP HANA SCALE OUT: ARM Deployment flag"
           ansible.builtin.file:
             path:                      "/etc/sap_deployment_automation/{{ db_sid | upper }}/sap_deployment_hdb_arm.txt"
             state:                     touch
@@ -585,7 +593,7 @@
         - not hana_arm_deployment_done.stat.exists
 
 
-    - name:                            "SAP HANA: Create backup folder"
+    - name:                            "4.0.3 - SAP HANA SCALE OUT: Create backup folder"
       ansible.builtin.file:
         path:                          "{{ hana_backup_path }}"
         state:                         directory
