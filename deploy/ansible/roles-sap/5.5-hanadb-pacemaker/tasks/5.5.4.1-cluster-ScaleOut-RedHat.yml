@@ -30,15 +30,15 @@
       block:
         - name:                        "5.5.4.1 HANA Cluster configuration - Create the SAP HANA Topology"
           ansible.builtin.shell: >
-                                       pcs resource create SAPHanaTopology_HN1_HDB03 SAPHanaTopologyScaleOut \
-                                       SID=HN1 InstanceNumber=03 \
+                                       pcs resource create SAPHanaTopology_{{ db_sid | upper }}_HDB{{ db_instance_number }} SAPHanaTopologyScaleOut \
+                                       SID={{ db_sid | upper }} InstanceNumber={{ db_instance_number }} \
                                        op start timeout=600 op stop timeout=300 op monitor interval=10 timeout=600
           register:                    hana_t
           failed_when:                 hana_t.rc > 1
 
         - name:                        "5.5.4.1 HANA Cluster configuration - Clone the SAP HANA Topology"
           ansible.builtin.shell: >
-                                       resource clone SAPHanaTopology_HN1_HDB03 meta clone-node-max=1 interleave=true
+                                       resource clone SAPHanaTopology_{{ db_sid | upper }}_HDB{{ db_instance_number }} meta clone-node-max=1 interleave=true
           register:                    hana_clone
           failed_when:                 hana_clone.rc > 1
       when:                            ansible_distribution_major_version == "7"
@@ -47,8 +47,8 @@
       block:
         - name:                        "5.5.4.1 HANA Cluster configuration - Create the SAP HANA Topology"
           ansible.builtin.shell: >
-                                       pcs resource create SAPHanaTopology_HN1_HDB03 SAPHanaTopology \
-                                       SID=HN1 InstanceNumber=03 meta clone-node-max=1 interleave=true \
+                                       pcs resource create SAPHanaTopology_{{ db_sid | upper }}_HDB{{ db_instance_number }} SAPHanaTopology \
+                                       SID={{ db_sid | upper }} InstanceNumber={{ db_instance_number }} meta clone-node-max=1 interleave=true \
                                        op methods interval=0s timeout=5 \
                                        1op start timeout=600 op stop timeout=300 op monitor interval=10 timeout=600
 
@@ -57,7 +57,7 @@
 
         - name:                        "5.5.4.1 HANA Cluster configuration - Clone the SAP HANA Topology"
           ansible.builtin.shell: >
-                                       pcs resource clone SAPHanaTopology_HN1_HDB03 meta clone-node-max=1 interleave=true
+                                       pcs resource clone SAPHanaTopology_{{ db_sid | upper }}_HDB{{ db_instance_number }} meta clone-node-max=1 interleave=true
           register:                    hana_clone
           failed_when:                 hana_clone.rc > 1
       when:                            ansible_distribution_major_version in ["8", "9"]
@@ -67,8 +67,8 @@
       block:
         - name:                        "5.5.4.1 HANA Cluster configuration - Ensure the SAP HANA resources are created"
           ansible.builtin.shell: >
-                                          pcs resource create SAPHana_HN1_HDB03 SAPHanaController \
-                                          SID=HN1 InstanceNumber=03 PREFER_SITE_TAKEOVER=true DUPLICATE_PRIMARY_TIMEOUT=7200 AUTOMATED_REGISTER=false \
+                                          pcs resource create SAPHana_{{ db_sid | upper }}_HDB{{ db_instance_number }} SAPHanaController \
+                                          SID={{ db_sid | upper }} InstanceNumber={{ db_instance_number }} PREFER_SITE_TAKEOVER=true DUPLICATE_PRIMARY_TIMEOUT=7200 AUTOMATED_REGISTER=false \
                                           op start interval=0 timeout=3600 op stop interval=0 timeout=3600 op promote interval=0 timeout=3600 \
                                           op monitor interval=60 role="Master" timeout=700 op monitor interval=61 role="Slave" timeout=700
           register:                        sap_hana
@@ -76,7 +76,7 @@
 
         - name:                        "5.5.4.1 HANA Cluster configuration - Ensure SAP HANA master-slave resource is configured"
           ansible.builtin.shell: >
-                                          pcs resource master msl_SAPHana_HN1_HDB03 SAPHana_HN1_HDB03 \
+                                          pcs resource master msl_SAPHana_{{ db_sid | upper }}_HDB{{ db_instance_number }} SAPHana_{{ db_sid | upper }}_HDB{{ db_instance_number }} \
                                           meta master-max="1" clone-node-max=1 interleave=true
           register:                        sap_hana_msl
           failed_when:                     sap_hana_msl.rc > 1
@@ -87,8 +87,8 @@
       block:
         - name:                        "5.5.4.1 HANA Cluster configuration - Ensure the SAP HANA resources are created"
           ansible.builtin.shell: >
-                                          pcs resource create SAPHana_HN1_HDB03 SAPHanaController \
-                                          SID=HN1 InstanceNumber=03 PREFER_SITE_TAKEOVER=true DUPLICATE_PRIMARY_TIMEOUT=7200 AUTOMATED_REGISTER=false \
+                                          pcs resource create SAPHana_{{ db_sid | upper }}_HDB{{ db_instance_number }} SAPHanaController \
+                                          SID={{ db_sid | upper }} InstanceNumber={{ db_instance_number }} PREFER_SITE_TAKEOVER=true DUPLICATE_PRIMARY_TIMEOUT=7200 AUTOMATED_REGISTER=false \
                                           op demote interval=0s timeout=320 op methods interval=0s timeout=5 \
                                           op start interval=0 timeout=3600 op stop interval=0 timeout=3600 op promote interval=0 timeout=3600 \
                                           op monitor interval=60 role="Master" timeout=700 op monitor interval=61 role="Slave" timeout=700
@@ -97,7 +97,7 @@
 
         - name:                        "5.5.4.1 HANA Cluster configuration - Ensure SAP HANA master-slave resource is configured"
           ansible.builtin.shell: >
-                                          pcs resource promotable SAPHana_HN1_HDB03 \
+                                          pcs resource promotable SAPHana_{{ db_sid | upper }}_HDB{{ db_instance_number }} \
                                           meta master-max="1" clone-node-max=1 interleave=true
           register:                        sap_hana_msl
           failed_when:                     sap_hana_msl.rc > 1
