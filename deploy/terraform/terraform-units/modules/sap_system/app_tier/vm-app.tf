@@ -501,7 +501,7 @@ resource "azurerm_virtual_machine_extension" "monitoring_extension_app_lnx" {
                                            local.application_server_count) : (
                                            0                                           )
   virtual_machine_id                   = azurerm_linux_virtual_machine.app[count.index].id
-  name                                 = "AzureMonitorLinuxAgent"
+  name                                 = "Microsoft.Azure.Monitor.AzureMonitorLinuxAgent
   publisher                            = "Microsoft.Azure.Monitor"
   type                                 = "AzureMonitorLinuxAgent"
   type_handler_version                 = "1.0"
