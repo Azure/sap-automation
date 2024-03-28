@@ -71,17 +71,24 @@
     var:                               azure_metadata.json
     verbosity:                         2
 
-- name:                                "SAP HANA -  - Extract details"
+- name:                                "SAP HANA -  - Extract network details from IMDS"
   ansible.builtin.set_fact:
     subnet_address:                    "{{ azure_metadata.json.network.interface[0].ipv4.subnet[0].address }}"
     subnet_prefix:                     "{{ azure_metadata.json.network.interface[0].ipv4.subnet[0].prefix }}"
+    subnet_db_cidr:                    "{{ subnet_cidr_db | default(azure_metadata.json.network.interface[0].ipv4.subnet[0].address + '/' + azure_metadata.json.network.interface[0].ipv4.subnet[0].prefix) }}"
+    subnet_client_cidr:                "{{ subnet_cidr_client | default(azure_metadata.json.network.interface[0].ipv4.subnet[0].address + '/' + azure_metadata.json.network.interface[0].ipv4.subnet[0].prefix) }}"
+    subnet_storage_cidr:               "{{ subnet_cidr_storage | default(azure_metadata.json.network.interface[0].ipv4.subnet[0].address + '/' + azure_metadata.json.network.interface[0].ipv4.subnet[0].prefix) }}"
 
 - name:                                "SAP HANA -  - Show the subnet details"
   ansible.builtin.debug:
     msg:
-      - "Subnet Address: {{ subnet_address }}"
-      - "Subnet Prefix: {{ subnet_prefix }}"
-      - "Subnet CIDR: {{ (subnet_address + '/' + subnet_prefix) }}"
+                                       - "Subnet Address:      {{ subnet_address }}"
+                                       - "Subnet Prefix:       {{ subnet_prefix }}"
+                                       - "Subnet CIDR:         {{ (subnet_address + '/' + subnet_prefix) }}"
+                                       - "DB Subnet CIDR:      {{ subnet_db_cidr }}"
+                                       - "Client Subnet CIDR:  {{ subnet_client_cidr }}"
+                                       - "Storage Subnet CIDR: {{ subnet_storage_cidr }}"
+
 # Scale out ANF only runs on primary node or the first node in the SID_DB list. This is mandatory.
 - name:                                "HANA Install - Scale Out - ANF"
   block:
@@ -287,9 +294,10 @@
             state:                     present
             mode:                      0644
             option:                    "map_{{ hostvars[item].virtual_host }}"
-            value:                     "{{ hostvars[item].ansible_host }}"
+            value:                     "{{ (hostvars[item].ansible_all_ipv4_addresses | ansible.utils.ipaddr(subnet_client_cidr)) | default(hostvars[item].ansible_host) }}"
           with_items:
             - "{{ groups[(sap_sid | upper)~'_DB' ] }}"
+
 
         - name:                        "Prepare global.ini for site hosts name resolution (Primary Site)"
           community.general.ini_file:
