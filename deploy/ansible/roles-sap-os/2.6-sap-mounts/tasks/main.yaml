@@ -412,8 +412,8 @@
         path:                          "{{ item.path }}"
         mode:                          '{{ item.mode }}'
       loop:
-        - { mode: '0755', path: '/hana/data' }
-        - { mode: '0755', path: '/hana/log' }
+        - { mode: '0755', path: "{{ hana_data_basepath }}" }
+        - { mode: '0755', path: "{{ hana_log_basepath }}" }
         - { mode: '0755', path: '/hana/shared' }
   rescue:
     - name:                            "2.6 SAP Mounts: - Set permissions on hana folders"
@@ -425,8 +425,8 @@
         path:                          "{{ item.path }}"
         mode:                          '{{ item.mode }}'
       loop:
-        - { mode: '0755', path: '/hana/data' }
-        - { mode: '0755', path: '/hana/log' }
+        - { mode: '0755', path: "{{ hana_data_basepath }}" }
+        - { mode: '0755', path: "{{ hana_log_basepath }}" }
         - { mode: '0755', path: '/hana/shared' }
 
 # Import custom NFS mounts.
