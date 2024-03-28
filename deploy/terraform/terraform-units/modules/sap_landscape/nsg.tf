@@ -175,9 +175,9 @@ resource "azurerm_network_security_rule" "nsr_controlplane_app" {
                                            var.deployer_tfstate.subnet_mgmt_address_prefixes,
                                            var.deployer_tfstate.subnet_bastion_address_prefixes,
                                            local.SAP_virtualnetwork_exists ? (
-                                             jsonencode(data.azurerm_virtual_network.vnet_sap[0].address_space)) : (
-                                             jsonencode(azurerm_virtual_network.vnet_sap[0].address_space
-                                           ))))
+                                             data.azurerm_virtual_network.vnet_sap[0].address_space[0]) : (
+                                             azurerm_virtual_network.vnet_sap[0].address_space[0]
+                                           )))
   destination_address_prefixes         = local.application_subnet_existing ? data.azurerm_subnet.app[0].address_prefixes : azurerm_subnet.app[0].address_prefixes
 }
 
@@ -205,9 +205,9 @@ resource "azurerm_network_security_rule" "nsr_controlplane_web" {
                                            var.deployer_tfstate.subnet_mgmt_address_prefixes,
                                            var.deployer_tfstate.subnet_bastion_address_prefixes,
                                            local.SAP_virtualnetwork_exists ? (
-                                             jsonencode(data.azurerm_virtual_network.vnet_sap[0].address_space)) : (
-                                             jsonencode(azurerm_virtual_network.vnet_sap[0].address_space
-                                           ))))
+                                             data.azurerm_virtual_network.vnet_sap[0].address_space[0]) : (
+                                             azurerm_virtual_network.vnet_sap[0].address_space[0]
+                                           )))
   destination_address_prefixes         = local.web_subnet_existing ? data.azurerm_subnet.web[0].address_prefixes : azurerm_subnet.web[0].address_prefixes
 }
 
@@ -236,9 +236,9 @@ resource "azurerm_network_security_rule" "nsr_controlplane_storage" {
                                            var.deployer_tfstate.subnet_mgmt_address_prefixes,
                                            var.deployer_tfstate.subnet_bastion_address_prefixes,
                                            local.SAP_virtualnetwork_exists ? (
-                                             jsonencode(data.azurerm_virtual_network.vnet_sap[0].address_space)) : (
-                                             jsonencode(azurerm_virtual_network.vnet_sap[0].address_space
-                                           ))))
+                                             data.azurerm_virtual_network.vnet_sap[0].address_space[0]) : (
+                                             azurerm_virtual_network.vnet_sap[0].address_space[0]
+                                           )))
   destination_address_prefixes         = local.storage_subnet_existing ? data.azurerm_subnet.storage[0].address_prefixes : azurerm_subnet.storage[0].address_prefixes
 }
 
@@ -266,9 +266,9 @@ resource "azurerm_network_security_rule" "nsr_controlplane_db" {
                                            var.deployer_tfstate.subnet_mgmt_address_prefixes,
                                            var.deployer_tfstate.subnet_bastion_address_prefixes,
                                            local.SAP_virtualnetwork_exists ? (
-                                             jsonencode(data.azurerm_virtual_network.vnet_sap[0].address_space)) : (
-                                             jsonencode(azurerm_virtual_network.vnet_sap[0].address_space
-                                           ))))
+                                             data.azurerm_virtual_network.vnet_sap[0].address_space[0]) : (
+                                             azurerm_virtual_network.vnet_sap[0].address_space[0]
+                                           )))
   destination_address_prefixes         = local.database_subnet_existing ? data.azurerm_subnet.db[0].address_prefixes : azurerm_subnet.db[0].address_prefixes
 }
 
@@ -296,9 +296,8 @@ resource "azurerm_network_security_rule" "nsr_controlplane_admin" {
                                            var.deployer_tfstate.subnet_mgmt_address_prefixes,
                                            var.deployer_tfstate.subnet_bastion_address_prefixes,
                                            local.SAP_virtualnetwork_exists ? (
-                                             jsonencode(data.azurerm_virtual_network.vnet_sap[0].address_space)) : (
-                                             jsonencode(azurerm_virtual_network.vnet_sap[0].address_space
-                                           ))))
-
+                                             data.azurerm_virtual_network.vnet_sap[0].address_space[0]) : (
+                                             azurerm_virtual_network.vnet_sap[0].address_space[0]
+                                           )))
   destination_address_prefixes         = local.admin_subnet_existing ? data.azurerm_subnet.admin[0].address_prefixes : azurerm_subnet.admin[0].address_prefixes
 }
