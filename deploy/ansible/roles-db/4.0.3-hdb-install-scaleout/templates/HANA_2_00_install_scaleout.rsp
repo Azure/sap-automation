@@ -96,10 +96,10 @@ lss_trust_unsigned_server=n
 volume_encryption=n
 
 # Location of Data Volumes ( Default: /hana/data/${sid} )
-datapath=/hana/data/${sid}
+datapath={{ _rsp_hana_data_basepath }}
 
 # Location of Log Volumes ( Default: /hana/log/${sid} )
-logpath=/hana/log/${sid}
+logpath= {{ _rsp_hana_log_basepath }}
 
 # Location of Persistent Memory Volumes ( Default: /hana/pmem/${sid} )
 pmempath=/hana/pmem/${sid}
