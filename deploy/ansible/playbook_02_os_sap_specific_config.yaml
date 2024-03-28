@@ -77,8 +77,6 @@
       become:                          true
       become_user:                     "root"
       block:
-      when:
-        - ansible_os_family != "Windows"
 
         - name:                        "SAP OS configuration playbook: - Set sapos tier fact"
           ansible.builtin.set_fact:
@@ -274,6 +272,9 @@
             name:                      roles-sap-os/2.6-sap-mounts
           tags:
             - 2.6-sap-mounts
+
+      when:
+        - ansible_os_family != "Windows"
 
     - name:                            "SAP OS configuration - Windows based systems"
       block:
