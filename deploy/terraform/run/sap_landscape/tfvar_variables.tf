@@ -417,6 +417,11 @@ variable "deploy_monitoring_extension"          {
                                                   default     = false
                                                 }
 
+variable "deploy_defender_extension"            {
+                                                  description = "If defined, will add the Microsoft.Azure.Security.Monitoring extension to the virtual machines"
+                                                  default     = false
+                                                }
+
 
 #########################################################################################
 #                                                                                       #

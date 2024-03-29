@@ -144,7 +144,6 @@
             - platform == 'HANA'
             - node_tier == 'hana' or ['hana'] in supported_tiers
             - not database_high_availability
-            - db_scale_out
           tags:
             - always
 

@@ -128,6 +128,15 @@
         "Display": 2
       },
       {
+        "Name": "deploy_defender_extension",
+        "Required": false,
+        "Description": "If defined, will add the Microsoft.Azure.Security.Monitoring extension to the virtual machines",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
         "Name": "place_delete_lock_on_resources",
         "Required": false,
         "Description": "If defined, a delete lock will be placed on the key resources (virtual network and key vault)",
