@@ -101,18 +101,19 @@
 # Wait for creation of HugePages
 # Reboot the VM to avoid the error "ORA-27102: out of memory"
 
-- name:                    "DB VM reboot"
+- name:                                "ORACLE Post Processing: VM reboot"
   block:
 
-   - name:                                "Oracle post-processing: Reboot after the Enabling HugePages"
-     ansible.builtin.reboot:
-      reboot_timeout:                    300
+    - name:                            "ORACLE Post Processing: Reboot after the Enabling HugePages"
+      ansible.builtin.reboot:
+        msg:                          "Rebooting the VM after enabling HugePages"
+
 
   # Wait for Connection after reboot
-   - name:                                "Wait for Connection after reboot"
-     ansible.builtin.wait_for_connection:
-       delay:                             10
-       timeout:                           300
+    - name:                            "ORACLE Post Processing: Wait for Connection after reboot"
+      ansible.builtin.wait_for_connection:
+        delay:                         10
+        timeout:                       300
   when:
     - not sga_update_status.stat.exists
 
