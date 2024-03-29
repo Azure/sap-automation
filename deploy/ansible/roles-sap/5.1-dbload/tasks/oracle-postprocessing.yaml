@@ -114,6 +114,11 @@
       ansible.builtin.wait_for_connection:
         delay:                         10
         timeout:                       300
+
+    - name:                            "ORACLE Post Processing: Wait 1 minute for Oracle to start "
+      ansible.builtin.wait_for:
+        timeout:                       60
+
   when:
     - not sga_update_status.stat.exists
 
