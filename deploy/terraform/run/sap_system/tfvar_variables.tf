@@ -1068,6 +1068,12 @@ variable "dns_a_records_for_secondary_names"    {
                                                   type        = bool
                                                 }
 
+variable "register_endpoints_with_dns"          {
+                                                  description = "Boolean value indicating if endpoints should be registered to the dns zone"
+                                                  default     = true
+                                                  type        = bool
+                                                }
+
 #########################################################################################
 #                                                                                       #
 #  NFS and Shared Filed settings                                                        #
@@ -1370,6 +1376,16 @@ variable "upgrade_packages"                     {
 variable "tags"                                 {
                                                   description = "If provided, tags for all resources"
                                                   default     = {}
+                                                }
+
+variable "deploy_monitoring_extension"          {
+                                                  description = "If defined, will add the Microsoft.Azure.Monitor.AzureMonitorLinuxAgent extension to the virtual machines"
+                                                  default     = true
+                                                }
+
+variable "deploy_defender_extension"            {
+                                                  description = "If defined, will add the Microsoft.Azure.Security.Monitoring extension to the virtual machines"
+                                                  default     = false
                                                 }
 
 

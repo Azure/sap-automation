@@ -621,4 +621,7 @@ locals {
                                            "value" = var.application_tier.user_assigned_identity_id
                                          }] : []
 
+  deploy_monitoring_extension          = local.enable_deployment && var.infrastructure.deploy_monitoring_extension && length(var.application_tier.user_assigned_identity_id) > 0
+
+
 }

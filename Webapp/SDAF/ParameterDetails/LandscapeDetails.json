@@ -111,11 +111,35 @@
         "Options": [],
         "Overrules": "",
         "Display": 2
+      }
+    ]
+  },
+  {
+    "Section": "Infrastructure settings",
+    "Link": "https://learn.microsoft.com/en-us/azure/sap/automation/automation-configure-workload-zone#environment-parameters",
+    "Parameters": [
+      {
+        "Name": "deploy_monitoring_extension",
+        "Required": false,
+        "Description": "If defined, will add the Microsoft.Azure.Monitor.AzureMonitorLinuxAgent extension to the virtual machines",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "deploy_defender_extension",
+        "Required": false,
+        "Description": "If defined, will add the Microsoft.Azure.Security.Monitoring extension to the virtual machines",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
       },
       {
         "Name": "place_delete_lock_on_resources",
         "Required": false,
-        "Description": " If defined, a delete lock will be placed on the key resources (virtual network and key vault)",
+        "Description": "If defined, a delete lock will be placed on the key resources (virtual network and key vault)",
         "Type": "checkbox",
         "Options": [],
         "Overrules": "",
@@ -124,7 +148,7 @@
       {
         "Name": "use_spn",
         "Required": false,
-        "Description": " If set, the deployment is performed using the Service Principal defined for the workload zone, otherwise the managed identity of the deployer is used",
+        "Description": "If set, the deployment is performed using the Service Principal defined for the workload zone, otherwise the managed identity of the deployer is used",
         "Type": "checkbox",
         "Options": [],
         "Overrules": "",
@@ -908,6 +932,15 @@
         "Name": "register_virtual_network_to_dns",
         "Required": false,
         "Description": "Defines if the Virtual network and the load balancers are registered with DNS",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "register_endpoints_with_dns",
+        "Required": false,
+        "Description": "Defines if the Private Endpoints are registered with DNS",
         "Type": "checkbox",
         "Options": [],
         "Overrules": "",

@@ -74,8 +74,8 @@
     create:                            true
     state:                             present
     block: |
-      {{ '%-19s' | format(scs_lb_ip) }} {{ '%-50s' | format(scs_virtual_hostname + '.' + sap_fqdn) }} {{ '%-21s' | format(scs_virtual_hostname) }}
-      {{ '%-19s' | format(ers_lb_ip) }} {{ '%-50s' | format(ers_virtual_hostname + '.' + sap_fqdn) }} {{ '%-21s' | format(ers_virtual_hostname) }}
+      {{ '%-19s' | format(scs_lb_ip) }} {{ '%-80s' | format(scs_virtual_hostname + '.' + sap_fqdn) }} {{ '%-21s' | format(scs_virtual_hostname) }}
+      {{ '%-19s' | format(ers_lb_ip) }} {{ '%-80s' | format(ers_virtual_hostname + '.' + sap_fqdn) }} {{ '%-21s' | format(ers_virtual_hostname) }}
     marker:                            "# {mark} ASCS/ERS Entries {{ scs_virtual_hostname }}"
   when:
     - scs_high_availability
@@ -88,11 +88,39 @@
     create:                            true
     state:                             present
     block: |
-      {{ '%-19s' | format(database_loadbalancer_ip) }} {{ '%-50s' | format(db_virtual_hostname + '.' + sap_fqdn) }} {{ '%-21s' | format(db_virtual_hostname) }}
+      {{ '%-19s' | format(database_loadbalancer_ip) }} {{ '%-80s' | format(db_virtual_hostname + '.' + sap_fqdn) }} {{ '%-21s' | format(db_virtual_hostname) }}
     marker:                            "# {mark} DB Entries {{ db_virtual_hostname }}"
   when:
     - database_high_availability
     - platform == 'HANA'
+
+# we only need the first DB VMs IP that belogs to subnet_cidr_client
+- name:                                "2.4 Hosts: - Set the DB Virtual Instance name resolution - scale out"
+  when:
+    - platform == 'HANA'
+    - not database_high_availability
+    - db_scale_out
+  block:
+
+    - name:                            "2.4 Hosts: - Set the DB Virtual Instance hostname - scale out"
+      ansible.builtin.set_fact:
+        db_so_virtual_hostname:        "{{ custom_db_virtual_hostname | default(sap_sid | lower ~ db_sid | lower ~ 'db' ~ db_instance_number ~ 'so', true) }}"
+
+    - name:                            "2.4 Hosts: - Calculate host name - DB - Scale Out - Standby"
+      ansible.builtin.set_fact:
+        db_so_virtualhost_ip:          "{{ hostvars[item].ansible_all_ipv4_addresses | ansible.utils.ipaddr(hostvars[item]['subnet_client_cidr']) | first | default(hostvars[item].ansible_host) }}"
+      with_items:
+        - "{{ groups[(sap_sid | upper)~'_DB' ][0] }}"
+
+    - name:                            "2.4 Hosts: - Setup Virtual host name resolution - DB - Scale Out - Standby"
+      ansible.builtin.blockinfile:
+        path:                          /etc/hosts
+        mode:                          0644
+        create:                        true
+        state:                         present
+        block: |
+          {{ '%-19s' | format(db_so_virtualhost_ip) }} {{ '%-80s' | format(db_so_virtual_hostname + '.' + sap_fqdn) }} {{ '%-21s' | format(db_so_virtual_hostname) }}
+        marker:                        "# {mark} DB Entries {{ db_virtual_hostname | default(ansible_host) }}"
 
 - name:                                "2.4 Hosts: - Setup Virtual host name resolution - DB"
   ansible.builtin.blockinfile:
@@ -101,7 +129,7 @@
     create:                            true
     state:                             present
     block: |
-      {{ '%-19s' | format(database_loadbalancer_ip) }} {{ '%-50s' | format(db_virtual_hostname + '.' + sap_fqdn) }} {{ '%-21s' | format(db_virtual_hostname) }}
+      {{ '%-19s' | format(database_loadbalancer_ip) }} {{ '%-80s' | format(db_virtual_hostname + '.' + sap_fqdn) }} {{ '%-21s' | format(db_virtual_hostname) }}
     marker:                            "# {mark} DB Entries {{ db_virtual_hostname }}"
   when:
     - database_high_availability
@@ -160,8 +188,8 @@
   ansible.builtin.lineinfile:
     path:                              /etc/hosts
     line:
-      "{{ '%-19s' | format(iscsi_server.ip) }} {{ '%-50s' | format(iscsi_server.host + '.' + sap_fqdn) }} {{ '%-21s' | format(iscsi_server.host) }}"
-  loop:                                           "{{ iscsi_servers }}"
+      "{{ '%-19s' | format(iscsi_server.ip) }} {{ '%-80s' | format(iscsi_server.host + '.' + sap_fqdn) }} {{ '%-21s' | format(iscsi_server.host) }}"
+  loop:                                "{{ iscsi_servers }}"
   loop_control:
     loop_var:                          iscsi_server
   when:                                iscsi_servers is defined

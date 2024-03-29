@@ -108,7 +108,7 @@ resource "azurerm_private_endpoint" "storage_bootdiag" {
             }
 
   dynamic "private_dns_zone_group" {
-                                     for_each = range(var.use_private_endpoint && !var.use_custom_dns_a_registration ? 1 : 0)
+                                     for_each = range(var.register_endpoints_with_dns ? 1 : 0)
                                      content {
                                        name                 = var.dns_zone_names.blob_dns_zone_name
                                        private_dns_zone_ids = [data.azurerm_private_dns_zone.storage[0].id]
@@ -250,7 +250,7 @@ resource "azurerm_private_endpoint" "witness_storage" {
             }
 
   dynamic "private_dns_zone_group" {
-                                     for_each = range(var.use_private_endpoint && !var.use_custom_dns_a_registration ? 1 : 0)
+                                     for_each = range(var.register_endpoints_with_dns ? 1 : 0)
                                      content {
                                        name                 = var.dns_zone_names.blob_dns_zone_name
                                        private_dns_zone_ids = [data.azurerm_private_dns_zone.storage[0].id]
@@ -447,7 +447,7 @@ resource "azurerm_private_endpoint" "transport" {
                                ]
                              }
   dynamic "private_dns_zone_group" {
-                                     for_each = range(var.use_private_endpoint ? 1 : 0)
+                                     for_each = range(var.register_endpoints_with_dns ? 1 : 0)
                                      content {
                                        name                 = var.dns_zone_names.file_dns_zone_name
                                        private_dns_zone_ids = [data.azurerm_private_dns_zone.file[0].id]
@@ -657,7 +657,7 @@ resource "azurerm_private_endpoint" "install" {
                              }
 
   dynamic "private_dns_zone_group" {
-                                     for_each = range(var.use_private_endpoint ? 1 : 0)
+                                     for_each = range(var.register_endpoints_with_dns ? 1 : 0)
                                      content {
                                        name                 = var.dns_zone_names.file_dns_zone_name
                                        private_dns_zone_ids = [data.azurerm_private_dns_zone.file[0].id]
