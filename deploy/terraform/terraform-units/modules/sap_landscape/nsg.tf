@@ -171,8 +171,14 @@ resource "azurerm_network_security_rule" "nsr_controlplane_app" {
   protocol                             = "Tcp"
   source_port_range                    = "*"
   destination_port_ranges              = [22, 443, 3389, 5985, 5986, 5404, 5405, 7630]
-  source_address_prefixes              = compact(concat(var.deployer_tfstate.subnet_mgmt_address_prefixes, var.deployer_tfstate.subnet_bastion_address_prefixes))
-  destination_address_prefixes         = azurerm_subnet.app[0].address_prefixes
+  source_address_prefixes              = compact(concat(
+                                           var.deployer_tfstate.subnet_mgmt_address_prefixes,
+                                           var.deployer_tfstate.subnet_bastion_address_prefixes,
+                                           local.SAP_virtualnetwork_exists ? (
+                                             data.azurerm_virtual_network.vnet_sap[0].address_space) : (
+                                             azurerm_virtual_network.vnet_sap[0].address_space
+                                           )))
+  destination_address_prefixes         = local.application_subnet_existing ? data.azurerm_subnet.app[0].address_prefixes : azurerm_subnet.app[0].address_prefixes
 }
 
 // Add SSH network security rule
@@ -195,13 +201,20 @@ resource "azurerm_network_security_rule" "nsr_controlplane_web" {
   protocol                             = "Tcp"
   source_port_range                    = "*"
   destination_port_ranges              = [22, 443, 3389, 5985, 5986]
-  source_address_prefixes              = compact(concat(var.deployer_tfstate.subnet_mgmt_address_prefixes, var.deployer_tfstate.subnet_bastion_address_prefixes))
-  destination_address_prefixes         = azurerm_subnet.web[0].address_prefixes
+  source_address_prefixes              = compact(concat(
+                                           var.deployer_tfstate.subnet_mgmt_address_prefixes,
+                                           var.deployer_tfstate.subnet_bastion_address_prefixes,
+                                           local.SAP_virtualnetwork_exists ? (
+                                             data.azurerm_virtual_network.vnet_sap[0].address_space) : (
+                                             azurerm_virtual_network.vnet_sap[0].address_space
+                                           )))
+  destination_address_prefixes         = local.web_subnet_existing ? data.azurerm_subnet.web[0].address_prefixes : azurerm_subnet.web[0].address_prefixes
 }
 
 // Add SSH network security rule
 resource "azurerm_network_security_rule" "nsr_controlplane_storage" {
   provider                             = azurerm.main
+
   count                                = local.storage_subnet_defined ? local.storage_subnet_nsg_exists ? 0 : 1 : 0
   depends_on                           = [
                                            azurerm_network_security_group.storage
@@ -219,8 +232,14 @@ resource "azurerm_network_security_rule" "nsr_controlplane_storage" {
   protocol                             = "*"
   source_port_range                    = "*"
   destination_port_ranges              = [22, 443, 3389, 5985, 5986, 111, 635, 2049, 4045, 4046, 4049]
-  source_address_prefixes              = compact(concat(var.deployer_tfstate.subnet_mgmt_address_prefixes, var.deployer_tfstate.subnet_bastion_address_prefixes))
-  destination_address_prefixes         = azurerm_subnet.storage[0].address_prefixes
+  source_address_prefixes              = compact(concat(
+                                           var.deployer_tfstate.subnet_mgmt_address_prefixes,
+                                           var.deployer_tfstate.subnet_bastion_address_prefixes,
+                                           local.SAP_virtualnetwork_exists ? (
+                                             data.azurerm_virtual_network.vnet_sap[0].address_space) : (
+                                             azurerm_virtual_network.vnet_sap[0].address_space
+                                           )))
+  destination_address_prefixes         = local.storage_subnet_existing ? data.azurerm_subnet.storage[0].address_prefixes : azurerm_subnet.storage[0].address_prefixes
 }
 
 // Add SSH network security rule
@@ -245,9 +264,12 @@ resource "azurerm_network_security_rule" "nsr_controlplane_db" {
   destination_port_ranges              = [22, 443, 3389, 5985, 5986,111, 635, 2049, 4045, 4046, 4049]
   source_address_prefixes              = compact(concat(
                                            var.deployer_tfstate.subnet_mgmt_address_prefixes,
-                                           var.deployer_tfstate.subnet_bastion_address_prefixes)
-                                         )
-  destination_address_prefixes         = azurerm_subnet.db[0].address_prefixes
+                                           var.deployer_tfstate.subnet_bastion_address_prefixes,
+                                           local.SAP_virtualnetwork_exists ? (
+                                             data.azurerm_virtual_network.vnet_sap[0].address_space) : (
+                                             azurerm_virtual_network.vnet_sap[0].address_space
+                                           )))
+  destination_address_prefixes         = local.database_subnet_existing ? data.azurerm_subnet.db[0].address_prefixes : azurerm_subnet.db[0].address_prefixes
 }
 
 // Add network security rule
@@ -269,10 +291,13 @@ resource "azurerm_network_security_rule" "nsr_controlplane_admin" {
   access                               = "Allow"
   protocol                             = "Tcp"
   source_port_range                    = "*"
-  destination_port_ranges              = [22, 443, 3389, 5985, 5986]
+  destination_port_ranges              = [22, 443, 3389, 5985, 5986,111, 635, 2049, 4045, 4046, 4049]
   source_address_prefixes              = compact(concat(
                                            var.deployer_tfstate.subnet_mgmt_address_prefixes,
-                                           var.deployer_tfstate.subnet_bastion_address_prefixes)
-                                         )
-  destination_address_prefixes         = azurerm_subnet.admin[0].address_prefixes
+                                           var.deployer_tfstate.subnet_bastion_address_prefixes,
+                                           local.SAP_virtualnetwork_exists ? (
+                                             data.azurerm_virtual_network.vnet_sap[0].address_space) : (
+                                             azurerm_virtual_network.vnet_sap[0].address_space
+                                           )))
+  destination_address_prefixes         = local.admin_subnet_existing ? data.azurerm_subnet.admin[0].address_prefixes : azurerm_subnet.admin[0].address_prefixes
 }

@@ -235,6 +235,12 @@ variable "management_dns_resourcegroup_name"     {
                                                     default     = null
                                                     type        = string
                                                  }
+
+variable "register_endpoints_with_dns"           {
+                                                   description = "Boolean value indicating if endpoints should be registered to the dns zone"
+                                                   type        = bool
+                                                 }
+
 variable "dns_zone_names"                        {
                                                   description = "Private DNS zone names"
                                                   type        = map(string)

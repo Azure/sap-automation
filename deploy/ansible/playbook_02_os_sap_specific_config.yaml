@@ -132,6 +132,20 @@
         - name:                        "SAP OS configuration playbook: - Convert ips to list"
           ansible.builtin.set_fact:
             ipadd:                     "{{ azure_network_metadata.json | json_query('interface[*].ipv4.ipAddress[*].privateIpAddress') | flatten(levels=1) | default([]) | list }}"
+          tags:
+            - always
+
+        # we do not need to add the same assertion for subnet_cidr_client as it is
+        # calculated for specific deployment scenarios.
+        - name:                        "SAP OS configuration playbook: - Set the subnet_client_cidr fact"
+          ansible.builtin.set_fact:
+            subnet_client_cidr:        "{{ subnet_cidr_client | default(azure_network_metadata.json.interface[0].ipv4.subnet[0].address + '/' + azure_network_metadata.json.interface[0].ipv4.subnet[0].prefix) }}"
+          when:
+            - platform == 'HANA'
+            - node_tier == 'hana' or ['hana'] in supported_tiers
+            - not database_high_availability
+          tags:
+            - always
 
         # add assertion to validate if ipadd is not empty and has at least one ip address
         - name:                        "SAP OS configuration playbook: - Assert if IP Address is not empty"

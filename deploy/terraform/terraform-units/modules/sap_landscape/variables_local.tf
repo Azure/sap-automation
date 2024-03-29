@@ -466,7 +466,7 @@ locals {
                                                         )
                                                       )
                                                     )
-  subnet_prefix_storage                           = local.storage_subnet_defined ? (
+  subnet_cidr_storage                           = local.storage_subnet_defined ? (
                                                        try(var.infrastructure.vnets.sap.subnet_storage.prefix, "")) : (
                                                        ""
                                                      )
@@ -788,4 +788,8 @@ locals {
 
   use_AFS_for_shared                             = (var.NFS_provider == "ANF" && var.use_AFS_for_shared_storage) || var.NFS_provider == "AFS"
 
+
+  deploy_monitoring_extension                    = var.infrastructure.deploy_monitoring_extension && length(try(var.infrastructure.user_assigned_identity_id,"")) > 0
+
 }
+
