@@ -34,7 +34,7 @@
 - name:                                "Set the SGA and PGA Sizes for RAM > 4TB"
   ansible.builtin.set_fact:
     ora_sga:                           "{{ (ansible_memory_mb.real.total * 0.65) | round | int }}"
-    ora_pga:                           "{{ ((ansible_memory_mb.real.total*0.65)*0.2) | round | int }}"
+    ora_pga:                           "{{ ((ansible_memory_mb.real.total * 0.65) * 0.2) | round | int }}"
   when:
     - ansible_memory_mb.real.total > 4194304
     - supported_tiers != "pas"
@@ -99,7 +99,7 @@
   when:                                updatesga_results.rc == 0
 
 # Wait for creation of HugePages
-# Rebbot the VM to avoid the error "ORA-27102: out of memory"
+# Reboot the VM to avoid the error "ORA-27102: out of memory"
 
 - name:                    "DB VM reboot"
   block:
