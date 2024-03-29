@@ -501,7 +501,6 @@
         var:                           hdbuserstore_path
         verbosity:                     2
 
-
     - name:                            "DBLoad: Set DB Virtual Host name ({{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) }})"
       become:                          true
       become_user:                     "{{ sid_to_be_deployed.sid | lower }}adm"
