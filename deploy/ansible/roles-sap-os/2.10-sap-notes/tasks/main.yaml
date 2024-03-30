@@ -89,8 +89,8 @@
     - node_tier == 'hana'
     - distribution_id in ['redhat8', 'redhat9']
 
-- name:                                "2.10.2777782 - SAP Note 2777782 tasks on OEL OS"
-  ansible.builtin.include_tasks:       2.10.2777782.yaml
+- name:                                "2.10.2 - SAP Note 2777782 tasks on OEL OS"
+  ansible.builtin.include_tasks:       2.10.2.yaml
   when:
     - node_tier in ['oracle', 'oracle-asm']
     - distribution_id == 'oraclelinux8'
