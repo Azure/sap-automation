@@ -89,8 +89,8 @@
     - node_tier == 'hana'
     - distribution_id in ['redhat8', 'redhat9']
 
-- name:                                "2.10.2 - SAP Note 2777782 tasks on OEL OS"
-  ansible.builtin.include_tasks:       2.10.2.yaml
+- name:                                "2.10.2777782 - SAP Note 2777782 tasks on OEL OS"
+  ansible.builtin.include_tasks:       2.10.2777782.yaml
   when:
     - node_tier in ['oracle', 'oracle-asm']
     - distribution_id == 'oraclelinux8'
@@ -109,6 +109,16 @@
   when:
     - platform == 'HANA'
     - distribution_id in ['redhat8', 'redhat9']
+
+
+- name:                                "2.10.3119751 - Show SELinux status"
+  ansible.builtin.command:
+    command:                           sestatus
+  register:                            se_status
+
+- name:                                "2.10.3119751 - Print SELinux status"
+  ansible.builtin.debug:
+    msg:                               "SE Linux status for {{ ansible_host}} is {{ se_status.stdout_lines}}"
 
 # ToDo RHEL7 and also the other SAP nodes
 # -------------------------------------+---------------------------------------8
