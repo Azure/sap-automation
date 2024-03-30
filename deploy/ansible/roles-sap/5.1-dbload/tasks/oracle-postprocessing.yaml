@@ -104,20 +104,41 @@
 - name:                                "ORACLE Post Processing: VM reboot"
   block:
 
+    - name:                            "ORACLE Post Processing: - Retrieve Subscription ID, Resource Group Name and Virtual Machine name"
+      ansible.builtin.uri:
+        url:                           http://169.254.169.254/metadata/instance?api-version=2021-02-01
+        use_proxy:                     false
+        headers:
+          Metadata:                    true
+      register: azure_metadata
+
+    - name:                            "ORACLE Post Processing: - Extract Subscription ID, Resource Group Name and Virtual Machine name"
+      ansible.builtin.set_fact:
+        subscription_id:               "{{ azure_metadata.json.compute.subscriptionId }}"
+        resource_group_name:           "{{ azure_metadata.json.compute.resourceGroupName }}"
+        vm_name:                       "{{ azure_metadata.json.compute.name }}"
+
     - name:                            "ORACLE Post Processing: Reboot after the Enabling HugePages"
       ansible.builtin.reboot:
-        msg:                          "Rebooting the VM after enabling HugePages"
+        reboot_timeout:                300
+        post_reboot_delay:             60
+        msg:                           "Rebooting the VM after enabling HugePages"
 
+    - name:                            "ORACLE Post Processing: Clear the failed state of hosts"
+      ansible.builtin.meta:            clear_host_errors
+
+    - name:                            "ORACLE Post Processing: Including Task for VM Agent Actions"
+      ansible.builtin.include_tasks:   roles-misc/0.7-VmAgentActions/tasks/main.yaml
+      vars:
+        subscriptionId:                "{{ subscription_id }}"
+        resourceGroup_name:            "{{ resource_group_name }}"
+        vmName:                        "{{ vm_name }}"
 
   # Wait for Connection after reboot
     - name:                            "ORACLE Post Processing: Wait for Connection after reboot"
       ansible.builtin.wait_for_connection:
         delay:                         10
         timeout:                       300
-
-    - name:                            "ORACLE Post Processing: Wait 1 minute for Oracle to start "
-      ansible.builtin.wait_for:
-        timeout:                       60
 
   when:
     - not sga_update_status.stat.exists
