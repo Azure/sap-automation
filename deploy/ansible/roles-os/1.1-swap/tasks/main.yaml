@@ -73,7 +73,8 @@
   block:
     - name:                            "1.1 Swap: - Reboot"
       ansible.builtin.reboot:
-        timeout:                       120
+        reboot_timeout:                300
+        msg:                           "Rebooting to enable swap space"
 
     - name:                            "1.1 Swap: - Wait for system to become reachable"
       ansible.builtin.wait_for_connection:
