@@ -70,7 +70,7 @@
 - name:                                "1.1 Swap: - Reboot"
   when:
     - wagent_configuration.changed
-  block
+  block:
     - name:                            "1.1 Swap: - Reboot"
       ansible.builtin.reboot:
         timeout:                       120
