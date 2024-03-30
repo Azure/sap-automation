@@ -68,15 +68,18 @@
     - swap_size == '0'
 
 - name:                                "1.1 Swap: - Reboot"
-  ansible.builtin.reboot:
   when:
     - wagent_configuration.changed
+  block
+    - name:                            "1.1 Swap: - Reboot"
+      ansible.builtin.reboot:
+        timeout:                       120
 
-- name:                                "1.1 Swap: - Wait for system to become reachable"
-  ansible.builtin.wait_for_connection:
-    timeout:                           120
-    delay:                             10
-  register:                            wait_for_connection_results
+    - name:                            "1.1 Swap: - Wait for system to become reachable"
+      ansible.builtin.wait_for_connection:
+        timeout:                       120
+        delay:                         10
+      register:                        wait_for_connection_results
 
 
 # - name:                               "Get SWAP Size"
