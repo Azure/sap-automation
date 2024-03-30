@@ -112,8 +112,7 @@
 
 
 - name:                                "2.10.3119751 - Show SELinux status"
-  ansible.builtin.command:
-    command:                           sestatus
+  ansible.builtin.command:             sestatus
   register:                            se_status
 
 - name:                                "2.10.3119751 - Print SELinux status"
