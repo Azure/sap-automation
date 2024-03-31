@@ -34,7 +34,7 @@
         - always
 
     - name:                            "OS configuration playbook: - Read password"
-      ansible.builtin.import_role:
+      ansible.builtin.include_role:
         name:                          roles-misc/0.1-passwords
         tasks_from:                    windows.yaml
         public:                        true
