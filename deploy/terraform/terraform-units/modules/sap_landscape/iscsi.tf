@@ -326,18 +326,8 @@ resource "azurerm_virtual_machine_extension" "monitoring_extension_iscsi_lnx" {
   publisher                            = "Microsoft.Azure.Monitor"
   type                                 = "AzureMonitorLinuxAgent"
   type_handler_version                 = "1.0"
-  auto_upgrade_minor_version           = "true"
+  auto_upgrade_minor_version           = true
 
-  settings                             = jsonencode(
-                                           {
-                                              "authentication"  =  {
-                                                   "managedIdentity" = {
-                                                        "identifier-name" : "mi_res_id",
-                                                        "identifier-value": var.infrastructure.iscsi.user_assigned_identity_id
-                                                      }
-                                                }
-                                            }
-                                            )
 }
 
 resource "azurerm_virtual_machine_extension" "monitoring_defender_iscsi_lnx" {
@@ -351,7 +341,7 @@ resource "azurerm_virtual_machine_extension" "monitoring_defender_iscsi_lnx" {
   publisher                            = "Microsoft.Azure.Security.Monitoring"
   type                                 = "AzureSecurityLinuxAgent"
   type_handler_version                 = "2.0"
-  auto_upgrade_minor_version           = "true"
+  auto_upgrade_minor_version           = true
 
   settings                             = jsonencode(
                                             {

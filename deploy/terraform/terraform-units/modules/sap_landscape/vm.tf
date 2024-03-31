@@ -179,17 +179,7 @@ resource "azurerm_virtual_machine_extension" "monitoring_extension_utility_lnx" 
   publisher                            = "Microsoft.Azure.Monitor"
   type                                 = "AzureMonitorLinuxAgent"
   type_handler_version                 = "1.0"
-  auto_upgrade_minor_version           = "true"
-  settings                             = jsonencode(
-                                           {
-                                              "authentication"  =  {
-                                                   "managedIdentity" = {
-                                                        "identifier-name" : "mi_res_id",
-                                                        "identifier-value": var.infrastructure.user_assigned_identity_id
-                                                      }
-                                                }
-                                            }
-                                            )
+  auto_upgrade_minor_version           = true
 }
 
 
@@ -202,17 +192,7 @@ resource "azurerm_virtual_machine_extension" "monitoring_extension_utility_win" 
   publisher                            = "Microsoft.Azure.Monitor"
   type                                 = "AzureMonitorWindowsAgent"
   type_handler_version                 = "1.0"
-  auto_upgrade_minor_version           = "true"
-  settings                             = jsonencode(
-                                           {
-                                              "authentication"  =  {
-                                                   "managedIdentity" = {
-                                                        "identifier-name" : "mi_res_id",
-                                                        "identifier-value": var.infrastructure.user_assigned_identity_id
-                                                      }
-                                                }
-                                            }
-                                            )
+  auto_upgrade_minor_version           = true
 }
 
 
@@ -224,7 +204,7 @@ resource "azurerm_virtual_machine_extension" "monitoring_defender_utility_lnx" {
   publisher                            = "Microsoft.Azure.Security.Monitoring"
   type                                 = "AzureSecurityLinuxAgent"
   type_handler_version                 = "2.0"
-  auto_upgrade_minor_version           = "true"
+  auto_upgrade_minor_version           = true
 
   settings                             = jsonencode(
                                             {
@@ -243,7 +223,7 @@ resource "azurerm_virtual_machine_extension" "monitoring_defender_utility_win" {
   publisher                            = "Microsoft.Azure.Security.Monitoring"
   type                                 = "AzureSecurityWindowsAgent"
   type_handler_version                 = "2.0"
-  auto_upgrade_minor_version           = "true"
+  auto_upgrade_minor_version           = true
 
   settings                             = jsonencode(
                                             {
