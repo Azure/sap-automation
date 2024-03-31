@@ -444,7 +444,7 @@ resource "azurerm_virtual_machine_extension" "app_lnx_aem_extension" {
   settings                             = jsonencode(
                                            {
                                              "system": "SAP",
-                                             "cfg": local.extension_settings
+
                                            }
                                          )
   tags                                 = var.tags
@@ -465,7 +465,7 @@ resource "azurerm_virtual_machine_extension" "app_win_aem_extension" {
   settings                             = jsonencode(
                                            {
                                              "system": "SAP",
-                                             "cfg": local.extension_settings
+
                                            }
                                          )
   tags                                 = var.tags
