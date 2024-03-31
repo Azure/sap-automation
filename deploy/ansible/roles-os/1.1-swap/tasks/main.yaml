@@ -74,6 +74,9 @@
     - name:                            "1.1 Swap: - Reboot"
       ansible.builtin.reboot:
 
+    - name:                            "1.1 Swap: - Clear the failed state of hosts"
+      ansible.builtin.meta:            clear_host_errors
+
     - name:                            "1.1 Swap: - Wait for system to become reachable"
       ansible.builtin.wait_for_connection:
         timeout:                       240
