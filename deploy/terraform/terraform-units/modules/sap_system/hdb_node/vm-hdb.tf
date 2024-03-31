@@ -560,7 +560,7 @@ resource "azurerm_virtual_machine_extension" "monitoring_extension_db_lnx" {
                                            var.database_server_count) : (
                                            0                                           )
   virtual_machine_id                   = azurerm_linux_virtual_machine.vm_dbnode[count.index].id
-  name                                 = "AzureMonitorLinuxAgent"
+  name                                 = "Microsoft.Azure.Monitor.AzureMonitorLinuxAgent"
   publisher                            = "Microsoft.Azure.Monitor"
   type                                 = "AzureMonitorLinuxAgent"
   type_handler_version                 = "1.0"
@@ -576,4 +576,27 @@ resource "azurerm_virtual_machine_extension" "monitoring_extension_db_lnx" {
                                                 }
                                             }
                                             )
+}
+
+
+resource "azurerm_virtual_machine_extension" "monitoring_defender_db_lnx" {
+  provider                             = azurerm.main
+  count                                = var.infrastructure.deploy_defender_extension ? (
+                                           var.database_server_count) : (
+                                           0
+                                         )
+  virtual_machine_id                   = azurerm_linux_virtual_machine.vm_dbnode[count.index].id
+  name                                 = "Microsoft.Azure.Security.Monitoring.AzureSecurityLinuxAgent"
+  publisher                            = "Microsoft.Azure.Security.Monitoring"
+  type                                 = "AzureSecurityLinuxAgent"
+  type_handler_version                 = "2.0"
+  auto_upgrade_minor_version           = "true"
+
+  settings                             = jsonencode(
+                                            {
+                                              "enableGenevaUpload"  = true,
+                                              "enableAutoConfig"  = true,
+                                              "reportSuccessOnUnsupportedDistro"  = true,
+                                            }
+                                          )
 }
