@@ -31,7 +31,7 @@
     - database_high_availability
     - hana_shared_mountpoint is defined
     - hana_shared_mountpoint | length > 1
-    - platform | upper = 'HANA'
+    - platform | upper == 'HANA'
   block:
     # - name:                            "Get the cluster maintenance mode status"
     #   ansible.builtin.shell:           pcs property show maintenance-mode
