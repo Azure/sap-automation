@@ -105,15 +105,15 @@
 # +------------------------------------4--------------------------------------*/
 
 # Currently
-- name:                                "1.17 Generic Pacemaker - Configure the cluster STONITH device on the primary node"
+- name:                                "1.18.2.0 Generic Pacemaker - Configure the cluster STONITH device on the primary node"
   when:
                                         - database_cluster_type == "AFA"
                                         - inventory_hostname  == primary_instance_name
   block:
-    - name:                            "1.17 Generic Pacemaker - Ensure STONITH timeout is raised"
+    - name:                            "1.18.2.0 Generic Pacemaker - Ensure STONITH timeout is raised"
       ansible.builtin.command:         pcs property set stonith-timeout=900
 
-    - name:                            "1.17 Generic Pacemaker - Ensure the STONTIH device is configured"
+    - name:                            "1.18.2.0 Generic Pacemaker - Ensure the STONTIH device is configured"
       ansible.builtin.command: >
                                        pcs stonith create rsc_st_azure fence_azure_arm
                                          login="{{ fencing_spn_client_id }}"
@@ -138,7 +138,7 @@
         - ansible_distribution_major_version == "7"
         - not use_msi_for_clusters
 
-    - name:                            "1.17 Generic Pacemaker - Ensure the STONTIH device is configured"
+    - name:                            "1.18.2.0 Generic Pacemaker - Ensure the STONTIH device is configured"
       ansible.builtin.command: >
                                        pcs stonith create rsc_st_azure fence_azure_arm
                                          msi=true
@@ -162,7 +162,7 @@
         - ansible_distribution_major_version == "7"
         - use_msi_for_clusters
 
-    - name:                            "1.17 Generic Pacemaker - Ensure the STONTIH device is configured"
+    - name:                            "1.18.2.0 Generic Pacemaker - Ensure the STONTIH device is configured"
       ansible.builtin.command: >
                                        pcs stonith create rsc_st_azure fence_azure_arm
                                          login="{{ fencing_spn_client_id }}"
@@ -187,7 +187,7 @@
         - ansible_distribution_major_version in ["8", "9"]
         - not use_msi_for_clusters
 
-    - name:                            "1.17 Generic Pacemaker - Ensure the STONTIH device is configured (MSI)"
+    - name:                            "1.18.2.0 Generic Pacemaker - Ensure the STONTIH device is configured (MSI)"
       ansible.builtin.command: >
                                        pcs stonith create rsc_st_azure fence_azure_arm
                                          msi=true
@@ -210,16 +210,16 @@
         - ansible_distribution_major_version in ["8", "9"]
         - use_msi_for_clusters
 
-    - name:                            "1.17 Generic Pacemaker - Update Monitor interval"
+    - name:                            "1.18.2.0 Generic Pacemaker - Update Monitor interval"
       ansible.builtin.command:         pcs resource update rsc_st_azure op monitor interval=3600
 
-    - name:                            "1.17 Generic Pacemaker - Ensure the STONITH action is set to reboot"
+    - name:                            "1.18.2.0 Generic Pacemaker - Ensure the STONITH action is set to reboot"
       ansible.builtin.command:         pcs property set stonith-action=reboot
 
-    - name:                            "1.17 Generic Pacemaker - Ensure the STONITH device is enabled"
+    - name:                            "1.18.2.0 Generic Pacemaker - Ensure the STONITH device is enabled"
       ansible.builtin.command:         pcs property set stonith-enabled=true
 
-    - name:                            "1.17 Generic Pacemaker - Clear any errors during enablement of STONITH device"
+    - name:                            "1.18.2.0 Generic Pacemaker - Clear any errors during enablement of STONITH device"
       ansible.builtin.command:         pcs resource cleanup
 
 # /*---------------------------------------------------------------------------8
@@ -234,7 +234,7 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-- name:                                "1.17 Generic Pacemaker - Install fence-agents-kdump package"
+- name:                                "1.18.2.0 Generic Pacemaker - Install fence-agents-kdump package"
   when:
                                        - kdump_enabled | default("disabled") == "enabled"
   ansible.builtin.yum:
@@ -243,7 +243,7 @@
   register:                            fence_agents_kdump_package
   changed_when:                        fence_agents_kdump_package.changed
 
-- name:                                 "1.17 Generic Pacemaker - configure the special fencing device fence_kdump"
+- name:                                 "1.18.2.0 Generic Pacemaker - configure the special fencing device fence_kdump"
   when:
                                       - inventory_hostname == primary_instance_name
                                       - kdump_enabled | default("disabled") == "enabled"
@@ -252,36 +252,36 @@
     # we can assume that the stonith:fence_azure_rm is already configured
     # if we need to check we can use either pcs stonith show or pcs stonith status
     # create fence_kdump fencing device in the cluster
-    - name:                            "1.17 Generic Pacemaker - Create a fence_kdump fencing device in the cluster"
+    - name:                            "1.18.2.0 Generic Pacemaker - Create a fence_kdump fencing device in the cluster"
       ansible.builtin.command: >
                                        pcs stonith create rsc_st_kdump fence_kdump
                                        pcmk_reboot_action="off"
                                        pcmk_host_list="{{ primary_instance_name }} {{ secondary_instance_name }}"
                                        timeout=30
 
-    - name:                            "1.17 Generic Pacemaker - Update Monitor interval"
+    - name:                            "1.18.2.0 Generic Pacemaker - Update Monitor interval"
       ansible.builtin.command:         pcs resource update rsc_st_kdump op monitor interval=3600
 
     # for each node in the play, set the fence_kdump fencing device as the first fencing device to be used
-    - name:                            "1.17 Generic Pacemaker - Set the fence_kdump fencing device as the first for {{ primary_instance_name }}"
+    - name:                            "1.18.2.0 Generic Pacemaker - Set the fence_kdump fencing device as the first for {{ primary_instance_name }}"
       ansible.builtin.command:         pcs stonith level add 1 {{ primary_instance_name }} rsc_st_kdump
 
-    - name:                            "1.17 Generic Pacemaker - Set the fence_kdump fencing device as the first for {{ secondary_instance_name }}"
+    - name:                            "1.18.2.0 Generic Pacemaker - Set the fence_kdump fencing device as the first for {{ secondary_instance_name }}"
       ansible.builtin.command:         pcs stonith level add 1 {{ secondary_instance_name }} rsc_st_kdump
 
-    - name:                            "1.17 Generic Pacemaker - Set the fence_azure_rm fencing device as the second for {{ primary_instance_name }}"
+    - name:                            "1.18.2.0 Generic Pacemaker - Set the fence_azure_rm fencing device as the second for {{ primary_instance_name }}"
       ansible.builtin.command:         pcs stonith level add 2 {{ primary_instance_name }} rsc_st_azure
 
-    - name:                            "1.17 Generic Pacemaker - Set the fence_azure_arm fencing device as the second for {{ secondary_instance_name }}"
+    - name:                            "1.18.2.0 Generic Pacemaker - Set the fence_azure_arm fencing device as the second for {{ secondary_instance_name }}"
       ansible.builtin.command:         pcs stonith level add 2 {{ secondary_instance_name }} rsc_st_azure
 
-- name:                               "1.17 Generic Pacemaker - Ensure that the kdump service is enabled"
+- name:                               "1.18.2.0 Generic Pacemaker - Ensure that the kdump service is enabled"
   when:
                                       - kdump_enabled | default("disabled") == "enabled"
   block:
 
     # Perform the fence_kdump_nodes configuration in /etc/kdump.conf
-    - name:                            "1.17 Generic Pacemaker - Perform the fence_kdump_nodes configuration in /etc/kdump.conf"
+    - name:                            "1.18.2.0 Generic Pacemaker - Perform the fence_kdump_nodes configuration in /etc/kdump.conf"
       ansible.builtin.replace:
         path:                          /etc/kdump.conf
         regexp:                        '^#fence_kdump_nodes(.*)$'
@@ -294,7 +294,7 @@
                                        - inventory_hostname == primary_instance_name
 
     # Perform the fence_kdump_nodes configuration in /etc/kdump.conf
-    - name:                            "1.17 Generic Pacemaker - Perform the fence_kdump_nodes configuration in /etc/kdump.conf"
+    - name:                            "1.18.2.0 Generic Pacemaker - Perform the fence_kdump_nodes configuration in /etc/kdump.conf"
       ansible.builtin.replace:
         path:                          /etc/kdump.conf
         regexp:                        '^#fence_kdump_nodes(.*)$'
@@ -307,7 +307,7 @@
                                        - inventory_hostname == secondary_instance_name
 
     # set the kdump path to /usr/crash in /etc/kdump.conf
-    - name:                            "1.17 Generic Pacemaker - Set the kdump path to /usr/crash in /etc/kdump.conf"
+    - name:                            "1.18.2.0 Generic Pacemaker - Set the kdump path to /usr/crash in /etc/kdump.conf"
       ansible.builtin.replace:
         path:                          /etc/kdump.conf
         regexp:                        '^path(.*)$'
@@ -319,27 +319,27 @@
                                        - kdump_enabled | default("disabled") == "enabled"
 
     # restart kdump service as we made changes to the configuration
-    - name:                            "1.17 Generic Pacemaker - Restart kdump service"
+    - name:                            "1.18.2.0 Generic Pacemaker - Restart kdump service"
       ansible.builtin.service:
         name:                          kdump
         state:                         restarted
 
     # Ensure that the initramfs image file contains the fence_kdump and hosts files
-    - name:                            "1.17 Generic Pacemaker - Check that the initramfs image file contains the fence_kdump and hosts files"
+    - name:                            "1.18.2.0 Generic Pacemaker - Check that the initramfs image file contains the fence_kdump and hosts files"
       ansible.builtin.shell:           set -o pipefail && lsinitrd /boot/initramfs-$(uname -r)kdump.img | egrep "fence|hosts"
       register:                        initramfs_image_file
       changed_when:                    false
       failed_when:                     false
 
     # Ensure that the initramfs image file contains the fence_kdump and hosts files
-    - name:                            "1.17 Generic Pacemaker - Check that the initramfs image file contains the fence_kdump and hosts files"
+    - name:                            "1.18.2.0 Generic Pacemaker - Check that the initramfs image file contains the fence_kdump and hosts files"
       ansible.builtin.shell:           set -o pipefail && lsinitrd /boot/initramfs-$(uname -r)kdump.img | egrep "fence|hosts"
       register:                        initramfs_image_check
       changed_when:                    false
       failed_when:                     initramfs_image_check.rc != 0
 
     # print debug on the validation of initramfs
-    - name:                            "1.17 Generic Pacemaker - debug initramfs output"
+    - name:                            "1.18.2.0 Generic Pacemaker - debug initramfs output"
       ansible.builtin.debug:
         msg:                           "initramfs check: {{ initramfs_image_check.stdout }}"
       when:                            initramfs_image_check.rc == 0
@@ -355,12 +355,12 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-- name:                                "1.17 Generic Pacemaker - check if the OS version is RHEL 8.4 or newer"
+- name:                                "1.18.2.0 Generic Pacemaker - check if the OS version is RHEL 8.4 or newer"
   ansible.builtin.set_fact:
     is_rhel_84_or_newer:               "{{ ansible_distribution_version is version('8.4', '>=') }}"
   when:                                ansible_distribution_major_version in ["8", "9"]
 
-- name:                                "1.17 Generic Pacemaker - Ensure Azure scheduled events is configured"
+- name:                                "1.18.2.0 Generic Pacemaker - Ensure Azure scheduled events is configured"
   when:
                                       - inventory_hostname == primary_instance_name
                                       - is_rhel_84_or_newer
@@ -371,35 +371,35 @@
   #   WARNING: cib-bootstrap-options: unknown attribute 'azure-events_globalPullState'
   #   WARNING: cib-bootstrap-options: unknown attribute 'hostName_ hostname'
   # These warning messages can be ignored.
-    - name:                            "1.17 Generic Pacemaker - Ensure maintenance mode is set"
+    - name:                            "1.18.2.0 Generic Pacemaker - Ensure maintenance mode is set"
       ansible.builtin.command:         pcs property set maintenance-mode=true
 
-    - name:                            "1.17 Generic Pacemaker - Set the node-health-strategy"
+    - name:                            "1.18.2.0 Generic Pacemaker - Set the node-health-strategy"
       ansible.builtin.command:         pcs property set node-health-strategy=custom
 
-    - name:                            "1.17 Generic Pacemaker - Set the cluster health-node-strategy constraint"
+    - name:                            "1.18.2.0 Generic Pacemaker - Set the cluster health-node-strategy constraint"
       ansible.builtin.command:         pcs constraint location 'regexp%!health-.*' rule score-attribute='#health-azure' defined '#uname'
 
-    - name:                            "1.17 Generic Pacemaker - Set the initial value of the cluster attributes"
+    - name:                            "1.18.2.0 Generic Pacemaker - Set the initial value of the cluster attributes"
       ansible.builtin.shell:
         cmd:                           crm_attribute --node {{ item }} --name '#health-azure' --update 0
       loop:
         - "{{ primary_instance_name }}"
         - "{{ secondary_instance_name }}"
 
-    - name:                            "1.17 Generic Pacemaker - Configure the resources in Pacemaker"
+    - name:                            "1.18.2.0 Generic Pacemaker - Configure the resources in Pacemaker"
       ansible.builtin.command:         pcs resource create health-azure-events ocf:heartbeat:azure-events-az op monitor interval=10s
 
-    - name:                            "1.17 Generic Pacemaker - Ensure clone resource azure-events is configured"
+    - name:                            "1.18.2.0 Generic Pacemaker - Ensure clone resource azure-events is configured"
       ansible.builtin.command:         pcs resource clone health-azure-events allow-unhealthy-nodes=true
 
-    - name:                            "1.17 Generic Pacemaker - Ensure maintenance mode is disabled"
+    - name:                            "1.18.2.0 Generic Pacemaker - Ensure maintenance mode is disabled"
       ansible.builtin.command:         pcs property set maintenance-mode=false
 
-    - name:                            "1.17 Generic Pacemaker - Clear any errors during enablement of the Azure scheduled events"
+    - name:                            "1.18.2.0 Generic Pacemaker - Clear any errors during enablement of the Azure scheduled events"
       ansible.builtin.command:         pcs resource cleanup
 
-    - name:                            "1.17 Generic Pacemaker - Ensure the Azure scheduled events resource is started"
+    - name:                            "1.18.2.0 Generic Pacemaker - Ensure the Azure scheduled events resource is started"
       ansible.builtin.shell: |
                                        set -o pipefail
                                        pcs status --full | grep health-azure-events | grep Started | wc -l
@@ -410,7 +410,7 @@
       when:                            inventory_hostname == primary_instance_name
       failed_when:                     false
 
-    - name:                            "1.17 Generic Pacemaker - display output of Azure scheduled events"
+    - name:                            "1.18.2.0 Generic Pacemaker - display output of Azure scheduled events"
       when:                            inventory_hostname == primary_instance_name
       ansible.builtin.debug:
         msg:
