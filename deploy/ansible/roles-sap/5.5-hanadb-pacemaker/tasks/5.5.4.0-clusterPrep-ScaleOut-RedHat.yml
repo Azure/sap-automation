@@ -31,7 +31,7 @@
     - database_high_availability
     - hana_shared_mountpoint is defined
     - hana_shared_mountpoint | length > 1
-    - playform | upper = 'HANA'
+    - platform | upper = 'HANA'
   block:
     # - name:                            "Get the cluster maintenance mode status"
     #   ansible.builtin.shell:           pcs property show maintenance-mode
@@ -54,7 +54,7 @@
       changed_when:                    false
       register:                        hana_system_stopped
       when:
-        - ansible_hostname == primary_instance_name or ansible_hostname == secondary_instance_name
+        - ansible_hostname in ["{{ primary_instance_name }}","{{ secondary_instance_name }}"]
 
     - name:                            Wait 2 minutes for SAP system to stop
       ansible.builtin.pause:
