@@ -105,8 +105,10 @@
   block:
 
     - name:                            "ORACLE Post Processing: Reboot after the Enabling HugePages"
+      become:                          true
       ansible.builtin.reboot:
         reboot_timeout:                300
+      failed_when:                     false
 
     - name:                            "ORACLE Post Processing: Clear the failed state of hosts"
       ansible.builtin.meta:            clear_host_errors
