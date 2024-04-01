@@ -69,7 +69,8 @@ packages:
     - { tier: 'ha',    package: 'pcs',                                          node_tier: 'all',     state: 'present' }
     - { tier: 'ha',    package: 'pacemaker',                                    node_tier: 'all',     state: 'present' }
     - { tier: 'ha',    package: 'nmap',                                         node_tier: 'all',     state: 'present' }
-    - { tier: 'ha',    package: 'resource-agents-sap-hana',                     node_tier: 'hana',    state: 'present' }
+    # - { tier: 'ha',    package: 'resource-agents-sap-hana',                     node_tier: 'hana',    state: 'present' }
+    - { tier: 'ha',    package: 'resource-agents-sap-hana{% if db_scale_out %}-scaleout{% endif %}',                     node_tier: 'hana',    state: 'present' }
     - { tier: 'ha',    package: 'resource-agents-sap',                          node_tier: 'scs',     state: 'present' }
     - { tier: 'ha',    package: 'resource-agents-sap',                          node_tier: 'ers',     state: 'present' }
     - { tier: 'ha',    package: 'acl',                                          node_tier: 'hana',    state: 'present' }
@@ -174,7 +175,8 @@ packages:
     - { tier: 'ha',    package: 'pacemaker',                                    node_tier: 'all',     state: 'present' }
     - { tier: 'ha',    package: 'nmap',                                         node_tier: 'all',     state: 'present' }
     - { tier: 'ha',    package: 'fence-agents-azure-arm',                       node_tier: 'all',     state: 'present' }
-    - { tier: 'ha',    package: 'resource-agents-sap-hana',                     node_tier: 'hana',    state: 'present' }
+    # - { tier: 'ha',    package: 'resource-agents-sap-hana',                     node_tier: 'hana',    state: 'present' }
+    - { tier: 'ha',    package: 'resource-agents-sap-hana{% if db_scale_out %}-scaleout{% endif %}',                     node_tier: 'hana',    state: 'present' }
     - { tier: 'ha',    package: 'resource-agents-sap',                          node_tier: 'scs',     state: 'present' }
     - { tier: 'ha',    package: 'resource-agents-sap',                          node_tier: 'ers',     state: 'present' }
   # ------------------------- End - Packages required for Clustering -----------------------------------------8
@@ -232,7 +234,8 @@ packages:
     - { tier: 'sapos', package: 'uuidd',                                        node_tier: 'all',     state: 'present' }
     - { tier: 'sapos', package: 'csh',                                          node_tier: 'all',     state: 'present' }
     # ------------------------- Begin - Packages required for Clustering ---------------------------------------8
-    - { tier: 'ha',    package: 'resource-agents-sap-hana',                     node_tier: 'hana',    state: 'present' }
+    # - { tier: 'ha',    package: 'resource-agents-sap-hana',                     node_tier: 'hana',    state: 'present' }
+    - { tier: 'ha',    package: 'resource-agents-sap-hana{% if db_scale_out %}-scaleout{% endif %}',                     node_tier: 'hana',    state: 'present' }
     - { tier: 'ha',    package: 'resource-agents-sap',                          node_tier: 'scs',     state: 'present' }
     - { tier: 'ha',    package: 'resource-agents-sap',                          node_tier: 'ers',     state: 'present' }
     - { tier: 'ha',    package: 'resource-agents-cloud',                        node_tier: 'hana',    state: 'present' }
