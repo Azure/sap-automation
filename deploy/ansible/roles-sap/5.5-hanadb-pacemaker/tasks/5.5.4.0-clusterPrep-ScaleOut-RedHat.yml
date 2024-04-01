@@ -72,13 +72,13 @@
         - "{{ hana_shared_mountpoint[0] }}"
         - "{{ hana_shared_mountpoint[1] }}"
 
-    - name:                           "Un-mount /hana/shared on all participating HANA nodes"
-      block:
-        - name:                        Stop processes using /hana/shared and /usr/sap/{{ db_sid | upper }} path
-          become: true
-          ansible.builtin.shell: >
-                                       pgrep -f "/hana/shared" | xargs kill -9;
-                                       pgrep -f "/usr/sap/{{ db_sid | upper }}" | xargs kill -9
+    # - name:                           "Un-mount /hana/shared on all participating HANA nodes"
+    #   block:
+    #     - name:                        Stop processes using /hana/shared and /usr/sap/{{ db_sid | upper }} path
+    #       become: true
+    #       ansible.builtin.shell: >
+    #                                    pgrep -f "/hana/shared" | xargs kill -9;
+    #                                    pgrep -f "/usr/sap/{{ db_sid | upper }}" | xargs kill -9
         - name:                        Unmount /hana/shared
           ansible.builtin.mount:
             path:                      /hana/shared
