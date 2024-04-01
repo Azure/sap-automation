@@ -68,9 +68,9 @@
         regexp:                    "^{{ item }}"
         replace:                   "# {{ item }}"
         backup:                    true
-        loop:
-          - "{{ hana_shared_mountpoint[0] }}"
-          - "{{ hana_shared_mountpoint[1] }}"
+      loop:
+        - "{{ hana_shared_mountpoint[0] }}"
+        - "{{ hana_shared_mountpoint[1] }}"
 
     - name:                           "Un-mount /hana/shared on all participating HANA nodes"
       block:
