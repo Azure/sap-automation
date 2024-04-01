@@ -332,6 +332,7 @@
         az account get-access-token --query accessToken -o tsv
       changed_when:                    false
       register:                        access_token_data
+      no_log: true
 
     - name:                            "0.0 Validations - Save the access token"
       ansible.builtin.set_fact:
