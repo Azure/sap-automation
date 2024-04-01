@@ -171,7 +171,7 @@
         owner:                         "{{ db_sid | lower }}adm"
         group:                         sapsys
 
-    - name:                                "Prepare global.ini for host name resolution"
+    - name:                            "Prepare global.ini for host name resolution"
       community.general.ini_file:
         path:                              "/hana/shared/{{ db_sid | upper }}/global/hdb/custom/config/global.ini"
         section:                           "system_replication_hostname_resolution"
@@ -196,7 +196,7 @@
                                        ha_dr_saphanasr = info
       when:
         - not configure_susTkOver
-        - ansible_os_family | upper == "RHEL"
+        - ansible_os_family | upper == "REDHAT"
         - ansible_hostname == primary_instance_name or ansible_hostname == secondary_instance_name
 
     - name:                            Adjust global.ini on each cluster node ( with susChkSrv/susTkOver )
