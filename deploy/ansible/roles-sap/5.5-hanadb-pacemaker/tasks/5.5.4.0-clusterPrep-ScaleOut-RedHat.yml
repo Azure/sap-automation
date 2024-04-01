@@ -65,12 +65,12 @@
     - name:                           "Comment out the mountpoints on HANA node from '/etc/fstab' file"
       ansible.builtin.replace:
         path:                      /etc/fstab
-        regexp:                    "^{{ item.fs_mount }}"
-        replace:                   "# {{ item.fs_mount }}"
+        regexp:                    "^{{ item }}"
+        replace:                   "# {{ item }}"
         backup:                    true
         loop:
-          - { fs_mount: "{{ hana_shared_mountpoint[0] }}" }
-          - { fs_mount: "{{ hana_shared_mountpoint[1] }}" }
+          - "{{ hana_shared_mountpoint[0] }}"
+          - "{{ hana_shared_mountpoint[1] }}"
 
     - name:                           "Un-mount /hana/shared on all participating HANA nodes"
       block:
