@@ -127,13 +127,7 @@
                                          pcmk_monitor_retries=4
                                          pcmk_action_limit=3
                                          pcmk_delay_max=15
-                                         pcmk_host_map="{% for host in query('inventory_hostnames', '{{ sap_sid | upper }}_DB') %}
-                                         {% if loop.index == query('inventory_hostnames', '{{ sap_sid | upper }}_DB') | length -1 %}
-                                         {{ host }}: {{ hostvars[host]['vm_name']}}
-                                         {% else %}
-                                         {{ host }}: {{ hostvars[host]['vm_name']}};
-                                         {% endif %}
-                                         {% endfor %}"
+                                         pcmk_host_map="{% for item in ansible_play_hosts_all %}{{ item }}:{{ hostvars[item]['vm_name'] }}{{ ';' if not loop.last }}{% endfor %}"
       when:
         - ansible_distribution_major_version == "7"
         - not use_msi_for_clusters
@@ -151,13 +145,7 @@
                                          pcmk_monitor_retries=4
                                          pcmk_action_limit=3
                                          pcmk_delay_max=15
-                                         "{% for host in query('inventory_hostnames', '{{ sap_sid | upper }}_DB') %}
-                                         {% if loop.index == query('inventory_hostnames', '{{ sap_sid | upper }}_DB') | length -1 %}
-                                         {{ host }}: {{ hostvars[host]['vm_name']}}
-                                         {% else %}
-                                         {{ host }}: {{ hostvars[host]['vm_name']}};
-                                         {% endif %}
-                                         {% endfor %}"
+                                         pcmk_host_map="{% for item in ansible_play_hosts_all %}{{ item }}:{{ hostvars[item]['vm_name'] }}{{ ';' if not loop.last }}{% endfor %}"
       when:
         - ansible_distribution_major_version == "7"
         - use_msi_for_clusters
@@ -176,13 +164,7 @@
                                          pcmk_monitor_retries=4
                                          pcmk_action_limit=3
                                          pcmk_delay_max=15
-                                         "{% for host in query('inventory_hostnames', '{{ sap_sid | upper }}_DB') %}
-                                         {% if loop.index == query('inventory_hostnames', '{{ sap_sid | upper }}_DB') | length -1 %}
-                                         {{ host }}: {{ hostvars[host]['vm_name']}}
-                                         {% else %}
-                                         {{ host }}: {{ hostvars[host]['vm_name']}};
-                                         {% endif %}
-                                         {% endfor %}"
+                                         pcmk_host_map="{% for item in ansible_play_hosts_all %}{{ item }}:{{ hostvars[item]['vm_name'] }}{{ ';' if not loop.last }}{% endfor %}"
       when:
         - ansible_distribution_major_version in ["8", "9"]
         - not use_msi_for_clusters
@@ -199,13 +181,7 @@
                                          pcmk_monitor_retries=4
                                          pcmk_action_limit=3
                                          pcmk_delay_max=15
-                                         "{% for host in query('inventory_hostnames', '{{ sap_sid | upper }}_DB') %}
-                                         {% if loop.index == query('inventory_hostnames', '{{ sap_sid | upper }}_DB') | length -1 %}
-                                         {{ host }}: {{ hostvars[host]['vm_name']}}
-                                         {% else %}
-                                         {{ host }}: {{ hostvars[host]['vm_name']}};
-                                         {% endif %}
-                                         {% endfor %}"
+                                         pcmk_host_map="{% for item in ansible_play_hosts_all %}{{ item }}:{{ hostvars[item]['vm_name'] }}{{ ';' if not loop.last }}{% endfor %}"
       when:
         - ansible_distribution_major_version in ["8", "9"]
         - use_msi_for_clusters
@@ -233,6 +209,7 @@
 # | kdump stonith - BEGIN                                                      |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
+# <TODO> fix the kdump code to include all the DB hosts.
 
 - name:                                "1.18.2.0 Generic Pacemaker - Install fence-agents-kdump package"
   when:
@@ -257,6 +234,7 @@
                                        pcs stonith create rsc_st_kdump fence_kdump
                                        pcmk_reboot_action="off"
                                        pcmk_host_list="{{ primary_instance_name }} {{ secondary_instance_name }}"
+                                       pcmk_host_map="{% for item in ansible_play_hosts_all %}{{ item }}:{{ hostvars[item]['vm_name'] }}{{ ';' if not loop.last }}{% endfor %}"
                                        timeout=30
 
     - name:                            "1.18.2.0 Generic Pacemaker - Update Monitor interval"
