@@ -60,8 +60,20 @@
         reboot_timeout:                300
         post_reboot_delay:             60
       ignore_unreachable:              true
+      failed_when:                     false
       when:
         - selinux_disabled.changed
+
+    - name:                            "2.10.1 sap-notes: - Clear the failed state of hosts"
+      ansible.builtin.meta:            clear_host_errors
+
+  # Wait for Connection after reboot
+    - name:                            "2.10.1 sap-notes: - Wait for system to become reachable"
+      ansible.builtin.wait_for_connection:
+        delay:                         10
+        timeout:                       300
+
+
 
 - name:                                "2.10.1 sap-notes: Check VM Agent Status"
   when:
