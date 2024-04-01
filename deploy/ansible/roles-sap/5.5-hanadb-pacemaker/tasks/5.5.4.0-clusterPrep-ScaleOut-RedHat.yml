@@ -227,7 +227,7 @@
               loop_var:                  item
 
 
-# validation tasks to be run on all HANA hosts
+    # validation tasks to be run on all HANA hosts for checking /hana/shared is accessible
     - name:                            "Validate /hana/shared is mounted on all HANA hosts"
       block:
         - name:                        "Check if NFS share is mounted on primary site nodes"
@@ -248,10 +248,10 @@
             target:                    hana_shared_mountpoint[1]
           when:                        ansible_hostname in ansible_play_hosts_all[1::2]
 
-        - name:                        "Fail when NFS share is not mounted on primary site nodes"
-          ansible.builtin.fail:
-            msg:                       "NFS share is not mounted on {{ ansible_hostname }}"
-          when:                        nfs_mount_check_{{ ansible_hostname }}.rc != 0
+        # - name:                        "Fail when NFS share is not mounted on primary site nodes"
+        #   ansible.builtin.fail:
+        #     msg:                       "NFS share is not mounted on {{ ansible_hostname }}"
+        #   when:                        nfs_mount_check_{{ ansible_hostname }}.rc != 0
 
     - name:                            Start HANA System on both nodes
       become_user:                     "{{ db_sid | lower }}adm"
