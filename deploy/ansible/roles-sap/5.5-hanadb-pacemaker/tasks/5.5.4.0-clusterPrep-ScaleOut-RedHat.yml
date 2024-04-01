@@ -68,7 +68,7 @@
         regexp:                    "^{{ item }}"
         replace:                   "# {{ item }}"
         backup:                    true
-        loop:
+        with_items:
           - "{{ hana_shared_mountpoint[0] }}/hanashared"
           - "{{ hana_shared_mountpoint[1] }}/hanashared"
 
