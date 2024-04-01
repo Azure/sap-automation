@@ -101,7 +101,7 @@
           ignore_errors:               true
           loop:
             - { site_code: 'S1',fs_mount: '{{ hana_shared_mountpoint[0] }}/hanashared', fs_dir: '/hana/shared' }
-            - { site_code: 'S1',fs_mount: '{{ hana_shared_mountpoint[1] }}/hanashared', fs_dir: '/hana/shared' }
+            - { site_code: 'S2',fs_mount: '{{ hana_shared_mountpoint[1] }}/hanashared', fs_dir: '/hana/shared' }
           loop_control:
             loop_var:                  item
 
