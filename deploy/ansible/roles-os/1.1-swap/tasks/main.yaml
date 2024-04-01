@@ -73,6 +73,7 @@
   block:
 
     - name:                            "1.1 Swap: - Reboot"
+      become:                          true
       ansible.builtin.reboot:
         reboot_timeout:                300
         post_reboot_delay:             10
