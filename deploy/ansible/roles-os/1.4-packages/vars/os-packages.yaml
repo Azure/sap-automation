@@ -507,3 +507,4 @@ packages:
     - { tier: 'os',    package: 'oracle-database-preinstall-19c',               node_tier: 'all',            state: 'present' }
     - { tier: 'os',    package: 'oracleasm-support',                            node_tier: 'oracle-asm',     state: 'present' }
     - { tier: 'os',    package: 'gdisk',                                        node_tier: 'all',            state: 'present' }
+    - { tier: 'os',    package: 'kmod-oracleasm',                               node_tier: 'oracle-asm',     state: 'present' }
