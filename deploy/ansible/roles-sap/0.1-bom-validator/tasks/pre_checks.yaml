@@ -227,6 +227,20 @@
         - "{{ download_directory }}/files"
         - "{{ download_directory }}/bom"
 
+    - name:                            "{{ task_prefix }} - Create BOM tools directories"
+      become:                          "{{ bom_processing_become }}"
+      become_user:                     root
+      ansible.builtin.file:
+        path:                          "{{ item }}"
+        state:                         directory
+        mode:                          0755
+        owner:                         "{{ orchestration_ansible_user if bom_processing_become else omit }}"
+      delegate_to:                     localhost
+      when:                            tools_directory is defined
+      loop:
+        - "{{ tools_directory }}"
+        - "{{ tools_directory }}/SWPM10"
+        - "{{ tools_directory }}/SWPM20"
 
 # Step: 07-01 - END
 # -------------------------------------+---------------------------------------8
