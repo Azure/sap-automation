@@ -77,7 +77,7 @@
       - "relayState:                    {{ relayState }}"
       - "action:                        {{ action }}"
       - "signature:                     {{ signature }}"
-    verbosity:                          1
+    verbosity:                          4
   vars:
     origin:                             "{{ step1Results.url | regex_search('^http.*?://[^/]+') }}"
     referer:                            "{{ step1Results.url | regex_search('^http.*?://[^/]+') }}/"
@@ -246,7 +246,7 @@
           - "post_action:                   {{ post_action }}"
           - "SAMLRequest:                   {{ SAMLRequest }}"
           - "RelayState:                    {{ RelayState }}"
-        verbosity:                          1
+        verbosity:                          4
       vars:
         origin:                             "{{ step2Results.url | regex_search('^http.*?://[^/]+') }}"
         referer:                            "{{ step2Results.url | regex_search('^http.*?://[^/]+') }}/"
@@ -423,7 +423,7 @@
           - "passwordlessAuthnSelected:       {{ passwordlessAuthnSelected }}"
           - "j_username:                      {{ j_username }}"
           - "cookies_accounts_sap_com_string: {{ cookies_accounts_sap_com_string }}"
-        verbosity:                            1
+        verbosity:                            4
       vars:
         origin:                               "{{ step3Results.url | regex_search('^http.*?://[^/]+') }}"
         referer:                              "{{ step3Results.url | regex_search('^http.*?://[^/]+') }}/"
@@ -653,6 +653,7 @@
     - name:                                 "SAP SSO Logon - Step 4 - Show data - step4Results"
       ansible.builtin.debug:
         var:                                step4Results.content
+        verbosity:                          4
 
 
     - name:                                 "SAP SSO Logon - Step 4 - Show data"
@@ -682,7 +683,7 @@
           - "j_username:                      {{ j_username }}"
           # - "j_password:                      {{ j_password }}"
           - "cookies_accounts_sap_com_string: {{ cookies_accounts_sap_com_string }}"
-        verbosity:                            0
+        verbosity:                            4
       vars:
         origin:                               "{{ step4Results.url | regex_search('^http.*?://[^/]+') }}"
         referer:                              "{{ step4Results.url | regex_search('^http.*?://[^/]+') }}/"
@@ -967,7 +968,7 @@
           - "authenticity_token:                      {{ authenticity_token }}"
           - "SAMLResponse:                            {{ SAMLResponse }}"
           - "RelayState:                              {{ RelayState }}"
-        verbosity:                                    1
+        verbosity:                                    4
       vars:
         results:                                      "{{ step5Results }}"
         stdout:                                       "{{ step5Results.stdout }}"
@@ -1068,7 +1069,7 @@
           - "authenticity_token:                      {{ authenticity_token }}"
           - "SAMLResponse:                            {{ SAMLResponse }}"
           - "RelayState:                              {{ RelayState }}"
-        verbosity:                                    1
+        verbosity:                                    4
       vars:
         results:                                      "{{ step6Results }}"
         stdout:                                       "{{ step6Results.stdout }}"
