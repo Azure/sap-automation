@@ -74,7 +74,6 @@
         timeout:                       300
 
 
-
 - name:                                "2.10.1 sap-notes: Check VM Agent Status"
   when:
     - selinux_disabled.changed
