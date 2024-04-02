@@ -352,24 +352,3 @@ resource "azurerm_virtual_machine_extension" "monitoring_defender_iscsi_lnx" {
                                           )
 }
 
-resource "azurerm_virtual_machine_extension" "monitoring_defender_iscsi_lnx" {
-  provider                             = azurerm.main
-  count                                = var.infrastructure.deploy_defender_extension ? (
-                                           local.iscsi_count) : (
-                                           0
-                                         )
-  virtual_machine_id                   = azurerm_linux_virtual_machine.iscsi[count.index].id
-  name                                 = "Microsoft.Azure.Security.Monitoring.AzureSecurityLinuxAgent"
-  publisher                            = "Microsoft.Azure.Security.Monitoring"
-  type                                 = "AzureSecurityLinuxAgent"
-  type_handler_version                 = "2.0"
-  auto_upgrade_minor_version           = "true"
-
-  settings                             = jsonencode(
-                                            {
-                                              "enableGenevaUpload"  = true,
-                                              "enableAutoConfig"  = true,
-                                              "reportSuccessOnUnsupportedDistro"  = true,
-                                            }
-                                          )
-}
