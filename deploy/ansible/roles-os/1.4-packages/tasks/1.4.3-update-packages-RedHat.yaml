@@ -13,9 +13,11 @@
     name:                              '*'
     state:                             latest
     skip_broken:                       true
+    update_only:                       true
   register:                            reboot_output
   when:
     - tier == 'os'
+    - (ansible_distribution | lower ~ ansible_distribution_major_version) != "oraclelinux8"
 # Analyse the package list for this distribution selecting only those
 # packages assigned to the active tier or 'all'.
 # - name:                                "1.4 Packages: - Upgrade all: {{ distribution_full_id }}"  # noqa package-latest
