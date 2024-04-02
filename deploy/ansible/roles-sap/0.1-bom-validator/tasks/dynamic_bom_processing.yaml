@@ -72,7 +72,7 @@
       ansible.builtin.debug:
         msg: |-
                                         Name:     {{ bom_media_entry.name }}
-                                        Platform: {{ bom_media_entry.platform }}
+                                        Platform: {{ bom_media_entry.platform | default('LNX') }}
                                         SAP Platform Map:
                                         Platform | Number    | Description
                                         ---------+-----------+-----------------------------
