@@ -6,6 +6,7 @@
 
 parameters:
   bom_base_name:                       ""
+  bom_override_name:                   ""
   environment:                         ""
   re_download:                         false
   region:                              ""
