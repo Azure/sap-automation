@@ -224,7 +224,6 @@ resource "azurerm_virtual_machine_extension" "monitoring_defender_utility_win" {
   type                                 = "AzureSecurityWindowsAgent"
   type_handler_version                 = "2.0"
   auto_upgrade_minor_version           = true
-
   settings                             = jsonencode(
                                             {
                                               "enableGenevaUpload"  = true,

@@ -774,4 +774,3 @@ resource "azurerm_virtual_machine_extension" "monitoring_defender_db_win" {
                                           )
 }
 
-
