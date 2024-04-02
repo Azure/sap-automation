@@ -447,10 +447,10 @@
       # Step: 05-04-02
       # Description:
       #
-        - name:                        "BOM: {{ bom_name }} Remove File {{ bom_media_entry.archive }}"
+        - name:                        "BOM: {{ bom_name }} Copy File {{ bom_media_entry.archive }} -> {{ tools_directory }}/{{ bom_media_entry.filename }}"
           ansible.builtin.copy:
             src:                       "{{ download_directory }}/files/{{ bom_media_entry.archive }}"
-            dest:                      "{{ tools_directory }}/{{ bom_media_entry.archive }}"
+            dest:                      "{{ tools_directory }}/{{ bom_media_entry.filename }}"
             owner:                     "{{ orchestration_ansible_user }}"
       # Step: 05-04-02 - END
       # -------------------------------+---------------------------------------------8
