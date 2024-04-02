@@ -80,6 +80,9 @@
                                         {{ "%-9s" | format(line.platform) }} | {{ "%-10s" | format(line.number) }} | {{ line.description }}
                                         {% endfor %}
         verbosity:                          1
+      when:
+                                       - bom_media_entry is defined
+
 # Step: 03-01 - END
 # -------------------------------------+---------------------------------------8
 
