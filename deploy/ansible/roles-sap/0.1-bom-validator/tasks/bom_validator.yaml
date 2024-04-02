@@ -159,7 +159,7 @@
 #
 - name:                                "0.1 BoM Validator: - BOM: {{ bom_name }} Check and Download Files"
   ansible.builtin.include_tasks:       bom_download.yaml
-  var:
+  vars:
     maintenance_planner_tools:         "{{ bom.maintenance_planner_tools | default(false) }}"
   loop:                                "{{ bom.materials.media | flatten(levels=1) }}"
   loop_control:
