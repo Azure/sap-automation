@@ -19,18 +19,23 @@
         path:                          "{{ _workspace_directory }}/.progress"
         state:                         directory
         mode:                          0755
+      tags:
+        - always
 
     - name:                            Remove bom-processing-done flag
       ansible.builtin.file:
         path:                          "{{ _workspace_directory }}/.progress/bom-processing-done"
         state:                         absent
+      tags:
+        - always
 
     - name:                            Include 0.3.sap-installation-media-storage-details role
-      ansible.builtin.include_role:
+      ansible.builtin.import_role:
         name:                          roles-misc/0.3.sap-installation-media-storage-details
-        public:                        true
       vars:
         tier:                          bom_download
+      tags:
+        - always
 
 # /*----------------------------------------------------------------------------8
 # |                                                                            |
@@ -62,18 +67,22 @@
             tier:                      preparation
             sapbits_location_base_path: "{{ hostvars.localhost.sapbits_location_base_path }}"
             sa_enabled:                true
+          tags:
+            - always
 
         - name:                        Set facts
+          when:                        hostvars.localhost.sapbits_sas_token is defined
           ansible.builtin.set_fact:
             sapbits_sas_token:         "{{ hostvars.localhost.sapbits_sas_token }}"
-          when:                        hostvars.localhost.sapbits_sas_token is defined
+          tags:
+            - always
 
         - name:                        3.3-bom-processing role for Linux
           become:                      true
           when:                        ansible_os_family != "Windows"
           block:
             - name:                    Include the 3.3-bom-processing role
-              ansible.builtin.include_role:
+              ansible.builtin.import_role:
                 name:                  "roles-sap/3.3-bom-processing"
               vars:
                 tier:                  bom_download
@@ -87,7 +96,7 @@
           when:                        ansible_os_family == "Windows"
           block:
             - name:                    Include the 3.3-bom-processing role
-              ansible.builtin.include_role:
+              ansible.builtin.import_role:
                 name:                  "roles-sap/windows/3.3-bom-processing"
               vars:
                 tier:                  bom_download
@@ -103,6 +112,8 @@
             path:                      "{{ _workspace_directory }}/.progress/bom-processing"
             state:                     touch
             mode:                      0755
+          tags:
+            - always
 
 ...
 # /*---------------------------------------------------------------------------8
