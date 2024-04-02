@@ -22,7 +22,7 @@
     msg: |-
                                         bom_media_entry index: {{ bom_media_index }}
 
-    verbosity:                          1
+    verbosity:                          2
 # Step: 01 - END
 # -------------------------------------+---------------------------------------8
 
@@ -79,7 +79,7 @@
                                         {% for line in sap_platform_map[bom_media_entry.name] %}
                                         {{ "%-9s" | format(line.platform) }} | {{ "%-10s" | format(line.number) }} | {{ line.description }}
                                         {% endfor %}
-        verbosity:                          1
+        verbosity:                      2
       when:
                                        - bom_media_entry.name is defined
 
@@ -99,7 +99,7 @@
                                                 | join
                                                 | parse_xml(role_path + '/templates/sap_search.tmpl')
                                             }}"
-        verbosity:                          0
+        verbosity:                          4
 
     - name:                                 "Dynamic processing - Show sap_platform_map_lookup.number"
       ansible.builtin.set_fact:
@@ -186,7 +186,7 @@
     - name:                                 "Dynamic processing - Show BOM entry AFTER Dynamic Processing"
       ansible.builtin.debug:
         var:                                bom.materials.media[bom_media_index]
-        verbosity:                          1
+        verbosity:                          2
 # Step: 03-04 - END
 # -------------------------------------+---------------------------------------8
 
