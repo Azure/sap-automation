@@ -388,6 +388,45 @@
     - not sa_enabled
 # Step: 11 - END
 
+# Step: 12
+# Description:  Extract the Tools.
+#
+- name:                                "Do the tools exist?"
+  ansible.builtin.stat:
+    path:                              "{{ tools_directory }}/SAPCAR"
+  register:                            tool_stats
+  when:
+    - tools_directory is defined
+
+- name:                                "Extract the tools"
+  when:
+    - tools_directory is defined
+    - tool_stats.stat.exists
+  block:
+
+    - name:                            "Set permissions"
+      ansible.builtin.file:
+        path:                          "{{ tools_directory }}/SAPCAR"
+        state:                         touch
+        mode:                          755
+        modification_time:             preserve
+        access_time:                   preserve
+
+    - name:                            "Extract SWPM10 using SAPCAR"
+      ansible.builtin.command:         "{{ tools_directory }}/SAPCAR -manifest SIGNATURE.SMF -xf {{ tools_directory }}/swpm10"
+      args:
+        chdir:                         "{{ tools_directory }}/SWPM10"
+        creates:                       "{{ tools_directory }}/SWPM10/sapinst"
+
+    - name:                            "Extract SWPM20 using SAPCAR"
+      ansible.builtin.command:         "{{ tools_directory }}/SAPCAR -manifest SIGNATURE.SMF -xf {{ tools_directory }}/swpm20"
+      args:
+        chdir:                         "{{ tools_directory }}/SWPM20"
+        creates:                       "{{ tools_directory }}/SWPM20/sapinst"
+
+# Step: 12 - END
+
+
 ...
 # /*---------------------------------------------------------------------------8
 # |                                   END                                      |
