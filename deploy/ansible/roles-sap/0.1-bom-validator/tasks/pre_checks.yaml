@@ -357,6 +357,7 @@
 - name:                                 "(pre_checks.yaml) - {{ task_prefix }} - Show account information"
   ansible.builtin.debug:
     var:                                azresult
+    verbosity:                          4
 
 # -------------------------------------+---------------------------------------8
 # Step: 09
