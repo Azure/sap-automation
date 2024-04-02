@@ -9,6 +9,10 @@ parameters:
     displayName:                       Name of Bill of Materials (BoM)
     type:                              string
 
+  - name:                              bom_override_name
+    displayName:                       Custom Name of Bill of Materials (BoM)
+    type:                              string
+
   - name:                              environment
     displayName:                       Control Plane Environment
     default:                           MGMT
@@ -46,6 +50,7 @@ stages:
       - template:                      variables/04-sap-software-download-variables.yaml
         parameters:
           bom_base_name:               ${{ parameters.bom_base_name }}
+          bom_override_name:           ${{ parameters.bom_override_name }}
           environment:                 ${{ parameters.environment }}
           re_download:                 ${{ parameters.re_download }}
           region:                      ${{ parameters.region }}
