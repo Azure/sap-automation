@@ -34,7 +34,7 @@ resource "azurerm_key_vault" "kv_user" {
                            content {
 
                               bypass                     = "AzureServices"
-                             default_action             = local.management_subnet_exists ? "Allow" : "Deny"
+                              default_action             = var.enable_firewall_for_keyvaults_and_storage ? "Deny" : "Allow"
 
                               ip_rules                   = compact(
                                                             [
@@ -402,18 +402,3 @@ resource "azurerm_management_lock" "keyvault" {
             }
 }
 
-// Generate random password if password is set as authentication type, and save in KV
-resource "random_password" "deployer" {
-  count                                = (
-                                           local.enable_password
-                                           && !local.pwd_exist
-                                           && try(var.authentication.password, "") == ""
-                                         ) ? 1 : 0
-
-  length                               = 32
-  min_upper                            = 2
-  min_lower                            = 2
-  min_numeric                          = 2
-  special                              = true
-  override_special                     = "_%@"
-}

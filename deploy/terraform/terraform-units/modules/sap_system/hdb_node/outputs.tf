@@ -217,3 +217,13 @@ output "database_kdump_disks"          {
                                                          )
                                                        )
                                        }
+
+
+output "ANF_subnet_prefix"             {
+                                             description = "ANF subnet prefix"
+                                             value       = (local.enable_deployment && length(local.ANF_pool_settings.subnet_id) > 0) ? (
+                                                             data.azurerm_subnet.ANF[0].address_prefixes[0] ): (
+                                                             ""
+                                                           )
+
+                                           }

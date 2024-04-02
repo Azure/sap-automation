@@ -54,7 +54,7 @@ module "common_infrastructure" {
                                                     azurerm.main           = azurerm.system
                                                     azurerm.dnsmanagement  = azurerm.dnsmanagement
                                                   }
-  Agent_IP                                      = var.Agent_IP
+  Agent_IP                                      = var.add_Agent_IP ? var.Agent_IP : ""
   application_tier                              = local.application_tier
   application_tier_ppg_names                    = module.sap_namegenerator.naming_new.app_ppg_names
   authentication                                = local.authentication
@@ -94,7 +94,7 @@ module "common_infrastructure" {
   use_private_endpoint                          = var.use_private_endpoint
   use_random_id_for_storageaccounts             = var.use_random_id_for_storageaccounts
   use_scalesets_for_deployment                  = var.use_scalesets_for_deployment
-  use_service_endpoint                          = var.use_service_endpoint
+  register_endpoints_with_dns                   = var.register_endpoints_with_dns
 }
 
 #-------------------------------------------------------------------------------
@@ -117,8 +117,6 @@ module "hdb_node" {
   cloudinit_growpart_config                     = null # This needs more consideration module.common_infrastructure.cloudinit_growpart_config
   custom_disk_sizes_filename                    = try(coalesce(var.custom_disk_sizes_filename, var.db_disk_sizes_filename), "")
   database                                      = local.database
-  database_cluster_disk_lun                     = var.database_cluster_disk_lun
-  database_cluster_disk_size                    = var.database_cluster_disk_size
   database_dual_nics                            = try(module.common_infrastructure.admin_subnet, null) == null ? false : var.database_dual_nics
   database_server_count                         = upper(try(local.database.platform, "HANA")) == "HANA" ? (
                                                     local.database.high_availability ? (
@@ -164,6 +162,7 @@ module "hdb_node" {
   use_msi_for_clusters                          = var.use_msi_for_clusters
   use_scalesets_for_deployment                  = var.use_scalesets_for_deployment
   use_secondary_ips                             = var.use_secondary_ips
+  register_endpoints_with_dns                   = var.register_endpoints_with_dns
 }
 
 #########################################################################################
@@ -203,12 +202,11 @@ module "app_tier" {
   order_deployment                              = null
   ppg                                           = var.use_app_proximityplacementgroups ? module.common_infrastructure.app_ppg : module.common_infrastructure.ppg
   register_virtual_network_to_dns               = try(data.terraform_remote_state.landscape.outputs.register_virtual_network_to_dns, true)
+  register_endpoints_with_dns                   = var.register_endpoints_with_dns
   resource_group                                = module.common_infrastructure.resource_group
   route_table_id                                = module.common_infrastructure.route_table_id
   sap_sid                                       = local.sap_sid
   scale_set_id                                  = try(module.common_infrastructure.scale_set_id, null)
-  scs_cluster_disk_lun                          = var.scs_cluster_disk_lun
-  scs_cluster_disk_size                         = var.scs_cluster_disk_size
   sdu_public_key                                = module.common_infrastructure.sdu_public_key
   sid_keyvault_user_id                          = module.common_infrastructure.sid_keyvault_user_id
   sid_password                                  = module.common_infrastructure.sid_password
@@ -252,8 +250,6 @@ module "anydb_node" {
                                                   0) : (
                                                     local.database.high_availability ? 2 * var.database_server_count : var.database_server_count
                                                   )
-  database_cluster_disk_lun                     = var.database_cluster_disk_lun
-  database_cluster_disk_size                    = var.database_cluster_disk_size
   db_asg_id                                     = module.common_infrastructure.db_asg_id
   db_subnet                                     = module.common_infrastructure.db_subnet
   deploy_application_security_groups            = var.deploy_application_security_groups
@@ -273,6 +269,7 @@ module "anydb_node" {
                                                   ) : (null)
   ppg                                           = module.common_infrastructure.ppg
   register_virtual_network_to_dns               = try(data.terraform_remote_state.landscape.outputs.register_virtual_network_to_dns, true)
+  register_endpoints_with_dns                   = var.register_endpoints_with_dns
   resource_group                                = module.common_infrastructure.resource_group
   sap_sid                                       = local.sap_sid
   scale_set_id                                  = try(module.common_infrastructure.scale_set_id, null)
@@ -360,6 +357,13 @@ module "output_files" {
                                                   )))
   loadbalancers                                 = module.hdb_node.loadbalancers
 
+  subnet_cidr_anf                             = module.hdb_node.ANF_subnet_prefix
+  subnet_cidr_app                             = module.app_tier.subnet_cidr_app
+  subnet_cidr_client                          = module.common_infrastructure.subnet_cidr_client
+  subnet_cidr_db                              = module.common_infrastructure.subnet_cidr_db
+  subnet_cidr_storage                         = module.common_infrastructure.subnet_cidr_storage
+
+
   #########################################################################################
   #  SAP Application information                                                          #
   #########################################################################################
@@ -441,6 +445,7 @@ module "output_files" {
   use_simple_mount                              = local.validated_use_simple_mount
   upgrade_packages                              = var.upgrade_packages
   scale_out                                     = var.database_HANA_use_ANF_scaleout_scenario
+  scale_out_no_standby_role                     = var.database_HANA_no_standby_role
 
   #########################################################################################
   #  iSCSI                                                                                #

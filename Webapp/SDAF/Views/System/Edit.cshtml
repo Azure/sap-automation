@@ -115,13 +115,37 @@
         </table>
 
 
-        <fluent-button appearance="accent" style="margin-top: 15px" type="submit" onclick="submitting=true">
-            <i class="ms-Icon ms-Icon--Save" aria-hidden="true"></i> Save
-        </fluent-button>
+        <tr>
+            <td>
+              &nbsp
+              <fluent-button appearance="accent" style="margin-top: 15px" type="submit" onclick="submitting=true">
+                <i class="ms-Icon ms-Icon--Save" aria-hidden="true"></i> Save
+              </fluent-button>
+            </td>
 
-        <fluent-anchor href="@Url.Action("Index", "System")">
-            Cancel
-        </fluent-anchor>
+            <td>
+                &nbsp
+                <fluent-anchor appearance="accent" style="margin-top: 15px" href="@Url.Action("Index", "System")">
+                Close
+              </fluent-anchor>
+            </td>
+
+            <td>
+                &nbsp
+                <fluent-anchor appearance="accent" style="margin-top: 15px" href="@Url.Action("Deploy", "System", new { id = @Model.SapObject.Id, partitionKey = @Model.SapObject.environment })">
+                  Deploy
+              </fluent-anchor>
+            </td>
+
+            <td>
+                &nbsp
+                <fluent-anchor appearance="accent" style="margin-top: 15px" href="@Url.Action("Download", "System", new { id = @Model.SapObject.Id, partitionKey = @Model.SapObject.environment })">
+                    Download
+                </fluent-anchor>
+            </td>
+
+         </tr>
+        
 
     </form>
 </div>

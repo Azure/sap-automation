@@ -1,3 +1,4 @@
+variable "subnet_cidr_anf"                    { description = "address prefix for the ANF subnet" }
 variable "ansible_user"                         {
                                                   description = "The ansible remote user account to use"
                                                   default     = "azureadm"
@@ -24,6 +25,9 @@ variable "bom_name"                             {
                                                   description = "Name of Bill of Materials file"
                                                   default     = ""
                                                 }
+variable "subnet_cidr_app"                    { description = "address prefix for the app subnet" }
+variable "subnet_cidr_db"                     { description = "address prefix for the db subnet" }
+variable "subnet_cidr_client"                 { description = "address prefix for the client subnet" }
 variable "configuration_settings"               { description = "This is a dictionary that will contain values persisted to the sap-parameters.file" }
 variable "database_admin_ips"                   { description = "List of Admin NICs for the DB VMs" }
 variable "database_cluster_type"                {
@@ -141,6 +145,7 @@ variable "save_naming_information"              {
                                                   default     = false
                                                 }
 variable "scale_out"                            { description = "If true, the SAP System will be scale out" }
+variable "scale_out_no_standby_role"            { description = "If true, the SAP Scale out system will not have a standby-node. Only applicable for shared storage based deployment" }
 variable "scs_shared_disks"                     { description = "SCS Azure Shared Disk" }
 
 
@@ -170,6 +175,7 @@ variable "scs_server_secondary_ips"             { description = "List of seconda
 variable "scs_vm_names"                         { description = "List of VM names for the SCS Servers" }
 variable "shared_home"                          { description = "If defined provides shared-home support" }
 variable "sid_keyvault_user_id"                 { description = "Defines the names for the resources" }
+variable "subnet_cidr_storage"                { description = "address prefix for the storage subnet" }
 variable "tfstate_resource_id"                  { description = "Resource ID for tf state file" }
 variable "upgrade_packages"                     { description = "Upgrade packages" }
 variable "use_custom_dns_a_registration"        {

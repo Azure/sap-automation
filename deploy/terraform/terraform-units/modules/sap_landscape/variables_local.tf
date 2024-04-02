@@ -438,6 +438,69 @@ locals {
 
   ##############################################################################################
   #
+  #  storage subnet - Check if locally provided
+  #
+  ##############################################################################################
+
+  storage_subnet_defined                          = (
+                                                      length(try(var.infrastructure.vnets.sap.subnet_storage.arm_id, "")) +
+                                                      length(try(var.infrastructure.vnets.sap.subnet_storage.prefix, ""))
+                                                    ) > 0
+  storage_subnet_arm_id                           = local.storage_subnet_defined ? (
+                                                       try(var.infrastructure.vnets.sap.subnet_storage.arm_id, "")) : (
+                                                       ""
+                                                     )
+  storage_subnet_existing                         = length(local.storage_subnet_arm_id) > 0
+  storage_subnet_name                             = local.storage_subnet_existing ? (
+                                                      try(split("/", local.storage_subnet_arm_id)[10], "")) : (
+                                                      length(try(var.infrastructure.vnets.sap.subnet_storage.name, "")) > 0 ? (
+                                                        var.infrastructure.vnets.sap.subnet_storage.name) : (
+                                                        format("%s%s%s%s",
+                                                          var.naming.resource_prefixes.storage_subnet,
+                                                          length(local.prefix) > 0 ? (
+                                                            local.prefix) : (
+                                                            var.infrastructure.environment
+                                                          ),
+                                                          var.naming.separator,
+                                                          local.resource_suffixes.storage_subnet
+                                                        )
+                                                      )
+                                                    )
+  subnet_cidr_storage                           = local.storage_subnet_defined ? (
+                                                       try(var.infrastructure.vnets.sap.subnet_storage.prefix, "")) : (
+                                                       ""
+                                                     )
+
+  ##############################################################################################
+  #
+  #  storage subnet NSG - Check if locally provided
+  #
+  ##############################################################################################
+
+  storage_subnet_nsg_arm_id                       = local.storage_subnet_defined ? (
+                                                      try(var.infrastructure.vnets.sap.subnet_storage.nsg.arm_id, "")) : (
+                                                      ""
+                                                    )
+  storage_subnet_nsg_exists                       = length(local.storage_subnet_nsg_arm_id) > 0
+
+  storage_subnet_nsg_name                         = local.storage_subnet_nsg_exists ? (
+                                                      try(split("/", local.storage_subnet_nsg_arm_id)[8], "")) : (
+                                                      length(try(var.infrastructure.vnets.sap.subnet_storage.nsg.name, "")) > 0 ? (
+                                                        var.infrastructure.vnets.sap.subnet_storage.nsg.name) : (
+                                                        format("%s%s%s%s",
+                                                          var.naming.resource_prefixes.storage_subnet_nsg,
+                                                          length(local.prefix) > 0 ? (
+                                                            local.prefix) : (
+                                                            var.infrastructure.environment
+                                                          ),
+                                                          var.naming.separator,
+                                                          local.resource_suffixes.storage_subnet_nsg
+                                                        )
+                                                      )
+                                                    )
+
+  ##############################################################################################
+  #
   #  ANF subnet - Check if locally provided
   #
   ##############################################################################################
@@ -527,7 +590,7 @@ locals {
   ams_subnet_prefix                               = local.ams_subnet_defined ? (
                                                       try(var.infrastructure.vnets.sap.subnet_ams.prefix, "")) : (
                                                       ""
-                                                    )                                            
+                                                    )
 
   # Store the Deployer KV in workload zone KV
   deployer_keyvault_user_name                     = try(var.deployer_tfstate.deployer_kv_user_name, "")
@@ -725,4 +788,8 @@ locals {
 
   use_AFS_for_shared                             = (var.NFS_provider == "ANF" && var.use_AFS_for_shared_storage) || var.NFS_provider == "AFS"
 
+
+  deploy_monitoring_extension                    = var.infrastructure.deploy_monitoring_extension && length(try(var.infrastructure.user_assigned_identity_id,"")) > 0
+
 }
+

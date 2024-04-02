@@ -62,33 +62,6 @@ resource "azurerm_storage_account" "sapmnt" {
 
 }
 
-# resource "azurerm_private_dns_a_record" "sapmnt" {
-#   provider = azurerm.dnsmanagement
-#   depends_on = [
-#     azurerm_private_endpoint.sapmnt
-#   ]
-#   count = var.create_storage_dns_a_records ? 1 : 0
-#   name = replace(
-#     lower(
-#       format("%s%s",
-#         local.prefix,
-#         local.resource_suffixes.sapmnt
-#       )
-#     ),
-#     "/[^a-z0-9]/",
-#     ""
-#   )
-#   zone_name           = var.dns_zone_names.file_dns_zone_name
-#   resource_group_name = var.management_dns_resourcegroup_name
-#   ttl                 = 3600
-#   records             = [data.azurerm_network_interface.sapmnt[count.index].ip_configuration[0].private_ip_address]
-
-
-#   lifecycle {
-#     ignore_changes = [tags]
-#   }
-# }
-
 data "azurerm_storage_account" "sapmnt" {
   provider                             = azurerm.main
   count                                = var.NFS_provider == "AFS" ? (
@@ -154,7 +127,7 @@ resource "azurerm_private_endpoint" "sapmnt" {
 
 
   dynamic "private_dns_zone_group" {
-                                     for_each = range(length(try(var.landscape_tfstate.privatelink_file_id, "")) > 0 ? 1 : 0)
+                                     for_each = range(length(try(var.landscape_tfstate.privatelink_file_id, "")) > 0 && var.register_endpoints_with_dns ? 1 : 0)
                                      content {
                                        name                 = var.dns_zone_names.file_dns_zone_name
                                        private_dns_zone_ids = [var.landscape_tfstate.privatelink_file_id]

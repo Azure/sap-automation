@@ -439,7 +439,7 @@ resource "azurerm_private_endpoint" "kv_user" {
                              }
 
   dynamic "private_dns_zone_group" {
-                                      for_each = range(var.use_private_endpoint ? 1 : 0)
+                                      for_each = range(var.register_endpoints_with_dns ? 1 : 0)
                                       content {
                                         name                 = var.dns_zone_names.vault_dns_zone_name
                                         private_dns_zone_ids = [data.azurerm_private_dns_zone.keyvault[0].id]
@@ -495,7 +495,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vault" {
 
 data "azurerm_private_dns_zone" "vault" {
   provider                             = azurerm.dnsmanagement
-  count                                = var.use_private_endpoint ? 1 : 0
+  count                                = var.use_private_endpoint && var.register_endpoints_with_dns ? 1 : 0
   name                                 = var.dns_zone_names.vault_dns_zone_name
   resource_group_name                  = var.management_dns_resourcegroup_name
 }
@@ -546,7 +546,7 @@ resource "azurerm_role_assignment" "kv_user_additional_users" {
                                                                        azurerm_key_vault.kv_user[0].id
                                                                      )
   role_definition_name                 = "Key Vault Secrets Officer"
-  principal_id                         = local.service_principal.object_id
+  principal_id                         = var.additional_users_to_add_to_keyvault_policies[count.index]
 }
 
 resource "azurerm_management_lock" "keyvault" {

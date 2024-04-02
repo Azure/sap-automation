@@ -23,6 +23,8 @@ resource "azurerm_network_interface" "nics_dbnodes_admin" {
                                            var.database_server_count) : (
                                            0
                                          )
+  depends_on                           = [ azurerm_network_interface.nics_dbnodes_db ]
+
   name                                 = format("%s%s%s%s%s",
                                            var.naming.resource_prefixes.admin_nic,
                                            local.prefix,
@@ -109,11 +111,16 @@ resource "azurerm_network_interface_application_security_group_association" "db"
   application_security_group_id        = var.db_asg_id
 }
 
+#########################################################################################
+#                                                                                       #
+#  Storage Network Interface                                                            #
+#                                                                                       #
+#########################################################################################
 
-// Creates the NIC for Hana storage
 resource "azurerm_network_interface" "nics_dbnodes_storage" {
   provider                             = azurerm.main
   count                                = local.enable_deployment && local.enable_storage_subnet ? var.database_server_count : 0
+  depends_on                           = [ azurerm_network_interface.nics_dbnodes_db, azurerm_network_interface.nics_dbnodes_admin ]
   name                                 = format("%s%s%s%s%s",
                                            var.naming.resource_prefixes.storage_nic,
                                            local.prefix,
@@ -198,17 +205,17 @@ resource "azurerm_linux_virtual_machine" "vm_dbnode" {
 
   network_interface_ids                = local.enable_storage_subnet ? (
                                            var.options.legacy_nic_order ? (
-                                             [
-                                               azurerm_network_interface.nics_dbnodes_admin[count.index].id,
+                                             compact([
+                                               var.database_dual_nics ? azurerm_network_interface.nics_dbnodes_admin[count.index].id : null,
                                                azurerm_network_interface.nics_dbnodes_db[count.index].id,
                                                azurerm_network_interface.nics_dbnodes_storage[count.index].id
-                                             ]
+                                             ])
                                              ) : (
-                                             [
+                                             compact([
                                                azurerm_network_interface.nics_dbnodes_db[count.index].id,
-                                               azurerm_network_interface.nics_dbnodes_admin[count.index].id,
+                                               var.database_dual_nics ? azurerm_network_interface.nics_dbnodes_admin[count.index].id : null,
                                                azurerm_network_interface.nics_dbnodes_storage[count.index].id
-                                             ]
+                                             ])
                                            )
                                            ) : (
                                            var.database_dual_nics ? (
@@ -396,7 +403,8 @@ resource "azurerm_virtual_machine_extension" "hdb_linux_extension" {
   type_handler_version                 = "1.0"
   settings                             = jsonencode(
                                            {
-                                             "system": "SAP"
+                                             "system": "SAP",
+
                                            }
                                          )
   tags                                 = var.tags
@@ -430,13 +438,13 @@ resource "azurerm_managed_disk" "cluster" {
   location                             = var.resource_group[0].location
   resource_group_name                  = var.resource_group[0].name
   create_option                        = "Empty"
-  storage_account_type                 = "Premium_LRS"
-  disk_size_gb                         = var.database_cluster_disk_size
+  storage_account_type                 = var.database.database_cluster_disk_type
+  disk_size_gb                         = var.database.database_cluster_disk_size
   disk_encryption_set_id               = try(var.options.disk_encryption_set_id, null)
   max_shares                           = var.database_server_count
   tags                                 = var.tags
 
-  zone                                 = !local.use_avset ? (
+  zone                                 = var.database.database_cluster_disk_type == "Premium_LRS" && !local.use_avset ? (
                                            azurerm_linux_virtual_machine.vm_dbnode[local.data_disk_list[count.index].vm_index].zone) : (
                                            null
                                          )
@@ -478,7 +486,7 @@ resource "azurerm_virtual_machine_data_disk_attachment" "cluster" {
                                            )
                                          )
   caching                              = "None"
-  lun                                  = var.database_cluster_disk_lun
+  lun                                  = var.database.database_cluster_disk_lun
 }
 
 #########################################################################################
@@ -544,4 +552,64 @@ resource "azurerm_virtual_machine_data_disk_attachment" "kdump" {
                                          ) : null
   caching                              = "None"
   lun                                  = var.database.fence_kdump_lun_number
+}
+
+resource "azurerm_virtual_machine_extension" "monitoring_extension_db_lnx" {
+  provider                             = azurerm.main
+  count                                = local.deploy_monitoring_extension ? (
+                                           var.database_server_count) : (
+                                           0                                           )
+  virtual_machine_id                   = azurerm_linux_virtual_machine.vm_dbnode[count.index].id
+  name                                 = "Microsoft.Azure.Monitor.AzureMonitorLinuxAgent"
+  publisher                            = "Microsoft.Azure.Monitor"
+  type                                 = "AzureMonitorLinuxAgent"
+  type_handler_version                 = "1.0"
+  auto_upgrade_minor_version           = true
+
+}
+
+
+resource "azurerm_virtual_machine_extension" "monitoring_defender_db_lnx" {
+  provider                             = azurerm.main
+  count                                = var.infrastructure.deploy_defender_extension ? (
+                                           var.database_server_count) : (
+                                           0
+                                         )
+  virtual_machine_id                   = azurerm_linux_virtual_machine.vm_dbnode[count.index].id
+  name                                 = "Microsoft.Azure.Security.Monitoring.AzureSecurityLinuxAgent"
+  publisher                            = "Microsoft.Azure.Security.Monitoring"
+  type                                 = "AzureSecurityLinuxAgent"
+  type_handler_version                 = "2.0"
+  auto_upgrade_minor_version           = true
+
+  settings                             = jsonencode(
+                                            {
+                                              "enableGenevaUpload"  = true,
+                                              "enableAutoConfig"  = true,
+                                              "reportSuccessOnUnsupportedDistro"  = true,
+                                            }
+                                          )
+}
+
+
+resource "azurerm_virtual_machine_extension" "monitoring_defender_db_lnx" {
+  provider                             = azurerm.main
+  count                                = var.infrastructure.deploy_defender_extension ? (
+                                           var.database_server_count) : (
+                                           0
+                                         )
+  virtual_machine_id                   = azurerm_linux_virtual_machine.vm_dbnode[count.index].id
+  name                                 = "Microsoft.Azure.Security.Monitoring.AzureSecurityLinuxAgent"
+  publisher                            = "Microsoft.Azure.Security.Monitoring"
+  type                                 = "AzureSecurityLinuxAgent"
+  type_handler_version                 = "2.0"
+  auto_upgrade_minor_version           = "true"
+
+  settings                             = jsonencode(
+                                            {
+                                              "enableGenevaUpload"  = true,
+                                              "enableAutoConfig"  = true,
+                                              "reportSuccessOnUnsupportedDistro"  = true,
+                                            }
+                                          )
 }

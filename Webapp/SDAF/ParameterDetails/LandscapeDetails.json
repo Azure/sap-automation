@@ -86,6 +86,15 @@
         "Display": 1
       },
       {
+        "Name": "Description",
+        "Required": false,
+        "Description": "Workload zone description.",
+        "Type": "textbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 1
+      },
+      {
         "Name": "save_naming_information",
         "Required": false,
         "Description": "If defined, will create a naming information json file for the resources, see <a href='https://learn.microsoft.com/en-us/azure/sap/automation/automation-naming-module#provide-name-overrides-using-a-json-file' target='_blank' rel='noopener noreferrer'>custom naming</a>.",
@@ -102,11 +111,35 @@
         "Options": [],
         "Overrules": "",
         "Display": 2
+      }
+    ]
+  },
+  {
+    "Section": "Infrastructure settings",
+    "Link": "https://learn.microsoft.com/en-us/azure/sap/automation/automation-configure-workload-zone#environment-parameters",
+    "Parameters": [
+      {
+        "Name": "deploy_monitoring_extension",
+        "Required": false,
+        "Description": "If defined, will add the Microsoft.Azure.Monitor.AzureMonitorLinuxAgent extension to the virtual machines",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "deploy_defender_extension",
+        "Required": false,
+        "Description": "If defined, will add the Microsoft.Azure.Security.Monitoring extension to the virtual machines",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
       },
       {
         "Name": "place_delete_lock_on_resources",
         "Required": false,
-        "Description": " If defined, a delete lock will be placed on the key resources (virtual network and key vault)",
+        "Description": "If defined, a delete lock will be placed on the key resources (virtual network and key vault)",
         "Type": "checkbox",
         "Options": [],
         "Overrules": "",
@@ -115,7 +148,7 @@
       {
         "Name": "use_spn",
         "Required": false,
-        "Description": " If set, the deployment is performed using the Service Principal defined for the workload zone, otherwise the managed identity of the deployer is used",
+        "Description": "If set, the deployment is performed using the Service Principal defined for the workload zone, otherwise the managed identity of the deployer is used",
         "Type": "checkbox",
         "Options": [],
         "Overrules": "",
@@ -723,6 +756,67 @@
     ]
   },
   {
+    "Section": "Storage subnet",
+    "Link": "https://learn.microsoft.com/en-us/azure/sap/automation/automation-configure-workload-zone",
+    "Parameters": [
+      {
+        "Name": "storage_subnet_arm_id",
+        "Required": false,
+        "Description": "Specifies Azure resource identifier for the existing subnet for the storage subnet",
+        "Type": "lookup",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "storage_subnet_address_prefix",
+        "Display": 2
+      },
+      {
+        "Name": "storage_subnet_address_prefix",
+        "Required": false,
+        "Description": "Defines the subnet address range for the storage subnet.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "storage_subnet_name",
+        "Required": false,
+        "Description": "Should only be used if the default naming is not acceptable.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "storage_subnet_nsg_arm_id",
+        "Required": false,
+        "Description": "Specifies Azure resource identifier for the existing network security group to use.",
+        "Type": "lookup",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "storage_subnet_nsg_name",
+        "Display": 2
+      },
+      {
+        "Name": "storage_subnet_nsg_name",
+        "Required": false,
+        "Description": "Should only be used if the default naming is not acceptable for the network security group name",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      }
+    ]
+  },
+  {
     "Section": "Azure keyvault support",
     "Link": "https://learn.microsoft.com/en-us/azure/sap/automation/automation-configure-workload-zone#key-vault-parameters",
     "Parameters": [
@@ -838,6 +932,15 @@
         "Name": "register_virtual_network_to_dns",
         "Required": false,
         "Description": "Defines if the Virtual network and the load balancers are registered with DNS",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "register_endpoints_with_dns",
+        "Required": false,
+        "Description": "Defines if the Private Endpoints are registered with DNS",
         "Type": "checkbox",
         "Options": [],
         "Overrules": "",

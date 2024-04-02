@@ -21,19 +21,28 @@
   with_items:
     - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
 
-- name:                            "Backward Compatibility - Check required Database HA variables"
+- name:                                "Backward Compatibility - Check required Database HA variables"
   ansible.builtin.set_fact:
-    database_high_availability:    "{{ db_high_availability | default(false) }}"
+    database_high_availability:        "{{ db_high_availability | default(false) }}"
   when:
     - db_high_availability is defined
     - database_high_availability is not defined
+
+- name:                                "PAS Install: Calculate virtual host name when running scale out"
+  ansible.builtin.set_fact:
+    db_virtualhost_temp:  >-
+                                       {%- set _host_name = hostvars[db_server_temp | first]['virtual_host'] -%}
+                                       {%- if db_scale_out and not database_high_availability -%}
+                                       {%-  set _host_name = sap_sid | lower ~ db_sid | lower ~ 'db' ~ db_instance_number ~ 'so' -%}
+                                       {%- endif -%}
+                                       {{- _host_name -}}
 
 - name:                                "PAS Install: Set BOM facts"
   ansible.builtin.set_fact:
     sap_inifile:                       "{{ bom_base_name }}-pas-{{ sid_to_be_deployed.sid | lower }}-{{ ansible_hostname }}.params"
     sap_inifile_template:              "{{ bom_base_name }}{{ bom_suffix }}-pas-inifile-param.j2"
     dir_params:                        "{{ tmp_directory }}/.{{ sid_to_be_deployed.sid | lower }}-params"
-    db_lb_virtual_host_HANA:           "{% if database_high_availability %}{{ sid_to_be_deployed.sid | lower }}{{ db_sid | lower }}db{{ db_instance_number }}cl.{{ sap_fqdn }}{% else %}{{ hostvars[db_server_temp | first]['virtual_host'] }}{% endif %}"
+    db_lb_virtual_host_HANA:           "{% if database_high_availability %}{{ sid_to_be_deployed.sid | lower }}{{ db_sid | lower }}db{{ db_instance_number }}cl.{{ sap_fqdn }}{% else %}{{ db_virtualhost_temp | default(hostvars[db_server_temp | first]['virtual_host'], true) }}{% endif %}"
     db_lb_virtual_host_AnyDB:          "{% if database_high_availability %}{{ sid_to_be_deployed.sid | lower }}{{ db_sid | lower }}db{{ db_instance_number }}cl.{{ sap_fqdn }}{% else %}{{ db_server_temp }}{% endif %}"
 
 - name:                                "PAS Install: Set BOM facts db host"
@@ -467,7 +476,7 @@
       when:
         - database_high_availability
         - platform == 'HANA'
-        - hdbuserstore_file | length > 0
+        - hdbuserstore_file.matched > 0
 
     - name:                            "PAS Install: show hdbuserstore path"
       ansible.builtin.debug:

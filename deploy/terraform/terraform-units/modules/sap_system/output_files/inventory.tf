@@ -222,6 +222,7 @@ resource "local_file" "sap-parameters_yml" {
                                             )
               asd_disks                   = concat(var.scs_shared_disks, var.database_shared_disks)
               scale_out                   = var.scale_out
+              scale_out_no_standby_role   = var.scale_out_no_standby_role
               scs_cluster_loadbalancer_ip = try(format("%s/%s", var.scs_cluster_loadbalancer_ip, var.app_subnet_netmask), "")
               scs_cluster_type            = var.scs_cluster_type
               scs_high_availability       = var.scs_high_availability
@@ -233,6 +234,11 @@ resource "local_file" "sap-parameters_yml" {
               secret_prefix               = local.secret_prefix,
               settings                    = local.settings
               sid                         = var.sap_sid,
+              subnet_cidr_anf           = var.subnet_cidr_anf,
+              subnet_cidr_app           = var.subnet_cidr_app,
+              subnet_cidr_client        = var.subnet_cidr_client
+              subnet_cidr_db            = var.subnet_cidr_db
+              subnet_cidr_storage       = var.subnet_cidr_storage,
               upgrade_packages            = var.upgrade_packages ? "true" : "false"
               use_msi_for_clusters        = var.use_msi_for_clusters
               usr_sap                     = length(var.usr_sap) > 1 ? (

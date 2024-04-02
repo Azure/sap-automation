@@ -73,24 +73,75 @@ ansible_facts.
 {# This template generates host entries based on the provided data #}
 {% for host in ansible_play_hosts|sort %}
 {# Set variables for the current host #}
-{% set virtual_host_name = hostvars[host]['virtual_host'] %}
-{# Determine the IPs for the current host from ipaddr variable. Do not sort it, the order is already correct. #}
-{% set host_ips = hostvars[host]['ipadd'] %}
+{%   set supported_tiers = hostvars[host]['supported_tiers'] if 'supported_tiers' in hostvars[host] else [] %}
+{%   set virtual_host_names = [] %}
+{# Assign virtual host names based on supported tiers #}
+{%   for tier in supported_tiers %}
+{%     if tier == 'scs' %}
+{%       set scs_virtual_host = hostvars[host]['custom_scs_virtual_hostname'] if 'custom_scs_virtual_hostname' in hostvars[host] else hostvars[host]['virtual_host'] %}
+{%       if scs_virtual_host not in virtual_host_names %}
+{%         set _ = virtual_host_names.append(scs_virtual_host) %}
+{%       endif %}
+{%     elif tier == 'ers' %}
+{%       set ers_virtual_host = hostvars[host]['custom_ers_virtual_hostname'] if 'custom_ers_virtual_hostname' in hostvars[host] else hostvars[host]['virtual_host'] %}
+{%       if ers_virtual_host not in virtual_host_names %}
+{%         set _ = virtual_host_names.append(ers_virtual_host) %}
+{%       endif %}
+{%     elif tier == 'pas' %}
+{%       set pas_virtual_host = hostvars[host]['custom_pas_virtual_hostname'] if 'custom_pas_virtual_hostname' in hostvars[host] else hostvars[host]['virtual_host'] %}
+{%       if pas_virtual_host not in virtual_host_names %}
+{%         set _ = virtual_host_names.append(pas_virtual_host) %}
+{%       endif %}
+{%     elif tier == 'app' %}
+{%       set app_virtual_host = hostvars[host]['custom_app_virtual_hostname'] if 'custom_app_virtual_hostname' in hostvars[host] else hostvars[host]['virtual_host'] %}
+{%       if app_virtual_host not in virtual_host_names %}
+{%         set _ = virtual_host_names.append(app_virtual_host) %}
+{%       endif %}
+{%     elif tier == 'web' %}
+{%       set web_virtual_host = hostvars[host]['custom_web_virtual_hostname'] if 'custom_web_virtual_hostname' in hostvars[host] else hostvars[host]['virtual_host'] %}
+{%       if web_virtual_host not in virtual_host_names %}
+{%         set _ = virtual_host_names.append(web_virtual_host) %}
+{%       endif %}
+{%     elif tier in ['hana', 'oracle', 'oracle-asm', 'db2', 'sybase'] %}
+{%       set db_virtual_host = hostvars[host]['custom_db_virtual_hostname'] if 'custom_db_virtual_hostname' in hostvars[host] else hostvars[host]['virtual_host'] %}
+{%       if db_virtual_host not in virtual_host_names %}
+{%         set _ = virtual_host_names.append(db_virtual_host) %}
+{%       endif %}
+{%     endif %}
+{%   endfor %}
+{# Keep only unique values in the virtual_host_names #}
+{% set virtual_host_names = virtual_host_names | unique %}
 
+{# Determine the IPs for the current host from ipaddr variable. Do not sort it, the order is already correct. #}
+{%   set host_ips = hostvars[host]['ipadd'] %}
 {# Check if there are IPs available for the current host #}
-{% if host_ips %}
-{# Print the primary host entry #}
+{%   if host_ips %}
+
 {{ '%-19s' | format(host_ips[0]) }}{{ '%-80s ' | format(host + '.' + sap_fqdn) }}{{ '%-21s' | format(host) }}
 
-{# If there's only one IP, also use it for the virtual_host #}
-{% if host_ips|length == 1 %}
-{{ '%-19s' | format(host_ips[0]) }}{{ '%-80s ' | format(virtual_host_name + '.' + sap_fqdn) }}{{ '%-21s' | format(virtual_host_name) }}
-{% else %}
-{# Loop through remaining IPs for the virtual host #}
-{% for ip in host_ips[1:] %}
-{{ '%-19s' | format(ip) }}{{ '%-80s ' | format(virtual_host_name + '.' + sap_fqdn) }}{{ '%-21s' | format(virtual_host_name) }}
-{% endfor %}
-{% endif %}
-{% endif %}
-{% endfor %}
+{# If there's only one IP, replicate the entry with different virtual_host_names #}
+{%     if host_ips|length == 1 %}
+{%       for vh_name in virtual_host_names if virtual_host_names | length >= 1 %}
 
+{{ '%-19s' | format(host_ips[0]) }}{{ '%-80s ' | format(vh_name + '.' + sap_fqdn) }}{{ '%-21s' | format(vh_name) }}
+
+{%       endfor %}
+{%     else %}
+{# Loop through remaining IPs for the virtual host #}
+{%       for ip in host_ips[1:] %}
+{%         if ((db_scale_out) and ((subnet_cidr_storage is defined) and (subnet_cidr_storage | ansible.utils.network_in_usable(ip)))) %}
+{{ '%-19s' | format(ip) }}{{ '%-80s ' | format(host + '-storage.' + sap_fqdn) }}{{ '%-21s' | format(host + '-storage') }}
+
+{%         elif ((db_scale_out) and ((subnet_cidr_client is defined) and (subnet_cidr_client | ansible.utils.network_in_usable(ip)))) %}
+{{ '%-19s' | format(ip) }}{{ '%-80s ' | format(host + '-client.' + sap_fqdn) }}{{ '%-21s' | format(host + '-client') }}
+
+{%         else %}
+{%           for vh_name in virtual_host_names if virtual_host_names | length >= 1 %}
+{{ '%-19s' | format(ip) }}{{ '%-80s ' | format(vh_name + '.' + sap_fqdn) }}{{ '%-21s' | format(vh_name) }}
+
+{%           endfor %}
+{%         endif %}
+{%       endfor %}
+{%     endif %}
+{%   endif %}
+{% endfor %}

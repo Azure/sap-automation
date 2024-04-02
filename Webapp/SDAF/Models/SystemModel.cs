@@ -42,6 +42,9 @@ namespace AutomationForm.Models
     [LocationValidator(ErrorMessage = "Location is not a valid Azure region")]
     public string location { get; set; }
 
+    public string Description { get; set; }
+
+
     [RequiredIfNotDefault]
     [DisplayName("Network name")]
     [RegularExpression(@"^\w{0,7}$", ErrorMessage = "Logical network name cannot exceed seven characters")]
@@ -70,6 +73,10 @@ namespace AutomationForm.Models
     public bool? deploy_application_security_groups { get; set; } = true;
 
     public bool? deploy_v1_monitoring_extension { get; set; } = true;
+
+    public bool? deploy_monitoring_extension { get; set; } = false;
+
+    public bool? deploy_defender_extension { get; set; } = false;
 
     public bool? use_scalesets_for_deployment { get; set; } = false;
 
@@ -154,8 +161,6 @@ namespace AutomationForm.Models
 
     public string web_subnet_nsg_name { get; set; }
 
-    public bool? use_service_endpoint { get; set; }
-
     public bool? nsg_asg_with_vnet { get; set; } = false;
 
     /*---------------------------------------------------------------------------8
@@ -200,6 +205,11 @@ namespace AutomationForm.Models
     public bool? dns_a_records_for_secondary_names { get; set; } = true;
     public bool? use_private_endpoint { get; set; }
 
+    public bool? use_service_endpoint { get; set; }
+
+    public bool? register_endpoints_with_dns { get; set; } = true;
+
+
     /*---------------------------------------------------------------------------8
     |                                                                            |
     |                       Cluster information                                  |
@@ -213,7 +223,21 @@ namespace AutomationForm.Models
     public bool? use_simple_mount { get; set; } = false;
 
     public string database_cluster_type { get; set; } = "AFA";
+
     public string scs_cluster_type { get; set; } = "AFA";
+
+
+    public int? scs_cluster_disk_lun { get; set; } = 5;
+
+    public int? scs_cluster_disk_size { get; set; } = 128;
+
+    public string scs_cluster_disk_type { get; set; } = "Premium_ZRS";
+
+    public int? database_cluster_disk_lun { get; set; } = 8;
+
+    public int? database_cluster_disk_size { get; set; } = 128;
+
+    public string database_cluster_disk_type { get; set; } = "Premium_ZRS";
 
     /*---------------------------------------------------------------------------8
     |                                                                            |
@@ -221,7 +245,7 @@ namespace AutomationForm.Models
     |                                                                            |
     +------------------------------------4--------------------------------------*/
 
-    
+
     public string[] proximityplacementgroup_names { get; set; }
 
     [PpgIdValidator]
@@ -285,7 +309,7 @@ namespace AutomationForm.Models
     [IpAddressValidator]
     public string[] database_vm_db_nic_ips { get; set; }
 
-    
+
     [IpAddressValidator]
     public string[] database_vm_db_nic_secondary_ips { get; set; }
 
@@ -492,7 +516,7 @@ namespace AutomationForm.Models
 
     public int? ANF_HANA_data_volume_throughput { get; set; }
 
-    public int? ANF_hana_data_volume_count { get; set; } = 1;
+    public int? ANF_HANA_data_volume_count { get; set; } = 1;
 
     /*---------------------------------------------------------------------------8
     |                                                                            |
@@ -509,7 +533,7 @@ namespace AutomationForm.Models
 
     public int? ANF_HANA_log_volume_throughput { get; set; }
 
-    public int? ANF_hana_log_volume_count { get; set; } = 1;
+    public int? ANF_HANA_log_volume_count { get; set; } = 1;
 
     /*---------------------------------------------------------------------------8
     |                                                                            |
@@ -609,6 +633,8 @@ namespace AutomationForm.Models
     +------------------------------------4--------------------------------------*/
 
     public bool? database_HANA_use_ANF_scaleout_scenario { get; set; } = false;
+
+    public bool? database_HANA_no_standby_role { get; set; } = false;
 
     public int? stand_by_node_count { get; set; } = 0;
 

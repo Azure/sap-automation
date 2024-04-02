@@ -27,6 +27,7 @@ disk_type_to_name_map:
   mirrloga:        '{{ node_tier | lower }}_mirrlogA'
   mirrlogb:        '{{ node_tier | lower }}_mirrlogB'
   oraarch:         '{{ node_tier | lower }}_oraarch'
+  oraflash:        '{{ node_tier | lower }}_oraflash'
   # orabackup: '{{ node_tier | lower }}_orabackup'
   # ------------------- Begin - disktypes required for DB2 -------------------8
   sapdata:         '{{ node_tier | lower }}_sapdata'
@@ -34,7 +35,7 @@ disk_type_to_name_map:
   offline_log_dir: '{{ node_tier | lower }}_offline_logdir'
   saptmp:          '{{ node_tier | lower }}_saptmp'
   # ------------------- End - disktypes required for DB2 ---------------------8
-  kdump:          '{{ node_tier | lower }}_kdump'
+  kdump:           '{{ node_tier | lower }}_kdump'
   # ------------------- Begin - disktypes required for ASE -------------------8
   sapdata_1:      '{{ node_tier | lower }}_sapdata_1'
   saplog_1:       '{{ node_tier | lower }}_saplog_1'
@@ -88,10 +89,11 @@ logical_volumes:
   - tier:       'sapos'
     node_tier:  'all'
     supported_tiers: ['scs','hana','db2','ers']
-    vg:         'vg_kdump'
-    lv:         'lv_kdump'
+    vg:         'vg_{{ node_tier | lower }}_kdump'
+    lv:         'lv_{{ node_tier | lower }}_kdump'
     size:       '100%FREE'
     fstype:     'xfs'
+
   # ----------------------- End - disks required for kdump --------------------8
 
   # --------------------- Begin - disks required for usrsap -------------------8
@@ -213,6 +215,16 @@ logical_volumes:
     lv:         'lv_oracle'
     size:       '100%FREE'
     fstype:     'xfs'
+
+#  Add disk for Oracle Flash Recovery Area
+  - tier:       'sapos'
+    node_tier:  'oracle'
+    vg:         'vg_oracle_oraflash'
+    lv:         'lv_oracle_oraflash'
+    size:       '100%FREE'
+    stripesize: "{{ oracle_log_stripe_size }}"
+    fstype:     'xfs'
+
 
   - tier:       'sapos'
     node_tier:  'oracle'

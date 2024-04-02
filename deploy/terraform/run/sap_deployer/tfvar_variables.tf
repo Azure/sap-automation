@@ -34,7 +34,7 @@ variable "resourcegroup_name"                   {
                                                 }
 
 variable "resourcegroup_arm_id"                 {
-                                                  description = "If provided, the Azure resource group id"
+                                                  description = "If provid, the Azure resource group id"
                                                   default     = ""
                                                 }
 
@@ -519,6 +519,12 @@ variable "Agent_IP"                                  {
                                                        description = "IP address of the agent"
                                                        default     = ""
                                                      }
+
+variable "add_Agent_IP"                              {
+                                                        description = "Boolean value indicating if the Agent IP should be added to the storage and key vault firewalls"
+                                                        default     = true
+                                                        type        = bool
+                                                      }
 
 variable "tfstate_resource_id"                       {
                                                        description = "Resource id of tfstate storage account"

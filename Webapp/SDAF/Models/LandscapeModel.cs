@@ -38,6 +38,8 @@ namespace AutomationForm.Models
     [LocationValidator(ErrorMessage = "Location is not a valid Azure region")]
     public string location { get; set; }
 
+    public string Description { get; set; }
+
     public string name_override_file { get; set; }
 
     public bool? save_naming_information { get; set; }
@@ -45,7 +47,13 @@ namespace AutomationForm.Models
     public bool? place_delete_lock_on_resources { get; set; } = false;
 
     public string controlPlaneLocation { get; set; }
+
     public Tag[] tags { get; set; }
+
+
+    public bool? deploy_monitoring_extension { get; set; } = true;
+
+    public bool? deploy_defender_extension { get; set; } = false;
 
     /*---------------------------------------------------------------------------8
     |                                                                            |
@@ -171,6 +179,19 @@ namespace AutomationForm.Models
 
     public string ams_subnet_nsg_name { get; set; }
 
+    [SubnetArmIdValidator(ErrorMessage = "Invalid Storage subnet arm id")]
+    public string storage_subnet_arm_id { get; set; }
+
+    //[Required]
+    [AddressPrefixValidator(ErrorMessage = "Storage subnet address space must be a valid RFC 1918 address")]
+    public string storage_subnet_address_prefix { get; set; }
+
+    public string storage_subnet_name { get; set; }
+
+    [NsgArmIdValidator(ErrorMessage = "Invalid storage subnet nsg arm id")]
+    public string storage_subnet_nsg_arm_id { get; set; }
+
+    public string storage_subnet_nsg_name { get; set; }
 
 
     /*---------------------------------------------------------------------------8
@@ -254,12 +275,16 @@ namespace AutomationForm.Models
     public string management_dns_subscription_id { get; set; }
 
     public bool? use_custom_dns_a_registration { get; set; } = false;
+
     public string dns_label { get; set; }
 
     public string dns_resource_group_name { get; set; }
 
     [IpAddressValidator]
     public string[] dns_server_list { get; set; }
+
+    public bool? register_endpoints_with_dns { get; set; } = true;
+
 
     /*---------------------------------------------------------------------------8
     |                                                                            |

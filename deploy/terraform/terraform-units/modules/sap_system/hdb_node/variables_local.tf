@@ -51,7 +51,7 @@ locals {
   use_ANF                              = try(var.database.use_ANF, false)
   //Scalout subnet is needed if ANF is used and there are more than one hana node
   dbnode_per_site                      = length(try(var.database.dbnodes, [{}]))
-  enable_storage_subnet                = local.use_ANF && local.dbnode_per_site > 1
+  enable_storage_subnet                = var.database.use_ANF && var.database.scale_out && length(try(var.storage_subnet.id,""))>0
 
   // Availability Set
   availabilityset_arm_ids              = try(var.database.avset_arm_ids, [])
@@ -391,5 +391,10 @@ locals {
                                            (var.database_server_count - var.database.stand_by_node_count) * var.hana_ANF_volumes.log_volume_count) : (
                                            0
                                          )
+  extension_settings                   =  length(var.database.user_assigned_identity_id) > 0 ? [{
+                                           "key" = "msi_res_id"
+                                           "value" = var.database.user_assigned_identity_id
+                                         }] : []
 
+  deploy_monitoring_extension          = local.enable_deployment && var.infrastructure.deploy_monitoring_extension && length(var.database.user_assigned_identity_id) > 0
 }

@@ -239,6 +239,37 @@ variable "web_subnet_nsg_arm_id"                {
                                                   default     = ""
                                                 }
 
+#########################################################################################
+#                                                                                       #
+#  Storage Subnet variables - Needed only during HANA Scaleout deployments              #
+#                                                                                       #
+#########################################################################################
+
+variable "storage_subnet_name"                  {
+                                                  description = "If provided, the name of the stroage subnet"
+                                                  default     = ""
+                                                }
+
+variable "storage_subnet_arm_id"                {
+                                                  description = "If provided, Azure resource id for the storage subnet"
+                                                  default     = ""
+                                                }
+
+variable "storage_subnet_address_prefix"        {
+                                                  description = "The address prefix for the storage subnet"
+                                                  default     = ""
+                                                }
+
+variable "storage_subnet_nsg_name"              {
+                                                  description = "If provided, the name of the storage subnet NSG"
+                                                  default     = ""
+                                                }
+
+variable "storage_subnet_nsg_arm_id"            {
+                                                  description = "If provided, Azure resource id for the storage subnet NSG"
+                                                  default     = ""
+                                                }
+
 
 #########################################################################################
 #                                                                                       #
@@ -381,6 +412,17 @@ variable "user_assigned_identity_id"            {
                                                   default     = ""
                                                 }
 
+variable "deploy_monitoring_extension"          {
+                                                  description = "If defined, will add the Microsoft.Azure.Monitor.AzureMonitorLinuxAgent extension to the virtual machines"
+                                                  default     = false
+                                                }
+
+variable "deploy_defender_extension"            {
+                                                  description = "If defined, will add the Microsoft.Azure.Security.Monitoring extension to the virtual machines"
+                                                  default     = false
+                                                }
+
+
 #########################################################################################
 #                                                                                       #
 #  Storage Account variables                                                            #
@@ -448,6 +490,11 @@ variable "Agent_IP"                             {
                                                   type        = string
                                                   default     = ""
                                                 }
+variable "add_Agent_IP"                         {
+                                                  description = "Boolean value indicating if the Agent IP should be added to the storage and key vault firewalls"
+                                                  default     = true
+                                                  type        = bool
+                                                }
 
 variable "storage_account_replication_type"     {
                                                   description = "Storage account replication type"
@@ -479,11 +526,6 @@ variable "management_dns_resourcegroup_name"       {
                                                      type        = string
                                                    }
 
-variable "create_vaults_and_storage_dns_a_records" {
-                                                     description = "Boolean value indicating if dns a records should be created for the vaults and storage accounts"
-                                                     default     = false
-                                                     type        = bool
-                                                   }
 
 variable "dns_server_list"                         {
                                                      description = "DNS server list"
@@ -496,6 +538,7 @@ variable "register_virtual_network_to_dns"         {
                                                      default     = true
                                                      type        = bool
                                                    }
+
 variable "dns_zone_names"                          {
                                                      description = "Private DNS zone names"
                                                      type        = map(string)
@@ -506,6 +549,12 @@ variable "dns_zone_names"                          {
                                                                 "table_dns_zone_name"  = "privatelink.table.core.windows.net"
                                                                 "vault_dns_zone_name"  = "privatelink.vaultcore.azure.net"
                                                                }
+                                                   }
+
+variable "register_endpoints_with_dns"             {
+                                                     description = "Boolean value indicating if endpoints should be registered to the dns zone"
+                                                     default     = true
+                                                     type        = bool
                                                    }
 
 #########################################################################################

@@ -12,7 +12,13 @@ variable "environment"                           {
                                                  }
 
 variable "codename"                              {
-                                                   description = "This is the code name name for the deployment"
+                                                   description = "This is the code name for the deployment"
+                                                   type        = string
+                                                   default     = ""
+                                                 }
+
+variable "Description"                           {
+                                                   description = "This is the description for the deployment"
                                                    type        = string
                                                    default     = ""
                                                  }
@@ -110,12 +116,6 @@ variable "app_proximityplacementgroup_arm_ids"  {
                                                   default     = []
                                                 }
 
-
-variable "use_service_endpoint"                 {
-                                                  description = "Boolean value indicating if service endpoints should be used for the deployment"
-                                                  default     = false
-                                                  type        = bool
-                                                }
 
 variable "use_private_endpoint"                 {
                                                   description = "Boolean value indicating if private endpoint should be used for the deployment"
@@ -269,6 +269,37 @@ variable "web_subnet_nsg_arm_id"                {
                                                 }
 
 
+#########################################################################################
+#                                                                                       #
+#  Storage Subnet variables - Only valid for scale-out configuration                    #
+#                                                                                       #
+#########################################################################################
+
+variable "storage_subnet_name"                  {
+                                                  description = "If provided, the name of the storage subnet"
+                                                  default     = ""
+                                                }
+
+variable "storage_subnet_arm_id"                {
+                                                  description = "If provided, Azure resource id for the storage subnet"
+                                                  default     = ""
+                                                }
+
+variable "storage_subnet_address_prefix"        {
+                                                  description = "The address prefix for the storage subnet"
+                                                  default     = ""
+                                                }
+
+variable "storage_subnet_nsg_name"              {
+                                                  description = "If provided, the name of the storage subnet NSG"
+                                                  default     = ""
+                                                }
+
+variable "storage_subnet_nsg_arm_id"            {
+                                                  description = "If provided, Azure resource id for the storage subnet NSG"
+                                                  default     = ""
+                                                }
+
 
 #########################################################################################
 #                                                                                       #
@@ -385,6 +416,12 @@ variable "database_cluster_disk_size"           {
                                                   description = "The size of the shared disk for the Database cluster"
                                                   default     = 128
                                                 }
+
+variable "database_cluster_disk_type"           {
+                                                  description = "The storage_account_type of the shared disk for the Database cluster"
+                                                  default     = "Premium_ZRS"
+                                                }
+
 
 variable "database_platform"                    {
                                                   description = "Database platform, supported values are HANA, DB2, ORACLE, ORACLE-ASM, ASE, SQLSERVER or NONE (in this case no database tier is deployed)"
@@ -715,6 +752,11 @@ variable "scs_cluster_disk_size"                {
                                                   default     = 128
                                                 }
 
+variable "scs_cluster_disk_type"                {
+                                                  description = "The storage_account_type of the shared disk for the SAP Central Services cluster"
+                                                  default     = "Premium_ZRS"
+                                                }
+
 #########################################################################################
 #                                                                                       #
 #  Application Server variables                                                         #
@@ -955,6 +997,11 @@ variable "Agent_IP"                             {
                                                   type        = string
                                                   default     = ""
                                                 }
+variable "add_Agent_IP"                         {
+                                                  description = "Boolean value indicating if the Agent IP should be added to the storage and key vault firewalls"
+                                                  default     = true
+                                                  type        = bool
+                                                }
 
 variable "shared_home"                          {
                                                   description = "If defined provides shared-home support"
@@ -1003,11 +1050,6 @@ variable "management_dns_resourcegroup_name"    {
                                                   type        = string
                                                 }
 
-variable "create_storage_dns_a_records"         {
-                                                  description = "Boolean value indicating if dns a records should be created for the storage accounts"
-                                                  default     = false
-                                                  type        = bool
-                                                }
 
 variable "dns_zone_names"                       {
                                                   description = "Private DNS zone names"
@@ -1022,6 +1064,12 @@ variable "dns_zone_names"                       {
 
 variable "dns_a_records_for_secondary_names"    {
                                                   description = "Boolean value indicating if dns a records should be created for the secondary DNS names"
+                                                  default     = true
+                                                  type        = bool
+                                                }
+
+variable "register_endpoints_with_dns"          {
+                                                  description = "Boolean value indicating if endpoints should be registered to the dns zone"
                                                   default     = true
                                                   type        = bool
                                                 }
@@ -1057,11 +1105,6 @@ variable "sapmnt_private_endpoint_id"           {
                                                   description = "Azure Resource Identifier for an private endpoint connection"
                                                   type        = string
                                                   default     = ""
-                                                }
-
-variable "Use_AFS_for_Installation"             {
-                                                  description = "If true, will use AFS for installation media."
-                                                  default     = false
                                                 }
 
 #########################################################################################
@@ -1108,7 +1151,7 @@ variable "ANF_HANA_data_volume_throughput"      {
                                                   default     = 128
                                                 }
 
-variable "ANF_hana_data_volume_count"          {
+variable "ANF_HANA_data_volume_count"          {
                                                   description = "If defined provides the number of data volumes"
                                                   default     = 1
                                                 }
@@ -1140,7 +1183,7 @@ variable "ANF_HANA_log_volume_throughput"       {
                                                   default     = 128
                                                 }
 
-variable "ANF_hana_log_volume_count"            {
+variable "ANF_HANA_log_volume_count"            {
                                                   description = "If defined provides the number of data volumes"
                                                   default     = 1
                                                 }
@@ -1335,6 +1378,16 @@ variable "tags"                                 {
                                                   default     = {}
                                                 }
 
+variable "deploy_monitoring_extension"          {
+                                                  description = "If defined, will add the Microsoft.Azure.Monitor.AzureMonitorLinuxAgent extension to the virtual machines"
+                                                  default     = true
+                                                }
+
+variable "deploy_defender_extension"            {
+                                                  description = "If defined, will add the Microsoft.Azure.Security.Monitoring extension to the virtual machines"
+                                                  default     = false
+                                                }
+
 
 #########################################################################################
 #                                                                                       #
@@ -1344,6 +1397,11 @@ variable "tags"                                 {
 
 variable "database_HANA_use_ANF_scaleout_scenario" {
                                                   description = "If true, the database tier will be configured for scaleout scenario"
+                                                  default = false
+                                                }
+
+variable "database_HANA_no_standby_role"        {
+                                                  description = "If true, the database scale out tier will not have a standby role"
                                                   default = false
                                                 }
 

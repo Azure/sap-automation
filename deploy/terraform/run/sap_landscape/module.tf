@@ -14,10 +14,9 @@ module "sap_landscape" {
                                                  }
 
   additional_users_to_add_to_keyvault_policies = var.additional_users_to_add_to_keyvault_policies
-  Agent_IP                                     = var.Agent_IP
+  Agent_IP                                     = var.add_Agent_IP ? var.Agent_IP : ""
   ANF_settings                                 = local.ANF_settings
   authentication                               = local.authentication
-  create_vaults_and_storage_dns_a_records      = var.create_vaults_and_storage_dns_a_records
   create_transport_storage                     = var.create_transport_storage
   deployer_tfstate                             = try(data.terraform_remote_state.deployer[0].outputs, [])
   diagnostics_storage_account                  = local.diagnostics_storage_account
@@ -48,6 +47,7 @@ module "sap_landscape" {
   peer_with_control_plane_vnet                 = var.peer_with_control_plane_vnet
   place_delete_lock_on_resources               = var.place_delete_lock_on_resources
   public_network_access_enabled                = var.public_network_access_enabled
+  register_endpoints_with_dns                  = var.register_endpoints_with_dns
   register_virtual_network_to_dns              = var.register_virtual_network_to_dns
   service_principal                            = var.use_spn ? local.service_principal : local.account
   soft_delete_retention_days                   = var.soft_delete_retention_days

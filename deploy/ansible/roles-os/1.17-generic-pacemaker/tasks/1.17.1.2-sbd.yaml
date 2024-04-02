@@ -234,14 +234,14 @@
 
     - name:                                  "set fact sbd_device as list of entries in sbdMap"
       ansible.builtin.set_fact:
-        sbd_device:                          "{{ sbdMap | map(attribute='diskById') | join(';') | list }}"
-      when:                                  sbdDumpCommand_results.rc == 1
+        sbd_device:                          "{{ sbdMap | map(attribute='diskById') | join(';') }}"
+
 
     - name:                                  "Show sbd_device..."
       ansible.builtin.debug:
         var:                                 sbd_device
         verbosity:                           2
-      when:                                  sbdDumpCommand_results.rc == 1
+
 
     # /*------------------------------------
     # |
@@ -276,6 +276,10 @@
 # - name:                                   "systemctl enable sbd"
 #   ansible.builtin.shell: |
 #                                           systemctl enable sbd
+- name:                                    "Ensure systemctl daemon is reloaded"
+  ansible.builtin.systemd:
+    daemon_reload:                         true
+
 - name:                                    "systemctl enable sbd"
   ansible.builtin.systemd:
     name:                                  sbd

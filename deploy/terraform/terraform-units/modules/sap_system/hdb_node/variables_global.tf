@@ -10,8 +10,6 @@ variable "custom_disk_sizes_filename"                   {
                                                           type        = string
                                                         }
 variable "database"                                     {}
-variable "database_cluster_disk_size"                   { description = "The size of the shared disk for the Database cluster" }
-variable "database_cluster_disk_lun"                    { description = "The LUN of the shared disk for the Database cluster" }
 
 variable "database_dual_nics"                           {
                                                           description = "Defines if the HANA DB uses dual network interfaces"
@@ -95,6 +93,11 @@ variable "management_dns_resourcegroup_name"           {
 
 variable "register_virtual_network_to_dns"             {
                                                          description = "Boolean value indicating if the vnet should be registered to the dns zone"
+                                                         type        = bool
+                                                       }
+
+variable "register_endpoints_with_dns"                 {
+                                                         description = "Boolean value indicating if endpoints should be registered to the dns zone"
                                                          type        = bool
                                                        }
 

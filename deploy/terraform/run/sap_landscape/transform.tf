@@ -76,6 +76,25 @@ locals {
                                            length(try(var.infrastructure.vnets.sap.subnet_web.nsg.arm_id, ""))
                                          ) > 0
 
+  subnet_storage_defined                 = (
+                                           length(var.storage_subnet_address_prefix) +
+                                           length(try(var.infrastructure.vnets.sap.subnet_storage.prefix, "")) +
+                                           length(var.storage_subnet_arm_id) +
+                                           length(try(var.infrastructure.vnets.sap.subnet_storage.arm_id, ""))
+                                         ) > 0
+
+  subnet_storage_arm_id_defined          = (
+                                           length(var.storage_subnet_arm_id) +
+                                           length(try(var.infrastructure.vnets.sap.subnet_storage.arm_id, ""))
+                                         ) > 0
+
+  subnet_storage_nsg_defined             = (
+                                           length(var.storage_subnet_nsg_name) +
+                                           length(try(var.infrastructure.vnets.sap.subnet_storage.nsg.name, "")) +
+                                           length(var.web_subnet_nsg_arm_id) +
+                                           length(try(var.infrastructure.vnets.sap.subnet_storage.nsg.arm_id, ""))
+                                         ) > 0
+
   subnet_iscsi_defined                 = (
                                            length(var.iscsi_subnet_address_prefix) +
                                            length(try(var.infrastructure.vnets.sap.subnet_iscsi.prefix, "")) +
@@ -149,10 +168,13 @@ locals {
                                         }
 
   temp_infrastructure                  = {
-                                           environment = coalesce(var.environment, try(var.infrastructure.environment, ""))
-                                           region      = lower(coalesce(var.location, try(var.infrastructure.region, "")))
-                                           codename    = try(var.infrastructure.codename, var.codename)
-                                           tags        = try(merge(var.resourcegroup_tags, try(var.infrastructure.tags, {})), {})
+                                           environment                  = coalesce(var.environment, try(var.infrastructure.environment, ""))
+                                           region                       = lower(coalesce(var.location, try(var.infrastructure.region, "")))
+                                           codename                     = try(var.infrastructure.codename, var.codename)
+                                           tags                         = try(merge(var.resourcegroup_tags, try(var.infrastructure.tags, {})), {})
+                                           deploy_monitoring_extension  = var.deploy_monitoring_extension
+                                           deploy_defender_extension    = var.deploy_defender_extension
+                                           user_assigned_identity_id    = var.user_assigned_identity_id
                                          }
 
   authentication                       = {
@@ -328,6 +350,34 @@ locals {
                                            )
                                          )
 
+  subnet_storage                       = merge(
+                                           (
+                                             {
+                                               "name" = try(var.infrastructure.vnets.sap.subnet_storage.name, var.storage_subnet_name)
+                                             }
+                                             ), (
+                                             local.subnet_storage_arm_id_defined ? (
+                                               {
+                                                 "arm_id" = try(var.infrastructure.vnets.sap.subnet_storage.arm_id, var.storage_subnet_arm_id)
+                                               }
+                                               ) : (
+                                               null
+                                             )), (
+                                             {
+                                               "prefix" = try(var.infrastructure.vnets.sap.subnet_storage.prefix, var.storage_subnet_address_prefix)
+                                             }
+                                             ), (
+                                             local.subnet_storage_nsg_defined ? (
+                                               {
+                                                 "nsg" = {
+                                                   "name"   = try(var.infrastructure.vnets.sap.subnet_storage.nsg.name, var.storage_subnet_nsg_name)
+                                                   "arm_id" = try(var.infrastructure.vnets.sap.subnet_storage.nsg.arm_id, var.storage_subnet_nsg_arm_id)
+                                                 }
+                                               }
+                                             ) : null
+                                           )
+                                         )
+
   subnet_anf                           = merge(
                                           (
                                             {
@@ -443,6 +493,13 @@ locals {
                                          local.subnet_web_defined ? (
                                            {
                                              "subnet_web" = local.subnet_web
+                                           }
+                                           ) : (
+                                           null
+                                         )), (
+                                         local.subnet_storage_defined ? (
+                                           {
+                                             "subnet_storage" = local.subnet_storage
                                            }
                                            ) : (
                                            null

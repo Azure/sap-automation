@@ -30,8 +30,17 @@ $$environment$$
 # The location value is a mandatory field, it is used to control where the resources are deployed
 $$location$$
 
+# Description of the Workload zone.
+$$Description$$
+
 #If you want to provide a custom naming json use the following parameter.
 $$name_override_file$$
+
+# If defined, will add the Microsoft.Azure.Monitor.AzureMonitorLinuxAgent extension to the virtual machines
+$$deploy_monitoring_extension$$
+
+# If defined, will add the Microsoft.Azure.Security.Monitoring extension to the virtual machines
+$$deploy_defender_extension$$
 
 
 #########################################################################################
@@ -258,6 +267,30 @@ $$ams_subnet_nsg_arm_id$$
 $$ams_subnet_nsg_name$$
 
 
+###########################################################################
+#                                                                         #
+#                               Storage Subnet                            #
+#                                                                         #
+###########################################################################
+
+/* storage subnet information */
+# If defined these parameters control the subnet name and the subnet prefix
+# storage_subnet_name is an optional parameter and should only be used if the default naming is not acceptable
+$$storage_subnet_name$$
+
+# storage_subnet_arm_id is an optional parameter that if provided specifies Azure resource identifier for the existing subnet
+$$storage_subnet_arm_id$$
+
+# storage_subnet_address_prefix is a mandatory parameter if the subnets are not defined in the workload or if existing subnets are not used
+$$storage_subnet_address_prefix$$
+
+# storage_subnet_nsg_arm_id is an optional parameter that if provided specifies Azure resource identifier for the existing nsg
+$$storage_subnet_nsg_arm_id$$
+
+# storage_subnet_nsg_name is an optional parameter and should only be used if the default naming is not acceptable for the network security group name
+$$storage_subnet_nsg_name$$
+
+
 #########################################################################################
 #                                                                                       #
 #  DNS Settings                                                                         #
@@ -276,6 +309,10 @@ $$use_custom_dns_a_registration$$
 # Defines if the Virtual network for the Virtual machines is registered with DNS
 # This also controls the creation of DNS entries for the load balancers
 $$register_virtual_network_to_dns$$
+
+# register_endpoints_with_dns defines if the endpoints should be registered with the DNS
+$$register_endpoints_with_dns$$
+
 
 #########################################################################################
 #                                                                                       #

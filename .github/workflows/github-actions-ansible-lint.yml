@@ -9,7 +9,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.x'
 
@@ -26,6 +26,7 @@ jobs:
           ansible-galaxy collection install ansible.netcommon:5.1.2 --force
           ansible-galaxy collection install community.windows --force
           ansible-galaxy collection install community.general --force
+          ansible-galaxy collection install microsoft.ad --force
 
       - name: Run ansible-lint
         run: |

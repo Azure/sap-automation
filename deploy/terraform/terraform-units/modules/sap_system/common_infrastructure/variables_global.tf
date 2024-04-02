@@ -11,13 +11,13 @@ variable "application_tier"                      {
                                                                   var.application_tier.scs_high_availability ? (
                                                                     var.application_tier.scs_cluster_type != "ASD" ? (
                                                                       true) : (
-                                                                      length(try(var.application_tier.scs_zones, [])) <= 1
+                                                                      length(try(var.application_tier.scs_zones, [])) <= (var.application_tier.scs_cluster_disk_type == "Premium_ZRS" ? 2 : 1)
                                                                     )) : (
                                                                     true
                                                                   )
                                                                 )
 
-                                                              error_message = "Cluster type 'ASD' does not support cross zonal deployments."
+                                                              error_message = format("Cluster type 'ASD' with disk type %s does not support deployments across %d zones.",  var.application_tier.scs_cluster_disk_type, length(try(var.application_tier.scs_zones, [])))
                                                   }
                                                  }
 
@@ -211,12 +211,6 @@ variable "use_private_endpoint"                  {
                                                     type        = bool
                                                  }
 
-variable "use_service_endpoint"                  {
-                                                    description = "Boolean value indicating if service endpoints should be used for the deployment"
-                                                    default     = false
-                                                    type        = bool
-                                                 }
-
 #########################################################################################
 #                                                                                       #
 #  DNS settings                                                                         #
@@ -241,6 +235,12 @@ variable "management_dns_resourcegroup_name"     {
                                                     default     = null
                                                     type        = string
                                                  }
+
+variable "register_endpoints_with_dns"           {
+                                                   description = "Boolean value indicating if endpoints should be registered to the dns zone"
+                                                   type        = bool
+                                                 }
+
 variable "dns_zone_names"                        {
                                                   description = "Private DNS zone names"
                                                   type        = map(string)
