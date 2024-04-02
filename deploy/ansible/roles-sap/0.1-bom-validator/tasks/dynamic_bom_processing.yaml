@@ -81,7 +81,7 @@
                                         {% endfor %}
         verbosity:                          1
       when:
-                                       - bom_media_entry is defined
+                                       - bom_media_entry.name is defined
 
 # Step: 03-01 - END
 # -------------------------------------+---------------------------------------8
@@ -99,7 +99,7 @@
                                                 | join
                                                 | parse_xml(role_path + '/templates/sap_search.tmpl')
                                             }}"
-        verbosity:                          1
+        verbosity:                          0
 
     - name:                                 "Dynamic processing - Show sap_platform_map_lookup.number"
       ansible.builtin.set_fact:
