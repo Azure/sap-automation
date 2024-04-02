@@ -440,9 +440,20 @@
 
       # Step: 05-04-01 - END
       # -------------------------------+---------------------------------------------8
-
+maintenance_planner_tools
       # -------------------------------+---------------------------------------------8
       # Step: 05-04-02
+      # Description:
+      #
+        - name:                        "BOM: {{ bom_name }} Remove File {{ bom_media_entry.archive }}"
+          ansible.builtin.copy:
+            src:                       "{{ download_directory }}/files/{{ bom_media_entry.archive }}"
+            dest:                      "{{tools_directory}}/{{ bom_media_entry.archive }}"
+            owner:                         absent
+      # Step: 05-04-02 - END
+      # -------------------------------+---------------------------------------------8
+      # -------------------------------+---------------------------------------------8
+      # Step: 05-04-03
       # Description:
       #
         - name:                            "BOM: {{ bom_name }} Remove File {{ bom_media_entry.archive }}"
@@ -450,7 +461,7 @@
           ansible.builtin.file:
             dest:                          "{{ download_directory }}/files/{{ bom_media_entry.archive }}"
             state:                         absent
-      # Step: 05-04-02 - END
+      # Step: 05-04-03 - END
       # -------------------------------+---------------------------------------------8
 
       when:
