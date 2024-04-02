@@ -39,6 +39,7 @@
     - check_storage_account | bool
     - sa_enabled
     - allowSharedKeyAccess
+    - not (bom.maintenance_planner_tools | default(false))
   block:
 
   # -----------------------------------+-----------------------------------------8
@@ -87,6 +88,7 @@
     - check_storage_account | bool
     - sa_enabled
     - not allowSharedKeyAccess
+    - not (bom.maintenance_planner_tools | default(false))
   block:
 
   # -----------------------------------+-----------------------------------------8
@@ -448,7 +450,7 @@
         - name:                        "BOM: {{ bom_name }} Remove File {{ bom_media_entry.archive }}"
           ansible.builtin.copy:
             src:                       "{{ download_directory }}/files/{{ bom_media_entry.archive }}"
-            dest:                      "{{tools_directory}}/{{ bom_media_entry.archive }}"
+            dest:                      "{{ tools_directory }}/{{ bom_media_entry.archive }}"
             owner:                     "{{ orchestration_ansible_user }}"
       # Step: 05-04-02 - END
       # -------------------------------+---------------------------------------------8
