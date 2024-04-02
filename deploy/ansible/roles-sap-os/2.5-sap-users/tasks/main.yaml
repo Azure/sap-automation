@@ -138,3 +138,4 @@
     # - { tier: 'WEB',         user: 'webadm',                   uid: '32002',            group: 'sapsys', home: '/home/webadm',                 comment: 'SAP WebDisp Admin' }
   when:
     - node_tier == "oracle-asm" or node_tier == "observer"
+    - platform == "ORACLE-ASM"
