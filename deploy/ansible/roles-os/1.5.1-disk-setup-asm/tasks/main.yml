@@ -203,6 +203,7 @@
           - "{{ target_media_location }}/downloads/compat-libcap1-1.10-7.el7.x86_64.rpm"
         state:                         present
         disable_gpg_check:             true
+      when:                            false
 
     # STEP2 Configure and init ORACLEASM
     # The loop has to be run per host as the sap-parameters file has all the disks.
