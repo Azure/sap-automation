@@ -46,6 +46,7 @@
     #     get_status_maintenance_mode.stdout is search('maintenance-mode: false')
     #     ansible_hostname == primary_instance_name
 
+    # Should run on Primary and secondary nodes only.
     - name:                            Stop HANA Services on both sites
       become_user:                     "{{ db_sid | lower }}adm"
       become:                          true
