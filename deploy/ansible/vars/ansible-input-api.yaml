@@ -38,14 +38,14 @@ hana_use_master_password:              y
 hana_password_copy:                    ""
 hana_backup_path:                      /hana/backup
 hana_data_basepath:                    "{% if db_scale_out %}
-                                          /hana/data/{{ db_sid | upper }} | trim
+                                          /hana/data/{{ db_sid | upper }}
                                         {% else %}
-                                          /hana/data | trim
+                                          /hana/data
                                         {% endif %}"
 hana_log_basepath:                     "{% if db_scale_out %}
-                                          /hana/log/{{ db_sid | upper }} | trim
+                                          /hana/log/{{ db_sid | upper }}
                                         {% else %}
-                                          /hana/log | trim
+                                          /hana/log
                                         {% endif %}"
 sap_sid:                               ""                                      # REQUIRED - SAP Install
 download_basket_dir:                   "{{ target_media_location }}/download_basket"
