@@ -1,0 +1,102 @@
+####################################################################################################################################################################################
+#                                                                                                                                                                                  #
+# Installation service 'SAP NetWeaver 7.5 > MS SQL Server > Installation > Application Server ABAP > Distributed System > Primary Application Server Instance', product id 'NW_ABAP_CI:NW750.MSS.ABAP' #
+#                                                                                                                                                                                  #
+####################################################################################################################################################################################
+
+# Location of download_basket\CD_EXPORT CD
+SAPINST.CD.PACKAGE.CD1                                                = {{ download_directory_windows }}\CD_EXPORT\DATA_UNITS\EXP1
+SAPINST.CD.PACKAGE.CD2                                                = {{ download_directory_windows }}\CD_EXPORT\DATA_UNITS\EXP2
+SAPINST.CD.PACKAGE.CD3                                                = {{ download_directory_windows }}\CD_EXPORT\DATA_UNITS\EXP3
+
+# Master password
+NW_GetMasterPassword.masterPwd                                        = {{ main_password }}
+
+# Windows only: The drive to use
+NW_GetSidNoProfiles.sapdrive                                          = {{ sap_drive }}
+# Unix only: The SAP mount directory path. Default value is '/sapmnt'.
+# NW_GetSidNoProfiles.sapmnt = /sapmnt
+
+NW_getUnicode.isUnicode                                               = true
+
+# The SAP system ID <SAPSID> of the system to be installed
+NW_GetSidNoProfiles.sid                                               = {{ sap_sid | upper }}
+
+# Provide  'profile' directory of SAP Netweaver-based system.
+NW_readProfileDir.profileDir                                          = {{ sap_profile_dir }}
+
+# The instance number of the (A)SCS instance.  Leave this value empty if you want to use the default instance number or if you want to specify two different numbers for ASCS and SCS instance.
+NW_SCS_Instance.instanceNumber                                        = {{ scs_instance_number }}
+
+# Dual stack only: The SCS instance number. Leave empty for default.
+# NW_SCS_Instance.scsInstanceNumber =
+
+# The (A)SCS message server port. Leave empty for default.
+# NW_SCS_Instance.scsMSPort =
+
+# You can specify a virtual host name for the ASCS instance. Leave empty for default.
+NW_SCS_Instance.scsVirtualHostname                                    = {{ sap_scs_hostname }}
+
+# Standard system with AS ABAP only: Virtual host name for the ASCS instance. Leave empty for default.
+NW_CI_Instance.ascsVirtualHostname                                    = {{ sap_scs_hostname }}
+
+# Instance number of the primary application server instance. Leave empty for default.
+NW_CI_Instance.ascsVirtualHostname                                    = {{ sap_scs_hostname }}
+NW_CI_Instance.ciInstanceNumber                                       = {{ sap_ciInstanceNumber }}
+# The ABAP message server port. Leave empty for default.
+NW_CI_Instance.ciMSPort                                               = 36{{ scs_instance_number }}
+NW_CI_Instance.ciVirtualHostname                                      = {{ sap_ciVirtualHostname }}
+NW_CI_Instance.scsVirtualHostname                                     = {{ sap_scs_hostname }}
+
+# Distributed installation or system copy with any database and SAP Basis release 740 or higher: Execute ABAP program 'RUTPOADAPT' for depooling. Set it to 'true' if declustering / depooling is selected for the distributed database instance installation option.
+NW_CI_Instance_ABAP_Reports.executeReportsForDepooling                = true
+
+# The FQDN of the system
+NW_getFQDN.FQDN                                                       = {{ sap_fqdn }}
+
+# SAP INTERNAL USE ONLY
+# NW_getFQDN.resolve = true
+
+# Specify whether you want to set FQDN for the system.
+# NW_getFQDN.setFQDN = true
+
+# The ASP device name where the SAP system will be in installed. The property is IBM i only.
+# Values from 1 to 256 can be specified. The default is 1, the System ASP.
+# OS4.DestinationASP =
+
+# The folder containing all archives that have been downloaded from http://support.sap.com/swdc and are supposed to be used in this procedure
+archives.downloadBasket                                               = {{ download_directory_windows }}\download_basket
+
+# Password of the sidadm user.
+db2.sidAdmPassword                                                    = {{ domain_user_password }}
+
+# Windows only: The domain of the SAP Host Agent user
+# hostAgent.domain =
+
+# Password for the 'sapadm' user of the SAP Host Agent
+hostAgent.sapAdmPassword                                              = {{ main_password }}
+
+
+# Windows only: The password of the 'SAPServiceSID' user
+nwUsers.sapServiceSIDPassword                                         = {{ sid_service_password }}
+# The password of the '<sapsid>adm' user
+nwUsers.sidadmPassword                                                = {{ domain_user_password }}
+
+# The load type chosen by the user. Valid values are: 'SAP', 'STD', 'OBR', 'HCP', 'FLASHCOPY', 'MDA', 'HBR', 'SBR'
+NW_getLoadType.loadType                                               = SAP
+
+
+# Are the passwords for the DDIC users different from the default value? Possible values are 'true' or 'false'. Leave empty for default.
+NW_DDIC_Password.needDDICPasswords                                    = false
+
+
+# Specify whether Software Provisioning Manager is to create ('CRE') a new database or re-use ('USE') an existing database.
+MSS.Database.Action = USE
+
+
+# Database host
+NW_MSS_DBINFO.dbhost                                                  = {{ sap_db_hostname }}
+NW_MSS_DBINFO.dbsid                                                   = {{ db_sid | upper }}
+
+...
+

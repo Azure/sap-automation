@@ -40,7 +40,7 @@
 - name:                                "DBLoad: - Set dbload facts"
   ansible.builtin.set_fact:
     sap_inifile:                       "{{ bom_base_name }}-dbload-{{ sid_to_be_deployed.sid | lower }}-{{ ansible_hostname }}.params"
-    sap_inifile_template:              "{{ bom_base_name }}{{ bom_suffix }}-dbload-inifile-param.j2"
+    sap_inifile_template:              "dbload-inifile-param.j2"
     scs_server:                        "{{ hostvars[scs_server_temp | first]['virtual_host'] }}"
     db_virtual_hostname:               "{{ hostvars[db_server_temp | first]['virtual_host'] }}"
     scs_sapmnt_server:                 "{% if scs_high_availability %}{{ sid_to_be_deployed.sid | lower }}scs{{ scs_instance_number }}cl1{% else %}{{ hostvars[scs_server_temp | first]['virtual_host'] }}{% endif %}"
@@ -86,7 +86,7 @@
     state:                             directory
 
 #   2x) Install vcredist package then reboot.
-- name:                                "Install Visual C++ 2013 Redistributable package"
+- name:                                "DBLoad: Install Visual C++ 2013 Redistributable package"
   ansible.windows.win_package:
     path:                              '{{ download_directory_windows }}\SWPM\NTPATCH\VCREDIST2013\vcredist_x64.exe'
     product_id:                        '{CF2BEA3C-26EA-32F8-AA9B-331F7E34BA97}'
@@ -99,7 +99,7 @@
     ansible_become_password:           "{{ domain_user_password }}"
   register:                            vcredist2013_output
 
-- name:                                "Install Visual C++ 2017 Redistributable package"
+- name:                                "DBLoad: Install Visual C++ 2017 Redistributable package"
   ansible.windows.win_package:
     path:                              '{{ download_directory_windows }}\SWPM\NTPATCH\VCREDIST2017\VC_redist.x64.exe'
     product_id:                        '{CF2BEA3C-26EA-32F8-AA9B-331F7E34BA97}'
@@ -112,13 +112,13 @@
     ansible_become_password:           "{{ domain_user_password }}"
   register:                            vcredist2017_output
 
-- name:                                "Reboot after package installation"
+- name:                                "DBLoad: Reboot after package installation"
   ansible.windows.win_reboot:
     reboot_timeout:                    600
     post_reboot_delay:                 120
   when: vcredist2013_output.reboot_required or vcredist2017_output.reboot_required
 
-- name:                                "DBLoad: - Include 3.3.1-bom-utility role"
+- name:                                "DBLoad: Include 3.3.1-bom-utility role"
   ansible.builtin.include_role:
     name:                              roles-sap/windows/3.3.1-bom-utility
     tasks_from:                        bom-register
@@ -128,28 +128,26 @@
     task_prefix:                       "DBLoad: "
     sa_enabled:                        true
 
-- name:                                "SQL Disks"
+- name:                                "DBLoad: SQL Disks"
   ansible.builtin.set_fact:
     vm_data_disks: '{{ sql_disk_list[0] | join(",") }}'
     vm_log_disks: '{{ sql_disk_list[1] | join(",") }}'
   vars:
     sql_disk_list: "{{ lookup('template', 'sql_disks.j2') }}"
 
-- name:                                "Print SQL Disks"
+- name:                                "DBLoad: Print SQL Disks"
   ansible.builtin.debug:
     msg:
       - "SQL DATA Disks:               {{ vm_data_disks }}"
       - "SQL LOG Disks:                {{ vm_log_disks }}"
 
 
-- name:                                "DBLoad: - Include roles-sap/3.3.1-bom-utility role"
-  ansible.builtin.include_role:
-    name:                              roles-sap/windows/3.3.1-bom-utility
-    tasks_from:                        bom-template
+- name:                                "DBLoad: Template processing: Create ini file {{ sap_inifile }} from {{ sap_inifile_template }}"
+  ansible.windows.win_template:
+    src:                               "{{ sap_inifile_template }}"
+    dest:                              "{{ dir_params }}\{{ sap_inifile }}"
+    force:                             true
   vars:
-    task_prefix:                       "DBLoad: "
-    always_upload_jinja_templates:     false
-    bom_name:                          "{{ bom_base_name }}"
     # sap_cd_package_hdbclient:          '{{ download_directory_windows }}\CD_HDBCLIENT\SAP_HANA_CLIENT'
     # sap_cd_package_cd1:                '{{ download_directory_windows }}\CD_EXPORT'
     sap_cd_package_cd2:
