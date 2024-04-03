@@ -17,6 +17,8 @@
   when:
     - db_high_availability is defined
     - database_high_availability is not defined
+
+# We set this to prevent code overflow. Since pacemaker code for both AFS and ANF are the same barring NFS mount options, we parameterize this parameter.
 - name:                            "NFS Compatibility - set mount options based on NFS source"
   ansible.builtin.set_fact:
     nfs_mount_options:             "{% if NFS_provider == 'ANF' %}bind,defaults,rw,hard,rsize=262144,wsize=262144,proto=tcp,noatime,_netdev,nfsvers=4.1,lock,sec=sys{% else %}bind,defaults,rw,hard,proto=tcp,noatime,nfsvers=4.1,lock{% endif %}"
@@ -108,16 +110,6 @@
             loop_var:                  item
             index_var:                 my_idx
 
-        # TODO: Add error checking for /hana/shared mounting on all the HANA Nodes outside this loop
-        # - name:                        "Check if HANA Shared mounts did not error on HANA nodes"
-        #   ansible.builtin.set_fact:
-        #     chk_nfs_mounts_node1:      "{{ nfs_mounts_node1.results | selectattr('rc', 'ne', 0) | rejectattr('stderr', 'search', 'already exists') | default([]) | list }}"
-
-        # - name:                        "Fail when HANA Shared mounts errored on {{ primary_instance_name }}"
-        #   ansible.builtin.fail:
-        #     msg:                       "Failed to create ANF hana mounts on {{ primary_instance_name }}"
-        #   when:                        chk_nfs_mounts_node1 | length > 0
-
         - name:                        "Clone the /hana/shared file system resource for both sites"
           ansible.builtin.shell: >
                                        pcs resource clone fs_hana_shared_{{ item.site_code | lower}} meta clone-node-max=1 interleave=true
@@ -130,7 +122,6 @@
           loop_control:
             loop_var:                  item
             index_var:                 my_idx
-
 
         - name:                        "Configure location constraints and attribute resources"
           block:
