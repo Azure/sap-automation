@@ -1,13 +1,8 @@
 #   2482103 - Installation with SWPM in unattended mode using parameter input file fails
 #   2393060 - SAPinst Framework 749 Central Note
 
-{% if SDAF_Version is version( '3.10.1.0' , "<=" ) %}
 archives.downloadBasket                                               = {{ target_media_location }}/download_basket
-{% else %}
-archives.downloadBasket                                               = {{ target_media_location }}/downloads
-{% endif %}
 
-SAPINST.CD.PACKAGE.ORACLI                                             = {{ target_media_location }}/oraclient
 SAPINST.CD.PACKAGE.HDBCLIENT                                          = {{ target_media_location }}/CD_HDBCLIENT/SAP_HANA_CLIENT
 
 nwUsers.sapadmUID                                                     = {{ sapadm_uid }}
@@ -72,6 +67,8 @@ SAPINST.CD.PACKAGE.CD1                                                = {{ targe
 
 {% if platform | upper == 'ORACLE-ASM' %}
 # Oracle parameters
+SAPINST.CD.PACKAGE.ORACLI                                             = {{ target_media_location }}/oraclient
+
 storageBasedCopy.ora.serverVersion                                    = {{ ora_release}}
 storageBasedCopy.ora.clientVersion                                    = {{ ora_release}}
 ora.SysPassword                                                       = {{ main_password }}
@@ -98,6 +95,8 @@ SAPINST.CD.PACKAGE.CD3                                                = {{ targe
 
 {% if platform | upper == 'ORACLE' %}
 # Oracle parameters
+SAPINST.CD.PACKAGE.ORACLI                                             = {{ target_media_location }}/oraclient
+
 storageBasedCopy.ora.serverVersion                                    = {{ ora_release}}
 storageBasedCopy.ora.clientVersion                                    = {{ ora_release}}
 ora.SysPassword                                                       = {{ main_password }}
