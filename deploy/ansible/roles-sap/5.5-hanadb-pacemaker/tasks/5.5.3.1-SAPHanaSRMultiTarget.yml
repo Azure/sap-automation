@@ -61,6 +61,15 @@
         - ansible_facts.packages['SAPHanaSR-ScaleOut-doc'] is not defined
 
     # for RHEL, ensure resource-agents-sap-hana-scaleout is installed
+
+    - name:                            "Ensure resource-agents-sap-hana  is absent (REDHAT)"
+      ansible.builtin.package:
+        name:                          resource-agents-sap-hana
+        state:                         present
+      when:
+        - ansible_os_family | upper == "REDHAT"
+        - ansible_facts.packages['resource-agents-sap-hana'] is defined
+
     - name:                            "Ensure resource-agents-sap-hana-scaleout  is installed (REDHAT)"
       ansible.builtin.package:
         name:                          resource-agents-sap-hana-scaleout
