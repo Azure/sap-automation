@@ -35,11 +35,11 @@
     - hana_shared_mountpoint | length > 1
     - platform | upper == 'HANA'
   block:
-    - name:                            "Get the cluster maintenance mode status"
-      ansible.builtin.shell:           pcs property show maintenance-mode
-      register:                        get_status_maintenance_mode
-      changed_when:                    false
-      ignore_errors:                   true
+    # - name:                            "Get the cluster maintenance mode status"
+    #   ansible.builtin.shell:           pcs property show maintenance-mode
+    #   register:                        get_status_maintenance_mode
+    #   changed_when:                    false
+    #   ignore_errors:                   true
 
     - name:                            "Disable the cluster maintenance mode if not already in maintenance mode"
       ansible.builtin.shell:           pcs property set maintenance-mode=true
