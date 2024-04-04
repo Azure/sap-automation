@@ -77,11 +77,11 @@
 
     - name:                           "Un-mount /hana/shared on all participating HANA nodes"
       block:
-        - name:                        Stop processes using /hana/shared and /usr/sap/{{ db_sid | upper }} path
-          become: true
-          ansible.builtin.shell: >
-                                       ps -ef | grep "/hana/shared" | grep -v grep | awk '{print $2}' | xargs kill -9;
-                                       ps -ef | grep "/usr/sap/{{ db_sid | upper }}" | grep -v grep | awk '{print $2}' | xargs kill -9
+        # - name:                        Stop processes using /hana/shared and /usr/sap/{{ db_sid | upper }} path
+        #   become: true
+        #   ansible.builtin.shell: >
+        #                                ps -ef | grep "/hana/shared" | grep -v grep | awk '{print $2}' | xargs kill -9;
+        #                                ps -ef | grep "/usr/sap/{{ db_sid | upper }}" | grep -v grep | awk '{print $2}' | xargs kill -9
 
         - name:                        Unmount /hana/shared
           ansible.builtin.mount:
