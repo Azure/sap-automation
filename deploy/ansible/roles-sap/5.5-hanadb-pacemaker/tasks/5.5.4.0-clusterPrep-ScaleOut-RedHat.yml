@@ -100,7 +100,7 @@
                                        options="{{ nfs_mount_options }}" \
                                        op monitor interval=20s on-fail=fence timeout=120s OCF_CHECK_LEVEL=20 \
                                        op start internal=0 timeout=120 op stop interval=0 timeout=120
-          register:                    nfs_mounts_site{{ my_idx s}}
+          register:                    nfs_mounts_site{{ my_idx }}
           failed_when:                 false
           ignore_errors:               true
           loop:
