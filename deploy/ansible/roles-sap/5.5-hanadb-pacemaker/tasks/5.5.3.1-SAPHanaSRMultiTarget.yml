@@ -65,7 +65,7 @@
     - name:                            "Ensure resource-agents-sap-hana  is absent (REDHAT)"
       ansible.builtin.package:
         name:                          resource-agents-sap-hana
-        state:                         present
+        state:                         absent
       when:
         - ansible_os_family | upper == "REDHAT"
         - ansible_facts.packages['resource-agents-sap-hana'] is defined
