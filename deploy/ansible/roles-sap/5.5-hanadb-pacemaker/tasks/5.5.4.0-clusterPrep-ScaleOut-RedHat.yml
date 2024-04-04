@@ -75,18 +75,18 @@
         - "{{ hana_shared_mountpoint[0] }}"
         - "{{ hana_shared_mountpoint[1] }}"
 
-    - name:                           "Un-mount /hana/shared on all participating HANA nodes"
-      block:
-        # - name:                        Stop processes using /hana/shared and /usr/sap/{{ db_sid | upper }} path
-        #   become: true
-        #   ansible.builtin.shell: >
-        #                                ps -ef | grep "/hana/shared" | grep -v grep | awk '{print $2}' | xargs kill -9;
-        #                                ps -ef | grep "/usr/sap/{{ db_sid | upper }}" | grep -v grep | awk '{print $2}' | xargs kill -9
+    # - name:                           "Un-mount /hana/shared on all participating HANA nodes"
+    #   block:
+    #     # - name:                        Stop processes using /hana/shared and /usr/sap/{{ db_sid | upper }} path
+    #     #   become: true
+    #     #   ansible.builtin.shell: >
+    #     #                                ps -ef | grep "/hana/shared" | grep -v grep | awk '{print $2}' | xargs kill -9;
+    #     #                                ps -ef | grep "/usr/sap/{{ db_sid | upper }}" | grep -v grep | awk '{print $2}' | xargs kill -9
 
-        - name:                        Unmount /hana/shared
-          ansible.builtin.mount:
-            path:                      /hana/shared
-            state:                     unmounted
+    #     - name:                        Unmount /hana/shared
+    #       ansible.builtin.mount:
+    #         path:                      /hana/shared
+    #         state:                     unmounted
 
 
     # These tasks will run on primary node/first node in the DB list as these are pacemaker configurations
