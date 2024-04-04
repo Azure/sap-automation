@@ -163,7 +163,7 @@
     - name:                            "Template processing: Create ini file {{ sap_inifile }} from {{ sap_inifile_template }}"
       ansible.windows.win_template:
         src:                           "{{ sap_inifile_template }}"
-        dest:                          "{{ dir_params }}\{{ sap_inifile }}"
+        dest:                          '{{ dir_params }}\{{ sap_inifile }}'
         force:                         true
       vars:
         sap_scs_hostname:              "{{ virtual_host }}"

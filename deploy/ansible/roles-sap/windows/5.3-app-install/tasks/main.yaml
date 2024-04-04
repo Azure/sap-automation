@@ -98,7 +98,7 @@
 - name:                                "APP Install: Template processing: Create ini file {{ sap_inifile }} from {{ sap_inifile_template }}"
   ansible.windows.win_template:
     src:                               "{{ sap_inifile_template }}"
-    dest:                              "{{ dir_params }}\{{ sap_inifile }}"
+    dest:                              '{{ dir_params }}\{{ sap_inifile }}'
     force:                             true
   vars:
     sap_cd_package_hdbclient:          '{{ download_directory_windows }}\CD_HDBCLIENT\SAP_HANA_CLIENT'
