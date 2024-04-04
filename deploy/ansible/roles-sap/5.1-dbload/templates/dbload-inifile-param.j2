@@ -33,6 +33,8 @@ HDB_Schema_Check_Dialogs.dropSchema                                   = true
 NW_ABAP_Import_Dialog.migmonJobNum                                    = 12
 hanadb.landscape.reorg.useParameterFile                               = DONOTUSEFILE
 
+{% if platform | upper == 'HANA' %}
+
 NW_HDB_DB.abapSchemaName                                              = {{ hana_schema }}
 NW_HDB_DB.abapSchemaPassword                                          = {{ main_password }}
 NW_HDB_DBClient.clientPathStrategy                                    = SAPCPE
@@ -48,6 +50,8 @@ NW_Recovery_Install_HDB.extractLocation                               = {{ hana_
 NW_Recovery_Install_HDB.extractParallelJobs                           = 24
 NW_Recovery_Install_HDB.sidAdmName                                    = {{ db_sid | lower }}adm
 NW_Recovery_Install_HDB.sidAdmPassword                                = {{ main_password }}
+
+{% endif %}
 
 NW_checkMsgServer.abapMSPort                                          = 36{{ scs_instance_number }}
 NW_getLoadType.loadType                                               = SAP
