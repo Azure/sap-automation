@@ -41,12 +41,12 @@
     #   changed_when:                    false
     #   ignore_errors:                   true
 
-    - name:                            "Disable the cluster maintenance mode if not already in maintenance mode"
-      ansible.builtin.shell:           pcs property set maintenance-mode=true
-      when: >-
-        get_status_maintenance_mode.stdout is not search('maintenance-mode') or
-        get_status_maintenance_mode.stdout is search('maintenance-mode: false')
-        ansible_hostname == primary_instance_name
+    # - name:                            "Disable the cluster maintenance mode if not already in maintenance mode"
+    #   ansible.builtin.shell:           pcs property set maintenance-mode=true
+    #   when: >-
+    #     get_status_maintenance_mode.stdout is not search('maintenance-mode') or
+    #     get_status_maintenance_mode.stdout is search('maintenance-mode: false')
+    #     ansible_hostname == primary_instance_name
 
     # Should run on Primary and secondary nodes only.
     - name:                            Stop HANA Services on both sites
