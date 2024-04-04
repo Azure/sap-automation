@@ -127,7 +127,7 @@
     - name:                            Stop HANA System on both sites
       become_user:                     "{{ db_sid | lower }}adm"
       become:                          true
-      ansible.builtin.command:         "{{ sapcontrol_command }} -function StopSystem"
+      ansible.builtin.command:         "{{ sapcontrol_command }} -prot NI_HTTP -function StopSystem"
       failed_when:                     false
       changed_when:                    false
       register:                        hana_system_stopped
@@ -252,7 +252,7 @@
     - name:                            Start HANA System on both nodes
       become_user:                     "{{ db_sid | lower }}adm"
       become:                          true
-      ansible.builtin.command:         "{{ sapcontrol_command }} -function StartSystem"
+      ansible.builtin.command:         "{{ sapcontrol_command }} -prot NI_HTTP -function StartSystem"
       failed_when:                     false
       changed_when:                    false
       register:                        hana_system_started
