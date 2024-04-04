@@ -126,10 +126,14 @@
 - name:                                "2.10.3119751 - Show SELinux status"
   ansible.builtin.command:             sestatus
   register:                            se_status
+  when:
+    - distribution_id in ['redhat8', 'redhat9']
 
 - name:                                "2.10.3119751 - Print SELinux status"
   ansible.builtin.debug:
     msg:                               "SE Linux status for {{ ansible_host}} is {{ se_status.stdout_lines}}"
+  when:
+    - distribution_id in ['redhat8', 'redhat9']
 
 # ToDo RHEL7 and also the other SAP nodes
 # -------------------------------------+---------------------------------------8
