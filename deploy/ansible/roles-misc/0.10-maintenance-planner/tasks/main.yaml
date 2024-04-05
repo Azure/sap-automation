@@ -11,6 +11,7 @@
     stack_xml_file:                    "{{ stack_path }}/stack.xml"
     tools_base_dir:                    "/home/{{ orchestration_ansible_user }}/Azure_SAP_Automated_Deployment/SAP_tools/"
     new_bom_name:                      "{{ maintenance_plan_id }}.yaml"
+    download_directory:                "/home/{{ orchestration_ansible_user }}/download_basket/{{ maintenance_plan_id }}/"
 
 - name:                                "0.10-maintenance-planner: Execute Pre-checks Task"
   ansible.builtin.import_tasks:        pre_checks.yaml
@@ -188,9 +189,6 @@
     dest:                             "/home/{{ orchestration_ansible_user }}//{{ maintenance_plan_id }}download.ini"
     mode:                             0644
     force:                            true
-  vars:
-    download_directory:               "/home/{{ orchestration_ansible_user }}/download_basket/{{ maintenance_plan_id }}"
-# - name:                            "run sapinst to download the files"
 
 - name:                                "DBLoad: - run SAPInst"
   become:                              true
@@ -206,11 +204,9 @@
     TMPDIR:                            "/home/{{ orchestration_ansible_user }}/download_basket/tmp"
   when:                                false
 
-# - name:                            "run sapinst to download the files"
-
 - name:                                "0.10-maintenance-planner: stat downloads directory"
   ansible.builtin.find:
-    paths:                             "/home/{{ orchestration_ansible_user }}/download_basket"
+    paths:                             "{{ download_directory }}"
     file_type:                         file
     recurse:                           true
     follow:                            true
@@ -227,16 +223,16 @@
 - name:                                "0.10-maintenance-planner: Write variable contents to file"
   ansible.builtin.copy:
     content:                           "{{ templated_data }}"
-    dest:                              /home/{{ orchestration_ansible_user }}/{{ maintenance_plan_id }}.yaml"
+    dest:                              "/home/{{ orchestration_ansible_user }}/{{ maintenance_plan_id }}.yaml"
   delegate_to:                         localhost
 
-- name:                                "0.10-maintenance-planner: - Upload Files" using SAS Token"
+- name:                                "0.10-maintenance-planner: - Upload Files using SAS Token"
   ansible.builtin.command: >-
                                        az storage blob upload-batch
                                          --account-name  {{ account }}
                                          --sas-token     {{ sapbits_sas_token }}
-                                         --destination   {{ sapbits_location_base_path.rpartition('//')[2].split('/')[1] }}/{{ sapbits_bom_files }}/boms/{{ new_bom_name }}
-                                         --source        "/home/{{ orchestration_ansible_user }}/download_basket"
+                                         --destination   {{ container }}
+                                         --source        {{ download_directory }}
                                          --overwrite True
                                          --if-none-match "*"
                                          --no-progress
@@ -254,7 +250,7 @@
                                       az storage blob upload-batch
                                         --account-name  {{ account }}
                                         --auth-mode login
-                                        --destination   {{ sapbits_location_base_path.rpartition('//')[2].split('/')[1] }}/{{ sapbits_bom_files }}/boms/{{ new_bom_name }}
+                                        --destination   {{ container }}
                                         --source        "/home/{{ orchestration_ansible_user }}/download_basket"
                                         --overwrite True
                                         --if-none-match "*"
@@ -298,17 +294,17 @@
 - name:                                "0.10-maintenance-planner: - Upload File" using SAS keys"
 
   ansible.builtin.command: >-
-                                  az storage blob upload
-                                    --account-name {{ account }}
-                                    --auth-mode login
-                                    --container-name {{ sapbits_location_base_path.rpartition('//')[2].split('/')[1] }}/{{ sapbits_bom_files }}/boms/{{ maintenance_plan_id }}
-                                    --name {{ maintenance_plan_id }}.yaml
-                                    --file /home/{{ orchestration_ansible_user }}/{{ maintenance_plan_id }}.yaml"
-                                    --if-none-match "*"
-                                    --no-progress
-  delegate_to:                     localhost
-  register:                        azresult
-  ignore_errors:                   true
+                                       az storage blob upload
+                                         --account-name {{ account }}
+                                         --auth-mode login
+                                         --container-name {{ sapbits_location_base_path.rpartition('//')[2].split('/')[1] }}/{{ sapbits_bom_files }}/boms/{{ maintenance_plan_id }}
+                                         --name {{ maintenance_plan_id }}.yaml
+                                         --file /home/{{ orchestration_ansible_user }}/{{ maintenance_plan_id }}.yaml"
+                                         --if-none-match "*"
+                                         --no-progress
+  delegate_to:                         localhost
+  register:                            azresult
+  ignore_errors:                       true
   failed_when:
     - azresult.rc != 0
     - azresult.stderr is defined
