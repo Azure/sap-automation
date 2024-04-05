@@ -58,7 +58,6 @@ stages:
           environment:                 ${{ parameters.environment }}
           re_download:                 ${{ parameters.re_download }}
           region:                      ${{ parameters.region }}
-          plan_id:                     ${{ parameters.maintenance_plan_id }}
     displayName:                       Preparation
     jobs:
       - job: Prepare_download_job
