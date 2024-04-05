@@ -473,10 +473,10 @@
   tags:
                                         - always
 
-- name:                                 "0.10-maintenance-planner: Check if stack xml exists"
+- name:                                "0.10-maintenance-planner: Check if stack xml exists"
   ansible.builtin.stat:
-  path:                                 "{{ _workspace_directory }}/stack.xml"
-  register:                             stack_xml_exists
+    path:                              "{{ _workspace_directory }}/stack.xml"
+  register:                            stack_xml_exists
 
 - name:                                "0.10-maintenance-planner: Fail if stack xml does not exist"
   ansible.builtin.fail:
