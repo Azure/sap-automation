@@ -200,6 +200,7 @@
                                                 SAPINST_START_GUISERVER=false
   args:
     chdir:                             "{{ tools_base_dir ~ swpm_version_to_use }}"
+  environment:
     TMPDIR:                            "/home/{{ orchestration_ansible_user }}/download_basket/tmp"
 
 # - name:                            "run sapinst to download the files"
