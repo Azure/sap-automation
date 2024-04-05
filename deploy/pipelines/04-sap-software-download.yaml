@@ -245,7 +245,7 @@ stages:
                   fi
                 fi
 
-                command="ansible-playbook '-e "download_directory=$(Agent.TempDirectory)" -e "BOM_directory=${sample_path}" -e "bom_base_name=$(BOM_NAME)" -e "deployer_kv_name=$(KV_NAME)" -e "check_storage_account=$(check_storage_account)" -e "config_repo_path=$(CONFIG_REPO_PATH)"' $ExtraParams ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_bom_downloader.yaml"
+                command="ansible-playbook '-e "download_directory=$(Agent.TempDirectory)" -e "BOM_directory=${sample_path}" -e "bom_base_name=$(BOM_NAME)" -e "deployer_kv_name=$(KV_NAME)" -e "check_storage_account=$(check_storage_account)" -e "config_repo_path=$(CONFIG_REPO_PATH)" -e "maintenance_plan_id=$(PLAN)"' $ExtraParams ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_bom_downloader.yaml"
 
                 echo "##[section]Executing [$command]..."
                 echo "##[group]- output"
@@ -263,7 +263,6 @@ stages:
               SAP_AUTOMATION_REPO_PATH:      ${{ parameters.sap_automation_repo_path }}
               SAMPLE_REPO_PATH:              ${{ parameters.sample_repo_path }}
               CONFIG_REPO_PATH:              ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
-              PLAN:                          ${{ parameters.maintenance_plan_id }}
               ANSIBLE_COLLECTIONS_PATHS:     ~/.ansible/collections:/opt/ansible/collections
               USE_MSI:                       $(Use_MSI)
               ExtraParams:                   ${{ parameters.ExtraParams }}
