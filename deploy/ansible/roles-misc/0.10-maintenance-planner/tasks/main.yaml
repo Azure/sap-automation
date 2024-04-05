@@ -245,7 +245,7 @@
     - azresult.stderr.find("BlobAlreadyExists") == -1
   when:                                allowSharedKeyAccess
 
-- name:                                0.10-maintenance-planner: - Upload Files
+- name:                                "0.10-maintenance-planner: - Upload Files"
   ansible.builtin.command: >-
                                        az storage blob upload-batch
                                          --account-name  {{ account }}
@@ -271,7 +271,7 @@
 # Description:
 #
 
-- name:                                0.10-maintenance-planner: - Upload File using SAS keys
+- name:                                "0.10-maintenance-planner: - Upload File using SAS keys"
   ansible.builtin.command: >-
                                        az storage blob upload
                                          --account-name  {{ account }}
