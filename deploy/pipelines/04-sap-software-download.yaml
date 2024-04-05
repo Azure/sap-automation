@@ -149,8 +149,8 @@ stages:
 
               echo -e "$green--- Set S-Username and S-Password in the key_vault if not yet there ---$reset"
 
-                export SUsernamefromVault=$(az keyvault secret list --vault-name "${kv_name}" --subscription "${ARM_SUBSCRIPTION_ID}" --query "[].{Name:name} | [? contains(Name,'S-Username')] | [0]"  -o tsv)
-                if [ $SUsernamefromVault == $SUsername ]; then
+                export SUsernameSecretNamefromVault=$(az keyvault secret list --vault-name "${kv_name}" --subscription "${ARM_SUBSCRIPTION_ID}" --query "[].{Name:name} | [? contains(Name,'S-Username')] | [0]"  -o tsv)
+                if [ $SUsernameSecretNamefromVault == 'S-Username' ]; then
                   echo -e "$green--- $SUsername present in keyvault. In case of download errors check that user and password are correct ---$reset"
                   echo "##vso[task.setvariable variable=SUSERNAME;isOutput=true]$SUsernamefromVault"
                 else
@@ -159,8 +159,8 @@ stages:
                   echo "##vso[task.setvariable variable=SUSERNAME;isOutput=true]$SUsername"
                 fi
 
-                export SPasswordfromVault=$(az keyvault secret list --vault-name "${kv_name}" --subscription "${ARM_SUBSCRIPTION_ID}" --query "[].{Name:name} | [? contains(Name,'S-Password')] | [0]"  -o tsv)
-                if [ $SPassword == $SPasswordfromVault ]; then
+                export SPasswordSecretNamefromVault=$(az keyvault secret list --vault-name "${kv_name}" --subscription "${ARM_SUBSCRIPTION_ID}" --query "[].{Name:name} | [? contains(Name,'S-Password')] | [0]"  -o tsv)
+                if [ 'S-Password' == $SPasswordSecretNamefromVault ]; then
                   echo "##vso[task.setvariable variable=SPASSWORD;isOutput=true]${SPasswordfromVault}"
                   echo -e "$green--- Password present in keyvault. In case of download errors check that user and password are correct ---$reset"
                 else
