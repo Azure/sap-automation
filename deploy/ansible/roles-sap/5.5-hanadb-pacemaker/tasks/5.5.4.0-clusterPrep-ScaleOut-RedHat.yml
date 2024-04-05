@@ -158,7 +158,7 @@
               - { site_code: "S2" }
             loop_control:
               loop_var:                  item
-            when:                        is_nfs_secondary_configured and is_nfs_primary_configured
+            # when:                        is_nfs_secondary_configured and is_nfs_primary_configured
 
           - name:                        "Enable NFS resource constraint"
             ansible.builtin.shell: >
