@@ -22,7 +22,7 @@ variables:
     value:                             $[coalesce('${{ parameters.bom_override_name }}', '${{ parameters.bom_base_name }}','foo')]
 
   - name:                              plan_id
-    value:                             SDAF-${{ parameters.maintenance_plan_id }}
+    value:                             ${{ parameters.maintenance_plan_id }}
 
   - name:                              variable_group
     value:                             SDAF-${{ parameters.environment }}
