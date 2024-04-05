@@ -165,6 +165,21 @@
                                        - "product attributes:       {% for component in components %}{{ 'name:' ~ component.name ~ ' id:' ~ component.id ~ ' output_dir:' ~  component['output-dir'] ~ ' ## '}}{% endfor %}"
     verbosity:                         2
 
+
+- name:                                "0.10-maintenance-planner: Set the fact for the download directory"
+  become:                              "{{ bom_processing_become }}"
+  become_user:                         root
+  ansible.builtin.file:
+    path:
+    state:                             directory
+    mode:                              0755
+    owner:                             "{{ orchestration_ansible_user if bom_processing_become else omit }}"
+  delegate_to:                         localhost
+  loop:
+    - "/home/{{ orchestration_ansible_user }}/download_basket"
+    - "/home/{{ orchestration_ansible_user }}/download_basket/{{ maintenance_plan_id }}"
+    - "/home/{{ orchestration_ansible_user }}/download_basket/tmp"
+
 - name:                               "0.10-maintenance-planner: Create ini file"
   ansible.builtin.template:
     src:                              "download.j2"
@@ -185,6 +200,7 @@
                                                 SAPINST_START_GUISERVER=false
   args:
     chdir:                             "{{ tools_base_dir ~ swpm_version_to_use }}"
+    TMPDIR:                            "/home/{{ orchestration_ansible_user }}/download_basket/tmp"
 
 # - name:                            "run sapinst to download the files"
 
