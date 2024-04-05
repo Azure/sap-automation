@@ -62,6 +62,10 @@
 # -------------------------------------+
 
     - name:                             "BOM Downloader: Run the bom-validator"
+      ansible.builtin.debug:
+        - var:                          maintenance_plan_id
+
+    - name:                             "BOM Downloader: Run the bom-validator"
       ansible.builtin.include_role:
         name:                           roles-sap/0.1-bom-validator
       vars:
