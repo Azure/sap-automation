@@ -140,9 +140,10 @@ stages:
                   echo "##vso[build.updatebuildnumber]Downloading BoM defined in $(bom)"
                   echo "##vso[task.setvariable variable=BOM_NAME;isOutput=true]$(bom)"
 
-              echo -e "$green--- Maintenance Planner ID $(bom) ---$reset"
+              echo -e "$green--- Maintenance Planner ID ---$reset"
                   echo "##vso[build.updatebuildnumber]Downloading Software defined in Maintenance Plan $(plan_id)"
                   echo "##vso[task.setvariable variable=PLAN;isOutput=true]$(plan_id)"
+                  echo '$(Maintenance Planner ID) id: ' $(plan_id)
 
               echo "##vso[task.setvariable variable=CONFIG_REPO_PATH;isOutput=true]$CONFIG_REPO_PATH"
 
