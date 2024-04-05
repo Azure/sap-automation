@@ -93,35 +93,56 @@
     - name:                            "Configure HANA Shared mounts on {{ primary_instance_name }}"
       when:                            ansible_hostname == primary_instance_name
       block:
-        - name:                        "Configure filesystem resource in Pacemaker for HSR sites"
+        - name:                        "Configure filesystem resource in Pacemaker for primary site"
           ansible.builtin.shell: >
-                                       pcs resource create fs_hana_shared_{{ item.site_code | lower }} --disabled ocf:heartbeat:Filesystem \
-                                       device="{{ item.fs_mount }}" directory="{{ item.fs_dir }}" fstype="nfs" \
+                                       pcs resource create fs_hana_shared_{{ site_code | lower }} --disabled ocf:heartbeat:Filesystem \
+                                       device="{{ fs_mount }}" directory="{{ fs_dir }}" fstype="nfs" \
                                        options="{{ nfs_mount_options }}" \
                                        op monitor interval=20s on-fail=fence timeout=120s OCF_CHECK_LEVEL=20 \
                                        op start internal=0 timeout=120 op stop interval=0 timeout=120
-          register:                    nfs_mounts_sites
-          failed_when:                 false
-          ignore_errors:               true
-          loop:
-            - { site_code: 'S1',fs_mount: '{{ hana_shared_mountpoint[0] }}', fs_dir: '/hana/shared' }
-            - { site_code: 'S2',fs_mount: '{{ hana_shared_mountpoint[1] }}', fs_dir: '/hana/shared' }
-          loop_control:
-            loop_var:                  item
-            index_var:                 my_idx
+          register:                    nfs_mounts_site1
+          failed_when:                 nfs_mounts_site1.rc != 0
+          ignore_errors:               false
+          vars:
+            site_code:                 'S1'
+            fs_mount:                  '{{ hana_shared_mountpoint[0] }}'
+            fs_dir:                    '/hana/shared'
 
-        - name:                        "Clone the /hana/shared file system resource for both sites"
+        - name:                        "Configure filesystem resource in Pacemaker for secondary site"
+          ansible.builtin.shell: >
+                                       pcs resource create fs_hana_shared_{{ site_code | lower }} --disabled ocf:heartbeat:Filesystem \
+                                       device="{{ fs_mount }}" directory="{{ fs_dir }}" fstype="nfs" \
+                                       options="{{ nfs_mount_options }}" \
+                                       op monitor interval=20s on-fail=fence timeout=120s OCF_CHECK_LEVEL=20 \
+                                       op start internal=0 timeout=120 op stop interval=0 timeout=120
+          register:                    nfs_mounts_site2
+          failed_when:                 nfs_mounts_site2.rc != 0
+          ignore_errors:               false
+          vars:
+            site_code:                 'S2'
+            fs_mount:                  '{{ hana_shared_mountpoint[1] }}'
+            fs_dir:                    '/hana/shared'
+
+
+        - name:                        "Clone the /hana/shared file system resource for primary site"
+          ansible.builtin.shell: >
+                                       pcs resource clone fs_hana_shared_{{ site_code | lower}} meta clone-node-max=1 interleave=true
+          register:                    nfs_mounts_clone_site1
+          failed_when:                 nfs_mounts_clone_site1.rc != 0
+          ignore_errors:               false
+          vars:
+            site_code:                 "S1"
+
+        - name:                        "Clone the /hana/shared file system resource for secondary"
           ansible.builtin.shell: >
                                        pcs resource clone fs_hana_shared_{{ item.site_code | lower}} meta clone-node-max=1 interleave=true
-          register:                    nfs_mounts_clones
-          failed_when:                 false
-          ignore_errors:               true
-          loop:
-            - { site_code: 'S1' }
-            - { site_code: 'S2' }
-          loop_control:
-            loop_var:                  item
-            index_var:                 my_idx
+          register:                    nfs_mounts_clone_site2
+          failed_when:                 nfs_mounts_clone_site2.rc != 0
+          ignore_errors:               false
+          vars:
+            site_code:                 "S2"
+
+
 
         - name:                        "Configure location constraints and attribute resources"
           block:
@@ -158,7 +179,7 @@
               - { site_code: "S2" }
             loop_control:
               loop_var:                  item
-            # when:                        is_nfs_secondary_configured and is_nfs_primary_configured
+            when:                        is_nfs_secondary_site configured and is_nfs_primary_site_configured
 
           - name:                        "Enable NFS resource constraint"
             ansible.builtin.shell: >
