@@ -6,202 +6,208 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-- hosts:                               localhost
-  name:                                "Tasks to execute on localhost for processing stack_xml"
-  gather_facts:                        true
-  vars_files:
-    - vars/ansible-input-api.yaml # API Input template with defaults
+- name:                                "0.10-maintenance-planner: Execute Pre-checks Task"
+  ansible.builtin.import_tasks:        pre_checks.yaml
 
-  # -------------------------------------+-------------------------------------8
-  #
-  # Build the list of tasks to be executed in order here.
-  #
-  # -------------------------------------+-------------------------------------8
+- name:                                "0.10-maintenance-planner: Set the fact for the stack xml file location"
+  ansible.builtin.set_fact:
+    stack_xml_file:                    "{{ _workspace_directory }}/stack.xml"
+    tools_base_dir:                    "/home/{{ orchestration_ansible_user }}/Azure_SAP_Automated_Deployment/SAP_tools/"
 
-  tasks:
-    # it should be in the config_repo_path under BOMS directory as stack.xml
-    # we want the file to be named stack.xml, and will only process one stack.xml at a time.
-    - name:                            "0.10-maintenance-planner: Ensure lxml is installed in the playbook python"
-      become:                          true
-      ansible.builtin.pip:
-        name:                          lxml
-        state:                         present
-      tags:
-                                       - always
-
-    - name:                            "0.10-maintenance-planner: Set the fact for the stack xml file location"
-      ansible.builtin.set_fact:
-        stack_xml_file:                "{{ _workspace_directory }}/stack.xml"
-        tools_base_dir:                "/home/azureadm/Azure_SAP_Automated_Deployment/SAP_tools/"
-
-    - name:                            "0.10-maintenance-planner: Set the fact for swpm_version"
-      ansible.builtin.set_fact:
-        swpm_version_to_use:           "{{ swpm_version | default('SWPM20') }}"
+- name:                                "0.10-maintenance-planner: Set the fact for swpm_version"
+  ansible.builtin.set_fact:
+    swpm_version_to_use:               "{{ swpm_version | default('SWPM20') }}"
 
 
-    - name:                            "0.10-maintenance-planner: Get current directory"
-      ansible.builtin.command:         pwd
-      register:                        curr_dir
+- name:                                "0.10-maintenance-planner: Get current directory"
+  ansible.builtin.command:             pwd
+  register:                            curr_dir
 
-    - name:                            "0.10-maintenance-planner: Get the list of directories where we can find the product catalog"
-      ansible.builtin.find:
-        paths:                         "{{ tools_base_dir }}"
-        file_type:                     file
-        patterns:                      'product.catalog'
-        recurse:                       true
-        follow:                        true
-      register:                        swpm_catalog_dir
-      failed_when:                     swpm_catalog_dir.matched == 0
+- name:                                "0.10-maintenance-planner: Get the list of directories where we can find the product catalog"
+  ansible.builtin.find:
+    paths:                             "{{ tools_base_dir }}"
+    file_type:                         file
+    patterns:                          'product.catalog'
+    recurse:                           true
+    follow:                            true
+  register:                            swpm_catalog_dir
+  failed_when:                         swpm_catalog_dir.matched == 0
 
-    - name:                            "0.10-maintenance-planner: Read XML file"
-      ansible.builtin.set_fact:
-        get_xml_data:                  "{{ lookup('file', stack_xml_file) }}"
+- name:                                "0.10-maintenance-planner: Read XML file"
+  ansible.builtin.set_fact:
+    get_xml_data:                      "{{ lookup('file', stack_xml_file) }}"
 
-    - name:                            "0.10-maintenance-planner: Get attributes"
-      community.general.xml:
-        path:                          "{{ stack_xml_file }}"
-        xpath:                         "/sp-stacks/target-system/constraints/constraint"
-        content:                       attribute
-      register:                        stack_attributes
+- name:                                "0.10-maintenance-planner: Get attributes"
+  community.general.xml:
+    path:                              "{{ stack_xml_file }}"
+    xpath:                             "/sp-stacks/target-system/constraints/constraint"
+    content:                           attribute
+  register:                            stack_attributes
 
-    - name:                            "0.10-maintenance-planner: Debug - Print Parsed xml data"
-      ansible.builtin.debug:
-        var:                           stack_attributes
-        verbosity:                     2
+- name:                                "0.10-maintenance-planner: Debug - Print Parsed xml data"
+  ansible.builtin.debug:
+    var:                               stack_attributes
+    verbosity:                         2
 
-    - name:                            "0.10-maintenance-planner: Get ppms-main-app-id"
-      community.general.xml:
-        xmlstring:                     "{{ get_xml_data }}"
-        xpath:                         "/sp-stacks/target-system/constraints/constraint[@name='ppms-main-app-id']"
-        content:                       attribute
-      register:                        stack_constraint_attributes
-      failed_when:                     stack_constraint_attributes.matches | length == 0
+- name:                                "0.10-maintenance-planner: Get ppms-main-app-id"
+  community.general.xml:
+    xmlstring:                         "{{ get_xml_data }}"
+    xpath:                             "/sp-stacks/target-system/constraints/constraint[@name='ppms-main-app-id']"
+    content:                           attribute
+  register:                            stack_constraint_attributes
+  failed_when:                         stack_constraint_attributes.matches | length == 0
 
-    - name:                            "0.10-maintenance-planner: Set a fact for ppms-main-app-id"
-      ansible.builtin.set_fact:
-        ppms_main_app_id:              "{{ stack_constraint_attributes.matches[0].constraint.value }}"
+- name:                                "0.10-maintenance-planner: Set a fact for ppms-main-app-id"
+  ansible.builtin.set_fact:
+    ppms_main_app_id:                  "{{ stack_constraint_attributes.matches[0].constraint.value }}"
 
-    - name:                            "0.10-maintenance-planner: Set the fact for swpm_version"
-      ansible.builtin.set_fact:
-        swpm_catalog_file_path:         "{{ tools_base_dir ~ swpm_version_to_use }}/product.catalog"
+- name:                                "0.10-maintenance-planner: Set the fact for swpm_version"
+  ansible.builtin.set_fact:
+    swpm_catalog_file_path:            "{{ tools_base_dir ~ swpm_version_to_use }}/product.catalog"
 
-    - name:                            "0.10-maintenance-planner: Get the top level product catalog directory details"
-      community.general.xml:
-        path:                          "{{ swpm_catalog_file_path }}"
-        xpath:                         "/product-catalog/catalog/components/constraint[@name='ppms-main-app-id' and @value='{{ ppms_main_app_id }}']/parent::*[@output-dir]"
-        content:                       attribute
-      register:                        product_catalog_top_level_dir
+- name:                                "0.10-maintenance-planner: Get the top level product catalog directory details"
+  community.general.xml:
+    path:                              "{{ swpm_catalog_file_path }}"
+    xpath:                             "/product-catalog/catalog/components/constraint[@name='ppms-main-app-id' and @value='{{ ppms_main_app_id }}']/parent::*[@output-dir]"
+    content:                           attribute
+  register:                            product_catalog_top_level_dir
 
-    - name:                            "0.10-maintenance-planner: Set fact for product-catalog-top-level-dir"
-      ansible.builtin.set_fact:
-        pc_top_level_dir: >-
+- name:                                "0.10-maintenance-planner: Set fact for product-catalog-top-level-dir"
+  ansible.builtin.set_fact:
+    pc_top_level_dir: >-
                                        {{ product_catalog_top_level_dir.matches |
-                                       map(attribute='components') | selectattr ('output-dir', 'defined') |
-                                       map(attribute='output-dir') | default([]) | list | unique }}
+                                          map(attribute='components') | selectattr ('output-dir', 'defined') |
+                                          map(attribute='output-dir') | default([]) | list | unique }}
 
-    - name:                            "0.10-maintenance-planner: Get the top level product directory details"
-      community.general.xml:
-        path:                          "{{ swpm_catalog_file_path }}"
-        xpath:                         "/product-catalog/catalog/components[@output-dir='{{ top_level_dir }}']/components/*"
-        content:                       attribute
-      register:                        product_top_level_dir
-      ignore_errors:                   true
-      loop:                            "{{ pc_top_level_dir }}"
-      loop_control:
-        loop_var:                      top_level_dir
+- name:                                "0.10-maintenance-planner: Get the top level product directory details"
+  community.general.xml:
+    path:                              "{{ swpm_catalog_file_path }}"
+    xpath:                             "/product-catalog/catalog/components[@output-dir='{{ top_level_dir }}']/components/*"
+    content:                           attribute
+  register:                            product_top_level_dir
+  ignore_errors:                       true
+  loop:                                "{{ pc_top_level_dir }}"
+  loop_control:
+    loop_var:                          top_level_dir
 
-    - name:                            "0.10-maintenance-planner: debug show product_top_level_dir"
-      ansible.builtin.debug:
-        msg:                           "{{ product_top_level_dir }}"
-        verbosity:                     2
+- name:                                "0.10-maintenance-planner: debug show product_top_level_dir"
+  ansible.builtin.debug:
+    msg:                               "{{ product_top_level_dir }}"
+    verbosity:                         2
 
-    - name:                            "0.10-maintenance-planner: Set fact for product-top-level-dir"
-      ansible.builtin.set_fact:
-        prd_top_level_dir: >-
+- name:                                "0.10-maintenance-planner: Set fact for product-top-level-dir"
+  ansible.builtin.set_fact:
+    prd_top_level_dir: >-
                                        {{ product_top_level_dir.results | selectattr('matches', 'defined') |
                                            map(attribute='matches') | flatten(levels=1) |
                                            map(attribute='components') | selectattr ('output-dir', 'defined') |
                                            map(attribute='output-dir') | default([]) | list | unique }}
 
-    - name:                            "0.10-maintenance-planner: Get the product install level directory details"
-      community.general.xml:
-        path:                          "{{ swpm_catalog_file_path }}"
-        xpath:                         "/product-catalog/catalog/components[@output-dir='{{ dir_level[0] }}']/constraint[@name='ppms-main-app-id' and @value='{{ ppms_main_app_id }}']/parent::*/components/components[@output-dir='{{ dir_level[1] }}']/components/*"
-        content:                       attribute
-      register:                        install_output_dir
-      ignore_errors:                   true
-      loop:                            "{{ pc_top_level_dir | product(prd_top_level_dir) | default([]) | list }}"
-      loop_control:
-        loop_var:                      dir_level
+- name:                                "0.10-maintenance-planner: Get the product install level directory details"
+  community.general.xml:
+    path:                              "{{ swpm_catalog_file_path }}"
+    xpath:                             "/product-catalog/catalog/components[@output-dir='{{ dir_level[0] }}']/constraint[@name='ppms-main-app-id' and @value='{{ ppms_main_app_id }}']/parent::*/components/components[@output-dir='{{ dir_level[1] }}']/components/*"
+    content:                           attribute
+  register:                            install_output_dir
+  ignore_errors:                       true
+  loop:                                "{{ pc_top_level_dir | product(prd_top_level_dir) | default([]) | list }}"
+  loop_control:
+    loop_var:                          dir_level
 
-    # We will assume that components is already available and not empty
-    # We will create an empty list by default incase there is no output-dir
-    - name:                            "0.10-maintenance-planner: Set fact for product-install-top-level-dir"
-      ansible.builtin.set_fact:
-        prd_install_dir: >-
+# We will assume that components is already available and not empty
+# We will create an empty list by default incase there is no output-dir
+- name:                                "0.10-maintenance-planner: Set fact for product-install-top-level-dir"
+  ansible.builtin.set_fact:
+    prd_install_dir: >-
                                        {{ install_output_dir.results   | selectattr('matches', 'defined') |
                                            map(attribute='matches')    | flatten(levels=1) |
                                            map(attribute='components') | selectattr ('output-dir', 'defined') |
                                            map(attribute='output-dir') | default([]) | list | unique }}
-        components: >-
+    components: >-
                                        {{ components | default([])+ (install_output_dir.results | selectattr('matches', 'defined') |
                                            map(attribute='matches') | flatten(levels=1) |
                                            selectattr('component', 'defined') | map(attribute='component') | default([]) | list | unique )}}
 
-    - name:                            "0.10-maintenance-planner: display the product directory details"
-      ansible.builtin.debug:
-        msg:
+- name:                                "0.10-maintenance-planner: display the product directory details"
+  ansible.builtin.debug:
+    msg:
                                        - "product-catalog-top-level-dir: {{ pc_top_level_dir }}"
                                        - "product-top-level-dir:         {{ pc_top_level_dir | product(prd_top_level_dir, prd_install_dir) | default([]) | list | unique }}"
                                        - "install-output-directory:      {{ prd_install_dir }}"
                                        - "ppms-main-app-id:              {{ ppms_main_app_id }}"
-        verbosity:                     2
+    verbosity:                         2
 
-    - name:                            "0.10-maintenance-planner: Get attributes from product-catalog"
-      community.general.xml:
-        path:                          "{{ swpm_catalog_file_path }}"
-        xpath:                         "/product-catalog/catalog/components[@output-dir='{{ dir_level[0] }}']/constraint[@name='ppms-main-app-id' and @value='{{ ppms_main_app_id }}']/parent::*/components/components[@output-dir='{{ dir_level[1] }}']/components/components[@output-dir='{{ dir_level[2] }}']/component[@id]"
-        content:                       attribute
-      register:                        product_catalog_attributes
-      ignore_errors:                   true
-      loop:                            "{{ pc_top_level_dir | product(prd_top_level_dir, prd_install_dir) | default([]) | list | unique }}"
-      loop_control:
-        loop_var:                      dir_level
+- name:                                "0.10-maintenance-planner: Get attributes from product-catalog"
+  community.general.xml:
+    path:                              "{{ swpm_catalog_file_path }}"
+    xpath:                             "/product-catalog/catalog/components[@output-dir='{{ dir_level[0] }}']/constraint[@name='ppms-main-app-id' and @value='{{ ppms_main_app_id }}']/parent::*/components/components[@output-dir='{{ dir_level[1] }}']/components/components[@output-dir='{{ dir_level[2] }}']/component[@id]"
+    content:                           attribute
+  register:                            product_catalog_attributes
+  ignore_errors:                       true
+  loop:                                "{{ pc_top_level_dir | product(prd_top_level_dir, prd_install_dir) | default([]) | list | unique }}"
+  loop_control:
+    loop_var:                          dir_level
 
-    - name:                            "0.10-maintenance-planner: Set Fact: Components"
-      ansible.builtin.set_fact:
-        components:                    "{{ components | default([])+ (product_catalog_attributes.results | selectattr('matches', 'defined') |
-                                           map(attribute='matches') | flatten(levels=1) |
-                                           selectattr('component', 'defined') | map(attribute='component') | default() | list )}}"
+- name:                                "0.10-maintenance-planner: Set Fact: Components"
+  ansible.builtin.set_fact:
+    components:                        "{{ components | default([])+ (product_catalog_attributes.results | selectattr('matches', 'defined') |
+                                            map(attribute='matches') | flatten(levels=1) |
+                                            selectattr('component', 'defined') | map(attribute='component') | default() | list )}}"
 
-    - name:                            "0.10-maintenance-planner: Print Parsed xml data"
-      ansible.builtin.debug:
-        msg:
+- name:                                "0.10-maintenance-planner: Print Parsed xml data"
+  ansible.builtin.debug:
+    msg:
                                        - "product:                  {{ stack_constraint_attributes.matches[0].constraint.description }}"
                                        - "Stack:                    {{ stack_attributes.matches[4].constraint.description }}"
                                        - "instance_type:            {{ stack_attributes.matches[1].constraint.value }}"
                                        - "name:                     {{ stack_constraint_attributes.matches[0].constraint.name }}"
                                        - "value:                    {{ stack_constraint_attributes.matches[0].constraint.value }}"
                                        - "product attributes:       {% for component in components %}{{ 'name:' ~ component.name ~ ' id:' ~ component.id ~ ' output_dir:' ~  component['output-dir'] ~ ' ## '}}{% endfor %}"
-        verbosity:                    2
+    verbosity:                         2
 
-    # - name:                            "download SAP Tools bom"
-    # - name:                            "run sapinst to download the files"
+- name:                               "0.10-maintenance-planner: Create ini file"
+  ansible.builtin.template:
+    src:                              "download.j2"
+    dest:                             "/home/{{ orchestration_ansible_user }}//{{ plan }}download.ini"
+    mode:                             0644
+    force:                            true
+  vars:
+    download_directory:               "/home/{{ orchestration_ansible_user }}/download_basket/{{ plan }}"
+# - name:                            "run sapinst to download the files"
 
-    - name:                            "0.10-maintenance-planner: stat downloads directory"
-      ansible.builtin.find:
-        paths:                         "/home/azureadm/download_basket"
-        file_type:                     file
-        recurse:                       true
-        follow:                        true
-      register:                        downloads_dir_files
+- name:                                "DBLoad: - run SAPInst"
+  become:                              true
+  ansible.builtin.shell: |
+                                      umask {{ custom_umask | default('022') }} ;
+                                      ./sapinst SAPINST_INPUT_PARAMETERS_URL=/home/{{ orchestration_ansible_user }}/{{ plan }}download.ini  \
+                                                SAPINST_EXECUTE_PRODUCT_ID=download_service_toplevel:GENERIC.IND.PD \
+                                                SAPINST_SKIP_DIALOGS=true                                           \
+                                                SAPINST_START_GUISERVER=false
+  args:
+    chdir:                             "{{ tools_base_dir ~ swpm_version_to_use }}"
 
-    - name:                            "0.10-maintenance-planner: How does the template render?"
-      ansible.builtin.set_fact:
-        templated_data:                "{{ lookup('template', 'bom.j2') }}"
+# - name:                            "run sapinst to download the files"
 
-    - name:                            "0.10-maintenance-planner: Print the template data"
-      ansible.builtin.debug:
-        msg:                           "{{ templated_data }}"
+- name:                                "0.10-maintenance-planner: stat downloads directory"
+  ansible.builtin.find:
+    paths:                             "/home/{{ orchestration_ansible_user }}/download_basket"
+    file_type:                         file
+    recurse:                           true
+    follow:                            true
+  register:                            downloads_dir_files
+
+- name:                                "0.10-maintenance-planner: How does the template render?"
+  ansible.builtin.set_fact:
+    templated_data:                    "{{ lookup('template', 'bom.j2') }}"
+
+- name:                                "0.10-maintenance-planner: Print the template data"
+  ansible.builtin.debug:
+    msg:                               "{{ templated_data }}"
+
+- name:                                "0.10-maintenance-planner: Write variable contents to file"
+  ansible.builtin.copy:
+    content:                           "{{ templated_data }}"
+    dest:                              /home/azureadm/{{ plan }}.yaml"
+  delegate_to:                         localhost
 
 ...
