@@ -12,6 +12,7 @@
     tools_base_dir:                    "/home/{{ orchestration_ansible_user }}/Azure_SAP_Automated_Deployment/SAP_tools/"
     new_bom_name:                      "{{ maintenance_plan_id }}.yaml"
     download_directory:                "/home/{{ orchestration_ansible_user }}/download_basket/{{ maintenance_plan_id }}/"
+    ini_file:                          "/home/{{ orchestration_ansible_user }}//{{ maintenance_plan_id }}download.ini"
 
 - name:                                "0.10-maintenance-planner: Execute Pre-checks Task"
   ansible.builtin.import_tasks:        pre_checks.yaml
@@ -186,15 +187,15 @@
 - name:                               "0.10-maintenance-planner: Create ini file"
   ansible.builtin.template:
     src:                              "download.j2"
-    dest:                             "/home/{{ orchestration_ansible_user }}//{{ maintenance_plan_id }}download.ini"
+    dest:                             "{{ ini_file }}"
     mode:                             0644
     force:                            true
 
 - name:                                "DBLoad: - run SAPInst"
   become:                              true
   ansible.builtin.shell: |
-                                      umask {{ custom_umask | default('022') }} ;
-                                      ./sapinst SAPINST_INPUT_PARAMETERS_URL=/home/{{ orchestration_ansible_user }}/{{ maintenance_plan_id }}download.ini  \
+                                       umask {{ custom_umask | default('022') }} ;
+                                       ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ ini_file }}                         \
                                                 SAPINST_EXECUTE_PRODUCT_ID=download_service_toplevel:GENERIC.IND.PD \
                                                 SAPINST_SKIP_DIALOGS=true                                           \
                                                 SAPINST_START_GUISERVER=false
@@ -202,7 +203,6 @@
     chdir:                             "{{ tools_base_dir ~ swpm_version_to_use }}"
   environment:
     TMPDIR:                            "/home/{{ orchestration_ansible_user }}/download_basket/tmp"
-  when:                                false
 
 - name:                                "0.10-maintenance-planner: stat downloads directory"
   ansible.builtin.find:
@@ -247,14 +247,14 @@
 
 - name:                                "0.10-maintenance-planner: - Upload Files"
   ansible.builtin.command: >-
-                                      az storage blob upload-batch
-                                        --account-name  {{ account }}
-                                        --auth-mode login
-                                        --destination   {{ container }}
-                                        --source        "/home/{{ orchestration_ansible_user }}/download_basket"
-                                        --overwrite True
-                                        --if-none-match "*"
-                                        --no-progress
+                                       az storage blob upload-batch
+                                         --account-name  {{ account }}
+                                         --auth-mode login
+                                         --destination   {{ container }}
+                                         --source        {{ download_directory }}
+                                         --overwrite True
+                                         --if-none-match "*"
+                                         --no-progress
   delegate_to:                         localhost
   register:                            azresult
   changed_when:                        false
