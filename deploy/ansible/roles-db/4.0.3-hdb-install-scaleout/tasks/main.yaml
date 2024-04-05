@@ -581,8 +581,8 @@
           ansible.builtin.include_role:
             name:                      roles-misc/0.6-ARM-Deployment
           vars:
-            subscription_id:           "{{ subscription_id_tmp }}"
-            resource_group_name:       "{{ resource_group_name_tmp }}"
+            subscriptionId:           "{{ subscription_id_tmp }}"
+            resourceGroupName:        "{{ resource_group_name_tmp }}"
 
         - name:                        "4.0.3 - SAP HANA SCALE OUT: ARM Deployment flag"
           ansible.builtin.file:
