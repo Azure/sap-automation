@@ -25,6 +25,7 @@
 #               from KeyVault when they are not already defined.
 #
 - name:                                 "(pre_checks.yaml) - KeyVault validation block..."
+  when:                                 deployer_kv_name | default('') | trim | length > 1
   block:
 
     - name:                             "(pre_checks.yaml) - {{ task_prefix }} - Informational"
@@ -40,6 +41,7 @@
     - name:                             "(pre_checks.yaml) - {{ task_prefix }} - Set deployer keyvault name"
       ansible.builtin.set_fact:
         kv_name:                        "{{ deployer_kv_name }}"
+        kv_enabled:                     true
       when:                             deployer_kv_name is defined
 # Step: 02-01 - END
 # -------------------------------------+---------------------------------------8
@@ -56,6 +58,7 @@
         tier:                           bom
       # tags:
       #   - 0.2-kv-secrets
+
 # Step: 02-02 - END
 # -------------------------------------+---------------------------------------8
 
@@ -63,48 +66,8 @@
 # Step: 02-03
 # Description:
 #
-    - name:                             "(pre_checks.yaml) - {{ task_prefix }} - Set kv_enabled: true"
-      ansible.builtin.set_fact:
-        kv_enabled:                     true
-      when:
-        - "kv_name is defined"                                                  # Has the variable been defined
-        - "kv_name | type_debug != 'NoneType'"                                  #  is not null
-        - "kv_name | trim | length > 1"                                         #  and given a value
-# Step: 02-03 - END
-# -------------------------------------+---------------------------------------8
-
-  vars:
-    task_prefix:                        KeyVault validation block
-  when:
-    - ( ( kv_name          is defined     and   kv_name          | trim | length > 1 ) or
-        ( deployer_kv_name is defined     and   deployer_kv_name | trim | length > 1 ) )
-    # - ( ( s_user           is undefined   or    s_user           | trim | length < 1 ) or
-    #     ( s_password       is undefined   or    s_password       | trim | length < 1 ) )
-# Step: 02 - END
-# -------------------------------------+---------------------------------------8
-
 
 # -------------------------------------+---------------------------------------8
-# Step: 03
-# Description:  Informational check of the kv_name parameter.
-#
-- name:                                "(pre_checks.yaml) - Informational check of the kv_name parameter"
-  ansible.builtin.assert:
-    that:
-      - "kv_name is defined"                                                    # Has the variable been defined
-      - "kv_name | type_debug != 'NoneType'"                                    #  is not null
-      - "kv_name | trim | length != 0"                                          #  and given a value
-    success_msg: |-
-                                        KeyVault access:  ENABLED
-                                        kv_enabled:       {{ kv_enabled }}
-    fail_msg: |-
-                                        KeyVault access:  DISABLED
-                                        kv_enabled:       {{ kv_enabled }}
-
-                                        If this is undesired, please set:
-                                        - deployer_kv_name
-  failed_when:                         false
-# Step: 03 - END
 # -------------------------------------+---------------------------------------8
 
 
