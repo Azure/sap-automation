@@ -604,9 +604,9 @@
             allow_world_readable_tmpfiles: true
 
         # ToDo: Check if we can interrogate the HANA DB to see if it is stopped.
-        - name:                        "Wait 5 minutes for SAP system to stop"
+        - name:                        "Wait 2 minutes for SAP system to stop"
           ansible.builtin.wait_for:
-            timeout:                   300
+            timeout:                   120
 
         - name:                        "Start HANA Database"
           become_user:                 "{{ db_sid | lower }}adm"
@@ -624,9 +624,9 @@
           vars:
             allow_world_readable_tmpfiles: true
 
-        - name:                        "Wait 5 minutes for SAP system to start"
+        - name:                        "Wait 2 minutes for SAP system to start"
           ansible.builtin.wait_for:
-            timeout:                   300
+            timeout:                   120
     when:
     - ansible_hostname == primary_instance_name
     - not hana_installed.stat.exists
@@ -868,9 +868,9 @@
             allow_world_readable_tmpfiles: true
 
         # ToDo: Check if we can interrogate the HANA DB to see if it is stopped.
-        - name:                        "Wait 5 minutes for SAP system to stop"
+        - name:                        "Wait 2 minutes for SAP system to stop"
           ansible.builtin.wait_for:
-            timeout:                   300
+            timeout:                   120
 
         - name:                        "Start HANA Database"
           become_user:                 "{{ db_sid | lower }}adm"
@@ -888,9 +888,9 @@
           vars:
             allow_world_readable_tmpfiles: true
 
-        - name:                        "Wait 5 minutes for SAP system to start"
+        - name:                        "Wait 2 minutes for SAP system to start"
           ansible.builtin.wait_for:
-            timeout:                   300
+            timeout:                   120
     when:
     - ansible_hostname == secondary_instance_name
     - not hana_installed.stat.exists
