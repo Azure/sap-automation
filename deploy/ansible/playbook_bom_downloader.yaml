@@ -61,17 +61,34 @@
 # 20230117 MKD (DynBOM) - END   DELETE
 # -------------------------------------+
 
-    - name:                             "BOM Downloader: Run the bom-validator"
+    - name:                            "BOM Downloader: Info"
       ansible.builtin.debug:
-        - var:                          maintenance_plan_id
+        var:                           maintenance_plan_id
 
-    - name:                             "BOM Downloader: Run the software download"
-      ansible.builtin.include_role:
-        name:                           roles-misc/0.10-maintenance-planner
-      vars:
-        operation:                      "SoftwareAcquisitionUsingMaintenancePlanner"
+    - name:                            "BOM Downloader: Maintenance planner code path"
       when:                             maintenance_plan_id | default('') | length > 1
+      block:
+        - name:                        "BOM Downloader: Set Tools directory"
+          ansible.builtin.set_fact:
+            tools_directory:           "/home/{{ orchestration_ansible_user }}/Azure_SAP_Automated_Deployment/SAP_tools/"
 
+        - name:                        "Do the tools exist?"
+          ansible.builtin.stat:
+            path:                      "{{ tools_directory }}/SAPCAR"
+          register:                    tool_stats
+
+        - name:                        "BOM Downloader: Run the bom-validator"
+          when:                        not tool_stats.stat.exists
+          ansible.builtin.include_role:
+            name:                      roles-sap/0.1-bom-validator
+          vars:
+            operation:                 "SoftwareAcquisition"
+
+        - name:                        "BOM Downloader: Run the maintenance planner download"
+          ansible.builtin.include_role:
+            name:                      roles-misc/0.10-maintenance-planner
+          vars:
+            operation:                 "SoftwareAcquisitionUsingMaintenancePlanner"
 
     - name:                             "BOM Downloader: Run the bom-validator"
       ansible.builtin.include_role:
