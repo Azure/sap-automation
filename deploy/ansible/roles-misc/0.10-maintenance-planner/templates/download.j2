@@ -1,0 +1,29 @@
+##########################################################################################################
+#                                                                                                        #
+# Installation service 'System S22 (SAP S/4HANA 2022) > Generic Options > Download Software Packages for #
+# Maintenance Planner Transaction', product id 'download_service_toplevel:GENERIC.IND.PD'                #
+#                                                                                                        #
+##########################################################################################################
+
+# Choose whether to provide proxy configuration. Default value is "false", although it depends on the network configuration of the S-User.
+# DownloadService.EnableProxy = false
+
+# Host name of the proxy
+# DownloadService.HostName =
+# Password of the S-User
+DownloadService.Password = {{ s-password }}
+
+# Port of the proxy
+# DownloadService.Port =
+
+# Choose if you want to perform the download as an authorized S-User.
+# DownloadService.ProvideAuthentication = true
+
+# User name of the S-User with download permissions for SAP Support Portal
+DownloadService.Username = {{ s-username }}
+
+# Maintenance Planner Transaction ID. It is retrieved automatically from stack configuration file
+DownloadService.planNumber =  {{ plan }}
+
+# Directory for downloading artefacts from SAP Support Portal, the directory must exist with proper permissions for current user
+download_service.directory = {{ download_directory }}
