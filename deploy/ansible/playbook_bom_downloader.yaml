@@ -62,10 +62,23 @@
 # -------------------------------------+
 
     - name:                             "BOM Downloader: Run the bom-validator"
+      ansible.builtin.debug:
+        - var:                          maintenance_plan_id
+
+    - name:                             "BOM Downloader: Run the software download"
       ansible.builtin.include_role:
         name:                           roles-sap/0.1-bom-validator
       vars:
         operation:                      "SoftwareAcquisition"
+      when:                             maintenance_plan_id | default('') | length > 1
+
+
+    - name:                             "BOM Downloader: Run the bom-validator"
+      ansible.builtin.include_role:
+        name:                           roles-sap/0.1-bom-validator
+      vars:
+        operation:                      "SoftwareAcquisition"
+      when:                             maintenance_plan_id | default('') | length < 1
 # -------------------------------------+
 # 20230117 MKD (DynBOM) - BEGIN DELETE
       # tags:

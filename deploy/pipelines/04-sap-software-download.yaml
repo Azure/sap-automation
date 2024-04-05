@@ -13,6 +13,10 @@ parameters:
     displayName:                       Custom Name of Bill of Materials (BoM)
     type:                              string
 
+  - name:                              maintenance_plan_id
+    displayName:                       Maintenance Plan ID
+    type:                              string
+
   - name:                              environment
     displayName:                       Control Plane Environment
     default:                           MGMT
@@ -54,6 +58,7 @@ stages:
           environment:                 ${{ parameters.environment }}
           re_download:                 ${{ parameters.re_download }}
           region:                      ${{ parameters.region }}
+          plan_id:                     ${{ parameters.maintenance_plan_id }}
     displayName:                       Preparation
     jobs:
       - job: Prepare_download_job
@@ -135,10 +140,15 @@ stages:
                   echo "##vso[build.updatebuildnumber]Downloading BoM defined in $(bom)"
                   echo "##vso[task.setvariable variable=BOM_NAME;isOutput=true]$(bom)"
 
+              echo -e "$green--- Maintenance Planner ID $(bom) ---$reset"
+                  echo "##vso[build.updatebuildnumber]Downloading Software defined in Maintenance Plan $(plan_id)"
+                  echo "##vso[task.setvariable variable=PLAN;isOutput=true]$(plan_id)"
+
+
               echo -e "$green--- Set S-Username and S-Password in the key_vault if not yet there ---$reset"
 
                 export SUsernamefromVault=$(az keyvault secret list --vault-name "${kv_name}" --subscription "${ARM_SUBSCRIPTION_ID}" --query "[].{Name:name} | [? contains(Name,'S-Username')] | [0]"  -o tsv)
-                if [ $SUsernamefromVault == $SUsername ]; then
+                if [ $SUsernamefromVault == $(SUsername) ]; then
                   echo -e "$green--- $SUsername present in keyvault. In case of download errors check that user and password are correct ---$reset"
                   echo "##vso[task.setvariable variable=SUSERNAME;isOutput=true]$SUsernamefromVault"
                 else
@@ -148,7 +158,7 @@ stages:
                 fi
 
                 export SPasswordfromVault=$(az keyvault secret list --vault-name "${kv_name}" --subscription "${ARM_SUBSCRIPTION_ID}" --query "[].{Name:name} | [? contains(Name,'S-Password')] | [0]"  -o tsv)
-                if [ ${SPassword} == $SPasswordfromVault ]; then
+                if [ $(SPassword) == $SPasswordfromVault ]; then
                   echo "##vso[task.setvariable variable=SPASSWORD;isOutput=true]${SPasswordfromVault}"
                   echo -e "$green--- Password present in keyvault. In case of download errors check that user and password are correct ---$reset"
                 else
@@ -188,6 +198,7 @@ stages:
         variables:
           BOM_NAME:                    $[ stageDependencies.Prepare_download.Prepare_download_job.outputs['Preparation.BOM_NAME'] ]
           KV_NAME:                     $[ stageDependencies.Prepare_download.Prepare_download_job.outputs['Preparation.KV_NAME'] ]
+          PLAN:                        $[ stageDependencies.Prepare_download.Prepare_download_job.outputs['Preparation.PLAN'] ]
         timeoutInMinutes:              0
         steps:
           - template:                  templates\download_samples.yaml
@@ -252,6 +263,7 @@ stages:
               SAP_AUTOMATION_REPO_PATH:      ${{ parameters.sap_automation_repo_path }}
               SAMPLE_REPO_PATH:              ${{ parameters.sample_repo_path }}
               CONFIG_REPO_PATH:              ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
+              PLAN:                          ${{ parameters.maintenance_plan_id }}
               ANSIBLE_COLLECTIONS_PATHS:     ~/.ansible/collections:/opt/ansible/collections
               USE_MSI:                       $(Use_MSI)
               ExtraParams:                   ${{ parameters.ExtraParams }}
