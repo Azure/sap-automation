@@ -248,8 +248,15 @@ stages:
                     exit $return_code
                   fi
                 fi
+                echo ${#PLAN}
 
-                command="ansible-playbook '-e "download_directory=$(Agent.TempDirectory)" -e "BOM_directory=${sample_path}" -e "bom_base_name=$(BOM_NAME)" -e "deployer_kv_name=$(KV_NAME)" -e "check_storage_account=$(check_storage_account)" -e "config_repo_path=$(CONFIG_REPO_PATH)/BOM" -e "maintenance_plan_id=$(PLAN)"' $ExtraParams ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_bom_downloader.yaml"
+                if [ ${#PLAN} -gt 1 ]; then
+                  command="ansible-playbook '-e "download_directory=$(Agent.TempDirectory)" -e "BOM_directory=${sample_path}" -e "bom_base_name=SAP_TOOLS" -e "deployer_kv_name=$(KV_NAME)"  -e "config_repo_path=$(CONFIG_REPO_PATH)/BOM" -e "maintenance_plan_id=$(PLAN)" ' $ExtraParams ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_bom_downloader.yaml"
+                else
+                  command="ansible-playbook '-e "download_directory=$(Agent.TempDirectory)" -e "BOM_directory=${sample_path}" -e "bom_base_name=$(BOM_NAME)" -e "deployer_kv_name=$(KV_NAME)" -e "check_storage_account=$(check_storage_account)" ' $ExtraParams ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_bom_downloader.yaml"
+                fi
+
+
 
                 echo "##[section]Executing [$command]..."
                 echo "##[group]- output"
