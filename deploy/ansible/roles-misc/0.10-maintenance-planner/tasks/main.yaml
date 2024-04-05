@@ -270,7 +270,7 @@
 # Step: 05-04-01
 # Description:
 #
-- name:                                "0.10-maintenance-planner: - Upload File" using SAS keys"
+- name:                                "0.10-maintenance-planner: - Upload File using SAS keys"
 
   ansible.builtin.command: >-
                                        az storage blob upload
@@ -291,7 +291,7 @@
   when:
     - sapbits_sas_token is defined
 
-- name:                                "0.10-maintenance-planner: - Upload File" using SAS keys"
+- name:                                "0.10-maintenance-planner: - Upload File using SAS keys"
 
   ansible.builtin.command: >-
                                        az storage blob upload
