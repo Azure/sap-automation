@@ -17,7 +17,7 @@
 
 - name:                                "0.10-maintenance-planner: Check if stack xml exists"
   ansible.builtin.stat:
-  path:                                "{{ stack_xml_file }}"
+    path:                              "{{ stack_xml_file }}"
   register: stack_xml_exists
 
 - name:                                 "(pre_checks.yaml) - Check that the S-User is present and not empty (s_user)"
