@@ -166,11 +166,11 @@
     verbosity:                         2
 
 
-- name:                                "0.10-maintenance-planner: Set the fact for the download directory"
+- name:                                "0.10-maintenance-planner: Create directories"
   become:                              "{{ bom_processing_become }}"
   become_user:                         root
   ansible.builtin.file:
-    path:
+    path:                              "{{ item }}"
     state:                             directory
     mode:                              0755
     owner:                             "{{ orchestration_ansible_user if bom_processing_become else omit }}"
