@@ -1,0 +1,19 @@
+name:          {{ stack_constraint_attributes.matches[0].constraint.description }}
+filename:      {{ maintenance_plan_id }}.yaml
+target:        {{ stack_attributes.matches[4].constraint.description }}
+version:       1
+platform:      "HANA"
+InstanceType:  {{ stack_attributes.matches[1].constraint.value }}
+
+
+product_ids:
+{% for component in components %}
+  {{ '%-10s' | format(component.name | trim+':') }} {{ '\"%s\"' | format(component.id | trim) }}
+{% endfor %}}
+
+materials:
+  media:
+{% for item in downloads_dir_files.files %}
+{{'    %-16s' | format('- name:' | trim) }}{{'\"%s\"' | format(item.path | basename) }}
+{{'      %-13s' | format('archive:' | trim) }}{{' \'%s\'' | format(item.path | basename) }}
+{% endfor %}

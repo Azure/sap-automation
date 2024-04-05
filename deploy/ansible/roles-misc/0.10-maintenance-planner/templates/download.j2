@@ -11,7 +11,7 @@
 # Host name of the proxy
 # DownloadService.HostName =
 # Password of the S-User
-DownloadService.Password = {{ s-password }}
+DownloadService.Password = {{ s_password }}
 
 # Port of the proxy
 # DownloadService.Port =
@@ -20,10 +20,10 @@ DownloadService.Password = {{ s-password }}
 # DownloadService.ProvideAuthentication = true
 
 # User name of the S-User with download permissions for SAP Support Portal
-DownloadService.Username = {{ s-username }}
+DownloadService.Username = {{ s_user }}
 
 # Maintenance Planner Transaction ID. It is retrieved automatically from stack configuration file
-DownloadService.planNumber =  {{ plan }}
+DownloadService.planNumber =  {{ maintenance_plan_id }}
 
 # Directory for downloading artefacts from SAP Support Portal, the directory must exist with proper permissions for current user
 download_service.directory = {{ download_directory }}
