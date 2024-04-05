@@ -256,7 +256,7 @@ parameters:
     - { tier: 'os',    node_tier: 'all',     name: 'kernel.shmmax',                             value: '4398046511104',                 state: 'present' }
     - { tier: 'os',    node_tier: 'all',     name: 'fs.file-max',                               value: '6815744',                       state: 'present' }
     - { tier: 'os',    node_tier: 'all',     name: 'fs.aio-max-nr',                             value: '1048576',                       state: 'present' }
-    - { tier: 'os',    node_tier: 'all',     name: 'net.ipv4.tcp_tw_reuse',                     value: '1',                             state: 'present' }
+    - { tier: 'os',    node_tier: 'all',     name: 'net.ipv4.tcp_tw_reuse',                     value: '0',                             state: 'present' }
     - { tier: 'os',    node_tier: 'all',     name: 'net.ipv4.tcp_timestamps',                   value: '1',                             state: 'present' }
     - { tier: 'os',    node_tier: 'all',     name: 'net.ipv6.conf.all.disable_ipv6',            value: '1',                             state: 'present' }
     - { tier: 'os',    node_tier: 'all',     name: 'net.core.somaxconn',                        value: '4096',                          state: 'present' }
@@ -275,7 +275,6 @@ parameters:
     - { tier: 'os',    node_tier: 'all',     name: 'net.ipv4.tcp_moderate_rcvbuf',              value:  '1',                            state: 'present' }
     - { tier: 'os',    node_tier: 'all',     name: 'net.ipv4.tcp_window_scaling',               value:  '1',                            state: 'present' }
     - { tier: 'os',    node_tier: 'all',     name: 'net.ipv4.tcp_syn_retries',                  value:  '8',                            state: 'present' }
-    - { tier: 'os',    node_tier: 'all',     name: 'net.ipv4.tcp_tw_reuse',                     value:  '1',                            state: 'present' }
     - { tier: 'os',    node_tier: 'all',     name: 'net.ipv4.tcp_timestamps',                   value:  '1',                            state: 'present' }
 
 ...

@@ -30,7 +30,7 @@ is_executed_by_acss:                    false                                   
 BOM_directory:                         "{{ playbook_dir }}/BOM-catalog"
 
 always_upload_jinja_templates:         true
-
+swpm_version:                          "SWPM20"
 # -------------------------------------+---------------------------------------8
 
 # SAP Configuration for templates and install
