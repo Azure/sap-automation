@@ -11,14 +11,27 @@
 
 - name:                                "0.10-maintenance-planner: Set the fact for the stack xml file location"
   ansible.builtin.set_fact:
-    stack_xml_file:                    "{{ _workspace_directory }}/stack.xml"
+    stack_xml_file:                    "{{ stack_path }}/stack.xml"
     tools_base_dir:                    "/home/{{ orchestration_ansible_user }}/Azure_SAP_Automated_Deployment/SAP_tools/"
     new_bom_name:                      "{{ maintenance_plan_id }}.yaml"
+
+- name:                                "0.10-maintenance-planner: Check if stack xml exists"
+  ansible.builtin.stat:
+  path:                                "{{ stack_xml_file }}"
+  register: stack_xml_exists
+
+- name:                                 "(pre_checks.yaml) - Check that the S-User is present and not empty (s_user)"
+  ansible.builtin.assert:
+    that:
+      - "stack_xml_exists.stat.exists"
+    success_msg: |-
+                                        "stack.xml found"
+    fail_msg: |-
+                                        Please ensure that the stack.xml is present in WORKSPACES/BOMS/stack.xml
 
 - name:                                "0.10-maintenance-planner: Set the fact for swpm_version"
   ansible.builtin.set_fact:
     swpm_version_to_use:               "{{ swpm_version | default('SWPM20') }}"
-
 
 - name:                                "0.10-maintenance-planner: Get current directory"
   ansible.builtin.command:             pwd
