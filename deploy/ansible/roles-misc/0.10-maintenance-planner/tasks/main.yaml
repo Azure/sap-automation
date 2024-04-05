@@ -271,7 +271,6 @@
 # Description:
 #
 - name:                                "0.10-maintenance-planner: - Upload File using SAS keys"
-
   ansible.builtin.command: >-
                                        az storage blob upload
                                         --account-name  {{ account }}
@@ -292,7 +291,6 @@
     - sapbits_sas_token is defined
 
 - name:                                "0.10-maintenance-planner: - Upload File using SAS keys"
-
   ansible.builtin.command: >-
                                        az storage blob upload
                                          --account-name {{ account }}
