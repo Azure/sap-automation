@@ -225,8 +225,8 @@
         - name:                        "Check if NFS share is mounted on primary site nodes"
           ansible.builtin.shell: >
                                        nfsstat -m | grep "{{ target }}"
-          register:                    nfs_mount_check_{{ ansible_hostname }}
-          failed_when:                 nfs_mount_check.rc != 0
+          register:                    nfs_mount_check_S1
+          failed_when:                 nfs_mount_check_S1.rc != 0
           vars:
             target:                    hana_shared_mountpoint[0]
           when:                        ansible_hostname in ansible_play_hosts_all[0::2]
@@ -234,8 +234,8 @@
         - name:                        "Check if NFS share is mounted on secondary site nodes"
           ansible.builtin.shell: >
                                        nfsstat -m | grep "{{ target }}"
-          register:                    nfs_mount_check_{{ ansible_hostname }}
-          failed_when:                 nfs_mount_check.rc != 0
+          register:                    nfs_mount_check_S2
+          failed_when:                 nfs_mount_check_S2.rc != 0
           vars:
             target:                    hana_shared_mountpoint[1]
           when:                        ansible_hostname in ansible_play_hosts_all[1::2]
@@ -253,7 +253,7 @@
       changed_when:                    false
       register:                        hana_system_started
 
-    - name:                            Wait 5 minutes for SAP system to start
+    - name:                            Wait 2 minutes for SAP system to start
       ansible.builtin.pause:
-        seconds:                       300
+        seconds:                       120
 # End of HANA clustering resources
