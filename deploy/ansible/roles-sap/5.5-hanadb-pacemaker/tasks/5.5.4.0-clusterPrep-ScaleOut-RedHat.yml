@@ -226,7 +226,7 @@
           ansible.builtin.shell: >
                                        nfsstat -m | grep "{{ target }}"
           register:                    nfs_mount_check_S1
-          failed_when:                 nfs_mount_check_S1.rc != 0
+          failed_when:                 nfs_mount_check_S1.stdout is search("/hana/shared")
           vars:
             target:                    hana_shared_mountpoint[0]
           when:                        ansible_hostname in ansible_play_hosts_all[0::2]
@@ -235,7 +235,7 @@
           ansible.builtin.shell: >
                                        nfsstat -m | grep "{{ target }}"
           register:                    nfs_mount_check_S2
-          failed_when:                 nfs_mount_check_S2.rc != 0
+          failed_when:                 nfs_mount_check_S2.stdout is search("/hana/shared")
           vars:
             target:                    hana_shared_mountpoint[1]
           when:                        ansible_hostname in ansible_play_hosts_all[1::2]
