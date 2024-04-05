@@ -127,7 +127,7 @@
           block:
           - name:                        "Configure site node attributes for primary site nodes"
             ansible.builtin.shell: >
-                                         pcs node attribute {{ item.hostname }} NFS_SID_SITE=S1
+                                         pcs node attribute {{ item }} NFS_SID_SITE=S1
             register:                    is_nfs_primary_site_configured
             failed_when:                 false
             ignore_errors:               true
@@ -138,7 +138,7 @@
 
           - name:                        "Configure site node attributes for secondary site nodes"
             ansible.builtin.shell: >
-                                         pcs node attribute {{ item.hostname }} NFS_SID_SITE=S2
+                                         pcs node attribute {{ item }} NFS_SID_SITE=S2
             register:                    is_nfs_secondary_site_configured
             failed_when:                 false
             ignore_errors:               true
