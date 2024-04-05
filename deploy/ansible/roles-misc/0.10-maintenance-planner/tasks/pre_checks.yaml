@@ -435,18 +435,19 @@
     state:                             present
   tags:
                                         - always
-
 - name:                                "0.10-maintenance-planner: Check if stack xml exists"
   ansible.builtin.stat:
-    path:                              "{{ _workspace_directory }}/stack.xml"
-  register:                            stack_xml_exists
+    path:                              "{{ stack_xml_file }}"
+  register: stack_xml_exists
 
-- name:                                "0.10-maintenance-planner: Fail if stack xml does not exist"
-  ansible.builtin.fail:
-    msg:                               "stack.xml does not exist in the workspace directory"
-  when:                                "stack_xml_exists.stat.exists == false"
-
-
+- name:                                 "(pre_checks.yaml) - Check that the S-User is present and not empty (s_user)"
+  ansible.builtin.assert:
+    that:
+      - "stack_xml_exists.stat.exists"
+    success_msg: |-
+                                        "stack.xml found"
+    fail_msg: |-
+                                        Please ensure that the stack.xml is present in WORKSPACES/BOMS/stack.xml
 
 ...
 # /*---------------------------------------------------------------------------8
