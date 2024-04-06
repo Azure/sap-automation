@@ -241,6 +241,14 @@
     dest:                              "/home/{{ orchestration_ansible_user }}/{{ maintenance_plan_id }}.yaml"
   delegate_to:                         localhost
 
+- name:                                "0.10-maintenance-planner: Read the BOM"
+  ansible.builtin.include_vars:
+    file:                              "/home/{{ orchestration_ansible_user }}/{{ maintenance_plan_id }}.yaml"
+    name:                              bom
+
+- name:                                "0.10-maintenance-planner: Print the BOM"
+  ansible.builtin.debug:
+    var:                               bom
 
 - name:                                "0.10-maintenance-planner: Register BOM"
   ansible.builtin.include_tasks:
