@@ -256,7 +256,7 @@
     file:                              "/home/{{ orchestration_ansible_user }}/{{ maintenance_plan_id }}.yaml"
     name:                              bom
 
-- name:                                "0.10-maintenance-planner: Print the template data"
+- name:                                "0.10-maintenance-planner: Print the BOM"
   ansible.builtin.debug:
     var:                                bom
 
