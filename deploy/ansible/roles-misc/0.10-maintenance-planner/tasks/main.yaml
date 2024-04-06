@@ -191,18 +191,18 @@
     mode:                             0644
     force:                            true
 
-- name:                                "DBLoad: - run SAPInst"
-  become:                              true
-  ansible.builtin.shell: |
-                                       umask {{ custom_umask | default('022') }} ;
-                                       ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ ini_file }}                         \
-                                                SAPINST_EXECUTE_PRODUCT_ID=download_service_toplevel:GENERIC.IND.PD \
-                                                SAPINST_SKIP_DIALOGS=true                                           \
-                                                SAPINST_START_GUISERVER=false
-  args:
-    chdir:                             "{{ tools_base_dir ~ swpm_version_to_use }}"
-  environment:
-    TMPDIR:                            "/home/{{ orchestration_ansible_user }}/download_basket/tmp"
+# - name:                                "0.10-maintenance-planner: - run SAPInst"
+#   become:                              true
+#   ansible.builtin.shell: |
+#                                        umask {{ custom_umask | default('022') }} ;
+#                                        ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ ini_file }}                         \
+#                                                 SAPINST_EXECUTE_PRODUCT_ID=download_service_toplevel:GENERIC.IND.PD \
+#                                                 SAPINST_SKIP_DIALOGS=true                                           \
+#                                                 SAPINST_START_GUISERVER=false
+#   args:
+#     chdir:                             "{{ tools_base_dir ~ swpm_version_to_use }}"
+#   environment:
+#     TMPDIR:                            "/home/{{ orchestration_ansible_user }}/download_basket/tmp"
 
 - name:                                "0.10-maintenance-planner: stat downloads directory"
   ansible.builtin.find:
@@ -225,6 +225,12 @@
     content:                           "{{ templated_data }}"
     dest:                              "/home/{{ orchestration_ansible_user }}/{{ maintenance_plan_id }}.yaml"
   delegate_to:                         localhost
+
+
+- name:                                "0.10-maintenance-planner: Register BOM"
+  ansible.builtin.include_vars:
+    file:                              "/home/{{ orchestration_ansible_user }}/{{ maintenance_plan_id }}.yaml"
+    name:                              bom
 
 - name:                                "0.10-maintenance-planner: - Upload Files using SAS Token"
   ansible.builtin.command: >-
@@ -271,7 +277,7 @@
 # Description:
 #
 
-- name:                                "0.10-maintenance-planner: - Upload File using SAS keys"
+- name:                                "0.10-maintenance-planner: - Upload BoM File using SAS keys"
   ansible.builtin.command: >-
                                        az storage blob upload
                                          --account-name  {{ account }}
@@ -291,7 +297,7 @@
   when:
     - sapbits_sas_token is defined
 
-- name:                                "0.10-maintenance-planner: - Upload File using SAS keys"
+- name:                                "0.10-maintenance-planner: - Upload BoM File using SAS keys"
   ansible.builtin.command: >-
                                        az storage blob upload
                                          --account-name {{ account }}
@@ -310,6 +316,49 @@
     - azresult.stderr.find("BlobAlreadyExists") == -1
   when:
     - sapbits_sas_token is undefined
+
+
+
+- name:                                "0.10-maintenance-planner: - Upload stack file using SAS keys"
+  ansible.builtin.command: >-
+                                       az storage blob upload
+                                         --account-name  {{ account }}
+                                         --sas-token {{ sapbits_sas_token }}
+                                         --container-name {{ sapbits_location_base_path.rpartition('//')[2].split('/')[1] }}/{{ sapbits_bom_files }}/boms/{{ maintenance_plan_id }}
+                                         --name stack.xml
+                                         --file {{ stack_xml_file }}
+                                         --if-none-match "*"
+                                         --no-progress
+  delegate_to:                         localhost
+  register:                            azresult
+  ignore_errors:                       true
+  failed_when:
+    - azresult.rc != 0
+    - azresult.stderr is defined
+    - azresult.stderr.find("BlobAlreadyExists") == -1
+  when:
+    - sapbits_sas_token is defined
+
+- name:                                "0.10-maintenance-planner: - Upload stack file using SAS keys"
+  ansible.builtin.command: >-
+                                       az storage blob upload
+                                         --account-name {{ account }}
+                                         --auth-mode login
+                                         --container-name {{ sapbits_location_base_path.rpartition('//')[2].split('/')[1] }}/{{ sapbits_bom_files }}/boms/{{ maintenance_plan_id }}
+                                         --name stack.xml
+                                         --file {{ stack_xml_file }}
+                                         --if-none-match "*"
+                                         --no-progress
+  delegate_to:                         localhost
+  register:                            azresult
+  ignore_errors:                       true
+  failed_when:
+    - azresult.rc != 0
+    - azresult.stderr is defined
+    - azresult.stderr.find("BlobAlreadyExists") == -1
+  when:
+    - sapbits_sas_token is undefined
+
 
 # Step: 05-04-01 - END
 # -------------------------------+---------------------------------------------8
