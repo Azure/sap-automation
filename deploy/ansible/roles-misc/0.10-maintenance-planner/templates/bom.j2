@@ -13,9 +13,10 @@ product_ids:
 
 materials:
   media:
-
 {% for item in downloads_dir_files.files %}
+
 {{'    %-16s' | format('- name:' | trim) }}{{'\"%s\"'   | format(item.path | basename) }}
 {{'    %-13s' | format('archive:' | trim) }}{{' \'%s\'' | format(item.path | basename) }}
-{{      download:     true}}
+{{'    %-12s' | format('download:' | trim) }}{{' %s' | 'true' }}
+
 {% endfor %}
