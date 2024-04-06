@@ -222,6 +222,9 @@ stages:
 
               echo -e "$green--- Add BOM Base Name and SAP FQDN to sap-parameters.yaml ---$reset"
 
+                echo "Bom name:      " ${BOM_BASE_NAME}
+                echo "Override name: " ${BOM_NAME_OVERRIDE}
+
                 if [ $#BOM_NAME_OVERRIDE -gt 2 ]; then
                   # Code to execute if the length of BOM_NAME_OVERRIDE is more than 2
                   echo "##vso[build.updatebuildnumber]Deploying ${SAP_SYSTEM_CONFIGURATION_NAME} using BoM ${BOM_NAME_OVERRIDE}"
