@@ -430,6 +430,7 @@
 
 - name:                                "0.10-maintenance-planner: Ensure lxml is installed in the playbook python"
   become:                              true
+  become_user:                         root
   ansible.builtin.pip:
     name:                              lxml
     state:                             present
