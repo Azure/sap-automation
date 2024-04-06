@@ -255,17 +255,6 @@
   ansible.builtin.include_tasks:
     file:                              "process_bom.yaml"
 
-- name:                                "0.10-maintenance-planner: Print the template data"
-  ansible.builtin.debug:
-    var:                               bom
-
-
-- name:                                "0.10-maintenance-planner: Print the template data"
-  ansible.builtin.debug:
-    var:                               bom_update
-
-
-
 - name:                                "0.10-maintenance-planner: - Upload Files using SAS Token"
   ansible.builtin.command: >-
                                        az storage blob upload-batch
