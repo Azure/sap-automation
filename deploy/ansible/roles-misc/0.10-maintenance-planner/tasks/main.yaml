@@ -11,7 +11,7 @@
     stack_xml_file:                    "{{ stack_path }}/stack.xml"
     tools_base_dir:                    "/home/{{ orchestration_ansible_user }}/Azure_SAP_Automated_Deployment/SAP_tools/"
     new_bom_name:                      "{{ maintenance_plan_id }}.yaml"
-    download_directory:                "/home/{{ orchestration_ansible_user }}/download_basket/{{ maintenance_plan_id }}/"
+    sap_download_dir:                  "/home/{{ orchestration_ansible_user }}/download_basket/{{ maintenance_plan_id }}/"
     ini_file:                          "/home/{{ orchestration_ansible_user }}//{{ maintenance_plan_id }}download.ini"
 
 - name:                                "0.10-maintenance-planner: Execute Pre-checks Task"
@@ -196,10 +196,6 @@
     dest:                             "{{ ini_file }}"
     mode:                             0644
     force:                            true
-  vars:
-    download_directory:               "/home/{{ orchestration_ansible_user }}/download_basket"
-  environment:
-    TMPDIR:                           "/home/{{ orchestration_ansible_user }}/download_basket"
 
 - name:                               "0.10-maintenance-planner: Create ini file"
   ansible.builtin.fail:
@@ -221,7 +217,7 @@
 
 - name:                                "0.10-maintenance-planner: stat downloads directory"
   ansible.builtin.find:
-    paths:                             "{{ download_directory }}"
+    paths:                             "{{ sap_download_dir }}"
     file_type:                         file
     recurse:                           true
     follow:                            true
@@ -253,7 +249,7 @@
                                          --account-name  {{ account }}
                                          --sas-token     {{ sapbits_sas_token }}
                                          --destination   {{ container }}
-                                         --source        {{ download_directory }}
+                                         --source        {{ sap_download_dir }}
                                          --overwrite True
                                          --if-none-match "*"
                                          --no-progress
@@ -272,7 +268,7 @@
                                          --account-name  {{ account }}
                                          --auth-mode login
                                          --destination   {{ container }}
-                                         --source        {{ download_directory }}
+                                         --source        {{ sap_download_dir }}
                                          --overwrite True
                                          --if-none-match "*"
                                          --no-progress
