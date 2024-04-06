@@ -2,7 +2,7 @@
 
 - name:                        "BOM: Verify Files"
   ansible.builtin.stat:
-    path:                      "{{ bom_media_entry.archive }}"
+    path:                      "{{ sap_download_dir }}/{{ bom_media_entry.archive }}"
     checksum_algorithm:        sha256
   register:                    fs_check
 
