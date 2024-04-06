@@ -197,9 +197,9 @@
     mode:                             0644
     force:                            true
 
-- name:                               "0.10-maintenance-planner: Create ini file"
-  ansible.builtin.fail:
-    msg:                              "The ini file does not exist"
+# - name:                               "0.10-maintenance-planner: Create ini file"
+#   ansible.builtin.fail:
+#     msg:                              "The ini file does not exist"
 
 
 # - name:                                "0.10-maintenance-planner: - run SAPInst"
