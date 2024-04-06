@@ -211,8 +211,6 @@ stages:
                     exit 2
                 fi
 
-                echo "##vso[build.updatebuildnumber]Deploying ${SAP_SYSTEM_CONFIGURATION_NAME} using BoM ${BOM_BASE_NAME}"
-
                 echo "##vso[task.setvariable variable=SID;isOutput=true]${SID}"
                 echo "##vso[task.setvariable variable=SAP_PARAMETERS;isOutput=true]sap-parameters.yaml"
                 echo "##vso[task.setvariable variable=FOLDER;isOutput=true]$HOME/SYSTEM/${SAP_SYSTEM_CONFIGURATION_NAME}"
@@ -226,8 +224,10 @@ stages:
 
                 if [ $#BOM_NAME_OVERRIDE -gt 2 ]; then
                   # Code to execute if the length of BOM_NAME_OVERRIDE is more than 2
+                  echo "##vso[build.updatebuildnumber]Deploying ${SAP_SYSTEM_CONFIGURATION_NAME} using BoM ${BOM_NAME_OVERRIDE}"
                   sed -i 's|bom_base_name:.*|bom_base_name:                 '"$BOM_NAME_OVERRIDE"'|'  sap-parameters.yaml
                 else
+                  echo "##vso[build.updatebuildnumber]Deploying ${SAP_SYSTEM_CONFIGURATION_NAME} using BoM ${BOM_BASE_NAME}"
                   sed -i 's|bom_base_name:.*|bom_base_name:                 '"$BOM_BASE_NAME"'|'  sap-parameters.yaml
                 fi
 
