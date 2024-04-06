@@ -221,7 +221,12 @@
     file_type:                         file
     recurse:                           true
     follow:                            true
-  register:                            downloads_dir_files
+  register:                            downloads_dir_files_unsorted
+
+- name:                                "0.10-maintenance-planner: How does the template render?"
+  ansible.builtin.set_fact:
+    downloads_dir_files:               downloads_dir_files_unsorted.files | sort(attrinute='path')
+
 
 - name:                                "0.10-maintenance-planner: How does the template render?"
   ansible.builtin.set_fact:
