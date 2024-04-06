@@ -11,10 +11,6 @@
     var:                       fs_check
     verbosity:                 1
 
-- name:                                "BOM: Show"
-  ansible.builtin.debug:
-    var:                               create_checksums
-    verbosity:                         1
 
 - name:                                "BOM: Line"
   ansible.builtin.blockinfile:
