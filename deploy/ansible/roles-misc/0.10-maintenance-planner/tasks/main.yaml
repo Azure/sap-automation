@@ -198,6 +198,8 @@
     force:                            true
   vars:
     download_directory:               "/home/{{ orchestration_ansible_user }}/download_basket"
+  environment:
+    TMPDIR:                           "/home/{{ orchestration_ansible_user }}/download_basket"
 
 - name:                               "0.10-maintenance-planner: Create ini file"
   ansible.builtin.fail:
