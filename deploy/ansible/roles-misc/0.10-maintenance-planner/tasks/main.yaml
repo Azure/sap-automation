@@ -13,6 +13,7 @@
     new_bom_name:                      "{{ maintenance_plan_id }}.yaml"
     sap_download_dir:                  "/home/{{ orchestration_ansible_user }}/download_basket/{{ maintenance_plan_id }}/"
     ini_file:                          "/home/{{ orchestration_ansible_user }}//{{ maintenance_plan_id }}download.ini"
+    bom_file:                          "/home/{{ orchestration_ansible_user }}/{{ maintenance_plan_id }}.yaml"
 
 - name:                                "0.10-maintenance-planner: Execute Pre-checks Task"
   ansible.builtin.import_tasks:        pre_checks.yaml
@@ -238,12 +239,12 @@
 - name:                                "0.10-maintenance-planner: Write variable contents to file"
   ansible.builtin.copy:
     content:                           "{{ template_data }}"
-    dest:                              "/home/{{ orchestration_ansible_user }}/{{ maintenance_plan_id }}.yaml"
+    dest:                              "{{ bom_file }}"
   delegate_to:                         localhost
 
 - name:                                "0.10-maintenance-planner: Read the BOM"
   ansible.builtin.include_vars:
-    file:                              "/home/{{ orchestration_ansible_user }}/{{ maintenance_plan_id }}.yaml"
+    file:                              "{{ bom_file }}"
     name:                              bom
 
 - name:                                "0.10-maintenance-planner: Print the BOM"
