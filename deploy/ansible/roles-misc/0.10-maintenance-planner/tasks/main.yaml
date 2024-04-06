@@ -227,15 +227,6 @@
   ansible.builtin.set_fact:
     downloads_dir_files:               "{{ downloads_dir_files_unsorted.files | sort(attribute='path') }}"
 
-- name:                                "0.10-maintenance-planner: Add checksums"
-  ansible.builtin.include_tasks:       checksums.yaml
-  loop:                                "{{ bom.materials.media | flatten(levels=1) }}"
-  loop_control:
-    loop_var:                           bom_media_entry
-    index_var:                          bom_media_index
-  no_log:                              false
-
-
 - name:                                "0.10-maintenance-planner: How does the template render?"
   ansible.builtin.set_fact:
     bom:                               "{{ lookup('template', 'bom.j2') }}"
