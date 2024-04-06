@@ -256,6 +256,10 @@
     file:                              "/home/{{ orchestration_ansible_user }}/{{ maintenance_plan_id }}.yaml"
     name:                              bom
 
+- name:                                "0.10-maintenance-planner: Print the template data"
+  ansible.builtin.debug:
+    var:                                bom
+
 - name:                                "0.10-maintenance-planner: Add checksums"
   ansible.builtin.include_tasks:       checksums.yaml
   loop:                                "{{ bom.materials.media | flatten(levels=1) }}"
@@ -267,6 +271,7 @@
 - name:                                "0.10-maintenance-planner: Print the template data"
   ansible.builtin.debug:
     var:                                bom
+
 
 - name:                                "0.10-maintenance-planner: Print the template data"
   ansible.builtin.debug:
