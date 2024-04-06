@@ -8,14 +8,18 @@ InstanceType:  {{ stack_attributes.matches[1].constraint.value }}
 
 product_ids:
 {% for component in components %}
-  {{ '%-10s' | format(component.name | trim+':') }} {{ '\"%s\"' | format(component.id | trim) }}
-{% endfor %}}
+{% if component.id.endswith('HA') %}
+{{ '%-16s' | format(component.name | trim+'ha:') }} {{ '\"%s\"' | format(component.id | trim) }}
+{% else %}
+{{ '%-16s' | format(component.name | trim+':') }} {{ '\"%s\"' | format(component.id | trim) }}
+{% endif %}
+{% endfor %}
 
 materials:
   media:
-{% for item in downloads_dir_files.files %}
+{% for item in downloads_dir_files %}
 
-{{'    %-16s' | format('- name:' | trim) }}{{'\"%s\"'   | format(item.path | basename) }}
-{{'    %-13s' | format('archive:' | trim) }}{{' \'%s\'' | format(item.path | basename) }}
+{{'    %-16s' | format('- name:' | trim) }}{{'\"%s\"'   | format(item | basename) }}
+{{'    %-13s' | format('archive:' | trim) }}{{' \'%s\'' | format(item | basename) }}
 
 {% endfor %}
