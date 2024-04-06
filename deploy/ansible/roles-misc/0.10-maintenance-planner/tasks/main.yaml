@@ -308,6 +308,7 @@
                                          --container-name {{ sapbits_location_base_path.rpartition('//')[2].split('/')[1] }}/{{ sapbits_bom_files }}/boms/{{ maintenance_plan_id }}
                                          --name {{ maintenance_plan_id }}.yaml
                                          --file /home/{{ orchestration_ansible_user }}/{{ maintenance_plan_id }}.yaml
+                                         --overwrite True
                                          --if-none-match "*"
                                          --no-progress
   delegate_to:                         localhost
@@ -328,6 +329,7 @@
                                          --container-name {{ sapbits_location_base_path.rpartition('//')[2].split('/')[1] }}/{{ sapbits_bom_files }}/boms/{{ maintenance_plan_id }}
                                          --name {{ maintenance_plan_id }}.yaml
                                          --file /home/{{ orchestration_ansible_user }}/{{ maintenance_plan_id }}.yaml
+                                         --overwrite True
                                          --if-none-match "*"
                                          --no-progress
   delegate_to:                         localhost
