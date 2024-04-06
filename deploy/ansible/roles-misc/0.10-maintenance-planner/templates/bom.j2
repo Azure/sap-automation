@@ -20,6 +20,6 @@ materials:
 {% for item in downloads_dir_files %}
 {{'    %-16s' | format('- name:' | trim) }}{{'%s'   | format(item.path | basename) }}
 {{'      %-13s' | format('archive:' | trim) }}{{' %s' | format(item.path | basename) }}
-{{'      %-12s' | format('download:') }}{{' %s' | 'true' }}
+{{      download: true }}
 
 {% endfor %}
