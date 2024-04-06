@@ -9,9 +9,9 @@ InstanceType:  {{ stack_attributes.matches[1].constraint.value }}
 product_ids:
 {% for component in components %}
 {% if component.id.endswith('HA') %}
-{{ '%-30s' | format(component.name | trim+'HA:') }} {{ '%s' | format(component.id | trim) }}
+{{ '%-30s' | format(component.name | upper | trim+'HA:') }} {{ '%s' | format(component.id | trim) }}
 {% else %}
-{{ '%-30s' | format(component.name | trim+':') }} {{ '%s' | format(component.id | trim) }}
+{{ '%-30s' | format(component.name | upper | trim+':') }} {{ '%s' | format(component.id | trim) }}
 {% endif %}
 {% endfor %}
 
