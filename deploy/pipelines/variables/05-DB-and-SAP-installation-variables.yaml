@@ -6,6 +6,8 @@
 
 parameters:
   environment: ""
+  bom_base_name:                       ""
+  bom_override_name:                   ""
 
 variables:
   - group:                             "SDAF-General"
@@ -20,3 +22,6 @@ variables:
 
   - name:                              variable_group
     value:                             SDAF-${{ parameters.environment }}
+
+  - name:                              bom
+    value:                             $[coalesce('${{ parameters.bom_override_name }}', '${{ parameters.bom_base_name }}','foo')]

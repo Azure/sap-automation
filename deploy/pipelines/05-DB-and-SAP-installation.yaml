@@ -22,6 +22,10 @@ parameters:
     displayName:                       Bill of Materials name
     type:                              string
 
+  - name:                              bom_override_name
+    displayName:                       Bill of Materials name override
+    type:                              string
+
   - name:                              extra_params
     displayName:                       Extra Parameters
     type:                              string
@@ -219,7 +223,13 @@ stages:
                 sap_params_updated=0
 
               echo -e "$green--- Add BOM Base Name and SAP FQDN to sap-parameters.yaml ---$reset"
-                sed -i 's|bom_base_name:.*|bom_base_name:                 '"$BOM_BASE_NAME"'|'  sap-parameters.yaml
+
+                if [ $#BOM_NAME_OVERRIDE -gt 2 ]; then
+                  # Code to execute if the length of BOM_NAME_OVERRIDE is more than 2
+                  sed -i 's|bom_base_name:.*|bom_base_name:                 '"$BOM_NAME_OVERRIDE"'|'  sap-parameters.yaml
+                else
+                  sed -i 's|bom_base_name:.*|bom_base_name:                 '"$BOM_BASE_NAME"'|'  sap-parameters.yaml
+                fi
 
                 fqdn="$(grep -m1 "$sap_fqdn:" sap-parameters.yaml | cut -d':' -f2-  | tr -d ' ' | tr -d '"')"
                 if [ -z $fqdn ] ; then
@@ -324,6 +334,7 @@ stages:
               ANSIBLE_COLLECTIONS_PATHS:     /opt/ansible/collections
               CONFIG_REPO_PATH:              ${{ parameters.config_repo_path }}
               BOM_BASE_NAME:                 ${{ parameters.bom_base_name }}
+              BOM_NAME_OVERRIDE:             ${{ parameters.bom_override_name }}
               SAP_SYSTEM_CONFIGURATION_NAME: ${{ parameters.sap_system_configuration_name }}
               EXTRA_PARAMETERS:              $(EXTRA_PARAMETERS)
               PIPELINE_EXTRA_PARAMETERS:     ${{ parameters.extra_params }}
