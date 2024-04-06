@@ -227,6 +227,15 @@
   ansible.builtin.set_fact:
     downloads_dir_files:               "{{ downloads_dir_files_unsorted.files | sort(attribute='path') }}"
 
+- name:                                "0.10-maintenance-planner: Add checksums"
+  ansible.builtin.include_tasks:       checksums.yaml
+  loop:                                "{{ bom.materials.media | flatten(levels=1) }}"
+  loop_control:
+    loop_var:                           bom_media_entry
+    index_var:                          bom_media_index
+  no_log:                              false
+
+
 - name:                                "0.10-maintenance-planner: How does the template render?"
   ansible.builtin.set_fact:
     templated_data:                    "{{ lookup('template', 'bom.j2') }}"
@@ -246,6 +255,24 @@
   ansible.builtin.include_vars:
     file:                              "/home/{{ orchestration_ansible_user }}/{{ maintenance_plan_id }}.yaml"
     name:                              bom
+
+- name:                                "0.10-maintenance-planner: Add checksums"
+  ansible.builtin.include_tasks:       checksums.yaml
+  loop:                                "{{ bom.materials.media | flatten(levels=1) }}"
+  loop_control:
+    loop_var:                           bom_media_entry
+    index_var:                          bom_media_index
+  no_log:                              false
+
+- name:                                "0.10-maintenance-planner: Print the template data"
+  ansible.builtin.debug:
+    var:                                bom
+
+- name:                                "0.10-maintenance-planner: Print the template data"
+  ansible.builtin.debug:
+    var:                                bom_update
+
+
 
 - name:                                "0.10-maintenance-planner: - Upload Files using SAS Token"
   ansible.builtin.command: >-
