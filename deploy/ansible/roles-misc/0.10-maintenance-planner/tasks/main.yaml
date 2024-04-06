@@ -229,15 +229,15 @@
 
 - name:                                "0.10-maintenance-planner: How does the template render?"
   ansible.builtin.set_fact:
-    bom:                               "{{ lookup('template', 'bom.j2') }}"
+    template_data:                     "{{ lookup('template', 'bom.j2') }}"
 
 - name:                                "0.10-maintenance-planner: Print the template data"
   ansible.builtin.debug:
-    var:                               bom
+    var:                               template_data
 
 - name:                                "0.10-maintenance-planner: Write variable contents to file"
   ansible.builtin.copy:
-    content:                           "{{ bom }}"
+    content:                           "{{ template_data }}"
     dest:                              "/home/{{ orchestration_ansible_user }}/{{ maintenance_plan_id }}.yaml"
   delegate_to:                         localhost
 
