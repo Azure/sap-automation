@@ -184,12 +184,23 @@
     - "/home/{{ orchestration_ansible_user }}/download_basket/{{ maintenance_plan_id }}"
     - "/home/{{ orchestration_ansible_user }}/download_basket/tmp"
 
+- name:                               "0.10-maintenance-planner: Remove ini file"
+  ansible.builtin.file:
+    path:                             "{{ ini_file }}"
+    state:                            absent
+
+
 - name:                               "0.10-maintenance-planner: Create ini file"
   ansible.builtin.template:
     src:                              "download.j2"
     dest:                             "{{ ini_file }}"
     mode:                             0644
     force:                            true
+
+- name:                               "0.10-maintenance-planner: Create ini file"
+  ansible.builtin.fail:
+    msg:                              "The ini file does not exist"
+
 
 # - name:                                "0.10-maintenance-planner: - run SAPInst"
 #   become:                              true
