@@ -6,7 +6,7 @@
 
 resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA" {
   provider                             = azurerm.main
-  count                                = local.use_avg  ? length(var.ppg) : 0
+  count                                = local.use_avg  ? length(var.ppg) * (var.database_server_count - var.database.stand_by_node_count) : 0
   name                                 = format("%s%s%s%s%d",
                                            var.naming.resource_prefixes.hana_avg,
                                            local.prefix,
@@ -20,19 +20,27 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA" {
   group_description                    = format("Application Volume %d group for %s", count.index + 1, var.sap_sid)
   application_identifier               = local.sid
 
-  dynamic "volume" {
-                     iterator = pub
-                     for_each = (count.index == 0 ? local.volumes_primary : local.volumes_secondary)
-                     content {
-                               name                         = pub.value.name
-                               volume_path                  = pub.value.path
+  volume                    {
+                               name                          = format("%s%s%s%s%d",
+                                                                var.naming.resource_prefixes.hanadata,
+                                                                local.prefix,
+                                                                var.naming.separator,
+                                                                local.resource_suffixes.hanadata,
+                                                                count.index + 1
+                                                              )
+                               volume_path                  = format("%s-%s%02d",
+                                                                var.sap_sid,
+                                                                local.resource_suffixes.hanadata,
+                                                                count.index + 1
+                                                              )
                                service_level                = local.ANF_pool_settings.service_level
                                capacity_pool_id             = data.azurerm_netapp_pool.workload_netapp_pool[0].id
                                subnet_id                    = try(local.ANF_pool_settings.subnet_id, "")
-                               proximity_placement_group_id = pub.value.proximityPlacementGroup
-                               volume_spec_name             = pub.value.volumeSpecName
-                               storage_quota_in_gb          = pub.value.storage_quota_in_gb
-                               throughput_in_mibps          = pub.value.throughput_in_mibps
+                               proximity_placement_group_id = var.ppg[count.index % max(length(var.ppg)), 1)]
+                               volume_spec_name             = "data"
+                               storage_quota_in_gb          = var.hana_ANF_volumes.data_volume_size
+                               throughput_in_mibps          = var.hana_ANF_volumes.data_volume_throughput
+
                                protocols                    = ["NFSv4.1"]
                                security_style               = "unix"
                                snapshot_directory_visible   = false
@@ -46,8 +54,44 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA" {
                                                     unix_read_write     = true
                                                     root_access_enabled = true
                                                   }
-                             }
-                   }
+                            }
+
+  volume                    {
+                               name                          = format("%s%s%s%s%d",
+                                                                var.naming.resource_prefixes.hanadata,
+                                                                local.prefix,
+                                                                var.naming.separator,
+                                                                local.resource_suffixes.hanalog,
+                                                                count.index + 1
+                                                              )
+                               volume_path                  = format("%s-%s%02d",
+                                                                var.sap_sid,
+                                                                local.resource_suffixes.hanalog,
+                                                                count.index + 1
+                                                              )
+                               service_level                = local.ANF_pool_settings.service_level
+                               capacity_pool_id             = data.azurerm_netapp_pool.workload_netapp_pool[0].id
+                               subnet_id                    = try(local.ANF_pool_settings.subnet_id, "")
+                               proximity_placement_group_id = var.ppg[count.index % max(length(var.ppg)), 1)]
+                               volume_spec_name             = "log"
+                               storage_quota_in_gb          = var.hana_ANF_volumes.log_volume_size
+                               throughput_in_mibps          = var.hana_ANF_volumes.log_volume_throughput
+
+                               protocols                    = ["NFSv4.1"]
+                               security_style               = "unix"
+                               snapshot_directory_visible   = false
+
+                               export_policy_rule {
+                                                    rule_index          = 1
+                                                    allowed_clients     = "0.0.0.0/0"
+                                                    nfsv3_enabled       = false
+                                                    nfsv41_enabled      = true
+                                                    unix_read_only      = false
+                                                    unix_read_write     = true
+                                                    root_access_enabled = true
+                                                  }
+                            }
+
 
 }
 
@@ -87,11 +131,6 @@ locals {
                    local.resource_suffixes.hanadata,
                    1
                  )
-                 volumeSpecName          = "data"
-                 proximityPlacementGroup = length(var.ppg) > 0 ? try(var.ppg[0], null) : null
-                 storage_quota_in_gb     = var.hana_ANF_volumes.data_volume_size
-                 throughput_in_mibps     = var.hana_ANF_volumes.data_volume_throughput
-                 zone                    = local.db_zone_count > 0 ? try(local.zones[0], null) : null
                }
 
   hana_data2 = {
