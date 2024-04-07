@@ -72,14 +72,14 @@
             - "{{ hana_shared_mountpoint[0] }}"
             - "{{ hana_shared_mountpoint[1] }}"
 
-        - name:                         Unmount /hana/shared from all cluster participating nodes
-          block:
-            - name:                     Unmount /hana/shared
-              ansible.builtin.mount:
-                path:                   /hana/shared
-                state:                  unmounted
-              register:                 unmount_result
-              failed_when:              unmount_result.failed
+        - name:
+
+        - name:                     Unmount /hana/shared from all cluster participating nodes
+          ansible.builtin.mount:
+            path:                   /hana/shared
+            state:                  unmounted
+          register:                 unmount_result
+          failed_when:              unmount_result.rc != 0
 
 
         # TODO : add code to unmount /hana/shared and ensure it remains unmounted as hanarsutil,sapcontrol locks the file system/mount point even after stopping SAP system
