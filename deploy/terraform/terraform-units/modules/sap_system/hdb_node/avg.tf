@@ -36,7 +36,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA" {
                                service_level                = local.ANF_pool_settings.service_level
                                capacity_pool_id             = data.azurerm_netapp_pool.workload_netapp_pool[0].id
                                subnet_id                    = try(local.ANF_pool_settings.subnet_id, "")
-                               proximity_placement_group_id = var.ppg[count.index % max(length(var.ppg)), 1)]
+                               proximity_placement_group_id = var.ppg[count.index % max(length(var.ppg), 1)]
                                volume_spec_name             = "data"
                                storage_quota_in_gb          = var.hana_ANF_volumes.data_volume_size
                                throughput_in_mibps          = var.hana_ANF_volumes.data_volume_throughput
@@ -72,7 +72,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA" {
                                service_level                = local.ANF_pool_settings.service_level
                                capacity_pool_id             = data.azurerm_netapp_pool.workload_netapp_pool[0].id
                                subnet_id                    = try(local.ANF_pool_settings.subnet_id, "")
-                               proximity_placement_group_id = var.ppg[count.index % max(length(var.ppg)), 1)]
+                               proximity_placement_group_id = var.ppg[count.index % max(length(var.ppg), 1)]
                                volume_spec_name             = "log"
                                storage_quota_in_gb          = var.hana_ANF_volumes.log_volume_size
                                throughput_in_mibps          = var.hana_ANF_volumes.log_volume_throughput
@@ -95,7 +95,6 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA" {
   dynamic "volume" {
                      iterator = pub
                      for_each = range(count.index <= length(var.ppg)  ? length(var.ppg) : 0)
-                     for_each = (count.index == 0 ? local.volumes_primary : local.volumes_secondary)
                      content {
                                name                         = format("%s%s%s%s%d",
                                                                 var.naming.resource_prefixes.hanashared,
@@ -112,7 +111,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA" {
                                service_level                = local.ANF_pool_settings.service_level
                                capacity_pool_id             = data.azurerm_netapp_pool.workload_netapp_pool[0].id
                                subnet_id                    = try(local.ANF_pool_settings.subnet_id, "")
-                               proximity_placement_group_id = var.ppg[count.index % max(length(var.ppg)), 1)]
+                               proximity_placement_group_id = var.ppg[count.index % max(length(var.ppg), 1)]
                                volume_spec_name             = "shared"
                                storage_quota_in_gb          = var.hana_ANF_volumes.shared_volume_size
                                throughput_in_mibps          = var.hana_ANF_volumes.shared_volume_throughput
