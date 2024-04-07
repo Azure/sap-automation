@@ -6,6 +6,8 @@
 
 parameters:
   bom_base_name:                       ""
+  bom_override_name:                   ""
+  maintenance_plan_id:                 ""
   environment:                         ""
   re_download:                         false
   region:                              ""
@@ -17,7 +19,10 @@ variables:
   - group:                             SDAF-${{ parameters.environment }}
 
   - name:                              bom
-    value:                             $[coalesce(variables['BoM_OverRide'], '${{ parameters.bom_base_name }}','foo')]
+    value:                             $[coalesce('${{ parameters.bom_override_name }}', '${{ parameters.bom_base_name }}','foo')]
+
+  - name:                              plan_id
+    value:                             ${{ parameters.maintenance_plan_id }}
 
   - name:                              variable_group
     value:                             SDAF-${{ parameters.environment }}
