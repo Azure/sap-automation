@@ -72,35 +72,36 @@
             - "{{ hana_shared_mountpoint[0] }}"
             - "{{ hana_shared_mountpoint[1] }}"
 
-        - name:                     Unmount /hana/shared from all cluster participating nodes
-          ansible.builtin.mount:
-            path:                   /hana/shared
-            state:                  unmounted
-          register:                 unmount_result
-          failed_when:              unmount_result.rc != 0
-      rescue:
-        - name:                            Check if any processes are locking /hana/shared
-          ansible.builtin.shell:           lsof +f -- /hana/shared
-          register:                        lock_processes
-          changed_when:                    false
+      #   - name:                     Unmount /hana/shared from all cluster participating nodes
+      #     ansible.builtin.mount:
+      #       path:                   /hana/shared
+      #       state:                  unmounted
+      #     register:                 unmount_result
+      #     failed_when:              unmount_result.rc != 0
+      # rescue:
+      #   - name:                            Check if any processes are locking /hana/shared
+      #     ansible.builtin.shell:           lsof +f -- /hana/shared
+      #     register:                        lock_processes
+      #     changed_when:                    false
 
-        - name:                            Kill processes locking /hana/shared
-          ansible.builtin.shell:           kill -9 {{ item.split()[1] }}
-          with_items:                      "{{ lock_processes.stdout_lines }}"
-          when:                            lock_processes.stdout_lines | length > 0
+      #   # Fix this
+      #   - name:                            Kill processes locking /hana/shared
+      #     ansible.builtin.shell:           kill -9 {{ item.split()[1] }}
+      #     with_items:                      "{{ lock_processes.stdout_lines }}"
+      #     when:                            lock_processes.stdout_lines | length > 0
 
-        - name:                        "Comment out the mountpoint from '/etc/fstab' file"
-          ansible.builtin.replace:
-            path:                      /etc/fstab
-            regexp:                    "^{{ item }}"
-            replace:                   "# {{ item }}"
-            backup:                    true
-          loop:
-            - "{{ hana_shared_mountpoint[0] }}"
-            - "{{ hana_shared_mountpoint[1] }}"
+      #   - name:                        "Comment out the mountpoint from '/etc/fstab' file"
+      #     ansible.builtin.replace:
+      #       path:                      /etc/fstab
+      #       regexp:                    "^{{ item }}"
+      #       replace:                   "# {{ item }}"
+      #       backup:                    true
+      #     loop:
+      #       - "{{ hana_shared_mountpoint[0] }}"
+      #       - "{{ hana_shared_mountpoint[1] }}"
 
-        - name:                            Unmount /hana/shared forcefully
-          ansible.builtin.shell:           umount -f /hana/shared
+      #   - name:                            Unmount /hana/shared forcefully
+      #     ansible.builtin.shell:           umount -f /hana/shared
 
 
 
