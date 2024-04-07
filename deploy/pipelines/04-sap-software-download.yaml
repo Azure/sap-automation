@@ -9,6 +9,14 @@ parameters:
     displayName:                       Name of Bill of Materials (BoM)
     type:                              string
 
+  - name:                              bom_override_name
+    displayName:                       Custom Name of Bill of Materials (BoM)
+    type:                              string
+
+  - name:                              maintenance_plan_id
+    displayName:                       Maintenance Plan ID
+    type:                              string
+
   - name:                              environment
     displayName:                       Control Plane Environment
     default:                           MGMT
@@ -46,6 +54,8 @@ stages:
       - template:                      variables/04-sap-software-download-variables.yaml
         parameters:
           bom_base_name:               ${{ parameters.bom_base_name }}
+          bom_override_name:           ${{ parameters.bom_override_name }}
+          maintenance_plan_id:         ${{ parameters.maintenance_plan_id }}
           environment:                 ${{ parameters.environment }}
           re_download:                 ${{ parameters.re_download }}
           region:                      ${{ parameters.region }}
@@ -130,10 +140,18 @@ stages:
                   echo "##vso[build.updatebuildnumber]Downloading BoM defined in $(bom)"
                   echo "##vso[task.setvariable variable=BOM_NAME;isOutput=true]$(bom)"
 
+              echo -e "$green--- Maintenance Planner ID ---$reset"
+                  echo "##vso[build.updatebuildnumber]Downloading Software defined in Maintenance Plan $(plan_id)"
+                  echo "##vso[task.setvariable variable=PLAN;isOutput=true]$(plan_id)"
+                  echo 'Maintenance Planner ID id: ' $(plan_id)
+
+              echo "##vso[task.setvariable variable=CONFIG_REPO_PATH;isOutput=true]$CONFIG_REPO_PATH"
+
+
               echo -e "$green--- Set S-Username and S-Password in the key_vault if not yet there ---$reset"
 
-                export SUsernamefromVault=$(az keyvault secret list --vault-name "${kv_name}" --subscription "${ARM_SUBSCRIPTION_ID}" --query "[].{Name:name} | [? contains(Name,'S-Username')] | [0]"  -o tsv)
-                if [ $SUsernamefromVault == $SUsername ]; then
+                export SUsernameSecretNamefromVault=$(az keyvault secret list --vault-name "${kv_name}" --subscription "${ARM_SUBSCRIPTION_ID}" --query "[].{Name:name} | [? contains(Name,'S-Username')] | [0]"  -o tsv)
+                if [ $SUsernameSecretNamefromVault == 'S-Username' ]; then
                   echo -e "$green--- $SUsername present in keyvault. In case of download errors check that user and password are correct ---$reset"
                   echo "##vso[task.setvariable variable=SUSERNAME;isOutput=true]$SUsernamefromVault"
                 else
@@ -142,8 +160,8 @@ stages:
                   echo "##vso[task.setvariable variable=SUSERNAME;isOutput=true]$SUsername"
                 fi
 
-                export SPasswordfromVault=$(az keyvault secret list --vault-name "${kv_name}" --subscription "${ARM_SUBSCRIPTION_ID}" --query "[].{Name:name} | [? contains(Name,'S-Password')] | [0]"  -o tsv)
-                if [ ${SPassword} == $SPasswordfromVault ]; then
+                export SPasswordSecretNamefromVault=$(az keyvault secret list --vault-name "${kv_name}" --subscription "${ARM_SUBSCRIPTION_ID}" --query "[].{Name:name} | [? contains(Name,'S-Password')] | [0]"  -o tsv)
+                if [ 'S-Password' == $SPasswordSecretNamefromVault ]; then
                   echo "##vso[task.setvariable variable=SPASSWORD;isOutput=true]${SPasswordfromVault}"
                   echo -e "$green--- Password present in keyvault. In case of download errors check that user and password are correct ---$reset"
                 else
@@ -183,6 +201,8 @@ stages:
         variables:
           BOM_NAME:                    $[ stageDependencies.Prepare_download.Prepare_download_job.outputs['Preparation.BOM_NAME'] ]
           KV_NAME:                     $[ stageDependencies.Prepare_download.Prepare_download_job.outputs['Preparation.KV_NAME'] ]
+          PLAN:                        $[ stageDependencies.Prepare_download.Prepare_download_job.outputs['Preparation.PLAN'] ]
+          CONFIG_REPO_PATH:            $[ stageDependencies.Prepare_download.Prepare_download_job.outputs['Preparation.CONFIG_REPO_PATH'] ]
         timeoutInMinutes:              0
         steps:
           - template:                  templates\download_samples.yaml
@@ -228,8 +248,15 @@ stages:
                     exit $return_code
                   fi
                 fi
+                echo ${#PLAN}
 
-                command="ansible-playbook '-e "download_directory=$(Agent.TempDirectory)" -e "BOM_directory=${sample_path}" -e "bom_base_name=$(BOM_NAME)" -e "deployer_kv_name=$(KV_NAME)" -e "check_storage_account=$(check_storage_account)" ' $ExtraParams ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_bom_downloader.yaml"
+                if [ ${#PLAN} -gt 1 ]; then
+                  command="ansible-playbook '-e "download_directory=$(Agent.TempDirectory)" -e "BOM_directory=${sample_path}" -e "bom_base_name=SAP_TOOLS" -e "deployer_kv_name=$(KV_NAME)"  -e "stack_path=$(CONFIG_REPO_PATH)/BOMS" -e "maintenance_plan_id=$(PLAN)" ' $ExtraParams ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_bom_downloader.yaml"
+                else
+                  command="ansible-playbook '-e "download_directory=$(Agent.TempDirectory)" -e "BOM_directory=${sample_path}" -e "bom_base_name=$(BOM_NAME)" -e "deployer_kv_name=$(KV_NAME)" -e "check_storage_account=$(check_storage_account)" ' $ExtraParams ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_bom_downloader.yaml"
+                fi
+
+
 
                 echo "##[section]Executing [$command]..."
                 echo "##[group]- output"
