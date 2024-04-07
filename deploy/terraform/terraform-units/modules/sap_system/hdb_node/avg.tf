@@ -150,12 +150,3 @@ data "azurerm_netapp_account" "workload_netapp_account" {
   resource_group_name                  = try(split("/", local.ANF_pool_settings.account_id)[4], "")
 }
 
-
-locals {
-  use_avg = (
-              var.hana_ANF_volumes.use_AVG_for_data) && (
-              var.hana_ANF_volumes.use_for_data || var.hana_ANF_volumes.use_for_log || var.hana_ANF_volumes.use_for_shared
-            ) && !var.use_scalesets_for_deployment
-
-
-}
