@@ -190,7 +190,6 @@
     path:                             "{{ ini_file }}"
     state:                            absent
 
-
 - name:                               "0.10-maintenance-planner: Create ini file"
   ansible.builtin.template:
     src:                              "download.j2"
@@ -352,6 +351,7 @@
                                          --container-name {{ sapbits_location_base_path.rpartition('//')[2].split('/')[1] }}/{{ sapbits_bom_files }}/boms/{{ maintenance_plan_id }}
                                          --name stack.xml
                                          --file {{ stack_xml_file }}
+                                         --overwrite True
                                          --if-none-match "*"
                                          --no-progress
   delegate_to:                         localhost
@@ -371,6 +371,7 @@
                                          --auth-mode login
                                          --container-name {{ sapbits_location_base_path.rpartition('//')[2].split('/')[1] }}/{{ sapbits_bom_files }}/boms/{{ maintenance_plan_id }}
                                          --name stack.xml
+                                         --overwrite True
                                          --file {{ stack_xml_file }}
                                          --if-none-match "*"
                                          --no-progress
@@ -388,6 +389,10 @@
 # Step: 05-04-01 - END
 # -------------------------------+---------------------------------------------8
 
+- name:                               "0.10-maintenance-planner: Remove downloaded files"
+  ansible.builtin.file:
+    path:                             "{{ sap_download_dir }}"
+    state:                            absent
 
 
 ...
