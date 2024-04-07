@@ -94,7 +94,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA" {
 
   dynamic "volume" {
                      iterator = pub
-                     for_each = range(count.index <= length(var.ppg)  ? length(var.ppg) : 0)
+                     for_each = range(count.index <= length(var.ppg)  ? 1 : 0)
                      content {
                                name                         = format("%s%s%s%s%d",
                                                                 var.naming.resource_prefixes.hanashared,
