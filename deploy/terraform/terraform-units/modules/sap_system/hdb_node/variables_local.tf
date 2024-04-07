@@ -404,13 +404,13 @@ locals {
             ) && !var.use_scalesets_for_deployment
 
 
-  create_data_volumes                  = !local.use_avg && hana_ANF_volumes.use_for_data && !var.hana_ANF_volumes.use_existing_data_volume
-  use_data_volumes                     = !local.use_avg && hana_ANF_volumes.use_for_data && var.hana_ANF_volumes.use_existing_data_volume
+  create_data_volumes                  = !local.use_avg && var.hana_ANF_volumes.use_for_data && !var.hana_ANF_volumes.use_existing_data_volume
+  use_data_volumes                     = !local.use_avg && var.hana_ANF_volumes.use_for_data && var.hana_ANF_volumes.use_existing_data_volume
 
-  create_log_volumes                   = !local.use_avg && hana_ANF_volumes.use_for_log && !var.hana_ANF_volumes.use_existing_log_volume
-  use_log_volumes                      = !local.use_avg && hana_ANF_volumes.use_for_log && var.hana_ANF_volumes.use_existing_log_volume
+  create_log_volumes                   = !local.use_avg && var.hana_ANF_volumes.use_for_log && !var.hana_ANF_volumes.use_existing_log_volume
+  use_log_volumes                      = !local.use_avg && var.hana_ANF_volumes.use_for_log && var.hana_ANF_volumes.use_existing_log_volume
 
-  create_shared_volumes                = !local.use_avg && hana_ANF_volumes.use_for_shared && !var.hana_ANF_volumes.use_existing_shared_volume
-  use_shared_volumes                   = !local.use_avg && hana_ANF_volumes.use_for_shared && var.hana_ANF_volumes.use_existing_shared_volume
+  create_shared_volumes                = !local.use_avg && var.hana_ANF_volumes.use_for_shared && !var.hana_ANF_volumes.use_existing_shared_volume
+  use_shared_volumes                   = !local.use_avg && var.hana_ANF_volumes.use_for_shared && var.hana_ANF_volumes.use_existing_shared_volume
 
 }
