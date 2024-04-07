@@ -77,16 +77,16 @@ ansible_facts.
 {%   set virtual_host_names = [] %}
 {# Assign virtual host names based on supported tiers #}
 {%   for tier in supported_tiers %}
-{%     if tier == 'scs' %}
+{# {%     if tier == 'scs' %}
 {%       set scs_virtual_host = hostvars[host]['custom_scs_virtual_hostname'] if 'custom_scs_virtual_hostname' in hostvars[host] else hostvars[host]['virtual_host'] %}
 {%       if scs_virtual_host not in virtual_host_names %}
 {%         set _ = virtual_host_names.append(scs_virtual_host) %}
 {%       endif %}
-{# {%     elif tier == 'ers' %}
+{%     elif tier == 'ers' %}
 {%       set ers_virtual_host = hostvars[host]['custom_ers_virtual_hostname'] if 'custom_ers_virtual_hostname' in hostvars[host] else hostvars[host]['virtual_host'] %}
 {%       if ers_virtual_host not in virtual_host_names %}
 {%         set _ = virtual_host_names.append(ers_virtual_host) %}
-{%       endif %} #}
+{%       endif %}
 {%     elif tier == 'pas' %}
 {%       set pas_virtual_host = hostvars[host]['custom_pas_virtual_hostname'] if 'custom_pas_virtual_hostname' in hostvars[host] else hostvars[host]['virtual_host'] %}
 {%       if pas_virtual_host not in virtual_host_names %}
@@ -97,17 +97,17 @@ ansible_facts.
 {%       if app_virtual_host not in virtual_host_names %}
 {%         set _ = virtual_host_names.append(app_virtual_host) %}
 {%       endif %}
-{# {%     elif tier == 'web' %}
+{%     elif tier == 'web' %}
 {%       set web_virtual_host = hostvars[host]['custom_web_virtual_hostname'] if 'custom_web_virtual_hostname' in hostvars[host] else hostvars[host]['virtual_host'] %}
 {%       if web_virtual_host not in virtual_host_names %}
 {%         set _ = virtual_host_names.append(web_virtual_host) %}
-{%       endif %} #}
+{%       endif %}
 {%     elif tier in ['hana', 'oracle', 'oracle-asm', 'db2', 'sybase'] %}
 {%       set db_virtual_host = hostvars[host]['custom_db_virtual_hostname'] if 'custom_db_virtual_hostname' in hostvars[host] else hostvars[host]['virtual_host'] %}
 {%       if db_virtual_host not in virtual_host_names %}
 {%         set _ = virtual_host_names.append(db_virtual_host) %}
 {%       endif %}
-{%     endif %}
+{%     endif %} #}
 {%   endfor %}
 {# Keep only unique values in the virtual_host_names #}
 {% set virtual_host_names = virtual_host_names | unique %}
