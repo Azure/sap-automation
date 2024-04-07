@@ -249,10 +249,12 @@
 - name:                                "0.10-maintenance-planner: Print the BOM"
   ansible.builtin.debug:
     var:                               bom
+    verbosity:                         2
 
 - name:                                "0.10-maintenance-planner: Register BOM"
   ansible.builtin.include_tasks:
     file:                              "process_bom.yaml"
+  when:                                create_checksums | default(false)
 
 - name:                                "0.10-maintenance-planner: - Upload Files using SAS Token"
   ansible.builtin.command: >-
