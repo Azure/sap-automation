@@ -233,7 +233,7 @@
       ansible.builtin.command: >
                                        pcs stonith create rsc_st_kdump fence_kdump
                                        pcmk_reboot_action="off"
-                                       pcmk_host_list="{{ primary_instance_name }} {{ secondary_instance_name }}"
+                                       pcmk_host_list="{% for item in ansible_play_hosts_all %}{{ item }}{% endfor %}"
                                        pcmk_host_map="{% for item in ansible_play_hosts_all %}{{ item }}:{{ hostvars[item]['vm_name'] }}{{ ';' if not loop.last }}{% endfor %}"
                                        timeout=30
 
@@ -241,17 +241,11 @@
       ansible.builtin.command:         pcs resource update rsc_st_kdump op monitor interval=3600
 
     # for each node in the play, set the fence_kdump fencing device as the first fencing device to be used
-    - name:                            "1.18.2.0 Generic Pacemaker - Set the fence_kdump fencing device as the first for {{ primary_instance_name }}"
-      ansible.builtin.command:         pcs stonith level add 1 {{ primary_instance_name }} rsc_st_kdump
+    - name:                            "1.18.2.0 Generic Pacemaker - Set the fence_kdump fencing device as the first for cluster nodes"
+      ansible.builtin.command:         pcs stonith level add 1 {{ ansible_hostname }} rsc_st_kdump
 
-    - name:                            "1.18.2.0 Generic Pacemaker - Set the fence_kdump fencing device as the first for {{ secondary_instance_name }}"
-      ansible.builtin.command:         pcs stonith level add 1 {{ secondary_instance_name }} rsc_st_kdump
-
-    - name:                            "1.18.2.0 Generic Pacemaker - Set the fence_azure_rm fencing device as the second for {{ primary_instance_name }}"
-      ansible.builtin.command:         pcs stonith level add 2 {{ primary_instance_name }} rsc_st_azure
-
-    - name:                            "1.18.2.0 Generic Pacemaker - Set the fence_azure_arm fencing device as the second for {{ secondary_instance_name }}"
-      ansible.builtin.command:         pcs stonith level add 2 {{ secondary_instance_name }} rsc_st_azure
+    - name:                            "1.18.2.0 Generic Pacemaker - Set the fence_azure_arm fencing device as the second for cluster nodes"
+      ansible.builtin.command:         pcs stonith level add 2 {{ ansible_hostname }} rsc_st_azure
 
 - name:                               "1.18.2.0 Generic Pacemaker - Ensure that the kdump service is enabled"
   when:
@@ -361,9 +355,8 @@
     - name:                            "1.18.2.0 Generic Pacemaker - Set the initial value of the cluster attributes"
       ansible.builtin.shell:
         cmd:                           crm_attribute --node {{ item }} --name '#health-azure' --update 0
-      loop:
-        - "{{ primary_instance_name }}"
-        - "{{ secondary_instance_name }}"
+      with_items:
+        - "{{ ansible_play_hosts_all }}"
 
     - name:                            "1.18.2.0 Generic Pacemaker - Configure the resources in Pacemaker"
       ansible.builtin.command:         pcs resource create health-azure-events ocf:heartbeat:azure-events-az op monitor interval=10s
