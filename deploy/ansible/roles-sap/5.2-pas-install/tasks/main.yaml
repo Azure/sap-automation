@@ -40,7 +40,7 @@
 - name:                                "PAS Install: Set BOM facts"
   ansible.builtin.set_fact:
     sap_inifile:                       "{{ bom_base_name }}-pas-{{ sid_to_be_deployed.sid | lower }}-{{ ansible_hostname }}.params"
-    sap_inifile_template:              "{{ bom_base_name }}{{ bom_suffix }}-pas-inifile-param.j2"
+    sap_inifile_template:              "pas-inifile-param.j2"
     dir_params:                        "{{ tmp_directory }}/.{{ sid_to_be_deployed.sid | lower }}-params"
     db_lb_virtual_host_HANA:           "{% if database_high_availability %}{{ sid_to_be_deployed.sid | lower }}{{ db_sid | lower }}db{{ db_instance_number }}cl.{{ sap_fqdn }}{% else %}{{ db_virtualhost_temp | default(hostvars[db_server_temp | first]['virtual_host'], true) }}{% endif %}"
     db_lb_virtual_host_AnyDB:          "{% if database_high_availability %}{{ sid_to_be_deployed.sid | lower }}{{ db_sid | lower }}db{{ db_instance_number }}cl.{{ sap_fqdn }}{% else %}{{ db_server_temp }}{% endif %}"
@@ -145,6 +145,17 @@
       ansible.builtin.debug:
         msg:                           "Schema name {{ schema_name }}"
 
+- name:                                "DBLoad Install: register variables (initial)"
+  ansible.builtin.set_fact:
+    pas_ha_bom_id:                      "{% if bom.product_ids.NW_ABAP_CIHA is defined  %}{{ bom.product_ids.NW_ABAP_CIHA }}{% else %}{{ bom.product_ids.pas }}{% endif %}"
+    pas_stdln_bom_id:                   "{% if bom.product_ids.NW_ABAP_CI is defined  %}{{ bom.product_ids.NW_ABAP_CI }}{% else %}{{ bom.product_ids.pas }}{% endif %}"
+
+- name:                                "DBLoad: -  Set the product ID"
+  ansible.builtin.set_fact:
+    product_id:                        "{% if database_high_availability  %}{{ pas_ha_bom_id }}{% else %}{{ pas_stdln_bom_id }}{% endif %}"
+
+
+
 - name:                                "PAS Install"
   block:
 
@@ -164,7 +175,7 @@
 
     - name:                            "PAS Install: check media exists"
       ansible.builtin.stat:
-        path:                          "{{ target_media_location }}/SWPM/sapinst"
+        path:                          "{{ sapinst_path }}/sapinst"
       register:                        sapinst_found
 
     - name:                            "ErrorHandling"
@@ -172,22 +183,14 @@
         msg:                           "INSTALL:0006:Unable to find sapinst, please check that the installation media is mounted"
       when: not sapinst_found.stat.exists
 
-    - name:                            "PAS Install: Include roles-sap/3.3.1-bom-utility role"
-      ansible.builtin.include_role:
-        name:                          roles-sap/3.3.1-bom-utility
-        tasks_from:                    bom-template
+    - name:                            "PAS Install: Template processing - Create ini file {{ sap_inifile }} from {{ sap_inifile_template }}"
+      ansible.builtin.template:
+        src:                           "{{ sap_inifile_template }}"
+        dest:                          "{{ dir_params }}/{{ sap_inifile }}"
+        mode:                          0644
+        force:                         true
       vars:
-        task_prefix:                   "PAS Install: "
-        always_upload_jinja_templates: false
-        bom_name:                      "{{ bom_base_name }}{{ bom_suffix }}"
-        sap_cd_package_hdbclient:      "{{ target_media_location }}/CD_HDBCLIENT/SAP_HANA_CLIENT"
-        sap_cd_package_cd1:            "{{ target_media_location }}/CD_EXPORT"
-        sap_cd_package_cd2:
-        sap_cd_package_cd3:
-        sap_cd_package_cd4:
-        sap_cd_package_cd5:
         sap_ciInstanceNumber:          "{{ instance_number }}"
-        app_instance_number:
         sap_ciDialogWPNumber:          12
         sap_ciBtcWPNumber:             8
         sap_installSAPHostAgent:       "false"
@@ -195,25 +198,19 @@
         sap_scs_hostname:              "{{ custom_scs_virtual_hostname | default(scs_server, true) }}"
         sap_db_hostname:               "{{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) }}"
         sap_ciVirtualHostname:         "{{ pas_virtual_hostname | default(virtual_host, true) }}"
-        sap_appVirtualHostname:
         param_directory:               "{{ dir_params }}"
         sap_sid:                       "{{ sid_to_be_deployed.sid }}"
         scs_instance_number:           "{{ sid_to_be_deployed.ascs_inst_no }}"
         sidadm_uid:                    "{{ sid_to_be_deployed.sidadm_uid }}"
         virt_do_not_resolve_hostname:  "{{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) }}"
-        # support older app inifile templates where hdb_instance_number was used
-        hdb_instance_number:           "{{ db_instance_number }}"
-
-    - name:                            "PAS Install: register variables"
-      ansible.builtin.set_fact:
-        pas_bom_id:                    "{{ bom.product_ids.pas }}"
+        hana_schema:                   "{% if platform == 'HANA' %}{{ schema_name }}{% endif %}"
 
     - name:                            "PAS Install: install variables"
       ansible.builtin.debug:
         msg:
           - "INSTALLED:  {{ pas_installed.stat.exists }}"
           - "INIFILE:    {{ sap_inifile }}"
-          - "PRODUCT ID: {{ pas_bom_id }}"
+          - "PRODUCT ID: {{ product_id }}"
           - "INSTANCE:   {{ instance_number }}"
           - "DBHOST:     {{ custom_db_virtual_hostname | default(db_virtual_hostname, true) }}"
           - "HOST:       {{ pas_virtual_hostname }}"
@@ -314,12 +311,12 @@
           ansible.builtin.shell: |
                                           umask {{ custom_umask | default('022') }} ;
                                           ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }} \
-                                                    SAPINST_EXECUTE_PRODUCT_ID={{ pas_bom_id }}                     \
+                                                    SAPINST_EXECUTE_PRODUCT_ID={{ product_id }}                     \
                                                     SAPINST_SKIP_DIALOGS=true                                       \
                                                     SAPINST_USE_HOSTNAME={{ pas_virtual_hostname }}                 \
                                                     SAPINST_START_GUISERVER=false
           args:
-            chdir:                     "{{ target_media_location }}/SWPM"
+            chdir:                     "{{ sapinst_path }}"
             creates:                   "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_pas.txt"
           environment:
             TMPDIR:                    "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
@@ -362,7 +359,7 @@
 
     - name:                            "PAS Install: Find the installationSuccesfullyFinished.dat (SAPINST)"
       ansible.builtin.find:
-        paths:                         "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}/sapinst_instdir/{{ bom.product_ids.pas.replace('.', '/').replace('/ABAP', '').split(':')[1] }}/{{ file_path }}"
+        paths:                         "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}/sapinst_instdir/{{ product_id.replace('.', '/').replace('/ABAP', '').split(':')[1] }}/{{ file_path }}"
         file_type:                     file
         patterns:                      'installationSuccesfullyFinished.dat'
         recurse:                       true

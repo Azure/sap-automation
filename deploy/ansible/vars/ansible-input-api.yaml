@@ -4,7 +4,7 @@
 become_user_name:                       root
 
 # ------------------- Begin - SDAF Ansible Version ---------------------------8
-SDAF_Version:                   "3.11.0.0"
+SDAF_Version:                   "3.11.3.0"
 # ------------------- End - SDAF Ansible Version ---------------------------8
 
 # ------------------- Begin - OS Config Settings variables -------------------8
@@ -18,6 +18,8 @@ timezone:                               "Etc/GMT"
 bom_suffix:                             ""                                      # MKD 20221201 Dynamic BOM
 sapbits_bom_files:                      "sapfiles"
 target_media_location:                  "/usr/sap/install"
+
+sapinst_path:                           "/usr/sap/install/SWPM"
 # download_directory:                     "/mnt/downloads"                      # MKD 20221212 Dynamic BOM - become root mitigation
 # download_directory:                     "~/tmp/downloads"
 # KFO 20220102 ansible_env.HOME is not available on Windows

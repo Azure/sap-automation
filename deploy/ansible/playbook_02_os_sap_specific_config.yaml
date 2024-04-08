@@ -178,12 +178,6 @@
         # hosts file. We do not need to set ipaddr to ipadd.
         # vars:
         #   ipaddr:                    "{{ ipadd }}"
-        - name:                        "SAP OS configuration playbook: - Create hosts file"
-          ansible.builtin.import_role:
-            name:                      roles-sap-os/2.4-hosts-file
-          tags:
-            - 2.4-hosts-file
-
         - name:                        "SAP OS configuration playbook: - Ensure the repositories are registered"
           ansible.builtin.import_role:
             name:                      roles-os/1.3-repository
@@ -269,6 +263,13 @@
             name:                      roles-sap-os/2.2-sapPermissions
           tags:
             - 2.2-sapPermissions
+
+        - name:                        "SAP OS configuration playbook: - Create hosts file"
+          ansible.builtin.include_role:
+            name:                      roles-sap-os/2.4-hosts-file
+          tags:
+            - 2.4-hosts-file
+
 
         - name:                        "SAP OS configuration playbook: - Configurations according to SAP Notes"
           ansible.builtin.import_role:
