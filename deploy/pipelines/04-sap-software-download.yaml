@@ -253,9 +253,9 @@ stages:
                 if [ ${#PLAN} -gt 1 ]; then
                   command="ansible-playbook '-e "download_directory=$(Agent.TempDirectory)" -e "BOM_directory=${sample_path}" -e "bom_base_name=SAP_TOOLS" -e "deployer_kv_name=$(KV_NAME)"  -e "stack_path=$(CONFIG_REPO_PATH)/BOMS" -e "maintenance_plan_id=$(PLAN)" ' $ExtraParams ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_bom_downloader.yaml"
                 else
-                  echo "No maintenance plan id specified, using " $(BOM_NAME)
-                  bom=$(BOM_NAME)
-                  command="ansible-playbook '-e "download_directory=$(Agent.TempDirectory)" -e "BOM_directory=${sample_path}" -e "bom_base_name=$bom" -e "deployer_kv_name=$(KV_NAME)" -e "check_storage_account=$(check_storage_account)" ' $ExtraParams ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_bom_downloader.yaml"
+                  echo "No maintenance plan id specified, using " $(bom)
+                  bom_name=$(bom)
+                  command="ansible-playbook '-e "download_directory=$(Agent.TempDirectory)" -e "BOM_directory=${sample_path}" -e "bom_base_name=$bom_name" -e "deployer_kv_name=$(KV_NAME)" -e "check_storage_account=$(check_storage_account)" ' $ExtraParams ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_bom_downloader.yaml"
                   echo $command
                 fi
 
