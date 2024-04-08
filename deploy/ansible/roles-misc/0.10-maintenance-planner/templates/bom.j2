@@ -14,6 +14,8 @@ product_ids:
 {{   '%-30s' | format(component.name | upper | trim+':') }} {{ '%s' | format(component.id | trim) }}
 {% endif %}
 {% endfor %}
+{{   '%-30s' | format('CREATEUSERS' | upper | trim+':') }} {{ '%s' | format('NW_Users_Create:GENERIC.HDB.PD' | trim) }}
+{{   '%-30s' | format('WEBDISPATCHER' | upper | trim+':') }} {{ '%s' | format('NW_Webdispatcher:NW750.IND.PD' | trim) }}
 
 materials:
   media:

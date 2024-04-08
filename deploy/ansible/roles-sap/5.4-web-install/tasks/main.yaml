@@ -17,6 +17,7 @@
     sap_inifile:                       "{{ bom_base_name }}-web-{{ sid_to_be_deployed.web_sid | lower }}-{{ ansible_hostname }}.params"
     sap_inifile_template:              "web-inifile-param.j2"
     dir_params:                        "{{ tmp_directory }}/.{{ sid_to_be_deployed.web_sid | lower }}-params"
+    product_id:                        "{% if bom.product_ids.WEBDISPATCHER is defined  %}{{ bom.product_ids.WEBDISPATCHER }}{% else %}{{ bom.product_ids.web }}{% endif %}"
 
 - name:                                "SAP Web Dispatcher Install: Create directories"
   ansible.builtin.file:
@@ -48,10 +49,6 @@
     bom_name:                          "{{ bom_base_name }}"
     task_prefix:                       "SAP Web Dispatcher Install: "
     sa_enabled:                        true
-
-- name:                                "Web install: register variables"
-  ansible.builtin.set_fact:
-    web_bom_id:                        "{{ bom.product_ids.web }}"
 
 - name:                                "Web Install"
   become:                              true
@@ -97,10 +94,6 @@
         web_sid:                       "{{ sid_to_be_deployed.web_sid | upper }}"
         sap_sid:                       "{{ sid_to_be_deployed.sid | upper }}"
 
-    - name:                            "Web install: Who am I"
-      ansible.builtin.command:         "whoami"
-      register:                        whoami
-
     - name:                            "SAP Web Dispatcher Install: install variables"
       ansible.builtin.debug:
         msg:
@@ -108,7 +101,7 @@
           - "INIFILE:    {{ dir_params }}/{{ sap_inifile }}"
           - "SID:        {{ sid_to_be_deployed.web_sid }}"
           - "SAPSID:     {{ sap_sid }}"
-          - "PRODUCT ID: {{ web_bom_id }}"
+          - "PRODUCT ID: {{ product_id }}"
           - "INSTANCE:   {{ web_instance_number }}"
           - "SCSHOST:    {{ custom_scs_virtual_hostname | default(scs_server, true) }}"
           - "WHOAMI :    {{ whoami.stdout }}"
@@ -133,7 +126,7 @@
       ansible.builtin.shell: |
                                        umask {{ custom_umask | default('022') }} ;
                                        ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }} \
-                                                 SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.web }}            \
+                                                 SAPINST_EXECUTE_PRODUCT_ID={{ product_id }}            \
                                                  SAPINST_SKIP_DIALOGS=true                                       \
                                                  SAPINST_USE_HOSTNAME={{ virtual_host }}                         \
                                                  SAPINST_START_GUISERVER=false
