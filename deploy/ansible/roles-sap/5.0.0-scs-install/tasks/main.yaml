@@ -44,7 +44,7 @@
 # ToDo: Validate this works
 # - name:                                "SCS Install: Find the installationSuccesfullyFinished.dat (SAPINST)"
 #   ansible.builtin.find:
-#     paths:                             "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}/sapinst_instdir/{{ bom.product_ids.scs.replace('.', '/').replace('/ABAP', '').split(':')[1] }}/INSTALL/DISTRIBUTED/ABAP/ASCS"
+#     paths:                             "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}/sapinst_instdir/{{ product_id.replace('.', '/').replace('/ABAP', '').split(':')[1] }}/INSTALL/DISTRIBUTED/ABAP/ASCS"
 #     file_type:                         file
 #     patterns:                          'installationSuccesfullyFinished.dat'
 #     recurse:                           true
@@ -92,7 +92,7 @@
 
 - name:                                "SCS Install: register variables"
   ansible.builtin.set_fact:
-    product_id:                        "{% if bom.product_ids.NW_ABAP_ASCS is defined  %}{{ bom.product_ids.NW_ABAP_ASCS }}{% else %}{{ bom.product_ids.scs }}{% endif %}"
+    product_id:                        "{% if bom.product_ids.NW_ABAP_ASCS is defined  %}{{ bom.product_ids.NW_ABAP_ASCS }}{% else %}{{ product_id }}{% endif %}"
     scs_bom_instance_type:             "{% if bom.InstanceType is defined %}{{ bom.InstanceType }}{% else %}ABAP{% endif %}"
     public:                            true
 
@@ -134,7 +134,7 @@
         msg:
           - "INSTALLED:  {{ scs_installed.stat.exists }}"
           - "INIFILE:    {{ sap_inifile }}"
-          - "PRODUCT ID: {{ bom.product_ids.scs }}"
+          - "PRODUCT ID: {{ product_id }}"
           - "INSTANCE:   {{ sid_to_be_deployed.ascs_inst_no }}"
           - "MEDIA:      {{ target_media_location }}"
           - "HOST:       {{ scs_virtual_hostname }}"
@@ -233,7 +233,7 @@
 
     - name:                            "SCS Install: Find the installationSuccesfullyFinished.dat (SAPINST)"
       ansible.builtin.find:
-        paths:                         "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}/sapinst_instdir/{{ bom.product_ids.scs.replace('.', '/').replace('/ABAP', '').split(':')[1] }}/INSTALL/DISTRIBUTED/ABAP/ASCS"
+        paths:                         "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}/sapinst_instdir/{{ product_id.replace('.', '/').replace('/ABAP', '').split(':')[1] }}/INSTALL/DISTRIBUTED/ABAP/ASCS"
         file_type:                     file
         patterns:                      'installationSuccesfullyFinished.dat'
         recurse:                       true
