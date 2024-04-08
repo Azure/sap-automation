@@ -22,7 +22,24 @@ materials:
 {{'      %-13s' | format('archive:' | trim) }}{{' %s' | format(item.path | basename) }}
 {{'      %-12s' | format('download:' | trim) }}{{'  %s' | format('true') }}
 {%     if item.path.startswith('SWPM') %}
-{{'      %-16s' | format('path:' | trim) }}{{'  %s' | format('SWPM') }}
+{{'      %-10s' | format('extractDir:' | trim) }}{{'  %s' | format('SWPM') }}
+{%     else %}
+{{'      %-16s' | format('path:' | trim) }}{{'  %s' | format('download_basket') }}
+{%     endif %}
+{%     if item.path.startswith('SUM') %}
+{{'      %-10s' | format('extractDir:' | trim) }}{{'  %s' | format('SUM') }}
+{%     else %}
+{{'      %-16s' | format('path:' | trim) }}{{'  %s' | format('download_basket') }}
+{%     endif %}
+{%     if item.path.startswith('IMDB_CLIENT') %}
+{{'      %-10s' | format('extractDir:' | trim) }}{{'  %s' | format('CD_HDBCLIENT') }}
+{{'      %-13s' | format('creates:' | trim) }}{{'  %s' | format('SIGNATURE.SMF') }}
+{%     else %}
+{{'      %-16s' | format('path:' | trim) }}{{'  %s' | format('download_basket') }}
+{%     endif %}
+{%     if item.path.startswith('IMDB_SERVER') %}
+{{'      %-10s' | format('extractDir:' | trim) }}{{'  %s' | format('CD_HDBSERVER') }}
+{{'      %-13s' | format('creates:' | trim) }}{{'  %s' | format('SIGNATURE.SMF') }}
 {%     else %}
 {{'      %-16s' | format('path:' | trim) }}{{'  %s' | format('download_basket') }}
 {%     endif %}
