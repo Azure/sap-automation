@@ -216,10 +216,12 @@
     TMPDIR:                            "/home/{{ orchestration_ansible_user }}/download_basket/tmp"
 
 - name:                                "0.10-maintenance-planner: copy SAPCAR"
+  become:                              true
   ansible.builtin.copy:
     src:                               "{{ tools_base_dir }}/SAPCAR"
     dest:                              "{{ sap_download_dir }}/SAPCAR"
     mode:                              0755
+    owner:                             "{{ orchestration_ansible_user }}"
 
 - name:                                "0.10-maintenance-planner: stat downloads directory"
   ansible.builtin.find:
