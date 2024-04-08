@@ -38,9 +38,10 @@
   block:
     #Notes :
     # 1. keep cluster out of  maintenance mode
-    # 2. Stopping HANA is fine, but do not kill all services locking /hana/shared especially if you have configured replication between sites
+    # 2. Stopping HANA is fine, but do not kill any sap services locking /hana/shared especially if you have configured replication between sites.
     # 3. mask the /hana/shared in /etc/fstab and configure filesystem role in pacemaker. Let pacemaker handle share mount.
-    # 4. Do no kill processes and attempt to unmount /hana/shared. Bad things will happen.
+    # 4. Do not kill existing processes and attempt to unmount /hana/shared. Bad things will happen.
+    # 5. No Seriously !! Terrible things will happen and you will have a hard time repairing the deployment
 
     - name:                            Stop HANA System on both sites
       block:
@@ -68,41 +69,6 @@
           loop:
             - "{{ hana_shared_mountpoint[0] }}"
             - "{{ hana_shared_mountpoint[1] }}"
-
-      #   - name:                     Unmount /hana/shared from all cluster participating nodes
-      #     ansible.builtin.mount:
-      #       path:                   /hana/shared
-      #       state:                  unmounted
-      #     register:                 unmount_result
-      #     failed_when:              unmount_result.rc != 0
-      # rescue:
-      #   - name:                            Check if any processes are locking /hana/shared
-      #     ansible.builtin.shell:           lsof +f -- /hana/shared
-      #     register:                        lock_processes
-      #     changed_when:                    false
-
-      #   # Fix this
-      #   - name:                            Kill processes locking /hana/shared
-      #     ansible.builtin.shell:           kill -9 {{ item.split()[1] }}
-      #     with_items:                      "{{ lock_processes.stdout_lines }}"
-      #     when:                            lock_processes.stdout_lines | length > 0
-
-      #   - name:                        "Comment out the mountpoint from '/etc/fstab' file"
-      #     ansible.builtin.replace:
-      #       path:                      /etc/fstab
-      #       regexp:                    "^{{ item }}"
-      #       replace:                   "# {{ item }}"
-      #       backup:                    true
-      #     loop:
-      #       - "{{ hana_shared_mountpoint[0] }}"
-      #       - "{{ hana_shared_mountpoint[1] }}"
-
-      #   - name:                            Unmount /hana/shared forcefully
-      #     ansible.builtin.shell:           umount -f /hana/shared
-
-
-
-        # TODO : add code to unmount /hana/shared and ensure it remains unmounted as hanarsutil,sapcontrol locks the file system/mount point even after stopping SAP system
 
     - name:                            "Configure pacemaker hana shared filesystem resources on {{ primary_instance_name }}"
       when:                            ansible_hostname == primary_instance_name
@@ -159,8 +125,8 @@
           failed_when:                 false
           ignore_errors:               true
           loop:
-            - { clone_name: 'fs_hana_shared_s1-clone' , site_code: 'S1'}
-            - { clone_name: 'fs_hana_shared_s2-clone' , site_code: 'S2'}
+            - { clone_name: 'fs_hana_shared_s1-clone', site_code: 'S1'}
+            - { clone_name: 'fs_hana_shared_s2-clone', site_code: 'S2'}
 
         - name:                        "Check if NFS hana mounts constraints did not error on {{ primary_instance_name }}"
           ansible.builtin.set_fact:
@@ -219,3 +185,24 @@
       ansible.builtin.pause:
         seconds:                       300
 # End of HANA clustering resources
+
+
+# ⠀⠀⠀⠀⠀⠀⣠⡤⠶⠒⢛⢻⠛⠛⠛⠛⠛⠛⢿⣛⡓⠶⢦⣤⠀⠀⠀⠀⠀⠀
+# ⠀⠀⠀⠀⠀⡴⡫⠒⠊⠁⠀⣸⠀⠀⠀⠀⠀⠀⢹⠀⠀⠁⠒⡏⢳⡄⠀⠀⠀⠀
+# ⠀⠀⠀⢀⡾⡑⡇⡀⠀⠀⠀⡷⠀⠀⠤⠤⠀⠀⢸⠀⠀⠀⠀⡇⡳⢻⡄⠀⠀⠀
+# ⠀⠀⢀⡾⢱⠔⠁⡇⠀⠀⠀⣇⠀⣀⣀⣀⣀⣀⣀⡇⠀⠀⠀⠃⠱⣵⢻⡄⠀⠀
+# ⠀⠀⡾⠁⢀⡀⢤⠗⠒⠒⢺⢳⠤⠶⠶⠶⠶⠶⢖⣷⠒⠒⠒⡦⢄⡀⠀⢹⡄⠀
+# ⠀⢸⡇⠐⣁⠤⠬⠤⠤⣤⣼⣷⣵⣶⣶⣶⣶⣶⣽⣿⢤⣤⠤⠷⠤⢄⡁⠘⣇⠀
+# ⠀⠘⣧⣞⣁⣀⡮⡯⡿⠛⠛⠫⠿⠭⠭⠭⠭⠽⠿⠛⠛⢻⠽⡿⣄⣀⣑⣦⠏⠀
+# ⠀⠀⣿⢠⣿⠃⠀⠈⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡍⠁⠈⣿⡆⢸⠀⠀
+# ⠀⠀⣿⢸⣿⡀⠀⠀⠑⠄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⠔⠀⠀⠀⣿⣇⢸⡀⠀
+# ⢀⣴⡏⠥⠹⢇⠀⠀⠀⠀⠑⠄⠀⠀⠀⠀⠀⠀⠤⠂⠁⠀⠀⠀⢠⠟⠥⠹⣧⡀
+# ⣿⡼⢶⡒⠲⡚⠳⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⡴⠛⡲⠒⣲⠷⢹
+# ⣿⣗⡚⠨⠑⢌⠢⡘⠷⣤⣀⣴⣾⠻⠟⠛⠻⡻⣶⣄⣠⡴⠏⡠⢊⠔⡡⢺⢚⢸
+# ⠙⢯⣗⣀⡀⠀⠑⠂⠥⢂⠭⣛⢵⣖⣒⣒⢲⡦⢟⠭⣕⠪⠅⠊⠀⠀⣁⣘⣯⠞
+# ⠀⠀⢿⡑⢬⣑⢄⠀⠀⠀⠈⡟⡞⣯⣷⣢⢿⣇⡗⡏⠀⠀⠀⢀⢴⡁⢐⣹⠀⠀
+# ⠀⠀⠀⠙⢻⡈⠳⣗⢄⣼⠓⣟⡏⣄⠩⠭⢡⡊⣗⡗⣷⣄⣴⡹⠋⡾⠛⠁⠀⠀
+# ⠀⠀⠀⠀⠀⠳⣤⡈⣷⣿⣆⢸⡇⠛⠀⠀⠘⠃⣿⢀⣿⣷⢋⣠⠾⠃⠀⠀⠀⠀
+# ⠀⠀⠀⠀⠀⠀⠀⠉⠻⠦⣭⣽⠇⠿⠀⠀⠸⠃⣯⣭⡥⠞⠋⠁⠀⠀⠀⠀⠀⠀
+# ⢀⢀⣀⣀⣀⣀⣀⣀⣀⣀⣈⣳⣵⣶⣶⣷⣶⣾⡵⣋⣀⣀⣀⣀⢀⠀⠀⠀⠀⠀
+# ⣿⣟⣟⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣯⣽⣽⣯⣿
