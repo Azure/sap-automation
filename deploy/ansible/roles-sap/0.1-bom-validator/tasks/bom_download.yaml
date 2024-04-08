@@ -450,7 +450,7 @@
         - name:                        "BOM: {{ bom_name }} Copy File {{ bom_media_entry.archive }} -> {{ tools_directory }}/{{ bom_media_entry.filename }}"
           ansible.builtin.copy:
             src:                       "{{ download_directory }}/files/{{ bom_media_entry.archive }}"
-            dest:                      "{{ tools_directory | default('/home/{{ orchestration_ansible_user }}/Azure_SAP_Automated_Deployment/SAP_tools/') }}/{{ bom_media_entry.filename }}"
+            dest:                      "{{ tools_directory }}/{{ bom_media_entry.filename }}"
             owner:                     "{{ orchestration_ansible_user }}"
           when:
             - bom.name | upper == "TOOLS"
