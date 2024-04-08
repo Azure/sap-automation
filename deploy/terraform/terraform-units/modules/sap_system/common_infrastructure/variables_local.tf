@@ -35,7 +35,7 @@ locals {
   db_zones                             = try(var.database.zones, [])
   scs_zones                            = try(var.application_tier.scs_zones, [])
   web_zones                            = try(var.application_tier.web_zones, [])
-  zones                                = distinct(concat(local.db_zones, local.app_zones, local.scs_zones, local.web_zones))
+  zones                                = var.application_tier.app_use_ppg ? local.db_zones : distinct(concat(local.db_zones, local.app_zones, local.scs_zones, local.web_zones))
   zonal_deployment                     = length(local.zones) > 0 ? true : false
 
   //Flag to control if nsg is creates in virtual network resource group

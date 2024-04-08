@@ -139,7 +139,7 @@
   become_user:                         "oracle"
   ansible.builtin.shell:               lsnrctl start
   register:                            lsnrctl_start_primary_results
-  failed_when:                         lsnrctl_start_primary_results.rc > 0
+  failed_when:                         lsnrctl_start_primary_results.rc > 1
   args:
     creates:                           /etc/sap_deployment_automation/{{ db_sid | upper }}/lsnrctl_started.txt
     chdir:                             /etc/sap_deployment_automation/{{ db_sid | upper }}

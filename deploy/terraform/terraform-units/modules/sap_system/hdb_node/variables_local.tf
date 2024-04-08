@@ -122,7 +122,7 @@ locals {
                                           "password" = var.sid_password
                                         }
 
-  enable_db_lb_deployment             = var.database_server_count > 0 && (var.use_loadbalancers_for_standalone_deployments || var.database_server_count > 1) && !var.database.scale_out
+  enable_db_lb_deployment             = var.database.high_availability || var.use_loadbalancers_for_standalone_deployments
 
   database_sid                        = try(var.database.instance.sid, local.sid) // HANA database sid from the Databases array for use as reference to LB/AS
   database_instance                   = try(var.database.instance.number, "00")
@@ -397,4 +397,20 @@ locals {
                                          }] : []
 
   deploy_monitoring_extension          = local.enable_deployment && var.infrastructure.deploy_monitoring_extension && length(var.database.user_assigned_identity_id) > 0
+
+  use_avg = (
+              var.hana_ANF_volumes.use_AVG_for_data) && (
+              var.hana_ANF_volumes.use_for_data || var.hana_ANF_volumes.use_for_log || var.hana_ANF_volumes.use_for_shared
+            ) && !var.use_scalesets_for_deployment
+
+
+  create_data_volumes                  = !local.use_avg && var.hana_ANF_volumes.use_for_data && !var.hana_ANF_volumes.use_existing_data_volume
+  use_data_volumes                     = local.use_avg || var.hana_ANF_volumes.use_for_data && var.hana_ANF_volumes.use_existing_data_volume
+
+  create_log_volumes                   = !local.use_avg && var.hana_ANF_volumes.use_for_log && !var.hana_ANF_volumes.use_existing_log_volume
+  use_log_volumes                      = local.use_avg || var.hana_ANF_volumes.use_for_log && var.hana_ANF_volumes.use_existing_log_volume
+
+  create_shared_volumes                = !local.use_avg && var.hana_ANF_volumes.use_for_shared && !var.hana_ANF_volumes.use_existing_shared_volume
+  use_shared_volumes                   = local.use_avg || var.hana_ANF_volumes.use_for_shared && var.hana_ANF_volumes.use_existing_shared_volume
+
 }
