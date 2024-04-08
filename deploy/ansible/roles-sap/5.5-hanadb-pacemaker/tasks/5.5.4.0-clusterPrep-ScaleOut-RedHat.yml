@@ -36,17 +36,12 @@
     - hana_shared_mountpoint is defined
     - hana_shared_mountpoint | length > 1
   block:
-    # - name:                            "Get the cluster maintenance mode status"
-    #   ansible.builtin.shell:           pcs property show maintenance-mode
-    #   register:                        get_status_maintenance_mode
-    #   changed_when:                    false
-    #   ignore_errors:                   true
+    #Notes :
+    # 1. keep cluster out of  maintenance mode
+    # 2. Stopping HANA is fine, but do not kill all services locking /hana/shared especially if you have configured replication between sites
+    # 3. mask the /hana/shared in /etc/fstab and configure filesystem role in pacemaker. Let pacemaker handle share mount.
+    # 4. Do no kill processes and attempt to unmount /hana/shared. Bad things will happen.
 
-    # - name:                            "Set the cluster maintenance mode if not already in maintenance mode"
-    #   ansible.builtin.shell:           pcs property set maintenance-mode=true
-    #   when: >-
-    #     get_status_maintenance_mode.stdout is not search('maintenance-mode') or
-    #     get_status_maintenance_mode.stdout is search('maintenance-mode: false')
     - name:                            Stop HANA System on both sites
       block:
         - name:                            Execute HANA StopSystem on both sites
@@ -120,7 +115,7 @@
                                        op monitor interval=20s on-fail=fence timeout=120s OCF_CHECK_LEVEL=20 \
                                        op start interval=0 timeout=120 op stop interval=0 timeout=120 \
           register:                    nfs_mount_site1
-          failed_when:                 nfs_mount_site1.results | selectattr('rc', 'ne', 0) | rejectattr('stderr', 'search', 'already exists') | default([]) | list
+          # failed_when:                 nfs_mount_site1.results | selectattr('rc', 'ne', 0) | rejectattr('stderr', 'search', 'already exists') | default([]) | list
           ignore_errors:               true
 
         # - name:                        "Check if ANF hana mounts did not error for primary site"
@@ -142,7 +137,7 @@
                                        op monitor interval=20s on-fail=fence timeout=120s OCF_CHECK_LEVEL=20 \
                                        op start interval=0 timeout=120 op stop interval=0 timeout=120 \
           register:                    nfs_mount_site2
-          failed_when:                 nfs_mount_site2.results | selectattr('rc', 'ne', 0) | rejectattr('stderr', 'search', 'already exists') | default([]) | list
+          # failed_when:                 nfs_mount_site2.results | selectattr('rc', 'ne', 0) | rejectattr('stderr', 'search', 'already exists') | default([]) | list
           ignore_errors:               true
 
         # - name:                        "Check if ANF hana mounts did not error for secondary site"
@@ -159,7 +154,7 @@
           ansible.builtin.shell: >
                                        pcs resource clone fs_hana_shared_s1 meta clone-node-max=1 interleave=true
           register:                    nfs_mount_clone_site1
-          failed_when:                 nfs_mount_clone_site1.results | selectattr('rc', 'ne', 0) | rejectattr('stderr', 'search', 'already exists') | default([]) | list
+          # failed_when:                 nfs_mount_clone_site1.results | selectattr('rc', 'ne', 0) | rejectattr('stderr', 'search', 'already exists') | default([]) | list
           ignore_errors:               true
 
         # - name:                        "Check if the filesystem resource clone was created for the primary site"
@@ -176,7 +171,7 @@
           ansible.builtin.shell: >
                                        pcs resource clone fs_hana_shared_s2 meta clone-node-max=1 interleave=true
           register:                    nfs_mount_clone_site2
-          failed_when:                 nfs_mount_clone_site2.results | selectattr('rc', 'ne', 0) | rejectattr('stderr', 'search', 'already exists') | default([]) | list
+          # failed_when:                 nfs_mount_clone_site2.results | selectattr('rc', 'ne', 0) | rejectattr('stderr', 'search', 'already exists') | default([]) | list
           ignore_errors:               true
 
         # - name:                        "Check if the filesystem resource clone was created for the secondary site"
@@ -191,7 +186,7 @@
 
         - name:                        "Configure node attributes for primary site cluster nodes"
           ansible.builtin.shell: >
-                                       pcs noe attribute {{ item }} NFS_{{ db_sid | upper }}_SITE=S1
+                                       pcs node attribute {{ item }} NFS_{{ db_sid | upper }}_SITE=S1
           register:                    node_nfs_attribute_site1
           failed_when:                 false
           ignore_errors:               true
@@ -227,8 +222,8 @@
           register:                    activate_nfs_mount_site1
           failed_when:                 false
           ignore_errors:               true
-          when:
-            - chk_nfs_mount_clone_site1 | length == 0
+          # when:
+          #   - chk_nfs_mount_clone_site1 | length == 0
 
         - name:                        Activate filesystem resource on secondary site
           ansible.builtin.shell: >
@@ -236,8 +231,8 @@
           register:                    activate_nfs_mount_site2
           failed_when:                 false
           ignore_errors:               true
-          when:
-            - chk_nfs_mount_clone_site2 | length == 0
+          # when:
+          #   - chk_nfs_mount_clone_site2 | length == 0
         # TODO : add code to check if this failed or not
 
         - name:                        Configure pacemaker attribute resource for primary site
