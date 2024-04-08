@@ -136,9 +136,11 @@ stages:
 
                 echo "##vso[task.setvariable variable=KV_NAME;isOutput=true]$kv_name"
 
+                bom_name=$(echo $(bom) | xargs)
+
               echo -e "$green--- BoM $(bom) ---$reset"
-                  echo "##vso[build.updatebuildnumber]Downloading BoM defined in $(bom)"
-                  echo "##vso[task.setvariable variable=BOM_NAME;isOutput=true]$(bom)"
+                  echo "##vso[build.updatebuildnumber]Downloading BoM defined in $bom_name"
+                  echo "##vso[task.setvariable variable=BOM_NAME;isOutput=true]$bom_name"
 
               echo -e "$green--- Maintenance Planner ID ---$reset"
                   echo "##vso[build.updatebuildnumber]Downloading Software defined in Maintenance Plan $(plan_id)"
