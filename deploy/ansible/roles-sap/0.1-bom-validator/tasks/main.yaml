@@ -411,6 +411,7 @@
         mode:                          755
         modification_time:             preserve
         access_time:                   preserve
+        owner:                         "{{ orchestration_ansible_user }}"
 
     - name:                            "Extract SWPM10 using SAPCAR"
       ansible.builtin.command:         "{{ tools_directory }}/SAPCAR -manifest SIGNATURE.SMF -xf {{ tools_directory }}/swpm10"
@@ -423,6 +424,12 @@
       args:
         chdir:                         "{{ tools_directory }}/SWPM20"
         creates:                       "{{ tools_directory }}/SWPM20/sapinst"
+
+    - name:                            "Extract SWPM10WIN using SAPCAR"
+      ansible.builtin.command:         "{{ tools_directory }}/SAPCAR -manifest SIGNATURE.SMF -xf {{ tools_directory }}/swpm10win"
+      args:
+        chdir:                         "{{ tools_directory }}/SWPM10WIN"
+        creates:                       "{{ tools_directory }}/SWPM10WIN/sapinst"
 
 # Step: 12 - END
 
