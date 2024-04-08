@@ -225,7 +225,7 @@
 - name:                                "0.10-maintenance-planner: copy SAPCAR"
   ansible.builtin.copy:
     src:                               "{{ tools_base_dir }}/SAPCAR"
-    dest:                              ""{{ sap_download_dir }}"/SAPCAR"
+    dest:                              "{{ sap_download_dir }}"/SAPCAR"
     mode:                              0755
 
 - name:                                "0.10-maintenance-planner: stat downloads directory"
