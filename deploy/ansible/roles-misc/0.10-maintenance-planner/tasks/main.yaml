@@ -161,7 +161,10 @@
 
 - name:                                "0.10-maintenance-planner: Set Fact: Append components"
   ansible.builtin.set_fact:
-    components:                        "{{ components | default([])+ { 'id': 'generic', 'name': 'NW_Users_Create:GENERIC.HDB.PD' } }}"
+    components:                        "{{ components | default([]) +
+                                          { 'id': 'generic', 'name': 'NW_Users_Create:GENERIC.HDB.PD' } +
+                                          { 'id': 'web', 'name': 'NW_Webdispatcher:NW750.IND.PD' }
+                                          }}"
 
 - name:                                "0.10-maintenance-planner: Print Parsed xml data"
   ansible.builtin.debug:
