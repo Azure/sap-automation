@@ -217,6 +217,7 @@
 
 - name:                                "0.10-maintenance-planner: copy SAPCAR"
   become:                              true
+  become_user:                         "{{ orchestration_ansible_user }}"
   ansible.builtin.copy:
     src:                               "{{ tools_base_dir }}/SAPCAR"
     dest:                              "{{ sap_download_dir }}/SAPCAR"
