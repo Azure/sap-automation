@@ -159,6 +159,10 @@
                                             map(attribute='matches') | flatten(levels=1) |
                                             selectattr('component', 'defined') | map(attribute='component') | default() | list )}}"
 
+- name:                                "0.10-maintenance-planner: Set Fact: Append components"
+  ansible.builtin.set_fact:
+    components:                        "{{ components | default([])+ { 'id': 'generic', 'name': 'NW_Users_Create:GENERIC.HDB.PD' } }}"
+
 - name:                                "0.10-maintenance-planner: Print Parsed xml data"
   ansible.builtin.debug:
     msg:
