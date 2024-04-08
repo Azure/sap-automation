@@ -105,6 +105,7 @@ resource "azurerm_linux_virtual_machine" "app" {
                                            local.application_server_count) : (
                                            0
                                          )
+  depends_on                           = [azurerm_virtual_machine_data_disk_attachment.scs]
   name                                 = format("%s%s%s%s%s",
                                            var.naming.resource_prefixes.vm,
                                            local.prefix,
@@ -254,6 +255,7 @@ resource "azurerm_windows_virtual_machine" "app" {
                                            local.application_server_count) : (
                                            0
                                          )
+  depends_on                           = [azurerm_virtual_machine_data_disk_attachment.scs]
   name                                 = format("%s%s%s%s%s",
                                            var.naming.resource_prefixes.vm,
                                            local.prefix,
