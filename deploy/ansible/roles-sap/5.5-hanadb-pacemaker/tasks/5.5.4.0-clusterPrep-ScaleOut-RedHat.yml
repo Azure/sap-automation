@@ -48,13 +48,15 @@
     #     get_status_maintenance_mode.stdout is not search('maintenance-mode') or
     #     get_status_maintenance_mode.stdout is search('maintenance-mode: false')
     - name:                            Stop HANA System on both sites
-      become_user:                     "{{ db_sid | lower }}adm"
-      become:                          true
-      ansible.builtin.command:         "{{ sapcontrol_command }} -function StopSystem"
-      failed_when:                     false
-      changed_when:                    false
-      register:                        hana_system_stopped
-      when:                            ansible_hostname in ["{{ primary_instance_name }}","{{ secondary_instance_name }}"]
+      block:
+        - name:                            Execute HANA StopSystem on both sites
+          become_user:                     "{{ db_sid | lower }}adm"
+          become:                          true
+          ansible.builtin.command:         "{{ sapcontrol_command }} -function StopSystem"
+          failed_when:                     false
+          changed_when:                    false
+          register:                        hana_system_stopped
+          when:                            ansible_hostname in ["{{ primary_instance_name }}","{{ secondary_instance_name }}"]
 
     - name:                            Wait 2 minutes for SAP system to stop
       ansible.builtin.pause:
