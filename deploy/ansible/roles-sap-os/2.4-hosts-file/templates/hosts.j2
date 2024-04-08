@@ -129,12 +129,12 @@ ansible_facts.
 {%     else %}
 {# Loop through remaining IPs for the virtual host #}
 {%       for ip in host_ips[1:] %}
-{%         if ((db_scale_out) and (subnet_cidr_storage is defined)) %}
+{%         if ((db_scale_out) and ( subnet_cidr_storage is defined and subnet_cidr_storage | type_debug != 'NoneType' )) %}
 {%           if (subnet_cidr_storage | ansible.utils.network_in_usable(ip)) %}
 {{ '%-19s' | format(ip) }}{{ '%-80s ' | format(host + '-storage.' + sap_fqdn) }}{{ '%-21s' | format(host + '-storage') }}
 
 {%           endif %}
-{%         elif ((db_scale_out) and (subnet_cidr_client is defined)) %}
+{%         elif ((db_scale_out) and ( subnet_cidr_client is defined and subnet_cidr_client | type_debug != 'NoneType' )) %}
 {%           if (subnet_cidr_client | ansible.utils.network_in_usable(ip)) %}
 {{ '%-19s' | format(ip) }}{{ '%-80s ' | format(host + '-client.' + sap_fqdn) }}{{ '%-21s' | format(host + '-client') }}
 
