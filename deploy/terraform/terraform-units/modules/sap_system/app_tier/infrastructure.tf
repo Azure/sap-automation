@@ -328,6 +328,7 @@ resource "azurerm_availability_set" "app" {
                                            length(var.ppg)) : (
                                            0
                                          )
+  depends_on                           = [azurerm_virtual_machine_data_disk_attachment.scs]
   name                                 = format("%s%s%s",
                                            local.prefix,
                                            var.naming.separator,
