@@ -21,5 +21,10 @@ materials:
 {{'    %-16s' | format('- name:' | trim) }}{{'%s'   | format(item.path | basename) }}
 {{'      %-13s' | format('archive:' | trim) }}{{' %s' | format(item.path | basename) }}
 {{'      %-12s' | format('download:' | trim) }}{{'  %s' | format('true') }}
+{%     if item.path.startswith('SWPM') %}
+{{'      %-16s' | format('path:' | trim) }}{{'  %s' | format('SWPM') }}
+{%     else %}
 {{'      %-16s' | format('path:' | trim) }}{{'  %s' | format('download_basket') }}
+{%     endif %}
+
 {% endfor %}
