@@ -76,7 +76,7 @@
         - name:                        "Configure NFS filesystem resource in Pacemaker for HSR sites"
           ansible.builtin.shell: >
                                        pcs resource create {{ item.fs_name }} --disabled ocf:heartbeat:Filesystem \
-                                       device="{{ item.fs_mount }}" directory="{{ item.fs_dir}}" fstype="nfs" \
+                                       device="{{ item.fs_mount }}" directory="{{ item.fs_dir }}" fstype="nfs" \
                                        options="{{ nfs_mount_options }}" \
                                        op monitor interval=20s on-fail=fence timeout=120s OCF_CHECK_LEVEL=20 \
                                        op start interval=0 timeout=120 op stop interval=0 timeout=120 \
