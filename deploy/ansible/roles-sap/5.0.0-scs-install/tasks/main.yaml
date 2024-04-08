@@ -92,7 +92,7 @@
 
 - name:                                "SCS Install: register variables"
   ansible.builtin.set_fact:
-    scs_bom_id:                        "{{ bom.product_ids.scs }}"
+    product_id:                        "{% if bom.product_ids.NW_ABAP_ASCS is defined  %}{{ bom.product_ids.NW_ABAP_ASCS }}{% else %}{{ bom.product_ids.scs }}{% endif %}"
     scs_bom_instance_type:             "{% if bom.InstanceType is defined %}{{ bom.InstanceType }}{% else %}ABAP{% endif %}"
     public:                            true
 
@@ -203,7 +203,7 @@
       ansible.builtin.shell: |
                                        umask {{ custom_umask | default('022') }} ;
                                        ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }}  \
-                                                 SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.scs }}             \
+                                                 SAPINST_EXECUTE_PRODUCT_ID={{ product_id }}             \
                                                  SAPINST_SKIP_DIALOGS=true                                        \
                                                  SAPINST_USE_HOSTNAME={{ scs_virtual_hostname }}                          \
                                                  SAPINST_START_GUISERVER=false

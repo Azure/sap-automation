@@ -64,9 +64,14 @@
   ansible.builtin.set_fact:
     application_type:                  "{% if instance_type == 'SCS' %}JAVA{% else %}ABAP{% endif %}"
 
+- name:                                "DBLoad Install: register variables (initial)"
+  ansible.builtin.set_fact:
+    db_ha_bom_id:                      "{% if bom.product_ids.NW_ABAP_DBHA is defined  %}{{ bom.product_ids.NW_ABAP_DBHA }}{% else %}{{ bom.product_ids.dbl }}{% endif %}"
+    db_stdln_bom_id:                   "{% if bom.product_ids.NW_ABAP_DB is defined  %}{{ bom.product_ids.NW_ABAP_DBHA }}{% else %}{{ bom.product_ids.dbl }}{% endif %}"
+
 - name:                                "DBLoad: -  Set the product ID"
   ansible.builtin.set_fact:
-    product_id:                        "{{ bom.product_ids.dbl }}"
+    product_id:                        "{% if database_high_availability  %}{{ db_ha_bom_id }}{% else %}{{ db_stdln_bom_id }}{% endif %}"
 
 - name:                                "DBLoad: - Set dbload path"
   ansible.builtin.set_fact:
@@ -138,6 +143,7 @@
   ansible.builtin.set_fact:
     dbl_bom_instance_type:             "{% if bom.InstanceType is defined %}{{ bom.InstanceType }}{% else %}ABAP{% endif %}"
     public:                            true
+
 
 # *====================================4=======================================8
 #   SAP DBLOAD: Install
