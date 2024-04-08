@@ -204,14 +204,14 @@
 
         - name:                        "Configure location constraint for filesystem resource clone for primary site"
           ansible.builtin.shell: >
-                                       pcs constraint location fs_hana_shared_s1-clone rule resource-discovery=never score=-INFINITY NFS_{{ db_did | upper }}_SITE ne S1
+                                       pcs constraint location fs_hana_shared_s1-clone rule resource-discovery=never score=-INFINITY NFS_{{ db_sid | upper }}_SITE ne S1
           register:                    location_nfs_attribute_site1
           failed_when:                 false
           ignore_errors:               true
 
         - name:                        "Configure location constraint for filesystem resource clone for secondary site"
           ansible.builtin.shell: >
-                                       pcs constraint location fs_hana_shared_s2-clone rule resource-discovery=never score=-INFINITY NFS_{{ db_did | upper }}_SITE ne S2
+                                       pcs constraint location fs_hana_shared_s2-clone rule resource-discovery=never score=-INFINITY NFS_{{ db_sid | upper }}_SITE ne S2
           register:                    location_nfs_attribute_site2
           failed_when:                 false
           ignore_errors:               true
