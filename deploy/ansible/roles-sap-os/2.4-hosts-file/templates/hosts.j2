@@ -75,49 +75,47 @@ ansible_facts.
 {# Set variables for the current host #}
 {%   set supported_tiers = hostvars[host]['supported_tiers'] if 'supported_tiers' in hostvars[host] else [] %}
 {%   set virtual_host_names = [] %}
-{%   if supported_tiers | length > 0 %}
 {# Assign virtual host names based on supported tiers #}
-{%     for tier in supported_tiers %}
-{%       if tier == 'scs' %}
-{%         set scs_virtual_host = hostvars[host]['custom_scs_virtual_hostname'] if 'custom_scs_virtual_hostname' in hostvars[host] else hostvars[host]['virtual_host'] %}
-{%         if scs_virtual_host not in virtual_host_names %}
-{%           set _ = virtual_host_names.append(scs_virtual_host) %}
-{%         endif %}
-{%       elif tier == 'ers' %}
-{%         set ers_virtual_host = hostvars[host]['custom_ers_virtual_hostname'] if 'custom_ers_virtual_hostname' in hostvars[host] else hostvars[host]['virtual_host'] %}
-{%         if ers_virtual_host not in virtual_host_names %}
-{%           set _ = virtual_host_names.append(ers_virtual_host) %}
-{%         endif %}
-{%       elif tier == 'pas' %}
-{%         set pas_virtual_host = hostvars[host]['custom_pas_virtual_hostname'] if 'custom_pas_virtual_hostname' in hostvars[host] else hostvars[host]['virtual_host'] %}
-{%         if pas_virtual_host not in virtual_host_names %}
-{%           set _ = virtual_host_names.append(pas_virtual_host) %}
-{%         endif %}
-{%       elif tier == 'app' %}
-{%         set app_virtual_host = hostvars[host]['custom_app_virtual_hostname'] if 'custom_app_virtual_hostname' in hostvars[host] else hostvars[host]['virtual_host'] %}
-{%         if app_virtual_host not in virtual_host_names %}
-{%           set _ = virtual_host_names.append(app_virtual_host) %}
-{%         endif %}
-{%       elif tier == 'web' %}
-{%         set web_virtual_host = hostvars[host]['custom_web_virtual_hostname'] if 'custom_web_virtual_hostname' in hostvars[host] else hostvars[host]['virtual_host'] %}
-{%         if web_virtual_host not in virtual_host_names %}
-{%           set _ = virtual_host_names.append(web_virtual_host) %}
-{%         endif %}
-{%       elif tier in ['hana', 'oracle', 'oracle-asm', 'db2', 'sybase'] %}
-{%         set db_virtual_host = hostvars[host]['custom_db_virtual_hostname'] if 'custom_db_virtual_hostname' in hostvars[host] else hostvars[host]['virtual_host'] %}
-{%         if db_virtual_host not in virtual_host_names %}
-{%           set _ = virtual_host_names.append(db_virtual_host) %}
-{%         endif %}
+{%   for tier in supported_tiers %}
+{%     if tier == 'scs' %}
+{%       set scs_virtual_host = hostvars[host]['custom_scs_virtual_hostname'] if 'custom_scs_virtual_hostname' in hostvars[host] else hostvars[host]['virtual_host'] %}
+{%       if scs_virtual_host not in virtual_host_names %}
+{%         set _ = virtual_host_names.append(scs_virtual_host) %}
 {%       endif %}
-{%     endfor %}
-{%   endif %}
+{%     elif tier == 'ers' %}
+{%       set ers_virtual_host = hostvars[host]['custom_ers_virtual_hostname'] if 'custom_ers_virtual_hostname' in hostvars[host] else hostvars[host]['virtual_host'] %}
+{%       if ers_virtual_host not in virtual_host_names %}
+{%         set _ = virtual_host_names.append(ers_virtual_host) %}
+{%       endif %}
+{%     elif tier == 'pas' %}
+{%       set pas_virtual_host = hostvars[host]['custom_pas_virtual_hostname'] if 'custom_pas_virtual_hostname' in hostvars[host] else hostvars[host]['virtual_host'] %}
+{%       if pas_virtual_host not in virtual_host_names %}
+{%         set _ = virtual_host_names.append(pas_virtual_host) %}
+{%       endif %}
+{%     elif tier == 'app' %}
+{%       set app_virtual_host = hostvars[host]['custom_app_virtual_hostname'] if 'custom_app_virtual_hostname' in hostvars[host] else hostvars[host]['virtual_host'] %}
+{%       if app_virtual_host not in virtual_host_names %}
+{%         set _ = virtual_host_names.append(app_virtual_host) %}
+{%       endif %}
+{%     elif tier == 'web' %}
+{%       set web_virtual_host = hostvars[host]['custom_web_virtual_hostname'] if 'custom_web_virtual_hostname' in hostvars[host] else hostvars[host]['virtual_host'] %}
+{%       if web_virtual_host not in virtual_host_names %}
+{%         set _ = virtual_host_names.append(web_virtual_host) %}
+{%       endif %}
+{%     elif tier in ['hana', 'oracle', 'oracle-asm', 'db2', 'sybase'] %}
+{%       set db_virtual_host = hostvars[host]['custom_db_virtual_hostname'] if 'custom_db_virtual_hostname' in hostvars[host] else hostvars[host]['virtual_host'] %}
+{%       if db_virtual_host not in virtual_host_names %}
+{%         set _ = virtual_host_names.append(db_virtual_host) %}
+{%       endif %}
+{%     endif %}
+{%   endfor %}
 {# Keep only unique values in the virtual_host_names #}
 {% set virtual_host_names = virtual_host_names | unique %}
 
 {# Determine the IPs for the current host from ipaddr variable. Do not sort it, the order is already correct. #}
 {%   set host_ips = hostvars[host]['ipadd'] %}
 {# Check if there are IPs available for the current host #}
-{%   if host_ips | length > 0 %}
+{%   if host_ips %}
 
 {{ '%-19s' | format(host_ips[0]) }}{{ '%-80s ' | format(host + '.' + sap_fqdn) }}{{ '%-21s' | format(host) }}
 
