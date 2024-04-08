@@ -72,7 +72,7 @@
   block:
     - name:                            "User Creation: check media exists"
       ansible.builtin.stat:
-        path:                          "{{ target_media_location }}/SWPM/sapinst"
+        path:                          "{{ sapinst_path }}/sapinst"
       register:                        sapinst_found
 
     - name:                            "ErrorHandling"
