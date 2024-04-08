@@ -452,6 +452,9 @@
             src:                       "{{ download_directory }}/files/{{ bom_media_entry.archive }}"
             dest:                      "{{ tools_directory }}/{{ bom_media_entry.filename }}"
             owner:                     "{{ orchestration_ansible_user }}"
+          when:
+            - bom.name | upper == "TOOLS"
+            - bom.maintenance_planner_tools | default(false)
       # Step: 05-04-02 - END
       # -------------------------------+---------------------------------------------8
       # -------------------------------+---------------------------------------------8
