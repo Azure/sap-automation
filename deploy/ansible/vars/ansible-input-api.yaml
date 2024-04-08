@@ -19,7 +19,7 @@ bom_suffix:                             ""                                      
 sapbits_bom_files:                      "sapfiles"
 target_media_location:                  "/usr/sap/install"
 
-sapinst_path:                           "{% if SDAF_Version is version( '3.10.3.0' , "<=" ) %}/usr/sap/install/SWPM{% else %}/usr/sap/install/download_basket{% endif %}"
+sapinst_path:                           "/usr/sap/install/SWPM"
 # download_directory:                     "/mnt/downloads"                      # MKD 20221212 Dynamic BOM - become root mitigation
 # download_directory:                     "~/tmp/downloads"
 # KFO 20220102 ansible_env.HOME is not available on Windows
