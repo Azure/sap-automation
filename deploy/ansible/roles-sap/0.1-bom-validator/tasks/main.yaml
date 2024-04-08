@@ -431,6 +431,12 @@
         chdir:                         "{{ tools_directory }}/SWPM10WIN"
         creates:                       "{{ tools_directory }}/SWPM10WIN/sapinst"
 
+    - name:                            "Extract SWPM20WIN using SAPCAR"
+      ansible.builtin.command:         "{{ tools_directory }}/SAPCAR -manifest SIGNATURE.SMF -xf {{ tools_directory }}/swpm20win"
+      args:
+        chdir:                         "{{ tools_directory }}/SWPM20WIN"
+        creates:                       "{{ tools_directory }}/SWPM20WIN/sapinst"
+
 # Step: 12 - END
 
 
