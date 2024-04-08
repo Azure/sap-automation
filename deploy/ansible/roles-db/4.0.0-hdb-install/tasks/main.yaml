@@ -64,7 +64,7 @@
         force:                         true
   # Template parameter mapping
       vars:
-        _rsp_component_root:           "../COMPONENTS"
+        _rsp_component_root:           "."
         _rsp_components:               "{{ hana_components }}"
         _rsp_sapmnt:                   "/hana/shared"                              # Default Value
         _rsp_hostname:                 "{{ virtual_host }}"
