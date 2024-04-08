@@ -1,0 +1,19 @@
+#   2482103 - Installation with SWPM in unattended mode using parameter input file fails
+#   2393060 - SAPinst Framework 749 Central Note
+
+NW_Delete_Sapinst_Users.removeUsers                                   = true
+
+# Specify whether you are preparing for an SAP sytem based on AS ABAP.
+NW_Users_Create.dbsid                                                 = {{ db_sid | upper }}
+NW_Users_Create.hasABAP                                               = true
+NW_Users_Create.sid                                                   = {{ sap_sid | upper }}
+
+# Specify whether database users are to be installed.
+NW_Users_Create.installDBUsers                                        = false
+
+nwUsers.dbtype                                                        = ind
+nwUsers.sapadmUID                                                     = {{ sapadm_uid }}
+nwUsers.sapsysGID                                                     = {{ sapsys_gid }}
+nwUsers.sidAdmUID                                                     = {{ sidadm_uid }}
+nwUsers.sidadmPassword                                                = {{ main_password }}
+hostAgent.sapAdmPassword                                              = {{ main_password }}

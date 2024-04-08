@@ -267,7 +267,7 @@
         "Type": "checkbox",
         "Options": [],
         "Overrules": "",
-        "Display": 3
+        "Display": 2
       },
       {
         "Name": "deploy_monitoring_extension",
@@ -276,7 +276,7 @@
         "Type": "checkbox",
         "Options": [],
         "Overrules": "",
-        "Display": 3
+        "Display": 2
       },
       {
         "Name": "deploy_defender_extension",
