@@ -79,9 +79,14 @@
     task_prefix:                       "APP Install: "
     sa_enabled:                        true
 
+- name:                                "APP Install: register variables (initial)"
+  ansible.builtin.set_fact:
+    app_ha_bom_id:                     "{% if bom.product_ids.NW_DIHA is defined  %}{{ bom.product_ids.NW_DIHA }}{% else %}{{ bom.product_ids.app }}{% endif %}"
+    app_stdln_bom_id:                  "{% if bom.product_ids.NW_DI is defined  %}{{ bom.product_ids.NW_DI }}{% else %}{{ bom.product_ids.app }}{% endif %}"
+
 - name:                                "APP Install: register variables"
   ansible.builtin.set_fact:
-    app_bom_id:                        "{{ bom.product_ids.app }}"
+    product_id:                        "{% if database_high_availability  %}{{ app_ha_bom_id }}{% else %}{{ app_stdln_bom_id }}{% endif %}"
 
 - name:                                "APP Install: Check if the DB load balancer port is available and listening"
   ansible.builtin.wait_for:
@@ -177,16 +182,12 @@
         virt_do_not_resolve_hostname:  "{{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) }}"
         hana_schema:                   "{{ schema_name | default('') }}"
 
-    - name:                            "App Install: register variables"
-      ansible.builtin.set_fact:
-        app_bom_id:                    "{{ bom.product_ids.app }}"
-
     - name:                            "App Install: install variables"
       ansible.builtin.debug:
         msg:
           - "INSTALLED:  {{ app_installed.stat.exists }}"
           - "INIFILE:    {{ sap_inifile }}"
-          - "PRODUCT ID: {{ bom.product_ids.app }}"
+          - "PRODUCT ID: {{ product_id }}"
           - "DBHOST:     {{ custom_db_virtual_hostname | default(db_virtual_hostname, true) }}"
           - "HOST:       {{ app_virtual_hostname }}"
           - "SID:        {{ sid_to_be_deployed.sid | upper }}"
@@ -217,7 +218,7 @@
       ansible.builtin.shell: |
                                        umask {{ custom_umask | default('022') }} ;
                                        ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }} \
-                                                 SAPINST_EXECUTE_PRODUCT_ID={{ app_bom_id }}                     \
+                                                 SAPINST_EXECUTE_PRODUCT_ID={{ product_id }}                     \
                                                  SAPINST_SKIP_DIALOGS=true                                       \
                                                  SAPINST_USE_HOSTNAME={{ app_virtual_hostname }}                 \
                                                  SAPINST_START_GUISERVER=false

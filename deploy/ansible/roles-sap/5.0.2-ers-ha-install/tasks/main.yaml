@@ -36,7 +36,7 @@
 
 - name:                                "ERS Install: register variables"
   ansible.builtin.set_fact:
-    ers_bom_id:                        "{{ bom.product_ids.ers_ha }}"
+    product_id:                        "{% if bom.product_ids.NW_ERSHA is defined  %}{{ bom.product_ids.NW_ERSHA }}{% else %}{{ bom.product_ids.ers }}{% endif %}"
     ers_bom_instance_type:             "{% if bom.InstanceType is defined %}{{ bom.InstanceType }}{% else %}ABAP{% endif %}"
 
 - name:                                "ERS Install: reset"
@@ -87,7 +87,7 @@
       ansible.builtin.debug:
         msg:
           - "INIFILE:    {{ sap_inifile }}"
-          - "PRODUCT ID: {{ bom.product_ids.ers_ha }}"
+          - "PRODUCT ID: {{ product_id }}"
         verbosity:                     2
 
     - name:                            "ERS Install: Assign ownership"
@@ -128,11 +128,11 @@
         - name:                        "ERS Install: SAPInst"
           ansible.builtin.shell: |
                                        umask {{ custom_umask | default('022') }} ;
-                                       ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }}     \
-                                                 SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.ers_ha }}             \
-                                                 SAPINST_SKIP_DIALOGS=true                                           \
-                                                 SAPINST_START_GUISERVER=false                                       \
-                                                 SAPINST_USE_HOSTNAME={{ ers_virtual_hostname }}                     \
+                                       ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }} \
+                                                 SAPINST_EXECUTE_PRODUCT_ID={{ product_id }}                     \
+                                                 SAPINST_SKIP_DIALOGS=true                                       \
+                                                 SAPINST_START_GUISERVER=false                                   \
+                                                 SAPINST_USE_HOSTNAME={{ ers_virtual_hostname }}                 \
                                                  IS_HOST_LOCAL_USING_STRING_COMPARE=true
           args:
             chdir:                     "{{ target_media_location }}/SWPM"
@@ -168,11 +168,11 @@
         - name:                        "RESCUE - ERS Install: SAPInst"
           ansible.builtin.shell: |
                                        umask {{ custom_umask | default('022') }} ;
-                                       ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }}     \
-                                                 SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.ers_ha }}             \
-                                                 SAPINST_SKIP_DIALOGS=true                                           \
-                                                 SAPINST_START_GUISERVER=false                                       \
-                                                 SAPINST_USE_HOSTNAME={{ ers_virtual_hostname }}                     \
+                                       ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }} \
+                                                 SAPINST_EXECUTE_PRODUCT_ID={{ product_id }}                     \
+                                                 SAPINST_SKIP_DIALOGS=true                                       \
+                                                 SAPINST_START_GUISERVER=false                                   \
+                                                 SAPINST_USE_HOSTNAME={{ ers_virtual_hostname }}                 \
                                                  IS_HOST_LOCAL_USING_STRING_COMPARE=true
           args:
             chdir:                     "{{ target_media_location }}/SWPM"
