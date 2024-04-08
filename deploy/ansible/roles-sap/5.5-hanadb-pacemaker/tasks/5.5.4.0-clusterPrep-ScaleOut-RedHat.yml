@@ -107,84 +107,69 @@
     - name:                            "Configure pacemaker hana shared filesystem resources on {{ primary_instance_name }}"
       when:                            ansible_hostname == primary_instance_name
       block:
-        - name:                        "Configure filesystem resource in Pacemaker for primary site"
+        - name:                        "Configure filesystem resource in Pacemaker for HSR sites"
           ansible.builtin.shell: >
-                                       pcs resource create hana_shared_s1 --disabled ocf:heartbeat:Filesystem \
-                                       device="{{ hana_shared_mountpoint[0] }}" directory="/hana/shared" fstype="nfs" \
+                                       pcs resource create {{ item.fs_name }} --disabled ocf:heartbeat:Filesystem \
+                                       device="{{ item.fs_mount }}" directory="{{ item.fs_dir}}" fstype="nfs" \
                                        options="{{ nfs_mount_options }}" \
                                        op monitor interval=20s on-fail=fence timeout=120s OCF_CHECK_LEVEL=20 \
-                                       op start interval=0 timeout=120 op stop interval=0 timeout=120
-          register:                    nfs_mount_site1
+                                       op start interval=0 timeout=120 op stop interval=0 timeout=120 \
+                                       clone meta clone-node-max=1 interleave=true
+          register:                    nfs_mount_sites
           failed_when:                 false
           ignore_errors:               true
+          loop:
+            - { fs_name: 'hana_shared_s1',fs_mount: '{{ hana_shared_mountpoint[0] }}', fs_dir: '/hana/shared' }
+            - { fs_name: 'hana_shared_s2',fs_mount: '{{ hana_shared_mountpoint[1] }}', fs_dir: '/hana/shared' }
+          loop_control:
+            loop_var:                  item
 
-        - name:                        "Check if ANF hana mounts did not error for primary site"
+        - name:                        "Check if ANF hana mounts did not error on {{ primary_instance_name }}"
           ansible.builtin.set_fact:
-            chk_nfs_mount_site1:      "{{ nfs_mount_site1.results | selectattr('rc', 'ne', 0) | rejectattr('stderr', 'search', 'already exists') | default([]) | list }}"
+            chk_nfs_mount_sites:      "{{ nfs_mount_sites.results | selectattr('rc', 'ne', 0) | rejectattr('stderr', 'search', 'already exists') | default([]) | list }}"
 
-        - name:                        "Fail when ANF hana mounts errored on primary site"
+        - name:                        "Fail when ANF hana mounts errored on {{ primary_instance_name }}"
           ansible.builtin.fail:
-            msg:                       "Failed to create ANF hana mounts on primary site"
+            msg:                       "Failed to create ANF hana mounts on {{ primary_instance_name }}"
           when:
-            - chk_nfs_mount_site1 | length > 0
+            - chk_nfs_mount_sites | length > 0
             - ansible_hostname == primary_instance_name
 
-        - name:                        "Configure filesystem resource in Pacemaker for secondary site"
-          ansible.builtin.shell: >
-                                      pcs resource create hana_shared_s1 --disabled ocf:heartbeat:Filesystem \
-                                       device="{{ hana_shared_mountpoint[1] }}" directory="/hana/shared" fstype="nfs" \
-                                       options="{{ nfs_mount_options }}" \
-                                       op monitor interval=20s on-fail=fence timeout=120s OCF_CHECK_LEVEL=20 \
-                                       op start interval=0 timeout=120 op stop interval=0 timeout=120
-          register:                    nfs_mount_site2
-          failed_when:                 false
-          ignore_errors:               true
+        # - name:                        "Clone the primary site filesystem resource"
+        #   ansible.builtin.shell: >
+        #                                pcs resource clone fs_hana_shared_s1 meta clone-node-max=1 interleave=true
+        #   register:                    nfs_mount_clone_site1
+        #   failed_when:                 false
+        #   ignore_errors:               true
 
-        - name:                        "Check if ANF hana mounts did not error for secondary site"
-          ansible.builtin.set_fact:
-            chk_nfs_mount_site2:      "{{ nfs_mount_site2.results | selectattr('rc', 'ne', 0) | rejectattr('stderr', 'search', 'already exists') | default([]) | list }}"
+        # - name:                        "Check if the filesystem resource clone was created for the primary site"
+        #   ansible.builtin.set_fact:
+        #     chk_nfs_mount_clone_site1:      "{{ nfs_mount_clone_site1.results | selectattr('rc', 'ne', 0) | rejectattr('stderr', 'search', 'already exists') | default([]) | list }}"
 
-        - name:                        "Fail when ANF hana mounts errored on secondary site"
-          ansible.builtin.fail:
-            msg:                       "Failed to create ANF hana mounts on secondary site"
-          when:
-            - chk_nfs_mount_site2 | length > 0
+        # - name:                        "Fail when filesystem resource clone errored on primary site"
+        #   ansible.builtin.fail:
+        #     msg:                       "Failed to create FileSystem clone for  hana mounts on primary site"
+        #   when:
+        #     - chk_nfs_mount_clone_site1 | length > 0
 
-        - name:                        "Clone the primary site filesystem resource"
-          ansible.builtin.shell: >
-                                       pcs resource clone fs_hana_shared_s1 meta clone-node-max=1 interleave=true
-          register:                    nfs_mount_clone_site1
-          failed_when:                 false
-          ignore_errors:               true
+        # - name:                        "Clone the secondary site filesystem resource"
+        #   ansible.builtin.shell: >
+        #                                pcs resource clone fs_hana_shared_s2 meta clone-node-max=1 interleave=true
+        #   register:                    nfs_mount_clone_site2
+        #   failed_when:                 false
+        #   ignore_errors:               true
 
-        - name:                        "Check if the filesystem resource clone was created for the primary site"
-          ansible.builtin.set_fact:
-            chk_nfs_mount_clone_site1:      "{{ nfs_mount_clone_site1.results | selectattr('rc', 'ne', 0) | rejectattr('stderr', 'search', 'already exists') | default([]) | list }}"
+        # - name:                        "Check if the filesystem resource clone was created for the secondary site"
+        #   ansible.builtin.set_fact:
+        #     chk_nfs_mount_clone_site2:      "{{ nfs_mount_clone_site2.results | selectattr('rc', 'ne', 0) | rejectattr('stderr', 'search', 'already exists') | default([]) | list }}"
 
-        - name:                        "Fail when filesystem resource clone errored on primary site"
-          ansible.builtin.fail:
-            msg:                       "Failed to create FileSystem clone for  hana mounts on primary site"
-          when:
-            - chk_nfs_mount_clone_site1 | length > 0
+        # - name:                        "Fail when filesystem resource clone errored on secondary site"
+        #   ansible.builtin.fail:
+        #     msg:                       "Failed to create FileSystem clone for  hana mounts on secondary site"
+        #   when:
+        #     - chk_nfs_mount_clone_site2 | length > 0
 
-        - name:                        "Clone the secondary site filesystem resource"
-          ansible.builtin.shell: >
-                                       pcs resource clone fs_hana_shared_s2 meta clone-node-max=1 interleave=true
-          register:                    nfs_mount_clone_site2
-          failed_when:                 false
-          ignore_errors:               true
-
-        - name:                        "Check if the filesystem resource clone was created for the secondary site"
-          ansible.builtin.set_fact:
-            chk_nfs_mount_clone_site2:      "{{ nfs_mount_clone_site2.results | selectattr('rc', 'ne', 0) | rejectattr('stderr', 'search', 'already exists') | default([]) | list }}"
-
-        - name:                        "Fail when filesystem resource clone errored on secondary site"
-          ansible.builtin.fail:
-            msg:                       "Failed to create FileSystem clone for  hana mounts on secondary site"
-          when:
-            - chk_nfs_mount_clone_site2 | length > 0
-
-        - name:                        "Configure node attributes for primary site cluster nodes"
+        - name:                        "Configure node attributes for primary site on {{ primary_instance_name }}"
           ansible.builtin.shell: >
                                        pcs node attribute {{ item }} NFS_{{ db_sid | upper }}_SITE=S1
           register:                    node_nfs_attribute_site1
@@ -193,7 +178,7 @@
           loop:
             - ansible_play_hosts_all[0::2]
 
-        - name:                        "Configure node attributes for secondary site cluster nodes"
+        - name:                        "Configure node attributes for secondary site on {{ primary_instance_name }}"
           ansible.builtin.shell: >
                                        pcs node attribute {{ item }} NFS_{{ db_sid | upper }}_SITE=S2
           register:                    node_nfs_attribute_site2
@@ -202,81 +187,96 @@
           loop:
             - ansible_play_hosts_all[2::2]
 
-        - name:                        "Configure location constraint for filesystem resource clone for primary site"
+        - name:                        "Configure location constraint for filesystem resource clone on {{ primary_instance_name }}"
           ansible.builtin.shell: >
-                                       pcs constraint location fs_hana_shared_s1-clone rule resource-discovery=never score=-INFINITY NFS_{{ db_sid | upper }}_SITE ne S1
-          register:                    location_nfs_attribute_site1
+                                       pcs constraint location {{ item.clone_name }} rule resource-discovery=never score=-INFINITY NFS_{{ db_sid | upper }}_SITE ne {{ item.site_code }}
+          register:                    location_nfs_attribute_sites
           failed_when:                 false
           ignore_errors:               true
+          loop:
+            - { clone_name: 'fs_hana_shared_s1-clone' , site_code: 'S1'}
+            - { clone_name: 'fs_hana_shared_s2-clone' , site_code: 'S2'}
 
-        - name:                        "Configure location constraint for filesystem resource clone for secondary site"
-          ansible.builtin.shell: >
-                                       pcs constraint location fs_hana_shared_s2-clone rule resource-discovery=never score=-INFINITY NFS_{{ db_sid | upper }}_SITE ne S2
-          register:                    location_nfs_attribute_site2
-          failed_when:                 false
-          ignore_errors:               true
+        # - name:                        "Configure location constraint for filesystem resource clone for secondary site"
+        #   ansible.builtin.shell: >
+        #                                pcs constraint location fs_hana_shared_s2-clone rule resource-discovery=never score=-INFINITY NFS_{{ db_sid | upper }}_SITE ne S2
+        #   register:                    location_nfs_attribute_site2
+        #   failed_when:                 false
+        #   ignore_errors:               true
 
-        - name:                        Activate filesystem resource on primary site
+
+        - name:                        Activate filesystem resource on {{ primary_instance_name }}
           ansible.builtin.shell: >
-                                       pcs resource enable fs_hana_shared_s1
+                                       pcs resource enable {{ item.fs_name }}
           register:                    activate_nfs_mount_site1
           failed_when:                 false
           ignore_errors:               true
-          when:
-            - chk_nfs_mount_clone_site1 | length == 0
+          loop:
+            - { fs_name: 'fs_hana_shared_s1' }
+            - { fs_name: 'fs_hana_shared_s2' }
+          # when:
+          #   - chk_nfs_mount_sites | length == 0
 
-        - name:                        Activate filesystem resource on secondary site
-          ansible.builtin.shell: >
-                                       pcs resource enable fs_hana_shared_s2
-          register:                    activate_nfs_mount_site2
-          failed_when:                 false
-          ignore_errors:               true
-          when:
-            - chk_nfs_mount_clone_site2 | length == 0
+        # - name:                        Activate filesystem resource on secondary site
+        #   ansible.builtin.shell: >
+        #                                pcs resource enable fs_hana_shared_s2
+        #   register:                    activate_nfs_mount_site2
+        #   failed_when:                 false
+        #   ignore_errors:               true
+        #   when:
+        #     - chk_nfs_mount_sites | length == 0
         # TODO : add code to check if this failed or not
 
-        - name:                        Configure pacemaker attribute resource for primary site
+        - name:                        Configure pacemaker attribute resource on {{ primary_instance_name }}
           ansible.builtin.shell: >
-                                       pcs resource create hana_nfs_s1_active ocf:pacemaker:attribute active_value=true inactive_value=false name=hana_nfs_s1_active
-          register:                    attribute_hana_nfs_s1
+                                       pcs resource create {{ item.res_name }} ocf:pacemaker:attribute active_value=true \
+                                       inactive_value=false name={{ item.res_name }} \
+                                       clone meta clone-node-max=1 interleave=true
+          register:                    attribute_hana_nfs_sites
           failed_when:                 false
           ignore_errors:               true
+          loop:
+            - { res_name: 'hana_nfs_s1_active' }
+            - { res_name: 'hana_nfs_s2_active' }
 
-        - name:                        Configure pacemaker attribute resource for secondary site
-          ansible.builtin.shell: >
-                                       pcs resource create hana_nfs_s2_active ocf:pacemaker:attribute active_value=true inactive_value=false name=hana_nfs_s2_active
-          register:                    attribute_hana_nfs_s2
-          failed_when:                 false
-          ignore_errors:               true
+        # - name:                        Configure pacemaker attribute resource for secondary site
+        #   ansible.builtin.shell: >
+        #                                pcs resource create hana_nfs_s2_active ocf:pacemaker:attribute active_value=true inactive_value=false name=hana_nfs_s2_active
+        #   register:                    attribute_hana_nfs_s2
+        #   failed_when:                 false
+        #   ignore_errors:               true
 
-        - name:                        Clone pacemaker attribute resource for primary site
-          ansible.builtin.shell: >
-                                       pcs resource clone hana_nfs_s1_active meta clone-node-max=1 interleave=true
-          register:                    clone_attribute_hana_nfs_s1
-          failed_when:                 false
-          ignore_errors:               true
+        # - name:                        Clone pacemaker attribute resource for primary site
+        #   ansible.builtin.shell: >
+        #                                pcs resource clone hana_nfs_s1_active meta clone-node-max=1 interleave=true
+        #   register:                    clone_attribute_hana_nfs_s1
+        #   failed_when:                 false
+        #   ignore_errors:               true
 
-        - name:                        Clone pacemaker attribute resource for secondary site
-          ansible.builtin.shell: >
-                                       pcs resource clone hana_nfs_s2_active meta clone-node-max=1 interleave=true
-          register:                    clone_attribute_hana_nfs_s2
-          failed_when:                 false
-          ignore_errors:               true
+        # - name:                        Clone pacemaker attribute resource for secondary site
+        #   ansible.builtin.shell: >
+        #                                pcs resource clone hana_nfs_s2_active meta clone-node-max=1 interleave=true
+        #   register:                    clone_attribute_hana_nfs_s2
+        #   failed_when:                 false
+        #   ignore_errors:               true
 
 
-        - name:                        Create constraints for  pacemaker attribute resource for primary site
+        - name:                        Create constraints for  pacemaker attribute resource on {{ primary_instance_name }}
           ansible.builtin.shell: >
                                        pcs constraint order fs_hana_shared_s1-clone then hana_nfs_s1_active-clone
-          register:                    loc_attribute_hana_nfs_s1
+          register:                    loc_attribute_hana_nfs_sites
           failed_when:                 false
           ignore_errors:               true
+          loop:
+            - { fs_clone: 'fs_hana_shared_s1-clone', res_clone: 'hana_nfs_s1_active-clone' }
+            - { fs_clone: 'fs_hana_shared_s2-clone', res_clone: 'hana_nfs_s2_active-clone' }
 
-        - name:                        Create constraints for  pacemaker attribute resource for secondary site
-          ansible.builtin.shell: >
-                                       pcs constraint order fs_hana_shared_s2-clone then hana_nfs_s2_active-clone
-          register:                    loc_attribute_hana_nfs_s2
-          failed_when:                 false
-          ignore_errors:               true
+        # - name:                        Create constraints for  pacemaker attribute resource for secondary site
+        #   ansible.builtin.shell: >
+        #                                pcs constraint order fs_hana_shared_s2-clone then hana_nfs_s2_active-clone
+        #   register:                    loc_attribute_hana_nfs_s2
+        #   failed_when:                 false
+        #   ignore_errors:               true
 
     - name:                            Start HANA System on both nodes
       become_user:                     "{{ db_sid | lower }}adm"
