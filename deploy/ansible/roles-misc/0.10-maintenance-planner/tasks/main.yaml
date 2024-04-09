@@ -276,6 +276,8 @@
                                        az storage blob delete
                                          --account-name {{ account }}
                                          --sas-token {{ sapbits_sas_token }}
+                                         --auth-mode key
+                                         --account-key {{ sapbits_access_key }}
                                          --container-name {{ bom_container }}
                                          --name {{ maintenance_plan_id }}.yaml
       delegate_to:                       localhost
@@ -291,6 +293,8 @@
                                        az storage blob upload
                                          --account-name  {{ account }}
                                          --sas-token {{ sapbits_sas_token }}
+                                         --auth-mode key
+                                         --account-key {{ sapbits_access_key }}
                                          --container-name {{ bom_container }}
                                          --name {{ maintenance_plan_id }}.yaml
                                          --file /home/{{ orchestration_ansible_user }}/{{ maintenance_plan_id }}.yaml
@@ -308,14 +312,16 @@
     - name:                            "0.10-maintenance-planner: - Upload stack file using SAS Token"
       ansible.builtin.command: >-
                                        az storage blob upload
-                                       --account-name  {{ account }}
-                                       --sas-token {{ sapbits_sas_token }}
-                                       --container-name {{ bom_container }}
-                                       --name stack.xml
-                                       --file {{ stack_xml_file }}
-                                       --overwrite True
-                                       --if-none-match "*"
-                                       --no-progress
+                                         --account-name  {{ account }}
+                                         --sas-token {{ sapbits_sas_token }}
+                                         --auth-mode key
+                                         --account-key {{ sapbits_access_key }}
+                                         --container-name {{ bom_container }}
+                                         --name stack.xml
+                                         --file {{ stack_xml_file }}
+                                         --overwrite True
+                                         --if-none-match "*"
+                                         --no-progress
       delegate_to:                     localhost
       register:                        azresult
       ignore_errors:                   true
@@ -329,7 +335,9 @@
     #   ansible.builtin.command: >-
     #                                    az storage blob upload-batch
     #                                      --account-name  {{ account }}
-    #                                      --sas-token     {{ sapbits_sas_token }}
+                                        #  --sas-token {{ sapbits_sas_token }}
+                                        #  --auth-mode key
+                                        #  --account-key {{ sapbits_access_key }}
     #                                      --destination   {{ container }}
     #                                      --source        {{ sap_download_dir }}
     #                                      --overwrite True
