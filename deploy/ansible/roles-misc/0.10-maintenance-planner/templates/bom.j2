@@ -20,23 +20,24 @@ product_ids:
 materials:
   media:
 {% for item in downloads_dir_files %}
-{{'    %-16s' | format('- name:' | trim) }}{{'%s'   | format(item.path | basename) }}
-{{'      %-13s' | format('archive:' | trim) }}{{' %s' | format(item.path | basename) }}
+{%   set filename = (item.path | basename) %}
+{{'    %-16s' | format('- name:' | trim) }}{{'%s'   | format(filename) }}
+{{'      %-13s' | format('archive:' | trim) }}{{' %s' | format(filename) }}
 {{'      %-12s' | format('download:' | trim) }}{{'  %s' | format('true') }}
-{%     if item.path.startswith('SWPM') %}
+{%     if filename.startswith('SWPM') %}
 {{'      %-10s' | format('extractDir:' | trim) }}{{'  %s' | format('SWPM') }}
 {{'      %-13s' | format('extract:' | trim) }}{{'  %s' | format('true') }}
 {{'      %-12s' | format('path:' | trim) }}{{'  %s' | format('download_basket') }}
-{%     elif item.path.startswith('SUM') %}
+{%     elif filename.startswith('SUM') %}
 {{'      %-10s' | format('extractDir:' | trim) }}{{'  %s' | format('SUM') }}
 {{'      %-13s' | format('extract:' | trim) }}{{'  %s' | format('true') }}
 {{'      %-12s' | format('path:' | trim) }}{{'  %s' | format('download_basket') }}
-{%     elif item.path.startswith('IMDB_CLIENT') %}
+{%     elif filename.startswith('IMDB_CLIENT') %}
 {{'      %-10s' | format('extractDir:' | trim) }}{{'  %s' | format('CD_HDBCLIENT') }}
 {{'      %-13s' | format('extract:' | trim) }}{{'  %s' | format('true') }}
 {{'      %-13s' | format('creates:' | trim) }}{{'  %s' | format('SIGNATURE.SMF') }}
 {{'      %-12s' | format('path:' | trim) }}{{'  %s' | format('download_basket') }}
-{%     elif item.path.startswith('IMDB_SERVER') %}
+{%     elif filename.startswith('IMDB_SERVER') %}
 {{'      %-10s' | format('extractDir:' | trim) }}{{'  %s' | format('CD_HDBSERVER') }}
 {{'      %-13s' | format('extract:' | trim) }}{{'  %s' | format('true') }}
 {{'      %-13s' | format('creates:' | trim) }}{{'  %s' | format('SIGNATURE.SMF') }}
