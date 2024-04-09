@@ -116,7 +116,7 @@
           failed_when:                 false
           ignore_errors:               true
           with_items:
-            - "{{ ansible_play_hosts_all[2::2] }}"
+            - "{{ ansible_play_hosts_all[1::2] }}"
 
         - name:                        "Configure location constraint for filesystem resource clone on {{ primary_instance_name }}"
           ansible.builtin.shell: >
