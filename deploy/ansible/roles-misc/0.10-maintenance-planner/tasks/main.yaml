@@ -400,10 +400,10 @@
 # Step: 05-04-01 - END
 # -------------------------------+---------------------------------------------8
 
-- name:                               "0.10-maintenance-planner: Remove downloaded files"
-  ansible.builtin.file:
-    path:                             "{{ sap_download_dir }}"
-    state:                            absent
+# - name:                               "0.10-maintenance-planner: Remove downloaded files"
+#   ansible.builtin.file:
+#     path:                             "{{ sap_download_dir }}"
+#     state:                            absent
 
 
 - name:                               "0.10-maintenance-planner: Remove ini file"

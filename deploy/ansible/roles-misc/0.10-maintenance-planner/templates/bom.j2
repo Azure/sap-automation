@@ -26,23 +26,23 @@ materials:
 {%     if item.path.startswith('SWPM') %}
 {{'      %-10s' | format('extractDir:' | trim) }}{{'  %s' | format('SWPM') }}
 {{'      %-13s' | format('extract:' | trim) }}{{'  %s' | format('true') }}
-{{'      %-16s' | format('path:' | trim) }}{{'  %s' | format('download_basket') }}
+{{'      %-12s' | format('path:' | trim) }}{{'  %s' | format('download_basket') }}
 {%     elif item.path.startswith('SUM') %}
 {{'      %-10s' | format('extractDir:' | trim) }}{{'  %s' | format('SUM') }}
 {{'      %-13s' | format('extract:' | trim) }}{{'  %s' | format('true') }}
-{{'      %-16s' | format('path:' | trim) }}{{'  %s' | format('download_basket') }}
+{{'      %-12s' | format('path:' | trim) }}{{'  %s' | format('download_basket') }}
 {%     elif item.path.startswith('IMDB_CLIENT') %}
 {{'      %-10s' | format('extractDir:' | trim) }}{{'  %s' | format('CD_HDBCLIENT') }}
 {{'      %-13s' | format('extract:' | trim) }}{{'  %s' | format('true') }}
 {{'      %-13s' | format('creates:' | trim) }}{{'  %s' | format('SIGNATURE.SMF') }}
-{{'      %-16s' | format('path:' | trim) }}{{'  %s' | format('download_basket') }}
+{{'      %-12s' | format('path:' | trim) }}{{'  %s' | format('download_basket') }}
 {%     elif item.path.startswith('IMDB_SERVER') %}
 {{'      %-10s' | format('extractDir:' | trim) }}{{'  %s' | format('CD_HDBSERVER') }}
 {{'      %-13s' | format('extract:' | trim) }}{{'  %s' | format('true') }}
 {{'      %-13s' | format('creates:' | trim) }}{{'  %s' | format('SIGNATURE.SMF') }}
-{{'      %-16s' | format('path:' | trim) }}{{'  %s' | format('download_basket') }}
+{{'      %-12s' | format('path:' | trim) }}{{'  %s' | format('download_basket') }}
 {%     else %}
-{{'      %-16s' | format('path:' | trim) }}{{'  %s' | format('download_basket') }}
+{{'      %-12s' | format('path:' | trim) }}{{'  %s' | format('download_basket') }}
 {%     endif %}
 
 {% endfor %}
