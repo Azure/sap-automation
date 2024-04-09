@@ -13,8 +13,6 @@
     sap_inifile_template:              "generic-inifile-param.j2"
     sap_inifile:                       "{{ bom_base_name }}-generic-{{ sid_to_be_deployed.sid | lower }}-{{ ansible_hostname }}.params"
     dir_params:                        "{{ tmp_directory }}/.{{ sid_to_be_deployed.sid | lower }}-params"
-    product_id:                        "{% if bom.product_ids.CREATEUSERS is defined  %}{{ bom.product_ids.CREATEUSERS }}{% else %}{{ bom.product_ids.generic }}{% endif %}"
-
 
 - name:                                "User Creation: Create directories"
   ansible.builtin.file:
@@ -51,6 +49,11 @@
     task_prefix:                       "GENERIC: "
     sa_enabled:                        true
     always_upload_jinja_templates:     false
+
+- name:                                "User Creation: Get Product ID"
+  ansible.builtin.set_fact:
+    product_id:                        "{% if bom.product_ids.CREATEUSERS is defined  %}{{ bom.product_ids.CREATEUSERS }}{% else %}{{ bom.product_ids.generic }}{% endif %}"
+
 
 - name:                                "User Creation: Template processing - Create ini file {{ sap_inifile }} from {{ sap_inifile_template }}"
   ansible.builtin.template:
