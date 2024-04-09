@@ -5,6 +5,10 @@
 # |                           Validate the parameters                          |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
+# -------------------------------+---------------------------------------------8
+# Step: 01
+# Description: Process Stack XML
+#
 
 - name:                                "0.10-maintenance-planner: Set the fact for the stack xml file location"
   ansible.builtin.set_fact:
@@ -25,10 +29,6 @@
     container:                         "{{ sapbits_location_base_path.rpartition('//')[2].split('/')[1] }}/{{ sapbits_bom_files }}/archives"
     bom_container:                     "{{ sapbits_location_base_path.rpartition('//')[2].split('/')[1] }}/{{ sapbits_bom_files }}/boms/{{ maintenance_plan_id }}"
 
-
-- name:                                "0.10-maintenance-planner: Get current directory"
-  ansible.builtin.command:             pwd
-  register:                            curr_dir
 
 - name:                                "0.10-maintenance-planner: Get the list of directories where we can find the product catalog"
   ansible.builtin.find:
@@ -172,6 +172,13 @@
                                        - "product attributes:       {% for component in components %}{{ 'name:' ~ component.name ~ ' id:' ~ component.id ~ ' output_dir:' ~  component['output-dir'] ~ ' ## '}}{% endfor %}"
     verbosity:                         2
 
+# Step: 01 - END
+# -------------------------------+---------------------------------------------8
+
+# -------------------------------+---------------------------------------------8
+# Step: 02
+# Description: Download the files
+#
 
 - name:                                "0.10-maintenance-planner: Create directories"
   become:                              "{{ bom_processing_become }}"
@@ -199,11 +206,6 @@
     mode:                             0644
     force:                            true
 
-# - name:                               "0.10-maintenance-planner: Create ini file"
-#   ansible.builtin.fail:
-#     msg:                              "The ini file does not exist"
-
-
 - name:                                "0.10-maintenance-planner: - run SAPInst"
   become:                              true
   ansible.builtin.shell: |
@@ -216,6 +218,14 @@
     chdir:                             "{{ tools_base_dir ~ swpm_version_to_use }}"
   environment:
     TMPDIR:                            "/home/{{ orchestration_ansible_user }}/download_basket/tmp"
+
+# Step: 02 - END
+# -------------------------------+---------------------------------------------8
+
+# -------------------------------+---------------------------------------------8
+# Step: 03
+# Description: Add files and create BOM
+#
 
 - name:                                "0.10-maintenance-planner: copy SAPCAR"
   become:                              true
@@ -266,6 +276,15 @@
   ansible.builtin.include_tasks:
     file:                              "process_bom.yaml"
   when:                                create_checksums | default(false)
+
+# Step: 03 - END
+# -------------------------------+---------------------------------------------8
+
+# -------------------------------+---------------------------------------------8
+# Step: 04
+# Description: Upload the files
+#
+
 
 - name:                                "0.10-maintenance-planner: - Using SAS Token"
   when:
@@ -409,43 +428,46 @@
         - azresult.stderr.find("BlobAlreadyExists") == -1
 
 
-    # - name:                            "0.10-maintenance-planner: - Upload Files using integrated login"
-    #   ansible.builtin.command: >-
-    #                                    az storage blob upload-batch
-    #                                      --account-name  {{ account }}
-    #                                      --auth-mode login
-    #                                      --destination   {{ container }}
-    #                                      --source        {{ sap_download_dir }}
-    #                                      --overwrite True
-    #                                      --if-none-match "*"
-    #                                      --no-progress
-    #   delegate_to:                      localhost
-    #   register:                         azresult
-    #   changed_when:                     false
-    #   failed_when:
-    #     - azresult.rc != 0
-    #     - azresult.stderr is defined
-    #     - azresult.stderr.find("BlobAlreadyExists") == -1
+    - name:                            "0.10-maintenance-planner: - Upload Files using integrated login"
+      ansible.builtin.command: >-
+                                       az storage blob upload-batch
+                                         --account-name  {{ account }}
+                                         --auth-mode login
+                                         --destination   {{ container }}
+                                         --source        {{ sap_download_dir }}
+                                         --overwrite True
+                                         --if-none-match "*"
+                                         --no-progress
+      delegate_to:                      localhost
+      register:                         azresult
+      changed_when:                     false
+      failed_when:
+        - azresult.rc != 0
+        - azresult.stderr is defined
+        - azresult.stderr.find("BlobAlreadyExists") == -1
+
+# Step: 04 - END
+# -------------------------------+---------------------------------------------8
 
 
 # -------------------------------+---------------------------------------------8
-# Step: 05-04-01
-# Description:
+# Step: 05
+# Description: Clean up
 #
 
 
-# - name:                               "0.10-maintenance-planner: Remove downloaded files"
-#   ansible.builtin.file:
-#     path:                             "{{ sap_download_dir }}"
-#     state:                            absent
+- name:                               "0.10-maintenance-planner: Remove downloaded files"
+  ansible.builtin.file:
+    path:                             "{{ sap_download_dir }}"
+    state:                            absent
 
 
-# - name:                               "0.10-maintenance-planner: Remove ini file"
-#   ansible.builtin.file:
-#     path:                             "{{ ini_file }}"
-#     state:                            absent
+- name:                               "0.10-maintenance-planner: Remove ini file"
+  ansible.builtin.file:
+    path:                             "{{ ini_file }}"
+    state:                            absent
 
-# Step: 05-04-01 - END
+# Step: 05 - END
 # -------------------------------+---------------------------------------------8
 
 ...
