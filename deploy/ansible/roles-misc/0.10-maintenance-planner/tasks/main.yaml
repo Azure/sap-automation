@@ -326,7 +326,8 @@
     - azresult.rc != 0
     - azresult.stderr is defined
     - azresult.stderr.find("BlobNotFound") == -1
-  when:                                allowSharedKeyAccess
+  when:
+    - sapbits_sas_token is defined
 
 - name:                                "0.10-maintenance-planner: -  delete BoM"
   ansible.builtin.command: >-
@@ -342,7 +343,8 @@
     - azresult.rc != 0
     - azresult.stderr is defined
     - azresult.stderr.find("BlobNotFound") == -1
-  when:                                not allowSharedKeyAccess
+  when:
+    - sapbits_sas_token is undefined
 
 
 - name:                                "0.10-maintenance-planner: - Upload BoM File using SAS keys"
