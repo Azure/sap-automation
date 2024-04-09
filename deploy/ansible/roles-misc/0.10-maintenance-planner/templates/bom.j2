@@ -26,34 +26,34 @@ materials:
 {{'      %-13s' | format('archive:' | trim) }}{{' %s' | format(filename) }}
 {{'      %-12s' | format('download:' | trim) }}{{'  %s' | format('true') }}
 {%     if filename.startswith('SWPM') %}
-{{'      %-11s' | format('extractDir:' | trim) }}{{'  %s' | format('SWPM') }}
+{{'      %-12s' | format('extractDir:' | trim) }}{{'  %s' | format('SWPM') }}
 {{'      %-12s' | format('extract:' | trim) }}{{'  %s' | format('true') }}
 {{'      %-12s' | format('path:' | trim) }}{{'  %s' | format('download_basket') }}
 {%     elif filename.startswith('SUM') %}
-{{'      %-11s' | format('extractDir:' | trim) }}{{'  %s' | format('SUM') }}
+{{'      %-12s' | format('extractDir:' | trim) }}{{'  %s' | format('SUM') }}
 {{'      %-12s' | format('extract:' | trim) }}{{'  %s' | format('true') }}
 {{'      %-12s' | format('path:' | trim) }}{{'  %s' | format('download_basket') }}
 {%     elif filename.startswith('IMDB_CLIENT') %}
-{{'      %-11s' | format('extractDir:' | trim) }}{{'  %s' | format('CD_HDBCLIENT') }}
+{{'      %-12s' | format('extractDir:' | trim) }}{{'  %s' | format('CD_HDBCLIENT') }}
 {{'      %-12s' | format('extract:' | trim) }}{{'  %s' | format('true') }}
 {{'      %-12s' | format('creates:' | trim) }}{{'  %s' | format('SIGNATURE.SMF') }}
 {{'      %-12s' | format('path:' | trim) }}{{'  %s' | format('download_basket') }}
 {%     elif filename.startswith('IMDB_SERVER') %}
-{{'      %-11s' | format('extractDir:' | trim) }}{{'  %s' | format('CD_HDBSERVER') }}
+{{'      %-12s' | format('extractDir:' | trim) }}{{'  %s' | format('CD_HDBSERVER') }}
 {{'      %-12s' | format('extract:' | trim) }}{{'  %s' | format('true') }}
 {{'      %-12s' | format('creates:' | trim) }}{{'  %s' | format('SIGNATURE.SMF') }}
 {{'      %-12s' | format('path:' | trim) }}{{'  %s' | format('download_basket') }}
 {%     elif filename.startswith('IMDB_AFL') %}
-{{'      %-11s' | format('extractDir:' | trim) }}{{'  %s' | format('CD_HDBSERVER/COMPONENTS') }}
+{{'      %-12s' | format('extractDir:' | trim) }}{{'  %s' | format('CD_HDBSERVER/COMPONENTS') }}
 {{'      %-12s' | format('extract:' | trim) }}{{'  %s' | format('true') }}
 {{'      %-12s' | format('creates:' | trim) }}{{'  %s' | format('COMPONENTS/SAP_HANA_AFL/packages') }}
 {{'      %-12s' | format('path:' | trim) }}{{'  %s' | format('download_basket') }}
 {%     elif filename.startswith('VCH20') %}
-{{'      %-11s' | format('extractDir:' | trim) }}{{'  %s' | format('CD_HDBSERVER/COMPONENTS') }}
+{{'      %-12s' | format('extractDir:' | trim) }}{{'  %s' | format('CD_HDBSERVER/COMPONENTS') }}
 {{'      %-12s' | format('extract:' | trim) }}{{'  %s' | format('true') }}
 {{'      %-12s' | format('path:' | trim) }}{{'  %s' | format('download_basket') }}
 {%     elif filename.startswith('VCH19') %}
-{{'      %-11s' | format('extractDir:' | trim) }}{{'  %s' | format('CD_HDBSERVER/COMPONENTS') }}
+{{'      %-12s' | format('extractDir:' | trim) }}{{'  %s' | format('CD_HDBSERVER/COMPONENTS') }}
 {{'      %-12s' | format('extract:' | trim) }}{{'  %s' | format('true') }}
 {{'      %-12s' | format('path:' | trim) }}{{'  %s' | format('download_basket') }}
 {%     else %}
