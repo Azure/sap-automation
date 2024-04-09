@@ -71,6 +71,7 @@
       - "INSTALLED:  {{ users_created.stat.exists }}"
       - "INIFILE:    {{ sap_inifile }}"
       - "PRODUCT ID: {{ product_id }}"
+      - "BOM:        {{ bom_base_name }}"
     verbosity:                         2
 
 - name:                                "User Creation"
