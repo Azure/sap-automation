@@ -223,7 +223,7 @@
             - name:                    "APP Install: Installation results"
               ansible.builtin.debug:
                 msg:
-                  - "prefix:           {{ app_bom_id.replace('.', '/').replace('/PD', '').split(':')[1] }}"
+                  - "prefix:           {{ product_id.replace('.', '/').replace('/PD', '').split(':')[1] }}"
                   - "path:             {{ app_file_path }}"
 
         - name:                        "APP Playbook - Install: Run post install activities"
@@ -231,7 +231,7 @@
             name:                      roles-sap/7.0.0-post-install
           vars:
             suffix:                    "_APP"
-            prefix:                    "{{ app_bom_id.replace('.', '/').replace('/PD', '').split(':')[1] }}"
+            prefix:                    "{{ product_id.replace('.', '/').replace('/PD', '').split(':')[1] }}"
             path:                      "{{ app_file_path }}"
             tier:                      'app'
             this_sid:                  "{{ sid_to_be_deployed.sid | upper }}"
