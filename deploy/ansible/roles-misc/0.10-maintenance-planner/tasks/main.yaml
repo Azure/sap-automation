@@ -204,18 +204,18 @@
 #     msg:                              "The ini file does not exist"
 
 
-# - name:                                "0.10-maintenance-planner: - run SAPInst"
-#   become:                              true
-#   ansible.builtin.shell: |
-#                                        umask {{ custom_umask | default('022') }} ;
-#                                        ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ ini_file }}                         \
-#                                                 SAPINST_EXECUTE_PRODUCT_ID=download_service_toplevel:GENERIC.IND.PD \
-#                                                 SAPINST_SKIP_DIALOGS=true                                           \
-#                                                 SAPINST_START_GUISERVER=false
-#   args:
-#     chdir:                             "{{ tools_base_dir ~ swpm_version_to_use }}"
-#   environment:
-#     TMPDIR:                            "/home/{{ orchestration_ansible_user }}/download_basket/tmp"
+- name:                                "0.10-maintenance-planner: - run SAPInst"
+  become:                              true
+  ansible.builtin.shell: |
+                                       umask {{ custom_umask | default('022') }} ;
+                                       ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ ini_file }}                         \
+                                                SAPINST_EXECUTE_PRODUCT_ID=download_service_toplevel:GENERIC.IND.PD \
+                                                SAPINST_SKIP_DIALOGS=true                                           \
+                                                SAPINST_START_GUISERVER=false
+  args:
+    chdir:                             "{{ tools_base_dir ~ swpm_version_to_use }}"
+  environment:
+    TMPDIR:                            "/home/{{ orchestration_ansible_user }}/download_basket/tmp"
 
 - name:                                "0.10-maintenance-planner: copy SAPCAR"
   become:                              true
@@ -331,25 +331,25 @@
         - azresult.stderr.find("BlobAlreadyExists") == -1
 
 
-    # - name:                            "0.10-maintenance-planner: - Upload Files using SAS Token"
-    #   ansible.builtin.command: >-
-    #                                    az storage blob upload-batch
-    #                                      --account-name  {{ account }}
-                                        #  --sas-token {{ sapbits_sas_token }}
-                                        #  --auth-mode key
-                                        #  --account-key {{ sapbits_access_key }}
-    #                                      --destination   {{ container }}
-    #                                      --source        {{ sap_download_dir }}
-    #                                      --overwrite True
-    #                                      --if-none-match "*"
-    #                                      --no-progress
-    #   delegate_to:                      localhost
-    #   register:                         azresult
-    #   changed_when:                     false
-    #   failed_when:
-    #     - azresult.rc != 0
-    #     - azresult.stderr is defined
-    #     - azresult.stderr.find("BlobAlreadyExists") == -1
+    - name:                            "0.10-maintenance-planner: - Upload Files using SAS Token"
+      ansible.builtin.command: >-
+                                       az storage blob upload-batch
+                                         --account-name  {{ account }}
+                                         --sas-token {{ sapbits_sas_token }}
+                                         --auth-mode key
+                                         --account-key {{ sapbits_access_key }}
+                                         --destination   {{ container }}
+                                         --source        {{ sap_download_dir }}
+                                         --overwrite True
+                                         --if-none-match "*"
+                                         --no-progress
+      delegate_to:                      localhost
+      register:                         azresult
+      changed_when:                     false
+      failed_when:
+        - azresult.rc != 0
+        - azresult.stderr is defined
+        - azresult.stderr.find("BlobAlreadyExists") == -1
 
 - name:                                "0.10-maintenance-planner: - Using integrated login"
   when:
