@@ -56,18 +56,6 @@ NW_DB6_DB.db6.abap.schema                                             = sap{{ db
 
 
 
-#Oracle DB parameters
-MessageServer.configureAclInfo                                       = false
-
-ora.multitenant.installMT                                            = FALSE
-ora.multitenant.pdbsid                                               = {{ db_sid }}
-
-ora.whatInstallation                                                 = isSingle
-ora.whatIsInstance                                                   = isSingle
-ora.whatIsASM                                                        = {{ oraASM }}
-ora.whatIsCDB                                                        = isNonCDB
-ora.whatIsOracleUser                                                 = true
-
 NW_WPConfiguration.ciDialogWPNumber                                   = {{ sap_ciDialogWPNumber}}
 NW_WPConfiguration.ciBtcWPNumber                                      = {{ sap_ciBtcWPNumber }}
 
@@ -97,6 +85,8 @@ storageBasedCopy.ora.swowner                                         = oracle
 SAPINST.CD.PACKAGE.CD1                                                = {{ target_media_location }}/EXPORT/DATA_UNITS/EXP1
 SAPINST.CD.PACKAGE.CD2                                                = {{ target_media_location }}/EXPORT/DATA_UNITS/EXP2
 SAPINST.CD.PACKAGE.CD3                                                = {{ target_media_location }}/EXPORT/DATA_UNITS/EXP3
+MessageServer.configureAclInfo                                       = false
+
 {% endif %}
 
 {% if platform | upper == 'ORACLE' %}
@@ -125,6 +115,7 @@ storageBasedCopy.ora.swowner                                         = oracle
 SAPINST.CD.PACKAGE.CD1                                                = {{ target_media_location }}/EXPORT/DATA_UNITS/EXP1
 SAPINST.CD.PACKAGE.CD2                                                = {{ target_media_location }}/EXPORT/DATA_UNITS/EXP2
 SAPINST.CD.PACKAGE.CD3                                                = {{ target_media_location }}/EXPORT/DATA_UNITS/EXP3
+MessageServer.configureAclInfo                                       = false
 {% endif %}
 
 
