@@ -93,17 +93,19 @@
   when:
     - platform == 'HANA'
 
-- name:                                "DBLoad Install: Installation results"
-  ansible.builtin.debug:
-    msg:                               "Schema name {{ schema_search }}"
-  when:
-    - platform == 'HANA'
-
 - name:                                "DBLoad Install: Get schema name"
   ansible.builtin.set_fact:
-    schema_name:                       "{{ profilefile['content'] | b64decode | split('\n') | select('search', 'dbs/hdb/schema') | default(['dbs/hdb/schema=' ~ hana_schema] ) | first | split('=') | last | trim }}"
+    schema_name:                       "{{ schema_search | first | split('=') | last | trim }}"
   when:
     - platform == 'HANA'
+    - schema_search | length > 0
+
+- name:                                "DBLoad Install: Set default schema name"
+  ansible.builtin.set_fact:
+    schema_name:                       "{{ hana_schema }}"
+  when:
+    - platform == 'HANA'
+    - schema_search | length == 0
 
 - name:                                "DBLoad Install: Installation results"
   ansible.builtin.debug:
