@@ -264,7 +264,7 @@
                 name:                  roles-sap/7.0.0-post-install
               vars:
                 suffix:                "_PAS"
-                prefix:                "{{ bom.product_ids.pas.replace('.', '/').replace('/ABAP', '').replace('/PD', '').split(':')[1] }}"
+                prefix:                "{{ product_id.replace('.', '/').replace('/ABAP', '').replace('/PD', '').split(':')[1] }}"
                 path:                  'INSTALL/DISTRIBUTED/{{ pas_bom_instance_type }}/APP1'
                 tier:                  'pas'
                 this_sid:              "{{ sid_to_be_deployed.sid | upper }}"
