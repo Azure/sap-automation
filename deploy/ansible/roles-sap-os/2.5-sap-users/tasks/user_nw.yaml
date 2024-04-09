@@ -52,8 +52,7 @@
 
 - name:                                "User Creation: Get Product ID"
   ansible.builtin.set_fact:
-    create_users_product_id:           "{% if bom.create_users_product_ids.CREATEUSERS is defined  %}{{ bom.create_users_product_ids.CREATEUSERS }}{% else %}{{ bom.create_users_product_ids.generic }}{% endif %}"
-
+    create_users_product_id:           "{% if bom.create_users_product_ids.CREATEUSERS is defined  %}{{ bom.product_ids.CREATEUSERS }}{% else %}{{ bom.product_ids.generic }}{% endif %}"
 
 - name:                                "User Creation: Template processing - Create ini file {{ sap_inifile }} from {{ sap_inifile_template }}"
   ansible.builtin.template:
