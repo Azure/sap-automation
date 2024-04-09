@@ -89,7 +89,7 @@
 
 - name:                                "DBLoad Install: Get schema name"
   ansible.builtin.set_fact:
-    schema_name:                       "{{ profilefile['content'] | b64decode | split('\n') | (select('search', 'dbs/hdb/schema') | first | split('=') | last | trim) | default('{{ hana_schema }}') }}"
+    schema_name:                       "{{ profilefile['content'] | b64decode | split('\n') | select('search', 'dbs/hdb/schema') | default({{ hana_schema }}) | first | split('=') | last | trim }}"
   when:
     - platform == 'HANA'
 
