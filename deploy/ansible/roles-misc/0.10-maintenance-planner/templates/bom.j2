@@ -1,9 +1,10 @@
-name:          {{ stack_constraint_attributes.matches[0].constraint.description }}
-filename:      {{ maintenance_plan_id }}.yaml
-target:        {{ stack_attributes.matches[4].constraint.description }}
-version:       1
-platform:      "HANA"
-InstanceType:  {{ stack_attributes.matches[1].constraint.value }}
+name:               {{ stack_constraint_attributes.matches[0].constraint.description }}
+filename:           {{ maintenance_plan_id }}.yaml
+target:             {{ stack_attributes.matches[4].constraint.description }}
+maintenance_plan:   {{ maintenance_plan_id }}
+version:            1
+platform:           "HANA"
+InstanceType:       {{ stack_attributes.matches[1].constraint.value }}
 
 
 product_ids:
@@ -25,22 +26,22 @@ materials:
 {{'      %-13s' | format('archive:' | trim) }}{{' %s' | format(filename) }}
 {{'      %-12s' | format('download:' | trim) }}{{'  %s' | format('true') }}
 {%     if filename.startswith('SWPM') %}
-{{'      %-10s' | format('extractDir:' | trim) }}{{'  %s' | format('SWPM') }}
-{{'      %-13s' | format('extract:' | trim) }}{{'  %s' | format('true') }}
+{{'      %-11s' | format('extractDir:' | trim) }}{{'  %s' | format('SWPM') }}
+{{'      %-12s' | format('extract:' | trim) }}{{'  %s' | format('true') }}
 {{'      %-12s' | format('path:' | trim) }}{{'  %s' | format('download_basket') }}
 {%     elif filename.startswith('SUM') %}
-{{'      %-10s' | format('extractDir:' | trim) }}{{'  %s' | format('SUM') }}
-{{'      %-13s' | format('extract:' | trim) }}{{'  %s' | format('true') }}
+{{'      %-11s' | format('extractDir:' | trim) }}{{'  %s' | format('SUM') }}
+{{'      %-12s' | format('extract:' | trim) }}{{'  %s' | format('true') }}
 {{'      %-12s' | format('path:' | trim) }}{{'  %s' | format('download_basket') }}
 {%     elif filename.startswith('IMDB_CLIENT') %}
-{{'      %-10s' | format('extractDir:' | trim) }}{{'  %s' | format('CD_HDBCLIENT') }}
-{{'      %-13s' | format('extract:' | trim) }}{{'  %s' | format('true') }}
-{{'      %-13s' | format('creates:' | trim) }}{{'  %s' | format('SIGNATURE.SMF') }}
+{{'      %-11s' | format('extractDir:' | trim) }}{{'  %s' | format('CD_HDBCLIENT') }}
+{{'      %-12s' | format('extract:' | trim) }}{{'  %s' | format('true') }}
+{{'      %-12s' | format('creates:' | trim) }}{{'  %s' | format('SIGNATURE.SMF') }}
 {{'      %-12s' | format('path:' | trim) }}{{'  %s' | format('download_basket') }}
 {%     elif filename.startswith('IMDB_SERVER') %}
-{{'      %-10s' | format('extractDir:' | trim) }}{{'  %s' | format('CD_HDBSERVER') }}
-{{'      %-13s' | format('extract:' | trim) }}{{'  %s' | format('true') }}
-{{'      %-13s' | format('creates:' | trim) }}{{'  %s' | format('SIGNATURE.SMF') }}
+{{'      %-11s' | format('extractDir:' | trim) }}{{'  %s' | format('CD_HDBSERVER') }}
+{{'      %-12s' | format('extract:' | trim) }}{{'  %s' | format('true') }}
+{{'      %-12s' | format('creates:' | trim) }}{{'  %s' | format('SIGNATURE.SMF') }}
 {{'      %-12s' | format('path:' | trim) }}{{'  %s' | format('download_basket') }}
 {%     else %}
 {{'      %-12s' | format('path:' | trim) }}{{'  %s' | format('download_basket') }}
