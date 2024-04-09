@@ -202,18 +202,18 @@
 #     msg:                              "The ini file does not exist"
 
 
-# - name:                                "0.10-maintenance-planner: - run SAPInst"
-#   become:                              true
-#   ansible.builtin.shell: |
-#                                        umask {{ custom_umask | default('022') }} ;
-#                                        ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ ini_file }}                         \
-#                                                 SAPINST_EXECUTE_PRODUCT_ID=download_service_toplevel:GENERIC.IND.PD \
-#                                                 SAPINST_SKIP_DIALOGS=true                                           \
-#                                                 SAPINST_START_GUISERVER=false
-#   args:
-#     chdir:                             "{{ tools_base_dir ~ swpm_version_to_use }}"
-#   environment:
-#     TMPDIR:                            "/home/{{ orchestration_ansible_user }}/download_basket/tmp"
+- name:                                "0.10-maintenance-planner: - run SAPInst"
+  become:                              true
+  ansible.builtin.shell: |
+                                       umask {{ custom_umask | default('022') }} ;
+                                       ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ ini_file }}                         \
+                                                SAPINST_EXECUTE_PRODUCT_ID=download_service_toplevel:GENERIC.IND.PD \
+                                                SAPINST_SKIP_DIALOGS=true                                           \
+                                                SAPINST_START_GUISERVER=false
+  args:
+    chdir:                             "{{ tools_base_dir ~ swpm_version_to_use }}"
+  environment:
+    TMPDIR:                            "/home/{{ orchestration_ansible_user }}/download_basket/tmp"
 
 - name:                                "0.10-maintenance-planner: copy SAPCAR"
   become:                              true
