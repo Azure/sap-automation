@@ -48,6 +48,10 @@ materials:
 {{'      %-12s' | format('extract:' | trim) }}{{'  %s' | format('true') }}
 {{'      %-12s' | format('creates:' | trim) }}{{'  %s' | format('COMPONENTS/SAP_HANA_AFL/packages') }}
 {{'      %-12s' | format('path:' | trim) }}{{'  %s' | format('download_basket') }}
+{%     elif filename.startswith('IMDB_LCAPP') %}
+{{'      %-12s' | format('extractDir:' | trim) }}{{'  %s' | format('CD_HDBSERVER/COMPONENTS') }}
+{{'      %-12s' | format('extract:' | trim) }}{{'  %s' | format('true') }}
+{{'      %-12s' | format('path:' | trim) }}{{'  %s' | format('download_basket') }}
 {%     elif filename.startswith('VCH20') %}
 {{'      %-12s' | format('extractDir:' | trim) }}{{'  %s' | format('CD_HDBSERVER/COMPONENTS') }}
 {{'      %-12s' | format('extract:' | trim) }}{{'  %s' | format('true') }}

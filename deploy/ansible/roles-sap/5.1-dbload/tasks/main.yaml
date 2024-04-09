@@ -87,6 +87,18 @@
     src:                               "/sapmnt/{{ sap_sid | upper }}/profile/DEFAULT.PFL"
   register: profilefile
 
+- name:                                "DBLoad Install: Get schema name Part 1"
+  ansible.builtin.set_fact:
+    schema_search:                     "{{ profilefile['content'] | b64decode | split('\n') | select('search', 'dbs/hdb/schema')
+  when:
+    - platform == 'HANA'
+
+- name:                                "DBLoad Install: Installation results"
+  ansible.builtin.debug:
+    msg:                               "Schema name {{ schema_search }}"
+  when:
+    - platform == 'HANA'
+
 - name:                                "DBLoad Install: Get schema name"
   ansible.builtin.set_fact:
     schema_name:                       "{{ profilefile['content'] | b64decode | split('\n') | select('search', 'dbs/hdb/schema') | default(['dbs/hdb/schema=' ~ hana_schema] ) | first | split('=') | last | trim }}"

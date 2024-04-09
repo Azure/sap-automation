@@ -142,7 +142,7 @@
                 name:                  roles-sap/7.0.0-post-install
               vars:
                 suffix:                '_DBLOAD'
-                prefix:                "{{ bom.product_ids.dbl.replace('.', '/').replace('/ABAP', '').split(':')[1] }}"
+                prefix:                "{{ product_id.replace('.', '/').replace('/ABAP', '').split(':')[1] }}"
                 path:                  '/INSTALL/DISTRIBUTED/{{ dbl_bom_instance_type }}/DB'
                 tier:                  'dbload'
 
@@ -243,7 +243,7 @@
                 name:                  roles-sap/7.0.0-post-install
               vars:
                 suffix:                '_DBLOAD'
-                prefix:                "{{ bom.product_ids.dbl.replace('.', '/').replace('/ABAP', '').split(':')[1] }}"
+                prefix:                "{{ product_id.replace('.', '/').replace('/ABAP', '').split(':')[1] }}"
                 path:                  'INSTALL/DISTRIBUTED/ABAP/DB'
                 tier:                  'dbload'
                 this_sid:              "{{ sid_to_be_deployed.sid | upper }}"
@@ -355,7 +355,7 @@
                 name:                  roles-sap/windows/7.0.0-post-install
               vars:
                 suffix:                '_DBLOAD'
-                # prefix:                "{{ bom.product_ids.dbl.replace('.','/').replace('/ABAP','').split(':')[1] }}"
+                # prefix:                "{{ product_id.replace('.','/').replace('/ABAP','').split(':')[1] }}"
                 # path:                  '/INSTALL/DISTRIBUTED/ABAP/DB'
                 tier:                  'dbload'
 
